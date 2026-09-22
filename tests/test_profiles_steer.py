@@ -554,7 +554,7 @@ def test_a_steer_continuation_runs_to_exit_recorded_through_inspector_run(
     the continuation's receipt plus a real watch loop reaching `exit-recorded`
     with exactly one exec on the ledger.
     """
-    launched = lab.dispatch(CrewName.CLAUDE, session_id="")
+    launched = lab.dispatch(CrewName.CLAUDE, session_id="", owned=True)
     assert launched.handle is not None
     session = launched.handle.session_id
     steered = steer(lab, launched.activation.activation_id)
@@ -585,7 +585,7 @@ def test_a_steer_that_crashed_before_the_kill_still_reaches_a_resumed_child(
     which is exactly the position R1 says must be dispatchable. The instructions
     come back off the same file recovery classified from.
     """
-    launched = lab.dispatch(CrewName.CLAUDE, session_id="")
+    launched = lab.dispatch(CrewName.CLAUDE, session_id="", owned=True)
     parent = launched.activation
     assert launched.handle is not None
     session = launched.handle.session_id
@@ -740,7 +740,7 @@ def test_an_infra_retry_of_a_continuation_carries_the_steer_forward(lab: Lab) ->
     the same steered work, so it resumes the same session with the same text,
     read off the STEERED activation's intent file one hop further back.
     """
-    launched = lab.dispatch(CrewName.CLAUDE, session_id="")
+    launched = lab.dispatch(CrewName.CLAUDE, session_id="", owned=True)
     parent = launched.activation
     assert launched.handle is not None
     session = launched.handle.session_id
@@ -773,7 +773,7 @@ def test_a_retry_of_a_retry_still_finds_the_steer(lab: Lab) -> None:
     original brief in a fresh session — the silent loss, one activation further
     down the chain.
     """
-    launched = lab.dispatch(CrewName.CLAUDE, session_id="")
+    launched = lab.dispatch(CrewName.CLAUDE, session_id="", owned=True)
     parent = launched.activation
     assert launched.handle is not None
     session = launched.handle.session_id
@@ -814,7 +814,7 @@ def test_a_retry_of_a_continuation_whose_intent_is_gone_is_refused(lab: Lab) -> 
     and relaunching the node's original brief is exactly the silent loss this
     family exists to prevent.
     """
-    launched = lab.dispatch(CrewName.CLAUDE, session_id="")
+    launched = lab.dispatch(CrewName.CLAUDE, session_id="", owned=True)
     parent = launched.activation
     steered = steer(lab, parent.activation_id)
     continuation = lab.run(CrewName.CLAUDE, request=steered.intent.continuation)

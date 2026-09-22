@@ -35,6 +35,7 @@ from workflow_interpreter.bdio import (
 )
 from workflow_interpreter.foreman import __main__ as main_module
 from workflow_interpreter.foreman.constants import MAX_TRANSCRIPT_BYTES
+from workflow_interpreter.foreman.execution import resolved_node
 from workflow_interpreter.foreman.tick import Foreman
 from workflow_interpreter.inspector.clock import to_iso
 from workflow_interpreter.inspector.errors import ContinuationRefused
@@ -45,6 +46,7 @@ from workflow_interpreter.inspector.procfs import (
     STAT_FILE,
     ZOMBIE_STATE,
 )
+from workflow_interpreter.inspector.run import choose_precondition
 from workflow_interpreter.inspector.steer import instructions_digest
 
 # Every test in this file is a §5 drill row (INSPECT and STEER).
@@ -159,6 +161,15 @@ def test_steer_preserves_session_round_and_its_bounded_tail(
         .store.mint_activation(root.root_id, entry_request(session_id=""))
         .activation
     )
+    # Production proves the §3 precondition before any dispatch; a parent that
+    # never owned its checkout preserves as `unavailable` on the steer, and that
+    # rightly proves no tree for its continuation to resume against.
+    choose_precondition(
+        lab.wiring().workspace,
+        resolved_node(root, activation.metadata.node).node,
+        None,
+        None,
+    )(activation)
     activation = lab.wiring().store.record_dispatch(
         activation.activation_id, handle(), launch_id=LAB_LAUNCH_ID
     )

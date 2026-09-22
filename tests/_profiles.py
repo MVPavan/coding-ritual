@@ -81,6 +81,7 @@ from workflow_interpreter.inspector.profile import (
     Profile,
     observe_session,
 )
+from workflow_interpreter.inspector.run import choose_precondition
 from workflow_interpreter.inspector.sandbox import SandboxMode
 from workflow_interpreter.profiles import CrewName, ProfileConfig, ProfileRegistry
 from workflow_interpreter.profiles.claude import ClaudeProfile
@@ -818,6 +819,7 @@ class Lab:
         brief: str = BRIEF,
         resume_brief: str | None = None,
         binary: Path | str | None = None,
+        owned: bool = False,
     ) -> DispatchResult:
         """Run §5.2 phase B alone, with no watch loop over the child.
 
@@ -863,6 +865,12 @@ class Lab:
                 resume_brief=resume_brief,
             ),
             instructions=instructions,
+            # `owned` takes the §3 precondition production chooses. Without it
+            # the child runs on a checkout nobody owns, so a steer's
+            # preservation is honestly `unavailable` and proves no resume tree.
+            precondition=choose_precondition(self.workspace, node, None, None)
+            if owned
+            else None,
         )
         if result.handle is not None:
             self.children.append(result.handle)

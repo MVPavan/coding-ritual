@@ -325,8 +325,21 @@ class Steerer:
         before the close, because a settled activation no longer accepts it; a
         failure here only costs the continuation its tree-faithful resume,
         which then refuses by name rather than resetting.
+
+        An UNAVAILABLE preservation is the one case with nothing to record
+        (§6): ownership was unattributable, so the bytes in the checkout are
+        not provably this turn's, and stating their OID would prove a resume
+        against a tree nobody vouched for. No proof means the continuation
+        refuses by name, which is what a snapshot failure is supposed to cost.
         """
         if not node.writes:
+            return
+        if preserved is not None and preserved.unavailable is not None:
+            _LOG.warning(
+                "wf.session.tree_unattributable",
+                activation_id=activation.activation_id,
+                reason=preserved.unavailable,
+            )
             return
         try:
             tree = (

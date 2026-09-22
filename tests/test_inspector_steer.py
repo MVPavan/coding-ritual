@@ -52,6 +52,7 @@ from workflow_interpreter.inspector import (
     TerminationFailed,
     WrapperPaths,
 )
+from workflow_interpreter.inspector.models import RecoverySnapshot
 from workflow_interpreter.inspector.paths import read_record
 from workflow_interpreter.inspector.steer import instructions_digest
 
@@ -162,6 +163,30 @@ def test_steer_is_idempotent(tmp_path: Path) -> None:
         second.continuation.activation.activation_id
         == first.continuation.activation.activation_id
     )
+
+
+def test_unattributable_preservation_pins_no_resume_tree(tmp_path: Path) -> None:
+    """§6: a snapshot that could not be taken refuses the resume, never weakens it.
+
+    A steered writer whose ownership is unattributable had its interrupted
+    work preserved as `unavailable` — nothing states what its session was left
+    looking at. Recording the tree the continuation happens to FIND there would
+    prove a resume against bytes this frame never vouched for; with no OID, the
+    continuation refuses by name instead.
+    """
+    lab = Lab(tmp_path)
+    activation = lab.dispatched(handle_for(dead_pid()))
+
+    result = _steer(lab, activation)
+
+    preserved = read_record(
+        lab.paths.recovery_snapshot(activation.activation_id), RecoverySnapshot
+    )
+    assert preserved is not None
+    assert preserved.unavailable is not None
+    steered = lab.store.reads.load_activation(activation.activation_id)
+    assert steered.metadata.session_tree_oid is None
+    assert result.continuation.activation.metadata.expected_tree_oid is None
 
 
 def test_a_child_that_will_not_die_refuses_the_steer(tmp_path: Path) -> None:
