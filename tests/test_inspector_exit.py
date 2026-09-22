@@ -61,6 +61,7 @@ from workflow_interpreter.inspector import (
     Workspace,
     WrapperPaths,
 )
+from workflow_interpreter.inspector.exit_grade import EvidenceGrader
 from workflow_interpreter.inspector.models import LaunchReceipt
 from workflow_interpreter.inspector.paths import read_record, write_record
 from workflow_interpreter.inspector.recover import classify
@@ -598,6 +599,33 @@ def test_an_uncomputable_evidence_pass_still_records_the_exit(
     classification = classify(lab.config, lab.paths, lab.reload())
     assert classification.case is RecoveryCase.EXIT_RECORDED
     assert classification.evidence_complete is False
+
+
+def test_an_uncomputable_verdict_still_flags_a_read_only_mutation(
+    lab: Lab, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """§3: a reviewer that mutated the tree keeps the flag when grading fails.
+
+    The after-exit equality is observed BEFORE §7 runs, so the uncomputable
+    early return is the one place it could be dropped — and a verdict that
+    lost it would read as a reviewer that left the tree alone.
+    """
+
+    def refuse(*_: object, **__: object) -> object:
+        raise VerifyTreeError("the §7.3 checkout could not be created")
+
+    monkeypatch.setattr(EvidenceGrader, "_compute", refuse)
+    lab.node = lab.node.model_copy(update={"writes": False})
+    lab.workspace.observe_shared_tree(lab.activation, lab.node)
+    (lab.tree / FEATURE_FILE).write_text("a reviewer wrote after all\n")
+    lab.marker(json.dumps(DONE_MARKER))
+    lab.effects()
+
+    observation = lab.observe()
+
+    assert AuditFlag.VERIFY_UNRUNNABLE in observation.completion.audit_flags
+    assert AuditFlag.READ_ONLY_TREE_MUTATED in observation.completion.audit_flags
+    assert not lab.paths.completion(lab.activation.activation_id).exists()
 
 
 @pytest.mark.parametrize("call", ["record_attribution", "pin_artifact"])

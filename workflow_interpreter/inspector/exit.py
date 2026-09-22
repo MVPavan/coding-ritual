@@ -146,6 +146,19 @@ def _envelope_usage(envelope: TerminalEnvelope | None) -> Usage:
     return Usage(known=False) if envelope is None else envelope.usage
 
 
+def _with_mutation_flag(
+    completion: CompletionEvidence, mutated: str | None
+) -> CompletionEvidence:
+    """Carry §3's read-only mutation onto a verdict, graded or uncomputable."""
+    if mutated is None:
+        return completion
+    return completion.model_copy(
+        update={
+            "audit_flags": (*completion.audit_flags, AuditFlag.READ_ONLY_TREE_MUTATED)
+        }
+    )
+
+
 def no_progress_breaker(
     previous_tree_oid: str | None, artifact: ArtifactIdentity | None
 ) -> Breaker | None:
@@ -524,9 +537,15 @@ class ExitObserver:
                 activation_id=activation_id,
                 error=str(exc),
             )
+            # The mutation was observed before §7 ran, so a failed grading
+            # must not drop it: this verdict is the only record of it.
             return self._with_sandbox_verdict(
                 activation_id,
-                ComputedEvidence(completion=self._uncomputable(artifact, exc)),
+                ComputedEvidence(
+                    completion=_with_mutation_flag(
+                        self._uncomputable(artifact, exc), mutated
+                    )
+                ),
             )
         completion = self._with_sandbox_verdict(activation_id, computed)
         # Extracted here rather than in the grader because the tree is pinned
@@ -552,11 +571,9 @@ class ExitObserver:
                         "claimed_outcome": completion.claimed_outcome,
                     }
                 ),
-                "audit_flags": completion.audit_flags
-                if mutated is None
-                else (*completion.audit_flags, AuditFlag.READ_ONLY_TREE_MUTATED),
             }
         )
+        completion = _with_mutation_flag(completion, mutated)
         write_record(self._paths.completion(activation_id), completion)
         return completion
 
