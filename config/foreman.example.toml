@@ -131,6 +131,9 @@ profile = "claude"
 model = "claude-opus-5"
 effort = "high"
 # session_mode = "resume" # optional; node.session_mode overrides this default
+# context_cap_tokens = 400000 # optional, claude only: passed as --autocompact on
+#                              # launch and resume (claude accepts 100000-1000000);
+#                              # unset keeps the vendor default; a codex role refuses it
 
 [roles.critic]
 profile = "codex"

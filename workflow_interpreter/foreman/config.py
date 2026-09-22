@@ -5,11 +5,19 @@ import tomllib
 from pathlib import Path
 from typing import Annotated, Final
 
-from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    PositiveInt,
+    StringConstraints,
+    model_validator,
+)
 
 from workflow_interpreter.bdio.config import SigningConfig
 from workflow_interpreter.contractor.tracker_config import TrackerSettings
 from workflow_interpreter.contractor.verification import CheckCommand
+from workflow_interpreter.contracts.execution import CrewName
 from workflow_interpreter.contracts.sessions import SessionMode
 from workflow_interpreter.foreman.wake_constants import (
     DEFAULT_EVENT_CAP,
@@ -23,6 +31,12 @@ from workflow_interpreter.profiles.config import MODEL_VENDOR_DEFAULT, ProfileCo
 MSG_WORKTREE_REPO_ROOT: Final[str] = (
     "foreman repo_root {repo_root} is a linked worktree; configure the "
     "repository whose git common directory it borrows (run-ledger §3.5)"
+)
+
+MSG_CONTEXT_CAP_NOT_CLAUDE: Final[str] = (
+    "role {role!r} binds profile {profile!r} and sets context_cap_tokens; "
+    "the cap maps to claude's --autocompact only, so a non-claude role must "
+    "leave it unset (codex keeps its vendor default window)"
 )
 
 REPO_HASH_LENGTH: Final[int] = 16
@@ -53,6 +67,12 @@ class CrewBinding(BaseModel):
     model: Annotated[str, StringConstraints(min_length=1)]
     effort: Annotated[str, StringConstraints(min_length=1)]
     session_mode: SessionMode | None = None
+    context_cap_tokens: PositiveInt | None = None
+    """Claude's `--autocompact` threshold, passed through unchanged.
+
+    No model-to-window table checks it: the operator supplies the value and
+    claude validates it (it accepts 100000 to 1000000). Unset emits no flag,
+    which leaves the vendor default."""
 
 
 class WakeConfig(BaseModel):
@@ -139,6 +159,15 @@ class ForemanConfig(BaseModel):
             if binding.model == MODEL_VENDOR_DEFAULT:
                 raise ValueError(
                     f"role {role!r} cannot bind model {MODEL_VENDOR_DEFAULT!r}"
+                )
+            if (
+                binding.context_cap_tokens is not None
+                and binding.profile != CrewName.CLAUDE.value
+            ):
+                raise ValueError(
+                    MSG_CONTEXT_CAP_NOT_CLAUDE.format(
+                        role=role, profile=binding.profile
+                    )
                 )
         return self
 

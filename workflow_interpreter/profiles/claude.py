@@ -56,6 +56,7 @@ SESSION_ID: Final[str] = "--session-id"
 RESUME: Final[str] = "--resume"
 MODEL: Final[str] = "--model"
 EFFORT: Final[str] = "--effort"
+AUTOCOMPACT: Final[str] = "--autocompact"
 PERMISSION_MODE: Final[tuple[str, str]] = ("--permission-mode", "dontAsk")
 SETTING_SOURCES: Final[tuple[str, str]] = ("--setting-sources", "")
 STRICT_MCP: Final[str] = "--strict-mcp-config"
@@ -246,6 +247,9 @@ class ClaudeProfile(BaseProfile):
         ]
         flags += [MODEL, _required_model(task)]
         flags += [EFFORT, _required_effort(task)]
+        if task.context_cap_tokens is not None:
+            # Passed unchanged; claude itself refuses a value outside 100k-1M.
+            flags += [AUTOCOMPACT, str(task.context_cap_tokens)]
         return [*flags, *self._bounds(task)]
 
     def _bounds(self, task: TaskSpec) -> list[str]:

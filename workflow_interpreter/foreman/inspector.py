@@ -237,6 +237,7 @@ def _task_builder(root: RootRecord, wiring: InstanceWiring, git: Git) -> TaskBui
             node=node.name,
             model=resolved.model,
             effort=resolved.effort,
+            context_cap_tokens=resolved.context_cap_tokens,
             writes=bool(node.writes),
             execution_profile=node.execution_profile,
             execution_policy=resolved.execution_policy,

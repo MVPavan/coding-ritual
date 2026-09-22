@@ -36,6 +36,16 @@ def session_mode_key(node: str) -> str:
     return SESSION_MODE_KEY.format(node=node)
 
 
+CONTEXT_CAP_KEY: Final[str] = "node.{node}.context_cap_tokens"
+"""Role-binding-only pin: deliberately outside `NodeSetting`, which is the
+project/override vocabulary, because the cap has no node or config override."""
+
+
+def context_cap_key(node: str) -> str:
+    """Name the pinned claude context-cap setting for one task node."""
+    return CONTEXT_CAP_KEY.format(node=node)
+
+
 def execution_policy_digest(pinned_policy: str) -> str:
     """Hash the root-pinned policy representation; the full policy stays on the root."""
     return hashlib.sha256(pinned_policy.encode("utf-8")).hexdigest()

@@ -20,10 +20,11 @@ from workflow_interpreter.bdio.roots import (
     MAX_INSTANCE_INPUT_BYTES,
     pin_execution_policies,
 )
-from workflow_interpreter.contracts.execution import MSG_PROFILE_WRITES
+from workflow_interpreter.contracts.execution import MSG_PROFILE_WRITES, CrewName
 from workflow_interpreter.contracts.run_identity import RunIdentity
 from workflow_interpreter.contracts.sessions import (
     SessionMode,
+    context_cap_key,
     session_mode_key,
 )
 from workflow_interpreter.foreman.compose import Composition
@@ -478,6 +479,19 @@ def _resolved_config(
             settings[effort_key] = ResolvedSetting(
                 key=effort_key,
                 value=binding.effort,
+                source=ConfigSource.ROLE_BINDING,
+            )
+        # Pinned only when set, so a role without a cap resolves — and signs —
+        # exactly as it did before the field existed (idempotent re-creation).
+        # A project/override crew that is not claude never carries it.
+        if (
+            binding.context_cap_tokens is not None
+            and settings[crew_key].value == CrewName.CLAUDE.value
+        ):
+            cap_key = context_cap_key(node.name)
+            settings[cap_key] = ResolvedSetting(
+                key=cap_key,
+                value=binding.context_cap_tokens,
                 source=ConfigSource.ROLE_BINDING,
             )
     settings.update(

@@ -23,7 +23,7 @@ from workflow_interpreter.contracts.execution import (
     MSG_POLICY_MISMATCH,
     ExecutionPolicy,
 )
-from workflow_interpreter.contracts.sessions import session_mode_key
+from workflow_interpreter.contracts.sessions import context_cap_key, session_mode_key
 from workflow_interpreter.foreman.errors import (
     UnresolvedCrewError,
     UnusableResolutionError,
@@ -114,6 +114,8 @@ class ResolvedNode(BaseModel):
     model: str
     effort: str | None
     execution_policy: ExecutionPolicy | None = None
+    context_cap_tokens: int | None = None
+    """Claude's pinned `--autocompact` threshold; None leaves the vendor default."""
 
 
 def resolved_node(root: RootRecord, node_name: str) -> ResolvedNode:
@@ -164,12 +166,20 @@ def resolved_node(root: RootRecord, node_name: str) -> ResolvedNode:
             raise UnusableResolutionError(MSG_POLICY_MISMATCH) from error
         if policy.name != pinned.execution_profile or policy.writes != effective.writes:
             raise UnusableResolutionError(MSG_POLICY_MISMATCH)
+    cap = settings.get(context_cap_key(node_name))
+    if cap is not None and (type(cap) is not int or cap <= 0):
+        raise UnusableResolutionError(
+            _MSG_UNUSABLE_ROOT.format(
+                node=node_name, detail="context_cap_tokens is not a positive int"
+            )
+        )
     return ResolvedNode(
         node=effective,
         crew_profile=crew_profile,
         model=model,
         effort=effort,
         execution_policy=policy,
+        context_cap_tokens=cap,
     )
 
 

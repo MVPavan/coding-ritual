@@ -178,6 +178,8 @@ class TaskSpec(BaseModel):
     resume_brief: str | None = None
     """Only the durable activation delta appended to an existing vendor thread."""
     token_budget: int | None = None
+    context_cap_tokens: int | None = None
+    """Claude's `--autocompact` threshold from the role binding; other crews ignore it."""
     artifact_input_mode: ArtifactInputMode = ArtifactInputMode.INLINE
 
 
