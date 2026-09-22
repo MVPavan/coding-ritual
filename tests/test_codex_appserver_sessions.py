@@ -22,6 +22,7 @@ from workflow_interpreter.bdio.rpc_records import (
     SessionRegistration,
 )
 from workflow_interpreter.bdio.sessions import choose_source
+from workflow_interpreter.contracts.codex import CODEX_VERSION
 from workflow_interpreter.contracts.execution import EXECUTION_POLICY_KEY
 from workflow_interpreter.contracts.sessions import (
     MSG_SESSION_MODE_CONFLICT,
@@ -31,6 +32,7 @@ from workflow_interpreter.contracts.sessions import (
 from workflow_interpreter.inspector.models import SteerIntent
 from workflow_interpreter.inspector.paths import write_record
 from workflow_interpreter.inspector.rpc_state import state_for
+from workflow_interpreter.schema.loader import canonical_bytes
 from workflow_interpreter.schema.models import Outcome
 
 
@@ -52,23 +54,28 @@ def test_legacy_appserver_session_reuse_decodes_without_rewriting_and_conflicts(
     """Old pins retain their spelling; dual old/new authority is rejected by name."""
     legacy_path = tmp_path / "legacy.toml"
     legacy_path.write_text(
-        VALID_FIXTURE.read_text().replace(
-            "writes = true", 'writes = true\nsession_reuse = "same-node"', 1
+        re.sub(
+            r"writes\s*=\s*true",
+            'writes = true\nsession_reuse = "same-node"',
+            VALID_FIXTURE.read_text(),
+            count=1,
         )
     )
     legacy = load_graph(legacy_path)
     node = next(item for item in legacy.document.node if item.name == "implement")
     assert node.session_reuse is SessionReuse.SAME_NODE
     assert node.session_mode is SessionMode.RESUME
-    assert '"session_reuse":"same-node"' in legacy.canonical_body
-    assert '"session_mode"' not in legacy.canonical_body
+    body = canonical_bytes(legacy.document).decode()
+    assert '"session_reuse":"same-node"' in body
+    assert '"session_mode"' not in body
 
     conflict_path = tmp_path / "conflict.toml"
     conflict_path.write_text(
-        VALID_FIXTURE.read_text().replace(
-            "writes = true",
+        re.sub(
+            r"writes\s*=\s*true",
             'writes = true\nsession_reuse = "same-node"\nsession_mode = "resume"',
-            1,
+            VALID_FIXTURE.read_text(),
+            count=1,
         )
     )
     with pytest.raises(GraphValidationError, match=MSG_SESSION_MODE_CONFLICT):
@@ -111,6 +118,7 @@ def finish_source(store, root, outcome=None):
         handle=process,
         thread_id="thread-1",
         crew_profile="codex-appserver",
+        crew_version=CODEX_VERSION,
         model=activation.metadata.model,
         effort="medium",
         policy_digest="c49fea7425fa7f8699897a97c159c6690267d9003bb78c53fafa8fc15c325d84",

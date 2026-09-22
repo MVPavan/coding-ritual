@@ -19,6 +19,7 @@ from workflow_interpreter.bdio import (
 )
 from workflow_interpreter.bdio.errors import BoundExceededError
 from workflow_interpreter.bdio.rows import STATUS_CLOSED
+from workflow_interpreter.contracts.sessions import SessionMode
 from workflow_interpreter.foreman.bounds import refusal_route
 from workflow_interpreter.foreman.close import settle
 from workflow_interpreter.foreman.compose import (
@@ -136,12 +137,18 @@ def _request(
     """Reconstruct the durable request shape needed by the wrapper."""
     meta = activation.metadata
     view = resolved_node(root, meta.node)
+    # S1 carries resume intent durably. Claude and Codex exec still follow
+    # inspector/launch.py's existing launch path until S2 consumes this contract.
     return MintRequest(
         node=meta.node,
         mint_reason=meta.mint_reason,
         crew_profile=view.crew_profile,
         model=view.model,
         session_id=meta.session_id,
+        session_mode=meta.session_mode,
+        session_source_activation_id=meta.session_source_activation_id,
+        source_session_id=meta.source_session_id,
+        expected_tree_oid=meta.expected_tree_oid,
         predecessor_activation_id=meta.predecessor_activation_id,
         predecessor_gate_id=meta.predecessor_gate_id,
         inputs=meta.inputs,
@@ -199,6 +206,7 @@ def _successor_request(
         # runs at launch; the dispatch writes the one the child ran under back
         # onto this activation (`record_dispatch`).
         session_id="",
+        session_mode=view.node.session_mode or SessionMode.FRESH,
         inputs=select_bindings(
             root.index,
             root,
@@ -340,6 +348,7 @@ def mint_entry(
         crew_profile=view.crew_profile,
         model=view.model,
         session_id="",  # minted by `Profile.prepare` at launch (§5.2)
+        session_mode=view.node.session_mode or SessionMode.FRESH,
         inputs=select_bindings(root.index, root, view.node, (), 1),
     )
     try:
@@ -517,6 +526,7 @@ def route_head(
             crew_profile=view.crew_profile,
             model=view.model,
             session_id=head_meta.session_id,
+            session_mode=view.node.session_mode or SessionMode.FRESH,
             predecessor_activation_id=head.activation_id,
             inputs=head_meta.inputs,
         )

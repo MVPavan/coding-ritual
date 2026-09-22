@@ -130,6 +130,7 @@ reserve_bytes = 67108864
 profile = "claude"
 model = "claude-opus-5"
 effort = "high"
+# session_mode = "resume" # optional; node.session_mode overrides this default
 
 [roles.critic]
 profile = "codex"

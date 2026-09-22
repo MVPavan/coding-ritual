@@ -300,6 +300,13 @@
             "fresh",
             "same-node"
           ]
+        },
+        "session_mode": {
+          "type": "string",
+          "enum": [
+            "fresh",
+            "resume"
+          ]
         }
       },
       "additionalProperties": false

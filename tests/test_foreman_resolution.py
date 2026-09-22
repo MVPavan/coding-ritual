@@ -3,6 +3,7 @@
 import hashlib
 import json
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -327,8 +328,11 @@ def test_session_mode_resolution_is_node_then_role_then_fresh(
     graph = tmp_path / "session-mode.toml"
     text = VALID_FIXTURE.read_text()
     if node_mode is not None:
-        text = text.replace(
-            "writes = true", f'writes = true\nsession_mode = "{node_mode}"', 1
+        text = re.sub(
+            r"writes\s*=\s*true",
+            f'writes = true\nsession_mode = "{node_mode}"',
+            text,
+            count=1,
         )
     graph.write_text(text)
     composition, _ = _instance_composition(

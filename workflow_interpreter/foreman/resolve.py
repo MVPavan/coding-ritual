@@ -22,6 +22,7 @@ from workflow_interpreter.bdio.roots import (
 )
 from workflow_interpreter.contracts.execution import MSG_PROFILE_WRITES
 from workflow_interpreter.contracts.run_identity import RunIdentity
+from workflow_interpreter.contracts.sessions import SessionMode, session_mode_key
 from workflow_interpreter.foreman.compose import Composition
 from workflow_interpreter.foreman.errors import ResolutionError, UnusableResolutionError
 from workflow_interpreter.foreman.execution import (
@@ -431,6 +432,21 @@ def _resolved_config(
         for item in resolve(definition, composition.config.project_config, overrides)
     }
     for node in definition.document.node:
+        if node.kind is NodeKind.TASK:
+            role = (
+                composition.config.roles[node.crew.removeprefix(CREW_PREFIX)]
+                if node.crew is not None and node.crew.startswith(CREW_PREFIX)
+                else None
+            )
+            role_mode = None if role is None else role.session_mode
+            mode = node.session_mode or role_mode or SessionMode.FRESH
+            source = (
+                ConfigSource.ROLE_BINDING
+                if node.session_mode is None and role_mode is not None
+                else ConfigSource.GRAPH_DEFAULT
+            )
+            key = session_mode_key(node.name)
+            settings[key] = ResolvedSetting(key=key, value=mode.value, source=source)
         if node.crew is None or not node.crew.startswith("profile:"):
             continue
         binding = composition.config.roles[node.crew.removeprefix("profile:")]

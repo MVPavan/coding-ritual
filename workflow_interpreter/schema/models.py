@@ -26,7 +26,11 @@ from workflow_interpreter.contracts.execution import (
     MSG_REVIEWER_GRANTS,
     ExecutionProfileName,
 )
-from workflow_interpreter.contracts.sessions import SessionReuse
+from workflow_interpreter.contracts.sessions import (
+    MSG_SESSION_MODE_CONFLICT,
+    SessionMode,
+    SessionReuse,
+)
 
 MODEL_CONFIG: Final[ConfigDict] = ConfigDict(
     frozen=True,
@@ -303,6 +307,7 @@ class Node(BaseModel):
     isolation: IsolationMode | None = None
     writes: bool | None = None
     execution_profile: ExecutionProfileName | None = None
+    session_mode: SessionMode | None = None
     session_reuse: SessionReuse | None = None
     allowed_paths: tuple[RelativePath, ...] | None = None
     inputs: tuple[Identifier, ...] | None = None
@@ -334,6 +339,22 @@ class Node(BaseModel):
             raise ValueError(MSG_REVIEWER_GRANTS)
         return {**value, "writes": profile is ExecutionProfileName.WRITER}
 
+    @model_validator(mode="before")
+    @classmethod
+    def _session_authority(cls, value: object) -> object:
+        """Decode legacy app-server pins without rewriting their authority."""
+        if not isinstance(value, dict) or value.get("session_reuse") is None:
+            return value
+        if value.get("session_mode") is not None:
+            raise ValueError(MSG_SESSION_MODE_CONFLICT)
+        legacy = SessionReuse(value["session_reuse"])
+        mode = (
+            SessionMode.RESUME
+            if legacy is SessionReuse.SAME_NODE
+            else SessionMode.FRESH
+        )
+        return {**value, "session_mode": mode}
+
     @model_serializer(mode="wrap")
     def _authored_authority(
         self, handler: SerializerFunctionWrapHandler
@@ -342,6 +363,10 @@ class Node(BaseModel):
         result: dict[str, object] = handler(self)
         if self.session_reuse is None:
             result.pop("session_reuse", None)
+        else:
+            result.pop("session_mode", None)
+        if self.session_mode is None:
+            result.pop("session_mode", None)
         if self.execution_profile is not None:
             result.pop("writes", None)
         else:

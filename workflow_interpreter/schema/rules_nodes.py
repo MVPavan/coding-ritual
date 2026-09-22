@@ -41,6 +41,7 @@ _EXECUTION_FIELDS: Final[tuple[str, ...]] = (
     "crew",
     "artifact_input_mode",
     "execution_profile",
+    "session_mode",
     "session_reuse",
     "model",
     "isolation",

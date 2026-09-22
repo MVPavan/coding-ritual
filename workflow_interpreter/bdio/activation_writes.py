@@ -26,7 +26,7 @@ from workflow_interpreter.bdio.records import (
     RootRecord,
 )
 from workflow_interpreter.bdio.rows import NewRow
-from workflow_interpreter.bdio.sessions import SessionChoice, choose_source
+from workflow_interpreter.bdio.sessions import choose_source, resolved_session_mode
 from workflow_interpreter.bdio.wire import (
     ActivationMetadata,
     Deviation,
@@ -42,6 +42,7 @@ from workflow_interpreter.bdio.wire import (
     resolved_settings,
 )
 from workflow_interpreter.contracts.execution import CrewName
+from workflow_interpreter.contracts.sessions import SessionMode
 from workflow_interpreter.schema.models import Outcome
 
 if TYPE_CHECKING:
@@ -309,15 +310,14 @@ def _prepare_mint(
     crew_profile, model = self._assert_mint_permitted(
         root, facts, beads, activations, request
     )
-    choice = (
-        choose_source(root, request, activations)
-        if crew_profile.removeprefix("profile:") == CrewName.CODEX_APPSERVER.value
-        else SessionChoice()
-    )
+    choice = choose_source(root, request, activations)
     source = choice.source
     session_id = request.session_id
     if crew_profile.removeprefix("profile:") == CrewName.CODEX_APPSERVER.value:
         session_id = source.thread_id if source else ""
+    session_mode = resolved_session_mode(root, facts.node)
+    if source is not None:
+        session_mode = SessionMode.RESUME
     metadata = ActivationMetadata(
         wf_root_id=root_id,
         node=facts.node,
@@ -333,6 +333,10 @@ def _prepare_mint(
         crew_profile=crew_profile,
         model=model,
         session_id=session_id,
+        session_mode=session_mode,
+        session_source_activation_id=(None if source is None else source.activation_id),
+        source_session_id=None if source is None else source.thread_id,
+        expected_tree_oid=request.expected_tree_oid,
         session_reuse_source=source,
         session_fresh_reason=choice.fresh_reason,
         intended_base_commit=facts.intended_base_commit,

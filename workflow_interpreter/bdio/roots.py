@@ -47,7 +47,7 @@ from workflow_interpreter.contracts.execution import (
     tool_network_for,
 )
 from workflow_interpreter.contracts.run_identity import RunIdentity
-from workflow_interpreter.contracts.sessions import MSG_SESSION_REUSE
+from workflow_interpreter.contracts.sessions import MSG_SESSION_REUSE, session_mode_key
 from workflow_interpreter.schema.graph_index import producer_engine
 from workflow_interpreter.schema.loader import canonical_bytes, load_pinned_body
 from workflow_interpreter.schema.models import GraphDefinition, NodeKind
@@ -148,14 +148,17 @@ def _assert_task_execution_settings_are_pinned(
         ):
             raise CarrierIntegrityError(MSG_SESSION_REUSE)
         required = (NodeSetting.CREW, NodeSetting.MODEL, NodeSetting.EFFORT)
-        missing = tuple(
+        missing = [
             setting.value.rsplit(".", maxsplit=1)[-1]
             for setting in required
             if not (
                 isinstance(value := settings.get(setting.at(node.name)), str)
                 and value.strip()
             )
-        )
+        ]
+        mode = settings.get(session_mode_key(node.name))
+        if not isinstance(mode, str) or not mode.strip():
+            missing.append("session_mode")
         if missing:
             unpinned.append(f"{node.name} ({', '.join(missing)})")
     if unpinned:

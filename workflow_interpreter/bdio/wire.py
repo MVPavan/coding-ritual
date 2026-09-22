@@ -67,7 +67,7 @@ from workflow_interpreter.bdio.rpc_records import (
     SessionRegistration,
 )
 from workflow_interpreter.contracts.run_identity import RunIdentity
-from workflow_interpreter.contracts.sessions import SessionFreshReason
+from workflow_interpreter.contracts.sessions import SessionFreshReason, SessionMode
 from workflow_interpreter.schema.decisions import (
     BoundaryIdentity,
     CoordinationLink,
@@ -408,6 +408,10 @@ class ActivationMetadata(BaseModel):
     crew_profile: str
     model: str
     session_id: str
+    session_mode: SessionMode = SessionMode.FRESH
+    session_source_activation_id: str | None = None
+    source_session_id: str | None = None
+    expected_tree_oid: CommitOid | None = None
     intended_base_commit: str
     pre_attempt_commit: str | None = None
     """§3.2 carry-forward, written by the phase-3 inspector: the commit this
@@ -589,6 +593,10 @@ class MintRequest(BaseModel):
     crew_profile: str
     model: str
     session_id: str
+    session_mode: SessionMode = SessionMode.FRESH
+    session_source_activation_id: str | None = None
+    source_session_id: str | None = None
+    expected_tree_oid: CommitOid | None = None
     inputs: tuple[InputBinding, ...] = ()
     deviations: tuple[Deviation, ...] = ()
 

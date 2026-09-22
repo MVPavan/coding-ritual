@@ -127,6 +127,11 @@ def test_test_flag_opt_in_reaches_both_root_read_paths(
                 value="medium",
                 source=ConfigSource.ROLE_BINDING,
             ),
+            ResolvedSetting(
+                key="node.work.session_mode",
+                value="fresh",
+                source=ConfigSource.GRAPH_DEFAULT,
+            ),
         ),
         allow_test_flags=True,
     )

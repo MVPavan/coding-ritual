@@ -3,7 +3,6 @@
 from pydantic import BaseModel, ConfigDict, Field
 
 from workflow_interpreter.bdio.carriers import ProcessHandle
-from workflow_interpreter.contracts.codex import CODEX_VERSION
 from workflow_interpreter.contracts.rpc_control import ControlState
 from workflow_interpreter.contracts.rpc_usage import UsageSnapshot
 
@@ -17,7 +16,8 @@ class SessionRegistration(BaseModel):
     launch_id: str = Field(min_length=1)
     handle: ProcessHandle
     thread_id: str = Field(min_length=1, max_length=256)
-    crew_version: str = CODEX_VERSION
+    crew_profile: str | None = None
+    crew_version: str | None = None
     model: str
     effort: str
     policy_digest: str

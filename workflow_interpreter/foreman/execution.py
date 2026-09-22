@@ -23,6 +23,7 @@ from workflow_interpreter.contracts.execution import (
     MSG_POLICY_MISMATCH,
     ExecutionPolicy,
 )
+from workflow_interpreter.contracts.sessions import session_mode_key
 from workflow_interpreter.foreman.errors import (
     UnresolvedCrewError,
     UnusableResolutionError,
@@ -84,6 +85,9 @@ def effective_node(pinned: Node, settings: Mapping[str, str | int | bool]) -> No
         for field, setting in _EFFECTIVE_FIELDS
         if setting.at(pinned.name) in settings
     }
+    mode_key = session_mode_key(pinned.name)
+    if mode_key in settings:
+        updates["session_mode"] = settings[mode_key]
     if pinned.execution_profile is not None:
         if "writes" in updates and updates["writes"] != pinned.writes:
             raise UnusableResolutionError(MSG_POLICY_MISMATCH)

@@ -10,6 +10,7 @@ from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_vali
 from workflow_interpreter.bdio.config import SigningConfig
 from workflow_interpreter.contractor.tracker_config import TrackerSettings
 from workflow_interpreter.contractor.verification import CheckCommand
+from workflow_interpreter.contracts.sessions import SessionMode
 from workflow_interpreter.foreman.wake_constants import (
     DEFAULT_EVENT_CAP,
     MAX_EVENT_CAP,
@@ -51,6 +52,7 @@ class CrewBinding(BaseModel):
     profile: str
     model: Annotated[str, StringConstraints(min_length=1)]
     effort: Annotated[str, StringConstraints(min_length=1)]
+    session_mode: SessionMode | None = None
 
 
 class WakeConfig(BaseModel):
