@@ -42,6 +42,8 @@ from workflow_interpreter.inspector.profile import Profile
 from workflow_interpreter.schema.models import Node, Outcome
 
 _BRANCH_ADVANCED = "instance branch advanced at settle to {commit}"
+MSG_SESSION_TREE_UNPUBLISHED: Final = "session tree publication: {error}"
+"""A retryable settle stall: the §3 tree OID is not in bd yet."""
 _MAX_PREDECESSOR_HOPS: Final = 1024
 
 
@@ -91,11 +93,17 @@ def _settle(
     ):
         try:
             wiring.workspace.preserve_interrupted(activation, node)
-            activation = _publish_session_tree(wiring, activation, node)
         except (OSError, InspectorError) as exc:
             return Settlement(
                 activation=activation,
                 stalled=f"interrupted work preservation: {exc}",
+            )
+        try:
+            activation = _publish_session_tree(wiring, activation, node)
+        except (OSError, InspectorError, StoreError) as exc:
+            return Settlement(
+                activation=activation,
+                stalled=MSG_SESSION_TREE_UNPUBLISHED.format(error=exc),
             )
     if activation.metadata.lifecycle is Lifecycle.EVIDENCE_RECORDED:
         evidence = activation.metadata.evidence
@@ -431,18 +439,16 @@ def _publish_session_tree(
     The bytes were pinned at the exit, while the wrapper still held the band;
     this states their OID in bd at the last moment before `is_completed` lets
     a later activation resume the session that produced them. A store refusal
-    is not worth stalling a settled run over: with no OID recorded, the resume
-    that would have used it refuses by name instead (§3).
+    propagates so the settle STALLS and retries: closing without the OID would
+    make the next resume of this writer halt on MISSING_SNAPSHOT over what was
+    only a transient bd failure.
     """
     if not node.writes:
         return activation
     tree_oid = wiring.workspace.session_tree_oid(activation.activation_id)
     if tree_oid is None or activation.metadata.session_tree_oid == tree_oid:
         return activation
-    try:
-        return wiring.store.record_session_tree(activation.activation_id, tree_oid)
-    except StoreError:
-        return activation
+    return wiring.store.record_session_tree(activation.activation_id, tree_oid)
 
 
 def _previous_tree_oid(

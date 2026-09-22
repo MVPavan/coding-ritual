@@ -40,6 +40,7 @@ from workflow_interpreter.bdio import (
     GateState,
     Lifecycle,
     RootRecord,
+    StoreError,
 )
 from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.carriers import ArtifactIdentity
@@ -1211,3 +1212,52 @@ def test_settle_replays_missing_branch_before_recording_evidence(
         assert (
             store.evidence.note == f"instance branch advanced at settle to {'c' * 40}"
         ) is note
+
+
+def test_settle_stalls_when_bd_cannot_publish_the_session_tree(
+    fake_store: WorkflowStore, tmp_path: Path
+) -> None:
+    """A transient bd failure publishing the §3 tree is retried, not swallowed.
+
+    Closing without the OID makes the next resume of this writer refuse with
+    MISSING_SNAPSHOT — a halt the retry would have avoided.
+    """
+    root = make_root(fake_store, load_definition())
+    activation = fake_store.mint_activation(root.root_id, entry_request()).activation
+    activation = activation.model_copy(
+        update={
+            "metadata": activation.metadata.model_copy(
+                update={
+                    "lifecycle": Lifecycle.EVIDENCE_RECORDED,
+                    "evidence": Evidence(claimed_outcome=Outcome.DONE),
+                }
+            )
+        }
+    )
+
+    class PinnedWorkspace(WorkspaceDouble):
+        def session_tree_oid(self, activation_id: str) -> str:
+            return "a" * 40
+
+    class TreeDown(StoreDouble):
+        def record_session_tree(self, *args: object) -> object:
+            raise StoreError("bd unavailable")
+
+    store = TreeDown(activation)
+    result = settle(
+        cast(
+            InstanceWiring,
+            WiringDouble(
+                workspace=PinnedWorkspace(),
+                store=store,
+                paths=_completion_paths(tmp_path, root, activation),
+            ),
+        ),
+        root,
+        root.index.nodes["implement"],
+        activation,
+        SimpleNamespace(),
+    )
+
+    assert result.stalled is not None
+    assert store.closed == 0
