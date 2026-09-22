@@ -89,6 +89,7 @@ PUBLIC_STORE_SURFACE: Final[frozenset[str]] = frozenset(
         "record_envelope",
         "coordination_store",
         "close_activation",
+        "clear_unobserved_session",
         "close_gate_verified",
         "create_root",
         "for_root",
@@ -126,6 +127,11 @@ carriers, approve gates, change bounds, or route a transition.
 
 `register_session` binds a correlated vendor thread to the dispatched launch;
 it verifies root, activation, launch, and original process identity.
+
+`clear_unobserved_session` is its inverse and its safety net: §5.6 recovery
+drops a `prepare()`-preassigned id that no vendor event ever confirmed, so an
+invented id can never become resume history. It writes one key, and only when
+no registration exists.
 
 `claims` joined it in S0 of the run ledger: the integration-target claim is a
 shared row with no root and no lifecycle, and the contractor used to read and

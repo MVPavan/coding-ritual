@@ -1327,7 +1327,7 @@ def _dead_writer_lab(tmp_path: Path) -> tuple[ForemanLab, ActivationRecord]:
         ),
     )
     activation = lab.store.record_dispatch(
-        activation.activation_id, handle_for(dead_pid())
+        activation.activation_id, handle_for(dead_pid()), launch_id="dead-writer-launch"
     )
     return lab, activation
 
@@ -1375,6 +1375,7 @@ def test_recovery_preservation_failure_is_a_retryable_foreman_stall(
 ) -> None:
     """Both dead-run recovery and interrupted steer report rather than crash."""
     from tests._foreman import entry_request
+    from tests._inspector import observe_session
     from workflow_interpreter.bdio import MintReason
     from workflow_interpreter.inspector import Git, GitCommandError, SteerIntent
     from workflow_interpreter.inspector.paths import write_record
@@ -1385,6 +1386,9 @@ def test_recovery_preservation_failure_is_a_retryable_foreman_stall(
     path = wiring.paths.worktree / "src/feature.py"
     path.write_text("recover before closing\n")
     if steer:
+        # `Steerer.steer` refuses before the kill unless the activation carries
+        # an OBSERVED session, so an intent on disk always sits beside one.
+        observe_session(lab.store, activation)
         write_record(
             wiring.paths.steer_intent(activation.activation_id),
             SteerIntent(

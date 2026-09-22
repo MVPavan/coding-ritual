@@ -60,6 +60,7 @@ pytestmark = pytest.mark.acceptance
 # on_disk_and_in_bd` in test_inspector_run.py uses), so `stale_after` is
 # reached almost at once while `max_wall` stays real-world minutes away;
 # `_PROC_SLEEP_S` only has to outlast detection, not `max_wall`.
+LAB_LAUNCH_ID: Final[str] = "lab-launch"
 _PROC_STALE_AFTER: Final[str] = "2s"
 _PROC_STALE_AFTER_S: Final[float] = 2.0
 _PROC_REAL_SLEEP_S: Final[float] = 0.05
@@ -81,7 +82,9 @@ def test_inspect_reads_only_a_stale_activation_tail_without_writing(
     activation = (
         lab.wiring().store.mint_activation(root.root_id, entry_request()).activation
     )
-    activation = lab.wiring().store.record_dispatch(activation.activation_id, handle())
+    activation = lab.wiring().store.record_dispatch(
+        activation.activation_id, handle(), launch_id=LAB_LAUNCH_ID
+    )
     lab.go_stale(activation.activation_id)
     monkeypatch.setattr(main_module, "_composition", lambda _: lab.composition)
     before_updates, before_closes = lab.count("update"), lab.count("close")
@@ -111,7 +114,9 @@ def test_inspect_never_opens_a_healthy_crew_log(
     activation = (
         lab.wiring().store.mint_activation(root.root_id, entry_request()).activation
     )
-    activation = lab.wiring().store.record_dispatch(activation.activation_id, handle())
+    activation = lab.wiring().store.record_dispatch(
+        activation.activation_id, handle(), launch_id=LAB_LAUNCH_ID
+    )
     lab.wiring().paths.ensure_activation_dir(activation.activation_id)
     log_path = lab.wiring().paths.log(activation.activation_id)
     log_path.write_text("foreman-lab-sentinel", encoding="utf-8")
@@ -154,7 +159,9 @@ def test_steer_preserves_session_round_and_its_bounded_tail(
         .store.mint_activation(root.root_id, entry_request(session_id=""))
         .activation
     )
-    activation = lab.wiring().store.record_dispatch(activation.activation_id, handle())
+    activation = lab.wiring().store.record_dispatch(
+        activation.activation_id, handle(), launch_id=LAB_LAUNCH_ID
+    )
     lab.go_stale(activation.activation_id, tail_bytes=b"\xff" * 4096)
     region = activation.metadata.region
     assert region is not None
@@ -251,7 +258,9 @@ def test_tick_finishes_a_steer_crashed_after_its_close(
     activation = (
         lab.wiring().store.mint_activation(root.root_id, entry_request()).activation
     )
-    activation = lab.wiring().store.record_dispatch(activation.activation_id, handle())
+    activation = lab.wiring().store.record_dispatch(
+        activation.activation_id, handle(), launch_id=LAB_LAUNCH_ID
+    )
     lab.go_stale(activation.activation_id)
     original_mint = WorkflowStore.mint_activation
 
@@ -423,7 +432,9 @@ def test_tick_routes_a_stranded_steer_cap_refusal_to_its_declared_fallback(
     activation = (
         lab.wiring().store.mint_activation(root.root_id, entry_request()).activation
     )
-    activation = lab.wiring().store.record_dispatch(activation.activation_id, handle())
+    activation = lab.wiring().store.record_dispatch(
+        activation.activation_id, handle(), launch_id=LAB_LAUNCH_ID
+    )
     continuation = MintRequest(
         node=activation.metadata.node,
         mint_reason=MintReason.STEER_CONTINUATION,
@@ -504,7 +515,9 @@ def test_a_carried_steer_with_no_intent_burns_the_infra_budget_then_falls_back(
         .store.mint_activation(root.root_id, entry_request(session_id=""))
         .activation
     )
-    activation = lab.wiring().store.record_dispatch(activation.activation_id, handle())
+    activation = lab.wiring().store.record_dispatch(
+        activation.activation_id, handle(), launch_id=LAB_LAUNCH_ID
+    )
     lab.go_stale(activation.activation_id)
     lab.steer(
         activation.activation_id,

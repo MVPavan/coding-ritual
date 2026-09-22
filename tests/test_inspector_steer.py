@@ -30,6 +30,7 @@ from tests._inspector import (
     make_root,
     make_store,
     node_of,
+    observe_session,
     task_builder,
     write_proc_entry,
 )
@@ -54,6 +55,7 @@ from workflow_interpreter.inspector import (
 from workflow_interpreter.inspector.paths import read_record
 from workflow_interpreter.inspector.steer import instructions_digest
 
+LAUNCH_ID = "steer-launch"
 REASON = "the crew is looping on the same test"
 INSTRUCTIONS = "stop rewriting the fixture; fix the assertion"
 
@@ -73,11 +75,22 @@ class Lab:
         self.node = node_of(self.root.definition.document, IMPLEMENT)
         self.steerer = Steerer(self.config, self.paths, self.store, self.clock)
 
-    def dispatched(self, handle: ProcessHandle) -> ActivationRecord:
-        """Mint and record a dispatch without exec'ing anything."""
+    def dispatched(
+        self, handle: ProcessHandle, *, observed: bool = True
+    ) -> ActivationRecord:
+        """Mint and record a dispatch without exec'ing anything.
+
+        `observed=False` is the crew that died before naming a session: §8.1
+        has nothing to continue and must refuse before the kill.
+        """
         minted = self.store.mint_activation(self.root.root_id, entry_mint())
         self.paths.ensure_activation_dir(minted.activation.activation_id)
-        return self.store.record_dispatch(minted.activation.activation_id, handle)
+        dispatched = self.store.record_dispatch(
+            minted.activation.activation_id, handle, launch_id=LAUNCH_ID
+        )
+        if not observed:
+            return dispatched
+        return observe_session(self.store, dispatched)
 
     def continuation(self, predecessor: str) -> MintRequest:
         """The §8.1 continuation request for a steered activation."""
@@ -187,9 +200,12 @@ def test_term_resistant_child_is_killed_with_proof(tmp_path: Path) -> None:
     activation_id = dispatched.activation.activation_id
     handle = dispatched.handle
     assert handle is not None
+    observed = observe_session(
+        lab.store, lab.store.reads.load_activation(activation_id)
+    )
 
     try:
-        result = _steer(lab, dispatched.activation)
+        result = _steer(lab, observed)
 
         assert result.termination.signals_sent == ("SIGTERM", "SIGKILL")
         assert result.termination.confirmed_dead is True

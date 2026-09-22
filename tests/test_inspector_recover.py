@@ -29,6 +29,7 @@ from tests._inspector import (
     make_store,
     make_workspace,
     node_of,
+    observe_session,
     remove_proc_entry,
     write_proc_entry,
 )
@@ -42,8 +43,8 @@ from workflow_interpreter.bdio import (
     Outcome,
     ResolvedSetting,
 )
-from workflow_interpreter.bdio.wire import config_signature
 from workflow_interpreter.bdio.sessions import choose_source
+from workflow_interpreter.bdio.wire import config_signature
 from workflow_interpreter.contracts.sessions import SessionMode
 from workflow_interpreter.inspector import (
     EVIDENCE_EXIT_UNOBSERVED,
@@ -70,6 +71,7 @@ from workflow_interpreter.profiles import CrewName, ProfileConfig, ProfileRegist
 from workflow_interpreter.schema.models import IsolationMode
 
 CREW_FILE = "src/orphan.py"
+LAUNCH_ID = "recover-launch"
 HUMAN_FILE = "docs/human-chapter.md"
 OTHER_BOOT_ID = "boot-after-the-reboot"
 STEER_REASON = "the crew is looping on the same test"
@@ -109,6 +111,7 @@ class Lab:
             handle_for(
                 self.pid, log_path=str(self.paths.log(minted.activation.activation_id))
             ),
+            launch_id=LAUNCH_ID,
         )
         self.paths.ensure_activation_dir(self.activation.activation_id)
         self.workspace.prepare(self.activation, self.node)
@@ -655,7 +658,13 @@ def test_recovery_records_missing_instance_branch_as_note(tmp_path: Path) -> Non
 
 
 def _persist_steer_intent(lab: Lab) -> SteerIntent:
-    """A durable §8.1 intent for a steer whose process already died."""
+    """A durable §8.1 intent for a steer whose process already died.
+
+    `Steerer.steer` refuses before the kill unless the steered activation
+    carries an OBSERVED session (§5.2), so an intent that reached disk always
+    sits beside a registration — recovery must find the same world.
+    """
+    observe_session(lab.store, lab.reload())
     intent = SteerIntent(
         activation_id=lab.activation.activation_id,
         reason=STEER_REASON,

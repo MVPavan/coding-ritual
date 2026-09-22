@@ -239,7 +239,7 @@ def test_a_replay_close_records_each_once(tmp_path: Path, signing: _Signing) -> 
     steered = ForemanLab(tmp_path / "steered", sandbox=SandboxMode.OFF)
     steered.instantiate()
     steered_id = _mint_carrying_a_prior_deviation(steered)
-    steered.wiring().store.record_dispatch(steered_id, handle())
+    steered.wiring().store.record_dispatch(steered_id, handle(), launch_id="lab-launch")
     steered.go_stale(steered_id)
 
     steered.steer(

@@ -43,7 +43,13 @@ from workflow_interpreter.bdio import (
     Usage,
     WorkflowStore,
 )
-from workflow_interpreter.contracts.execution import ToolNetwork
+from workflow_interpreter.bdio.rpc_records import SessionRegistration
+from workflow_interpreter.bdio.wire import NodeSetting, resolved_settings
+from workflow_interpreter.contracts.execution import (
+    EXECUTION_POLICY_KEY,
+    ToolNetwork,
+)
+from workflow_interpreter.contracts.sessions import execution_policy_digest
 from workflow_interpreter.inspector import (
     BandLock,
     ChildLauncher,
@@ -513,6 +519,46 @@ def make_workspace(
     """Create a workspace with its one required execution band."""
     return Workspace(
         paths, git, clock, BandLock(paths.band_lock), advance_branch=advance_branch
+    )
+
+
+def observe_session(
+    store: WorkflowStore,
+    activation: ActivationRecord,
+    *,
+    thread_id: str | None = None,
+) -> ActivationRecord:
+    """Register the vendor identity event a live child would have emitted.
+
+    Resume history is built only from an OBSERVED session (§5.2): a preassigned
+    id proves nothing, so a lab that dispatches a scripted child rather than a
+    real vendor has to mirror the identity event itself before anything may
+    resume it — which is what the resident inspector does off the child's log.
+
+    The default `thread_id` is the id the launch already carries, because that
+    is what a vendor honouring a caller-supplied session answers with.
+    """
+    metadata = activation.metadata
+    thread_id = thread_id or metadata.session_id or SESSION_ID
+    settings = resolved_settings(store.reads.load_root(metadata.wf_root_id).metadata)
+    effort = settings.get(NodeSetting.EFFORT.at(metadata.node))
+    policy = settings.get(EXECUTION_POLICY_KEY.format(node=metadata.node), "legacy")
+    assert metadata.handle is not None
+    assert metadata.launch_id is not None
+    return store.register_session(
+        activation.activation_id,
+        SessionRegistration(
+            root_id=metadata.wf_root_id,
+            activation_id=activation.activation_id,
+            launch_id=metadata.launch_id,
+            handle=metadata.handle,
+            thread_id=thread_id,
+            crew_profile=metadata.crew_profile,
+            model=metadata.model,
+            effort=str(effort),
+            policy_digest=execution_policy_digest(str(policy)),
+            state_path="",
+        ),
     )
 
 

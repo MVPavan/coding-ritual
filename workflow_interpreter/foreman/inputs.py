@@ -395,6 +395,12 @@ def compose_resume_delta(
     after a crash without retaining prompt text or consulting live outputs.
     Protocol, fact-frame, and leaf-contract sections belong only to a fresh
     envelope; the resumed vendor thread already contains them.
+
+    "Already in the thread" is the whole RESUME CHAIN, not just the immediate
+    source: the third turn of one vendor thread must not re-send what the first
+    turn carried.  The chain is walked through each source's own
+    ``session_source_activation_id``, which is durable, so the same delta is
+    recomputed identically on any later tick.
     """
     node = resolved_node(root, activation.metadata.node).node
     source_inputs: set[str] = set()

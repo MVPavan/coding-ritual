@@ -318,17 +318,34 @@ def test_newest_eligible_fresh_session_supersedes_older_resumed_history(
     assert choice.source == fresh_registration
 
 
-def test_plain_resume_skips_crashed_and_abandoned_unregistered_sources(
-    tmp_path, fake_store
-):
-    """Only a successful terminal exec turn can supply resume history."""
+def test_plain_resume_skips_crashed_and_abandoned_sources(tmp_path, fake_store):
+    """Only a successful terminal exec turn can supply resume history.
+
+    Both candidates are fully REGISTERED, so the outcome is the only thing left
+    to tell them apart — a crashed or abandoned turn stays out of history even
+    with an observed session of its own.
+    """
     root = exec_root(tmp_path, fake_store)
     minted = fake_store.mint_activation(
         root.root_id, entry_request(crew_profile="codex")
     ).activation
+    process = handle(session_id="thread-good")
     dispatched = fake_store.record_dispatch(
-        minted.activation_id, handle(session_id="thread-good")
+        minted.activation_id, process, launch_id="good-launch"
     )
+    registration = SessionRegistration(
+        root_id=root.root_id,
+        activation_id=dispatched.activation_id,
+        launch_id="good-launch",
+        handle=process,
+        thread_id="thread-good",
+        crew_profile="codex",
+        model=dispatched.metadata.model,
+        effort="medium",
+        policy_digest="c49fea7425fa7f8699897a97c159c6690267d9003bb78c53fafa8fc15c325d84",
+        state_path="",
+    )
+    fake_store.register_session(dispatched.activation_id, registration)
     good = fake_store.close_activation(dispatched.activation_id, Outcome.FAIL_CODE)
     request = entry_request(crew_profile="codex").model_copy(
         update={
@@ -348,6 +365,12 @@ def test_plain_resume_skips_crashed_and_abandoned_unregistered_sources(
                     update={
                         "seq": good.metadata.seq + offset,
                         "session_id": "thread-bad",
+                        "session_registration": registration.model_copy(
+                            update={
+                                "activation_id": "bad-source",
+                                "thread_id": "thread-bad",
+                            }
+                        ),
                         "outcome": outcome,
                     }
                 ),

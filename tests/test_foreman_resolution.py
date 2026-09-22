@@ -563,9 +563,7 @@ def test_recreating_an_instance_ignores_cli_version_drift(
         "implementer": CrewBinding(
             profile="codex", model="gpt-5.6-sol", effort="medium"
         ),
-        "critic": CrewBinding(
-            profile="codex", model="gpt-5.6-sol", effort="medium"
-        ),
+        "critic": CrewBinding(profile="codex", model="gpt-5.6-sol", effort="medium"),
     }
     composition, _ = _instance_composition(
         fake_store, tmp_path, profiles=profiles, roles=roles

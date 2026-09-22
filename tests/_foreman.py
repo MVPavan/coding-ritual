@@ -38,6 +38,7 @@ from tests._inspector import (
     make_config,
     make_git,
     make_repo,
+    observe_session,
 )
 from workflow_interpreter import load_graph
 from workflow_interpreter.bdio import (
@@ -845,7 +846,25 @@ class ForemanLab:
     def steer(
         self, activation_id: str, *, reason: str, instructions: str
     ) -> SteerReport:
+        """Steer a lab child, mirroring the vendor identity event first.
+
+        §8.1 refuses to kill a crew whose session was never OBSERVED, and the
+        lab's inert profile never emits an identity event for the resident
+        inspector to mirror — so the lab mirrors it here instead, whenever the
+        launch has both a session to name and a launch id to bind it to. A
+        dispatch with neither is the sessionless crew, and its refusal is what
+        several of these tests are about.
+        """
         assert self.root is not None
+        store = self.wiring().store
+        activation = store.reads.load_activation(activation_id)
+        metadata = activation.metadata
+        if (
+            metadata.session_registration is None
+            and metadata.launch_id is not None
+            and metadata.session_id
+        ):
+            observe_session(store, activation)
         return self.foreman.steer(
             self.root.root_id, activation_id, reason=reason, instructions=instructions
         )

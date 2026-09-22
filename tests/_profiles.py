@@ -728,9 +728,7 @@ class Lab:
         profile = self._launched_profiles[activation_id]
         for _attempt in range(100):
             activation = self.store.reads.load_activation(activation_id)
-            registration = observed_session_registration(
-                self.root, activation, profile
-            )
+            registration = observed_session_registration(self.root, activation, profile)
             if registration is not None:
                 self.store.register_session(activation_id, registration)
                 return
@@ -788,9 +786,7 @@ class Lab:
         )
         return self.inspector.run(
             request
-            or entry_mint(
-                crew_profile=crew.value, session_id=str(uuid.uuid4())
-            ),
+            or entry_mint(crew_profile=crew.value, session_id=str(uuid.uuid4())),
             node,
             registry.profile_for(crew.value),
             task_builder(
@@ -870,8 +866,8 @@ class Lab:
         )
         if result.handle is not None:
             self.children.append(result.handle)
-            self._launched_profiles[result.activation.activation_id] = registry.profile_for(
-                crew.value
+            self._launched_profiles[result.activation.activation_id] = (
+                registry.profile_for(crew.value)
             )
         return result
 

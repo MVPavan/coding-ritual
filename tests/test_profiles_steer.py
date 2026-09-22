@@ -29,7 +29,7 @@ import pytest
 
 from tests._foreman import ForemanLab
 from tests._inspector import IMPLEMENT, ChildScript, entry_mint, handle_for, node_of
-from tests._profiles import BRIEF, Lab, host_env_with, stub_env
+from tests._profiles import Lab, host_env_with, stub_env
 from workflow_interpreter.bdio import Lifecycle, MintReason, MintRequest, ProcessHandle
 from workflow_interpreter.bdio.rpc_records import SessionRegistration
 from workflow_interpreter.contracts.sessions import SessionMode
@@ -803,11 +803,11 @@ def test_foreman_delivered_resume_and_retry_match_recorded_envelope(
     import hashlib
 
     from tests._profiles import PASSTHROUGH, write_stub
+    from workflow_interpreter.bdio.wire import config_signature
     from workflow_interpreter.foreman.inputs import select_bindings
     from workflow_interpreter.foreman.inspector import _task_builder
     from workflow_interpreter.inspector import Dispatcher, Steerer
     from workflow_interpreter.inspector.launch import DispatchResult
-    from workflow_interpreter.bdio.wire import config_signature
     from workflow_interpreter.inspector.profile import observed_session_registration
     from workflow_interpreter.profiles.registry import ProfileRegistry
 
@@ -881,9 +881,7 @@ def test_foreman_delivered_resume_and_retry_match_recorded_envelope(
                     current = wiring.store.reads.load_activation(
                         result.activation.activation_id
                     )
-                    registration = observed_session_registration(
-                        root, current, profile
-                    )
+                    registration = observed_session_registration(root, current, profile)
                     if registration is not None:
                         wiring.store.register_session(
                             current.activation_id, registration
