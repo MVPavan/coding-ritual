@@ -582,8 +582,10 @@ seam (roadmap §3.4).
 ### 5.2 Two-phase activation
 
 Phase A: mint (state `minted`), with idempotency key, bound inputs and
-`intended_base_commit`. A fresh vendor session is not created at mint. An
-app-server history source, when eligible, is bound durably at mint (§6).
+`intended_base_commit`. A fresh vendor session is not created at mint. When the
+node's pinned `session_mode` is `resume`, the eligible history source is bound
+durably at mint — its activation, vendor session id and pinned tree OID — or a
+fresh reason is recorded (§6); launch never selects again.
 Phase B launches through the supervisor; `dispatched` follows the durable
 process handle. Profiles that pre-assign sessions do so in `prepare()` and
 publish that identity with dispatch. Legacy `codex exec` cannot pre-assign its
@@ -633,10 +635,31 @@ bd exit record is still
 
 ### 5.4 Worktree precondition
 
-Before exec, the wrapper asserts `HEAD == intended_base_commit` and a
-clean tree in the activation's worktree — performing the idempotent reset
-itself if needed — and records `reset_verified_commit`. A precondition
-survives crashes; a trailing cleanup does not. (In-repo: §12.)
+Every activation of an instance works in the same checkout. Before exec, the
+wrapper takes one of three preconditions, chosen from the node's `writes` and
+the durable mint:
+
+- **Fresh writer** (and every `codex-appserver` writer): pin the complete
+  dirty tree under `prereset`, assert `HEAD == intended_base_commit` and a
+  clean tree — performing the idempotent reset itself if needed — and record
+  `reset_verified_commit`.
+- **Resumed writer** (`session_mode = "resume"` with a bound source session):
+  the tree proof. The source's writing turn pinned its full working tree at
+  exit and recorded the OID as `session_tree_oid`; the mint carries it as
+  `expected_tree_oid`. The wrapper computes the current full-tree OID without
+  mutation and launches only on equality — no reset — recording current HEAD
+  as `pre_attempt_commit` and `reset_verified_commit` and taking ownership. A
+  missing source snapshot or a different tree refuses with
+  `ResumeTreeMismatch` (`missing_snapshot` / `intervening_writer`, expected and
+  observed OIDs); nothing is reset, launched or retried fresh.
+- **Non-writer**, fresh or resumed: observe the tree as it stands. The
+  checkout is created at `intended_base_commit` only if absent; HEAD, dirty
+  state and ownership never move. The tree OID is recorded before launch and
+  compared after a normal exit; a change flags `read_only_tree_mutated`. A
+  steered or crashed reviewer skips that check, and the next resumed writer's
+  equality proof covers it.
+
+A precondition survives crashes; a trailing cleanup does not. (In-repo: §12.)
 
 **Worktree record** (per instance band): path
 `.wf/<root_id>/worktree`, branch `wf/<root_id>/candidate`, owner = current
@@ -646,7 +669,7 @@ worktree, the throwaway §7.3 verify tree and each closed activation's
 `channels/scratch` together, under the existing liveness and clean-tree
 guards, and for a bridge task only after the task's export is pinned
 (roadmap §3.9, D14); it is idempotent and retried on the next tick. A `writes = false` node
-(the reviewer) gets a read-only checkout at the reviewed commit; its
+(the reviewer) reads the shared checkout without write grants; its
 outputs go to `$WF_ARTIFACT_DIR`.
 
 ### 5.5 Back-edge failure handling (tier-2 default)
@@ -747,16 +770,38 @@ delegation features, empty MCP configuration, private user state and untrusted
 project layers. Local sandboxed shell/edit tools remain available. Experimental
 API negotiation is disabled; no client dynamic tools are registered.
 
-Optional task-node `session_reuse = "fresh" | "same-node"` is graph-pinned and
-app-server-only. Absence means fresh, including for reviewers. Same-node selects
-the latest settled activation with an explicitly completed turn and matching
-root, node, execution policy, CLI version, model and effort. The source activation
-is bound at mint, never selected again from live configuration at launch. Every
-new process receives current grants, cwd, channels, tool configuration and the
-complete current envelope. Deliberate §8.1 continuation and its infra retries
-retain their bound history independently of this ordinary re-entry setting.
-A CLI-version mismatch is a logged, mint-pinned fresh decision, including on
-steer continuation. Compatibility compares a SHA-256 policy digest; the complete
+Optional `session_mode = "fresh" | "resume"` is set on a task node or on its
+role binding; precedence is node > role > `fresh`, and the result is pinned on
+the root as `node.<name>.session_mode`. Authored graphs cannot use
+`session_reuse`: only a pinned `codex-appserver` body may carry it, decoded as
+`same-node` → `resume` and `fresh` → `fresh` without rewriting pinned bytes.
+Resume selects the newest settled same-node activation with a successful turn,
+an observed and registered vendor session, and matching root, node, crew,
+execution policy, CLI version, model and effort. The source is bound at mint
+(§5.2), never selected again from live configuration at launch. A resume node
+with no eligible source launches fresh and records why (`no_source`,
+`unregistered_source`, `version_drift`); a later resume can select a fresh turn's
+session, so fresh never poisons reuse. Claude resumes with `--resume <session>`
+and `codex exec` with `codex exec resume <session>`; both send only the brief
+delta — current instructions plus inputs the resume chain has not already
+carried. A resumed writer launches only after §5.4's tree proof. Deliberate
+§8.1 continuation and its infra retries use the same launch contract with their
+exact steer ancestor as the source, sending the steer text instead of the delta.
+
+`context_cap_tokens` is an optional role-binding field with no node override,
+pinned with the role's invocation settings. For a `claude` role it is passed
+unchanged as `--autocompact <n>` on launch and resume; the engine keeps no
+model-to-window table and checks only that it is a positive integer (claude
+accepts 100000–1000000). Unset emits no flag. A non-`claude` role that sets it
+is refused at config load; `codex` keeps its vendor-default window, and the
+engine never emits `model_context_window` or `model_auto_compact_token_limit`.
+`context_budget_bytes` is separate: it bounds the composed envelope only.
+
+The app-server continues its bound thread with `thread/resume`. Every new
+process receives current grants, cwd, channels, tool configuration and the
+complete current envelope. An app-server CLI-version mismatch is a logged,
+mint-pinned fresh decision (`version_mismatch`), including on steer
+continuation. Compatibility compares a SHA-256 policy digest; the complete
 policy remains pinned on the root. Host-owned vendor state persists for eligible
 reuse, outside model-writable roots and separate from disposable toolchains.
 Fresh decisions allocate a distinct directory. A private `CODEX_HOME` and explicit
@@ -893,6 +938,10 @@ never consume review rounds. An **infra retry descended from a
 continuation is itself a continuation**: it resumes the same session with
 the same steer text (read back from the steered activation's persisted
 intent), and is refused rather than launched fresh if that intent is gone.
+A continuation shares the plain-resume mechanism (§6): its source — the exact
+steered ancestor — is bound at mint through the same selection, and a writing
+continuation takes the same §5.4 tree proof against the tree the steered
+writer's recovery pinned. Only the source and the prompt (the steer text) differ.
 The default remains persist → terminate → continuation for every runner.
 The experimental app-server additionally accepts explicit `steer --in-place`:
 a host-owned bounded inbox carries text plus launch/thread/expected-turn identity.

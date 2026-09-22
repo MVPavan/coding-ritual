@@ -47,7 +47,8 @@ must not close on a guess.
 Using the real `implement` node:
 
 **Who runs it** — `crew = "profile:implementer"`, `model`, `execution_profile`,
-`session_reuse`.
+`session_mode` (`"fresh"` or `"resume"`; node > role binding > `fresh`; legacy
+`session_reuse` decodes only on pinned app-server bodies).
 
 **What it may touch** — `isolation`, `writes`, `allowed_paths`.
 
@@ -176,8 +177,11 @@ containment breach that must never reach `ship`.
 - **`token_budget` is ignored.** It only emits `legacy_token_budget_ignored`. No
   feature-delivery node sets `context_budget_bytes`, so all three run on the default
   and their `token_budget` lines do nothing.
-- **The crew's own context window is not configured at all.** No context, window or
-  max-tokens flag is passed to any vendor CLI.
+- **`context_cap_tokens`** caps the crew's own context, and only for Claude. It is a
+  role-binding field in the foreman config (no node field), passed unchanged as
+  `--autocompact <n>` on launch and resume; Claude accepts 100000–1000000. Unset
+  passes no flag. A Codex role that sets it is refused at config load; Codex keeps
+  its vendor-default window.
 
 Three unrelated units with confusable names. Tracked as bead **cr-e94f**.
 
