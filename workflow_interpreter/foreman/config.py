@@ -51,6 +51,17 @@ MSG_CONTEXT_CAP_OUT_OF_RANGE: Final[str] = (
     "accepts {minimum}-{maximum} tokens"
 )
 
+MSG_SESSION_MODE_NOT_RESUMABLE: Final[str] = (
+    "role {role!r} binds profile {profile!r} with session_mode='resume'; that "
+    "crew never registers a vendor session, so every turn would silently run fresh"
+)
+
+UNRESUMABLE_CREWS: Final[frozenset[str]] = frozenset({CrewName.OPENCODE.value})
+"""Built-in crews that never register a vendor session a later turn can rejoin.
+
+A deny-list rather than an allow-list: a role may bind a registry profile under
+any name, and only the built-in vendors are known not to resume."""
+
 REPO_HASH_LENGTH: Final[int] = 16
 """How much of the repository digest names its wrapper home."""
 
@@ -172,6 +183,15 @@ class ForemanConfig(BaseModel):
             if binding.model == MODEL_VENDOR_DEFAULT:
                 raise ValueError(
                     f"role {role!r} cannot bind model {MODEL_VENDOR_DEFAULT!r}"
+                )
+            if (
+                binding.session_mode is SessionMode.RESUME
+                and binding.profile.removeprefix("profile:") in UNRESUMABLE_CREWS
+            ):
+                raise ValueError(
+                    MSG_SESSION_MODE_NOT_RESUMABLE.format(
+                        role=role, profile=binding.profile
+                    )
                 )
             if (
                 binding.context_cap_tokens is not None

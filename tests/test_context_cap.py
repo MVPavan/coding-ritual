@@ -15,6 +15,7 @@ from pydantic import ValidationError
 from tests._foreman import DEFAULT_LAB_ROLES, ForemanLab
 from tests._inspector import FrozenClock
 from tests._profiles import INSTRUCTIONS, make_claude, make_codex, make_task
+from workflow_interpreter.contracts.sessions import SessionMode
 from workflow_interpreter.foreman.config import CrewBinding
 from workflow_interpreter.foreman.execution import resolved_node
 
@@ -89,4 +90,14 @@ def test_codex_role_setting_the_cap_is_refused_by_name(tmp_path: Path) -> None:
     )
 
     with pytest.raises(ValidationError, match="role 'critic' binds profile 'codex'"):
+        ForemanLab(tmp_path, roles={**DEFAULT_LAB_ROLES, "critic": critic})
+
+
+def test_opencode_role_resuming_is_refused_by_name(tmp_path: Path) -> None:
+    """opencode never registers a session, so a resume pin would run fresh forever."""
+    critic = CrewBinding(
+        profile="opencode", model="glm", effort="high", session_mode=SessionMode.RESUME
+    )
+
+    with pytest.raises(ValidationError, match="role 'critic' binds profile 'opencode'"):
         ForemanLab(tmp_path, roles={**DEFAULT_LAB_ROLES, "critic": critic})
