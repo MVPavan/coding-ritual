@@ -79,7 +79,7 @@ from workflow_interpreter.inspector.paths import (
 from workflow_interpreter.inspector.profile import (
     CrewChannels,
     Profile,
-    observed_session_registration,
+    observe_session,
 )
 from workflow_interpreter.inspector.sandbox import SandboxMode
 from workflow_interpreter.profiles import CrewName, ProfileConfig, ProfileRegistry
@@ -728,7 +728,7 @@ class Lab:
         profile = self._launched_profiles[activation_id]
         for _attempt in range(100):
             activation = self.store.reads.load_activation(activation_id)
-            registration = observed_session_registration(self.root, activation, profile)
+            registration = observe_session(self.root, activation, profile).registration
             if registration is not None:
                 self.store.register_session(activation_id, registration)
                 return

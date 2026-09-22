@@ -110,7 +110,8 @@ from workflow_interpreter.inspector.paths import (
 )
 from workflow_interpreter.inspector.profile import (
     Profile,
-    observed_session_registration,
+    SessionObservationState,
+    observe_session,
 )
 from workflow_interpreter.inspector.steer import Steerer, SteerResult
 from workflow_interpreter.inspector.workspace import Workspace
@@ -455,10 +456,21 @@ class Recovery:
             )
             return activation
         root = self._store.reads.load_root(activation.metadata.wf_root_id)
-        registration = observed_session_registration(root, activation, profile)
-        if registration is None:
-            return self._store.clear_unobserved_session(activation.activation_id)
-        return self._store.register_session(activation.activation_id, registration)
+        observation = observe_session(root, activation, profile)
+        if observation.registration is not None:
+            return self._store.register_session(
+                activation.activation_id, observation.registration
+            )
+        if observation.state is SessionObservationState.UNREADABLE:
+            # Absence of evidence only. Erasing the id here would discard the
+            # name of a thread the vendor may well still be holding.
+            _LOG.warning(
+                "wf.recovery.session_unreadable",
+                activation_id=activation.activation_id,
+                state=observation.state.value,
+            )
+            return activation
+        return self._store.clear_unobserved_session(activation.activation_id)
 
     def _finish_abort(
         self, activation: ActivationRecord, classification: RecoveryClassification

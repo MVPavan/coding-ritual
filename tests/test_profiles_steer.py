@@ -808,7 +808,7 @@ def test_foreman_delivered_resume_and_retry_match_recorded_envelope(
     from workflow_interpreter.foreman.inspector import _task_builder
     from workflow_interpreter.inspector import Dispatcher, Steerer
     from workflow_interpreter.inspector.launch import DispatchResult
-    from workflow_interpreter.inspector.profile import observed_session_registration
+    from workflow_interpreter.inspector.profile import observe_session
     from workflow_interpreter.profiles.registry import ProfileRegistry
 
     lab = ForemanLab(tmp_path, sandbox=SandboxMode.OFF)
@@ -881,7 +881,7 @@ def test_foreman_delivered_resume_and_retry_match_recorded_envelope(
                     current = wiring.store.reads.load_activation(
                         result.activation.activation_id
                     )
-                    registration = observed_session_registration(root, current, profile)
+                    registration = observe_session(root, current, profile).registration
                     if registration is not None:
                         wiring.store.register_session(
                             current.activation_id, registration

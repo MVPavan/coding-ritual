@@ -295,19 +295,52 @@ class Profile(NetworkProfile, Protocol):
         ...  # pragma: no cover - protocol
 
 
-def observed_session_registration(
+class SessionObservationState(StrEnum):
+    """What one scan of a child's durable log was able to establish."""
+
+    OBSERVED = "observed"
+    """The vendor named a thread; the identity below is that thread's."""
+    ABSENT = "absent"
+    """The log was read in full and no vendor ever named a thread."""
+    UNREADABLE = "unreadable"
+    """The scan could not decide — the log, or the settings it needs, are gone."""
+
+
+class SessionObservation(BaseModel):
+    """The three-valued result of looking for a vendor identity."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+    state: SessionObservationState
+    registration: SessionRegistration | None = None
+
+
+_ABSENT: Final[SessionObservation] = SessionObservation(
+    state=SessionObservationState.ABSENT
+)
+_UNREADABLE: Final[SessionObservation] = SessionObservation(
+    state=SessionObservationState.UNREADABLE
+)
+
+
+def observe_session(
     root: RootRecord, activation: ActivationRecord, profile: Profile
-) -> SessionRegistration | None:
-    """Build durable identity only from the first session event in the log."""
+) -> SessionObservation:
+    """Look for durable identity in the log, and say which of three answers it is.
+
+    ABSENT and UNREADABLE are kept apart because §5.6 recovery ERASES a
+    preassigned session id on absence: claude is handed its id rather than
+    reporting one, so treating "could not read the log" as "no session exists"
+    permanently drops the name of a live vendor thread.
+    """
     metadata = activation.metadata
     crew = metadata.crew_profile.removeprefix("profile:")
     if crew not in (CrewName.CLAUDE.value, CrewName.CODEX.value):
-        return None
+        return _ABSENT
     if profile.name().removeprefix("profile:") != crew:
-        return None
+        return _ABSENT
     handle = metadata.handle
     if handle is None or metadata.launch_id is None:
-        return None
+        return _ABSENT
     try:
         with Path(handle.log_path).open(encoding="utf-8", errors="replace") as stream:
             session_id = next(
@@ -319,28 +352,34 @@ def observed_session_registration(
                 None,
             )
     except OSError:
-        return None
-    if session_id is None or len(session_id) > MAX_SESSION_ID_LENGTH:
-        return None
+        return _UNREADABLE
+    if session_id is None:
+        return _ABSENT
+    if len(session_id) > MAX_SESSION_ID_LENGTH:
+        # The vendor DID name something; it is only unusable as an identity.
+        return _UNREADABLE
     settings = resolved_settings(root.metadata)
     effort = settings.get(NodeSetting.EFFORT.at(metadata.node))
     policy = settings.get(EXECUTION_POLICY_KEY.format(node=metadata.node), "legacy")
     version_reader = getattr(profile, "cli_version", None)
     crew_version = version_reader() if callable(version_reader) else None
     if not isinstance(effort, str) or not isinstance(policy, str):
-        return None
-    return SessionRegistration(
-        root_id=root.root_id,
-        activation_id=activation.activation_id,
-        launch_id=metadata.launch_id,
-        handle=handle,
-        thread_id=session_id,
-        crew_profile=crew,
-        crew_version=crew_version if isinstance(crew_version, str) else None,
-        model=metadata.model,
-        effort=effort,
-        policy_digest=execution_policy_digest(policy),
-        state_path="",
+        return _UNREADABLE
+    return SessionObservation(
+        state=SessionObservationState.OBSERVED,
+        registration=SessionRegistration(
+            root_id=root.root_id,
+            activation_id=activation.activation_id,
+            launch_id=metadata.launch_id,
+            handle=handle,
+            thread_id=session_id,
+            crew_profile=crew,
+            crew_version=crew_version if isinstance(crew_version, str) else None,
+            model=metadata.model,
+            effort=effort,
+            policy_digest=execution_policy_digest(policy),
+            state_path="",
+        ),
     )
 
 

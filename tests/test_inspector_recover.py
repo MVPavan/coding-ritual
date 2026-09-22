@@ -321,11 +321,17 @@ def test_case_three_without_a_commit_still_closes(lab: Lab) -> None:
     assert resolution.closed.metadata.outcome is Outcome.ERROR_TRANSPORT
 
 
-@pytest.mark.parametrize("identity_emitted", [True, False])
+@pytest.mark.parametrize("log_state", ["emitted", "absent", "unreadable"])
 def test_recovery_registers_only_an_identity_found_in_the_durable_log(
-    tmp_path: Path, identity_emitted: bool
+    tmp_path: Path, log_state: str
 ) -> None:
-    """Recovery rescans the log and never invents a pre-event thread id."""
+    """Recovery rescans the log and never invents a pre-event thread id.
+
+    A log it could not read is not evidence of absence: erasing the id there
+    would throw away the name of a REAL vendor thread, since the claude CLI is
+    handed its session id and never reports one back.
+    """
+    identity_emitted = log_state == "emitted"
     lab = Lab(tmp_path)
     resolved = (
         *(
@@ -360,12 +366,16 @@ def test_recovery_registers_only_an_identity_found_in_the_durable_log(
         },
     )
     log = lab.paths.log(lab.activation.activation_id)
-    log.write_text(
-        '{"type":"thread.started","thread_id":"thread-recovered"}\n'
-        if identity_emitted
-        else "",
-        encoding="utf-8",
-    )
+    if log_state == "unreadable":
+        log.unlink(missing_ok=True)
+        log.mkdir()
+    else:
+        log.write_text(
+            '{"type":"thread.started","thread_id":"thread-recovered"}\n'
+            if identity_emitted
+            else "",
+            encoding="utf-8",
+        )
     binary = write_stub(tmp_path, CrewName.CODEX)
     registry = ProfileRegistry(
         ProfileConfig(binary_overrides={CrewName.CODEX: str(binary)}),
@@ -391,6 +401,9 @@ def test_recovery_registers_only_an_identity_found_in_the_durable_log(
         assert registration is not None
         assert registration.thread_id == "thread-recovered"
         assert registration.crew_version == "codex-cli 0.155.1"
+    elif log_state == "unreadable":
+        assert registration is None
+        assert result.closed.metadata.session_id == "preassigned-but-unobserved"
     else:
         assert registration is None
         assert result.closed.metadata.session_id == ""

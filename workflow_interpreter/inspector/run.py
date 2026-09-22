@@ -93,7 +93,7 @@ from workflow_interpreter.inspector.monitor import Limits, Monitor
 from workflow_interpreter.inspector.paths import WrapperPaths, read_record
 from workflow_interpreter.inspector.profile import (
     Profile,
-    observed_session_registration,
+    observe_session,
 )
 from workflow_interpreter.inspector.rpc_session import RpcSession
 from workflow_interpreter.inspector.workspace import Workspace
@@ -450,9 +450,9 @@ class _SessionMirror:
                     error=str(exc),
                 )
                 return
-        registration = observed_session_registration(
+        registration = observe_session(
             self._root, self._activation, self._profile
-        )
+        ).registration
         if registration is None:
             return
         try:
