@@ -384,8 +384,85 @@ def _labelled(item: Materialized) -> str:
     )
 
 
+def _execution_identity(root: RootRecord, activation: ActivationRecord) -> str:
+    """The ids a coordinated decision must stamp, or nothing outside one."""
+    if root.metadata.coordination is None:
+        return ""
+    return (
+        f"Execution identity: producing_root_id={root.root_id}; "
+        f"producing_activation_id={activation.activation_id}"
+    )
+
+
+def _forced_first_reject(
+    root: RootRecord, activation: ActivationRecord, node: Node
+) -> str:
+    """The §13 test clause, on the first round of an opted-in rejecting node."""
+    forced = (
+        root.metadata.allow_test_flags
+        and root.definition.document.instance.test_force_first_reject
+        and Outcome.REJECT in (node.outcomes or ())
+        and activation.metadata.round_no == FIRST_ROUND
+    )
+    return FORCED_FIRST_REJECT if forced else ""
+
+
+def _checked_envelope(
+    root: RootRecord,
+    activation: ActivationRecord,
+    node: Node,
+    mandatory: str,
+    inputs: tuple[Materialized, ...],
+    *,
+    supplied: frozenset[str],
+) -> ComposedEnvelope:
+    """Apply the node's byte budget to one brief and account for every omission.
+
+    `inputs` are the ones this brief carries; `supplied` is every input the
+    activation bound, so one already carried elsewhere is not "missing".
+    """
+    sources = root.index.sources
+    bindings = {binding.name: binding for binding in activation.metadata.inputs}
+    essential = root.metadata.essential_inputs or ()
+    omissions = [item.omission for item in inputs if item.omission is not None]
+    omissions.extend(
+        InputOmission(name=name, reason="missing")
+        for name in node.inputs or ()
+        if name not in supplied and sources[name].optional
+    )
+    sections = []
+    for item in inputs:
+        if item.omission is not None:
+            continue
+        source = sources.get(item.name)
+        binding = bindings.get(item.name)
+        sections.append(
+            EnvelopeSection(
+                text=_labelled(item),
+                name=item.name,
+                optional=source.optional and item.name not in essential
+                if source
+                else False,
+                trim_priority=source.trim_priority if source else 0,
+                reference=binding.artifact_ref if binding else None,
+                digest=binding.digest if binding else None,
+            )
+        )
+    return compose_envelope(
+        mandatory,
+        tuple(sections),
+        limit=node.context_budget_bytes or 262144,
+        reference=f"wf-activation://{activation.activation_id}/envelope",
+        omissions=tuple(omissions),
+        limit_source="pinned" if node.context_budget_bytes else "legacy_safety_default",
+        diagnostics=("legacy_token_budget_ignored",)
+        if node.token_budget is not None
+        else (),
+    )
+
+
 class ResumeDelta(BaseModel):
-    """The text a resumed turn actually sends, and the inputs inside it."""
+    """The steer text a continuation sends in place of any brief."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
     text: str
@@ -394,9 +471,8 @@ class ResumeDelta(BaseModel):
     def envelope(self, fresh: ComposedEnvelope) -> ComposedEnvelope:
         """Account for the bytes the vendor got, not the brief it never saw.
 
-        The budget accounting of the fresh composition still applies — the
-        delta is a SUBSET of it — so only what this turn actually sent is
-        replaced, and the kind says which of the two the record describes.
+        Only the budget the fresh composition ran under carries over: this
+        text omitted no input, so the fresh brief's omissions are not its own.
         """
         return fresh.model_copy(
             update={
@@ -404,9 +480,28 @@ class ResumeDelta(BaseModel):
                 "text": self.text,
                 "byte_count": len(self.text.encode("utf-8")),
                 "included": self.included,
+                "omissions": (),
                 "sha256": hashlib.sha256(self.text.encode()).hexdigest(),
             }
         )
+
+
+def _sent_bindings(prior: ActivationRecord) -> set[str]:
+    """The bindings a turn's durable envelope record says the vendor received.
+
+    Bound is not sent: the budget may have trimmed an input from that turn's
+    brief, and the thread then never saw it. With no record, nothing counts.
+    """
+    record = prior.metadata.envelope
+    included = None if record is None else record.get("included")
+    if not isinstance(included, list):
+        return set()
+    names = {name for name in included if isinstance(name, str)}
+    return {
+        binding.model_dump_json()
+        for binding in prior.metadata.inputs
+        if binding.name in names
+    }
 
 
 def compose_resume_delta(
@@ -415,48 +510,45 @@ def compose_resume_delta(
     source: ActivationRecord,
     activations: Mapping[str, ActivationRecord],
     inputs: tuple[Materialized, ...],
-) -> ResumeDelta:
-    """Render only current instructions and inputs absent from the source turn.
+) -> ComposedEnvelope:
+    """Render this turn's instructions and the inputs the thread never received.
 
-    Input identity is the complete immutable ``InputBinding`` persisted on both
-    activations.  Replaying this function therefore produces the same delta
-    after a crash without retaining prompt text or consulting live outputs.
-    Protocol, fact-frame, and leaf-contract sections belong only to a fresh
-    envelope; the resumed vendor thread already contains them.
+    Input identity is the complete immutable ``InputBinding``, and "received"
+    is what each turn's durable envelope record says it SENT — so replaying
+    this function after a crash produces the same delta without retaining
+    prompt text or consulting live outputs. Protocol, fact-frame, and
+    leaf-contract sections belong only to a fresh envelope.
 
-    "Already in the thread" is the whole RESUME CHAIN, not just the immediate
-    source: the third turn of one vendor thread must not re-send what the first
-    turn carried.  The chain is walked through each source's own
-    ``session_source_activation_id``, which is durable, so the same delta is
-    recomputed identically on any later tick.
+    "The thread" is the whole RESUME CHAIN, not just the immediate source: the
+    third turn of one vendor thread must not re-send what the first turn
+    carried. The chain is walked through each source's own
+    ``session_source_activation_id``, which is durable.
+
+    The same byte budget as a fresh brief applies, and the returned envelope
+    records the omissions THIS delta made — nothing it did not drop.
     """
     node = resolved_node(root, activation.metadata.node).node
-    source_inputs: set[str] = set()
+    sent: set[str] = set()
     seen: set[str] = set()
     prior: ActivationRecord | None = source
     while prior is not None and prior.activation_id not in seen:
         seen.add(prior.activation_id)
-        source_inputs.update(
-            binding.model_dump_json() for binding in prior.metadata.inputs
-        )
+        sent.update(_sent_bindings(prior))
         source_id = prior.metadata.session_source_activation_id
         prior = activations.get(source_id) if source_id is not None else None
     new_inputs = tuple(
         item
         for binding, item in zip(activation.metadata.inputs, inputs, strict=True)
-        if binding.model_dump_json() not in source_inputs and item.omission is None
+        if binding.model_dump_json() not in sent
     )
-    return ResumeDelta(
-        text="\n\n".join(
-            part.strip()
-            for part in (
-                node.instructions or "",
-                *(_labelled(item) for item in new_inputs),
-            )
-            if part.strip()
-        ),
-        included=tuple(item.name for item in new_inputs),
-    )
+    return _checked_envelope(
+        root,
+        activation,
+        node,
+        (node.instructions or "").strip(),
+        new_inputs,
+        supplied=frozenset(item.name for item in inputs),
+    ).model_copy(update={"kind": EnvelopeKind.RESUME_DELTA})
 
 
 class DefaultComposer:
@@ -481,11 +573,7 @@ class DefaultComposer:
                 _crew_protocol(node),
                 _fact_frame(root, activation, node),
                 LEAF_EXECUTION_CONTRACT,
-                (
-                    f"Execution identity: producing_root_id={root.root_id}; producing_activation_id={activation.activation_id}"
-                    if root.metadata.coordination is not None
-                    else ""
-                ),
+                _execution_identity(root, activation),
                 node.instructions or "",
                 f"## Steer advice\n\n{instructions}"
                 if instructions is not None
@@ -498,59 +586,17 @@ class DefaultComposer:
             )
             if part.strip()
         )
-        forced = (
-            root.metadata.allow_test_flags
-            and root.definition.document.instance.test_force_first_reject
-            and Outcome.REJECT in (node.outcomes or ())
-            and activation.metadata.round_no == FIRST_ROUND
-        )
         mandatory = "\n".join(
-            filter(None, (brief, FORCED_FIRST_REJECT if forced else ""))
+            filter(None, (brief, _forced_first_reject(root, activation, node)))
         )
-        sources = root.index.sources
-        bindings = {binding.name: binding for binding in activation.metadata.inputs}
-        supplied = {item.name for item in inputs}
-        omissions = [item.omission for item in inputs if item.omission is not None]
-        omissions.extend(
-            InputOmission(name=name, reason="missing")
-            for name in node.inputs or ()
-            if name not in supplied and sources[name].optional
-        )
+        supplied = frozenset(item.name for item in inputs)
         essential = root.metadata.essential_inputs or ()
         if any(
             name not in supplied for name in essential if name in (node.inputs or ())
         ):
             raise InputsUnavailable("essential replacement advice is missing")
-        sections = []
-        for item in inputs:
-            if item.omission is not None:
-                continue
-            source = sources.get(item.name)
-            binding = bindings.get(item.name)
-            sections.append(
-                EnvelopeSection(
-                    text=_labelled(item),
-                    name=item.name,
-                    optional=source.optional and item.name not in essential
-                    if source
-                    else False,
-                    trim_priority=source.trim_priority if source else 0,
-                    reference=binding.artifact_ref if binding else None,
-                    digest=binding.digest if binding else None,
-                )
-            )
-        return compose_envelope(
-            mandatory,
-            tuple(sections),
-            limit=node.context_budget_bytes or 262144,
-            reference=f"wf-activation://{activation.activation_id}/envelope",
-            omissions=tuple(omissions),
-            limit_source="pinned"
-            if node.context_budget_bytes
-            else "legacy_safety_default",
-            diagnostics=("legacy_token_budget_ignored",)
-            if node.token_budget is not None
-            else (),
+        return _checked_envelope(
+            root, activation, node, mandatory, inputs, supplied=supplied
         )
 
     def compose(

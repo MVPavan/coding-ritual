@@ -25,7 +25,7 @@ from workflow_interpreter.bdio import (
 from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.carriers import ArtifactIdentity
 from workflow_interpreter.foreman.constants import FORCED_FIRST_REJECT
-from workflow_interpreter.foreman.envelope import EnvelopeKind
+from workflow_interpreter.foreman.envelope import ComposedEnvelope, EnvelopeKind
 from workflow_interpreter.foreman.inputs import (
     DefaultComposer,
     InputsUnavailable,
@@ -1108,8 +1108,14 @@ def _turn(
     names: tuple[str, ...],
     *,
     source: str | None = None,
+    sent: tuple[str, ...] | None = None,
+    round_no: int = 1,
 ) -> ActivationRecord:
-    """One turn of a resumed vendor thread, carrying the inputs it was given."""
+    """One turn of a resumed vendor thread, carrying the inputs it was given.
+
+    `sent` is what its durable envelope record says the vendor actually got;
+    by default every bound input, i.e. nothing was trimmed.
+    """
     activation = store.mint_activation(root.root_id, entry_request()).activation
     bindings = tuple(
         InputBinding(
@@ -1127,6 +1133,8 @@ def _turn(
                 update={
                     "inputs": bindings,
                     "session_source_activation_id": source,
+                    "round_no": round_no,
+                    "envelope": {"included": list(names if sent is None else sent)},
                 }
             ),
         }
@@ -1180,6 +1188,76 @@ def test_resume_delta_drops_the_preamble_and_every_input_already_in_the_thread(
     assert "the findings" not in delta.text
     assert "How this run is judged" not in delta.text
     assert delta.included == ("verify_failure",)
+
+
+def _with_node(root: RootRecord, node: str, **update: object) -> RootRecord:
+    """The root with one node's pinned body changed, as a graph could author it."""
+    document = root.definition.document.model_copy(
+        update={
+            "node": tuple(
+                item.model_copy(update=update) if item.name == node else item
+                for item in root.definition.document.node
+            )
+        }
+    )
+    return root.model_copy(
+        update={"definition": root.definition.model_copy(update={"document": document})}
+    )
+
+
+def test_resume_delta_resends_what_the_source_trimmed_and_owns_its_omissions(
+    fake_store: WorkflowStore,
+) -> None:
+    """ "Already in the thread" is what the source's envelope SENT, not what it bound.
+
+    `review_findings` was bound on turn 1 but trimmed from what it sent, so the
+    thread never saw it and turn 2 must carry it. The delta applies the same
+    budget: an optional input that does not fit is omitted and recorded as
+    THIS turn's omission; nothing the delta did not drop is claimed as dropped.
+    """
+    base = make_root(fake_store, load_definition())
+    first = _turn(
+        fake_store,
+        base,
+        "turn-1",
+        ("task_brief", "review_findings"),
+        sent=("task_brief",),
+    )
+    root = _with_node(base, first.metadata.node, context_budget_bytes=4096)
+    second = _turn(
+        fake_store,
+        root,
+        "turn-2",
+        ("task_brief", "review_findings"),
+        source=first.activation_id,
+    )
+    chain = {item.activation_id: item for item in (first, second)}
+    brief = Materialized(text="the brief", name="task_brief", producer="instance")
+
+    def delta(findings: str) -> ComposedEnvelope:
+        return compose_resume_delta(
+            root,
+            second,
+            first,
+            chain,
+            (
+                brief,
+                Materialized(text=findings, name="review_findings", producer="review"),
+            ),
+        )
+
+    resent = delta("the findings")
+    trimmed = delta("x" * 8000)
+
+    assert "the findings" in resent.text
+    assert "the brief" not in resent.text
+    assert resent.included == ("review_findings",)
+    assert resent.omissions == ()
+    assert trimmed.byte_count <= 4096
+    assert trimmed.included == ()
+    assert [(item.name, item.reason) for item in trimmed.omissions] == [
+        ("review_findings", "budget")
+    ]
 
 
 def test_a_resumed_turn_records_the_envelope_it_actually_sent(tmp_path: Path) -> None:

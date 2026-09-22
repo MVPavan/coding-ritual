@@ -221,13 +221,13 @@ def _task_builder(root: RootRecord, wiring: InstanceWiring, git: Git) -> TaskBui
         # same rule with a shorter delta — `Dispatcher._resume_text` sends the
         # steer instructions alone, not the brief they were folded into.
         delta = (
-            ResumeDelta(text=instructions, included=())
+            ResumeDelta(text=instructions, included=()).envelope(envelope)
             if instructions is not None
             else compose_resume_delta(root, current, source, by_id, inputs)
             if source is not None
             else None
         )
-        sent = envelope if delta is None else delta.envelope(envelope)
+        sent = envelope if delta is None else delta
         wiring.store.record_envelope(
             current.activation_id, sent.model_dump(mode="json", exclude={"text"})
         )
