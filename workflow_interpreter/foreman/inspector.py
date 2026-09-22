@@ -29,7 +29,11 @@ from workflow_interpreter.contracts.execution import (
     UnregisteredCrewError,
     tool_network_for,
 )
-from workflow_interpreter.foreman.close import _previous_tree_oid, reviewed_tree_oid
+from workflow_interpreter.foreman.close import (
+    _is_appserver,
+    _previous_tree_oid,
+    reviewed_tree_oid,
+)
 from workflow_interpreter.foreman.compose import (
     Composition,
     InstanceWiring,
@@ -220,8 +224,13 @@ def _task_builder(root: RootRecord, wiring: InstanceWiring, git: Git) -> TaskBui
         # claim the crew was handed text it never saw. A STEERED turn is the
         # same rule with a shorter delta — `Dispatcher._resume_text` sends the
         # steer instructions alone, not the brief they were folded into.
+        # R1: the frozen app-server resends the whole brief on every turn, so
+        # it keeps its pre-epic record — the fresh envelope, with no `kind`.
+        appserver = _is_appserver(current)
         delta = (
-            ResumeDelta(text=instructions, included=()).envelope(envelope)
+            None
+            if appserver
+            else ResumeDelta(text=instructions, included=()).envelope(envelope)
             if instructions is not None
             else compose_resume_delta(root, current, source, by_id, inputs)
             if source is not None
@@ -229,7 +238,10 @@ def _task_builder(root: RootRecord, wiring: InstanceWiring, git: Git) -> TaskBui
         )
         sent = envelope if delta is None else delta
         wiring.store.record_envelope(
-            current.activation_id, sent.model_dump(mode="json", exclude={"text"})
+            current.activation_id,
+            sent.model_dump(
+                mode="json", exclude={"text", "kind"} if appserver else {"text"}
+            ),
         )
         return TaskSpec(
             root_id=root.root_id,

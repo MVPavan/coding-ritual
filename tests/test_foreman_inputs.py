@@ -1301,11 +1301,16 @@ def test_resumed_coordination_turn_carries_its_own_activation_facts(
     assert "How this run is judged" not in delta.text
 
 
-def test_a_resumed_turn_records_the_envelope_it_actually_sent(tmp_path: Path) -> None:
+@pytest.mark.parametrize("appserver", [False, True])
+def test_a_resumed_turn_records_the_envelope_it_actually_sent(
+    tmp_path: Path, appserver: bool
+) -> None:
     """The durable envelope of a resumed turn accounts for the delta, not the brief.
 
     The vendor receives `resume_brief`; recording the recomposed fresh envelope
-    would make the record claim the crew was handed text it never saw.
+    would make the record claim the crew was handed text it never saw. The
+    frozen app-server resends the whole brief, so its record stays the
+    pre-epic one: the fresh envelope, with no `kind`.
     """
     lab = ForemanLab(tmp_path, sandbox=SandboxMode.OFF)
     root = lab.instantiate()
@@ -1326,7 +1331,8 @@ def test_a_resumed_turn_records_the_envelope_it_actually_sent(tmp_path: Path) ->
     ).activation
     wiring.store._client._merge_metadata(
         resumed.activation_id,
-        {"session_source_activation_id": source.activation_id},
+        {"session_source_activation_id": source.activation_id}
+        | ({"crew_profile": "codex-appserver"} if appserver else {}),
     )
     resumed = wiring.store.reads.load_activation(resumed.activation_id)
     paths = wiring.paths
@@ -1340,9 +1346,14 @@ def test_a_resumed_turn_records_the_envelope_it_actually_sent(tmp_path: Path) ->
         ),
     )
 
-    assert task.resume_brief is not None
     record = wiring.store.reads.load_activation(resumed.activation_id).metadata.envelope
     assert record is not None
+    if appserver:
+        assert task.resume_brief is None
+        assert "kind" not in record
+        assert record["sha256"] == hashlib.sha256(task.brief.encode()).hexdigest()
+        return
+    assert task.resume_brief is not None
     assert record["kind"] == EnvelopeKind.RESUME_DELTA.value
     assert record["byte_count"] == len(task.resume_brief.encode())
     assert record["sha256"] == hashlib.sha256(task.resume_brief.encode()).hexdigest()
