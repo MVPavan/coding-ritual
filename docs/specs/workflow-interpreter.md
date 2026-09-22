@@ -791,10 +791,13 @@ exact steer ancestor as the source, sending the steer text instead of the delta.
 `context_cap_tokens` is an optional role-binding field with no node override,
 pinned with the role's invocation settings. For a `claude` role it is passed
 unchanged as `--autocompact <n>` on launch and resume; the engine keeps no
-model-to-window table and checks only that it is a positive integer (claude
-accepts 100000–1000000). Unset emits no flag. A non-`claude` role that sets it
+model-to-window table, but config load refuses, naming the role, a value
+outside claude's accepted 100000–1000000 range (claude would read a bare value
+under 1000 as thousands). Unset emits no flag. A non-`claude` role that sets it
 is refused at config load; `codex` keeps its vendor-default window, and the
 engine never emits `model_context_window` or `model_auto_compact_token_limit`.
+Being a pinned resolved setting, adding or changing a live role's cap changes
+the instance config signature exactly as a model or effort change does.
 `context_budget_bytes` is separate: it bounds the composed envelope only.
 
 The app-server continues its bound thread with `thread/resume`. Every new

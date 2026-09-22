@@ -9,7 +9,6 @@ from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
-    PositiveInt,
     StringConstraints,
     model_validator,
 )
@@ -37,6 +36,19 @@ MSG_CONTEXT_CAP_NOT_CLAUDE: Final[str] = (
     "role {role!r} binds profile {profile!r} and sets context_cap_tokens; "
     "the cap maps to claude's --autocompact only, so a non-claude role must "
     "leave it unset (codex keeps its vendor default window)"
+)
+
+CONTEXT_CAP_MIN_TOKENS: Final[int] = 100_000
+CONTEXT_CAP_MAX_TOKENS: Final[int] = 1_000_000
+"""claude's `--autocompact` accepted range (`claude --help`: "100k–1M tokens").
+
+The vendor's range, not a model-to-window table. Checked here because claude
+reads a bare value under 1000 as thousands (`400` would become 400k) and
+refuses others only at launch."""
+
+MSG_CONTEXT_CAP_OUT_OF_RANGE: Final[str] = (
+    "role {role!r} sets context_cap_tokens={value}; claude's --autocompact "
+    "accepts {minimum}-{maximum} tokens"
 )
 
 REPO_HASH_LENGTH: Final[int] = 16
@@ -67,12 +79,13 @@ class CrewBinding(BaseModel):
     model: Annotated[str, StringConstraints(min_length=1)]
     effort: Annotated[str, StringConstraints(min_length=1)]
     session_mode: SessionMode | None = None
-    context_cap_tokens: PositiveInt | None = None
+    context_cap_tokens: int | None = None
     """Claude's `--autocompact` threshold, passed through unchanged.
 
-    No model-to-window table checks it: the operator supplies the value and
-    claude validates it (it accepts 100000 to 1000000). Unset emits no flag,
-    which leaves the vendor default."""
+    No model-to-window table checks it; `ForemanConfig` refuses, by role, a
+    value outside claude's accepted range (`CONTEXT_CAP_MIN_TOKENS` to
+    `CONTEXT_CAP_MAX_TOKENS`). Checked there rather than here so the refusal
+    can name the role. Unset emits no flag, which leaves the vendor default."""
 
 
 class WakeConfig(BaseModel):
@@ -167,6 +180,19 @@ class ForemanConfig(BaseModel):
                 raise ValueError(
                     MSG_CONTEXT_CAP_NOT_CLAUDE.format(
                         role=role, profile=binding.profile
+                    )
+                )
+            if binding.context_cap_tokens is not None and not (
+                CONTEXT_CAP_MIN_TOKENS
+                <= binding.context_cap_tokens
+                <= CONTEXT_CAP_MAX_TOKENS
+            ):
+                raise ValueError(
+                    MSG_CONTEXT_CAP_OUT_OF_RANGE.format(
+                        role=role,
+                        value=binding.context_cap_tokens,
+                        minimum=CONTEXT_CAP_MIN_TOKENS,
+                        maximum=CONTEXT_CAP_MAX_TOKENS,
                     )
                 )
         return self

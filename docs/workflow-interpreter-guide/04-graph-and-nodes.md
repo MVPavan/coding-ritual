@@ -179,7 +179,8 @@ containment breach that must never reach `ship`.
   and their `token_budget` lines do nothing.
 - **`context_cap_tokens`** caps the crew's own context, and only for Claude. It is a
   role-binding field in the foreman config (no node field), passed unchanged as
-  `--autocompact <n>` on launch and resume; Claude accepts 100000–1000000. Unset
+  `--autocompact <n>` on launch and resume. A value outside Claude's accepted
+  100000–1000000 range is refused at config load, naming the role. Unset
   passes no flag. A Codex role that sets it is refused at config load; Codex keeps
   its vendor-default window.
 

@@ -339,7 +339,7 @@ def _prepare_mint(
         source_session_id=choice.source_session_id,
         # §3: the tree proof belongs to the SOURCE that was selected here, and
         # to nothing else — a source that pinned none IS the missing-snapshot
-        # refusal, so a caller-supplied OID may not stand in for it.
+        # refusal.
         expected_tree_oid=choice.source_tree_oid,
         session_reuse_source=source,
         session_fresh_reason=choice.fresh_reason,

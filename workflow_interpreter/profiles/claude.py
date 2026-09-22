@@ -248,7 +248,8 @@ class ClaudeProfile(BaseProfile):
         flags += [MODEL, _required_model(task)]
         flags += [EFFORT, _required_effort(task)]
         if task.context_cap_tokens is not None:
-            # Passed unchanged; claude itself refuses a value outside 100k-1M.
+            # Passed unchanged; config load already refused a value outside
+            # claude's 100k-1M range (a bare value under 1000 means thousands).
             flags += [AUTOCOMPACT, str(task.context_cap_tokens)]
         return [*flags, *self._bounds(task)]
 

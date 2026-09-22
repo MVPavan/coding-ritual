@@ -483,17 +483,24 @@ def _resolved_config(
             )
         # Pinned only when set, so a role without a cap resolves — and signs —
         # exactly as it did before the field existed (idempotent re-creation).
-        # A project/override crew that is not claude never carries it.
-        if (
-            binding.context_cap_tokens is not None
-            and settings[crew_key].value == CrewName.CLAUDE.value
-        ):
-            cap_key = context_cap_key(node.name)
-            settings[cap_key] = ResolvedSetting(
-                key=cap_key,
-                value=binding.context_cap_tokens,
-                source=ConfigSource.ROLE_BINDING,
-            )
+        # A project/override crew that is not claude never carries it; that
+        # drop is logged so an operator's cap does not vanish unseen.
+        if binding.context_cap_tokens is not None:
+            if settings[crew_key].value == CrewName.CLAUDE.value:
+                cap_key = context_cap_key(node.name)
+                settings[cap_key] = ResolvedSetting(
+                    key=cap_key,
+                    value=binding.context_cap_tokens,
+                    source=ConfigSource.ROLE_BINDING,
+                )
+            else:
+                _LOG.warning(
+                    "foreman.context_cap_dropped",
+                    node=node.name,
+                    role=node.crew.removeprefix("profile:"),
+                    crew=settings[crew_key].value,
+                    context_cap_tokens=binding.context_cap_tokens,
+                )
     settings.update(
         {
             item.key: item
