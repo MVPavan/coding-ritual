@@ -26,6 +26,10 @@ from typing import Any, Final
 from jsonschema import Draft202012Validator
 from pydantic import ValidationError
 
+from workflow_interpreter.contracts.sessions import (
+    MSG_SESSION_REUSE_AUTHORED,
+    SessionReuse,
+)
 from workflow_interpreter.schema.models import (
     Finding,
     GraphDefinition,
@@ -119,12 +123,16 @@ def graph_schema() -> dict[str, Any]:
 
 @cache
 def _pinned_schema() -> dict[str, Any]:
-    """The graph schema extended with the required `canon` stamp.
+    """The graph schema extended with legacy pins and the `canon` stamp.
 
-    Only the pinned-body path accepts this member; authored TOML declaring it
-    stays an unknown-property error.
+    Only the pinned-body path accepts `canon` and legacy `session_reuse`;
+    authored TOML stays on the canonical `session_mode` vocabulary.
     """
     schema = copy.deepcopy(_cached_schema())
+    schema["$defs"]["node"]["properties"]["session_reuse"] = {
+        "type": "string",
+        "enum": [item.value for item in SessionReuse],
+    }
     schema["properties"][CANON_KEY] = {"const": CANON_VERSION}
     schema["required"] = [*schema["required"], CANON_KEY]
     return schema
@@ -196,6 +204,23 @@ def _model_findings(error: ValidationError) -> list[Finding]:
     ]
 
 
+def _authored_session_reuse_findings(data: dict[str, Any]) -> list[Finding]:
+    """Name the canonical replacement before generic schema rejection."""
+    nodes = data.get("node")
+    if not isinstance(nodes, list):
+        return []
+    return [
+        Finding(
+            rule=RuleId.SCHEMA,
+            severity=Severity.ERROR,
+            location=f"$.node[{position}].session_reuse",
+            message=MSG_SESSION_REUSE_AUTHORED,
+        )
+        for position, node in enumerate(nodes)
+        if isinstance(node, dict) and "session_reuse" in node
+    ]
+
+
 def _validate(
     data: dict[str, Any],
     schema: dict[str, Any],
@@ -261,6 +286,9 @@ def load_graph(path: Path, *, allow_test_flags: bool = False) -> GraphDefinition
     try:
         with path.open("rb") as handle:
             data: dict[str, Any] = tomllib.load(handle)
+        legacy_findings = _authored_session_reuse_findings(data)
+        if legacy_findings:
+            raise GraphValidationError(path, tuple(legacy_findings))
         return _validate(data, graph_schema(), path, allow_test_flags=allow_test_flags)
     except _BOUNDARY_FAILURES as exc:
         raise _parse_error(

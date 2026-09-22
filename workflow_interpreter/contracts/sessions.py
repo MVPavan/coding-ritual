@@ -20,6 +20,10 @@ class SessionMode(StrEnum):
 
 
 MSG_SESSION_REUSE: Final[str] = "session_reuse requires the codex app-server crew"
+MSG_SESSION_REUSE_AUTHORED: Final[str] = (
+    "session_reuse is pinned-body compatibility only; "
+    "author session_mode instead (fresh | resume)"
+)
 MSG_SESSION_MODE_CONFLICT: Final[str] = (
     "session_mode and legacy session_reuse cannot both be set"
 )

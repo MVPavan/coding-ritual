@@ -294,13 +294,6 @@
             "reviewer"
           ]
         },
-        "session_reuse": {
-          "type": "string",
-          "enum": [
-            "fresh",
-            "same-node"
-          ]
-        },
         "session_mode": {
           "type": "string",
           "enum": [
