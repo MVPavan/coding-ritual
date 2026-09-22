@@ -48,10 +48,7 @@ from workflow_interpreter.contracts.execution import (
     ExecutionProfileName,
     NetworkProfile,
 )
-from workflow_interpreter.contracts.sessions import (
-    crew_version_key,
-    execution_policy_digest,
-)
+from workflow_interpreter.contracts.sessions import execution_policy_digest
 from workflow_interpreter.contracts.transport import CrewTransport
 from workflow_interpreter.inspector.channels import (
     COMMITTER_NAME,
@@ -328,7 +325,8 @@ def observed_session_registration(
     settings = resolved_settings(root.metadata)
     effort = settings.get(NodeSetting.EFFORT.at(metadata.node))
     policy = settings.get(EXECUTION_POLICY_KEY.format(node=metadata.node), "legacy")
-    crew_version = settings.get(crew_version_key(metadata.node))
+    version_reader = getattr(profile, "cli_version", None)
+    crew_version = version_reader() if callable(version_reader) else None
     if not isinstance(effort, str) or not isinstance(policy, str):
         return None
     return SessionRegistration(

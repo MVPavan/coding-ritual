@@ -438,6 +438,8 @@ class BaseProfile:
         self._config = config
         self._clock = clock
         self._host_env = dict(host_env)
+        self._cli_version: str | None = None
+        self._cli_version_error: str | None = None
 
     # -- identity ---------------------------------------------------------
 
@@ -448,6 +450,19 @@ class BaseProfile:
     def binary(self) -> str:
         """The executable this profile execs."""
         return self._config.binary_for(self.crew)
+
+    def qualify_cli(self, version: str | None, error: str | None = None) -> None:
+        """Attach the registry's once-per-process CLI qualification."""
+        self._cli_version = version
+        self._cli_version_error = error
+
+    def cli_version(self) -> str | None:
+        """Return the version probed for the process that owns this profile."""
+        return self._cli_version
+
+    def cli_version_error(self) -> str | None:
+        """Return why process qualification could not establish a version."""
+        return self._cli_version_error
 
     # -- command construction --------------------------------------------
 

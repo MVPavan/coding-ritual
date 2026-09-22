@@ -69,12 +69,17 @@ class ProfileRegistry:
 
     def profile_for(self, name: str) -> Profile:
         """The registered crew profile; unknown names raise (see module doc)."""
-        builder = self._builders.get(name.removeprefix(CREW_PREFIX))
+        bare_name = name.removeprefix(CREW_PREFIX)
+        builder = self._builders.get(bare_name)
         if builder is None:
             raise UnknownProfileError(
                 _MSG_UNKNOWN.format(name=name, known=", ".join(sorted(self._builders)))
             )
-        return builder(self._config, self._clock, self._host_env)
+        profile = builder(self._config, self._clock, self._host_env)
+        qualify = getattr(profile, "qualify_cli", None)
+        if callable(qualify):
+            qualify(self.version_for(bare_name))
+        return profile
 
     def version_for(self, name: str) -> str | None:
         """Qualify a resumable CLI once for this process and cache its version."""
