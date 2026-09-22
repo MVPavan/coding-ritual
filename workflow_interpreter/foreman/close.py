@@ -91,6 +91,7 @@ def _settle(
     ):
         try:
             wiring.workspace.preserve_interrupted(activation, node)
+            activation = _publish_session_tree(wiring, activation, node)
         except (OSError, InspectorError) as exc:
             return Settlement(
                 activation=activation,
@@ -420,6 +421,28 @@ def _replay_agrees_with_recorded_evidence(
         and completion.evidence.verify == evidence.verify
         and completion.claimed_outcome == evidence.claimed_outcome
     )
+
+
+def _publish_session_tree(
+    wiring: InstanceWiring, activation: ActivationRecord, node: Node
+) -> ActivationRecord:
+    """Publish the §3 tree a writing turn left, before its close makes it a source.
+
+    The bytes were pinned at the exit, while the wrapper still held the band;
+    this states their OID in bd at the last moment before `is_completed` lets
+    a later activation resume the session that produced them. A store refusal
+    is not worth stalling a settled run over: with no OID recorded, the resume
+    that would have used it refuses by name instead (§3).
+    """
+    if not node.writes:
+        return activation
+    tree_oid = wiring.workspace.session_tree_oid(activation.activation_id)
+    if tree_oid is None or activation.metadata.session_tree_oid == tree_oid:
+        return activation
+    try:
+        return wiring.store.record_session_tree(activation.activation_id, tree_oid)
+    except StoreError:
+        return activation
 
 
 def _previous_tree_oid(

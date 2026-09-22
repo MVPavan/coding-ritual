@@ -255,6 +255,10 @@ class WrapperPaths:
         """Wrapper-owned producer-linked interruption evidence."""
         return self.activation_dir(activation_id) / "recovery.json"
 
+    def observed_tree(self, activation_id: str) -> Path:
+        """The §3 full-tree OID a non-writing activation was launched over."""
+        return self.activation_dir(activation_id) / "observed-tree.json"
+
     def activation_dir(self, activation_id: str) -> Path:
         """`.wf/<root_id>/<activation_id>/` — one activation's artifacts."""
         return self.instance_dir / activation_id

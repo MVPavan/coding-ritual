@@ -456,6 +456,14 @@ class WorkflowStore:
             self._client, self._load_activation, activation_id, completion
         )
 
+    def record_session_tree(
+        self, activation_id: str, tree_oid: str
+    ) -> ActivationRecord:
+        """Record the §3 working tree a writing turn left for its resume."""
+        return inspection.record_session_tree(
+            self._client, self._load_activation, activation_id, tree_oid
+        )
+
     def register_session(
         self, activation_id: str, registration: SessionRegistration
     ) -> ActivationRecord:

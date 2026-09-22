@@ -50,6 +50,9 @@ class SessionChoice(BaseModel):
     source: SessionRegistration | None = None
     source_activation_id: str | None = None
     source_session_id: str | None = None
+    source_tree_oid: str | None = None
+    """§3: the tree the selected source left. `None` where the source never
+    pinned one, which makes a writing resume refuse rather than reset."""
     fresh_reason: SessionFreshReason | None = None
 
 
@@ -152,6 +155,7 @@ def choose_source(
             source=registration,
             source_activation_id=source.activation_id,
             source_session_id=registration.thread_id,
+            source_tree_oid=meta.session_tree_oid,
         )
     if continuation:
         raise CarrierIntegrityError(MSG_SESSION_SOURCE)

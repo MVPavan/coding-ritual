@@ -98,6 +98,9 @@ from workflow_interpreter.inspector.errors import (
     GitCommandError,
     InterruptedWorkPreservationFailed,
     PreconditionRefused,
+    ReadOnlyTreeMutation,
+    ResumeMismatchReason,
+    ResumeTreeMismatch,
     SnapshotFailed,
     WrapperDirError,
 )
@@ -108,6 +111,7 @@ from workflow_interpreter.inspector.models import (
     DirtySnapshot,
     HumanConfirmation,
     Liveness,
+    ObservedTree,
     PinOutcome,
     PinResult,
     PreconditionResult,
@@ -147,6 +151,11 @@ _SNAPSHOT_MESSAGE: Final[str] = (
 )
 _OUTPUTS_MESSAGE: Final[str] = "wf pinned outputs for {activation_id}"
 _OUTPUTS_NAMESPACE: Final[str] = "outputs"
+_SESSION_NAMESPACE: Final[str] = "session"
+_SESSION_MESSAGE: Final[str] = (
+    "wf session tree of {activation_id} at {head} (§3): the working tree a "
+    "resumed successor of this vendor session must observe"
+)
 
 _MSG_MISSING_COMMIT: Final[str] = (
     "intended_base_commit {commit} does not exist in {repo}; a bd record naming "
@@ -170,6 +179,20 @@ _MSG_NO_SNAPSHOT: Final[str] = (
     "refusing to reset {path}: the pre-destruction snapshot could not be "
     "pinned ({error}), so the reset would not be recoverable if the wrapper's "
     "attribution is wrong (§12)"
+)
+_MSG_RESUME_UNPROVEN: Final[str] = (
+    "activation {activation_id} resumes session {session} but carries no "
+    "pinned tree OID to prove the shared checkout against; §3 refuses rather "
+    "than resetting the tree its session remembers"
+)
+_MSG_RESUME_MISMATCH: Final[str] = (
+    "refusing to resume activation {activation_id} against {path}: the "
+    "session was left on tree {expected} and the checkout now holds "
+    "{observed}; another writer has run between the two turns (§3)"
+)
+_MSG_READ_ONLY_MUTATED: Final[str] = (
+    "activation {activation_id} does not write, but its checkout moved from "
+    "tree {expected} to {observed} while it ran (§3)"
 )
 _MSG_BAND_REQUIRED: Final[str] = (
     "in-repo isolation requires the §12 execution band; acquire it before "
@@ -235,6 +258,183 @@ class Workspace:
             confirmation=confirmation,
         )
 
+    def resume(self, activation: ActivationRecord, node: Node) -> PreconditionResult:
+        """Prove the shared tree is still the one this session remembers (§3).
+
+        The resumed writer's whole precondition: no reset, no clean, no HEAD
+        move — the vendor thread carries the context for exactly these bytes,
+        and resetting them is what would make the resume a lie. Ownership and
+        the §3.2 trio are still taken, so a rework that follows reads this
+        attempt rather than the one whose session it inherited.
+        """
+        meta = activation.metadata
+        in_repo = node.isolation is IsolationMode.IN_REPO
+        if in_repo and not self._band.held:
+            raise BandNotHeld(_MSG_BAND_REQUIRED)
+        expected = meta.expected_tree_oid
+        if meta.source_session_id is None or expected is None:
+            raise ResumeTreeMismatch(
+                _MSG_RESUME_UNPROVEN.format(
+                    activation_id=activation.activation_id,
+                    session=meta.source_session_id,
+                ),
+                reason=ResumeMismatchReason.MISSING_SNAPSHOT,
+                expected=expected,
+            )
+        intended = meta.intended_base_commit
+        cwd = self._ensure_tree(intended, in_repo=in_repo)
+        observed = self._working_tree_oid(cwd)
+        if observed != expected:
+            raise ResumeTreeMismatch(
+                _MSG_RESUME_MISMATCH.format(
+                    activation_id=activation.activation_id,
+                    path=cwd,
+                    expected=expected,
+                    observed=observed,
+                ),
+                reason=ResumeMismatchReason.INTERVENING_WRITER,
+                expected=expected,
+                observed=observed,
+            )
+        return self._finish_precondition(
+            activation,
+            node,
+            cwd,
+            intended=intended,
+            proven=self._git.head_commit(cwd=cwd),
+            snapshot=self._snapshot(cwd) if in_repo else None,
+            plan=ResetPlan(),
+            pre_reset=None,
+        )
+
+    def observe_shared_tree(
+        self, activation: ActivationRecord, node: Node
+    ) -> PreconditionResult:
+        """Give a non-writing activation the tree as it stands, and record it (§3).
+
+        A reviewer reads what the writer before it left, so the checkout is
+        created only where there is none, and nothing else about it moves:
+        not HEAD, not the dirty state, not tree ownership. The OID recorded
+        here is the before half of `after == before`.
+        """
+        in_repo = node.isolation is IsolationMode.IN_REPO
+        if in_repo and not self._band.held:
+            raise BandNotHeld(_MSG_BAND_REQUIRED)
+        intended = activation.metadata.intended_base_commit
+        cwd = self._ensure_tree(intended, in_repo=in_repo)
+        observed = self._working_tree_oid(cwd)
+        write_record(
+            self._paths.observed_tree(activation.activation_id),
+            ObservedTree(
+                activation_id=activation.activation_id,
+                tree_oid=observed,
+                observed_at=to_iso(self._clock.now()),
+            ),
+        )
+        head = self._git.head_commit(cwd=cwd)
+        _LOG.info(
+            "wf.precondition.observed",
+            activation_id=activation.activation_id,
+            commit=head,
+            tree_oid=observed,
+        )
+        return PreconditionResult(
+            intended_base_commit=intended,
+            pre_attempt_commit=head,
+            reset_verified_commit=head,
+        )
+
+    def verify_shared_tree(self, activation: ActivationRecord, node: Node) -> None:
+        """Hold a non-writer to the tree it was given, where the check is reached.
+
+        Best-effort on purpose (§3): a steered or crashed reviewer never gets
+        here, and the next resumed writer's mandatory match is what covers that
+        gap. An unrecorded observation is therefore silence, not a violation.
+        """
+        if node.writes:
+            return
+        record = read_record(
+            self._paths.observed_tree(activation.activation_id), ObservedTree
+        )
+        if record is None:
+            return
+        observed = self._working_tree_oid(self.path_for(node))
+        if observed != record.tree_oid:
+            raise ReadOnlyTreeMutation(
+                _MSG_READ_ONLY_MUTATED.format(
+                    activation_id=activation.activation_id,
+                    expected=record.tree_oid,
+                    observed=observed,
+                )
+            )
+
+    def pin_session_tree(self, activation: ActivationRecord, node: Node) -> str | None:
+        """Pin what a writing turn left, so a later resume has a tree to prove.
+
+        The same full-tree snapshot §12 takes before a reset — tracked,
+        staged, deleted and untracked state alike — pinned under its own
+        namespace so nothing collects it, and reported as the tree OID a
+        resumed successor must observe.
+        """
+        if not node.writes:
+            return None
+        cwd = self.path_for(node)
+        ref = namespaced_ref(
+            self._paths.root_id, _SESSION_NAMESPACE, activation.activation_id
+        )
+        head = self._git.head_commit(cwd=cwd)
+        commit = self._git.snapshot_commit(
+            message=_SESSION_MESSAGE.format(
+                activation_id=activation.activation_id, head=head
+            ),
+            parents=(head,),
+            index_path=self._paths.snapshot_index,
+            cwd=cwd,
+        )
+        self._git.update_ref(ref, commit, cwd=cwd)
+        if self._git.ref_target(ref, cwd=cwd) != commit:
+            raise SnapshotFailed(f"{ref} did not read back as {commit}")
+        return self._git.tree_oid(commit, cwd=cwd)
+
+    def session_tree_oid(self, activation_id: str) -> str | None:
+        """The §3 tree OID pinned for this activation, or `None` if none was.
+
+        Read from the ref rather than kept in memory, because the turn that
+        pinned it and the close that publishes it are different processes.
+        """
+        cwd = self._paths.config.repo_root
+        commit = self._git.ref_target(
+            namespaced_ref(self._paths.root_id, _SESSION_NAMESPACE, activation_id),
+            cwd=cwd,
+        )
+        return None if commit is None else self._git.tree_oid(commit, cwd=cwd)
+
+    def working_tree_oid(self, node: Node) -> str:
+        """The full-tree OID of this node's checkout, computed without mutation."""
+        return self._working_tree_oid(self.path_for(node))
+
+    def resumable_tree_oid(self, activation: ActivationRecord, node: Node) -> str:
+        """The tree a successor of this turn will find, checkout or no checkout.
+
+        A killed turn whose instance never materialized a checkout left no
+        bytes in one, and its successor's `_ensure_tree` will create it at the
+        intended base — so the base commit's tree IS the honest proof for it.
+        Anything else would refuse a continuation over a tree nobody wrote.
+        """
+        cwd = self.path_for(node)
+        if not (cwd / ".git").exists():
+            return self._git.tree_oid(
+                activation.metadata.intended_base_commit,
+                cwd=self._paths.config.repo_root,
+            )
+        return self._working_tree_oid(cwd)
+
+    def _working_tree_oid(self, cwd: Path) -> str:
+        """The §3 tree proof for one checkout, over the throwaway index."""
+        return self._git.working_tree_oid(
+            index_path=self._paths.snapshot_index, cwd=cwd
+        )
+
     def _prepare_owned(
         self,
         activation: ActivationRecord,
@@ -263,21 +463,51 @@ class Workspace:
             )
         pre_reset = self._apply(cwd, intended, plan, activation.activation_id)
         self._assert_clean(cwd, intended, in_repo=in_repo)
-        # Transfer only after the precondition succeeds. A refused reset still
-        # leaves the preceding producer's bytes and ownership intact.
+        return self._finish_precondition(
+            activation,
+            node,
+            cwd,
+            intended=intended,
+            proven=intended,
+            snapshot=snapshot,
+            plan=plan,
+            pre_reset=pre_reset,
+        )
+
+    def _finish_precondition(
+        self,
+        activation: ActivationRecord,
+        node: Node,
+        cwd: Path,
+        *,
+        intended: str,
+        proven: str,
+        snapshot: DirtySnapshot | None,
+        plan: ResetPlan,
+        pre_reset: str | None,
+    ) -> PreconditionResult:
+        """Take ownership of the proven tree and state the §3.2 carry-forward.
+
+        Shared by both writing branches, and the sharing is the point: a
+        resumed writer takes the checkout over exactly as a reset one does —
+        only the commit it PROVED differs (the reset's intended base, or the
+        HEAD the resume found the remembered tree on). Transfer happens only
+        after the proof, so a refusal leaves the preceding producer's bytes and
+        ownership intact.
+        """
         self._write_record(activation, node, cwd, intended)
         _LOG.info(
             "wf.precondition.verified",
             activation_id=activation.activation_id,
             isolation=(node.isolation or IsolationMode.WORKTREE).value,
-            commit=intended,
+            commit=proven,
             reset_applied=pre_reset is not None,
             pre_reset_commit=pre_reset,
         )
         return PreconditionResult(
             intended_base_commit=intended,
-            pre_attempt_commit=intended,
-            reset_verified_commit=intended,
+            pre_attempt_commit=proven,
+            reset_verified_commit=proven,
             pre_attempt_dirty_state=(
                 encode_dirty_state(snapshot) if snapshot is not None else None
             ),

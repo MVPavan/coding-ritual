@@ -7,6 +7,8 @@ loudly rather than dispatch a child whose preconditions were not proven.
 
 from __future__ import annotations
 
+from enum import StrEnum
+
 
 class InspectorError(Exception):
     """Base class for every failure raised by the inspector wrapper."""
@@ -71,6 +73,49 @@ class DirtyTreeRefused(PreconditionRefused):
         self.protected_paths = protected_paths
         self.protected_head = protected_head
         super().__init__(detail)
+
+
+class ResumeMismatchReason(StrEnum):
+    """Why a resumed writer's tree proof failed (§3)."""
+
+    MISSING_SNAPSHOT = "missing_snapshot"
+    """The selected source carries no session id or no pinned tree OID, so
+    there is nothing to prove the shared checkout against."""
+    INTERVENING_WRITER = "intervening_writer"
+    """The checkout no longer holds the tree the session was left on: somebody
+    else wrote it between the two turns."""
+
+
+class ResumeTreeMismatch(PreconditionRefused):
+    """§3: the shared checkout is not the tree this vendor session remembers.
+
+    A refusal rather than a fresh fallback, deliberately: launching fresh would
+    reset a tree whose session was SELECTED for exactly the state it holds, and
+    the OIDs an owner needs in order to inspect or recover it would be gone
+    with it. The owner may mint fresh explicitly afterwards.
+    """
+
+    def __init__(
+        self,
+        detail: str,
+        *,
+        reason: ResumeMismatchReason,
+        expected: str | None = None,
+        observed: str | None = None,
+    ) -> None:
+        self.reason = reason
+        self.expected = expected
+        self.observed = observed
+        super().__init__(detail)
+
+
+class ReadOnlyTreeMutation(InspectorError):
+    """§3: a non-writing activation's checkout changed while it ran.
+
+    Best-effort by construction — a steered or crashed reviewer never reaches
+    the check at all — so it states what WAS observed and never stands in for
+    the next resumed writer's mandatory match.
+    """
 
 
 class SandboxUnavailable(InspectorError):

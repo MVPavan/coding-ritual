@@ -62,7 +62,9 @@ from workflow_interpreter.bdio import (
     StoreError,
     WorkflowStore,
 )
+from workflow_interpreter.contracts.execution import CrewName
 from workflow_interpreter.contracts.run_identity import RunIdentity
+from workflow_interpreter.contracts.sessions import SessionMode
 from workflow_interpreter.contracts.transport import CrewTransport
 from workflow_interpreter.inspector import procfs
 from workflow_interpreter.inspector.clock import Clock
@@ -346,16 +348,57 @@ class Inspector:
         confirmation: HumanConfirmation | None,
     ) -> Precondition:
         """The §5.4 hook `Dispatcher` runs between the mint and the exec."""
+        return choose_precondition(
+            self._workspace, node, prior_dirty_state, confirmation
+        )
 
-        def prepare(activation: ActivationRecord) -> PreconditionResult:
-            return self._workspace.prepare(
-                activation,
-                node,
-                prior_dirty_state=prior_dirty_state,
-                confirmation=confirmation,
-            )
 
-        return prepare
+def choose_precondition(
+    workspace: Workspace,
+    node: Node,
+    prior_dirty_state: str | None,
+    confirmation: HumanConfirmation | None,
+) -> Precondition:
+    """Pick one of §3's three preconditions from node authority and the mint.
+
+    The single place the choice is made, because all three answer the same
+    question about the SAME shared checkout:
+
+    - a **non-writer** observes it — session mode changes only its vendor
+      thread, so fresh and resumed reviewers take the identical tree path;
+    - a **resumed writer** proves the tree its session was left on is still
+      there and keeps it (`Workspace.resume` refuses by name otherwise);
+    - every other **writer** takes the §5.4 precondition unchanged: pin the
+      dirty tree, reset to its own intended base, prove clean.
+
+    The durable activation, not the caller's request, is what decides: it is
+    the record `mint_activation` pinned the session fields onto, so a wrapper
+    rebuilt after a crash chooses the same branch as the one that died.
+    """
+
+    def prepare(activation: ActivationRecord) -> PreconditionResult:
+        meta = activation.metadata
+        if not node.writes:
+            return workspace.observe_shared_tree(activation, node)
+        if (
+            meta.session_mode is SessionMode.RESUME
+            and meta.source_session_id is not None
+            # R1: the app-server crew is behaviorally untouched by this
+            # workstream. Its threads are private vendor state rather than a
+            # transcript over these bytes, and it keeps the reset it has
+            # always taken.
+            and meta.crew_profile.removeprefix("profile:")
+            != CrewName.CODEX_APPSERVER.value
+        ):
+            return workspace.resume(activation, node)
+        return workspace.prepare(
+            activation,
+            node,
+            prior_dirty_state=prior_dirty_state,
+            confirmation=confirmation,
+        )
+
+    return prepare
 
 
 class _StaleMirror:
@@ -550,4 +593,4 @@ def _exit_reason(result: MonitorResult) -> ExitReason:
     return ExitReason.EXIT_UNOBSERVED
 
 
-__all__ = ["InspectionResult", "Inspector"]
+__all__ = ["InspectionResult", "Inspector", "choose_precondition"]

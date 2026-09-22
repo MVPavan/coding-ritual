@@ -99,6 +99,7 @@ PUBLIC_STORE_SURFACE: Final[frozenset[str]] = frozenset(
         "record_dispatch",
         "register_session",
         "record_session_completion",
+        "record_session_tree",
         "reserve_in_place_steer",
         "record_control_state",
         "record_evidence",
@@ -137,6 +138,10 @@ no registration exists.
 shared row with no root and no lifecycle, and the contractor used to read and
 write it through the transport itself. It is a read plus a create-or-merge of
 one opaque payload — it can close nothing and approve nothing.
+
+`record_session_tree` joined it in S3 of crew sessions: the §3 tree OID a
+writing turn left, written once and only before settlement, so a resumed
+writer can prove the shared checkout is still the one its session remembers.
 
 S2 of the run ledger added NOTHING here. The one design change it records is
 one level down, on the transport: `bd update --add-label|--remove-label`

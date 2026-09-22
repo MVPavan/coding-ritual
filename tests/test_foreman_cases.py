@@ -234,7 +234,8 @@ def test_exit_recorded_lifecycle_records_evidence_then_closes(tmp_path: Path) ->
     result = advance_lifecycle(lab.composition, lab.wiring(), root, activation)
 
     assert result.settled == activation_id
-    assert _bd_writes(lab) - before == 3
+    # evidence, the §3 session tree, the close update and the close command
+    assert _bd_writes(lab) - before == 4
 
 
 def test_exit_recorded_settlement_uses_the_root_pinned_profile(
@@ -354,7 +355,8 @@ def test_evidence_recorded_lifecycle_closes_from_the_saved_completion(
     result = advance_lifecycle(lab.composition, lab.wiring(), root, activation)
 
     assert result.settled == activation_id
-    assert _bd_writes(lab) - before == 2
+    # the §3 session tree, then the close — the evidence is already recorded
+    assert _bd_writes(lab) - before == 3
 
 
 def test_the_mint_carries_no_session_and_the_dispatch_records_the_prepared_one(

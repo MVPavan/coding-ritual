@@ -263,6 +263,27 @@ def register_session(
     )
 
 
+def record_session_tree(
+    client: LedgerStore,
+    load: ActivationLoader,
+    activation_id: str,
+    tree_oid: str,
+) -> ActivationRecord:
+    """Publish the §3 tree a writing turn left, before it can be a resume source.
+
+    Write-once, like the identity records around it: the OID states what the
+    vendor session was left looking at, so a second value would describe a
+    tree some later actor produced and quietly authorize resuming onto it.
+    """
+    record = load(activation_id)
+    recorded = record.metadata.session_tree_oid
+    if recorded == tree_oid:
+        return record
+    if recorded is not None or record.metadata.is_settled:
+        raise LifecycleConflictError(MSG_SESSION_IDENTITY)
+    return _merge(client, activation_id, {"session_tree_oid": tree_oid})
+
+
 def record_session_completion(
     client: LedgerStore,
     load: ActivationLoader,

@@ -76,6 +76,7 @@ from workflow_interpreter.inspector.gitcmd import (
 from workflow_interpreter.inspector.gitsnapshot import (
     commit_directory,
     snapshot_commit,
+    snapshot_tree,
 )
 from workflow_interpreter.inspector.models import EntryKind
 
@@ -498,6 +499,15 @@ class Git(GitTransport):
             index_path=index_path,
             cwd=cwd,
         )
+
+    def working_tree_oid(self, *, index_path: Path, cwd: Path) -> str:
+        """The OID of the FULL working tree, computed without touching it.
+
+        The §3 resume proof. It covers the same state `snapshot_commit`
+        preserves, so "the tree this session remembers" and "the tree a
+        snapshot would restore" are one identity rather than two.
+        """
+        return snapshot_tree(self, index_path=index_path, cwd=cwd)
 
     def commit_directory(
         self,

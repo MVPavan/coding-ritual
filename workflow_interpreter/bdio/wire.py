@@ -427,6 +427,10 @@ class ActivationMetadata(BaseModel):
     session_reuse_source: SessionRegistration | None = None
     session_fresh_reason: SessionFreshReason | None = None
     session_completion: SessionCompletion | None = None
+    session_tree_oid: CommitOid | None = None
+    """§3: the full working tree this WRITING turn left, pinned before it could
+    become a source. A later resume of its session must observe exactly this
+    OID; its absence is what makes that resume refuse instead of reset."""
     in_place_controls: tuple[ControlRegistration, ...] = ()
     handle: ProcessHandle | None = None
     stale_flag: StaleFlagRecord | None = None

@@ -56,6 +56,7 @@ from workflow_interpreter.bdio import (
     MintResult,
     NodeSetting,
     Outcome,
+    StoreError,
     WorkflowStore,
     pinned_execution_setting,
 )
@@ -66,12 +67,14 @@ from workflow_interpreter.inspector.clock import Clock, to_iso
 from workflow_interpreter.inspector.config import InspectorConfig
 from workflow_interpreter.inspector.errors import (
     ContinuationRefused,
+    InspectorError,
     TerminationFailed,
 )
 from workflow_interpreter.inspector.gitio import Git
 from workflow_interpreter.inspector.models import (
     RECORD_MODEL,
     ExitReason,
+    RecoverySnapshot,
     SteerIntent,
     TerminationProof,
 )
@@ -274,7 +277,8 @@ class Steerer:
                 if setting.at(pinned.name) in settings
             }
         )
-        self._workspace.preserve_interrupted(activation, recovery_node)
+        preserved = self._workspace.preserve_interrupted(activation, recovery_node)
+        self._record_session_tree(activation, recovery_node, preserved)
 
         closed = self._store.close_activation(
             activation_id,
@@ -304,6 +308,39 @@ class Steerer:
         return SteerResult(
             intent=intent, termination=proof, closed=closed, continuation=minted
         )
+
+    def _record_session_tree(
+        self,
+        activation: ActivationRecord,
+        node: Node,
+        preserved: RecoverySnapshot | None,
+    ) -> None:
+        """Carry the killed turn's own tree into §3, from the pin recovery made.
+
+        A steered source feeds the SAME launch contract a normal turn does —
+        there is no second resume mechanism — and its tree proof is the
+        recovery snapshot just pinned, taken while this frame held the proof of
+        death. Where recovery pinned nothing there was nothing dirty to pin,
+        and the current full-tree OID states that same tree exactly. Recorded
+        before the close, because a settled activation no longer accepts it; a
+        failure here only costs the continuation its tree-faithful resume,
+        which then refuses by name rather than resetting.
+        """
+        if not node.writes:
+            return
+        try:
+            tree = (
+                preserved.tree
+                if preserved is not None and preserved.tree is not None
+                else self._workspace.resumable_tree_oid(activation, node)
+            )
+            self._store.record_session_tree(activation.activation_id, tree)
+        except (StoreError, InspectorError, OSError) as exc:
+            _LOG.warning(
+                "wf.session.tree_unpinned",
+                activation_id=activation.activation_id,
+                error=str(exc),
+            )
 
     def _pinned_continuation(self, continuation: MintRequest) -> MintRequest:
         """Normalize execution bindings against the immutable root pins."""

@@ -289,6 +289,12 @@ class AuditFlag(StrEnum):
     EFFECTS_MANIFEST_MISSING = "effects_manifest_missing"
     OUTPUTS_UNSAFE = "outputs_unsafe"
     INSTANCE_BRANCH_DIVERGED = "instance_branch_diverged"
+    READ_ONLY_TREE_MUTATED = "read_only_tree_mutated"
+    """§3: a `writes = false` activation's shared checkout did not come back
+    with the tree OID it was handed. Recorded rather than raised out: the check
+    is best-effort by design — a steered or crashed reviewer never reaches it —
+    and losing a graded run to it would cost more than the fact is worth. The
+    next resumed writer's mandatory match is the enforcing half."""
 
 
 # --- wrapper-dir records -------------------------------------------------
@@ -323,6 +329,21 @@ class WorkspaceRecord(BaseModel):
     """A `writes = false` node gets a checkout at the reviewed commit; its
     outputs go to `$WF_ARTIFACT_DIR` (§5.4)."""
     created_at: str
+
+
+class ObservedTree(BaseModel):
+    """§3: the full-tree OID a non-writing activation was handed.
+
+    Written immediately before launch and read back after the exit, so the
+    invariant `after == before` is proven against a durable fact rather than
+    against a number this process happened to still hold in memory.
+    """
+
+    model_config = RECORD_MODEL
+
+    activation_id: str
+    tree_oid: str
+    observed_at: str
 
 
 class RecoverySnapshot(BaseModel):

@@ -59,6 +59,29 @@ def snapshot_commit(
     cwd: Path,
 ) -> str:
     """Commit a filter-free working-tree snapshot through a throwaway index."""
+    tree = snapshot_tree(git, index_path=index_path, cwd=cwd)
+    args: list[str] = [tree]
+    for parent in parents:
+        args += ["-p", parent]
+    return git.run(
+        GitSubcommand.COMMIT_TREE,
+        *args,
+        "-m",
+        message,
+        cwd=cwd,
+        env={GIT_INDEX_FILE: str(index_path), **SNAPSHOT_IDENTITY},
+    ).text
+
+
+def snapshot_tree(git: GitTransport, *, index_path: Path, cwd: Path) -> str:
+    """Write the whole working tree as a tree object, changing nothing on disk.
+
+    The identity half of the snapshot: §3 compares a resumed writer's tree
+    against the one its session remembers, and that comparison must cover
+    exactly what a snapshot commit would preserve — tracked modifications,
+    staged state, deletions and untracked content alike. Splitting it out is
+    what lets the comparison run without pinning a commit nobody asked for.
+    """
     index_path.parent.mkdir(parents=True, exist_ok=True)
     index_path.unlink(missing_ok=True)
     env = {GIT_INDEX_FILE: str(index_path), **SNAPSHOT_IDENTITY}
@@ -163,13 +186,7 @@ def snapshot_commit(
                 cwd=cwd,
                 env=env,
             )
-        tree = git.run(GitSubcommand.WRITE_TREE, cwd=cwd, env=env).text
-        args: list[str] = [tree]
-        for parent in parents:
-            args += ["-p", parent]
-        return git.run(
-            GitSubcommand.COMMIT_TREE, *args, "-m", message, cwd=cwd, env=env
-        ).text
+        return git.run(GitSubcommand.WRITE_TREE, cwd=cwd, env=env).text
     finally:
         shutil.rmtree(links, ignore_errors=True)
 

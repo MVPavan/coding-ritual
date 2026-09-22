@@ -64,7 +64,11 @@ from workflow_interpreter.inspector.channels import (
 )
 from workflow_interpreter.inspector.clock import Clock, to_iso
 from workflow_interpreter.inspector.config import InspectorConfig
-from workflow_interpreter.inspector.errors import InspectorError, WrapperDirError
+from workflow_interpreter.inspector.errors import (
+    InspectorError,
+    ReadOnlyTreeMutation,
+    WrapperDirError,
+)
 from workflow_interpreter.inspector.exit_grade import (
     ComputedEvidence,
     EvidenceGrader,
@@ -368,6 +372,7 @@ class ExitObserver:
         run_identity: RunIdentity | None = None,
     ) -> PostExit:
         """Read the §6 channels, record §12 attribution, pin §7.4, grade §7."""
+        mutated = self._read_only_mutation(activation, node)
         envelope = self._envelope(activation, profile)
         collected = self._collect(activation.activation_id, node, envelope)
         declared = (
@@ -378,6 +383,7 @@ class ExitObserver:
         )
         pin = self._workspace.pin_artifact(activation, node, declared=declared)
         outputs_pin = self._workspace.pin_outputs(activation, collected.artifact_paths)
+        self._pin_session_tree(activation, node)
         return PostExit(
             collected=collected,
             completion=self._evidence(
@@ -391,10 +397,56 @@ class ExitObserver:
                 pinned_digests,
                 previous_tree_oid,
                 run_identity,
+                mutated=mutated,
             ),
             artifact=pin.identity,
             usage=_envelope_usage(envelope),
         )
+
+    def _read_only_mutation(
+        self, activation: ActivationRecord, node: Node
+    ) -> str | None:
+        """§3's after-exit equality for a non-writer, as a fact rather than a stop.
+
+        `Workspace.verify_shared_tree` refuses by name — that is its contract
+        and the shape the owner reads — but a mutation discovered at the exit
+        is history: the bytes are already there, and dropping this run's graded
+        evidence on the floor neither undoes them nor tells anyone more than
+        the recorded flag does. The next resumed writer still refuses outright.
+        """
+        try:
+            self._workspace.verify_shared_tree(activation, node)
+        except ReadOnlyTreeMutation as exc:
+            _LOG.warning(
+                "wf.exit.read_only_tree_mutated",
+                activation_id=activation.activation_id,
+                error=str(exc),
+            )
+            return str(exc)
+        return None
+
+    def _pin_session_tree(self, activation: ActivationRecord, node: Node) -> None:
+        """Pin the §3 tree this writing turn left, for a resume of its session.
+
+        Pinned here, while this wrapper still holds the band and the bytes are
+        exactly what the crew left; PUBLISHED at close, where §3 puts it — bd
+        must not learn of a source's tree before the exit itself is recorded.
+        A failure refuses the RESUME, not the run: nothing is pinned, so a
+        later writer that selects this session finds no tree proof and stops by
+        name, which is what the OID is for. Turning finished work into a
+        `fail_code` because a snapshot could not be pinned would cost strictly
+        more than the reuse it protects.
+        """
+        if not node.writes:
+            return
+        try:
+            self._workspace.pin_session_tree(activation, node)
+        except (InspectorError, OSError) as exc:
+            _LOG.warning(
+                "wf.session.tree_unpinned",
+                activation_id=activation.activation_id,
+                error=str(exc),
+            )
 
     def _envelope(
         self, activation: ActivationRecord, profile: Profile
@@ -440,6 +492,8 @@ class ExitObserver:
         pinned_digests: dict[str, str],
         previous_tree_oid: str | None,
         run_identity: RunIdentity | None = None,
+        *,
+        mutated: str | None = None,
     ) -> CompletionEvidence:
         """Compute §7, or record WHY it could not be computed — never escape.
 
@@ -497,7 +551,10 @@ class ExitObserver:
                         "review_report_missing": report.missing,
                         "claimed_outcome": completion.claimed_outcome,
                     }
-                )
+                ),
+                "audit_flags": completion.audit_flags
+                if mutated is None
+                else (*completion.audit_flags, AuditFlag.READ_ONLY_TREE_MUTATED),
             }
         )
         write_record(self._paths.completion(activation_id), completion)

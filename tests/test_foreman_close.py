@@ -63,6 +63,10 @@ class WorkspaceDouble(SimpleNamespace):
     def preserve_interrupted(self, activation: ActivationRecord, node: Node) -> None:
         self.preserved = (activation.activation_id, node.name)
 
+    def session_tree_oid(self, activation_id: str) -> None:
+        """No checkout bytes here, so no §3 tree was ever pinned for one."""
+        del activation_id
+
 
 class WiringDouble(SimpleNamespace):
     """Supply the required workspace collaborator to settlement-only fixtures."""
