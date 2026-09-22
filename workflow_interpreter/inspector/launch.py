@@ -75,6 +75,7 @@ from workflow_interpreter.bdio import (
     MintReason,
     MintRequest,
     ProcessHandle,
+    StoreError,
     WorkflowStore,
 )
 from workflow_interpreter.bdio.preflight import steer_ancestor_of
@@ -175,6 +176,10 @@ _MSG_REFERENCE_REVIEW_NEEDS_BOUND: Final[str] = (
 _MSG_NOT_A_CONTINUATION: Final[str] = (
     "dispatch was given steer instructions for activation {activation_id}, whose "
     "mint reason is {reason}; only a {expected} may resume another session (§8.1)"
+)
+MSG_RESUME_SOURCE_CONTRACT: Final[str] = (
+    "resume source contract mismatch for activation {activation_id}: selected "
+    "source {source!r} must carry observed session {session!r}"
 )
 
 
@@ -412,8 +417,8 @@ class Dispatcher:
             return None
         return None if intent is None else intent.instructions
 
-    @staticmethod
     def _assert_continuation(
+        self,
         request: MintRequest,
         activation: ActivationRecord,
         instructions: str | None,
@@ -442,6 +447,30 @@ class Dispatcher:
             request.session_mode is SessionMode.RESUME
             and request.source_session_id is not None
         )
+        if request.session_mode is SessionMode.RESUME:
+            source_id = request.session_source_activation_id
+            registration = None
+            if source_id is not None:
+                try:
+                    registration = self._store.reads.load_activation(
+                        source_id
+                    ).metadata.session_registration
+                except StoreError:
+                    registration = None
+            if (
+                source_id is None
+                or request.source_session_id is None
+                or registration is None
+                or registration.activation_id != source_id
+                or registration.thread_id != request.source_session_id
+            ):
+                raise ContinuationRefused(
+                    MSG_RESUME_SOURCE_CONTRACT.format(
+                        activation_id=activation.activation_id,
+                        source=source_id,
+                        session=request.source_session_id,
+                    )
+                )
         if carries_steer and not resume and not version_fresh:
             raise ContinuationRefused(
                 _MSG_NO_SESSION.format(

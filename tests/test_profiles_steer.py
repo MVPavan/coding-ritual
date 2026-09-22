@@ -138,7 +138,7 @@ def test_plain_resume_uses_only_the_durable_brief_delta(
         activation.activation_id,
         {
             "session_mode": SessionMode.RESUME,
-            "session_source_activation_id": "prior-implementer",
+            "session_source_activation_id": activation.activation_id,
             "source_session_id": source_session,
             "session_registration": _selected_registration(
                 resumed, activation.activation_id, source_session
