@@ -2,7 +2,6 @@
 
 import hashlib
 import json
-import shutil
 import subprocess
 
 import jsonschema
@@ -19,23 +18,16 @@ from workflow_interpreter.profiles.codex_rpc import RpcClient, RpcMethod
 from workflow_interpreter.schema.models import Outcome
 
 
-def test_committed_schemas_match_installed_generator(tmp_path):
+def test_committed_schemas_match_installed_generator(
+    tmp_path, pinned_codex_appserver_cli
+):
     """Never project or hand-edit schemas; compare only the fixture's CLI version."""
-    binary = shutil.which("codex")
-    if binary is None:
-        pytest.skip("codex binary absent; cannot compare generated protocol schemas")
+    binary, version_output = pinned_codex_appserver_cli
     provenance = json.loads((FIXTURE.parent / "provenance.json").read_text())
-    version = subprocess.run(
-        [binary, "--version"], capture_output=True, text=True, timeout=5, check=True
-    )
-    installed_version = version.stdout.strip().removeprefix("codex-cli ")
     fixture_version = provenance["codex_cli"]
-    if installed_version != fixture_version:
-        pytest.skip(
-            f"installed codex-cli {installed_version} differs from fixture codex-cli "
-            f"{fixture_version}; regenerate with: {provenance['generator']}"
-        )
-    assert version.stdout.strip() == f"codex-cli {fixture_version}"
+    installed_version = version_output.removeprefix("codex-cli ")
+    assert installed_version == fixture_version
+    assert version_output == f"codex-cli {fixture_version}"
     target = tmp_path / "generated"
     subprocess.run(
         [binary, "app-server", "generate-json-schema", "--out", str(target)],

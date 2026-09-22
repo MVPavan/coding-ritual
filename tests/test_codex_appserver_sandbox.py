@@ -37,6 +37,7 @@ from workflow_interpreter.profiles.config import ProfileConfig
 pytest_plugins = ("tests.test_toolchain_seeding",)
 
 
+@pytest.mark.usefixtures("pinned_codex_appserver_cli")
 @pytest.mark.proc
 @pytest.mark.parametrize("writes", [False, True])
 def test_vendor_state_is_read_only_to_tools_and_reviewer_checkout_stays_read_only(
@@ -175,6 +176,7 @@ def test_dispatch_fixture_under_bwrap_with_seeded_private_toolchain(
     }
 
 
+@pytest.mark.usefixtures("pinned_codex_appserver_cli")
 @pytest.mark.proc
 def test_real_appserver_suppresses_project_config_without_a_model_call(tmp_path):
     """The installed pinned binary ignores project MCP/config/rules in a private home."""

@@ -22,6 +22,7 @@ from workflow_interpreter.profiles.errors import TaskRefused
 from workflow_interpreter.schema.models import Outcome
 
 
+@pytest.mark.usefixtures("pinned_codex_appserver_cli")
 def test_checkout_codex_configuration_does_not_refuse_a_launch(tmp_path):
     """Tracked project config and rules are suppressed, never post-mint refusals."""
     task, _ = _lab(tmp_path, writes=True)
@@ -135,6 +136,7 @@ def test_dispatch_asks_profile_for_cwd_before_preparing_session(
     lab.run()
 
 
+@pytest.mark.usefixtures("pinned_codex_appserver_cli")
 def test_all_distinct_project_lookup_roots_are_explicitly_untrusted(tmp_path):
     """Config lookup at process cwd or vendor-state parent cannot restore authority."""
     task, _ = _lab(tmp_path, writes=False)

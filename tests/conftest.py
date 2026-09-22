@@ -39,12 +39,14 @@ from tests._helpers import (
 from tests._profiles import Lab
 from workflow_interpreter.bdio import GateVerifier, SigningConfig
 from workflow_interpreter.bdio.api import WorkflowStore
+from workflow_interpreter.contracts.codex import CODEX_VERSION
 from workflow_interpreter.ledger.claims import LedgerClaims
 from workflow_interpreter.ledger.database import LedgerDatabase, open_ledger
 from workflow_interpreter.ledger.store import LedgerStore
 from workflow_interpreter.tracker.bd_transport import BdClient, BdConfig
 
 BD_BINARY: Final[str] = "bd"
+CODEX_BINARY: Final[str] = "codex"
 SSH_KEYGEN: Final[str] = "ssh-keygen"
 TEST_ACTOR: Final[str] = "wf-test-foreman"
 TEST_PRINCIPAL: Final[str] = "gatekeeper@wf-test"
@@ -52,6 +54,7 @@ INIT_TIMEOUT_S: Final[float] = 180.0
 LIST_TIMEOUT_S: Final[float] = 60.0
 LATENCY_SAMPLES: Final[int] = 3
 KEYGEN_TIMEOUT_S: Final[float] = 30.0
+CODEX_VERSION_TIMEOUT_S: Final[float] = 5.0
 BRANCH_HEAD: Final[str] = "b" * 40
 """The instance branch head every test's injected reader reports (§3.2)."""
 
@@ -122,6 +125,30 @@ def _require(binary: str, reason: str) -> str:
     if found is None:
         pytest.skip(reason)
     return found
+
+
+@pytest.fixture(scope="session")
+def pinned_codex_appserver_cli() -> tuple[str, str]:
+    """Require the installed CLI version frozen by the app-server crew."""
+    binary = _require(
+        CODEX_BINARY,
+        f"codex binary absent; pinned codex-cli version is {CODEX_VERSION}",
+    )
+    version = subprocess.run(
+        [binary, "--version"],
+        capture_output=True,
+        text=True,
+        timeout=CODEX_VERSION_TIMEOUT_S,
+        check=True,
+    )
+    version_output = version.stdout.strip()
+    installed = version_output.removeprefix("codex-cli ")
+    if installed != CODEX_VERSION:
+        pytest.skip(
+            f"installed codex-cli {installed} differs from pinned codex-cli "
+            f"{CODEX_VERSION}"
+        )
+    return binary, version_output
 
 
 @pytest.fixture(scope="session")
