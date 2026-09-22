@@ -19,6 +19,7 @@ from workflow_interpreter.bdio import (
     Usage,
 )
 from workflow_interpreter.bdio.reads import gates_of
+from workflow_interpreter.contracts.execution import CrewName
 from workflow_interpreter.foreman.compose import InstanceWiring
 from workflow_interpreter.foreman.constants import (
     DEVIATION_INSTANCE_BRANCH_DIVERGED,
@@ -458,7 +459,14 @@ def _publish_session_tree(
     tree_oid = wiring.workspace.session_tree_oid(activation.activation_id)
     if tree_oid is None or activation.metadata.session_tree_oid == tree_oid:
         return activation
-    return wiring.store.record_session_tree(activation.activation_id, tree_oid)
+    try:
+        return wiring.store.record_session_tree(activation.activation_id, tree_oid)
+    except StoreError:
+        # R1: the frozen app-server crew never resumes onto this OID and its
+        # pre-epic settle never waited on it, so a failure there stays silent.
+        if _is_appserver(activation):
+            return activation
+        raise
 
 
 def _register_logged_session(
@@ -516,7 +524,8 @@ def reviewed_tree_oid(
     published a session tree. `None` leaves the observation record-only.
     """
     node = resolved_node(root, activation.metadata.node).node
-    if node.writes:
+    # R1: a frozen app-server reviewer keeps its pre-epic launch unchanged.
+    if node.writes or _is_appserver(activation):
         return None
     predecessor_id = _predecessor_activation_id(wiring, activation)
     if predecessor_id is None:
@@ -529,6 +538,14 @@ def reviewed_tree_oid(
     if not writer.writes or not same_checkout:
         return None
     return predecessor.metadata.session_tree_oid
+
+
+def _is_appserver(activation: ActivationRecord) -> bool:
+    """Whether this activation runs the frozen app-server crew (R1)."""
+    return (
+        activation.metadata.crew_profile.removeprefix("profile:")
+        == CrewName.CODEX_APPSERVER.value
+    )
 
 
 def _predecessor_activation_id(

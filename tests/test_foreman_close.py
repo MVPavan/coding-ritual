@@ -1378,3 +1378,11 @@ def test_reviewed_tree_is_the_same_checkout_writers_published_tree(
     assert reviewed_tree_oid(wiring, root, review) == "b" * 40
     assert reviewed_tree_oid(wiring, root, writer) is None
     assert reviewed_tree_oid(wiring, elsewhere, review) is None
+    appserver = review.model_copy(
+        update={
+            "metadata": review.metadata.model_copy(
+                update={"crew_profile": "codex-appserver"}
+            )
+        }
+    )
+    assert reviewed_tree_oid(wiring, root, appserver) is None
