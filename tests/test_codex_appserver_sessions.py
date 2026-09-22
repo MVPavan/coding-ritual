@@ -8,6 +8,7 @@ import pytest
 
 from tests._appserver import AppServerLab
 from tests._bdio import RESOLVED_CONFIG, entry_request, handle, make_root
+from tests._foreman import ForemanLab
 from tests._helpers import VALID_FIXTURE
 from tests._inspector import entry_mint
 from workflow_interpreter import GraphValidationError, load_graph
@@ -29,10 +30,12 @@ from workflow_interpreter.contracts.sessions import (
     SessionMode,
     SessionReuse,
 )
+from workflow_interpreter.foreman.config import CrewBinding
+from workflow_interpreter.foreman.execution import resolved_node
 from workflow_interpreter.inspector.models import SteerIntent
 from workflow_interpreter.inspector.paths import write_record
 from workflow_interpreter.inspector.rpc_state import state_for
-from workflow_interpreter.schema.loader import canonical_bytes
+from workflow_interpreter.schema.loader import canonical_bytes, load_pinned_body
 from workflow_interpreter.schema.models import Outcome
 
 
@@ -48,10 +51,16 @@ def reuse_graph(tmp_path, reuse):
     return load_graph(path)
 
 
-def test_legacy_appserver_session_reuse_decodes_without_rewriting_and_conflicts(
-    tmp_path,
-):
-    """Old pins retain their spelling; dual old/new authority is rejected by name."""
+def legacy_pinned_graph(tmp_path):
+    """Build the old canonical spelling through the pinned-body boundary."""
+    modern = canonical_bytes(reuse_graph(tmp_path, "resume").document)
+    legacy = modern.replace(b'"session_mode":"resume"', b'"session_reuse":"same-node"')
+    assert legacy != modern
+    return load_pinned_body(legacy)
+
+
+def test_authored_session_reuse_is_rejected_but_legacy_pin_decodes(tmp_path):
+    """Only immutable old bodies retain session_reuse compatibility."""
     legacy_path = tmp_path / "legacy.toml"
     legacy_path.write_text(
         re.sub(
@@ -61,7 +70,10 @@ def test_legacy_appserver_session_reuse_decodes_without_rewriting_and_conflicts(
             count=1,
         )
     )
-    legacy = load_graph(legacy_path)
+    with pytest.raises(GraphValidationError, match="author session_mode instead"):
+        load_graph(legacy_path)
+
+    legacy = legacy_pinned_graph(tmp_path)
     node = next(item for item in legacy.document.node if item.name == "implement")
     assert node.session_reuse is SessionReuse.SAME_NODE
     assert node.session_mode is SessionMode.RESUME
@@ -69,17 +81,31 @@ def test_legacy_appserver_session_reuse_decodes_without_rewriting_and_conflicts(
     assert '"session_reuse":"same-node"' in body
     assert '"session_mode"' not in body
 
-    conflict_path = tmp_path / "conflict.toml"
-    conflict_path.write_text(
-        re.sub(
-            r"writes\s*=\s*true",
-            'writes = true\nsession_reuse = "same-node"\nsession_mode = "resume"',
-            VALID_FIXTURE.read_text(),
-            count=1,
-        )
+    conflict = canonical_bytes(reuse_graph(tmp_path, "resume").document).replace(
+        b'"session_mode":"resume"',
+        b'"session_mode":"resume","session_reuse":"same-node"',
     )
     with pytest.raises(GraphValidationError, match=MSG_SESSION_MODE_CONFLICT):
-        load_graph(conflict_path)
+        load_pinned_body(conflict)
+
+
+def test_legacy_appserver_graph_resolves_pins_and_instantiates(tmp_path):
+    """A legacy pin becomes one effective resume authority at execution."""
+    roles = {
+        "implementer": CrewBinding(
+            profile="codex-appserver", model="fake", effort="medium"
+        ),
+        "critic": CrewBinding(profile="fake", model="fake", effort="medium"),
+        "scribe": CrewBinding(profile="fake", model="fake", effort="medium"),
+    }
+    lab = ForemanLab(tmp_path, roles=roles)
+    lab.definition = legacy_pinned_graph(tmp_path)
+
+    root = lab.instantiate()
+
+    settings = {item.key: item.value for item in root.metadata.resolved_config}
+    assert settings["node.implement.session_mode"] == SessionMode.RESUME
+    assert resolved_node(root, "implement").node.session_mode is SessionMode.RESUME
 
 
 def app_root(tmp_path, store, reuse):
@@ -98,6 +124,24 @@ def app_root(tmp_path, store, reuse):
         ResolvedSetting(
             key="node.implement.session_mode",
             value=mode,
+            source=ConfigSource.GRAPH_DEFAULT,
+        ),
+    )
+
+
+def exec_root(tmp_path, store):
+    """Pin a resumable exec crew without app-server registrations."""
+    return make_root(
+        store,
+        reuse_graph(tmp_path, "resume"),
+        ResolvedSetting(
+            key="node.implement.crew",
+            value="codex",
+            source=ConfigSource.ROLE_BINDING,
+        ),
+        ResolvedSetting(
+            key="node.implement.session_mode",
+            value="resume",
             source=ConfigSource.GRAPH_DEFAULT,
         ),
     )
@@ -131,6 +175,32 @@ def finish_source(store, root, outcome=None):
     )
     store.close_activation(activation.activation_id, outcome or Outcome.FAIL_CODE)
     return registration
+
+
+@pytest.mark.parametrize("mode", ["fresh", "resume"])
+def test_reentry_binds_history_only_when_session_mode_opts_in(
+    tmp_path, fake_store, mode
+):
+    """The caller's session string cannot select arbitrary history."""
+
+    root = app_root(tmp_path, fake_store, mode)
+    source = finish_source(fake_store, root)
+    request = entry_request(
+        crew_profile="codex-appserver", session_id="caller-invented"
+    ).model_copy(
+        update={
+            "mint_reason": MintReason.EDGE,
+            "predecessor_activation_id": source.activation_id,
+        }
+    )
+    minted = fake_store.mint_activation(root.root_id, request).activation
+    if mode == "resume":
+        assert minted.metadata.session_reuse_source == source
+        assert minted.metadata.session_id == source.thread_id
+    else:
+        assert minted.metadata.session_reuse_source is None
+        assert minted.metadata.session_id == ""
+    assert fake_store.mint_activation(root.root_id, request).activation == minted
 
 
 @pytest.mark.parametrize(
@@ -212,6 +282,47 @@ def test_newest_eligible_fresh_session_supersedes_older_resumed_history(
     choice = choose_source(root, request, [old, fresh])
 
     assert choice.source == fresh_registration
+
+
+def test_plain_resume_skips_crashed_and_abandoned_unregistered_sources(
+    tmp_path, fake_store
+):
+    """Only a successful terminal exec turn can supply resume history."""
+    root = exec_root(tmp_path, fake_store)
+    minted = fake_store.mint_activation(
+        root.root_id, entry_request(crew_profile="codex")
+    ).activation
+    dispatched = fake_store.record_dispatch(
+        minted.activation_id, handle(session_id="thread-good")
+    )
+    good = fake_store.close_activation(dispatched.activation_id, Outcome.FAIL_CODE)
+    request = entry_request(crew_profile="codex").model_copy(
+        update={
+            "session_mode": SessionMode.RESUME,
+            "mint_reason": MintReason.EDGE,
+            "predecessor_activation_id": "bad-source",
+        }
+    )
+
+    for offset, outcome in enumerate(
+        (Outcome.ERROR_TRANSPORT, Outcome.ABANDON), start=1
+    ):
+        bad = good.model_copy(
+            update={
+                "id": "bad-source",
+                "metadata": good.metadata.model_copy(
+                    update={
+                        "seq": good.metadata.seq + offset,
+                        "session_id": "thread-bad",
+                        "outcome": outcome,
+                    }
+                ),
+            }
+        )
+        choice = choose_source(root, request, [good, bad])
+        assert choice.source_activation_id == good.activation_id
+        assert choice.source_session_id == "thread-good"
+        assert choose_source(root, request, [bad]).source_activation_id is None
 
 
 def test_infra_retry_of_deliberate_steer_keeps_its_bound_session(tmp_path, fake_store):
