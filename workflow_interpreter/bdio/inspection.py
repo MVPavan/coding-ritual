@@ -186,7 +186,7 @@ def _merge(
 __all__ = ["record_precondition", "record_stale_flag", "recorded_precondition"]
 
 
-MSG_SESSION_IDENTITY: Final[str] = "app-server session registration identity mismatch"
+MSG_SESSION_IDENTITY: Final[str] = "crew session registration identity mismatch"
 
 
 def register_session(
@@ -195,7 +195,7 @@ def register_session(
     activation_id: str,
     registration: SessionRegistration,
 ) -> ActivationRecord:
-    """Bind a thread once, before the first turn, without changing the handle."""
+    """Bind one observed vendor session to its protected process launch."""
     record = load(activation_id)
     metadata = record.metadata
     if (
@@ -204,15 +204,25 @@ def register_session(
         or registration.launch_id != metadata.launch_id
         or registration.handle != metadata.handle
         or registration.model != metadata.model
-        or metadata.crew_profile.removeprefix("profile:")
-        != CrewName.CODEX_APPSERVER.value
+        or (
+            registration.crew_profile is not None
+            and registration.crew_profile.removeprefix("profile:")
+            != metadata.crew_profile.removeprefix("profile:")
+        )
+        or (
+            registration.crew_profile is None
+            and metadata.crew_profile.removeprefix("profile:")
+            != CrewName.CODEX_APPSERVER.value
+        )
     ):
         raise CarrierIntegrityError(MSG_SESSION_IDENTITY)
     if metadata.session_registration is not None:
         if metadata.session_registration != registration:
             raise CarrierIntegrityError(MSG_SESSION_IDENTITY)
         return record
-    if metadata.lifecycle is not Lifecycle.DISPATCHED or metadata.is_settled:
+    if metadata.lifecycle not in (Lifecycle.DISPATCHED, Lifecycle.EXIT_RECORDED) or (
+        metadata.is_settled
+    ):
         raise LifecycleConflictError(MSG_SESSION_IDENTITY)
     if metadata.session_id and metadata.session_id != registration.thread_id:
         raise CarrierIntegrityError(MSG_SESSION_IDENTITY)

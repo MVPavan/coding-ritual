@@ -59,7 +59,7 @@ path's problem, and `Dispatcher._reattach` classifies it the same way.)
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Final
+from typing import Final, Protocol
 
 import structlog
 from pydantic import BaseModel
@@ -108,11 +108,23 @@ from workflow_interpreter.inspector.paths import (
     read_tail,
     write_record,
 )
+from workflow_interpreter.inspector.profile import (
+    Profile,
+    observed_session_registration,
+)
 from workflow_interpreter.inspector.steer import Steerer, SteerResult
 from workflow_interpreter.inspector.workspace import Workspace
+from workflow_interpreter.profiles.errors import UnknownProfileError
 from workflow_interpreter.schema.models import Node
 
 _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
+
+
+class RecoveryProfileResolver(Protocol):
+    """Resolve the parser needed to recover an identity from a vendor log."""
+
+    def profile_for(self, name: str) -> Profile: ...
+
 
 EVIDENCE_EXIT_UNOBSERVED: Final[str] = "exit_unobserved"
 """The §5.6 case-3 evidence note, recorded verbatim on the close."""
@@ -320,12 +332,15 @@ class Recovery:
         store: WorkflowStore,
         workspace: Workspace,
         clock: Clock,
+        *,
+        profiles: RecoveryProfileResolver | None = None,
     ) -> None:
         self._config = config
         self._paths = paths
         self._store = store
         self._workspace = workspace
         self._clock = clock
+        self._profiles = profiles
         self._steerer = Steerer(config, paths, store, clock, workspace=workspace)
 
     def classify(self, activation: ActivationRecord) -> RecoveryClassification:
@@ -355,6 +370,7 @@ class Recovery:
         first two belong to §8.2 and §7, and the third has no evidence to act
         on. `steer-pending` is finished rather than closed.
         """
+        activation = self._recover_session_identity(activation)
         classification = self.classify(activation)
         if classification.case is RecoveryCase.ABORT_PENDING:
             return self._finish_abort(activation, classification)
@@ -416,6 +432,33 @@ class Recovery:
             pin=pin,
             closed=closed,
         )
+
+    def _recover_session_identity(
+        self, activation: ActivationRecord
+    ) -> ActivationRecord:
+        """Re-scan durable output before any §5.6 close can seal the record."""
+        if (
+            self._profiles is None
+            or activation.metadata.session_registration
+            or activation.metadata.is_settled
+            or activation.metadata.lifecycle
+            not in (Lifecycle.DISPATCHED, Lifecycle.EXIT_RECORDED)
+        ):
+            return activation
+        try:
+            profile = self._profiles.profile_for(activation.metadata.crew_profile)
+        except UnknownProfileError as exc:
+            _LOG.warning(
+                "wf.recovery.session_profile_unavailable",
+                activation_id=activation.activation_id,
+                error=str(exc),
+            )
+            return activation
+        root = self._store.reads.load_root(activation.metadata.wf_root_id)
+        registration = observed_session_registration(root, activation, profile)
+        if registration is None:
+            return activation
+        return self._store.register_session(activation.activation_id, registration)
 
     def _finish_abort(
         self, activation: ActivationRecord, classification: RecoveryClassification

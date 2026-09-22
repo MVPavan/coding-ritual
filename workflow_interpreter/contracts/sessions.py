@@ -29,11 +29,17 @@ MSG_SESSION_MODE_CONFLICT: Final[str] = (
 )
 MSG_SESSION_SOURCE: Final[str] = "session source is absent or incompatible"
 SESSION_MODE_KEY: Final[str] = "node.{node}.session_mode"
+CREW_VERSION_KEY: Final[str] = "node.{node}.crew_version"
 
 
 def session_mode_key(node: str) -> str:
     """Name the immutable resolved-session setting for one task node."""
     return SESSION_MODE_KEY.format(node=node)
+
+
+def crew_version_key(node: str) -> str:
+    """Name the profile-qualified CLI version pin for one task node."""
+    return CREW_VERSION_KEY.format(node=node)
 
 
 def execution_policy_digest(pinned_policy: str) -> str:

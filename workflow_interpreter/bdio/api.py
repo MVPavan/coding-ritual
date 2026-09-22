@@ -459,7 +459,7 @@ class WorkflowStore:
     def register_session(
         self, activation_id: str, registration: SessionRegistration
     ) -> ActivationRecord:
-        """Register correlated app-server identity before authorizing any turn."""
+        """Register correlated vendor identity before reuse can select it."""
         return inspection.register_session(
             self._client, self._load_activation, activation_id, registration
         )

@@ -22,6 +22,7 @@ from workflow_interpreter.contracts.sessions import (
     SessionFreshReason,
     SessionMode,
     SessionReuse,
+    crew_version_key,
     execution_policy_digest,
     session_mode_key,
 )
@@ -105,6 +106,7 @@ def choose_source(
             if continuation
             else (
                 registration is None
+                or crew_profile != CrewName.CODEX_APPSERVER.value
                 or (
                     meta.session_completion is not None
                     and meta.session_completion.registration == registration
@@ -125,6 +127,20 @@ def choose_source(
                 required=CODEX_VERSION,
             )
             return SessionChoice(fresh_reason=SessionFreshReason.VERSION_MISMATCH)
+        current_version = settings.get(crew_version_key(request.node))
+        if (
+            registration is not None
+            and registration.crew_version is not None
+            and isinstance(current_version, str)
+            and registration.crew_version != current_version
+        ):
+            _LOG.warning(
+                MSG_VERSION_FRESH,
+                source=source.activation_id,
+                recorded=registration.crew_version,
+                required=current_version,
+            )
+            continue
         source_session_id = (
             meta.session_id if registration is None else registration.thread_id
         )

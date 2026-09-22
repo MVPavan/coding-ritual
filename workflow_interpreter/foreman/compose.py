@@ -315,7 +315,12 @@ class Composition:
                 host_env=self.host_env,
             ),
             recovery=Recovery(
-                self.inspector_config, paths, store, workspace, self.clock
+                self.inspector_config,
+                paths,
+                store,
+                workspace,
+                self.clock,
+                profiles=self.profiles,
             ),
             observer=ExitObserver(
                 self.inspector_config,

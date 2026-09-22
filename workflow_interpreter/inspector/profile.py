@@ -31,12 +31,26 @@ from typing import Final, Protocol, runtime_checkable
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from workflow_interpreter.bdio import ActivationRecord, ProcessHandle, Usage
+from workflow_interpreter.bdio import (
+    ActivationRecord,
+    NodeSetting,
+    ProcessHandle,
+    RootRecord,
+    Usage,
+    resolved_settings,
+)
+from workflow_interpreter.bdio.rpc_records import SessionRegistration
 from workflow_interpreter.contracts.execution import (
+    EXECUTION_POLICY_KEY,
+    CrewName,
     ExecutionGrants,
     ExecutionPolicy,
     ExecutionProfileName,
     NetworkProfile,
+)
+from workflow_interpreter.contracts.sessions import (
+    crew_version_key,
+    execution_policy_digest,
 )
 from workflow_interpreter.contracts.transport import CrewTransport
 from workflow_interpreter.inspector.channels import (
@@ -62,6 +76,7 @@ ENV_OUTCOME_FILE: Final[str] = "WF_OUTCOME_FILE"
 ENV_ARTIFACT_DIR: Final[str] = "WF_ARTIFACT_DIR"
 ENV_EFFECTS_FILE: Final[str] = "WF_EFFECTS_FILE"
 ENV_SCRATCH_DIR: Final[str] = "WF_SCRATCH_DIR"
+MAX_SESSION_ID_LENGTH: Final[int] = 256
 
 
 class EventType(StrEnum):
@@ -279,6 +294,54 @@ class Profile(NetworkProfile, Protocol):
     def parse_output(self, stream: Iterable[str]) -> Iterator[CrewEvent]:
         """Normalize the crew's machine event stream (§6)."""
         ...  # pragma: no cover - protocol
+
+
+def observed_session_registration(
+    root: RootRecord, activation: ActivationRecord, profile: Profile
+) -> SessionRegistration | None:
+    """Build durable identity only from the first session event in the log."""
+    metadata = activation.metadata
+    crew = metadata.crew_profile.removeprefix("profile:")
+    if crew not in (CrewName.CLAUDE.value, CrewName.CODEX.value):
+        return None
+    if profile.name().removeprefix("profile:") != crew:
+        return None
+    handle = metadata.handle
+    if handle is None or metadata.launch_id is None:
+        return None
+    try:
+        with Path(handle.log_path).open(encoding="utf-8", errors="replace") as stream:
+            session_id = next(
+                (
+                    event.session
+                    for event in profile.parse_output(stream)
+                    if event.session
+                ),
+                None,
+            )
+    except OSError:
+        return None
+    if session_id is None or len(session_id) > MAX_SESSION_ID_LENGTH:
+        return None
+    settings = resolved_settings(root.metadata)
+    effort = settings.get(NodeSetting.EFFORT.at(metadata.node))
+    policy = settings.get(EXECUTION_POLICY_KEY.format(node=metadata.node), "legacy")
+    crew_version = settings.get(crew_version_key(metadata.node))
+    if not isinstance(effort, str) or not isinstance(policy, str):
+        return None
+    return SessionRegistration(
+        root_id=root.root_id,
+        activation_id=activation.activation_id,
+        launch_id=metadata.launch_id,
+        handle=handle,
+        thread_id=session_id,
+        crew_profile=crew,
+        crew_version=crew_version if isinstance(crew_version, str) else None,
+        model=metadata.model,
+        effort=effort,
+        policy_digest=execution_policy_digest(policy),
+        state_path="",
+    )
 
 
 def channels_for(

@@ -13,6 +13,7 @@ dispatch.
 
 from __future__ import annotations
 
+import subprocess
 from collections.abc import Callable, Mapping
 from typing import Final
 
@@ -32,6 +33,7 @@ from workflow_interpreter.profiles.opencode import OpencodeProfile
 _MSG_UNKNOWN: Final[str] = (
     "no crew profile named {name!r}; registered profiles are {known}"
 )
+_VERSION_TIMEOUT_S: Final[int] = 5
 ProfileBuilder = Callable[[ProfileConfig, Clock, Mapping[str, str]], Profile]
 
 BUILDERS: Final[dict[CrewName, ProfileBuilder]] = {
@@ -63,6 +65,7 @@ class ProfileRegistry:
             name.value: builder for name, builder in BUILDERS.items()
         }
         self._builders.update(builders or {})
+        self._versions: dict[CrewName, str | None] = {}
 
     def profile_for(self, name: str) -> Profile:
         """The registered crew profile; unknown names raise (see module doc)."""
@@ -72,3 +75,32 @@ class ProfileRegistry:
                 _MSG_UNKNOWN.format(name=name, known=", ".join(sorted(self._builders)))
             )
         return builder(self._config, self._clock, self._host_env)
+
+    def version_for(self, name: str) -> str | None:
+        """Qualify a resumable CLI once for this process and cache its version."""
+        try:
+            crew = CrewName(name.removeprefix(CREW_PREFIX))
+        except ValueError:
+            return None
+        if crew not in (CrewName.CLAUDE, CrewName.CODEX):
+            return None
+        if crew in self._versions:
+            return self._versions[crew]
+        try:
+            completed = subprocess.run(
+                [self._config.binary_for(crew), "--version"],
+                env=dict(self._host_env),
+                capture_output=True,
+                text=True,
+                timeout=_VERSION_TIMEOUT_S,
+                check=False,
+            )
+        except (OSError, subprocess.TimeoutExpired):
+            self._versions[crew] = None
+            return None
+        version = completed.stdout.strip()
+        if completed.returncode or not version or "\n" in version:
+            self._versions[crew] = None
+            return None
+        self._versions[crew] = version
+        return version

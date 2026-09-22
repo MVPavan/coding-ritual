@@ -57,6 +57,7 @@ from workflow_interpreter.bdio import (
     ActivationRecord,
     LifecycleConflictError,
     MintRequest,
+    RootRecord,
     StaleFlagRecord,
     StoreError,
     WorkflowStore,
@@ -90,7 +91,10 @@ from workflow_interpreter.inspector.models import (
 )
 from workflow_interpreter.inspector.monitor import Limits, Monitor
 from workflow_interpreter.inspector.paths import WrapperPaths, read_record
-from workflow_interpreter.inspector.profile import Profile
+from workflow_interpreter.inspector.profile import (
+    Profile,
+    observed_session_registration,
+)
 from workflow_interpreter.inspector.rpc_session import RpcSession
 from workflow_interpreter.inspector.workspace import Workspace
 from workflow_interpreter.schema.models import IsolationMode, Node
@@ -254,7 +258,13 @@ class Inspector:
             handle=handle,
             limits=Limits.from_node(node),
         )
-        mirror = _StaleMirror(self._store, activation.activation_id)
+        stale_mirror = _StaleMirror(self._store, activation.activation_id)
+        session_mirror = _SessionMirror(
+            self._store,
+            activation,
+            profile,
+        )
+        mirror = _RunMirror(stale_mirror, session_mirror)
         rpc = self._dispatcher.take_rpc()
         if rpc is not None and dispatch.receipt is not None:
             pipes, task = rpc
@@ -405,6 +415,84 @@ class _StaleMirror:
             )
             return
         self.recorded = True
+
+
+class _SessionMirror:
+    """Persist the first vendor identity event while the inspector is resident."""
+
+    def __init__(
+        self,
+        store: WorkflowStore,
+        activation: ActivationRecord,
+        profile: Profile,
+    ) -> None:
+        self._store = store
+        self._root: RootRecord | None = None
+        self._activation = activation
+        self._profile = profile
+        self.recorded = activation.metadata.session_registration is not None
+        self.abandoned = False
+
+    def __call__(self, result: MonitorResult) -> None:
+        """Scan until identity appears; failure defers to the next watch cycle."""
+        del result
+        if self.recorded or self.abandoned:
+            return
+        if self._root is None:
+            try:
+                self._root = self._store.reads.load_root(
+                    self._activation.metadata.wf_root_id
+                )
+            except StoreError as exc:
+                _LOG.warning(
+                    "wf.session.root_deferred",
+                    activation_id=self._activation.activation_id,
+                    error=str(exc),
+                )
+                return
+        registration = observed_session_registration(
+            self._root, self._activation, self._profile
+        )
+        if registration is None:
+            return
+        try:
+            self._activation = self._store.register_session(
+                self._activation.activation_id, registration
+            )
+        except LifecycleConflictError as exc:
+            self.abandoned = True
+            _LOG.warning(
+                "wf.session.mirror_abandoned",
+                activation_id=self._activation.activation_id,
+                error=str(exc),
+            )
+            return
+        except StoreError as exc:
+            _LOG.warning(
+                "wf.session.mirror_deferred",
+                activation_id=self._activation.activation_id,
+                error=str(exc),
+            )
+            return
+        self.recorded = True
+
+
+class _RunMirror:
+    """Fan one monitor callback out to independent durable mirrors."""
+
+    def __init__(self, stale: _StaleMirror, session: _SessionMirror) -> None:
+        self._stale = stale
+        self._session = session
+
+    @property
+    def recorded(self) -> bool:
+        """Whether the stale mirror wrote its one durable hint."""
+        return self._stale.recorded
+
+    def __call__(self, result: MonitorResult) -> None:
+        """A session write failure cannot suppress stale enforcement."""
+        self._session(result)
+        self._stale(result)
 
 
 def _exit_code(result: MonitorResult) -> int:

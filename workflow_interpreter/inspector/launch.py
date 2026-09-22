@@ -83,7 +83,7 @@ from workflow_interpreter.contracts.execution import (
     MSG_PINNED_POLICY,
     CrewName,
 )
-from workflow_interpreter.contracts.sessions import SessionFreshReason
+from workflow_interpreter.contracts.sessions import SessionFreshReason, SessionMode
 from workflow_interpreter.contracts.transport import CrewTransport
 from workflow_interpreter.inspector.clock import Clock
 from workflow_interpreter.inspector.errors import (
@@ -330,7 +330,16 @@ class Dispatcher:
             )
         source = self._steer_source(activation)
         instructions = self._steer_instructions(activation, instructions, source)
+        request = request.model_copy(
+            update={
+                "session_mode": activation.metadata.session_mode,
+                "session_source_activation_id": activation.metadata.session_source_activation_id,
+                "source_session_id": activation.metadata.source_session_id,
+                "expected_tree_oid": activation.metadata.expected_tree_oid,
+            }
+        )
         self._assert_continuation(
+            request,
             activation,
             instructions,
             carries_steer=source is not None
@@ -338,6 +347,7 @@ class Dispatcher:
         )
         activation, prepared = self._prepare(activation, precondition)
         return self._launch(
+            request,
             activation,
             minted.idempotency_key,
             minted.created,
@@ -404,9 +414,12 @@ class Dispatcher:
 
     @staticmethod
     def _assert_continuation(
-        activation: ActivationRecord, instructions: str | None, carries_steer: bool
+        request: MintRequest,
+        activation: ActivationRecord,
+        instructions: str | None,
+        carries_steer: bool,
     ) -> None:
-        """Refuse a §8.1 mismatch between the mint reason and the invocation.
+        """Refuse a mismatch between durable resume intent and steer payload.
 
         `carries_steer` covers both activations §8.1 continues a session for:
         the continuation itself and an infra retry descended from one, which
@@ -425,7 +438,11 @@ class Dispatcher:
             and activation.metadata.session_fresh_reason
             is SessionFreshReason.VERSION_MISMATCH
         )
-        if carries_steer and not activation.metadata.session_id and not version_fresh:
+        resume = (
+            request.session_mode is SessionMode.RESUME
+            and request.source_session_id is not None
+        )
+        if carries_steer and not resume and not version_fresh:
             raise ContinuationRefused(
                 _MSG_NO_SESSION.format(
                     activation_id=activation.activation_id,
@@ -509,6 +526,7 @@ class Dispatcher:
 
     def _launch(
         self,
+        request: MintRequest,
         activation: ActivationRecord,
         idempotency_key: str,
         created: bool,
@@ -574,23 +592,29 @@ class Dispatcher:
                 binary=plan.binary,
                 protected_roots=seed.protected_roots,
             )
-        # §5.2: the session id is PRE-ASSIGNED by the profile and never
-        # discovered from output. `prepare` is its ONLY minter — the foreman
-        # used to pre-assign a UUID at mint whenever the bound profile happened
-        # to be named `claude` — and `record_dispatch` writes what it returned
-        # back onto the activation, which is where a continuation or an infra
-        # retry reads the session to carry forward.
+        # The S1 request contract is pinned onto activation metadata at mint.
+        # S2 consumes it here: plain resume and steer resume share this branch;
+        # steer text changes the prompt, never the decision to resume.
         if profile.name() == CrewName.CODEX_APPSERVER:
             state = state_for(self._paths, root, activation)
             task = task.model_copy(update={"vendor_state": str(state)})
             plan = plan.model_copy(update={"vendor_state": (state,)})
-        session_id = profile.prepare(activation)
+        resume = (
+            request.session_mode is SessionMode.RESUME
+            and request.source_session_id is not None
+        )
+        session_id = (
+            request.source_session_id if resume else profile.prepare(activation)
+        )
+        assert session_id is not None
         command = (
-            profile.build_command(task, session_id)
-            if instructions is None
-            else profile.build_resume_command(
-                session_id, task.brief if composed_resume else instructions, task
+            profile.build_resume_command(
+                session_id,
+                task.brief if instructions is None or composed_resume else instructions,
+                task,
             )
+            if resume
+            else profile.build_command(task, session_id)
         )
         if command.transport is CrewTransport.STDIO_RPC:
             if command.cwd != task.cwd:
