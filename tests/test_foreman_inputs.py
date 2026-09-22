@@ -38,6 +38,7 @@ from workflow_interpreter.foreman.inspector import _task_builder
 from workflow_interpreter.inspector import activation_ref, channels_for
 from workflow_interpreter.inspector.gitio import Git
 from workflow_interpreter.inspector.sandbox import SandboxMode
+from workflow_interpreter.schema.decisions import CoordinationLink
 from workflow_interpreter.schema.models import Outcome, Region, RegionMode
 
 
@@ -1258,6 +1259,46 @@ def test_resume_delta_resends_what_the_source_trimmed_and_owns_its_omissions(
     assert [(item.name, item.reason) for item in trimmed.omissions] == [
         ("review_findings", "budget")
     ]
+
+
+def test_resumed_coordination_turn_carries_its_own_activation_facts(
+    fake_store: WorkflowStore,
+) -> None:
+    """Every resumed turn re-states the per-activation facts the thread cannot hold.
+
+    Turn 1's fact frame named turn 1: a round-3 decision stamped from it
+    carries the wrong `producing_activation_id` and coordination refuses it.
+    """
+    root = make_root(fake_store, load_definition())
+    root = root.model_copy(
+        update={
+            "metadata": root.metadata.model_copy(
+                update={
+                    "coordination": CoordinationLink(
+                        owner_id="owner",
+                        slot="decision",
+                        generation=0,
+                        reservation_id="reservation",
+                        ceiling=1,
+                    )
+                }
+            )
+        }
+    )
+    first = _turn(fake_store, root, "turn-1", ())
+    third = _turn(
+        fake_store, root, "turn-3", (), source=first.activation_id, round_no=3
+    )
+
+    delta = compose_resume_delta(
+        root, third, first, {item.activation_id: item for item in (first, third)}, ()
+    )
+
+    assert f"producing_activation_id={third.activation_id}" in delta.text
+    assert f"producing_root_id={root.root_id}" in delta.text
+    assert first.activation_id not in delta.text
+    assert "- round: 3" in delta.text
+    assert "How this run is judged" not in delta.text
 
 
 def test_a_resumed_turn_records_the_envelope_it_actually_sent(tmp_path: Path) -> None:

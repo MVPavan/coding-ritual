@@ -21,6 +21,7 @@ from workflow_interpreter.foreman.constants import (
     INPUT_LABEL,
     LEAF_EXECUTION_CONTRACT,
     MSG_INPUT_SOURCE_UNDECLARED,
+    RESUME_FACT_FRAME,
 )
 from workflow_interpreter.foreman.envelope import (
     ComposedEnvelope,
@@ -511,13 +512,14 @@ def compose_resume_delta(
     activations: Mapping[str, ActivationRecord],
     inputs: tuple[Materialized, ...],
 ) -> ComposedEnvelope:
-    """Render this turn's instructions and the inputs the thread never received.
+    """Render this turn's facts, instructions and inputs the thread never received.
 
     Input identity is the complete immutable ``InputBinding``, and "received"
     is what each turn's durable envelope record says it SENT — so replaying
     this function after a crash produces the same delta without retaining
-    prompt text or consulting live outputs. Protocol, fact-frame, and
-    leaf-contract sections belong only to a fresh envelope.
+    prompt text or consulting live outputs. Protocol and leaf-contract sections
+    belong only to a fresh envelope; the per-activation facts (this turn's id
+    and round) do not, and are re-stated every turn.
 
     "The thread" is the whole RESUME CHAIN, not just the immediate source: the
     third turn of one vendor thread must not re-send what the first turn
@@ -541,11 +543,24 @@ def compose_resume_delta(
         for binding, item in zip(activation.metadata.inputs, inputs, strict=True)
         if binding.model_dump_json() not in sent
     )
+    mandatory = "\n\n".join(
+        part.strip()
+        for part in (
+            RESUME_FACT_FRAME.format(
+                activation_id=activation.activation_id,
+                round_no=activation.metadata.round_no,
+            ),
+            _execution_identity(root, activation),
+            node.instructions or "",
+            _forced_first_reject(root, activation, node),
+        )
+        if part.strip()
+    )
     return _checked_envelope(
         root,
         activation,
         node,
-        (node.instructions or "").strip(),
+        mandatory,
         new_inputs,
         supplied=frozenset(item.name for item in inputs),
     ).model_copy(update={"kind": EnvelopeKind.RESUME_DELTA})

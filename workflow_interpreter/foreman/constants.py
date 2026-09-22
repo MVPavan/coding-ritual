@@ -46,6 +46,7 @@ __all__ = [
     "MAX_TRANSCRIPT_BYTES",
     "NO_ARTIFACT",
     "NO_ARTIFACT_OID",
+    "RESUME_FACT_FRAME",
     "RUN_DEFAULT_MAX_WALL_S",
     "RUN_DEFAULT_POLL_S",
     "RUN_MAX_WALL",
@@ -117,6 +118,22 @@ ADR 0001 recorded before the bound existed — would have it plan work the box
 will refuse.
 """
 FACT_FRAME_NO_PATHS: Final[str] = "none declared"
+RESUME_FACT_FRAME: Final[str] = """## This turn (pinned, §3.1)
+
+- activation: `{activation_id}`
+- round: {round_no}
+
+Every other fact stated on this thread's first turn still holds; these two
+are this turn's own and replace the earlier turn's.
+"""
+"""The per-activation facts a resumed turn re-states (crew-sessions §2).
+
+The vendor thread holds the first turn's fact frame, which named THAT turn's
+activation and round. A decision stamped from it carries the wrong
+`producing_activation_id` and coordination refuses it, so every resumed turn
+re-sends what changes per activation — and it is re-sent even where vendor
+compaction has summarised the earlier turns.
+"""
 INPUT_LABEL: Final[str] = "## Input `{name}` (from {producer})"
 """Inputs arrive concatenated; without a label two of them are one wall of text."""
 EVIDENCE_REFERENCE_INSTRUCTIONS: Final[
