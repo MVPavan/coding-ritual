@@ -347,6 +347,11 @@ def test_routed_claude_roles_keep_their_own_pinned_efforts(
             assert name == CrewName.CLAUDE.value
             return self._profile
 
+        def version_for(self, name: str) -> str | None:
+            """The recording profile is in-process; no CLI was ever probed."""
+            del name
+            return None
+
     lab = ForemanLab(
         tmp_path,
         roles={
@@ -446,6 +451,11 @@ def test_wrapper_selects_root_pinned_crew_after_activation_crew_corruption(
         def profile_for(self, name: str) -> Profile:
             self.selected.append(name)
             return profile
+
+        def version_for(self, name: str) -> str | None:
+            """The recording profile is in-process; no CLI was ever probed."""
+            del name
+            return None
 
     profiles = RecordingProfiles()
     lab.profiles = profiles

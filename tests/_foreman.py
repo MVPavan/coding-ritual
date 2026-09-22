@@ -200,6 +200,11 @@ class _Profiles(ProfileResolver):
         self.profile.selected_crew = name.removeprefix(CREW_PREFIX)
         return self.profile
 
+    def version_for(self, name: str) -> str | None:
+        """The lab's crews are in-process scripts, so no CLI version was probed."""
+        del name
+        return None
+
     def next_script_for_launch(self) -> ChildScript | None:
         """Expose the queued script without consuming it before the spawn succeeds."""
         return self._next

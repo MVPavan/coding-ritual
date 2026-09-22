@@ -2,6 +2,7 @@
 
 import subprocess
 import sys
+from abc import abstractmethod
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
@@ -86,14 +87,16 @@ class ProfileResolver(Protocol):
 
     def profile_for(self, name: str) -> Profile: ...
 
+    @abstractmethod
     def version_for(self, name: str) -> str | None:
         """The CLI version THIS process probed for the crew, if any.
 
         Part of the boundary rather than an optional hook found with
         `getattr`: a resolver that silently supplies nothing reads as "no
-        drift" at every resume decision (§5.2).
+        drift" at every resume decision (§5.2). Abstract for the same reason —
+        the concrete `...` this used to carry was INHERITED by explicit
+        subclasses, which is the silent `None` in another costume.
         """
-        ...  # pragma: no cover - protocol
 
 
 class DetachedSpawner:

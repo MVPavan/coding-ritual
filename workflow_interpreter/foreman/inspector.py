@@ -44,6 +44,7 @@ from workflow_interpreter.foreman.inputs import (
     DefaultComposer,
     InputsUnavailable,
     Materialized,
+    ResumeDelta,
     bounded_materialize,
     compose_resume_delta,
 )
@@ -214,14 +215,18 @@ def _task_builder(root: RootRecord, wiring: InstanceWiring, git: Git) -> TaskBui
             if current.metadata.session_source_activation_id is not None
             else None
         )
-        delta = (
-            compose_resume_delta(root, current, source, by_id, inputs)
-            if source is not None and instructions is None
-            else None
-        )
         # The record must describe what the vendor RECEIVES: on a resumed turn
         # that is the delta, and persisting the recomposed fresh envelope would
-        # claim the crew was handed text it never saw.
+        # claim the crew was handed text it never saw. A STEERED turn is the
+        # same rule with a shorter delta — `Dispatcher._resume_text` sends the
+        # steer instructions alone, not the brief they were folded into.
+        delta = (
+            ResumeDelta(text=instructions, included=())
+            if instructions is not None
+            else compose_resume_delta(root, current, source, by_id, inputs)
+            if source is not None
+            else None
+        )
         sent = envelope if delta is None else delta.envelope(envelope)
         wiring.store.record_envelope(
             current.activation_id, sent.model_dump(mode="json", exclude={"text"})
