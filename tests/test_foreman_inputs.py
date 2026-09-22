@@ -7,7 +7,9 @@ from typing import Final, cast
 
 import pytest
 
-from tests._bdio import entry_request, load_definition, make_root
+from tests._bdio import IMPLEMENT, entry_request, load_definition, make_root
+from tests._foreman import ForemanLab
+from tests._foreman import entry_request as lab_entry_request
 from tests._inspector import make_config, make_git, make_repo
 from tests.conftest import Signer
 from workflow_interpreter.bdio import (
@@ -16,12 +18,14 @@ from workflow_interpreter.bdio import (
     InputBinding,
     InstanceInput,
     Lifecycle,
+    MintReason,
     RootRecord,
     SigningConfig,
 )
 from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.carriers import ArtifactIdentity
 from workflow_interpreter.foreman.constants import FORCED_FIRST_REJECT
+from workflow_interpreter.foreman.envelope import EnvelopeKind
 from workflow_interpreter.foreman.inputs import (
     DefaultComposer,
     InputsUnavailable,
@@ -30,8 +34,10 @@ from workflow_interpreter.foreman.inputs import (
     materialize,
     select_bindings,
 )
-from workflow_interpreter.inspector import activation_ref
+from workflow_interpreter.foreman.inspector import _task_builder
+from workflow_interpreter.inspector import activation_ref, channels_for
 from workflow_interpreter.inspector.gitio import Git
+from workflow_interpreter.inspector.sandbox import SandboxMode
 from workflow_interpreter.schema.models import Outcome, Region, RegionMode
 
 
@@ -1168,8 +1174,57 @@ def test_resume_delta_drops_the_preamble_and_every_input_already_in_the_thread(
         ),
     )
 
-    assert node.instructions in delta
-    assert "the failure" in delta
-    assert "the brief" not in delta
-    assert "the findings" not in delta
-    assert "How this run is judged" not in delta
+    assert node.instructions in delta.text
+    assert "the failure" in delta.text
+    assert "the brief" not in delta.text
+    assert "the findings" not in delta.text
+    assert "How this run is judged" not in delta.text
+    assert delta.included == ("verify_failure",)
+
+
+def test_a_resumed_turn_records_the_envelope_it_actually_sent(tmp_path: Path) -> None:
+    """The durable envelope of a resumed turn accounts for the delta, not the brief.
+
+    The vendor receives `resume_brief`; recording the recomposed fresh envelope
+    would make the record claim the crew was handed text it never saw.
+    """
+    lab = ForemanLab(tmp_path, sandbox=SandboxMode.OFF)
+    root = lab.instantiate()
+    wiring = lab.wiring()
+    node = root.index.nodes[IMPLEMENT]
+    bindings = select_bindings(root.index, root, node, (), 1)
+    source = wiring.store.mint_activation(
+        root.root_id, lab_entry_request(inputs=bindings)
+    ).activation
+    wiring.store.close_activation(source.activation_id, Outcome.DONE)
+    resumed = wiring.store.mint_activation(
+        root.root_id,
+        lab_entry_request(
+            mint_reason=MintReason.EDGE,
+            predecessor_activation_id=source.activation_id,
+            inputs=bindings,
+        ),
+    ).activation
+    wiring.store._client._merge_metadata(
+        resumed.activation_id,
+        {"session_source_activation_id": source.activation_id},
+    )
+    resumed = wiring.store.reads.load_activation(resumed.activation_id)
+    paths = wiring.paths
+    paths.ensure_activation_dir(resumed.activation_id)
+
+    task = _task_builder(root, wiring, lab.git)(
+        resumed,
+        channels_for(
+            paths.activation_dir(resumed.activation_id),
+            paths.log(resumed.activation_id),
+        ),
+    )
+
+    assert task.resume_brief is not None
+    record = wiring.store.reads.load_activation(resumed.activation_id).metadata.envelope
+    assert record is not None
+    assert record["kind"] == EnvelopeKind.RESUME_DELTA.value
+    assert record["byte_count"] == len(task.resume_brief.encode())
+    assert record["sha256"] == hashlib.sha256(task.resume_brief.encode()).hexdigest()
+    assert record["byte_count"] < len(task.brief.encode())

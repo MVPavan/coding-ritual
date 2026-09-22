@@ -214,13 +214,17 @@ def _task_builder(root: RootRecord, wiring: InstanceWiring, git: Git) -> TaskBui
             if current.metadata.session_source_activation_id is not None
             else None
         )
-        resume_brief = (
+        delta = (
             compose_resume_delta(root, current, source, by_id, inputs)
             if source is not None and instructions is None
             else None
         )
+        # The record must describe what the vendor RECEIVES: on a resumed turn
+        # that is the delta, and persisting the recomposed fresh envelope would
+        # claim the crew was handed text it never saw.
+        sent = envelope if delta is None else delta.envelope(envelope)
         wiring.store.record_envelope(
-            current.activation_id, envelope.model_dump(mode="json", exclude={"text"})
+            current.activation_id, sent.model_dump(mode="json", exclude={"text"})
         )
         return TaskSpec(
             root_id=root.root_id,
@@ -236,7 +240,7 @@ def _task_builder(root: RootRecord, wiring: InstanceWiring, git: Git) -> TaskBui
             cwd=str(wiring.workspace.path_for(node)),
             channels=channels,
             brief=envelope.text,
-            resume_brief=resume_brief,
+            resume_brief=None if delta is None else delta.text,
             token_budget=node.token_budget,
             artifact_input_mode=node.artifact_input_mode or ArtifactInputMode.INLINE,
         )

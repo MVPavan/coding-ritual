@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 from collections.abc import Mapping
 from pathlib import Path
 
@@ -23,6 +24,7 @@ from workflow_interpreter.foreman.constants import (
 )
 from workflow_interpreter.foreman.envelope import (
     ComposedEnvelope,
+    EnvelopeKind,
     EnvelopeSection,
     InputOmission,
     InputsUnavailable,
@@ -48,6 +50,7 @@ __all__ = [
     "DefaultComposer",
     "InputsUnavailable",
     "Materialized",
+    "ResumeDelta",
     "bounded_materialize",
     "compose_resume_delta",
     "materialize",
@@ -381,13 +384,38 @@ def _labelled(item: Materialized) -> str:
     )
 
 
+class ResumeDelta(BaseModel):
+    """The text a resumed turn actually sends, and the inputs inside it."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+    text: str
+    included: tuple[str, ...]
+
+    def envelope(self, fresh: ComposedEnvelope) -> ComposedEnvelope:
+        """Account for the bytes the vendor got, not the brief it never saw.
+
+        The budget accounting of the fresh composition still applies — the
+        delta is a SUBSET of it — so only what this turn actually sent is
+        replaced, and the kind says which of the two the record describes.
+        """
+        return fresh.model_copy(
+            update={
+                "kind": EnvelopeKind.RESUME_DELTA,
+                "text": self.text,
+                "byte_count": len(self.text.encode("utf-8")),
+                "included": self.included,
+                "sha256": hashlib.sha256(self.text.encode()).hexdigest(),
+            }
+        )
+
+
 def compose_resume_delta(
     root: RootRecord,
     activation: ActivationRecord,
     source: ActivationRecord,
     activations: Mapping[str, ActivationRecord],
     inputs: tuple[Materialized, ...],
-) -> str:
+) -> ResumeDelta:
     """Render only current instructions and inputs absent from the source turn.
 
     Input identity is the complete immutable ``InputBinding`` persisted on both
@@ -413,18 +441,21 @@ def compose_resume_delta(
         )
         source_id = prior.metadata.session_source_activation_id
         prior = activations.get(source_id) if source_id is not None else None
-    new_inputs = (
+    new_inputs = tuple(
         item
         for binding, item in zip(activation.metadata.inputs, inputs, strict=True)
         if binding.model_dump_json() not in source_inputs and item.omission is None
     )
-    return "\n\n".join(
-        part.strip()
-        for part in (
-            node.instructions or "",
-            *(_labelled(item) for item in new_inputs),
-        )
-        if part.strip()
+    return ResumeDelta(
+        text="\n\n".join(
+            part.strip()
+            for part in (
+                node.instructions or "",
+                *(_labelled(item) for item in new_inputs),
+            )
+            if part.strip()
+        ),
+        included=tuple(item.name for item in new_inputs),
     )
 
 

@@ -1,6 +1,7 @@
 """Whole-brief UTF-8 accounting. Optional sections are omitted, never truncated."""
 
 import hashlib
+from enum import StrEnum
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict
@@ -46,10 +47,20 @@ class EnvelopeSection(BaseModel):
     digest: str | None = None
 
 
+class EnvelopeKind(StrEnum):
+    """Which of the two things a turn can send this envelope accounts for."""
+
+    FRESH = "fresh"
+    """The whole composed brief, sent to a crew with no thread behind it."""
+    RESUME_DELTA = "resume_delta"
+    """Only what a resumed vendor thread did not already hold."""
+
+
 class ComposedEnvelope(BaseModel):
     """Exactly the brief passed to the adapter, with durable accounting."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
+    kind: EnvelopeKind = EnvelopeKind.FRESH
     text: str
     byte_count: int
     limit: int
