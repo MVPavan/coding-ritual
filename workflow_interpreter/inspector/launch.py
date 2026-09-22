@@ -188,6 +188,10 @@ MSG_CLI_VERSION_MISMATCH: Final[str] = (
     "CLI version mismatch for resume activation {activation_id}: source "
     "registered {source!r}, current process probed {current!r}"
 )
+MSG_CLI_VERSION_UNQUALIFIED: Final[str] = (
+    "resume activation {activation_id}: source {source} registered no CLI "
+    "version, so the reuse guard has nothing to compare (design §6)"
+)
 MSG_EMPTY_RESUME: Final[str] = (
     "resume activation {activation_id} has no brief delta to send; a resumed "
     "turn with an empty prompt asks the vendor to act on nothing"
@@ -501,10 +505,14 @@ class Dispatcher:
                             reason=error or "profile was not qualified",
                         )
                     )
-                if (
-                    registration.crew_version is not None
-                    and registration.crew_version != version
-                ):
+                if registration.crew_version is None:
+                    raise ContinuationRefused(
+                        MSG_CLI_VERSION_UNQUALIFIED.format(
+                            activation_id=activation.activation_id,
+                            source=source_id,
+                        )
+                    )
+                if registration.crew_version != version:
                     raise ContinuationRefused(
                         MSG_CLI_VERSION_MISMATCH.format(
                             activation_id=activation.activation_id,

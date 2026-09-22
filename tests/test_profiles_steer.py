@@ -260,6 +260,32 @@ def test_plain_resume_refuses_an_empty_delta(tmp_path: Path) -> None:
 
 
 @pytest.mark.proc
+def test_plain_resume_refuses_a_source_with_no_registered_cli_version(
+    tmp_path: Path,
+) -> None:
+    """Design §6: an unqualified source version refuses reuse at launch too."""
+    lab = Lab(tmp_path)
+    request = entry_mint(session_id="")
+    activation = lab.store.mint_activation(lab.root.root_id, request).activation
+    source_session = str(uuid.UUID("0199f0b4-4018-7f67-a3f1-9ec893c475ae"))
+    registration = _selected_registration(
+        lab, activation.activation_id, source_session
+    ).model_copy(update={"crew_version": None})
+    lab.store._client._merge_metadata(
+        activation.activation_id,
+        {
+            "session_mode": SessionMode.RESUME,
+            "session_source_activation_id": activation.activation_id,
+            "source_session_id": source_session,
+            "session_registration": registration.model_dump(mode="json"),
+        },
+    )
+
+    with pytest.raises(ContinuationRefused, match="registered no CLI version"):
+        lab.dispatch(CrewName.CLAUDE, request=request, sleep_s=0.0)
+
+
+@pytest.mark.proc
 def test_failed_cli_version_probe_allows_fresh_but_refuses_resume(
     tmp_path: Path,
 ) -> None:

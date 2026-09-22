@@ -41,6 +41,10 @@ RESUMABLE_SESSION_OUTCOMES: Final[frozenset[Outcome]] = frozenset(
     }
 )
 """Successful task turns whose vendor history may seed a later plain resume."""
+_VERSIONED_CREWS: Final[frozenset[str]] = frozenset(
+    {CrewName.CLAUDE.value, CrewName.CODEX.value}
+)
+"""Crews whose registration carries a probed CLI version reuse is gated on."""
 
 
 class SessionChoice(BaseModel):
@@ -134,6 +138,12 @@ def choose_source(
                 required=CODEX_VERSION,
             )
             return SessionChoice(fresh_reason=SessionFreshReason.VERSION_MISMATCH)
+        # Design §6: an unqualified version refuses reuse. A claude/codex source
+        # that registered no CLI version cannot be compared with anything, so
+        # skipping the guard for it would resume across an unknown upgrade.
+        if crew_profile in _VERSIONED_CREWS and registration.crew_version is None:
+            rejected = rejected or SessionFreshReason.UNQUALIFIED_SOURCE
+            continue
         # Finding 4: eligibility compares what the SOURCE ran under against what
         # this process probed, never a root pin — a pin is historical once the
         # CLI is upgraded under a long-lived root.

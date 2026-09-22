@@ -713,3 +713,23 @@ def test_appserver_reuses_a_completed_turn_whatever_its_close(
     minted = fake_store.mint_activation(root.root_id, request).activation
 
     assert minted.metadata.session_reuse_source == source
+
+
+def test_exec_source_without_a_registered_cli_version_is_unqualified(
+    tmp_path, fake_store
+):
+    """Design §6: an unqualified version refuses reuse, it never skips the guard."""
+    root = exec_root(tmp_path, fake_store)
+    source = finish_exec_source(fake_store, root, crew_version=None)
+    request = entry_request(crew_profile="codex").model_copy(
+        update={
+            "crew_version": "codex-cli 0.155.1",
+            "mint_reason": MintReason.EDGE,
+            "predecessor_activation_id": source.activation_id,
+        }
+    )
+
+    minted = fake_store.mint_activation(root.root_id, request).activation
+
+    assert minted.metadata.session_source_activation_id is None
+    assert minted.metadata.session_fresh_reason is SessionFreshReason.UNQUALIFIED_SOURCE

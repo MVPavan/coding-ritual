@@ -66,3 +66,5 @@ class SessionFreshReason(StrEnum):
     """A candidate matched, but no vendor identity was ever observed for it."""
     VERSION_DRIFT = "version_drift"
     """A candidate matched, but ran under a different CLI than this process."""
+    UNQUALIFIED_SOURCE = "unqualified_source"
+    """A candidate matched, but registered no CLI version to compare (§6)."""
