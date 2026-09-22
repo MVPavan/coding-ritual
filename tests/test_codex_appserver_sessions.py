@@ -363,7 +363,12 @@ def test_version_mismatch_is_a_logged_fresh_decision(
 ):
     """A CLI bump changes history eligibility, never wedges deliberate continuation."""
     root = app_root(tmp_path, fake_store, "same-node")
-    registration = finish_source(fake_store, root, Outcome.STEERED)
+    source_outcome = (
+        Outcome.STEERED
+        if reason is MintReason.STEER_CONTINUATION
+        else Outcome.FAIL_CODE
+    )
+    registration = finish_source(fake_store, root, source_outcome)
     source = fake_store.reads.load_activation(registration.activation_id)
     old = registration.model_copy(update={"crew_version": "0.153.0"})
     source = source.model_copy(
