@@ -13,6 +13,7 @@ a bypass flag or an unguarded push on an argv.
 
 from __future__ import annotations
 
+import os
 import shlex
 from pathlib import Path
 from typing import Final
@@ -949,6 +950,31 @@ def test_the_registry_builds_a_profile_of_the_right_vendor(tmp_path: Path) -> No
         profile = registry.profile_for(name)
         assert profile.name() == name
         assert isinstance(profile, BaseProfile)
+
+
+@pytest.mark.parametrize("name", ["codex", "profile:codex"])
+def test_the_registry_probes_the_cli_whatever_shape_the_binding_names(
+    tmp_path: Path, name: str
+) -> None:
+    """A direct crew binding is qualified exactly like a routed role.
+
+    The reuse guard is only as good as the probe behind it, and a binding shape
+    that skipped probing disabled it SILENTLY: `cli_version()` came back `None`,
+    which reads the same as "no drift".
+    """
+    binary = tmp_path / "codex-stub"
+    binary.write_text("#!/bin/sh\necho 'codex-cli 9.9.9'\n", encoding="utf-8")
+    binary.chmod(0o755)
+    registry = ProfileRegistry(
+        make_profile_config(binary_overrides={CrewName.CODEX: str(binary)}),
+        FrozenClock(),
+        {"PATH": os.defpath},
+    )
+
+    profile = registry.profile_for(name)
+
+    assert profile.cli_version() == "codex-cli 9.9.9"
+    assert profile.cli_version_error() is None
 
 
 def test_the_toolchain_cache_option_survives_a_path_with_a_space(

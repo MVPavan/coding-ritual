@@ -26,6 +26,7 @@ from workflow_interpreter.foreman.inputs import (
     DefaultComposer,
     InputsUnavailable,
     Materialized,
+    compose_resume_delta,
     materialize,
     select_bindings,
 )
@@ -1092,3 +1093,83 @@ def test_optional_verify_feedback_never_hides_corrupt_bound_evidence(
             lab.store.reads.load_activation(source_id),
             limit=1,
         )
+
+
+def _turn(
+    store: WorkflowStore,
+    root: RootRecord,
+    turn_id: str,
+    names: tuple[str, ...],
+    *,
+    source: str | None = None,
+) -> ActivationRecord:
+    """One turn of a resumed vendor thread, carrying the inputs it was given."""
+    activation = store.mint_activation(root.root_id, entry_request()).activation
+    bindings = tuple(
+        InputBinding(
+            name=name,
+            producer_activation_id="instance",
+            artifact_ref=f"refs/wf/{name}",
+            digest=hashlib.sha256(name.encode()).hexdigest(),
+        )
+        for name in names
+    )
+    return activation.model_copy(
+        update={
+            "id": turn_id,
+            "metadata": activation.metadata.model_copy(
+                update={
+                    "inputs": bindings,
+                    "session_source_activation_id": source,
+                }
+            ),
+        }
+    )
+
+
+def test_resume_delta_drops_the_preamble_and_every_input_already_in_the_thread(
+    fake_store: WorkflowStore,
+) -> None:
+    """A resumed turn appends only what is new to the thread it rejoins.
+
+    The vendor already holds the protocol, the fact frame and every earlier
+    turn's inputs; re-sending them is what the recomposed envelope did. The
+    exclusion covers the whole CHAIN, so a third turn does not replay what the
+    first one carried.
+    """
+    root = make_root(fake_store, load_definition())
+    # `task_brief` reaches the thread on the FIRST turn only: the immediate
+    # source alone cannot account for it, so a one-hop exclusion re-sends it.
+    first = _turn(fake_store, root, "turn-1", ("task_brief",))
+    second = _turn(
+        fake_store, root, "turn-2", ("review_findings",), source=first.activation_id
+    )
+    third = _turn(
+        fake_store,
+        root,
+        "turn-3",
+        ("task_brief", "review_findings", "verify_failure"),
+        source=second.activation_id,
+    )
+    node = root.index.nodes[third.metadata.node]
+    assert node.instructions is not None
+
+    delta = compose_resume_delta(
+        root,
+        third,
+        second,
+        {item.activation_id: item for item in (first, second, third)},
+        (
+            Materialized(text="the brief", name="task_brief", producer="instance"),
+            Materialized(
+                text="the findings", name="review_findings", producer="review"
+            ),
+            Materialized(text="the failure", name="verify_failure", producer="verify"),
+        ),
+    )
+
+    assert node.instructions in delta
+    assert "the failure" in delta
+    assert "the brief" not in delta
+    assert "the findings" not in delta
+    assert "How this run is judged" not in delta
