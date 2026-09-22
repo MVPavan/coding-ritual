@@ -244,8 +244,7 @@ def register_session(
         and metadata.lifecycle is Lifecycle.EXIT_RECORDED
     )
     if (
-        metadata.lifecycle is not Lifecycle.DISPATCHED
-        and not recovery_registration
+        metadata.lifecycle is not Lifecycle.DISPATCHED and not recovery_registration
     ) or metadata.is_settled:
         raise LifecycleConflictError(MSG_SESSION_IDENTITY)
     if metadata.session_id and metadata.session_id != registration.thread_id:

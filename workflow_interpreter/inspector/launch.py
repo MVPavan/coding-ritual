@@ -182,8 +182,7 @@ MSG_RESUME_SOURCE_CONTRACT: Final[str] = (
     "source {source!r} must carry observed session {session!r}"
 )
 MSG_CLI_VERSION_UNAVAILABLE: Final[str] = (
-    "CLI version unavailable for resume activation {activation_id} ({crew}): "
-    "{reason}"
+    "CLI version unavailable for resume activation {activation_id} ({crew}): {reason}"
 )
 MSG_CLI_VERSION_MISMATCH: Final[str] = (
     "CLI version mismatch for resume activation {activation_id}: source "
@@ -457,8 +456,14 @@ class Dispatcher:
             request.session_mode is SessionMode.RESUME
             and request.source_session_id is not None
         )
-        if request.session_mode is SessionMode.RESUME:
-            source_id = request.session_source_activation_id
+        source_id = request.session_source_activation_id
+        selected = source_id is not None or request.source_session_id is not None
+        # A resume-mode node with NO source selected has no history yet (its
+        # first activation, or every candidate was ineligible): fresh is the
+        # honest launch. The refusal below is for a source that WAS selected and
+        # whose durable identity does not back it (finding 2) — that is the case
+        # that used to fall through to a silent fresh launch.
+        if request.session_mode is SessionMode.RESUME and selected:
             registration = None
             if source_id is not None:
                 try:

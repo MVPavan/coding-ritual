@@ -333,7 +333,6 @@ def _prepare_mint(
         crew_profile=crew_profile,
         model=model,
         crew_version=request.crew_version,
-        crew_version_error=request.crew_version_error,
         session_id=session_id,
         session_mode=session_mode,
         session_source_activation_id=choice.source_activation_id,

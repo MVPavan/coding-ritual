@@ -22,7 +22,6 @@ from workflow_interpreter.contracts.sessions import (
     SessionFreshReason,
     SessionMode,
     SessionReuse,
-    crew_version_key,
     execution_policy_digest,
     session_mode_key,
 )
@@ -30,9 +29,6 @@ from workflow_interpreter.schema.models import Outcome
 
 _LOG = structlog.get_logger(__name__)
 MSG_VERSION_FRESH: Final[str] = "wf.session.fresh.version_mismatch"
-MSG_CLI_VERSION_UNAVAILABLE: Final[str] = (
-    "resume requires a successful current CLI version probe: {reason}"
-)
 RESUMABLE_SESSION_OUTCOMES: Final[frozenset[Outcome]] = frozenset(
     {
         Outcome.DONE,
@@ -73,13 +69,6 @@ def choose_source(
     if not isinstance(policy, str):
         raise CarrierIntegrityError(MSG_SESSION_SOURCE)
     crew_profile = request.crew_profile.removeprefix("profile:")
-    if (
-        crew_profile in (CrewName.CLAUDE.value, CrewName.CODEX.value)
-        and request.crew_version_error is not None
-    ):
-        raise CarrierIntegrityError(
-            MSG_CLI_VERSION_UNAVAILABLE.format(reason=request.crew_version_error)
-        )
     for source in sorted(activations, key=lambda item: item.metadata.seq, reverse=True):
         meta = source.metadata
         registration = meta.session_registration
@@ -92,6 +81,9 @@ def choose_source(
             or meta.crew_profile.removeprefix("profile:") != crew_profile
         ):
             continue
+        # §5.2 (finding 3): only an OBSERVED vendor identity is registrable, so
+        # an unregistered activation carries no session a resume could rejoin —
+        # whatever `prepare()` preassigned into `session_id` is not evidence.
         if registration is None:
             continue
         if (
@@ -114,8 +106,7 @@ def choose_source(
             (source.activation_id in continuation_ids)
             if continuation
             else (
-                registration is None
-                or crew_profile != CrewName.CODEX_APPSERVER.value
+                crew_profile != CrewName.CODEX_APPSERVER.value
                 or (
                     meta.session_completion is not None
                     and meta.session_completion.registration == registration
@@ -126,7 +117,6 @@ def choose_source(
             continue
         if (
             crew_profile == CrewName.CODEX_APPSERVER.value
-            and registration is not None
             and registration.crew_version != CODEX_VERSION
         ):
             _LOG.warning(
@@ -136,13 +126,13 @@ def choose_source(
                 required=CODEX_VERSION,
             )
             return SessionChoice(fresh_reason=SessionFreshReason.VERSION_MISMATCH)
+        # Finding 4: eligibility compares what the SOURCE ran under against what
+        # this process probed, never a root pin — a pin is historical once the
+        # CLI is upgraded under a long-lived root.
         current_version = request.crew_version
-        if current_version is None:
-            current_version = settings.get(crew_version_key(request.node))
         if (
-            registration is not None
-            and registration.crew_version is not None
-            and isinstance(current_version, str)
+            registration.crew_version is not None
+            and current_version is not None
             and registration.crew_version != current_version
         ):
             _LOG.warning(
@@ -152,13 +142,10 @@ def choose_source(
                 required=current_version,
             )
             continue
-        source_session_id = (
-            meta.session_id if registration is None else registration.thread_id
-        )
         return SessionChoice(
             source=registration,
             source_activation_id=source.activation_id,
-            source_session_id=source_session_id,
+            source_session_id=registration.thread_id,
         )
     if continuation:
         raise CarrierIntegrityError(MSG_SESSION_SOURCE)

@@ -32,11 +32,11 @@ from workflow_interpreter.bdio.rows import STATUS_CLOSED
 from workflow_interpreter.bdio.rpc_records import ControlRegistration
 from workflow_interpreter.foreman.audit import audit
 from workflow_interpreter.foreman.cases import (
-    _crew_qualification,
     advance_lifecycle,
     halt_dead_end,
     intake_all,
     mint_entry,
+    probed_crew_version,
     route_head,
 )
 from workflow_interpreter.foreman.compose import (
@@ -392,7 +392,7 @@ class Foreman:
                 mint_reason=MintReason.STEER_CONTINUATION,
                 crew_profile=view.crew_profile,
                 model=view.model,
-                **_crew_qualification(self._composition, view.crew_profile),
+                crew_version=probed_crew_version(self._composition, view.crew_profile),
                 session_id=activation.metadata.session_id,
                 predecessor_activation_id=activation.activation_id,
                 inputs=activation.metadata.inputs,

@@ -148,7 +148,6 @@ def _request(
         crew_profile=view.crew_profile,
         model=view.model,
         crew_version=meta.crew_version,
-        crew_version_error=meta.crew_version_error,
         session_id=meta.session_id,
         predecessor_activation_id=meta.predecessor_activation_id,
         predecessor_gate_id=meta.predecessor_gate_id,
