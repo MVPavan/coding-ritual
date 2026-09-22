@@ -45,6 +45,7 @@ from workflow_interpreter.foreman.inputs import (
     InputsUnavailable,
     Materialized,
     bounded_materialize,
+    compose_resume_delta,
 )
 from workflow_interpreter.inspector.band import BandLock
 from workflow_interpreter.inspector.channels import pinned_verifier_digests
@@ -207,6 +208,16 @@ def _task_builder(root: RootRecord, wiring: InstanceWiring, git: Git) -> TaskBui
 
         inputs = tuple(materialized(binding) for binding in current.metadata.inputs)
         envelope = composer.envelope(root, current, inputs, instructions=instructions)
+        source = (
+            by_id.get(current.metadata.session_source_activation_id)
+            if current.metadata.session_source_activation_id is not None
+            else None
+        )
+        resume_brief = (
+            compose_resume_delta(root, current, source, inputs)
+            if source is not None and instructions is None
+            else None
+        )
         wiring.store.record_envelope(
             current.activation_id, envelope.model_dump(mode="json", exclude={"text"})
         )
@@ -224,6 +235,7 @@ def _task_builder(root: RootRecord, wiring: InstanceWiring, git: Git) -> TaskBui
             cwd=str(wiring.workspace.path_for(node)),
             channels=channels,
             brief=envelope.text,
+            resume_brief=resume_brief,
             token_budget=node.token_budget,
             artifact_input_mode=node.artifact_input_mode or ArtifactInputMode.INLINE,
         )

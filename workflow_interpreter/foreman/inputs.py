@@ -48,6 +48,7 @@ __all__ = [
     "InputsUnavailable",
     "Materialized",
     "bounded_materialize",
+    "compose_resume_delta",
     "materialize",
     "select_bindings",
 ]
@@ -376,6 +377,39 @@ def _labelled(item: Materialized) -> str:
             INPUT_LABEL.format(name=item.name, producer=item.producer or "unknown"),
             item.text,
         )
+    )
+
+
+def compose_resume_delta(
+    root: RootRecord,
+    activation: ActivationRecord,
+    source: ActivationRecord,
+    inputs: tuple[Materialized, ...],
+) -> str:
+    """Render only current instructions and inputs absent from the source turn.
+
+    Input identity is the complete immutable ``InputBinding`` persisted on both
+    activations.  Replaying this function therefore produces the same delta
+    after a crash without retaining prompt text or consulting live outputs.
+    Protocol, fact-frame, and leaf-contract sections belong only to a fresh
+    envelope; the resumed vendor thread already contains them.
+    """
+    node = resolved_node(root, activation.metadata.node).node
+    source_inputs = {
+        binding.model_dump_json() for binding in source.metadata.inputs
+    }
+    new_inputs = (
+        item
+        for binding, item in zip(activation.metadata.inputs, inputs, strict=True)
+        if binding.model_dump_json() not in source_inputs and item.omission is None
+    )
+    return "\n\n".join(
+        part.strip()
+        for part in (
+            node.instructions or "",
+            *(_labelled(item) for item in new_inputs),
+        )
+        if part.strip()
     )
 
 

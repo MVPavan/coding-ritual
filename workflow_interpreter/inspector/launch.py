@@ -543,9 +543,6 @@ class Dispatcher:
             self._paths.log(activation_id),
             activation_id,
         )
-        composed_resume = instructions is not None and isinstance(
-            build_task, EnvelopeTaskBuilder
-        )
         task = (
             build_task.continuation(activation, channels, instructions)
             if isinstance(build_task, EnvelopeTaskBuilder) and instructions is not None
@@ -610,7 +607,13 @@ class Dispatcher:
         command = (
             profile.build_resume_command(
                 session_id,
-                task.brief if instructions is None or composed_resume else instructions,
+                (
+                    task.brief
+                    if profile.name() == CrewName.CODEX_APPSERVER
+                    else task.resume_brief or ""
+                )
+                if instructions is None
+                else instructions,
                 task,
             )
             if resume
@@ -619,7 +622,7 @@ class Dispatcher:
         if command.transport is CrewTransport.STDIO_RPC:
             if command.cwd != task.cwd:
                 raise TaskRefused(MSG_RPC_CWD)
-            if instructions is not None and not composed_resume:
+            if instructions is not None:
                 task = task.model_copy(update={"brief": instructions})
         launcher = ForkBarrierLauncher(
             self._paths.config,

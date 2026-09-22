@@ -178,6 +178,8 @@ class TaskSpec(BaseModel):
     this private grant from the activation's channels layout.
     """
     brief: str = ""
+    resume_brief: str | None = None
+    """Only the durable activation delta appended to an existing vendor thread."""
     token_budget: int | None = None
     artifact_input_mode: ArtifactInputMode = ArtifactInputMode.INLINE
 
