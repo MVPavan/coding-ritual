@@ -10,7 +10,7 @@ from tests._appserver import AppServerLab
 from tests._bdio import RESOLVED_CONFIG, entry_request, handle, make_root
 from tests._helpers import VALID_FIXTURE
 from tests._inspector import entry_mint
-from workflow_interpreter import load_graph
+from workflow_interpreter import GraphValidationError, load_graph
 from workflow_interpreter.bdio import (
     CarrierIntegrityError,
     ConfigSource,
@@ -23,7 +23,11 @@ from workflow_interpreter.bdio.rpc_records import (
 )
 from workflow_interpreter.bdio.sessions import choose_source
 from workflow_interpreter.contracts.execution import EXECUTION_POLICY_KEY
-from workflow_interpreter.contracts.sessions import SessionReuse
+from workflow_interpreter.contracts.sessions import (
+    MSG_SESSION_MODE_CONFLICT,
+    SessionMode,
+    SessionReuse,
+)
 from workflow_interpreter.inspector.models import SteerIntent
 from workflow_interpreter.inspector.paths import write_record
 from workflow_interpreter.inspector.rpc_state import state_for
@@ -34,31 +38,41 @@ def reuse_graph(tmp_path, reuse):
     """Only the test graph opts in; shipped graphs keep fresh sessions."""
     path = tmp_path / "reuse.toml"
     text = VALID_FIXTURE.read_text()
+    mode = "resume" if reuse == "same-node" else reuse
     text = re.sub(
-        r"writes\s*=\s*true", f'writes = true\nsession_reuse = "{reuse}"', text, count=1
+        r"writes\s*=\s*true", f'writes = true\nsession_mode = "{mode}"', text, count=1
     )
     path.write_text(text)
     return load_graph(path)
 
 
-@pytest.mark.parametrize("reuse", ["fresh", "same-node"])
-def test_reuse_setting_refuses_non_appserver_roots(tmp_path, fake_store, reuse):
-    """Even explicit fresh is an app-server setting, never ignored by exec."""
-    with pytest.raises(CarrierIntegrityError, match="app-server"):
-        make_root(fake_store, reuse_graph(tmp_path, reuse))
-
-
-def test_reuse_choice_is_part_of_graph_identity(tmp_path):
-    """Changing history policy changes the pinned content hash."""
-    fresh = reuse_graph(tmp_path, "fresh")
-    same = reuse_graph(tmp_path, "same-node")
-    assert fresh.content_hash != same.content_hash
-    assert (
-        next(
-            node for node in same.document.node if node.name == "implement"
-        ).session_reuse
-        is SessionReuse.SAME_NODE
+def test_legacy_appserver_session_reuse_decodes_without_rewriting_and_conflicts(
+    tmp_path,
+):
+    """Old pins retain their spelling; dual old/new authority is rejected by name."""
+    legacy_path = tmp_path / "legacy.toml"
+    legacy_path.write_text(
+        VALID_FIXTURE.read_text().replace(
+            "writes = true", 'writes = true\nsession_reuse = "same-node"', 1
+        )
     )
+    legacy = load_graph(legacy_path)
+    node = next(item for item in legacy.document.node if item.name == "implement")
+    assert node.session_reuse is SessionReuse.SAME_NODE
+    assert node.session_mode is SessionMode.RESUME
+    assert '"session_reuse":"same-node"' in legacy.canonical_body
+    assert '"session_mode"' not in legacy.canonical_body
+
+    conflict_path = tmp_path / "conflict.toml"
+    conflict_path.write_text(
+        VALID_FIXTURE.read_text().replace(
+            "writes = true",
+            'writes = true\nsession_reuse = "same-node"\nsession_mode = "resume"',
+            1,
+        )
+    )
+    with pytest.raises(GraphValidationError, match=MSG_SESSION_MODE_CONFLICT):
+        load_graph(conflict_path)
 
 
 def app_root(tmp_path, store, reuse):
@@ -69,7 +83,17 @@ def app_root(tmp_path, store, reuse):
         else item
         for item in RESOLVED_CONFIG
     )
-    return make_root(store, reuse_graph(tmp_path, reuse), *settings)
+    mode = "resume" if reuse == "same-node" else reuse
+    return make_root(
+        store,
+        reuse_graph(tmp_path, reuse),
+        *settings,
+        ResolvedSetting(
+            key="node.implement.session_mode",
+            value=mode,
+            source=ConfigSource.GRAPH_DEFAULT,
+        ),
+    )
 
 
 def finish_source(store, root, outcome=None):
@@ -86,6 +110,7 @@ def finish_source(store, root, outcome=None):
         launch_id="launch-1",
         handle=process,
         thread_id="thread-1",
+        crew_profile="codex-appserver",
         model=activation.metadata.model,
         effort="medium",
         policy_digest="c49fea7425fa7f8699897a97c159c6690267d9003bb78c53fafa8fc15c325d84",
@@ -100,36 +125,13 @@ def finish_source(store, root, outcome=None):
     return registration
 
 
-@pytest.mark.parametrize("reuse", ["fresh", "same-node"])
-def test_reentry_binds_history_only_when_the_graph_opts_in(tmp_path, fake_store, reuse):
-    """The caller's session string cannot select arbitrary history."""
-
-    root = app_root(tmp_path, fake_store, reuse)
-    source = finish_source(fake_store, root)
-    request = entry_request(
-        crew_profile="codex-appserver", session_id="caller-invented"
-    ).model_copy(
-        update={
-            "mint_reason": MintReason.EDGE,
-            "predecessor_activation_id": source.activation_id,
-        }
-    )
-    minted = fake_store.mint_activation(root.root_id, request).activation
-    if reuse == "same-node":
-        assert minted.metadata.session_reuse_source == source
-        assert minted.metadata.session_id == source.thread_id
-    else:
-        assert minted.metadata.session_reuse_source is None
-        assert minted.metadata.session_id == ""
-    assert fake_store.mint_activation(root.root_id, request).activation == minted
-
-
 @pytest.mark.parametrize(
     "field,value",
     [
         ("model", "other"),
         ("effort", "high"),
         ("policy_digest", "different"),
+        ("crew_profile", "other-crew"),
         ("root_id", "other-root"),
     ],
 )
@@ -161,6 +163,47 @@ def test_incompatible_registered_history_is_not_selected(
         }
     )
     assert choose_source(root, request, [source]).source is None
+
+
+def test_newest_eligible_fresh_session_supersedes_older_resumed_history(
+    tmp_path, fake_store
+):
+    """A fresh activation between resumes becomes the next resume source."""
+    root = app_root(tmp_path, fake_store, "same-node")
+    old_registration = finish_source(fake_store, root)
+    old = fake_store.reads.load_activation(old_registration.activation_id)
+    fresh_registration = old_registration.model_copy(
+        update={"activation_id": "fresh-source", "thread_id": "thread-fresh"}
+    )
+    assert old.metadata.session_completion is not None
+    fresh = old.model_copy(
+        update={
+            "id": "fresh-source",
+            "metadata": old.metadata.model_copy(
+                update={
+                    "seq": old.metadata.seq + 1,
+                    "session_registration": fresh_registration,
+                    "session_completion": old.metadata.session_completion.model_copy(
+                        update={"registration": fresh_registration}
+                    ),
+                    "session_source_activation_id": None,
+                    "source_session_id": None,
+                    "session_reuse_source": None,
+                }
+            ),
+        }
+    )
+    request = entry_request(crew_profile="codex-appserver").model_copy(
+        update={
+            "session_mode": SessionMode.RESUME,
+            "mint_reason": MintReason.EDGE,
+            "predecessor_activation_id": fresh.activation_id,
+        }
+    )
+
+    choice = choose_source(root, request, [old, fresh])
+
+    assert choice.source == fresh_registration
 
 
 def test_infra_retry_of_deliberate_steer_keeps_its_bound_session(tmp_path, fake_store):

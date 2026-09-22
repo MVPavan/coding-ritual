@@ -30,6 +30,7 @@ from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.errors import StoreConfigError
 from workflow_interpreter.bdio.roots import MAX_INSTANCE_INPUT_BYTES
 from workflow_interpreter.contractor.tracker_config import TrackerSettings
+from workflow_interpreter.contracts.sessions import SessionMode
 from workflow_interpreter.foreman.compose import (
     Composition,
     DetachedSpawner,
@@ -304,6 +305,53 @@ def test_role_bindings_fill_only_unresolved_settings_with_their_own_source(
     assert project_settings["node.implement.model"].source.value == "project-config"
     assert project_settings["node.implement.effort"].value == "project-effort"
     assert project_settings["node.implement.effort"].source.value == "project-config"
+
+
+@pytest.mark.parametrize(
+    ("node_mode", "role_mode", "expected", "source"),
+    [
+        ("fresh", SessionMode.RESUME, SessionMode.FRESH, "graph-default"),
+        (None, SessionMode.RESUME, SessionMode.RESUME, "role-binding"),
+        (None, None, SessionMode.FRESH, "graph-default"),
+    ],
+)
+def test_session_mode_resolution_is_node_then_role_then_fresh(
+    fake_store: WorkflowStore,
+    tmp_path: Path,
+    node_mode: str | None,
+    role_mode: SessionMode | None,
+    expected: SessionMode,
+    source: str,
+) -> None:
+    """The foreman pins one effective mode; live role config is never reread."""
+    graph = tmp_path / "session-mode.toml"
+    text = VALID_FIXTURE.read_text()
+    if node_mode is not None:
+        text = text.replace(
+            "writes = true", f'writes = true\nsession_mode = "{node_mode}"', 1
+        )
+    graph.write_text(text)
+    composition, _ = _instance_composition(
+        fake_store,
+        tmp_path / "composition",
+        roles={
+            "implementer": CrewBinding(
+                profile="implementer",
+                model="implementer",
+                effort="medium",
+                session_mode=role_mode,
+            ),
+            "critic": CrewBinding(profile="critic", model="critic", effort="medium"),
+        },
+    )
+
+    settings = {
+        item.key: item for item in _resolved_config(composition, load_graph(graph), {})
+    }
+
+    pinned = settings["node.implement.session_mode"]
+    assert pinned.value == expected
+    assert pinned.source.value == source
 
 
 def test_resolve_refuses_an_unknown_override() -> None:

@@ -60,6 +60,11 @@ RESOLVED_CONFIG: Final[tuple[ResolvedSetting, ...]] = (
         key="node.implement.effort", value="medium", source=ConfigSource.ROLE_BINDING
     ),
     ResolvedSetting(
+        key="node.implement.session_mode",
+        value="fresh",
+        source=ConfigSource.GRAPH_DEFAULT,
+    ),
+    ResolvedSetting(
         key="node.implement.isolation",
         value="worktree",
         source=ConfigSource.GRAPH_DEFAULT,
@@ -75,6 +80,11 @@ RESOLVED_CONFIG: Final[tuple[ResolvedSetting, ...]] = (
     ),
     ResolvedSetting(
         key="node.review.effort", value="medium", source=ConfigSource.ROLE_BINDING
+    ),
+    ResolvedSetting(
+        key="node.review.session_mode",
+        value="fresh",
+        source=ConfigSource.GRAPH_DEFAULT,
     ),
 )
 """A §3.1-shaped resolution: bounds, profile, model, effort and isolation with

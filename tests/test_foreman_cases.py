@@ -10,6 +10,7 @@ from tests._bdio import handle
 from tests._foreman import FAKE_PROFILE, ForemanLab, entry_request
 from tests._inspector import SESSION_ID, ChildScript
 from workflow_interpreter.bdio import ExitRecord, Lifecycle
+from workflow_interpreter.contracts.sessions import SessionMode
 from workflow_interpreter.foreman import cases as cases_module
 from workflow_interpreter.foreman.cases import advance_lifecycle, mint_entry, route_head
 from workflow_interpreter.foreman.compose import WrapperLaunch
@@ -81,6 +82,46 @@ def test_minted_dispatch_rebuilds_its_request_from_the_root_pin(tmp_path: Path) 
     request = lab.spawner.launches[-1].request
     assert request.crew_profile == FAKE_PROFILE
     assert request.model == "fake"
+
+
+def test_durable_launch_request_carries_the_resolved_session_contract(
+    tmp_path: Path,
+) -> None:
+    """All four S1 fields survive mint and the durable pre-spawn record."""
+    lab = ForemanLab(
+        tmp_path,
+        roles={
+            "implementer": CrewBinding(
+                profile="fake",
+                model="fake",
+                effort="medium",
+                session_mode=SessionMode.RESUME,
+            ),
+            "critic": CrewBinding(profile="fake", model="fake", effort="medium"),
+            "scribe": CrewBinding(profile="fake", model="fake", effort="medium"),
+        },
+    )
+    root = lab.instantiate()
+
+    mint_entry(lab.composition, lab.wiring(), root)
+
+    activation = lab.store.reads.list_activations(root.root_id)[0]
+    launch = read_record(
+        lab.wiring().paths.activation_dir(activation.activation_id) / DISPATCH_REQUEST,
+        WrapperLaunch,
+    )
+    assert launch is not None
+    values = launch.request.model_dump()
+    assert {
+        "session_mode",
+        "session_source_activation_id",
+        "source_session_id",
+        "expected_tree_oid",
+    } <= values.keys()
+    assert launch.request.session_mode is SessionMode.RESUME
+    assert launch.request.session_source_activation_id is None
+    assert launch.request.source_session_id is None
+    assert launch.request.expected_tree_oid is None
 
 
 def test_dispatched_lifecycle_recovers_without_a_second_bd_write(

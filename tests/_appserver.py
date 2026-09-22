@@ -73,7 +73,8 @@ class AppServerLab:
                 f'execution_profile = "{named.value}"' if named else "writes = true"
             )
             if reuse is not None:
-                authority += f'\nsession_reuse = "{reuse}"'
+                mode = "resume" if reuse == "same-node" else reuse
+                authority += f'\nsession_mode = "{mode}"'
             text = re.sub(r"writes\s*=\s*true", authority, text, count=1)
             if named is ExecutionProfileName.REVIEWER:
                 text = re.sub(
