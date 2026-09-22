@@ -63,6 +63,12 @@ remain loadable. There is no alias, binding migration, in-place-steer removal, o
   crew/profile/version/model/effort/policy digest. “Superseded” means `superseded_by` is set or its
   outcome is `SUPERSEDED`, which also excludes it from `is_completed`
   (`workflow_interpreter/bdio/wire.py:435-472`).
+- A resumed turn sends a delta: a short per-activation fact frame (this activation's id and
+  round, plus the coordination execution identity), current instructions, and the inputs no
+  earlier turn's durable envelope record says it sent; the delta applies the fresh brief's byte
+  budget and records its own omissions. The delta assumes the vendor thread still holds the
+  earlier turns, which after vendor compaction are summarised rather than verbatim — an accepted
+  risk, which is why the per-activation fact frame is re-sent on every resumed turn.
 - Fresh does not poison later reuse: if A resumes, F later runs fresh, and R later requests resume,
   newest-first selection makes R resume F's session, not A's. A resume with no eligible source
   launches fresh and records a reason; once a source is selected, launch may not silently switch.

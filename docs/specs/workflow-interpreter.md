@@ -780,11 +780,13 @@ an observed and registered vendor session, and matching root, node, crew,
 execution policy, CLI version, model and effort. The source is bound at mint
 (§5.2), never selected again from live configuration at launch. A resume node
 with no eligible source launches fresh and records why (`no_source`,
-`unregistered_source`, `version_drift`); a later resume can select a fresh turn's
+`unregistered_source`, `version_drift`, `unqualified_source` — a claude/codex
+source that registered no CLI version); a later resume can select a fresh turn's
 session, so fresh never poisons reuse. Claude resumes with `--resume <session>`
 and `codex exec` with `codex exec resume <session>`; both send only the brief
-delta — current instructions plus inputs the resume chain has not already
-carried. A resumed writer launches only after §5.4's tree proof. Deliberate
+delta — a per-activation fact frame (activation id, round, coordination
+identity), current instructions, and the inputs no earlier turn's envelope
+record says it sent, under the fresh brief's byte budget. A resumed writer launches only after §5.4's tree proof. Deliberate
 §8.1 continuation and its infra retries use the same launch contract with their
 exact steer ancestor as the source, sending the steer text instead of the delta.
 
@@ -945,6 +947,10 @@ A continuation shares the plain-resume mechanism (§6): its source — the exact
 steered ancestor — is bound at mint through the same selection, and a writing
 continuation takes the same §5.4 tree proof against the tree the steered
 writer's recovery pinned. Only the source and the prompt (the steer text) differ.
+Every resumed turn — the §6 delta or this steer text — assumes the vendor thread
+still holds the earlier turns, which after vendor compaction are summarised, not
+verbatim; that is an accepted risk, and the §6 per-activation fact frame is re-sent
+on every delta turn so the facts that change per activation are never lost to it.
 The default remains persist → terminate → continuation for every runner.
 The experimental app-server additionally accepts explicit `steer --in-place`:
 a host-owned bounded inbox carries text plus launch/thread/expected-turn identity.
