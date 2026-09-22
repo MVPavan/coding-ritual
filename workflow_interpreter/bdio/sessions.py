@@ -25,9 +25,22 @@ from workflow_interpreter.contracts.sessions import (
     execution_policy_digest,
     session_mode_key,
 )
+from workflow_interpreter.schema.models import Outcome
 
 _LOG = structlog.get_logger(__name__)
 MSG_VERSION_FRESH: Final[str] = "wf.session.fresh.version_mismatch"
+RESUMABLE_SESSION_OUTCOMES: Final[frozenset[Outcome]] = frozenset(
+    {
+        Outcome.DONE,
+        Outcome.NO_DIFF,
+        Outcome.ACCEPT,
+        Outcome.REJECT,
+        Outcome.FAIL_CODE,
+        Outcome.FAIL_PLAN,
+        Outcome.DOUBT,
+    }
+)
+"""Successful task turns whose vendor history may seed a later plain resume."""
 
 
 class SessionChoice(BaseModel):
@@ -61,6 +74,7 @@ def choose_source(
         registration = meta.session_registration
         if (
             not meta.is_completed
+            or not _source_outcome_eligible(source, continuation_ids)
             or meta.wf_root_id != root.root_id
             or meta.node != request.node
             or meta.model != settings.get(NodeSetting.MODEL.at(request.node))
@@ -122,6 +136,18 @@ def choose_source(
     if continuation:
         raise CarrierIntegrityError(MSG_SESSION_SOURCE)
     return SessionChoice()
+
+
+def _source_outcome_eligible(
+    source: ActivationRecord, continuation_ids: frozenset[str]
+) -> bool:
+    """Admit successful turns, plus the exact deliberate steer ancestor."""
+    if source.metadata.outcome in RESUMABLE_SESSION_OUTCOMES:
+        return True
+    return (
+        source.activation_id in continuation_ids
+        and source.metadata.outcome is Outcome.STEERED
+    )
 
 
 def resolved_session_mode(root: RootRecord, node_name: str) -> SessionMode:
