@@ -239,13 +239,13 @@ def register_session(
             raise CarrierIntegrityError(MSG_SESSION_IDENTITY)
         return record
     # Finding 7: §5.6 recovery may register an identity it re-scanned out of a
-    # dead child's log, which is a fact about an EXIT_RECORDED activation. The
-    # FROZEN app-server contract predates that allowance and keeps its old rule
-    # exactly — it registers at DISPATCHED or not at all.
+    # dead child's log, which is a fact about an EXIT_RECORDED activation; the
+    # settle re-reads the same log up to its close, so EVIDENCE_RECORDED too.
+    # The FROZEN app-server contract predates that allowance and keeps its old
+    # rule exactly — it registers at DISPATCHED or not at all.
     crew = metadata.crew_profile.removeprefix("profile:")
-    recovery_registration = (
-        crew != CrewName.CODEX_APPSERVER.value
-        and metadata.lifecycle is Lifecycle.EXIT_RECORDED
+    recovery_registration = crew != CrewName.CODEX_APPSERVER.value and (
+        metadata.lifecycle in (Lifecycle.EXIT_RECORDED, Lifecycle.EVIDENCE_RECORDED)
     )
     if (
         metadata.lifecycle is not Lifecycle.DISPATCHED and not recovery_registration

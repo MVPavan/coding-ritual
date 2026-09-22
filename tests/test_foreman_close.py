@@ -1,6 +1,7 @@
 """Focused C2a contracts for the crash-window settlement branch."""
 
 import json
+from collections.abc import Iterable, Iterator
 from pathlib import Path
 from types import SimpleNamespace
 from typing import cast
@@ -55,6 +56,7 @@ from workflow_interpreter.inspector import (
     ExitReason,
 )
 from workflow_interpreter.inspector.paths import write_record
+from workflow_interpreter.inspector.profile import CrewEvent, EventType, Profile
 from workflow_interpreter.schema.models import Node, Outcome
 
 
@@ -1212,6 +1214,79 @@ def test_settle_replays_missing_branch_before_recording_evidence(
         assert (
             store.evidence.note == f"instance branch advanced at settle to {'c' * 40}"
         ) is note
+
+
+class _LoggedSessionProfile:
+    """A codex profile whose log names one vendor thread."""
+
+    def name(self) -> str:
+        return "codex"
+
+    def cli_version(self) -> str:
+        return "codex-cli 0.155.1"
+
+    def parse_output(self, stream: Iterable[str]) -> Iterator[CrewEvent]:
+        return iter(
+            CrewEvent(type=EventType.MESSAGE, session=line.strip()) for line in stream
+        )
+
+
+class _RegistrationDown:
+    """The real store, except that bd refuses the session registration write."""
+
+    def __init__(self, store: WorkflowStore) -> None:
+        self._store = store
+
+    def __getattr__(self, name: str) -> object:
+        return getattr(self._store, name)
+
+    def register_session(self, *args: object) -> object:
+        raise StoreError("bd unavailable")
+
+
+@pytest.mark.parametrize("bd_down", [False, True])
+def test_settle_registers_a_logged_session_or_stalls_before_closing(
+    fake_store: WorkflowStore, tmp_path: Path, bd_down: bool
+) -> None:
+    """A session the watch never managed to register is re-read from the log.
+
+    The monitor's final-cycle registration can fail on a bd hiccup; closing then
+    seals a resumable turn with no registration, and the next resume silently
+    goes fresh. The close registers it first, or stalls (retryable) — never
+    closes it unregistered.
+    """
+    root = make_root(fake_store, load_definition())
+    minted = fake_store.mint_activation(root.root_id, entry_request()).activation
+    log = tmp_path / "crew.log"
+    log.write_text("thread-late\n", encoding="utf-8")
+    process = handle(session_id="").model_copy(update={"log_path": str(log)})
+    fake_store.record_dispatch(minted.activation_id, process, launch_id="launch-1")
+    fake_store._client._merge_metadata(minted.activation_id, {"crew_profile": "codex"})
+    fake_store.record_exit(
+        minted.activation_id,
+        ExitRecord(exit_code=0, ended_at="2026-08-28T00:00:00Z", reason="ok"),
+    )
+    evidence = Evidence(claimed_outcome=Outcome.DONE)
+    activation = fake_store.record_evidence(minted.activation_id, evidence)
+    paths = _completion_paths(tmp_path, root, activation)
+    store = _RegistrationDown(fake_store) if bd_down else fake_store
+
+    result = settle(
+        cast(InstanceWiring, WiringDouble(store=store, paths=paths)),
+        root,
+        root.index.nodes["implement"],
+        activation,
+        cast(Profile, _LoggedSessionProfile()),
+    )
+
+    durable = fake_store.reads.load_activation(activation.activation_id)
+    if bd_down:
+        assert result.stalled is not None
+        assert durable.metadata.lifecycle is Lifecycle.EVIDENCE_RECORDED
+    else:
+        assert durable.metadata.lifecycle is Lifecycle.CLOSED
+        assert durable.metadata.session_registration is not None
+        assert durable.metadata.session_registration.thread_id == "thread-late"
 
 
 def test_settle_stalls_when_bd_cannot_publish_the_session_tree(

@@ -38,12 +38,14 @@ from workflow_interpreter.inspector import (
 )
 from workflow_interpreter.inspector.channels import pinned_verifier_digests
 from workflow_interpreter.inspector.paths import read_record
-from workflow_interpreter.inspector.profile import Profile
+from workflow_interpreter.inspector.profile import Profile, observe_session
 from workflow_interpreter.schema.models import Node, Outcome
 
 _BRANCH_ADVANCED = "instance branch advanced at settle to {commit}"
 MSG_SESSION_TREE_UNPUBLISHED: Final = "session tree publication: {error}"
 """A retryable settle stall: the §3 tree OID is not in bd yet."""
+MSG_SESSION_UNREGISTERED: Final = "session registration from the log: {error}"
+"""A retryable settle stall: an observed vendor session is not in bd yet."""
 _MAX_PREDECESSOR_HOPS: Final = 1024
 
 
@@ -104,6 +106,13 @@ def _settle(
             return Settlement(
                 activation=activation,
                 stalled=MSG_SESSION_TREE_UNPUBLISHED.format(error=exc),
+            )
+        try:
+            activation = _register_logged_session(wiring, root, activation, profile)
+        except StoreError as exc:
+            return Settlement(
+                activation=activation,
+                stalled=MSG_SESSION_UNREGISTERED.format(error=exc),
             )
     if activation.metadata.lifecycle is Lifecycle.EVIDENCE_RECORDED:
         evidence = activation.metadata.evidence
@@ -449,6 +458,29 @@ def _publish_session_tree(
     if tree_oid is None or activation.metadata.session_tree_oid == tree_oid:
         return activation
     return wiring.store.record_session_tree(activation.activation_id, tree_oid)
+
+
+def _register_logged_session(
+    wiring: InstanceWiring,
+    root: RootRecord,
+    activation: ActivationRecord,
+    profile: Profile,
+) -> ActivationRecord:
+    """Register a vendor session the watch saw in the log but never recorded.
+
+    The monitor mirrors the identity each cycle, and a bd failure on its FINAL
+    cycle is never retried there: closing the turn unregistered would make the
+    next resume silently go fresh (`unregistered_source`) and reset the tree a
+    writer's session was left on. Only an OBSERVED identity is registered —
+    §5.6 recovery's rescan rule — and a store failure propagates so the settle
+    stalls and retries rather than sealing the record without it.
+    """
+    if activation.metadata.session_registration is not None:
+        return activation
+    registration = observe_session(root, activation, profile).registration
+    if registration is None:
+        return activation
+    return wiring.store.register_session(activation.activation_id, registration)
 
 
 def _previous_tree_oid(
