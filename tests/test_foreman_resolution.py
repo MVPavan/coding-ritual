@@ -358,6 +358,32 @@ def test_session_mode_resolution_is_node_then_role_then_fresh(
     assert pinned.source.value == source
 
 
+def test_a_node_resume_on_a_crew_that_cannot_resume_is_refused_at_resolve(
+    fake_store: WorkflowStore, tmp_path: Path
+) -> None:
+    """The role check at config load cannot see a NODE-authored resume pin."""
+    graph = tmp_path / "session-mode.toml"
+    graph.write_text(
+        re.sub(
+            r"writes\s*=\s*true",
+            'writes = true\nsession_mode = "resume"',
+            VALID_FIXTURE.read_text(),
+            count=1,
+        )
+    )
+    composition, _ = _instance_composition(
+        fake_store,
+        tmp_path / "composition",
+        roles={
+            "implementer": CrewBinding(profile="opencode", model="glm", effort="high"),
+            "critic": CrewBinding(profile="critic", model="critic", effort="medium"),
+        },
+    )
+
+    with pytest.raises(ResolutionError, match="session_mode='resume'"):
+        _resolved_config(composition, load_graph(graph), {})
+
+
 def test_resolve_refuses_an_unknown_override() -> None:
     """An instance cannot pin a configuration key its graph never declared."""
     with pytest.raises(ResolutionError, match="unknown override"):

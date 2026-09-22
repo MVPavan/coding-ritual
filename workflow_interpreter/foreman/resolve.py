@@ -28,6 +28,10 @@ from workflow_interpreter.contracts.sessions import (
     session_mode_key,
 )
 from workflow_interpreter.foreman.compose import Composition
+from workflow_interpreter.foreman.config import (
+    MSG_SESSION_MODE_NOT_RESUMABLE,
+    UNRESUMABLE_CREWS,
+)
 from workflow_interpreter.foreman.errors import ResolutionError, UnusableResolutionError
 from workflow_interpreter.foreman.execution import (
     EFFECTIVE_FIELD_SETTINGS,
@@ -425,6 +429,26 @@ def instantiate(
     return root
 
 
+def _refuse_unresumable_resume(
+    definition: GraphDefinition, settings: Mapping[str, ResolvedSetting]
+) -> None:
+    """Refuse a resume pin on a crew that never registers a session to rejoin.
+
+    The config-load check sees only a ROLE's own `session_mode`; a node can
+    author `resume` itself, and its crew is known only once resolved here.
+    """
+    for node in definition.document.node:
+        mode = settings.get(session_mode_key(node.name))
+        if mode is None or mode.value != SessionMode.RESUME.value:
+            continue
+        crew = settings.get(f"node.{node.name}.crew")
+        profile = str(node.crew if crew is None else crew.value)
+        if profile.removeprefix(CREW_PREFIX) in UNRESUMABLE_CREWS:
+            raise ResolutionError(
+                MSG_SESSION_MODE_NOT_RESUMABLE.format(role=node.name, profile=profile)
+            )
+
+
 def _resolved_config(
     composition: Composition,
     definition: GraphDefinition,
@@ -501,6 +525,7 @@ def _resolved_config(
                     crew=settings[crew_key].value,
                     context_cap_tokens=binding.context_cap_tokens,
                 )
+    _refuse_unresumable_resume(definition, settings)
     settings.update(
         {
             item.key: item
