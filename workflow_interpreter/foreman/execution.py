@@ -80,6 +80,7 @@ EFFECTIVE_FIELD_SETTINGS: Final[Mapping[str, NodeSetting | BoundSetting]] = (
 
 def effective_node(pinned: Node, settings: Mapping[str, str | int | bool]) -> Node:
     """Overlay one node's resolvable scalar settings onto its pinned body."""
+    values = pinned.model_dump()
     updates = {
         field: settings[setting.at(pinned.name)]
         for field, setting in _EFFECTIVE_FIELDS
@@ -88,11 +89,14 @@ def effective_node(pinned: Node, settings: Mapping[str, str | int | bool]) -> No
     mode_key = session_mode_key(pinned.name)
     if mode_key in settings:
         updates["session_mode"] = settings[mode_key]
+        # A legacy pin keeps its original bytes, but the effective execution
+        # model has one canonical authority: the resolved session_mode pin.
+        values.pop("session_reuse", None)
     if pinned.execution_profile is not None:
         if "writes" in updates and updates["writes"] != pinned.writes:
             raise UnusableResolutionError(MSG_POLICY_MISMATCH)
         updates.pop("writes", None)
-    return Node.model_validate(pinned.model_dump() | updates)
+    return Node.model_validate(values | updates)
 
 
 class ResolvedNode(BaseModel):
