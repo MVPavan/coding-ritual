@@ -43,6 +43,8 @@ from workflow_interpreter.bdio import (
     ResolvedSetting,
 )
 from workflow_interpreter.bdio.wire import config_signature
+from workflow_interpreter.bdio.sessions import choose_source
+from workflow_interpreter.contracts.sessions import SessionMode
 from workflow_interpreter.inspector import (
     EVIDENCE_EXIT_UNOBSERVED,
     EXIT_CODE_UNOBSERVED,
@@ -323,10 +325,19 @@ def test_recovery_registers_only_an_identity_found_in_the_durable_log(
     """Recovery rescans the log and never invents a pre-event thread id."""
     lab = Lab(tmp_path)
     resolved = (
-        *lab.root.metadata.resolved_config,
+        *(
+            setting
+            for setting in lab.root.metadata.resolved_config
+            if setting.key != "node.implement.session_mode"
+        ),
         ResolvedSetting(
             key="node.implement.crew_version",
             value="codex-cli 0.155.1",
+            source=ConfigSource.GRAPH_DEFAULT,
+        ),
+        ResolvedSetting(
+            key="node.implement.session_mode",
+            value=SessionMode.RESUME,
             source=ConfigSource.GRAPH_DEFAULT,
         ),
     )
@@ -342,7 +353,7 @@ def test_recovery_registers_only_an_identity_found_in_the_durable_log(
         {
             "crew_profile": "codex",
             "launch_id": "recovered-launch",
-            "session_id": "",
+            "session_id": "" if identity_emitted else "preassigned-but-unobserved",
         },
     )
     log = lab.paths.log(lab.activation.activation_id)
@@ -379,6 +390,13 @@ def test_recovery_registers_only_an_identity_found_in_the_durable_log(
         assert registration.crew_version == "codex-cli 0.155.1"
     else:
         assert registration is None
+        assert result.closed.metadata.session_id == ""
+        choice = choose_source(
+            lab.store.reads.load_root(lab.root.root_id),
+            entry_mint(session_id="", session_mode=SessionMode.RESUME),
+            [result.closed],
+        )
+        assert choice.source_session_id is None
 
 
 def test_resolve_leaves_a_running_activation_alone(lab: Lab) -> None:
