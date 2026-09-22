@@ -601,6 +601,8 @@ def task_builder(
     *,
     effort: str | None = "medium",
     execution_policy: ExecutionPolicy | None = None,
+    brief: str = BRIEF,
+    resume_brief: str | None = None,
 ) -> TaskBuilder:
     """A `TaskBuilder` that supplies a brief, which a real profile requires."""
 
@@ -618,7 +620,8 @@ def task_builder(
             allowed_paths=node.allowed_paths or (),
             cwd=str(cwd),
             channels=channels,
-            brief=BRIEF,
+            brief=brief,
+            resume_brief=resume_brief,
         )
 
     return build
@@ -761,6 +764,8 @@ class Lab:
         grandchild: bool = False,
         extra_env: dict[str, str] | None = None,
         effort: str | None = "medium",
+        brief: str = BRIEF,
+        resume_brief: str | None = None,
     ) -> DispatchResult:
         """Run §5.2 phase B alone, with no watch loop over the child.
 
@@ -800,6 +805,8 @@ class Lab:
                 self.paths.worktree,
                 node,
                 effort=effort,
+                brief=brief,
+                resume_brief=resume_brief,
             ),
             instructions=instructions,
         )

@@ -102,7 +102,7 @@ def assert_resumes(argv: tuple[str, ...], session: str) -> None:
 
 @pytest.mark.proc
 @pytest.mark.parametrize("crew", [CrewName.CLAUDE, CrewName.CODEX])
-def test_plain_resume_uses_the_source_session_and_current_brief(
+def test_plain_resume_uses_only_the_durable_brief_delta(
     tmp_path: Path, crew: CrewName
 ) -> None:
     """A plain resume needs neither steer lineage nor steer instructions."""
@@ -123,7 +123,16 @@ def test_plain_resume_uses_the_source_session_and_current_brief(
         },
     )
 
-    launched = resumed.dispatch(crew, request=request, session_id="", sleep_s=0.0)
+    fresh_envelope = "PROTOCOL AND CONTEXT PREAMBLE\nnew instruction"
+    delta = "new instruction"
+    launched = resumed.dispatch(
+        crew,
+        request=request,
+        session_id="",
+        sleep_s=0.0,
+        brief=fresh_envelope,
+        resume_brief=delta,
+    )
 
     assert launched.receipt is not None
     argv = launched.receipt.argv
@@ -133,7 +142,8 @@ def test_plain_resume_uses_the_source_session_and_current_brief(
     else:
         exec_at = argv.index("exec")
         assert argv[exec_at : exec_at + 3] == ("exec", "resume", source_session)
-    assert BRIEF in argv
+    assert delta in argv
+    assert fresh_envelope not in argv
     if launched.handle is not None:
         resumed.await_exit(launched.handle)
 
