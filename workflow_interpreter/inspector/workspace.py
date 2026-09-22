@@ -342,6 +342,16 @@ class Workspace:
             intended_base_commit=intended,
             pre_attempt_commit=head,
             reset_verified_commit=head,
+            # §12: in-repo, this activation's exit records attribution too, and
+            # an unknown pre-attempt state REPLACES the record with an empty
+            # one. A reviewer that observed the tree would therefore erase the
+            # writer before it, handing that writer's files to the next fresh
+            # reset as the human's work. The snapshot only reads (it creates
+            # objects, never touches the tree), so stating what was found here
+            # costs the non-writer none of its "move nothing" guarantee.
+            pre_attempt_dirty_state=(
+                encode_dirty_state(self._snapshot(cwd)) if in_repo else None
+            ),
         )
 
     def verify_shared_tree(self, activation: ActivationRecord, node: Node) -> None:

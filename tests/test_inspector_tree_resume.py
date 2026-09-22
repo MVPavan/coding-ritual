@@ -36,7 +36,12 @@ from workflow_interpreter.inspector.errors import (
     ResumeMismatchReason,
     ResumeTreeMismatch,
 )
-from workflow_interpreter.inspector.models import ObservedTree, WorkspaceRecord
+from workflow_interpreter.inspector.models import (
+    CrewAttribution,
+    ObservedTree,
+    PreconditionResult,
+    WorkspaceRecord,
+)
 from workflow_interpreter.inspector.paths import read_record
 from workflow_interpreter.inspector.run import choose_precondition
 from workflow_interpreter.inspector.workspace import (
@@ -52,9 +57,11 @@ SOURCE_SESSION = "thread-1"
 
 
 class Lab:
-    """One instance whose activations share a worktree, as §3 has them do."""
+    """One instance whose activations share a checkout, as §3 has them do."""
 
-    def __init__(self, tmp_path: Path) -> None:
+    def __init__(
+        self, tmp_path: Path, isolation: IsolationMode = IsolationMode.WORKTREE
+    ) -> None:
         self.repo = make_repo(tmp_path)
         self.base = head_of(self.repo)
         self.config = make_config(self.repo, tmp_path)
@@ -64,14 +71,14 @@ class Lab:
         self.git = make_git(self.config)
         self.workspace = make_workspace(self.paths, self.git, FrozenClock())
         self.node = node_of(self.root.definition.document, IMPLEMENT).model_copy(
-            update={"isolation": IsolationMode.WORKTREE}
+            update={"isolation": isolation}
         )
         self.reviewer = self.node.model_copy(update={"writes": False})
 
     @property
     def tree(self) -> Path:
         """The checkout every activation of this instance shares."""
-        return self.paths.worktree
+        return self.workspace.path_for(self.node)
 
     def mint(self) -> ActivationRecord:
         """The instance's first activation, as bd minted it."""
@@ -111,15 +118,35 @@ class Lab:
         (self.tree / SENTINEL).write_text(SENTINEL_TEXT, encoding="utf-8")
         return activation
 
-    def run(self, activation: ActivationRecord, node: Node) -> object:
+    def run(self, activation: ActivationRecord, node: Node) -> PreconditionResult:
         """The precondition the §5.4 call site would choose for this activation."""
         return choose_precondition(self.workspace, node, None, None)(activation)
+
+    def carried(
+        self, activation: ActivationRecord, result: PreconditionResult
+    ) -> ActivationRecord:
+        """The activation as `Dispatcher._prepare` leaves it: the §3.2 trio durable."""
+        return activation.model_copy(
+            update={
+                "metadata": activation.metadata.model_copy(
+                    update=result.carry_forward().model_dump(mode="json")
+                )
+            }
+        )
 
 
 @pytest.fixture
 def lab(tmp_path: Path) -> Lab:
     """An instance with one shared worktree and nothing dispatched yet."""
     return Lab(tmp_path)
+
+
+@pytest.fixture
+def in_repo_lab(tmp_path: Path) -> Lab:
+    """An in-repo instance, where §12 attribution is what protects the human."""
+    lab = Lab(tmp_path, isolation=IsolationMode.IN_REPO)
+    lab.workspace.band.acquire()
+    return lab
 
 
 def test_resumed_writer_owns_and_records_trio(lab: Lab) -> None:
@@ -216,6 +243,37 @@ def test_intervening_writer_refuses(lab: Lab) -> None:
     assert refusal.value.reason is ResumeMismatchReason.INTERVENING_WRITER
     assert refusal.value.expected == expected
     assert refusal.value.observed == observed
+
+
+def test_in_repo_reviewer_keeps_the_writer_attribution(in_repo_lab: Lab) -> None:
+    """§12: a non-writer's exit must not erase what the writer before it left.
+
+    In-repo, `ExitObserver` records attribution for EVERY activation, and an
+    unknown pre-attempt state replaces the record with an empty one — so a
+    reviewer that observed the tree would hand impl#1's own files to the next
+    fresh writer's reset as the human's work. The observation therefore states
+    the dirty state it found, exactly as the two writing branches do.
+    """
+    lab = in_repo_lab
+    minted = lab.mint()
+    impl1 = lab.carried(minted, lab.run(minted, lab.node))
+    (lab.tree / SENTINEL).write_text(SENTINEL_TEXT, encoding="utf-8")
+    written = lab.workspace.record_attribution(
+        impl1, lab.node, declared=frozenset({SENTINEL})
+    )
+    assert written is not None
+    assert [entry.path for entry in written.entries] == [SENTINEL]
+
+    review = lab.successor(impl1, "wf-review-1")
+    observed = lab.run(review, lab.reviewer)
+    lab.workspace.record_attribution(
+        lab.carried(review, observed), lab.reviewer, declared=frozenset()
+    )
+
+    assert observed.pre_attempt_dirty_state is not None
+    record = read_record(lab.paths.attribution_record, CrewAttribution)
+    assert record is not None
+    assert [entry.path for entry in record.entries] == [SENTINEL]
 
 
 def test_fresh_writer_resets(lab: Lab) -> None:
