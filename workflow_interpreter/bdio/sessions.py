@@ -35,6 +35,8 @@ class SessionChoice(BaseModel):
 
     model_config = ConfigDict(frozen=True, extra="forbid")
     source: SessionRegistration | None = None
+    source_activation_id: str | None = None
+    source_session_id: str | None = None
     fresh_reason: SessionFreshReason | None = None
 
 
@@ -58,11 +60,18 @@ def choose_source(
         meta = source.metadata
         registration = meta.session_registration
         if (
-            registration is None
-            or not meta.is_completed
+            not meta.is_completed
             or meta.wf_root_id != root.root_id
             or meta.node != request.node
-            or registration.root_id != root.root_id
+            or meta.model != settings.get(NodeSetting.MODEL.at(request.node))
+            or meta.crew_profile.removeprefix("profile:") != crew_profile
+        ):
+            continue
+        if registration is None:
+            if crew_profile == CrewName.CODEX_APPSERVER.value or not meta.session_id:
+                continue
+        elif (
+            registration.root_id != root.root_id
             or registration.activation_id != source.activation_id
             or registration.model != settings.get(NodeSetting.MODEL.at(request.node))
             or registration.effort != settings.get(NodeSetting.EFFORT.at(request.node))
@@ -81,14 +90,18 @@ def choose_source(
             (source.activation_id in continuation_ids)
             if continuation
             else (
-                meta.session_completion is not None
-                and meta.session_completion.registration == registration
+                registration is None
+                or (
+                    meta.session_completion is not None
+                    and meta.session_completion.registration == registration
+                )
             )
         )
         if not eligible:
             continue
         if (
             crew_profile == CrewName.CODEX_APPSERVER.value
+            and registration is not None
             and registration.crew_version != CODEX_VERSION
         ):
             _LOG.warning(
@@ -98,7 +111,14 @@ def choose_source(
                 required=CODEX_VERSION,
             )
             return SessionChoice(fresh_reason=SessionFreshReason.VERSION_MISMATCH)
-        return SessionChoice(source=registration)
+        source_session_id = (
+            meta.session_id if registration is None else registration.thread_id
+        )
+        return SessionChoice(
+            source=registration,
+            source_activation_id=source.activation_id,
+            source_session_id=source_session_id,
+        )
     if continuation:
         raise CarrierIntegrityError(MSG_SESSION_SOURCE)
     return SessionChoice()

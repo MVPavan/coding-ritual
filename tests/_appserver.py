@@ -85,6 +85,13 @@ class AppServerLab:
                 )
             graph.write_text(text)
             definition = load_graph(graph)
+            if reuse is not None:
+                settings = tuple(
+                    item.model_copy(update={"value": mode})
+                    if item.key == "node.implement.session_mode"
+                    else item
+                    for item in settings
+                )
         self.root = self.store.create_root(
             instance_key="appserver-test",
             instance_base_commit=head_of(self.repo),

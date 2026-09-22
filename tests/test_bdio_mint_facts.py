@@ -46,6 +46,7 @@ from workflow_interpreter.bdio.wire import (
     ResolvedSetting,
     metadata_dict,
 )
+from workflow_interpreter.contracts.sessions import session_mode_key
 from workflow_interpreter.schema.models import Outcome
 
 PRE_ATTEMPT: Final[str] = "a" * 40
@@ -57,6 +58,11 @@ _CROSS_REGION_EXECUTION_CONFIG: Final[tuple[ResolvedSetting, ...]] = tuple(
         (NodeSetting.MODEL, "fake-model"),
         (NodeSetting.EFFORT, "medium"),
     )
+) + tuple(
+    ResolvedSetting(
+        key=session_mode_key(node), value="fresh", source=ConfigSource.GRAPH_DEFAULT
+    )
+    for node in (NODE_A1, NODE_B1, NODE_B2)
 )
 
 

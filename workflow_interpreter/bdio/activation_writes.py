@@ -314,9 +314,9 @@ def _prepare_mint(
     source = choice.source
     session_id = request.session_id
     if crew_profile.removeprefix("profile:") == CrewName.CODEX_APPSERVER.value:
-        session_id = source.thread_id if source else ""
+        session_id = choice.source_session_id or ""
     session_mode = resolved_session_mode(root, facts.node)
-    if source is not None:
+    if choice.source_session_id is not None:
         session_mode = SessionMode.RESUME
     metadata = ActivationMetadata(
         wf_root_id=root_id,
@@ -334,8 +334,8 @@ def _prepare_mint(
         model=model,
         session_id=session_id,
         session_mode=session_mode,
-        session_source_activation_id=(None if source is None else source.activation_id),
-        source_session_id=None if source is None else source.thread_id,
+        session_source_activation_id=choice.source_activation_id,
+        source_session_id=choice.source_session_id,
         expected_tree_oid=request.expected_tree_oid,
         session_reuse_source=source,
         session_fresh_reason=choice.fresh_reason,
