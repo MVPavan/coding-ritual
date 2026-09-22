@@ -332,7 +332,7 @@ def test_recovery_registers_only_an_identity_found_in_the_durable_log(
         ),
         ResolvedSetting(
             key="node.implement.crew_version",
-            value="codex-cli 0.155.1",
+            value="codex-cli 0.154.0",
             source=ConfigSource.GRAPH_DEFAULT,
         ),
         ResolvedSetting(
