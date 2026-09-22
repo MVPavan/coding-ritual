@@ -86,7 +86,14 @@ class ProfileRegistry:
         return profile
 
     def version_for(self, name: str) -> str | None:
-        """Qualify a resumable CLI once for this process and cache its version."""
+        """Qualify a resumable CLI once for this process and cache its version.
+
+        The cache lives as long as the process, so a CLI upgraded mid-run is
+        seen only by the next one. That window is deliberate: one probe per
+        process is what makes every decision inside a run compare against the
+        same version, instead of resuming history under a version that changed
+        between two ticks of the same wrapper.
+        """
         try:
             crew = CrewName(name.removeprefix(CREW_PREFIX))
         except ValueError:
