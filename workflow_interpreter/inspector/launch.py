@@ -188,6 +188,10 @@ MSG_CLI_VERSION_MISMATCH: Final[str] = (
     "CLI version mismatch for resume activation {activation_id}: source "
     "registered {source!r}, current process probed {current!r}"
 )
+MSG_EMPTY_RESUME: Final[str] = (
+    "resume activation {activation_id} has no brief delta to send; a resumed "
+    "turn with an empty prompt asks the vendor to act on nothing"
+)
 
 
 class DispatchResult(BaseModel):
@@ -534,6 +538,29 @@ class Dispatcher:
                 )
             )
 
+    def _resume_text(
+        self,
+        task: TaskSpec,
+        profile: Profile,
+        instructions: str | None,
+        activation_id: str,
+    ) -> str:
+        """The exact prompt a resumed turn sends, refusing an empty one.
+
+        The app-server resends the whole brief (its thread state is vendor-side
+        private state, not a transcript); every other crew sends the §5.2 delta.
+        A missing delta used to become `""`, which asks the vendor to act on
+        nothing — refuse here, where the text is chosen, rather than infer it
+        from lineage two functions away.
+        """
+        if instructions is not None:
+            return instructions
+        if profile.name() == CrewName.CODEX_APPSERVER:
+            return task.brief
+        if not task.resume_brief:
+            raise TaskRefused(MSG_EMPTY_RESUME.format(activation_id=activation_id))
+        return task.resume_brief
+
     def _prepare(
         self, activation: ActivationRecord, precondition: Precondition | None
     ) -> tuple[ActivationRecord, PreconditionResult | None]:
@@ -676,13 +703,7 @@ class Dispatcher:
         command = (
             profile.build_resume_command(
                 session_id,
-                (
-                    task.brief
-                    if profile.name() == CrewName.CODEX_APPSERVER
-                    else task.resume_brief or ""
-                )
-                if instructions is None
-                else instructions,
+                self._resume_text(task, profile, instructions, activation_id),
                 task,
             )
             if resume

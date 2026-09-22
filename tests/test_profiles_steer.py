@@ -57,6 +57,7 @@ from workflow_interpreter.inspector.sandbox import SandboxMode
 from workflow_interpreter.inspector.steer import instructions_digest
 from workflow_interpreter.profiles import CrewName, ProfileConfig
 from workflow_interpreter.profiles.claude import ClaudeProfile
+from workflow_interpreter.profiles.errors import TaskRefused
 from workflow_interpreter.schema.models import Outcome
 
 STEER_REASON: Final[str] = "the crew is looping on the same failing test"
@@ -230,6 +231,32 @@ def test_plain_resume_refuses_an_unregistered_or_mismatched_selected_source(
 
     with pytest.raises(ContinuationRefused, match="resume source contract"):
         lab.dispatch(CrewName.CLAUDE, request=request, sleep_s=0.0)
+
+
+@pytest.mark.proc
+def test_plain_resume_refuses_an_empty_delta(tmp_path: Path) -> None:
+    """A resumed turn with nothing to say is refused, never sent as empty text."""
+    lab = Lab(tmp_path)
+    request = entry_mint(session_id="")
+    activation = lab.store.mint_activation(lab.root.root_id, request).activation
+    source_session = str(uuid.UUID("0199f0b4-4018-7f67-a3f1-9ec893c475ae"))
+    lab.store._client._merge_metadata(
+        activation.activation_id,
+        {
+            "session_mode": SessionMode.RESUME,
+            "session_source_activation_id": activation.activation_id,
+            "source_session_id": source_session,
+            "session_registration": _selected_registration(
+                lab,
+                activation.activation_id,
+                source_session,
+                crew_version="2.1.0 (Claude Code)",
+            ).model_dump(mode="json"),
+        },
+    )
+
+    with pytest.raises(TaskRefused, match="no brief delta to send"):
+        lab.dispatch(CrewName.CLAUDE, request=request, sleep_s=0.0, resume_brief=None)
 
 
 @pytest.mark.proc
