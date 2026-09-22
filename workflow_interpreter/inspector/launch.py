@@ -492,10 +492,8 @@ class Dispatcher:
                 )
             crew = profile.name().removeprefix("profile:")
             if crew in (CrewName.CLAUDE.value, CrewName.CODEX.value):
-                version_reader = getattr(profile, "cli_version", None)
-                error_reader = getattr(profile, "cli_version_error", None)
-                version = version_reader() if callable(version_reader) else None
-                error = error_reader() if callable(error_reader) else None
+                version = profile.cli_version()
+                error = profile.cli_version_error()
                 if version is None:
                     raise ContinuationRefused(
                         MSG_CLI_VERSION_UNAVAILABLE.format(

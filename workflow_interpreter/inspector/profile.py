@@ -294,6 +294,25 @@ class Profile(NetworkProfile, Protocol):
         """Normalize the crew's machine event stream (§6)."""
         ...  # pragma: no cover - protocol
 
+    def qualify_cli(self, version: str | None, error: str | None = None) -> None:
+        """Attach the registry's once-per-process CLI qualification.
+
+        The three qualification members are part of the floor rather than an
+        optional extra discovered with `getattr`: a profile that lacks them
+        reads as "no version probed", which is indistinguishable from "no
+        drift" and silently disables the §5.2 resume guard. Declared here, the
+        omission is a type error instead.
+        """
+        ...  # pragma: no cover - protocol
+
+    def cli_version(self) -> str | None:
+        """The version this process probed for the crew, if it could."""
+        ...  # pragma: no cover - protocol
+
+    def cli_version_error(self) -> str | None:
+        """Why qualification could not establish a version."""
+        ...  # pragma: no cover - protocol
+
 
 class SessionObservationState(StrEnum):
     """What one scan of a child's durable log was able to establish."""
@@ -361,8 +380,7 @@ def observe_session(
     settings = resolved_settings(root.metadata)
     effort = settings.get(NodeSetting.EFFORT.at(metadata.node))
     policy = settings.get(EXECUTION_POLICY_KEY.format(node=metadata.node), "legacy")
-    version_reader = getattr(profile, "cli_version", None)
-    crew_version = version_reader() if callable(version_reader) else None
+    crew_version = profile.cli_version()
     if not isinstance(effort, str) or not isinstance(policy, str):
         return _UNREADABLE
     return SessionObservation(
@@ -374,7 +392,7 @@ def observe_session(
             handle=handle,
             thread_id=session_id,
             crew_profile=crew,
-            crew_version=crew_version if isinstance(crew_version, str) else None,
+            crew_version=crew_version,
             model=metadata.model,
             effort=effort,
             policy_digest=execution_policy_digest(policy),

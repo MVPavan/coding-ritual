@@ -71,14 +71,10 @@ def probed_crew_version(composition: Composition, crew_profile: str) -> str | No
     Carried on the mint request so `choose_source` can compare a source's
     registered version against the running CLI (finding 4): after an upgrade the
     root's pin is stale, so reusing it would keep resuming incompatible history.
-    A resolver with no qualification hook (a test double, or a vendor with no
-    resumable CLI) simply supplies nothing and the comparison is skipped.
+    A vendor with no resumable CLI has no version to probe and the comparison is
+    skipped; a resolver that cannot answer at all is a type error, not silence.
     """
-    version_for = getattr(composition.profiles, "version_for", None)
-    if not callable(version_for):
-        return None
-    probed = version_for(crew_profile)
-    return probed if isinstance(probed, str) else None
+    return composition.profiles.version_for(crew_profile)
 
 
 class CaseResult(BaseModel):

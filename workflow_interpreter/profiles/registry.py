@@ -80,9 +80,9 @@ class ProfileRegistry:
                 _MSG_UNKNOWN.format(name=name, known=", ".join(sorted(self._builders)))
             )
         profile = builder(self._config, self._clock, self._host_env)
-        qualify = getattr(profile, "qualify_cli", None)
-        if callable(qualify):
-            qualify(self.version_for(bare_name), self.version_error_for(bare_name))
+        profile.qualify_cli(
+            self.version_for(bare_name), self.version_error_for(bare_name)
+        )
         return profile
 
     def version_for(self, name: str) -> str | None:

@@ -752,6 +752,17 @@ class FakeProfile:
         """Normalize the stream; the fake crew emits plain text."""
         return iter(CrewEvent(type=EventType.MESSAGE, text=line) for line in stream)
 
+    def qualify_cli(self, version: str | None, error: str | None = None) -> None:
+        """Accept the registry's qualification; the fake crew has no binary."""
+
+    def cli_version(self) -> str | None:
+        """No vendor CLI, so no probed version."""
+        return None
+
+    def cli_version_error(self) -> str | None:
+        """No vendor CLI, so nothing failed to probe."""
+        return None
+
 
 def task_builder(
     cwd: Path,

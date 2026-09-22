@@ -86,6 +86,15 @@ class ProfileResolver(Protocol):
 
     def profile_for(self, name: str) -> Profile: ...
 
+    def version_for(self, name: str) -> str | None:
+        """The CLI version THIS process probed for the crew, if any.
+
+        Part of the boundary rather than an optional hook found with
+        `getattr`: a resolver that silently supplies nothing reads as "no
+        drift" at every resume decision (§5.2).
+        """
+        ...  # pragma: no cover - protocol
+
 
 class DetachedSpawner:
     """Start one wrapper without a shell or a borrowed terminal."""
