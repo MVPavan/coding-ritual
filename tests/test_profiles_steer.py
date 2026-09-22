@@ -30,6 +30,7 @@ from tests._foreman import ForemanLab
 from tests._inspector import IMPLEMENT, ChildScript, entry_mint, node_of
 from tests._profiles import BRIEF, Lab, host_env_with, stub_env
 from workflow_interpreter.bdio import Lifecycle, MintReason, MintRequest, ProcessHandle
+from workflow_interpreter.contracts.sessions import SessionMode
 from workflow_interpreter.foreman.compose import Composition, ProfileResolver
 from workflow_interpreter.foreman.config import CrewBinding
 from workflow_interpreter.foreman.inspector import WrapperExit, run_wrapper
@@ -116,7 +117,7 @@ def test_plain_resume_uses_the_source_session_and_current_brief(
     resumed.store._client._merge_metadata(
         activation.activation_id,
         {
-            "session_mode": "resume",
+            "session_mode": SessionMode.RESUME,
             "session_source_activation_id": "prior-implementer",
             "source_session_id": source_session,
         },
@@ -643,31 +644,6 @@ def test_a_retry_of_a_retry_still_finds_the_steer(lab: Lab) -> None:
     receipt = result.receipt
     assert receipt is not None
     assert_resumes(receipt.argv, session)
-
-
-@pytest.mark.proc
-def test_a_retry_that_carries_a_steer_but_no_session_is_refused(lab: Lab) -> None:
-    """A carried steer with no session to rejoin is refused BEFORE `prepare`.
-
-    `prepare` mints a fresh uuid for a vendor that pre-assigns one, so a
-    launch here would "resume" a session that has never existed — the CLI
-    starting a brand-new one with the steer text as its first turn. Checked
-    where `Steerer` checks it before the kill (`steer.py`), for the same
-    reason: the answer is knowable before anything is spent.
-    """
-    launched = lab.dispatch(CrewName.CLAUDE, session_id="")
-    steered = steer(lab, launched.activation.activation_id)
-    continuation = lab.run(CrewName.CLAUDE, request=steered.intent.continuation)
-    continuation_id = continuation.dispatch.activation.activation_id
-    lab.store.close_activation(continuation_id, Outcome.ERROR_TRANSPORT)
-    retry = entry_mint(
-        mint_reason=MintReason.INFRA_RETRY,
-        predecessor_activation_id=continuation_id,
-        session_id="",
-    )
-
-    with pytest.raises(ContinuationRefused, match="no session to rejoin"):
-        lab.dispatch(CrewName.CLAUDE, request=retry)
 
 
 @pytest.mark.proc

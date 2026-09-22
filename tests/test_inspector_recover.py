@@ -42,6 +42,7 @@ from workflow_interpreter.bdio import (
     Outcome,
     ResolvedSetting,
 )
+from workflow_interpreter.bdio.wire import config_signature
 from workflow_interpreter.inspector import (
     EVIDENCE_EXIT_UNOBSERVED,
     EXIT_CODE_UNOBSERVED,
@@ -321,25 +322,28 @@ def test_recovery_registers_only_an_identity_found_in_the_durable_log(
 ) -> None:
     """Recovery rescans the log and never invents a pre-event thread id."""
     lab = Lab(tmp_path)
+    resolved = (
+        *lab.root.metadata.resolved_config,
+        ResolvedSetting(
+            key="node.implement.crew_version",
+            value="codex-cli 0.155.1",
+            source=ConfigSource.GRAPH_DEFAULT,
+        ),
+    )
     lab.store._client._merge_metadata(
         lab.root.root_id,
         {
-            "resolved_config": [
-                *(
-                    item.model_dump(mode="json")
-                    for item in lab.root.metadata.resolved_config
-                ),
-                ResolvedSetting(
-                    key="node.implement.crew_version",
-                    value="codex-cli 0.155.1",
-                    source=ConfigSource.GRAPH_DEFAULT,
-                ).model_dump(mode="json"),
-            ]
+            "resolved_config": [item.model_dump(mode="json") for item in resolved],
+            "config_signature": config_signature(resolved),
         },
     )
     lab.store._client._merge_metadata(
         lab.activation.activation_id,
-        {"crew_profile": "codex", "launch_id": "recovered-launch"},
+        {
+            "crew_profile": "codex",
+            "launch_id": "recovered-launch",
+            "session_id": "",
+        },
     )
     log = lab.paths.log(lab.activation.activation_id)
     log.write_text(
