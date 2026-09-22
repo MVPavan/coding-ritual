@@ -150,6 +150,7 @@ class Inspector:
         prior_dirty_state: str | None = None,
         confirmation: HumanConfirmation | None = None,
         run_identity: RunIdentity | None = None,
+        reviewed_tree_oid: str | None = None,
     ) -> InspectionResult:
         """Dispatch, watch until the child is gone, then record what it did.
 
@@ -159,6 +160,9 @@ class Inspector:
         band has to still be held when `ExitObserver` records what this crew
         left dirty, and an in-repo node whose caller forgot to take it simply
         could not run at all (§12).
+
+        `reviewed_tree_oid` is the §3 tree the writer a non-writer reviews
+        pinned in this same checkout; the non-writer refuses any other tree.
         """
 
         def inspect() -> InspectionResult:
@@ -172,6 +176,7 @@ class Inspector:
                 prior_dirty_state=prior_dirty_state,
                 confirmation=confirmation,
                 run_identity=run_identity,
+                reviewed_tree_oid=reviewed_tree_oid,
             )
 
         band = self._workspace.band
@@ -195,6 +200,7 @@ class Inspector:
         prior_dirty_state: str | None = None,
         confirmation: HumanConfirmation | None = None,
         run_identity: RunIdentity | None = None,
+        reviewed_tree_oid: str | None = None,
     ) -> InspectionResult:
         """One activation, dispatch through `exit-recorded`, band already held.
 
@@ -232,7 +238,9 @@ class Inspector:
             request,
             profile,
             build_task,
-            self._precondition(node, prior_dirty_state, confirmation),
+            self._precondition(
+                node, prior_dirty_state, confirmation, reviewed_tree_oid
+            ),
         )
         handle = dispatch.handle
         if handle is None or dispatch.outcome is LaunchOutcome.ALREADY_DISPATCHED:
@@ -346,10 +354,15 @@ class Inspector:
         node: Node,
         prior_dirty_state: str | None,
         confirmation: HumanConfirmation | None,
+        reviewed_tree_oid: str | None,
     ) -> Precondition:
         """The §5.4 hook `Dispatcher` runs between the mint and the exec."""
         return choose_precondition(
-            self._workspace, node, prior_dirty_state, confirmation
+            self._workspace,
+            node,
+            prior_dirty_state,
+            confirmation,
+            reviewed_tree_oid=reviewed_tree_oid,
         )
 
 
@@ -358,6 +371,8 @@ def choose_precondition(
     node: Node,
     prior_dirty_state: str | None,
     confirmation: HumanConfirmation | None,
+    *,
+    reviewed_tree_oid: str | None = None,
 ) -> Precondition:
     """Pick one of §3's three preconditions from node authority and the mint.
 
@@ -365,7 +380,9 @@ def choose_precondition(
     question about the SAME shared checkout:
 
     - a **non-writer** observes it — session mode changes only its vendor
-      thread, so fresh and resumed reviewers take the identical tree path;
+      thread, so fresh and resumed reviewers take the identical tree path —
+      and, where `reviewed_tree_oid` is the tree the writer it reviews
+      pinned in this same checkout, refuses any other one;
     - a **resumed writer** proves the tree its session was left on is still
       there and keeps it (`Workspace.resume` refuses by name otherwise);
     - every other **writer** takes the §5.4 precondition unchanged: pin the
@@ -379,7 +396,11 @@ def choose_precondition(
     def prepare(activation: ActivationRecord) -> PreconditionResult:
         meta = activation.metadata
         if not node.writes:
-            return workspace.observe_shared_tree(activation, node)
+            return workspace.observe_shared_tree(
+                activation,
+                node,
+                expected_tree_oid=reviewed_tree_oid,
+            )
         if (
             meta.session_mode is SessionMode.RESUME
             and meta.source_session_id is not None

@@ -101,6 +101,7 @@ from workflow_interpreter.inspector.errors import (
     ReadOnlyTreeMutation,
     ResumeMismatchReason,
     ResumeTreeMismatch,
+    ReviewTreeMismatch,
     SnapshotFailed,
     WrapperDirError,
 )
@@ -189,6 +190,11 @@ _MSG_RESUME_MISMATCH: Final[str] = (
     "refusing to resume activation {activation_id} against {path}: the "
     "session was left on tree {expected} and the checkout now holds "
     "{observed}; another writer has run between the two turns (§3)"
+)
+_MSG_REVIEW_MISMATCH: Final[str] = (
+    "refusing to launch non-writer {activation_id} against {path}: its writer "
+    "left tree {expected} and the checkout now holds {observed}; the review "
+    "would grade bytes no activation produced (§3)"
 )
 _MSG_READ_ONLY_MUTATED: Final[str] = (
     "activation {activation_id} does not write, but its checkout moved from "
@@ -308,7 +314,11 @@ class Workspace:
         )
 
     def observe_shared_tree(
-        self, activation: ActivationRecord, node: Node
+        self,
+        activation: ActivationRecord,
+        node: Node,
+        *,
+        expected_tree_oid: str | None = None,
     ) -> PreconditionResult:
         """Give a non-writing activation the tree as it stands, and record it (§3).
 
@@ -316,6 +326,10 @@ class Workspace:
         created only where there is none, and nothing else about it moves:
         not HEAD, not the dirty state, not tree ownership. The OID recorded
         here is the before half of `after == before`.
+
+        `expected_tree_oid` is the tree the reviewed writer pinned, where one
+        was: the found tree must BE it, or the launch refuses by name. With no
+        such proof the observation is record-only.
         """
         in_repo = node.isolation is IsolationMode.IN_REPO
         if in_repo and not self._band.held:
@@ -323,6 +337,17 @@ class Workspace:
         intended = activation.metadata.intended_base_commit
         cwd = self._ensure_tree(intended, in_repo=in_repo)
         observed = self._working_tree_oid(cwd)
+        if expected_tree_oid is not None and observed != expected_tree_oid:
+            raise ReviewTreeMismatch(
+                _MSG_REVIEW_MISMATCH.format(
+                    activation_id=activation.activation_id,
+                    path=cwd,
+                    expected=expected_tree_oid,
+                    observed=observed,
+                ),
+                expected=expected_tree_oid,
+                observed=observed,
+            )
         write_record(
             self._paths.observed_tree(activation.activation_id),
             ObservedTree(

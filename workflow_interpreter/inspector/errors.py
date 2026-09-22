@@ -109,6 +109,19 @@ class ResumeTreeMismatch(PreconditionRefused):
         super().__init__(detail)
 
 
+class ReviewTreeMismatch(PreconditionRefused):
+    """§3: a non-writer found a tree other than the one its writer pinned.
+
+    Refused before launch, as a precondition, so the owner sees it: grading
+    those bytes would review work no activation produced.
+    """
+
+    def __init__(self, detail: str, *, expected: str, observed: str) -> None:
+        self.expected = expected
+        self.observed = observed
+        super().__init__(detail)
+
+
 class ReadOnlyTreeMutation(InspectorError):
     """§3: a non-writing activation's checkout changed while it ran.
 

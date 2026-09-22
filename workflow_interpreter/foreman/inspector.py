@@ -29,7 +29,7 @@ from workflow_interpreter.contracts.execution import (
     UnregisteredCrewError,
     tool_network_for,
 )
-from workflow_interpreter.foreman.close import _previous_tree_oid
+from workflow_interpreter.foreman.close import _previous_tree_oid, reviewed_tree_oid
 from workflow_interpreter.foreman.compose import (
     Composition,
     InstanceWiring,
@@ -310,6 +310,7 @@ def run_wrapper(
                         pinned_digests=pinned_verifier_digests(root),
                         run_identity=root.metadata.run_identity,
                         previous_tree_oid=_previous_tree_oid(resolved, activation),
+                        reviewed_tree_oid=reviewed_tree_oid(resolved, root, activation),
                     )
                 break
             except LockUnavailable:

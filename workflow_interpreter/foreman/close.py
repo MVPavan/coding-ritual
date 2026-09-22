@@ -27,6 +27,7 @@ from workflow_interpreter.foreman.constants import (
     EFFECTS_NODE,
     HALT_INDETERMINATE,
 )
+from workflow_interpreter.foreman.execution import resolved_node
 from workflow_interpreter.foreman.finalize import bound_violated, decide
 from workflow_interpreter.foreman.gates import effects_gate, halt_gate
 from workflow_interpreter.inspector import (
@@ -39,7 +40,7 @@ from workflow_interpreter.inspector import (
 from workflow_interpreter.inspector.channels import pinned_verifier_digests
 from workflow_interpreter.inspector.paths import read_record
 from workflow_interpreter.inspector.profile import Profile, observe_session
-from workflow_interpreter.schema.models import Node, Outcome
+from workflow_interpreter.schema.models import IsolationMode, Node, Outcome
 
 _BRANCH_ADVANCED = "instance branch advanced at settle to {commit}"
 MSG_SESSION_TREE_UNPUBLISHED: Final = "session tree publication: {error}"
@@ -503,6 +504,31 @@ def _previous_tree_oid(
         ):
             return evidence.artifact.tree_oid
     return None
+
+
+def reviewed_tree_oid(
+    wiring: InstanceWiring, root: RootRecord, activation: ActivationRecord
+) -> str | None:
+    """The §3 tree a non-writer must find: what the writer it reviews pinned.
+
+    Only where both run in the SAME checkout — an in-repo writer reviewed from
+    the worktree left its bytes somewhere else — and only where that writer
+    published a session tree. `None` leaves the observation record-only.
+    """
+    node = resolved_node(root, activation.metadata.node).node
+    if node.writes:
+        return None
+    predecessor_id = _predecessor_activation_id(wiring, activation)
+    if predecessor_id is None:
+        return None
+    predecessor = wiring.store.reads.load_activation(predecessor_id)
+    writer = resolved_node(root, predecessor.metadata.node).node
+    same_checkout = (writer.isolation is IsolationMode.IN_REPO) == (
+        node.isolation is IsolationMode.IN_REPO
+    )
+    if not writer.writes or not same_checkout:
+        return None
+    return predecessor.metadata.session_tree_oid
 
 
 def _predecessor_activation_id(

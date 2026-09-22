@@ -46,7 +46,7 @@ from workflow_interpreter.bdio import (
 from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.carriers import ArtifactIdentity
 from workflow_interpreter.foreman import close as close_module
-from workflow_interpreter.foreman.close import settle
+from workflow_interpreter.foreman.close import reviewed_tree_oid, settle
 from workflow_interpreter.foreman.compose import InstanceWiring
 from workflow_interpreter.inspector import (
     BranchAdvance,
@@ -57,7 +57,7 @@ from workflow_interpreter.inspector import (
 )
 from workflow_interpreter.inspector.paths import write_record
 from workflow_interpreter.inspector.profile import CrewEvent, EventType, Profile
-from workflow_interpreter.schema.models import Node, Outcome
+from workflow_interpreter.schema.models import IsolationMode, Node, Outcome
 
 
 class WorkspaceDouble(SimpleNamespace):
@@ -1336,3 +1336,45 @@ def test_settle_stalls_when_bd_cannot_publish_the_session_tree(
 
     assert result.stalled is not None
     assert store.closed == 0
+
+
+def test_reviewed_tree_is_the_same_checkout_writers_published_tree(
+    fake_store: WorkflowStore,
+) -> None:
+    """§3: a reviewer is held to its writer's pinned tree — in the same checkout.
+
+    An in-repo writer reviewed from the worktree left its bytes elsewhere, so
+    there is nothing to compare and the observation stays record-only.
+    """
+    root = make_root(fake_store, load_definition())
+    writer = fake_store.mint_activation(root.root_id, entry_request()).activation
+    writer = fake_store.record_session_tree(writer.activation_id, "b" * 40)
+    review = writer.model_copy(
+        update={
+            "id": "review-1",
+            "metadata": writer.metadata.model_copy(
+                update={
+                    "node": "review",
+                    "predecessor_activation_id": writer.activation_id,
+                }
+            ),
+        }
+    )
+    wiring = cast(InstanceWiring, WiringDouble(store=fake_store))
+    document = root.definition.document.model_copy(
+        update={
+            "node": tuple(
+                item.model_copy(update={"isolation": IsolationMode.IN_REPO})
+                if item.name == "review"
+                else item
+                for item in root.definition.document.node
+            )
+        }
+    )
+    elsewhere = root.model_copy(
+        update={"definition": root.definition.model_copy(update={"document": document})}
+    )
+
+    assert reviewed_tree_oid(wiring, root, review) == "b" * 40
+    assert reviewed_tree_oid(wiring, root, writer) is None
+    assert reviewed_tree_oid(wiring, elsewhere, review) is None

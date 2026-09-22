@@ -44,6 +44,7 @@ from workflow_interpreter.inspector.errors import (
     ReadOnlyTreeMutation,
     ResumeMismatchReason,
     ResumeTreeMismatch,
+    ReviewTreeMismatch,
 )
 from workflow_interpreter.inspector.models import (
     CrewAttribution,
@@ -385,3 +386,31 @@ def test_fresh_writer_resets(lab: Lab) -> None:
         cwd=lab.repo,
     )
     assert pinned == result.pre_reset_commit
+
+
+def test_reviewer_refuses_a_tree_its_writer_did_not_leave(lab: Lab) -> None:
+    """§3: a reviewer grades the tree its writer pinned, or refuses by name.
+
+    Without the comparison a reviewer can grade bytes nobody produced; with no
+    pinned predecessor tree there is nothing to prove, so it only records.
+    """
+    impl1 = lab.implement()
+    pinned = lab.workspace.working_tree_oid(lab.node)
+    review = lab.successor(impl1, "wf-review-1")
+    (lab.tree / SENTINEL).write_text("an edit no activation made\n", encoding="utf-8")
+    found = lab.workspace.working_tree_oid(lab.node)
+
+    with pytest.raises(ReviewTreeMismatch) as refusal:
+        choose_precondition(
+            lab.workspace, lab.reviewer, None, None, reviewed_tree_oid=pinned
+        )(review)
+
+    assert refusal.value.expected == pinned
+    assert refusal.value.observed == found
+    assert (
+        read_record(lab.paths.observed_tree(review.activation_id), ObservedTree) is None
+    )
+    unproven = choose_precondition(
+        lab.workspace, lab.reviewer, None, None, reviewed_tree_oid=None
+    )(review)
+    assert unproven.reset_applied is False
