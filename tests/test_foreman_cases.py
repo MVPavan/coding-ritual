@@ -87,7 +87,7 @@ def test_minted_dispatch_rebuilds_its_request_from_the_root_pin(tmp_path: Path) 
 def test_durable_launch_request_carries_the_resolved_session_contract(
     tmp_path: Path,
 ) -> None:
-    """All four S1 fields survive mint and the durable pre-spawn record."""
+    """The S1 session fields survive mint and the durable pre-spawn record."""
     lab = ForemanLab(
         tmp_path,
         roles={
@@ -116,12 +116,10 @@ def test_durable_launch_request_carries_the_resolved_session_contract(
         "session_mode",
         "session_source_activation_id",
         "source_session_id",
-        "expected_tree_oid",
     } <= values.keys()
     assert launch.request.session_mode is SessionMode.RESUME
     assert launch.request.session_source_activation_id is None
     assert launch.request.source_session_id is None
-    assert launch.request.expected_tree_oid is None
 
 
 def test_dispatched_lifecycle_recovers_without_a_second_bd_write(

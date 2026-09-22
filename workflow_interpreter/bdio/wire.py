@@ -602,7 +602,6 @@ class MintRequest(BaseModel):
     session_mode: SessionMode = SessionMode.FRESH
     session_source_activation_id: str | None = None
     source_session_id: str | None = None
-    expected_tree_oid: CommitOid | None = None
     inputs: tuple[InputBinding, ...] = ()
     deviations: tuple[Deviation, ...] = ()
 

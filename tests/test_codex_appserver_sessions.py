@@ -460,14 +460,11 @@ def finish_exec_source(store, root):
     return registration
 
 
-def test_caller_supplied_tree_oid_never_stands_in_for_the_source_proof(
-    tmp_path, fake_store
-):
+def test_unpinned_source_carries_no_tree_proof(tmp_path, fake_store):
     """§3: the tree proof is the SOURCE's, so an unpinned source proves nothing.
 
     A source that never pinned a tree is exactly the missing-snapshot refusal;
-    accepting the caller's OID there would let a resumed writer prove its
-    session's tree against a number nobody observed.
+    the mint request has no tree field, so nothing can stand in for the proof.
     """
     root = exec_root(tmp_path, fake_store)
     source = finish_exec_source(fake_store, root)
@@ -475,7 +472,6 @@ def test_caller_supplied_tree_oid_never_stands_in_for_the_source_proof(
         update={
             "mint_reason": MintReason.EDGE,
             "predecessor_activation_id": source.activation_id,
-            "expected_tree_oid": "a" * 40,
         }
     )
 

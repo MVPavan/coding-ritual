@@ -161,7 +161,6 @@ def _request(
         session_mode=meta.session_mode,
         session_source_activation_id=meta.session_source_activation_id,
         source_session_id=meta.source_session_id,
-        expected_tree_oid=meta.expected_tree_oid,
         predecessor_activation_id=meta.predecessor_activation_id,
         predecessor_gate_id=meta.predecessor_gate_id,
         inputs=meta.inputs,

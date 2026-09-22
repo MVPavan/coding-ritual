@@ -15,6 +15,7 @@ import pytest
 
 from tests._inspector import (
     IMPLEMENT,
+    REVIEW,
     SESSION_ID,
     FrozenClock,
     dead_pid,
@@ -293,18 +294,33 @@ def test_plain_loop_resumes_impl2_on_the_tree_impl1_pinned(tmp_path: Path) -> No
     lab.store.record_session_tree(impl1.activation_id, published)
     lab.store.close_activation(impl1.activation_id, Outcome.DONE)
 
-    review = lab.successor(impl1, "wf-review-1")
-    observed = lab.run(review, lab.reviewer)
-    lab.workspace.verify_shared_tree(review, lab.reviewer)
+    review = lab.store.mint_activation(
+        lab.root.root_id,
+        entry_mint(
+            REVIEW,
+            mint_reason=MintReason.EDGE,
+            predecessor_activation_id=impl1.activation_id,
+        ),
+    ).activation
+    lab.paths.ensure_activation_dir(review.activation_id)
+    reviewer = node_of(lab.root.definition.document, REVIEW)
+    observed = lab.run(review, reviewer)
+    lab.workspace.verify_shared_tree(review, reviewer)
     assert observed.reset_applied is False
     seen = read_record(lab.paths.observed_tree(review.activation_id), ObservedTree)
     assert seen is not None and seen.tree_oid == published
+    lab.store.record_dispatch(
+        review.activation_id,
+        handle_for(dead_pid(), log_path=str(lab.paths.log(review.activation_id))),
+        launch_id="review-1-launch",
+    )
+    lab.store.close_activation(review.activation_id, Outcome.REJECT)
 
     impl2 = lab.store.mint_activation(
         lab.root.root_id,
         entry_mint(
             mint_reason=MintReason.EDGE,
-            predecessor_activation_id=impl1.activation_id,
+            predecessor_activation_id=review.activation_id,
         ),
     ).activation
     assert impl2.metadata.session_source_activation_id == impl1.activation_id
