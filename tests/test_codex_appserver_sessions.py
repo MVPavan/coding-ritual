@@ -15,6 +15,8 @@ from workflow_interpreter import GraphValidationError, load_graph
 from workflow_interpreter.bdio import (
     CarrierIntegrityError,
     ConfigSource,
+    ExitRecord,
+    LifecycleConflictError,
     MintReason,
     ResolvedSetting,
 )
@@ -177,6 +179,38 @@ def finish_source(store, root, outcome=None):
     return registration
 
 
+def test_appserver_session_registration_stays_dispatched_only(tmp_path, fake_store):
+    """The frozen app-server contract does not gain recovery-time registration."""
+    root = app_root(tmp_path, fake_store, "fresh")
+    activation = fake_store.mint_activation(
+        root.root_id, entry_request(crew_profile="codex-appserver", session_id="")
+    ).activation
+    process = handle(session_id="")
+    exited = fake_store.record_dispatch(
+        activation.activation_id, process, launch_id="late-launch"
+    )
+    fake_store.record_exit(
+        exited.activation_id,
+        ExitRecord(exit_code=0, ended_at="2026-08-25T00:01:00Z", reason="ok"),
+    )
+    registration = SessionRegistration(
+        root_id=root.root_id,
+        activation_id=activation.activation_id,
+        launch_id="late-launch",
+        handle=process,
+        thread_id="thread-late",
+        crew_profile="codex-appserver",
+        crew_version=CODEX_VERSION,
+        model=activation.metadata.model,
+        effort="medium",
+        policy_digest="policy",
+        state_path="/state/node",
+    )
+
+    with pytest.raises(LifecycleConflictError, match="session registration identity"):
+        fake_store.register_session(activation.activation_id, registration)
+
+
 @pytest.mark.parametrize("mode", ["fresh", "resume"])
 def test_reentry_binds_history_only_when_session_mode_opts_in(
     tmp_path, fake_store, mode
@@ -325,23 +359,9 @@ def test_plain_resume_skips_crashed_and_abandoned_unregistered_sources(
         assert choose_source(root, request, [bad]).source_activation_id is None
 
 
-def test_exec_resume_requires_the_pinned_cli_version(tmp_path, fake_store):
-    """Matching exec history resumes; a different qualified CLI starts fresh."""
+def test_exec_resume_requires_the_current_probed_cli_version(tmp_path, fake_store):
+    """Matching exec history resumes; a different current CLI starts fresh."""
     root = exec_root(tmp_path, fake_store)
-    version_setting = ResolvedSetting(
-        key="node.implement.crew_version",
-        value="codex-cli 0.155.1",
-        source=ConfigSource.GRAPH_DEFAULT,
-    )
-    root = root.model_copy(
-        update={
-            "metadata": root.metadata.model_copy(
-                update={
-                    "resolved_config": (*root.metadata.resolved_config, version_setting)
-                }
-            )
-        }
-    )
     minted = fake_store.mint_activation(
         root.root_id, entry_request(crew_profile="codex")
     ).activation
@@ -375,6 +395,7 @@ def test_exec_resume_requires_the_pinned_cli_version(tmp_path, fake_store):
     )
     request = entry_request(crew_profile="codex").model_copy(
         update={
+            "crew_version": "codex-cli 0.155.1",
             "session_mode": SessionMode.RESUME,
             "mint_reason": MintReason.EDGE,
             "predecessor_activation_id": source.activation_id,
