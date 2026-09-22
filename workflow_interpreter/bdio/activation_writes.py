@@ -337,10 +337,10 @@ def _prepare_mint(
         session_mode=session_mode,
         session_source_activation_id=choice.source_activation_id,
         source_session_id=choice.source_session_id,
-        # §3: the tree proof belongs to the SOURCE that was selected here, not
-        # to whatever a caller guessed — a resumed writer must observe the tree
-        # its own session was left on or refuse.
-        expected_tree_oid=choice.source_tree_oid or request.expected_tree_oid,
+        # §3: the tree proof belongs to the SOURCE that was selected here, and
+        # to nothing else — a source that pinned none IS the missing-snapshot
+        # refusal, so a caller-supplied OID may not stand in for it.
+        expected_tree_oid=choice.source_tree_oid,
         session_reuse_source=source,
         session_fresh_reason=choice.fresh_reason,
         intended_base_commit=facts.intended_base_commit,

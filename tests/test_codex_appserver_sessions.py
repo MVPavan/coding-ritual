@@ -436,6 +436,56 @@ def test_exec_resume_requires_the_current_probed_cli_version(tmp_path, fake_stor
     assert choose_source(root, request, [incompatible]).source is None
 
 
+def finish_exec_source(store, root):
+    """One completed, registered exec turn that pinned no §3 tree."""
+    activation = store.mint_activation(
+        root.root_id, entry_request(crew_profile="codex")
+    ).activation
+    process = handle(session_id="")
+    store.record_dispatch(activation.activation_id, process, launch_id="exec-launch")
+    registration = SessionRegistration(
+        root_id=root.root_id,
+        activation_id=activation.activation_id,
+        launch_id="exec-launch",
+        handle=process,
+        thread_id="thread-exec",
+        crew_profile="codex",
+        model=activation.metadata.model,
+        effort="medium",
+        policy_digest="c49fea7425fa7f8699897a97c159c6690267d9003bb78c53fafa8fc15c325d84",
+        state_path="",
+    )
+    store.register_session(activation.activation_id, registration)
+    store.close_activation(activation.activation_id, Outcome.DONE)
+    return registration
+
+
+def test_caller_supplied_tree_oid_never_stands_in_for_the_source_proof(
+    tmp_path, fake_store
+):
+    """§3: the tree proof is the SOURCE's, so an unpinned source proves nothing.
+
+    A source that never pinned a tree is exactly the missing-snapshot refusal;
+    accepting the caller's OID there would let a resumed writer prove its
+    session's tree against a number nobody observed.
+    """
+    root = exec_root(tmp_path, fake_store)
+    source = finish_exec_source(fake_store, root)
+    request = entry_request(crew_profile="codex").model_copy(
+        update={
+            "mint_reason": MintReason.EDGE,
+            "predecessor_activation_id": source.activation_id,
+            "expected_tree_oid": "a" * 40,
+        }
+    )
+
+    minted = fake_store.mint_activation(root.root_id, request).activation
+
+    assert minted.metadata.session_source_activation_id == source.activation_id
+    assert minted.metadata.source_session_id == source.thread_id
+    assert minted.metadata.expected_tree_oid is None
+
+
 def test_infra_retry_of_deliberate_steer_keeps_its_bound_session(tmp_path, fake_store):
     """Fresh defaults cannot erase §8.1 deliberate continuation after a crash."""
 
