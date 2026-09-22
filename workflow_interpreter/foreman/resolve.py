@@ -24,7 +24,6 @@ from workflow_interpreter.contracts.execution import MSG_PROFILE_WRITES
 from workflow_interpreter.contracts.run_identity import RunIdentity
 from workflow_interpreter.contracts.sessions import (
     SessionMode,
-    crew_version_key,
     session_mode_key,
 )
 from workflow_interpreter.foreman.compose import Composition
@@ -481,16 +480,6 @@ def _resolved_config(
                 value=binding.effort,
                 source=ConfigSource.ROLE_BINDING,
             )
-        version_for = getattr(composition.profiles, "version_for", None)
-        if callable(version_for):
-            crew_version = version_for(binding.profile)
-            if crew_version is not None:
-                version_key = crew_version_key(node.name)
-                settings[version_key] = ResolvedSetting(
-                    key=version_key,
-                    value=crew_version,
-                    source=ConfigSource.ROLE_BINDING,
-                )
     settings.update(
         {
             item.key: item

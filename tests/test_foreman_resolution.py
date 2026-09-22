@@ -535,6 +535,21 @@ def test_instantiate_pins_project_resolution_and_creates_instance_branch(
     assert settings["region.build-review.max_entries"].source.value == "project-config"
     branch = INSTANCE_BRANCH.format(root_id=root.root_id)
     assert git.updated == [(branch, git.base)]
+    assert root.metadata.instance_inputs[0].body == "implement this"
+    assert settings["node.implement.crew"].value == "implementer"
+    assert settings["node.review.crew"].value == "critic"
+    assert {key for key in settings if key.startswith("verify.")}
+
+    again = instantiate(
+        composition,
+        VALID_FIXTURE,
+        instance_key="instance",
+        instance_inputs={"task_brief": brief},
+        allow_test_flags=False,
+        overrides={},
+    )
+    assert again.root_id == root.root_id
+    assert git.updated == [(branch, git.base)]
 
 
 def test_recreating_an_instance_ignores_cli_version_drift(
@@ -577,21 +592,6 @@ def test_recreating_an_instance_ignores_cli_version_drift(
     )
 
     assert second.root_id == first.root_id
-    assert root.metadata.instance_inputs[0].body == "implement this"
-    assert settings["node.implement.crew"].value == "implementer"
-    assert settings["node.review.crew"].value == "critic"
-    assert {key for key in settings if key.startswith("verify.")}
-
-    again = instantiate(
-        composition,
-        VALID_FIXTURE,
-        instance_key="instance",
-        instance_inputs={"task_brief": brief},
-        allow_test_flags=False,
-        overrides={},
-    )
-    assert again.root_id == root.root_id
-    assert git.updated == [(branch, git.base)]
 
 
 def test_instantiate_refuses_brief_source_and_crew_role_failures(
