@@ -535,6 +535,48 @@ def test_instantiate_pins_project_resolution_and_creates_instance_branch(
     assert settings["region.build-review.max_entries"].source.value == "project-config"
     branch = INSTANCE_BRANCH.format(root_id=root.root_id)
     assert git.updated == [(branch, git.base)]
+
+
+def test_recreating_an_instance_ignores_cli_version_drift(
+    fake_store: WorkflowStore, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Process qualification is not immutable graph authority."""
+    profiles = _AvailableProfiles()
+    current = {"version": "codex-cli 0.155.0"}
+    monkeypatch.setattr(profiles, "version_for", lambda _name: current["version"])
+    roles = {
+        "implementer": CrewBinding(
+            profile="codex", model="gpt-5.6-sol", effort="medium"
+        ),
+        "critic": CrewBinding(
+            profile="codex", model="gpt-5.6-sol", effort="medium"
+        ),
+    }
+    composition, _ = _instance_composition(
+        fake_store, tmp_path, profiles=profiles, roles=roles
+    )
+    brief = tmp_path / "brief.md"
+    brief.write_text("implement this", encoding="utf-8")
+
+    first = instantiate(
+        composition,
+        VALID_FIXTURE,
+        instance_key="version-drift",
+        instance_inputs={"task_brief": brief},
+        allow_test_flags=False,
+        overrides={},
+    )
+    current["version"] = "codex-cli 0.156.0"
+    second = instantiate(
+        composition,
+        VALID_FIXTURE,
+        instance_key="version-drift",
+        instance_inputs={"task_brief": brief},
+        allow_test_flags=False,
+        overrides={},
+    )
+
+    assert second.root_id == first.root_id
     assert root.metadata.instance_inputs[0].body == "implement this"
     assert settings["node.implement.crew"].value == "implementer"
     assert settings["node.review.crew"].value == "critic"
