@@ -351,7 +351,6 @@ class Dispatcher:
                 "session_mode": activation.metadata.session_mode,
                 "session_source_activation_id": activation.metadata.session_source_activation_id,
                 "source_session_id": activation.metadata.source_session_id,
-                "expected_tree_oid": activation.metadata.expected_tree_oid,
             }
         )
         self._assert_continuation(
