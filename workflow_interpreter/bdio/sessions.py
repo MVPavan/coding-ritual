@@ -30,6 +30,9 @@ from workflow_interpreter.schema.models import Outcome
 
 _LOG = structlog.get_logger(__name__)
 MSG_VERSION_FRESH: Final[str] = "wf.session.fresh.version_mismatch"
+MSG_CLI_VERSION_UNAVAILABLE: Final[str] = (
+    "resume requires a successful current CLI version probe: {reason}"
+)
 RESUMABLE_SESSION_OUTCOMES: Final[frozenset[Outcome]] = frozenset(
     {
         Outcome.DONE,
@@ -70,6 +73,13 @@ def choose_source(
     if not isinstance(policy, str):
         raise CarrierIntegrityError(MSG_SESSION_SOURCE)
     crew_profile = request.crew_profile.removeprefix("profile:")
+    if (
+        crew_profile in (CrewName.CLAUDE.value, CrewName.CODEX.value)
+        and request.crew_version_error is not None
+    ):
+        raise CarrierIntegrityError(
+            MSG_CLI_VERSION_UNAVAILABLE.format(reason=request.crew_version_error)
+        )
     for source in sorted(activations, key=lambda item: item.metadata.seq, reverse=True):
         meta = source.metadata
         registration = meta.session_registration
@@ -83,9 +93,8 @@ def choose_source(
         ):
             continue
         if registration is None:
-            if crew_profile == CrewName.CODEX_APPSERVER.value or not meta.session_id:
-                continue
-        elif (
+            continue
+        if (
             registration.root_id != root.root_id
             or registration.activation_id != source.activation_id
             or registration.model != settings.get(NodeSetting.MODEL.at(request.node))
@@ -127,7 +136,9 @@ def choose_source(
                 required=CODEX_VERSION,
             )
             return SessionChoice(fresh_reason=SessionFreshReason.VERSION_MISMATCH)
-        current_version = settings.get(crew_version_key(request.node))
+        current_version = request.crew_version
+        if current_version is None:
+            current_version = settings.get(crew_version_key(request.node))
         if (
             registration is not None
             and registration.crew_version is not None

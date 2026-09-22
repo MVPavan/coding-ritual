@@ -185,6 +185,10 @@ MSG_CLI_VERSION_UNAVAILABLE: Final[str] = (
     "CLI version unavailable for resume activation {activation_id} ({crew}): "
     "{reason}"
 )
+MSG_CLI_VERSION_MISMATCH: Final[str] = (
+    "CLI version mismatch for resume activation {activation_id}: source "
+    "registered {source!r}, current process probed {current!r}"
+)
 
 
 class DispatchResult(BaseModel):
@@ -489,6 +493,17 @@ class Dispatcher:
                             activation_id=activation.activation_id,
                             crew=crew,
                             reason=error or "profile was not qualified",
+                        )
+                    )
+                if (
+                    registration.crew_version is not None
+                    and registration.crew_version != version
+                ):
+                    raise ContinuationRefused(
+                        MSG_CLI_VERSION_MISMATCH.format(
+                            activation_id=activation.activation_id,
+                            source=registration.crew_version,
+                            current=version,
                         )
                     )
         if carries_steer and not resume and not version_fresh:

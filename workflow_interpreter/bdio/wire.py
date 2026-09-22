@@ -407,6 +407,8 @@ class ActivationMetadata(BaseModel):
     envelope: dict[str, JsonValue] | None = None
     crew_profile: str
     model: str
+    crew_version: str | None = None
+    crew_version_error: str | None = None
     session_id: str
     session_mode: SessionMode = SessionMode.FRESH
     session_source_activation_id: str | None = None
@@ -592,6 +594,8 @@ class MintRequest(BaseModel):
     predecessor_gate_id: str | None = None
     crew_profile: str
     model: str
+    crew_version: str | None = None
+    crew_version_error: str | None = None
     session_id: str
     session_mode: SessionMode = SessionMode.FRESH
     session_source_activation_id: str | None = None

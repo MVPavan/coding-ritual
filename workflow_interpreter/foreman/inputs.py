@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict
@@ -384,6 +385,7 @@ def compose_resume_delta(
     root: RootRecord,
     activation: ActivationRecord,
     source: ActivationRecord,
+    activations: Mapping[str, ActivationRecord],
     inputs: tuple[Materialized, ...],
 ) -> str:
     """Render only current instructions and inputs absent from the source turn.
@@ -395,9 +397,16 @@ def compose_resume_delta(
     envelope; the resumed vendor thread already contains them.
     """
     node = resolved_node(root, activation.metadata.node).node
-    source_inputs = {
-        binding.model_dump_json() for binding in source.metadata.inputs
-    }
+    source_inputs: set[str] = set()
+    seen: set[str] = set()
+    prior: ActivationRecord | None = source
+    while prior is not None and prior.activation_id not in seen:
+        seen.add(prior.activation_id)
+        source_inputs.update(
+            binding.model_dump_json() for binding in prior.metadata.inputs
+        )
+        source_id = prior.metadata.session_source_activation_id
+        prior = activations.get(source_id) if source_id is not None else None
     new_inputs = (
         item
         for binding, item in zip(activation.metadata.inputs, inputs, strict=True)

@@ -65,6 +65,18 @@ from workflow_interpreter.schema.models import NodeKind, Outcome
 _STALL_ABORT_PENDING = "barrier abort cleanup is still pending"
 
 
+def _crew_qualification(
+    composition: Composition, crew_profile: str
+) -> dict[str, str | None]:
+    """Capture process qualification without making it immutable root authority."""
+    version_for = getattr(composition.profiles, "version_for", None)
+    error_for = getattr(composition.profiles, "version_error_for", None)
+    return {
+        "crew_version": version_for(crew_profile) if callable(version_for) else None,
+        "crew_version_error": error_for(crew_profile) if callable(error_for) else None,
+    }
+
+
 class CaseResult(BaseModel):
     """The small, reportable result of advancing one lifecycle case."""
 
@@ -144,6 +156,8 @@ def _request(
         mint_reason=meta.mint_reason,
         crew_profile=view.crew_profile,
         model=view.model,
+        crew_version=meta.crew_version,
+        crew_version_error=meta.crew_version_error,
         session_id=meta.session_id,
         session_mode=meta.session_mode,
         session_source_activation_id=meta.session_source_activation_id,
@@ -185,6 +199,7 @@ def dispatch_minted(
 
 
 def _successor_request(
+    composition: Composition,
     wiring: InstanceWiring,
     root: RootRecord,
     target: str,
@@ -202,6 +217,7 @@ def _successor_request(
         predecessor_gate_id=predecessor_gate_id,
         crew_profile=view.crew_profile,
         model=view.model,
+        **_crew_qualification(composition, view.crew_profile),
         # §5.2: `Profile.prepare` is the only minter of session ids, and it
         # runs at launch; the dispatch writes the one the child ran under back
         # onto this activation (`record_dispatch`).
@@ -229,6 +245,7 @@ def _mint_successor(
 ) -> CaseResult:
     """Mint then dispatch one graph successor, or report a closed refusal."""
     request = _successor_request(
+        composition,
         wiring,
         root,
         target,
@@ -347,6 +364,7 @@ def mint_entry(
         mint_reason=MintReason.ENTRY,
         crew_profile=view.crew_profile,
         model=view.model,
+        **_crew_qualification(composition, view.crew_profile),
         session_id="",  # minted by `Profile.prepare` at launch (§5.2)
         session_mode=view.node.session_mode or SessionMode.FRESH,
         inputs=select_bindings(root.index, root, view.node, (), 1),
@@ -525,6 +543,7 @@ def route_head(
             mint_reason=retry,
             crew_profile=view.crew_profile,
             model=view.model,
+            **_crew_qualification(composition, view.crew_profile),
             session_id=head_meta.session_id,
             session_mode=view.node.session_mode or SessionMode.FRESH,
             predecessor_activation_id=head.activation_id,

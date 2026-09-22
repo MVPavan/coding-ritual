@@ -238,9 +238,15 @@ def register_session(
         if metadata.session_registration != registration:
             raise CarrierIntegrityError(MSG_SESSION_IDENTITY)
         return record
-    if metadata.lifecycle not in (Lifecycle.DISPATCHED, Lifecycle.EXIT_RECORDED) or (
-        metadata.is_settled
-    ):
+    crew = metadata.crew_profile.removeprefix("profile:")
+    recovery_registration = (
+        crew in (CrewName.CLAUDE.value, CrewName.CODEX.value)
+        and metadata.lifecycle is Lifecycle.EXIT_RECORDED
+    )
+    if (
+        metadata.lifecycle is not Lifecycle.DISPATCHED
+        and not recovery_registration
+    ) or metadata.is_settled:
         raise LifecycleConflictError(MSG_SESSION_IDENTITY)
     if metadata.session_id and metadata.session_id != registration.thread_id:
         raise CarrierIntegrityError(MSG_SESSION_IDENTITY)

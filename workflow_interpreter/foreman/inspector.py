@@ -147,6 +147,8 @@ def _request(
         mint_reason=meta.mint_reason,
         crew_profile=view.crew_profile,
         model=view.model,
+        crew_version=meta.crew_version,
+        crew_version_error=meta.crew_version_error,
         session_id=meta.session_id,
         predecessor_activation_id=meta.predecessor_activation_id,
         predecessor_gate_id=meta.predecessor_gate_id,
@@ -214,7 +216,7 @@ def _task_builder(root: RootRecord, wiring: InstanceWiring, git: Git) -> TaskBui
             else None
         )
         resume_brief = (
-            compose_resume_delta(root, current, source, inputs)
+            compose_resume_delta(root, current, source, by_id, inputs)
             if source is not None and instructions is None
             else None
         )

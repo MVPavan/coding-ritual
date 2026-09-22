@@ -116,18 +116,16 @@ def _resumable_session(activation: ActivationRecord) -> str:
     until it does, §5.2), so `build_resume_command` would refuse — after the
     kill, with the activation already closed `steered`.
 
-    The HANDLE is preferred over the activation's own metadata because the
-    handle records what `Profile.prepare` pre-assigned at launch, which for a
-    vendor that mints its own id is the only place the real one exists (§5.2,
-    §5.3).
+    A handle or metadata id may have been preassigned before the vendor emitted
+    an identity event.  Only the durable registration proves that the session
+    exists and can be resumed (§5.2, §5.3).
     """
-    handle = activation.metadata.handle
-    session_id = (handle.session_id if handle else "") or activation.metadata.session_id
-    if not session_id:
+    registration = activation.metadata.session_registration
+    if registration is None:
         raise ContinuationRefused(
             _MSG_NO_SESSION.format(activation_id=activation.activation_id)
         )
-    return session_id
+    return registration.thread_id
 
 
 def _continue_session(

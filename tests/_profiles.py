@@ -30,6 +30,7 @@ import os
 import re
 import signal
 import subprocess
+import time
 import uuid
 from pathlib import Path, PurePosixPath
 from typing import Final
@@ -50,6 +51,7 @@ from tests._inspector import (
     node_of,
 )
 from workflow_interpreter.bdio import ActivationRecord, MintRequest, ProcessHandle
+from workflow_interpreter.bdio.wire import config_signature
 from workflow_interpreter.contracts.execution import (
     ExecutionPolicy,
     ExecutionProfileName,
@@ -74,7 +76,11 @@ from workflow_interpreter.inspector.paths import (
     CHANNELS_DIR,
     SCRATCH_DIR,
 )
-from workflow_interpreter.inspector.profile import CrewChannels, Profile
+from workflow_interpreter.inspector.profile import (
+    CrewChannels,
+    Profile,
+    observed_session_registration,
+)
 from workflow_interpreter.inspector.sandbox import SandboxMode
 from workflow_interpreter.profiles import CrewName, ProfileConfig, ProfileRegistry
 from workflow_interpreter.profiles.claude import ClaudeProfile
@@ -529,9 +535,21 @@ def write_stub(
         else ""
     )
     body = STUB_BODIES[crew].replace("SID", session_id)
+    session_probe = ""
+    if crew is CrewName.CLAUDE:
+        session_probe = (
+            f'SESSION="{session_id}"\n'
+            "WANT_SESSION=0\n"
+            'for ARG in "$@"; do\n'
+            '  if [ "$WANT_SESSION" -eq 1 ]; then SESSION="$ARG"; WANT_SESSION=0; fi\n'
+            '  case "$ARG" in --session-id|--resume) WANT_SESSION=1 ;; esac\n'
+            "done\n"
+        )
+        body = STUB_BODIES[crew].replace("SID", "'\"$SESSION\"'")
     source = (
         _PREAMBLE
         + version_probe
+        + session_probe
         + body
         + (_CHANNELS if channels else "")
         + (_FORGE if forge else "")
@@ -650,6 +668,7 @@ class Lab:
         self.bin = tmp_path / "bin"
         self.bin.mkdir(exist_ok=True)
         self.children: list[ProcessHandle] = []
+        self._launched_profiles: dict[str, Profile] = {}
         """Every child `dispatch()` parked, so the fixture can end them all.
 
         A `dispatch()` child is `setsid`-detached and sleeping; without this a
@@ -678,6 +697,23 @@ class Lab:
             cwd=self.repo,
         )
 
+    def bind_crew(self, crew: CrewName) -> None:
+        """Make the process lab's pinned implementer match the real test profile."""
+        settings = tuple(
+            setting.model_copy(update={"value": crew.value})
+            if setting.key == "node.implement.crew"
+            else setting
+            for setting in self.root.metadata.resolved_config
+        )
+        self.store._client._merge_metadata(
+            self.root.root_id,
+            {
+                "resolved_config": [item.model_dump(mode="json") for item in settings],
+                "config_signature": config_signature(settings),
+            },
+        )
+        self.root = self.store.reads.load_root(self.root.root_id)
+
     def cleanup(self) -> None:
         """End and reap every parked child, whatever the test did."""
         for handle in self.children:
@@ -686,6 +722,20 @@ class Lab:
             except (ProcessLookupError, PermissionError):
                 continue
             procfs.reap(handle.pid)
+
+    def observe_session(self, activation_id: str) -> None:
+        """Run the resident inspector's identity mirror in process-test time."""
+        profile = self._launched_profiles[activation_id]
+        for _attempt in range(100):
+            activation = self.store.reads.load_activation(activation_id)
+            registration = observed_session_registration(
+                self.root, activation, profile
+            )
+            if registration is not None:
+                self.store.register_session(activation_id, registration)
+                return
+            time.sleep(0.005)
+        raise AssertionError("vendor identity event was not observed")
 
     def profile(self, crew: CrewName, binary: Path | str) -> Profile:
         """A real profile whose vendor binary is the stub (or a missing path)."""
@@ -720,6 +770,8 @@ class Lab:
         reach `build_resume_command` is the property the continuity family
         tests, so it is deliberately NOT given the instructions here.
         """
+        if request is None:
+            self.bind_crew(crew)
         stub = binary or write_stub(
             self.bin, crew, exit_code=exit_code, channels=channels, forge=forge
         )
@@ -735,7 +787,10 @@ class Lab:
             host_env_with(**stub_env(marker=marker, effects=effects)),
         )
         return self.inspector.run(
-            request or entry_mint(session_id=str(uuid.uuid4())),
+            request
+            or entry_mint(
+                crew_profile=crew.value, session_id=str(uuid.uuid4())
+            ),
             node,
             registry.profile_for(crew.value),
             task_builder(
@@ -778,6 +833,8 @@ class Lab:
         receipt and the real exec ledger, one layer down.
         """
         extra = extra_env or {}
+        if request is None:
+            self.bind_crew(crew)
         self.ensure_worktree()
         stub = binary or write_stub(
             self.bin,
@@ -800,7 +857,7 @@ class Lab:
         )
         dispatcher = Dispatcher(self.paths, self.store, self.clock)
         result = dispatcher.dispatch(
-            request or entry_mint(session_id=session_id),
+            request or entry_mint(crew_profile=crew.value, session_id=session_id),
             registry.profile_for(crew.value),
             task_builder(
                 self.paths.worktree,
@@ -813,6 +870,9 @@ class Lab:
         )
         if result.handle is not None:
             self.children.append(result.handle)
+            self._launched_profiles[result.activation.activation_id] = registry.profile_for(
+                crew.value
+            )
         return result
 
     def await_exit(self, handle: ProcessHandle) -> int:

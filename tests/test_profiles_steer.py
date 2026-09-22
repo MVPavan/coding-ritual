@@ -19,6 +19,7 @@ a session. Three ways it used to cost more, all asserted here —
 
 from __future__ import annotations
 
+import time
 import uuid
 from datetime import timedelta
 from pathlib import Path
@@ -102,8 +103,16 @@ def test_real_process_lab_grants_scheduler_time_per_virtual_poll(
     assert lab.clock.now() == before + timedelta(seconds=1.0)
 
 
-def steer(lab: Lab, parent_id: str, *, session_id: str = "made-up") -> SteerResult:
+def steer(
+    lab: Lab,
+    parent_id: str,
+    *,
+    session_id: str = "made-up",
+    observe: bool = True,
+) -> SteerResult:
     """Steer a dispatched activation, with a caller-supplied (wrong) session id."""
+    if observe:
+        lab.observe_session(parent_id)
     return lab.steerer.steer(
         lab.store.reads.load_activation(parent_id),
         reason=STEER_REASON,
@@ -111,6 +120,9 @@ def steer(lab: Lab, parent_id: str, *, session_id: str = "made-up") -> SteerResu
         continuation=entry_mint(
             mint_reason=MintReason.STEER_CONTINUATION,
             predecessor_activation_id=parent_id,
+            crew_profile=lab.store.reads.load_activation(
+                parent_id
+            ).metadata.crew_profile,
             session_id=session_id,
         ),
     )
@@ -540,6 +552,7 @@ def test_a_steer_that_crashed_before_the_kill_still_reaches_a_resumed_child(
     parent = launched.activation
     assert launched.handle is not None
     session = launched.handle.session_id
+    lab.observe_session(parent.activation_id)
     node = node_of(lab.root.definition.document, IMPLEMENT)
     write_record(
         lab.paths.steer_intent(parent.activation_id),
@@ -593,7 +606,7 @@ def test_steering_a_crew_with_no_resumable_session_refuses_before_the_kill(
     assert launched.handle.session_id == ""
 
     with pytest.raises(ContinuationRefused, match="no session a continuation"):
-        steer(lab, parent.activation_id)
+        steer(lab, parent.activation_id, observe=False)
 
     assert procfs.prove_liveness(lab.config, launched.handle).alive is True
     assert not lab.paths.steer_intent(parent.activation_id).exists()
@@ -699,6 +712,7 @@ def test_an_infra_retry_of_a_continuation_carries_the_steer_forward(lab: Lab) ->
     continuation_id = continuation.dispatch.activation.activation_id
     lab.store.close_activation(continuation_id, Outcome.ERROR_TRANSPORT)
     retry = entry_mint(
+        crew_profile=CrewName.CLAUDE.value,
         mint_reason=MintReason.INFRA_RETRY,
         predecessor_activation_id=continuation_id,
         session_id=session,
@@ -733,6 +747,7 @@ def test_a_retry_of_a_retry_still_finds_the_steer(lab: Lab) -> None:
     first_retry = lab.store.mint_activation(
         lab.paths.root_id,
         entry_mint(
+            crew_profile=CrewName.CLAUDE.value,
             mint_reason=MintReason.INFRA_RETRY,
             predecessor_activation_id=continuation_id,
             session_id=session,
@@ -740,6 +755,7 @@ def test_a_retry_of_a_retry_still_finds_the_steer(lab: Lab) -> None:
     ).activation
     lab.store.close_activation(first_retry.activation_id, Outcome.ERROR_TRANSPORT)
     second_retry = entry_mint(
+        crew_profile=CrewName.CLAUDE.value,
         mint_reason=MintReason.INFRA_RETRY,
         predecessor_activation_id=first_retry.activation_id,
         session_id=session,
@@ -769,6 +785,7 @@ def test_a_retry_of_a_continuation_whose_intent_is_gone_is_refused(lab: Lab) -> 
     lab.store.close_activation(continuation_id, Outcome.ERROR_TRANSPORT)
     lab.paths.steer_intent(parent.activation_id).unlink()
     retry = entry_mint(
+        crew_profile=CrewName.CLAUDE.value,
         mint_reason=MintReason.INFRA_RETRY,
         predecessor_activation_id=continuation_id,
         session_id=str(uuid.uuid4()),
@@ -790,14 +807,35 @@ def test_foreman_delivered_resume_and_retry_match_recorded_envelope(
     from workflow_interpreter.foreman.inspector import _task_builder
     from workflow_interpreter.inspector import Dispatcher, Steerer
     from workflow_interpreter.inspector.launch import DispatchResult
+    from workflow_interpreter.bdio.wire import config_signature
+    from workflow_interpreter.inspector.profile import observed_session_registration
     from workflow_interpreter.profiles.registry import ProfileRegistry
 
     lab = ForemanLab(tmp_path, sandbox=SandboxMode.OFF)
     root = lab.instantiate()
     wiring = lab.wiring()
+    settings = tuple(
+        setting.model_copy(update={"value": crew.value})
+        if setting.key == "node.implement.crew"
+        else setting
+        for setting in root.metadata.resolved_config
+    )
+    wiring.store._client._merge_metadata(
+        root.root_id,
+        {
+            "resolved_config": [item.model_dump(mode="json") for item in settings],
+            "config_signature": config_signature(settings),
+        },
+    )
+    root = wiring.store.reads.load_root(root.root_id)
     node = root.index.nodes[IMPLEMENT]
     bindings = select_bindings(root.index, root, node, (), 1)
-    request = entry_mint(model="fake", session_id=str(uuid.uuid4()), inputs=bindings)
+    request = entry_mint(
+        model="fake",
+        crew_profile=crew.value,
+        session_id=str(uuid.uuid4()) if crew is CrewName.CLAUDE else "",
+        inputs=bindings,
+    )
     binary = write_stub(tmp_path, crew)
     profile = ProfileRegistry(
         ProfileConfig(
@@ -823,20 +861,37 @@ def test_foreman_delivered_resume_and_retry_match_recorded_envelope(
             payload = (
                 argv[argv.index("-p") + 1] if crew is CrewName.CLAUDE else argv[-1]
             )
-            assert "Do not spawn or delegate" in payload
-            assert "implement the lab fixture" in payload
-            assert node.instructions is not None and node.instructions in payload
             metadata = wiring.store.reads.load_activation(
                 result.activation.activation_id
             ).metadata
             assert metadata.envelope is not None
-            assert metadata.envelope["byte_count"] == len(payload.encode())
-            assert (
-                metadata.envelope["sha256"]
-                == hashlib.sha256(payload.encode()).hexdigest()
-            )
-            if request.mint_reason is not MintReason.ENTRY:
-                assert STEER_INSTRUCTIONS in payload
+            if request.mint_reason is MintReason.ENTRY:
+                assert "Do not spawn or delegate" in payload
+                assert "implement the lab fixture" in payload
+                assert node.instructions is not None and node.instructions in payload
+                assert metadata.envelope["byte_count"] == len(payload.encode())
+                assert (
+                    metadata.envelope["sha256"]
+                    == hashlib.sha256(payload.encode()).hexdigest()
+                )
+            else:
+                assert payload == STEER_INSTRUCTIONS
+            if request.mint_reason is MintReason.ENTRY:
+                for _attempt in range(100):
+                    current = wiring.store.reads.load_activation(
+                        result.activation.activation_id
+                    )
+                    registration = observed_session_registration(
+                        root, current, profile
+                    )
+                    if registration is not None:
+                        wiring.store.register_session(
+                            current.activation_id, registration
+                        )
+                        break
+                    time.sleep(0.005)
+                else:
+                    raise AssertionError("vendor identity event was not observed")
             return result
         finally:
             assert procfs.terminate(
@@ -844,6 +899,7 @@ def test_foreman_delivered_resume_and_retry_match_recorded_envelope(
             ).confirmed_dead
 
     first = launch(request)
+    first_source = wiring.store.reads.load_activation(first.activation.activation_id)
     steered = Steerer(
         lab.inspector_config,
         wiring.paths,
@@ -851,11 +907,12 @@ def test_foreman_delivered_resume_and_retry_match_recorded_envelope(
         lab.clock,
         workspace=wiring.workspace,
     ).steer(
-        first.activation,
+        first_source,
         reason=STEER_REASON,
         instructions=STEER_INSTRUCTIONS,
         continuation=entry_mint(
             model="fake",
+            crew_profile=crew.value,
             mint_reason=MintReason.STEER_CONTINUATION,
             predecessor_activation_id=first.activation.activation_id,
             inputs=bindings,
@@ -867,6 +924,7 @@ def test_foreman_delivered_resume_and_retry_match_recorded_envelope(
     )
     retry = entry_mint(
         model="fake",
+        crew_profile=crew.value,
         mint_reason=MintReason.INFRA_RETRY,
         predecessor_activation_id=continued.activation.activation_id,
         session_id=continued.handle.session_id,
