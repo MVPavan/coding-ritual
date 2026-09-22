@@ -42,6 +42,7 @@ from workflow_interpreter.bdio import (
     Lifecycle,
     RootRecord,
     StoreError,
+    StoreTransportError,
 )
 from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.carriers import ArtifactIdentity
@@ -1241,25 +1242,31 @@ class _RegistrationDown:
         return getattr(self._store, name)
 
     def register_session(self, *args: object) -> object:
-        raise StoreError("bd unavailable")
+        raise StoreTransportError("bd unavailable")
 
 
-@pytest.mark.parametrize("bd_down", [False, True])
+@pytest.mark.parametrize(
+    "case", ["registered", "transient", "id_mismatch", "unreadable"]
+)
 def test_settle_registers_a_logged_session_or_stalls_before_closing(
-    fake_store: WorkflowStore, tmp_path: Path, bd_down: bool
+    fake_store: WorkflowStore, tmp_path: Path, case: str
 ) -> None:
     """A session the watch never managed to register is re-read from the log.
 
     The monitor's final-cycle registration can fail on a bd hiccup; closing then
     seals a resumable turn with no registration, and the next resume silently
-    goes fresh. The close registers it first, or stalls (retryable) — never
-    closes it unregistered.
+    goes fresh. A TRANSIENT store failure stalls (retryable). A permanent one —
+    claude ignoring its `--session-id`, so the logged id contradicts the
+    recorded one — would stall every tick forever, so the turn closes
+    unregistered and says so; an unreadable log is recorded the same way.
     """
     root = make_root(fake_store, load_definition())
     minted = fake_store.mint_activation(root.root_id, entry_request()).activation
     log = tmp_path / "crew.log"
-    log.write_text("thread-late\n", encoding="utf-8")
-    process = handle(session_id="").model_copy(update={"log_path": str(log)})
+    if case != "unreadable":
+        log.write_text("thread-late\n", encoding="utf-8")
+    preassigned = "sess-preassigned" if case == "id_mismatch" else ""
+    process = handle(session_id=preassigned).model_copy(update={"log_path": str(log)})
     fake_store.record_dispatch(minted.activation_id, process, launch_id="launch-1")
     fake_store._client._merge_metadata(minted.activation_id, {"crew_profile": "codex"})
     fake_store.record_exit(
@@ -1269,7 +1276,7 @@ def test_settle_registers_a_logged_session_or_stalls_before_closing(
     evidence = Evidence(claimed_outcome=Outcome.DONE)
     activation = fake_store.record_evidence(minted.activation_id, evidence)
     paths = _completion_paths(tmp_path, root, activation)
-    store = _RegistrationDown(fake_store) if bd_down else fake_store
+    store = _RegistrationDown(fake_store) if case == "transient" else fake_store
 
     result = settle(
         cast(InstanceWiring, WiringDouble(store=store, paths=paths)),
@@ -1280,13 +1287,20 @@ def test_settle_registers_a_logged_session_or_stalls_before_closing(
     )
 
     durable = fake_store.reads.load_activation(activation.activation_id)
-    if bd_down:
+    kinds = [item.kind for item in durable.metadata.deviations]
+    if case == "transient":
         assert result.stalled is not None
         assert durable.metadata.lifecycle is Lifecycle.EVIDENCE_RECORDED
-    else:
+    elif case == "registered":
         assert durable.metadata.lifecycle is Lifecycle.CLOSED
         assert durable.metadata.session_registration is not None
         assert durable.metadata.session_registration.thread_id == "thread-late"
+        assert close_module.DEVIATION_SESSION_UNREGISTERED not in kinds
+    else:
+        assert result.stalled is None
+        assert durable.metadata.lifecycle is Lifecycle.CLOSED
+        assert durable.metadata.session_registration is None
+        assert kinds.count(close_module.DEVIATION_SESSION_UNREGISTERED) == 1
 
 
 def test_settle_stalls_when_bd_cannot_publish_the_session_tree(
@@ -1386,3 +1400,43 @@ def test_reviewed_tree_is_the_same_checkout_writers_published_tree(
         }
     )
     assert reviewed_tree_oid(wiring, root, appserver) is None
+
+
+def test_reviewed_tree_walks_past_non_writers_to_the_nearest_writer(
+    fake_store: WorkflowStore,
+) -> None:
+    """A reviewer after another reviewer, or after a gate on one, is still held.
+
+    The writer it reviews is the nearest WRITER back along the predecessors,
+    not merely the activation (or gate source) immediately before it.
+    """
+    root = make_root(fake_store, load_definition())
+    writer = fake_store.mint_activation(root.root_id, entry_request()).activation
+    writer = fake_store.record_session_tree(writer.activation_id, "b" * 40)
+
+    def reviewing(name: str, **links: str | None) -> ActivationRecord:
+        return writer.model_copy(
+            update={
+                "id": name,
+                "metadata": writer.metadata.model_copy(
+                    update={"node": "review", **links}
+                ),
+            }
+        )
+
+    first = reviewing("review-1", predecessor_activation_id=writer.activation_id)
+    second = reviewing("review-2", predecessor_activation_id=first.activation_id)
+    gated = reviewing(
+        "review-3", predecessor_activation_id=None, predecessor_gate_id="gate-1"
+    )
+    records = {item.activation_id: item for item in (writer, first, second)}
+    gate = SimpleNamespace(
+        metadata=SimpleNamespace(source_activation_id=first.activation_id)
+    )
+    reads = SimpleNamespace(
+        load_activation=records.__getitem__, load_gate=lambda gate_id: gate
+    )
+    wiring = cast(InstanceWiring, WiringDouble(store=SimpleNamespace(reads=reads)))
+
+    assert reviewed_tree_oid(wiring, root, second) == "b" * 40
+    assert reviewed_tree_oid(wiring, root, gated) == "b" * 40

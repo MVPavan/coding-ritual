@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Final
 
+import structlog
 from pydantic import BaseModel, ConfigDict
 
 from workflow_interpreter.bdio import (
@@ -16,8 +17,10 @@ from workflow_interpreter.bdio import (
     Lifecycle,
     RootRecord,
     StoreError,
+    StoreTransportError,
     Usage,
 )
+from workflow_interpreter.bdio.errors import StoreBusyRefusal
 from workflow_interpreter.bdio.reads import gates_of
 from workflow_interpreter.contracts.execution import CrewName
 from workflow_interpreter.foreman.compose import InstanceWiring
@@ -40,7 +43,11 @@ from workflow_interpreter.inspector import (
 )
 from workflow_interpreter.inspector.channels import pinned_verifier_digests
 from workflow_interpreter.inspector.paths import read_record
-from workflow_interpreter.inspector.profile import Profile, observe_session
+from workflow_interpreter.inspector.profile import (
+    Profile,
+    SessionObservationState,
+    observe_session,
+)
 from workflow_interpreter.schema.models import IsolationMode, Node, Outcome
 
 _BRANCH_ADVANCED = "instance branch advanced at settle to {commit}"
@@ -48,6 +55,17 @@ MSG_SESSION_TREE_UNPUBLISHED: Final = "session tree publication: {error}"
 """A retryable settle stall: the §3 tree OID is not in bd yet."""
 MSG_SESSION_UNREGISTERED: Final = "session registration from the log: {error}"
 """A retryable settle stall: an observed vendor session is not in bd yet."""
+DEVIATION_SESSION_UNREGISTERED: Final = "session_unregistered"
+"""The turn closed without a vendor session a later resume could rejoin."""
+MSG_SESSION_LOG_UNREADABLE: Final = "session log unreadable"
+_TRANSIENT_STORE_ERRORS: Final[tuple[type[StoreError], ...]] = (
+    StoreTransportError,
+    StoreBusyRefusal,
+)
+"""The store's own transient causes (`bdio/errors.py`): a transport that failed
+and a backend contended past its wait. Every other `StoreError` is a defect
+that a retry reproduces, so a settle stalled on one would stall forever."""
+_LOG: Final = structlog.get_logger(__name__)
 _MAX_PREDECESSOR_HOPS: Final = 1024
 
 
@@ -91,6 +109,7 @@ def _settle(
     A missing completion record invokes replay, which may re-run attribution and
     artifact/output pinning before it writes a replacement completion record.
     """
+    unregistered: tuple[Deviation, ...] = ()
     if activation.metadata.lifecycle in (
         Lifecycle.EXIT_RECORDED,
         Lifecycle.EVIDENCE_RECORDED,
@@ -110,8 +129,10 @@ def _settle(
                 stalled=MSG_SESSION_TREE_UNPUBLISHED.format(error=exc),
             )
         try:
-            activation = _register_logged_session(wiring, root, activation, profile)
-        except StoreError as exc:
+            activation, unregistered = _register_logged_session(
+                wiring, root, activation, profile
+            )
+        except _TRANSIENT_STORE_ERRORS as exc:
             return Settlement(
                 activation=activation,
                 stalled=MSG_SESSION_UNREGISTERED.format(error=exc),
@@ -130,6 +151,7 @@ def _settle(
                 Outcome.ERROR_TRANSPORT,
                 evidence=evidence,
                 usage=activation.metadata.usage,
+                deviations=unregistered,
             )
             return Settlement(activation=closed)
         if completion is None:
@@ -178,7 +200,7 @@ def _settle(
                 awaiting=halt.metadata.state is GateState.OPEN,
                 opened=halt.gate_id,
             )
-        deviations = _completion_deviations(completion)
+        deviations = (*_completion_deviations(completion), *unregistered)
         if AuditFlag.BOUND_VIOLATED in completion.audit_flags:
             # Ahead of the effects gate for the reason `finalize.decide` gives
             # on the fresh-observation path: a bound that did not hold is not a
@@ -248,6 +270,7 @@ def _settle(
                 activation.activation_id,
                 Outcome.ERROR_TRANSPORT,
                 evidence=Evidence(note="ExitRecordMissing"),
+                deviations=unregistered,
             )
             return Settlement(activation=closed)
         observation = wiring.observer.replay(
@@ -266,6 +289,7 @@ def _settle(
             activation.activation_id,
             Outcome.ERROR_TRANSPORT,
             evidence=Evidence(note=type(exc).__name__),
+            deviations=unregistered,
         )
         return Settlement(activation=closed)
     completion = observation.completion
@@ -297,6 +321,7 @@ def _settle(
                 }
             )
     decision = decide(node, activation, completion)
+    decided = (*decision.deviations, *unregistered)
     if decision.blocked:
         recorded = wiring.store.record_evidence(
             activation.activation_id, evidence, observation.usage
@@ -304,7 +329,7 @@ def _settle(
         artifact = evidence.artifact
         if artifact is None:
             return _close_effects_discarded(
-                wiring, recorded, evidence, observation.usage, decision.deviations
+                wiring, recorded, evidence, observation.usage, decided
             )
         gate = wiring.store.open_gate(
             root.root_id,
@@ -322,12 +347,12 @@ def _settle(
                 recorded,
                 evidence,
                 observation.usage,
-                decision.deviations,
+                decided,
                 gate.gate_id,
             )
         if gate.metadata.outcome is Outcome.APPROVE:
             deviations = (
-                *decision.deviations,
+                *decided,
                 Deviation(
                     kind=DEVIATION_UNDECLARED_EFFECTS_ACCEPTED,
                     reason="undeclared effects approved",
@@ -346,7 +371,7 @@ def _settle(
         # Only what this close adds: `close_activation` appends it after every
         # deviation the record already carries, so re-reading them here recorded
         # each of them twice more (cr-n2z.9).
-        deviations = decision.deviations
+        deviations = decided
     if diverged:
         deviations = (
             *deviations,
@@ -474,22 +499,54 @@ def _register_logged_session(
     root: RootRecord,
     activation: ActivationRecord,
     profile: Profile,
-) -> ActivationRecord:
+) -> tuple[ActivationRecord, tuple[Deviation, ...]]:
     """Register a vendor session the watch saw in the log but never recorded.
 
     The monitor mirrors the identity each cycle, and a bd failure on its FINAL
     cycle is never retried there: closing the turn unregistered would make the
     next resume silently go fresh (`unregistered_source`) and reset the tree a
     writer's session was left on. Only an OBSERVED identity is registered —
-    §5.6 recovery's rescan rule — and a store failure propagates so the settle
-    stalls and retries rather than sealing the record without it.
+    §5.6 recovery's rescan rule — and a TRANSIENT store failure propagates so
+    the settle stalls and retries rather than sealing the record without it.
+
+    A permanent refusal cannot be retried away: claude may ignore the
+    `--session-id` it was handed, so the logged id contradicts the recorded one
+    on every tick. That turn, like one whose log cannot be read, closes
+    unregistered with the returned deviation saying why.
     """
     if activation.metadata.session_registration is not None:
-        return activation
-    registration = observe_session(root, activation, profile).registration
+        return activation, ()
+    observation = observe_session(root, activation, profile)
+    registration = observation.registration
+    if observation.state is SessionObservationState.UNREADABLE:
+        return activation, _unregistered(activation, MSG_SESSION_LOG_UNREADABLE)
     if registration is None:
-        return activation
-    return wiring.store.register_session(activation.activation_id, registration)
+        return activation, ()
+    try:
+        registered = wiring.store.register_session(
+            activation.activation_id, registration
+        )
+    except _TRANSIENT_STORE_ERRORS:
+        raise
+    except StoreError as exc:
+        return activation, _unregistered(activation, f"{type(exc).__name__}: {exc}")
+    return registered, ()
+
+
+def _unregistered(activation: ActivationRecord, reason: str) -> tuple[Deviation, ...]:
+    """Name, in the log and on the close, why a turn stays unregistered."""
+    _LOG.warning(
+        "wf.settle.session_unregistered",
+        activation_id=activation.activation_id,
+        reason=reason,
+    )
+    return (
+        Deviation(
+            kind=DEVIATION_SESSION_UNREGISTERED,
+            reason=reason,
+            recorded_at="settle",
+        ),
+    )
 
 
 def _previous_tree_oid(
@@ -527,17 +584,22 @@ def reviewed_tree_oid(
     # R1: a frozen app-server reviewer keeps its pre-epic launch unchanged.
     if node.writes or _is_appserver(activation):
         return None
-    predecessor_id = _predecessor_activation_id(wiring, activation)
-    if predecessor_id is None:
-        return None
-    predecessor = wiring.store.reads.load_activation(predecessor_id)
-    writer = resolved_node(root, predecessor.metadata.node).node
-    same_checkout = (writer.isolation is IsolationMode.IN_REPO) == (
-        node.isolation is IsolationMode.IN_REPO
-    )
-    if not writer.writes or not same_checkout:
-        return None
-    return predecessor.metadata.session_tree_oid
+    # The writer reviewed is the NEAREST writer back: a second reviewer, or a
+    # gate whose source was a reviewer, changes no tree in between.
+    predecessor = activation
+    for _ in range(_MAX_PREDECESSOR_HOPS):
+        predecessor_id = _predecessor_activation_id(wiring, predecessor)
+        if predecessor_id is None:
+            return None
+        predecessor = wiring.store.reads.load_activation(predecessor_id)
+        writer = resolved_node(root, predecessor.metadata.node).node
+        if not writer.writes:
+            continue
+        same_checkout = (writer.isolation is IsolationMode.IN_REPO) == (
+            node.isolation is IsolationMode.IN_REPO
+        )
+        return predecessor.metadata.session_tree_oid if same_checkout else None
+    return None
 
 
 def _is_appserver(activation: ActivationRecord) -> bool:
