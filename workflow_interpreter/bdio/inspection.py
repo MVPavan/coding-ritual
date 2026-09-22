@@ -189,6 +189,24 @@ __all__ = ["record_precondition", "record_stale_flag", "recorded_precondition"]
 MSG_SESSION_IDENTITY: Final[str] = "crew session registration identity mismatch"
 
 
+def clear_unobserved_session(
+    client: LedgerStore,
+    load: ActivationLoader,
+    activation_id: str,
+) -> ActivationRecord:
+    """Erase a launch-time id after recovery proves no vendor event observed it."""
+    record = load(activation_id)
+    metadata = record.metadata
+    crew = metadata.crew_profile.removeprefix("profile:")
+    if crew not in (CrewName.CLAUDE.value, CrewName.CODEX.value):
+        return record
+    if metadata.session_registration is not None or not metadata.session_id:
+        return record
+    if metadata.lifecycle not in (Lifecycle.DISPATCHED, Lifecycle.EXIT_RECORDED):
+        raise LifecycleConflictError(MSG_SESSION_IDENTITY)
+    return _merge(client, activation_id, {"session_id": ""})
+
+
 def register_session(
     client: LedgerStore,
     load: ActivationLoader,

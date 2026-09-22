@@ -457,7 +457,7 @@ class Recovery:
         root = self._store.reads.load_root(activation.metadata.wf_root_id)
         registration = observed_session_registration(root, activation, profile)
         if registration is None:
-            return activation
+            return self._store.clear_unobserved_session(activation.activation_id)
         return self._store.register_session(activation.activation_id, registration)
 
     def _finish_abort(

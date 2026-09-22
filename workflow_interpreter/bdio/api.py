@@ -464,6 +464,12 @@ class WorkflowStore:
             self._client, self._load_activation, activation_id, registration
         )
 
+    def clear_unobserved_session(self, activation_id: str) -> ActivationRecord:
+        """Clear a preassigned id that no durable vendor event corroborated."""
+        return inspection.clear_unobserved_session(
+            self._client, self._load_activation, activation_id
+        )
+
     def record_exit(
         self, activation_id: str, exit_record: ExitRecord
     ) -> ActivationRecord:
