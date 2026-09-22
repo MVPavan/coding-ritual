@@ -42,6 +42,17 @@ def execution_policy_digest(pinned_policy: str) -> str:
 
 
 class SessionFreshReason(StrEnum):
-    """Durable reason for starting over instead of resuming a deliberate source."""
+    """Durable reason for starting over instead of resuming a deliberate source.
+
+    Every fresh launch of a RESUME-pinned node carries one: without it the
+    record of a lost thread reads exactly like a legitimate first turn.
+    """
 
     VERSION_MISMATCH = "version_mismatch"
+    """The app-server's pinned protocol version no longer matches the source."""
+    NO_SOURCE = "no_source"
+    """No same-node candidate matched the pinned authority (often turn one)."""
+    UNREGISTERED_SOURCE = "unregistered_source"
+    """A candidate matched, but no vendor identity was ever observed for it."""
+    VERSION_DRIFT = "version_drift"
+    """A candidate matched, but ran under a different CLI than this process."""

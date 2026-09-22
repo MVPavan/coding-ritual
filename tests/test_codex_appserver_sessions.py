@@ -24,11 +24,12 @@ from workflow_interpreter.bdio.rpc_records import (
     SessionCompletion,
     SessionRegistration,
 )
-from workflow_interpreter.bdio.sessions import choose_source
+from workflow_interpreter.bdio.sessions import choose_source, resolved_session_mode
 from workflow_interpreter.contracts.codex import CODEX_VERSION
 from workflow_interpreter.contracts.execution import EXECUTION_POLICY_KEY
 from workflow_interpreter.contracts.sessions import (
     MSG_SESSION_MODE_CONFLICT,
+    SessionFreshReason,
     SessionMode,
     SessionReuse,
 )
@@ -502,6 +503,43 @@ def test_version_mismatch_is_a_logged_fresh_decision(
     assert choose_source(root, request, [source]).source is None
     captured = capsys.readouterr()
     assert "version_mismatch" in captured.out + captured.err
+
+
+def test_downgraded_resume_records_why_it_started_fresh(tmp_path, fake_store):
+    """A resume-pinned node that launches fresh names the reason on the record.
+
+    Without it the durable activation is indistinguishable from a legitimate
+    first turn, so nothing later can tell a genuine start from a silently lost
+    thread.
+    """
+    root = exec_root(tmp_path, fake_store)
+    minted = fake_store.mint_activation(
+        root.root_id, entry_request(crew_profile="codex")
+    ).activation
+    assert resolved_session_mode(root, minted.metadata.node) is SessionMode.RESUME
+    assert minted.metadata.session_fresh_reason is SessionFreshReason.NO_SOURCE
+
+    dispatched = fake_store.record_dispatch(
+        minted.activation_id,
+        handle(session_id="thread-unregistered"),
+        launch_id="unregistered-launch",
+    )
+    unregistered = fake_store.close_activation(dispatched.activation_id, Outcome.DONE)
+    assert unregistered.metadata.session_registration is None
+
+    choice = choose_source(
+        root,
+        entry_request(crew_profile="codex").model_copy(
+            update={
+                "session_mode": SessionMode.RESUME,
+                "mint_reason": MintReason.EDGE,
+                "predecessor_activation_id": unregistered.activation_id,
+            }
+        ),
+        [unregistered],
+    )
+    assert choice.source is None
+    assert choice.fresh_reason is SessionFreshReason.UNREGISTERED_SOURCE
 
 
 def test_same_node_without_eligible_history_gets_distinct_private_state(tmp_path):

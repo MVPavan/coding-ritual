@@ -69,6 +69,10 @@ def choose_source(
     if not isinstance(policy, str):
         raise CarrierIntegrityError(MSG_SESSION_SOURCE)
     crew_profile = request.crew_profile.removeprefix("profile:")
+    # The first explanation in scan order (newest candidate first) is the one
+    # the record keeps: a fresh launch on a RESUME node must say WHY, and the
+    # most recent near-miss is the answer an operator is looking for.
+    rejected: SessionFreshReason | None = None
     for source in sorted(activations, key=lambda item: item.metadata.seq, reverse=True):
         meta = source.metadata
         registration = meta.session_registration
@@ -85,6 +89,7 @@ def choose_source(
         # an unregistered activation carries no session a resume could rejoin —
         # whatever `prepare()` preassigned into `session_id` is not evidence.
         if registration is None:
+            rejected = rejected or SessionFreshReason.UNREGISTERED_SOURCE
             continue
         if (
             registration.root_id != root.root_id
@@ -141,6 +146,7 @@ def choose_source(
                 recorded=registration.crew_version,
                 required=current_version,
             )
+            rejected = rejected or SessionFreshReason.VERSION_DRIFT
             continue
         return SessionChoice(
             source=registration,
@@ -149,7 +155,7 @@ def choose_source(
         )
     if continuation:
         raise CarrierIntegrityError(MSG_SESSION_SOURCE)
-    return SessionChoice()
+    return SessionChoice(fresh_reason=rejected or SessionFreshReason.NO_SOURCE)
 
 
 def _source_outcome_eligible(
