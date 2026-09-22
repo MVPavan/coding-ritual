@@ -341,6 +341,7 @@ def test_plain_resume_skips_crashed_and_abandoned_sources(tmp_path, fake_store):
         handle=process,
         thread_id="thread-good",
         crew_profile="codex",
+        crew_version="codex-cli 0.155.1",
         model=dispatched.metadata.model,
         effort="medium",
         policy_digest="c49fea7425fa7f8699897a97c159c6690267d9003bb78c53fafa8fc15c325d84",
@@ -436,7 +437,7 @@ def test_exec_resume_requires_the_current_probed_cli_version(tmp_path, fake_stor
     assert choose_source(root, request, [incompatible]).source is None
 
 
-def finish_exec_source(store, root):
+def finish_exec_source(store, root, crew_version="codex-cli 0.155.1"):
     """One completed, registered exec turn that pinned no §3 tree."""
     activation = store.mint_activation(
         root.root_id, entry_request(crew_profile="codex")
@@ -450,6 +451,7 @@ def finish_exec_source(store, root):
         handle=process,
         thread_id="thread-exec",
         crew_profile="codex",
+        crew_version=crew_version,
         model=activation.metadata.model,
         effort="medium",
         policy_digest="c49fea7425fa7f8699897a97c159c6690267d9003bb78c53fafa8fc15c325d84",
@@ -691,3 +693,23 @@ def test_non_string_pinned_policy_is_a_carrier_integrity_error(tmp_path, fake_st
     )
     with pytest.raises(CarrierIntegrityError, match="session"):
         choose_source(broken, entry_request(crew_profile="codex-appserver"), ())
+
+
+@pytest.mark.parametrize("outcome", [Outcome.ERROR_CREW, Outcome.ERROR_TRANSPORT])
+def test_appserver_reuses_a_completed_turn_whatever_its_close(
+    tmp_path, fake_store, outcome
+):
+    """Frozen pre-epic rule: a recorded session_completion is what qualifies an
+    app-server source, so the infra retry after an error close still reuses it."""
+    root = app_root(tmp_path, fake_store, "resume")
+    source = finish_source(fake_store, root, outcome)
+    request = entry_request(crew_profile="codex-appserver", session_id="").model_copy(
+        update={
+            "mint_reason": MintReason.INFRA_RETRY,
+            "predecessor_activation_id": source.activation_id,
+        }
+    )
+
+    minted = fake_store.mint_activation(root.root_id, request).activation
+
+    assert minted.metadata.session_reuse_source == source

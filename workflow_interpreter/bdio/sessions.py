@@ -81,7 +81,7 @@ def choose_source(
         registration = meta.session_registration
         if (
             not meta.is_completed
-            or not _source_outcome_eligible(source, continuation_ids)
+            or not _source_outcome_eligible(source, crew_profile, continuation_ids)
             or meta.wf_root_id != root.root_id
             or meta.node != request.node
             or meta.model != settings.get(NodeSetting.MODEL.at(request.node))
@@ -163,9 +163,16 @@ def choose_source(
 
 
 def _source_outcome_eligible(
-    source: ActivationRecord, continuation_ids: frozenset[str]
+    source: ActivationRecord, crew_profile: str, continuation_ids: frozenset[str]
 ) -> bool:
-    """Admit successful turns, plus the exact deliberate steer ancestor."""
+    """Admit successful turns, plus the exact deliberate steer ancestor.
+
+    The frozen app-server crew keeps its pre-epic rule exactly: its recorded
+    `session_completion` is what qualifies a source, whatever the close was,
+    so the outcome filter never applies to it.
+    """
+    if crew_profile == CrewName.CODEX_APPSERVER.value:
+        return True
     if source.metadata.outcome in RESUMABLE_SESSION_OUTCOMES:
         return True
     return (
