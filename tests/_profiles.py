@@ -519,9 +519,19 @@ def write_stub(
     after it has written its channels, which is what a §8.1 steer needs to have
     something to kill.
     """
+    version = {
+        CrewName.CLAUDE: "2.1.0 (Claude Code)",
+        CrewName.CODEX: "codex-cli 0.155.1",
+    }.get(crew)
+    version_probe = (
+        f'if [ "${{1:-}}" = "--version" ]; then printf "%s\\n" "{version}"; exit 0; fi\n'
+        if version is not None
+        else ""
+    )
     body = STUB_BODIES[crew].replace("SID", session_id)
     source = (
         _PREAMBLE
+        + version_probe
         + body
         + (_CHANNELS if channels else "")
         + (_FORGE if forge else "")

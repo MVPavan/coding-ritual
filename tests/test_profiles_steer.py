@@ -28,7 +28,7 @@ import pytest
 
 from tests._foreman import ForemanLab
 from tests._inspector import IMPLEMENT, ChildScript, entry_mint, node_of
-from tests._profiles import Lab, host_env_with, stub_env
+from tests._profiles import BRIEF, Lab, host_env_with, stub_env
 from workflow_interpreter.bdio import Lifecycle, MintReason, MintRequest, ProcessHandle
 from workflow_interpreter.foreman.compose import Composition, ProfileResolver
 from workflow_interpreter.foreman.config import CrewBinding
@@ -97,6 +97,57 @@ def assert_resumes(argv: tuple[str, ...], session: str) -> None:
     assert argv[argv.index("--resume") + 1] == session, argv
     assert "--session-id" not in argv, argv
     assert STEER_INSTRUCTIONS in argv, argv
+
+
+@pytest.mark.proc
+@pytest.mark.parametrize("crew", [CrewName.CLAUDE, CrewName.CODEX])
+def test_plain_resume_uses_the_source_session_and_current_brief(
+    tmp_path: Path, crew: CrewName
+) -> None:
+    """A plain resume needs neither steer lineage nor steer instructions."""
+    source_session = (
+        str(uuid.UUID("0199f0b4-4018-7f67-a3f1-9ec893c475ae"))
+        if crew is CrewName.CLAUDE
+        else "0199f0b4-4018-7f67-a3f1-9ec893c475ae"
+    )
+    resumed = Lab(tmp_path / "resumed")
+    request = entry_mint(session_id="")
+    activation = resumed.store.mint_activation(resumed.root.root_id, request).activation
+    resumed.store._client._merge_metadata(
+        activation.activation_id,
+        {
+            "session_mode": "resume",
+            "session_source_activation_id": "prior-implementer",
+            "source_session_id": source_session,
+        },
+    )
+
+    launched = resumed.dispatch(crew, request=request, session_id="", sleep_s=0.0)
+
+    assert launched.receipt is not None
+    argv = launched.receipt.argv
+    if crew is CrewName.CLAUDE:
+        assert argv[argv.index("--resume") + 1] == source_session
+        assert "--session-id" not in argv
+    else:
+        exec_at = argv.index("exec")
+        assert argv[exec_at : exec_at + 3] == ("exec", "resume", source_session)
+    assert BRIEF in argv
+    if launched.handle is not None:
+        resumed.await_exit(launched.handle)
+
+    fresh = Lab(tmp_path / "fresh")
+    launched_fresh = fresh.dispatch(crew, session_id="", sleep_s=0.0)
+    assert launched_fresh.receipt is not None
+    fresh_argv = launched_fresh.receipt.argv
+    if crew is CrewName.CLAUDE:
+        assert "--session-id" in fresh_argv
+        assert "--resume" not in fresh_argv
+    else:
+        exec_at = fresh_argv.index("exec")
+        assert fresh_argv[exec_at + 1] != "resume"
+    if launched_fresh.handle is not None:
+        fresh.await_exit(launched_fresh.handle)
 
 
 @pytest.mark.proc

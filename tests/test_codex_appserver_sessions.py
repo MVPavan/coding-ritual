@@ -325,6 +325,72 @@ def test_plain_resume_skips_crashed_and_abandoned_unregistered_sources(
         assert choose_source(root, request, [bad]).source_activation_id is None
 
 
+def test_exec_resume_requires_the_pinned_cli_version(tmp_path, fake_store):
+    """Matching exec history resumes; a different qualified CLI starts fresh."""
+    root = exec_root(tmp_path, fake_store)
+    version_setting = ResolvedSetting(
+        key="node.implement.crew_version",
+        value="codex-cli 0.155.1",
+        source=ConfigSource.GRAPH_DEFAULT,
+    )
+    root = root.model_copy(
+        update={
+            "metadata": root.metadata.model_copy(
+                update={
+                    "resolved_config": (*root.metadata.resolved_config, version_setting)
+                }
+            )
+        }
+    )
+    minted = fake_store.mint_activation(
+        root.root_id, entry_request(crew_profile="codex")
+    ).activation
+    process = handle(session_id="")
+    dispatched = fake_store.record_dispatch(
+        minted.activation_id, process, launch_id="exec-launch"
+    )
+    completed = fake_store.close_activation(dispatched.activation_id, Outcome.DONE)
+    registration = SessionRegistration(
+        root_id=root.root_id,
+        activation_id=completed.activation_id,
+        launch_id="exec-launch",
+        handle=process,
+        thread_id="thread-exec",
+        crew_profile="codex",
+        crew_version="codex-cli 0.155.1",
+        model=completed.metadata.model,
+        effort="medium",
+        policy_digest="c49fea7425fa7f8699897a97c159c6690267d9003bb78c53fafa8fc15c325d84",
+        state_path="",
+    )
+    source = completed.model_copy(
+        update={
+            "metadata": completed.metadata.model_copy(
+                update={
+                    "session_id": registration.thread_id,
+                    "session_registration": registration,
+                }
+            )
+        }
+    )
+    request = entry_request(crew_profile="codex").model_copy(
+        update={
+            "session_mode": SessionMode.RESUME,
+            "mint_reason": MintReason.EDGE,
+            "predecessor_activation_id": source.activation_id,
+        }
+    )
+
+    assert choose_source(root, request, [source]).source == registration
+    old = registration.model_copy(update={"crew_version": "codex-cli 0.154.0"})
+    incompatible = source.model_copy(
+        update={
+            "metadata": source.metadata.model_copy(update={"session_registration": old})
+        }
+    )
+    assert choose_source(root, request, [incompatible]).source is None
+
+
 def test_infra_retry_of_deliberate_steer_keeps_its_bound_session(tmp_path, fake_store):
     """Fresh defaults cannot erase §8.1 deliberate continuation after a crash."""
 

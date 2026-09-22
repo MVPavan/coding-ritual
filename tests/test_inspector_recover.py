@@ -32,12 +32,15 @@ from tests._inspector import (
     remove_proc_entry,
     write_proc_entry,
 )
+from tests._profiles import host_env_with, stub_env, write_stub
 from workflow_interpreter.bdio import (
     ActivationRecord,
+    ConfigSource,
     ExitRecord,
     Lifecycle,
     MintReason,
     Outcome,
+    ResolvedSetting,
 )
 from workflow_interpreter.inspector import (
     EVIDENCE_EXIT_UNOBSERVED,
@@ -60,6 +63,7 @@ from workflow_interpreter.inspector.artifact import INSTANCE_BRANCH_REF
 from workflow_interpreter.inspector.paths import read_record, write_record
 from workflow_interpreter.inspector.steer import instructions_digest
 from workflow_interpreter.inspector.workspace import ORPHAN_NAMESPACE
+from workflow_interpreter.profiles import CrewName, ProfileConfig, ProfileRegistry
 from workflow_interpreter.schema.models import IsolationMode
 
 CREW_FILE = "src/orphan.py"
@@ -309,6 +313,68 @@ def test_case_three_without_a_commit_still_closes(lab: Lab) -> None:
     assert resolution.orphan is None
     assert resolution.closed is not None
     assert resolution.closed.metadata.outcome is Outcome.ERROR_TRANSPORT
+
+
+@pytest.mark.parametrize("identity_emitted", [True, False])
+def test_recovery_registers_only_an_identity_found_in_the_durable_log(
+    tmp_path: Path, identity_emitted: bool
+) -> None:
+    """Recovery rescans the log and never invents a pre-event thread id."""
+    lab = Lab(tmp_path)
+    lab.store._client._merge_metadata(
+        lab.root.root_id,
+        {
+            "resolved_config": [
+                *(
+                    item.model_dump(mode="json")
+                    for item in lab.root.metadata.resolved_config
+                ),
+                ResolvedSetting(
+                    key="node.implement.crew_version",
+                    value="codex-cli 0.155.1",
+                    source=ConfigSource.GRAPH_DEFAULT,
+                ).model_dump(mode="json"),
+            ]
+        },
+    )
+    lab.store._client._merge_metadata(
+        lab.activation.activation_id,
+        {"crew_profile": "codex", "launch_id": "recovered-launch"},
+    )
+    log = lab.paths.log(lab.activation.activation_id)
+    log.write_text(
+        '{"type":"thread.started","thread_id":"thread-recovered"}\n'
+        if identity_emitted
+        else "",
+        encoding="utf-8",
+    )
+    binary = write_stub(tmp_path, CrewName.CODEX)
+    registry = ProfileRegistry(
+        ProfileConfig(binary_overrides={CrewName.CODEX: str(binary)}),
+        lab.clock,
+        host_env_with(**stub_env()),
+    )
+    recovery = Recovery(
+        lab.config,
+        lab.paths,
+        lab.store,
+        lab.workspace,
+        lab.clock,
+        profiles=registry,
+    )
+
+    result = recovery.resolve(
+        lab.store.reads.load_activation(lab.activation.id), lab.node
+    )
+
+    assert result.closed is not None
+    registration = result.closed.metadata.session_registration
+    if identity_emitted:
+        assert registration is not None
+        assert registration.thread_id == "thread-recovered"
+        assert registration.crew_version == "codex-cli 0.155.1"
+    else:
+        assert registration is None
 
 
 def test_resolve_leaves_a_running_activation_alone(lab: Lab) -> None:
