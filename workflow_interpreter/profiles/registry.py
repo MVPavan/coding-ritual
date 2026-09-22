@@ -34,6 +34,9 @@ _MSG_UNKNOWN: Final[str] = (
     "no crew profile named {name!r}; registered profiles are {known}"
 )
 _VERSION_TIMEOUT_S: Final[int] = 5
+_MSG_VERSION_OS: Final[str] = "version command could not be executed"
+_MSG_VERSION_TIMEOUT: Final[str] = "version command timed out"
+_MSG_VERSION_OUTPUT: Final[str] = "version command returned unusable output"
 ProfileBuilder = Callable[[ProfileConfig, Clock, Mapping[str, str]], Profile]
 
 BUILDERS: Final[dict[CrewName, ProfileBuilder]] = {
@@ -66,6 +69,7 @@ class ProfileRegistry:
         }
         self._builders.update(builders or {})
         self._versions: dict[CrewName, str | None] = {}
+        self._version_errors: dict[CrewName, str | None] = {}
 
     def profile_for(self, name: str) -> Profile:
         """The registered crew profile; unknown names raise (see module doc)."""
@@ -78,7 +82,7 @@ class ProfileRegistry:
         profile = builder(self._config, self._clock, self._host_env)
         qualify = getattr(profile, "qualify_cli", None)
         if callable(qualify):
-            qualify(self.version_for(bare_name))
+            qualify(self.version_for(bare_name), self.version_error_for(bare_name))
         return profile
 
     def version_for(self, name: str) -> str | None:
@@ -100,12 +104,31 @@ class ProfileRegistry:
                 timeout=_VERSION_TIMEOUT_S,
                 check=False,
             )
-        except (OSError, subprocess.TimeoutExpired):
+        except (OSError, subprocess.TimeoutExpired) as error:
             self._versions[crew] = None
+            self._version_errors[crew] = (
+                _MSG_VERSION_TIMEOUT
+                if isinstance(error, subprocess.TimeoutExpired)
+                else _MSG_VERSION_OS
+            )
             return None
         version = completed.stdout.strip()
         if completed.returncode or not version or "\n" in version:
             self._versions[crew] = None
+            self._version_errors[crew] = _MSG_VERSION_OUTPUT
             return None
         self._versions[crew] = version
+        self._version_errors[crew] = None
         return version
+
+    def version_error_for(self, name: str) -> str | None:
+        """Return a cached qualification failure, probing first when needed."""
+        try:
+            crew = CrewName(name.removeprefix(CREW_PREFIX))
+        except ValueError:
+            return None
+        if crew not in (CrewName.CLAUDE, CrewName.CODEX):
+            return None
+        if crew not in self._versions:
+            self.version_for(name)
+        return self._version_errors.get(crew)

@@ -181,6 +181,10 @@ MSG_RESUME_SOURCE_CONTRACT: Final[str] = (
     "resume source contract mismatch for activation {activation_id}: selected "
     "source {source!r} must carry observed session {session!r}"
 )
+MSG_CLI_VERSION_UNAVAILABLE: Final[str] = (
+    "CLI version unavailable for resume activation {activation_id} ({crew}): "
+    "{reason}"
+)
 
 
 class DispatchResult(BaseModel):
@@ -346,6 +350,7 @@ class Dispatcher:
         self._assert_continuation(
             request,
             activation,
+            profile,
             instructions,
             carries_steer=source is not None
             or activation.metadata.mint_reason is MintReason.STEER_CONTINUATION,
@@ -421,6 +426,7 @@ class Dispatcher:
         self,
         request: MintRequest,
         activation: ActivationRecord,
+        profile: Profile,
         instructions: str | None,
         carries_steer: bool,
     ) -> None:
@@ -471,6 +477,20 @@ class Dispatcher:
                         session=request.source_session_id,
                     )
                 )
+            crew = profile.name().removeprefix("profile:")
+            if crew in (CrewName.CLAUDE.value, CrewName.CODEX.value):
+                version_reader = getattr(profile, "cli_version", None)
+                error_reader = getattr(profile, "cli_version_error", None)
+                version = version_reader() if callable(version_reader) else None
+                error = error_reader() if callable(error_reader) else None
+                if version is None:
+                    raise ContinuationRefused(
+                        MSG_CLI_VERSION_UNAVAILABLE.format(
+                            activation_id=activation.activation_id,
+                            crew=crew,
+                            reason=error or "profile was not qualified",
+                        )
+                    )
         if carries_steer and not resume and not version_fresh:
             raise ContinuationRefused(
                 _MSG_NO_SESSION.format(

@@ -65,7 +65,11 @@ DIVERGENT_MODEL: Final[str] = "claude-haiku-4-5"
 
 
 def _selected_registration(
-    lab: Lab, activation_id: str, thread_id: str
+    lab: Lab,
+    activation_id: str,
+    thread_id: str,
+    *,
+    crew_version: str = "codex-cli 0.155.1",
 ) -> SessionRegistration:
     """A durable source identity for launch-contract tests."""
     return SessionRegistration(
@@ -75,7 +79,7 @@ def _selected_registration(
         handle=handle_for(41, log_path=str(lab.paths.log(activation_id))),
         thread_id=thread_id,
         crew_profile="fake",
-        crew_version="test-cli 1",
+        crew_version=crew_version,
         model="fake-model",
         effort="medium",
         policy_digest="policy",
@@ -141,7 +145,14 @@ def test_plain_resume_uses_only_the_durable_brief_delta(
             "session_source_activation_id": activation.activation_id,
             "source_session_id": source_session,
             "session_registration": _selected_registration(
-                resumed, activation.activation_id, source_session
+                resumed,
+                activation.activation_id,
+                source_session,
+                crew_version=(
+                    "2.1.0 (Claude Code)"
+                    if crew is CrewName.CLAUDE
+                    else "codex-cli 0.155.1"
+                ),
             ).model_dump(mode="json"),
         },
     )
