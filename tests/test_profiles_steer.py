@@ -27,9 +27,10 @@ from typing import Final
 import pytest
 
 from tests._foreman import ForemanLab
-from tests._inspector import IMPLEMENT, ChildScript, entry_mint, node_of
+from tests._inspector import IMPLEMENT, ChildScript, entry_mint, handle_for, node_of
 from tests._profiles import BRIEF, Lab, host_env_with, stub_env
 from workflow_interpreter.bdio import Lifecycle, MintReason, MintRequest, ProcessHandle
+from workflow_interpreter.bdio.rpc_records import SessionRegistration
 from workflow_interpreter.contracts.sessions import SessionMode
 from workflow_interpreter.foreman.compose import Composition, ProfileResolver
 from workflow_interpreter.foreman.config import CrewBinding
@@ -61,6 +62,25 @@ STEER_REASON: Final[str] = "the crew is looping on the same failing test"
 STEER_INSTRUCTIONS: Final[str] = "stop rewriting the fixture; fix the assertion"
 PINNED_MODEL: Final[str] = "claude-opus-5"
 DIVERGENT_MODEL: Final[str] = "claude-haiku-4-5"
+
+
+def _selected_registration(
+    lab: Lab, activation_id: str, thread_id: str
+) -> SessionRegistration:
+    """A durable source identity for launch-contract tests."""
+    return SessionRegistration(
+        root_id=lab.root.root_id,
+        activation_id=activation_id,
+        launch_id="source-launch",
+        handle=handle_for(41, log_path=str(lab.paths.log(activation_id))),
+        thread_id=thread_id,
+        crew_profile="fake",
+        crew_version="test-cli 1",
+        model="fake-model",
+        effort="medium",
+        policy_digest="policy",
+        state_path="",
+    )
 
 
 @pytest.mark.proc
@@ -120,6 +140,9 @@ def test_plain_resume_uses_only_the_durable_brief_delta(
             "session_mode": SessionMode.RESUME,
             "session_source_activation_id": "prior-implementer",
             "source_session_id": source_session,
+            "session_registration": _selected_registration(
+                resumed, activation.activation_id, source_session
+            ).model_dump(mode="json"),
         },
     )
 
@@ -159,6 +182,31 @@ def test_plain_resume_uses_only_the_durable_brief_delta(
         assert fresh_argv[exec_at + 1] != "resume"
     if launched_fresh.handle is not None:
         fresh.await_exit(launched_fresh.handle)
+
+
+@pytest.mark.proc
+@pytest.mark.parametrize("registered_id", [None, "different-thread"])
+def test_plain_resume_refuses_an_unregistered_or_mismatched_selected_source(
+    tmp_path: Path, registered_id: str | None
+) -> None:
+    """A selected source and its exact observed vendor id are one contract."""
+    lab = Lab(tmp_path)
+    request = entry_mint(session_id="")
+    activation = lab.store.mint_activation(lab.root.root_id, request).activation
+    source_session = str(uuid.uuid4())
+    delta: dict[str, object] = {
+        "session_mode": SessionMode.RESUME,
+        "session_source_activation_id": activation.activation_id,
+        "source_session_id": source_session,
+    }
+    if registered_id is not None:
+        delta["session_registration"] = _selected_registration(
+            lab, activation.activation_id, registered_id
+        ).model_dump(mode="json")
+    lab.store._client._merge_metadata(activation.activation_id, delta)
+
+    with pytest.raises(ContinuationRefused, match="resume source contract"):
+        lab.dispatch(CrewName.CLAUDE, request=request, sleep_s=0.0)
 
 
 @pytest.mark.proc
