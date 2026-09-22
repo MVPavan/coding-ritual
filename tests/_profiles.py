@@ -766,6 +766,7 @@ class Lab:
         effort: str | None = "medium",
         brief: str = BRIEF,
         resume_brief: str | None = None,
+        binary: Path | str | None = None,
     ) -> DispatchResult:
         """Run §5.2 phase B alone, with no watch loop over the child.
 
@@ -778,7 +779,7 @@ class Lab:
         """
         extra = extra_env or {}
         self.ensure_worktree()
-        stub = write_stub(
+        stub = binary or write_stub(
             self.bin,
             crew,
             session_id=STUB_SESSION,

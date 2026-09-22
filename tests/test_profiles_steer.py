@@ -210,6 +210,43 @@ def test_plain_resume_refuses_an_unregistered_or_mismatched_selected_source(
 
 
 @pytest.mark.proc
+def test_failed_cli_version_probe_allows_fresh_but_refuses_resume(
+    tmp_path: Path,
+) -> None:
+    """Unknown process compatibility must never disable the reuse guard."""
+    missing_binary = tmp_path / "missing-codex"
+    fresh = Lab(tmp_path / "fresh")
+    launched = fresh.dispatch(CrewName.CODEX, binary=missing_binary, sleep_s=0.0)
+    assert launched.receipt is not None
+    if launched.handle is not None:
+        fresh.await_exit(launched.handle)
+
+    resumed = Lab(tmp_path / "resumed")
+    request = entry_mint(session_id="")
+    activation = resumed.store.mint_activation(resumed.root.root_id, request).activation
+    session_id = "observed-thread"
+    resumed.store._client._merge_metadata(
+        activation.activation_id,
+        {
+            "session_mode": SessionMode.RESUME,
+            "session_source_activation_id": activation.activation_id,
+            "source_session_id": session_id,
+            "session_registration": _selected_registration(
+                resumed, activation.activation_id, session_id
+            ).model_dump(mode="json"),
+        },
+    )
+
+    with pytest.raises(ContinuationRefused, match="CLI version unavailable"):
+        resumed.dispatch(
+            CrewName.CODEX,
+            request=request,
+            binary=missing_binary,
+            resume_brief="new instruction",
+        )
+
+
+@pytest.mark.proc
 def test_routed_claude_roles_keep_their_own_pinned_efforts(
     tmp_path: Path,
 ) -> None:
