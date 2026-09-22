@@ -15,6 +15,7 @@ import pytest
 
 from tests._inspector import (
     IMPLEMENT,
+    SESSION_ID,
     FrozenClock,
     dead_pid,
     entry_mint,
@@ -28,9 +29,16 @@ from tests._inspector import (
     make_store,
     make_workspace,
     node_of,
+    observe_session,
 )
-from workflow_interpreter.bdio import ActivationRecord
-from workflow_interpreter.contracts.sessions import SessionMode
+from workflow_interpreter.bdio import (
+    ActivationRecord,
+    ConfigSource,
+    MintReason,
+    Outcome,
+    ResolvedSetting,
+)
+from workflow_interpreter.contracts.sessions import SessionMode, session_mode_key
 from workflow_interpreter.inspector.errors import (
     ReadOnlyTreeMutation,
     ResumeMismatchReason,
@@ -60,13 +68,16 @@ class Lab:
     """One instance whose activations share a checkout, as §3 has them do."""
 
     def __init__(
-        self, tmp_path: Path, isolation: IsolationMode = IsolationMode.WORKTREE
+        self,
+        tmp_path: Path,
+        isolation: IsolationMode = IsolationMode.WORKTREE,
+        *overrides: ResolvedSetting,
     ) -> None:
         self.repo = make_repo(tmp_path)
         self.base = head_of(self.repo)
         self.config = make_config(self.repo, tmp_path)
         _, self.store = make_store(tmp_path, self.base)
-        self.root = make_root(self.store, self.repo, "tree-instance")
+        self.root = make_root(self.store, self.repo, "tree-instance", *overrides)
         self.paths = make_paths(self.config, self.root.root_id)
         self.git = make_git(self.config)
         self.workspace = make_workspace(self.paths, self.git, FrozenClock())
@@ -91,9 +102,11 @@ class Lab:
     ) -> ActivationRecord:
         """A later activation of the same node, durable session fields included."""
         self.paths.ensure_activation_dir(activation_id)
+        # `id`, not `activation_id`: the latter is a read-only property, and
+        # updating it left every "successor" still carrying its source's id.
         return source.model_copy(
             update={
-                "activation_id": activation_id,
+                "id": activation_id,
                 "metadata": source.metadata.model_copy(update=metadata),
             }
         )
@@ -243,6 +256,71 @@ def test_intervening_writer_refuses(lab: Lab) -> None:
     assert refusal.value.reason is ResumeMismatchReason.INTERVENING_WRITER
     assert refusal.value.expected == expected
     assert refusal.value.observed == observed
+
+
+def test_plain_loop_resumes_impl2_on_the_tree_impl1_pinned(tmp_path: Path) -> None:
+    """S3 acceptance: impl#1 → review#1 → impl#2, through the real wiring.
+
+    Nothing here computes the tree impl#2 is held to. impl#1's uncommitted
+    sentinel is pinned at its exit, published from the ref as bd's
+    `session_tree_oid`, selected by `choose_source` at impl#2's mint, and lands
+    on impl#2 as `expected_tree_oid` — so equality passing proves the whole
+    chain carried the same tree, and the sentinel surviving proves no reset.
+    """
+    lab = Lab(
+        tmp_path,
+        IsolationMode.WORKTREE,
+        ResolvedSetting(
+            key=session_mode_key(IMPLEMENT),
+            value=SessionMode.RESUME.value,
+            source=ConfigSource.GRAPH_DEFAULT,
+        ),
+    )
+    minted = lab.mint()
+    first = lab.run(minted, lab.node)
+    assert minted.metadata.source_session_id is None
+    assert first.reset_applied is False
+    (lab.tree / SENTINEL).write_text(SENTINEL_TEXT, encoding="utf-8")
+    dispatched = lab.store.record_dispatch(
+        minted.activation_id,
+        handle_for(dead_pid(), log_path=str(lab.paths.log(minted.activation_id))),
+        launch_id="impl-1-launch",
+    )
+    impl1 = observe_session(lab.store, dispatched)
+    pinned = lab.workspace.pin_session_tree(impl1, lab.node)
+    published = lab.workspace.session_tree_oid(impl1.activation_id)
+    assert pinned is not None and published == pinned
+    lab.store.record_session_tree(impl1.activation_id, published)
+    lab.store.close_activation(impl1.activation_id, Outcome.DONE)
+
+    review = lab.successor(impl1, "wf-review-1")
+    observed = lab.run(review, lab.reviewer)
+    lab.workspace.verify_shared_tree(review, lab.reviewer)
+    assert observed.reset_applied is False
+    seen = read_record(lab.paths.observed_tree(review.activation_id), ObservedTree)
+    assert seen is not None and seen.tree_oid == published
+
+    impl2 = lab.store.mint_activation(
+        lab.root.root_id,
+        entry_mint(
+            mint_reason=MintReason.EDGE,
+            predecessor_activation_id=impl1.activation_id,
+        ),
+    ).activation
+    assert impl2.metadata.session_source_activation_id == impl1.activation_id
+    assert impl2.metadata.source_session_id == SESSION_ID
+    assert impl2.metadata.expected_tree_oid == published
+
+    resumed = lab.run(impl2, lab.node)
+
+    assert resumed.reset_applied is False
+    assert resumed.pre_reset_commit is None
+    assert resumed.reset_verified_commit == head_of(lab.tree)
+    assert (lab.tree / SENTINEL).read_text(encoding="utf-8") == SENTINEL_TEXT
+    assert lab.git.status_paths(cwd=lab.tree) == ((SENTINEL, False),)
+    owner = read_record(lab.paths.workspace_record, WorkspaceRecord)
+    assert owner is not None
+    assert owner.owner_activation_id == impl2.activation_id
 
 
 def test_in_repo_reviewer_keeps_the_writer_attribution(in_repo_lab: Lab) -> None:

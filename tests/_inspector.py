@@ -473,12 +473,21 @@ def pinned_config(repo: Path) -> tuple[ResolvedSetting, ...]:
     )
 
 
-def make_root(store: WorkflowStore, repo: Path, instance_key: str) -> RootRecord:
-    """Pin the §2 fixture graph into the in-memory bd workspace."""
+def make_root(
+    store: WorkflowStore, repo: Path, instance_key: str, *overrides: ResolvedSetting
+) -> RootRecord:
+    """Pin the §2 fixture graph into the in-memory bd workspace.
+
+    `overrides` replace the fixture's resolution key by key.
+    """
+    replaced = {setting.key for setting in overrides}
     return store.create_root(
         instance_key=instance_key,
         definition=load_definition(),
-        resolved_config=pinned_config(repo),
+        resolved_config=(
+            *(item for item in pinned_config(repo) if item.key not in replaced),
+            *overrides,
+        ),
     )
 
 
