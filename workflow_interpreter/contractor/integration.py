@@ -30,7 +30,7 @@ from workflow_interpreter.contractor.models import ContractorRecord, ContractorS
 from workflow_interpreter.contractor.tracker_wiring import adapter_of
 from workflow_interpreter.contractor.verification import VerificationPolicy
 from workflow_interpreter.foreman.compose import Composition
-from workflow_interpreter.foreman.execution import resolved_node
+from workflow_interpreter.foreman.execution import resolved_static_node
 from workflow_interpreter.foreman.resolve import _resolved_config
 from workflow_interpreter.inspector.band import BandLock
 from workflow_interpreter.inspector.gitcmd import GitSubcommand
@@ -421,7 +421,7 @@ class IntegrationGuard:
                 raise ContractorRefusal("source belongs to a different owner")
             writes = []
             for activation in source_reads.list_activations(row.root_id):
-                if not resolved_node(root, activation.metadata.node).node.writes:
+                if not resolved_static_node(root, activation.metadata.node).writes:
                     continue
                 evidence = activation.metadata.evidence
                 if evidence is None or evidence.artifact is None:

@@ -25,8 +25,8 @@ from workflow_interpreter.bdio.rpc_records import (
     SessionRegistration,
 )
 from workflow_interpreter.bdio.sessions import choose_source, resolved_session_mode
+from workflow_interpreter.bdio.wire import activation_binding_digest
 from workflow_interpreter.contracts.codex import CODEX_VERSION
-from workflow_interpreter.contracts.execution import EXECUTION_POLICY_KEY
 from workflow_interpreter.contracts.sessions import (
     MSG_SESSION_MODE_CONFLICT,
     SessionFreshReason,
@@ -490,6 +490,7 @@ def test_unpinned_source_carries_no_tree_proof(tmp_path, fake_store):
     source = finish_exec_source(fake_store, root)
     request = entry_request(crew_profile="codex").model_copy(
         update={
+            "session_mode": SessionMode.RESUME,
             "mint_reason": MintReason.EDGE,
             "predecessor_activation_id": source.activation_id,
         }
@@ -580,7 +581,8 @@ def test_downgraded_resume_records_why_it_started_fresh(tmp_path, fake_store):
     """
     root = exec_root(tmp_path, fake_store)
     minted = fake_store.mint_activation(
-        root.root_id, entry_request(crew_profile="codex")
+        root.root_id,
+        entry_request(crew_profile="codex", session_mode=SessionMode.RESUME),
     ).activation
     assert resolved_session_mode(root, minted.metadata.node) is SessionMode.RESUME
     assert minted.metadata.session_fresh_reason is SessionFreshReason.NO_SOURCE
@@ -691,26 +693,16 @@ def test_version_bump_deliberate_continuation_can_dispatch_fresh(tmp_path):
 
 
 def test_non_string_pinned_policy_is_a_carrier_integrity_error(tmp_path, fake_store):
-    """Malformed durable policy data cannot become a session compatibility key."""
+    """Malformed activation policy data cannot become a session compatibility key."""
     root = app_root(tmp_path, fake_store, "same-node")
-    broken = root.model_copy(
+    broken = entry_request(crew_profile="codex-appserver").model_copy(
         update={
-            "metadata": root.metadata.model_copy(
-                update={
-                    "resolved_config": (
-                        *root.metadata.resolved_config,
-                        ResolvedSetting(
-                            key=EXECUTION_POLICY_KEY.format(node="implement"),
-                            value=42,
-                            source=ConfigSource.PROJECT_CONFIG,
-                        ),
-                    ),
-                }
-            )
+            "execution_policy": 42,
+            "session_mode": SessionMode.RESUME,
         }
     )
     with pytest.raises(CarrierIntegrityError, match="session"):
-        choose_source(broken, entry_request(crew_profile="codex-appserver"), ())
+        choose_source(root, broken, ())
 
 
 @pytest.mark.parametrize("outcome", [Outcome.ERROR_CREW, Outcome.ERROR_TRANSPORT])
@@ -741,6 +733,7 @@ def test_exec_source_without_a_registered_cli_version_is_unqualified(
     source = finish_exec_source(fake_store, root, crew_version=None)
     request = entry_request(crew_profile="codex").model_copy(
         update={
+            "session_mode": SessionMode.RESUME,
             "crew_version": "codex-cli 0.155.1",
             "mint_reason": MintReason.EDGE,
             "predecessor_activation_id": source.activation_id,
@@ -751,3 +744,183 @@ def test_exec_source_without_a_registered_cli_version_is_unqualified(
 
     assert minted.metadata.session_source_activation_id is None
     assert minted.metadata.session_fresh_reason is SessionFreshReason.UNQUALIFIED_SOURCE
+
+
+@pytest.mark.parametrize(
+    ("field", "replacement"),
+    (("model", "new-model"), ("effort", "high"), ("crew_profile", "claude")),
+)
+def test_new_binding_starts_fresh_from_newest_source(
+    tmp_path, fake_store, field, replacement
+):
+    """A changed invocation does not skip back to an older matching thread."""
+    root = exec_root(tmp_path, fake_store)
+    registration = finish_exec_source(fake_store, root)
+    source = fake_store.reads.load_activation(registration.activation_id)
+    request = entry_request(crew_profile="codex").model_copy(
+        update={
+            "session_mode": SessionMode.RESUME,
+            "mint_reason": MintReason.EDGE,
+            "predecessor_activation_id": source.activation_id,
+            field: replacement,
+        }
+    )
+
+    choice = choose_source(root, request, [source])
+
+    assert choice.source is None
+    assert choice.fresh_reason is SessionFreshReason.MODEL_CHANGED
+
+
+def test_legacy_source_uses_registration_effort_for_resume(tmp_path, fake_store):
+    """Missing S3 fields on a pre-upgrade source do not change its thread."""
+    root = exec_root(tmp_path, fake_store)
+    registration = finish_exec_source(fake_store, root)
+    source = fake_store.reads.load_activation(registration.activation_id)
+    legacy = source.model_copy(
+        update={
+            "metadata": source.metadata.model_copy(
+                update={
+                    "binding_digest": None,
+                    "role": None,
+                    "family": None,
+                    "effort": None,
+                    "context_cap_tokens": None,
+                    "execution_policy": None,
+                    "policy_digest": None,
+                    "catalog_digest": None,
+                    "crew_version": None,
+                }
+            )
+        }
+    )
+    request = entry_request(
+        crew_profile="codex",
+        session_mode=SessionMode.RESUME,
+        mint_reason=MintReason.EDGE,
+        predecessor_activation_id=source.activation_id,
+        crew_version=registration.crew_version,
+    )
+
+    choice = choose_source(root, request, [legacy])
+
+    assert choice.source == registration
+    assert choice.source_activation_id == source.activation_id
+
+
+def test_legacy_steer_with_incompatible_registration_refuses(tmp_path, fake_store):
+    """An incompatible deliberate continuation cannot silently start fresh."""
+    root = exec_root(tmp_path, fake_store)
+    registration = finish_exec_source(fake_store, root)
+    source = fake_store.reads.load_activation(registration.activation_id)
+    legacy = source.model_copy(
+        update={
+            "metadata": source.metadata.model_copy(
+                update={
+                    "binding_digest": None,
+                    "role": None,
+                    "family": None,
+                    "effort": None,
+                    "context_cap_tokens": None,
+                    "execution_policy": None,
+                    "policy_digest": None,
+                    "catalog_digest": None,
+                    "crew_version": None,
+                    "outcome": Outcome.STEERED,
+                }
+            )
+        }
+    )
+    request = entry_request(
+        crew_profile="codex",
+        session_mode=SessionMode.RESUME,
+        mint_reason=MintReason.STEER_CONTINUATION,
+        predecessor_activation_id=source.activation_id,
+        effort="high",
+        crew_version=registration.crew_version,
+    )
+
+    with pytest.raises(CarrierIntegrityError, match="session source"):
+        choose_source(root, request, [legacy])
+
+
+def test_partial_source_pin_refuses_by_activation_name(tmp_path, fake_store):
+    """A missing digest on an S3 source cannot be treated as a legacy row."""
+    root = exec_root(tmp_path, fake_store)
+    registration = finish_exec_source(fake_store, root)
+    source = fake_store.reads.load_activation(registration.activation_id)
+    damaged = source.model_copy(
+        update={
+            "metadata": source.metadata.model_copy(
+                update={"binding_digest": None, "model": "tampered-model"}
+            )
+        }
+    )
+    request = entry_request(
+        crew_profile="codex",
+        session_mode=SessionMode.RESUME,
+        mint_reason=MintReason.EDGE,
+        predecessor_activation_id=source.activation_id,
+        crew_version=registration.crew_version,
+    )
+
+    with pytest.raises(CarrierIntegrityError, match=source.activation_id):
+        choose_source(root, request, [damaged])
+
+
+def test_fresh_request_overrides_historical_resume_root(tmp_path, fake_store):
+    """The root mode cannot silently turn an explicitly fresh mint into resume."""
+    root = exec_root(tmp_path, fake_store)
+    source = finish_exec_source(fake_store, root)
+    request = entry_request(
+        crew_profile="codex",
+        session_mode=SessionMode.FRESH,
+        mint_reason=MintReason.EDGE,
+        predecessor_activation_id=source.activation_id,
+    )
+
+    minted = fake_store.mint_activation(root.root_id, request).activation
+
+    assert minted.metadata.session_mode is SessionMode.FRESH
+    assert minted.metadata.session_source_activation_id is None
+    assert minted.metadata.session_fresh_reason is None
+
+
+@pytest.mark.parametrize("newest_outcome", (Outcome.DONE, Outcome.ERROR_TRANSPORT))
+def test_changed_newest_binding_does_not_resume_older_matching_thread(
+    tmp_path, fake_store, newest_outcome
+):
+    """Only the newest settled candidate can decide the next thread choice."""
+    root = exec_root(tmp_path, fake_store)
+    registration = finish_exec_source(fake_store, root)
+    older = fake_store.reads.load_activation(registration.activation_id)
+    newer = older.model_copy(
+        update={
+            "id": "newer-source",
+            "metadata": older.metadata.model_copy(
+                update={
+                    "seq": older.metadata.seq + 1,
+                    "model": "changed-model",
+                    "outcome": newest_outcome,
+                }
+            ),
+        }
+    )
+    newer = newer.model_copy(
+        update={
+            "metadata": newer.metadata.model_copy(
+                update={"binding_digest": activation_binding_digest(newer.metadata)}
+            )
+        }
+    )
+    request = entry_request(
+        crew_profile="codex",
+        session_mode=SessionMode.RESUME,
+        mint_reason=MintReason.EDGE,
+        predecessor_activation_id=newer.activation_id,
+    )
+
+    choice = choose_source(root, request, [older, newer])
+
+    assert choice.source is None
+    assert choice.fresh_reason is SessionFreshReason.MODEL_CHANGED

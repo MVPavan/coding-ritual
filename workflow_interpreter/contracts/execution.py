@@ -79,7 +79,7 @@ def tool_network_for(crew: str, profiles: ExecutionRegistry | None) -> ToolNetwo
 
 
 class ExecutionPolicy(BaseModel):
-    """The immutable meaning pinned when a named node enters an instance."""
+    """The immutable authority pinned for a named activation."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
     version: Literal[1] = 1

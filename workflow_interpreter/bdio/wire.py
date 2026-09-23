@@ -66,6 +66,7 @@ from workflow_interpreter.bdio.rpc_records import (
     SessionCompletion,
     SessionRegistration,
 )
+from workflow_interpreter.contracts.execution import ExecutionPolicy
 from workflow_interpreter.contracts.run_identity import RunIdentity
 from workflow_interpreter.contracts.sessions import SessionFreshReason, SessionMode
 from workflow_interpreter.schema.decisions import (
@@ -407,6 +408,14 @@ class ActivationMetadata(BaseModel):
     envelope: dict[str, JsonValue] | None = None
     crew_profile: str
     model: str
+    role: str | None = None
+    family: str | None = None
+    effort: str | None = None
+    context_cap_tokens: int | None = None
+    execution_policy: ExecutionPolicy | None = None
+    policy_digest: str | None = None
+    catalog_digest: str | None = None
+    binding_digest: str | None = None
     crew_version: str | None = None
     session_id: str
     session_mode: SessionMode = SessionMode.FRESH
@@ -479,6 +488,49 @@ class ActivationMetadata(BaseModel):
             and self.outcome is not None
             and not self.is_superseded
         )
+
+
+_BINDING_DIGEST_KEYS: Final[tuple[str, ...]] = (
+    "role",
+    "crew",
+    "model",
+    "effort",
+    "cap",
+    "mode",
+    "policy",
+)
+
+
+def activation_binding_digest(metadata: ActivationMetadata) -> str:
+    """Hash the activation's recorded invocation fields in one stable shape."""
+    values = (
+        metadata.role,
+        metadata.crew_profile,
+        metadata.model,
+        metadata.effort,
+        metadata.context_cap_tokens,
+        metadata.session_mode.value,
+        metadata.policy_digest,
+    )
+    payload = dict(zip(_BINDING_DIGEST_KEYS, values, strict=True))
+    return hashlib.sha256(
+        json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
+
+
+def is_legacy_activation(metadata: ActivationMetadata) -> bool:
+    """Only a row with no S3 invocation pins predates activation pinning."""
+    return (
+        metadata.role is None
+        and metadata.family is None
+        and metadata.effort is None
+        and metadata.context_cap_tokens is None
+        and metadata.execution_policy is None
+        and metadata.policy_digest is None
+        and metadata.catalog_digest is None
+        and metadata.binding_digest is None
+        and metadata.crew_version is None
+    )
 
 
 class GateMetadata(BaseModel):
@@ -597,6 +649,14 @@ class MintRequest(BaseModel):
     predecessor_gate_id: str | None = None
     crew_profile: str
     model: str
+    role: str | None = None
+    family: str | None = None
+    effort: str | None = None
+    context_cap_tokens: int | None = None
+    execution_policy: ExecutionPolicy | None = None
+    policy_digest: str | None = None
+    catalog_digest: str | None = None
+    binding_digest: str | None = None
     crew_version: str | None = None
     session_id: str
     session_mode: SessionMode = SessionMode.FRESH
@@ -620,6 +680,33 @@ class MintRequest(BaseModel):
         ):
             raise CarrierIntegrityError(_MSG_BOTH_PREDECESSORS)
         return self
+
+
+def mint_request_from_activation(metadata: ActivationMetadata) -> MintRequest:
+    """Rebuild only the durable request fields carried by an activation."""
+    return MintRequest(
+        node=metadata.node,
+        mint_reason=metadata.mint_reason,
+        crew_profile=metadata.crew_profile,
+        model=metadata.model,
+        role=metadata.role,
+        family=metadata.family,
+        effort=metadata.effort,
+        context_cap_tokens=metadata.context_cap_tokens,
+        execution_policy=metadata.execution_policy,
+        policy_digest=metadata.policy_digest,
+        catalog_digest=metadata.catalog_digest,
+        binding_digest=metadata.binding_digest,
+        crew_version=metadata.crew_version,
+        session_id=metadata.session_id,
+        session_mode=metadata.session_mode,
+        session_source_activation_id=metadata.session_source_activation_id,
+        source_session_id=metadata.source_session_id,
+        predecessor_activation_id=metadata.predecessor_activation_id,
+        predecessor_gate_id=metadata.predecessor_gate_id,
+        inputs=metadata.inputs,
+        deviations=metadata.deviations,
+    )
 
 
 class GateOpenRequest(BaseModel):

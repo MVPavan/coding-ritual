@@ -583,8 +583,37 @@ def test_registered_fake_pins_and_launches_its_declared_network_fact(
     assert activation_id is not None
     activation = lab.store.reads.load_activation(activation_id)
     assert activation.metadata.crew_profile == "fake"
+    assert activation.metadata.execution_policy is not None
+    assert activation.metadata.execution_policy.tool_network is network
     receipt = read_record(lab.wiring().paths.receipt(activation_id), LaunchReceipt)
     assert receipt is not None and receipt.tool_network is network
+
+
+def test_new_activation_policy_uses_current_registered_crew_capability(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The activation recomputes grants when a root's policy is historical."""
+    from tests._foreman import ForemanLab
+    from tests._helpers import SHIPPED_FIXTURE
+    from workflow_interpreter.inspector.models import LaunchReceipt
+    from workflow_interpreter.inspector.paths import read_record
+
+    lab = ForemanLab(tmp_path, toml=SHIPPED_FIXTURE)
+    root = lab.instantiate_resolved()
+    assert resolved_node(root, "implement").execution_policy.tool_network is (
+        ToolNetwork.NOT_ENFORCED
+    )
+    monkeypatch.setattr(lab.profiles.profile, "tool_network", ToolNetwork.DENIED)
+
+    activation_id = lab.tick().dispatched
+
+    assert activation_id is not None
+    activation = lab.store.reads.load_activation(activation_id)
+    assert activation.metadata.execution_policy is not None
+    assert activation.metadata.execution_policy.version == 1
+    assert activation.metadata.execution_policy.tool_network is ToolNetwork.DENIED
+    receipt = read_record(lab.wiring().paths.receipt(activation_id), LaunchReceipt)
+    assert receipt is not None and receipt.tool_network is ToolNetwork.DENIED
 
 
 @pytest.mark.parametrize("network", list(ToolNetwork))

@@ -19,6 +19,7 @@ from workflow_interpreter.bdio import (
 )
 from workflow_interpreter.bdio.errors import BoundExceededError
 from workflow_interpreter.bdio.rows import STATUS_CLOSED
+from workflow_interpreter.bdio.wire import mint_request_from_activation
 from workflow_interpreter.contracts.sessions import SessionMode
 from workflow_interpreter.foreman.bounds import refusal_route
 from workflow_interpreter.foreman.close import settle
@@ -42,7 +43,11 @@ from workflow_interpreter.foreman.constants import (
     HALT_UNUSABLE_RESOLUTION,
 )
 from workflow_interpreter.foreman.events import EventIntent
-from workflow_interpreter.foreman.execution import resolved_node
+from workflow_interpreter.foreman.execution import (
+    resolved_invocation,
+    resolved_node,
+    resolved_static_node,
+)
 from workflow_interpreter.foreman.frontier import DeadEndKind
 from workflow_interpreter.foreman.gates import (
     IntakeResult,
@@ -141,33 +146,6 @@ def intake_all(
     return IntakeBatch(closed=tuple(closed), refusals=tuple(refusals))
 
 
-def _request(
-    composition: Composition,
-    root: RootRecord,
-    activation: ActivationRecord,
-) -> MintRequest:
-    """Reconstruct the durable request shape needed by the wrapper."""
-    meta = activation.metadata
-    view = resolved_node(root, meta.node)
-    # S1 carries resume intent durably. Claude and Codex exec still follow
-    # inspector/launch.py's existing launch path until S2 consumes this contract.
-    return MintRequest(
-        node=meta.node,
-        mint_reason=meta.mint_reason,
-        crew_profile=view.crew_profile,
-        model=view.model,
-        crew_version=meta.crew_version,
-        session_id=meta.session_id,
-        session_mode=meta.session_mode,
-        session_source_activation_id=meta.session_source_activation_id,
-        source_session_id=meta.source_session_id,
-        predecessor_activation_id=meta.predecessor_activation_id,
-        predecessor_gate_id=meta.predecessor_gate_id,
-        inputs=meta.inputs,
-        deviations=meta.deviations,
-    )
-
-
 def dispatch_minted(
     composition: Composition,
     wiring: InstanceWiring,
@@ -175,7 +153,7 @@ def dispatch_minted(
     activation: ActivationRecord,
 ) -> CaseResult:
     """Persist the launch intent then invoke the configured spawner once."""
-    request = _request(composition, root, activation)
+    request = mint_request_from_activation(activation.metadata)
     path = wiring.paths.activation_dir(activation.activation_id) / DISPATCH_REQUEST
     write_record(
         path,
@@ -207,7 +185,7 @@ def _successor_request(
     round_no: int,
 ) -> MintRequest:
     """Build the one graph-edge request permitted by a completed head."""
-    view = resolved_node(root, target)
+    view = resolved_invocation(root, target, composition.profiles)
     return MintRequest(
         node=target,
         mint_reason=MintReason.EDGE,
@@ -215,6 +193,12 @@ def _successor_request(
         predecessor_gate_id=predecessor_gate_id,
         crew_profile=view.crew_profile,
         model=view.model,
+        effort=view.effort,
+        context_cap_tokens=view.context_cap_tokens,
+        execution_policy=view.execution_policy,
+        catalog_digest=None
+        if composition.catalog is None
+        else composition.catalog.digest,
         crew_version=probed_crew_version(composition, view.crew_profile),
         # §5.2: `Profile.prepare` is the only minter of session ids, and it
         # runs at launch; the dispatch writes the one the child ran under back
@@ -356,12 +340,18 @@ def mint_entry(
 ) -> CaseResult:
     """Mint and dispatch the graph entry with bindings derived from the pin."""
     node_name = root.definition.document.graph.entry
-    view = resolved_node(root, node_name)
+    view = resolved_invocation(root, node_name, composition.profiles)
     request = MintRequest(
         node=node_name,
         mint_reason=MintReason.ENTRY,
         crew_profile=view.crew_profile,
         model=view.model,
+        effort=view.effort,
+        context_cap_tokens=view.context_cap_tokens,
+        execution_policy=view.execution_policy,
+        catalog_digest=None
+        if composition.catalog is None
+        else composition.catalog.digest,
         crew_version=probed_crew_version(composition, view.crew_profile),
         session_id="",  # minted by `Profile.prepare` at launch (§5.2)
         session_mode=view.node.session_mode or SessionMode.FRESH,
@@ -389,18 +379,19 @@ def advance_lifecycle(
     if lifecycle is Lifecycle.DISPATCHED:
         if wrapper_alive(wiring, activation.activation_id):
             return CaseResult(blocked=True)
-        # The EFFECTIVE node on the grading leg too: an activation that RAN
-        # under the root's resolution must be recovered, replayed and graded
-        # under it (§3.1) — reading `writes` or `isolation` off the raw
-        # pinned body here graded it as a different node (cr-7h8 review).
+        # Grading uses the activation invocation with the root's static safety
+        # settings, including effective writes and isolation (cr-7h8 review).
         resolution = wiring.recovery.resolve(
-            activation, resolved_node(root, activation.metadata.node).node
+            activation,
+            resolved_static_node(root, activation.metadata.node),
         )
         classification = getattr(resolution, "classification", None)
         exit_record = None if classification is None else classification.exit_record
         if exit_record is not None:
             recorded = wiring.store.record_exit(activation.activation_id, exit_record)
-            view = resolved_node(root, recorded.metadata.node)
+            view = resolved_node(
+                root, recorded.metadata.node, activation=recorded.metadata
+            )
             profile = composition.profiles.profile_for(view.crew_profile)
             result = settle(
                 wiring,
@@ -422,7 +413,9 @@ def advance_lifecycle(
             stalled=resolution.halted,
         )
     if lifecycle in {Lifecycle.EXIT_RECORDED, Lifecycle.EVIDENCE_RECORDED}:
-        view = resolved_node(root, activation.metadata.node)
+        view = resolved_node(
+            root, activation.metadata.node, activation=activation.metadata
+        )
         profile = composition.profiles.profile_for(view.crew_profile)
         result = settle(
             wiring,
@@ -484,7 +477,7 @@ def route_head(
     outcome = head.metadata.outcome
     if outcome is None:
         return CaseResult(stalled="completed activation has no outcome")
-    node = resolved_node(root, head.metadata.node).node
+    node = resolved_static_node(root, head.metadata.node)
     if outcome in (Outcome.FAIL_PLAN, Outcome.DOUBT):
         from workflow_interpreter.foreman.decisions import queue_boundary
 
@@ -535,12 +528,18 @@ def route_head(
         # after-validators, so a copy carried the stale `predecessor_gate_id`
         # into a non-EDGE mint and stranded the instance (cr-o85.33.8).
         head_meta = head.metadata
-        view = resolved_node(root, head_meta.node)
+        view = resolved_invocation(root, head_meta.node, composition.profiles)
         request = MintRequest(
             node=head_meta.node,
             mint_reason=retry,
             crew_profile=view.crew_profile,
             model=view.model,
+            effort=view.effort,
+            context_cap_tokens=view.context_cap_tokens,
+            execution_policy=view.execution_policy,
+            catalog_digest=None
+            if composition.catalog is None
+            else composition.catalog.digest,
             crew_version=probed_crew_version(composition, view.crew_profile),
             session_id=head_meta.session_id,
             session_mode=view.node.session_mode or SessionMode.FRESH,

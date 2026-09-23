@@ -44,7 +44,8 @@ from workflow_interpreter.bdio import (
     ResolvedSetting,
 )
 from workflow_interpreter.bdio.sessions import choose_source
-from workflow_interpreter.bdio.wire import config_signature
+from workflow_interpreter.bdio.wire import activation_binding_digest, config_signature
+from workflow_interpreter.contracts.execution import EXECUTION_POLICY_KEY
 from workflow_interpreter.contracts.sessions import SessionMode
 from workflow_interpreter.inspector import (
     EVIDENCE_EXIT_UNOBSERVED,
@@ -337,7 +338,21 @@ def test_recovery_registers_only_an_identity_found_in_the_durable_log(
         *(
             setting
             for setting in lab.root.metadata.resolved_config
-            if setting.key != "node.implement.session_mode"
+            if setting.key
+            not in (
+                "node.implement.session_mode",
+                "node.implement.effort",
+            )
+        ),
+        ResolvedSetting(
+            key="node.implement.effort",
+            value="high",
+            source=ConfigSource.ROLE_BINDING,
+        ),
+        ResolvedSetting(
+            key=EXECUTION_POLICY_KEY.format(node="implement"),
+            value="changed-root-policy",
+            source=ConfigSource.PROJECT_CONFIG,
         ),
         ResolvedSetting(
             key="node.implement.crew_version",
@@ -361,9 +376,15 @@ def test_recovery_registers_only_an_identity_found_in_the_durable_log(
         lab.activation.activation_id,
         {
             "crew_profile": "codex",
+            "crew_version": "codex-cli 0.155.1",
             "launch_id": "recovered-launch",
             "session_id": "" if identity_emitted else "preassigned-but-unobserved",
         },
+    )
+    pinned = lab.store.reads.load_activation(lab.activation.activation_id)
+    lab.store._client._merge_metadata(
+        lab.activation.activation_id,
+        {"binding_digest": activation_binding_digest(pinned.metadata)},
     )
     log = lab.paths.log(lab.activation.activation_id)
     if log_state == "unreadable":
@@ -401,6 +422,8 @@ def test_recovery_registers_only_an_identity_found_in_the_durable_log(
         assert registration is not None
         assert registration.thread_id == "thread-recovered"
         assert registration.crew_version == "codex-cli 0.155.1"
+        assert registration.effort == lab.activation.metadata.effort
+        assert registration.policy_digest == lab.activation.metadata.policy_digest
     elif log_state == "unreadable":
         assert registration is None
         assert result.closed.metadata.session_id == "preassigned-but-unobserved"

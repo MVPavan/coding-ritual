@@ -9,7 +9,7 @@ import pytest
 from tests._bdio import handle
 from tests._foreman import FAKE_PROFILE, ForemanLab, entry_request
 from tests._inspector import SESSION_ID, ChildScript
-from workflow_interpreter.bdio import ExitRecord, Lifecycle
+from workflow_interpreter.bdio import CarrierIntegrityError, ExitRecord, Lifecycle
 from workflow_interpreter.contracts.sessions import SessionMode
 from workflow_interpreter.foreman import cases as cases_module
 from workflow_interpreter.foreman.cases import advance_lifecycle, mint_entry, route_head
@@ -25,6 +25,19 @@ from workflow_interpreter.schema.models import Outcome
 def _bd_writes(lab: ForemanLab) -> int:
     """Count every durable bd mutation, excluding reads and process-local files."""
     return sum(lab.count(command) for command in ("create", "update", "close"))
+
+
+_LEGACY_S3_PINS: dict[str, None] = {
+    "binding_digest": None,
+    "role": None,
+    "family": None,
+    "effort": None,
+    "context_cap_tokens": None,
+    "execution_policy": None,
+    "policy_digest": None,
+    "catalog_digest": None,
+    "crew_version": None,
+}
 
 
 def test_empty_lifecycle_mints_and_runs_one_real_wrapper(tmp_path: Path) -> None:
@@ -65,23 +78,24 @@ def test_minted_lifecycle_dispatches_and_records_its_exit(tmp_path: Path) -> Non
     ]
 
 
-def test_minted_dispatch_rebuilds_its_request_from_the_root_pin(tmp_path: Path) -> None:
-    """A legacy activation cannot select a different launch vendor."""
+def test_minted_dispatch_refuses_a_corrupted_activation_binding(
+    tmp_path: Path,
+) -> None:
+    """A mutated model cannot become the vendor task of a minted row."""
     lab = ForemanLab(tmp_path)
     root = lab.instantiate()
     minted = (
         lab.wiring().store.mint_activation(root.root_id, entry_request()).activation
     )
-    lab.backend._merge_metadata(
-        minted.activation_id, {"crew_profile": "legacy-crew", "model": "legacy-model"}
-    )
+    lab.backend._merge_metadata(minted.activation_id, {"model": "legacy-model"})
     activation = lab.store.reads.load_activation(minted.activation_id)
 
     advance_lifecycle(lab.composition, lab.wiring(), root, activation)
 
-    request = lab.spawner.launches[-1].request
-    assert request.crew_profile == FAKE_PROFILE
-    assert request.model == "fake"
+    closed = lab.store.reads.load_activation(minted.activation_id)
+    assert closed.metadata.lifecycle is Lifecycle.CLOSED
+    assert closed.metadata.outcome is Outcome.ERROR_TRANSPORT
+    assert lab.profiles.profile.tasks == []
 
 
 def test_durable_launch_request_carries_the_resolved_session_contract(
@@ -236,10 +250,56 @@ def test_exit_recorded_lifecycle_records_evidence_then_closes(tmp_path: Path) ->
     assert _bd_writes(lab) - before == 4
 
 
-def test_exit_recorded_settlement_uses_the_root_pinned_profile(
+def test_completed_pre_s3_activation_does_not_block_later_ticks(tmp_path: Path) -> None:
+    """A completed root-pinned row remains usable after activation pins arrive."""
+    lab = ForemanLab(tmp_path)
+    lab.instantiate()
+    first = lab.tick().dispatched
+    assert first is not None
+    lab.tick()
+    closed = lab.store.reads.load_activation(first)
+    assert closed.metadata.lifecycle is Lifecycle.CLOSED
+    lab.backend._merge_metadata(
+        first,
+        _LEGACY_S3_PINS,
+    )
+
+    report = lab.tick()
+
+    assert report.dispatched is not None
+    successor = lab.store.reads.load_activation(report.dispatched)
+    assert successor.metadata.node == "review"
+    lab.tick()
+
+
+@pytest.mark.parametrize("missing_digest", ["binding_digest", "policy_digest"])
+def test_partial_activation_pin_halts_by_name(
+    tmp_path: Path, missing_digest: str
+) -> None:
+    """A damaged S3 row cannot settle through the legacy root fallback."""
+    lab = ForemanLab(tmp_path)
+    lab.instantiate()
+    activation_id = lab.tick().dispatched
+    assert activation_id is not None
+    lab.backend._merge_metadata(
+        activation_id,
+        {missing_digest: None, "model": "tampered-model"},
+    )
+
+    report = lab.tick()
+
+    assert report.opened_gate is not None
+    gate = lab.store.reads.load_gate(report.opened_gate)
+    assert gate.metadata.halt_reason == (
+        f"unusable_resolution:implement:{activation_id}"
+    )
+    assert lab.tick().halted
+
+
+def test_exit_recorded_legacy_settlement_uses_the_root_pinned_profile(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """A replayed exit is parsed by the vendor the root says ran."""
+    """A pre-S3 exit remains attached to its root-pinned vendor."""
     lab = ForemanLab(tmp_path)
     root = lab.instantiate()
     minted = (
@@ -251,7 +311,8 @@ def test_exit_recorded_settlement_uses_the_root_pinned_profile(
         ExitRecord(exit_code=0, ended_at="2026-09-08T00:00:00Z", reason="ok"),
     )
     lab.backend._merge_metadata(
-        activation.activation_id, {"crew_profile": ("legacy-crew")}
+        activation.activation_id,
+        {"crew_profile": "legacy-crew", **_LEGACY_S3_PINS},
     )
     activation = lab.store.reads.load_activation(activation.activation_id)
     profiles: list[str] = []
@@ -276,10 +337,10 @@ def test_exit_recorded_settlement_uses_the_root_pinned_profile(
     assert profiles == [FAKE_PROFILE]
 
 
-def test_dispatched_settlement_uses_the_root_pinned_profile(
+def test_dispatched_legacy_settlement_uses_the_root_pinned_profile(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """A recovered exit is parsed by the vendor the root says ran."""
+    """A pre-S3 dispatched row recovers with the root-pinned vendor."""
     lab = ForemanLab(tmp_path)
     root = lab.instantiate()
     minted = (
@@ -287,7 +348,8 @@ def test_dispatched_settlement_uses_the_root_pinned_profile(
     )
     activation = lab.wiring().store.record_dispatch(minted.activation_id, handle())
     lab.backend._merge_metadata(
-        activation.activation_id, {"crew_profile": ("legacy-crew")}
+        activation.activation_id,
+        {"crew_profile": "legacy-crew", **_LEGACY_S3_PINS},
     )
     activation = lab.store.reads.load_activation(activation.activation_id)
     profiles: list[str] = []
@@ -426,6 +488,58 @@ def test_a_role_rebinding_after_instantiation_never_reaches_a_mint(
     activation = lab.store.reads.list_activations(root.root_id)[0]
     assert activation.metadata.crew_profile == FAKE_PROFILE
     assert activation.metadata.model == "fake"
+
+
+def test_duplicate_mint_replays_before_new_binding_validation(tmp_path: Path) -> None:
+    """A re-tick returns the ledger pin even if its request binding drifted."""
+    lab = ForemanLab(tmp_path)
+    root = lab.instantiate()
+    first = lab.wiring().store.mint_activation(root.root_id, entry_request())
+
+    replay = lab.wiring().store.mint_activation(
+        root.root_id, entry_request(model="invalid-new-model", effort="high")
+    )
+
+    assert replay.created is False
+    assert replay.activation.metadata.model == first.activation.metadata.model
+    assert replay.activation.metadata.effort == first.activation.metadata.effort
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    ({"effort": ""}, {"context_cap_tokens": 0}, {"context_cap_tokens": -1}),
+)
+def test_new_mint_refuses_unusable_effort_or_cap(
+    tmp_path: Path, overrides: dict[str, object]
+) -> None:
+    lab = ForemanLab(tmp_path)
+    root = lab.instantiate()
+
+    with pytest.raises(CarrierIntegrityError, match="effort|context cap"):
+        lab.wiring().store.mint_activation(root.root_id, entry_request(**overrides))
+
+
+def test_task_uses_activation_effort_and_context_cap(tmp_path: Path) -> None:
+    """A direct mint's invocation stays intact when the root has older values."""
+    lab = ForemanLab(tmp_path)
+    root = lab.instantiate()
+    minted = (
+        lab.wiring()
+        .store.mint_activation(
+            root.root_id,
+            entry_request(effort="high", context_cap_tokens=120000),
+        )
+        .activation
+    )
+
+    advance_lifecycle(lab.composition, lab.wiring(), root, minted)
+
+    recorded = lab.store.reads.load_activation(minted.activation_id)
+    task = lab.profiles.profile.tasks[-1]
+    assert recorded.metadata.effort == "high"
+    assert recorded.metadata.context_cap_tokens == 120000
+    assert task.effort == "high"
+    assert task.context_cap_tokens == 120000
 
 
 def test_a_real_override_reaches_the_brief_the_task_and_the_workspace(

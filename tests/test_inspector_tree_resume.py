@@ -93,9 +93,11 @@ class Lab:
         """The checkout every activation of this instance shares."""
         return self.workspace.path_for(self.node)
 
-    def mint(self) -> ActivationRecord:
+    def mint(self, session_mode: SessionMode = SessionMode.FRESH) -> ActivationRecord:
         """The instance's first activation, as bd minted it."""
-        minted = self.store.mint_activation(self.root.root_id, entry_mint()).activation
+        minted = self.store.mint_activation(
+            self.root.root_id, entry_mint(session_mode=session_mode)
+        ).activation
         self.paths.ensure_activation_dir(minted.activation_id)
         return minted
 
@@ -278,7 +280,7 @@ def test_plain_loop_resumes_impl2_on_the_tree_impl1_pinned(tmp_path: Path) -> No
             source=ConfigSource.GRAPH_DEFAULT,
         ),
     )
-    minted = lab.mint()
+    minted = lab.mint(session_mode=SessionMode.RESUME)
     first = lab.run(minted, lab.node)
     assert minted.metadata.source_session_id is None
     assert first.reset_applied is False
@@ -322,6 +324,7 @@ def test_plain_loop_resumes_impl2_on_the_tree_impl1_pinned(tmp_path: Path) -> No
         entry_mint(
             mint_reason=MintReason.EDGE,
             predecessor_activation_id=review.activation_id,
+            session_mode=SessionMode.RESUME,
         ),
     ).activation
     assert impl2.metadata.session_source_activation_id == impl1.activation_id

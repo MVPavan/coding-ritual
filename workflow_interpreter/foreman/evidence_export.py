@@ -23,7 +23,7 @@ from workflow_interpreter.foreman.constants import (
     VERIFY_FAILURE_REPORT,
 )
 from workflow_interpreter.foreman.envelope import InputsUnavailable
-from workflow_interpreter.foreman.execution import resolved_node
+from workflow_interpreter.foreman.execution import resolved_static_node
 from workflow_interpreter.foreman.verify_feedback import read_payload
 from workflow_interpreter.inspector.errors import GitCommandError
 from workflow_interpreter.inspector.gitcmd import GitOutputTooLarge, GitSubcommand
@@ -68,7 +68,7 @@ def export_reference(
     tree: str | None = None
     diff: bytes | None = None
     try:
-        if resolved_node(root, producer.metadata.node).node.writes:
+        if resolved_static_node(root, producer.metadata.node).writes:
             artifact = evidence.artifact
             base = (
                 producer.metadata.pre_attempt_commit

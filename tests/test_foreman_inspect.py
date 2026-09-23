@@ -22,6 +22,11 @@ from workflow_interpreter.bdio.constants import (
     DEVIATION_UNUSABLE_RESOLUTION,
 )
 from workflow_interpreter.bdio.wire import config_signature
+from workflow_interpreter.contracts.execution import (
+    ExecutionPolicy,
+    ExecutionProfileName,
+    ToolNetwork,
+)
 from workflow_interpreter.foreman.compose import InstanceWiring
 from workflow_interpreter.foreman.inspector import (
     WrapperExit,
@@ -81,17 +86,17 @@ def test_plain_precondition_reason_preserves_its_message() -> None:
     )
 
 
-def test_wrapper_fallback_request_rebuilds_the_root_execution_pin(
+def test_wrapper_fallback_refuses_a_corrupted_activation_pin(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """A missing dispatch file cannot revive stale activation vendor metadata."""
+    """A missing dispatch file cannot make a mutated model authoritative."""
     lab = ForemanLab(tmp_path)
     root = lab.instantiate()
     wiring = lab.wiring()
     activation = wiring.store.mint_activation(root.root_id, entry_request()).activation
     lab.backend._merge_metadata(
         activation.activation_id,
-        {"crew_profile": "legacy-crew", "model": "legacy-model"},
+        {"model": "legacy-model"},
     )
     received: list[MintRequest] = []
 
@@ -107,9 +112,10 @@ def test_wrapper_fallback_request_rebuilds_the_root_execution_pin(
         )
         is WrapperExit.DONE
     )
-    request = received[0]
-    assert request.crew_profile == "fake"
-    assert request.model == "fake"
+    assert received == []
+    closed = lab.store.reads.load_activation(activation.activation_id)
+    assert closed.metadata.lifecycle is Lifecycle.CLOSED
+    assert closed.metadata.outcome is Outcome.ERROR_TRANSPORT
 
 
 def test_wrapper_error_close_records_transport_evidence(tmp_path: Path) -> None:
@@ -135,10 +141,10 @@ def test_wrapper_error_close_records_transport_evidence(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize("field", ("model", "effort"))
-def test_unusable_role_resolution_closes_and_the_next_tick_does_not_redispatch(
+def test_activation_replays_after_root_role_setting_is_removed(
     tmp_path: Path, field: str
 ) -> None:
-    """A legacy incomplete role resolution halts instead of wedging MINTED."""
+    """A minted invocation no longer depends on the root's role settings."""
     lab = ForemanLab(tmp_path)
     root = lab.instantiate()
     activation = (
@@ -163,19 +169,90 @@ def test_unusable_role_resolution_closes_and_the_next_tick_does_not_redispatch(
         is WrapperExit.DONE
     )
     closed = lab.store.reads.load_activation(activation.activation_id)
+    assert closed.metadata.lifecycle is Lifecycle.EXIT_RECORDED
+    assert closed.metadata.deviations == ()
+    task = lab.profiles.profile.tasks[-1]
+    assert task.model == activation.metadata.model
+    assert task.effort == activation.metadata.effort
+    assert len(lab.beads("activation")) == 1
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    (("model", ""), ("effort", ""), ("binding_digest", "corrupt")),
+)
+def test_incomplete_activation_invocation_refuses_before_launch(
+    tmp_path: Path, field: str, value: str
+) -> None:
+    """A pinned row with corrupt authority cannot guess from the root."""
+    lab = ForemanLab(tmp_path)
+    root = lab.instantiate()
+    activation = (
+        lab.wiring().store.mint_activation(root.root_id, entry_request()).activation
+    )
+    lab.backend._merge_metadata(activation.activation_id, {field: value})
+
+    result = run_wrapper(lab.composition, root.root_id, activation.activation_id)
+
+    assert result is WrapperExit.DONE
+    closed = lab.store.reads.load_activation(activation.activation_id)
     assert closed.metadata.lifecycle is Lifecycle.CLOSED
     assert closed.metadata.outcome is Outcome.ERROR_TRANSPORT
     assert [item.kind for item in closed.metadata.deviations] == [
         DEVIATION_UNUSABLE_RESOLUTION
     ]
-
+    assert lab.profiles.profile.tasks == []
     launches = len(lab.spawner.launches)
     report = lab.tick()
-
     assert report.dispatched is None
     assert report.opened_gate is not None
     assert len(lab.spawner.launches) == launches
     assert len(lab.beads("activation")) == 1
+
+
+def test_changed_activation_policy_network_refuses_before_launch(
+    tmp_path: Path,
+) -> None:
+    lab = ForemanLab(tmp_path)
+    root = lab.instantiate()
+    activation = (
+        lab.wiring()
+        .store.mint_activation(
+            root.root_id,
+            entry_request(
+                execution_policy=ExecutionPolicy(
+                    name=ExecutionProfileName.WRITER,
+                    writes=True,
+                    tool_network=ToolNetwork.DENIED,
+                )
+            ),
+        )
+        .activation
+    )
+    policy = activation.metadata.execution_policy
+    assert policy is not None
+    changed_network = (
+        ToolNetwork.DENIED
+        if policy.tool_network is ToolNetwork.NOT_ENFORCED
+        else ToolNetwork.NOT_ENFORCED
+    )
+    lab.backend._merge_metadata(
+        activation.activation_id,
+        {
+            "execution_policy": policy.model_copy(
+                update={"tool_network": changed_network}
+            ).model_dump(mode="json")
+        },
+    )
+
+    assert (
+        run_wrapper(lab.composition, root.root_id, activation.activation_id)
+        is WrapperExit.DONE
+    )
+    closed = lab.store.reads.load_activation(activation.activation_id)
+    assert closed.metadata.lifecycle is Lifecycle.CLOSED
+    assert closed.metadata.outcome is Outcome.ERROR_TRANSPORT
+    assert lab.profiles.profile.tasks == []
 
 
 @pytest.mark.parametrize(

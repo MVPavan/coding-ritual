@@ -38,11 +38,22 @@ from workflow_interpreter.bdio.wire import (
     NodeSetting,
     ProcessHandle,
     Usage,
+    activation_binding_digest,
     metadata_dict,
     resolved_settings,
 )
-from workflow_interpreter.contracts.execution import CrewName
-from workflow_interpreter.contracts.sessions import SessionMode
+from workflow_interpreter.contracts.execution import (
+    CREW_PREFIX,
+    EXECUTION_POLICY_KEY,
+    MSG_POLICY_MISMATCH,
+    CrewName,
+    ExecutionPolicy,
+)
+from workflow_interpreter.contracts.sessions import (
+    SessionMode,
+    activation_policy_digest,
+    context_cap_key,
+)
 from workflow_interpreter.schema.models import Outcome
 
 if TYPE_CHECKING:
@@ -53,6 +64,8 @@ _LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 _TITLE_ACTIVATION: Final[str] = "wf {node} r{round_no} #{seq}"
 _REASON_ACTIVATION: Final[str] = "outcome={outcome}"
 _REASON_SUPERSEDED: Final[str] = "outcome=superseded superseded_by={winner}"
+_MSG_MINT_EFFORT: Final[str] = "activation effort binding must be non-blank"
+_MSG_MINT_CAP: Final[str] = "activation context cap must be a positive int"
 
 _MSG_ALL_SUPERSEDED: Final[str] = (
     "every activation for idempotency_key={key!r} is superseded"
@@ -310,14 +323,58 @@ def _prepare_mint(
     crew_profile, model = self._assert_mint_permitted(
         root, facts, beads, activations, request
     )
-    choice = choose_source(root, request, activations)
+    settings = resolved_settings(root.metadata)
+    effort = request.effort
+    if effort is None:
+        value = settings.get(NodeSetting.EFFORT.at(facts.node))
+        effort = value if isinstance(value, str) else None
+    if not isinstance(effort, str) or not effort.strip():
+        raise CarrierIntegrityError(_MSG_MINT_EFFORT)
+    cap = request.context_cap_tokens
+    if cap is None:
+        value = settings.get(context_cap_key(facts.node))
+        if value is not None and type(value) is not int:
+            raise CarrierIntegrityError(_MSG_MINT_CAP)
+        cap = value if type(value) is int else None
+    if cap is not None and (type(cap) is not int or cap <= 0):
+        raise CarrierIntegrityError(_MSG_MINT_CAP)
+    policy = request.execution_policy
+    if policy is None:
+        raw = settings.get(EXECUTION_POLICY_KEY.format(node=facts.node))
+        if isinstance(raw, str):
+            policy = ExecutionPolicy.model_validate_json(raw)
+    node = root.index.nodes[facts.node]
+    if node.execution_profile is not None and (
+        policy is None
+        or policy.name != node.execution_profile
+        or policy.writes != node.writes
+    ):
+        raise CarrierIntegrityError(MSG_POLICY_MISMATCH)
+    mode = request.session_mode
+    if crew_profile.removeprefix(CREW_PREFIX) == CrewName.CODEX_APPSERVER.value:
+        mode = resolved_session_mode(root, facts.node)
+    invocation = request.model_copy(
+        update={
+            "effort": effort,
+            "context_cap_tokens": cap,
+            "execution_policy": policy,
+            "session_mode": mode,
+        }
+    )
+    choice = choose_source(root, invocation, activations)
     source = choice.source
     session_id = request.session_id
-    if crew_profile.removeprefix("profile:") == CrewName.CODEX_APPSERVER.value:
+    if crew_profile.removeprefix(CREW_PREFIX) == CrewName.CODEX_APPSERVER.value:
         session_id = choice.source_session_id or ""
-    session_mode = resolved_session_mode(root, facts.node)
+    session_mode = invocation.session_mode
     if choice.source_session_id is not None:
         session_mode = SessionMode.RESUME
+    role = (
+        (node.crew or "").removeprefix(CREW_PREFIX)
+        if (node.crew or "").startswith(CREW_PREFIX)
+        else None
+    )
+    policy_digest = activation_policy_digest(policy)
     metadata = ActivationMetadata(
         wf_root_id=root_id,
         node=facts.node,
@@ -332,6 +389,13 @@ def _prepare_mint(
         inputs=request.inputs,
         crew_profile=crew_profile,
         model=model,
+        role=role,
+        family=crew_profile.removeprefix(CREW_PREFIX),
+        effort=effort,
+        context_cap_tokens=cap,
+        execution_policy=policy,
+        policy_digest=policy_digest,
+        catalog_digest=request.catalog_digest,
         crew_version=request.crew_version,
         session_id=session_id,
         session_mode=session_mode,
@@ -345,6 +409,9 @@ def _prepare_mint(
         session_fresh_reason=choice.fresh_reason,
         intended_base_commit=facts.intended_base_commit,
         deviations=request.deviations,
+    )
+    metadata = metadata.model_copy(
+        update={"binding_digest": activation_binding_digest(metadata)}
     )
     return facts, (), metadata, metadata_dict(metadata)
 

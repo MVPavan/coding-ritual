@@ -12,17 +12,18 @@ from workflow_interpreter.bdio.rpc_records import SessionCompletion, SessionRegi
 from workflow_interpreter.bdio.wire import (
     MintReason,
     MintRequest,
-    NodeSetting,
+    activation_binding_digest,
+    is_legacy_activation,
     resolved_settings,
 )
 from workflow_interpreter.contracts.codex import CODEX_VERSION
-from workflow_interpreter.contracts.execution import EXECUTION_POLICY_KEY, CrewName
+from workflow_interpreter.contracts.execution import CrewName, ExecutionPolicy
 from workflow_interpreter.contracts.sessions import (
     MSG_SESSION_SOURCE,
     SessionFreshReason,
     SessionMode,
     SessionReuse,
-    execution_policy_digest,
+    activation_policy_digest,
     session_mode_key,
 )
 from workflow_interpreter.schema.models import Outcome
@@ -66,15 +67,23 @@ def choose_source(
     """Select once at mint; fresh and ambiguous sessions never become implicit reuse."""
     continuation_ids = _continuation_sources(request, activations)
     continuation = bool(continuation_ids)
+    appserver = (
+        request.crew_profile.removeprefix("profile:") == CrewName.CODEX_APPSERVER.value
+    )
     if (
         not continuation
-        and resolved_session_mode(root, request.node) is not SessionMode.RESUME
+        and request.session_mode is not SessionMode.RESUME
+        and not (
+            appserver
+            and resolved_session_mode(root, request.node) is SessionMode.RESUME
+        )
     ):
         return SessionChoice()
-    settings = resolved_settings(root.metadata)
-    policy = settings.get(EXECUTION_POLICY_KEY.format(node=request.node), "legacy")
-    if not isinstance(policy, str):
+    if request.execution_policy is not None and not isinstance(
+        request.execution_policy, ExecutionPolicy
+    ):
         raise CarrierIntegrityError(MSG_SESSION_SOURCE)
+    policy_digest = activation_policy_digest(request.execution_policy)
     crew_profile = request.crew_profile.removeprefix("profile:")
     # The first explanation in scan order (newest candidate first) is the one
     # the record keeps: a fresh launch on a RESUME node must say WHY, and the
@@ -85,12 +94,32 @@ def choose_source(
         registration = meta.session_registration
         if (
             not meta.is_completed
-            or not _source_outcome_eligible(source, crew_profile, continuation_ids)
             or meta.wf_root_id != root.root_id
             or meta.node != request.node
-            or meta.model != settings.get(NodeSetting.MODEL.at(request.node))
-            or meta.crew_profile.removeprefix("profile:") != crew_profile
         ):
+            continue
+        legacy = is_legacy_activation(meta)
+        if not legacy and (
+            meta.policy_digest != activation_policy_digest(meta.execution_policy)
+            or meta.binding_digest != activation_binding_digest(meta)
+        ):
+            raise CarrierIntegrityError(
+                f"session source activation {source.activation_id!r} has unusable "
+                "invocation pins"
+            )
+        if (
+            crew_profile != CrewName.CODEX_APPSERVER.value
+            and not legacy
+            and (
+                meta.model != request.model
+                or meta.effort != request.effort
+                or meta.crew_profile.removeprefix("profile:") != crew_profile
+            )
+        ):
+            if continuation:
+                raise CarrierIntegrityError(MSG_SESSION_SOURCE)
+            return SessionChoice(fresh_reason=SessionFreshReason.MODEL_CHANGED)
+        if not _source_outcome_eligible(source, crew_profile, continuation_ids):
             continue
         # §5.2 (finding 3): only an OBSERVED vendor identity is registrable, so
         # an unregistered activation carries no session a resume could rejoin —
@@ -101,9 +130,9 @@ def choose_source(
         if (
             registration.root_id != root.root_id
             or registration.activation_id != source.activation_id
-            or registration.model != settings.get(NodeSetting.MODEL.at(request.node))
-            or registration.effort != settings.get(NodeSetting.EFFORT.at(request.node))
-            or registration.policy_digest != execution_policy_digest(policy)
+            or registration.model != request.model
+            or registration.effort != request.effort
+            or registration.policy_digest != policy_digest
             or (
                 registration.crew_profile is not None
                 and registration.crew_profile.removeprefix("profile:") != crew_profile

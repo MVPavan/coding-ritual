@@ -1332,7 +1332,22 @@ def test_a_resumed_turn_records_the_envelope_it_actually_sent(
     wiring.store._client._merge_metadata(
         resumed.activation_id,
         {"session_source_activation_id": source.activation_id}
-        | ({"crew_profile": "codex-appserver"} if appserver else {}),
+        | (
+            {
+                "crew_profile": "codex-appserver",
+                "binding_digest": None,
+                "role": None,
+                "family": None,
+                "effort": None,
+                "context_cap_tokens": None,
+                "execution_policy": None,
+                "policy_digest": None,
+                "catalog_digest": None,
+                "crew_version": None,
+            }
+            if appserver
+            else {}
+        ),
     )
     resumed = wiring.store.reads.load_activation(resumed.activation_id)
     paths = wiring.paths

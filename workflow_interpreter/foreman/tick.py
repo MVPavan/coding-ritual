@@ -53,9 +53,10 @@ from workflow_interpreter.foreman.constants import (
     TERMINAL_SKIP_AMBIGUOUS_ABANDON,
     TERMINAL_SKIP_NOT_A_TERMINAL,
 )
+from workflow_interpreter.foreman.errors import UnusableResolutionError
 from workflow_interpreter.foreman.events import EventIntent, backfill, expected_intents
-from workflow_interpreter.foreman.execution import resolved_node
-from workflow_interpreter.foreman.frontier import build_frontier
+from workflow_interpreter.foreman.execution import resolved_node, resolved_static_node
+from workflow_interpreter.foreman.frontier import DeadEndKind, build_frontier
 from workflow_interpreter.foreman.gates import ensure_inbox, halt_gate
 from workflow_interpreter.foreman.heartbeat import DriverObserver
 from workflow_interpreter.foreman.identifiers import validate_bead_id
@@ -550,7 +551,18 @@ class Foreman:
                 *frontier.exit_recorded,
                 *frontier.evidence_recorded,
             ):
-                result = advance_lifecycle(self._composition, wiring, root, activation)
+                try:
+                    result = advance_lifecycle(
+                        self._composition, wiring, root, activation
+                    )
+                except UnusableResolutionError:
+                    halted = halt_dead_end(
+                        wiring, root, DeadEndKind.UNUSABLE_RESOLUTION, activation
+                    )
+                    return TickReport(
+                        halted=True,
+                        opened_gate=_opened_gate(wiring, halted.opened_gates[0]),
+                    )
                 return TickReport(
                     blocked=result.blocked,
                     dispatched=result.dispatched,
@@ -837,7 +849,7 @@ class Foreman:
             return
         activations = wiring.store.reads.list_activations(root.root_id)
         if any(
-            resolved_node(root, activation.metadata.node).node.writes
+            resolved_static_node(root, activation.metadata.node).writes
             and (
                 activation.metadata.evidence is None
                 or activation.metadata.evidence.artifact is None

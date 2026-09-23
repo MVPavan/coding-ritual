@@ -25,6 +25,7 @@ from workflow_interpreter.bdio.constants import (
     DEVIATION_SANDBOX_UNAVAILABLE,
     DEVIATION_UNUSABLE_RESOLUTION,
 )
+from workflow_interpreter.bdio.wire import mint_request_from_activation
 from workflow_interpreter.contracts.execution import (
     UnregisteredCrewError,
     tool_network_for,
@@ -134,9 +135,7 @@ class WrapperExit(StrEnum):
     FAILED = "failed"
 
 
-def _request(
-    activation_id: str, wiring: InstanceWiring, root: RootRecord
-) -> MintRequest:
+def _request(activation_id: str, wiring: InstanceWiring) -> MintRequest:
     """Load the durable dispatch request, rebuilding only crash-safe metadata."""
     launch = read_record(
         wiring.paths.activation_dir(activation_id) / DISPATCH_REQUEST,
@@ -145,19 +144,7 @@ def _request(
     if launch is not None:
         return launch.request
     activation = wiring.store.reads.load_activation(activation_id)
-    meta = activation.metadata
-    view = resolved_node(root, meta.node)
-    return MintRequest(
-        node=meta.node,
-        mint_reason=meta.mint_reason,
-        crew_profile=view.crew_profile,
-        model=view.model,
-        crew_version=meta.crew_version,
-        session_id=meta.session_id,
-        predecessor_activation_id=meta.predecessor_activation_id,
-        predecessor_gate_id=meta.predecessor_gate_id,
-        inputs=meta.inputs,
-    )
+    return mint_request_from_activation(activation.metadata)
 
 
 def _task_builder(root: RootRecord, wiring: InstanceWiring, git: Git) -> TaskBuilder:
@@ -169,7 +156,9 @@ def _task_builder(root: RootRecord, wiring: InstanceWiring, git: Git) -> TaskBui
     ) -> TaskSpec:
         wiring.store.assert_member(root.root_id)
         current = wiring.store.reads.load_activation(activation.activation_id)
-        resolved = resolved_node(root, current.metadata.node)
+        resolved = resolved_node(
+            root, current.metadata.node, activation=current.metadata
+        )
         node = resolved.node
         by_id = {
             item.activation_id: item
@@ -294,11 +283,12 @@ def run_wrapper(
         if activation.metadata.lifecycle is not Lifecycle.MINTED:
             return WrapperExit.STALE
         root = resolved.store.reads.load_root(root_id)
-        request = _request(activation_id, resolved, root)
-        # The EFFECTIVE node: everything downstream of here — the §5.4
-        # precondition, workspace isolation, the §8.2 monitor limits — must
-        # read the resolution the root pinned, not the graph body alone (§3.1).
-        resolved_node_view = resolved_node(root, activation.metadata.node)
+        request = _request(activation_id, resolved)
+        # The effective node combines static root safety settings with the
+        # invocation the activation recorded for this dispatch.
+        resolved_node_view = resolved_node(
+            root, activation.metadata.node, activation=activation.metadata
+        )
         node = resolved_node_view.node
         profile = composition.profiles.profile_for(resolved_node_view.crew_profile)
         if node.execution_profile is not None:
@@ -355,8 +345,8 @@ def run_wrapper(
             ),
         )
     except UnusableResolutionError as exc:
-        # The root's immutable resolution could not make a task, so no crew
-        # invocation occurred and an infra retry cannot repair the root.
+        # The pinned root or activation cannot make a task; no crew ran, and
+        # retrying the same pin cannot repair the missing authority.
         return _close_error(
             resolved,
             activation_id,

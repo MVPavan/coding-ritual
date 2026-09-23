@@ -218,9 +218,9 @@ def collect(
         )
         if artifact is None:
             from workflow_interpreter.bdio import ArtifactIdentity
-            from workflow_interpreter.foreman.execution import resolved_node
+            from workflow_interpreter.foreman.execution import resolved_static_node
 
-            if resolved_node(root, latest.metadata.node).node.writes:
+            if resolved_static_node(root, latest.metadata.node).writes:
                 raise CoordinationError(
                     "writer lacks computed repository artifact evidence"
                 )
