@@ -212,6 +212,96 @@ class ModelCatalog:
             raise TypeError("Claude seed models must be a list")
         return frozenset(entry["id"] for entry in entries)
 
+    def probe_live_claude(
+        self, selected: CatalogModel, effort: str, reserved: float = 0.0
+    ) -> tuple[CatalogModel, float]:
+        """Qualify and retain diagnostics for a newly selected seed model."""
+        passed, charged, cost, duration_ms, attempts, error = self._probe_claude(
+            self._binaries[CrewName.CLAUDE], selected.id, effort, reserved
+        )
+        return selected.model_copy(
+            update={
+                "verification": VerificationStatus.PROBE_OK
+                if passed
+                else VerificationStatus.PROBE_FAILED,
+                "probe_attempts": attempts,
+                "probe_duration_ms": duration_ms,
+                "probe_cost_usd": cost,
+                "probe_error": None if passed else error or "Claude admission failed",
+            }
+        ), charged
+
+    def admitted_snapshot(
+        self, snapshot: CatalogSnapshot, qualified: CatalogModel
+    ) -> CatalogSnapshot:
+        """Record live Claude admission evidence in the audit snapshot."""
+        families = dict(snapshot.families)
+        family = families[CrewName.CLAUDE]
+        families[CrewName.CLAUDE] = family.model_copy(
+            update={
+                "models": tuple(
+                    qualified if model.id == qualified.id else model
+                    for model in family.models
+                )
+            }
+        )
+        return snapshot.model_copy(
+            update={
+                "families": MappingProxyType(families),
+                "digest": _catalog_digest(families),
+            }
+        )
+
+    def prelaunch_version(
+        self, family: CrewName, model: str, pinned: str | None
+    ) -> str:
+        """Check the executable again and refuse an unqualified version range."""
+        try:
+            result = self._run(
+                [self._binaries[family], "--version"], DISCOVERY_TIMEOUT_S
+            )
+        except (OSError, subprocess.TimeoutExpired) as error:
+            raise ResolutionError(
+                f"{family.value} CLI version qualification failed: {error}"
+            ) from error
+        version = result.stdout.strip()
+        if result.returncode or not version:
+            raise ResolutionError(f"{family.value} CLI version qualification failed")
+        if pinned is None or version == pinned:
+            return version
+        try:
+            if family is CrewName.CLAUDE:
+                entry = next(
+                    item for item in self._seed_data()["models"] if item["id"] == model
+                )
+                number = _version_number(version.split()[0])
+                supported = (
+                    _version_number(entry["verified_cli_min"])
+                    <= number
+                    <= _version_number(entry["verified_cli_max"])
+                )
+            else:
+                old = _version_number(pinned.split()[-1])
+                new = _version_number(version.split()[-1])
+                # The bundled catalog is qualified for this CLI minor line;
+                # a changed minor needs owner-start discovery before use.
+                supported = new[:2] == old[:2]
+        except (KeyError, StopIteration, TypeError, ValueError) as error:
+            raise ResolutionError(
+                f"{family.value} CLI version {version!r} cannot be qualified"
+            ) from error
+        if not supported:
+            raise ResolutionError(
+                f"{family.value} CLI version {version!r} is outside the qualified range"
+            )
+        LOG.warning(
+            "wf.model_catalog.version_drift",
+            family=family.value,
+            pinned=pinned,
+            current=version,
+        )
+        return version
+
     def loaded_snapshot_qualifies(
         self, snapshot: CatalogSnapshot, bindings: Mapping[str, CrewBinding]
     ) -> bool:

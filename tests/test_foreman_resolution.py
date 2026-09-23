@@ -44,7 +44,13 @@ from workflow_interpreter.foreman.compose import (
     WrapperLaunch,
     instance_head,
 )
-from workflow_interpreter.foreman.config import CrewBinding, ForemanConfig, load_config
+from workflow_interpreter.foreman.config import (
+    BindingApply,
+    CrewBinding,
+    ForemanConfig,
+    load_config,
+    load_role_bindings,
+)
 from workflow_interpreter.foreman.constants import INSTANCE_BRANCH
 from workflow_interpreter.foreman.errors import ResolutionError, UnusableResolutionError
 from workflow_interpreter.foreman.execution import (
@@ -93,6 +99,41 @@ class _AvailableProfiles(ProfileRegistry):
             {},
             builders={"fake": lambda *_: FakeProfile()},
         )
+
+
+def test_role_apply_defaults_and_refuses_unknown_value_by_name(tmp_path: Path) -> None:
+    """The operator timing key is optional and constrained to two values."""
+    role_path = tmp_path / "roles.toml"
+    role_path.write_text(
+        '[roles.writer]\nmodel = "gpt-6-sol"\neffort = "high"\n',
+        encoding="utf-8",
+    )
+    assert load_role_bindings(role_path)["writer"].apply is BindingApply.NEXT_TASK
+    role_path.write_text(
+        '[roles.writer]\nmodel = "gpt-6-sol"\neffort = "high"\napply = "later"\n',
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="role 'writer'.*apply"):
+        load_role_bindings(role_path)
+
+
+def test_prelaunch_version_qualification_uses_only_version_probe() -> None:
+    """A qualified patch update can re-pin; another minor line refuses."""
+    calls: list[tuple[str, ...]] = []
+    current = "codex-cli 0.156.2"
+
+    def run(argv: list[str], timeout: float) -> subprocess.CompletedProcess[str]:
+        calls.append(tuple(argv))
+        return subprocess.CompletedProcess(argv, 0, current, "")
+
+    catalog = ModelCatalog("codex", "claude", run)
+    assert (
+        catalog.prelaunch_version(CrewName.CODEX, "gpt-6-sol", "codex-cli 0.156.1")
+        == current
+    )
+    assert calls == [("codex", "--version")]
+    with pytest.raises(ResolutionError, match="codex.*outside the qualified range"):
+        catalog.prelaunch_version(CrewName.CODEX, "gpt-6-sol", "codex-cli 0.155.1")
 
 
 def test_role_binding_uses_only_qualified_catalog_choices() -> None:

@@ -4,7 +4,7 @@ import subprocess
 import sys
 from abc import abstractmethod
 from collections.abc import Callable, Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Final, Protocol
 
@@ -18,6 +18,7 @@ from workflow_interpreter.foreman.constants import WRAPPER_HANDLE
 from workflow_interpreter.foreman.model_catalog import (
     CatalogProvenance,
     CatalogSnapshot,
+    Runner,
 )
 from workflow_interpreter.inspector import INSTANCE_BRANCH_REF, procfs
 from workflow_interpreter.inspector.band import BandLock
@@ -207,6 +208,11 @@ class Composition:
     catalog: CatalogSnapshot | None = None
     catalog_provenance: CatalogProvenance | None = None
     """Admission (S2+) must refuse FALLBACK by name (design.md:102)."""
+    catalog_runner: Runner | None = None
+    live_probes: dict[str, str | None] = field(default_factory=dict)
+    live_catalog: list[CatalogSnapshot] = field(default_factory=list)
+    """The latest owner-qualified snapshot after live Claude admission."""
+    live_probe_reserved_usd: list[float] = field(default_factory=lambda: [0.0])
     ledger: LedgerDatabase | None = None
     """This process's one ledger connection, holding the shared fence (§3.4.1).
 
@@ -234,6 +240,11 @@ class Composition:
         """Keep the explicit inspector dependency aligned with the config guard."""
         if self.inspector_config != self.config.inspector:
             raise ValueError("inspector_config must match foreman config")
+
+    @property
+    def active_catalog(self) -> CatalogSnapshot | None:
+        """Return the snapshot whose digest new activations must pin."""
+        return self.live_catalog[-1] if self.live_catalog else self.catalog
 
     def store_for_root(self, root_id: str) -> WorkflowStore:
         """The store this root is read and written through.

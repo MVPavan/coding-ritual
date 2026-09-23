@@ -33,10 +33,18 @@ from workflow_interpreter.bdio import (
     bounds,
     mint,
 )
+from workflow_interpreter.contracts.execution import CrewName
+from workflow_interpreter.contracts.sessions import SessionFreshReason
 from workflow_interpreter.foreman import __main__ as main_module
 from workflow_interpreter.foreman.config import CrewBinding
 from workflow_interpreter.foreman.constants import MAX_TRANSCRIPT_BYTES
 from workflow_interpreter.foreman.execution import resolved_node
+from workflow_interpreter.foreman.model_catalog import (
+    CatalogModel,
+    CatalogProvenance,
+    CatalogSnapshot,
+    FamilySnapshot,
+)
 from workflow_interpreter.foreman.tick import Foreman
 from workflow_interpreter.inspector.clock import to_iso
 from workflow_interpreter.inspector.errors import ContinuationRefused
@@ -313,7 +321,10 @@ def test_tick_finishes_a_steer_crashed_after_its_close(
     assert lab.tick().dispatched == continuation.activation_id
 
 
-def test_steer_keeps_predecessor_binding_after_role_edit(tmp_path: Path) -> None:
+@pytest.mark.parametrize("version", ["before-v1", None])
+def test_steer_keeps_predecessor_binding_after_role_edit(
+    tmp_path: Path, version: str | None
+) -> None:
     """A continuation carries the predecessor's invocation across a role edit."""
     lab = ForemanLab(
         tmp_path,
@@ -330,7 +341,7 @@ def test_steer_keeps_predecessor_binding_after_role_edit(tmp_path: Path) -> None
         lab.wiring()
         .store.mint_activation(
             root.root_id,
-            entry_request(model="before-model", effort="low", crew_version="before-v1"),
+            entry_request(model="before-model", effort="low", crew_version=version),
         )
         .activation
     )
@@ -346,6 +357,9 @@ def test_steer_keeps_predecessor_binding_after_role_edit(tmp_path: Path) -> None
         ),
     }
     lab.config = lab.config.model_copy(update={"roles": edited})
+    role_path = tmp_path / "roles.toml"
+    role_path.write_text("[roles.implementer\n", encoding="utf-8")
+    lab.config = lab.config.model_copy(update={"role_bindings_path": role_path})
     lab.composition = replace(lab.composition, config=lab.config)
     lab.foreman = Foreman(lab.composition)
 
@@ -360,6 +374,62 @@ def test_steer_keeps_predecessor_binding_after_role_edit(tmp_path: Path) -> None
         before.model,
         before.effort,
         before.crew_version,
+    )
+
+
+def test_steer_apply_now_mints_fresh_from_the_edited_binding(tmp_path: Path) -> None:
+    """An immediate edit is used after the running predecessor is stopped."""
+    lab = ForemanLab(tmp_path)
+    root = lab.instantiate()
+    predecessor = (
+        lab.wiring().store.mint_activation(root.root_id, entry_request()).activation
+    )
+    predecessor = lab.wiring().store.record_dispatch(
+        predecessor.activation_id, handle(), launch_id=LAB_LAUNCH_ID
+    )
+    lab.go_stale(predecessor.activation_id)
+    role_path = tmp_path / "roles.toml"
+    role_path.write_text(
+        '[roles.implementer]\nmodel = "after-model"\neffort = "high"\napply = "now"\n',
+        encoding="utf-8",
+    )
+    catalog = CatalogSnapshot(
+        generated_at="2026-09-23T00:00:00Z",
+        digest="steer-test",
+        families={
+            CrewName.CODEX: FamilySnapshot(
+                source="bundled-cli",
+                available=True,
+                models=(
+                    CatalogModel(
+                        id="after-model", efforts=("high",), context_window=200000
+                    ),
+                ),
+            )
+        },
+    )
+    lab.config = lab.config.model_copy(update={"role_bindings_path": role_path})
+    lab.composition = replace(
+        lab.composition,
+        config=lab.config,
+        catalog=catalog,
+        catalog_provenance=CatalogProvenance.REFRESHED,
+    )
+    lab.foreman = Foreman(lab.composition)
+
+    report = lab.steer(predecessor.activation_id, reason="stale", instructions="go")
+
+    after = lab.store.reads.load_activation(report.continuation).metadata
+    assert after.model == "after-model"
+    assert after.crew_profile == "codex"
+    assert after.session_fresh_reason is SessionFreshReason.MODEL_CHANGED
+    role_path.write_text("[roles.implementer\n", encoding="utf-8")
+    lab.foreman = Foreman(lab.composition)
+    replay = lab.steer(predecessor.activation_id, reason="stale", instructions="go")
+    assert replay.continuation == report.continuation
+    assert (
+        lab.store.reads.load_activation(replay.continuation).metadata.model
+        == "after-model"
     )
 
 

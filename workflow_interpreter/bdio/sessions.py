@@ -65,6 +65,8 @@ def choose_source(
     root: RootRecord, request: MintRequest, activations: Sequence[ActivationRecord]
 ) -> SessionChoice:
     """Select once at mint; fresh and ambiguous sessions never become implicit reuse."""
+    if request.fresh_reason_override is not None:
+        return SessionChoice(fresh_reason=request.fresh_reason_override)
     continuation_ids = _continuation_sources(request, activations)
     continuation = bool(continuation_ids)
     appserver = (

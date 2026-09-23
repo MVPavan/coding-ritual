@@ -34,7 +34,7 @@ from workflow_interpreter.contracts.sessions import (
     context_cap_key,
     session_mode_key,
 )
-from workflow_interpreter.foreman.config import CrewBinding
+from workflow_interpreter.foreman.config import BindingApply, CrewBinding
 from workflow_interpreter.foreman.errors import (
     UnresolvedCrewError,
     UnusableResolutionError,
@@ -157,6 +157,7 @@ class ResolvedNode(BaseModel):
     execution_policy: ExecutionPolicy | None = None
     context_cap_tokens: int | None = None
     """Claude's pinned `--autocompact` threshold; None leaves the vendor default."""
+    binding_apply: BindingApply = BindingApply.NEXT_TASK
 
 
 def resolved_node(
@@ -307,14 +308,9 @@ def resolved_invocation(
                 )
             elif cap is None:
                 cap = binding.context_cap_tokens
-        for field, value in (("crew", crew), ("model", model), ("effort", effort)):
-            if not isinstance(value, str) or not value.strip():
-                raise UnusableResolutionError(
-                    _MSG_UNUSABLE_ROLE_BOUND_SETTING.format(node=node_name, field=field)
-                )
-        assert isinstance(crew, str)
-        assert isinstance(model, str)
-        assert isinstance(effort, str)
+        crew = _required_role_text(node_name, "crew", crew)
+        model = _required_role_text(node_name, "model", model)
+        effort = _required_role_text(node_name, "effort", effort)
         if model == MODEL_VENDOR_DEFAULT:
             raise UnusableResolutionError(
                 _MSG_UNUSABLE_ROLE_BOUND_SETTING.format(node=node_name, field="model")
@@ -325,7 +321,6 @@ def resolved_invocation(
                     node=node_name, detail="context_cap_tokens is not a positive int"
                 )
             )
-        assert cap is None or isinstance(cap, int)
         try:
             values = effective.model_dump()
             values.pop("session_reuse", None)

@@ -2,6 +2,7 @@
 
 import hashlib
 import tomllib
+from enum import StrEnum
 from pathlib import Path
 from typing import Annotated, Final
 
@@ -81,6 +82,13 @@ def wrapper_root_for(wrapper_home: Path, repo_root: Path) -> Path:
     return wrapper_home / digest[:REPO_HASH_LENGTH]
 
 
+class BindingApply(StrEnum):
+    """When an edited role binding becomes eligible for a task."""
+
+    NOW = "now"
+    NEXT_TASK = "next-task"
+
+
 class CrewBinding(BaseModel):
     """Invocation choices; catalog resolution supplies the human role's profile."""
 
@@ -97,6 +105,7 @@ class CrewBinding(BaseModel):
     value outside claude's accepted range (`CONTEXT_CAP_MIN_TOKENS` to
     `CONTEXT_CAP_MAX_TOKENS`). Checked there rather than here so the refusal
     can name the role. Unset emits no flag, which leaves the vendor default."""
+    apply: BindingApply = BindingApply.NEXT_TASK
 
 
 class WakeConfig(BaseModel):
@@ -230,6 +239,43 @@ class ForemanConfig(BaseModel):
         return self
 
 
+def load_role_bindings(path: Path) -> dict[str, CrewBinding]:
+    """Read one complete operator role file and name invalid role choices."""
+    with path.open("rb") as handle:
+        role_file = tomllib.load(handle)
+    if set(role_file) != {"roles"} or not isinstance(role_file["roles"], dict):
+        raise ValueError("roles.toml must contain only [roles.<name>] tables")
+    result: dict[str, CrewBinding] = {}
+    for role, binding in role_file["roles"].items():
+        if not isinstance(binding, dict):
+            raise TypeError(f"roles.{role} must be a table")
+        if "profile" in binding:
+            raise ValueError(f"remove roles.{role}.profile; model determines the crew")
+        try:
+            result[role] = CrewBinding.model_validate(binding)
+        except ValueError as error:
+            raise ValueError(
+                f"role {role!r}: {str(error).replace(chr(10), '; ')}"
+            ) from error
+    return result
+
+
+def read_role_apply(path: Path, role: str) -> BindingApply:
+    """Read only a role's timing policy before considering its edited binding."""
+    with path.open("rb") as handle:
+        role_file = tomllib.load(handle)
+    roles = role_file.get("roles")
+    if set(role_file) != {"roles"} or not isinstance(roles, dict):
+        raise ValueError("roles.toml must contain only [roles.<name>] tables")
+    binding = roles.get(role)
+    if not isinstance(binding, dict):
+        raise TypeError(f"role {role!r}: missing from roles.toml")
+    try:
+        return BindingApply(binding.get("apply", BindingApply.NEXT_TASK))
+    except ValueError as error:
+        raise ValueError(f"role {role!r}: apply: {error}") from error
+
+
 def load_config(path: Path) -> ForemanConfig:
     """Load a checked-in TOML config without consulting ambient environment.
 
@@ -257,18 +303,7 @@ def load_config(path: Path) -> ForemanConfig:
     else:
         if not isinstance(role_path, str) or not Path(role_path).is_absolute():
             raise ValueError("role_bindings_path must be an absolute roles.toml path")
-        with Path(role_path).open("rb") as handle:
-            role_file = tomllib.load(handle)
-        if set(role_file) != {"roles"} or not isinstance(role_file["roles"], dict):
-            raise ValueError("roles.toml must contain only [roles.<name>] tables")
-        for role, binding in role_file["roles"].items():
-            if not isinstance(binding, dict):
-                raise TypeError(f"roles.{role} must be a table")
-            if "profile" in binding:
-                raise ValueError(
-                    f"remove roles.{role}.profile; model determines the crew"
-                )
-        raw["roles"] = role_file["roles"]
+        raw["roles"] = load_role_bindings(Path(role_path))
     config = ForemanConfig.model_validate(raw).model_copy(update={"config_path": path})
     if (config.repo_root / GIT_ENTRY).is_file():
         raise ValueError(MSG_WORKTREE_REPO_ROOT.format(repo_root=config.repo_root))

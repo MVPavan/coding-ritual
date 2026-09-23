@@ -190,8 +190,14 @@ request from the recorded predecessor, not the root-based constructor at
 `workflow_interpreter/foreman/tick.py:389-399`. Refuse by name if the pin is
 incomplete; current selection otherwise raises a generic carrier error
 (`workflow_interpreter/bdio/sessions.py:170-171`).
-**PENDING OWNER RULING:** retaining the predecessor pin preserves one vendor
-thread and avoids a changed-model continuation against its prior tree.
+**OWNER RULING:** each role may set `apply = "now" | "next-task"` in
+`roles.toml`; the default is `next-task`. With `next-task`, an edit takes effect
+from the next task; every activation (steer, retry, next round) of the current
+task keeps its pinned binding. With `now`, the crew's next activation
+of any kind (steer, retry, or next round) takes the edited binding. A binding
+change starts fresh with `MODEL_CHANGED` from the task's current tree; it never
+interrupts a running turn. Leaving `now` set is harmless. Refuse an unknown
+`apply` value by role name.
 
 Remove role-bound crew/model/effort/mode/cap and role-derived policy from root
 resolved config and decision-template identity. Keep graph role reference,

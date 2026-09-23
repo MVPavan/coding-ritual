@@ -1,22 +1,45 @@
 """C2b lifecycle case contracts using the shared real-collaborator lab."""
 
+import subprocess
 from dataclasses import replace
 from pathlib import Path
 from typing import cast
+from unittest.mock import Mock
 
 import pytest
 
 from tests._bdio import handle
 from tests._foreman import FAKE_PROFILE, ForemanLab, entry_request
 from tests._inspector import SESSION_ID, ChildScript
-from workflow_interpreter.bdio import CarrierIntegrityError, ExitRecord, Lifecycle
-from workflow_interpreter.contracts.sessions import SessionMode
+from workflow_interpreter.bdio import (
+    ArtifactIdentity,
+    CarrierIntegrityError,
+    Evidence,
+    ExitRecord,
+    Lifecycle,
+)
+from workflow_interpreter.bdio.wire import mint_request_from_activation
+from workflow_interpreter.contracts.execution import CrewName
+from workflow_interpreter.contracts.sessions import SessionFreshReason, SessionMode
 from workflow_interpreter.foreman import cases as cases_module
-from workflow_interpreter.foreman.cases import advance_lifecycle, mint_entry, route_head
+from workflow_interpreter.foreman.cases import (
+    advance_lifecycle,
+    mint_entry,
+    route_head,
+    startup_invocation,
+)
 from workflow_interpreter.foreman.compose import WrapperLaunch
 from workflow_interpreter.foreman.config import CrewBinding
 from workflow_interpreter.foreman.constants import DISPATCH_REQUEST
+from workflow_interpreter.foreman.model_catalog import (
+    CatalogModel,
+    CatalogProvenance,
+    CatalogSnapshot,
+    FamilySnapshot,
+    VerificationStatus,
+)
 from workflow_interpreter.inspector import Recovery
+from workflow_interpreter.inspector.band import BandLock
 from workflow_interpreter.inspector.models import CompletionEvidence, RecoveryCase
 from workflow_interpreter.inspector.paths import read_record
 from workflow_interpreter.schema.models import Outcome
@@ -57,6 +80,305 @@ def test_empty_lifecycle_mints_and_runs_one_real_wrapper(tmp_path: Path) -> None
     ]
 
 
+def _live_role_lab(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> tuple[ForemanLab, Path]:
+    """Wire real foreman mints to a local catalog and an inert launch boundary."""
+    lab = ForemanLab(tmp_path)
+    role_path = tmp_path / "roles.toml"
+    role_path.write_text(
+        '[roles.implementer]\nmodel = "model-a"\neffort = "medium"\n',
+        encoding="utf-8",
+    )
+    snapshot = CatalogSnapshot(
+        generated_at="2026-09-23T00:00:00Z",
+        digest="test",
+        families={
+            CrewName.CODEX: FamilySnapshot(
+                source="bundled-cli",
+                available=True,
+                models=(
+                    CatalogModel(
+                        id="model-a", efforts=("medium",), context_window=200000
+                    ),
+                    CatalogModel(
+                        id="model-b", efforts=("medium",), context_window=200000
+                    ),
+                ),
+            )
+        },
+    )
+    lab.profiles.accepted = lab.profiles.accepted | {"codex"}
+    lab.config = lab.config.model_copy(update={"role_bindings_path": role_path})
+    lab.composition = replace(
+        lab.composition,
+        config=lab.config,
+        catalog=snapshot,
+        catalog_provenance=CatalogProvenance.REFRESHED,
+    )
+    monkeypatch.setattr(lab.spawner, "launch", lambda *_args, **_kwargs: None)
+    return lab, role_path
+
+
+def test_foreman_replays_entry_before_reading_malformed_live_roles(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A duplicate key keeps its pin even if the operator file is broken."""
+    lab, role_path = _live_role_lab(tmp_path, monkeypatch)
+    root = lab.instantiate()
+    first = mint_entry(lab.composition, lab.wiring(), root)
+    assert first.dispatched is not None
+    role_path.write_text("[roles.implementer\n", encoding="utf-8")
+
+    replay = mint_entry(lab.composition, lab.wiring(), root)
+
+    assert replay.dispatched == first.dispatched
+    assert len(lab.store.reads.list_activations(root.root_id)) == 1
+
+
+def test_foreman_replays_retry_before_reading_malformed_live_roles(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A routed duplicate keeps the first retry pin after a broken edit."""
+    lab, role_path = _live_role_lab(tmp_path, monkeypatch)
+    root = lab.instantiate()
+    first = mint_entry(lab.composition, lab.wiring(), root)
+    assert first.dispatched is not None
+    dispatched = lab.store.record_dispatch(first.dispatched, handle())
+    closed = lab.store.close_activation(
+        dispatched.activation_id, Outcome.ERROR_TRANSPORT
+    )
+    retry = route_head(lab.composition, lab.wiring(), root, closed)
+    assert retry.dispatched is not None
+    role_path.write_text("[roles.implementer\n", encoding="utf-8")
+
+    replay = route_head(lab.composition, lab.wiring(), root, closed)
+
+    assert replay.dispatched == retry.dispatched
+    assert len(lab.store.reads.list_activations(root.root_id)) == 2
+
+
+def test_foreman_replays_edge_before_reading_malformed_live_roles(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A completed head's already minted edge is independent of later edits."""
+    lab, role_path = _live_role_lab(tmp_path, monkeypatch)
+    role_path.write_text(
+        '[roles.implementer]\nmodel = "model-a"\neffort = "medium"\n'
+        '[roles.critic]\nmodel = "model-b"\neffort = "medium"\n',
+        encoding="utf-8",
+    )
+    root = lab.instantiate()
+    first = mint_entry(lab.composition, lab.wiring(), root)
+    assert first.dispatched is not None
+    dispatched = lab.store.record_dispatch(first.dispatched, handle())
+    commit = lab.git.head_commit(cwd=lab.repo)
+    closed = lab.store.close_activation(
+        dispatched.activation_id,
+        Outcome.DONE,
+        evidence=Evidence(
+            artifact=ArtifactIdentity(
+                commit_oid=commit, tree_oid=lab.git.tree_oid(commit, cwd=lab.repo)
+            )
+        ),
+    )
+    edge = route_head(lab.composition, lab.wiring(), root, closed)
+    assert edge.dispatched is not None
+    role_path.write_text("[roles.critic\n", encoding="utf-8")
+
+    replay = route_head(lab.composition, lab.wiring(), root, closed)
+
+    assert replay.dispatched == edge.dispatched
+    assert len(lab.store.reads.list_activations(root.root_id)) == 2
+
+
+@pytest.mark.parametrize(
+    ("apply", "expected"),
+    [("next-task", "model-a"), ("now", "model-b")],
+)
+def test_live_role_edit_applies_at_selected_mint(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, apply: str, expected: str
+) -> None:
+    """A retry pins either the task's binding or the current edit."""
+    lab, role_path = _live_role_lab(tmp_path, monkeypatch)
+    root = lab.instantiate()
+    first = mint_entry(lab.composition, lab.wiring(), root)
+    assert first.dispatched is not None
+    dispatched = lab.store.record_dispatch(first.dispatched, handle())
+    closed = lab.store.close_activation(
+        dispatched.activation_id, Outcome.ERROR_TRANSPORT
+    )
+    role_path.write_text(
+        '[roles.implementer]\nmodel = "model-b"\neffort = "medium"\n'
+        f'apply = "{apply}"\n',
+        encoding="utf-8",
+    )
+    assert startup_invocation(lab.composition, root, "implement").model == "model-b"
+
+    result = route_head(lab.composition, lab.wiring(), root, closed)
+
+    assert result.dispatched is not None
+    metadata = lab.store.reads.load_activation(result.dispatched).metadata
+    assert metadata.model == expected
+    assert metadata.session_fresh_reason is (
+        SessionFreshReason.MODEL_CHANGED if apply == "now" else None
+    )
+
+
+def test_next_task_edit_keeps_role_pin_on_edge_round(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A later graph edge in the same root retains the role's first pin."""
+    lab, role_path = _live_role_lab(tmp_path, monkeypatch)
+    role_path.write_text(
+        '[roles.implementer]\nmodel = "model-a"\neffort = "medium"\n'
+        '[roles.critic]\nmodel = "model-b"\neffort = "medium"\n',
+        encoding="utf-8",
+    )
+    root = lab.instantiate()
+    first = mint_entry(lab.composition, lab.wiring(), root)
+    assert first.dispatched is not None
+    implemented = lab.store.record_dispatch(first.dispatched, handle())
+    commit = lab.git.head_commit(cwd=lab.repo)
+    implemented = lab.store.close_activation(
+        implemented.activation_id,
+        Outcome.DONE,
+        evidence=Evidence(
+            artifact=ArtifactIdentity(
+                commit_oid=commit, tree_oid=lab.git.tree_oid(commit, cwd=lab.repo)
+            )
+        ),
+    )
+    review = route_head(lab.composition, lab.wiring(), root, implemented)
+    assert review.dispatched is not None
+    reviewed = lab.store.record_dispatch(review.dispatched, handle())
+    reviewed = lab.store.close_activation(
+        reviewed.activation_id,
+        Outcome.REJECT,
+        evidence=Evidence(
+            outputs_ref="wf-output://review",
+            outputs_tree_oid=lab.git.tree_oid(commit, cwd=lab.repo),
+            artifact=ArtifactIdentity(
+                commit_oid=commit, tree_oid=lab.git.tree_oid(commit, cwd=lab.repo)
+            ),
+        ),
+    )
+    role_path.write_text(
+        '[roles.implementer]\nmodel = "model-b"\neffort = "medium"\n'
+        '[roles.critic]\nmodel = "model-b"\neffort = "medium"\n',
+        encoding="utf-8",
+    )
+
+    second = route_head(lab.composition, lab.wiring(), root, reviewed)
+
+    assert second.dispatched is not None
+    metadata = lab.store.reads.load_activation(second.dispatched).metadata
+    assert metadata.round_no == 2
+    assert metadata.model == "model-a"
+
+
+def test_malformed_live_roles_keep_pin_on_new_retry(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """An existing task can retry without parsing a broken operator edit."""
+    lab, role_path = _live_role_lab(tmp_path, monkeypatch)
+    root = lab.instantiate()
+    first = mint_entry(lab.composition, lab.wiring(), root)
+    assert first.dispatched is not None
+    dispatched = lab.store.record_dispatch(first.dispatched, handle())
+    closed = lab.store.close_activation(
+        dispatched.activation_id, Outcome.ERROR_TRANSPORT
+    )
+    role_path.write_text("[roles.implementer\n", encoding="utf-8")
+
+    retry = route_head(lab.composition, lab.wiring(), root, closed)
+
+    assert retry.dispatched is not None
+    assert lab.store.reads.load_activation(retry.dispatched).metadata.model == "model-a"
+
+
+def test_invalid_now_edit_warns_once_and_keeps_pin(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A bad immediate edit names the refused model while retaining this task's pin."""
+    lab, role_path = _live_role_lab(tmp_path, monkeypatch)
+    root = lab.instantiate()
+    first = mint_entry(lab.composition, lab.wiring(), root)
+    assert first.dispatched is not None
+    dispatched = lab.store.record_dispatch(first.dispatched, handle())
+    closed = lab.store.close_activation(
+        dispatched.activation_id, Outcome.ERROR_TRANSPORT
+    )
+    role_path.write_text(
+        '[roles.implementer]\nmodel = "no-such-model"\neffort = "medium"\n'
+        'apply = "now"\n',
+        encoding="utf-8",
+    )
+    logger = Mock()
+    monkeypatch.setattr(cases_module, "_LOG", logger)
+
+    retry = route_head(lab.composition, lab.wiring(), root, closed)
+
+    assert retry.dispatched is not None
+    assert lab.store.reads.load_activation(retry.dispatched).metadata.model == "model-a"
+    logger.warning.assert_called_once()
+    (event,) = logger.warning.call_args.args
+    assert event == cases_module.MSG_ROLE_EDIT_IGNORED
+    assert logger.warning.call_args.kwargs["role"] == "implementer"
+    assert "no-such-model" in logger.warning.call_args.kwargs["reason"]
+
+
+def test_new_claude_binding_is_probed_outside_the_band(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A seed-only selection gets paid admission before the durable mint."""
+    lab, role_path = _live_role_lab(tmp_path, monkeypatch)
+    role_path.write_text(
+        '[roles.implementer]\nmodel = "claude-a"\neffort = "medium"\n',
+        encoding="utf-8",
+    )
+    catalog = CatalogSnapshot(
+        generated_at="2026-09-23T00:00:00Z",
+        digest="claude-test",
+        families={
+            CrewName.CLAUDE: FamilySnapshot(
+                source="checked-seed-and-probe",
+                available=True,
+                models=(
+                    CatalogModel(
+                        id="claude-a",
+                        efforts=("medium",),
+                        context_window=500000,
+                        verification=VerificationStatus.SEED_UNPROBED,
+                    ),
+                ),
+            ),
+        },
+    )
+    calls: list[tuple[str, ...]] = []
+
+    def run(argv: list[str], timeout: float) -> subprocess.CompletedProcess[str]:
+        band = BandLock(lab.wiring().paths.band_lock)
+        band.acquire()
+        band.release()
+        calls.append(tuple(argv))
+        return subprocess.CompletedProcess(argv, 0, '{"is_error":false}', "")
+
+    lab.profiles.accepted = lab.profiles.accepted | {"claude"}
+    lab.composition = replace(lab.composition, catalog=catalog, catalog_runner=run)
+    root = lab.instantiate()
+
+    report = lab.foreman.__class__(lab.composition).tick(root.root_id)
+
+    assert report.dispatched is not None
+    assert len(calls) == 1
+    metadata = lab.store.reads.load_activation(report.dispatched).metadata
+    assert metadata.model == "claude-a"
+    assert lab.composition.active_catalog is not None
+    assert metadata.catalog_digest == lab.composition.active_catalog.digest
+    assert metadata.catalog_digest != catalog.digest
+
+
 def test_minted_lifecycle_dispatches_and_records_its_exit(tmp_path: Path) -> None:
     """A real launch owns precondition, dispatch, and exit writes."""
     lab = ForemanLab(tmp_path)
@@ -76,6 +398,33 @@ def test_minted_lifecycle_dispatches_and_records_its_exit(tmp_path: Path) -> Non
     assert [launch.activation_id for launch in lab.spawner.launches] == [
         minted.activation_id,
     ]
+
+
+def test_unlaunched_version_repin_updates_the_ledger_request(tmp_path: Path) -> None:
+    """A prelaunch CLI update persists before the durable request is rebuilt."""
+    lab = ForemanLab(tmp_path)
+    root = lab.instantiate()
+    minted = (
+        lab.wiring()
+        .store.mint_activation(
+            root.root_id,
+            entry_request(
+                crew_version="codex-cli 0.156.1",
+                fresh_reason_override=SessionFreshReason.MODEL_CHANGED,
+            ),
+        )
+        .activation
+    )
+
+    updated = lab.wiring().store.repin_unlaunched_version(minted, "codex-cli 0.156.2")
+
+    assert updated.metadata.crew_version == "codex-cli 0.156.2"
+    assert updated.metadata.session_fresh_reason is SessionFreshReason.MODEL_CHANGED
+    assert (
+        mint_request_from_activation(updated.metadata).crew_version
+        == "codex-cli 0.156.2"
+    )
+    assert lab.store.reads.load_activation(minted.activation_id) == updated
 
 
 def test_minted_dispatch_refuses_a_corrupted_activation_binding(

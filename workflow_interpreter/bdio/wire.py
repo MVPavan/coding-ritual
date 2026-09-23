@@ -660,6 +660,7 @@ class MintRequest(BaseModel):
     crew_version: str | None = None
     session_id: str
     session_mode: SessionMode = SessionMode.FRESH
+    fresh_reason_override: SessionFreshReason | None = None
     session_source_activation_id: str | None = None
     source_session_id: str | None = None
     inputs: tuple[InputBinding, ...] = ()
@@ -700,6 +701,11 @@ def mint_request_from_activation(metadata: ActivationMetadata) -> MintRequest:
         crew_version=metadata.crew_version,
         session_id=metadata.session_id,
         session_mode=metadata.session_mode,
+        fresh_reason_override=(
+            metadata.session_fresh_reason
+            if metadata.session_fresh_reason is SessionFreshReason.MODEL_CHANGED
+            else None
+        ),
         session_source_activation_id=metadata.session_source_activation_id,
         source_session_id=metadata.source_session_id,
         predecessor_activation_id=metadata.predecessor_activation_id,

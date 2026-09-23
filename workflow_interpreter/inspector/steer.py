@@ -67,7 +67,10 @@ from workflow_interpreter.bdio.wire import (
     resolved_settings,
 )
 from workflow_interpreter.contracts.execution import CREW_PREFIX
-from workflow_interpreter.contracts.sessions import activation_policy_digest
+from workflow_interpreter.contracts.sessions import (
+    SessionFreshReason,
+    activation_policy_digest,
+)
 from workflow_interpreter.inspector.band import BandLock
 from workflow_interpreter.inspector.clock import Clock, to_iso
 from workflow_interpreter.inspector.config import InspectorConfig
@@ -183,11 +186,13 @@ class Steerer:
         clock: Clock,
         *,
         workspace: Workspace | None = None,
+        allow_rebind: bool = False,
     ) -> None:
         self._config = config
         self._paths = paths
         self._store = store
         self._clock = clock
+        self._allow_rebind = allow_rebind
         self._workspace = workspace or Workspace(
             paths, Git(config), clock, BandLock(paths.band_lock)
         )
@@ -302,7 +307,11 @@ class Steerer:
 
         cleanup_toolchain(self._paths, closed)
         intent = intent.model_copy(
-            update={"continuation": self._pinned_continuation(intent.continuation)}
+            update={
+                "continuation": self._pinned_continuation(
+                    intent.continuation, persisted=True
+                )
+            }
         )
         minted = self._store.mint_activation(self._paths.root_id, intent.continuation)
         _LOG.info(
@@ -361,7 +370,9 @@ class Steerer:
                 error=str(exc),
             )
 
-    def _pinned_continuation(self, continuation: MintRequest) -> MintRequest:
+    def _pinned_continuation(
+        self, continuation: MintRequest, *, persisted: bool = False
+    ) -> MintRequest:
         """Carry the predecessor's complete binding into its continuation."""
         root = self._store.reads.load_root(self._paths.root_id)
         node = root.index.nodes[continuation.node]
@@ -392,6 +403,22 @@ class Steerer:
                 raise ContinuationRefused(
                     f"steer predecessor {predecessor_id!r} has unusable invocation pins"
                 )
+            if (
+                self._allow_rebind
+                or (
+                    persisted
+                    and continuation.fresh_reason_override
+                    is SessionFreshReason.MODEL_CHANGED
+                )
+            ) and (
+                continuation.crew_profile != meta.crew_profile
+                or continuation.model != meta.model
+                or continuation.effort != meta.effort
+                or continuation.session_mode != meta.session_mode
+                or continuation.context_cap_tokens != meta.context_cap_tokens
+                or continuation.execution_policy != meta.execution_policy
+            ):
+                return continuation
             return continuation.model_copy(
                 update={
                     "crew_profile": meta.crew_profile,

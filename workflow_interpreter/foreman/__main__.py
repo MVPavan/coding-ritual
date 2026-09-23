@@ -234,6 +234,7 @@ def _composition(
         host_env=dict(os.environ),
         catalog=catalog_result.snapshot,
         catalog_provenance=catalog_result.provenance,
+        catalog_runner=catalog_runner,
         ledger=ledger,
         drain_attention=RootAttentionDrain(
             ledger,

@@ -3,6 +3,7 @@
 [roles.implementer]
 model = "claude-opus-5-5"
 effort = "medium"
+# apply = "now"  # default: "next-task"; now applies at the next activation
 
 [roles.critic]
 model = "gpt-6-sol"
