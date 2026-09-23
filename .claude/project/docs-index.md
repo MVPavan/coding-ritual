@@ -19,7 +19,7 @@ Authoritative docs and when to read them.
 | `docs/graph-loops/build-loop-tdd-enforcement.md` | Checking a claim about what `workflows/build-loop.toml` actually enforces — each TDD rule, its enforcement tier, and the `file:line` that holds it |
 | `docs/adr/` | **Before changing interpreter semantics** — recorded decisions (`allowed_paths`, node instructions, payload storage); supersede, never silently undo |
 | `docs/specs/workflow-interpreter.md` | Implementing or operating the workflow interpreter |
-| `scripts/README.md` | Managing Claude/Codex remote-control sessions (`claudex-rc.sh`) — lifecycle, recovery, watchdog |
+| `scripts/README.md` | Running the machine-wide Codex remote-control daemon (`codex-rc` systemd unit) |
 | `CONTEXT.md` | Naming anything — the domain glossary; use its terms, avoid its listed synonyms |
 | `.beads/beads.md` | Beads workflow, agent context profiles, session-completion protocol |
 | `.claude/rules/core/03-coding-discipline.md` | Coding rules that reduce common LLM mistakes |
