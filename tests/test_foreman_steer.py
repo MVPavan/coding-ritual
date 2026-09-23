@@ -34,6 +34,7 @@ from workflow_interpreter.bdio import (
     mint,
 )
 from workflow_interpreter.foreman import __main__ as main_module
+from workflow_interpreter.foreman.config import CrewBinding
 from workflow_interpreter.foreman.constants import MAX_TRANSCRIPT_BYTES
 from workflow_interpreter.foreman.execution import resolved_node
 from workflow_interpreter.foreman.tick import Foreman
@@ -166,7 +167,9 @@ def test_steer_preserves_session_round_and_its_bounded_tail(
     # rightly proves no tree for its continuation to resume against.
     choose_precondition(
         lab.wiring().workspace,
-        resolved_node(root, activation.metadata.node).node,
+        resolved_node(
+            root, activation.metadata.node, activation=activation.metadata
+        ).node,
         None,
         None,
     )(activation)
@@ -308,6 +311,56 @@ def test_tick_finishes_a_steer_crashed_after_its_close(
 
     assert repaired.settled == activation.activation_id
     assert lab.tick().dispatched == continuation.activation_id
+
+
+def test_steer_keeps_predecessor_binding_after_role_edit(tmp_path: Path) -> None:
+    """A continuation carries the predecessor's invocation across a role edit."""
+    lab = ForemanLab(
+        tmp_path,
+        roles={
+            "implementer": CrewBinding(
+                profile="fake", model="before-model", effort="low"
+            ),
+            "critic": CrewBinding(profile="fake", model="fake", effort="medium"),
+            "scribe": CrewBinding(profile="fake", model="fake", effort="medium"),
+        },
+    )
+    root = lab.instantiate()
+    predecessor = (
+        lab.wiring()
+        .store.mint_activation(
+            root.root_id,
+            entry_request(model="before-model", effort="low", crew_version="before-v1"),
+        )
+        .activation
+    )
+    predecessor = lab.wiring().store.record_dispatch(
+        predecessor.activation_id, handle(), launch_id=LAB_LAUNCH_ID
+    )
+    lab.go_stale(predecessor.activation_id)
+
+    edited = {
+        **lab.config.roles,
+        "implementer": CrewBinding(
+            profile="changed", model="after-model", effort="high"
+        ),
+    }
+    lab.config = lab.config.model_copy(update={"roles": edited})
+    lab.composition = replace(lab.composition, config=lab.config)
+    lab.foreman = Foreman(lab.composition)
+
+    report = lab.steer(
+        predecessor.activation_id, reason="stale", instructions="continue the work"
+    )
+    continuation = lab.store.reads.load_activation(report.continuation)
+    before = predecessor.metadata
+    after = continuation.metadata
+    assert (after.crew_profile, after.model, after.effort, after.crew_version) == (
+        before.crew_profile,
+        before.model,
+        before.effort,
+        before.crew_version,
+    )
 
 
 def test_steer_refuses_a_sessionless_continuation_before_the_intent(

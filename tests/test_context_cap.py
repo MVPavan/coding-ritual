@@ -1,9 +1,4 @@
-"""Crew-sessions §4: a role's `context_cap_tokens` reaches claude as `--autocompact`.
-
-The cap is pinned from the role binding at instantiation and read back off the
-root, so the table drives the real `resolve.instantiate` → `resolved_node`
-path and then builds both invocations the inspector can choose between.
-"""
+"""A role's activation context cap reaches Claude as `--autocompact`."""
 
 from __future__ import annotations
 
@@ -16,8 +11,8 @@ from tests._foreman import DEFAULT_LAB_ROLES, ForemanLab
 from tests._inspector import FrozenClock
 from tests._profiles import INSTRUCTIONS, make_claude, make_codex, make_task
 from workflow_interpreter.contracts.sessions import SessionMode
+from workflow_interpreter.foreman.cases import startup_invocation
 from workflow_interpreter.foreman.config import CrewBinding
-from workflow_interpreter.foreman.execution import resolved_node
 
 AUTOCOMPACT = "--autocompact"
 CODEX_WINDOW_KEYS = ("model_context_window", "model_auto_compact_token_limit")
@@ -61,7 +56,8 @@ def test_role_cap_reaches_launch_and_resume_argv(
             ForemanLab(tmp_path, roles=roles)
         return
     lab = ForemanLab(tmp_path, roles=roles)
-    view = resolved_node(lab.instantiate_resolved(), "implement")
+    root = lab.instantiate_resolved()
+    view = startup_invocation(lab.composition, root, "implement")
     task = make_task(tmp_path, model=model).model_copy(
         update={"context_cap_tokens": view.context_cap_tokens}
     )

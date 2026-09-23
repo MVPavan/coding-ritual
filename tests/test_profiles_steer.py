@@ -413,6 +413,7 @@ def test_routed_claude_roles_keep_their_own_pinned_efforts(
                 mint_reason=MintReason.ENTRY,
                 crew_profile=CrewName.CLAUDE.value,
                 model=PINNED_MODEL,
+                effort="high",
                 session_id="",
             ),
         )
@@ -503,6 +504,7 @@ def test_wrapper_refuses_corrupted_activation_crew(
                 mint_reason=MintReason.ENTRY,
                 crew_profile=CrewName.CLAUDE.value,
                 model=PINNED_MODEL,
+                effort="high",
                 session_id="",
             ),
         )
@@ -866,7 +868,6 @@ def test_foreman_delivered_resume_and_retry_match_recorded_envelope(
     import hashlib
 
     from tests._profiles import PASSTHROUGH, write_stub
-    from workflow_interpreter.bdio.wire import config_signature
     from workflow_interpreter.foreman.inputs import select_bindings
     from workflow_interpreter.foreman.inspector import _task_builder
     from workflow_interpreter.inspector import Dispatcher, Steerer
@@ -877,25 +878,15 @@ def test_foreman_delivered_resume_and_retry_match_recorded_envelope(
     lab = ForemanLab(tmp_path, sandbox=SandboxMode.OFF)
     root = lab.instantiate()
     wiring = lab.wiring()
-    settings = tuple(
-        setting.model_copy(update={"value": crew.value})
-        if setting.key == "node.implement.crew"
-        else setting
-        for setting in root.metadata.resolved_config
+    assert all(
+        item.key != "node.implement.crew" for item in root.metadata.resolved_config
     )
-    wiring.store._client._merge_metadata(
-        root.root_id,
-        {
-            "resolved_config": [item.model_dump(mode="json") for item in settings],
-            "config_signature": config_signature(settings),
-        },
-    )
-    root = wiring.store.reads.load_root(root.root_id)
     node = root.index.nodes[IMPLEMENT]
     bindings = select_bindings(root.index, root, node, (), 1)
     request = entry_mint(
         model="fake",
         crew_profile=crew.value,
+        effort="medium",
         session_id=str(uuid.uuid4()) if crew is CrewName.CLAUDE else "",
         inputs=bindings,
     )
@@ -994,6 +985,7 @@ def test_foreman_delivered_resume_and_retry_match_recorded_envelope(
     retry = entry_mint(
         model="fake",
         crew_profile=crew.value,
+        effort="medium",
         mint_reason=MintReason.INFRA_RETRY,
         predecessor_activation_id=continued.activation.activation_id,
         session_id=continued.handle.session_id,

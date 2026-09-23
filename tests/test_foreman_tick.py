@@ -109,10 +109,12 @@ def test_tick_checks_an_open_halt_before_advancing_a_lifecycle(
     assert advanced == []
 
 
-def test_steer_request_rebuilds_its_execution_pin_from_the_root(
+def test_steer_refuses_a_corrupted_activation_binding_before_kill(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """A fresh steer never persists divergent activation vendor metadata."""
+    """A steer never persists divergent activation vendor metadata."""
+    from workflow_interpreter.foreman.errors import UnusableResolutionError
+
     lab = ForemanLab(tmp_path)
     root = lab.instantiate()
     activation = (
@@ -152,11 +154,10 @@ def test_steer_request_rebuilds_its_execution_pin_from_the_root(
 
     monkeypatch.setattr(tick_module, "Steerer", CapturingSteerer)
 
-    lab.steer(activation.activation_id, reason="stale", instructions="continue")
+    with pytest.raises(UnusableResolutionError, match="binding digest"):
+        lab.steer(activation.activation_id, reason="stale", instructions="continue")
 
-    request = continuations[0]
-    assert request.crew_profile == "fake"
-    assert request.model == "fake"
+    assert continuations == []
 
 
 def test_tick_maps_band_contention_to_a_contended_result(tmp_path: Path) -> None:

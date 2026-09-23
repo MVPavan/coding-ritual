@@ -61,7 +61,13 @@ from workflow_interpreter.bdio import (
     pinned_execution_setting,
 )
 from workflow_interpreter.bdio.rpc_records import ControlRegistration
-from workflow_interpreter.bdio.wire import resolved_settings
+from workflow_interpreter.bdio.wire import (
+    activation_binding_digest,
+    is_legacy_activation,
+    resolved_settings,
+)
+from workflow_interpreter.contracts.execution import CREW_PREFIX
+from workflow_interpreter.contracts.sessions import activation_policy_digest
 from workflow_interpreter.inspector.band import BandLock
 from workflow_interpreter.inspector.clock import Clock, to_iso
 from workflow_interpreter.inspector.config import InspectorConfig
@@ -356,8 +362,52 @@ class Steerer:
             )
 
     def _pinned_continuation(self, continuation: MintRequest) -> MintRequest:
-        """Normalize execution bindings against the immutable root pins."""
+        """Carry the predecessor's complete binding into its continuation."""
         root = self._store.reads.load_root(self._paths.root_id)
+        node = root.index.nodes[continuation.node]
+        if node.crew and node.crew.startswith(CREW_PREFIX):
+            predecessor_id = continuation.predecessor_activation_id
+            if predecessor_id is None:
+                raise ContinuationRefused("steer continuation has no predecessor")
+            predecessor = self._store.reads.load_activation(predecessor_id)
+            meta = predecessor.metadata
+            if is_legacy_activation(meta):
+                settings = resolved_settings(root.metadata)
+                return continuation.model_copy(
+                    update={
+                        "crew_profile": pinned_execution_setting(
+                            root, continuation.node, NodeSetting.CREW
+                        ),
+                        "model": pinned_execution_setting(
+                            root, continuation.node, NodeSetting.MODEL
+                        ),
+                        "effort": settings.get(
+                            NodeSetting.EFFORT.at(continuation.node)
+                        ),
+                    }
+                )
+            if meta.binding_digest != activation_binding_digest(
+                meta
+            ) or meta.policy_digest != activation_policy_digest(meta.execution_policy):
+                raise ContinuationRefused(
+                    f"steer predecessor {predecessor_id!r} has unusable invocation pins"
+                )
+            return continuation.model_copy(
+                update={
+                    "crew_profile": meta.crew_profile,
+                    "model": meta.model,
+                    "role": meta.role,
+                    "family": meta.family,
+                    "effort": meta.effort,
+                    "context_cap_tokens": meta.context_cap_tokens,
+                    "execution_policy": meta.execution_policy,
+                    "policy_digest": meta.policy_digest,
+                    "catalog_digest": meta.catalog_digest,
+                    "binding_digest": meta.binding_digest,
+                    "crew_version": meta.crew_version,
+                    "session_mode": meta.session_mode,
+                }
+            )
         return continuation.model_copy(
             update={
                 "crew_profile": pinned_execution_setting(

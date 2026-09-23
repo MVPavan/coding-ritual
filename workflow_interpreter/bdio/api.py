@@ -59,7 +59,7 @@ from workflow_interpreter.bdio.records import (
     RootRecord,
     RowRecord,
 )
-from workflow_interpreter.bdio.roots import create_root, settle_root
+from workflow_interpreter.bdio.roots import create_root, settle_root, static_root_config
 from workflow_interpreter.bdio.rpc_records import (
     ControlRegistration,
     SessionCompletion,
@@ -88,7 +88,7 @@ from workflow_interpreter.bdio.wire import (
     Usage,
     metadata_dict,
 )
-from workflow_interpreter.contracts.execution import ExecutionRegistry
+from workflow_interpreter.contracts.execution import CREW_PREFIX, ExecutionRegistry
 from workflow_interpreter.contracts.rpc_control import ControlState
 from workflow_interpreter.contracts.run_identity import RunIdentity
 from workflow_interpreter.contracts.wake import WakeEvent
@@ -650,24 +650,29 @@ class WorkflowStore:
         request: MintRequest,
     ) -> tuple[str, str]:
         """Verify the execution pins and every deterministic pre-mint bound."""
-        crew_profile = pinned_execution_setting(root, facts.node, NodeSetting.CREW)
-        model = pinned_execution_setting(root, facts.node, NodeSetting.MODEL)
-        _assert_pinned_execution_setting(
-            node=facts.node,
-            field=_FIELD_CREW_PROFILE,
-            requested=request.crew_profile,
-            pinned=crew_profile,
-        )
-        _assert_pinned_execution_setting(
-            node=facts.node,
-            field=_FIELD_MODEL,
-            requested=request.model,
-            pinned=model,
-        )
+        node = root.index.nodes[facts.node]
+        static = {
+            setting.key: setting.value
+            for setting in static_root_config(
+                root.definition, root.metadata.resolved_config
+            )
+        }
+        for field, setting, requested in (
+            (_FIELD_CREW_PROFILE, NodeSetting.CREW, request.crew_profile),
+            (_FIELD_MODEL, NodeSetting.MODEL, request.model),
+        ):
+            pinned = static.get(setting.at(facts.node))
+            if pinned is None and node.crew and node.crew.startswith(CREW_PREFIX):
+                continue
+            if not isinstance(pinned, str):
+                pinned = pinned_execution_setting(root, facts.node, setting)
+            _assert_pinned_execution_setting(
+                node=facts.node, field=field, requested=requested, pinned=pinned
+            )
         refusal = self._pre_mint_refusal(root, facts, beads, activations)
         if refusal is not None:
             raise BoundExceededError(refusal)
-        return crew_profile, model
+        return request.crew_profile, request.model
 
     def _pre_mint_refusal(
         self,

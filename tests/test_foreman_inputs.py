@@ -1312,13 +1312,36 @@ def test_a_resumed_turn_records_the_envelope_it_actually_sent(
     frozen app-server resends the whole brief, so its record stays the
     pre-epic one: the fresh envelope, with no `kind`.
     """
-    lab = ForemanLab(tmp_path, sandbox=SandboxMode.OFF)
+    from tests._foreman import DEFAULT_LAB_ROLES
+    from workflow_interpreter.foreman.config import CrewBinding
+
+    legacy_crew = "codex-appserver" if appserver else "fake"
+    lab = ForemanLab(
+        tmp_path,
+        sandbox=SandboxMode.OFF,
+        roles={
+            **DEFAULT_LAB_ROLES,
+            "implementer": CrewBinding(
+                profile=legacy_crew, model="fake", effort="medium"
+            ),
+        },
+        overrides=(
+            {
+                "node.implement.crew": legacy_crew,
+                "node.implement.model": "fake",
+                "node.implement.effort": "medium",
+                "node.implement.session_mode": "resume",
+            }
+            if appserver
+            else {}
+        ),
+    )
     root = lab.instantiate()
     wiring = lab.wiring()
     node = root.index.nodes[IMPLEMENT]
     bindings = select_bindings(root.index, root, node, (), 1)
     source = wiring.store.mint_activation(
-        root.root_id, lab_entry_request(inputs=bindings)
+        root.root_id, lab_entry_request(inputs=bindings, crew_profile=legacy_crew)
     ).activation
     wiring.store.close_activation(source.activation_id, Outcome.DONE)
     resumed = wiring.store.mint_activation(
@@ -1327,6 +1350,7 @@ def test_a_resumed_turn_records_the_envelope_it_actually_sent(
             mint_reason=MintReason.EDGE,
             predecessor_activation_id=source.activation_id,
             inputs=bindings,
+            crew_profile=legacy_crew,
         ),
     ).activation
     wiring.store._client._merge_metadata(

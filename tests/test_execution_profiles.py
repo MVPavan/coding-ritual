@@ -292,8 +292,12 @@ def test_named_pin_requires_registered_crew(tmp_path: Path, crew: str | None) ->
         for node in graph.document.node
         if node.execution_profile is not None and crew is not None
     )
-    with pytest.raises(CarrierIntegrityError, match="unregistered crew"):
-        pin_execution_policies(graph, settings, profiles=registry())
+    if crew is None:
+        # A role chooses its registered crew when the activation is minted.
+        assert pin_execution_policies(graph, settings, profiles=registry())
+    else:
+        with pytest.raises(CarrierIntegrityError, match="unregistered crew"):
+            pin_execution_policies(graph, settings, profiles=registry())
 
 
 def test_network_capability_is_declared_for_every_registered_crew() -> None:
@@ -578,7 +582,13 @@ def test_registered_fake_pins_and_launches_its_declared_network_fact(
     lab = ForemanLab(tmp_path, toml=SHIPPED_FIXTURE)
     monkeypatch.setattr(lab.profiles.profile, "tool_network", network)
     root = lab.instantiate_resolved()
-    assert resolved_node(root, "implement").execution_policy.tool_network is network
+    assert (
+        root.index.nodes["implement"].execution_profile is ExecutionProfileName.WRITER
+    )
+    assert not any(
+        item.key == "node.implement.execution_policy"
+        for item in root.metadata.resolved_config
+    )
     activation_id = lab.tick().dispatched
     assert activation_id is not None
     activation = lab.store.reads.load_activation(activation_id)
@@ -600,8 +610,9 @@ def test_new_activation_policy_uses_current_registered_crew_capability(
 
     lab = ForemanLab(tmp_path, toml=SHIPPED_FIXTURE)
     root = lab.instantiate_resolved()
-    assert resolved_node(root, "implement").execution_policy.tool_network is (
-        ToolNetwork.NOT_ENFORCED
+    assert not any(
+        item.key == "node.implement.execution_policy"
+        for item in root.metadata.resolved_config
     )
     monkeypatch.setattr(lab.profiles.profile, "tool_network", ToolNetwork.DENIED)
 

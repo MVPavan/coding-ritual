@@ -300,7 +300,15 @@ def test_exit_recorded_legacy_settlement_uses_the_root_pinned_profile(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """A pre-S3 exit remains attached to its root-pinned vendor."""
-    lab = ForemanLab(tmp_path)
+    lab = ForemanLab(
+        tmp_path,
+        overrides={
+            "node.implement.crew": FAKE_PROFILE,
+            "node.implement.model": "fake",
+            "node.implement.effort": "medium",
+            "node.implement.session_mode": "fresh",
+        },
+    )
     root = lab.instantiate()
     minted = (
         lab.wiring().store.mint_activation(root.root_id, entry_request()).activation
@@ -341,7 +349,15 @@ def test_dispatched_legacy_settlement_uses_the_root_pinned_profile(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """A pre-S3 dispatched row recovers with the root-pinned vendor."""
-    lab = ForemanLab(tmp_path)
+    lab = ForemanLab(
+        tmp_path,
+        overrides={
+            "node.implement.crew": FAKE_PROFILE,
+            "node.implement.model": "fake",
+            "node.implement.effort": "medium",
+            "node.implement.session_mode": "fresh",
+        },
+    )
     root = lab.instantiate()
     minted = (
         lab.wiring().store.mint_activation(root.root_id, entry_request()).activation
@@ -473,10 +489,10 @@ def test_entry_mint_and_task_construction_read_the_roots_resolution(
     assert task.token_budget == 1234
 
 
-def test_a_role_rebinding_after_instantiation_never_reaches_a_mint(
+def test_a_role_rebinding_after_instantiation_reaches_a_new_mint(
     tmp_path: Path,
 ) -> None:
-    """§3.1: the live roles map is consulted at instantiation only (cr-7h8)."""
+    """New mints use the owner's startup bindings, not historical root pins."""
     lab = ForemanLab(tmp_path)
     root = lab.instantiate()
     lab.composition.config.roles["implementer"] = CrewBinding(
@@ -487,7 +503,8 @@ def test_a_role_rebinding_after_instantiation_never_reaches_a_mint(
 
     activation = lab.store.reads.list_activations(root.root_id)[0]
     assert activation.metadata.crew_profile == FAKE_PROFILE
-    assert activation.metadata.model == "fake"
+    assert activation.metadata.model == "drifted-model"
+    assert activation.metadata.effort == "high"
 
 
 def test_duplicate_mint_replays_before_new_binding_validation(tmp_path: Path) -> None:

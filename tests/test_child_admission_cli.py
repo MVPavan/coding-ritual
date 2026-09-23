@@ -73,9 +73,13 @@ def test_raw_admission_cannot_smuggle_unresolved_model_pins(
     monkeypatch.setattr(cli, "_composition", lambda _: composition)
     admission = admission_of(owner, slot="one", generation=0)
     settings = json.loads(admission.config_json)
-    for setting in settings:
-        if setting["key"].endswith(".model"):
-            setting["value"] = "unresolved-authority"
+    settings.append(
+        {
+            "key": "node.work.model",
+            "value": "unresolved-authority",
+            "source": "role-binding",
+        }
+    )
     path = tmp_path / "forged.json"
     path.write_text(
         admission.model_copy(

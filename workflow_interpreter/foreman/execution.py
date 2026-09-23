@@ -6,9 +6,11 @@ from collections.abc import Mapping
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Final
 
+import structlog
 from pydantic import BaseModel, ConfigDict, ValidationError
 
 from workflow_interpreter.bdio.records import RootRecord
+from workflow_interpreter.bdio.roots import static_root_config
 from workflow_interpreter.bdio.wire import (
     ActivationMetadata,
     BoundSetting,
@@ -20,16 +22,19 @@ from workflow_interpreter.bdio.wire import (
 from workflow_interpreter.contracts.execution import (
     EXECUTION_POLICY_KEY,
     MSG_POLICY_MISMATCH,
+    CrewName,
     ExecutionPolicy,
     ExecutionRegistry,
     policy_for,
     tool_network_for,
 )
 from workflow_interpreter.contracts.sessions import (
+    SessionMode,
     activation_policy_digest,
     context_cap_key,
     session_mode_key,
 )
+from workflow_interpreter.foreman.config import CrewBinding
 from workflow_interpreter.foreman.errors import (
     UnresolvedCrewError,
     UnusableResolutionError,
@@ -41,6 +46,8 @@ from workflow_interpreter.schema.models import Node, NodeKind
 
 if TYPE_CHECKING:
     from workflow_interpreter.inspector.paths import WrapperPaths
+
+_LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 
 _MSG_UNRESOLVED_CREW: Final[str] = (
     "node {node!r} binds the crew role {role!r}, but the root's resolved "
@@ -267,10 +274,77 @@ def resolved_node(
 
 
 def resolved_invocation(
-    root: RootRecord, node_name: str, profiles: ExecutionRegistry
+    root: RootRecord,
+    node_name: str,
+    profiles: ExecutionRegistry,
+    *,
+    binding: CrewBinding | None = None,
 ) -> ResolvedNode:
     """Resolve a new activation using the selected crew's registered capability."""
-    view = resolved_node(root, node_name)
+    pinned = root.index.nodes[node_name]
+    if binding is not None and pinned.crew and pinned.crew.startswith(CREW_PREFIX):
+        static = {
+            item.key: item.value
+            for item in static_root_config(
+                root.definition, root.metadata.resolved_config
+            )
+        }
+        effective = effective_node(pinned, static, static_only=True)
+        crew = static.get(NodeSetting.CREW.at(node_name), binding.profile)
+        model = static.get(NodeSetting.MODEL.at(node_name), binding.model)
+        effort = static.get(NodeSetting.EFFORT.at(node_name), binding.effort)
+        mode = static.get(
+            session_mode_key(node_name), binding.session_mode or SessionMode.FRESH
+        )
+        cap = static.get(context_cap_key(node_name))
+        if binding.context_cap_tokens is not None:
+            if crew != CrewName.CLAUDE:
+                _LOG.warning(
+                    "foreman.context_cap_dropped",
+                    node=node_name,
+                    crew=crew,
+                    context_cap_tokens=binding.context_cap_tokens,
+                )
+            elif cap is None:
+                cap = binding.context_cap_tokens
+        for field, value in (("crew", crew), ("model", model), ("effort", effort)):
+            if not isinstance(value, str) or not value.strip():
+                raise UnusableResolutionError(
+                    _MSG_UNUSABLE_ROLE_BOUND_SETTING.format(node=node_name, field=field)
+                )
+        assert isinstance(crew, str)
+        assert isinstance(model, str)
+        assert isinstance(effort, str)
+        if model == MODEL_VENDOR_DEFAULT:
+            raise UnusableResolutionError(
+                _MSG_UNUSABLE_ROLE_BOUND_SETTING.format(node=node_name, field="model")
+            )
+        if cap is not None and (type(cap) is not int or cap <= 0):
+            raise UnusableResolutionError(
+                _MSG_UNUSABLE_ROOT.format(
+                    node=node_name, detail="context_cap_tokens is not a positive int"
+                )
+            )
+        assert cap is None or isinstance(cap, int)
+        try:
+            values = effective.model_dump()
+            values.pop("session_reuse", None)
+            node = Node.model_validate(values | {"model": model, "session_mode": mode})
+        except ValidationError as error:
+            raise UnusableResolutionError(
+                _MSG_UNUSABLE_ROOT.format(
+                    node=node_name, detail=error.errors()[0]["msg"]
+                )
+            ) from error
+        view = ResolvedNode(
+            node=node,
+            crew_profile=crew,
+            model=model,
+            effort=effort,
+            context_cap_tokens=cap,
+        )
+    else:
+        view = resolved_node(root, node_name)
     if view.node.execution_profile is None:
         return view
     return view.model_copy(

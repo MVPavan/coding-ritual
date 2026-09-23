@@ -49,6 +49,7 @@ from workflow_interpreter.foreman.constants import INSTANCE_BRANCH
 from workflow_interpreter.foreman.errors import ResolutionError, UnusableResolutionError
 from workflow_interpreter.foreman.execution import (
     UnresolvedCrewError,
+    resolved_invocation,
     resolved_node,
 )
 from workflow_interpreter.foreman.model_catalog import (
@@ -552,7 +553,7 @@ def test_resolve_tags_defaults_and_explicit_overrides() -> None:
     assert settings["node.implement.model"].source.value == "instance-override"
 
 
-def test_role_bindings_fill_only_unresolved_settings_with_their_own_source(
+def test_role_bindings_are_resolved_at_invocation_and_static_overrides_stay_pinned(
     fake_store: WorkflowStore, tmp_path: Path
 ) -> None:
     """A role binding cannot erase an operator's immutable root override."""
@@ -590,12 +591,39 @@ def test_role_bindings_fill_only_unresolved_settings_with_their_own_source(
         item.key: item
         for item in _resolved_config(bound_composition, load_definition(), {})
     }
-    assert bound_settings["node.implement.crew"].value == "bound-crew"
-    assert bound_settings["node.implement.crew"].source.value == "role-binding"
-    assert bound_settings["node.implement.model"].value == "bound-model"
-    assert bound_settings["node.implement.model"].source.value == "role-binding"
-    assert bound_settings["node.implement.effort"].value == "high"
-    assert bound_settings["node.implement.effort"].source.value == "role-binding"
+    assert "node.implement.crew" not in bound_settings
+    assert "node.implement.model" not in bound_settings
+    assert "node.implement.effort" not in bound_settings
+    root = fake_store.create_root(
+        instance_key="role-view",
+        definition=load_definition(),
+        resolved_config=tuple(bound_settings.values()),
+    )
+    view = resolved_invocation(
+        root,
+        "implement",
+        bound_composition.profiles,
+        binding=bound_composition.config.roles["implementer"],
+    )
+    assert (view.crew_profile, view.model, view.effort) == (
+        "bound-crew",
+        "bound-model",
+        "high",
+    )
+    with capture_logs() as cap_logs:
+        uncapped = resolved_invocation(
+            root,
+            "implement",
+            bound_composition.profiles,
+            binding=CrewBinding(
+                profile="bound-crew",
+                model="bound-model",
+                effort="high",
+                context_cap_tokens=120000,
+            ),
+        )
+    assert uncapped.context_cap_tokens is None
+    assert any(entry["event"] == "foreman.context_cap_dropped" for entry in cap_logs)
 
     project_composition, _ = _instance_composition(
         fake_store,
@@ -660,9 +688,24 @@ def test_session_mode_resolution_is_node_then_role_then_fresh(
         item.key: item for item in _resolved_config(composition, load_graph(graph), {})
     }
 
-    pinned = settings["node.implement.session_mode"]
-    assert pinned.value == expected
-    assert pinned.source.value == source
+    pinned = settings.get("node.implement.session_mode")
+    if node_mode is None:
+        assert pinned is None
+    else:
+        assert pinned is not None and pinned.value == expected
+        assert pinned.source.value == source
+    root = fake_store.create_root(
+        instance_key="mode-view",
+        definition=load_graph(graph),
+        resolved_config=tuple(settings.values()),
+    )
+    view = resolved_invocation(
+        root,
+        "implement",
+        composition.profiles,
+        binding=composition.config.roles["implementer"],
+    )
+    assert view.node.session_mode is expected
 
 
 def test_a_node_resume_on_a_crew_that_cannot_resume_is_refused_at_resolve(
@@ -688,6 +731,29 @@ def test_a_node_resume_on_a_crew_that_cannot_resume_is_refused_at_resolve(
     )
 
     with pytest.raises(ResolutionError, match="session_mode='resume'"):
+        _resolved_config(composition, load_graph(graph), {})
+
+
+@pytest.mark.parametrize("effort", (None, "   "))
+def test_direct_crew_requires_non_blank_project_effort_at_resolve(
+    fake_store: WorkflowStore, tmp_path: Path, effort: str | None
+) -> None:
+    """A direct crew cannot create a root that no activation could launch."""
+    graph = tmp_path / "direct.toml"
+    graph.write_text(
+        VALID_FIXTURE.read_text()
+        .replace('crew        = "profile:implementer"', 'crew        = "opencode"', 1)
+        .replace('model         = "default"', 'model         = "glm"', 1)
+    )
+    composition, _ = _instance_composition(
+        fake_store,
+        tmp_path / "composition",
+        project_config={} if effort is None else {"node.implement.effort": effort},
+    )
+    with pytest.raises(
+        ResolutionError,
+        match="direct crew 'opencode'.*requires non-blank resolved node effort",
+    ):
         _resolved_config(composition, load_graph(graph), {})
 
 
@@ -1076,8 +1142,10 @@ def test_instantiate_pins_project_resolution_and_creates_instance_branch(
     branch = INSTANCE_BRANCH.format(root_id=root.root_id)
     assert git.updated == [(branch, git.base)]
     assert root.metadata.instance_inputs[0].body == "implement this"
-    assert settings["node.implement.crew"].value == "implementer"
-    assert settings["node.review.crew"].value == "critic"
+    assert "node.implement.crew" not in settings
+    assert "node.review.crew" not in settings
+    assert root.index.nodes["implement"].crew == "profile:implementer"
+    assert root.index.nodes["review"].crew == "profile:critic"
     assert {key for key in settings if key.startswith("verify.")}
 
     again = instantiate(
@@ -1755,7 +1823,9 @@ def test_resolved_node_falls_back_to_the_pinned_node(tmp_path: Path) -> None:
     root = lab.instantiate()
     pinned = root.index.nodes[IMPLEMENT]
 
-    view = resolved_node(root, IMPLEMENT)
+    from workflow_interpreter.foreman.cases import startup_invocation
+
+    view = startup_invocation(lab.composition, root, IMPLEMENT)
 
     assert view.crew_profile == FAKE_PROFILE
     assert view.node.max_wall == pinned.max_wall
@@ -1783,7 +1853,9 @@ def test_resolved_node_overlays_every_resolvable_execution_field(
     )
     root = lab.instantiate()
 
-    view = resolved_node(root, IMPLEMENT)
+    from workflow_interpreter.foreman.cases import startup_invocation
+
+    view = startup_invocation(lab.composition, root, IMPLEMENT)
 
     assert view.model == "override-model"
     assert view.node.model == "override-model"
@@ -1873,7 +1945,14 @@ def test_resolved_node_refuses_a_role_bound_node_without_usable_vendor_setting(
     tmp_path: Path, field: str
 ) -> None:
     """A role-bound task cannot defer a model or effort to a vendor."""
-    root = ForemanLab(tmp_path).instantiate()
+    root = ForemanLab(
+        tmp_path,
+        overrides={
+            "node.implement.crew": "fake",
+            "node.implement.model": "fake",
+            "node.implement.effort": "medium",
+        },
+    ).instantiate()
     model_key = "node.implement.model"
     effort_key = "node.implement.effort"
     resolved_config = (

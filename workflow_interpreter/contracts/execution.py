@@ -6,6 +6,8 @@ from typing import Final, Literal, Protocol
 from pydantic import BaseModel, ConfigDict, model_validator
 
 EXECUTION_POLICY_KEY: Final[str] = "node.{node}.execution_policy"
+EXECUTION_POLICY_VERSION_KEY: Final[str] = "node.{node}.execution_policy_version"
+EXECUTION_POLICY_VERSION: Final = 1
 MSG_PROFILE_WRITES: Final[str] = "execution_profile forbids authored or override writes"
 MSG_REVIEWER_GRANTS: Final[str] = "reviewer execution_profile forbids allowed_paths"
 MSG_PROFILE_KIND: Final[str] = "execution_profile is only valid on task nodes"
@@ -82,7 +84,7 @@ class ExecutionPolicy(BaseModel):
     """The immutable authority pinned for a named activation."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
-    version: Literal[1] = 1
+    version: Literal[1] = EXECUTION_POLICY_VERSION
     name: ExecutionProfileName
     writes: bool
     tool_network: ToolNetwork

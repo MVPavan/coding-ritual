@@ -192,7 +192,7 @@
           "$ref": "#/$defs/identifier"
         },
         "crew": {
-          "description": "A `profile:<role>` alias, or the direct `codex-appserver` or `opencode` crew. Direct crews declare a graph model and may set node effort in project config.",
+          "description": "A `profile:<role>` alias, or the direct `codex-appserver` or `opencode` crew. Direct crews declare a graph model and must resolve non-blank node effort from project config or an instance override.",
           "type": "string",
           "pattern": "^(profile:[a-z0-9][a-z0-9_-]*|codex-appserver|opencode)$"
         },

@@ -98,19 +98,19 @@ def test_mint_refuses_execution_bindings_that_disagree_with_the_root(
     requested: str,
     pinned: str,
 ) -> None:
-    """A caller cannot mint an activation that names a different execution pin."""
+    """A caller cannot mint against an explicit static execution pin."""
     root = make_root(
         fake_store,
         definition,
         ResolvedSetting(
             key=NodeSetting.MODEL.at(IMPLEMENT),
             value="claude-opus-5",
-            source=ConfigSource.ROLE_BINDING,
+            source=ConfigSource.INSTANCE_OVERRIDE,
         ),
         ResolvedSetting(
             key=NodeSetting.CREW.at(IMPLEMENT),
             value="pinned-crew",
-            source=ConfigSource.ROLE_BINDING,
+            source=ConfigSource.INSTANCE_OVERRIDE,
         ),
     )
     with pytest.raises(CarrierIntegrityError) as refusal:

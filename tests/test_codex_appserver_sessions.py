@@ -3,6 +3,7 @@
 import hashlib
 import json
 import re
+from dataclasses import replace
 
 import pytest
 
@@ -29,6 +30,7 @@ from workflow_interpreter.bdio.wire import activation_binding_digest
 from workflow_interpreter.contracts.codex import CODEX_VERSION
 from workflow_interpreter.contracts.sessions import (
     MSG_SESSION_MODE_CONFLICT,
+    MSG_SESSION_REUSE,
     SessionFreshReason,
     SessionMode,
     SessionReuse,
@@ -102,13 +104,36 @@ def test_legacy_appserver_graph_resolves_pins_and_instantiates(tmp_path):
         "scribe": CrewBinding(profile="fake", model="fake", effort="medium"),
     }
     lab = ForemanLab(tmp_path, roles=roles)
-    lab.definition = legacy_pinned_graph(tmp_path)
+    legacy = canonical_bytes(legacy_pinned_graph(tmp_path).document).replace(
+        b'"crew":"profile:implementer"', b'"crew":"codex-appserver"'
+    )
+    legacy = legacy.replace(b'"model":"default"', b'"model":"fake"', 1)
+    lab.definition = load_pinned_body(legacy)
+    lab.config = lab.config.model_copy(
+        update={"project_config": {"node.implement.effort": "medium"}}
+    )
+    lab.composition = replace(lab.composition, config=lab.config)
 
     root = lab.instantiate()
 
     settings = {item.key: item.value for item in root.metadata.resolved_config}
     assert settings["node.implement.session_mode"] == SessionMode.RESUME
-    assert resolved_node(root, "implement").node.session_mode is SessionMode.RESUME
+    from workflow_interpreter.foreman.execution import resolved_invocation
+
+    assert (
+        resolved_invocation(
+            root, "implement", lab.profiles, binding=lab.config.roles["implementer"]
+        ).node.session_mode
+        is SessionMode.RESUME
+    )
+
+
+def test_legacy_session_reuse_on_role_node_is_refused(tmp_path):
+    """A role's future crew cannot be proven app-server at root admission."""
+    lab = ForemanLab(tmp_path)
+    lab.definition = legacy_pinned_graph(tmp_path)
+    with pytest.raises(CarrierIntegrityError, match=MSG_SESSION_REUSE):
+        lab.instantiate()
 
 
 @pytest.mark.parametrize("crew", ("codex-appserver", "opencode"))

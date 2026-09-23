@@ -9,6 +9,8 @@ the claim itself and the residue a live instance can still carry.
 
 from __future__ import annotations
 
+from dataclasses import replace
+
 import pytest
 
 from tests._bdio import (
@@ -26,6 +28,149 @@ from workflow_interpreter.bdio.wire import (
     WfKind,
 )
 from workflow_interpreter.ledger.store import LedgerStore
+
+
+def test_recreating_role_root_after_binding_edit_keeps_static_identity(
+    tmp_path,
+) -> None:
+    """A role edit changes future mints without changing an existing root."""
+    from tests._foreman import ForemanLab
+    from tests._helpers import SHIPPED_FIXTURE
+    from workflow_interpreter.contracts.sessions import SessionMode
+    from workflow_interpreter.foreman.config import CrewBinding
+    from workflow_interpreter.foreman.resolve import _resolved_config
+
+    lab = ForemanLab(tmp_path, toml=SHIPPED_FIXTURE)
+    root = lab.instantiate_resolved()
+    edited = dict(lab.config.roles)
+    edited["implementer"] = CrewBinding(
+        profile="claude",
+        model="changed-model",
+        effort="high",
+        context_cap_tokens=120000,
+        session_mode=SessionMode.RESUME,
+    )
+    composition = replace(
+        lab.composition, config=lab.config.model_copy(update={"roles": edited})
+    )
+    recreated = lab.store.create_root(
+        instance_key="foreman-lab",
+        definition=root.definition,
+        resolved_config=_resolved_config(composition, root.definition, {}),
+        instance_inputs=root.metadata.instance_inputs,
+        instance_base_commit=root.metadata.instance_base_commit,
+        profiles=lab.profiles,
+    )
+    assert recreated.root_id == root.root_id
+    assert all(
+        setting.source is not ConfigSource.ROLE_BINDING
+        for setting in root.metadata.resolved_config
+    )
+    assert any(
+        setting.key == "node.implement.execution_policy_version" and setting.value == 1
+        for setting in root.metadata.resolved_config
+    )
+    assert all(
+        setting.key != "node.implement.execution_policy"
+        for setting in root.metadata.resolved_config
+    )
+
+
+def test_historical_role_root_reuses_key_without_losing_stored_bindings(
+    tmp_path,
+) -> None:
+    """Pre-S4 settings remain readable for pre-S3 activation rows."""
+    from tests._foreman import ForemanLab
+    from workflow_interpreter.foreman.execution import resolved_node
+    from workflow_interpreter.foreman.resolve import _resolved_config
+
+    lab = ForemanLab(tmp_path)
+    static = _resolved_config(lab.composition, lab.definition, {})
+    historical = (
+        *static,
+        *(
+            ResolvedSetting(
+                key=f"node.{node}.{field}",
+                value=value,
+                source=ConfigSource.ROLE_BINDING,
+            )
+            for node in ("implement", "review")
+            for field, value in (
+                ("crew", "fake"),
+                ("model", "historical-model"),
+                ("effort", "medium"),
+            )
+        ),
+    )
+    old = lab.store.create_root(
+        instance_key="historical",
+        definition=lab.definition,
+        resolved_config=historical,
+        profiles=lab.profiles,
+    )
+    reopened = lab.store.create_root(
+        instance_key="historical",
+        definition=lab.definition,
+        resolved_config=static,
+        profiles=lab.profiles,
+    )
+    assert reopened.root_id == old.root_id
+    assert resolved_node(reopened, "implement").model == "historical-model"
+
+
+def test_role_model_wins_graph_model_and_historical_root_reuses_key(tmp_path) -> None:
+    """Graph model defaults cannot override a role or change reuse identity."""
+    from tests._foreman import DEFAULT_LAB_ROLES, ForemanLab
+    from tests._helpers import VALID_FIXTURE, mutate, write
+    from workflow_interpreter.bdio.wire import NodeSetting
+    from workflow_interpreter.foreman.cases import startup_invocation
+    from workflow_interpreter.foreman.config import CrewBinding
+    from workflow_interpreter.foreman.resolve import _resolved_config
+
+    fixture = write(
+        tmp_path,
+        mutate(
+            VALID_FIXTURE.read_text(encoding="utf-8"),
+            [
+                (
+                    'crew        = "profile:implementer"\nmodel         = "default"',
+                    'crew        = "profile:implementer"\nmodel         = "graph-sonnet"',
+                )
+            ],
+        ),
+    )
+    lab = ForemanLab(
+        tmp_path,
+        toml=fixture,
+        roles={
+            **DEFAULT_LAB_ROLES,
+            "implementer": CrewBinding(
+                profile="fake", model="role-model", effort="high"
+            ),
+        },
+    )
+    current = _resolved_config(lab.composition, lab.definition, {})
+    model_key = NodeSetting.MODEL.at("implement")
+    historical = (
+        *(setting for setting in current if setting.key != model_key),
+        ResolvedSetting(
+            key=model_key, value="old-role-model", source=ConfigSource.ROLE_BINDING
+        ),
+    )
+    old = lab.store.create_root(
+        instance_key="graph-model-role",
+        definition=lab.definition,
+        resolved_config=historical,
+        profiles=lab.profiles,
+    )
+    assert startup_invocation(lab.composition, old, "implement").model == "role-model"
+    recreated = lab.store.create_root(
+        instance_key="graph-model-role",
+        definition=lab.definition,
+        resolved_config=current,
+        profiles=lab.profiles,
+    )
+    assert recreated.root_id == old.root_id
 
 
 @pytest.fixture(scope="session")
@@ -192,19 +337,19 @@ def test_a_configuration_mismatch_names_the_differing_keys(
     # Two sha256 digests are unactionable; the whole resolution is unbounded.
     # The differing KEYS are both.
     key = "named-diff"
+    model = ResolvedSetting(
+        key="node.implement.model",
+        value="pinned-model",
+        source=ConfigSource.INSTANCE_OVERRIDE,
+    )
     fake_store.create_root(
-        instance_key=key, definition=definition, resolved_config=RESOLVED_CONFIG
+        instance_key=key, definition=definition, resolved_config=_config(model)
     )
     with pytest.raises(CarrierIntegrityError, match="node.implement.model") as excinfo:
         fake_store.create_root(
             instance_key=key,
             definition=definition,
-            resolved_config=tuple(
-                setting
-                if setting.key != "node.implement.model"
-                else setting.model_copy(update={"value": "other"})
-                for setting in RESOLVED_CONFIG
-            ),
+            resolved_config=_config(model.model_copy(update={"value": "other"})),
         )
     assert "differing keys" in str(excinfo.value)
 

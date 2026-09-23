@@ -36,7 +36,6 @@ from workflow_interpreter.foreman.cases import (
     halt_dead_end,
     intake_all,
     mint_entry,
-    probed_crew_version,
     route_head,
 )
 from workflow_interpreter.foreman.compose import (
@@ -387,14 +386,25 @@ class Foreman:
             tail = _stale_tail(
                 wiring, self._composition.inspector_config.log_tail_bytes, activation
             )
-            view = resolved_node(root, activation.metadata.node)
+            view = resolved_node(
+                root, activation.metadata.node, activation=activation.metadata
+            )
             continuation = MintRequest(
                 node=activation.metadata.node,
                 mint_reason=MintReason.STEER_CONTINUATION,
                 crew_profile=view.crew_profile,
                 model=view.model,
-                crew_version=probed_crew_version(self._composition, view.crew_profile),
+                role=activation.metadata.role,
+                family=activation.metadata.family,
+                effort=view.effort,
+                context_cap_tokens=view.context_cap_tokens,
+                execution_policy=view.execution_policy,
+                policy_digest=activation.metadata.policy_digest,
+                catalog_digest=activation.metadata.catalog_digest,
+                binding_digest=activation.metadata.binding_digest,
+                crew_version=activation.metadata.crew_version,
                 session_id=activation.metadata.session_id,
+                session_mode=activation.metadata.session_mode,
                 predecessor_activation_id=activation.activation_id,
                 inputs=activation.metadata.inputs,
             )

@@ -215,7 +215,19 @@ def test_create_root_refuses_a_task_without_a_model_pin(
 def test_create_root_refuses_a_task_without_a_crew_pin(
     fake_bd: FakeBd, fake_store: WorkflowStore
 ) -> None:
-    """A task needs its mint-time crew pin before root creation."""
+    """A direct-crew task still needs its static crew pin at root creation."""
+    definition = load_definition()
+    document = definition.document.model_copy(
+        update={
+            "node": tuple(
+                node.model_copy(update={"crew": "opencode", "model": "fake-model"})
+                if node.name == "implement"
+                else node
+                for node in definition.document.node
+            )
+        }
+    )
+    direct = load_pinned_body(canonical_bytes(document))
     config = tuple(
         setting for setting in RESOLVED_CONFIG if setting.key != "node.implement.crew"
     )
@@ -223,7 +235,7 @@ def test_create_root_refuses_a_task_without_a_crew_pin(
     with pytest.raises(CarrierIntegrityError, match="crew"):
         fake_store.create_root(
             instance_key=instance_key(),
-            definition=load_definition(),
+            definition=direct,
             resolved_config=config,
         )
 

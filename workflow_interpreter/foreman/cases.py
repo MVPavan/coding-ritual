@@ -44,6 +44,7 @@ from workflow_interpreter.foreman.constants import (
 )
 from workflow_interpreter.foreman.events import EventIntent
 from workflow_interpreter.foreman.execution import (
+    ResolvedNode,
     resolved_invocation,
     resolved_node,
     resolved_static_node,
@@ -60,11 +61,13 @@ from workflow_interpreter.foreman.gates import (
 from workflow_interpreter.foreman.inputs import select_bindings
 from workflow_interpreter.foreman.inspector import wrapper_alive
 from workflow_interpreter.foreman.ledger_render import bind_render
+from workflow_interpreter.foreman.model_catalog import resolve_role_binding
 from workflow_interpreter.foreman.routing import RouteKind, retry_kind, route
 from workflow_interpreter.foreman.verify_feedback import bind_feedback
 from workflow_interpreter.foreman.wake_constants import DEFAULT_EVENT_CAP
 from workflow_interpreter.inspector.models import RecoveryCase
 from workflow_interpreter.inspector.paths import write_record
+from workflow_interpreter.profiles.config import CREW_PREFIX
 from workflow_interpreter.schema.models import NodeKind, Outcome
 
 _STALL_ABORT_PENDING = "barrier abort cleanup is still pending"
@@ -80,6 +83,25 @@ def probed_crew_version(composition: Composition, crew_profile: str) -> str | No
     skipped; a resolver that cannot answer at all is a type error, not silence.
     """
     return composition.profiles.version_for(crew_profile)
+
+
+def startup_invocation(
+    composition: Composition, root: RootRecord, node_name: str
+) -> ResolvedNode:
+    """Resolve a new mint from this owner's startup role snapshot."""
+    node = root.index.nodes[node_name]
+    binding = None
+    if node.crew and node.crew.startswith(CREW_PREFIX):
+        role = node.crew.removeprefix(CREW_PREFIX)
+        binding = composition.config.roles[role]
+        if not binding.profile:
+            binding = resolve_role_binding(
+                role,
+                binding,
+                composition.catalog,
+                composition.catalog_provenance,
+            )
+    return resolved_invocation(root, node_name, composition.profiles, binding=binding)
 
 
 class CaseResult(BaseModel):
@@ -185,7 +207,7 @@ def _successor_request(
     round_no: int,
 ) -> MintRequest:
     """Build the one graph-edge request permitted by a completed head."""
-    view = resolved_invocation(root, target, composition.profiles)
+    view = startup_invocation(composition, root, target)
     return MintRequest(
         node=target,
         mint_reason=MintReason.EDGE,
@@ -340,7 +362,7 @@ def mint_entry(
 ) -> CaseResult:
     """Mint and dispatch the graph entry with bindings derived from the pin."""
     node_name = root.definition.document.graph.entry
-    view = resolved_invocation(root, node_name, composition.profiles)
+    view = startup_invocation(composition, root, node_name)
     request = MintRequest(
         node=node_name,
         mint_reason=MintReason.ENTRY,
@@ -528,7 +550,7 @@ def route_head(
         # after-validators, so a copy carried the stale `predecessor_gate_id`
         # into a non-EDGE mint and stranded the instance (cr-o85.33.8).
         head_meta = head.metadata
-        view = resolved_invocation(root, head_meta.node, composition.profiles)
+        view = startup_invocation(composition, root, head_meta.node)
         request = MintRequest(
             node=head_meta.node,
             mint_reason=retry,
