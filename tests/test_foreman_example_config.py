@@ -13,6 +13,8 @@ import os
 import subprocess
 from pathlib import Path
 
+import pytest
+
 from tests._helpers import AUTHORING_FIXTURE, BUILD_LOOP_GRAPH, crew_roles
 from tests._inspector import make_repo
 from workflow_interpreter import load_graph
@@ -32,7 +34,7 @@ LIVE_GRAPHS = (AUTHORING_FIXTURE, BUILD_LOOP_GRAPH)
 def test_the_example_config_renders_into_a_loadable_foreman_config(
     tmp_path: Path,
 ) -> None:
-    """The generator's output loads, and binds each graph role to a profile."""
+    """The generator installs editable roles without an authored profile."""
     repo = make_repo(tmp_path)
     home = tmp_path / "home"
     home.mkdir()
@@ -56,11 +58,13 @@ def test_the_example_config_renders_into_a_loadable_foreman_config(
     assert config.contractor_graph == repo / "workflows" / "feature-delivery.toml"
     # feature-delivery names its two crew roles `implementer` and `critic`
     # (`crew = "profile:<role>"`); the reviewer role is the critic one.
-    assert config.roles["implementer"].profile == "claude"
-    assert config.roles["critic"].profile == "codex"
-    assert config.roles["implementer"].model == "claude-opus-5"
-    assert config.roles["implementer"].effort == "high"
-    assert config.roles["critic"].model == "gpt-5.6-sol"
+    assert config.role_bindings_path == config.wrapper_root / "roles.toml"
+    assert config.role_bindings_path.is_file()
+    assert config.roles["implementer"].profile == ""
+    assert config.roles["critic"].profile == ""
+    assert config.roles["implementer"].model == "claude-opus-5-5"
+    assert config.roles["implementer"].effort == "medium"
+    assert config.roles["critic"].model == "gpt-6-sol"
     assert config.roles["critic"].effort == "high"
     assert config.signing is not None
     # §9: a foreman that can write its own allow-list can forge approvals.
@@ -70,16 +74,47 @@ def test_the_example_config_renders_into_a_loadable_foreman_config(
     )
     # build-loop adds `test-author`, `test-critic` and `impl-critic`; writers
     # go to claude because a codex sandbox cannot commit (phase 6 D5).
-    assert config.roles["test-author"].profile == "claude"
-    assert config.roles["test-critic"].profile == "codex"
-    assert config.roles["impl-critic"].profile == "codex"
-    assert config.roles["test-author"].model == "claude-opus-5"
-    assert config.roles["test-author"].effort == "high"
+    assert config.roles["test-author"].profile == ""
+    assert config.roles["test-critic"].profile == ""
+    assert config.roles["impl-critic"].profile == ""
+    assert config.roles["test-author"].model == "claude-opus-5-5"
+    assert config.roles["test-author"].effort == "medium"
     for role in ("test-critic", "impl-critic"):
-        assert config.roles[role].model == "gpt-5.6-sol"
+        assert config.roles[role].model == "gpt-6-sol"
         assert config.roles[role].effort == "high"
     for graph_path in LIVE_GRAPHS:
         assert not crew_roles(load_graph(graph_path)) - set(config.roles)
+
+    role_file = config.role_bindings_path
+    assert role_file is not None
+    role_file.write_text('[roles.implementer]\nmodel = "custom"\neffort = "high"\n')
+    subprocess.run(
+        [str(GENERATOR), str(rendered)],
+        cwd=repo,
+        check=True,
+        capture_output=True,
+        timeout=RENDER_TIMEOUT_S,
+        env={"HOME": str(home), "PATH": os.environ["PATH"], "USER": "tester"},
+    )
+    assert 'model = "custom"' in role_file.read_text()
+    role_file.write_text(
+        '[roles.implementer]\nprofile = "claude"\nmodel = "custom"\neffort = "high"\n'
+    )
+    with pytest.raises(
+        ValueError, match="remove roles.implementer.profile; model determines the crew"
+    ):
+        load_config(rendered)
+    role_file.unlink()
+    role_file.symlink_to(config.wrapper_root / "missing-roles.toml")
+    subprocess.run(
+        [str(GENERATOR), str(rendered)],
+        cwd=repo,
+        check=True,
+        capture_output=True,
+        timeout=RENDER_TIMEOUT_S,
+        env={"HOME": str(home), "PATH": os.environ["PATH"], "USER": "tester"},
+    )
+    assert role_file.is_symlink()
 
 
 def test_commented_contractor_checks_example_round_trips_with_environment(

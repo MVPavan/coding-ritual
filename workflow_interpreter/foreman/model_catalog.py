@@ -26,7 +26,13 @@ from pydantic import (
 )
 
 from workflow_interpreter.contracts.execution import CrewName
-from workflow_interpreter.foreman.config import ForemanConfig
+from workflow_interpreter.foreman.config import (
+    CONTEXT_CAP_MAX_TOKENS,
+    CONTEXT_CAP_MIN_TOKENS,
+    CrewBinding,
+    ForemanConfig,
+)
+from workflow_interpreter.foreman.errors import ResolutionError
 from workflow_interpreter.profiles.claude import (
     EFFORT,
     MODEL,
@@ -187,7 +193,63 @@ class ModelCatalog:
         self._runner = runner
         self._host_env = None if host_env is None else dict(host_env)
         self._seed_path = seed_path
+        self._seed: dict[str, Any] | None = None
         self._sleeper = sleeper
+
+    def _seed_data(self) -> dict[str, Any]:
+        """Read the injected Claude seed once for discovery and binding selection."""
+        if self._seed is None:
+            loaded = json.loads(self._seed_path.read_text(encoding="utf-8"))
+            if not isinstance(loaded, dict):
+                raise ValueError("Claude seed must be an object")
+            self._seed = loaded
+        return self._seed
+
+    def seed_ids(self) -> frozenset[str]:
+        """List model IDs from this catalog's injected Claude seed."""
+        entries = self._seed_data()["models"]
+        if not isinstance(entries, list):
+            raise TypeError("Claude seed models must be a list")
+        return frozenset(entry["id"] for entry in entries)
+
+    def loaded_snapshot_qualifies(
+        self, snapshot: CatalogSnapshot, bindings: Mapping[str, CrewBinding]
+    ) -> bool:
+        """Check cheap CLI identity and prior bound Claude admission before reuse."""
+        for family in (CrewName.CODEX, CrewName.CLAUDE):
+            details = snapshot.families.get(family)
+            if details is None or details.cli_version is None:
+                return False
+            try:
+                result = self._run(
+                    [self._binaries[family], "--version"], DISCOVERY_TIMEOUT_S
+                )
+            except (OSError, subprocess.TimeoutExpired):
+                return False
+            if result.returncode or result.stdout.strip() != details.cli_version:
+                return False
+        claude_models = {
+            model.id: model for model in snapshot.families[CrewName.CLAUDE].models
+        }
+        available_ids = {
+            model.id
+            for details in snapshot.families.values()
+            if details.available
+            for model in details.models
+        }
+        for binding in bindings.values():
+            if not binding.profile and binding.model not in available_ids:
+                return False
+            if binding.profile.removeprefix("profile:") == CrewName.CLAUDE.value or (
+                not binding.profile and binding.model in claude_models
+            ):
+                model = claude_models.get(binding.model)
+                if (
+                    model is None
+                    or model.verification is not VerificationStatus.PROBE_OK
+                ):
+                    return False
+        return True
 
     def _run(self, argv: list[str], timeout: float) -> subprocess.CompletedProcess[str]:
         """Run a bounded command through the injected boundary."""
@@ -298,7 +360,7 @@ class ModelCatalog:
         """Check Claude flags and seed, then qualify bound IDs with paid probes."""
         binary = self._binaries[CrewName.CLAUDE]
         try:
-            seed = json.loads(self._seed_path.read_text(encoding="utf-8"))
+            seed = self._seed_data()
             if seed["schema_version"] != SCHEMA_VERSION:
                 raise ValueError("unsupported Claude seed schema")
             version = self._run([binary, "--version"], DISCOVERY_TIMEOUT_S)
@@ -548,6 +610,77 @@ def load_snapshot(wrapper_root: Path) -> CatalogSnapshot | None:
     return snapshot
 
 
+def resolve_role_binding(
+    role: str,
+    binding: CrewBinding,
+    snapshot: CatalogSnapshot | None,
+    provenance: CatalogProvenance | None,
+) -> CrewBinding:
+    """Qualify a human role against this owner's authoritative catalog."""
+    if snapshot is None or provenance in (None, CatalogProvenance.FALLBACK):
+        raise ResolutionError(f"role {role!r}: qualified model catalog unavailable")
+    choices = sorted(
+        (model.id, family, model)
+        for family, details in snapshot.families.items()
+        if details.available
+        for model in details.models
+        if model.visibility is not Visibility.HIDE
+    )
+    matches = [
+        (family, model) for name, family, model in choices if name == binding.model
+    ]
+    valid_ids = sorted({name for name, _, _ in choices})
+    if not matches:
+        unavailable = [
+            f"{family.value}: {', '.join(details.refusals)}"
+            for family, details in sorted(snapshot.families.items())
+            if not details.available and details.refusals
+        ]
+        diagnostics = (
+            f"; unavailable families: {'; '.join(unavailable)}" if unavailable else ""
+        )
+        raise ResolutionError(
+            f"role {role!r}: unknown model {binding.model!r}; "
+            f"valid models: {', '.join(valid_ids)}{diagnostics}"
+        )
+    if len(matches) != 1:
+        raise ResolutionError(
+            f"role {role!r}: model {binding.model!r} belongs to multiple families; "
+            f"valid unambiguous models: {', '.join(name for name in valid_ids if name != binding.model)}"
+        )
+    family, model = matches[0]
+    if binding.effort not in model.efforts:
+        raise ResolutionError(
+            f"role {role!r}: unsupported effort {binding.effort!r} for "
+            f"{binding.model!r}; valid efforts: {', '.join(sorted(model.efforts))}"
+        )
+    if (
+        family is CrewName.CLAUDE
+        and model.verification is VerificationStatus.PROBE_FAILED
+    ):
+        raise ResolutionError(
+            f"role {role!r}: Claude probe failed for {binding.model!r}: "
+            f"{model.probe_error}"
+        )
+    cap = binding.context_cap_tokens
+    if cap is not None:
+        if family is not CrewName.CLAUDE:
+            raise ResolutionError(
+                f"role {role!r}: context_cap_tokens is only supported by claude"
+            )
+        if (
+            type(cap) is not int
+            or not (CONTEXT_CAP_MIN_TOKENS <= cap <= CONTEXT_CAP_MAX_TOKENS)
+            or cap >= model.context_window
+        ):
+            raise ResolutionError(
+                f"role {role!r}: context_cap_tokens must be an integer from "
+                f"{CONTEXT_CAP_MIN_TOKENS} to {CONTEXT_CAP_MAX_TOKENS} "
+                f"and below {model.context_window}"
+            )
+    return binding.model_copy(update={"profile": family.value})
+
+
 def catalog_at_start(
     config: ForemanConfig,
     command: str,
@@ -572,8 +705,13 @@ def catalog_at_start(
             LOG.warning("wf.model_catalog.load_failed", reason=str(error))
             return CatalogResult(None, None)
 
-    if command not in ("run", "contract") and not (
-        command == "children" and child_command == "drive"
+    admitting_from_load = command == "create" or (
+        command == "children" and child_command == "admit"
+    )
+    if (
+        not admitting_from_load
+        and command not in ("run", "contract")
+        and not (command == "children" and child_command == "drive")
     ):
         return prior_snapshot(CatalogProvenance.LOADED)
     try:
@@ -583,11 +721,27 @@ def catalog_at_start(
             runner,
             host_env=host_env,
         )
+        if admitting_from_load:
+            loaded = prior_snapshot(CatalogProvenance.LOADED)
+            if loaded.snapshot is not None and catalog.loaded_snapshot_qualifies(
+                loaded.snapshot, config.roles
+            ):
+                return loaded
+        try:
+            seed_ids = catalog.seed_ids()
+        except (OSError, ValueError, KeyError, TypeError):
+            # _claude records the seed failure for its family; Codex can still work.
+            seed_ids = frozenset()
         snapshot = catalog.refresh(
             {
                 role: (binding.model, binding.effort)
                 for role, binding in config.roles.items()
-                if binding.profile.removeprefix("profile:") == CrewName.CLAUDE.value
+                if (
+                    binding.profile
+                    and binding.profile.removeprefix("profile:")
+                    == CrewName.CLAUDE.value
+                )
+                or (not binding.profile and binding.model in seed_ids)
             }
         )
         catalog.write(snapshot, config.wrapper_root)

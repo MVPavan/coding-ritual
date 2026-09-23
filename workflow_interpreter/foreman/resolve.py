@@ -37,6 +37,7 @@ from workflow_interpreter.foreman.execution import (
     EFFECTIVE_FIELD_SETTINGS,
     effective_node,
 )
+from workflow_interpreter.foreman.model_catalog import resolve_role_binding
 from workflow_interpreter.inspector import INSTANCE_BRANCH_REF
 from workflow_interpreter.inspector.channels import pin_verifier_digests
 from workflow_interpreter.profiles.config import CREW_PREFIX, MODEL_VENDOR_DEFAULT
@@ -475,9 +476,23 @@ def _resolved_config(
             )
             key = session_mode_key(node.name)
             settings[key] = ResolvedSetting(key=key, value=mode.value, source=source)
+        if node.crew in (CrewName.CODEX_APPSERVER.value, CrewName.OPENCODE.value) and (
+            node.model is None or node.model == MODEL_VENDOR_DEFAULT
+        ):
+            raise ResolutionError(
+                f"direct crew {node.crew!r} on node {node.name!r} requires a graph model"
+            )
         if node.crew is None or not node.crew.startswith("profile:"):
             continue
-        binding = composition.config.roles[node.crew.removeprefix("profile:")]
+        role_name = node.crew.removeprefix("profile:")
+        binding = composition.config.roles[role_name]
+        if not binding.profile:
+            binding = resolve_role_binding(
+                role_name,
+                binding,
+                composition.catalog,
+                composition.catalog_provenance,
+            )
         crew_key = f"node.{node.name}.crew"
         model_key = f"node.{node.name}.model"
         effort_key = f"node.{node.name}.effort"

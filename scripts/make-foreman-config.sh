@@ -10,6 +10,7 @@ set -euo pipefail
 
 script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)
 template="$script_dir/../config/foreman.example.toml"
+role_template="$script_dir/../config/roles.example.toml"
 
 repo_root=$(git rev-parse --show-toplevel)
 repo_root=$(cd -- "$repo_root" && pwd -P)
@@ -25,6 +26,13 @@ host=$(hostname 2>/dev/null || uname -n)
 actor="wf-$USER"
 
 mkdir -p -- "$wrapper_home" "$(dirname -- "$output")"
+mkdir -p -- "$wrapper_root"
+if [ ! -e "$wrapper_root/roles.toml" ] && [ ! -L "$wrapper_root/roles.toml" ]; then
+  cp -- "$role_template" "$wrapper_root/roles.toml"
+  echo "wrote $wrapper_root/roles.toml"
+else
+  echo "kept existing $wrapper_root/roles.toml"
+fi
 
 # §9 gate key. The allow-list must live outside the bd workspace (the repo).
 # It also lives outside the WRAPPER HOME (run-ledger D15): the wrapper home is

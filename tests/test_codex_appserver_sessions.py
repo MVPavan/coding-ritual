@@ -9,7 +9,7 @@ import pytest
 from tests._appserver import AppServerLab
 from tests._bdio import RESOLVED_CONFIG, entry_request, handle, make_root
 from tests._foreman import ForemanLab
-from tests._helpers import VALID_FIXTURE
+from tests._helpers import MINIMAL_GRAPH, VALID_FIXTURE
 from tests._inspector import entry_mint
 from workflow_interpreter import GraphValidationError, load_graph
 from workflow_interpreter.bdio import (
@@ -109,6 +109,24 @@ def test_legacy_appserver_graph_resolves_pins_and_instantiates(tmp_path):
     settings = {item.key: item.value for item in root.metadata.resolved_config}
     assert settings["node.implement.session_mode"] == SessionMode.RESUME
     assert resolved_node(root, "implement").node.session_mode is SessionMode.RESUME
+
+
+@pytest.mark.parametrize("crew", ("codex-appserver", "opencode"))
+def test_direct_crew_graph_resolves_without_a_role_binding(tmp_path, crew):
+    """Direct crews stay in the graph and outside catalog role lookup."""
+    path = tmp_path / "direct-crew.toml"
+    mode = '\nsession_mode = "fresh"' if crew == "opencode" else ""
+    path.write_text(
+        MINIMAL_GRAPH.replace(
+            'crew = "profile:x"',
+            f'crew = "{crew}"\nmodel = "gpt-5"{mode}',
+        )
+    )
+    lab = ForemanLab(tmp_path, toml=path, roles={}, instance_inputs={})
+
+    root = lab.instantiate_resolved({"node.work.effort": "medium"})
+
+    assert resolved_node(root, "work").crew_profile == crew
 
 
 def app_root(tmp_path, store, reuse):
