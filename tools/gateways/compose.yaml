@@ -5,7 +5,7 @@ name: gateways
 # the running version by accident.
 services:
   cpa:
-    image: eceasy/cli-proxy-api:${CPA_IMAGE_TAG:-v7.2.149}
+    image: eceasy/cli-proxy-api:${CPA_IMAGE_TAG:-v7.3.15}
     pull_policy: missing
     container_name: cpa
     restart: unless-stopped

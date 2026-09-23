@@ -192,7 +192,7 @@ run `claudex-vscode disable` there first.
 
 The relay stays up throughout. Check the release notes between the two tags
 for config changes first; the keys used in [`cpa/config.yaml`](cpa/config.yaml)
-all exist as of v7.2.149. To upgrade the relay, change the nginx tag in
+all exist as of v7.3.15. To upgrade the relay, change the nginx tag in
 `compose.yaml` and `./gw.sh restart claude-relay`.
 
 ### Reading the relay log
