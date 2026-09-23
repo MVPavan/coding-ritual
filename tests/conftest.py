@@ -40,6 +40,7 @@ from tests._profiles import Lab
 from workflow_interpreter.bdio import GateVerifier, SigningConfig
 from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.contracts.codex import CODEX_VERSION
+from workflow_interpreter.foreman.model_catalog import ModelCatalog
 from workflow_interpreter.ledger.claims import LedgerClaims
 from workflow_interpreter.ledger.database import LedgerDatabase, open_ledger
 from workflow_interpreter.ledger.store import LedgerStore
@@ -69,6 +70,26 @@ _RUN_LIVE_HELP: Final[str] = (
     "run the `live` tests, which invoke a real vendor CLI, need working auth "
     "and spend tokens; without it they are deselected at collection"
 )
+
+
+@pytest.fixture(autouse=True)
+def block_real_catalog_clis(
+    request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Require an injected CLI boundary for catalog work in non-live tests."""
+    if request.node.get_closest_marker(LIVE_MARKER) is not None:
+        return
+    original = ModelCatalog._run
+
+    def guarded(
+        catalog: ModelCatalog, argv: list[str], timeout: float
+    ) -> subprocess.CompletedProcess[str]:
+        """Fail before a default catalog runner can reach a vendor binary."""
+        if catalog._runner is None:
+            pytest.fail(f"non-live catalog test used real {Path(argv[0]).name} CLI")
+        return original(catalog, argv, timeout)
+
+    monkeypatch.setattr(ModelCatalog, "_run", guarded)
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:

@@ -26,12 +26,14 @@ from tests._foreman import (
 )
 from tests._helpers import VALID_FIXTURE
 from tests._inspector import FakeProfile, FrozenClock
+from tests._ledger import EPIC, TASK, config_file
 from workflow_interpreter.bdio import BoundSetting, NodeSetting
 from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.errors import StoreConfigError
 from workflow_interpreter.bdio.roots import MAX_INSTANCE_INPUT_BYTES
 from workflow_interpreter.contractor.tracker_config import TrackerSettings
 from workflow_interpreter.contracts.sessions import SessionMode
+from workflow_interpreter.foreman import __main__ as foreman_main
 from workflow_interpreter.foreman.compose import (
     Composition,
     DetachedSpawner,
@@ -47,6 +49,13 @@ from workflow_interpreter.foreman.errors import ResolutionError, UnusableResolut
 from workflow_interpreter.foreman.execution import (
     UnresolvedCrewError,
     resolved_node,
+)
+from workflow_interpreter.foreman.model_catalog import (
+    SEED_FILE,
+    CatalogProvenance,
+    ModelCatalog,
+    catalog_at_start,
+    load_snapshot,
 )
 from workflow_interpreter.foreman.owner import OwnerConflict, OwnerRecord, ensure_owner
 from workflow_interpreter.foreman.resolve import (
@@ -78,6 +87,195 @@ class _AvailableProfiles(ProfileRegistry):
             {},
             builders={"fake": lambda *_: FakeProfile()},
         )
+
+
+def test_catalog_excludes_hidden_codex_and_probes_each_bound_claude_model_once(
+    tmp_path: Path,
+) -> None:
+    """Discovery retains only selectable Codex IDs and deduplicates paid probes."""
+    calls: list[tuple[str, ...]] = []
+
+    def run(argv: list[str], timeout: float) -> subprocess.CompletedProcess[str]:
+        calls.append(tuple(argv))
+        if argv[:2] == ["codex", "--version"]:
+            output = "codex-cli 0.156.1"
+        elif argv[:2] == ["codex", "debug"]:
+            output = json.dumps(
+                {
+                    "models": [
+                        {
+                            "slug": "visible",
+                            "visibility": "list",
+                            "context_window": 200000,
+                            "supported_reasoning_levels": [{"effort": "high"}],
+                        },
+                        {
+                            "slug": "hidden",
+                            "visibility": "hide",
+                            "context_window": 100000,
+                            "supported_reasoning_levels": [{"effort": "low"}],
+                        },
+                    ]
+                }
+            )
+        elif argv[:2] == ["claude", "--version"]:
+            output = "2.1.258 (Claude Code)"
+        elif argv[:2] == ["claude", "--help"]:
+            output = "--model --effort --autocompact --tools --output-format --max-budget-usd"
+        else:
+            output = json.dumps({"is_error": False, "total_cost_usd": 0.001})
+        return subprocess.CompletedProcess(argv, 0, output, "")
+
+    catalog = ModelCatalog("codex", "claude", run)
+    snapshot = catalog.refresh(
+        {"implementer": ("claude-opus-5", "high"), "critic": ("claude-opus-5", "high")}
+    )
+    assert [model.id for model in snapshot.families["codex"].models] == ["visible"]
+    assert snapshot.families["codex"].hidden_count == 1
+    windows = {
+        model.id: model.context_window for model in snapshot.families["claude"].models
+    }
+    for model_id, window in {
+        "claude-fable-5-1": 1_000_000,
+        "claude-opus-5-5": 1_000_000,
+        "claude-sonnet-5": 1_000_000,
+        "claude-haiku-4-5-20251001": 200_000,
+    }.items():
+        assert windows[model_id] == window
+    haiku = next(
+        model
+        for model in snapshot.families["claude"].models
+        if model.id == "claude-haiku-4-5-20251001"
+    )
+    assert haiku.efforts == ()
+    assert len([call for call in calls if call[:2] == ("claude", "-p")]) == 1
+    opus = next(
+        model
+        for model in snapshot.families["claude"].models
+        if model.id == "claude-opus-5"
+    )
+    assert opus.verification == "probe-ok"
+    assert any(
+        call[call.index("--effort") + 1] == "low"
+        for call in calls
+        if "--effort" in call
+    )
+    assert all("--strict-mcp-config" in call for call in calls if "-p" in call)
+    assert all(
+        ("--setting-sources", "")
+        == call[call.index("--setting-sources") : call.index("--setting-sources") + 2]
+        for call in calls
+        if "-p" in call
+    )
+    assert catalog.write(snapshot, tmp_path) == tmp_path / "model-catalog.json"
+    assert (
+        json.loads((tmp_path / "model-catalog.json").read_text())["digest"]
+        == snapshot.digest
+    )
+    assert load_snapshot(tmp_path) == snapshot
+    catalog_file = tmp_path / "model-catalog.json"
+    persisted = json.loads(catalog_file.read_text())
+    persisted["families"]["claude"]["models"][0]["probe_duration_ms"] = 99
+    catalog_file.write_text(json.dumps(persisted))
+    assert load_snapshot(tmp_path) is not None
+    persisted["families"]["claude"]["models"][0]["efforts"] = ["invented"]
+    catalog_file.write_text(json.dumps(persisted))
+    with pytest.raises(ValueError, match="digest mismatch"):
+        load_snapshot(tmp_path)
+    seed = json.loads(SEED_FILE.read_text(encoding="utf-8"))
+    seed["models"][0]["cli_model_support"] = "verified"
+    seed_file = tmp_path / "verified-seed.json"
+    seed_file.write_text(json.dumps(seed), encoding="utf-8")
+    assert (
+        ModelCatalog("codex", "claude", run, seed_path=seed_file)
+        .refresh()
+        .families["claude"]
+        .available
+    )
+
+
+def test_catalog_warns_on_claude_version_drift_and_bounds_failed_probes() -> None:
+    """An updated CLI warns; failed admission is role-named after finite retries."""
+    calls: list[tuple[str, ...]] = []
+    delays: list[float] = []
+
+    def run(argv: list[str], timeout: float) -> subprocess.CompletedProcess[str]:
+        calls.append(tuple(argv))
+        if argv[0] == "codex":
+            raise FileNotFoundError("codex")
+        if argv[1] == "--version":
+            return subprocess.CompletedProcess(argv, 0, "2.1.259 (Claude Code)", "")
+        if argv[1] == "--help":
+            return subprocess.CompletedProcess(
+                argv,
+                0,
+                "--model --effort --autocompact --tools --output-format --max-budget-usd",
+                "",
+            )
+        return subprocess.CompletedProcess(argv, 1, "", "transient failure")
+
+    snapshot = ModelCatalog("codex", "claude", run, sleeper=delays.append).refresh(
+        {
+            "writer": ("claude-opus-5", "high"),
+            "reviewer": ("claude-opus-5", "medium"),
+            "unknown": ("not-in-seed", "high"),
+            "bad-effort": ("claude-sonnet-5", "ultra"),
+        }
+    )
+    claude = snapshot.families["claude"]
+    assert claude.available
+    assert claude.warnings == ("Claude CLI version differs from checked seed version",)
+    assert len([call for call in calls if call[:2] == ("claude", "-p")]) == 3
+    assert delays == [0.25, 0.5]
+    opus = next(model for model in claude.models if model.id == "claude-opus-5")
+    assert opus.probe_attempts == 3
+    assert opus.verification == "probe-failed"
+    assert opus.probe_error == "Claude probe exited 1"
+    assert any(
+        "writer" in reason and "probe failed" in reason for reason in claude.refusals
+    )
+    assert any(
+        "reviewer" in reason and "probe failed" in reason for reason in claude.refusals
+    )
+    assert any(
+        "unknown" in reason and "unknown Claude model" in reason
+        for reason in claude.refusals
+    )
+    assert any(
+        "bad-effort" in reason and "unsupported effort" in reason
+        for reason in claude.refusals
+    )
+    assert not snapshot.families["codex"].available
+
+
+def test_catalog_refuses_malformed_claude_probe_result() -> None:
+    """A valid JSON value with the wrong shape cannot escape the refusal path."""
+
+    def run(argv: list[str], timeout: float) -> subprocess.CompletedProcess[str]:
+        if argv[0] == "codex":
+            raise FileNotFoundError("codex")
+        if argv[1] == "--version":
+            output = "2.1.258 (Claude Code)"
+        elif argv[1] == "--help":
+            output = "--model --effort --autocompact --tools --output-format --max-budget-usd"
+        else:
+            output = "[]"
+        return subprocess.CompletedProcess(argv, 0, output, "")
+
+    snapshot = ModelCatalog("codex", "claude", run, sleeper=lambda _: None).refresh(
+        {"writer": ("claude-opus-5", "high")}
+    )
+    opus = next(
+        model
+        for model in snapshot.families["claude"].models
+        if model.id == "claude-opus-5"
+    )
+    assert opus.verification == "probe-failed"
+    assert opus.probe_error == "Claude probe returned a non-object result"
+    assert (
+        "role 'writer': Claude probe failed for 'claude-opus-5'"
+        in snapshot.families["claude"].refusals[0]
+    )
 
 
 def test_crew_binding_requires_a_pinned_model_and_effort(tmp_path: Path) -> None:
@@ -537,6 +735,133 @@ def _instance_composition(
         ),
         git,
     )
+
+
+def test_owner_start_refreshes_catalog_and_monitor_loads_without_probes(
+    fake_store: WorkflowStore, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Only owner startup qualifies bound models; a monitor reuses its file."""
+    composition, _ = _instance_composition(
+        fake_store,
+        tmp_path,
+        roles={
+            "writer": CrewBinding(
+                profile="profile:claude", model="claude-opus-5", effort="high"
+            )
+        },
+    )
+    calls: list[tuple[str, ...]] = []
+
+    def run(argv: list[str], timeout: float) -> subprocess.CompletedProcess[str]:
+        calls.append(tuple(argv))
+        if argv[0] == "codex":
+            raise FileNotFoundError("codex")
+        output = (
+            "2.1.258 (Claude Code)"
+            if argv[1] == "--version"
+            else "--model --effort --autocompact --tools --output-format --max-budget-usd"
+            if argv[1] == "--help"
+            else '{"is_error":false,"total_cost_usd":0.001}'
+        )
+        return subprocess.CompletedProcess(argv, 0, output, "")
+
+    started_result = catalog_at_start(
+        composition.config, "run", composition.host_env, run
+    )
+    assert started_result.provenance is CatalogProvenance.REFRESHED
+    started = started_result.snapshot
+    assert started is not None
+    opus = next(
+        model
+        for model in started.families["claude"].models
+        if model.id == "claude-opus-5"
+    )
+    assert opus.verification == "probe-ok"
+    assert load_snapshot(composition.config.wrapper_root) == started
+    prior_calls = len(calls)
+    for command, child_command in (
+        ("monitor", None),
+        ("tick", None),
+        ("steer", None),
+        ("create", None),
+        ("children", "status"),
+        ("integration", "status"),
+    ):
+        loaded = catalog_at_start(
+            composition.config,
+            command,
+            composition.host_env,
+            run,
+            child_command=child_command,
+        )
+        assert loaded.snapshot == started
+        assert loaded.provenance is CatalogProvenance.LOADED
+    assert len(calls) == prior_calls
+    for command, child_command in (("contract", None), ("children", "drive")):
+        refreshed = catalog_at_start(
+            composition.config,
+            command,
+            composition.host_env,
+            run,
+            child_command=child_command,
+        )
+        assert refreshed.snapshot is not None
+        assert refreshed.provenance is CatalogProvenance.REFRESHED
+    assert len(calls) > prior_calls
+
+    def failed_write(_catalog: ModelCatalog, _snapshot: object, _root: Path) -> Path:
+        """Simulate an unwritable catalog file without disturbing its prior copy."""
+        raise OSError("read-only catalog directory")
+
+    monkeypatch.setattr(ModelCatalog, "write", failed_write)
+    with capture_logs() as logs:
+        fallback = catalog_at_start(
+            composition.config, "run", composition.host_env, run
+        )
+    assert fallback.provenance is CatalogProvenance.FALLBACK
+    assert fallback.snapshot is not None
+    assert fallback.snapshot.digest == started.digest
+    assert any(entry["event"] == "wf.model_catalog.refresh_failed" for entry in logs)
+
+
+def test_foreman_composition_injects_owner_catalog_runner(tmp_path: Path) -> None:
+    """The production composition path accepts a fake CLI boundary."""
+    config, _repo_root, _wrapper_root = config_file(tmp_path)
+    calls: list[tuple[str, ...]] = []
+
+    def run(argv: list[str], timeout: float) -> subprocess.CompletedProcess[str]:
+        calls.append(tuple(argv))
+        if argv[0] == "codex" and argv[1] == "--version":
+            output = "codex-cli 0.156.1"
+        elif argv[0] == "codex":
+            output = json.dumps(
+                {
+                    "models": [
+                        {
+                            "slug": "visible",
+                            "visibility": "list",
+                            "context_window": 200000,
+                            "supported_reasoning_levels": [{"effort": "high"}],
+                        }
+                    ]
+                }
+            )
+        elif argv[1] == "--version":
+            output = "2.1.258 (Claude Code)"
+        else:
+            output = "--model --effort --autocompact --tools --output-format --max-budget-usd"
+        return subprocess.CompletedProcess(argv, 0, output, "")
+
+    args = foreman_main._parser().parse_args(
+        ["--config", str(config), "--task", TASK, "--epic", EPIC, "run", "root"]
+    )
+    composition = foreman_main._composition(args, catalog_runner=run)
+    assert composition.catalog is not None
+    assert composition.catalog_provenance is CatalogProvenance.REFRESHED
+    assert composition.catalog.families["codex"].models[0].id == "visible"
+    assert calls
+    assert composition.ledger is not None
+    composition.ledger.close()
 
 
 def test_instantiate_pins_project_resolution_and_creates_instance_branch(

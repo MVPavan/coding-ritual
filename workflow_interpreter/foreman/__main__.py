@@ -62,6 +62,7 @@ from workflow_interpreter.foreman.gates import inbox_dir, payload_template
 from workflow_interpreter.foreman.heartbeat import observation_status
 from workflow_interpreter.foreman.identifiers import InvalidIdentifier, validate_bead_id
 from workflow_interpreter.foreman.inspector import run_wrapper
+from workflow_interpreter.foreman.model_catalog import Runner, catalog_at_start
 from workflow_interpreter.foreman.monitor import WakeMonitor, monitor_status
 from workflow_interpreter.foreman.resolve import instantiate
 from workflow_interpreter.foreman.rpc_control import session_status
@@ -154,7 +155,9 @@ def _configure_logging() -> None:
     )
 
 
-def _composition(args: argparse.Namespace) -> Composition:
+def _composition(
+    args: argparse.Namespace, *, catalog_runner: Runner | None = None
+) -> Composition:
     """Build production collaborators from the explicitly supplied TOML file.
 
     Takes the parsed arguments rather than a path because a composition root
@@ -199,6 +202,13 @@ def _composition(args: argparse.Namespace) -> Composition:
     ledger = open_ledger(config.repo_root, config.wrapper_root)
     epic_id = _epic_for(ledger, task_id, named_epic)
     ensure_task(ledger, task_id, epic_id)
+    catalog_result = catalog_at_start(
+        config,
+        args.command,
+        os.environ,
+        catalog_runner,
+        child_command=getattr(args, "child_command", None),
+    )
     return Composition(
         config=config,
         store=WorkflowStore(
@@ -222,6 +232,8 @@ def _composition(args: argparse.Namespace) -> Composition:
         profiles=ProfileRegistry(config.profiles, clock, os.environ),
         spawner=DetachedSpawner(config.inspector, path, task_id, epic_id),
         host_env=dict(os.environ),
+        catalog=catalog_result.snapshot,
+        catalog_provenance=catalog_result.provenance,
         ledger=ledger,
         drain_attention=RootAttentionDrain(
             ledger,

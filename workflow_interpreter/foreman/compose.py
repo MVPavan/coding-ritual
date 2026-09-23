@@ -15,6 +15,10 @@ from workflow_interpreter.bdio.coordination import CoordinationStore
 from workflow_interpreter.bdio.reads import WorkflowReads
 from workflow_interpreter.foreman.config import ForemanConfig
 from workflow_interpreter.foreman.constants import WRAPPER_HANDLE
+from workflow_interpreter.foreman.model_catalog import (
+    CatalogProvenance,
+    CatalogSnapshot,
+)
 from workflow_interpreter.inspector import INSTANCE_BRANCH_REF, procfs
 from workflow_interpreter.inspector.band import BandLock
 from workflow_interpreter.inspector.clock import Clock
@@ -200,6 +204,9 @@ class Composition:
     profiles: ProfileResolver
     spawner: Spawner
     host_env: Mapping[str, str]
+    catalog: CatalogSnapshot | None = None
+    catalog_provenance: CatalogProvenance | None = None
+    """Admission (S2+) must refuse FALLBACK by name (design.md:102)."""
     ledger: LedgerDatabase | None = None
     """This process's one ledger connection, holding the shared fence (§3.4.1).
 
