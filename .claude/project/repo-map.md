@@ -6,7 +6,7 @@ Top-level layout and how to navigate.
 |---|---|
 | `mvp-harness/` | Harness marketplace (git submodule) — the 3 plugins live under `plugins/`; the repo's real output |
 | `mvp-harness/plugins/mvp-plugin/` | The harness as ONE dual-manifest plugin (Claude Code + Codex): `skills/` + `agents/` are build output of this repo (`/harness-publish` → `scripts/publish-plugin.sh`, `publish-manifest.txt`), `template/` is the per-repo residue `adopt` copies, `scripts/{install-harness,doctor,build-template,check-sync,smoke-codex}.sh`, `test/` |
-| `mvp-harness/plugins/codex-adapter/` | Codex bridge plugin: `scripts/codex-run.mjs`, `roles/`, `commands/`, `skills/codex-runner/` |
+| `mvp-harness/plugins/codex-adapter/` | Legacy Codex bridge plugin — **do not use**; call the Codex CLI directly (`tools.md` §Running Codex): `scripts/codex-run.mjs`, `roles/`, `commands/`, `skills/codex-runner/` |
 | `mvp-harness/plugins/code-intel/` | Code-intelligence plugin: `bin/` shims, `hooks/`, `skills/graph-first/`, `test/` |
 | `harness_learnings/` | Synthesized canon + best-practice docs (design reference) |
 | `reference_harnesses/` | Third-party harnesses as git submodules (read-only; list in `.gitmodules`) |

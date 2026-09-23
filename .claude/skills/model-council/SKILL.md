@@ -15,7 +15,7 @@ User-named council members each solve the same task independently and blind to e
 |---|---|
 | the name of an installed subagent (an entry under the harness's `agents/`) | dispatch that subagent (Claude Code: Agent tool, that `subagent_type`; Codex: the matching custom agent) |
 | fable, claude, opus, sonnet, haiku (optionally + an effort word) | Claude Code: Agent tool, `subagent_type: "claude"` with the matching `model:` override, effort stated in the prompt. Codex: unreachable without a bridge — ask which member to substitute |
-| codex, gpt | Codex: a subagent on the host model. Claude Code: retired in this repo (2026-08-14) — tell the user and ask which member to substitute |
+| codex, gpt | Codex: a subagent on the host model. Claude Code: run the Codex CLI directly (`codex exec -s read-only ...`, `.claude/project/tools.md` §Running Codex) — never the codex-adapter plugin |
 | anything else | Ask the user how to reach it |
 
 The judge resolves the same way; it gets a fresh agent even if its type matches a member's.

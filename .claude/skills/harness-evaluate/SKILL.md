@@ -22,7 +22,7 @@ a routing decision recorded in the ledger, and — if adopted — the sync-back 
   duplicate wording with no behavioural gain, or anything adding always-on context
   cost without clear value. Rejection is a successful outcome.
 - **Merge into an existing plugin**: same job-to-be-done and same dependency
-  boundary as an existing plugin (e.g. `code-intel`; `codex-adapter` is retired).
+  boundary as an existing plugin (e.g. `code-intel`; `codex-adapter` is retired — use the Codex CLI directly).
 - **New standalone plugin**: a distinct capability with an external tool / MCP /
   binary / credential dependency, or a domain-specific workflow (the
   `code-intel` archetype; the retired `codex-adapter` was another).

@@ -12,7 +12,8 @@ It is **not** an application; it also holds the first-party
   - `mvp-plugin/` — the reusable harness installer (`/mvp-plugin:adopt` copies the
     `.claude` + `.codex` setup, rules, hooks, and beads tracking into any repo).
     This repo was itself adopted with it.
-  - `codex-adapter/` — calls OpenAI Codex (`gpt-5.x`) from Claude Code via `codex exec`.
+  - `codex-adapter/` — legacy Codex bridge; **do not use** — call the Codex CLI
+    directly (see `tools.md` §Running Codex).
   - `code-intel/` — graph-first code intelligence plugin (serena + CBM + ast-grep).
 - `harness_learnings/` — the synthesized canon and best-practice docs.
 - `reference_harnesses/` — five third-party harness repos as **git submodules**
@@ -21,7 +22,7 @@ It is **not** an application; it also holds the first-party
 ## Stack
 
 Markdown-dominant (~267 `.md`) with Bash (~23 `.sh`), plus small amounts of
-Python 3 (hook/skill scripts only) and Node ≥18 (`codex-adapter` `.mjs`).
+Python 3 (hook/skill scripts only) and Node ≥18 (legacy `codex-adapter` `.mjs`).
 No package to build or publish; no test/lint pipeline for the repo as a whole.
 
 ## Constraints / non-negotiables

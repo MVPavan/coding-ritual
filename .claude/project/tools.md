@@ -6,24 +6,40 @@
 |---|---|---|
 | Bash | system | install/test scripts, hooks (~23 `.sh`) |
 | Python 3 | system | hook/skill scripts only (`block-generated-edits.py`, skill scripts) |
-| Node.js | ≥18 | `codex-adapter` (`scripts/codex-run.mjs`) — private, not published |
 | `bd` (beads) | v1.0.5, embedded Dolt | issue tracking (see `tracking.md`) |
-| `codex` CLI | present & on PATH | **retired** — do not invoke (see §Independent critique) |
+| `codex` CLI | present & on PATH | the only way to run Codex from Claude Code (see §Running Codex) |
 
 No repo-wide package manager step — nothing to `npm install` or `pip install` to
 work on the repo. The plugins are loaded by Claude Code / Codex, not built here.
 
 ## Independent critique
 
-Codex is retired in this repo (2026-08-14 ruling; low quota) — do not invoke
-the `codex` CLI or the codex-adapter plugin. Critique of drafts, plans, and
-completed diffs runs on a **spawned critic subagent** — a fresh agent,
+Critique of drafts, plans, and completed diffs runs on a **spawned critic subagent** — a fresh agent,
 separate from the implementer. The user defines which model serves as critic
 (ask if undefined; never assume one). Findings come back numbered
 BLOCKER/MAJOR/MINOR with `file:line` plus a verdict, and the coordinator
 triages them. Skip the critic for `small` tasks unless risk is unusual.
 The Codex-side `use-codex` workflow is parked under
 `.claude/skills/in-progress/use-codex/` (not loaded) for possible reactivation.
+
+## Running Codex
+
+Call the **Codex CLI directly**. Never use the codex-adapter plugin
+(`codex-run.mjs`, `/codex-*` skills) — it was uninstalled 2026-09-23. The
+model and effort come from the user's current roster; ask if undefined.
+
+```bash
+# new run — use -s read-only for review/analysis, workspace-write to edit
+codex exec -C <dir> -s workspace-write -m <model> -c model_reasoning_effort=<effort> \
+  -o <answer-file> "<prompt>" 2> <log-file>
+# resume — no -C/-s flags; set sandbox via -c
+cd <dir> && codex exec resume <session-id> -m <model> -c sandbox_mode=workspace-write \
+  -c model_reasoning_effort=<effort> -o <answer-file> "<prompt>"
+```
+
+- The session id is the first `session id:` line on stderr; `-o` writes the
+  final answer to a file. Prefer resume over a fresh run for follow-ups.
+- `codex exec` silently accepts bad `-c` values — see `learnings.md`.
 
 ## Subagent / MCP routing
 
