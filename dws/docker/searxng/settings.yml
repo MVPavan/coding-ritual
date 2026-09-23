@@ -1,0 +1,41 @@
+# Qualification candidate for private DWS discovery; requires SEARXNG_SECRET.
+use_default_settings:
+  engines:
+    keep_only: [duckduckgo, wikipedia]
+# This mapping replaces upstream plugins. Retain pinned defaults except
+# tracker_url_remover: even active:false initializes its mutable rule downloads.
+plugins:
+  searx.plugins.calculator.SXNGPlugin:
+    active: true
+  searx.plugins.infinite_scroll.SXNGPlugin:
+    active: false
+  searx.plugins.hash_plugin.SXNGPlugin:
+    active: true
+  searx.plugins.self_info.SXNGPlugin:
+    active: true
+  searx.plugins.unit_converter.SXNGPlugin:
+    active: true
+  searx.plugins.ahmia_filter.SXNGPlugin:
+    active: true
+  searx.plugins.hostnames.SXNGPlugin:
+    active: true
+  searx.plugins.time_zone.SXNGPlugin:
+    active: true
+  searx.plugins.oa_doi_rewrite.SXNGPlugin:
+    active: false
+  searx.plugins.tor_check.SXNGPlugin:
+    active: false
+general:
+  instance_name: DWS discovery
+search:
+  formats: [html, json]
+  autocomplete: ""
+server:
+  limiter: false
+  public_instance: false
+  image_proxy: false
+valkey:
+  url: false
+outgoing:
+  request_timeout: 3.0
+  max_request_timeout: 5.0

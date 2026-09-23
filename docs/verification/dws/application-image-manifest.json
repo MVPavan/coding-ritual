@@ -1,0 +1,220 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-22",
+  "scope": "cr-0km.4 independent application runtime qualification; not product release",
+  "review": "pending independent Sol review",
+  "image": {
+    "Id": "sha256:eb1475855045015fd0aa47e32605dcb5dcb68275d04f70be2386c9322694b616",
+    "RepoDigests": [
+      "dws-application@sha256:eb1475855045015fd0aa47e32605dcb5dcb68275d04f70be2386c9322694b616"
+    ],
+    "Architecture": "amd64",
+    "Os": "linux",
+    "Size": 1663705632,
+    "Config": {
+      "User": "1000:1000",
+      "Env": [
+        "PATH=/opt/dws/bin:/opt/qmd/node_modules/.bin:/usr/local/bin:/usr/bin:/bin",
+        "GPG_KEY=7169605F62C751356D054A26A821E680E5FA6305",
+        "PYTHON_VERSION=3.13.12",
+        "PYTHON_SHA256=2a84cd31dd8d8ea8aaff75de66fc1b4b0127dd5799aa50a64ae9a313885b4593",
+        "HOME=/state/home",
+        "XDG_CACHE_HOME=/state/cache",
+        "QMD_CONFIG_DIR=/state/config",
+        "INDEX_PATH=/state/index.sqlite",
+        "PYTHONDONTWRITEBYTECODE=1"
+      ],
+      "Entrypoint": [
+        "/bin/sh",
+        "/opt/application-entrypoint.sh"
+      ],
+      "Cmd": [
+        "dws",
+        "--help"
+      ],
+      "WorkingDir": "/state",
+      "ArgsEscaped": true
+    }
+  },
+  "bases": {
+    "python": {
+      "tag": "docker.io/library/python:3.13.12-slim-bookworm",
+      "platform": "linux/amd64",
+      "manifest_digest": "sha256:3121f8b0804aa3698ab750d9a39ea4a42657a385c9b133722b915e55c51551a6",
+      "annotations": {
+        "com.docker.official-images.bashbrew.arch": "amd64",
+        "org.opencontainers.image.base.digest": "sha256:13cb01d584d2c23f475c088c168a48f9a08f033a10460572fbfd10912ec5ba7c",
+        "org.opencontainers.image.base.name": "debian:bookworm-slim",
+        "org.opencontainers.image.created": "2026-04-07T02:17:15Z",
+        "org.opencontainers.image.revision": "d7d46d97a9ffd58269d8d1d0218ce959362b4298",
+        "org.opencontainers.image.source": "https://github.com/docker-library/python.git#d7d46d97a9ffd58269d8d1d0218ce959362b4298:3.13/slim-bookworm",
+        "org.opencontainers.image.url": "https://hub.docker.com/_/python",
+        "org.opencontainers.image.version": "3.13.12-slim-bookworm"
+      },
+      "registry_index_file_sha256": "a58daefb915e1e03ad48f3ca4df8832065412c5c35cacb9d39f4229184de12b6"
+    },
+    "node": {
+      "tag": "docker.io/library/node:22.22.0-bookworm-slim",
+      "platform": "linux/amd64",
+      "manifest_digest": "sha256:7cc56ef285a8568121537d17b05e72128f01b89c54607b51acf084a50ef483f3",
+      "annotations": {
+        "com.docker.official-images.bashbrew.arch": "amd64",
+        "org.opencontainers.image.base.digest": "sha256:74a21da88cf4b2e8fde34558376153c5cd80b00ca81da2e659387e76524edc73",
+        "org.opencontainers.image.base.name": "debian:bookworm-slim",
+        "org.opencontainers.image.created": "2026-02-24T19:27:09Z",
+        "org.opencontainers.image.revision": "893511202f3e478d6b23e76b5658b93be6e906b7",
+        "org.opencontainers.image.source": "https://github.com/nodejs/docker-node.git#893511202f3e478d6b23e76b5658b93be6e906b7:22/bookworm-slim",
+        "org.opencontainers.image.url": "https://hub.docker.com/_/node",
+        "org.opencontainers.image.version": "22-bookworm-slim"
+      },
+      "registry_index_file_sha256": "dd9d21971ec4395903fa6143c2b9267d048ae01ca6d3ea96f16cb30df6187d94"
+    },
+    "uv": {
+      "tag": "ghcr.io/astral-sh/uv:0.9.8",
+      "platform": "linux/amd64",
+      "manifest_digest": "sha256:f76a8aa726a81249cf123ebfbbcf0bda266118f1c30ffcc70116e268b4ecea4f",
+      "annotations": {},
+      "registry_index_file_sha256": "08f409e1d53e77dfb5b65c788491f8ca70fe1d2d459f41c89afa2fcbef998abe"
+    }
+  },
+  "effective_versions": {
+    "python": "3.13.12",
+    "python_sqlite": "3.40.1",
+    "dws": "0.0.1",
+    "node": "22.22.0",
+    "node_abi": "127",
+    "qmd": "2.8.3",
+    "better_sqlite3": "13.0.3",
+    "qmd_sqlite": "3.53.4",
+    "sqlite_vec": "v0.1.9"
+  },
+  "qmd": {
+    "package": {
+      "version": "2.8.3",
+      "resolved": "https://registry.npmjs.org/@tobilu/qmd/-/qmd-2.8.3.tgz",
+      "integrity": "sha512-zjfVwrObPB618B6x8SdhlGv/tX9OxRHsbQnr5DUtBvqPK6HGQ27lM+9/BAY5okpjrHVnW56hLyDkqoTcsrVLzA==",
+      "license": "MIT",
+      "dependencies": {
+        "@modelcontextprotocol/server": "2.0.0",
+        "better-sqlite3": "^13.0.3",
+        "fast-glob": "3.3.3",
+        "node-llama-cpp": "3.20.0",
+        "picomatch": "4.0.5",
+        "sqlite-vec": "0.1.9",
+        "tree-sitter-go": "0.25.0",
+        "tree-sitter-python": "0.25.0",
+        "tree-sitter-rust": "0.24.0",
+        "tree-sitter-typescript": "0.23.2",
+        "web-tree-sitter": "0.26.12",
+        "yaml": "2.9.0",
+        "zod": "4.2.1"
+      },
+      "bin": {
+        "qmd": "bin/qmd"
+      },
+      "engines": {
+        "node": ">=22.0.0"
+      },
+      "optionalDependencies": {
+        "sqlite-vec-darwin-arm64": "0.1.9",
+        "sqlite-vec-darwin-x64": "0.1.9",
+        "sqlite-vec-linux-arm64": "0.1.9",
+        "sqlite-vec-linux-x64": "0.1.9",
+        "sqlite-vec-windows-x64": "0.1.9"
+      },
+      "peerDependencies": {
+        "typescript": "^5.9.3"
+      }
+    },
+    "accepted_lock_reused_byte_for_byte": true,
+    "lifecycle_scripts": false,
+    "native_sha256": {
+      "runtime/node_modules/better-sqlite3/prebuilds/linux-x64.node": "6fd4292c6c5f352436cd85c9e1cb286978efa43c20ae350973f83414ced9991d",
+      "runtime/node_modules/sqlite-vec-linux-x64/vec0.so": "5923730861b86c707cca5602b5f91092f9e52a46706dbc6e269fd4bb9c4498e8"
+    },
+    "final_stage_exclusions": [
+      "@modelcontextprotocol/core@2.0.0",
+      "@modelcontextprotocol/server@2.0.0"
+    ],
+    "models_present": false,
+    "model_related_dependencies_retained": true
+  },
+  "commands": [
+    {
+      "command": "bash dws/docker/application_build.sh",
+      "exit_code": 0,
+      "evidence": "scratchpad/dws/application-image/build.log"
+    },
+    {
+      "command": "bash dws/tests/qualification/image_application_qualification.sh",
+      "exit_code": 0,
+      "evidence": "scratchpad/dws/application-image/qualification.log"
+    },
+    {
+      "command": "tar -C dws -cf - Dockerfile -C docker image_volume_probe.py | docker build --target image-volume-qualification --tag dws-application:volume-qualification --progress plain -",
+      "exit_code": 0,
+      "evidence": "scratchpad/dws/application-image/volume-build.log"
+    },
+    {
+      "command": "preserved volume target read on isolated qualification volume, bounded network-none container",
+      "exit_code": 0,
+      "evidence": "scratchpad/dws/application-image/preserved-volume-read.log"
+    }
+  ],
+  "results": {
+    "installed_cli": true,
+    "lexical_seed_persist_update_get": true,
+    "empty_model_cache_before_after": true,
+    "nonroot_capabilities_nnp_network_assertions": true,
+    "archive_directory_0700_file_0600": true,
+    "file_directory_fsync_sqlite_wal_persistence": true,
+    "cross_container_flock_contention": true,
+    "preserved_volume_target_build_read": true
+  },
+  "retained_volumes": [
+    "dws-application-1790057403-3386547-state",
+    "dws-application-1790057372-3382243-state"
+  ],
+  "attempts": {
+    "infrastructure_recoveries": 0,
+    "probe_script_path_corrections": 1
+  },
+  "not_qualified": [
+    "browser containment",
+    "API or worker entrypoints/health",
+    "product release",
+    "power-loss durability",
+    "non-amd64 platforms",
+    "QMD nonlexical commands",
+    "dependency vulnerability/license audit"
+  ],
+  "file_sha256": {
+    "dws/Dockerfile": "c810e782d715445f9521dda75ab4c15d57d50ea1d7c3c2b378426f1005acfc65",
+    "dws/docker/application_build.sh": "055c943a92d54ec82ac9973800a6e5114881a796152a0111af618a64344975dd",
+    "dws/docker/application_build.in": "28e067b5263b9006ca205fad490afb62a89929d2af723d82877a70dbfc1dbabb",
+    "dws/docker/application_build.txt": "e55d62ec33db9a96c1324a696f3c46b68866df43b071edb1ea69154180776b94",
+    "dws/docker/application_entrypoint.sh": "0915438eb2bd6e9ec08769591a99f6d29cf3bb6e1bd16e6ea48436b2ce2a27f7",
+    "dws/docker/qmd/package.json": "83db6ea393bfda4ed98102886a906713cb98c6c2c32ca46cae521fe9726fa065",
+    "dws/docker/qmd/package-lock.json": "17011f5c03cbcdd9be62cc377fb53f4821645c3f6fddcfdf2fca75fbd3d4193d",
+    "dws/docker/qmd/README.md": "d6776b3df931eeffbb40964c3d052ca67a2ab863abf0e58ba541f9e399124da3",
+    "dws/tests/qualification/image_application_probe.py": "2a7babd08dbd8c13b44b8c665990d1563c535db91043e4f2288d05e259d80862",
+    "dws/tests/qualification/image_application_qualification.sh": "077a15e25de29176e70fefefe95dc40c1696487456d8fa881d2b3fc85957649b",
+    "dws/docker/image_volume_probe.py": "d2b3b143d2a47adc6615c432669312bd46b6719d7450199d56648d923c0f5ad2",
+    "dws/pyproject.toml": "c5e46f79b8b217c979131fcfd5098d13bf6e4698e1daca3c938559945e82d33d",
+    "dws/uv.lock": "9e3bcd7e9a6f3a9eafcac704e99e2a3bb6b33d45e7e275da3e4e934302fcb0c7",
+    "dws/README.md": "0dd15cd0bc62ae40a0a365268046af710cc237cb6c7e7570b454854e6c8d1a22",
+    "dws/src/dws/__init__.py": "fb9d16a0289ac47c3e6d30814a2baca3f48e0c4d7e7d1aec9dfe86bbddde777b",
+    "dws/src/dws/cli.py": "50d379903f7daee69edce0c973f756e2481a231155e0416b073eed38dd027fd4"
+  },
+  "evidence_sha256": {
+    "scratchpad/dws/application-image/build.log": "08b2c242ab50979d282631f76a9b51027d2575ecfd2db34a8ec7581ff58b28a0",
+    "scratchpad/dws/application-image/qualification.log": "e80b8980edef32b8f366625a0faf9f191dadc29f81f30cc6d6970e284bcc987f",
+    "scratchpad/dws/application-image/volume-build.log": "7a31e0499c091f200ca5dfc6fa406d2a65570921e31d47edac48ffd738664f8d",
+    "scratchpad/dws/application-image/preserved-volume-read.log": "e080535194fd2a8fd93f8a49f55a0c14cb749b306095fdeb519a083137de98c9",
+    "scratchpad/dws/application-image/image-inspect.json": "1b67035caf75e5e53460ad98b69cdb0512cbef4c430cffecea4fb8fdb28e500e",
+    "scratchpad/dws/application-image/node-index.json": "dd9d21971ec4395903fa6143c2b9267d048ae01ca6d3ea96f16cb30df6187d94",
+    "scratchpad/dws/application-image/python-index.json": "a58daefb915e1e03ad48f3ca4df8832065412c5c35cacb9d39f4229184de12b6",
+    "scratchpad/dws/application-image/uv-index.json": "08f409e1d53e77dfb5b65c788491f8ca70fe1d2d459f41c89afa2fcbef998abe",
+    "scratchpad/dws/application-image/qmd-registry.json": "91cabbc69337a420dae82b173bee864cf8c60299258a383ea6c2e793caa965c0"
+  }
+}

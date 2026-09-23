@@ -1,18 +1,22 @@
 # DWS Roadmap
 
-**Spec:** `docs/plans/dws/cli-engine-implementation-plan.md`
-**Baselines:** `docs/brainstorms/dws/DWS_PRD.md` v1.0 · `docs/brainstorms/dws/DWS_Design.md` v1.0
-**Status:** Proposed phase structure. No implementation is authorized by this document.
+**Spec (`spec_id`):** `docs/brainstorms/dws/DWS_PRD.md`
+**Baselines:** `docs/brainstorms/dws/DWS_PRD.md` v1.1 · `docs/brainstorms/dws/DWS_Design.md` v1.1
+**Implementation-plan origin:** `docs/plans/dws/cli-engine-implementation-plan.md` (original v1.0 planning context).
+**Phase roadmap (Beads `design`):** `docs/workstreams/dws/roadmap.md`
+**Status:** Execution is authorized through the active owner goal described in `docs/plans/dws/implementation-goal.md`, covering Delivery A (P1–P11). The presence of this roadmap or the goal document does not itself activate or authorize execution. Delivery B (P12) remains a subsequent goal. Beads and recorded verification carry actual progress; no implementation completion is implied.
 **Revision:** r2 — independent critique applied (Codex `gpt-5.6-sol`, effort high, session `01a08ce3-c8b5`). Changes recorded in "Revision history".
 
 Phases are components, not a schedule. Each has a demoable exit that can be
 checked with real commands. Phase IDs `P1`–`P12` are the join key to Beads epics
-(`[P1] Foundation …`). `Task N` references point at the governing spec's fourteen
-tasks; this roadmap regroups them, it does not replace them.
+(`[P1] Foundation …`). `Task N` references point at the implementation plan's fourteen
+tasks; this roadmap regroups them, it does not replace them. The PRD defines
+what is built; the roadmap sequences phases. Beads `design` refers to this
+roadmap, not to the technical design companion.
 
 Stage children are flat — no sub-tasks — but **not unordered**. Each phase
 declares its internal `Stage edges`; those are seeded as real dependencies so a
-merged phase cannot lose an edge the governing task DAG requires.
+merged phase cannot lose an edge the implementation plan's task DAG requires.
 
 Planned code paths are ownership boundaries, not claims that files exist. `P1`
 confirms the package location before any product file is created.
@@ -343,7 +347,7 @@ commands alone, with FastMCP, model credentials and hosted credentials absent.
 | 3 | Adversarial input and bounded-output qualification | `dws/tests/acceptance/` | `AT-027`, `AT-029`: secret-looking data, path traversal and shell metacharacters cause no execution or leakage; very large search, crawl, read and retrieve results stay valid JSON — paginated or explicitly truncated, never byte-cut |
 | 4 | Host CLI workflow template | `docs/usage/dws/host-cli-workflow.md`, `docs/usage/dws/getting-started.md` | `AT-030`, `FR-034`: a host workflow performs search → fetch → retrieve → read and pins/exports cited evidence using only `dws` commands, with query formulation and synthesis left to the host and DWS generating no report; core works with no such template installed |
 | 5 | Measured concurrency qualification | `dws/tests/concurrency/`, `docs/verification/dws/` | `AT-020`, `AT-022`: bursts of 1, 5, 10, 20 and 50 callers with the fixture corpus; admission limits hold; job status and cancel stay responsive during real browser and crawl saturation; queue, SQLite, QMD and browser costs reported separately as measurements on declared hardware, never as capacity promises (G-10) |
-| 6 | Release gate and acceptance matrix | `docs/verification/dws/cli-release-qualification.md`, `dws/tests/acceptance/`, `tests/live/` | `uv sync --locked`; `docker compose up -d --build` on a fresh fixture environment; `uv run pytest -q -m 'not live'` including `tests/acceptance`; `uv run ruff check src tests`; `uv run ruff format --check src tests`; `uv run mypy --strict src/dws`; `tests/live` only against permitted providers. Every Delivery A `AT-*` carries an explicit disposition — passed, skipped with reason, or not applicable — and the spec's seven release-evidence questions are answered with real command output. An unavailable required check is unverified, not passed. G-12 distribution acceptability signed off |
+| 6 | Release gate and acceptance matrix | `docs/verification/dws/cli-release-qualification.md`, `dws/tests/acceptance/`, `tests/live/` | `uv sync --locked`; `docker compose up -d --build` on a fresh fixture environment; `uv run pytest -q -m 'not live'` including `tests/acceptance`; `uv run ruff check src tests`; `uv run ruff format --check src tests`; `uv run mypy --strict src/dws`; `tests/live` only against permitted providers. Every Delivery A `AT-*` carries an explicit disposition — passed, skipped with reason, or not applicable — and the implementation plan's seven release-evidence questions are answered with real command output. An unavailable required check is unverified, not passed. G-12 distribution acceptability signed off |
 
 **Exit (phase):** a fresh Compose installation performs search → fetch → crawl →
 retrieve → read → pin → export → backup → restore using only `dws` commands,
@@ -356,7 +360,7 @@ mock-only test, file presence or a healthy container.
 
 ## P12 — MCP adapter (Delivery B)
 
-**Spec §8.** Risk: deep — it resolves release-blocking G-01 and touches host
+**Implementation plan §8.** Risk: deep — it resolves release-blocking G-01 and touches host
 compatibility, daemon lifespan, local access and protocol parity. "Thin"
 describes code volume, not integration risk. Its file-level plan is written just
 in time at `docs/plans/dws/mcp-wrapper-implementation-plan.md`; stage children

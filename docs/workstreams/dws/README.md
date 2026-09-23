@@ -41,21 +41,33 @@ exposure, authenticated scraping, and any second database engine.
 
 | Role | Path |
 |---|---|
-| Product baseline | `docs/brainstorms/dws/DWS_PRD.md` v1.0 |
-| Implementation companion | `docs/brainstorms/dws/DWS_Design.md` v1.0 |
-| Governing spec | `docs/plans/dws/cli-engine-implementation-plan.md` |
+| Governing spec / product baseline (`spec_id`) | `docs/brainstorms/dws/DWS_PRD.md` v1.1 |
+| Technical design companion | `docs/brainstorms/dws/DWS_Design.md` v1.1 |
+| Implementation-plan origin / task breakdown | `docs/plans/dws/cli-engine-implementation-plan.md` |
 | Historical context only | `docs/brainstorms/dws/DWS_PRD_and_Architecture_Decision_Record.md` |
-| This roadmap | `docs/workstreams/dws/roadmap.md` |
+| Phase roadmap (Beads `design`) | `docs/workstreams/dws/roadmap.md` |
+| Execution goal and owner instructions | `docs/plans/dws/implementation-goal.md` |
 | Measured gate evidence | `docs/verification/dws/` |
 | Operator and CLI guides | `docs/usage/dws/` |
 
 `DWS_PRD_and_Architecture_Decision_Record.md` is not a second active baseline.
 In particular, do not import its sole-writer API/coordinator topology.
 
+The implementation plan retains its original v1.0 planning context; current
+requirements and technical contracts come from the v1.1 baselines above.
+Beads `spec_id` identifies what is built; `design` identifies the phase roadmap,
+not the technical design companion.
+
+Implementation authorization comes from the active owner goal described in
+`docs/plans/dws/implementation-goal.md`, not from the presence of this roadmap
+or the goal document. That goal covers Delivery A (P1–P11); Delivery B (P12)
+remains a subsequent goal. Neither document presence nor authorization implies
+implementation completion; Beads and recorded verification carry actual progress.
+
 ## Tracking
 
 - One Beads epic per roadmap phase, titled `[P<n>] <phase name>`, labelled
-  `ws-dws`, with `--spec-id docs/plans/dws/cli-engine-implementation-plan.md`
+  `ws-dws`, with `--spec-id docs/brainstorms/dws/DWS_PRD.md`
   and `--design docs/workstreams/dws/roadmap.md`.
 - Flat stage children (no sub-tasks) carry the roadmap row's `Verify` cell as
   acceptance. Flat does not mean unordered: stage→stage edges declared in the

@@ -2,8 +2,9 @@
 ## Product Requirements Document, Architecture Baseline, and Decision Record
 
 **Canonical filename:** `DWS_PRD.md`  
-**Document version:** 1.0  
+**Document version:** 1.1\
 **Prepared:** 9 September 2026  
+**Updated:** 22 September 2026 — CLI-first delivery order\
 **Product owner:** The project owner / primary user  
 **Product status:** Design-stage; this document does not assert that DWS has been implemented or benchmarked.  
 **Scope:** Personal, local-first web discovery, acquisition, and evidence retrieval.  
@@ -40,9 +41,18 @@ Keep this file in the DWS repository under version control. Record decision chan
 
 The linked primary sources were inspected for this consolidation. Some retrieved pages are cached, and `main` branches are mutable. They establish capabilities and risks; they are **not a dependency lockfile**. Exact versions, image digests, compatibility checks, and runtime build identities must be frozen during milestone M0.
 
-Earlier conversation asserted several precise FastMCP releases and SDK behaviors. This PRD preserves the user’s **FastMCP choice and 4.x target**, but does not reuse inconsistent patch-version claims as installation instructions. Official installation material and retrieved release snapshots do not provide one consistently current view. Resolve the exact supported build through G-01. [S03] [S04]
+Earlier conversation asserted several precise FastMCP releases and SDK behaviors. This PRD preserves the user’s **FastMCP choice and 4.x target**, but does not reuse inconsistent patch-version claims as installation instructions. Official installation material and retrieved release snapshots do not provide one consistently current view. Resolve the exact supported build through G-01 in Delivery B; Delivery A freezes its engine/runtime identities without FastMCP. [S03] [S04]
 
 The earlier deep-research requests are part of the discussion history, but their completed reports are not present in the supplied conversation. This PRD does not claim to incorporate findings from unavailable reports.
+
+### 0.4 Accepted delivery order — 22 September 2026
+
+The owner's [implementation goal](../../plans/dws/implementation-goal.md) and [CLI-engine implementation plan](../../plans/dws/cli-engine-implementation-plan.md) establish two deliveries within the existing product architecture:
+
+- **Delivery A — complete engine and daemon-backed CLI first.** Deliver the Python core, local command API, `dws` CLI, providers, immutable evidence, QMD lexical retrieval, durable crawl/jobs, shared concurrency controls, retention, diagnostics, and backup/restore. Install, start, and validate this delivery without FastMCP, MCP SDK dependencies, model inference, or hosted-provider credentials. The CLI calls the daemon's shared application contracts and ownership controls.
+- **Delivery B — subsequent thin MCP adapter.** Retain the accepted FastMCP choice and verified compatible 4.x target. Add MCP tools, resources, transport mapping, and client compatibility over the completed engine's contracts, jobs, policies, and state. MCP must not become the CLI foundation or introduce a second business-logic or job system. Native Tasks remain optional.
+
+This is a delivery-order amendment, not removal of MCP requirements or a rewrite of the historical ADRs. V1 architecture diagrams and MCP contracts describe the combined target; their MCP elements belong to B. Engine capabilities and all applicable safety/evidence requirements remain in A. Section 19.3 defines the release and acceptance split; full original V1 interface parity is claimed only after B.
 
 ### Contents
 
@@ -83,7 +93,7 @@ The earlier deep-research requests are part of the discussion history, but their
 | Name | Deep Web Search; abbreviation DWS; command `dws` | Accepted |
 | Audience | One person, many projects and concurrent agents; not enterprise SaaS | Accepted |
 | Deployment | One top-level Docker Compose entry point on one machine | Accepted |
-| MCP framework | Python FastMCP; target the compatible 4.x line and pin a tested build | Accepted; exact build gated |
+| MCP framework | Delivery B: Python FastMCP; target the compatible 4.x line and pin a tested build | Accepted; exact build gated for B |
 | Core | Python services with no MCP, host, or research-agent dependency | Accepted |
 | Research | Host-side agent + skill + optional structured profile | Accepted |
 | Discovery | SearXNG as primary search provider | Accepted |
@@ -260,6 +270,8 @@ A caller requests an old snapshot after the original page changes. If retained, 
 
 ### 6.1 Logical architecture
 
+Combined target: CLI/local command API ships in A; the FastMCP adapter is added in B.
+
 ```text
                        USER / HOST PROJECT
                 Agent + skill + research profile
@@ -326,7 +338,7 @@ dws/
       extraction/            # HTML, text, PDF
       retrieval/             # QMD implementation
       storage/               # SQLite and filesystem
-      mcp/                   # FastMCP
+      mcp/                   # Delivery B: FastMCP
       http/                  # Small local command/administration API
       cli/                   # dws commands
     worker/                  # Execution, leases, index update loop
@@ -361,7 +373,7 @@ Prefer one acquisition port with capabilities such as `http`, `rendered`, and `p
 
 ## 7. Functional requirements
 
-**P0** means required for V1. **P1** means a useful follow-on or optional integration. Source-specific implementation choices remain subject to the gates in Section 23.
+**P0** means required for V1, with delivery applicability defined in Section 19.3; MCP-specific portions remain required for B. **P1** means a useful follow-on or optional integration. Source-specific implementation choices remain subject to the gates in Section 23.
 
 | ID | Priority | Requirement | Acceptance indicator |
 |---|---|---|---|
@@ -405,6 +417,8 @@ Prefer one acquisition port with capabilities such as `http`, `rendered`, and `p
 ## 8. Public interfaces and example contracts
 
 ### 8.1 Proposed MCP tool catalog
+
+Delivery B exposes these operations as MCP tools. Delivery A provides all seven through the core, command API, and daemon-backed CLI, using the same DWS payload contracts.
 
 The seven-tool baseline adds a bounded `read` operation to the earlier six-tool sketch. This is a **proposed compatibility refinement**, not a requirement to expose every storage operation to the model.
 
@@ -987,7 +1001,7 @@ Proposed default services:
 
 | Service | Purpose | Exposure and state |
 |---|---|---|
-| `dws-api` | FastMCP endpoint, local CLI-facing API, admission and reads | Only owner-approved loopback host port; shared persistent state |
+| `dws-api` | Local CLI-facing API, admission and reads in A; FastMCP endpoint added in B | Only owner-approved loopback host port; shared persistent state |
 | `dws-worker` | Durable jobs, acquisition orchestration, QMD updates | No published port; same application image, worker entry point |
 | `searxng` | Primary discovery | Internal Compose network; persistent/configured settings |
 | `crawl4ai` | Browser-capable fetch/crawl backend | Internal Compose network; audited upstream runtime/configuration |
@@ -1006,7 +1020,7 @@ Spider remains a separate optional adapter/deployment decision. TinyFish is exte
 
 | Component | Proposed packaging | Why |
 |---|---|---|
-| DWS Python core + FastMCP + CLI | Packages in DWS image | One codebase and reproducible dependency set |
+| DWS Python core + command API + CLI | Packages in Delivery A DWS image; FastMCP added for B | One codebase and reproducible dependency set; no MCP dependency in A |
 | DDGS, HTTP client, text/PDF parsers | Packages in DWS image | No reason for separate daemon services |
 | QMD | Pinned CLI/runtime in DWS image | Reuse public interface with minimal extra service wiring |
 | SearXNG | Dedicated service | Clear search-engine lifecycle and configuration boundary |
@@ -1019,7 +1033,7 @@ A direct Crawl4AI Python-library integration remains an acceptable future adapte
 
 ### 15.4 Required deployment properties
 
-- Pin package versions and image digests after G-01/G-05; do not deploy mutable `latest` tags as the baseline.
+- Pin package versions and image digests after G-05 and applicable engine/runtime checks in A; add G-01 qualification in B; do not deploy mutable `latest` tags as the baseline.
 - Supply health/readiness checks that test useful capability, not just an open TCP port. Applications still retry dependencies; startup order alone is not resilience.
 - Store SQLite files and artifacts on a local persistent volume with defined UID/GID permissions. Do not depend on container writable layers for evidence.
 - Coordinate migrations before serving traffic. Replacing an API container must not silently rebuild/delete the corpus.
@@ -1097,7 +1111,7 @@ The host skill may ask for consent, but DWS enforces hard limits itself. A model
 | NFR-006 | Local deployability | One documented Compose startup and tested local-host connection |
 | NFR-007 | Replaceable integrations | Provider/retrieval contract tests do not require MCP imports in core |
 | NFR-008 | Data ownership | QMD rebuild/upgrade cannot migrate or destroy DWS metadata |
-| NFR-009 | Interface compatibility | MCP and CLI results conform to the same DWS payload schema |
+| NFR-009 | Interface compatibility | A: CLI/API/core results conform to the same DWS payload schema; B: MCP results conform too |
 | NFR-010 | Observable operations | Queue wait, execution time, retries, cache and index lag separately recorded |
 | NFR-011 | Safe exposure | Local interface/SSRF/secret-redaction tests pass |
 | NFR-012 | Reproducible builds | Lockfile, image digests, runtime report, and migration version captured |
@@ -1180,14 +1194,14 @@ Plugin/agent/skill packaging differs across hosts. Supply a portable reference s
 
 | Milestone | Deliverable | Exit condition |
 |---|---|---|
-| **M0 — Verify and freeze** | Tested FastMCP/QMD/runtime pins, Compose topology audit, small fixture corpus, resolved critical gates | No unsupported version assumption; lexical-only QMD and local host connection demonstrated |
-| **M1 — Acquisition foundation** | Domain models, safe URL policy, search adapters, lightweight fetch, Crawl4AI path, canonical artifact pipeline | Search/fetch fixtures pass; stored snapshots have provenance and bounded outputs |
+| **M0 — Verify and freeze** | Tested engine/QMD/runtime pins, Compose topology audit, small fixture corpus, resolved A gates | No unsupported version assumption; lexical-only QMD and local command connectivity demonstrated; FastMCP qualification remains in B |
+| **M1 — Acquisition foundation** | Domain models, daemon/CLI foundation, safe URL policy, search adapters, lightweight fetch, Crawl4AI path, canonical artifact pipeline | Search/fetch fixtures pass; stored snapshots have provenance and bounded outputs |
 | **M2 — Lexical retrieval** | QMD adapter, collection/snapshot mapping, indexing outbox, bounded retrieve/read | Scoped retrieval, index lag, rebuild and no-inference tests pass |
 | **M3 — Durable crawl and concurrency** | Crawl jobs, limits, leases, checkpoints, cancellation, QMD admission control | Fault, burst, reconciliation, and maintenance tests pass |
-| **M4 — Product integration** | FastMCP adapter, daemon-aware CLI, one Compose startup, security/configuration, pin/export/backup, default host skill | End-to-end user journeys work after restart and restore |
+| **M4 — Product integration** | Complete daemon-aware CLI, one Compose startup, security/configuration, pin/export/GC/backup/restore, diagnostics, CLI host template | Delivery A end-to-end user journeys and applicable gates pass after restart and restore, without FastMCP or inference |
 | **M5 — Optional capability expansion** | Firecrawl/Spider/TinyFish refinements, native MCP Tasks, measured tuning | Each addition proves benefit and preserves baseline contracts |
 
-The sequence is a dependency order, not a delivery-time estimate. A prototype may combine steps, but it must not skip the data-integrity and security exit criteria.
+M0–M4 deliver A, exposing usable CLI behavior as each engine slice lands. Delivery B follows A with FastMCP qualification, tool/resource/transport mapping, MCP/CLI parity, and actual client tests. M5 remains optional expansion; native Tasks cannot precede the ordinary B adapter. The sequence is a dependency order, not a delivery-time estimate. A prototype may combine steps, but it must not skip the data-integrity and security exit criteria.
 
 ### 19.2 Acceptance-test catalog
 
@@ -1196,7 +1210,7 @@ Tests should use local fixtures and fake provider responses for deterministic ch
 | ID | Scenario and required result | Coverage |
 |---|---|---|
 | AT-001 | Start the baseline from the documented Compose invocation with hosted keys absent; useful fixture operations work | FR-029, FR-032, NFR-006 |
-| AT-002 | Invoke equivalent MCP and CLI operations; payloads validate against the same DWS schemas | FR-001, FR-031, NFR-009 |
+| AT-002 | A: invoke equivalent CLI/API/core operations against shared DWS schemas; B: add equivalent MCP operations and MCP/CLI parity | FR-001, FR-031, NFR-009 |
 | AT-003 | Primary search times out; enabled fallback returns normalized results and records both attempts | FR-004 |
 | AT-004 | Legitimate empty search, malformed output, unsupported filters and all-provider failure produce distinct outcomes | FR-002, FR-003, FR-005 |
 | AT-005 | Fetch static HTML/text without a browser; browser-required fixture escalates within budget | FR-006, FR-008 |
@@ -1224,17 +1238,29 @@ Tests should use local fixtures and fake provider responses for deterministic ch
 | AT-027 | Inject secret-looking data, path traversal and shell metacharacters; no execution or secret leakage occurs | FR-030, NFR-011 |
 | AT-028 | Oversized, malformed and decompression-heavy input stops within configured limits and leaves no uncontrolled staging growth | FR-006, FR-030 |
 | AT-029 | Very large search/crawl/read/retrieve results remain valid JSON, bounded, paginated or explicitly truncated | FR-031, NFR-002 |
-| AT-030 | Host skill performs search→fetch→retrieve→read and exports/pins cited evidence without DWS generating a report | FR-034 |
+| AT-030 | Host skill performs search→fetch→retrieve→read and exports/pins cited evidence without DWS generating a report, through CLI in A and repeated through MCP in B | FR-034 |
 | AT-031 | Update or restart dependencies using pinned builds; migration/readiness gates prevent traffic against an unready index | NFR-006, NFR-012 |
 | AT-032 | Enable an optional provider/profile; it improves identified failures without changing schemas or silently enabling paid/model behavior | FR-035, NFR-007 |
 | AT-033 | Native Tasks-capable and ordinary clients observe the same underlying DWS job lifecycle, when the optional adapter is enabled | FR-036 |
 | AT-034 | Install an added fake provider using only the provider interface/configuration; core and public interfaces do not import its details | FR-001, NFR-007 |
-| AT-035 | Verify default port bindings and actual intended host connectivity; no unexpected upstream ports are published | FR-029, FR-030 |
-| AT-036 | Inspect both SQLite runtimes, QMD/FastMCP identities and image digests; report the exact tested builds | NFR-012 |
+| AT-035 | A: verify default port bindings and command/CLI connectivity; no unexpected upstream ports are published. B: add actual MCP host connectivity | FR-029, FR-030 |
+| AT-036 | A: inspect engine, both SQLite runtimes, QMD identities and image digests; report exact tested builds. B: add FastMCP and MCP SDK identities | NFR-012 |
 
 ### 19.3 V1 release boundary
 
-All P0 requirements need passing acceptance evidence or an explicit owner-approved scope amendment. Firecrawl, Spider, native Tasks, vector retrieval, and hosted-service success are not prerequisites for the default V1 release. They must not delay a working local baseline without a demonstrated coverage need.
+**Delivery A is the complete engine/CLI release.** A fresh default Compose installation must demonstrate search, static/PDF/rendered fetch, exact read/retrieve, bounded crawl/status/cancel, pin/export/GC, diagnostics, and backup/restore through the CLI. Restart and failure tests must preserve acknowledged jobs and evidence; scope and resource limits must hold. The engine must install and run without FastMCP, MCP SDK dependencies, model inference, or hosted-provider credentials. Record measured limitations and operational instructions; passing documentation checks alone is not release evidence.
+
+All engine-applicable P0 requirements need passing acceptance evidence or an explicit owner-approved scope amendment. No safety, provenance, durability, output-bound, scope-isolation, concurrency, retention, or restore obligation is deferred merely because MCP is deferred. All applicable A acceptance gates and independent reviews must pass. The following split retains the original requirement/test IDs:
+
+| Requirement or gate | Delivery A evidence | Subsequent Delivery B obligation |
+|---|---|---|
+| FR-001, FR-031, NFR-009, AT-002 | All seven operations; bounded shared CLI/API/core schemas and errors | MCP tool/wire mapping and MCP/CLI schema parity |
+| FR-034, AT-030 | Portable CLI host workflow with pin/export and external synthesis | MCP installation guidance and repeated host workflow |
+| FR-030, AT-035, G-09 | Secure local command/CLI connectivity, token/origin policy, private provider ports, resource access checks and browser/network safety | MCP transport/bridge/stdio and resource-read client compatibility |
+| NFR-012, AT-036, G-01 | Locked engine/QMD/Python/native runtimes, both SQLite identities and image digests; engine compatibility remains required | FastMCP/SDK pins and tool/resource/schema/transport/client qualification; G-01 stays open for B |
+| FR-036, AT-033 | Durable DWS polling/cancellation without protocol Tasks | Optional native Tasks projection onto the same jobs |
+
+**Delivery B remains required for full original V1 interface parity.** Its MCP-specific requirements and evidence remain open at A release; they are not waived or marked passed. B adds a thin adapter over the tested engine and reruns affected product safety/evidence checks. Firecrawl, Spider, native Tasks, vector retrieval, and hosted-service success are not prerequisites for the default V1 release. They must not delay a working local baseline without a demonstrated coverage need.
 
 The implementation handoff should contain this PRD, a dependency/runtime manifest, contract schemas, the fixture corpus, test results, operational commands, and a restore demonstration. None of those results is implied to exist merely because this document lists them.
 
@@ -1583,7 +1609,7 @@ The learning questions were useful to establish boundaries, but they are not ind
 
 | ID | Question / risk | Evidence required | Disposition |
 |---|---|---|---|
-| G-01 | Which exact FastMCP/Python/SDK build supports the intended local hosts? | Authoritative package/tag identity, image build, tool/resource/schema/transport tests, locked dependencies | Release-blocking |
+| G-01 | Which exact FastMCP/Python/SDK build supports the intended local hosts? | Authoritative package/tag identity, image build, tool/resource/schema/transport tests, locked dependencies | Delivery B release-blocking; engine runtime qualification remains in A |
 | G-02 | Is the selected QMD lexical path genuinely model-free in our image? | No inference, model download or semantic/expansion command in controlled search tests; runtime/dependency audit | Release-blocking |
 | G-03 | Does pinned QMD handle concurrent searches, updates and initialization safely? | Stress/boot/maintenance tests; actual SQLite versions and applicable fixes verified | Release-blocking |
 | G-04 | Can collection/snapshot/run/crawl scoping produce correct passages? | Known-corpus filter/line-mapping tests; incomplete-coverage behavior verified | Release-blocking |
@@ -1591,7 +1617,7 @@ The learning questions were useful to establish boundaries, but they are not ind
 | G-06 | What HTML/PDF extraction is reliable? | Fixture-based page/table/scan tests and honest unsupported/partial outcomes | Release-blocking for supported formats |
 | G-07 | Are fallback engines truly useful and sufficiently independent? | Failure-injection tests, configured upstream identity where known, search filter support and limited live smoke tests | Baseline fallback quality gate |
 | G-08 | Does Firecrawl or Spider justify becoming a default/optional production backend? | Incremental acquisition success, extraction fidelity, restart behavior, limits and resource cost | Optional-provider gate |
-| G-09 | Can the actual local host and CLI use the deployed service securely? | Loopback/bridge/stdio tests, resource-read compatibility, local token/origin behavior and daemon-aware CLI | Release-blocking |
+| G-09 | Can the actual local host and CLI use the deployed service securely? | A: loopback command/CLI, local token/origin and resource access checks; B: MCP bridge/stdio and resource-read compatibility | Release-blocking for the interfaces in each delivery |
 | G-10 | What limits fit the owner’s machine and retention preferences? | Hardware declaration, burst/query/index tests, disk measurement, agreed quota/TTLs | Required configuration sign-off |
 | G-11 | Can evidence survive crash, cleanup, upgrade and restore? | Fault-injection, pinning, atomic publication, backup/restore and QMD rebuild demonstrations | Release-blocking |
 | G-12 | Are dependencies and distributions acceptable? | License/notice review, native-runtime supply chain, hosted terms, image provenance and dependency inventory | Release-blocking distribution review |
@@ -1627,6 +1653,7 @@ Other deferred questions include authenticated browsing, multilingual semantic r
 
 | Version | Date | Change |
 |---|---|---|
+| 1.1 | 22 September 2026 | Owner-authorized CLI-first sequencing: complete engine/daemon CLI in A; retain thin FastMCP adapter and protocol gates for B. Reconcile active runtime, manifest and acceptance statements; preserve requirement IDs and historical ADRs. Sources: Section 0.4. |
 | 1.0 | 9 September 2026 | Consolidated conversation into product requirements, architecture, contracts, 32 ADRs, technology alternatives, verification gates and acceptance tests; preserved accepted owner choices and corrected superseded simplifications |
 
 **Approval status:** Accepted choices reflect the conversation. New numeric defaults, exact topology details and interface refinements are explicitly proposed. This document is a design baseline; it is not a claim of final owner approval of every implementation detail.
