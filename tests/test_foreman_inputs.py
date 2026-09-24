@@ -1380,9 +1380,7 @@ def test_a_resumed_turn_records_the_envelope_it_actually_sent(
         sandbox=SandboxMode.OFF,
         roles={
             **DEFAULT_LAB_ROLES,
-            "implementer": CrewBinding(
-                profile=legacy_crew, model="fake", effort="medium"
-            ),
+            "implementer": CrewBinding(model="fake", effort="medium"),
         },
         overrides=(
             {

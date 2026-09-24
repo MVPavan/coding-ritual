@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 
+from tests._foreman import lab_catalog
 from tests.test_children_process import writer_lab
 from workflow_interpreter.foreman.decisions import admission_of
 from workflow_interpreter.foreman.replacement import replace_checked
@@ -246,18 +247,16 @@ def test_trusted_model_change_keeps_static_config_and_changes_future_binding(
     lab, owner, composition, _ = writer_lab(tmp_path)
     old = owner.metadata.model_dump_json()
     roles = composition.config.roles
+    changed_roles = {
+        **roles,
+        "implementer": roles["implementer"].model_copy(
+            update={"model": "different-model"}
+        ),
+    }
     changed = replace(
         composition,
-        config=composition.config.model_copy(
-            update={
-                "roles": {
-                    **roles,
-                    "implementer": roles["implementer"].model_copy(
-                        update={"model": "different-model"}
-                    ),
-                }
-            }
-        ),
+        config=composition.config.model_copy(update={"roles": changed_roles}),
+        catalog=lab_catalog(changed_roles),
     )
     request = TrustedReplacementRequest(
         request_key="model", reason="new model", graph=str(tmp_path / "writer.toml")

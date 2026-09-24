@@ -60,8 +60,6 @@ def test_the_example_config_renders_into_a_loadable_foreman_config(
     # (`crew = "profile:<role>"`); the reviewer role is the critic one.
     assert config.role_bindings_path == config.wrapper_root / "roles.toml"
     assert config.role_bindings_path.is_file()
-    assert config.roles["implementer"].profile == ""
-    assert config.roles["critic"].profile == ""
     assert config.roles["implementer"].model == "claude-opus-5-5"
     assert config.roles["implementer"].effort == "medium"
     assert config.roles["critic"].model == "gpt-6-sol"
@@ -74,9 +72,9 @@ def test_the_example_config_renders_into_a_loadable_foreman_config(
     )
     # build-loop adds `test-author`, `test-critic` and `impl-critic`; writers
     # go to claude because a codex sandbox cannot commit (phase 6 D5).
-    assert config.roles["test-author"].profile == ""
-    assert config.roles["test-critic"].profile == ""
-    assert config.roles["impl-critic"].profile == ""
+    assert all(
+        "profile" not in type(binding).model_fields for binding in config.roles.values()
+    )
     assert config.roles["test-author"].model == "claude-opus-5-5"
     assert config.roles["test-author"].effort == "medium"
     for role in ("test-critic", "impl-critic"):

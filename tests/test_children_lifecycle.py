@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from tests._foreman import ForemanLab
+from tests._foreman import ForemanLab, lab_catalog
 from workflow_interpreter.foreman.decisions import admission_of
 from workflow_interpreter.inspector.models import SandboxMode
 from workflow_interpreter.schema.decisions import CoordinationError
@@ -81,11 +81,11 @@ def test_child_admission_survives_startup_role_binding_edit(tmp_path: Path) -> N
     lab, owner = owner_lab(tmp_path)
     original = checked_admission(lab.composition, FIXTURE, "one", {})
     edited = dict(lab.config.roles)
-    edited["implementer"] = CrewBinding(
-        profile="fake", model="changed-model", effort="high"
-    )
+    edited["implementer"] = CrewBinding(model="changed-model", effort="high")
     composition = replace(
-        lab.composition, config=lab.config.model_copy(update={"roles": edited})
+        lab.composition,
+        config=lab.config.model_copy(update={"roles": edited}),
+        catalog=lab_catalog(edited),
     )
     updated = checked_admission(composition, FIXTURE, "one", {})
     assert updated.config_json == original.config_json

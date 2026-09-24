@@ -38,6 +38,7 @@ from workflow_interpreter.foreman.compose import (
 from workflow_interpreter.foreman.config import (
     BindingApply,
     CrewBinding,
+    ResolvedCrewBinding,
     load_role_bindings,
     read_role_apply,
 )
@@ -198,11 +199,11 @@ def _role_session_mode(
 
 def _pinned_binding(
     prior: ActivationMetadata, root: RootRecord, node_name: str
-) -> CrewBinding:
+) -> ResolvedCrewBinding:
     """Recover the role binding recorded on an earlier activation in this root."""
     if prior.effort is None:
         raise ResolutionError(f"role {prior.role!r}: activation has no effort pin")
-    return CrewBinding(
+    return ResolvedCrewBinding(
         profile=prior.crew_profile,
         model=prior.model,
         effort=prior.effort,
@@ -211,7 +212,9 @@ def _pinned_binding(
     )
 
 
-def _live_binding(composition: Composition, role: str, path: Path) -> CrewBinding:
+def _live_binding(
+    composition: Composition, role: str, path: Path
+) -> ResolvedCrewBinding:
     """Read and qualify a role's edited binding against the active catalog."""
     live = load_role_bindings(path)
     if role not in live:
@@ -221,16 +224,15 @@ def _live_binding(composition: Composition, role: str, path: Path) -> CrewBindin
 
 def _qualified_live_binding(
     composition: Composition, role: str, binding: CrewBinding
-) -> CrewBinding:
+) -> ResolvedCrewBinding:
     """Validate a live choice only when this mint can use it."""
-    if not binding.profile:
-        binding = resolve_role_binding(
-            role,
-            binding,
-            composition.active_catalog,
-            composition.catalog_provenance,
-        )
-    if composition.active_catalog is not None and binding.profile == "claude":
+    resolved = resolve_role_binding(
+        role,
+        binding,
+        composition.active_catalog,
+        composition.catalog_provenance,
+    )
+    if composition.active_catalog is not None and resolved.profile == "claude":
         family = next(
             (
                 details
@@ -243,17 +245,17 @@ def _qualified_live_binding(
             None
             if family is None
             else next(
-                (model for model in family.models if model.id == binding.model),
+                (model for model in family.models if model.id == resolved.model),
                 None,
             )
         )
         if (
             selected is not None
             and selected.verification is VerificationStatus.SEED_UNPROBED
-            and binding.model not in composition.live_probes
+            and resolved.model not in composition.live_probes
         ):
-            raise LiveProbeRequired(role, binding.model, binding.effort)
-    return binding
+            raise LiveProbeRequired(role, resolved.model, resolved.effort)
+    return resolved
 
 
 def _live_change(

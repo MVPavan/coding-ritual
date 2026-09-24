@@ -21,8 +21,8 @@ from tests._bdio import (
 )
 from tests._fake_bd import FakeBd
 from tests._foreman import (
-    FAKE_PROFILE,
     ForemanLab,
+    lab_catalog,
 )
 from tests._helpers import VALID_FIXTURE
 from tests._inspector import FakeProfile, FrozenClock
@@ -49,6 +49,7 @@ from workflow_interpreter.foreman.config import (
     BindingApply,
     CrewBinding,
     ForemanConfig,
+    ResolvedCrewBinding,
     load_config,
     load_role_bindings,
 )
@@ -211,6 +212,8 @@ def test_prelaunch_version_qualification_uses_only_version_probe() -> None:
 
 def test_role_binding_uses_only_qualified_catalog_choices() -> None:
     """Human roles select exact IDs and supported efforts from the owner snapshot."""
+    with pytest.raises(ValidationError, match="Extra inputs are not permitted"):
+        CrewBinding(profile="codex", model="codex-a", effort="high")
     snapshot = CatalogSnapshot(
         generated_at="2026-09-23T00:00:00Z",
         digest="test",
@@ -730,10 +733,8 @@ def test_role_bindings_are_resolved_at_invocation_and_static_overrides_stay_pinn
         fake_store,
         tmp_path / "bound",
         roles={
-            "implementer": CrewBinding(
-                profile="bound-crew", model="bound-model", effort="high"
-            ),
-            "critic": CrewBinding(profile="critic", model="critic", effort="medium"),
+            "implementer": CrewBinding(model="bound-model", effort="high"),
+            "critic": CrewBinding(model="critic", effort="medium"),
         },
     )
     bound_settings = {
@@ -752,10 +753,15 @@ def test_role_bindings_are_resolved_at_invocation_and_static_overrides_stay_pinn
         root,
         "implement",
         bound_composition.profiles,
-        binding=bound_composition.config.roles["implementer"],
+        binding=resolve_role_binding(
+            "implementer",
+            bound_composition.config.roles["implementer"],
+            bound_composition.catalog,
+            bound_composition.catalog_provenance,
+        ),
     )
     assert (view.crew_profile, view.model, view.effort) == (
-        "bound-crew",
+        "codex",
         "bound-model",
         "high",
     )
@@ -764,8 +770,8 @@ def test_role_bindings_are_resolved_at_invocation_and_static_overrides_stay_pinn
             root,
             "implement",
             bound_composition.profiles,
-            binding=CrewBinding(
-                profile="bound-crew",
+            binding=ResolvedCrewBinding(
+                profile="codex",
                 model="bound-model",
                 effort="high",
                 context_cap_tokens=120000,
@@ -825,12 +831,11 @@ def test_session_mode_resolution_is_node_then_role_then_resume(
         tmp_path / "composition",
         roles={
             "implementer": CrewBinding(
-                profile="implementer",
                 model="implementer",
                 effort="medium",
                 session_mode=role_mode,
             ),
-            "critic": CrewBinding(profile="critic", model="critic", effort="medium"),
+            "critic": CrewBinding(model="critic", effort="medium"),
         },
     )
 
@@ -853,7 +858,12 @@ def test_session_mode_resolution_is_node_then_role_then_resume(
         root,
         "implement",
         composition.profiles,
-        binding=composition.config.roles["implementer"],
+        binding=resolve_role_binding(
+            "implementer",
+            composition.config.roles["implementer"],
+            composition.catalog,
+            composition.catalog_provenance,
+        ),
     )
     assert view.node.session_mode is expected
     if node_mode is None:
@@ -873,7 +883,12 @@ def test_reviewer_uses_resume_default(
         root,
         "review",
         composition.profiles,
-        binding=composition.config.roles["critic"],
+        binding=resolve_role_binding(
+            "critic",
+            composition.config.roles["critic"],
+            composition.catalog,
+            composition.catalog_provenance,
+        ),
     )
     assert reviewer.node.session_mode is SessionMode.RESUME
 
@@ -884,32 +899,6 @@ def test_explicit_legacy_fresh_pin_survives_new_resume_default(
     explicit = make_root(fake_store, load_definition())
 
     assert resolved_session_mode(explicit, "implement") is SessionMode.FRESH
-
-
-def test_a_node_resume_on_a_crew_that_cannot_resume_is_refused_at_resolve(
-    fake_store: WorkflowStore, tmp_path: Path
-) -> None:
-    """The role check at config load cannot see a NODE-authored resume pin."""
-    graph = tmp_path / "session-mode.toml"
-    graph.write_text(
-        re.sub(
-            r"writes\s*=\s*true",
-            'writes = true\nsession_mode = "resume"',
-            VALID_FIXTURE.read_text(),
-            count=1,
-        )
-    )
-    composition, _ = _instance_composition(
-        fake_store,
-        tmp_path / "composition",
-        roles={
-            "implementer": CrewBinding(profile="opencode", model="glm", effort="high"),
-            "critic": CrewBinding(profile="critic", model="critic", effort="medium"),
-        },
-    )
-
-    with pytest.raises(ResolutionError, match="session_mode='resume'"):
-        _resolved_config(composition, load_graph(graph), {})
 
 
 @pytest.mark.parametrize("effort", (None, "   "))
@@ -931,6 +920,34 @@ def test_direct_crew_requires_non_blank_project_effort_at_resolve(
     with pytest.raises(
         ResolutionError,
         match="direct crew 'opencode'.*requires non-blank resolved node effort",
+    ):
+        _resolved_config(composition, load_graph(graph), {})
+
+
+def test_direct_opencode_resume_is_refused_at_resolve(
+    fake_store: WorkflowStore, tmp_path: Path
+) -> None:
+    """A direct non-resumable crew cannot take a node's resume pin."""
+    graph = tmp_path / "direct-resume.toml"
+    graph.write_text(
+        re.sub(
+            r"writes\s*=\s*true",
+            'writes = true\nsession_mode = "resume"',
+            VALID_FIXTURE.read_text()
+            .replace(
+                'crew        = "profile:implementer"', 'crew        = "opencode"', 1
+            )
+            .replace('model         = "default"', 'model         = "glm"', 1),
+            count=1,
+        )
+    )
+    composition, _ = _instance_composition(
+        fake_store,
+        tmp_path / "composition",
+        project_config={"node.implement.effort": "high"},
+    )
+    with pytest.raises(
+        ResolutionError, match="role 'implement' binds profile 'opencode'"
     ):
         _resolved_config(composition, load_graph(graph), {})
 
@@ -1059,12 +1076,8 @@ def _instance_composition(
         project_config={} if project_config is None else project_config,
         roles=(
             {
-                "implementer": CrewBinding(
-                    profile="implementer", model="implementer", effort="medium"
-                ),
-                "critic": CrewBinding(
-                    profile="critic", model="critic", effort="medium"
-                ),
+                "implementer": CrewBinding(model="implementer", effort="medium"),
+                "critic": CrewBinding(model="critic", effort="medium"),
             }
             if roles is None
             else roles
@@ -1085,6 +1098,8 @@ def _instance_composition(
             profiles=_AvailableProfiles() if profiles is None else profiles,
             spawner=cast(Spawner, object()),
             host_env={"PATH": os.defpath, "HOME": str(tmp_path)},
+            catalog=lab_catalog(config.roles),
+            catalog_provenance=CatalogProvenance.REFRESHED,
         ),
         git,
     )
@@ -1097,11 +1112,7 @@ def test_owner_start_refreshes_catalog_and_monitor_loads_without_probes(
     composition, _ = _instance_composition(
         fake_store,
         tmp_path,
-        roles={
-            "writer": CrewBinding(
-                profile="profile:claude", model="claude-opus-5", effort="high"
-            )
-        },
+        roles={"writer": CrewBinding(model="claude-opus-5", effort="high")},
     )
     calls: list[tuple[str, ...]] = []
 
@@ -1346,10 +1357,8 @@ def test_recreating_an_instance_ignores_cli_version_drift(
     current = {"version": "codex-cli 0.155.0"}
     monkeypatch.setattr(profiles, "version_for", lambda _name: current["version"])
     roles = {
-        "implementer": CrewBinding(
-            profile="codex", model="gpt-5.6-sol", effort="medium"
-        ),
-        "critic": CrewBinding(profile="codex", model="gpt-5.6-sol", effort="medium"),
+        "implementer": CrewBinding(model="gpt-5.6-sol", effort="medium"),
+        "critic": CrewBinding(model="gpt-5.6-sol", effort="medium"),
     }
     composition, _ = _instance_composition(
         fake_store, tmp_path, profiles=profiles, roles=roles
@@ -1435,7 +1444,7 @@ def test_instantiate_refuses_brief_source_and_crew_role_failures(
     unstaffed, _ = _instance_composition(
         fake_store,
         tmp_path / "unstaffed",
-        roles={"other": CrewBinding(profile="other", model="other", effort="medium")},
+        roles={"other": CrewBinding(model="other", effort="medium")},
     )
     with pytest.raises(ResolutionError, match="unknown crew roles"):
         instantiate(
@@ -2005,7 +2014,7 @@ def test_resolved_node_falls_back_to_the_pinned_node(tmp_path: Path) -> None:
 
     view = startup_invocation(lab.composition, root, IMPLEMENT)
 
-    assert view.crew_profile == FAKE_PROFILE
+    assert view.crew_profile == "codex"
     assert view.node.max_wall == pinned.max_wall
     assert view.node.token_budget == pinned.token_budget
     # A list is outside the resolvable vocabulary, so it is never overlaid.

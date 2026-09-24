@@ -33,12 +33,6 @@ MSG_WORKTREE_REPO_ROOT: Final[str] = (
     "repository whose git common directory it borrows (run-ledger §3.5)"
 )
 
-MSG_CONTEXT_CAP_NOT_CLAUDE: Final[str] = (
-    "role {role!r} binds profile {profile!r} and sets context_cap_tokens; "
-    "the cap maps to claude's --autocompact only, so a non-claude role must "
-    "leave it unset (codex keeps its vendor default window)"
-)
-
 CONTEXT_CAP_MIN_TOKENS: Final[int] = 100_000
 CONTEXT_CAP_MAX_TOKENS: Final[int] = 1_000_000
 """claude's `--autocompact` accepted range (`claude --help`: "100k–1M tokens").
@@ -58,10 +52,7 @@ MSG_SESSION_MODE_NOT_RESUMABLE: Final[str] = (
 )
 
 UNRESUMABLE_CREWS: Final[frozenset[str]] = frozenset({CrewName.OPENCODE.value})
-"""Built-in crews that never register a vendor session a later turn can rejoin.
-
-A deny-list rather than an allow-list: a role may bind a registry profile under
-any name, and only the built-in vendors are known not to resume."""
+"""Built-in crews that never register a vendor session a later turn can rejoin."""
 
 REPO_HASH_LENGTH: Final[int] = 16
 """How much of the repository digest names its wrapper home."""
@@ -94,7 +85,6 @@ class CrewBinding(BaseModel):
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
-    profile: str = ""  # cr-98c8.9 removes this after fixture migration.
     model: Annotated[str, StringConstraints(min_length=1)]
     effort: Annotated[str, StringConstraints(min_length=1)]
     session_mode: SessionMode | None = None
@@ -107,6 +97,12 @@ class CrewBinding(BaseModel):
     can name the role. With no override, catalog resolution supplies 370000
     only when the checked Claude model window is larger."""
     apply: BindingApply = BindingApply.NEXT_TASK
+
+
+class ResolvedCrewBinding(CrewBinding):
+    """Catalog-qualified invocation choices with a pinned crew profile."""
+
+    profile: Annotated[str, StringConstraints(min_length=1)]
 
 
 class WakeConfig(BaseModel):
@@ -196,33 +192,9 @@ class ForemanConfig(BaseModel):
         if self.inspector.wrapper_root != self.wrapper_root:
             raise ValueError("inspector wrapper_root must match foreman wrapper_root")
         for role, binding in self.roles.items():
-            if self.role_bindings_path is not None and binding.profile:
-                raise ValueError(
-                    f"remove roles.{role}.profile; model determines the crew"
-                )
             if binding.model == MODEL_VENDOR_DEFAULT:
                 raise ValueError(
                     f"role {role!r} cannot bind model {MODEL_VENDOR_DEFAULT!r}"
-                )
-            if (
-                binding.session_mode is SessionMode.RESUME
-                and bool(binding.profile)
-                and binding.profile.removeprefix("profile:") in UNRESUMABLE_CREWS
-            ):
-                raise ValueError(
-                    MSG_SESSION_MODE_NOT_RESUMABLE.format(
-                        role=role, profile=binding.profile
-                    )
-                )
-            if (
-                binding.context_cap_tokens is not None
-                and bool(binding.profile)
-                and binding.profile != CrewName.CLAUDE.value
-            ):
-                raise ValueError(
-                    MSG_CONTEXT_CAP_NOT_CLAUDE.format(
-                        role=role, profile=binding.profile
-                    )
                 )
             if binding.context_cap_tokens is not None and not (
                 CONTEXT_CAP_MIN_TOKENS

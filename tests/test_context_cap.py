@@ -13,9 +13,9 @@ from tests._inspector import FrozenClock
 from tests._profiles import INSTRUCTIONS, make_claude, make_codex, make_task
 from workflow_interpreter.bdio.wire import activation_binding_digest
 from workflow_interpreter.contracts.execution import CrewName
-from workflow_interpreter.contracts.sessions import SessionMode
 from workflow_interpreter.foreman.cases import mint_entry, startup_invocation
 from workflow_interpreter.foreman.config import CrewBinding
+from workflow_interpreter.foreman.errors import ResolutionError
 from workflow_interpreter.foreman.model_catalog import (
     CatalogModel,
     CatalogProvenance,
@@ -40,7 +40,7 @@ SESSION = "4f1c2d3e-0000-4000-8000-000000000001"
         ("claude", "claude-opus-5", 1_000_000, (AUTOCOMPACT, "1000000")),
         ("claude", "claude-opus-5", 400, REFUSED),
         ("claude", "claude-opus-5", 1_000_001, REFUSED),
-        ("claude", "claude-opus-5", None, None),
+        ("claude", "claude-opus-5", None, (AUTOCOMPACT, "370000")),
         ("codex", "gpt-5.6-sol", None, None),
     ],
 )
@@ -53,9 +53,7 @@ def test_role_cap_reaches_launch_and_resume_argv(
 ) -> None:
     """In-range claude cap passes unchanged on both argv; out of range is refused
     by role at config load; unset and codex emit none."""
-    binding = CrewBinding(
-        profile=profile, model=model, effort="high", context_cap_tokens=cap
-    )
+    binding = CrewBinding(model=model, effort="high", context_cap_tokens=cap)
     roles = {**DEFAULT_LAB_ROLES, "implementer": binding}
     if expected == REFUSED:
         with pytest.raises(
@@ -90,23 +88,16 @@ def test_role_cap_reaches_launch_and_resume_argv(
 
 
 def test_codex_role_setting_the_cap_is_refused_by_name(tmp_path: Path) -> None:
-    """A codex role cannot carry a claude-only cap; config load names the role."""
-    critic = CrewBinding(
-        profile="codex", model="gpt-5.6-sol", effort="high", context_cap_tokens=400000
-    )
+    """A codex role cannot carry a Claude-only cap at catalog qualification."""
+    critic = CrewBinding(model="gpt-5.6-sol", effort="high", context_cap_tokens=400000)
 
-    with pytest.raises(ValidationError, match="role 'critic' binds profile 'codex'"):
-        ForemanLab(tmp_path, roles={**DEFAULT_LAB_ROLES, "critic": critic})
-
-
-def test_opencode_role_resuming_is_refused_by_name(tmp_path: Path) -> None:
-    """opencode never registers a session, so a resume pin would run fresh forever."""
-    critic = CrewBinding(
-        profile="opencode", model="glm", effort="high", session_mode=SessionMode.RESUME
-    )
-
-    with pytest.raises(ValidationError, match="role 'critic' binds profile 'opencode'"):
-        ForemanLab(tmp_path, roles={**DEFAULT_LAB_ROLES, "critic": critic})
+    lab = ForemanLab(tmp_path, roles={**DEFAULT_LAB_ROLES, "critic": critic})
+    root = lab.instantiate_resolved()
+    with pytest.raises(
+        ResolutionError,
+        match="role 'critic': context_cap_tokens is only supported by claude",
+    ):
+        startup_invocation(lab.composition, root, "review")
 
 
 @pytest.mark.parametrize(

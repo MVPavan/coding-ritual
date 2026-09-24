@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import time
 from typing import Final
 
 import structlog
@@ -58,6 +59,8 @@ MSG_SESSION_UNREGISTERED: Final = "session registration from the log: {error}"
 DEVIATION_SESSION_UNREGISTERED: Final = "session_unregistered"
 """The turn closed without a vendor session a later resume could rejoin."""
 MSG_SESSION_LOG_UNREADABLE: Final = "session log unreadable"
+SESSION_LOG_READ_ATTEMPTS: Final[int] = 3
+SESSION_LOG_READ_BACKOFF_S: Final[float] = 0.01
 _TRANSIENT_STORE_ERRORS: Final[tuple[type[StoreError], ...]] = (
     StoreTransportError,
     StoreBusyRefusal,
@@ -93,6 +96,15 @@ def settle(
     result = _settle(wiring, root, node, activation, profile)
     if not result.activation.metadata.is_completed:
         return result
+    if not activation.metadata.is_completed:
+        # The durable close carries the deviation; later ticks cannot warn again.
+        for deviation in result.activation.metadata.deviations:
+            if deviation.kind == DEVIATION_SESSION_UNREGISTERED:
+                _LOG.warning(
+                    "wf.settle.session_unregistered",
+                    activation_id=activation.activation_id,
+                    reason=deviation.reason,
+                )
     cleanup_toolchain(wiring.paths, result.activation)
     return result
 
@@ -516,7 +528,16 @@ def _register_logged_session(
     """
     if activation.metadata.session_registration is not None:
         return activation, ()
-    observation = observe_session(root, activation, profile)
+    for attempt in range(SESSION_LOG_READ_ATTEMPTS):
+        try:
+            observation = observe_session(
+                root, activation, profile, raise_read_error=True
+            )
+            break
+        except OSError:
+            if attempt + 1 == SESSION_LOG_READ_ATTEMPTS:
+                return activation, _unregistered(activation, MSG_SESSION_LOG_UNREADABLE)
+            time.sleep(SESSION_LOG_READ_BACKOFF_S)
     registration = observation.registration
     if observation.state is SessionObservationState.UNREADABLE:
         return activation, _unregistered(activation, MSG_SESSION_LOG_UNREADABLE)
@@ -534,12 +555,7 @@ def _register_logged_session(
 
 
 def _unregistered(activation: ActivationRecord, reason: str) -> tuple[Deviation, ...]:
-    """Name, in the log and on the close, why a turn stays unregistered."""
-    _LOG.warning(
-        "wf.settle.session_unregistered",
-        activation_id=activation.activation_id,
-        reason=reason,
-    )
+    """Name on the close why a turn stays unregistered."""
     return (
         Deviation(
             kind=DEVIATION_SESSION_UNREGISTERED,

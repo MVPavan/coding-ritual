@@ -7,6 +7,7 @@ from types import SimpleNamespace
 from typing import cast
 
 import pytest
+from structlog.testing import capture_logs
 
 from tests._bdio import (
     entry_request,
@@ -1246,10 +1247,21 @@ class _RegistrationDown:
 
 
 @pytest.mark.parametrize(
-    "case", ["registered", "transient", "id_mismatch", "unreadable"]
+    "case",
+    [
+        "registered",
+        "transient",
+        "id_mismatch",
+        "unreadable",
+        "read_transient",
+        "read_persistent",
+    ],
 )
 def test_settle_registers_a_logged_session_or_stalls_before_closing(
-    fake_store: WorkflowStore, tmp_path: Path, case: str
+    fake_store: WorkflowStore,
+    tmp_path: Path,
+    case: str,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """A session the watch never managed to register is re-read from the log.
 
@@ -1277,6 +1289,19 @@ def test_settle_registers_a_logged_session_or_stalls_before_closing(
     activation = fake_store.record_evidence(minted.activation_id, evidence)
     paths = _completion_paths(tmp_path, root, activation)
     store = _RegistrationDown(fake_store) if case == "transient" else fake_store
+    reads = 0
+    if case in ("read_transient", "read_persistent"):
+        original_open = Path.open
+
+        def read_with_failure(path: Path, *args: object, **kwargs: object) -> object:
+            nonlocal reads
+            if path == log:
+                reads += 1
+                if case == "read_persistent" or reads == 1:
+                    raise OSError("temporary log read failure")
+            return original_open(path, *args, **kwargs)
+
+        monkeypatch.setattr(Path, "open", read_with_failure)
 
     result = settle(
         cast(InstanceWiring, WiringDouble(store=store, paths=paths)),
@@ -1291,16 +1316,94 @@ def test_settle_registers_a_logged_session_or_stalls_before_closing(
     if case == "transient":
         assert result.stalled is not None
         assert durable.metadata.lifecycle is Lifecycle.EVIDENCE_RECORDED
-    elif case == "registered":
+    elif case in ("registered", "read_transient"):
         assert durable.metadata.lifecycle is Lifecycle.CLOSED
         assert durable.metadata.session_registration is not None
         assert durable.metadata.session_registration.thread_id == "thread-late"
         assert close_module.DEVIATION_SESSION_UNREGISTERED not in kinds
+        if case == "read_transient":
+            assert reads == 2
     else:
         assert result.stalled is None
         assert durable.metadata.lifecycle is Lifecycle.CLOSED
         assert durable.metadata.session_registration is None
         assert kinds.count(close_module.DEVIATION_SESSION_UNREGISTERED) == 1
+        if case == "read_persistent":
+            assert reads == close_module.SESSION_LOG_READ_ATTEMPTS
+
+
+def test_session_unregistered_warning_uses_the_durable_close(
+    fake_store: WorkflowStore, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Open-gate ticks and a restart cannot repeat the close warning."""
+    root = make_root(fake_store, load_definition())
+    minted = fake_store.mint_activation(root.root_id, entry_request()).activation
+    missing_log = tmp_path / "missing-crew.log"
+    process = handle().model_copy(update={"log_path": str(missing_log)})
+    fake_store.record_dispatch(minted.activation_id, process, launch_id="launch-1")
+    fake_store._client._merge_metadata(minted.activation_id, {"crew_profile": "codex"})
+    fake_store.record_exit(
+        minted.activation_id,
+        ExitRecord(exit_code=0, ended_at="2026-08-28T00:00:00Z", reason="ok"),
+    )
+    activation = fake_store.record_evidence(
+        minted.activation_id,
+        Evidence(
+            claimed_outcome=Outcome.DONE,
+            undeclared_effects=("outside.txt",),
+        ),
+    )
+    paths = _completion_paths(tmp_path, root, activation)
+    gate_state = {"state": GateState.OPEN, "outcome": None}
+
+    def gate_for_activation(*args: object) -> object:
+        return SimpleNamespace(
+            metadata=SimpleNamespace(**gate_state), gate_id="effects"
+        )
+
+    monkeypatch.setattr(close_module, "_effects_gate", gate_for_activation)
+    wiring = cast(InstanceWiring, WiringDouble(store=fake_store, paths=paths))
+    with capture_logs() as logs:
+        for _ in range(2):
+            pending = settle(
+                wiring,
+                root,
+                root.index.nodes["implement"],
+                fake_store.reads.load_activation(activation.activation_id),
+                cast(Profile, _LoggedSessionProfile()),
+            )
+            assert pending.awaiting is True
+            assert (
+                fake_store.reads.load_activation(
+                    activation.activation_id
+                ).metadata.lifecycle
+                is Lifecycle.EVIDENCE_RECORDED
+            )
+        gate_state.update(state=GateState.CLOSED, outcome=Outcome.ABANDON)
+        settled = settle(
+            wiring,
+            root,
+            root.index.nodes["implement"],
+            fake_store.reads.load_activation(activation.activation_id),
+            cast(Profile, _LoggedSessionProfile()),
+        )
+        assert settled.activation.metadata.lifecycle is Lifecycle.CLOSED
+        durable = fake_store.reads.load_activation(activation.activation_id)
+        assert [item.kind for item in durable.metadata.deviations].count(
+            close_module.DEVIATION_SESSION_UNREGISTERED
+        ) == 1
+        settle(
+            wiring,
+            root,
+            root.index.nodes["implement"],
+            durable,
+            cast(Profile, _LoggedSessionProfile()),
+        )
+    warnings = [
+        entry for entry in logs if entry["event"] == "wf.settle.session_unregistered"
+    ]
+    assert len(warnings) == 1
+    assert warnings[0]["reason"] == close_module.MSG_SESSION_LOG_UNREADABLE
 
 
 def test_settle_stalls_when_bd_cannot_publish_the_session_tree(

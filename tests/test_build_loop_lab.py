@@ -91,7 +91,7 @@ def test_the_lab_dispatches_the_build_loop_entry_node(
     assert not report.halted
     dispatched = lab.store.reads.load_activation(report.dispatched)
     assert dispatched.metadata.node == ENTRY_NODE
-    assert dispatched.metadata.crew_profile == lab.config.roles["test-author"].profile
+    assert dispatched.metadata.crew_profile == "codex"
     # The close (and with it the graded outcome) belongs to the NEXT tick; what
     # this one proves is that the child ran under the right crew and exited
     # cleanly.

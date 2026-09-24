@@ -34,7 +34,7 @@ from workflow_interpreter.contracts.sessions import (
     context_cap_key,
     session_mode_key,
 )
-from workflow_interpreter.foreman.config import BindingApply, CrewBinding
+from workflow_interpreter.foreman.config import BindingApply, ResolvedCrewBinding
 from workflow_interpreter.foreman.errors import (
     UnresolvedCrewError,
     UnusableResolutionError,
@@ -279,7 +279,7 @@ def resolved_invocation(
     node_name: str,
     profiles: ExecutionRegistry,
     *,
-    binding: CrewBinding | None = None,
+    binding: ResolvedCrewBinding | None = None,
 ) -> ResolvedNode:
     """Resolve a new activation using the selected crew's registered capability."""
     pinned = root.index.nodes[node_name]

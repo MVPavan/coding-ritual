@@ -12,6 +12,7 @@ import io
 import json
 import multiprocessing
 import os
+import subprocess
 import sys
 import time
 import uuid
@@ -61,9 +62,11 @@ from workflow_interpreter.bdio import (
 )
 from workflow_interpreter.bdio.records import RootRecord
 from workflow_interpreter.bdio.rows import RowQuery
+from workflow_interpreter.bdio.rpc_records import SessionRegistration
 from workflow_interpreter.bdio.wire import KEY_WF_KIND
 from workflow_interpreter.contractor.records import ContractorRecords, records_of
 from workflow_interpreter.contractor.tracker_config import TrackerSettings
+from workflow_interpreter.contracts.execution import CrewName
 from workflow_interpreter.contracts.run_identity import RunIdentity
 from workflow_interpreter.foreman.compose import (
     Composition,
@@ -74,6 +77,12 @@ from workflow_interpreter.foreman.compose import (
 from workflow_interpreter.foreman.config import CrewBinding, ForemanConfig
 from workflow_interpreter.foreman.gates import payload_template
 from workflow_interpreter.foreman.inspector import run_wrapper
+from workflow_interpreter.foreman.model_catalog import (
+    CatalogModel,
+    CatalogProvenance,
+    CatalogSnapshot,
+    FamilySnapshot,
+)
 from workflow_interpreter.foreman.resolve import _resolved_config, instantiate
 from workflow_interpreter.foreman.tick import Foreman, SteerReport, TickReport
 from workflow_interpreter.inspector import INSTANCE_BRANCH_REF
@@ -103,9 +112,9 @@ type OverrideValue = str | int | bool
 # instance_inputs=…)`.
 DEFAULT_LAB_ROLES: Final[Mapping[str, CrewBinding]] = MappingProxyType(
     {
-        "implementer": CrewBinding(profile="fake", model="fake", effort="medium"),
-        "critic": CrewBinding(profile="fake", model="fake", effort="medium"),
-        "scribe": CrewBinding(profile="fake", model="fake", effort="medium"),
+        "implementer": CrewBinding(model="fake", effort="medium"),
+        "critic": CrewBinding(model="fake", effort="medium"),
+        "scribe": CrewBinding(model="fake", effort="medium"),
     }
 )
 DEFAULT_LAB_INSTANCE_INPUTS: Final[Mapping[str, str]] = MappingProxyType(
@@ -117,7 +126,7 @@ DEFAULT_LAB_INSTANCE_INPUTS: Final[Mapping[str, str]] = MappingProxyType(
 # puts the second graph on the lab.
 BUILD_LOOP_ROLES: Final[Mapping[str, CrewBinding]] = MappingProxyType(
     {
-        role: CrewBinding(profile="fake", model="fake", effort="medium")
+        role: CrewBinding(model="fake", effort="medium")
         for role in (
             "test-author",
             "test-critic",
@@ -130,6 +139,72 @@ BUILD_LOOP_ROLES: Final[Mapping[str, CrewBinding]] = MappingProxyType(
 BUILD_LOOP_INSTANCE_INPUTS: Final[Mapping[str, str]] = MappingProxyType(
     {"task_brief": "add the lab slice", "seam_contract": "def lab() -> int"}
 )
+
+
+def lab_catalog(roles: Mapping[str, CrewBinding]) -> CatalogSnapshot:
+    """Qualify fixture model IDs without calling a vendor CLI."""
+    models = {binding.model for binding in roles.values()}
+    families = {}
+    for crew, selected in (
+        (
+            CrewName.CODEX,
+            sorted(model for model in models if not model.startswith("claude")),
+        ),
+        (
+            CrewName.CLAUDE,
+            sorted(model for model in models if model.startswith("claude")),
+        ),
+    ):
+        families[crew] = FamilySnapshot(
+            source="test-fixture",
+            available=True,
+            cli_version="fixture-cli 1.0.0",
+            models=tuple(
+                CatalogModel(
+                    id=model,
+                    efforts=("low", "medium", "high", "xhigh"),
+                    context_window=1_000_001 if crew is CrewName.CLAUDE else 200_000,
+                )
+                for model in selected
+            ),
+        )
+    return CatalogSnapshot(
+        generated_at="2026-09-24T00:00:00Z", digest="fixture", families=families
+    )
+
+
+def lab_catalog_runner(
+    argv: list[str], timeout: float
+) -> subprocess.CompletedProcess[str]:
+    """Answer version probes at the fake CLI boundary."""
+    del timeout
+    if argv[1:] != ["--version"]:
+        raise AssertionError(f"unexpected fixture CLI call: {argv}")
+    return subprocess.CompletedProcess(argv, 0, "fixture-cli 1.0.0", "")
+
+
+def register_lab_catalog_session(lab: ForemanLab, activation_id: str) -> None:
+    """Register an observed fixture session before a catalog-backed steer."""
+    metadata = lab.store.reads.load_activation(activation_id).metadata
+    assert metadata.handle is not None and metadata.launch_id is not None
+    assert metadata.policy_digest is not None and metadata.effort is not None
+    lab.store.register_session(
+        activation_id,
+        SessionRegistration(
+            root_id=metadata.wf_root_id,
+            activation_id=activation_id,
+            launch_id=metadata.launch_id,
+            handle=metadata.handle,
+            thread_id=metadata.session_id,
+            crew_profile=metadata.crew_profile,
+            crew_version=metadata.crew_version or "fixture-cli 1.0.0",
+            model=metadata.model,
+            effort=metadata.effort,
+            policy_digest=metadata.policy_digest,
+            state_path="",
+        ),
+    )
+
 
 # The resolver is asked for the crew name as the GRAPH spells it, so the
 # accepted set is derived per graph; `fake` is the lab's own inert profile.
@@ -202,9 +277,8 @@ class _Profiles(ProfileResolver):
         return self.profile
 
     def version_for(self, name: str) -> str | None:
-        """The lab's crews are in-process scripts, so no CLI version was probed."""
-        del name
-        return None
+        """Mirror the lab's injected catalog version for catalog crews."""
+        return "fixture-cli 1.0.0" if name in ("codex", "claude") else None
 
     def next_script_for_launch(self) -> ChildScript | None:
         """Expose the queued script without consuming it before the spawn succeeds."""
@@ -509,7 +583,7 @@ class ForemanLab:
     def _accepted_profiles(self) -> frozenset[str]:
         """Every crew name the pinned graph can ask the resolver for."""
         return frozenset(
-            {FAKE_PROFILE, *(binding.profile for binding in self._roles.values())}
+            {FAKE_PROFILE, "codex", "claude"}
             | {f"{CREW_PREFIX}{role}" for role in crew_roles(self.definition)}
         )
 
@@ -569,6 +643,9 @@ class ForemanLab:
             self.profiles,
             self.spawner,
             host_env={"PATH": os.defpath, "HOME": str(self.repo.parent)},
+            catalog=lab_catalog(self._roles),
+            catalog_provenance=CatalogProvenance.REFRESHED,
+            catalog_runner=lab_catalog_runner,
             ledger=self.ledger,
             task_id=LAB_TASK,
             epic_id=LAB_EPIC,
