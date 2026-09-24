@@ -452,15 +452,12 @@ def _refuse_unresumable_resume(
         if profile.startswith(CREW_PREFIX):
             role = profile.removeprefix(CREW_PREFIX)
             binding = composition.config.roles[role]
-            profile = (
-                binding.profile
-                or resolve_role_binding(
-                    role,
-                    binding,
-                    composition.catalog,
-                    composition.catalog_provenance,
-                ).profile
-            )
+            profile = resolve_role_binding(
+                role,
+                binding,
+                composition.catalog,
+                composition.catalog_provenance,
+            ).profile
         if profile.removeprefix(CREW_PREFIX) in UNRESUMABLE_CREWS:
             raise ResolutionError(
                 MSG_SESSION_MODE_NOT_RESUMABLE.format(role=node.name, profile=profile)

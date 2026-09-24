@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import time
 import uuid
+from dataclasses import replace
 from datetime import timedelta
 from pathlib import Path
 from typing import Final
@@ -380,27 +381,14 @@ def test_routed_claude_roles_keep_their_own_pinned_efforts(
     lab = ForemanLab(
         tmp_path,
         roles={
-            "implementer": CrewBinding(
-                profile="claude", model=PINNED_MODEL, effort="high"
-            ),
-            "critic": CrewBinding(
-                profile="claude", model=PINNED_MODEL, effort="medium"
-            ),
+            "implementer": CrewBinding(model=PINNED_MODEL, effort="high"),
+            "critic": CrewBinding(model=PINNED_MODEL, effort="medium"),
         },
         sandbox=SandboxMode.OFF,
     )
     profile = RecordingClaude(ProfileConfig())
     lab.profiles = RecordingProfiles(profile)
-    lab.composition = Composition(
-        lab.config,
-        lab.store,
-        lab.inspector_config,
-        lab.git,
-        lab.clock,
-        lab.profiles,
-        lab.spawner,
-        host_env=lab.composition.host_env,
-    )
+    lab.composition = replace(lab.composition, profiles=lab.profiles)
     lab.spawner.bind(lab.composition)
     lab.foreman = Foreman(lab.composition)
     root = lab.instantiate_resolved()
@@ -455,12 +443,8 @@ def test_wrapper_refuses_corrupted_activation_crew(
     lab = ForemanLab(
         tmp_path,
         roles={
-            "implementer": CrewBinding(
-                profile="claude", model=PINNED_MODEL, effort="high"
-            ),
-            "critic": CrewBinding(
-                profile="claude", model=PINNED_MODEL, effort="medium"
-            ),
+            "implementer": CrewBinding(model=PINNED_MODEL, effort="high"),
+            "critic": CrewBinding(model=PINNED_MODEL, effort="medium"),
         },
         sandbox=SandboxMode.OFF,
     )

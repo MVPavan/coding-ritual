@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from tests._foreman import ForemanLab
+from tests._foreman import ForemanLab, lab_catalog
 from tests._helpers import (
     ABANDON_TO_TASK_EDITS,
     VALID_FIXTURE,
@@ -234,10 +234,8 @@ def test_drill_22_missing_registry_binary_exhausts_infra_retries_to_fallback(
     config = lab.config.model_copy(
         update={
             "roles": {
-                "implementer": CrewBinding(
-                    profile="codex", model="gpt-5", effort="medium"
-                ),
-                "critic": CrewBinding(profile="codex", model="gpt-5", effort="medium"),
+                "implementer": CrewBinding(model="gpt-5", effort="medium"),
+                "critic": CrewBinding(model="gpt-5", effort="medium"),
             }
         }
     )
@@ -246,7 +244,12 @@ def test_drill_22_missing_registry_binary_exhausts_infra_retries_to_fallback(
         lab.clock,
         {},
     )
-    lab.composition = replace(lab.composition, config=config, profiles=profiles)
+    lab.composition = replace(
+        lab.composition,
+        config=config,
+        profiles=profiles,
+        catalog=lab_catalog(config.roles),
+    )
     lab.spawner.bind(lab.composition)
     lab.foreman = Foreman(lab.composition)
     lab.instantiate()

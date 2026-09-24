@@ -44,7 +44,6 @@ def test_recreating_role_root_after_binding_edit_keeps_static_identity(
     root = lab.instantiate_resolved()
     edited = dict(lab.config.roles)
     edited["implementer"] = CrewBinding(
-        profile="claude",
         model="changed-model",
         effort="high",
         context_cap_tokens=120000,
@@ -144,9 +143,7 @@ def test_role_model_wins_graph_model_and_historical_root_reuses_key(tmp_path) ->
         toml=fixture,
         roles={
             **DEFAULT_LAB_ROLES,
-            "implementer": CrewBinding(
-                profile="fake", model="role-model", effort="high"
-            ),
+            "implementer": CrewBinding(model="role-model", effort="high"),
         },
     )
     current = _resolved_config(lab.composition, lab.definition, {})

@@ -9,7 +9,13 @@ from unittest.mock import Mock
 import pytest
 
 from tests._bdio import handle
-from tests._foreman import DEFAULT_LAB_ROLES, FAKE_PROFILE, ForemanLab, entry_request
+from tests._foreman import (
+    DEFAULT_LAB_ROLES,
+    FAKE_PROFILE,
+    ForemanLab,
+    entry_request,
+    lab_catalog,
+)
 from tests._helpers import VALID_FIXTURE
 from tests._inspector import SESSION_ID, ChildScript
 from workflow_interpreter.bdio import (
@@ -534,13 +540,12 @@ def test_durable_launch_request_carries_the_resolved_session_contract(
         tmp_path,
         roles={
             "implementer": CrewBinding(
-                profile="fake",
                 model="fake",
                 effort="medium",
                 session_mode=SessionMode.RESUME,
             ),
-            "critic": CrewBinding(profile="fake", model="fake", effort="medium"),
-            "scribe": CrewBinding(profile="fake", model="fake", effort="medium"),
+            "critic": CrewBinding(model="fake", effort="medium"),
+            "scribe": CrewBinding(model="fake", effort="medium"),
         },
     )
     root = lab.instantiate()
@@ -668,7 +673,7 @@ def test_infra_retry_rebuilds_its_request_from_the_root_pin(tmp_path: Path) -> N
 
     assert result.dispatched is not None
     retried = lab.store.reads.load_activation(result.dispatched)
-    assert retried.metadata.crew_profile == FAKE_PROFILE
+    assert retried.metadata.crew_profile == "codex"
     assert retried.metadata.model == "fake"
 
 
@@ -681,7 +686,8 @@ def test_infra_retry_with_resume_default_keeps_valid_binding_pin(
     first = (
         lab.wiring()
         .store.mint_activation(
-            root.root_id, entry_request(session_mode=SessionMode.RESUME)
+            root.root_id,
+            entry_request(crew_profile="codex", session_mode=SessionMode.RESUME),
         )
         .activation
     )
@@ -962,13 +968,14 @@ def test_a_role_rebinding_after_instantiation_reaches_a_new_mint(
     lab = ForemanLab(tmp_path)
     root = lab.instantiate()
     lab.composition.config.roles["implementer"] = CrewBinding(
-        profile=FAKE_PROFILE, model="drifted-model", effort="high"
+        model="drifted-model", effort="high"
     )
+    lab.composition = replace(lab.composition, catalog=lab_catalog(lab.config.roles))
 
     mint_entry(lab.composition, lab.wiring(), root)
 
     activation = lab.store.reads.list_activations(root.root_id)[0]
-    assert activation.metadata.crew_profile == FAKE_PROFILE
+    assert activation.metadata.crew_profile == "codex"
     assert activation.metadata.model == "drifted-model"
     assert activation.metadata.effort == "high"
 

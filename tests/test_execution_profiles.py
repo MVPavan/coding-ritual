@@ -570,10 +570,10 @@ def test_unknown_profile_identity_closes_dispatch_as_error_crew(
 
 
 @pytest.mark.parametrize("network", list(ToolNetwork))
-def test_registered_fake_pins_and_launches_its_declared_network_fact(
+def test_catalog_codex_pins_and_launches_its_declared_network_fact(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, network: ToolNetwork
 ) -> None:
-    """A registered non-vendor crew supplies authority for the shipped graph."""
+    """A catalog-backed Codex role pins the fixture profile's network fact."""
     from tests._foreman import ForemanLab
     from tests._helpers import SHIPPED_FIXTURE
     from workflow_interpreter.inspector.models import LaunchReceipt
@@ -592,7 +592,7 @@ def test_registered_fake_pins_and_launches_its_declared_network_fact(
     activation_id = lab.tick().dispatched
     assert activation_id is not None
     activation = lab.store.reads.load_activation(activation_id)
-    assert activation.metadata.crew_profile == "fake"
+    assert activation.metadata.crew_profile == "codex"
     assert activation.metadata.execution_policy is not None
     assert activation.metadata.execution_policy.tool_network is network
     receipt = read_record(lab.wiring().paths.receipt(activation_id), LaunchReceipt)

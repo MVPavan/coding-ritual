@@ -341,7 +341,11 @@ _UNREADABLE: Final[SessionObservation] = SessionObservation(
 
 
 def observe_session(
-    root: RootRecord, activation: ActivationRecord, profile: Profile
+    root: RootRecord,
+    activation: ActivationRecord,
+    profile: Profile,
+    *,
+    raise_read_error: bool = False,
 ) -> SessionObservation:
     """Look for durable identity in the log, and say which of three answers it is.
 
@@ -370,6 +374,8 @@ def observe_session(
                 None,
             )
     except OSError:
+        if raise_read_error:
+            raise
         return _UNREADABLE
     if session_id is None:
         return _ABSENT

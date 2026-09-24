@@ -19,6 +19,7 @@ from tests._foreman import (
     LockedPersistentBd,
     ProcSpawner,
     entry_request,
+    register_lab_catalog_session,
 )
 from tests._helpers import VALID_FIXTURE, mutate, write
 from tests._inspector import ChildScript
@@ -331,11 +332,9 @@ def test_steer_keeps_predecessor_binding_after_role_edit(
     lab = ForemanLab(
         tmp_path,
         roles={
-            "implementer": CrewBinding(
-                profile="fake", model="before-model", effort="low"
-            ),
-            "critic": CrewBinding(profile="fake", model="fake", effort="medium"),
-            "scribe": CrewBinding(profile="fake", model="fake", effort="medium"),
+            "implementer": CrewBinding(model="before-model", effort="low"),
+            "critic": CrewBinding(model="fake", effort="medium"),
+            "scribe": CrewBinding(model="fake", effort="medium"),
         },
     )
     root = lab.instantiate()
@@ -354,9 +353,7 @@ def test_steer_keeps_predecessor_binding_after_role_edit(
 
     edited = {
         **lab.config.roles,
-        "implementer": CrewBinding(
-            profile="changed", model="after-model", effort="high"
-        ),
+        "implementer": CrewBinding(model="after-model", effort="high"),
     }
     lab.config = lab.config.model_copy(update={"roles": edited})
     role_path = tmp_path / "roles.toml"
@@ -741,13 +738,16 @@ def test_a_carried_steer_with_no_intent_burns_the_infra_budget_then_falls_back(
     root = lab.instantiate()
     activation = (
         lab.wiring()
-        .store.mint_activation(root.root_id, entry_request(session_id=""))
+        .store.mint_activation(
+            root.root_id, entry_request(crew_profile="codex", session_id="")
+        )
         .activation
     )
     activation = lab.wiring().store.record_dispatch(
         activation.activation_id, handle(), launch_id=LAB_LAUNCH_ID
     )
     lab.go_stale(activation.activation_id)
+    register_lab_catalog_session(lab, activation.activation_id)
     lab.steer(
         activation.activation_id,
         reason="silent past stale_after",
@@ -879,6 +879,8 @@ def test_steer_proc_raises_its_own_flag_and_kills_a_genuinely_live_child(
         assert activation.metadata.handle is not None
         crew_pid = activation.metadata.handle.pid
         assert _crew_alive(crew_pid)
+
+        register_lab_catalog_session(lab, activation_id)
 
         report = lab.steer(
             activation_id,

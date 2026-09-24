@@ -97,11 +97,9 @@ def test_authored_session_reuse_is_rejected_but_legacy_pin_decodes(tmp_path):
 def test_legacy_appserver_graph_resolves_pins_and_instantiates(tmp_path):
     """A legacy pin becomes one effective resume authority at execution."""
     roles = {
-        "implementer": CrewBinding(
-            profile="codex-appserver", model="fake", effort="medium"
-        ),
-        "critic": CrewBinding(profile="fake", model="fake", effort="medium"),
-        "scribe": CrewBinding(profile="fake", model="fake", effort="medium"),
+        "implementer": CrewBinding(model="fake", effort="medium"),
+        "critic": CrewBinding(model="fake", effort="medium"),
+        "scribe": CrewBinding(model="fake", effort="medium"),
     }
     lab = ForemanLab(tmp_path, roles=roles)
     legacy = canonical_bytes(legacy_pinned_graph(tmp_path).document).replace(

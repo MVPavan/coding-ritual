@@ -31,6 +31,7 @@ from workflow_interpreter.foreman.config import (
     CONTEXT_CAP_MIN_TOKENS,
     CrewBinding,
     ForemanConfig,
+    ResolvedCrewBinding,
 )
 from workflow_interpreter.foreman.errors import ResolutionError
 from workflow_interpreter.profiles.claude import (
@@ -330,11 +331,9 @@ class ModelCatalog:
             for model in details.models
         }
         for binding in bindings.values():
-            if not binding.profile and binding.model not in available_ids:
+            if binding.model not in available_ids:
                 return False
-            if binding.profile.removeprefix("profile:") == CrewName.CLAUDE.value or (
-                not binding.profile and binding.model in claude_models
-            ):
+            if binding.model in claude_models:
                 model = claude_models.get(binding.model)
                 if (
                     model is None
@@ -708,7 +707,7 @@ def resolve_role_binding(
     binding: CrewBinding,
     snapshot: CatalogSnapshot | None,
     provenance: CatalogProvenance | None,
-) -> CrewBinding:
+) -> ResolvedCrewBinding:
     """Qualify a human role against this owner's authoritative catalog."""
     if snapshot is None or provenance in (None, CatalogProvenance.FALLBACK):
         raise ResolutionError(f"role {role!r}: qualified model catalog unavailable")
@@ -777,8 +776,8 @@ def resolve_role_binding(
             LOG.info("foreman.context_cap_unknown_window", role=role, model=model.id)
         elif model.context_window > DEFAULT_CLAUDE_CONTEXT_CAP_TOKENS:
             cap = DEFAULT_CLAUDE_CONTEXT_CAP_TOKENS
-    return binding.model_copy(
-        update={"profile": family.value, "context_cap_tokens": cap}
+    return ResolvedCrewBinding.model_validate(
+        binding.model_dump() | {"profile": family.value, "context_cap_tokens": cap}
     )
 
 
@@ -837,12 +836,7 @@ def catalog_at_start(
             {
                 role: (binding.model, binding.effort)
                 for role, binding in config.roles.items()
-                if (
-                    binding.profile
-                    and binding.profile.removeprefix("profile:")
-                    == CrewName.CLAUDE.value
-                )
-                or (not binding.profile and binding.model in seed_ids)
+                if binding.model in seed_ids
             }
         )
         catalog.write(snapshot, config.wrapper_root)

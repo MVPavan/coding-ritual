@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 
+from tests._foreman import register_lab_catalog_session
 from tests._helpers import VALID_FIXTURE
 from tests.conftest import Signer
 from tests.test_foreman_fail_code_routing import (
@@ -273,6 +274,7 @@ def test_retry_and_steer_keep_the_original_blob_without_completion_file(
     if continuation == "retry":
         lab.store.close_activation(rework, Outcome.ERROR_TRANSPORT)
     else:
+        register_lab_catalog_session(lab, rework)
         lab.steer(rework, reason="clarify", instructions="keep the evidence")
     successor = lab.tick().dispatched
     assert successor is not None
