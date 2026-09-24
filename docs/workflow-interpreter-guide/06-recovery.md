@@ -1,5 +1,17 @@
 # 06 — Recovery
 
+For an eligible infra retry of a crashed resumed writer, the inspector pins
+that failed activation's proved recovery tree and resumes its registered vendor
+session, within `max_infra_retries`. A changed family/model/effort or policy
+digest forces `MODEL_CHANGED`; a changed CLI version forces `VERSION_DRIFT`;
+both start fresh only after preserving the crash tree under `prereset`. A crash
+source with no recorded CLI version starts fresh with `UNQUALIFIED_SOURCE`.
+If the crash never registered a session, its own source registration may be
+used only when the proved recovery tree equals the crashed turn's expected
+tree; missing identity or tree proof refuses the retry. See
+[model-catalog design](../workstreams/model-catalog/design.md) §7; older
+fresh/root-source rules in the interpreter spec are superseded there.
+
 `inspector/recover.py`, 561 lines. It answers one question about a
 dispatched-but-not-closed activation: **did this run finish, is it still running, or
 is it gone?**

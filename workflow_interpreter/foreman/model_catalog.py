@@ -63,8 +63,9 @@ DISCOVERY_TIMEOUT_S: Final[float] = 5.0
 PROBE_TIMEOUT_S: Final[float] = 15.0
 PROBE_ATTEMPTS: Final[int] = 3
 PROBE_BUDGET_USD: Final[float] = 0.10
-"""Conservative bound for one Opus turn; size against a live probe in S8."""
-STARTUP_BUDGET_USD: Final[float] = 0.50
+"""Live run 2026-09-24: maximum reported probe cost was $0.065."""
+STARTUP_BUDGET_USD: Final[float] = 1.20
+# Four bound Claude models x three attempts x $0.10 reserved; 2026-09-24 max reported $0.065.
 DEFAULT_CLAUDE_CONTEXT_CAP_TOKENS: Final[int] = 370_000
 PROBE_BACKOFF_S: Final[float] = 0.25
 LOG = structlog.get_logger(__name__)

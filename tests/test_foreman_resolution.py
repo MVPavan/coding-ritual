@@ -60,6 +60,7 @@ from workflow_interpreter.foreman.execution import (
     resolved_node,
 )
 from workflow_interpreter.foreman.model_catalog import (
+    PROBE_BUDGET_USD,
     SEED_FILE,
     CatalogModel,
     CatalogProvenance,
@@ -88,6 +89,77 @@ from workflow_interpreter.schema.loader import load_graph
 from workflow_interpreter.schema.models import IsolationMode
 from workflow_interpreter.schema.validator import PHASE_B_RULES
 from workflow_interpreter.tracker.bd_transport import BdConfig
+
+
+@pytest.mark.live
+def test_live_owner_start_catalog_qualification(tmp_path: Path) -> None:
+    """Qualify in a lab; probes use invoking cwd, disable tools, log under ~/.claude."""
+    if os.environ.get("WI_LIVE_PROBES") != "1":
+        pytest.skip("set WI_LIVE_PROBES=1 and pass --run-live for paid probes")
+
+    seed = json.loads(SEED_FILE.read_text(encoding="utf-8"))
+    bound = [model for model in seed["models"] if model["efforts"]]
+    assert bound
+    lab_repo = tmp_path / "repo"
+    lab_repo.mkdir()
+    lab_home = tmp_path / "home"
+    wrapper_root = (
+        lab_home
+        / hashlib.sha256(str(lab_repo.resolve()).encode("utf-8")).hexdigest()[:16]
+    )
+    roles_path = tmp_path / "roles.toml"
+    roles_path.write_text(
+        "".join(
+            f'[roles.probe_{index}]\nmodel = "{model["id"]}"\n'
+            f'effort = "{model["efforts"][0]}"\n'
+            for index, model in enumerate(bound)
+        ),
+        encoding="utf-8",
+    )
+    config = ForemanConfig(
+        repo_root=lab_repo,
+        wrapper_home=lab_home,
+        role_bindings_path=roles_path,
+        roles=load_role_bindings(roles_path),
+        tracker=TrackerSettings(
+            bd=BdConfig(workspace=tmp_path / "unused-bd", actor="lab")
+        ),
+        host="lab",
+        actor="lab",
+        inspector=InspectorConfig(
+            repo_root=lab_repo, wrapper_root=wrapper_root, host="lab"
+        ),
+    )
+    result = catalog_at_start(config, "run", dict(os.environ))
+    assert result.provenance is CatalogProvenance.REFRESHED
+    assert result.snapshot is not None
+    assert load_snapshot(wrapper_root) == result.snapshot
+    codex = result.snapshot.families[CrewName.CODEX]
+    assert codex.models, codex.refusals
+    claude = result.snapshot.families[CrewName.CLAUDE]
+    by_id = {model.id: model for model in claude.models}
+    report = [
+        {
+            "model": model["id"],
+            "attempts": by_id[model["id"]].probe_attempts,
+            "duration_ms": by_id[model["id"]].probe_duration_ms,
+            "reported_cost_usd": by_id[model["id"]].probe_cost_usd,
+            "charged_cap_usd": (by_id[model["id"]].probe_attempts or 0)
+            * PROBE_BUDGET_USD,
+            "verification": by_id[model["id"]].verification,
+        }
+        for model in bound
+    ]
+    (tmp_path / "probe-report.json").write_text(
+        json.dumps(report, indent=2), encoding="utf-8"
+    )
+    print(json.dumps(report, indent=2))
+    assert all(row["verification"] == "probe-ok" for row in report), claude.refusals
+    assert all(
+        isinstance(row["reported_cost_usd"], (int, float))
+        and row["reported_cost_usd"] <= (row["attempts"] or 0) * PROBE_BUDGET_USD
+        for row in report
+    )
 
 
 class _AvailableProfiles(ProfileRegistry):

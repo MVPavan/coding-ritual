@@ -50,6 +50,23 @@ Using the real `implement` node:
 `session_mode` (`"fresh"` or `"resume"`; node > role binding > `fresh`; legacy
 `session_reuse` decodes only on pinned app-server bodies).
 
+**Current model-catalog behavior:** the fresh/root-pinned role rule above is
+superseded by [model-catalog design](../workstreams/model-catalog/design.md)
+§§2–7. The owner refreshes a provenance-bearing catalog at start: Codex
+choices come from `debug models --bundled`; Claude windows/efforts come from
+the checked seed, with paid probes for bound models. Operators edit
+`roles.toml` with `model`, `effort`, optional `session_mode`,
+`context_cap_tokens`, and `apply = "now" | "next-task"` (default). Each new
+activation pins its qualified binding; resumable roles, including reviewers,
+default to `resume`. With `apply="now"`, only a crew/model/effort edit rebinds
+the next activation of any kind (`MODEL_CHANGED`, fresh); mode- or cap-only
+edits wait for that role's next task, and a node's declared mode is never
+inherited from another node. A resumed reviewer checks the whole diff, prior
+fixes and regressions. `MODEL_CHANGED` also covers a policy-digest change on
+crash retry. Normal selection skips a CLI-version mismatch and can use an
+older matching candidate; with none, it starts fresh with `VERSION_DRIFT`.
+Crash retry goes fresh on version drift.
+
 **What it may touch** — `isolation`, `writes`, `allowed_paths`.
 
 **What it is given** — `instructions` (≤8192 chars), `inputs`,
@@ -168,7 +185,8 @@ containment breach that must never reach `ship`.
 
 ## Budgets: one enforced, one dead
 
-- **`context_budget_bytes`** is the only enforced budget. It caps the composed
+- **Historical statement (superseded by the note below):** `context_budget_bytes`
+  is the only enforced budget. It caps the composed
   envelope, defaulting to **262144 bytes** when unset (`foreman/inputs.py:465`).
   `compose_envelope` (`foreman/envelope.py:64-110`) measures the whole framed text,
   drops optional sections in `trim_priority` order until it fits, records each drop in
@@ -183,6 +201,12 @@ containment breach that must never reach `ship`.
   100000–1000000 range is refused at config load, naming the role. Unset
   passes no flag. A Codex role that sets it is refused at config load; Codex keeps
   its vendor-default window.
+
+The unset-cap/vendor-default statement above is superseded by
+[model-catalog design](../workstreams/model-catalog/design.md) §6: a Claude
+model with checked-seed window above 370000 gets `--autocompact 370000` on
+launch and resume; the CLI does not discover Claude windows. An explicit valid
+role cap overrides this default.
 
 Three unrelated units with confusable names. Tracked as bead **cr-e94f**.
 

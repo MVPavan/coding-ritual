@@ -402,6 +402,17 @@ discriminators and linkage are identical; only the writer differs. Details:
 
 ### 3.1 Root bead (`wf_kind: root`)
 
+**Model-catalog update:** The creation-time role/profile/model/effort resolution
+and root-source statements below are superseded by
+`docs/workstreams/model-catalog/design.md` §§2–7. The root pins graph, static
+safety settings, policy version and role name; each new activation pins the
+qualified role binding, catalog digest, CLI version and effective
+policy. Operators edit `roles.toml` (`model`, `effort`, optional `session_mode`,
+`context_cap_tokens`, `apply = "now" | "next-task"`); `next-task` is the default.
+With `apply="now"`, only a crew/model/effort edit rebinds the next activation
+of any kind (`MODEL_CHANGED`, fresh); mode- or cap-only edits wait for the role's
+next task, and a node's declared mode is never inherited from another node.
+
 Metadata: `graph_id`, `graph_version`, `graph_content_hash`, **the
 canonicalized graph body** (`wf-canon-json/1` bytes per §2 rule 8 —
 never TOML text; size-capped by the §11 payload probe; fallback:
@@ -769,6 +780,19 @@ overrides: disabled web search and optional app/browser/computer/image/plugin/
 delegation features, empty MCP configuration, private user state and untrusted
 project layers. Local sandboxed shell/edit tools remain available. Experimental
 API negotiation is disabled; no client dynamic tools are registered.
+
+**Superseded session rule:** The following fresh/root-pinned description is
+historical; `docs/workstreams/model-catalog/design.md` §§5–7 controls.
+Resumable Claude/Codex roles default to `resume` (including reviewers), with
+node > role > default precedence pinned per activation. `MODEL_CHANGED` also
+covers a changed policy digest on crash retry. Normal source selection skips a
+CLI-version mismatch and can use an older matching candidate; if none qualifies,
+it launches fresh with `VERSION_DRIFT`. Crash retry goes fresh on version drift.
+A resumed reviewer receives whole-diff, prior-fix and
+regression instructions. An eligible crashed resumed writer retries from its
+own proved recovery tree and registered session, subject to the retry cap.
+Claude windows come from the checked seed, not CLI discovery; a window above
+370000 gets `--autocompact 370000` unless a valid role cap overrides it.
 
 Optional `session_mode = "fresh" | "resume"` is set on a task node or on its
 role binding; precedence is node > role > `fresh`, and the result is pinned on

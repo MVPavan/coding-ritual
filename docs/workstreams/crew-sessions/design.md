@@ -33,6 +33,15 @@ remain loadable. There is no alias, binding migration, in-place-steer removal, o
 
 ## 2. Session-mode model
 
+**Superseded by `docs/workstreams/model-catalog/design.md` §§4–7:** the
+fresh/root-pinned role and source rules below record the earlier design.
+Current resumable Claude/Codex roles default to `resume`, including reviewers;
+the binding and effective mode are pinned per activation. `MODEL_CHANGED`
+means family/model/effort changed; `VERSION_DRIFT` means CLI version changed.
+An eligible crashed resumed writer retries from its own proved recovery tree
+and registered session, within the configured retry bound. Resumed reviewers
+check the whole diff, prior fixes and regressions.
+
 - Canonical authoring has one enum, `session_mode = "fresh" | "resume"`. Add optional
   `CrewBinding.session_mode`; add optional `Node.session_mode`. Resolve once with precedence
   node > role binding > `fresh`, and pin `node.<name>.session_mode` beside profile/model/effort
@@ -149,6 +158,12 @@ instructions on plain lineage and requires them on steer lineage
 falling into fresh `--session-id <existing-id>` (`workflow_interpreter/profiles/claude.py:208-218`).
 
 ## 4. Context cap
+
+**Superseded by `docs/workstreams/model-catalog/design.md` §6:** Claude
+windows are checked-seed data, not CLI-discovered. An unset cap on a Claude
+window above 370000 emits `--autocompact 370000` on launch and resume; a valid
+explicit role cap overrides it. The older vendor-default statements below
+remain as historical design.
 
 Add one optional role-binding field, `context_cap_tokens: int | None`; it has no node override and
 is pinned with the role's invocation settings. Keep `context_budget_bytes` separate: it bounds the
