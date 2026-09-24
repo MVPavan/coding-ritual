@@ -1,6 +1,6 @@
 # Agent Operating Guide
 
-Complete the authorized task with the least total work, including rework without compromising on quality/efficiency.
+Deliver correct work with the smallest necessary change, done right the first time.
 
 ## Authority
 
@@ -10,8 +10,10 @@ Complete the authorized task with the least total work, including rework without
   correctness, scope, or authority. Continue independent work meanwhile.
 - Publishing, deployment, messages, destructive actions, and scope expansion
   require authorization; retain approvals already given.
-- Challenge unsupported assumptions, including the user's. Distinguish evidence,
-  inference, and uncertainty.
+- Prioritize factual accuracy over agreement. Point out errors and unchecked
+  assumptions in the user's thinking; assess critically without grade inflation.
+- Distinguish certain knowledge from inference and speculation. Say when unsure;
+  never fabricate citations, data, or examples.
 
 ## Context
 
@@ -23,7 +25,8 @@ Complete the authorized task with the least total work, including rework without
 - Verify changing tool/provider facts and unfamiliar APIs against official docs
   or implementation. Surface conflicts with recorded architectural decisions.
 - Handoffs retain scope, decisions, source references, verification, and unresolved
-  work. Write persistent memory only when requested.
+  work. Record verified, likely-to-recur patterns in `.repo-context/learnings.md`;
+  write other persistent memory only when requested.
 
 ## Implementation and effort
 
@@ -42,12 +45,6 @@ Complete the authorized task with the least total work, including rework without
   relevant context pointers. Require preservation of others' edits.
 - Avoid duplicating delegated work. Collect every result; the coordinator owns
   integration, disposition of findings, and final verification.
-- When independent critique is required, use a fresh reviewer separate from the
-  author. If delegation is unavailable, continue useful local work and report
-  any required review left unperformed.
-- Use the user's selected critic model; ask if that selection is needed but
-  undefined. Return numbered BLOCKER/MAJOR/MINOR findings with `file:line`
-  and a verdict so the coordinator can resolve each finding.
 
 ## Verification
 
@@ -72,12 +69,10 @@ Complete the authorized task with the least total work, including rework without
 
 ## Repository
 
-- Shared policy lives here; `CLAUDE.md` imports it. `.repo-context/` holds shared
-  repository guidance; `.claude/` holds skills and `.codex/` its integration.
+- Shared policy lives here; `.repo-context/` holds shared repository guidance.
   Runtime configuration owns model settings and enforcement.
 - This repo also holds the first-party `workflow_interpreter/` engine with a real
-  Python gate and no CI. The `codex-adapter` is legacy and uninstalled; invoke
-  Codex through its CLI. Its Node.js bridge is not part of the active tool route.
+  Python gate and no CI.
 - Use repo-relative paths in committed material; temporary artifacts go in
   gitignored `scratchpad/`. `reference_harnesses/` and `reference_tools/` are
   read-only submodules except for explicitly authorized submodule work or pointer
@@ -94,6 +89,7 @@ work, also recover the active Bead and handoff.
 ### When needed
 
 - Python changes: `.repo-context/coding-style.md`.
+- Running Codex from another agent: `.repo-context/running-codex.md`.
 - Domain/repo terminology: `.repo-context/CONTEXT.md`. Architecture/contracts: relevant `docs/adr/`
   and `.repo-context/invariants.md`.
 - Phase/workstream execution: `execution` skill and relevant
@@ -107,25 +103,6 @@ Do not bulk-read project files, skills, learnings, historical reports, unrelated
 workstreams, or external references. Search for relevant sections when needed.
 Read shared repository guidance from `.repo-context/`.
 Keep conditional references as plain paths, not automatic imports.
-
-## Running Codex
-
-Call the **Codex CLI directly**. Never use the codex-adapter plugin
-(`codex-run.mjs`, `/codex-*` skills) — it was uninstalled 2026-09-23. The
-model and effort come from the user's current roster; ask if undefined.
-
-```bash
-# new run — use -s read-only for review/analysis, workspace-write to edit
-codex exec -C <dir> -s workspace-write -m <model> -c model_reasoning_effort=<effort> \
-  -o <answer-file> "<prompt>" 2> <log-file>
-# resume — no -C/-s flags; set sandbox via -c
-cd <dir> && codex exec resume <session-id> -m <model> -c sandbox_mode=workspace-write \
-  -c model_reasoning_effort=<effort> -o <answer-file> "<prompt>"
-```
-
-- The session id is the first `session id:` line on stderr; `-o` writes the
-  final answer to a file. Prefer resume over a fresh run for follow-ups.
-- `codex exec` silently accepts bad `-c` values — see `.repo-context/learnings.md`.
 
 ## Track durable work
 
