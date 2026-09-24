@@ -230,8 +230,11 @@ def _crashed_resumed_predecessor(
             and item.metadata.session_mode is SessionMode.RESUME
             and item.metadata.source_session_id is not None
             and not is_legacy_activation(item.metadata)
-            and item.metadata.execution_policy is not None
-            and item.metadata.execution_policy.writes
+            and (
+                item.metadata.execution_policy.writes
+                if item.metadata.execution_policy is not None
+                else root.index.nodes[request.node].writes
+            )
         ),
         None,
     )
@@ -331,7 +334,7 @@ def _source_outcome_eligible(
 
 
 def resolved_session_mode(root: RootRecord, node_name: str) -> SessionMode:
-    """Read the immutable pin, with a compatibility fallback for old roots."""
+    """Read a root pin; unpinned resumable roles default to resume."""
     value = resolved_settings(root.metadata).get(session_mode_key(node_name))
     if isinstance(value, str):
         try:
@@ -341,8 +344,13 @@ def resolved_session_mode(root: RootRecord, node_name: str) -> SessionMode:
     legacy = root.index.nodes[node_name].session_reuse
     if legacy is SessionReuse.SAME_NODE:
         return SessionMode.RESUME
-    if legacy is SessionReuse.FRESH or value is None:
+    if legacy is SessionReuse.FRESH:
         return SessionMode.FRESH
+    if value is None:
+        crew = root.index.nodes[node_name].crew
+        if crew in (CrewName.CODEX_APPSERVER.value, CrewName.OPENCODE.value):
+            return SessionMode.FRESH
+        return SessionMode.RESUME
     raise CarrierIntegrityError(MSG_SESSION_SOURCE)
 
 

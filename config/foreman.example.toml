@@ -15,6 +15,9 @@ wrapper_home = "@WRAPPER_HOME@"
 host         = "@HOST@"
 actor        = "@ACTOR@"
 role_bindings_path = "@WRAPPER_ROOT@/roles.toml"
+# Role sessions resume by default, including reviewers. An explicit fresh mode
+# in a node or role opts out. Claude models with a catalog window above 370000
+# default to --autocompact 370000 unless the role sets its own valid cap.
 
 # The validated graph `contract` pins for a selected stage. It is a normal
 # configurable graph path, not a contractor implementation default.

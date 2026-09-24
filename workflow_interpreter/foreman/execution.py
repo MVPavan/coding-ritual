@@ -295,7 +295,7 @@ def resolved_invocation(
         model = static.get(NodeSetting.MODEL.at(node_name), binding.model)
         effort = static.get(NodeSetting.EFFORT.at(node_name), binding.effort)
         mode = static.get(
-            session_mode_key(node_name), binding.session_mode or SessionMode.FRESH
+            session_mode_key(node_name), binding.session_mode or SessionMode.RESUME
         )
         cap = static.get(context_cap_key(node_name))
         if binding.context_cap_tokens is not None:

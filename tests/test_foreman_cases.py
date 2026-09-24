@@ -9,7 +9,8 @@ from unittest.mock import Mock
 import pytest
 
 from tests._bdio import handle
-from tests._foreman import FAKE_PROFILE, ForemanLab, entry_request
+from tests._foreman import DEFAULT_LAB_ROLES, FAKE_PROFILE, ForemanLab, entry_request
+from tests._helpers import VALID_FIXTURE
 from tests._inspector import SESSION_ID, ChildScript
 from workflow_interpreter.bdio import (
     ArtifactIdentity,
@@ -18,7 +19,10 @@ from workflow_interpreter.bdio import (
     ExitRecord,
     Lifecycle,
 )
-from workflow_interpreter.bdio.wire import mint_request_from_activation
+from workflow_interpreter.bdio.wire import (
+    activation_binding_digest,
+    mint_request_from_activation,
+)
 from workflow_interpreter.contracts.execution import CrewName
 from workflow_interpreter.contracts.sessions import SessionFreshReason, SessionMode
 from workflow_interpreter.foreman import cases as cases_module
@@ -81,10 +85,10 @@ def test_empty_lifecycle_mints_and_runs_one_real_wrapper(tmp_path: Path) -> None
 
 
 def _live_role_lab(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, *, toml: Path = VALID_FIXTURE
 ) -> tuple[ForemanLab, Path]:
     """Wire real foreman mints to a local catalog and an inert launch boundary."""
-    lab = ForemanLab(tmp_path)
+    lab = ForemanLab(tmp_path, toml=toml)
     role_path = tmp_path / "roles.toml"
     role_path.write_text(
         '[roles.implementer]\nmodel = "model-a"\neffort = "medium"\n',
@@ -221,10 +225,83 @@ def test_live_role_edit_applies_at_selected_mint(
     metadata = lab.store.reads.load_activation(result.dispatched).metadata
     assert metadata.model == expected
     assert metadata.session_fresh_reason is (
-        SessionFreshReason.MODEL_CHANGED if apply == "now" else None
+        SessionFreshReason.MODEL_CHANGED
+        if apply == "now"
+        else SessionFreshReason.NO_SOURCE
     )
     if apply == "next-task":
         assert metadata.binding_digest == closed.metadata.binding_digest
+
+
+def test_apply_now_mode_only_edit_keeps_current_task_pin(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    lab, role_path = _live_role_lab(tmp_path, monkeypatch)
+    role_path.write_text(
+        '[roles.implementer]\nmodel = "model-a"\neffort = "medium"\n'
+        'session_mode = "fresh"\n',
+        encoding="utf-8",
+    )
+    root = lab.instantiate()
+    first = mint_entry(lab.composition, lab.wiring(), root)
+    assert first.dispatched is not None
+    dispatched = lab.store.record_dispatch(first.dispatched, handle())
+    closed = lab.store.close_activation(
+        dispatched.activation_id, Outcome.ERROR_TRANSPORT
+    )
+    role_path.write_text(
+        '[roles.implementer]\nmodel = "model-a"\neffort = "medium"\napply = "now"\n',
+        encoding="utf-8",
+    )
+
+    result = route_head(lab.composition, lab.wiring(), root, closed)
+
+    assert result.dispatched is not None
+    retried = lab.store.reads.load_activation(result.dispatched).metadata
+    assert retried.session_mode is SessionMode.FRESH
+    assert retried.session_fresh_reason is None
+    assert retried.binding_digest == closed.metadata.binding_digest
+
+
+def test_apply_now_does_not_copy_another_nodes_mode_to_new_mint(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    graph = tmp_path / "shared-role.toml"
+    graph.write_text(
+        VALID_FIXTURE.read_text()
+        .replace(
+            'crew        = "profile:critic"', 'crew        = "profile:implementer"'
+        )
+        .replace(
+            'name          = "implement"',
+            'name          = "implement"\nsession_mode = "fresh"',
+        ),
+        encoding="utf-8",
+    )
+    lab, role_path = _live_role_lab(tmp_path, monkeypatch, toml=graph)
+    role_path.write_text(
+        '[roles.implementer]\nmodel = "model-a"\neffort = "medium"\napply = "now"\n',
+        encoding="utf-8",
+    )
+    root = lab.instantiate()
+    first = mint_entry(lab.composition, lab.wiring(), root)
+    assert first.dispatched is not None
+    dispatched = lab.store.record_dispatch(first.dispatched, handle())
+    commit = lab.git.head_commit(cwd=lab.repo)
+    closed = lab.store.close_activation(
+        dispatched.activation_id,
+        Outcome.DONE,
+        evidence=Evidence(
+            artifact=ArtifactIdentity(
+                commit_oid=commit, tree_oid=lab.git.tree_oid(commit, cwd=lab.repo)
+            )
+        ),
+    )
+    edge = route_head(lab.composition, lab.wiring(), root, closed)
+    assert edge.dispatched is not None
+    minted = lab.store.reads.load_activation(edge.dispatched).metadata
+    assert minted.node == "review"
+    assert minted.session_mode is SessionMode.RESUME
 
 
 def test_next_task_edit_keeps_role_pin_on_edge_round(
@@ -563,7 +640,17 @@ def test_infra_retry_waits_for_pending_barrier_abort_cleanup(tmp_path: Path) -> 
 
 def test_infra_retry_rebuilds_its_request_from_the_root_pin(tmp_path: Path) -> None:
     """A legacy retry request cannot trip the mint boundary guard."""
-    lab = ForemanLab(tmp_path)
+    # Explicit fresh isolates the legacy request guard from resume-source
+    # integrity: this test deliberately corrupts the predecessor's binding.
+    lab = ForemanLab(
+        tmp_path,
+        roles={
+            **DEFAULT_LAB_ROLES,
+            "implementer": DEFAULT_LAB_ROLES["implementer"].model_copy(
+                update={"session_mode": SessionMode.FRESH}
+            ),
+        },
+    )
     root = lab.instantiate()
     minted = (
         lab.wiring().store.mint_activation(root.root_id, entry_request()).activation
@@ -583,6 +670,34 @@ def test_infra_retry_rebuilds_its_request_from_the_root_pin(tmp_path: Path) -> N
     retried = lab.store.reads.load_activation(result.dispatched)
     assert retried.metadata.crew_profile == FAKE_PROFILE
     assert retried.metadata.model == "fake"
+
+
+def test_infra_retry_with_resume_default_keeps_valid_binding_pin(
+    tmp_path: Path,
+) -> None:
+    """A real prior pin can be scanned by the default resume retry."""
+    lab = ForemanLab(tmp_path)
+    root = lab.instantiate()
+    first = (
+        lab.wiring()
+        .store.mint_activation(
+            root.root_id, entry_request(session_mode=SessionMode.RESUME)
+        )
+        .activation
+    )
+    dispatched = lab.store.record_dispatch(first.activation_id, handle())
+    closed = lab.store.close_activation(
+        dispatched.activation_id, Outcome.ERROR_TRANSPORT
+    )
+
+    result = route_head(lab.composition, lab.wiring(), root, closed)
+
+    assert result.dispatched is not None
+    retried = lab.store.reads.load_activation(result.dispatched).metadata
+    assert retried.session_mode is SessionMode.RESUME
+    assert retried.session_fresh_reason is SessionFreshReason.NO_SOURCE
+    assert retried.model == closed.metadata.model
+    assert retried.binding_digest == activation_binding_digest(retried)
 
 
 def test_exit_recorded_lifecycle_records_evidence_then_closes(tmp_path: Path) -> None:

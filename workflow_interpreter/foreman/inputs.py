@@ -10,6 +10,7 @@ from pydantic import BaseModel, ConfigDict
 
 from workflow_interpreter.bdio import ActivationRecord, InputBinding, RootRecord
 from workflow_interpreter.bdio.mint import FIRST_ROUND
+from workflow_interpreter.contracts.sessions import SessionMode
 from workflow_interpreter.foreman.constants import (
     CREW_PROTOCOL,
     CREW_PROTOCOL_NO_WRITE_STEP,
@@ -22,6 +23,7 @@ from workflow_interpreter.foreman.constants import (
     LEAF_EXECUTION_CONTRACT,
     MSG_INPUT_SOURCE_UNDECLARED,
     RESUME_FACT_FRAME,
+    RESUMED_NON_WRITER_REVIEW_DELTA,
 )
 from workflow_interpreter.foreman.envelope import (
     ComposedEnvelope,
@@ -552,6 +554,13 @@ def compose_resume_delta(
             ),
             _execution_identity(root, activation),
             node.instructions or "",
+            (
+                RESUMED_NON_WRITER_REVIEW_DELTA
+                if activation.metadata.session_mode is SessionMode.RESUME
+                and activation.metadata.source_session_id is not None
+                and not node.writes
+                else ""
+            ),
             _forced_first_reject(root, activation, node),
         )
         if part.strip()

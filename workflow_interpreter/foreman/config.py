@@ -99,12 +99,13 @@ class CrewBinding(BaseModel):
     effort: Annotated[str, StringConstraints(min_length=1)]
     session_mode: SessionMode | None = None
     context_cap_tokens: int | None = None
-    """Claude's `--autocompact` threshold, passed through unchanged.
+    """Optional Claude `--autocompact` override.
 
     No model-to-window table checks it; `ForemanConfig` refuses, by role, a
     value outside claude's accepted range (`CONTEXT_CAP_MIN_TOKENS` to
     `CONTEXT_CAP_MAX_TOKENS`). Checked there rather than here so the refusal
-    can name the role. Unset emits no flag, which leaves the vendor default."""
+    can name the role. With no override, catalog resolution supplies 370000
+    only when the checked Claude model window is larger."""
     apply: BindingApply = BindingApply.NEXT_TASK
 
 

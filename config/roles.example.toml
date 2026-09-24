@@ -4,10 +4,13 @@
 model = "claude-opus-5-5"
 effort = "medium"
 # apply = "now"  # default: "next-task"; now applies at the next activation
+# session_mode = "fresh"  # only for a deliberately independent review/turn
+# context_cap_tokens = 400000  # Claude override; default 370000 if window is larger
 
 [roles.critic]
 model = "gpt-6-sol"
 effort = "high"
+# session_mode = "fresh"  # opt out only for an independent critical review
 
 [roles.scribe]
 model = "claude-fable-5-1"

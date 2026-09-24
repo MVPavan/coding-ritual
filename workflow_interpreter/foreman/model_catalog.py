@@ -65,6 +65,7 @@ PROBE_ATTEMPTS: Final[int] = 3
 PROBE_BUDGET_USD: Final[float] = 0.10
 """Conservative bound for one Opus turn; size against a live probe in S8."""
 STARTUP_BUDGET_USD: Final[float] = 0.50
+DEFAULT_CLAUDE_CONTEXT_CAP_TOKENS: Final[int] = 370_000
 PROBE_BACKOFF_S: Final[float] = 0.25
 LOG = structlog.get_logger(__name__)
 
@@ -115,7 +116,7 @@ class CatalogModel(BaseModel):
 
     id: str
     efforts: tuple[str, ...]
-    context_window: int
+    context_window: int | None
     visibility: Visibility | None = None
     verification: VerificationStatus | None = None
     probe_attempts: int | None = None
@@ -480,6 +481,7 @@ class ModelCatalog:
                 if (
                     not model.id
                     or model.id in models
+                    or model.context_window is None
                     or model.context_window <= 0
                     or any(
                         effort not in CLAUDE_EFFORT_ORDER for effort in model.efforts
@@ -761,14 +763,22 @@ def resolve_role_binding(
         if (
             type(cap) is not int
             or not (CONTEXT_CAP_MIN_TOKENS <= cap <= CONTEXT_CAP_MAX_TOKENS)
-            or cap >= model.context_window
+            or (model.context_window is not None and cap >= model.context_window)
         ):
             raise ResolutionError(
                 f"role {role!r}: context_cap_tokens must be an integer from "
                 f"{CONTEXT_CAP_MIN_TOKENS} to {CONTEXT_CAP_MAX_TOKENS} "
                 f"and below {model.context_window}"
             )
-    return binding.model_copy(update={"profile": family.value})
+    if family is CrewName.CLAUDE and cap is None:
+        if model.context_window is None:
+            # Defensive: only loaded or hand-built snapshots can lack a window.
+            LOG.info("foreman.context_cap_unknown_window", role=role, model=model.id)
+        elif model.context_window > DEFAULT_CLAUDE_CONTEXT_CAP_TOKENS:
+            cap = DEFAULT_CLAUDE_CONTEXT_CAP_TOKENS
+    return binding.model_copy(
+        update={"profile": family.value, "context_cap_tokens": cap}
+    )
 
 
 def catalog_at_start(

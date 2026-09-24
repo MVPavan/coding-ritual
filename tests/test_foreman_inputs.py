@@ -24,7 +24,11 @@ from workflow_interpreter.bdio import (
 )
 from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.carriers import ArtifactIdentity
-from workflow_interpreter.foreman.constants import FORCED_FIRST_REJECT
+from workflow_interpreter.contracts.sessions import SessionMode
+from workflow_interpreter.foreman.constants import (
+    FORCED_FIRST_REJECT,
+    RESUMED_NON_WRITER_REVIEW_DELTA,
+)
 from workflow_interpreter.foreman.envelope import ComposedEnvelope, EnvelopeKind
 from workflow_interpreter.foreman.inputs import (
     DefaultComposer,
@@ -1189,6 +1193,61 @@ def test_resume_delta_drops_the_preamble_and_every_input_already_in_the_thread(
     assert "the findings" not in delta.text
     assert "How this run is judged" not in delta.text
     assert delta.included == ("verify_failure",)
+    assert RESUMED_NON_WRITER_REVIEW_DELTA not in delta.text
+
+
+def test_resume_delta_adds_whole_diff_review_only_for_resumed_non_writer(
+    fake_store: WorkflowStore,
+) -> None:
+    root = make_root(fake_store, load_definition())
+    source = _turn(fake_store, root, "review-source", ())
+    source = source.model_copy(
+        update={"metadata": source.metadata.model_copy(update={"node": "review"})}
+    )
+    target = _turn(fake_store, root, "review-target", (), source=source.activation_id)
+    target = target.model_copy(
+        update={
+            "metadata": target.metadata.model_copy(
+                update={
+                    "node": "review",
+                    "session_mode": SessionMode.RESUME,
+                    "source_session_id": "review-thread",
+                }
+            )
+        }
+    )
+
+    def delta(activation: ActivationRecord) -> str:
+        return compose_resume_delta(
+            root, activation, source, {source.activation_id: source}, ()
+        ).text
+
+    assert RESUMED_NON_WRITER_REVIEW_DELTA in delta(target)
+    assert RESUMED_NON_WRITER_REVIEW_DELTA not in delta(
+        target.model_copy(
+            update={
+                "metadata": target.metadata.model_copy(update={"node": "implement"})
+            }
+        )
+    )
+    assert RESUMED_NON_WRITER_REVIEW_DELTA not in delta(
+        target.model_copy(
+            update={
+                "metadata": target.metadata.model_copy(
+                    update={"source_session_id": None}
+                )
+            }
+        )
+    )
+    assert RESUMED_NON_WRITER_REVIEW_DELTA not in delta(
+        target.model_copy(
+            update={
+                "metadata": target.metadata.model_copy(
+                    update={"session_mode": SessionMode.FRESH}
+                )
+            }
+        )
+    )
 
 
 def _with_node(root: RootRecord, node: str, **update: object) -> RootRecord:

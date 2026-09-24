@@ -46,6 +46,7 @@ __all__ = [
     "MAX_TRANSCRIPT_BYTES",
     "NO_ARTIFACT",
     "NO_ARTIFACT_OID",
+    "RESUMED_NON_WRITER_REVIEW_DELTA",
     "RESUME_FACT_FRAME",
     "RUN_DEFAULT_MAX_WALL_S",
     "RUN_DEFAULT_POLL_S",
@@ -65,6 +66,10 @@ WRAPPER_HANDLE: Final[str] = "wrapper.json"
 FORCED_FIRST_REJECT: Final[str] = (
     "§13 test switch: this is the first review round of the instance — return "
     "the outcome `reject` with findings, whatever the artifact looks like"
+)
+RESUMED_NON_WRITER_REVIEW_DELTA: Final[str] = (
+    "Inspect the whole current diff, verify fixes to your earlier findings, "
+    "and check for regressions or new defects elsewhere."
 )
 CREW_PROTOCOL: Final[str] = """## How this run is judged (§6)
 

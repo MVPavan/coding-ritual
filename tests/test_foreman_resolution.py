@@ -31,6 +31,7 @@ from workflow_interpreter.bdio import BoundSetting, NodeSetting
 from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.errors import StoreConfigError
 from workflow_interpreter.bdio.roots import MAX_INSTANCE_INPUT_BYTES
+from workflow_interpreter.bdio.sessions import resolved_session_mode
 from workflow_interpreter.contractor.tracker_config import TrackerSettings
 from workflow_interpreter.contracts.execution import CrewName
 from workflow_interpreter.contracts.sessions import SessionMode
@@ -235,6 +236,41 @@ def test_role_binding_uses_only_qualified_catalog_choices() -> None:
             snapshot,
             CatalogProvenance.REFRESHED,
         )
+
+
+@pytest.mark.parametrize(
+    ("window", "expected"),
+    [(370_001, 370_000), (370_000, None), (200_000, None), (None, None)],
+)
+def test_claude_default_cap_requires_a_known_larger_catalog_window(
+    window: int | None, expected: int | None
+) -> None:
+    snapshot = CatalogSnapshot(
+        generated_at="2026-09-23T00:00:00Z",
+        digest="test",
+        families={
+            CrewName.CLAUDE: FamilySnapshot(
+                source="checked-seed-and-probe",
+                available=True,
+                models=(
+                    CatalogModel(
+                        id="claude-a", efforts=("medium",), context_window=window
+                    ),
+                ),
+            )
+        },
+    )
+    with capture_logs() as logs:
+        selected = resolve_role_binding(
+            "writer",
+            CrewBinding(model="claude-a", effort="medium"),
+            snapshot,
+            CatalogProvenance.REFRESHED,
+        )
+    assert selected.context_cap_tokens == expected
+    assert any(
+        log["event"] == "foreman.context_cap_unknown_window" for log in logs
+    ) == (window is None)
 
 
 def test_catalog_excludes_hidden_codex_and_probes_each_bound_claude_model_once(
@@ -685,22 +721,23 @@ def test_role_bindings_are_resolved_at_invocation_and_static_overrides_stay_pinn
 
 
 @pytest.mark.parametrize(
-    ("node_mode", "role_mode", "expected", "source"),
+    ("node_mode", "role_mode", "expected"),
     [
-        ("fresh", SessionMode.RESUME, SessionMode.FRESH, "graph-default"),
-        (None, SessionMode.RESUME, SessionMode.RESUME, "role-binding"),
-        (None, None, SessionMode.FRESH, "graph-default"),
+        ("fresh", SessionMode.RESUME, SessionMode.FRESH),
+        ("resume", SessionMode.FRESH, SessionMode.RESUME),
+        (None, SessionMode.FRESH, SessionMode.FRESH),
+        (None, SessionMode.RESUME, SessionMode.RESUME),
+        (None, None, SessionMode.RESUME),
     ],
 )
-def test_session_mode_resolution_is_node_then_role_then_fresh(
+def test_session_mode_resolution_is_node_then_role_then_resume(
     fake_store: WorkflowStore,
     tmp_path: Path,
     node_mode: str | None,
     role_mode: SessionMode | None,
     expected: SessionMode,
-    source: str,
 ) -> None:
-    """The foreman pins one effective mode; live role config is never reread."""
+    """A new activation uses the node, role, then default mode precedence."""
     graph = tmp_path / "session-mode.toml"
     text = VALID_FIXTURE.read_text()
     if node_mode is not None:
@@ -734,7 +771,7 @@ def test_session_mode_resolution_is_node_then_role_then_fresh(
         assert pinned is None
     else:
         assert pinned is not None and pinned.value == expected
-        assert pinned.source.value == source
+        assert pinned.source.value == "graph-default"
     root = fake_store.create_root(
         instance_key="mode-view",
         definition=load_graph(graph),
@@ -747,6 +784,34 @@ def test_session_mode_resolution_is_node_then_role_then_fresh(
         binding=composition.config.roles["implementer"],
     )
     assert view.node.session_mode is expected
+    if node_mode is None:
+        assert resolved_session_mode(root, "implement") is SessionMode.RESUME
+
+
+def test_reviewer_uses_resume_default(
+    fake_store: WorkflowStore, tmp_path: Path
+) -> None:
+    composition, _ = _instance_composition(fake_store, tmp_path)
+    root = fake_store.create_root(
+        instance_key="reviewer-mode-view",
+        definition=load_definition(),
+        resolved_config=tuple(_resolved_config(composition, load_definition(), {})),
+    )
+    reviewer = resolved_invocation(
+        root,
+        "review",
+        composition.profiles,
+        binding=composition.config.roles["critic"],
+    )
+    assert reviewer.node.session_mode is SessionMode.RESUME
+
+
+def test_explicit_legacy_fresh_pin_survives_new_resume_default(
+    fake_store: WorkflowStore,
+) -> None:
+    explicit = make_root(fake_store, load_definition())
+
+    assert resolved_session_mode(explicit, "implement") is SessionMode.FRESH
 
 
 def test_a_node_resume_on_a_crew_that_cannot_resume_is_refused_at_resolve(

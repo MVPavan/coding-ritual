@@ -473,7 +473,15 @@ class Foreman:
                 live_view = startup_invocation(
                     self._composition, root, activation.metadata.node, wiring=wiring
                 )
-                if live_view.binding_apply is BindingApply.NOW:
+                if live_view.binding_apply is BindingApply.NOW and (
+                    live_view.crew_profile,
+                    live_view.model,
+                    live_view.effort,
+                ) != (
+                    activation.metadata.crew_profile,
+                    activation.metadata.model,
+                    activation.metadata.effort,
+                ):
                     view = live_view
                     allow_rebind = True
             continuation = MintRequest(
@@ -511,18 +519,7 @@ class Foreman:
                     else activation.metadata.session_mode
                 ),
                 fresh_reason_override=(
-                    SessionFreshReason.MODEL_CHANGED
-                    if allow_rebind
-                    and (
-                        view.crew_profile != activation.metadata.crew_profile
-                        or view.model != activation.metadata.model
-                        or view.effort != activation.metadata.effort
-                        or view.context_cap_tokens
-                        != activation.metadata.context_cap_tokens
-                        or view.node.session_mode != activation.metadata.session_mode
-                        or view.execution_policy != activation.metadata.execution_policy
-                    )
-                    else None
+                    SessionFreshReason.MODEL_CHANGED if allow_rebind else None
                 ),
                 predecessor_activation_id=activation.activation_id,
                 inputs=activation.metadata.inputs,

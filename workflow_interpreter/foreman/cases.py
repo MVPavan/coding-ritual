@@ -137,7 +137,7 @@ def startup_invocation(
                 _LOG.warning(MSG_ROLE_EDIT_IGNORED, role=role, reason=str(error))
                 apply = BindingApply.NEXT_TASK
             if apply is BindingApply.NEXT_TASK:
-                binding = _pinned_binding(prior)
+                binding = _pinned_binding(prior, root, node_name)
             else:
                 try:
                     binding = _live_binding(composition, role, role_path)
@@ -145,7 +145,7 @@ def startup_invocation(
                     raise
                 except (OSError, ValueError, TypeError) as error:
                     _LOG.warning(MSG_ROLE_EDIT_IGNORED, role=role, reason=str(error))
-                    binding = _pinned_binding(prior)
+                    binding = _pinned_binding(prior, root, node_name)
         elif role_path is not None:
             try:
                 binding = _live_binding(composition, role, role_path)
@@ -157,6 +157,22 @@ def startup_invocation(
             binding = _qualified_live_binding(
                 composition, role, composition.config.roles[role]
             )
+        if (
+            prior is not None
+            and binding is not None
+            and binding.apply is BindingApply.NOW
+            and (binding.profile, binding.model, binding.effort)
+            == (prior.crew_profile, prior.model, prior.effort)
+        ):
+            # Mode and cap edits apply when the role starts its next task.
+            binding = binding.model_copy(
+                update={
+                    "session_mode": _role_session_mode(
+                        prior, root, node_name, binding.session_mode
+                    ),
+                    "context_cap_tokens": prior.context_cap_tokens,
+                }
+            )
     view = resolved_invocation(root, node_name, composition.profiles, binding=binding)
     return (
         view
@@ -165,7 +181,24 @@ def startup_invocation(
     )
 
 
-def _pinned_binding(prior: ActivationMetadata) -> CrewBinding:
+def _role_session_mode(
+    prior: ActivationMetadata,
+    root: RootRecord,
+    node_name: str,
+    role_mode: SessionMode | None,
+) -> SessionMode | None:
+    """Copy a prior mode only when it has no other node's declaration in it."""
+    if (
+        prior.node != node_name
+        and root.index.nodes[prior.node].session_mode is not None
+    ):
+        return role_mode
+    return prior.session_mode
+
+
+def _pinned_binding(
+    prior: ActivationMetadata, root: RootRecord, node_name: str
+) -> CrewBinding:
     """Recover the role binding recorded on an earlier activation in this root."""
     if prior.effort is None:
         raise ResolutionError(f"role {prior.role!r}: activation has no effort pin")
@@ -173,7 +206,7 @@ def _pinned_binding(prior: ActivationMetadata) -> CrewBinding:
         profile=prior.crew_profile,
         model=prior.model,
         effort=prior.effort,
-        session_mode=prior.session_mode,
+        session_mode=_role_session_mode(prior, root, node_name, None),
         context_cap_tokens=prior.context_cap_tokens,
     )
 
@@ -247,16 +280,10 @@ def _live_change(
         view.crew_profile,
         view.model,
         view.effort,
-        view.context_cap_tokens,
-        view.node.session_mode or SessionMode.FRESH,
-        view.execution_policy,
     ) != (
         previous.crew_profile,
         previous.model,
         previous.effort,
-        previous.context_cap_tokens,
-        previous.session_mode,
-        previous.execution_policy,
     ):
         return SessionFreshReason.MODEL_CHANGED
     return None

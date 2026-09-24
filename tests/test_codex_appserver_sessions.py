@@ -152,6 +152,7 @@ def test_direct_crew_graph_resolves_without_a_role_binding(tmp_path, crew):
     root = lab.instantiate_resolved({"node.work.effort": "medium"})
 
     assert resolved_node(root, "work").crew_profile == crew
+    assert resolved_session_mode(root, "work") is SessionMode.FRESH
 
 
 def app_root(tmp_path, store, reuse):

@@ -56,7 +56,11 @@ from workflow_interpreter.contracts.execution import (
     ToolNetwork,
     policy_for,
 )
-from workflow_interpreter.contracts.sessions import SessionMode, session_mode_key
+from workflow_interpreter.contracts.sessions import (
+    SessionFreshReason,
+    SessionMode,
+    session_mode_key,
+)
 from workflow_interpreter.inspector.errors import (
     ReadOnlyTreeMutation,
     ResumeMismatchReason,
@@ -400,13 +404,14 @@ def test_plain_loop_resumes_impl2_on_the_tree_impl1_pinned(tmp_path: Path) -> No
 def _crash_resumed_writer(
     lab: Lab,
     *,
+    policy: ExecutionPolicy | None = WRITER_POLICY,
     registered: bool = True,
     edited: bool = True,
     lose_owner: bool = False,
     clean_after_snapshot: bool = False,
 ) -> ActivationRecord:
     """Drive one registered source and its resumed successor through recovery."""
-    first = lab.mint(session_mode=SessionMode.RESUME, execution_policy=WRITER_POLICY)
+    first = lab.mint(session_mode=SessionMode.RESUME, execution_policy=policy)
     lab.run(first, lab.node)
     (lab.tree / SENTINEL).write_text(SENTINEL_TEXT, encoding="utf-8")
     first = lab.store.record_dispatch(
@@ -420,7 +425,8 @@ def _crash_resumed_writer(
 
     resumed = lab.store.mint_activation(
         lab.root.root_id,
-        _writer_mint(
+        entry_mint(
+            execution_policy=policy,
             session_mode=SessionMode.RESUME,
             mint_reason=MintReason.EDGE,
             predecessor_activation_id=first.activation_id,
@@ -631,6 +637,38 @@ def test_crashed_resumed_writer_retries_its_own_thread_and_recovery_tree(
     )
     assert result.receipt is not None
     assert result.receipt.handle.session_id == SESSION_ID
+
+
+def test_crashed_resumed_writer_without_policy_uses_declared_writes(lab: Lab) -> None:
+    closed = _crash_resumed_writer(lab, policy=None)
+    request = entry_mint(
+        execution_policy=None,
+        effort=closed.metadata.effort,
+        session_mode=SessionMode.RESUME,
+        mint_reason=MintReason.INFRA_RETRY,
+        predecessor_activation_id=closed.activation_id,
+    )
+
+    writer = choose_source(
+        lab.root, request, lab.store.reads.list_activations(lab.root.root_id)
+    )
+    assert writer.source_activation_id == closed.activation_id
+    assert writer.source_session_id == SESSION_ID
+    assert writer.source_tree_oid == closed.metadata.session_tree_oid
+
+    # The graph's review node declares writes=false; the same policy-free
+    # crashed record cannot enter the writer crash-resume branch there.
+    assert not lab.root.index.nodes[REVIEW].writes
+    review_closed = closed.model_copy(
+        update={"metadata": closed.metadata.model_copy(update={"node": REVIEW})}
+    )
+    reviewer = choose_source(
+        lab.root,
+        request.model_copy(update={"node": REVIEW}),
+        [review_closed],
+    )
+    assert reviewer.source_activation_id is None
+    assert reviewer.fresh_reason is SessionFreshReason.NO_SOURCE
 
 
 @pytest.mark.parametrize("pin_fails", [False, True])
