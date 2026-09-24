@@ -1,0 +1,40 @@
+# Qualification fragment for coordinator integration, not the DWS deployment.
+# Paths resolve relative to this file when used standalone.
+services:
+  searxng:
+    image: ghcr.io/searxng/searxng@sha256:a93b665d10ce0675e8d2124187943111399ba69f384228c51b4cd21fdceda0bc
+    platform: linux/amd64
+    user: "977:977"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    cpus: 1.0
+    mem_limit: 512m
+    memswap_limit: 512m
+    pids_limit: 128
+    environment:
+      SEARXNG_SECRET: ${DWS_SEARXNG_SECRET:?Set a random deployment-specific secret}
+      GRANIAN_HOST: 0.0.0.0
+      GRANIAN_WORKERS: "1"
+      FORCE_OWNERSHIP: "false"
+    volumes:
+      - type: bind
+        source: .
+        target: /etc/searxng
+        read_only: true
+      - type: bind
+        source: ./healthcheck.py
+        target: /healthcheck.py
+        read_only: true
+    tmpfs:
+      - /var/cache/searxng:rw,noexec,nosuid,size=32m,uid=977,gid=977
+      - /tmp:rw,noexec,nosuid,size=32m,uid=977,gid=977
+    healthcheck:
+      test: [CMD, /usr/local/searxng/.venv/bin/python, /healthcheck.py]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+    networks: [discovery]
+networks:
+  discovery: {}

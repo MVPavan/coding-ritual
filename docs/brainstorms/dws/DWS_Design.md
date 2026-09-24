@@ -2,13 +2,14 @@
 ## Technical Design Document
 
 **Canonical filename:** `DWS_Design.md`  
-**Version:** 1.0 — proposed implementation design  
+**Version:** 1.1 — proposed implementation design\
 **Prepared:** 10 September 2026  
-**Requirements baseline:** [DWS_PRD.md](DWS_PRD.md), version 1.0  
+**Updated:** 22 September 2026 — CLI-first delivery order\
+**Requirements baseline:** [DWS_PRD.md](DWS_PRD.md), version 1.1\
 **Audience:** The project owner, implementers, reviewers, and host-integration authors  
 **Implementation status:** Design only. No deployed system, completed prototype, passing test suite, or measured capacity is implied.
 
-> **One-sentence design:** DWS is a local Python evidence-acquisition and retrieval application, exposed through FastMCP and a daemon-aware CLI, with replaceable web providers, immutable retained snapshots, DWS-owned SQLite metadata, and a separately owned QMD lexical index. Research reasoning stays in the host.
+> **One-sentence design:** DWS is a local Python evidence-acquisition and retrieval application, delivered first through a daemon-backed CLI and local command API, then through a thin FastMCP adapter, with replaceable web providers, immutable retained snapshots, DWS-owned SQLite metadata, and a separately owned QMD lexical index. Research reasoning stays in the host.
 
 ---
 
@@ -20,7 +21,15 @@ The PRD explains **what we require and why we selected the architecture**. This 
 
 The terms **inherited** and **proposed** distinguish established direction from details specified here. `FR-*`, `NFR-*`, `AT-*`, `ADR-*`, and `G-*` refer to the existing PRD. `DD-*` identifies design refinements in Section 20; it does not replace the PRD's ADR numbering.
 
-There is no DWS source repository supplied for inspection. Module paths, tables, endpoints, and state transitions below are intended implementation contracts, not descriptions of code that already exists. Examples are illustrative DWS payloads, not complete MCP wire envelopes. Third-party APIs, dependencies, images, and protocol support must be verified against pinned builds during M0.
+There is no DWS source repository supplied for inspection. Module paths, tables, endpoints, and state transitions below are intended implementation contracts, not descriptions of code that already exists. Examples are illustrative DWS payloads, not complete MCP wire envelopes. Third-party APIs, dependencies, images, and protocol support must be verified against pinned builds: engine dependencies during M0 for A, MCP compatibility before B.
+
+### Accepted delivery order — 22 September 2026
+
+Follow [PRD Section 0.4](DWS_PRD.md#04-accepted-delivery-order--22-september-2026), the owner's [implementation goal](../../plans/dws/implementation-goal.md), and the [CLI-engine implementation plan](../../plans/dws/cli-engine-implementation-plan.md). **Delivery A** is the complete Python engine, daemon-backed `dws` CLI and local command API: providers, immutable evidence, lexical QMD retrieval, durable crawl/jobs, shared concurrency controls, retention, diagnostics, and backup/restore. It must install, start and pass its acceptance without FastMCP, MCP SDK dependencies, model inference or hosted-provider credentials.
+
+**Delivery B** subsequently adds the accepted FastMCP adapter over those same contracts, resources, jobs, policies and state. It owns MCP schemas/wire types, transports and actual client compatibility; it must not add a second execution system or make the CLI depend on MCP. Native Tasks remain optional. Combined-target diagrams and MCP interfaces below retain that architecture, but all MCP elements belong to B. Historical PRD ADRs remain intact.
+
+The [PRD release boundary](DWS_PRD.md#193-v1-release-boundary) applies here: A requires a fresh default Compose demonstration of search, static/PDF/rendered fetch, exact read/retrieve, bounded crawl/status/cancel, pin/export/GC, diagnostics and backup/restore through the CLI, with restart/failure, scope and resource-limit evidence, operational instructions, measured limitations, and all applicable acceptance gates and independent reviews passed. Full original V1 interface parity is claimed only after B; deferring protocol work never defers engine safety or evidence guarantees.
 
 **Suggested reading paths**
 
@@ -81,6 +90,8 @@ Its default execution is **model-free**, not a promise of identical internet res
 
 ### 1.2 The physical shape
 
+Combined target: the command API and admission ship in A; FastMCP is added in B.
+
 ```text
                     Local agents / projects / dws CLI
                                     |
@@ -123,7 +134,7 @@ Its default execution is **model-free**, not a promise of identical internet res
 
 | Role | Baseline | Status |
 |---|---|---|
-| MCP adapter | Standalone Python FastMCP; exact compatible build pinned in M0 | Inherited selection; PRD retains a 4.x target, not an unconditional version guarantee |
+| MCP adapter | Delivery B: standalone Python FastMCP; exact compatible build pinned before B | Inherited selection; PRD retains a 4.x target, not an unconditional version guarantee |
 | CLI/control transport | Python CLI → local DWS command API | Inherited; concrete routes proposed here |
 | Primary discovery | SearXNG | Inherited |
 | Lightweight search backup | DDGS adapter | PRD proposed baseline |
@@ -204,7 +215,7 @@ A workspace is an organizational scope, not a claim of enterprise tenant isolati
 
 ```mermaid
 flowchart TB
-    H["Host agent + skill"] --> M["FastMCP adapter"]
+    H["Host agent + skill"] --> M["Delivery B: FastMCP adapter"]
     C["dws CLI"] --> A["Local command API"]
     M --> F["DWS application facade"]
     A --> F
@@ -236,7 +247,7 @@ The facade is a composition boundary for operations, not a second orchestration 
 
 | Process | Performs | Must not do |
 |---|---|---|
-| `dws-api` — initially one web process | FastMCP and local command API; interactive search/fetch/retrieve/read; durable submission; QMD query admission | Start private long-lived crawl loops on request event handlers |
+| `dws-api` — initially one web process | Local command API in A; FastMCP added in B; interactive search/fetch/retrieve/read; durable submission; QMD query admission | Start private long-lived crawl loops on request event handlers |
 | `dws-worker` — initially one worker process | Crawl jobs, indexing batches, recovery, coordinated maintenance | Expose a second public API or bypass global resource limits |
 | QMD child processes | Allowlisted lexical queries and indexing/administration | Choose their own unconstrained working directory, configuration, or command |
 | `searxng` | Configured search aggregation | Access DWS files |
@@ -301,7 +312,7 @@ Pin/export/GC/index rebuild and configuration are local administrative commands,
 | `POST /v1/jobs/{job_id}/cancel` | Request cancel | `dws jobs cancel job_104` |
 | `/v1/admin/...` | Explicit maintenance operations | `dws index status`, `dws artifacts pin ...`, `dws gc --dry-run` |
 
-The public MCP endpoint remains `/mcp`. It translates to the same application methods rather than calling the local HTTP routes back into itself. A lightweight FastAPI application alongside the FastMCP ASGI app is the proposed command-API implementation. FastMCP documents FastAPI mounting and composed application lifespans; the exact mount path and lifecycle integration require an integration test. [R01] [R02]
+Delivery A uses a lightweight FastAPI command application without importing or installing FastMCP. Delivery B adds the public MCP endpoint `/mcp`, translating to the same application methods rather than calling the local HTTP routes back into itself. The FastMCP ASGI app is composed with the existing command application only in B. FastMCP documents FastAPI mounting and composed application lifespans; the exact mount path and lifecycle integration require an integration test in B. [R01] [R02]
 
 Normal CLI use calls the daemon. An exclusive offline mode may call the same core only after taking maintenance ownership. JSON output goes to stdout and diagnostics to stderr. No CLI invocation independently starts QMD indexing against a live shared store.
 
@@ -864,7 +875,7 @@ Polling is the baseline. Native FastMCP Tasks may project DWS jobs after compati
 
 ```mermaid
 flowchart LR
-    H["Local MCP host / CLI"] -->|"127.0.0.1 published port"| A["dws-api"]
+    H["Local CLI (A); MCP host added in B"] -->|"127.0.0.1 published port"| A["dws-api"]
     A -->|"internal HTTP"| S["searxng"]
     A -->|"internal HTTP"| C["crawl4ai"]
     W["dws-worker"] -->|"internal HTTP"| C
@@ -875,7 +886,7 @@ flowchart LR
     A -. "owner-enabled hosted requests" .-> T["Targeted hosted provider"]
 ```
 
-The DWS runtime image contains Python, FastMCP, the command API/CLI, local HTTP/extraction dependencies, and the pinned QMD runtime. API and worker share that image and the controlled local volume, but use distinct entry points.
+The Delivery A DWS runtime image contains Python, the command API/CLI, local HTTP/extraction dependencies, and the pinned QMD runtime, with no FastMCP or MCP SDK dependency. Delivery B adds the qualified FastMCP adapter dependencies. API and worker share that image and the controlled local volume, but use distinct entry points.
 
 SearXNG and Crawl4AI have no published host ports in the baseline. Do not mount the DWS metadata/index volume into them. Return acquired content through the adapter or a narrowly scoped transfer mechanism rather than giving providers unrestricted access to the archive.
 
@@ -887,7 +898,7 @@ Compose profiles permit optional service groups, but all required dependencies m
 
 Inside its container, DWS may bind to the container interface needed for Compose networking. Publish only the owner-approved DWS port on host loopback. Container binding and host publication are different controls. [R15]
 
-A local CLI or local MCP host can reach that endpoint. A remote/cloud-hosted assistant cannot automatically reach a laptop's loopback address. Remote access, tunnels, and shared-LAN clients remain a separate future design.
+A local CLI reaches that endpoint in A; local MCP host connectivity is added and tested in B. A remote/cloud-hosted assistant cannot automatically reach a laptop's loopback address. Remote access, tunnels, and shared-LAN clients remain a separate future design.
 
 Provider connectivity and public-target fetching use different allowlists. Internal configured provider addresses are allowed for adapter calls; that does not permit a caller to pass an internal database/admin URL to `fetch`.
 
@@ -899,7 +910,7 @@ Provider connectivity and public-target fetching use different allowlists. Inter
 Validate owner configuration and directory permissions
     → acquire exclusive bootstrap/maintenance ownership
     → check DWS schema compatibility and run migrations
-    → verify exact FastMCP/QMD/native-runtime identities
+    → verify exact engine/QMD/native-runtime identities (add FastMCP/SDK in B)
     → initialize QMD configuration, collections, and index lifecycle
     → reconcile interrupted state from previous shutdown
     → release bootstrap ownership
@@ -920,9 +931,9 @@ Keep API at one web worker and background worker at one process initially. Scali
 
 ### 13.5 Dependency manifest
 
-M0 produces a machine-readable manifest containing Python/runtime versions, exact FastMCP and transitive SDK pins, QMD package/commit and Node/Bun selection, both effective SQLite runtime versions, browser/parser builds, image digests, migration version, and configuration revision.
+M0 produces a Delivery A machine-readable manifest containing Python/engine runtime versions, QMD package/commit and Node/Bun selection, both effective SQLite runtime versions, browser/parser builds, image digests, migration version, and configuration revision. FastMCP and MCP SDKs are absent from A dependencies; their manifest status is deferred to B, not an unresolved A installation requirement. Delivery B extends the manifest with exact tested FastMCP and transitive SDK pins and client/protocol compatibility evidence.
 
-The selected FastMCP 4.x target is subject to that compatibility gate. Do not manufacture a package pin or implement a hand-written future MCP wire protocol based on prior conversation. No mutable `latest` tag is the reproducible baseline.
+The selected FastMCP 4.x target is subject to G-01 before Delivery B; it does not block A. Engine dependency compatibility, provenance and license gates still apply to A. Do not manufacture a package pin or implement a hand-written future MCP wire protocol based on prior conversation. No mutable `latest` tag is the reproducible baseline.
 
 ## 14. Local security design
 
@@ -1089,7 +1100,7 @@ Turso, PostgreSQL, a custom FTS layer, or vector retrieval are separate ADR chan
 
 ### 18.1 Test through the real public boundaries
 
-Test the application facade, provider adapter contracts, command API/MCP payloads, and actual supported SQLite/QMD integration. Use a local fixture HTTP server and deterministic provider responses for failures. Avoid tests coupled to private helper call order or a mock for every internal class.
+Test the application facade, provider adapter contracts, command API/CLI payloads in A (adding MCP payloads in B), and actual supported SQLite/QMD integration. Use a local fixture HTTP server and deterministic provider responses for failures. Avoid tests coupled to private helper call order or a mock for every internal class.
 
 Real provider live tests are a separate opt-in suite. They do not determine whether deterministic local recovery tests pass.
 
@@ -1124,14 +1135,14 @@ Any extensions to existing test cases are recorded in the implementation test pl
 
 | Stage | Build | Prove before moving on |
 |---|---|---|
-| M0 | Frozen runtime/image identities, fixture harness, QMD/host prototypes | Correct project/build, lexical-only behavior, viable lifecycle/security |
-| M1 | Search, acquisition, evidence publication/read | Provenance, bounded output, primary/fallback behavior |
+| M0 | Frozen engine/runtime/image identities, fixture harness, QMD/command API prototypes | Correct project/build, lexical-only behavior, viable lifecycle/security |
+| M1 | Daemon/CLI foundation, search, acquisition, evidence publication/read | Provenance, bounded output, primary/fallback behavior |
 | M2 | QMD mappings, outbox, scoped retrieval | Index lag, exact passages, rebuild, scope semantics |
 | M3 | Crawl frontier, durable worker, concurrency controls | Recovery, cancellation, lock discipline, burst tests |
-| M4 | FastMCP/CLI, one Compose, maintenance and host template | End-to-end operation after restart and restore |
+| M4 | Complete daemon-backed CLI, one Compose, diagnostics, maintenance and CLI host template | Delivery A operation after restart/restore and applicable gates pass without FastMCP or inference |
 | M5 | Optional providers/native Tasks/tuning | Demonstrated gain with unchanged contracts |
 
-This is dependency order, not a delivery-time estimate. High-risk QMD concurrency, browser egress, and dependency compatibility prototypes belong in M0 even if full features are implemented later.
+M0–M4 deliver A; expose usable CLI behavior as each engine slice lands. B follows with framework qualification, thin MCP tools/resources/transports, real client tests and MCP/CLI parity. M5 remains optional expansion, with native Tasks only after the ordinary B adapter. This is dependency order, not a delivery-time estimate. High-risk QMD concurrency, browser egress, and dependency compatibility prototypes belong in M0 even if full features are implemented later.
 
 ## 19. End-to-end example: researching AI memory systems
 
@@ -1167,7 +1178,7 @@ These proposals make PRD-level decisions implementable. They are not new owner-a
 |---|---|---|---|---|
 | DD-001 | One API process and one independent worker, same image | Clear ownership with recoverable work | Revisit only after measured process bottleneck; global controls must still hold | Section 13; ADR-025/026 |
 | DD-002 | DWS-owned frontier for first crawl implementation | Provider-independent budgets, manifests, checkpoints | More traversal code; adopt native ownership only after proving contract equivalence | Section 9.4; ADR-010/013 |
-| DD-003 | Small FastAPI command API beside FastMCP | Daemon-aware CLI with one shared core/admission path | Extra adapter, not a second business layer; avoid automatic exposure of admin routes to MCP | Section 8.8; ADR-025 |
+| DD-003 | Small FastAPI command API in A; FastMCP composed in B | Daemon-aware CLI with one shared core/admission path | Extra adapter, not a second business layer; avoid automatic exposure of admin routes to MCP | Section 8.8; ADR-025 |
 | DD-004 | Indexer-owned per-workspace collection view | Prevent uncommitted/new files bypassing batch watermark | Extra links/copies and mapping; simplify only if equivalent batch visibility is proven | Sections 10.6/12.3/12.5 |
 | DD-005 | Queries share a gate; updates/maintenance are exclusive initially | Honest generations and safer QMD lifecycle | Brief retrieval queueing; permit update/read overlap only after measured G-03 evidence | ADR-024; G-03 |
 | DD-006 | Shared local slot locks for API/worker acquisition limits | Prevent per-process semaphores multiplying capacity without a broker | Requires verified filesystem/process-lifetime behavior; choose another coordinator if unsupported | Section 13.4; FR-025 |
@@ -1185,14 +1196,14 @@ The reason is workload fit and clear ownership, not a claim those technologies a
 
 | Gate | Still needs evidence | Effect if unresolved |
 |---|---|---|
-| G-01 | Actual FastMCP/Python/SDK build and intended client compatibility | Do not publish an untested version or wire contract |
+| G-01 | Delivery B: actual FastMCP/Python/SDK build and intended client compatibility | Blocks B, not A; A still qualifies all engine/runtime identities |
 | G-02 | No inference/download through chosen QMD text path | Retrieval baseline cannot be called model-free |
 | G-03 | Query/startup/update/maintenance behavior and lock lifecycle | Reduce concurrency or revise adapter before release |
 | G-04 | Workspace/subset filtering and exact passage mapping | Report incomplete scope; do not claim complete semantics |
 | G-05 | Real image contents, health, volumes, privileges, dependencies | Deployment remains schematic |
 | G-06 | HTML/PDF extraction fidelity on fixtures | Restrict formats and report unsupported content |
 | G-07/G-08 | Fallback independence and optional-provider benefit | Do not promote a backup based on reputation alone |
-| G-09 | Actual local host connectivity and browser/network safety | Restrict/disable unsafe or unreachable paths |
+| G-09 | A: command/CLI connectivity, access controls and browser/network safety; B: MCP client/resource/transport compatibility | Restrict/disable unsafe or unreachable paths in the applicable delivery; engine safety remains an A gate |
 | G-10 | Hardware-specific limits, quotas, retention preferences | Defaults remain proposed, not measured capacity |
 | G-11 | Crash/GC/upgrade/restore correctness | Durability/retention release gate remains open |
 | G-12 | Licenses, distributions, native dependencies, image provenance | Packaging approval remains open |
@@ -1226,13 +1237,15 @@ A review should be able to answer: who can write each file, which operation owns
 
 [P01] is the canonical product/decision source. This design uses its named requirements, proposed numeric defaults, accepted stack, and unresolved gates. The earlier similarly named consolidated PRD file is not a second active baseline for this document.
 
-**Baseline identity:**
+**Original baseline identity (historical provenance; current requirements baseline is PRD 1.1):**
 
 ```text
 file: DWS_PRD.md
 version: 1.0
 SHA-256: 1de029e91fd455a27673593dbd6aa18cea33effb7c40b35aee1e5d239c8fd610
 ```
+
+**Version 1.1 amendment, 22 September 2026:** integrated the owner-authorized A/B sequencing from the implementation goal and plan linked in Section 0. Reconciled active runtime, manifest, milestones and gate applicability; retained original architectural lineage and requirement identifiers.
 
 ### 22.2 External implementation references
 

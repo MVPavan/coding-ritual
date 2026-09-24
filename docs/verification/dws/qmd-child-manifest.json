@@ -1,0 +1,417 @@
+{
+  "schema_version": 2,
+  "task": "cr-0km.13",
+  "date": "2026-09-22",
+  "status": "stdin-carrier-lifetime-qualified-review-pending",
+  "image_id": "sha256:eb1475855045015fd0aa47e32605dcb5dcb68275d04f70be2386c9322694b616",
+  "tag_matches_at_closeout": true,
+  "runtime": {
+    "node": "v22.22.0",
+    "qmd": "2.8.3",
+    "sqlite": "3.53.4"
+  },
+  "filesystem": {
+    "type": "ext4",
+    "source": "/dev/sdd",
+    "device": "8:48",
+    "mount": "/state",
+    "volume_driver": "local"
+  },
+  "contract": {
+    "launcher": "public qmd only",
+    "stdin": "reserved locked regular file for internal noninteractive QMD allowlist",
+    "allowlist": [
+      "collection add",
+      "update",
+      "status",
+      "search",
+      "get"
+    ],
+    "caller_cli_stdin_affected": false,
+    "death_injection_command": "get",
+    "requalify_on": [
+      "image",
+      "QMD",
+      "Node",
+      "launcher",
+      "allowlist",
+      "filesystem"
+    ]
+  },
+  "attempt_budget": {
+    "new_implementations": 1,
+    "corrections": 1,
+    "exhausted": true
+  },
+  "previous_extra_fd_candidate": "failed; not replayed; prior report/manifest/source snapshots preserved",
+  "runs": [
+    {
+      "result_path": "scratchpad/dws/qmd-child-qualification/stdin-carrier/dws-qmd-stdin-7eb60a9aab6e/result.json",
+      "result": "not-qualified",
+      "volume": "dws-qmd-stdin-7eb60a9aab6e-state",
+      "cleanup": [
+        {
+          "container": "dws-qmd-stdin-7eb60a9aab6e-stdin-carrier",
+          "removed": true
+        },
+        {
+          "container": "dws-qmd-stdin-7eb60a9aab6e-competitor-aa71a8",
+          "removed": true
+        },
+        {
+          "container": "dws-qmd-stdin-7eb60a9aab6e-competitor-a5127d",
+          "removed": true
+        },
+        {
+          "container": "dws-qmd-stdin-7eb60a9aab6e-competitor-f475ed",
+          "removed": true
+        },
+        {
+          "volume": "dws-qmd-stdin-7eb60a9aab6e-state",
+          "removed": true
+        }
+      ],
+      "cleanup_failures": [],
+      "remaining_containers": "",
+      "remaining_volumes": ""
+    },
+    {
+      "result_path": "scratchpad/dws/qmd-child-qualification/stdin-carrier/dws-qmd-stdin-b6e23094ec1a/result.json",
+      "result": "stdin-carrier-lifetime-qualified",
+      "volume": "dws-qmd-stdin-b6e23094ec1a-state",
+      "cleanup": [
+        {
+          "container": "dws-qmd-stdin-b6e23094ec1a-stdin-carrier",
+          "removed": true
+        },
+        {
+          "container": "dws-qmd-stdin-b6e23094ec1a-competitor-04684e",
+          "removed": true
+        },
+        {
+          "container": "dws-qmd-stdin-b6e23094ec1a-competitor-b27af3",
+          "removed": true
+        },
+        {
+          "container": "dws-qmd-stdin-b6e23094ec1a-competitor-a225cb",
+          "removed": true
+        },
+        {
+          "container": "dws-qmd-stdin-b6e23094ec1a-competitor-14fe18",
+          "removed": true
+        },
+        {
+          "container": "dws-qmd-stdin-b6e23094ec1a-parent-only",
+          "removed": true
+        },
+        {
+          "container": "dws-qmd-stdin-b6e23094ec1a-competitor-d208fd",
+          "removed": true
+        },
+        {
+          "container": "dws-qmd-stdin-b6e23094ec1a-competitor-ac2601",
+          "removed": true
+        },
+        {
+          "container": "dws-qmd-stdin-b6e23094ec1a-competitor-e68176",
+          "removed": true
+        },
+        {
+          "container": "dws-qmd-stdin-b6e23094ec1a-competitor-183fe8",
+          "removed": true
+        },
+        {
+          "volume": "dws-qmd-stdin-b6e23094ec1a-state",
+          "removed": true
+        }
+      ],
+      "cleanup_failures": [],
+      "remaining_containers": "",
+      "remaining_volumes": ""
+    }
+  ],
+  "cases": {
+    "stdin-carrier": {
+      "controller": {
+        "pid": 82,
+        "starttime": "51761476",
+        "exe": "/usr/local/bin/python3.13",
+        "cmdline": [
+          "python",
+          "/probe.py",
+          "observe",
+          "stdin-carrier"
+        ]
+      },
+      "launcher": {
+        "pid": 83,
+        "starttime": "51761476",
+        "exe": "/usr/local/bin/node",
+        "cmdline": [
+          "node",
+          "/opt/qmd/node_modules/.bin/qmd",
+          "get",
+          "qmd://fixture/fixture.md"
+        ]
+      },
+      "worker": {
+        "pid": 90,
+        "starttime": "51761477",
+        "exe": "/usr/local/bin/node",
+        "cmdline": [
+          "/usr/local/bin/node",
+          "/opt/qmd/node_modules/@tobilu/qmd/dist/cli/qmd.js",
+          "get",
+          "qmd://fixture/fixture.md"
+        ]
+      },
+      "lock_inode": 1341720,
+      "contenders": [
+        {
+          "outcome": "BUSY",
+          "counter": 0,
+          "inode": 1341720,
+          "device": 2096
+        },
+        {
+          "outcome": "BUSY",
+          "counter": 0,
+          "inode": 1341720,
+          "device": 2096
+        },
+        {
+          "outcome": "BUSY",
+          "counter": 0,
+          "inode": 1341720,
+          "device": 2096
+        },
+        {
+          "outcome": "ACQUIRED",
+          "counter": 1,
+          "inode": 1341720,
+          "device": 2096
+        }
+      ],
+      "finished": {
+        "event": "finished",
+        "bytes": 2889002,
+        "exact_numbered_body": true,
+        "output_sha256": "0fdde736b95583ec6ea4dfe5065fcc542a982dc8d5b3b313c2d156bbc04f3e1f",
+        "body_lines": 100004,
+        "reaped": {
+          "pid": 90,
+          "exitcode": 0
+        },
+        "all_children_reaped": true,
+        "cache_empty": true,
+        "models_absent": true,
+        "control_flags": 0
+      }
+    },
+    "parent-only": {
+      "controller": {
+        "pid": 82,
+        "starttime": "51761781",
+        "exe": "/usr/local/bin/python3.13",
+        "cmdline": [
+          "python",
+          "/probe.py",
+          "observe",
+          "parent-only"
+        ]
+      },
+      "launcher": {
+        "pid": 83,
+        "starttime": "51761781",
+        "exe": "/usr/local/bin/node",
+        "cmdline": [
+          "node",
+          "/opt/qmd/node_modules/.bin/qmd",
+          "get",
+          "qmd://fixture/fixture.md"
+        ]
+      },
+      "worker": {
+        "pid": 90,
+        "starttime": "51761783",
+        "exe": "/usr/local/bin/node",
+        "cmdline": [
+          "/usr/local/bin/node",
+          "/opt/qmd/node_modules/@tobilu/qmd/dist/cli/qmd.js",
+          "get",
+          "qmd://fixture/fixture.md"
+        ]
+      },
+      "lock_inode": 1341881,
+      "contenders": [
+        {
+          "outcome": "BUSY",
+          "counter": 0,
+          "inode": 1341881,
+          "device": 2096
+        },
+        {
+          "outcome": "ACQUIRED",
+          "counter": 1,
+          "inode": 1341881,
+          "device": 2096
+        },
+        {
+          "outcome": "ACQUIRED",
+          "counter": 2,
+          "inode": 1341881,
+          "device": 2096
+        },
+        {
+          "outcome": "ACQUIRED",
+          "counter": 3,
+          "inode": 1341881,
+          "device": 2096
+        }
+      ],
+      "finished": {
+        "event": "finished",
+        "bytes": 2889002,
+        "exact_numbered_body": true,
+        "output_sha256": "0fdde736b95583ec6ea4dfe5065fcc542a982dc8d5b3b313c2d156bbc04f3e1f",
+        "body_lines": 100004,
+        "reaped": {
+          "pid": 90,
+          "exitcode": 0
+        },
+        "all_children_reaped": true,
+        "cache_empty": true,
+        "models_absent": true,
+        "control_flags": 0
+      }
+    }
+  },
+  "assertions": {
+    "exact_live_process_identity": true,
+    "fd0_target_inode_and_flock": true,
+    "controller_and_launcher_killed_and_reaped": true,
+    "same_stopped_worker_survives": true,
+    "independent_contender_matrix_and_counters": true,
+    "complete_exact_get_body": true,
+    "worker_exit_zero_and_reaping": true,
+    "no_children_remaining": true,
+    "empty_cache_and_home_after_both_cases": true,
+    "only_loopback_interface": true,
+    "empty_owned_resource_inventories": true
+  },
+  "checks": {
+    "docker_e2e": "1 passed in 7.24s",
+    "ruff_lint": "passed",
+    "ruff_format": "passed",
+    "mypy_strict": "passed",
+    "compile": "passed",
+    "json": "passed",
+    "whitespace": "passed",
+    "broad_suite": "not run"
+  },
+  "review": "fresh independent Sol xhigh pending",
+  "limits": [
+    "No G03/P1/release completion",
+    "No production supervisor implementation",
+    "Other allowlist commands smoke-tested, not death-injected",
+    "One pinned local ext4 Docker-volume environment",
+    "Network none includes loopback and does not prove absence of attempted network calls"
+  ],
+  "artifacts": [
+    {
+      "path": "docs/verification/dws/qmd-child-qualification.md",
+      "sha256": "5495fe718a5895c88aadd47926a40b6738490a61c2eaa340c84c281cf52f611d",
+      "bytes": 6314
+    },
+    {
+      "path": "dws/tests/qualification/qmd_child_probe.py",
+      "sha256": "03e1b5834ce65a69db581c23d3cc67ebc66673bc0e4f59396d761f06f82ad424",
+      "bytes": 11424
+    },
+    {
+      "path": "dws/tests/qualification/test_qmd_child_docker.py",
+      "sha256": "3d03b0193f0dbf30dd2363ea0ff9df836063186eeb0a3fd237b1e23f9882d0ba",
+      "bytes": 10307
+    },
+    {
+      "path": "scratchpad/dws/qmd-child-qualification/review/result.md",
+      "sha256": "f653641dc05d2dd44502d254bf4cc5b230caf7b878723ae2ea5a585267c4f065",
+      "bytes": 5464
+    },
+    {
+      "path": "scratchpad/dws/qmd-child-qualification/stdin-carrier/attempt-1.log",
+      "sha256": "d16547ce98b6ee4172c32761312c7ed7d82e6c8b11f00167811088b3e759d5d9",
+      "bytes": 12254
+    },
+    {
+      "path": "scratchpad/dws/qmd-child-qualification/stdin-carrier/attempt-2.log",
+      "sha256": "68d7157eccd2cd52a80f77275efbd01a94e1fe8d450e71003c18379a657b7721",
+      "bytes": 121
+    },
+    {
+      "path": "scratchpad/dws/qmd-child-qualification/stdin-carrier/dws-qmd-stdin-7eb60a9aab6e/qmd_child_probe.py",
+      "sha256": "d9469ffa50805f932c15b2b7be0a6b6edad159178535c5ba4e11105e8d1e7fd5",
+      "bytes": 11308
+    },
+    {
+      "path": "scratchpad/dws/qmd-child-qualification/stdin-carrier/dws-qmd-stdin-7eb60a9aab6e/result.json",
+      "sha256": "12782893dc7f0aa998bdf5d5f21dd7e05b30133ffa6e6db0d34b1eba5d8d7c91",
+      "bytes": 124098
+    },
+    {
+      "path": "scratchpad/dws/qmd-child-qualification/stdin-carrier/dws-qmd-stdin-7eb60a9aab6e/stdin-carrier.stderr",
+      "sha256": "97142eaba4c32f308599ce74459852402effaef70cd9351bb822c2a438a31715",
+      "bytes": 411
+    },
+    {
+      "path": "scratchpad/dws/qmd-child-qualification/stdin-carrier/dws-qmd-stdin-7eb60a9aab6e/test_qmd_child_docker.py",
+      "sha256": "3d03b0193f0dbf30dd2363ea0ff9df836063186eeb0a3fd237b1e23f9882d0ba",
+      "bytes": 10307
+    },
+    {
+      "path": "scratchpad/dws/qmd-child-qualification/stdin-carrier/dws-qmd-stdin-b6e23094ec1a/parent-only.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "scratchpad/dws/qmd-child-qualification/stdin-carrier/dws-qmd-stdin-b6e23094ec1a/qmd_child_probe.py",
+      "sha256": "03e1b5834ce65a69db581c23d3cc67ebc66673bc0e4f59396d761f06f82ad424",
+      "bytes": 11424
+    },
+    {
+      "path": "scratchpad/dws/qmd-child-qualification/stdin-carrier/dws-qmd-stdin-b6e23094ec1a/result.json",
+      "sha256": "68ef82d960de31fc617e9a5f20b46d30cced1576fd24ffadb9cae742d2e8b75d",
+      "bytes": 237297
+    },
+    {
+      "path": "scratchpad/dws/qmd-child-qualification/stdin-carrier/dws-qmd-stdin-b6e23094ec1a/stdin-carrier.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "scratchpad/dws/qmd-child-qualification/stdin-carrier/dws-qmd-stdin-b6e23094ec1a/test_qmd_child_docker.py",
+      "sha256": "3d03b0193f0dbf30dd2363ea0ff9df836063186eeb0a3fd237b1e23f9882d0ba",
+      "bytes": 10307
+    },
+    {
+      "path": "scratchpad/dws/qmd-child-qualification/stdin-carrier/previous-source/qmd-child-manifest.json",
+      "sha256": "c6f781b0ef2aba02ba66d945b8766e8b93815d216d2b2571e465d7d325ef5ff2",
+      "bytes": 5613
+    },
+    {
+      "path": "scratchpad/dws/qmd-child-qualification/stdin-carrier/previous-source/qmd-child-qualification.md",
+      "sha256": "1da1046149c1b7b3d01262ccf5d2ff72f6b7ee0bf300a5c659bd424da6b37c7b",
+      "bytes": 6894
+    },
+    {
+      "path": "scratchpad/dws/qmd-child-qualification/stdin-carrier/previous-source/qmd_child_probe.py",
+      "sha256": "b0504f4f20ddad19686b48cb947000592c8c63e285392311d23b1fd4c2fffe55",
+      "bytes": 7633
+    },
+    {
+      "path": "scratchpad/dws/qmd-child-qualification/stdin-carrier/previous-source/test_qmd_child_docker.py",
+      "sha256": "66ca48b4cd0979c95d1be0b9afab1cf901f6944316b4c2baab11c1940ccc1c7d",
+      "bytes": 7857
+    }
+  ]
+}

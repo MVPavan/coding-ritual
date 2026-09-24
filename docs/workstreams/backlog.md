@@ -1,6 +1,6 @@
 <!-- BD:GENERATED START -->
 # Backlog (parked, vetted)
-_generated from bd @ 2026-09-11T21:16:18Z — DO NOT EDIT (run: BD_RENDER=1 bash <beads-skill-dir>/scripts/bd-render-tracking.sh)_
+_generated from bd @ 2026-09-17T11:28:10Z — DO NOT EDIT (run: BD_RENDER=1 bash <beads-skill-dir>/scripts/bd-render-tracking.sh)_
 - `cr-o85.18` phase-5: a §8.1 continuation's §5.4 precondition resets away the steered runner's uncommitted work (R1 consequence, probed)
 - `cr-o85.17` phase-5: run.jsonl is runner-writable by construction, and scan_log reads a session id and usage back out of it (R7)
 - `cr-o85.16` phase-5: the git config keys that name a program are pinned by name, and the name space is open (R2 residual)

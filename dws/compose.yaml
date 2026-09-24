@@ -1,0 +1,23 @@
+# P1 qualification only; invoke with a unique -p dws-image-browser-<run>.
+# This deliberately contains no invented API or worker startup commands.
+# The stock browser image failed UDP egress containment; the protective overlay
+# is a separate candidate pending independent review.
+services:
+  image-volume-probe:
+    profiles: [image-browser-qualification]
+    build:
+      context: docker
+      dockerfile: ../Dockerfile
+      target: image-volume-qualification
+    user: "1000:1000"
+    network_mode: none
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 64
+    mem_limit: 256m
+    cpus: 1
+    volumes:
+      - image-browser-state:/state
+volumes:
+  image-browser-state:

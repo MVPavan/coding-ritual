@@ -1,0 +1,379 @@
+{
+  "schema": "dws-qmd-requalification/v1",
+  "task": "cr-0km.11",
+  "date": "2026-09-22",
+  "status": "DONE",
+  "acceptance": "Independent review supported substantive qualification with two minor record findings; corrections await coordinator verification",
+  "source_manifest": "docs/verification/dws/qmd-qualification-manifest.json",
+  "candidate": {
+    "package": "@tobilu/qmd",
+    "version": "2.8.3",
+    "npm_integrity": "sha512-zjfVwrObPB618B6x8SdhlGv/tX9OxRHsbQnr5DUtBvqPK6HGQ27lM+9/BAY5okpjrHVnW56hLyDkqoTcsrVLzA==",
+    "registry_url": "https://registry.npmjs.org/@tobilu%2fqmd/2.8.3",
+    "installed_files_match_tarball": 53
+  },
+  "effective_versions": {
+    "node": "v22.22.0",
+    "node_abi": "127",
+    "platform": "linux",
+    "arch": "x64",
+    "qmd": "2.8.3",
+    "better_sqlite3": "13.0.3",
+    "sqlite": "3.53.4",
+    "sqlite_vec": "v0.1.9",
+    "npm": "11.9.0"
+  },
+  "runtime": "scratchpad/dws/qmd-requalification/runtime",
+  "install_policy": {
+    "ignore_scripts": true,
+    "native_builds": false,
+    "global_install": false,
+    "models_downloaded": false,
+    "fresh_transitive_lock": true,
+    "historical_transitive_identity_claimed": false
+  },
+  "provenance": {
+    "verified_registry_signatures": 159,
+    "verified_attestations": 34,
+    "exit": 0,
+    "distribution_review_task": "cr-0km.5"
+  },
+  "allowed_commands": [
+    "collection add",
+    "status",
+    "search",
+    "get",
+    "update"
+  ],
+  "isolation": {
+    "network_denial": "bwrap --unshare-net --die-with-parent",
+    "sandbox_supported": false,
+    "sandbox_failure": "bwrap: loopback: Failed to create NETLINK_ROUTE socket: Operation not permitted",
+    "approved_host_succeeded": true,
+    "disposable_fixtures": 4,
+    "model_caches_empty": true,
+    "infrastructure_transitions": 2
+  },
+  "qualification": {
+    "argv": [
+      "uv",
+      "run",
+      "--locked",
+      "pytest",
+      "-q",
+      "-m",
+      "qmd",
+      "-s"
+    ],
+    "cwd": "dws",
+    "exit": 0,
+    "passed": 4,
+    "deselected": 16,
+    "skipped": 0,
+    "duration_seconds_pytest": 2.93,
+    "tests_unchanged": true,
+    "evidence_run": "Historical host-qmd; retained unchanged. See evidence_correction for the new run and governing elapsed duration."
+  },
+  "path_substitutions": {
+    "REPO_ROOT": "Absolute checkout root",
+    "NODE_BIN": "Directory of installed Node v22.22.0",
+    "UV_BIN": "Directory of installed uv"
+  },
+  "commands": [
+    {
+      "label": "tarball",
+      "argv": [
+        "curl",
+        "--fail",
+        "--silent",
+        "--show-error",
+        "https://registry.npmjs.org/@tobilu/qmd/-/qmd-2.8.3.tgz",
+        "-o",
+        "scratchpad/dws/qmd-requalification/qmd-2.8.3.tgz"
+      ],
+      "cwd": "${REPO_ROOT}",
+      "exit": 0,
+      "started_at": "2026-09-22T05:52:22.930223+00:00",
+      "ended_at": "2026-09-22T05:52:23.808139+00:00",
+      "log": "logs/tarball.log"
+    },
+    {
+      "label": "install",
+      "argv": [
+        "npm",
+        "install",
+        "--ignore-scripts",
+        "--no-audit",
+        "--no-fund",
+        "--registry=https://registry.npmjs.org",
+        "--cache=${REPO_ROOT}/scratchpad/dws/qmd-requalification/npm-cache",
+        "--userconfig=/dev/null"
+      ],
+      "cwd": "${REPO_ROOT}/scratchpad/dws/qmd-requalification/runtime",
+      "exit": 0,
+      "started_at": "2026-09-22T05:52:43.087670+00:00",
+      "ended_at": "2026-09-22T05:53:07.166283+00:00",
+      "log": "logs/install.log"
+    },
+    {
+      "label": "sandbox-net",
+      "argv": [
+        "bwrap",
+        "--unshare-net",
+        "--ro-bind",
+        "/",
+        "/",
+        "--proc",
+        "/proc",
+        "--dev",
+        "/dev",
+        "--",
+        "/bin/true"
+      ],
+      "cwd": "${REPO_ROOT}",
+      "exit": 1,
+      "started_at": "2026-09-22T05:53:17.985478+00:00",
+      "ended_at": "2026-09-22T05:53:17.987919+00:00",
+      "log": "logs/sandbox-net.log"
+    },
+    {
+      "label": "signatures",
+      "argv": [
+        "npm",
+        "audit",
+        "signatures",
+        "--registry=https://registry.npmjs.org",
+        "--cache=${REPO_ROOT}/scratchpad/dws/qmd-requalification/npm-cache",
+        "--userconfig=/dev/null"
+      ],
+      "cwd": "${REPO_ROOT}/scratchpad/dws/qmd-requalification/runtime",
+      "exit": 0,
+      "started_at": "2026-09-22T05:53:31.494417+00:00",
+      "ended_at": "2026-09-22T05:53:35.259851+00:00",
+      "log": "logs/signatures.log"
+    },
+    {
+      "label": "host-versions",
+      "argv": [
+        "bwrap",
+        "--unshare-net",
+        "--ro-bind",
+        "/",
+        "/",
+        "--proc",
+        "/proc",
+        "--dev",
+        "/dev",
+        "--clearenv",
+        "--setenv",
+        "PATH",
+        "${NODE_BIN}:/usr/bin:/bin",
+        "--",
+        "${NODE_BIN}/node",
+        "${REPO_ROOT}/scratchpad/dws/qmd-requalification/runtime/versions.cjs"
+      ],
+      "cwd": "${REPO_ROOT}",
+      "exit": 0,
+      "started_at": "2026-09-22T05:53:52.110932+00:00",
+      "ended_at": "2026-09-22T05:53:52.296838+00:00",
+      "log": "logs/host-versions.log"
+    },
+    {
+      "label": "host-qmd",
+      "argv": [
+        "env",
+        "-u",
+        "UV_FROZEN",
+        "DWS_QMD_BIN=${REPO_ROOT}/scratchpad/dws/qmd-requalification/runtime/node_modules/.bin/qmd",
+        "PATH=${NODE_BIN}:${UV_BIN}:/usr/local/bin:/usr/bin:/bin",
+        "UV_CACHE_DIR=${REPO_ROOT}/scratchpad/dws/qmd-requalification/uv-cache",
+        "UV_OFFLINE=1",
+        "PYTHONDONTWRITEBYTECODE=1",
+        "PYTEST_ADDOPTS=-p no:cacheprovider --basetemp=${REPO_ROOT}/scratchpad/dws/qmd-requalification/pytest-host --junitxml=${REPO_ROOT}/scratchpad/dws/qmd-requalification/host-qmd.xml",
+        "uv",
+        "run",
+        "--locked",
+        "pytest",
+        "-q",
+        "-m",
+        "qmd",
+        "-s"
+      ],
+      "cwd": "${REPO_ROOT}/dws",
+      "exit": 0,
+      "started_at": "2026-09-22T05:54:06.875665+00:00",
+      "ended_at": "2026-09-22T05:54:07.657313+00:00",
+      "log": "logs/host-qmd.log"
+    },
+    {
+      "label": "host-qmd-fix",
+      "argv": [
+        "env",
+        "-u",
+        "UV_FROZEN",
+        "DWS_QMD_BIN=${REPO_ROOT}/scratchpad/dws/qmd-requalification/runtime/node_modules/.bin/qmd",
+        "PATH=${NODE_BIN}:${UV_BIN}:/usr/local/bin:/usr/bin:/bin",
+        "UV_CACHE_DIR=${REPO_ROOT}/scratchpad/dws/qmd-requalification/fix/uv-cache",
+        "UV_OFFLINE=1",
+        "PYTHONDONTWRITEBYTECODE=1",
+        "PYTEST_ADDOPTS=-p no:cacheprovider --basetemp=${REPO_ROOT}/scratchpad/dws/qmd-requalification/fix/pytest-host --junitxml=${REPO_ROOT}/scratchpad/dws/qmd-requalification/fix/host-qmd.xml",
+        "uv",
+        "run",
+        "--locked",
+        "pytest",
+        "-q",
+        "-m",
+        "qmd",
+        "-s"
+      ],
+      "cwd": "${REPO_ROOT}/dws",
+      "exit": 0,
+      "started_at": "2026-09-22T06:02:52.134887+00:00",
+      "ended_at": "2026-09-22T06:02:55.475221+00:00",
+      "monotonic_start_ns": 515529523371752,
+      "monotonic_end_ns": 515532863684837,
+      "elapsed_ns": 3340313085,
+      "elapsed_seconds": 3.340313085,
+      "timing_scope": "subprocess.run: env/uv and pytest, including startup and shutdown",
+      "log": "scratchpad/dws/qmd-requalification/fix/host-qmd.log",
+      "junit": "scratchpad/dws/qmd-requalification/fix/host-qmd.xml"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "scratchpad/dws/qmd-requalification/registry.json",
+      "sha256": "91cabbc69337a420dae82b173bee864cf8c60299258a383ea6c2e793caa965c0"
+    },
+    {
+      "path": "scratchpad/dws/qmd-requalification/qmd-2.8.3.tgz",
+      "sha256": "2e60829913a0c646234a905cefd61043167a1392fdcfd19bc54f890af89ca0f0"
+    },
+    {
+      "path": "scratchpad/dws/qmd-requalification/runtime/package-lock.json",
+      "sha256": "17011f5c03cbcdd9be62cc377fb53f4821645c3f6fddcfdf2fca75fbd3d4193d"
+    },
+    {
+      "path": "scratchpad/dws/qmd-requalification/source-verification.json",
+      "sha256": "a1e658746d63324c033958dfbf29a4641bbd0bab41613f9412e2c636f4ec3789"
+    },
+    {
+      "path": "scratchpad/dws/qmd-requalification/dependency-inventory.json",
+      "sha256": "de917a23a775b98a30ec9266829fd71831d939bec4b3d131d87e00a04c4f6d13"
+    },
+    {
+      "path": "scratchpad/dws/qmd-requalification/native-hashes.json",
+      "sha256": "0c7263fc281ccde308cf0e6e43d614bb9c9fed35f2de4dbb86e2a4c5e2320279"
+    },
+    {
+      "path": "scratchpad/dws/qmd-requalification/postchecks.json",
+      "sha256": "d0d5717d54c8f28c601d5f18eed95dc4d92509fdd3c93f1ead660a88be1affd1"
+    },
+    {
+      "path": "scratchpad/dws/qmd-requalification/commands.jsonl",
+      "sha256": "be0bc0eb994fb889a0cc7f8335c07bf5cd4632117cf85a8c3e71e1416b2f8142"
+    },
+    {
+      "path": "scratchpad/dws/qmd-requalification/host-qmd.xml",
+      "sha256": "f8606b13610bcedc25451d0439303daa6b9b95639b2212ee90cec6c68fda3c56"
+    },
+    {
+      "path": "scratchpad/dws/qmd-requalification/logs/host-qmd.log",
+      "sha256": "9ef2ee24268c6e9906305883b42a6e2f3458316432b02c676347c9f8d182cf1f"
+    },
+    {
+      "path": "scratchpad/dws/qmd-requalification/logs/host-versions.log",
+      "sha256": "9d5170fed876550a0436fb703c116d6aced4f33a56ac512ba524834549a9c058"
+    },
+    {
+      "path": "scratchpad/dws/qmd-requalification/logs/signatures.log",
+      "sha256": "c6aedf8796e62d4f1be4801d15d8dee60c9efa107c25680a17374bcd6bbc81ab"
+    },
+    {
+      "path": "scratchpad/dws/qmd-requalification/logs/sandbox-net.log",
+      "sha256": "31c2cb0dffdeb9049fa2269e24af62df15e4161d4f752a648faf9630259725fe"
+    },
+    {
+      "path": "scratchpad/dws/qmd-requalification/logs/install.log",
+      "sha256": "1b1288e0972fe2fd3190b6a439980780a07da8fc5ce4157a24e6d225431af9ff"
+    },
+    {
+      "path": "scratchpad/dws/qmd-requalification/fix/receipt.json",
+      "sha256": "2fd45641846382d8a0f1cff7a8daadb557500b4873f65aa172ee30b3f0449ed0"
+    },
+    {
+      "path": "scratchpad/dws/qmd-requalification/fix/host-qmd.log",
+      "sha256": "812e6232fddee82e91b6333e529519fbcdf54949f50133a01d85a5d9a23722fb"
+    },
+    {
+      "path": "scratchpad/dws/qmd-requalification/fix/host-qmd.xml",
+      "sha256": "eda4924b7d1fee7abae0960a30cd6d318c7796ac1421ee5a202374cdd308df43"
+    },
+    {
+      "path": "scratchpad/dws/qmd-requalification/fix/evidence-checks.json",
+      "sha256": "824212f594ae565500d80c31ccb2bd70a2a095ea50cd5c5265a9a8b598974381"
+    },
+    {
+      "path": "scratchpad/dws/qmd-requalification/fix/rerun.py",
+      "sha256": "3d8ee3e67d0dc5df8f44d28adad451c4355b045bb17897ee3f821ee749520418"
+    },
+    {
+      "path": "scratchpad/dws/qmd-requalification/fix/check-evidence.py",
+      "sha256": "caad5c96c43a8d7a48e9643609864bb15823f4a5ca67638519749c16c4ad7826"
+    },
+    {
+      "path": "scratchpad/dws/qmd-requalification/fix/before-qmd-requalification.md",
+      "sha256": "8a842a2b6b0f956078e94e930b1d04243dc04cc04ab8d931be867ca8231a82c2"
+    },
+    {
+      "path": "scratchpad/dws/qmd-requalification/fix/before-qmd-requalification-manifest.json",
+      "sha256": "66db055ab4c23fe0641842c99f4cdf2da5fc74eb30f2510e6da0525e646fe38e"
+    }
+  ],
+  "limitations": [
+    "Lexical test paths only; no full production adapter qualification",
+    "No deployment volume, container or release qualification",
+    "No QMD child ownership or descendant termination qualification",
+    "No exhaustive native security or distribution review",
+    "Historical transitive dependency identity is unknown"
+  ],
+  "remaining_work": [
+    "Coordinator verification of the evidence correction delta and acceptance",
+    "cr-0km.5 distribution review",
+    "Production adapter, deployment volume and child lifecycle qualification"
+  ],
+  "commands_scope": "Original structured receipts cover only the six listed commands. Registry metadata fetch attempts have no structured receipts here; registry.json is content/provenance evidence, not a portable fetch execution receipt. No registry fetch was rerun for this correction.",
+  "evidence_correction": {
+    "review": "scratchpad/dws/qmd-requalification/review-result.md",
+    "timing_disposition": "Fixed by one new approved-host run. Historical UTC subtraction (0.781648 seconds) conflicts with historical pytest/JUnit (2.93/2.931 seconds), so the old clock-based elapsed duration is unreliable. No cause is established. New monotonic command elapsed duration governs; historical receipts and hashes are retained.",
+    "registry_disposition": "Fixed by narrowing structured receipt scope; metadata fetch exit codes are not independently represented in this manifest.",
+    "receipt": "scratchpad/dws/qmd-requalification/fix/receipt.json",
+    "checks": "scratchpad/dws/qmd-requalification/fix/evidence-checks.json",
+    "new_run": {
+      "exit": 0,
+      "passed": 4,
+      "deselected": 16,
+      "skipped": 0,
+      "failures": 0,
+      "errors": 0,
+      "duration_seconds_pytest": 3.19,
+      "duration_seconds_junit": 3.19,
+      "elapsed_ns_monotonic": 3340313085,
+      "elapsed_seconds_monotonic": 3.340313085,
+      "timing_scope": "subprocess.run: env/uv and pytest, including startup and shutdown",
+      "started_at": "2026-09-22T06:02:52.134887+00:00",
+      "ended_at": "2026-09-22T06:02:55.475221+00:00",
+      "runtime": "scratchpad/dws/qmd-requalification/runtime",
+      "effective_versions": {
+        "node": "v22.22.0",
+        "node_abi": "127",
+        "platform": "linux",
+        "arch": "x64",
+        "qmd": "2.8.3",
+        "better_sqlite3": "13.0.3",
+        "sqlite": "3.53.4",
+        "sqlite_vec": "v0.1.9",
+        "npm": "11.9.0"
+      }
+    }
+  }
+}

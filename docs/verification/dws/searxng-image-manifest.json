@@ -1,0 +1,627 @@
+{
+  "schema_version": 1,
+  "qualification_date_utc": "2026-09-22",
+  "status": "FIX1_AWAITING_INDEPENDENT_REVIEW",
+  "scope": "P1 cr-0km.4 SearXNG image/config qualification only; coordinator acceptance and P1 .5 review pending",
+  "image": {
+    "reference": "ghcr.io/searxng/searxng@sha256:a93b665d10ce0675e8d2124187943111399ba69f384228c51b4cd21fdceda0bc",
+    "version": "2026.9.11-61d660276",
+    "id": "sha256:a93b665d10ce0675e8d2124187943111399ba69f384228c51b4cd21fdceda0bc",
+    "platform": "linux/amd64",
+    "created": "2026-09-11T15:01:39.101889467Z",
+    "size_bytes": 381785923,
+    "origin": "https://github.com/searxng/searxng",
+    "revision": "61d660276f1288e7d512e8d8da46cb8442728454",
+    "license_spdx": "AGPL-3.0-or-later",
+    "default_user": "root (Config.User absent)",
+    "entrypoint": [
+      "/usr/local/searxng/entrypoint.sh"
+    ],
+    "declared_volumes": [
+      "/etc/searxng",
+      "/var/cache/searxng"
+    ],
+    "exposed_ports": [
+      "8080/tcp"
+    ],
+    "built_in_healthcheck": null,
+    "signature_or_attestation_verified": false
+  },
+  "runtime": {
+    "os": "Void Linux",
+    "python": "3.14.7 (main, Aug 31 2026, 11:35:03) [GCC 14.2.1 20250405]",
+    "openssl": "OpenSSL 3.6.4 25 Aug 2026",
+    "sqlite": "3.53.4",
+    "glibc": "2.41",
+    "libxml": [
+      2,
+      14,
+      6
+    ],
+    "libxslt": [
+      1,
+      1,
+      43
+    ],
+    "curl": "libcurl/8.21.0-IMPERSONATE BoringSSL zlib/1.3.1 brotli/1.2.0 zstd/1.5.7 libidn2/2.3.7 nghttp2/1.63.0 ngtcp2/1.20.0 nghttp3/1.15.0",
+    "packages": {
+      "MarkupSafe": "3.0.3",
+      "shellingham": "1.5.4",
+      "valkey": "6.1.1",
+      "blinker": "1.9.0",
+      "granian": "2.8.2",
+      "setproctitle": "1.3.7",
+      "PyYAML": "6.0.3",
+      "markdown-it-py": "4.2.0",
+      "babel": "2.18.0",
+      "isodate": "0.7.2",
+      "six": "1.17.0",
+      "itsdangerous": "2.2.0",
+      "Pygments": "2.21.0",
+      "python-dateutil": "2.9.0.post0",
+      "Jinja2": "3.1.6",
+      "certifi": "2026.7.22",
+      "flask-babel": "4.0.0",
+      "rich": "15.0.0",
+      "Werkzeug": "3.1.8",
+      "typer": "0.27.2",
+      "curl_cffi": "0.16.1",
+      "annotated-doc": "0.0.5",
+      "pycparser": "3.0",
+      "mdurl": "0.1.2",
+      "msgspec": "0.21.1",
+      "Flask": "3.1.3",
+      "click": "8.5.0",
+      "cffi": "2.1.1",
+      "typing_extensions": "4.16.0",
+      "whitenoise": "6.12.0",
+      "pytz": "2026.3.post1",
+      "lxml": "6.1.2"
+    }
+  },
+  "build": {
+    "source_base": "https://github.com/searxng/searxng/blob/61d660276f1288e7d512e8d8da46cb8442728454/",
+    "files": [
+      "container/builder.dockerfile",
+      "container/dist.dockerfile",
+      "container/entrypoint.sh",
+      "searx/engines/json_engine.py",
+      "searx/settings_loader.py",
+      "searx/webapp.py",
+      "searx/limiter.py",
+      "searx/valkeydb.py",
+      "LICENSE",
+      "searx/plugins/_core.py",
+      "searx/plugins/tracker_url_remover.py",
+      "searx/settings.yml"
+    ],
+    "rebuilt_locally": false,
+    "upstream_builder_base": "docker.io/searxng/base:searxng-builder",
+    "upstream_runtime_base": "docker.io/searxng/base:searxng",
+    "base_digest_reconstruction": "not verified; selected final runtime image pinned by digest",
+    "license_file_sha256": "57c8ff33c9c0cfc3ef00e650a1cc910d7ee479a8bc509f6c9209a7c2a11399d6"
+  },
+  "configuration": {
+    "path": "dws/docker/searxng/settings.yml",
+    "keys": [
+      "use_default_settings.engines.keep_only",
+      "general.instance_name",
+      "search.formats",
+      "search.autocomplete",
+      "server.limiter",
+      "server.public_instance",
+      "server.image_proxy",
+      "valkey.url",
+      "outgoing.request_timeout",
+      "outgoing.max_request_timeout",
+      "plugins"
+    ],
+    "engines": [
+      "duckduckgo",
+      "wikipedia"
+    ],
+    "environment": [
+      "SEARXNG_SECRET",
+      "GRANIAN_HOST",
+      "GRANIAN_WORKERS",
+      "FORCE_OWNERSHIP"
+    ],
+    "redis_or_valkey_required": false,
+    "redis_note": "Optional for this private limiter-disabled setup. Limiter needs Valkey; public_instance without it exits. redis.url is deprecated in favor of valkey.url.",
+    "plugins_policy": "Explicit mapping retains other pinned default plugins and omits tracker_url_remover. Inactive configured plugins still initialize; plugins mapping replaces defaults.",
+    "effective_plugins": [
+      {
+        "enabled": true,
+        "name": "calculator"
+      },
+      {
+        "enabled": true,
+        "name": "self_info"
+      },
+      {
+        "enabled": true,
+        "name": "time_zone"
+      },
+      {
+        "enabled": false,
+        "name": "tor_check"
+      },
+      {
+        "enabled": false,
+        "name": "infiniteScroll"
+      },
+      {
+        "enabled": true,
+        "name": "unit_converter"
+      },
+      {
+        "enabled": true,
+        "name": "hash_plugin"
+      },
+      {
+        "enabled": false,
+        "name": "oa_doi_rewrite"
+      }
+    ],
+    "effective_plugin_note": "Ten pinned default configurations retained; eight effective. ahmia_filter init returns false without Tor, hostnames init returns false without hostnames settings."
+  },
+  "confinement": {
+    "user": "977:977",
+    "cap_drop": [
+      "ALL"
+    ],
+    "no_new_privileges": true,
+    "read_only_rootfs": true,
+    "published_ports": [],
+    "mounts": [
+      "read-only dedicated SearXNG configuration",
+      "read-only healthcheck.py"
+    ],
+    "tmpfs": {
+      "/tmp": "32MiB",
+      "/var/cache/searxng": "32MiB"
+    },
+    "cpu_limit": 1,
+    "memory_limit_bytes": 536870912,
+    "memory_swap_limit_bytes": 536870912,
+    "pids_limit": 128,
+    "granian_workers": 1,
+    "production_network": "private Docker bridge, outbound public-provider access required; no host ports",
+    "probe_network": "unique DWS-prefixed internal Docker network, no external egress",
+    "persistent_storage_required_for_qualified_search": false
+  },
+  "health": {
+    "command": [
+      "/usr/local/searxng/.venv/bin/python",
+      "/healthcheck.py"
+    ],
+    "assertion": "GET /search?format=json gives HTTP 400 and exactly {error: No query}",
+    "proves": "Loaded HTTP application and enabled JSON error route without upstream search traffic",
+    "does_not_prove": "External engine availability or successful search results"
+  },
+  "api": {
+    "method": "GET /search?q=...&format=json&engines=...",
+    "top_level_keys": [
+      "query",
+      "results",
+      "answers",
+      "corrections",
+      "infoboxes",
+      "suggestions",
+      "unresponsive_engines"
+    ],
+    "result_keys": [
+      "url",
+      "title",
+      "content",
+      "engine",
+      "template",
+      "parsed_url",
+      "img_src",
+      "thumbnail",
+      "priority",
+      "engines",
+      "positions",
+      "score",
+      "category",
+      "publishedDate",
+      "iframe_src"
+    ],
+    "success_example": {
+      "query": "success",
+      "results": [
+        {
+          "url": "https://example.org/dws-fixture",
+          "title": "DWS fixture result",
+          "content": "Synthetic snippet, no fetched page body.",
+          "engine": "dws-fixture",
+          "template": "default.html",
+          "parsed_url": [
+            "https",
+            "example.org",
+            "/dws-fixture",
+            "",
+            "",
+            ""
+          ],
+          "img_src": "",
+          "thumbnail": "",
+          "priority": "",
+          "engines": [
+            "dws-fixture"
+          ],
+          "positions": [
+            1
+          ],
+          "score": 1.0,
+          "category": "general",
+          "publishedDate": null,
+          "iframe_src": null
+        }
+      ],
+      "answers": [],
+      "corrections": [],
+      "infoboxes": [],
+      "suggestions": [],
+      "unresponsive_engines": []
+    },
+    "cases": {
+      "success": {
+        "http_status": 200,
+        "unresponsive_engines": [],
+        "transport_error": null
+      },
+      "empty": {
+        "http_status": 200,
+        "unresponsive_engines": [],
+        "transport_error": null
+      },
+      "malformed": {
+        "http_status": 200,
+        "unresponsive_engines": [
+          [
+            "dws-fixture",
+            "parsing error"
+          ]
+        ],
+        "transport_error": null
+      },
+      "timeout": {
+        "http_status": 200,
+        "unresponsive_engines": [
+          [
+            "dws-fixture",
+            "timeout"
+          ]
+        ],
+        "transport_error": null
+      },
+      "unavailable": {
+        "http_status": 200,
+        "unresponsive_engines": [
+          [
+            "dws-fixture",
+            "HTTP error"
+          ]
+        ],
+        "transport_error": null
+      },
+      "no_query": {
+        "http_status": 400,
+        "unresponsive_engines": null,
+        "transport_error": null
+      },
+      "json_disabled": {
+        "http_status": 403,
+        "unresponsive_engines": null,
+        "transport_error": null
+      },
+      "service_unavailable": {
+        "http_status": null,
+        "unresponsive_engines": null,
+        "transport_error": "[Errno -3] Temporary failure in name resolution"
+      }
+    }
+  },
+  "evidence": {
+    "passed_run": "scratchpad/dws/searxng-image/fix1/run-e3a5be16",
+    "injection_run": "scratchpad/dws/searxng-image/fix1/run-9fc0685b",
+    "fix_round": 1,
+    "corrections_after_initial_fix": 0,
+    "public_queries_sent": 0,
+    "fixture_engine": "Unmodified upstream json_engine, test-only configuration and synthetic HTTP upstream",
+    "startup_control": {
+      "service_tracker": {
+        "plugins": [],
+        "log_markers": []
+      },
+      "nojson_tracker": {
+        "plugins": [],
+        "log_markers": []
+      },
+      "candidate_tracker": {
+        "plugins": [],
+        "log_markers": []
+      },
+      "tracker-control_tracker": {
+        "plugins": [
+          {
+            "enabled": false,
+            "name": "tracker_url_remover"
+          }
+        ],
+        "log_markers": [
+          "TRACKER_PATTERNS",
+          "cdn.jsdelivr.net",
+          "rules1.clearurls.xyz",
+          "rules2.clearurls.xyz"
+        ]
+      }
+    },
+    "exact_failure_reasons_asserted": true,
+    "wrong_category_mutations_rejected": [
+      "malformed",
+      "timeout",
+      "unavailable"
+    ],
+    "stats": [
+      {
+        "BlockIO": "0B / 0B",
+        "CPUPerc": "0.01%",
+        "Container": "dws-searxng-e3a5be16-fixture",
+        "ID": "9c31cf13de85",
+        "MemPerc": "2.54%",
+        "MemUsage": "13.01MiB / 512MiB",
+        "Name": "dws-searxng-e3a5be16-fixture",
+        "NetIO": "39.8kB / 12.3kB",
+        "PIDs": "1"
+      },
+      {
+        "BlockIO": "0B / 0B",
+        "CPUPerc": "0.18%",
+        "Container": "dws-searxng-e3a5be16-service",
+        "ID": "728972d39986",
+        "MemPerc": "15.21%",
+        "MemUsage": "77.9MiB / 512MiB",
+        "Name": "dws-searxng-e3a5be16-service",
+        "NetIO": "2.96kB / 2.96kB",
+        "PIDs": "10"
+      },
+      {
+        "BlockIO": "0B / 0B",
+        "CPUPerc": "0.00%",
+        "Container": "dws-searxng-e3a5be16-nojson",
+        "ID": "bfdc62cf92d2",
+        "MemPerc": "14.85%",
+        "MemUsage": "76.02MiB / 512MiB",
+        "Name": "dws-searxng-e3a5be16-nojson",
+        "NetIO": "3.12kB / 6.07kB",
+        "PIDs": "8"
+      },
+      {
+        "BlockIO": "0B / 0B",
+        "CPUPerc": "0.00%",
+        "Container": "dws-searxng-e3a5be16-candidate",
+        "ID": "760a5200c6dc",
+        "MemPerc": "14.86%",
+        "MemUsage": "76.07MiB / 512MiB",
+        "Name": "dws-searxng-e3a5be16-candidate",
+        "NetIO": "2.57kB / 6.86kB",
+        "PIDs": "8"
+      },
+      {
+        "BlockIO": "0B / 0B",
+        "CPUPerc": "0.00%",
+        "Container": "dws-searxng-e3a5be16-tracker-control",
+        "ID": "c025a016e62a",
+        "MemPerc": "14.93%",
+        "MemUsage": "76.43MiB / 512MiB",
+        "Name": "dws-searxng-e3a5be16-tracker-control",
+        "NetIO": "2.3kB / 6.84kB",
+        "PIDs": "8"
+      }
+    ],
+    "normal_finalization": {
+      "outcome": "PASS",
+      "evidence": "scratchpad/dws/searxng-image/fix1/run-e3a5be16",
+      "owned_containers": [
+        "dws-searxng-e3a5be16-fixture",
+        "dws-searxng-e3a5be16-service",
+        "dws-searxng-e3a5be16-nojson",
+        "dws-searxng-e3a5be16-candidate",
+        "dws-searxng-e3a5be16-tracker-control"
+      ],
+      "owned_network": "dws-searxng-e3a5be16",
+      "cleanup_attempts": [
+        [
+          "rm",
+          "--force",
+          "--volumes",
+          "dws-searxng-e3a5be16-tracker-control"
+        ],
+        [
+          "rm",
+          "--force",
+          "--volumes",
+          "dws-searxng-e3a5be16-candidate"
+        ],
+        [
+          "rm",
+          "--force",
+          "--volumes",
+          "dws-searxng-e3a5be16-nojson"
+        ],
+        [
+          "rm",
+          "--force",
+          "--volumes",
+          "dws-searxng-e3a5be16-service"
+        ],
+        [
+          "rm",
+          "--force",
+          "--volumes",
+          "dws-searxng-e3a5be16-fixture"
+        ],
+        [
+          "network",
+          "rm",
+          "dws-searxng-e3a5be16"
+        ]
+      ],
+      "primary_error": null,
+      "finalization_errors": []
+    },
+    "injection_finalization": {
+      "outcome": "FAIL",
+      "evidence": "scratchpad/dws/searxng-image/fix1/run-9fc0685b",
+      "owned_containers": [
+        "dws-searxng-9fc0685b-fixture",
+        "dws-searxng-9fc0685b-service",
+        "dws-searxng-9fc0685b-nojson",
+        "dws-searxng-9fc0685b-candidate",
+        "dws-searxng-9fc0685b-tracker-control"
+      ],
+      "owned_network": "dws-searxng-9fc0685b",
+      "cleanup_attempts": [
+        [
+          "rm",
+          "--force",
+          "--volumes",
+          "dws-searxng-9fc0685b-tracker-control"
+        ],
+        [
+          "rm",
+          "--force",
+          "--volumes",
+          "dws-searxng-9fc0685b-candidate"
+        ],
+        [
+          "rm",
+          "--force",
+          "--volumes",
+          "dws-searxng-9fc0685b-nojson"
+        ],
+        [
+          "rm",
+          "--force",
+          "--volumes",
+          "dws-searxng-9fc0685b-service"
+        ],
+        [
+          "rm",
+          "--force",
+          "--volumes",
+          "dws-searxng-9fc0685b-fixture"
+        ],
+        [
+          "network",
+          "rm",
+          "dws-searxng-9fc0685b"
+        ]
+      ],
+      "primary_error": "RuntimeError('INJECTED primary operation error after real API checks')",
+      "finalization_errors": [
+        "RuntimeError('INJECTED log collection failure')",
+        "RuntimeError('INJECTED removal acknowledgement failure')"
+      ]
+    },
+    "injection_expected_exit_code": 1,
+    "injection_note": "After full real API checks, inject primary error, first log collection failure, and a removal acknowledgement failure after successful first removal. All exact cleanup commands still execute; all three errors retained in ExceptionGroup. This does not simulate an unavailable Docker daemon.",
+    "cleanup_proof": "scratchpad/dws/searxng-image/fix1/cleanup-proof.json",
+    "cleanup_verified": "Exact-name Docker inspect returned absent for all 10 containers and both networks; no persistent volumes created."
+  },
+  "file_sha256": {
+    "dws/docker/searxng/settings.yml": "1c553a032b4853ca485c362137380516cf225d837b68faa5e868460ddddd7c3d",
+    "dws/docker/searxng/healthcheck.py": "2b0ea11fce22b68629444459dfe3496351947ee9c1b7cea9342f64647e603d4e",
+    "dws/docker/searxng/service.yaml": "ac73bcb747d997a1f24d7a08a6172844f80ee9a32cd53c8b33d099b221d178d7",
+    "dws/tests/qualification/image_searxng_probe.py": "dec7c276293f8acd5dd44b14a0ec792f1507dd892f090ad9ab6f528a495e3c8b"
+  },
+  "limitations": [
+    "No live public-provider availability or quality proven.",
+    "Only linux/amd64 qualified.",
+    "No signature/provenance verification, complete transitive license audit, or vulnerability scan; P1 .5 distribution review remains.",
+    "Upstream Dockerfiles use mutable base tags; digest pin preserves this selected binary but does not establish reproducible upstream builds.",
+    "Health is local API capability, not successful external discovery.",
+    "512MiB/1CPU limits passed tiny fixture workload, not load qualification.",
+    "No application adapter, fallback/filter, browser security, or full Compose deployment claim.",
+    "Fresh Sol high re-review and coordinator acceptance pending. No stage completion claimed."
+  ],
+  "historical_superseded_evidence": {
+    "evidence": {
+      "passed_run": "scratchpad/dws/searxng-image/run-7a9343ad",
+      "initial_failed_run": "scratchpad/dws/searxng-image/run-9b357658",
+      "recoveries_used": 1,
+      "recovery_reason": "Official engine loader rejects underscores; change fixture name dws_fixture to dws-fixture and enable fixture HTTP explicitly. No engine source replaced.",
+      "public_queries_sent": 0,
+      "fixture_engine": "Unmodified upstream json_engine, test-only configuration and synthetic HTTP upstream",
+      "stats": [
+        {
+          "BlockIO": "0B / 0B",
+          "CPUPerc": "0.01%",
+          "Container": "dws-searxng-7a9343ad-fixture",
+          "ID": "2b7aa42e7e77",
+          "MemPerc": "2.49%",
+          "MemUsage": "12.75MiB / 512MiB",
+          "Name": "dws-searxng-7a9343ad-fixture",
+          "NetIO": "33.1kB / 11.2kB",
+          "PIDs": "1"
+        },
+        {
+          "BlockIO": "0B / 0B",
+          "CPUPerc": "0.15%",
+          "Container": "dws-searxng-7a9343ad-service",
+          "ID": "d52b48d67a01",
+          "MemPerc": "15.24%",
+          "MemUsage": "78.04MiB / 512MiB",
+          "Name": "dws-searxng-7a9343ad-service",
+          "NetIO": "2.87kB / 2.96kB",
+          "PIDs": "10"
+        },
+        {
+          "BlockIO": "0B / 0B",
+          "CPUPerc": "0.00%",
+          "Container": "dws-searxng-7a9343ad-nojson",
+          "ID": "5b305059a65a",
+          "MemPerc": "14.92%",
+          "MemUsage": "76.37MiB / 512MiB",
+          "Name": "dws-searxng-7a9343ad-nojson",
+          "NetIO": "3.06kB / 6.18kB",
+          "PIDs": "8"
+        },
+        {
+          "BlockIO": "0B / 0B",
+          "CPUPerc": "0.00%",
+          "Container": "dws-searxng-7a9343ad-candidate",
+          "ID": "27db3e43625a",
+          "MemPerc": "14.92%",
+          "MemUsage": "76.4MiB / 512MiB",
+          "Name": "dws-searxng-7a9343ad-candidate",
+          "NetIO": "2.33kB / 6.84kB",
+          "PIDs": "8"
+        }
+      ],
+      "cleanup": "Owned run containers and networks removed; label-filtered listing empty; no persistent probe volumes"
+    },
+    "limitations": [
+      "No live public-provider availability or quality proven.",
+      "Only linux/amd64 qualified.",
+      "Default tracker-pattern loader attempted public ClearURLs downloads; blocked on internal test network, service stayed usable.",
+      "No signature/provenance verification, complete transitive license audit, or vulnerability scan; P1 .5 distribution review remains.",
+      "Upstream Dockerfiles use mutable base tags; digest pin preserves this selected binary but does not establish reproducible upstream builds.",
+      "Health is local API capability, not successful external discovery.",
+      "512MiB/1CPU limits passed tiny fixture workload, not load qualification.",
+      "No application adapter, fallback/filter, browser security, or full Compose deployment claim."
+    ],
+    "file_sha256": {
+      "dws/docker/searxng/settings.yml": "587951019e2112fd536034161e4cc4a4aab46c45ab3207d6e13327472ccd0015",
+      "dws/docker/searxng/healthcheck.py": "2b0ea11fce22b68629444459dfe3496351947ee9c1b7cea9342f64647e603d4e",
+      "dws/docker/searxng/service.yaml": "ac73bcb747d997a1f24d7a08a6172844f80ee9a32cd53c8b33d099b221d178d7",
+      "dws/tests/qualification/image_searxng_probe.py": "c4bc18d646981b6cb7dfc92f94deadeb9b20e6a5e5dc2ee0ae9b602d03ff87bc"
+    },
+    "snapshot_directory": "scratchpad/dws/searxng-image/fix1",
+    "manifest_snapshot": "pre-fix1-searxng-image-manifest.json",
+    "report_snapshot": "pre-fix1-searxng-image-qualification.md",
+    "note": "Original run directories and review evidence unchanged. Prior PASS did not enforce exact categories or guarantee cleanup, and retained mutable tracker startup downloads."
+  }
+}
