@@ -223,6 +223,8 @@ def test_live_role_edit_applies_at_selected_mint(
     assert metadata.session_fresh_reason is (
         SessionFreshReason.MODEL_CHANGED if apply == "now" else None
     )
+    if apply == "next-task":
+        assert metadata.binding_digest == closed.metadata.binding_digest
 
 
 def test_next_task_edit_keeps_role_pin_on_edge_round(

@@ -75,6 +75,8 @@ from workflow_interpreter.bdio import (
     WorkflowStore,
 )
 from workflow_interpreter.bdio.constants import DEVIATION_INSTANCE_BRANCH_DIVERGED
+from workflow_interpreter.bdio.errors import StoreError
+from workflow_interpreter.contracts.sessions import SessionMode
 from workflow_interpreter.contracts.transport import CrewTransport
 from workflow_interpreter.inspector import procfs
 from workflow_interpreter.inspector.branch import BranchAdvanceOutcome
@@ -146,6 +148,9 @@ _HALT_DEATH_UNCONFIRMED: Final[str] = (
 _HALT_ORPHAN_PIN: Final[str] = (
     "the ahead commit could neither be pinned nor ruled out; closing would "
     "authorize a reset that leaves it unreachable (§5.6)"
+)
+_HALT_RESUME_TREE: Final[str] = (
+    "crashed resumed writer recovery tree could not be proved and published"
 )
 _NOTE_QUARANTINED: Final[str] = (
     "the ahead commit {commit} could not be attributed to this activation and "
@@ -407,7 +412,7 @@ class Recovery:
                 reason=ExitReason.EXIT_UNOBSERVED.value,
             ),
         )
-        self._workspace.preserve_interrupted(activation, node)
+        preserved = self._workspace.preserve_interrupted(activation, node)
         pin = self._pin_orphan(activation, node)
         if not pin.settled:
             # §5.6 pins the ahead commit FIRST for a reason: the close is what
@@ -419,6 +424,30 @@ class Recovery:
                 pin=pin,
                 halted=_HALT_ORPHAN_PIN,
             )
+        if (
+            node.writes
+            and activation.metadata.session_mode is SessionMode.RESUME
+            and activation.metadata.source_session_id is not None
+            and (preserved is None or preserved.unavailable is None)
+        ):
+            try:
+                tree = (
+                    preserved.tree
+                    if preserved is not None
+                    and preserved.tree is not None
+                    and self._workspace.has_dirty_paths(node)
+                    else self._workspace.resumable_tree_oid(activation, node)
+                )
+                activation = self._store.record_session_tree(
+                    activation.activation_id, tree
+                )
+            except (InspectorError, StoreError, OSError):
+                return RecoveryResolution(
+                    classification=classification,
+                    termination=termination,
+                    pin=pin,
+                    halted=_HALT_RESUME_TREE,
+                )
         closed = self._close_unobserved(activation, pin)
         _LOG.warning(
             "wf.recovery.exit_unobserved",

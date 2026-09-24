@@ -6,6 +6,7 @@ from typing import Final
 import structlog
 from pydantic import BaseModel, ConfigDict
 
+from workflow_interpreter.bdio.bounds import INFRA_OUTCOMES
 from workflow_interpreter.bdio.errors import CarrierIntegrityError
 from workflow_interpreter.bdio.records import ActivationRecord, RootRecord
 from workflow_interpreter.bdio.rpc_records import SessionCompletion, SessionRegistration
@@ -30,6 +31,7 @@ from workflow_interpreter.schema.models import Outcome
 
 _LOG = structlog.get_logger(__name__)
 MSG_VERSION_FRESH: Final[str] = "wf.session.fresh.version_mismatch"
+MSG_CRASH_SOURCE: Final[str] = "crashed resumed writer source is unproved"
 RESUMABLE_SESSION_OUTCOMES: Final[frozenset[Outcome]] = frozenset(
     {
         Outcome.DONE,
@@ -87,6 +89,13 @@ def choose_source(
         raise CarrierIntegrityError(MSG_SESSION_SOURCE)
     policy_digest = activation_policy_digest(request.execution_policy)
     crew_profile = request.crew_profile.removeprefix("profile:")
+    crashed = (
+        None if appserver else _crashed_resumed_predecessor(root, request, activations)
+    )
+    if crashed is not None and not (
+        continuation and crashed.metadata.session_tree_oid is None
+    ):
+        return _choose_crashed_source(crashed, request, activations, policy_digest)
     # The first explanation in scan order (newest candidate first) is the one
     # the record keeps: a fresh launch on a RESUME node must say WHY, and the
     # most recent near-miss is the answer an operator is looking for.
@@ -201,6 +210,105 @@ def choose_source(
     if continuation:
         raise CarrierIntegrityError(MSG_SESSION_SOURCE)
     return SessionChoice(fresh_reason=rejected or SessionFreshReason.NO_SOURCE)
+
+
+def _crashed_resumed_predecessor(
+    root: RootRecord, request: MintRequest, activations: Sequence[ActivationRecord]
+) -> ActivationRecord | None:
+    """Find only the immediately failed resumed turn of this infra retry."""
+    if request.mint_reason is not MintReason.INFRA_RETRY:
+        return None
+    return next(
+        (
+            item
+            for item in activations
+            if item.activation_id == request.predecessor_activation_id
+            and item.metadata.wf_root_id == root.root_id
+            and item.metadata.node == request.node
+            and item.metadata.is_completed
+            and item.metadata.outcome in INFRA_OUTCOMES
+            and item.metadata.session_mode is SessionMode.RESUME
+            and item.metadata.source_session_id is not None
+            and not is_legacy_activation(item.metadata)
+            and item.metadata.execution_policy is not None
+            and item.metadata.execution_policy.writes
+        ),
+        None,
+    )
+
+
+def _choose_crashed_source(
+    crashed: ActivationRecord,
+    request: MintRequest,
+    activations: Sequence[ActivationRecord],
+    policy_digest: str,
+) -> SessionChoice:
+    """Use the failed turn's own proof, never an older successful near-match."""
+    meta = crashed.metadata
+    if meta.binding_digest != activation_binding_digest(
+        meta
+    ) or meta.policy_digest != activation_policy_digest(meta.execution_policy):
+        raise CarrierIntegrityError(MSG_CRASH_SOURCE)
+    if (
+        meta.crew_profile != request.crew_profile
+        or meta.model != request.model
+        or meta.effort != request.effort
+        or meta.policy_digest != policy_digest
+    ):
+        return SessionChoice(fresh_reason=SessionFreshReason.MODEL_CHANGED)
+    if meta.session_tree_oid is None:
+        raise CarrierIntegrityError(MSG_CRASH_SOURCE)
+    registration = meta.session_registration
+    if registration is None:
+        registration = next(
+            (
+                item.metadata.session_registration
+                for item in activations
+                if item.activation_id == meta.session_source_activation_id
+            ),
+            None,
+        )
+        if (
+            meta.expected_tree_oid is None
+            or meta.session_tree_oid != meta.expected_tree_oid
+            or registration is None
+            or registration.thread_id != meta.source_session_id
+        ):
+            raise CarrierIntegrityError(MSG_CRASH_SOURCE)
+    if (
+        registration.root_id != meta.wf_root_id
+        or registration.activation_id
+        != (
+            crashed.activation_id
+            if meta.session_registration is not None
+            else meta.session_source_activation_id
+        )
+        or registration.model != request.model
+        or registration.effort != request.effort
+        or registration.policy_digest != policy_digest
+        or registration.crew_profile is None
+        or registration.crew_profile.removeprefix("profile:")
+        != request.crew_profile.removeprefix("profile:")
+        or registration.thread_id != meta.source_session_id
+    ):
+        raise CarrierIntegrityError(MSG_CRASH_SOURCE)
+    if (
+        request.crew_profile.removeprefix("profile:") in _VERSIONED_CREWS
+        and registration.crew_version is None
+    ):
+        return SessionChoice(fresh_reason=SessionFreshReason.UNQUALIFIED_SOURCE)
+    if (
+        registration.crew_version is not None
+        and request.crew_version is not None
+        and registration.crew_version != request.crew_version
+    ):
+        return SessionChoice(fresh_reason=SessionFreshReason.VERSION_DRIFT)
+    return SessionChoice(
+        source=registration,
+        source_activation_id=crashed.activation_id,
+        source_session_id=registration.thread_id,
+        source_tree_oid=meta.session_tree_oid,
+    )
 
 
 def _source_outcome_eligible(

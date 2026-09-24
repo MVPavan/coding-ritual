@@ -78,6 +78,7 @@ from workflow_interpreter.bdio import (
     StoreError,
     WorkflowStore,
 )
+from workflow_interpreter.bdio.bounds import INFRA_OUTCOMES
 from workflow_interpreter.bdio.preflight import steer_ancestor_of
 from workflow_interpreter.contracts.execution import (
     MSG_NAMED_SANDBOX,
@@ -472,18 +473,44 @@ class Dispatcher:
         # that used to fall through to a silent fresh launch.
         if request.session_mode is SessionMode.RESUME and selected:
             registration = None
+            registered_source_id = source_id
             if source_id is not None:
                 try:
-                    registration = self._store.reads.load_activation(
-                        source_id
-                    ).metadata.session_registration
+                    source = self._store.reads.load_activation(source_id)
+                    registration = source.metadata.session_registration
+                    # S6: the failed turn can be the selected tree producer
+                    # even when it died before emitting its vendor identity.
+                    # Its pinned source is usable only if recovery proved that
+                    # the failed turn left the source's exact original tree.
+                    if (
+                        registration is None
+                        and request.mint_reason is MintReason.INFRA_RETRY
+                        and source_id == request.predecessor_activation_id
+                        and source.metadata.is_completed
+                        and source.metadata.wf_root_id == activation.metadata.wf_root_id
+                        and source.metadata.outcome in INFRA_OUTCOMES
+                        and source.metadata.session_mode is SessionMode.RESUME
+                        and source.metadata.expected_tree_oid is not None
+                        and source.metadata.session_tree_oid
+                        == source.metadata.expected_tree_oid
+                        == activation.metadata.expected_tree_oid
+                        and source.metadata.source_session_id
+                        == request.source_session_id
+                    ):
+                        registered_source_id = (
+                            source.metadata.session_source_activation_id
+                        )
+                        if registered_source_id is not None:
+                            registration = self._store.reads.load_activation(
+                                registered_source_id
+                            ).metadata.session_registration
                 except StoreError:
                     registration = None
             if (
                 source_id is None
                 or request.source_session_id is None
                 or registration is None
-                or registration.activation_id != source_id
+                or registration.activation_id != registered_source_id
                 or registration.thread_id != request.source_session_id
             ):
                 raise ContinuationRefused(
