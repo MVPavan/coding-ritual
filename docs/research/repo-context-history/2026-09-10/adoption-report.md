@@ -1,5 +1,9 @@
 # Adoption Report
 
+Historical snapshot; not current operating instructions. Repository layout,
+tool availability, and verification have changed since adoption. Use `AGENTS.md`
+and the current project index for guidance.
+
 Harness adopted into **coding-ritual** via `/mvp-plugin:adopt`. Date: 2026-06-25.
 
 ## What this repo is

@@ -1,6 +1,9 @@
 # Code Intelligence (code-intel plugin)
 
-**Recommendation: not needed for this repo.** Report-only.
+**Historical assessment from the adoption-era repository.** Its size and
+language assumptions below predate `workflow_interpreter/` and `tests/`; they
+do not establish a current recommendation or index state. Consult this only
+when reassessing code-intelligence tooling, using current repository evidence.
 
 - **Size / shape:** ~148 tracked files (excluding submodules), overwhelmingly
   Markdown (~267 incl. submodule-adjacent) and Bash, with only scattered Python
