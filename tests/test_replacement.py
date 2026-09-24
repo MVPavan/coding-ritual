@@ -236,10 +236,12 @@ def test_concurrent_successor_requests_converge_same_reservation(
     assert len(lab.store.coordination_store().state(owner.root_id).reservations) == 2
 
 
-def test_trusted_model_change_pins_new_config_without_changing_predecessor(
+def test_trusted_model_change_keeps_static_config_and_changes_future_binding(
     tmp_path: Path,
 ) -> None:
     from dataclasses import replace
+
+    from workflow_interpreter.foreman.cases import startup_invocation
 
     lab, owner, composition, _ = writer_lab(tmp_path)
     old = owner.metadata.model_dump_json()
@@ -263,8 +265,10 @@ def test_trusted_model_change_pins_new_config_without_changing_predecessor(
     receipt = replace_checked(changed, owner.root_id, "work", 0, request)
     successor = lab.store.reads.load_root(receipt.root_id)
     assert replace_checked(composition, owner.root_id, "work", 0, request) == receipt
-    assert successor.metadata.config_signature != owner.metadata.config_signature
+    assert successor.metadata.config_signature == owner.metadata.config_signature
     assert successor.definition.content_hash == owner.definition.content_hash
+    assert startup_invocation(changed, successor, "work").model == "different-model"
+    assert startup_invocation(composition, owner, "work").model != "different-model"
     assert (
         lab.store.reads.load_root(owner.root_id).metadata.resolved_config
         == owner.metadata.resolved_config

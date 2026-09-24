@@ -33,9 +33,20 @@ from workflow_interpreter.bdio import (
     bounds,
     mint,
 )
+from workflow_interpreter.bdio.rpc_records import SessionRegistration
+from workflow_interpreter.contracts.execution import CrewName
+from workflow_interpreter.contracts.sessions import SessionFreshReason, SessionMode
 from workflow_interpreter.foreman import __main__ as main_module
+from workflow_interpreter.foreman.config import CrewBinding
 from workflow_interpreter.foreman.constants import MAX_TRANSCRIPT_BYTES
 from workflow_interpreter.foreman.execution import resolved_node
+from workflow_interpreter.foreman.model_catalog import (
+    CatalogModel,
+    CatalogProvenance,
+    CatalogSnapshot,
+    FamilySnapshot,
+    VerificationStatus,
+)
 from workflow_interpreter.foreman.tick import Foreman
 from workflow_interpreter.inspector.clock import to_iso
 from workflow_interpreter.inspector.errors import ContinuationRefused
@@ -166,7 +177,9 @@ def test_steer_preserves_session_round_and_its_bounded_tail(
     # rightly proves no tree for its continuation to resume against.
     choose_precondition(
         lab.wiring().workspace,
-        resolved_node(root, activation.metadata.node).node,
+        resolved_node(
+            root, activation.metadata.node, activation=activation.metadata
+        ).node,
         None,
         None,
     )(activation)
@@ -308,6 +321,211 @@ def test_tick_finishes_a_steer_crashed_after_its_close(
 
     assert repaired.settled == activation.activation_id
     assert lab.tick().dispatched == continuation.activation_id
+
+
+@pytest.mark.parametrize("version", ["before-v1", None])
+def test_steer_keeps_predecessor_binding_after_role_edit(
+    tmp_path: Path, version: str | None
+) -> None:
+    """A continuation carries the predecessor's invocation across a role edit."""
+    lab = ForemanLab(
+        tmp_path,
+        roles={
+            "implementer": CrewBinding(
+                profile="fake", model="before-model", effort="low"
+            ),
+            "critic": CrewBinding(profile="fake", model="fake", effort="medium"),
+            "scribe": CrewBinding(profile="fake", model="fake", effort="medium"),
+        },
+    )
+    root = lab.instantiate()
+    predecessor = (
+        lab.wiring()
+        .store.mint_activation(
+            root.root_id,
+            entry_request(model="before-model", effort="low", crew_version=version),
+        )
+        .activation
+    )
+    predecessor = lab.wiring().store.record_dispatch(
+        predecessor.activation_id, handle(), launch_id=LAB_LAUNCH_ID
+    )
+    lab.go_stale(predecessor.activation_id)
+
+    edited = {
+        **lab.config.roles,
+        "implementer": CrewBinding(
+            profile="changed", model="after-model", effort="high"
+        ),
+    }
+    lab.config = lab.config.model_copy(update={"roles": edited})
+    role_path = tmp_path / "roles.toml"
+    role_path.write_text("[roles.implementer\n", encoding="utf-8")
+    lab.config = lab.config.model_copy(update={"role_bindings_path": role_path})
+    lab.composition = replace(lab.composition, config=lab.config)
+    lab.foreman = Foreman(lab.composition)
+
+    report = lab.steer(
+        predecessor.activation_id, reason="stale", instructions="continue the work"
+    )
+    continuation = lab.store.reads.load_activation(report.continuation)
+    before = predecessor.metadata
+    after = continuation.metadata
+    assert (after.crew_profile, after.model, after.effort, after.crew_version) == (
+        before.crew_profile,
+        before.model,
+        before.effort,
+        before.crew_version,
+    )
+
+
+def test_steer_apply_now_mints_fresh_from_the_edited_binding(tmp_path: Path) -> None:
+    """An immediate edit is used after the running predecessor is stopped."""
+    lab = ForemanLab(tmp_path)
+    root = lab.instantiate()
+    predecessor = (
+        lab.wiring().store.mint_activation(root.root_id, entry_request()).activation
+    )
+    predecessor = lab.wiring().store.record_dispatch(
+        predecessor.activation_id, handle(), launch_id=LAB_LAUNCH_ID
+    )
+    lab.go_stale(predecessor.activation_id)
+    role_path = tmp_path / "roles.toml"
+    role_path.write_text(
+        '[roles.implementer]\nmodel = "after-model"\neffort = "high"\napply = "now"\n',
+        encoding="utf-8",
+    )
+    catalog = CatalogSnapshot(
+        generated_at="2026-09-23T00:00:00Z",
+        digest="steer-test",
+        families={
+            CrewName.CODEX: FamilySnapshot(
+                source="bundled-cli",
+                available=True,
+                models=(
+                    CatalogModel(
+                        id="after-model", efforts=("high",), context_window=200000
+                    ),
+                ),
+            )
+        },
+    )
+    lab.config = lab.config.model_copy(update={"role_bindings_path": role_path})
+    lab.composition = replace(
+        lab.composition,
+        config=lab.config,
+        catalog=catalog,
+        catalog_provenance=CatalogProvenance.REFRESHED,
+    )
+    lab.foreman = Foreman(lab.composition)
+
+    report = lab.steer(predecessor.activation_id, reason="stale", instructions="go")
+
+    after = lab.store.reads.load_activation(report.continuation).metadata
+    assert after.model == "after-model"
+    assert after.crew_profile == "codex"
+    assert after.session_fresh_reason is SessionFreshReason.MODEL_CHANGED
+    role_path.write_text("[roles.implementer\n", encoding="utf-8")
+    lab.foreman = Foreman(lab.composition)
+    replay = lab.steer(predecessor.activation_id, reason="stale", instructions="go")
+    assert replay.continuation == report.continuation
+    assert (
+        lab.store.reads.load_activation(replay.continuation).metadata.model
+        == "after-model"
+    )
+
+
+def test_steer_apply_now_ignores_default_only_edits_until_next_task(
+    tmp_path: Path,
+) -> None:
+    """A new resume/cap default cannot detach the current task's thread."""
+    lab = ForemanLab(tmp_path)
+    root = lab.instantiate()
+    predecessor = (
+        lab.wiring()
+        .store.mint_activation(
+            root.root_id,
+            entry_request(
+                crew_profile="claude",
+                model="claude-a",
+                effort="medium",
+                session_mode=SessionMode.FRESH,
+            ),
+        )
+        .activation
+    )
+    choose_precondition(
+        lab.wiring().workspace,
+        resolved_node(
+            root, predecessor.metadata.node, activation=predecessor.metadata
+        ).node,
+        None,
+        None,
+    )(predecessor)
+    predecessor = lab.store.record_dispatch(
+        predecessor.activation_id, handle(), launch_id=LAB_LAUNCH_ID
+    )
+    meta = predecessor.metadata
+    assert meta.handle is not None and meta.launch_id is not None
+    assert meta.effort is not None and meta.policy_digest is not None
+    predecessor = lab.store.register_session(
+        predecessor.activation_id,
+        SessionRegistration(
+            root_id=root.root_id,
+            activation_id=predecessor.activation_id,
+            launch_id=meta.launch_id,
+            handle=meta.handle,
+            thread_id=meta.session_id,
+            crew_profile=meta.crew_profile,
+            crew_version="test-cli",
+            model=meta.model,
+            effort=meta.effort,
+            policy_digest=meta.policy_digest,
+            state_path="",
+        ),
+    )
+    lab.go_stale(predecessor.activation_id)
+    role_path = tmp_path / "roles.toml"
+    role_path.write_text(
+        '[roles.implementer]\nmodel = "claude-a"\neffort = "medium"\napply = "now"\n',
+        encoding="utf-8",
+    )
+    catalog = CatalogSnapshot(
+        generated_at="2026-09-23T00:00:00Z",
+        digest="steer-defaults",
+        families={
+            CrewName.CLAUDE: FamilySnapshot(
+                source="checked-seed-and-probe",
+                available=True,
+                models=(
+                    CatalogModel(
+                        id="claude-a",
+                        efforts=("medium",),
+                        context_window=1_000_000,
+                        verification=VerificationStatus.PROBE_OK,
+                    ),
+                ),
+            )
+        },
+    )
+    lab.profiles.accepted = lab.profiles.accepted | {"claude"}
+    lab.config = lab.config.model_copy(update={"role_bindings_path": role_path})
+    lab.composition = replace(
+        lab.composition,
+        config=lab.config,
+        catalog=catalog,
+        catalog_provenance=CatalogProvenance.REFRESHED,
+    )
+    lab.foreman = Foreman(lab.composition)
+
+    report = lab.steer(predecessor.activation_id, reason="stale", instructions="go")
+
+    after = lab.store.reads.load_activation(report.continuation).metadata
+    assert after.model == "claude-a"
+    assert after.session_fresh_reason is None
+    assert after.session_mode is SessionMode.RESUME
+    assert after.context_cap_tokens is None
+    assert after.source_session_id == predecessor.metadata.session_id
 
 
 def test_steer_refuses_a_sessionless_continuation_before_the_intent(

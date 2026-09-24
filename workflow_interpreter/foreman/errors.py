@@ -10,6 +10,16 @@ class ResolutionError(ValueError):
     """A caller supplied a setting that has no declared configuration home."""
 
 
+class LiveProbeRequired(ResolutionError):
+    """A new Claude binding needs admission outside the instance band."""
+
+    def __init__(self, role: str, model: str, effort: str) -> None:
+        super().__init__(f"role {role!r}: Claude model {model!r} needs admission")
+        self.role = role
+        self.model = model
+        self.effort = effort
+
+
 class UnresolvedCrewError(ResolutionError):
     """A root pins a role-bound node without the resolution of its crew."""
 

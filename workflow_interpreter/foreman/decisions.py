@@ -22,7 +22,7 @@ from workflow_interpreter.foreman.compose import (
     instance_head,
 )
 from workflow_interpreter.foreman.envelope import InputsUnavailable
-from workflow_interpreter.foreman.execution import resolved_node
+from workflow_interpreter.foreman.execution import resolved_static_node
 from workflow_interpreter.foreman.routing import route
 from workflow_interpreter.inspector.errors import GitCommandError, LockUnavailable
 from workflow_interpreter.inspector.gitcmd import GitSubcommand
@@ -75,7 +75,7 @@ def queue_boundary(
     route_digest: str = "",
 ) -> bool:
     """Called with member band held; no owner writes or locks here."""
-    policy = resolved_node(root, source.metadata.node).node.decision
+    policy = resolved_static_node(root, source.metadata.node).decision
     if policy is None or kind not in policy.triggers:
         return False
     link = root.metadata.coordination

@@ -31,7 +31,7 @@ from workflow_interpreter.foreman.constants import (
     EFFECTS_NODE,
     HALT_INDETERMINATE,
 )
-from workflow_interpreter.foreman.execution import resolved_node
+from workflow_interpreter.foreman.execution import resolved_static_node
 from workflow_interpreter.foreman.finalize import bound_violated, decide
 from workflow_interpreter.foreman.gates import effects_gate, halt_gate
 from workflow_interpreter.inspector import (
@@ -580,7 +580,7 @@ def reviewed_tree_oid(
     the worktree left its bytes somewhere else — and only where that writer
     published a session tree. `None` leaves the observation record-only.
     """
-    node = resolved_node(root, activation.metadata.node).node
+    node = resolved_static_node(root, activation.metadata.node)
     # R1: a frozen app-server reviewer keeps its pre-epic launch unchanged.
     if node.writes or _is_appserver(activation):
         return None
@@ -592,7 +592,7 @@ def reviewed_tree_oid(
         if predecessor_id is None:
             return None
         predecessor = wiring.store.reads.load_activation(predecessor_id)
-        writer = resolved_node(root, predecessor.metadata.node).node
+        writer = resolved_static_node(root, predecessor.metadata.node)
         if not writer.writes:
             continue
         same_checkout = (writer.isolation is IsolationMode.IN_REPO) == (

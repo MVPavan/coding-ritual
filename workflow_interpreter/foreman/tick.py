@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import fcntl
+import hashlib
 import shutil
 from collections.abc import Iterable
 from pathlib import Path
@@ -30,20 +32,23 @@ from workflow_interpreter.bdio.reads import activations_of, gates_of, next_seq
 from workflow_interpreter.bdio.records import RowRecord
 from workflow_interpreter.bdio.rows import STATUS_CLOSED
 from workflow_interpreter.bdio.rpc_records import ControlRegistration
+from workflow_interpreter.contracts.execution import CrewName
+from workflow_interpreter.contracts.sessions import SessionFreshReason
 from workflow_interpreter.foreman.audit import audit
 from workflow_interpreter.foreman.cases import (
     advance_lifecycle,
     halt_dead_end,
     intake_all,
     mint_entry,
-    probed_crew_version,
     route_head,
+    startup_invocation,
 )
 from workflow_interpreter.foreman.compose import (
     Composition,
     InstanceBranchMissing,
     InstanceWiring,
 )
+from workflow_interpreter.foreman.config import BindingApply
 from workflow_interpreter.foreman.constants import (
     HALT_AUDIT,
     HALT_INDETERMINATE,
@@ -53,13 +58,19 @@ from workflow_interpreter.foreman.constants import (
     TERMINAL_SKIP_AMBIGUOUS_ABANDON,
     TERMINAL_SKIP_NOT_A_TERMINAL,
 )
+from workflow_interpreter.foreman.errors import (
+    LiveProbeRequired,
+    ResolutionError,
+    UnusableResolutionError,
+)
 from workflow_interpreter.foreman.events import EventIntent, backfill, expected_intents
-from workflow_interpreter.foreman.execution import resolved_node
-from workflow_interpreter.foreman.frontier import build_frontier
+from workflow_interpreter.foreman.execution import resolved_node, resolved_static_node
+from workflow_interpreter.foreman.frontier import DeadEndKind, build_frontier
 from workflow_interpreter.foreman.gates import ensure_inbox, halt_gate
 from workflow_interpreter.foreman.heartbeat import DriverObserver
 from workflow_interpreter.foreman.identifiers import validate_bead_id
 from workflow_interpreter.foreman.inputs import InputsUnavailable
+from workflow_interpreter.foreman.model_catalog import ModelCatalog, load_snapshot
 from workflow_interpreter.foreman.monitor import require_monitor
 from workflow_interpreter.foreman.observation import ObservationStatus
 from workflow_interpreter.foreman.owner import ensure_owner
@@ -331,6 +342,46 @@ class Foreman:
     def __init__(self, composition: Composition) -> None:
         self._composition = composition
 
+    def _probe_live(self, probe: LiveProbeRequired) -> None:
+        """Admit a new Claude seed choice while no instance band is held."""
+        catalog = ModelCatalog(
+            self._composition.config.profiles.binary_for(CrewName.CODEX),
+            self._composition.config.profiles.binary_for(CrewName.CLAUDE),
+            self._composition.catalog_runner,
+            host_env=self._composition.host_env,
+        )
+        snapshot = self._composition.active_catalog
+        if snapshot is None:
+            raise ResolutionError(
+                f"role {probe.role!r}: qualified model catalog unavailable"
+            )
+        family = snapshot.families.get(CrewName.CLAUDE)
+        selected = (
+            None
+            if family is None
+            else next(
+                (model for model in family.models if model.id == probe.model), None
+            )
+        )
+        if selected is None:
+            raise ResolutionError(
+                f"role {probe.role!r}: Claude model {probe.model!r} unavailable"
+            )
+        qualified, charged = catalog.probe_live_claude(
+            selected, probe.effort, self._composition.live_probe_reserved_usd[0]
+        )
+        self._composition.live_probe_reserved_usd[0] += charged
+        self._composition.live_probes[probe.model] = qualified.probe_error
+        wrapper_root = self._composition.config.wrapper_root
+        with (wrapper_root / "model-catalog.lock").open("a+b") as lock:
+            fcntl.flock(lock, fcntl.LOCK_EX)
+            current = load_snapshot(wrapper_root)
+            if current is None or current.generated_at != snapshot.generated_at:
+                current = snapshot
+            admitted = catalog.admitted_snapshot(current, qualified)
+            catalog.write(admitted, wrapper_root)
+        self._composition.live_catalog.append(admitted)
+
     def inspect(self, root_id: str, activation_id: str) -> Inspection:
         """Read the stale-gated tail without acquiring a band or writing state."""
         validate_bead_id(root_id)
@@ -370,11 +421,33 @@ class Foreman:
         instructions: str,
         in_place: bool = False,
         acknowledge: bool = False,
+        _probe_retry: int = 0,
     ) -> SteerReport | ControlRegistration:
         """Read the stale tail then perform exactly one inspector steer."""
         validate_bead_id(root_id)
         validate_bead_id(activation_id)
         wiring = self._composition.for_root(root_id)
+        if (
+            not in_place
+            and not acknowledge
+            and self._composition.config.role_bindings_path is not None
+        ):
+            preflight = wiring.store.reads.load_activation(activation_id)
+            if (
+                preflight.metadata.role is not None
+                and not preflight.metadata.is_settled
+            ):
+                root = wiring.store.reads.load_root(root_id)
+                try:
+                    startup_invocation(
+                        self._composition, root, preflight.metadata.node, wiring=wiring
+                    )
+                except LiveProbeRequired as probe:
+                    if _probe_retry:
+                        raise ResolutionError(
+                            f"role {probe.role!r}: live probe did not settle"
+                        )
+                    self._probe_live(probe)
         wiring.band.acquire()
         try:
             root = wiring.store.reads.load_root(root_id)
@@ -386,14 +459,68 @@ class Foreman:
             tail = _stale_tail(
                 wiring, self._composition.inspector_config.log_tail_bytes, activation
             )
-            view = resolved_node(root, activation.metadata.node)
+            view = resolved_node(
+                root, activation.metadata.node, activation=activation.metadata
+            )
+            allow_rebind = False
+            role_path = self._composition.config.role_bindings_path
+            role = activation.metadata.role
+            if (
+                role_path is not None
+                and role is not None
+                and not activation.metadata.is_settled
+            ):
+                live_view = startup_invocation(
+                    self._composition, root, activation.metadata.node, wiring=wiring
+                )
+                if live_view.binding_apply is BindingApply.NOW and (
+                    live_view.crew_profile,
+                    live_view.model,
+                    live_view.effort,
+                ) != (
+                    activation.metadata.crew_profile,
+                    activation.metadata.model,
+                    activation.metadata.effort,
+                ):
+                    view = live_view
+                    allow_rebind = True
             continuation = MintRequest(
                 node=activation.metadata.node,
                 mint_reason=MintReason.STEER_CONTINUATION,
                 crew_profile=view.crew_profile,
                 model=view.model,
-                crew_version=probed_crew_version(self._composition, view.crew_profile),
+                role=activation.metadata.role,
+                family=(
+                    view.crew_profile if allow_rebind else activation.metadata.family
+                ),
+                effort=view.effort,
+                context_cap_tokens=view.context_cap_tokens,
+                execution_policy=view.execution_policy,
+                policy_digest=(
+                    None if allow_rebind else activation.metadata.policy_digest
+                ),
+                catalog_digest=(
+                    self._composition.active_catalog.digest
+                    if allow_rebind and self._composition.active_catalog is not None
+                    else activation.metadata.catalog_digest
+                ),
+                binding_digest=(
+                    None if allow_rebind else activation.metadata.binding_digest
+                ),
+                crew_version=(
+                    self._composition.profiles.version_for(view.crew_profile)
+                    if allow_rebind
+                    else activation.metadata.crew_version
+                ),
                 session_id=activation.metadata.session_id,
+                session_mode=(
+                    view.node.session_mode or activation.metadata.session_mode
+                    if allow_rebind
+                    else activation.metadata.session_mode
+                ),
+                fresh_reason_override=(
+                    SessionFreshReason.MODEL_CHANGED if allow_rebind else None
+                ),
                 predecessor_activation_id=activation.activation_id,
                 inputs=activation.metadata.inputs,
             )
@@ -403,6 +530,7 @@ class Foreman:
                 wiring.store,
                 self._composition.clock,
                 workspace=wiring.workspace,
+                allow_rebind=allow_rebind,
             )
             if in_place:
                 return steerer.in_place(
@@ -429,6 +557,22 @@ class Foreman:
                 tail_bytes=len(tail.encode("utf-8")),
                 closed=result.closed.activation_id,
                 continuation=result.continuation.activation.activation_id,
+            )
+        except LiveProbeRequired as probe:
+            wiring.band.release()
+            if _probe_retry:
+                raise ResolutionError(
+                    f"role {probe.role!r}: live probe did not settle"
+                ) from probe
+            self._probe_live(probe)
+            return self.steer(
+                root_id,
+                activation_id,
+                reason=reason,
+                instructions=instructions,
+                in_place=in_place,
+                acknowledge=acknowledge,
+                _probe_retry=1,
             )
         finally:
             wiring.band.release()
@@ -461,7 +605,7 @@ class Foreman:
         finally:
             wiring.band.release()
 
-    def _progress_local(self, root_id: str) -> TickReport:
+    def _progress_local(self, root_id: str, *, _probe_retry: int = 0) -> TickReport:
         """Advance at most one lifecycle action after auditing fresh durable state."""
         validate_bead_id(root_id)
         wiring = self._composition.for_root(root_id)
@@ -550,7 +694,18 @@ class Foreman:
                 *frontier.exit_recorded,
                 *frontier.evidence_recorded,
             ):
-                result = advance_lifecycle(self._composition, wiring, root, activation)
+                try:
+                    result = advance_lifecycle(
+                        self._composition, wiring, root, activation
+                    )
+                except UnusableResolutionError:
+                    halted = halt_dead_end(
+                        wiring, root, DeadEndKind.UNUSABLE_RESOLUTION, activation
+                    )
+                    return TickReport(
+                        halted=True,
+                        opened_gate=_opened_gate(wiring, halted.opened_gates[0]),
+                    )
                 return TickReport(
                     blocked=result.blocked,
                     dispatched=result.dispatched,
@@ -633,6 +788,34 @@ class Foreman:
         except LockUnavailable:
             # Same transient as the band miss above, met deeper in the tick.
             return TickReport(contended=True)
+        except LiveProbeRequired as probe:
+            wiring.band.release()
+            if _probe_retry:
+                return TickReport(
+                    stalled=f"role {probe.role!r}: live probe did not settle"
+                )
+            role_path = self._composition.config.role_bindings_path
+            try:
+                before = (
+                    hashlib.sha256(role_path.read_bytes()).digest()
+                    if role_path
+                    else None
+                )
+                self._probe_live(probe)
+                after = (
+                    hashlib.sha256(role_path.read_bytes()).digest()
+                    if role_path
+                    else None
+                )
+            except (OSError, ValueError, ResolutionError) as error:
+                return TickReport(
+                    stalled=f"role {probe.role!r}: live probe failed: {error}"
+                )
+            if before != after:
+                return TickReport(
+                    stalled="roles.toml changed during live probe; retry tick"
+                )
+            return self._progress_local(root_id, _probe_retry=1)
         except TerminationFailed as exc:
             gate = wiring.store.open_gate(
                 root_id, halt_gate(HALT_INDETERMINATE.format(detail=str(exc)))
@@ -662,12 +845,14 @@ class Foreman:
             InstanceBranchMissing,
             GitCommandError,
             SnapshotFailed,
+            ResolutionError,
         ) as exc:
             return TickReport(
                 stalled=f"git: {exc}" if isinstance(exc, GitCommandError) else str(exc)
             )
         finally:
-            wiring.band.release()
+            if wiring.band.held:
+                wiring.band.release()
 
     def run(
         self, root_id: str, *, poll_s: float, max_wall_s: float, monitored: bool = False
@@ -837,7 +1022,7 @@ class Foreman:
             return
         activations = wiring.store.reads.list_activations(root.root_id)
         if any(
-            resolved_node(root, activation.metadata.node).node.writes
+            resolved_static_node(root, activation.metadata.node).writes
             and (
                 activation.metadata.evidence is None
                 or activation.metadata.evidence.artifact is None

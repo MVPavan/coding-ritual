@@ -24,7 +24,11 @@ from workflow_interpreter.bdio import (
 )
 from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.carriers import ArtifactIdentity
-from workflow_interpreter.foreman.constants import FORCED_FIRST_REJECT
+from workflow_interpreter.contracts.sessions import SessionMode
+from workflow_interpreter.foreman.constants import (
+    FORCED_FIRST_REJECT,
+    RESUMED_NON_WRITER_REVIEW_DELTA,
+)
 from workflow_interpreter.foreman.envelope import ComposedEnvelope, EnvelopeKind
 from workflow_interpreter.foreman.inputs import (
     DefaultComposer,
@@ -1189,6 +1193,61 @@ def test_resume_delta_drops_the_preamble_and_every_input_already_in_the_thread(
     assert "the findings" not in delta.text
     assert "How this run is judged" not in delta.text
     assert delta.included == ("verify_failure",)
+    assert RESUMED_NON_WRITER_REVIEW_DELTA not in delta.text
+
+
+def test_resume_delta_adds_whole_diff_review_only_for_resumed_non_writer(
+    fake_store: WorkflowStore,
+) -> None:
+    root = make_root(fake_store, load_definition())
+    source = _turn(fake_store, root, "review-source", ())
+    source = source.model_copy(
+        update={"metadata": source.metadata.model_copy(update={"node": "review"})}
+    )
+    target = _turn(fake_store, root, "review-target", (), source=source.activation_id)
+    target = target.model_copy(
+        update={
+            "metadata": target.metadata.model_copy(
+                update={
+                    "node": "review",
+                    "session_mode": SessionMode.RESUME,
+                    "source_session_id": "review-thread",
+                }
+            )
+        }
+    )
+
+    def delta(activation: ActivationRecord) -> str:
+        return compose_resume_delta(
+            root, activation, source, {source.activation_id: source}, ()
+        ).text
+
+    assert RESUMED_NON_WRITER_REVIEW_DELTA in delta(target)
+    assert RESUMED_NON_WRITER_REVIEW_DELTA not in delta(
+        target.model_copy(
+            update={
+                "metadata": target.metadata.model_copy(update={"node": "implement"})
+            }
+        )
+    )
+    assert RESUMED_NON_WRITER_REVIEW_DELTA not in delta(
+        target.model_copy(
+            update={
+                "metadata": target.metadata.model_copy(
+                    update={"source_session_id": None}
+                )
+            }
+        )
+    )
+    assert RESUMED_NON_WRITER_REVIEW_DELTA not in delta(
+        target.model_copy(
+            update={
+                "metadata": target.metadata.model_copy(
+                    update={"session_mode": SessionMode.FRESH}
+                )
+            }
+        )
+    )
 
 
 def _with_node(root: RootRecord, node: str, **update: object) -> RootRecord:
@@ -1312,13 +1371,36 @@ def test_a_resumed_turn_records_the_envelope_it_actually_sent(
     frozen app-server resends the whole brief, so its record stays the
     pre-epic one: the fresh envelope, with no `kind`.
     """
-    lab = ForemanLab(tmp_path, sandbox=SandboxMode.OFF)
+    from tests._foreman import DEFAULT_LAB_ROLES
+    from workflow_interpreter.foreman.config import CrewBinding
+
+    legacy_crew = "codex-appserver" if appserver else "fake"
+    lab = ForemanLab(
+        tmp_path,
+        sandbox=SandboxMode.OFF,
+        roles={
+            **DEFAULT_LAB_ROLES,
+            "implementer": CrewBinding(
+                profile=legacy_crew, model="fake", effort="medium"
+            ),
+        },
+        overrides=(
+            {
+                "node.implement.crew": legacy_crew,
+                "node.implement.model": "fake",
+                "node.implement.effort": "medium",
+                "node.implement.session_mode": "resume",
+            }
+            if appserver
+            else {}
+        ),
+    )
     root = lab.instantiate()
     wiring = lab.wiring()
     node = root.index.nodes[IMPLEMENT]
     bindings = select_bindings(root.index, root, node, (), 1)
     source = wiring.store.mint_activation(
-        root.root_id, lab_entry_request(inputs=bindings)
+        root.root_id, lab_entry_request(inputs=bindings, crew_profile=legacy_crew)
     ).activation
     wiring.store.close_activation(source.activation_id, Outcome.DONE)
     resumed = wiring.store.mint_activation(
@@ -1327,12 +1409,28 @@ def test_a_resumed_turn_records_the_envelope_it_actually_sent(
             mint_reason=MintReason.EDGE,
             predecessor_activation_id=source.activation_id,
             inputs=bindings,
+            crew_profile=legacy_crew,
         ),
     ).activation
     wiring.store._client._merge_metadata(
         resumed.activation_id,
         {"session_source_activation_id": source.activation_id}
-        | ({"crew_profile": "codex-appserver"} if appserver else {}),
+        | (
+            {
+                "crew_profile": "codex-appserver",
+                "binding_digest": None,
+                "role": None,
+                "family": None,
+                "effort": None,
+                "context_cap_tokens": None,
+                "execution_policy": None,
+                "policy_digest": None,
+                "catalog_digest": None,
+                "crew_version": None,
+            }
+            if appserver
+            else {}
+        ),
     )
     resumed = wiring.store.reads.load_activation(resumed.activation_id)
     paths = wiring.paths

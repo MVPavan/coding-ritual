@@ -44,12 +44,7 @@ from workflow_interpreter.bdio import (
     WorkflowStore,
 )
 from workflow_interpreter.bdio.rpc_records import SessionRegistration
-from workflow_interpreter.bdio.wire import NodeSetting, resolved_settings
-from workflow_interpreter.contracts.execution import (
-    EXECUTION_POLICY_KEY,
-    ToolNetwork,
-)
-from workflow_interpreter.contracts.sessions import execution_policy_digest
+from workflow_interpreter.contracts.execution import ToolNetwork
 from workflow_interpreter.inspector import (
     BandLock,
     ChildLauncher,
@@ -549,9 +544,8 @@ def observe_session(
     """
     metadata = activation.metadata
     thread_id = thread_id or metadata.session_id or SESSION_ID
-    settings = resolved_settings(store.reads.load_root(metadata.wf_root_id).metadata)
-    effort = settings.get(NodeSetting.EFFORT.at(metadata.node))
-    policy = settings.get(EXECUTION_POLICY_KEY.format(node=metadata.node), "legacy")
+    assert metadata.effort is not None
+    assert metadata.policy_digest is not None
     assert metadata.handle is not None
     assert metadata.launch_id is not None
     return store.register_session(
@@ -564,8 +558,8 @@ def observe_session(
             thread_id=thread_id,
             crew_profile=metadata.crew_profile,
             model=metadata.model,
-            effort=str(effort),
-            policy_digest=execution_policy_digest(str(policy)),
+            effort=metadata.effort,
+            policy_digest=metadata.policy_digest,
             state_path="",
         ),
     )

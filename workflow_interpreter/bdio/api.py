@@ -58,13 +58,16 @@ from workflow_interpreter.bdio.records import (
     MintResult,
     RootRecord,
     RowRecord,
+    parse_activation,
 )
-from workflow_interpreter.bdio.roots import create_root, settle_root
+from workflow_interpreter.bdio.roots import create_root, settle_root, static_root_config
+from workflow_interpreter.bdio.rows import StoreRow
 from workflow_interpreter.bdio.rpc_records import (
     ControlRegistration,
     SessionCompletion,
     SessionRegistration,
 )
+from workflow_interpreter.bdio.sessions import choose_source
 from workflow_interpreter.bdio.signing import GateVerifier
 from workflow_interpreter.bdio.wake import append_wake_event
 from workflow_interpreter.bdio.wire import (
@@ -87,8 +90,9 @@ from workflow_interpreter.bdio.wire import (
     StaleFlagRecord,
     Usage,
     metadata_dict,
+    mint_request_from_activation,
 )
-from workflow_interpreter.contracts.execution import ExecutionRegistry
+from workflow_interpreter.contracts.execution import CREW_PREFIX, ExecutionRegistry
 from workflow_interpreter.contracts.rpc_control import ControlState
 from workflow_interpreter.contracts.run_identity import RunIdentity
 from workflow_interpreter.contracts.wake import WakeEvent
@@ -298,6 +302,51 @@ class WorkflowStore:
         self.assert_member(root_id)
         self._client._merge_metadata(
             root_id, {"decision_boundary": metadata_dict(boundary)}
+        )
+
+    def repin_unlaunched_version(
+        self, activation: ActivationRecord, version: str
+    ) -> ActivationRecord:
+        """Compare and set a minted CLI pin and its selected session source."""
+        if activation.metadata.lifecycle is not Lifecycle.MINTED:
+            raise CarrierIntegrityError(
+                "CLI version can only be re-pinned before launch"
+            )
+        if activation.metadata.crew_version == version:
+            return activation
+        request = mint_request_from_activation(activation.metadata).model_copy(
+            update={"crew_version": version}
+        )
+        root = self._reads.load_root(activation.metadata.wf_root_id)
+        choice = choose_source(
+            root, request, self._reads.list_activations(root.root_id)
+        )
+        changes: Metadata = {
+            "crew_version": version,
+            "session_source_activation_id": choice.source_activation_id,
+            "source_session_id": choice.source_session_id,
+            "expected_tree_oid": choice.source_tree_oid,
+            "session_reuse_source": None
+            if choice.source is None
+            else metadata_dict(choice.source),
+            "session_fresh_reason": None
+            if choice.fresh_reason is None
+            else choice.fresh_reason.value,
+        }
+
+        def guard(row: StoreRow) -> None:
+            """Refuse a launch or competing edit that won after the caller's read."""
+            current = parse_activation(row)
+            if (
+                current.metadata != activation.metadata
+                or current.metadata.lifecycle is not Lifecycle.MINTED
+            ):
+                raise CarrierIntegrityError(
+                    "minted activation changed during CLI requalification"
+                )
+
+        return parse_activation(
+            self._client._merge_metadata(activation.activation_id, changes, guard=guard)
         )
 
     def mint_activation(self, root_id: str, request: MintRequest) -> MintResult:
@@ -650,24 +699,29 @@ class WorkflowStore:
         request: MintRequest,
     ) -> tuple[str, str]:
         """Verify the execution pins and every deterministic pre-mint bound."""
-        crew_profile = pinned_execution_setting(root, facts.node, NodeSetting.CREW)
-        model = pinned_execution_setting(root, facts.node, NodeSetting.MODEL)
-        _assert_pinned_execution_setting(
-            node=facts.node,
-            field=_FIELD_CREW_PROFILE,
-            requested=request.crew_profile,
-            pinned=crew_profile,
-        )
-        _assert_pinned_execution_setting(
-            node=facts.node,
-            field=_FIELD_MODEL,
-            requested=request.model,
-            pinned=model,
-        )
+        node = root.index.nodes[facts.node]
+        static = {
+            setting.key: setting.value
+            for setting in static_root_config(
+                root.definition, root.metadata.resolved_config
+            )
+        }
+        for field, setting, requested in (
+            (_FIELD_CREW_PROFILE, NodeSetting.CREW, request.crew_profile),
+            (_FIELD_MODEL, NodeSetting.MODEL, request.model),
+        ):
+            pinned = static.get(setting.at(facts.node))
+            if pinned is None and node.crew and node.crew.startswith(CREW_PREFIX):
+                continue
+            if not isinstance(pinned, str):
+                pinned = pinned_execution_setting(root, facts.node, setting)
+            _assert_pinned_execution_setting(
+                node=facts.node, field=field, requested=requested, pinned=pinned
+            )
         refusal = self._pre_mint_refusal(root, facts, beads, activations)
         if refusal is not None:
             raise BoundExceededError(refusal)
-        return crew_profile, model
+        return request.crew_profile, request.model
 
     def _pre_mint_refusal(
         self,

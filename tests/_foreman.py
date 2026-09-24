@@ -163,6 +163,7 @@ def entry_request(**overrides: object) -> MintRequest:
         "mint_reason": MintReason.ENTRY,
         "crew_profile": FAKE_PROFILE,
         "model": FAKE_MODEL,
+        "effort": "medium",
         "session_id": "",
     }
     return MintRequest.model_validate(base | overrides)

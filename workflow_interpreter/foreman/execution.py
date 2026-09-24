@@ -1,12 +1,4 @@
-"""The one execution view of a pinned node: graph body ⊕ resolved config (§3.1).
-
-A root pins BOTH the graph and the resolution of every configurable field,
-role bindings included. Everything that decides how a node RUNS — which
-profile and model a mint asks for, what the wrapper is allowed to write, how
-long it may run, where it runs — must read that pinned resolution and nothing
-else, or an instance drifts the moment the project's `roles` map or config
-changes underneath it.
-"""
+"""Views of static root settings and one activation's invocation pins."""
 
 from __future__ import annotations
 
@@ -14,16 +6,35 @@ from collections.abc import Mapping
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Final
 
+import structlog
 from pydantic import BaseModel, ConfigDict, ValidationError
 
 from workflow_interpreter.bdio.records import RootRecord
-from workflow_interpreter.bdio.wire import BoundSetting, NodeSetting, resolved_settings
+from workflow_interpreter.bdio.roots import static_root_config
+from workflow_interpreter.bdio.wire import (
+    ActivationMetadata,
+    BoundSetting,
+    NodeSetting,
+    activation_binding_digest,
+    is_legacy_activation,
+    resolved_settings,
+)
 from workflow_interpreter.contracts.execution import (
     EXECUTION_POLICY_KEY,
     MSG_POLICY_MISMATCH,
+    CrewName,
     ExecutionPolicy,
+    ExecutionRegistry,
+    policy_for,
+    tool_network_for,
 )
-from workflow_interpreter.contracts.sessions import context_cap_key, session_mode_key
+from workflow_interpreter.contracts.sessions import (
+    SessionMode,
+    activation_policy_digest,
+    context_cap_key,
+    session_mode_key,
+)
+from workflow_interpreter.foreman.config import BindingApply, CrewBinding
 from workflow_interpreter.foreman.errors import (
     UnresolvedCrewError,
     UnusableResolutionError,
@@ -35,6 +46,8 @@ from workflow_interpreter.schema.models import Node, NodeKind
 
 if TYPE_CHECKING:
     from workflow_interpreter.inspector.paths import WrapperPaths
+
+_LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 
 _MSG_UNRESOLVED_CREW: Final[str] = (
     "node {node!r} binds the crew role {role!r}, but the root's resolved "
@@ -50,6 +63,9 @@ _MSG_UNUSABLE_ROLE_BOUND_SETTING: Final[str] = (
     "role-bound task node {node!r} has no usable {field} in the root's resolved "
     "config — the pinned resolution is incomplete and the instance cannot be "
     "executed from it (§3.1)"
+)
+_MSG_UNUSABLE_ACTIVATION_PIN: Final[str] = (
+    "activation for task node {node!r} has no usable {field} invocation pin"
 )
 
 _EFFECTIVE_FIELDS: Final[tuple[tuple[str, NodeSetting | BoundSetting], ...]] = (
@@ -78,16 +94,28 @@ EFFECTIVE_FIELD_SETTINGS: Final[Mapping[str, NodeSetting | BoundSetting]] = (
 """The resolved setting that overlays each effective `Node` scalar field."""
 
 
-def effective_node(pinned: Node, settings: Mapping[str, str | int | bool]) -> Node:
+def effective_node(
+    pinned: Node,
+    settings: Mapping[str, str | int | bool],
+    *,
+    activation: ActivationMetadata | None = None,
+    static_only: bool = False,
+) -> Node:
     """Overlay one node's resolvable scalar settings onto its pinned body."""
     values = pinned.model_dump()
     updates = {
         field: settings[setting.at(pinned.name)]
         for field, setting in _EFFECTIVE_FIELDS
         if setting.at(pinned.name) in settings
+        and (not static_only or field != "model")
+        and (activation is None or field != "model")
     }
     mode_key = session_mode_key(pinned.name)
-    if mode_key in settings:
+    if activation is not None:
+        updates["model"] = activation.model
+        updates["session_mode"] = activation.session_mode
+        values.pop("session_reuse", None)
+    elif not static_only and mode_key in settings:
         updates["session_mode"] = settings[mode_key]
         # A legacy pin keeps its original bytes, but the effective execution
         # model has one canonical authority: the resolved session_mode pin.
@@ -97,6 +125,19 @@ def effective_node(pinned: Node, settings: Mapping[str, str | int | bool]) -> No
             raise UnusableResolutionError(MSG_POLICY_MISMATCH)
         updates.pop("writes", None)
     return Node.model_validate(values | updates)
+
+
+def resolved_static_node(root: RootRecord, node_name: str) -> Node:
+    """Read only root-pinned graph and safety settings for bookkeeping paths."""
+    pinned = root.index.nodes[node_name]
+    try:
+        return effective_node(
+            pinned, resolved_settings(root.metadata), static_only=True
+        )
+    except ValidationError as error:
+        raise UnusableResolutionError(
+            _MSG_UNUSABLE_ROOT.format(node=node_name, detail=error.errors()[0]["msg"])
+        ) from error
 
 
 class ResolvedNode(BaseModel):
@@ -116,16 +157,32 @@ class ResolvedNode(BaseModel):
     execution_policy: ExecutionPolicy | None = None
     context_cap_tokens: int | None = None
     """Claude's pinned `--autocompact` threshold; None leaves the vendor default."""
+    binding_apply: BindingApply = BindingApply.NEXT_TASK
 
 
-def resolved_node(root: RootRecord, node_name: str) -> ResolvedNode:
-    """Read one node's effective execution settings off the root's pinned resolution.
-
-    Raises `UnresolvedCrewError` when a role-bound node has no resolved
-    crew: the value would still be the `profile:<role>` reference, which no
-    profile resolver can answer, and guessing it from the live role map is the
-    drift this view exists to prevent.
-    """
+def resolved_node(
+    root: RootRecord,
+    node_name: str,
+    *,
+    activation: ActivationMetadata | None = None,
+) -> ResolvedNode:
+    """Read root settings for a new mint, or recorded pins for an activation."""
+    if activation is not None and is_legacy_activation(activation):
+        # Pre-S3 rows ran under the root resolution, which S4 has not removed.
+        activation = None
+    elif activation is not None and (
+        activation.policy_digest
+        != activation_policy_digest(activation.execution_policy)
+    ):
+        raise UnusableResolutionError(
+            _MSG_UNUSABLE_ACTIVATION_PIN.format(node=node_name, field="policy digest")
+        )
+    elif activation is not None and (
+        activation.binding_digest != activation_binding_digest(activation)
+    ):
+        raise UnusableResolutionError(
+            _MSG_UNUSABLE_ACTIVATION_PIN.format(node=node_name, field="binding digest")
+        )
     pinned = root.index.nodes[node_name]
     settings = resolved_settings(root.metadata)
     # Re-validated rather than `model_copy`d: an override reaches here as a
@@ -133,7 +190,7 @@ def resolved_node(root: RootRecord, node_name: str) -> ResolvedNode:
     # validators that turn "worktree" into `IsolationMode` and refuse a
     # duration the pattern does not accept.
     try:
-        effective = effective_node(pinned, settings)
+        effective = effective_node(pinned, settings, activation=activation)
     except ValidationError as error:
         # `resolve()` refuses these before the root is written, so this is a
         # root nothing legitimate produced — it still leaves the tick loop as
@@ -141,10 +198,22 @@ def resolved_node(root: RootRecord, node_name: str) -> ResolvedNode:
         raise UnusableResolutionError(
             _MSG_UNUSABLE_ROOT.format(node=node_name, detail=error.errors()[0]["msg"])
         ) from error
-    crew_profile = _crew_profile(pinned, settings.get(NodeSetting.CREW.at(node_name)))
+    crew_profile = (
+        activation.crew_profile
+        if activation is not None
+        else _crew_profile(pinned, settings.get(NodeSetting.CREW.at(node_name)))
+    )
     model = effective.model or ""
-    effort = _effort(node_name, settings.get(NodeSetting.EFFORT.at(node_name)))
-    if pinned.kind is NodeKind.TASK and (pinned.crew or "").startswith(CREW_PREFIX):
+    effort = (
+        activation.effort
+        if activation is not None
+        else _effort(node_name, settings.get(NodeSetting.EFFORT.at(node_name)))
+    )
+    if (
+        activation is None
+        and pinned.kind is NodeKind.TASK
+        and (pinned.crew or "").startswith(CREW_PREFIX)
+    ):
         model = _required_role_text(
             node_name, "model", settings.get(NodeSetting.MODEL.at(node_name))
         )
@@ -155,8 +224,26 @@ def resolved_node(root: RootRecord, node_name: str) -> ResolvedNode:
         effort = _required_role_text(
             node_name, "effort", settings.get(NodeSetting.EFFORT.at(node_name))
         )
+    if activation is not None and pinned.kind is NodeKind.TASK:
+        for field, value in (
+            ("crew", crew_profile),
+            ("model", model),
+            ("effort", effort),
+        ):
+            if not isinstance(value, str) or not value.strip():
+                raise UnusableResolutionError(
+                    _MSG_UNUSABLE_ACTIVATION_PIN.format(node=node_name, field=field)
+                )
     policy = None
-    if pinned.execution_profile is not None:
+    if activation is not None:
+        policy = activation.execution_policy
+        if pinned.execution_profile is not None and (
+            policy is None
+            or policy.name != pinned.execution_profile
+            or policy.writes != effective.writes
+        ):
+            raise UnusableResolutionError(MSG_POLICY_MISMATCH)
+    elif pinned.execution_profile is not None:
         raw = settings.get(EXECUTION_POLICY_KEY.format(node=node_name))
         if not isinstance(raw, str):
             raise UnusableResolutionError(MSG_POLICY_MISMATCH)
@@ -166,7 +253,11 @@ def resolved_node(root: RootRecord, node_name: str) -> ResolvedNode:
             raise UnusableResolutionError(MSG_POLICY_MISMATCH) from error
         if policy.name != pinned.execution_profile or policy.writes != effective.writes:
             raise UnusableResolutionError(MSG_POLICY_MISMATCH)
-    cap = settings.get(context_cap_key(node_name))
+    cap = (
+        activation.context_cap_tokens
+        if activation is not None
+        else settings.get(context_cap_key(node_name))
+    )
     if cap is not None and (type(cap) is not int or cap <= 0):
         raise UnusableResolutionError(
             _MSG_UNUSABLE_ROOT.format(
@@ -180,6 +271,84 @@ def resolved_node(root: RootRecord, node_name: str) -> ResolvedNode:
         effort=effort,
         execution_policy=policy,
         context_cap_tokens=cap,
+    )
+
+
+def resolved_invocation(
+    root: RootRecord,
+    node_name: str,
+    profiles: ExecutionRegistry,
+    *,
+    binding: CrewBinding | None = None,
+) -> ResolvedNode:
+    """Resolve a new activation using the selected crew's registered capability."""
+    pinned = root.index.nodes[node_name]
+    if binding is not None and pinned.crew and pinned.crew.startswith(CREW_PREFIX):
+        static = {
+            item.key: item.value
+            for item in static_root_config(
+                root.definition, root.metadata.resolved_config
+            )
+        }
+        effective = effective_node(pinned, static, static_only=True)
+        crew = static.get(NodeSetting.CREW.at(node_name), binding.profile)
+        model = static.get(NodeSetting.MODEL.at(node_name), binding.model)
+        effort = static.get(NodeSetting.EFFORT.at(node_name), binding.effort)
+        mode = static.get(
+            session_mode_key(node_name), binding.session_mode or SessionMode.RESUME
+        )
+        cap = static.get(context_cap_key(node_name))
+        if binding.context_cap_tokens is not None:
+            if crew != CrewName.CLAUDE:
+                _LOG.warning(
+                    "foreman.context_cap_dropped",
+                    node=node_name,
+                    crew=crew,
+                    context_cap_tokens=binding.context_cap_tokens,
+                )
+            elif cap is None:
+                cap = binding.context_cap_tokens
+        crew = _required_role_text(node_name, "crew", crew)
+        model = _required_role_text(node_name, "model", model)
+        effort = _required_role_text(node_name, "effort", effort)
+        if model == MODEL_VENDOR_DEFAULT:
+            raise UnusableResolutionError(
+                _MSG_UNUSABLE_ROLE_BOUND_SETTING.format(node=node_name, field="model")
+            )
+        if cap is not None and (type(cap) is not int or cap <= 0):
+            raise UnusableResolutionError(
+                _MSG_UNUSABLE_ROOT.format(
+                    node=node_name, detail="context_cap_tokens is not a positive int"
+                )
+            )
+        try:
+            values = effective.model_dump()
+            values.pop("session_reuse", None)
+            node = Node.model_validate(values | {"model": model, "session_mode": mode})
+        except ValidationError as error:
+            raise UnusableResolutionError(
+                _MSG_UNUSABLE_ROOT.format(
+                    node=node_name, detail=error.errors()[0]["msg"]
+                )
+            ) from error
+        view = ResolvedNode(
+            node=node,
+            crew_profile=crew,
+            model=model,
+            effort=effort,
+            context_cap_tokens=cap,
+        )
+    else:
+        view = resolved_node(root, node_name)
+    if view.node.execution_profile is None:
+        return view
+    return view.model_copy(
+        update={
+            "execution_policy": policy_for(
+                view.node.execution_profile,
+                tool_network_for(view.crew_profile, profiles),
+            )
+        }
     )
 
 

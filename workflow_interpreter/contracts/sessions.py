@@ -4,6 +4,8 @@ import hashlib
 from enum import StrEnum
 from typing import Final
 
+from workflow_interpreter.contracts.execution import ExecutionPolicy
+
 
 class SessionReuse(StrEnum):
     """Fresh is the default; same-node never crosses role or root boundaries."""
@@ -47,8 +49,19 @@ def context_cap_key(node: str) -> str:
 
 
 def execution_policy_digest(pinned_policy: str) -> str:
-    """Hash the root-pinned policy representation; the full policy stays on the root."""
+    """Hash the canonical policy representation pinned by an activation."""
     return hashlib.sha256(pinned_policy.encode("utf-8")).hexdigest()
+
+
+LEGACY_POLICY_REPRESENTATION: Final[str] = "legacy"
+
+
+def activation_policy_digest(policy: ExecutionPolicy | None) -> str:
+    """Use one digest rule for minted, selected, and observed activations."""
+    representation = (
+        LEGACY_POLICY_REPRESENTATION if policy is None else policy.model_dump_json()
+    )
+    return execution_policy_digest(representation)
 
 
 class SessionFreshReason(StrEnum):
@@ -66,5 +79,7 @@ class SessionFreshReason(StrEnum):
     """A candidate matched, but no vendor identity was ever observed for it."""
     VERSION_DRIFT = "version_drift"
     """A candidate matched, but ran under a different CLI than this process."""
+    MODEL_CHANGED = "model_changed"
+    """The newest candidate used another profile, model, or effort."""
     UNQUALIFIED_SOURCE = "unqualified_source"
     """A candidate matched, but registered no CLI version to compare (§6)."""

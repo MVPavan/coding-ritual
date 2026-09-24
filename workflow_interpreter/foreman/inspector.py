@@ -25,7 +25,9 @@ from workflow_interpreter.bdio.constants import (
     DEVIATION_SANDBOX_UNAVAILABLE,
     DEVIATION_UNUSABLE_RESOLUTION,
 )
+from workflow_interpreter.bdio.wire import mint_request_from_activation
 from workflow_interpreter.contracts.execution import (
+    CrewName,
     UnregisteredCrewError,
     tool_network_for,
 )
@@ -40,7 +42,7 @@ from workflow_interpreter.foreman.compose import (
     WrapperLaunch,
 )
 from workflow_interpreter.foreman.constants import DISPATCH_REQUEST, WRAPPER_LOCK
-from workflow_interpreter.foreman.errors import UnusableResolutionError
+from workflow_interpreter.foreman.errors import ResolutionError, UnusableResolutionError
 from workflow_interpreter.foreman.evidence_export import export_reference
 from workflow_interpreter.foreman.execution import resolved_node
 from workflow_interpreter.foreman.identifiers import activation_dir, validate_bead_id
@@ -52,6 +54,7 @@ from workflow_interpreter.foreman.inputs import (
     bounded_materialize,
     compose_resume_delta,
 )
+from workflow_interpreter.foreman.model_catalog import CatalogProvenance, ModelCatalog
 from workflow_interpreter.inspector.band import BandLock
 from workflow_interpreter.inspector.channels import pinned_verifier_digests
 from workflow_interpreter.inspector.errors import (
@@ -70,7 +73,7 @@ from workflow_interpreter.inspector.errors import (
 from workflow_interpreter.inspector.gitio import Git
 from workflow_interpreter.inspector.launch import EnvelopeTaskBuilder, TaskBuilder
 from workflow_interpreter.inspector.models import LaunchOutcome
-from workflow_interpreter.inspector.paths import WrapperPaths, read_record
+from workflow_interpreter.inspector.paths import WrapperPaths, read_record, write_record
 from workflow_interpreter.inspector.profile import CrewChannels, TaskSpec
 from workflow_interpreter.profiles.errors import TaskRefused, UnsupportedOptionError
 from workflow_interpreter.schema.models import ArtifactInputMode
@@ -134,30 +137,28 @@ class WrapperExit(StrEnum):
     FAILED = "failed"
 
 
-def _request(
-    activation_id: str, wiring: InstanceWiring, root: RootRecord
-) -> MintRequest:
+def _request(activation_id: str, wiring: InstanceWiring) -> MintRequest:
     """Load the durable dispatch request, rebuilding only crash-safe metadata."""
     launch = read_record(
         wiring.paths.activation_dir(activation_id) / DISPATCH_REQUEST,
         WrapperLaunch,
     )
-    if launch is not None:
-        return launch.request
     activation = wiring.store.reads.load_activation(activation_id)
-    meta = activation.metadata
-    view = resolved_node(root, meta.node)
-    return MintRequest(
-        node=meta.node,
-        mint_reason=meta.mint_reason,
-        crew_profile=view.crew_profile,
-        model=view.model,
-        crew_version=meta.crew_version,
-        session_id=meta.session_id,
-        predecessor_activation_id=meta.predecessor_activation_id,
-        predecessor_gate_id=meta.predecessor_gate_id,
-        inputs=meta.inputs,
-    )
+    if (
+        launch is not None
+        and launch.request.crew_version == activation.metadata.crew_version
+    ):
+        return launch.request
+    if launch is not None:
+        write_record(
+            wiring.paths.activation_dir(activation_id) / DISPATCH_REQUEST,
+            WrapperLaunch(
+                root_id=activation.metadata.wf_root_id,
+                activation_id=activation_id,
+                request=mint_request_from_activation(activation.metadata),
+            ),
+        )
+    return mint_request_from_activation(activation.metadata)
 
 
 def _task_builder(root: RootRecord, wiring: InstanceWiring, git: Git) -> TaskBuilder:
@@ -169,7 +170,9 @@ def _task_builder(root: RootRecord, wiring: InstanceWiring, git: Git) -> TaskBui
     ) -> TaskSpec:
         wiring.store.assert_member(root.root_id)
         current = wiring.store.reads.load_activation(activation.activation_id)
-        resolved = resolved_node(root, current.metadata.node)
+        resolved = resolved_node(
+            root, current.metadata.node, activation=current.metadata
+        )
         node = resolved.node
         by_id = {
             item.activation_id: item
@@ -294,11 +297,48 @@ def run_wrapper(
         if activation.metadata.lifecycle is not Lifecycle.MINTED:
             return WrapperExit.STALE
         root = resolved.store.reads.load_root(root_id)
-        request = _request(activation_id, resolved, root)
-        # The EFFECTIVE node: everything downstream of here — the §5.4
-        # precondition, workspace isolation, the §8.2 monitor limits — must
-        # read the resolution the root pinned, not the graph body alone (§3.1).
-        resolved_node_view = resolved_node(root, activation.metadata.node)
+        family_name = activation.metadata.crew_profile.removeprefix("profile:")
+        if (
+            activation.metadata.role is not None
+            and composition.catalog is not None
+            and composition.catalog_provenance
+            in (
+                CatalogProvenance.REFRESHED,
+                CatalogProvenance.LOADED,
+            )
+            and family_name in (CrewName.CLAUDE.value, CrewName.CODEX.value)
+        ):
+            family = CrewName(family_name)
+            family_snapshot = composition.catalog.families.get(family)
+            if family_snapshot is None or family_snapshot.cli_version is None:
+                raise ResolutionError(
+                    f"role {activation.metadata.role!r}: {family.value} catalog unavailable"
+                )
+            catalog = ModelCatalog(
+                composition.config.profiles.binary_for(CrewName.CODEX),
+                composition.config.profiles.binary_for(CrewName.CLAUDE),
+                composition.catalog_runner,
+                host_env=composition.host_env,
+            )
+            try:
+                current_version = catalog.prelaunch_version(
+                    family,
+                    activation.metadata.model,
+                    activation.metadata.crew_version or family_snapshot.cli_version,
+                )
+            except ResolutionError as error:
+                raise ResolutionError(
+                    f"role {activation.metadata.role!r}: {error}"
+                ) from error
+            activation = resolved.store.repin_unlaunched_version(
+                activation, current_version
+            )
+        request = _request(activation_id, resolved)
+        # The effective node combines static root safety settings with the
+        # invocation the activation recorded for this dispatch.
+        resolved_node_view = resolved_node(
+            root, activation.metadata.node, activation=activation.metadata
+        )
         node = resolved_node_view.node
         profile = composition.profiles.profile_for(resolved_node_view.crew_profile)
         if node.execution_profile is not None:
@@ -354,9 +394,9 @@ def run_wrapper(
                 ),
             ),
         )
-    except UnusableResolutionError as exc:
-        # The root's immutable resolution could not make a task, so no crew
-        # invocation occurred and an infra retry cannot repair the root.
+    except (UnusableResolutionError, ResolutionError) as exc:
+        # The pinned root or activation cannot make a task; no crew ran, and
+        # retrying the same pin cannot repair the missing authority.
         return _close_error(
             resolved,
             activation_id,

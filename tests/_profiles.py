@@ -785,11 +785,16 @@ class Lab:
             self.clock,
             host_env_with(**stub_env(marker=marker, effects=effects)),
         )
+        profile = registry.profile_for(crew.value)
         return self.inspector.run(
             request
-            or entry_mint(crew_profile=crew.value, session_id=str(uuid.uuid4())),
+            or entry_mint(
+                crew_profile=crew.value,
+                session_id=str(uuid.uuid4()),
+                crew_version=profile.cli_version(),
+            ),
             node,
-            registry.profile_for(crew.value),
+            profile,
             task_builder(
                 self.paths.worktree,
                 node,
@@ -854,9 +859,15 @@ class Lab:
             config, self.clock, host_env_with(**stub_env(), **extra)
         )
         dispatcher = Dispatcher(self.paths, self.store, self.clock)
+        profile = registry.profile_for(crew.value)
         result = dispatcher.dispatch(
-            request or entry_mint(crew_profile=crew.value, session_id=session_id),
-            registry.profile_for(crew.value),
+            request
+            or entry_mint(
+                crew_profile=crew.value,
+                session_id=session_id,
+                crew_version=profile.cli_version(),
+            ),
+            profile,
             task_builder(
                 self.paths.worktree,
                 node,

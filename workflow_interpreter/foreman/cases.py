@@ -4,7 +4,10 @@ from __future__ import annotations
 
 import hashlib
 from collections.abc import Iterable
+from pathlib import Path
+from typing import Final
 
+import structlog
 from pydantic import BaseModel, ConfigDict
 
 from workflow_interpreter.bdio import (
@@ -18,14 +21,25 @@ from workflow_interpreter.bdio import (
     RootRecord,
 )
 from workflow_interpreter.bdio.errors import BoundExceededError
+from workflow_interpreter.bdio.keys import entry_idempotency_key, idempotency_key
 from workflow_interpreter.bdio.rows import STATUS_CLOSED
-from workflow_interpreter.contracts.sessions import SessionMode
+from workflow_interpreter.bdio.wire import (
+    ActivationMetadata,
+    mint_request_from_activation,
+)
+from workflow_interpreter.contracts.sessions import SessionFreshReason, SessionMode
 from workflow_interpreter.foreman.bounds import refusal_route
 from workflow_interpreter.foreman.close import settle
 from workflow_interpreter.foreman.compose import (
     Composition,
     InstanceWiring,
     WrapperLaunch,
+)
+from workflow_interpreter.foreman.config import (
+    BindingApply,
+    CrewBinding,
+    load_role_bindings,
+    read_role_apply,
 )
 from workflow_interpreter.foreman.constants import (
     DISPATCH_REQUEST,
@@ -41,8 +55,14 @@ from workflow_interpreter.foreman.constants import (
     HALT_SANDBOX_UNAVAILABLE,
     HALT_UNUSABLE_RESOLUTION,
 )
+from workflow_interpreter.foreman.errors import LiveProbeRequired, ResolutionError
 from workflow_interpreter.foreman.events import EventIntent
-from workflow_interpreter.foreman.execution import resolved_node
+from workflow_interpreter.foreman.execution import (
+    ResolvedNode,
+    resolved_invocation,
+    resolved_node,
+    resolved_static_node,
+)
 from workflow_interpreter.foreman.frontier import DeadEndKind
 from workflow_interpreter.foreman.gates import (
     IntakeResult,
@@ -55,14 +75,21 @@ from workflow_interpreter.foreman.gates import (
 from workflow_interpreter.foreman.inputs import select_bindings
 from workflow_interpreter.foreman.inspector import wrapper_alive
 from workflow_interpreter.foreman.ledger_render import bind_render
+from workflow_interpreter.foreman.model_catalog import (
+    VerificationStatus,
+    resolve_role_binding,
+)
 from workflow_interpreter.foreman.routing import RouteKind, retry_kind, route
 from workflow_interpreter.foreman.verify_feedback import bind_feedback
 from workflow_interpreter.foreman.wake_constants import DEFAULT_EVENT_CAP
 from workflow_interpreter.inspector.models import RecoveryCase
 from workflow_interpreter.inspector.paths import write_record
+from workflow_interpreter.profiles.config import CREW_PREFIX
 from workflow_interpreter.schema.models import NodeKind, Outcome
 
 _STALL_ABORT_PENDING = "barrier abort cleanup is still pending"
+MSG_ROLE_EDIT_IGNORED: Final[str] = "wf.roles.edit_ignored"
+_LOG: Final[structlog.stdlib.BoundLogger] = structlog.get_logger(__name__)
 
 
 def probed_crew_version(composition: Composition, crew_profile: str) -> str | None:
@@ -75,6 +102,206 @@ def probed_crew_version(composition: Composition, crew_profile: str) -> str | No
     skipped; a resolver that cannot answer at all is a type error, not silence.
     """
     return composition.profiles.version_for(crew_profile)
+
+
+def startup_invocation(
+    composition: Composition,
+    root: RootRecord,
+    node_name: str,
+    *,
+    wiring: InstanceWiring | None = None,
+) -> ResolvedNode:
+    """Resolve a new mint from the current qualified role binding."""
+    node = root.index.nodes[node_name]
+    binding = None
+    if node.crew and node.crew.startswith(CREW_PREFIX):
+        role = node.crew.removeprefix(CREW_PREFIX)
+        prior = None
+        if wiring is not None:
+            prior = next(
+                (
+                    activation.metadata
+                    for activation in reversed(
+                        wiring.store.reads.list_activations(root.root_id)
+                    )
+                    if activation.metadata.role == role
+                    and activation.metadata.effort is not None
+                ),
+                None,
+            )
+        role_path = composition.config.role_bindings_path
+        if role_path is not None and prior is not None:
+            try:
+                apply = read_role_apply(role_path, role)
+            except (OSError, ValueError, TypeError) as error:
+                _LOG.warning(MSG_ROLE_EDIT_IGNORED, role=role, reason=str(error))
+                apply = BindingApply.NEXT_TASK
+            if apply is BindingApply.NEXT_TASK:
+                binding = _pinned_binding(prior, root, node_name)
+            else:
+                try:
+                    binding = _live_binding(composition, role, role_path)
+                except LiveProbeRequired:
+                    raise
+                except (OSError, ValueError, TypeError) as error:
+                    _LOG.warning(MSG_ROLE_EDIT_IGNORED, role=role, reason=str(error))
+                    binding = _pinned_binding(prior, root, node_name)
+        elif role_path is not None:
+            try:
+                binding = _live_binding(composition, role, role_path)
+            except LiveProbeRequired:
+                raise
+            except (OSError, ValueError, TypeError) as error:
+                raise ResolutionError(f"roles.toml: {error}") from error
+        else:
+            binding = _qualified_live_binding(
+                composition, role, composition.config.roles[role]
+            )
+        if (
+            prior is not None
+            and binding is not None
+            and binding.apply is BindingApply.NOW
+            and (binding.profile, binding.model, binding.effort)
+            == (prior.crew_profile, prior.model, prior.effort)
+        ):
+            # Mode and cap edits apply when the role starts its next task.
+            binding = binding.model_copy(
+                update={
+                    "session_mode": _role_session_mode(
+                        prior, root, node_name, binding.session_mode
+                    ),
+                    "context_cap_tokens": prior.context_cap_tokens,
+                }
+            )
+    view = resolved_invocation(root, node_name, composition.profiles, binding=binding)
+    return (
+        view
+        if binding is None
+        else view.model_copy(update={"binding_apply": binding.apply})
+    )
+
+
+def _role_session_mode(
+    prior: ActivationMetadata,
+    root: RootRecord,
+    node_name: str,
+    role_mode: SessionMode | None,
+) -> SessionMode | None:
+    """Copy a prior mode only when it has no other node's declaration in it."""
+    if (
+        prior.node != node_name
+        and root.index.nodes[prior.node].session_mode is not None
+    ):
+        return role_mode
+    return prior.session_mode
+
+
+def _pinned_binding(
+    prior: ActivationMetadata, root: RootRecord, node_name: str
+) -> CrewBinding:
+    """Recover the role binding recorded on an earlier activation in this root."""
+    if prior.effort is None:
+        raise ResolutionError(f"role {prior.role!r}: activation has no effort pin")
+    return CrewBinding(
+        profile=prior.crew_profile,
+        model=prior.model,
+        effort=prior.effort,
+        session_mode=_role_session_mode(prior, root, node_name, None),
+        context_cap_tokens=prior.context_cap_tokens,
+    )
+
+
+def _live_binding(composition: Composition, role: str, path: Path) -> CrewBinding:
+    """Read and qualify a role's edited binding against the active catalog."""
+    live = load_role_bindings(path)
+    if role not in live:
+        raise ResolutionError(f"role {role!r}: missing from roles.toml")
+    return _qualified_live_binding(composition, role, live[role])
+
+
+def _qualified_live_binding(
+    composition: Composition, role: str, binding: CrewBinding
+) -> CrewBinding:
+    """Validate a live choice only when this mint can use it."""
+    if not binding.profile:
+        binding = resolve_role_binding(
+            role,
+            binding,
+            composition.active_catalog,
+            composition.catalog_provenance,
+        )
+    if composition.active_catalog is not None and binding.profile == "claude":
+        family = next(
+            (
+                details
+                for name, details in composition.active_catalog.families.items()
+                if name.value == "claude"
+            ),
+            None,
+        )
+        selected = (
+            None
+            if family is None
+            else next(
+                (model for model in family.models if model.id == binding.model),
+                None,
+            )
+        )
+        if (
+            selected is not None
+            and selected.verification is VerificationStatus.SEED_UNPROBED
+            and binding.model not in composition.live_probes
+        ):
+            raise LiveProbeRequired(role, binding.model, binding.effort)
+    return binding
+
+
+def _live_change(
+    wiring: InstanceWiring, root: RootRecord, view: ResolvedNode
+) -> SessionFreshReason | None:
+    """Mark an immediate role edit against the task's latest role pin."""
+    if view.binding_apply is not BindingApply.NOW:
+        return None
+    crew = view.node.crew or ""
+    if not crew.startswith(CREW_PREFIX):
+        return None
+    role = crew.removeprefix(CREW_PREFIX)
+    previous = next(
+        (
+            record.metadata
+            for record in reversed(wiring.store.reads.list_activations(root.root_id))
+            if record.metadata.role == role
+        ),
+        None,
+    )
+    if previous is None:
+        return None
+    if (
+        view.crew_profile,
+        view.model,
+        view.effort,
+    ) != (
+        previous.crew_profile,
+        previous.model,
+        previous.effort,
+    ):
+        return SessionFreshReason.MODEL_CHANGED
+    return None
+
+
+def _replayed(
+    composition: Composition, wiring: InstanceWiring, root: RootRecord, key: str
+) -> CaseResult | None:
+    """Return a prior mint before any mutable role file is opened."""
+    existing = wiring.store.reads.find_by_idempotency_key(root.root_id, key)
+    if not existing:
+        return None
+    if len(existing) != 1:
+        replay = wiring.store.mint_activation(
+            root.root_id, mint_request_from_activation(existing[0].metadata)
+        ).activation
+        return CaseResult(dispatched=replay.activation_id)
+    return CaseResult(dispatched=existing[0].activation_id)
 
 
 class CaseResult(BaseModel):
@@ -141,33 +368,6 @@ def intake_all(
     return IntakeBatch(closed=tuple(closed), refusals=tuple(refusals))
 
 
-def _request(
-    composition: Composition,
-    root: RootRecord,
-    activation: ActivationRecord,
-) -> MintRequest:
-    """Reconstruct the durable request shape needed by the wrapper."""
-    meta = activation.metadata
-    view = resolved_node(root, meta.node)
-    # S1 carries resume intent durably. Claude and Codex exec still follow
-    # inspector/launch.py's existing launch path until S2 consumes this contract.
-    return MintRequest(
-        node=meta.node,
-        mint_reason=meta.mint_reason,
-        crew_profile=view.crew_profile,
-        model=view.model,
-        crew_version=meta.crew_version,
-        session_id=meta.session_id,
-        session_mode=meta.session_mode,
-        session_source_activation_id=meta.session_source_activation_id,
-        source_session_id=meta.source_session_id,
-        predecessor_activation_id=meta.predecessor_activation_id,
-        predecessor_gate_id=meta.predecessor_gate_id,
-        inputs=meta.inputs,
-        deviations=meta.deviations,
-    )
-
-
 def dispatch_minted(
     composition: Composition,
     wiring: InstanceWiring,
@@ -175,7 +375,7 @@ def dispatch_minted(
     activation: ActivationRecord,
 ) -> CaseResult:
     """Persist the launch intent then invoke the configured spawner once."""
-    request = _request(composition, root, activation)
+    request = mint_request_from_activation(activation.metadata)
     path = wiring.paths.activation_dir(activation.activation_id) / DISPATCH_REQUEST
     write_record(
         path,
@@ -207,7 +407,7 @@ def _successor_request(
     round_no: int,
 ) -> MintRequest:
     """Build the one graph-edge request permitted by a completed head."""
-    view = resolved_node(root, target)
+    view = startup_invocation(composition, root, target, wiring=wiring)
     return MintRequest(
         node=target,
         mint_reason=MintReason.EDGE,
@@ -215,12 +415,19 @@ def _successor_request(
         predecessor_gate_id=predecessor_gate_id,
         crew_profile=view.crew_profile,
         model=view.model,
+        effort=view.effort,
+        context_cap_tokens=view.context_cap_tokens,
+        execution_policy=view.execution_policy,
+        catalog_digest=None
+        if composition.active_catalog is None
+        else composition.active_catalog.digest,
         crew_version=probed_crew_version(composition, view.crew_profile),
         # §5.2: `Profile.prepare` is the only minter of session ids, and it
         # runs at launch; the dispatch writes the one the child ran under back
         # onto this activation (`record_dispatch`).
         session_id="",
         session_mode=view.node.session_mode or SessionMode.FRESH,
+        fresh_reason_override=_live_change(wiring, root, view),
         inputs=select_bindings(
             root.index,
             root,
@@ -242,6 +449,22 @@ def _mint_successor(
     round_no: int,
 ) -> CaseResult:
     """Mint then dispatch one graph successor, or report a closed refusal."""
+    predecessor = predecessor_activation_id or predecessor_gate_id
+    if predecessor is not None:
+        outcome = (
+            wiring.store.reads.load_activation(predecessor).metadata.outcome
+            if predecessor_activation_id is not None
+            else wiring.store.reads.load_gate(predecessor).metadata.outcome
+        )
+        if outcome is not None:
+            replay = _replayed(
+                composition,
+                wiring,
+                root,
+                idempotency_key(root.root_id, predecessor, outcome, target),
+            )
+            if replay is not None:
+                return replay
     request = _successor_request(
         composition,
         wiring,
@@ -356,12 +579,21 @@ def mint_entry(
 ) -> CaseResult:
     """Mint and dispatch the graph entry with bindings derived from the pin."""
     node_name = root.definition.document.graph.entry
-    view = resolved_node(root, node_name)
+    replay = _replayed(composition, wiring, root, entry_idempotency_key(root.root_id))
+    if replay is not None:
+        return replay
+    view = startup_invocation(composition, root, node_name, wiring=wiring)
     request = MintRequest(
         node=node_name,
         mint_reason=MintReason.ENTRY,
         crew_profile=view.crew_profile,
         model=view.model,
+        effort=view.effort,
+        context_cap_tokens=view.context_cap_tokens,
+        execution_policy=view.execution_policy,
+        catalog_digest=None
+        if composition.active_catalog is None
+        else composition.active_catalog.digest,
         crew_version=probed_crew_version(composition, view.crew_profile),
         session_id="",  # minted by `Profile.prepare` at launch (§5.2)
         session_mode=view.node.session_mode or SessionMode.FRESH,
@@ -389,18 +621,19 @@ def advance_lifecycle(
     if lifecycle is Lifecycle.DISPATCHED:
         if wrapper_alive(wiring, activation.activation_id):
             return CaseResult(blocked=True)
-        # The EFFECTIVE node on the grading leg too: an activation that RAN
-        # under the root's resolution must be recovered, replayed and graded
-        # under it (§3.1) — reading `writes` or `isolation` off the raw
-        # pinned body here graded it as a different node (cr-7h8 review).
+        # Grading uses the activation invocation with the root's static safety
+        # settings, including effective writes and isolation (cr-7h8 review).
         resolution = wiring.recovery.resolve(
-            activation, resolved_node(root, activation.metadata.node).node
+            activation,
+            resolved_static_node(root, activation.metadata.node),
         )
         classification = getattr(resolution, "classification", None)
         exit_record = None if classification is None else classification.exit_record
         if exit_record is not None:
             recorded = wiring.store.record_exit(activation.activation_id, exit_record)
-            view = resolved_node(root, recorded.metadata.node)
+            view = resolved_node(
+                root, recorded.metadata.node, activation=recorded.metadata
+            )
             profile = composition.profiles.profile_for(view.crew_profile)
             result = settle(
                 wiring,
@@ -422,7 +655,9 @@ def advance_lifecycle(
             stalled=resolution.halted,
         )
     if lifecycle in {Lifecycle.EXIT_RECORDED, Lifecycle.EVIDENCE_RECORDED}:
-        view = resolved_node(root, activation.metadata.node)
+        view = resolved_node(
+            root, activation.metadata.node, activation=activation.metadata
+        )
         profile = composition.profiles.profile_for(view.crew_profile)
         result = settle(
             wiring,
@@ -484,7 +719,7 @@ def route_head(
     outcome = head.metadata.outcome
     if outcome is None:
         return CaseResult(stalled="completed activation has no outcome")
-    node = resolved_node(root, head.metadata.node).node
+    node = resolved_static_node(root, head.metadata.node)
     if outcome in (Outcome.FAIL_PLAN, Outcome.DOUBT):
         from workflow_interpreter.foreman.decisions import queue_boundary
 
@@ -535,15 +770,33 @@ def route_head(
         # after-validators, so a copy carried the stale `predecessor_gate_id`
         # into a non-EDGE mint and stranded the instance (cr-o85.33.8).
         head_meta = head.metadata
-        view = resolved_node(root, head_meta.node)
+        if head_meta.outcome is not None:
+            replay = _replayed(
+                composition,
+                wiring,
+                root,
+                idempotency_key(
+                    root.root_id, head.activation_id, head_meta.outcome, head_meta.node
+                ),
+            )
+            if replay is not None:
+                return replay
+        view = startup_invocation(composition, root, head_meta.node, wiring=wiring)
         request = MintRequest(
             node=head_meta.node,
             mint_reason=retry,
             crew_profile=view.crew_profile,
             model=view.model,
+            effort=view.effort,
+            context_cap_tokens=view.context_cap_tokens,
+            execution_policy=view.execution_policy,
+            catalog_digest=None
+            if composition.active_catalog is None
+            else composition.active_catalog.digest,
             crew_version=probed_crew_version(composition, view.crew_profile),
             session_id=head_meta.session_id,
             session_mode=view.node.session_mode or SessionMode.FRESH,
+            fresh_reason_override=_live_change(wiring, root, view),
             predecessor_activation_id=head.activation_id,
             inputs=head_meta.inputs,
         )

@@ -26,12 +26,16 @@ from tests._foreman import (
 )
 from tests._helpers import VALID_FIXTURE
 from tests._inspector import FakeProfile, FrozenClock
+from tests._ledger import EPIC, TASK, config_file
 from workflow_interpreter.bdio import BoundSetting, NodeSetting
 from workflow_interpreter.bdio.api import WorkflowStore
 from workflow_interpreter.bdio.errors import StoreConfigError
 from workflow_interpreter.bdio.roots import MAX_INSTANCE_INPUT_BYTES
+from workflow_interpreter.bdio.sessions import resolved_session_mode
 from workflow_interpreter.contractor.tracker_config import TrackerSettings
+from workflow_interpreter.contracts.execution import CrewName
 from workflow_interpreter.contracts.sessions import SessionMode
+from workflow_interpreter.foreman import __main__ as foreman_main
 from workflow_interpreter.foreman.compose import (
     Composition,
     DetachedSpawner,
@@ -41,12 +45,31 @@ from workflow_interpreter.foreman.compose import (
     WrapperLaunch,
     instance_head,
 )
-from workflow_interpreter.foreman.config import CrewBinding, ForemanConfig
+from workflow_interpreter.foreman.config import (
+    BindingApply,
+    CrewBinding,
+    ForemanConfig,
+    load_config,
+    load_role_bindings,
+)
 from workflow_interpreter.foreman.constants import INSTANCE_BRANCH
 from workflow_interpreter.foreman.errors import ResolutionError, UnusableResolutionError
 from workflow_interpreter.foreman.execution import (
     UnresolvedCrewError,
+    resolved_invocation,
     resolved_node,
+)
+from workflow_interpreter.foreman.model_catalog import (
+    PROBE_BUDGET_USD,
+    SEED_FILE,
+    CatalogModel,
+    CatalogProvenance,
+    CatalogSnapshot,
+    FamilySnapshot,
+    ModelCatalog,
+    catalog_at_start,
+    load_snapshot,
+    resolve_role_binding,
 )
 from workflow_interpreter.foreman.owner import OwnerConflict, OwnerRecord, ensure_owner
 from workflow_interpreter.foreman.resolve import (
@@ -68,6 +91,77 @@ from workflow_interpreter.schema.validator import PHASE_B_RULES
 from workflow_interpreter.tracker.bd_transport import BdConfig
 
 
+@pytest.mark.live
+def test_live_owner_start_catalog_qualification(tmp_path: Path) -> None:
+    """Qualify in a lab; probes use invoking cwd, disable tools, log under ~/.claude."""
+    if os.environ.get("WI_LIVE_PROBES") != "1":
+        pytest.skip("set WI_LIVE_PROBES=1 and pass --run-live for paid probes")
+
+    seed = json.loads(SEED_FILE.read_text(encoding="utf-8"))
+    bound = [model for model in seed["models"] if model["efforts"]]
+    assert bound
+    lab_repo = tmp_path / "repo"
+    lab_repo.mkdir()
+    lab_home = tmp_path / "home"
+    wrapper_root = (
+        lab_home
+        / hashlib.sha256(str(lab_repo.resolve()).encode("utf-8")).hexdigest()[:16]
+    )
+    roles_path = tmp_path / "roles.toml"
+    roles_path.write_text(
+        "".join(
+            f'[roles.probe_{index}]\nmodel = "{model["id"]}"\n'
+            f'effort = "{model["efforts"][0]}"\n'
+            for index, model in enumerate(bound)
+        ),
+        encoding="utf-8",
+    )
+    config = ForemanConfig(
+        repo_root=lab_repo,
+        wrapper_home=lab_home,
+        role_bindings_path=roles_path,
+        roles=load_role_bindings(roles_path),
+        tracker=TrackerSettings(
+            bd=BdConfig(workspace=tmp_path / "unused-bd", actor="lab")
+        ),
+        host="lab",
+        actor="lab",
+        inspector=InspectorConfig(
+            repo_root=lab_repo, wrapper_root=wrapper_root, host="lab"
+        ),
+    )
+    result = catalog_at_start(config, "run", dict(os.environ))
+    assert result.provenance is CatalogProvenance.REFRESHED
+    assert result.snapshot is not None
+    assert load_snapshot(wrapper_root) == result.snapshot
+    codex = result.snapshot.families[CrewName.CODEX]
+    assert codex.models, codex.refusals
+    claude = result.snapshot.families[CrewName.CLAUDE]
+    by_id = {model.id: model for model in claude.models}
+    report = [
+        {
+            "model": model["id"],
+            "attempts": by_id[model["id"]].probe_attempts,
+            "duration_ms": by_id[model["id"]].probe_duration_ms,
+            "reported_cost_usd": by_id[model["id"]].probe_cost_usd,
+            "charged_cap_usd": (by_id[model["id"]].probe_attempts or 0)
+            * PROBE_BUDGET_USD,
+            "verification": by_id[model["id"]].verification,
+        }
+        for model in bound
+    ]
+    (tmp_path / "probe-report.json").write_text(
+        json.dumps(report, indent=2), encoding="utf-8"
+    )
+    print(json.dumps(report, indent=2))
+    assert all(row["verification"] == "probe-ok" for row in report), claude.refusals
+    assert all(
+        isinstance(row["reported_cost_usd"], (int, float))
+        and row["reported_cost_usd"] <= (row["attempts"] or 0) * PROBE_BUDGET_USD
+        for row in report
+    )
+
+
 class _AvailableProfiles(ProfileRegistry):
     """A registry with built-in vendors and the registered lab crew."""
 
@@ -78,6 +172,369 @@ class _AvailableProfiles(ProfileRegistry):
             {},
             builders={"fake": lambda *_: FakeProfile()},
         )
+
+
+def test_role_apply_defaults_and_refuses_unknown_value_by_name(tmp_path: Path) -> None:
+    """The operator timing key is optional and constrained to two values."""
+    role_path = tmp_path / "roles.toml"
+    role_path.write_text(
+        '[roles.writer]\nmodel = "gpt-6-sol"\neffort = "high"\n',
+        encoding="utf-8",
+    )
+    assert load_role_bindings(role_path)["writer"].apply is BindingApply.NEXT_TASK
+    role_path.write_text(
+        '[roles.writer]\nmodel = "gpt-6-sol"\neffort = "high"\napply = "later"\n',
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="role 'writer'.*apply"):
+        load_role_bindings(role_path)
+
+
+def test_prelaunch_version_qualification_uses_only_version_probe() -> None:
+    """A qualified patch update can re-pin; another minor line refuses."""
+    calls: list[tuple[str, ...]] = []
+    current = "codex-cli 0.156.2"
+
+    def run(argv: list[str], timeout: float) -> subprocess.CompletedProcess[str]:
+        calls.append(tuple(argv))
+        return subprocess.CompletedProcess(argv, 0, current, "")
+
+    catalog = ModelCatalog("codex", "claude", run)
+    assert (
+        catalog.prelaunch_version(CrewName.CODEX, "gpt-6-sol", "codex-cli 0.156.1")
+        == current
+    )
+    assert calls == [("codex", "--version")]
+    with pytest.raises(ResolutionError, match="codex.*outside the qualified range"):
+        catalog.prelaunch_version(CrewName.CODEX, "gpt-6-sol", "codex-cli 0.155.1")
+
+
+def test_role_binding_uses_only_qualified_catalog_choices() -> None:
+    """Human roles select exact IDs and supported efforts from the owner snapshot."""
+    snapshot = CatalogSnapshot(
+        generated_at="2026-09-23T00:00:00Z",
+        digest="test",
+        families={
+            CrewName.CODEX: FamilySnapshot(
+                source="bundled-cli",
+                available=True,
+                models=(
+                    CatalogModel(
+                        id="codex-a", efforts=("high", "low"), context_window=200000
+                    ),
+                ),
+            ),
+            CrewName.CLAUDE: FamilySnapshot(
+                source="checked-seed-and-probe",
+                available=True,
+                models=(
+                    CatalogModel(
+                        id="claude-a", efforts=("medium",), context_window=1000000
+                    ),
+                ),
+            ),
+        },
+    )
+    selected = resolve_role_binding(
+        "writer",
+        CrewBinding(model="claude-a", effort="medium"),
+        snapshot,
+        CatalogProvenance.REFRESHED,
+    )
+    assert selected.profile == "claude"
+    with pytest.raises(
+        ResolutionError,
+        match="role 'writer': unknown model 'missing'; valid models: claude-a, codex-a",
+    ):
+        resolve_role_binding(
+            "writer",
+            CrewBinding(model="missing", effort="high"),
+            snapshot,
+            CatalogProvenance.REFRESHED,
+        )
+    with pytest.raises(ResolutionError, match="valid efforts: high, low"):
+        resolve_role_binding(
+            "writer",
+            CrewBinding(model="codex-a", effort="medium"),
+            snapshot,
+            CatalogProvenance.REFRESHED,
+        )
+    with pytest.raises(
+        ResolutionError, match="role 'writer': qualified model catalog unavailable"
+    ):
+        resolve_role_binding(
+            "writer",
+            CrewBinding(model="codex-a", effort="high"),
+            snapshot,
+            CatalogProvenance.FALLBACK,
+        )
+    with pytest.raises(
+        ResolutionError, match="role 'writer': qualified model catalog unavailable"
+    ):
+        resolve_role_binding(
+            "writer", CrewBinding(model="codex-a", effort="high"), None, None
+        )
+    with pytest.raises(ResolutionError, match="only supported by claude"):
+        resolve_role_binding(
+            "writer",
+            CrewBinding(model="codex-a", effort="high", context_cap_tokens=100000),
+            snapshot,
+            CatalogProvenance.REFRESHED,
+        )
+    unavailable = snapshot.model_copy(
+        update={
+            "families": {
+                CrewName.CODEX: snapshot.families[CrewName.CODEX],
+                CrewName.CLAUDE: FamilySnapshot(
+                    source="checked-seed-and-probe",
+                    refusals=("claude catalog unavailable: missing CLI",),
+                ),
+            }
+        }
+    )
+    with pytest.raises(
+        ResolutionError, match="claude catalog unavailable: missing CLI"
+    ):
+        resolve_role_binding(
+            "writer",
+            CrewBinding(model="claude-a", effort="medium"),
+            unavailable,
+            CatalogProvenance.REFRESHED,
+        )
+    with pytest.raises(ResolutionError, match="below 1000000"):
+        resolve_role_binding(
+            "writer",
+            CrewBinding(model="claude-a", effort="medium", context_cap_tokens=1000000),
+            snapshot,
+            CatalogProvenance.REFRESHED,
+        )
+
+
+@pytest.mark.parametrize(
+    ("window", "expected"),
+    [(370_001, 370_000), (370_000, None), (200_000, None), (None, None)],
+)
+def test_claude_default_cap_requires_a_known_larger_catalog_window(
+    window: int | None, expected: int | None
+) -> None:
+    snapshot = CatalogSnapshot(
+        generated_at="2026-09-23T00:00:00Z",
+        digest="test",
+        families={
+            CrewName.CLAUDE: FamilySnapshot(
+                source="checked-seed-and-probe",
+                available=True,
+                models=(
+                    CatalogModel(
+                        id="claude-a", efforts=("medium",), context_window=window
+                    ),
+                ),
+            )
+        },
+    )
+    with capture_logs() as logs:
+        selected = resolve_role_binding(
+            "writer",
+            CrewBinding(model="claude-a", effort="medium"),
+            snapshot,
+            CatalogProvenance.REFRESHED,
+        )
+    assert selected.context_cap_tokens == expected
+    assert any(
+        log["event"] == "foreman.context_cap_unknown_window" for log in logs
+    ) == (window is None)
+
+
+def test_catalog_excludes_hidden_codex_and_probes_each_bound_claude_model_once(
+    tmp_path: Path,
+) -> None:
+    """Discovery retains only selectable Codex IDs and deduplicates paid probes."""
+    calls: list[tuple[str, ...]] = []
+
+    def run(argv: list[str], timeout: float) -> subprocess.CompletedProcess[str]:
+        calls.append(tuple(argv))
+        if argv[:2] == ["codex", "--version"]:
+            output = "codex-cli 0.156.1"
+        elif argv[:2] == ["codex", "debug"]:
+            output = json.dumps(
+                {
+                    "models": [
+                        {
+                            "slug": "visible",
+                            "visibility": "list",
+                            "context_window": 200000,
+                            "supported_reasoning_levels": [{"effort": "high"}],
+                        },
+                        {
+                            "slug": "hidden",
+                            "visibility": "hide",
+                            "context_window": 100000,
+                            "supported_reasoning_levels": [{"effort": "low"}],
+                        },
+                    ]
+                }
+            )
+        elif argv[:2] == ["claude", "--version"]:
+            output = "2.1.258 (Claude Code)"
+        elif argv[:2] == ["claude", "--help"]:
+            output = "--model --effort --autocompact --tools --output-format --max-budget-usd"
+        else:
+            output = json.dumps({"is_error": False, "total_cost_usd": 0.001})
+        return subprocess.CompletedProcess(argv, 0, output, "")
+
+    catalog = ModelCatalog("codex", "claude", run)
+    snapshot = catalog.refresh(
+        {"implementer": ("claude-opus-5", "high"), "critic": ("claude-opus-5", "high")}
+    )
+    assert [model.id for model in snapshot.families["codex"].models] == ["visible"]
+    assert snapshot.families["codex"].hidden_count == 1
+    windows = {
+        model.id: model.context_window for model in snapshot.families["claude"].models
+    }
+    for model_id, window in {
+        "claude-fable-5-1": 1_000_000,
+        "claude-opus-5-5": 1_000_000,
+        "claude-sonnet-5": 1_000_000,
+        "claude-haiku-4-5-20251001": 200_000,
+    }.items():
+        assert windows[model_id] == window
+    haiku = next(
+        model
+        for model in snapshot.families["claude"].models
+        if model.id == "claude-haiku-4-5-20251001"
+    )
+    assert haiku.efforts == ()
+    assert len([call for call in calls if call[:2] == ("claude", "-p")]) == 1
+    opus = next(
+        model
+        for model in snapshot.families["claude"].models
+        if model.id == "claude-opus-5"
+    )
+    assert opus.verification == "probe-ok"
+    assert any(
+        call[call.index("--effort") + 1] == "low"
+        for call in calls
+        if "--effort" in call
+    )
+    assert all("--strict-mcp-config" in call for call in calls if "-p" in call)
+    assert all(
+        ("--setting-sources", "")
+        == call[call.index("--setting-sources") : call.index("--setting-sources") + 2]
+        for call in calls
+        if "-p" in call
+    )
+    assert catalog.write(snapshot, tmp_path) == tmp_path / "model-catalog.json"
+    assert (
+        json.loads((tmp_path / "model-catalog.json").read_text())["digest"]
+        == snapshot.digest
+    )
+    assert load_snapshot(tmp_path) == snapshot
+    catalog_file = tmp_path / "model-catalog.json"
+    persisted = json.loads(catalog_file.read_text())
+    persisted["families"]["claude"]["models"][0]["probe_duration_ms"] = 99
+    catalog_file.write_text(json.dumps(persisted))
+    assert load_snapshot(tmp_path) is not None
+    persisted["families"]["claude"]["models"][0]["efforts"] = ["invented"]
+    catalog_file.write_text(json.dumps(persisted))
+    with pytest.raises(ValueError, match="digest mismatch"):
+        load_snapshot(tmp_path)
+    seed = json.loads(SEED_FILE.read_text(encoding="utf-8"))
+    seed["models"][0]["cli_model_support"] = "verified"
+    seed_file = tmp_path / "verified-seed.json"
+    seed_file.write_text(json.dumps(seed), encoding="utf-8")
+    assert ModelCatalog("codex", "claude", run, seed_path=seed_file).seed_ids() == {
+        entry["id"] for entry in seed["models"]
+    }
+    assert (
+        ModelCatalog("codex", "claude", run, seed_path=seed_file)
+        .refresh()
+        .families["claude"]
+        .available
+    )
+
+
+def test_catalog_warns_on_claude_version_drift_and_bounds_failed_probes() -> None:
+    """An updated CLI warns; failed admission is role-named after finite retries."""
+    calls: list[tuple[str, ...]] = []
+    delays: list[float] = []
+
+    def run(argv: list[str], timeout: float) -> subprocess.CompletedProcess[str]:
+        calls.append(tuple(argv))
+        if argv[0] == "codex":
+            raise FileNotFoundError("codex")
+        if argv[1] == "--version":
+            return subprocess.CompletedProcess(argv, 0, "2.1.259 (Claude Code)", "")
+        if argv[1] == "--help":
+            return subprocess.CompletedProcess(
+                argv,
+                0,
+                "--model --effort --autocompact --tools --output-format --max-budget-usd",
+                "",
+            )
+        return subprocess.CompletedProcess(argv, 1, "", "transient failure")
+
+    snapshot = ModelCatalog("codex", "claude", run, sleeper=delays.append).refresh(
+        {
+            "writer": ("claude-opus-5", "high"),
+            "reviewer": ("claude-opus-5", "medium"),
+            "unknown": ("not-in-seed", "high"),
+            "bad-effort": ("claude-sonnet-5", "ultra"),
+        }
+    )
+    claude = snapshot.families["claude"]
+    assert claude.available
+    assert claude.warnings == ("Claude CLI version differs from checked seed version",)
+    assert len([call for call in calls if call[:2] == ("claude", "-p")]) == 3
+    assert delays == [0.25, 0.5]
+    opus = next(model for model in claude.models if model.id == "claude-opus-5")
+    assert opus.probe_attempts == 3
+    assert opus.verification == "probe-failed"
+    assert opus.probe_error == "Claude probe exited 1"
+    assert any(
+        "writer" in reason and "probe failed" in reason for reason in claude.refusals
+    )
+    assert any(
+        "reviewer" in reason and "probe failed" in reason for reason in claude.refusals
+    )
+    assert any(
+        "unknown" in reason and "unknown Claude model" in reason
+        for reason in claude.refusals
+    )
+    assert any(
+        "bad-effort" in reason and "unsupported effort" in reason
+        for reason in claude.refusals
+    )
+    assert not snapshot.families["codex"].available
+
+
+def test_catalog_refuses_malformed_claude_probe_result() -> None:
+    """A valid JSON value with the wrong shape cannot escape the refusal path."""
+
+    def run(argv: list[str], timeout: float) -> subprocess.CompletedProcess[str]:
+        if argv[0] == "codex":
+            raise FileNotFoundError("codex")
+        if argv[1] == "--version":
+            output = "2.1.258 (Claude Code)"
+        elif argv[1] == "--help":
+            output = "--model --effort --autocompact --tools --output-format --max-budget-usd"
+        else:
+            output = "[]"
+        return subprocess.CompletedProcess(argv, 0, output, "")
+
+    snapshot = ModelCatalog("codex", "claude", run, sleeper=lambda _: None).refresh(
+        {"writer": ("claude-opus-5", "high")}
+    )
+    opus = next(
+        model
+        for model in snapshot.families["claude"].models
+        if model.id == "claude-opus-5"
+    )
+    assert opus.verification == "probe-failed"
+    assert opus.probe_error == "Claude probe returned a non-object result"
+    assert (
+        "role 'writer': Claude probe failed for 'claude-opus-5'"
+        in snapshot.families["claude"].refusals[0]
+    )
 
 
 def test_crew_binding_requires_a_pinned_model_and_effort(tmp_path: Path) -> None:
@@ -245,7 +702,7 @@ def test_resolve_tags_defaults_and_explicit_overrides() -> None:
     assert settings["node.implement.model"].source.value == "instance-override"
 
 
-def test_role_bindings_fill_only_unresolved_settings_with_their_own_source(
+def test_role_bindings_are_resolved_at_invocation_and_static_overrides_stay_pinned(
     fake_store: WorkflowStore, tmp_path: Path
 ) -> None:
     """A role binding cannot erase an operator's immutable root override."""
@@ -283,12 +740,39 @@ def test_role_bindings_fill_only_unresolved_settings_with_their_own_source(
         item.key: item
         for item in _resolved_config(bound_composition, load_definition(), {})
     }
-    assert bound_settings["node.implement.crew"].value == "bound-crew"
-    assert bound_settings["node.implement.crew"].source.value == "role-binding"
-    assert bound_settings["node.implement.model"].value == "bound-model"
-    assert bound_settings["node.implement.model"].source.value == "role-binding"
-    assert bound_settings["node.implement.effort"].value == "high"
-    assert bound_settings["node.implement.effort"].source.value == "role-binding"
+    assert "node.implement.crew" not in bound_settings
+    assert "node.implement.model" not in bound_settings
+    assert "node.implement.effort" not in bound_settings
+    root = fake_store.create_root(
+        instance_key="role-view",
+        definition=load_definition(),
+        resolved_config=tuple(bound_settings.values()),
+    )
+    view = resolved_invocation(
+        root,
+        "implement",
+        bound_composition.profiles,
+        binding=bound_composition.config.roles["implementer"],
+    )
+    assert (view.crew_profile, view.model, view.effort) == (
+        "bound-crew",
+        "bound-model",
+        "high",
+    )
+    with capture_logs() as cap_logs:
+        uncapped = resolved_invocation(
+            root,
+            "implement",
+            bound_composition.profiles,
+            binding=CrewBinding(
+                profile="bound-crew",
+                model="bound-model",
+                effort="high",
+                context_cap_tokens=120000,
+            ),
+        )
+    assert uncapped.context_cap_tokens is None
+    assert any(entry["event"] == "foreman.context_cap_dropped" for entry in cap_logs)
 
     project_composition, _ = _instance_composition(
         fake_store,
@@ -309,22 +793,23 @@ def test_role_bindings_fill_only_unresolved_settings_with_their_own_source(
 
 
 @pytest.mark.parametrize(
-    ("node_mode", "role_mode", "expected", "source"),
+    ("node_mode", "role_mode", "expected"),
     [
-        ("fresh", SessionMode.RESUME, SessionMode.FRESH, "graph-default"),
-        (None, SessionMode.RESUME, SessionMode.RESUME, "role-binding"),
-        (None, None, SessionMode.FRESH, "graph-default"),
+        ("fresh", SessionMode.RESUME, SessionMode.FRESH),
+        ("resume", SessionMode.FRESH, SessionMode.RESUME),
+        (None, SessionMode.FRESH, SessionMode.FRESH),
+        (None, SessionMode.RESUME, SessionMode.RESUME),
+        (None, None, SessionMode.RESUME),
     ],
 )
-def test_session_mode_resolution_is_node_then_role_then_fresh(
+def test_session_mode_resolution_is_node_then_role_then_resume(
     fake_store: WorkflowStore,
     tmp_path: Path,
     node_mode: str | None,
     role_mode: SessionMode | None,
     expected: SessionMode,
-    source: str,
 ) -> None:
-    """The foreman pins one effective mode; live role config is never reread."""
+    """A new activation uses the node, role, then default mode precedence."""
     graph = tmp_path / "session-mode.toml"
     text = VALID_FIXTURE.read_text()
     if node_mode is not None:
@@ -353,9 +838,52 @@ def test_session_mode_resolution_is_node_then_role_then_fresh(
         item.key: item for item in _resolved_config(composition, load_graph(graph), {})
     }
 
-    pinned = settings["node.implement.session_mode"]
-    assert pinned.value == expected
-    assert pinned.source.value == source
+    pinned = settings.get("node.implement.session_mode")
+    if node_mode is None:
+        assert pinned is None
+    else:
+        assert pinned is not None and pinned.value == expected
+        assert pinned.source.value == "graph-default"
+    root = fake_store.create_root(
+        instance_key="mode-view",
+        definition=load_graph(graph),
+        resolved_config=tuple(settings.values()),
+    )
+    view = resolved_invocation(
+        root,
+        "implement",
+        composition.profiles,
+        binding=composition.config.roles["implementer"],
+    )
+    assert view.node.session_mode is expected
+    if node_mode is None:
+        assert resolved_session_mode(root, "implement") is SessionMode.RESUME
+
+
+def test_reviewer_uses_resume_default(
+    fake_store: WorkflowStore, tmp_path: Path
+) -> None:
+    composition, _ = _instance_composition(fake_store, tmp_path)
+    root = fake_store.create_root(
+        instance_key="reviewer-mode-view",
+        definition=load_definition(),
+        resolved_config=tuple(_resolved_config(composition, load_definition(), {})),
+    )
+    reviewer = resolved_invocation(
+        root,
+        "review",
+        composition.profiles,
+        binding=composition.config.roles["critic"],
+    )
+    assert reviewer.node.session_mode is SessionMode.RESUME
+
+
+def test_explicit_legacy_fresh_pin_survives_new_resume_default(
+    fake_store: WorkflowStore,
+) -> None:
+    explicit = make_root(fake_store, load_definition())
+
+    assert resolved_session_mode(explicit, "implement") is SessionMode.FRESH
 
 
 def test_a_node_resume_on_a_crew_that_cannot_resume_is_refused_at_resolve(
@@ -381,6 +909,29 @@ def test_a_node_resume_on_a_crew_that_cannot_resume_is_refused_at_resolve(
     )
 
     with pytest.raises(ResolutionError, match="session_mode='resume'"):
+        _resolved_config(composition, load_graph(graph), {})
+
+
+@pytest.mark.parametrize("effort", (None, "   "))
+def test_direct_crew_requires_non_blank_project_effort_at_resolve(
+    fake_store: WorkflowStore, tmp_path: Path, effort: str | None
+) -> None:
+    """A direct crew cannot create a root that no activation could launch."""
+    graph = tmp_path / "direct.toml"
+    graph.write_text(
+        VALID_FIXTURE.read_text()
+        .replace('crew        = "profile:implementer"', 'crew        = "opencode"', 1)
+        .replace('model         = "default"', 'model         = "glm"', 1)
+    )
+    composition, _ = _instance_composition(
+        fake_store,
+        tmp_path / "composition",
+        project_config={} if effort is None else {"node.implement.effort": effort},
+    )
+    with pytest.raises(
+        ResolutionError,
+        match="direct crew 'opencode'.*requires non-blank resolved node effort",
+    ):
         _resolved_config(composition, load_graph(graph), {})
 
 
@@ -539,6 +1090,213 @@ def _instance_composition(
     )
 
 
+def test_owner_start_refreshes_catalog_and_monitor_loads_without_probes(
+    fake_store: WorkflowStore, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Only owner startup qualifies bound models; a monitor reuses its file."""
+    composition, _ = _instance_composition(
+        fake_store,
+        tmp_path,
+        roles={
+            "writer": CrewBinding(
+                profile="profile:claude", model="claude-opus-5", effort="high"
+            )
+        },
+    )
+    calls: list[tuple[str, ...]] = []
+
+    def run(argv: list[str], timeout: float) -> subprocess.CompletedProcess[str]:
+        calls.append(tuple(argv))
+        if argv[0] == "codex":
+            raise FileNotFoundError("codex")
+        output = (
+            "2.1.258 (Claude Code)"
+            if argv[1] == "--version"
+            else "--model --effort --autocompact --tools --output-format --max-budget-usd"
+            if argv[1] == "--help"
+            else '{"is_error":false,"total_cost_usd":0.001}'
+        )
+        return subprocess.CompletedProcess(argv, 0, output, "")
+
+    started_result = catalog_at_start(
+        composition.config, "run", composition.host_env, run
+    )
+    assert started_result.provenance is CatalogProvenance.REFRESHED
+    started = started_result.snapshot
+    assert started is not None
+    opus = next(
+        model
+        for model in started.families["claude"].models
+        if model.id == "claude-opus-5"
+    )
+    assert opus.verification == "probe-ok"
+    assert load_snapshot(composition.config.wrapper_root) == started
+    prior_calls = len(calls)
+    for command, child_command in (
+        ("monitor", None),
+        ("tick", None),
+        ("steer", None),
+        ("children", "status"),
+        ("integration", "status"),
+    ):
+        loaded = catalog_at_start(
+            composition.config,
+            command,
+            composition.host_env,
+            run,
+            child_command=child_command,
+        )
+        assert loaded.snapshot == started
+        assert loaded.provenance is CatalogProvenance.LOADED
+    assert len(calls) == prior_calls
+    for command, child_command in (
+        ("create", None),
+        ("children", "admit"),
+        ("contract", None),
+        ("children", "drive"),
+    ):
+        refreshed = catalog_at_start(
+            composition.config,
+            command,
+            composition.host_env,
+            run,
+            child_command=child_command,
+        )
+        assert refreshed.snapshot is not None
+        assert refreshed.provenance is CatalogProvenance.REFRESHED
+    assert len(calls) > prior_calls
+
+    def failed_write(_catalog: ModelCatalog, _snapshot: object, _root: Path) -> Path:
+        """Simulate an unwritable catalog file without disturbing its prior copy."""
+        raise OSError("read-only catalog directory")
+
+    monkeypatch.setattr(ModelCatalog, "write", failed_write)
+    with capture_logs() as logs:
+        fallback = catalog_at_start(
+            composition.config, "run", composition.host_env, run
+        )
+    assert fallback.provenance is CatalogProvenance.FALLBACK
+    assert fallback.snapshot is not None
+    assert fallback.snapshot.digest == started.digest
+    assert any(entry["event"] == "wf.model_catalog.refresh_failed" for entry in logs)
+
+
+def test_create_qualifies_loaded_catalog_and_refreshes_fresh_role_bindings(
+    tmp_path: Path,
+) -> None:
+    """Create probes on first use, then needs only matching CLI versions."""
+    config_path, _repo_root, wrapper_root = config_file(tmp_path)
+    wrapper_root.mkdir(parents=True)
+    role_path = wrapper_root / "roles.toml"
+    role_path.write_text(
+        '[roles.writer]\nmodel = "claude-opus-5"\neffort = "high"\n',
+        encoding="utf-8",
+    )
+    config_path.write_text(
+        config_path.read_text(encoding="utf-8").replace(
+            "[tracker.bd]", f'role_bindings_path = "{role_path}"\n\n[tracker.bd]'
+        ),
+        encoding="utf-8",
+    )
+    config = load_config(config_path)
+    assert not (wrapper_root / "model-catalog.json").exists()
+    calls: list[tuple[str, ...]] = []
+    versions = {"codex": "codex-cli 0.156.1", "claude": "2.1.258 (Claude Code)"}
+
+    def run(argv: list[str], timeout: float) -> subprocess.CompletedProcess[str]:
+        calls.append(tuple(argv))
+        if argv[1] == "--version":
+            output = versions[argv[0]]
+        elif argv[0] == "codex":
+            output = json.dumps(
+                {
+                    "models": [
+                        {
+                            "slug": "gpt-6-sol",
+                            "visibility": "list",
+                            "context_window": 200000,
+                            "supported_reasoning_levels": [{"effort": "high"}],
+                        }
+                    ]
+                }
+            )
+        elif argv[1] == "--help":
+            output = "--model --effort --autocompact --tools --output-format --max-budget-usd"
+        else:
+            output = '{"is_error":false,"total_cost_usd":0.001}'
+        return subprocess.CompletedProcess(argv, 0, output, "")
+
+    fresh = catalog_at_start(config, "create", {}, run)
+    assert fresh.provenance is CatalogProvenance.REFRESHED
+    assert fresh.snapshot is not None
+    assert any(call[:2] == ("claude", "-p") for call in calls)
+    calls.clear()
+    reused = catalog_at_start(config, "create", {}, run)
+    assert reused.provenance is CatalogProvenance.LOADED
+    assert calls == [("codex", "--version"), ("claude", "--version")]
+    calls.clear()
+    admitted = catalog_at_start(
+        config,
+        "children",
+        {},
+        run,
+        child_command="admit",
+    )
+    assert admitted.provenance is CatalogProvenance.LOADED
+    assert calls == [("codex", "--version"), ("claude", "--version")]
+    versions["codex"] = "codex-cli 0.156.2"
+    calls.clear()
+    drifted = catalog_at_start(config, "create", {}, run)
+    assert drifted.provenance is CatalogProvenance.REFRESHED
+    assert any(call[:2] == ("codex", "debug") for call in calls)
+    catalog = ModelCatalog("codex", "claude", run)
+    catalog.write(catalog.refresh(), config.wrapper_root)
+    calls.clear()
+    unprobed = catalog_at_start(config, "create", {}, run)
+    assert unprobed.provenance is CatalogProvenance.REFRESHED
+    assert any(call[:2] == ("claude", "-p") for call in calls)
+
+
+def test_foreman_composition_injects_owner_catalog_runner(tmp_path: Path) -> None:
+    """The production composition path accepts a fake CLI boundary."""
+    config, _repo_root, _wrapper_root = config_file(tmp_path)
+    calls: list[tuple[str, ...]] = []
+
+    def run(argv: list[str], timeout: float) -> subprocess.CompletedProcess[str]:
+        calls.append(tuple(argv))
+        if argv[0] == "codex" and argv[1] == "--version":
+            output = "codex-cli 0.156.1"
+        elif argv[0] == "codex":
+            output = json.dumps(
+                {
+                    "models": [
+                        {
+                            "slug": "visible",
+                            "visibility": "list",
+                            "context_window": 200000,
+                            "supported_reasoning_levels": [{"effort": "high"}],
+                        }
+                    ]
+                }
+            )
+        elif argv[1] == "--version":
+            output = "2.1.258 (Claude Code)"
+        else:
+            output = "--model --effort --autocompact --tools --output-format --max-budget-usd"
+        return subprocess.CompletedProcess(argv, 0, output, "")
+
+    args = foreman_main._parser().parse_args(
+        ["--config", str(config), "--task", TASK, "--epic", EPIC, "run", "root"]
+    )
+    composition = foreman_main._composition(args, catalog_runner=run)
+    assert composition.catalog is not None
+    assert composition.catalog_provenance is CatalogProvenance.REFRESHED
+    assert composition.catalog.families["codex"].models[0].id == "visible"
+    assert calls
+    assert composition.ledger is not None
+    composition.ledger.close()
+
+
 def test_instantiate_pins_project_resolution_and_creates_instance_branch(
     fake_store: WorkflowStore, tmp_path: Path
 ) -> None:
@@ -562,8 +1320,10 @@ def test_instantiate_pins_project_resolution_and_creates_instance_branch(
     branch = INSTANCE_BRANCH.format(root_id=root.root_id)
     assert git.updated == [(branch, git.base)]
     assert root.metadata.instance_inputs[0].body == "implement this"
-    assert settings["node.implement.crew"].value == "implementer"
-    assert settings["node.review.crew"].value == "critic"
+    assert "node.implement.crew" not in settings
+    assert "node.review.crew" not in settings
+    assert root.index.nodes["implement"].crew == "profile:implementer"
+    assert root.index.nodes["review"].crew == "profile:critic"
     assert {key for key in settings if key.startswith("verify.")}
 
     again = instantiate(
@@ -1241,7 +2001,9 @@ def test_resolved_node_falls_back_to_the_pinned_node(tmp_path: Path) -> None:
     root = lab.instantiate()
     pinned = root.index.nodes[IMPLEMENT]
 
-    view = resolved_node(root, IMPLEMENT)
+    from workflow_interpreter.foreman.cases import startup_invocation
+
+    view = startup_invocation(lab.composition, root, IMPLEMENT)
 
     assert view.crew_profile == FAKE_PROFILE
     assert view.node.max_wall == pinned.max_wall
@@ -1269,7 +2031,9 @@ def test_resolved_node_overlays_every_resolvable_execution_field(
     )
     root = lab.instantiate()
 
-    view = resolved_node(root, IMPLEMENT)
+    from workflow_interpreter.foreman.cases import startup_invocation
+
+    view = startup_invocation(lab.composition, root, IMPLEMENT)
 
     assert view.model == "override-model"
     assert view.node.model == "override-model"
@@ -1359,7 +2123,14 @@ def test_resolved_node_refuses_a_role_bound_node_without_usable_vendor_setting(
     tmp_path: Path, field: str
 ) -> None:
     """A role-bound task cannot defer a model or effort to a vendor."""
-    root = ForemanLab(tmp_path).instantiate()
+    root = ForemanLab(
+        tmp_path,
+        overrides={
+            "node.implement.crew": "fake",
+            "node.implement.model": "fake",
+            "node.implement.effort": "medium",
+        },
+    ).instantiate()
     model_key = "node.implement.model"
     effort_key = "node.implement.effort"
     resolved_config = (

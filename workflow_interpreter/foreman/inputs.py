@@ -10,6 +10,7 @@ from pydantic import BaseModel, ConfigDict
 
 from workflow_interpreter.bdio import ActivationRecord, InputBinding, RootRecord
 from workflow_interpreter.bdio.mint import FIRST_ROUND
+from workflow_interpreter.contracts.sessions import SessionMode
 from workflow_interpreter.foreman.constants import (
     CREW_PROTOCOL,
     CREW_PROTOCOL_NO_WRITE_STEP,
@@ -22,6 +23,7 @@ from workflow_interpreter.foreman.constants import (
     LEAF_EXECUTION_CONTRACT,
     MSG_INPUT_SOURCE_UNDECLARED,
     RESUME_FACT_FRAME,
+    RESUMED_NON_WRITER_REVIEW_DELTA,
 )
 from workflow_interpreter.foreman.envelope import (
     ComposedEnvelope,
@@ -31,7 +33,7 @@ from workflow_interpreter.foreman.envelope import (
     InputsUnavailable,
     compose_envelope,
 )
-from workflow_interpreter.foreman.execution import resolved_node
+from workflow_interpreter.foreman.execution import resolved_static_node
 from workflow_interpreter.inspector import activation_ref
 from workflow_interpreter.inspector.gitcmd import GitOutputTooLarge, GitSubcommand
 from workflow_interpreter.inspector.gitio import Git
@@ -150,7 +152,7 @@ def select_bindings(
         # The producer's EFFECTIVE `writes`: it ran under the root's
         # resolution, so binding it under the raw pinned value looks for an
         # artifact that was never produced (cr-7h8 review).
-        if resolved_node(root, producer_node_name).node.writes:
+        if resolved_static_node(root, producer_node_name).writes:
             artifact = evidence.artifact
             if artifact is None:
                 raise InputsUnavailable("writing input producer has no artifact")
@@ -230,7 +232,7 @@ def materialize(
     if producer.activation_id != binding.producer_activation_id:
         raise InputsUnavailable("input producer does not match its binding")
     evidence = producer.metadata.evidence
-    node = resolved_node(root, producer.metadata.node).node
+    node = resolved_static_node(root, producer.metadata.node)
     if evidence is None:
         raise InputsUnavailable("input producer has no evidence")
     if node.writes:
@@ -529,7 +531,7 @@ def compose_resume_delta(
     The same byte budget as a fresh brief applies, and the returned envelope
     records the omissions THIS delta made — nothing it did not drop.
     """
-    node = resolved_node(root, activation.metadata.node).node
+    node = resolved_static_node(root, activation.metadata.node)
     sent: set[str] = set()
     seen: set[str] = set()
     prior: ActivationRecord | None = source
@@ -552,6 +554,13 @@ def compose_resume_delta(
             ),
             _execution_identity(root, activation),
             node.instructions or "",
+            (
+                RESUMED_NON_WRITER_REVIEW_DELTA
+                if activation.metadata.session_mode is SessionMode.RESUME
+                and activation.metadata.source_session_id is not None
+                and not node.writes
+                else ""
+            ),
             _forced_first_reject(root, activation, node),
         )
         if part.strip()
@@ -578,7 +587,7 @@ class DefaultComposer:
         instructions: str | None = None,
     ) -> ComposedEnvelope:
         """Compose the profile brief from immutable inputs and resolved flags."""
-        node = resolved_node(root, activation.metadata.node).node
+        node = resolved_static_node(root, activation.metadata.node)
         # One blank line between sections: the crew reads a document, not a
         # run-on. Each part is stripped so section spacing is the joiner's
         # job alone, whatever trailing newlines a template or input carries.

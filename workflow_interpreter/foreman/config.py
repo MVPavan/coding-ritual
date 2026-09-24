@@ -2,6 +2,7 @@
 
 import hashlib
 import tomllib
+from enum import StrEnum
 from pathlib import Path
 from typing import Annotated, Final
 
@@ -81,22 +82,31 @@ def wrapper_root_for(wrapper_home: Path, repo_root: Path) -> Path:
     return wrapper_home / digest[:REPO_HASH_LENGTH]
 
 
+class BindingApply(StrEnum):
+    """When an edited role binding becomes eligible for a task."""
+
+    NOW = "now"
+    NEXT_TASK = "next-task"
+
+
 class CrewBinding(BaseModel):
-    """The profile and pinned invocation choices selected for a graph role."""
+    """Invocation choices; catalog resolution supplies the human role's profile."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
-    profile: str
+    profile: str = ""  # cr-98c8.9 removes this after fixture migration.
     model: Annotated[str, StringConstraints(min_length=1)]
     effort: Annotated[str, StringConstraints(min_length=1)]
     session_mode: SessionMode | None = None
     context_cap_tokens: int | None = None
-    """Claude's `--autocompact` threshold, passed through unchanged.
+    """Optional Claude `--autocompact` override.
 
     No model-to-window table checks it; `ForemanConfig` refuses, by role, a
     value outside claude's accepted range (`CONTEXT_CAP_MIN_TOKENS` to
     `CONTEXT_CAP_MAX_TOKENS`). Checked there rather than here so the refusal
-    can name the role. Unset emits no flag, which leaves the vendor default."""
+    can name the role. With no override, catalog resolution supplies 370000
+    only when the checked Claude model window is larger."""
+    apply: BindingApply = BindingApply.NEXT_TASK
 
 
 class WakeConfig(BaseModel):
@@ -136,6 +146,7 @@ class ForemanConfig(BaseModel):
     wake: WakeConfig = Field(default_factory=WakeConfig)
     project_config: dict[str, str | int | bool] = Field(default_factory=dict)
     roles: dict[str, CrewBinding] = Field(default_factory=dict)
+    role_bindings_path: Path | None = None
     tracker: TrackerSettings
     """Which tracker this repository has, AND how to reach it (§3.3).
 
@@ -175,17 +186,27 @@ class ForemanConfig(BaseModel):
         """Refuse relative or split paths without consulting the working directory."""
         if not self.repo_root.is_absolute() or not self.wrapper_home.is_absolute():
             raise ValueError("foreman repo_root and wrapper_home must be absolute")
+        if (
+            self.role_bindings_path is not None
+            and not self.role_bindings_path.is_absolute()
+        ):
+            raise ValueError("role_bindings_path must be absolute")
         if self.inspector.repo_root != self.repo_root:
             raise ValueError("inspector repo_root must match foreman repo_root")
         if self.inspector.wrapper_root != self.wrapper_root:
             raise ValueError("inspector wrapper_root must match foreman wrapper_root")
         for role, binding in self.roles.items():
+            if self.role_bindings_path is not None and binding.profile:
+                raise ValueError(
+                    f"remove roles.{role}.profile; model determines the crew"
+                )
             if binding.model == MODEL_VENDOR_DEFAULT:
                 raise ValueError(
                     f"role {role!r} cannot bind model {MODEL_VENDOR_DEFAULT!r}"
                 )
             if (
                 binding.session_mode is SessionMode.RESUME
+                and bool(binding.profile)
                 and binding.profile.removeprefix("profile:") in UNRESUMABLE_CREWS
             ):
                 raise ValueError(
@@ -195,6 +216,7 @@ class ForemanConfig(BaseModel):
                 )
             if (
                 binding.context_cap_tokens is not None
+                and bool(binding.profile)
                 and binding.profile != CrewName.CLAUDE.value
             ):
                 raise ValueError(
@@ -218,6 +240,43 @@ class ForemanConfig(BaseModel):
         return self
 
 
+def load_role_bindings(path: Path) -> dict[str, CrewBinding]:
+    """Read one complete operator role file and name invalid role choices."""
+    with path.open("rb") as handle:
+        role_file = tomllib.load(handle)
+    if set(role_file) != {"roles"} or not isinstance(role_file["roles"], dict):
+        raise ValueError("roles.toml must contain only [roles.<name>] tables")
+    result: dict[str, CrewBinding] = {}
+    for role, binding in role_file["roles"].items():
+        if not isinstance(binding, dict):
+            raise TypeError(f"roles.{role} must be a table")
+        if "profile" in binding:
+            raise ValueError(f"remove roles.{role}.profile; model determines the crew")
+        try:
+            result[role] = CrewBinding.model_validate(binding)
+        except ValueError as error:
+            raise ValueError(
+                f"role {role!r}: {str(error).replace(chr(10), '; ')}"
+            ) from error
+    return result
+
+
+def read_role_apply(path: Path, role: str) -> BindingApply:
+    """Read only a role's timing policy before considering its edited binding."""
+    with path.open("rb") as handle:
+        role_file = tomllib.load(handle)
+    roles = role_file.get("roles")
+    if set(role_file) != {"roles"} or not isinstance(roles, dict):
+        raise ValueError("roles.toml must contain only [roles.<name>] tables")
+    binding = roles.get(role)
+    if not isinstance(binding, dict):
+        raise TypeError(f"role {role!r}: missing from roles.toml")
+    try:
+        return BindingApply(binding.get("apply", BindingApply.NEXT_TASK))
+    except ValueError as error:
+        raise ValueError(f"role {role!r}: apply: {error}") from error
+
+
 def load_config(path: Path) -> ForemanConfig:
     """Load a checked-in TOML config without consulting ambient environment.
 
@@ -232,6 +291,20 @@ def load_config(path: Path) -> ForemanConfig:
     """
     with path.open("rb") as handle:
         raw = tomllib.load(handle)
+    if "roles" in raw:
+        for role, binding in raw["roles"].items():
+            if isinstance(binding, dict) and "profile" in binding:
+                raise ValueError(
+                    f"remove roles.{role}.profile; model determines the crew"
+                )
+        raise ValueError("move [roles.*] into role_bindings_path roles.toml")
+    role_path = raw.get("role_bindings_path")
+    if role_path is None:
+        raw["roles"] = {}
+    else:
+        if not isinstance(role_path, str) or not Path(role_path).is_absolute():
+            raise ValueError("role_bindings_path must be an absolute roles.toml path")
+        raw["roles"] = load_role_bindings(Path(role_path))
     config = ForemanConfig.model_validate(raw).model_copy(update={"config_path": path})
     if (config.repo_root / GIT_ENTRY).is_file():
         raise ValueError(MSG_WORKTREE_REPO_ROOT.format(repo_root=config.repo_root))

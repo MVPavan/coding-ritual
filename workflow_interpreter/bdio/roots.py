@@ -19,6 +19,7 @@ from collections.abc import Sequence
 from typing import TYPE_CHECKING, Final
 
 import structlog
+from pydantic import TypeAdapter
 
 from workflow_interpreter.bdio import finalize, reads
 from workflow_interpreter.bdio.errors import CarrierIntegrityError
@@ -37,7 +38,11 @@ from workflow_interpreter.bdio.wire import (
     metadata_dict,
 )
 from workflow_interpreter.contracts.execution import (
+    CREW_PREFIX,
     EXECUTION_POLICY_KEY,
+    EXECUTION_POLICY_VERSION,
+    EXECUTION_POLICY_VERSION_KEY,
+    MSG_POLICY_MISMATCH,
     MSG_PROFILE_WRITES,
     MSG_UNREGISTERED_CREW,
     CrewName,
@@ -47,7 +52,11 @@ from workflow_interpreter.contracts.execution import (
     tool_network_for,
 )
 from workflow_interpreter.contracts.run_identity import RunIdentity
-from workflow_interpreter.contracts.sessions import MSG_SESSION_REUSE, session_mode_key
+from workflow_interpreter.contracts.sessions import (
+    MSG_SESSION_REUSE,
+    context_cap_key,
+    session_mode_key,
+)
 from workflow_interpreter.schema.graph_index import producer_engine
 from workflow_interpreter.schema.loader import canonical_bytes, load_pinned_body
 from workflow_interpreter.schema.models import GraphDefinition, NodeKind
@@ -134,20 +143,19 @@ def _assert_task_execution_settings_are_pinned(
     for node in definition.document.node:
         if node.kind is not NodeKind.TASK:
             continue
-        # Effort is not role-specific: every launch-capable profile demands
-        # one, only the spelling differs (claude `--effort`, codex
-        # `-c model_reasoning_effort=`), and opencode refuses to build a
-        # command at all before effort is ever read. So a task missing it
-        # cannot launch under any crew. Requiring it only for `profile:`
-        # crews let an unrunnable root be created, and root identity then
-        # refuses to recreate that key with the pin supplied (cr-xb2).
-        if (
-            node.session_reuse is not None
-            and settings.get(NodeSetting.CREW.at(node.name))
+        # Root-time role resolution cannot prove which crew a role will bind.
+        if node.session_reuse is not None and (
+            (node.crew and node.crew.startswith(CREW_PREFIX))
+            or settings.get(NodeSetting.CREW.at(node.name))
             != CrewName.CODEX_APPSERVER.value
         ):
             raise CarrierIntegrityError(MSG_SESSION_REUSE)
-        required = (NodeSetting.CREW, NodeSetting.MODEL, NodeSetting.EFFORT)
+        role_bound = bool(node.crew and node.crew.startswith(CREW_PREFIX))
+        required = (
+            ()
+            if role_bound and NodeSetting.CREW.at(node.name) not in settings
+            else (NodeSetting.CREW, NodeSetting.MODEL, NodeSetting.EFFORT)
+        )
         missing = [
             setting.value.rsplit(".", maxsplit=1)[-1]
             for setting in required
@@ -157,7 +165,9 @@ def _assert_task_execution_settings_are_pinned(
             )
         ]
         mode = settings.get(session_mode_key(node.name))
-        if not isinstance(mode, str) or not mode.strip():
+        if (not role_bound or mode is not None) and (
+            not isinstance(mode, str) or not mode.strip()
+        ):
             missing.append("session_mode")
         if missing:
             unpinned.append(f"{node.name} ({', '.join(missing)})")
@@ -178,6 +188,15 @@ def pin_execution_policies(
     for node in definition.document.node:
         if node.execution_profile is None:
             continue
+        version_key = EXECUTION_POLICY_VERSION_KEY.format(node=node.name)
+        version = execution_settings.get(version_key)
+        if version is not None and version.value != EXECUTION_POLICY_VERSION:
+            raise CarrierIntegrityError(MSG_POLICY_MISMATCH)
+        execution_settings[version_key] = ResolvedSetting(
+            key=version_key,
+            value=EXECUTION_POLICY_VERSION,
+            source=ConfigSource.GRAPH_DEFAULT,
+        )
         writes_key = NodeSetting.WRITES.at(node.name)
         writes = execution_settings.get(writes_key)
         if writes is not None and (
@@ -186,6 +205,13 @@ def pin_execution_policies(
         ):
             raise CarrierIntegrityError(MSG_PROFILE_WRITES)
         crew = execution_settings.get(NodeSetting.CREW.at(node.name))
+        if crew is None and node.crew and node.crew.startswith(CREW_PREFIX):
+            execution_settings[writes_key] = ResolvedSetting(
+                key=writes_key,
+                value=node.writes is True,
+                source=ConfigSource.GRAPH_DEFAULT,
+            )
+            continue
         if crew is None or not isinstance(crew.value, str):
             raise CarrierIntegrityError(MSG_UNREGISTERED_CREW.format(crew=crew))
         try:
@@ -209,6 +235,81 @@ def pin_execution_policies(
     if any(node.execution_profile is not None for node in definition.document.node):
         return tuple(execution_settings[key] for key in sorted(execution_settings))
     return tuple(resolved_config)
+
+
+def static_root_config(
+    definition: GraphDefinition, settings: Sequence[ResolvedSetting]
+) -> tuple[ResolvedSetting, ...]:
+    """Project historical and new resolutions onto graph and static safety pins."""
+    from workflow_interpreter.schema.decisions import DecisionTemplate
+
+    roles = {
+        node.name: node
+        for node in definition.document.node
+        if node.crew and node.crew.startswith(CREW_PREFIX)
+    }
+    projected: list[ResolvedSetting] = []
+    for setting in settings:
+        parts = setting.key.split(".")
+        if len(parts) == 3 and parts[0] == "node" and parts[1] in roles:
+            node = roles[parts[1]]
+            is_role_derived_execution = setting.key in {
+                NodeSetting.CREW.at(node.name),
+                NodeSetting.MODEL.at(node.name),
+                NodeSetting.EFFORT.at(node.name),
+                context_cap_key(node.name),
+            } and setting.source in {
+                ConfigSource.ROLE_BINDING,
+                ConfigSource.GRAPH_DEFAULT,
+            }
+            is_implicit_session_mode = (
+                setting.key == session_mode_key(node.name) and node.session_mode is None
+            )
+            is_derived_policy = (
+                setting.key == EXECUTION_POLICY_KEY.format(node=node.name)
+                and setting.source is ConfigSource.GRAPH_DEFAULT
+            )
+            if (
+                is_role_derived_execution
+                or is_implicit_session_mode
+                or is_derived_policy
+            ):
+                continue
+        if len(parts) == 3 and parts[0] == "decision" and parts[2] == "template":
+            template = DecisionTemplate.model_validate_json(str(setting.value))
+            lowered = load_pinned_body(template.graph_body.encode())
+            nested = static_root_config(
+                lowered,
+                TypeAdapter(tuple[ResolvedSetting, ...]).validate_json(
+                    template.config_json
+                ),
+            )
+            setting = setting.model_copy(
+                update={
+                    "value": template.model_copy(
+                        update={
+                            "config_json": TypeAdapter(tuple[ResolvedSetting, ...])
+                            .dump_json(nested)
+                            .decode()
+                        }
+                    ).model_dump_json()
+                }
+            )
+        projected.append(setting)
+    pinned_keys = {item.key for item in projected}
+    for node in definition.document.node:
+        if node.execution_profile is None:
+            continue
+        key = EXECUTION_POLICY_VERSION_KEY.format(node=node.name)
+        if key not in pinned_keys:
+            projected.append(
+                ResolvedSetting(
+                    key=key,
+                    value=EXECUTION_POLICY_VERSION,
+                    source=ConfigSource.GRAPH_DEFAULT,
+                )
+            )
+    return tuple(projected)
 
 
 def create_root(
@@ -420,6 +521,8 @@ def _assert_same_instance(
     instance_base_commit: str | None,
 ) -> None:
     """Refuse to alias a different graph or resolution onto an existing key."""
+    recorded_static = static_root_config(definition, root.metadata.resolved_config)
+    requested_static = static_root_config(definition, resolved_config)
     comparisons = (
         (
             "graph_content_hash",
@@ -435,14 +538,14 @@ def _assert_same_instance(
         ),
         (
             _FIELD_RESOLVED_CONFIG,
-            config_signature(root.metadata.resolved_config),
-            config_signature(tuple(resolved_config)),
+            config_signature(recorded_static),
+            config_signature(requested_static),
         ),
     )
     for field, found, wanted in comparisons:
         if found != wanted:
             detail = (
-                _differing_keys(root.metadata.resolved_config, resolved_config)
+                _differing_keys(recorded_static, requested_static)
                 if field == _FIELD_RESOLVED_CONFIG
                 else ""
             )

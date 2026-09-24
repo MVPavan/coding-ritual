@@ -71,6 +71,8 @@ instructions = """
 Review `diff_artifact` against `task_brief`. Findings go to
 $WF_ARTIFACT_DIR as numbered BLOCKER / MAJOR / MINOR entries, each with a
 `file:line` and a concrete failure scenario.
+On later rounds, inspect the whole current diff, verify fixes to prior findings,
+and check for regressions or new defects elsewhere.
 
 You have no repo write access. Do not fix what you find and do not propose
 patches — the implementer acts on your findings next round.

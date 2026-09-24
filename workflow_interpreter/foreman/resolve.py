@@ -19,12 +19,12 @@ from workflow_interpreter.bdio.records import RootRecord
 from workflow_interpreter.bdio.roots import (
     MAX_INSTANCE_INPUT_BYTES,
     pin_execution_policies,
+    static_root_config,
 )
 from workflow_interpreter.contracts.execution import MSG_PROFILE_WRITES, CrewName
 from workflow_interpreter.contracts.run_identity import RunIdentity
 from workflow_interpreter.contracts.sessions import (
     SessionMode,
-    context_cap_key,
     session_mode_key,
 )
 from workflow_interpreter.foreman.compose import Composition
@@ -37,6 +37,7 @@ from workflow_interpreter.foreman.execution import (
     EFFECTIVE_FIELD_SETTINGS,
     effective_node,
 )
+from workflow_interpreter.foreman.model_catalog import resolve_role_binding
 from workflow_interpreter.inspector import INSTANCE_BRANCH_REF
 from workflow_interpreter.inspector.channels import pin_verifier_digests
 from workflow_interpreter.profiles.config import CREW_PREFIX, MODEL_VENDOR_DEFAULT
@@ -72,6 +73,9 @@ MSG_CREW_WITHOUT_BINDING: Final[str] = (
 MSG_EMPTY_EFFORT: Final[str] = "{key!r} must not be empty"
 MSG_VENDOR_DEFAULT_MODEL: Final[str] = (
     "{key!r} from {source} cannot use the vendor default model"
+)
+MSG_DIRECT_EFFORT_REQUIRED: Final[str] = (
+    "direct crew {crew!r} on node {node!r} requires non-blank resolved node effort"
 )
 MSG_EFFECTIVE_NODE_UNUSABLE: Final[str] = (
     "effective node {node!r} is unusable under {key!r}: rule {rule} reports {detail}"
@@ -430,7 +434,9 @@ def instantiate(
 
 
 def _refuse_unresumable_resume(
-    definition: GraphDefinition, settings: Mapping[str, ResolvedSetting]
+    composition: Composition,
+    definition: GraphDefinition,
+    settings: Mapping[str, ResolvedSetting],
 ) -> None:
     """Refuse a resume pin on a crew that never registers a session to rejoin.
 
@@ -443,6 +449,18 @@ def _refuse_unresumable_resume(
             continue
         crew = settings.get(f"node.{node.name}.crew")
         profile = str(node.crew if crew is None else crew.value)
+        if profile.startswith(CREW_PREFIX):
+            role = profile.removeprefix(CREW_PREFIX)
+            binding = composition.config.roles[role]
+            profile = (
+                binding.profile
+                or resolve_role_binding(
+                    role,
+                    binding,
+                    composition.catalog,
+                    composition.catalog_provenance,
+                ).profile
+            )
         if profile.removeprefix(CREW_PREFIX) in UNRESUMABLE_CREWS:
             raise ResolutionError(
                 MSG_SESSION_MODE_NOT_RESUMABLE.format(role=node.name, profile=profile)
@@ -454,78 +472,38 @@ def _resolved_config(
     definition: GraphDefinition,
     overrides: Mapping[str, object],
 ) -> tuple[ResolvedSetting, ...]:
-    """Apply role bindings and verifier pins before the immutable root write."""
+    """Pin graph and static safety settings before the immutable root write."""
     settings = {
         item.key: item
         for item in resolve(definition, composition.config.project_config, overrides)
     }
     for node in definition.document.node:
-        if node.kind is NodeKind.TASK:
-            role = (
-                composition.config.roles[node.crew.removeprefix(CREW_PREFIX)]
-                if node.crew is not None and node.crew.startswith(CREW_PREFIX)
-                else None
-            )
-            role_mode = None if role is None else role.session_mode
-            mode = node.session_mode or role_mode or SessionMode.FRESH
-            source = (
-                ConfigSource.ROLE_BINDING
-                if node.session_mode is None and role_mode is not None
-                else ConfigSource.GRAPH_DEFAULT
-            )
+        if node.kind is NodeKind.TASK and (
+            node.session_mode is not None
+            or not (node.crew and node.crew.startswith(CREW_PREFIX))
+        ):
+            mode = node.session_mode or SessionMode.FRESH
             key = session_mode_key(node.name)
-            settings[key] = ResolvedSetting(key=key, value=mode.value, source=source)
-        if node.crew is None or not node.crew.startswith("profile:"):
-            continue
-        binding = composition.config.roles[node.crew.removeprefix("profile:")]
-        crew_key = f"node.{node.name}.crew"
-        model_key = f"node.{node.name}.model"
-        effort_key = f"node.{node.name}.effort"
-        if settings.get(crew_key) is None or (
-            settings[crew_key].source is ConfigSource.GRAPH_DEFAULT
-        ):
-            settings[crew_key] = ResolvedSetting(
-                key=crew_key,
-                value=binding.profile,
-                source=ConfigSource.ROLE_BINDING,
+            settings[key] = ResolvedSetting(
+                key=key, value=mode.value, source=ConfigSource.GRAPH_DEFAULT
             )
-        if settings.get(model_key) is None or (
-            settings[model_key].source is ConfigSource.GRAPH_DEFAULT
+        if node.crew in (CrewName.CODEX_APPSERVER.value, CrewName.OPENCODE.value) and (
+            node.model is None or node.model == MODEL_VENDOR_DEFAULT
         ):
-            settings[model_key] = ResolvedSetting(
-                key=model_key,
-                value=binding.model,
-                source=ConfigSource.ROLE_BINDING,
+            raise ResolutionError(
+                f"direct crew {node.crew!r} on node {node.name!r} requires a graph model"
             )
-        if settings.get(effort_key) is None or (
-            settings[effort_key].source is ConfigSource.GRAPH_DEFAULT
-        ):
-            settings[effort_key] = ResolvedSetting(
-                key=effort_key,
-                value=binding.effort,
-                source=ConfigSource.ROLE_BINDING,
-            )
-        # Pinned only when set, so a role without a cap resolves — and signs —
-        # exactly as it did before the field existed (idempotent re-creation).
-        # A project/override crew that is not claude never carries it; that
-        # drop is logged so an operator's cap does not vanish unseen.
-        if binding.context_cap_tokens is not None:
-            if settings[crew_key].value == CrewName.CLAUDE.value:
-                cap_key = context_cap_key(node.name)
-                settings[cap_key] = ResolvedSetting(
-                    key=cap_key,
-                    value=binding.context_cap_tokens,
-                    source=ConfigSource.ROLE_BINDING,
+        if node.crew in (CrewName.CODEX_APPSERVER.value, CrewName.OPENCODE.value):
+            effort = settings.get(NodeSetting.EFFORT.at(node.name))
+            if (
+                effort is None
+                or not isinstance(effort.value, str)
+                or not effort.value.strip()
+            ):
+                raise ResolutionError(
+                    MSG_DIRECT_EFFORT_REQUIRED.format(crew=node.crew, node=node.name)
                 )
-            else:
-                _LOG.warning(
-                    "foreman.context_cap_dropped",
-                    node=node.name,
-                    role=node.crew.removeprefix("profile:"),
-                    crew=settings[crew_key].value,
-                    context_cap_tokens=binding.context_cap_tokens,
-                )
-    _refuse_unresumable_resume(definition, settings)
+    _refuse_unresumable_resume(composition, definition, settings)
     settings.update(
         {
             item.key: item
@@ -555,6 +533,8 @@ def _resolved_config(
 
     return pin_execution_policies(
         definition,
-        tuple(settings[key] for key in sorted(settings)),
+        static_root_config(
+            definition, tuple(settings[key] for key in sorted(settings))
+        ),
         profiles=composition.profiles,
     )

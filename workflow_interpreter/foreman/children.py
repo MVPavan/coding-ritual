@@ -14,6 +14,7 @@ if TYPE_CHECKING:
 
 from workflow_interpreter.bdio.errors import StoreError
 from workflow_interpreter.bdio.records import ActivationRecord
+from workflow_interpreter.bdio.roots import static_root_config
 from workflow_interpreter.foreman.compose import Composition
 from workflow_interpreter.foreman.heartbeat import DriverObserver
 from workflow_interpreter.foreman.rpc_control import control_keys
@@ -28,6 +29,10 @@ from workflow_interpreter.schema.decisions import (
     ChildRecord,
     CollectedChildResult,
     CoordinationError,
+)
+
+_MSG_RAW_ADMISSION_DERIVED_SETTINGS = (
+    "raw child admission pins contain derived execution settings"
 )
 
 
@@ -218,9 +223,9 @@ def collect(
         )
         if artifact is None:
             from workflow_interpreter.bdio import ArtifactIdentity
-            from workflow_interpreter.foreman.execution import resolved_node
+            from workflow_interpreter.foreman.execution import resolved_static_node
 
-            if resolved_node(root, latest.metadata.node).node.writes:
+            if resolved_static_node(root, latest.metadata.node).writes:
                 raise CoordinationError(
                     "writer lacks computed repository artifact evidence"
                 )
@@ -623,6 +628,8 @@ def command(composition: Composition, args: object) -> str:
             supplied = TypeAdapter(tuple[ResolvedSetting, ...]).validate_json(
                 admission.config_json
             )
+            if static_root_config(definition, supplied) != supplied:
+                raise CoordinationError(_MSG_RAW_ADMISSION_DERIVED_SETTINGS)
             expected = {s.key: s for s in resolved}
             # Historical unused decision templates grant no authority in a graph
             # without that policy. Active templates must still match resolution.

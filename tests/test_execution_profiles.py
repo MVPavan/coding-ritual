@@ -292,8 +292,12 @@ def test_named_pin_requires_registered_crew(tmp_path: Path, crew: str | None) ->
         for node in graph.document.node
         if node.execution_profile is not None and crew is not None
     )
-    with pytest.raises(CarrierIntegrityError, match="unregistered crew"):
-        pin_execution_policies(graph, settings, profiles=registry())
+    if crew is None:
+        # A role chooses its registered crew when the activation is minted.
+        assert pin_execution_policies(graph, settings, profiles=registry())
+    else:
+        with pytest.raises(CarrierIntegrityError, match="unregistered crew"):
+            pin_execution_policies(graph, settings, profiles=registry())
 
 
 def test_network_capability_is_declared_for_every_registered_crew() -> None:
@@ -578,13 +582,49 @@ def test_registered_fake_pins_and_launches_its_declared_network_fact(
     lab = ForemanLab(tmp_path, toml=SHIPPED_FIXTURE)
     monkeypatch.setattr(lab.profiles.profile, "tool_network", network)
     root = lab.instantiate_resolved()
-    assert resolved_node(root, "implement").execution_policy.tool_network is network
+    assert (
+        root.index.nodes["implement"].execution_profile is ExecutionProfileName.WRITER
+    )
+    assert not any(
+        item.key == "node.implement.execution_policy"
+        for item in root.metadata.resolved_config
+    )
     activation_id = lab.tick().dispatched
     assert activation_id is not None
     activation = lab.store.reads.load_activation(activation_id)
     assert activation.metadata.crew_profile == "fake"
+    assert activation.metadata.execution_policy is not None
+    assert activation.metadata.execution_policy.tool_network is network
     receipt = read_record(lab.wiring().paths.receipt(activation_id), LaunchReceipt)
     assert receipt is not None and receipt.tool_network is network
+
+
+def test_new_activation_policy_uses_current_registered_crew_capability(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The activation recomputes grants when a root's policy is historical."""
+    from tests._foreman import ForemanLab
+    from tests._helpers import SHIPPED_FIXTURE
+    from workflow_interpreter.inspector.models import LaunchReceipt
+    from workflow_interpreter.inspector.paths import read_record
+
+    lab = ForemanLab(tmp_path, toml=SHIPPED_FIXTURE)
+    root = lab.instantiate_resolved()
+    assert not any(
+        item.key == "node.implement.execution_policy"
+        for item in root.metadata.resolved_config
+    )
+    monkeypatch.setattr(lab.profiles.profile, "tool_network", ToolNetwork.DENIED)
+
+    activation_id = lab.tick().dispatched
+
+    assert activation_id is not None
+    activation = lab.store.reads.load_activation(activation_id)
+    assert activation.metadata.execution_policy is not None
+    assert activation.metadata.execution_policy.version == 1
+    assert activation.metadata.execution_policy.tool_network is ToolNetwork.DENIED
+    receipt = read_record(lab.wiring().paths.receipt(activation_id), LaunchReceipt)
+    assert receipt is not None and receipt.tool_network is ToolNetwork.DENIED
 
 
 @pytest.mark.parametrize("network", list(ToolNetwork))

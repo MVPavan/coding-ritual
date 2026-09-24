@@ -33,22 +33,19 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from workflow_interpreter.bdio import (
     ActivationRecord,
-    NodeSetting,
     ProcessHandle,
     RootRecord,
     Usage,
-    resolved_settings,
 )
 from workflow_interpreter.bdio.rpc_records import SessionRegistration
 from workflow_interpreter.contracts.execution import (
-    EXECUTION_POLICY_KEY,
     CrewName,
     ExecutionGrants,
     ExecutionPolicy,
     ExecutionProfileName,
     NetworkProfile,
 )
-from workflow_interpreter.contracts.sessions import execution_policy_digest
+from workflow_interpreter.contracts.sessions import activation_policy_digest
 from workflow_interpreter.contracts.transport import CrewTransport
 from workflow_interpreter.inspector.channels import (
     COMMITTER_NAME,
@@ -379,11 +376,10 @@ def observe_session(
     if len(session_id) > MAX_SESSION_ID_LENGTH:
         # The vendor DID name something; it is only unusable as an identity.
         return _UNREADABLE
-    settings = resolved_settings(root.metadata)
-    effort = settings.get(NodeSetting.EFFORT.at(metadata.node))
-    policy = settings.get(EXECUTION_POLICY_KEY.format(node=metadata.node), "legacy")
-    crew_version = profile.cli_version()
-    if not isinstance(effort, str) or not isinstance(policy, str):
+    effort = metadata.effort
+    policy = metadata.execution_policy
+    crew_version = metadata.crew_version
+    if not isinstance(effort, str):
         return _UNREADABLE
     return SessionObservation(
         state=SessionObservationState.OBSERVED,
@@ -397,7 +393,7 @@ def observe_session(
             crew_version=crew_version,
             model=metadata.model,
             effort=effort,
-            policy_digest=execution_policy_digest(policy),
+            policy_digest=metadata.policy_digest or activation_policy_digest(policy),
             state_path="",
         ),
     )

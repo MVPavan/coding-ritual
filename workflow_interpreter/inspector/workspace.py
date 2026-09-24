@@ -464,6 +464,11 @@ class Workspace:
             )
         return self._working_tree_oid(cwd)
 
+    def has_dirty_paths(self, node: Node) -> bool:
+        """Report whether the node checkout still has content to snapshot."""
+        cwd = self.path_for(node)
+        return (cwd / ".git").exists() and bool(self._git.status_paths(cwd=cwd))
+
     def _working_tree_oid(self, cwd: Path) -> str:
         """The §3 tree proof for one checkout, over the throwaway index."""
         return self._git.working_tree_oid(

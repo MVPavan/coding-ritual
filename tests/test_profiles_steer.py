@@ -63,7 +63,6 @@ from workflow_interpreter.schema.models import Outcome
 STEER_REASON: Final[str] = "the crew is looping on the same failing test"
 STEER_INSTRUCTIONS: Final[str] = "stop rewriting the fixture; fix the assertion"
 PINNED_MODEL: Final[str] = "claude-opus-5"
-DIVERGENT_MODEL: Final[str] = "claude-haiku-4-5"
 
 
 def _selected_registration(
@@ -414,13 +413,12 @@ def test_routed_claude_roles_keep_their_own_pinned_efforts(
                 mint_reason=MintReason.ENTRY,
                 crew_profile=CrewName.CLAUDE.value,
                 model=PINNED_MODEL,
+                effort="high",
                 session_id="",
             ),
         )
         .activation
     )
-    lab.backend._merge_metadata(minted.activation_id, {"model": DIVERGENT_MODEL})
-
     assert (
         run_wrapper(lab.composition, root.root_id, minted.activation_id)
         is WrapperExit.DONE
@@ -449,10 +447,10 @@ def test_routed_claude_roles_keep_their_own_pinned_efforts(
 
 
 @pytest.mark.proc
-def test_wrapper_selects_root_pinned_crew_after_activation_crew_corruption(
+def test_wrapper_refuses_corrupted_activation_crew(
     tmp_path: Path,
 ) -> None:
-    """The wrapper launches the root-pinned vendor, never corrupt activation metadata."""
+    """A mutated crew cannot redirect a pinned activation to another vendor."""
 
     lab = ForemanLab(
         tmp_path,
@@ -506,6 +504,7 @@ def test_wrapper_selects_root_pinned_crew_after_activation_crew_corruption(
                 mint_reason=MintReason.ENTRY,
                 crew_profile=CrewName.CLAUDE.value,
                 model=PINNED_MODEL,
+                effort="high",
                 session_id="",
             ),
         )
@@ -520,7 +519,10 @@ def test_wrapper_selects_root_pinned_crew_after_activation_crew_corruption(
         is WrapperExit.DONE
     )
 
-    assert profiles.selected == [CrewName.CLAUDE.value]
+    assert profiles.selected == []
+    closed = lab.store.reads.load_activation(minted.activation_id)
+    assert closed.metadata.lifecycle is Lifecycle.CLOSED
+    assert closed.metadata.outcome is Outcome.ERROR_TRANSPORT
 
 
 @pytest.mark.proc
@@ -866,7 +868,6 @@ def test_foreman_delivered_resume_and_retry_match_recorded_envelope(
     import hashlib
 
     from tests._profiles import PASSTHROUGH, write_stub
-    from workflow_interpreter.bdio.wire import config_signature
     from workflow_interpreter.foreman.inputs import select_bindings
     from workflow_interpreter.foreman.inspector import _task_builder
     from workflow_interpreter.inspector import Dispatcher, Steerer
@@ -877,25 +878,15 @@ def test_foreman_delivered_resume_and_retry_match_recorded_envelope(
     lab = ForemanLab(tmp_path, sandbox=SandboxMode.OFF)
     root = lab.instantiate()
     wiring = lab.wiring()
-    settings = tuple(
-        setting.model_copy(update={"value": crew.value})
-        if setting.key == "node.implement.crew"
-        else setting
-        for setting in root.metadata.resolved_config
+    assert all(
+        item.key != "node.implement.crew" for item in root.metadata.resolved_config
     )
-    wiring.store._client._merge_metadata(
-        root.root_id,
-        {
-            "resolved_config": [item.model_dump(mode="json") for item in settings],
-            "config_signature": config_signature(settings),
-        },
-    )
-    root = wiring.store.reads.load_root(root.root_id)
     node = root.index.nodes[IMPLEMENT]
     bindings = select_bindings(root.index, root, node, (), 1)
     request = entry_mint(
         model="fake",
         crew_profile=crew.value,
+        effort="medium",
         session_id=str(uuid.uuid4()) if crew is CrewName.CLAUDE else "",
         inputs=bindings,
     )
@@ -907,6 +898,7 @@ def test_foreman_delivered_resume_and_retry_match_recorded_envelope(
         lab.clock,
         host_env_with(**stub_env()),
     ).profile_for(crew.value)
+    request = request.model_copy(update={"crew_version": profile.cli_version()})
     dispatcher = Dispatcher(wiring.paths, wiring.store, lab.clock)
     builder = _task_builder(root, wiring, lab.git)
 
@@ -946,6 +938,13 @@ def test_foreman_delivered_resume_and_retry_match_recorded_envelope(
                     )
                     registration = observe_session(root, current, profile).registration
                     if registration is not None:
+                        assert registration.effort == current.metadata.effort
+                        assert (
+                            registration.policy_digest == current.metadata.policy_digest
+                        )
+                        assert (
+                            registration.crew_version == current.metadata.crew_version
+                        )
                         wiring.store.register_session(
                             current.activation_id, registration
                         )
@@ -986,6 +985,7 @@ def test_foreman_delivered_resume_and_retry_match_recorded_envelope(
     retry = entry_mint(
         model="fake",
         crew_profile=crew.value,
+        effort="medium",
         mint_reason=MintReason.INFRA_RETRY,
         predecessor_activation_id=continued.activation.activation_id,
         session_id=continued.handle.session_id,

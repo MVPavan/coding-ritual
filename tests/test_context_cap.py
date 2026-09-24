@@ -1,12 +1,8 @@
-"""Crew-sessions §4: a role's `context_cap_tokens` reaches claude as `--autocompact`.
-
-The cap is pinned from the role binding at instantiation and read back off the
-root, so the table drives the real `resolve.instantiate` → `resolved_node`
-path and then builds both invocations the inspector can choose between.
-"""
+"""A role's activation context cap reaches Claude as `--autocompact`."""
 
 from __future__ import annotations
 
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -15,9 +11,18 @@ from pydantic import ValidationError
 from tests._foreman import DEFAULT_LAB_ROLES, ForemanLab
 from tests._inspector import FrozenClock
 from tests._profiles import INSTRUCTIONS, make_claude, make_codex, make_task
+from workflow_interpreter.bdio.wire import activation_binding_digest
+from workflow_interpreter.contracts.execution import CrewName
 from workflow_interpreter.contracts.sessions import SessionMode
+from workflow_interpreter.foreman.cases import mint_entry, startup_invocation
 from workflow_interpreter.foreman.config import CrewBinding
-from workflow_interpreter.foreman.execution import resolved_node
+from workflow_interpreter.foreman.model_catalog import (
+    CatalogModel,
+    CatalogProvenance,
+    CatalogSnapshot,
+    FamilySnapshot,
+    VerificationStatus,
+)
 
 AUTOCOMPACT = "--autocompact"
 CODEX_WINDOW_KEYS = ("model_context_window", "model_auto_compact_token_limit")
@@ -61,7 +66,8 @@ def test_role_cap_reaches_launch_and_resume_argv(
             ForemanLab(tmp_path, roles=roles)
         return
     lab = ForemanLab(tmp_path, roles=roles)
-    view = resolved_node(lab.instantiate_resolved(), "implement")
+    root = lab.instantiate_resolved()
+    view = startup_invocation(lab.composition, root, "implement")
     task = make_task(tmp_path, model=model).model_copy(
         update={"context_cap_tokens": view.context_cap_tokens}
     )
@@ -101,3 +107,71 @@ def test_opencode_role_resuming_is_refused_by_name(tmp_path: Path) -> None:
 
     with pytest.raises(ValidationError, match="role 'critic' binds profile 'opencode'"):
         ForemanLab(tmp_path, roles={**DEFAULT_LAB_ROLES, "critic": critic})
+
+
+@pytest.mark.parametrize(
+    ("family", "window", "expected"),
+    [
+        (CrewName.CLAUDE, 1_000_000, 370_000),
+        (CrewName.CODEX, 1_000_000, None),
+    ],
+)
+def test_catalog_default_cap_is_pinned_at_mint(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    family: CrewName,
+    window: int,
+    expected: int | None,
+) -> None:
+    model = "claude-a" if family is CrewName.CLAUDE else "codex-a"
+    role_path = tmp_path / "roles.toml"
+    role_path.write_text(
+        f'[roles.implementer]\nmodel = "{model}"\neffort = "high"\n',
+        encoding="utf-8",
+    )
+    snapshot = CatalogSnapshot(
+        generated_at="2026-09-23T00:00:00Z",
+        digest="cap-at-mint",
+        families={
+            family: FamilySnapshot(
+                source="checked-seed-and-probe"
+                if family is CrewName.CLAUDE
+                else "bundled-cli",
+                available=True,
+                models=(
+                    CatalogModel(
+                        id=model,
+                        efforts=("high",),
+                        context_window=window,
+                        verification=(
+                            VerificationStatus.PROBE_OK
+                            if family is CrewName.CLAUDE
+                            else None
+                        ),
+                    ),
+                ),
+            )
+        },
+    )
+    lab = ForemanLab(tmp_path)
+    lab.profiles.accepted = lab.profiles.accepted | {family.value}
+    lab.config = lab.config.model_copy(update={"role_bindings_path": role_path})
+    lab.composition = replace(
+        lab.composition,
+        config=lab.config,
+        catalog=snapshot,
+        catalog_provenance=CatalogProvenance.REFRESHED,
+    )
+    monkeypatch.setattr(lab.spawner, "launch", lambda *_args, **_kwargs: None)
+    root = lab.instantiate()
+
+    minted = mint_entry(lab.composition, lab.wiring(), root)
+
+    assert minted.dispatched is not None
+    metadata = lab.store.reads.load_activation(minted.dispatched).metadata
+    assert metadata.context_cap_tokens == expected
+    assert metadata.binding_digest == activation_binding_digest(metadata)
+    changed = metadata.model_copy(
+        update={"context_cap_tokens": 370_000 if expected is None else None}
+    )
+    assert metadata.binding_digest != activation_binding_digest(changed)

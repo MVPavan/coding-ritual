@@ -1,5 +1,6 @@
 """Independent children use the existing owner ledger and immutable pins."""
 
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -70,6 +71,33 @@ def test_admission_replay_and_child_identity_are_durable(tmp_path: Path) -> None
         )
     with pytest.raises(CoordinationError, match="capacity"):
         coordinator.start_child(owner, "three", child_admission(lab, owner, "three"))
+
+
+def test_child_admission_survives_startup_role_binding_edit(tmp_path: Path) -> None:
+    """A child template records static pins while each child mints its role."""
+    from workflow_interpreter.foreman.children import checked_admission
+    from workflow_interpreter.foreman.config import CrewBinding
+
+    lab, owner = owner_lab(tmp_path)
+    original = checked_admission(lab.composition, FIXTURE, "one", {})
+    edited = dict(lab.config.roles)
+    edited["implementer"] = CrewBinding(
+        profile="fake", model="changed-model", effort="high"
+    )
+    composition = replace(
+        lab.composition, config=lab.config.model_copy(update={"roles": edited})
+    )
+    updated = checked_admission(composition, FIXTURE, "one", {})
+    assert updated.config_json == original.config_json
+    assert updated.templates == original.templates
+    coordinator = lab.store.coordination_store(composition=composition)
+    first = coordinator.start_child(owner, "one", original)
+    assert coordinator.start_child(owner, "one", updated) == first
+    coordinator.drive_children(owner, 1, 2)
+    activations = lab.store.reads.list_activations(first.root_id)
+    assert activations
+    assert activations[0].metadata.model == "changed-model"
+    assert activations[0].metadata.effort == "high"
 
 
 def test_cancel_before_dispatch_is_durable_and_does_not_stop_sibling(

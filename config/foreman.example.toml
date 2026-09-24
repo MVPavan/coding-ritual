@@ -14,6 +14,10 @@ repo_root    = "@REPO_ROOT@"
 wrapper_home = "@WRAPPER_HOME@"
 host         = "@HOST@"
 actor        = "@ACTOR@"
+role_bindings_path = "@WRAPPER_ROOT@/roles.toml"
+# Role sessions resume by default, including reviewers. An explicit fresh mode
+# in a node or role opts out. Claude models with a catalog window above 370000
+# default to --autocompact 370000 unless the role sets its own valid cap.
 
 # The validated graph `contract` pins for a selected stage. It is a normal
 # configurable graph path, not a contractor implementation default.
@@ -22,7 +26,7 @@ contractor_graph = "@REPO_ROOT@/workflows/feature-delivery.toml"
 # Basic work uses workflows/basic.toml through children admit; it returns an
 # artifact without contractor landing. Integration uses workflows/integration.toml
 # through explicit integration prepare and the same contract command.
-# These templates reuse the implementer/critic role bindings below.
+# These templates reuse the implementer/critic roles in roles.toml.
 # Named writer/reviewer policies require bwrap. Receipts/status record tool_network:
 # codex = denied; claude = not_enforced (both Claude policies may launch).
 
@@ -100,73 +104,6 @@ max_bytes = 2147483648
 max_entries = 100000
 reserve_bytes = 67108864
 
-# Role bindings (§3.1 provenance source `role-binding`). The keys are the graph's
-# own `crew = "profile:<role>"` names — `feature-delivery.toml` declares
-# `implementer` and `critic` — and instantiation refuses a graph whose roles are
-# not all bound here ("unknown crew roles").
-#
-# The writer is claude and the reviewer is codex here, and that is a default
-# rather than a constraint. It used to be a constraint: the codex sandbox makes
-# `<root>/.git` read-only inside every writable root, and a §5.4 worktree keeps
-# its index OUTSIDE the working root, so a codex writer edited source happily and
-# then died `Unable to create '<G>/index.lock': Read-only file system` on its
-# first `git add`. A codex writer now grants the git directories a commit touches
-# and nothing else — its own `<G>`, the shared object store, and the directories
-# holding its OWN branch ref and reflog, never `refs/heads` or `logs` whole —
-# qualified end to end against the real sandbox by
-# `tests/test_codex_writer_qualification.py`, so binding `implementer` to codex
-# requires a fresh isolated workflow branch wf/<root_id>/candidate.
-# Legacy wf/<root_id> writers need a new instance; no automatic migration.
-# In the §12 in-repo band `index.lock` shares a directory with `config` and
-# `hooks/`, which a directory-granularity sandbox cannot separate, and the
-# profile refuses such a dispatch with that explanation instead of widening.
-#
-# For reviewers, `writes = false` roots codex
-# in the activation's `channels/` directory, leaving the checkout
-# readable-but-unwritable while its findings channel stays writable
-# (`profiles/codex.py` `_workspace_root`), and it gains no git grant at all.
-# Each role states the model and effort that its root pins.
-[roles.implementer]
-profile = "claude"
-model = "claude-opus-5"
-effort = "high"
-# session_mode = "resume" # optional; node.session_mode overrides this default
-# context_cap_tokens = 400000 # optional, claude only: passed as --autocompact on
-#                              # launch and resume; a value outside 100000-1000000
-#                              # is refused at config load; unset keeps the vendor
-#                              # default; a codex role refuses it. Adding or changing
-#                              # it changes the instance signature like model/effort.
-
-[roles.critic]
-profile = "codex"
-model = "gpt-5.6-sol"
-effort = "high"
-
-# feature-delivery's third role (run-ledger §3.7): the debrief writes what the
-# round learned into `docs/workstreams/<epic>/runs/<task>/a<n>/`. It copies two
-# engine-rendered files and adds a page of prose, once per implement round, so
-# it is deliberately the SMALLEST model at the LOWEST effort — the cost of the
-# knowledge must stay far below the cost of the work. It writes, so claude.
-[roles.scribe]
-profile = "claude"
-model = "claude-haiku-4-5"
-effort = "low"
-
-# build-loop's three further roles. The test author writes, so it is claude for
-# the same reason.
-[roles.test-author]
-profile = "claude"
-model = "claude-opus-5"
-effort = "high"
-
-# Reviews the acceptance tests; read-only, so codex.
-[roles.test-critic]
-profile = "codex"
-model = "gpt-5.6-sol"
-effort = "high"
-
-# Reviews the implementation diff; read-only, so codex.
-[roles.impl-critic]
-profile = "codex"
-model = "gpt-5.6-sol"
-effort = "high"
+# Copy config/roles.example.toml once to @WRAPPER_ROOT@/roles.toml with
+# scripts/make-foreman-config.sh, then edit that human file. The catalog resolves
+# each model to its crew; direct app-server/opencode crews stay in graph TOML.

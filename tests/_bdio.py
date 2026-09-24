@@ -30,6 +30,7 @@ from workflow_interpreter.bdio.wire import (
     ResolvedSetting,
 )
 from workflow_interpreter.contracts.execution import ExecutionRegistry
+from workflow_interpreter.contracts.sessions import SessionMode
 from workflow_interpreter.ledger.store import LedgerStore
 from workflow_interpreter.schema.models import Outcome
 
@@ -311,6 +312,8 @@ def entry_request(**overrides: object) -> MintRequest:
         "mint_reason": MintReason.ENTRY,
         "crew_profile": "fake",
         "model": "fake-model",
+        "effort": "medium",
+        "session_mode": SessionMode.FRESH,
         "session_id": "",
     }
     return MintRequest.model_validate(base | overrides)
