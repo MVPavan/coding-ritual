@@ -1,5 +1,6 @@
 """Real deterministic processes through ordinary Foreman and Inspector."""
 
+import time
 from collections.abc import Mapping
 from dataclasses import replace
 from pathlib import Path
@@ -163,9 +164,17 @@ def test_process_cap_isolation_cancel_and_fresh_driver_recovery(
     try:
         result = coordinator.drive_children(owner.root_id, cap, 1.0)
         assert result.timed_out, result.model_dump_json()
-        acts = [
-            a for c in children for a in lab.store.reads.list_activations(c.root_id)
-        ]
+        # The wrapper publishes its handle after the driver forks it.  The
+        # driver's wall deadline does not wait for that separate process.
+        deadline = time.monotonic() + 10
+        while True:
+            acts = [
+                a for c in children for a in lab.store.reads.list_activations(c.root_id)
+            ]
+            if len(acts) >= cap and all(a.metadata.handle is not None for a in acts):
+                break
+            assert time.monotonic() < deadline, "child handles were not published"
+            time.sleep(0.01)
         assert len(acts) == cap
         assert all(a.metadata.handle is not None for a in acts)
         assert all(
