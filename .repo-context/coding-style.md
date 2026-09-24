@@ -24,6 +24,25 @@ general style checklist.
 - Preserve the component's configuration format; Pydantic validation does not
   require introducing YAML or `pydantic-settings`.
 
+## Safety
+
+- Inject configuration at construction; keep `os.environ` reads out of business
+  logic. Keep secrets out of YAML, Git, and logs.
+- Give external I/O explicit timeouts and bounded retries. Keep blocking I/O
+  out of async code (use `asyncio.to_thread()` when needed), bound parallel
+  `gather()` calls, and never swallow background-task exceptions.
+- Parameterize SQL and query inputs; validate user-controlled paths and shell
+  arguments. Never use `eval`, `exec`, or unsafe deserialization on untrusted input.
+- Log with `structlog`, not `print`; avoid bare `except` clauses.
+
+## Testing
+
+- Exercise behavior through public interfaces. Mock only hard external
+  boundaries; prefer parametrization and shared fixtures to repeated bodies.
+- For risky behavior changes, write a failing test or characterization test
+  first. Reuse the repository's fixtures and markers, and run the applicable
+  commands in `.repo-context/verification.md`.
+
 ## Package management
 
 - Use uv: `uv sync` for the environment and `uv run` for Python tools/scripts.

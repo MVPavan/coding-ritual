@@ -393,7 +393,7 @@ Extend existing tests, not new files:
    minted activation and records `VERSION_DRIFT`; out-of-range update refuses.
 
 Each slice runs the full workflow-interpreter gate in
-`.claude/project/verification.md:40-64` and checks `git status`. A read-only
+`.repo-context/verification.md:40-64` and checks `git status`. A read-only
 live CLI qualification is an additional admission probe, not a substitute for
 the tests; never claim Claude context windows were CLI-discovered.
 

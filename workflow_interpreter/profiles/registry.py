@@ -4,7 +4,7 @@ A registry rather than a dict because a profile needs three injected things and
 none of them may be discovered from the process: the profile configuration, the
 clock, and the host environment the child's passthrough keys are copied from.
 Building them at the composition root and handing the registry out keeps every
-`os.environ` read in one place — the one `rules/python/safety.md` allows.
+`os.environ` read in one place — the one `.repo-context/coding-style.md` allows.
 
 An unknown name is a typed refusal, never a fallback to some default vendor: a
 bead whose `crew_profile` the wrapper cannot resolve is a bead nothing should

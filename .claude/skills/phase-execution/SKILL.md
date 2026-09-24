@@ -12,5 +12,6 @@ Invoke the **execution skill** in **phase scope**
 - **Input:** phase id and roadmap path, e.g.
   `/phase-execution E --roadmap docs/workstreams/<name>/roadmap.md`. If the
   roadmap is omitted and ambiguous, ask which workstream.
-- Workstream-mode auto-approvals do **not** apply here — deep-phase plans
-  still require user approval.
+- Carry prior approval covering this phase and its plan. Workstream-wide
+  authority does not arise from a single-phase invocation; unresolved material
+  scope decisions still need the user.

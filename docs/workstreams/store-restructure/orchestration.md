@@ -128,7 +128,7 @@ After Gate B ships:
    questions each resolved inline or moved to a bead and linked; nothing left that
    says "decide before".
 2. `state.md` marked DONE; `orchestration.md` left as is — it is the record of how.
-3. `.claude/project/docs-index.md` row updated; `.claude/project/learnings.md` gets
+3. `.repo-context/docs-index.md` row updated; `.repo-context/learnings.md` gets
    only patterns that recurred across ≥2 slices.
 4. Merge `wf/store-restructure` to `main` as one (user confirms target); re-run the
    canonical gate on the merged result; push only on the user's word.

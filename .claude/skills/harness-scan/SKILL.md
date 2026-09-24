@@ -1,28 +1,22 @@
 ---
 name: harness-scan
-description: Deep scan of one reference harness — what changed upstream AND what it ships that our harness doesn't — then route candidates via the harness-evaluate skill.
+description: Scan a reference harness for material upstream drift and missing capabilities.
 disable-model-invocation: true
 ---
 
 # Harness Scan
 
-Argument: a reference harness name (e.g. `superpowers`) or path under
-`reference_harnesses/`. If none is given, ask which one.
+Resolve the named reference harness or path; ask only when ambiguous.
 
-## Steps
+1. Run `python3 harness_lifecycle/scan.py drift reference_harnesses/<name>`.
+2. Run `python3 harness_lifecycle/gap.py gap reference_harnesses/<name>`.
+3. Report material drift and useful candidates, considering existing equivalents.
+   Use harness-evaluate for an authorized curation decision.
 
-1. **What changed upstream** — `python3 harness_lifecycle/scan.py drift reference_harnesses/<name>`.
-2. **What they have that we don't** — `python3 harness_lifecycle/gap.py gap reference_harnesses/<name>`
-   (decisions already in the ledger are excluded automatically).
-3. Present the material changes and the gap candidates. For each candidate worth
-   pursuing, invoke the **harness-evaluate** skill to decide template / new-plugin /
-   merge / reject.
-4. To track chosen candidates as work, run the gap command with `--beads` to get
-   ready-to-run `bd create` lines, and file them **only after** the user approves.
+Scanning does not authorize ledger mutation or adoption. When filing follow-up
+work is authorized, `gap.py gap ... --beads` supplies creation commands to review.
+Record decided outcomes in the ledger only within that authority.
 
-## Rules
-
-- Read-only against the submodule; scans never move pins.
-- Default to *reject/defer*: surface a candidate for adoption only if it clearly
-  beats, or fills a gap in, what we already ship.
-- Record every decision in the ledger (`gap.py ledger add`) so it is not re-surfaced.
+These commands preserve submodule pins. Drift may fetch upstream refs; use its
+`--no-fetch` option when offline or network access is outside the request.
+Reject/defer is a valid outcome when a candidate adds no durable behavioral value.

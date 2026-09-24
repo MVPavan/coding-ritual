@@ -2,7 +2,7 @@
 
 Frozen, constructed by the caller, handed in at construction time. Like
 `bdio.config` this is deliberately NOT `pydantic-settings`: no inspector
-decision may depend on an ambient environment read (`rules/python/safety.md`),
+decision may depend on an ambient environment read (`.repo-context/coding-style.md`),
 because a wrapper whose grace periods or `/proc` root come from the process
 environment is a wrapper the crew it inspects could reconfigure.
 

@@ -19,7 +19,8 @@ Present four buckets, oldest first, with counts and a one-line summary per item:
 3. `bd list -l needs-info` — were the open questions in notes answered since?
 4. `bd human list` — waiting on the user to execute
 
-Let the user pick what to triage.
+Use the supplied issue or authorized batch. Ask for selection only when the
+request did not establish a scope.
 
 ## Triage one issue
 
@@ -32,8 +33,10 @@ Let the user pick what to triage.
    `wontfix:` closes that resemble this. Surface any match before proceeding.
 4. **Verify the claim.** For bugs: reproduce it, or record exactly why you could
    not. An unreproduced bug does not pass the gate.
-5. **Recommend and wait.** Propose exactly one outcome with your reasoning.
-   Do not apply it until the user agrees.
+5. **Decide within authority.** Recommend an outcome with evidence. Apply it
+   when the user already authorized that decision or bulk triage; otherwise
+   obtain the missing approval. An unreproduced bug stays unresolved/needs-info,
+   not automatically wontfix.
 6. **Apply the outcome** (all writes with `--actor`):
 
    | Outcome | Commands |
@@ -53,4 +56,5 @@ Let the user pick what to triage.
 - One state label per issue; never stack them.
 - Never promote to `ready-for-agent` past a failing gate — that label is what
   autonomous claiming trusts.
-- Read-only until the user approves the outcome (step 5).
+- Analysis-only requests remain read-only. Carry existing triage authority
+  through clear items; escalate material ambiguities separately.

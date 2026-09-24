@@ -54,7 +54,7 @@ task travels from a tracker stage to a landed, exported commit.
 | **Crew** | The vendor agent CLI: `claude`, `codex exec` or `codex app-server`. |
 | **Store** | `WorkflowStore` (`bdio/api.py:128`), the only write API, over the one record store: `LedgerStore`. Nothing is pinned or selected per root. |
 | **Tracker** | What humans read — bd, a file, or nothing. Reached only by the contractor, through `TrackerPort` (`tracker/port.py`), and written only through the `tracker_outbox`. A mirror, never a source of truth. |
-| **Run ledger** | The SQLite file `<repo>/.wf/ledger.db` (ADR 0005). Not the harness curation ledger in `CONTEXT.md`. |
+| **Run ledger** | The SQLite file `<repo>/.wf/ledger.db` (ADR 0005). Not the harness curation ledger in `.repo-context/CONTEXT.md`. |
 | **Wrapper root** | `<wrapper_home>/<sha256(realpath repo_root)[:16]>/`, outside the repo (`foreman/config.py:93-98`). |
 | **Band** | A non-blocking `flock` that serialises ticks. Ordinary roots of one wrapper root share `<wrapper_root>/repo-band.lock`. That is normally one per repository, but two wrapper homes over one repo do not exclude each other (`inspector/paths.py:236-247`). |
 

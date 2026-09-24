@@ -1,3 +1,6 @@
+> Optional exploration material, not a required sequence or numerical quota.
+> Illustrative market claims are examples to verify before relying on them.
+
 # Refinement & Evaluation Criteria
 
 Use this rubric during Phase 2 (Evaluate & Converge) to stress-test idea directions. Not every criterion applies to every idea — use judgment about which dimensions matter most for the specific context.

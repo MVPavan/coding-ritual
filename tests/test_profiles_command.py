@@ -844,7 +844,7 @@ def test_every_command_carries_the_committer_identity_and_the_channels(
 
 
 def test_the_child_environment_is_an_allow_list_not_a_copy(tmp_path: Path) -> None:
-    """`rules/python/safety.md`: no ambient read reaches the child unnamed."""
+    """`.repo-context/coding-style.md`: no ambient read reaches the child unnamed."""
     profile = make_claude(tmp_path, FrozenClock())
 
     command = profile.build_command(make_task(tmp_path), new_session())

@@ -33,6 +33,10 @@ Original evidence: `docs/research/repo-context-history/2026-09-10/learnings.md`.
 
 - Codex configuration parsing and hidden flags: CLI 0.144.1 (2026-07-10).
   Probe the installed version before changing a wrapper allowlist.
+- `codex exec -c` silently accepted invalid keys or values on CLI 0.144.1,
+  including a bogus effort value. Validate safety-critical overrides before
+  dispatch; prefer native `-s` for plain `exec`. `exec resume` and `exec review`
+  did not accept `-s`; verify current CLI behavior before changing a wrapper.
 - Beads initialization and plugin scope/hooks: 2026-08-19 observations.
   Verify current behavior in an isolated environment before installer work.
 - Claude API failure with exit 0: observed 2026-09-03. Check the runtime result

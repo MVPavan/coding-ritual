@@ -7,6 +7,19 @@
 > Updated 2026-08-19 (dual-manifest, skills-as-plugin-components; current version
 > in `mvp-harness/plugins/mvp-plugin/publish-info.txt`).
 
+## Shared context layout (2026-09-10)
+
+The workshop now keeps repository guidance and its glossary in
+`.repo-context/`, with conditional pointers from `AGENTS.md`. There is no
+`.claude/project/` directory or `.codex/project` compatibility link here.
+
+The installer/template descriptions below are the earlier distribution contract,
+not proof of compatibility with this layout. The `mvp-harness` submodule was
+uninitialized during this migration, so its installer was not updated or tested.
+Before publishing these changes, adapt the plugin-owned template, install/update
+and doctor paths to `.repo-context/`, including `.repo-context/CONTEXT.md`, and
+test both a fresh adoption and preservation of an existing customized overlay.
+
 ## 1. What it is
 
 One plugin, two tools. `mvp-plugin` carries this repo's curated skill set and

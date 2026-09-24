@@ -1,6 +1,6 @@
 ---
 name: codebase-research
-description: Graduated research on an external or unfamiliar codebase — survey its capabilities, map its architecture, or trace one mechanism — into durable reports under docs/research/codebases/. Descriptive, not a refactor proposal; for this repo's own code use improve-codebase-architecture.
+description: Graduated research on an external or unfamiliar codebase — survey its capabilities, map its architecture, or trace one mechanism — into durable reports under docs/research/codebases/. Descriptive rather than a refactor proposal; local code explanations also fit, while improvement proposals use improve-codebase-architecture.
 disable-model-invocation: true
 ---
 
@@ -29,8 +29,8 @@ depth that serves the decision. Three modes; two are levels, one is not:
 - L1 and L2 are levels: L2 builds on an L1 of the same snapshot. Deep dives
   are not a level — they may follow L1 directly, carry their own snapshot,
   and never make a repo "complete". A deep dive with no L1 on disk still
-  needs minimum orientation first: read the README, the top-level tree, and
-  the primary manifest; write no artifact from that pass.
+  needs only enough orientation to locate and interpret the relevant flow;
+  expand to README, manifests or architecture docs when that question needs them.
 
 ## Evidence
 
@@ -54,10 +54,9 @@ The flags are observations about what the repo *says*; the ladder is what you
   and `PRESENT` but never `WIRED` is how docs oversell — record it explicitly.
 - Interpretation (an architectural thesis, an ownership boundary) is marked
   `INFERENCE` and carries the reachability of what it was inferred from.
-- Closed or compiled targets: when readable source does not exist,
-  `SOURCE-TRACED` may be earned from the deepest available authoritative
-  artifact — shipped type declarations, official contract docs, bundle
-  inspection — with that artifact named in the citation.
+- Closed or compiled targets: name the strongest available artifact (types,
+  contract docs or inspected bundle) and its limits. Contract docs alone do
+  not earn `SOURCE-TRACED` implementation claims.
 - In the capability map and the realization matrix, every row carries its
   flags and state. In prose, label any claim that is not `SOURCE-TRACED`;
   cite `file:line` for any that is.
@@ -97,7 +96,11 @@ text counts as evidence only as committed in docs or source strings.
 
 ## Workflow
 
-Step 0 of every mode: if `docs/research/codebases/<slug>/00-index.md`
+For a bounded explanatory question, answer inline with source pointers unless a
+durable report was requested. The registry/artifact steps below apply to report
+work; ordinary local source explanation does not require a research registry.
+
+Step 0 of report work: if `docs/research/codebases/<slug>/00-index.md`
 exists, read it and its registry before anything else — know what exists and
 at which sha. If it does not exist, create it in the same run as the first
 artifact. Slug = the target's directory name, lowercased and hyphenated; a

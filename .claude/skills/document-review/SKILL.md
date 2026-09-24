@@ -19,4 +19,4 @@ Review the document itself before using it as a source of truth.
    - security, data, or performance risks when relevant
 4. Report findings by default — a review does not edit the document. Apply unambiguous wording or structure fixes inline only when the user asked for the review to be applied (or the invoking workflow says so).
 5. Surface decision-level issues instead of rewriting intent, even when applying.
-6. For standard/deep documents, get an independent critique from a spawned critic subagent — once per document unless it is unusually risky.
+6. This review can itself be the independent pass. Add another reviewer only for a distinct material risk or an explicit requirement, following the shared delegation policy.

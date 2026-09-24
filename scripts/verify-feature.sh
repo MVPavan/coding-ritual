@@ -39,7 +39,7 @@ check() {
 # `nested_sandbox` is deselected in BOTH selections because this script's own
 # runs happen inside a vendor sandbox: a nested `codex sandbox` cannot start
 # (cr-o85.34.22, phase-7 live D2).
-# The repo gate still runs them — see `.claude/project/verification.md`.
+# The repo gate still runs them — see `.repo-context/verification.md`.
 check tests uv run pytest -q -m "not bd and not live and not nested_sandbox"
 check proc-tests uv run pytest -q -m "proc and not nested_sandbox"
 check ruff-check uv run ruff check workflow_interpreter/ tests/

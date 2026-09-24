@@ -1,0 +1,123 @@
+TLDR
+Most prompts are bad because prompt evolution tends to be accretive: we only add, never remove, over time. This leads to spaghetti prompts, with contradictions and ambiguity. This has real business impact.
+We need to treat prompt changes as product changes (because agent behaviour is product), and treat prompts as code (modularised, MECE, and all your other favourite acronyms; refactored if need be & actively maintained).
+Well structured prompts enable teams to move faster, prevent regressions, and have better agents. I propose a very simple structure at the end.
+Prompting decisions are product decisions, and using structure to make unambiguous, maintainable prompts is critical for making great agents. This is a guide on how to do that.
+Background
+I think I have one of the best jobs in the world. I lead Applied AI Engineering for the OpenAI startups team across EMEA & APAC, and that means that every week I get to see behind the scenes of the best AI startups globally. And I get pretty hands on in how I work with their engineers to improve their agents: on everything from prompts to evals to finetuning.
+These startups are advanced. Some have ARR in the hundreds of millions. Some have their own data annotation teams. Some train their own models.
+So it came as a surprise that often, when I look behind the curtains, they have prompts that just don't make sense. This is not about being beautifully written prose, or nicely formatted; it's about logical errors that lead to the mistakes their agents make.
+This is not a critique of those startups - indeed, they are more successful than any company I have ever built, and their teams are full of the best engineers globally. They are a true pleasure to work with.
+But they're leaving huge gains on the table. After only a couple of days re-writing agents together, I've seen some startups speed up their agents by 50%; others increase 7 day retention by 40%; and still others reduce costs by 30%. These results hold across the LLMs they use, from every provider. When you're talking millions of ARR & LLM spend, this is pretty material.
+Don't believe me? See this Loveable engineer's post about how he decreased their LLM spend by $20M per year… because his mum caught inconsistencies & duplication in their prompt.
+In fact it's because they are so incredible, that I'm writing this. Because clearly even when you are genuinely world class, our current paradigm for prompting leads to suboptimal results.
+So I thought I would try to scale my impact beyond the startups I can work with directly by writing this. First, I'll cover why the world's best startups write bad prompts; then, I'll cover my prompting philosophy; finally, I'll propose a prompt template.
+(whilst reading this, try giving the link to this article to your coding agent, and ask it to review your repo against this advice + make a markdown file with its findings, ready for you when you're done!)
+Bad prompts
+Given this is so common, there are clearly universal tendencies that lead to bad prompts. The two key issues are contradictions and ambiguity.
+Our current process for prompting is accretive & leads to contradictions
+Most prompts evolve like this: the first engineer building an agent writes a simple prose prompt. As the startup grows, and the agent is required to do more things, they add to the prompt. Errors occur, so they add a few lines to fix those.
+The prompt only gets longer.
+And no-one reviews the entire prompt end to end. Almost always, that leads to contradictions in the prompt, because as you add new content, old content saying something else is kept.
+Implicit knowledge leads to ambiguity
+Even if an engineer does review a prompt end to end, they often don't truly read it. When you read & interpret a sentence, you don't only use the words on the page. You use all of the knowledge you already have to make sense of those words. And that's a problem, because you often know what you want the sentence to say; and you read that, rather than what it actually does say.
+This is the problem of specificity: the prompt doesn't actually say what we want the agent to do, because we haven't unambiguously specified it. For example, let's say I tell my agent to "never refer to competitors in [its] output". This makes sense to that startup’s engineer who spends every day thinking about my startup and its competitors. But to an agent without that implicit knowledge, that is incredibly vague - who are the competitors? What about partial competitors we also collaborate with sometimes? We haven't specified what we actually want.
+Conditional prompts compound this
+The above problems are compounded by conditional prompts, where additional prompt content is injected depending on the scenario. Different engineers work on various parts in separate files. And that means that even if each team/engineer reviews their prompt for contradictions & specificity, no-one reviews the whole.
+The outcome?
+We get spaghetti prompts. Thousands of lines, with interaction effects between many paragraphs, and it's almost impossible to review them because by the final sentence, most humans have totally forgotten the first line. Or got bored and stopped.
+And that leads to agents that "make mistakes", not behaving how the team wants them to.
+But the above is also why I can add value to these startups fast: I do read the prompt end to end, I've seen themes across hundreds of startups, and I don't have the implicit knowledge of their team, so I can catch ambiguity and naively ask "what does this actually mean" with fresh eyes.
+After I go through the prompt end to end with teams, there's a beautiful moment of anthropomorphism. We find many contradictions, and iron out much ambiguity. And the engineers will often chuckle to themselves that they might have been unfair, and they say "sorry" to the LLM.
+But so far I've just listed problems. AND if we're honest, these startups are doing incredibly well, so what's the solution? And is it genuinely worth their time?
+The results I've mentioned above speak for themselves financially, but I also truly believe we can get startups moving even faster and building better product, which is the startup holy grail.
+My principles: start treating prompting as product, and prompting as code. 
+The solution: making MECE, structured prompts that are maintainable.
+Prompt decisions are product decisions
+Agents are at the core of product experience. In chat based products, they are the entire product. The formatting of the agent's output is the UI. For example, should it output bullet points? Or markdown?; should it always reply in English? or in the language of the user's message?
+And that's just the output. Agent behaviour is a product decision: should it err on the side of responding fast? Or do comprehensive research, making the user wait? Product. Should it call a tool asking for the user to approve something? Or just get on with it? Product.
+It's all product.
+So whoever is writing your prompts better understand what user experience you want, because whilst they might not be writing the UI, they are comprehensively altering the user's interactions.
+And not only must they be able to understand it, but they must be able to specify it.
+My work with top startups, when looking at a specific error trace, involves me asking 'what do you actually want the agent to do here?'. And the answer is often 'hmmm, that's a good question'.
+If you can't specify the desired product experience, you can't expect an LLM to give that experience. You wouldn't (or shouldn't) expect a human to.
+Each time your engineers add to a prompt, or don't add to a prompt and so leave it ambiguous, they are making product choices. So making specific choices is critical for coherent product experience.
+Prompting as code
+We use human readable language to get a computer to do what we want. That was true of programming languages, and it's also true of prompting current LLMs. Moreover, we've now had decades of experience managing codebases (collections of text specifying what we want) that grow over time as functionality is added. Sound familiar? So we can borrow some relevant principles.
+Structure with MECE prompt sections
+Engineers please forgive me for using a consulting phrase, but it really is relevent. MECE stands for mutually exclusive (ME), collectively exhaustive (CE), and basically means you're covering everything relevant (CE) without duplication (ME). And that happens to solve the issues outlined above, when we think about sections in our prompt.
+Collectively Exhaustive: together, your prompt sections comprehensively cover (specify) the behaviour you want.
+Mutually Exclusive: each prompt section should be self contained, with no overlap.
+This leads to DRY (Don't Repeat Yourself) prompts, which are easier to maintain & review. When you make changes, you change one specific section without worrying it will interact with content elsewhere. Just like changing nicely modularised code. And you leave no ambiguity in the desired behaviour.
+Separate concerns where possible. Modular code is good code; modular prompts are good prompts.
+For example we will have sections on the general context of the agent, the behaviour we want, and its output. None of these overlap, and together they cover the world before the agent runs, its behaviour when running, and what to do at the end of its run. MECE.
+Aim for the specificity of programming
+When engineers write code, they are precise in their desires. If this, then that. But as soon as it is prose, these same people stop being precise. Instead, think of it like code.
+For example, you might wish to still employ IF ELSE logic. For example, when describing how your agent uses a web search tool, you might want it to only use websearch on certain topics. If topic X, use web_search; Else just use internal knowledge. Or perhaps you always want it to search. Whatever your desire, specify that.
+The aim is NOT to 'program' every eventuality - otherwise you wouldn't use an LLM. But you do want to specify the behaviours you desire in the core branches on the tree of user requests, or the rubric for when to do certain things.
+Separation of backend and frontend
+Above I mentioned having a Behaviour section and an Output section. In my framing of prompts as product/code, I like to think of this like separating concerns of backend and frontend.
+Behaviour: this is how the agent should act whilst preparing its output. It's the way it uses tools, the way it interacts with broader systems, the way it plans (or doesn't). In other words, it's like the backend; it covers the logic, and the user shouldn't see this.
+Output: this is the frontend, the user facing part of the agent. What the agent outputs could be totally independent of how it thinks. For example perhaps we want it to think in very rational, structured ways; but output in beautiful prose. Or always use code to do data analysis, but never show code to the user.
+We separate concerns, which means we can make more consistent specifications of what we wish under various circumstances.
+Refactor every so often
+Even with the best intentions, prompts can get messy. Dedicate some time to paying down your prompt debt. If new sections are relevant, add them; if some sections are getting large, split them.
+Template of a good prompt: Background, Behaviour, Output
+So we want a nicely structured, MECE prompt, that separates concerns where possible. The below is a very generic template, which you can use straight away.
+A hierarchical, MECE prompt structure that helps keep prompts maintainable & unambiguous
+You'll notice this is hierarchically organised, like a tree. This helps it be MECE, and means you can find sections much faster. It also means, if you use an IDE (like it's 2025 👀), you can nicely collapse the irrelevant sections as you hunt for the relevant content.
+So say I'm having issues with my agent outputting markdown, when I want it to output XML. Easy - one line change in the Output Format section.
+It's unambiguous where that content sits.
+A quick note on evals
+I like evals more than the average (normal?) person. Most of the time when something is going wrong with an agent, a simple eval can help you fix it. But I think the above is at the core of why.
+Hamel, whose writings on evals everyone should read, emphasises that a lot of the value in evals actually comes from when you're reading through the traces. Half the time you spot the error and realise a fix before you even write the eval. This is completely true.
+But I'd add an extra benefit here: evals force you to decide on what you want.
+When you make an eval, whether with deterministic ground truth or a rubric for a judge, you have to specify the desired behaviour. And half the time you realise you literally just never specified that desire in your prompt, it was latent context in your brain, not explicit in the prompt, OR you actually hadn't clarified it even to yourself.
+Evals force clarity, and so they force clear product decisions.
+(and go read Hamel for a million other benefits of evals)
+Benefits of structured prompts
+Fewer contradictions
+With MECE sections, reviewing the prompt is easy. Each section is self contained, and instead of having to keep hundreds of lines in your memory to find contradictions, you just review that section. Moreover, if that section isn't exhaustive about the behaviour you want, you just add lines there.
+Faster & safer iteration
+Separating concerns lets you iterate incredibly fast. When you find an issue, you just add a line to one specific section, knowing that it should have minimal interaction with other parts. That lets you move a lot faster.
+Faster search
+In spaghetti prompts, you have to remember key phrases in your prompt or the filenames to find the section to change. With hierarchically organised prompts, the search process for the relevant sections is much faster (it's a tree search), so you can make iterations fast.
+Everyone's an engineer
+Many forward thinking startups want everyone on their team to write prompts. This makes a lot of sense: if you're operating in finance, your ex-bankers know more about what bankers want than most engineers. And remember, prompting is product.
+With a MECE structured prompt, you can get the benefits of that, without worrying that people without engineering backgrounds will make changes leading to spaghetti prompts. Because it's incredibly easy to review the prompt change:
+Did they put it in the right section?
+Does it contradict with anything else within that section? Instead of having to painfully review the whole prompt for interaction effects (or just not reviewing it, which is the reality for many teams), you only need to review a few lines because sections are self-contained.
+Faster Model Upgrades 
+When a new model comes out, it's much easier to test its defaults.
+Perhaps all the 'examples' are no longer needed because the new model is just smarter. It now takes 5 seconds to find the examples section and delete it.
+Perhaps whilst a previous model always used to output em dashes, so you needed a line in your Output section about that, the new one doesn't. That's a one line deletion and a few tokens saved.
+So all of this to say: you get a product that actually behaves how you want, with much less duplication (so lower costs), and that you can maintain and iterate on much more easily.
+FAQs
+Isn't this just a waste of time if our prompt works now? 
+No, the payback period is pretty fast. See the examples at the start. And it will save a LOT of time when your agent starts making very weird and complex mistakes, because those are the hardest issues to solve in spaghetti prompts.
+As models get smarter doesn't this become irrelevant? 
+No.
+Whilst smarter models can sometimes make up for our inability to specify what we want, most of the time I don't think they do. A simple test: Ask the smartest person you know to write a short note on what they did today.
+Did they do it in blue ink or black ink? Which did you want?
+Was it one line? Or five? Which did you want?
+Smart models also don't fix ambiguity: ask them to answer you straight away with no clarifications AND to clarify first if your instructions were unclear. Did they answer? or did they hit you with a confused expression?
+It's a silly example, but it proves the point: higher intelligence cannot automatically solve ambiguity and contradictions in your preferences. Only you can (perhaps by talking to an LLM)
+So I think with smarter models you can often leave the how less specified; but you still need to specify what you want.
+Can't we just automate this process and have LLMs write the prompts? 
+No... well yes, but with a caveat. Meta prompting (LLMs writing prompts for LLMs) is a great idea. And throwing your system prompt into ChatGPT and asking it to find contradictions is a great starting point to rewriting your prompt.
+But to re-write the prompt with an LLM you have to prompt the 'rewriter' LLM... and that prompt has to be good. How do you prompt that? With an LLM?... it's turtles all the way down. Somewhere, you need to specify your preferences unambiguously, whether in the final prompt, or in the 'rewriter' prompt.
+The alternative is to do fully automated prompt iteration, taking some sort of reward signal and iterating on the prompt to improve that signal. But for that you need a comprehensive eval/reward model... which needs to specify your preferences... and we're back to the initial problem. It's harder to set up this reward system than just write a good prompt.
+And either way, there's no free lunch. You need to get clarity for yourself.
+Does this apply to frontier, general agents? I thought they were about loops/graphs?
+Yes it does. We have moved to a focus on loops for frontier agents, and in very general agents it becomes harder to specify what you want in all cases. And we should rely more on smarter models to handle that, rather than making huge prompts. But that doesn't mean it doesn't apply. If anything, it means it matters more: I'll write more about this, but removing content from a prompt is often an improvement as models get better, so having a prompt you can easily review and strip down even further is doubly beneficial.
+Moreover, even a general agent should have some preferences - e.g. tone of voice, mentioning competitors etc. And you should specify those precisely. The same principles still apply, you just maybe leave less specified because you don’t care about specifying it - your requirements have changed.
+More 'workflow' type prompts will likely be more detailed, as you specify even more of the behaviour than a general agent, but it applies for both kinds.
+This was fabulous, how do we work with you? 
+You're too kind!!
+The OpenAI Startups team works with some startups who have raised $ billions, and some cutting edge startups at the start of their journey. And we're always looking to collaborate with startups pushing the boundaries of our models capabilities.
+We can't work with everyone, but definitely reach out and we'll see what we can do.
+Or pay me $1 million and I'll come consult for you privately (for legal reasons relating to my employer, this is a joke... my DMs are open).
+That's enough on prompting
+I wrote this on a plane to San Francisco - clearly Virgin needs to up their entertainment selection. So I got a bit carried away. But I truly do think you can see massive gains from a couple of days work.
+I hope the above helps. Maybe it can be the small spark to push you to refactor that prompt.
+And remember - prompting is product.

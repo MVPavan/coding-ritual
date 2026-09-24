@@ -2,8 +2,8 @@
 
 *Names (2026-09): phase bridge → contractor, supervisor → inspector, runner → crew; citations below use the old names.*
 
-**Audience: the orchestrator only.** Deliberately NOT a rule under
-`.claude/rules/` and deliberately NOT listed in `.claude/project/docs-index.md` —
+**Audience: the orchestrator only.** Deliberately not always-loaded guidance
+and deliberately not listed in `.repo-context/docs-index.md` —
 loading this into every agent's context is the exact cost this protocol exists to
 avoid. Workers receive the parts that apply to them, in their brief.
 

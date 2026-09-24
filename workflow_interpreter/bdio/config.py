@@ -3,7 +3,7 @@
 A frozen model constructed by the caller and handed to `GateVerifier` at
 construction time. Deliberately NOT `pydantic-settings` `BaseSettings` (the
 repo's default for config): `BaseSettings` reads the process environment, and
-`rules/python/safety.md` forbids ambient environment reads inside this
+`.repo-context/coding-style.md` forbids ambient environment reads inside this
 boundary — verification authority is fully determined by what was injected.
 
 The bd transport's own config left with the transport in S6

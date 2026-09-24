@@ -7,7 +7,7 @@ Same three properties as `bdio.client`, for the same reasons:
    so "the inspector never pushes" is structural rather than a convention
    somebody has to keep. Every subcommand here is local and confined to a
    working tree the wrapper owns.
-3. **Explicit timeouts** on every invocation (`rules/python/safety.md`).
+3. **Explicit timeouts** on every invocation (`.repo-context/coding-style.md`).
 
 Working directories are checked, not trusted: every call must run inside the
 repo the config names or inside the wrapper directory's worktree, so a caller

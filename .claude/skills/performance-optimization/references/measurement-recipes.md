@@ -8,8 +8,8 @@ baselines. The method stays in SKILL.md; this file is tool mechanics.
 
 - `time.perf_counter()`, never `time.time()` — only the former is monotonic
   with sub-ms resolution.
-- Report median + spread over 5+ runs. The first run measures cold start:
-  keep it out of the sample, or measure cold deliberately and say so.
+- Report central tendency and spread with enough runs for the decision.
+  Separate warm and cold conditions; retain cold start when it is the metric.
 - Both variants coexisting in one process (two functions, a flag): interleave
   runs (ABAB…) so thermal/turbo drift hits both. The variant is a
   working-tree change: re-run the baseline immediately before the result run,

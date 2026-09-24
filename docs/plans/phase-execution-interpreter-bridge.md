@@ -198,7 +198,7 @@ the largest trust assumption in this plan and must appear in operator output bef
 landing gate runs.
 
 The full repository gate contains five numbered items and six commands, including
-pytest (`.claude/project/verification.md:48-56`). The verifier executes a hashed
+pytest (`.repo-context/verification.md:48-56`). The verifier executes a hashed
 program through argv only, but uses `subprocess.run` with inherited `os.environ` and
 no sandbox (`workflow_interpreter/supervisor/verify.py:386-418`). A detached clean
 checkout does not change that host-process trust boundary
@@ -278,7 +278,7 @@ Run the LLM-selected Stage 1 to closure; only then call Stage 2.
 roots, land their signed OIDs, and close with read-back receipts; the ordering and
 ancestry commands in D6 pass; the phase's all-closed exit gate passes; and the five
 numbered/six-command repository gate runs. If the execution skill changes, also run its
-catalog check prescribed by `.claude/project/verification.md`.
+catalog check prescribed by `.repo-context/verification.md`.
 
 ## Cost and measurement
 

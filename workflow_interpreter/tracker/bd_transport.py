@@ -83,7 +83,7 @@ SURFACE_ASSIGNEE: Final[str] = "assignee"
 class BdConfig(BaseModel):
     """Everything the bd transport needs; nothing is discovered from the process.
 
-    Deliberately not `pydantic-settings` (`rules/python/safety.md`): every bd
+    Deliberately not `pydantic-settings` (`.repo-context/coding-style.md`): every bd
     invocation is fully determined by what the caller injected.
     """
 

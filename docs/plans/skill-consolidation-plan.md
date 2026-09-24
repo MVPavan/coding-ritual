@@ -242,11 +242,11 @@ docs/research/skill-consolidation/
   SUMMARY.md                 final skill list + merges + losses
 ```
 
-`.claude/project/docs-index.md` gets one pointer row on completion.
+`.repo-context/docs-index.md` gets one pointer row on completion.
 
 ## Execution mechanics
 
-- **One worker per bucket**, fresh context, per `.claude/rules/core/01-delegation.md`.
+- **One worker per bucket**, fresh context, per `AGENTS.md` delegation guidance.
   Each is given only its bucket's skill files, the decision procedure, and its
   output path — not this conversation's history.
 - Buckets write to separate files, so workers can run in parallel safely.

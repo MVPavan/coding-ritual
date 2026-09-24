@@ -1,7 +1,7 @@
 """Injected configuration for the §6 profiles: binaries, env passthrough, effort.
 
 Frozen and handed in at construction, exactly like `bdio.config` and
-`inspector.config`, and for the same reason: `rules/python/safety.md` forbids
+`inspector.config`, and for the same reason: `.repo-context/coding-style.md` forbids
 `os.environ` reads in business logic, and a profile whose sandbox posture came
 from the ambient environment would be a profile the crew it launches could
 reconfigure. The brief called for a `pydantic-settings` model; this repo has no

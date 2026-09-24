@@ -31,14 +31,14 @@ Stage: <the bd stage this task serves (`<epic>.N`) — phase and single-phase
 work only; omit for standalone plans>
 
 Files:
-- Create:
-- Modify:
-- Test:
+- Create: <known paths or ownership boundary>
+- Modify: <known paths or ownership boundary>
+- Test: <relevant check locations>
 
 Interfaces:
-- Consumes: <exact names and types this task uses from earlier tasks>
-- Produces: <exact names and types later tasks rely on — a fresh implementer
-  sees only their own task; this block is how they learn their neighbours>
+- Consumes: <contracts needed from earlier tasks; exact names/types when already known>
+- Produces: <contracts later tasks rely on; resolve unknown internal details within
+  ownership and record any changed shared contract>
 
 Approach: <prose — no code blocks>
 
@@ -60,8 +60,8 @@ rule on independently.
 
 ## Standalone bd record
 
-For a standalone plan with no bd record yet, create it after the user accepts
-the plan (`--actor` as always):
+For a standalone plan with no bd record yet, create it when the request or
+existing approval covers the work (`--actor` as always):
 
 ```bash
 bd create "<title>" -t task \
@@ -82,7 +82,7 @@ These are plan failures — never write them:
 - "add appropriate error handling" / "add validation" / "handle edge cases"
 - "write tests for the above" without naming the behaviours under test
 - "similar to Task N" — repeat the content; tasks are read out of order
-- references to types, functions, or names that no task's Produces defines
+- unresolved cross-task contracts that leave an implementer guessing at acceptance
 
 ## Self-review
 
@@ -92,8 +92,8 @@ Run against the finished plan with fresh eyes. Fix inline; no re-review.
    with no task means adding the task, not a note.
 2. **Placeholder scan** — search the plan for the list above.
 3. **Name/type consistency** — later tasks consume exactly the names and types
-   earlier tasks produce; a renamed function between Task 3 and Task 7 is a
-   bug.
+   earlier tasks produce; update dependent tasks when implementation resolves
+   or changes a shared name.
 4. **Gap-naming pass** — "what has nobody named?" Integration seams,
    migrations, rollout, cleanup, docs. Every finding becomes a task, an
    explicit exclusion, or a follow-up bead — never silence.

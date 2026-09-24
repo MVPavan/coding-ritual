@@ -151,7 +151,7 @@ kept out of the shipped template by `template-exclude.txt`:
 - **`/harness-scan <name>`** — deep drift + gap for one harness, then routing.
 - **`harness-evaluate` skill** — decide template / new-plugin / merge / reject for a
   candidate and drive the sync-back; records the decision in the ledger.
-- **`.claude/rules/harness-lifecycle/curation.md`** — the guardrails.
+- **`harness-*` skills and `AGENTS.md`** — curation and repository guardrails.
 - **`.claude/hooks/harness-staleness-nudge.sh`** — SessionStart reminder when the
   catalogs are more than 30 days old.
 
