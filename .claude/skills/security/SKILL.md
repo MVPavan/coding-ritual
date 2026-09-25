@@ -18,6 +18,7 @@ a tiny boundary change may need only a short threat note and a proving test.
 
 For authentication, URL fetching, uploads, dependencies, secrets or agent systems,
 consult only the corresponding group in `references/boundary-controls.md`.
+For a web-facing surface, also read `references/web.md`.
 Apply the repository's validation and package conventions. Cosmetic dependency
 metadata or prose mentioning LLMs does not trigger the whole security workflow.
 
