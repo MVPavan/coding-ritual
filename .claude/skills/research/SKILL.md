@@ -8,6 +8,7 @@ description: Use when a decision needs multiple sources gathered and weighed. An
 Resolve an open question by gathering and weighing evidence at a depth justified
 by the decision. A single SDK/CLI fact needs a direct official lookup, not a
 research report or compulsory docs agent. Read local code for local behavior.
+To understand an external codebase, recommend `/codebase-research` to the user.
 
 1. State the decision, scope, constraints and material unknowns. Reuse those
    already supplied. Choose sources for what would change the answer.
@@ -22,8 +23,8 @@ research report or compulsory docs agent. Read local code for local behavior.
    default location is `docs/research/<topic>/<slug>.md`.
 
 No source quota establishes quality. Stop when remaining uncertainty no longer
-changes the decision, or when access/budget limits are reached and named. Use
-bounded delegation only when it improves the investigation under shared policy.
+changes the decision, or when access/budget limits are reached and named.
+Delegate only a sizeable, independent part of the investigation, per `AGENTS.md`.
 
 ## Optional references
 
