@@ -1,5 +1,14 @@
 # Dispatched review contract
 
+## Critic review
+
+A critic is an independent reviewer, never the author; the user chooses its model.
+Give a thorough opinion, then every finding with its severity and supporting
+evidence; for code, cite `file:line`. The coordinator filters by severity afterward.
+`APPROVE` means no open BLOCKER or MAJOR; otherwise `REVISE`.
+
+## Inputs
+
 Inputs: mode, brief/requirements path, implementation report, scoped diff package,
 binding constraints, output path. For re-review also include the finding list and
 fix-delta package. Follow the code-review entrypoint's evidence and scope rules.
@@ -11,20 +20,20 @@ listed finding regardless of its original role.
 ## Spec output
 
 ```text
-Verdict: COMPLIANT | ISSUES_FOUND
+Verdict: APPROVE | REVISE
 Unverified requirements: <items and needed evidence, or none>
 Issues: <severity, file:line, missing/extra/misunderstood requirement and impact>
 Checks and limitations: <actual evidence>
 ```
 
 A missing brief limits compliance claims; an unrelated failed check is not an
-automatic Critical code defect. Report each limitation at its actual consequence.
+automatic BLOCKER. Report each limitation at its actual consequence.
 
 ## Quality output
 
 ```text
-Verdict: APPROVE | WARNING | BLOCK — <reason>
-Issues: <Critical / Important / Minor; file:line, trigger and impact>
+Verdict: APPROVE | REVISE — <reason>
+Issues: <BLOCKER / MAJOR / MINOR; file:line, trigger and impact>
 Checks and limitations: <actual evidence>
 ```
 
@@ -34,7 +43,7 @@ Checks and limitations: <actual evidence>
 Finding verdicts: <ID — ADDRESSED | NOT ADDRESSED; file:line evidence>
 New breakage in fix diff: <severity and evidence, or none>
 Out-of-scope observations: <nonblocking follow-ups, or none>
-Verdict: all addressed, no new Critical/Important | findings remain open
+Verdict: APPROVE | REVISE
 Checks and limitations: <actual evidence>
 ```
 
