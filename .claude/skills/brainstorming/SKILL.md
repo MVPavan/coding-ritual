@@ -43,9 +43,12 @@ Record sources, assumptions and excluded alternatives as needed for handoff.
 
 A new unresolved spec is `Status: draft`. Mark it `Status: approved` only when
 actual authorization covers its direction and scope, recording that evidence.
-A blocking question must be resolved or explicitly excluded before approval.
-Review consistency, scope and verifiability; independent critique is conditional
-on material risk and the shared delegation policy.
+Approval names the chosen direction; re-ask vague assent as a choice between two
+concrete options. A blocking question must be resolved or explicitly excluded
+before approval. Review consistency, scope and verifiability; a spec with
+material risk gets a critic review (code-review `references/review-contract.md`)
+before approval. Report an unresolved direction as a blocker to whoever started
+the brainstorm.
 
 This skill's output is decisions or a spec. Continue into planning/execution when
 already authorized; a brainstorming-only request does not authorize code changes.
