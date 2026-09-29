@@ -8,6 +8,19 @@ edits do not require the interpreter suite.
 This checkout holds first-party `workflow_interpreter/` Python code. It has no
 CI; the five-stage host gate below is its local quality gate.
 
+## Claim → evidence
+
+| Claim | Evidence | Not enough |
+|---|---|---|
+| Tests pass | The named command's output shows 0 failures | An earlier run |
+| Bug fixed | The command that showed the original failure now passes | "The code changed" |
+| Feature works | Driven end to end the way a user reaches it | Unit tests green |
+| Agent completed | `git status` and `git diff` show the claimed change | The agent's report |
+| Requirements met | Checked item by item against the brief | Tests passing |
+
+When an end-to-end check is out of reach, report `PARTIAL`: Verified / Needs
+human check / Why.
+
 ## Structural checks
 
 | Changed material | Check |
