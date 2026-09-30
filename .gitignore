@@ -30,3 +30,6 @@ harness_lifecycle/*_analysis/shards/*.row_evaluations.jsonl
 harness_lifecycle/fable_analysis/raw_clusters.json
 harness_lifecycle/fable_analysis/cluster_consolidation_input.md
 harness_lifecycle/fable_analysis/tools/scratch/
+
+# bd 1.3.0 lock files (never delete while bd runs)
+*.gate.lock*
