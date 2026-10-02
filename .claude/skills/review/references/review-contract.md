@@ -1,20 +1,10 @@
-# Dispatched review contract
-
-## Critic review
-
-A critic is an independent reviewer, never the author; the user chooses its model.
-Give a thorough opinion, then every finding with its severity and supporting
-evidence; for code, cite `file:line`. The coordinator filters by severity afterward.
-`APPROVE` means no open BLOCKER or MAJOR; otherwise `REVISE`. APPROVE covers only
-what was verified; list unverified requirements, never approve them. The inputs
-and templates below are for code; for anything else, pass the artifact and its
-purpose.
+# Dispatched code review contract
 
 ## Inputs
 
 Inputs: mode, brief/requirements path, implementation report, scoped diff package,
 binding constraints, output path. For re-review also include the finding list and
-fix-delta package. Follow the code-review entrypoint's evidence and scope rules.
+fix-delta package. Follow `code.md`'s evidence and scope rules.
 
 Initial spec and quality verdicts remain distinct when those roles are dispatched
 separately. A combined reviewer covers both explicitly. Re-review covers every

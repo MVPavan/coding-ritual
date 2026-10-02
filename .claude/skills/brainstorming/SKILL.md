@@ -46,8 +46,7 @@ actual authorization covers its direction and scope, recording that evidence.
 Approval names the chosen direction; re-ask vague assent as a choice between two
 concrete options. A blocking question must be resolved or explicitly excluded
 before approval. Review consistency, scope and verifiability; a spec with
-material risk gets a critic review (code-review `references/review-contract.md`)
-before approval. Report an unresolved direction as a blocker to whoever started
+material risk gets a critic review (review skill) before approval. Report an unresolved direction as a blocker to whoever started
 the brainstorm.
 
 This skill's output is decisions or a spec. Continue into planning/execution when

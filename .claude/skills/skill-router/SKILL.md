@@ -14,7 +14,7 @@ AGENTS.md. This router is optional, not a startup checklist.
 | Material unresolved direction | brainstorming |
 | Durable plan/dependencies | planning |
 | Tracked multi-step implementation | execution |
-| Substantive review or incoming feedback | code-review |
+| Critic review, substantive code review or incoming feedback | review |
 | Explicit interview | grilling; documented interview only when requested |
 | Multi-session decision graph | manual wayfinder |
 | Architecture improvement survey | manual improve-codebase-architecture |
@@ -39,7 +39,7 @@ user-supplied skill path can be read without changing integration files.
 
 ## Model-invocable skills
 
-`agent-matrix`, `authoring-for-agents`, `beads`, `brainstorming`, `code-review`, `codebase-design`, `design-evolve`, `document-review`, `domain-modeling`, `execution`, `grilling`, `harness-evaluate`, `harness-skill-compare`, `html-artifact`, `model-council`, `performance-optimization`, `perspective-council`, `planning`, `prototype`, `research`, `resolving-merge-conflicts`, `security`, `skill-router`, `systematic-debugging`, `test-driven-development`
+`agent-matrix`, `authoring-for-agents`, `beads`, `brainstorming`, `codebase-design`, `design-evolve`, `document-review`, `domain-modeling`, `execution`, `grilling`, `harness-evaluate`, `harness-skill-compare`, `html-artifact`, `model-council`, `performance-optimization`, `perspective-council`, `planning`, `prototype`, `research`, `resolving-merge-conflicts`, `review`, `security`, `skill-router`, `systematic-debugging`, `test-driven-development`
 
 ## Slash-only workflows
 
@@ -58,7 +58,7 @@ user-supplied skill path can be read without changing integration files.
 | `/improve-codebase-architecture` | Find evidence-backed architecture improvements within a named area or requested codebase survey. |
 | `/migrate-claude-to-codex` | Adapt Claude harness assets for Codex while preserving shared AGENTS.md policy and canonical skills. |
 | `/phase-execution` | Execute one phase of a workstream roadmap. |
-| `/receiving-code-review` | Use when explicitly invoking the legacy receiving-code-review entrypoint; incoming feedback is owned by code-review. |
+| `/receiving-code-review` | Use when explicitly invoking the legacy receiving-code-review entrypoint; incoming feedback is owned by review. |
 | `/run-phases` | Run every remaining phase of a workstream unattended. |
 | `/show-me` | Show the current topic visually, inline in the conversation. |
 | `/teach` | Teach a concept, walk through a session, or conduct an explicitly requested ongoing course. |

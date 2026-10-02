@@ -41,5 +41,5 @@ data or duplicate actions. Triage dependency advisories by reachability and impa
 not advisory count alone; record material exceptions with a revisit condition.
 
 For a requested security review, remain read-only. When reviewing an implemented
-diff, report relevant findings through code-review's severity and output contract;
+diff, report relevant findings through the review skill's severity and output contract;
 this skill supplies the security lens, not a second compulsory review process.

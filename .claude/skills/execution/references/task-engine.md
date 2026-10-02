@@ -63,7 +63,7 @@ applicable verification and the diff. Invoke substantive code review only when
 needed. A failed check calls for diagnosis and a scoped fix, not a new reviewer chain.
 
 **Full path:** review the brief against binding constraints before implementation.
-Use the code-review skill's spec, quality or combined modes for independent review.
+Use the review skill's spec, quality or combined modes for independent review.
 If separate spec and quality reviewers were required, collect both verdicts.
 Independent reviews may run concurrently on a stable snapshot when permitted.
 

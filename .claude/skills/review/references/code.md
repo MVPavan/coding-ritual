@@ -1,23 +1,10 @@
----
-name: code-review
-description: Use for substantive code review or to verify and act on review findings. Routine final diff inspection is not a separate review workflow.
----
+# Code review
 
-# Code Review
-
-Review implemented changes against requirements and consequential risks. Routine
-final diff inspection follows AGENTS.md without requiring this full workflow.
-
-## Select a mode
-
-- `inline` or combined: review requirements and quality on the supplied scope.
-- `spec` / `quality`: a dispatched role with its corresponding verdict contract.
-- `re-review`: resolve prior findings and new breakage in the fix delta.
-- `feedback`: verify and act on incoming review findings within authorization.
-
-Dispatched reviewers and structured re-reviews use `references/review-contract.md`.
-Feedback handling uses `references/feedback.md`; producing a review is read-only,
-whereas applying feedback requires implementation authority.
+Review implemented changes against requirements and consequential risks.
+Modes: `inline` or combined (requirements and quality on the supplied scope),
+`spec` / `quality` (a dispatched role with its verdict contract), and `re-review`
+(prior findings and new breakage in the fix delta). Dispatched reviewers and
+structured re-reviews also use `review-contract.md`.
 
 ## Establish scope and evidence
 
@@ -52,12 +39,6 @@ skill's relevant boundary controls for material security changes.
 Report actionable defects introduced or exposed by the change, with file/line,
 trigger, consequence and evidence. Separate pre-existing issues and uncertainty.
 Leave formatting to configured tools; do not treat harmless warnings as defects.
-
-Severity follows consequence: BLOCKER for severe safety/data-loss or operational
-failure; MAJOR for acceptance or correctness issues blocking trust; MINOR for
-nonblocking improvements. Preference alone is not a finding. When the plan or
-brief mandates what this review calls a defect, report it as MAJOR, labelled
-plan-mandated; the user decides.
 
 End with findings, actual checks, limits and a justified verdict. Explicitly say
 when no defects were found; do not invent praise or findings to fill a template.
