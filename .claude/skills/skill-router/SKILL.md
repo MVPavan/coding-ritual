@@ -14,7 +14,7 @@ AGENTS.md. This router is optional, not a startup checklist.
 | Material unresolved direction | brainstorming |
 | Durable plan/dependencies | planning |
 | Tracked multi-step implementation | execution |
-| Critic review, substantive code review or incoming feedback | review |
+| Critic review, substantive code/spec/plan review or incoming feedback | review |
 | Explicit interview | grilling; documented interview only when requested |
 | Multi-session decision graph | manual wayfinder |
 | Architecture improvement survey | manual improve-codebase-architecture |
@@ -22,7 +22,7 @@ AGENTS.md. This router is optional, not a startup checklist.
 | Intake-state decisions | manual triage; routine tracking uses AGENTS.md/runtime context |
 | Inline visual | manual show-me when requested; ordinary tables need no additional workflow |
 
-Legacy receiving-code-review, idea-refine, grill-me, grill-with-docs and
+Legacy receiving-code-review, document-review, idea-refine, grill-me, grill-with-docs and
 teach-session are thin entrypoints to shared owners. Verification-before-completion
 and cost-estimate retain only manual migration guidance; do not recommend their
 retired workflows as automatic steps.
@@ -39,7 +39,7 @@ user-supplied skill path can be read without changing integration files.
 
 ## Model-invocable skills
 
-`agent-matrix`, `authoring-for-agents`, `beads`, `brainstorming`, `codebase-design`, `design-evolve`, `document-review`, `domain-modeling`, `execution`, `grilling`, `harness-evaluate`, `harness-skill-compare`, `html-artifact`, `model-council`, `performance-optimization`, `perspective-council`, `planning`, `prototype`, `research`, `resolving-merge-conflicts`, `review`, `security`, `skill-router`, `systematic-debugging`, `test-driven-development`
+`agent-matrix`, `authoring-for-agents`, `beads`, `brainstorming`, `codebase-design`, `design-evolve`, `domain-modeling`, `execution`, `grilling`, `harness-evaluate`, `harness-skill-compare`, `html-artifact`, `model-council`, `performance-optimization`, `perspective-council`, `planning`, `prototype`, `research`, `resolving-merge-conflicts`, `review`, `security`, `skill-router`, `systematic-debugging`, `test-driven-development`
 
 ## Slash-only workflows
 
@@ -48,6 +48,7 @@ user-supplied skill path can be read without changing integration files.
 | `/check-invariants` | Run mechanically checkable invariants from the project overlay and report pass or fail. |
 | `/codebase-research` | Graduated research on an external or unfamiliar codebase — survey its capabilities, map its architecture, or trace one mechanism — into durable reports under docs/research/codebases/. |
 | `/cost-estimate` | Legacy entrypoint; the uncalibrated code-volume and commit-based estimation method is retired. |
+| `/document-review` | Use when explicitly invoking the legacy document-review entrypoint; spec and plan review is owned by review. |
 | `/grill-me` | Start a decision interview using the shared grilling workflow. |
 | `/grill-with-docs` | Start a grilling interview and record authorized domain terminology and architectural decisions. |
 | `/harness-publish` | Publish this repo's harness into the mvp-plugin (the mvp-harness submodule) — copy the shippable skills and agents, run the provider-neutrality and leak audits, regenerate the shipped router and Codex sidecars, rebuild the residue template, validate both manifests, bump the version. |

@@ -1,6 +1,6 @@
 ---
 name: review
-description: Use for a critic review of any artifact, substantive code review, or to verify and act on review findings. Routine final diff inspection is not a separate review workflow.
+description: Use for a critic review of any artifact, a substantive review of code or of a spec or plan, or to verify and act on review findings. Skip routine final diff inspection; to interrogate the author instead, use grilling.
 ---
 
 # Review
@@ -28,6 +28,16 @@ plan-mandated; the user decides.
 
 - Code (`inline`, `spec`, `quality`, `re-review`): `references/code.md`; dispatched
   reviewers and structured re-reviews also use `references/review-contract.md`.
+- Document (a spec or plan): *Document review* below.
 - `feedback`: verify and act on incoming findings within authorization, using
   `references/feedback.md`. Producing a review is read-only, whereas applying
   feedback requires implementation authority.
+
+## Document review
+
+Check the document against current repository context and authoritative project
+docs for internal inconsistency, missing constraints, unverifiable claims, scope
+bloat, missing tests or verification, and relevant security, data or performance
+risks. Report findings; edit the document only when the requester asked for fixes
+to be applied, and then only unambiguous wording or structure. Surface
+decision-level issues instead of rewriting intent.
