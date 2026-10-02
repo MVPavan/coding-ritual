@@ -5,7 +5,10 @@
 A critic is an independent reviewer, never the author; the user chooses its model.
 Give a thorough opinion, then every finding with its severity and supporting
 evidence; for code, cite `file:line`. The coordinator filters by severity afterward.
-`APPROVE` means no open BLOCKER or MAJOR; otherwise `REVISE`.
+`APPROVE` means no open BLOCKER or MAJOR; otherwise `REVISE`. APPROVE covers only
+what was verified; list unverified requirements, never approve them. The inputs
+and templates below are for code; for anything else, pass the artifact and its
+purpose.
 
 ## Inputs
 

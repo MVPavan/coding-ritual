@@ -1,6 +1,6 @@
 ---
 name: i-have-adhd
-description: Use when the user invokes /i-have-adhd or asks for ADHD-friendly output.
+description: Use when the user invokes /i-have-adhd.
 disable-model-invocation: true
 ---
 

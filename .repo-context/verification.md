@@ -12,10 +12,10 @@ CI; the five-stage host gate below is its local quality gate.
 
 | Claim | Evidence | Not enough |
 |---|---|---|
-| Tests pass | The named command's output shows 0 failures | An earlier run |
+| Tests pass | The named command exits 0 and the expected tests ran | An earlier run; no tests collected |
 | Bug fixed | The command that showed the original failure now passes | "The code changed" |
 | Feature works | Driven end to end the way a user reaches it | Unit tests green |
-| Agent completed | `git status` and `git diff` show the claimed change | The agent's report |
+| Agent completed | `git diff <base>..HEAD` and `git status` show the claimed change | The agent's report |
 | Requirements met | Checked item by item against the brief | Tests passing |
 
 When an end-to-end check is out of reach, report `PARTIAL`: Verified / Needs

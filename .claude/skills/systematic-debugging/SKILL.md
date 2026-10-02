@@ -21,8 +21,10 @@ supported fix and verify; skip the extended investigation below.
 3. Probe the suspected boundary or variable, update the explanation, then repeat
    only while new evidence is produced. For cross-layer tracing or bisection,
    consult `references/localization.md`.
-4. Fix only a cause the reproduction confirmed; a change that merely hides the
-   symptom is not a fix. Fix at the owning layer and inspect affected
+4. Fix only a confirmed cause: confirmed by the reproduction or, when none is
+   obtainable, by independent evidence such as traces, stating the verification
+   limit. A change that merely hides the symptom is not a fix. Fix at the owning
+   layer and inspect affected
    callers and preserve legitimate differences. Avoid unrelated cleanup.
 5. Turn the failure into a durable regression check when feasible. Show failure
    before the fix and success afterward, then rerun the original scenario and

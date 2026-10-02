@@ -53,7 +53,7 @@ user-supplied skill path can be read without changing integration files.
 | `/harness-publish` | Publish this repo's harness into the mvp-plugin (the mvp-harness submodule) — copy the shippable skills and agents, run the provider-neutrality and leak audits, regenerate the shipped router and Codex sidecars, rebuild the residue template, validate both manifests, bump the version. |
 | `/harness-scan` | Scan a reference harness for material upstream drift and missing capabilities. |
 | `/harness-status` | Quick upstream-drift status across all reference_harnesses submodules — what changed since our pinned commits. |
-| `/i-have-adhd` | Use when the user invokes /i-have-adhd or asks for ADHD-friendly output. |
+| `/i-have-adhd` | Use when the user invokes /i-have-adhd. |
 | `/idea-refine` | Explore a raw idea through brainstorming using the legacy idea-refine entrypoint. |
 | `/improve-codebase-architecture` | Find evidence-backed architecture improvements within a named area or requested codebase survey. |
 | `/migrate-claude-to-codex` | Adapt Claude harness assets for Codex while preserving shared AGENTS.md policy and canonical skills. |

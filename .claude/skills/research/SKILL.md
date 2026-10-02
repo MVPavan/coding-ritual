@@ -8,7 +8,7 @@ description: Use when a decision needs multiple sources gathered and weighed. An
 Resolve an open question by gathering and weighing evidence at a depth justified
 by the decision. A single SDK/CLI fact needs a direct official lookup, not a
 research report or compulsory docs agent. Read local code for local behavior.
-To understand an external codebase, recommend `/codebase-research` to the user.
+For a durable report on an external codebase, recommend `/codebase-research`.
 
 1. State the decision, scope, constraints and material unknowns. Reuse those
    already supplied. Choose sources for what would change the answer.
