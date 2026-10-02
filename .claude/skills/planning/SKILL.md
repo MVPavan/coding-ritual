@@ -33,8 +33,9 @@ into demoable phases with checkable exits, flat stages with acceptance, and real
 dependency edges. Independent subsystems need separate ownership, not necessarily
 separate specs or an additional interview.
 
-Present consequential structural choices for approval if not already authorized.
-Then seed epics/stages and render tracking. A single-phase spec may use one epic
+No Beads write before its matching approval: the structure in Decompose, the
+plan in Elaborate. Recorded approval counts. Then seed epics/stages and render
+tracking. A single-phase spec may use one epic
 and an Elaborate plan without creating a workstream. Write later phase plans
 just in time against the code those phases will encounter.
 
@@ -50,9 +51,9 @@ Every phase plan task names an existing `Stage: <epic>.N`; every stage has cover
 tasks. Preserve this mapping because execution uses it to close stages. Mark
 risky changes test-first or characterization-first as appropriate.
 
-Check requirement coverage, compatibility, unresolved decisions and integration
-risks. Use independent critique when required by the task or justified by risk,
-following `AGENTS.md`; do not require a critic for every plan.
+Check requirement coverage, compatibility, unresolved decisions, integration
+risks, and what nobody has named yet. A plan with material risk gets a critic
+review (review skill) before approval.
 
 Save phase plans under `docs/workstreams/<name>/plans/`, standalone plans under
 `docs/plans/`, or the supplied path. Put `plan: <path>` in Beads notes. An epic's
