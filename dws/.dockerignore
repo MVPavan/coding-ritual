@@ -1,0 +1,8 @@
+.runtime/
+.state/
+.venv/
+scratchpad/
+__pycache__/
+**/__pycache__/
+tests/
+docs/

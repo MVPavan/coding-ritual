@@ -1,15 +1,28 @@
 [project]
 name = "dws"
-version = "0.0.1"
-description = "DWS scaffold: package boundary and tooling only, no product capability yet"
+version = "0.1.0"
+description = "Reusable local web evidence acquisition and retrieval service"
 readme = "README.md"
 requires-python = ">=3.13"
-# Runtime code is standard library only. Dependencies are added by the stage
-# that actually needs them, not in advance.
-dependencies = []
+dependencies = [
+    "ddgs>=9.16.0",
+    "fastapi>=0.142.2",
+    "httpcore>=1.0.9",
+    "httpx>=0.28.1",
+    "markdown-it-py>=4.2.0",
+    "markdownify>=1.2.3",
+    "pydantic>=2.13.5",
+    "pypdf>=6.19.0",
+    "uvicorn>=0.54.0",
+]
 
 [project.scripts]
 dws = "dws.cli:main"
+
+[project.optional-dependencies]
+mcp = [
+    "fastmcp>=4.0.10",
+]
 
 [dependency-groups]
 dev = [
@@ -19,14 +32,23 @@ dev = [
 ]
 
 [build-system]
-requires = ["hatchling>=1.27"]
+requires = ["hatchling==1.27.0"]
 build-backend = "hatchling.build"
+
+[tool.uv]
+build-constraint-dependencies = [
+    "hatchling==1.27.0",
+    "packaging==26.3",
+    "pathspec==1.1.1",
+    "pluggy==1.6.0",
+    "trove-classifiers==2026.9.21.13",
+]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/dws"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["tests/integration"]
 addopts = ["--strict-markers"]
 markers = [
     "qmd: real QMD lexical qualification requiring qmd and bwrap",

@@ -6,9 +6,11 @@ import hashlib
 from pathlib import Path
 
 BROKER = Path("/app/egress_broker.py")
+PROXY = Path("/app/egress_proxy.py")
 MANAGER = Path("/usr/local/lib/python3.12/site-packages/crawl4ai/browser_manager.py")
 EXPECTED = {
     BROKER: "9884e0a4d972607e1cd20aa70bf5d8d86767fe3d61a53ebc6bd3776880c822cf",
+    PROXY: "2a3ddbef47289dcf4d093cb8f87cf142a6da81e9496b81e545d5e4346727d987",
     MANAGER: "76724e47ccace4cee8c5b654f3c132744d30d9a98706984d77517be06a317c3d",
 }
 
@@ -41,8 +43,23 @@ if os.environ.get("CRAWL4AI_ALLOW_INTERNAL_URLS", "false").lower() != "false":
 if os.environ.get("CRAWL4AI_ALLOW_INSECURE_TLS", "false").lower() != "false":
     raise RuntimeError("DWS provider forbids insecure TLS")""",
     )
-    # Preserve the single upstream resolver/pinning policy. Replace only its
-    # browser-configuration enforcement tail (verified by base hash above).
+    broker = replace_once(
+        broker,
+        "    return any(not form.is_global for form in _embedded_v4_forms(ip))",
+        """    forms = _embedded_v4_forms(ip)
+    # Explicitly recognized aliases carry a separately checked IPv4 form.
+    # Their reserved IPv6 envelope is not itself a reserved destination.
+    return any(
+        not form.is_global
+        or form.is_multicast
+        or form.is_unspecified
+        or getattr(form, "is_site_local", False)
+        or (form.is_reserved and not (index == 0 and len(forms) > 1))
+        for index, form in enumerate(forms)
+    )""",
+    )
+    # Preserve resolver/pinning ownership while tightening its classifier and
+    # browser-configuration enforcement (base hashes verified above).
     marker = "# Chromium flags that would re-route or weaken egress; scrubbed server-side."
     if broker.count(marker) != 1:
         raise RuntimeError("missing enforcement tail")
@@ -79,6 +96,21 @@ def enforce_egress(browser_config) -> None:
         if not any(str(arg).startswith(prefix) for prefix in _DANGEROUS_BROWSER_ARGS)
     ] + list(_REQUIRED_BROWSER_ARGS)
 '''
+    )
+    proxy = sources[PROXY]
+    proxy = replace_once(
+        proxy,
+        "        port = sp.port or 80\n        try:\n"
+        '            pin = resolve_and_pin(f"http://{sp.hostname}:{port}")',
+        "        port = sp.port or 80\n"
+        '        authority = f"[{sp.hostname}]" if ":" in sp.hostname else sp.hostname\n'
+        "        try:\n"
+        '            pin = resolve_and_pin(f"http://{authority}:{port}")',
+    )
+    proxy = replace_once(
+        proxy,
+        '        out += b"Host: " + sp.hostname.encode("latin-1")',
+        '        out += b"Host: " + authority.encode("latin-1")',
     )
     manager = sources[MANAGER]
     manager = replace_once(
@@ -125,7 +157,7 @@ def enforce_egress(browser_config) -> None:
         if manager.count(line) != 2:
             raise RuntimeError("TLS flag context drift")
         manager = manager.replace(line, "")
-    for path, text in ((BROKER, broker), (MANAGER, manager)):
+    for path, text in ((BROKER, broker), (PROXY, proxy), (MANAGER, manager)):
         compile(text, str(path), "exec")
         path.write_text(text)
         print(f"{path}: {hashlib.sha256(text.encode()).hexdigest()}")

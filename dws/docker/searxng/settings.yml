@@ -1,7 +1,13 @@
-# Qualification candidate for private DWS discovery; requires SEARXNG_SECRET.
+# Private DWS discovery; requires a deployment-specific SEARXNG_SECRET.
 use_default_settings:
   engines:
-    keep_only: [duckduckgo, wikipedia]
+    keep_only: [duckduckgo, wikipedia, brave, google]
+engines:
+  - name: google
+    disabled: false
+# Optional owner choice: add bing to keep_only and an engines entry with
+# name: bing, disabled: false. It is excluded by default after observed
+# unrelated results for a technical documentation query.
 # This mapping replaces upstream plugins. Retain pinned defaults except
 # tracker_url_remover: even active:false initializes its mutable rule downloads.
 plugins:

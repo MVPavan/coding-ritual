@@ -1,5 +1,12 @@
 # Application QMD lexical dependency
 
+**Historical qualification only.** The current DWS retrieval backend is SQLite
+FTS5, and its generic image prepares locked Python dependencies at startup.
+The former `application_build.sh` command is retired and exits without building
+an image. Use `scripts/setup.sh` from the standalone DWS directory for the
+current deployment. The retained `qualification.Dockerfile` and manifests below
+describe the earlier QMD experiment; they are not current build instructions.
+
 `package.json` and `package-lock.json` are byte-for-byte copies of the accepted
 cr-0km.11 runtime's manifests. Do not resolve a new transitive tree for this image.
 The application Dockerfile uses `npm ci --ignore-scripts --no-audit --no-fund`
@@ -18,8 +25,6 @@ for MCP. Do not use `npm ci` inside the final image or claim full QMD support.
 Other locked dependencies, including lazy model-related code/native libraries,
 remain installed. No models are supplied, downloaded, or exercised.
 
-Build from the repository root with `bash dws/docker/application_build.sh`.
-The helper streams an explicit source allowlist; it never copies a host runtime,
-node_modules, virtual environment, credentials or repository history.
-See [application qualification](../../../docs/verification/dws/application-image-qualification.md)
-for exact digests, commands, limitations and observed results.
+Earlier qualification provenance is in the surrounding repository's historical
+`docs/verification/dws/application-image-qualification.md`. That record is
+read-only context and is not required to install or operate the current product.

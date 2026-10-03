@@ -1,6 +1,6 @@
 """Opt-in protective-overlay qualification against real isolated browser transports.
 
-Run from repository root with --output under scratchpad/dws/browser-containment/.
+Run from the standalone product with --output under its .runtime/ directory.
 No host ports, extra capabilities, external traffic, or shared runtime state.
 A partial/failed fixture is not a passing qualification. Raw baseline is preserved.
 """
@@ -10,7 +10,9 @@ from __future__ import annotations
 import argparse
 import copy
 import hashlib
+import ipaddress
 import json
+import os
 import subprocess
 import time
 import uuid
@@ -25,6 +27,8 @@ BASE = (
 PUBLIC4 = "11.203.0.3"
 PUBLIC6 = "2001:4860:abcd:71::3"
 QUALIFICATION = Path(__file__).resolve().parent
+PRODUCT = QUALIFICATION.parents[1]
+OVERLAY = PRODUCT / "docker/crawl4ai-egress"
 
 
 def extract_state(html: str) -> dict[str, Any]:
@@ -88,6 +92,31 @@ def case_failures(case: dict[str, Any]) -> list[str]:
         for resource in ("fetch", "beacon", "img", "script", "iframe", "ws"):
             if "/positive/" + resource not in paths:
                 failures.append("resource-" + resource)
+        initial = urlsplit(case["url"])
+        if ":" in (initial.hostname or ""):
+            # IPv6 authorities must remain bracketed in the actual HTTP Host.
+            # Browsers may spell mapped addresses as hex rather than dotted IPv4.
+            def matches_literal_host(event: dict[str, Any]) -> bool:
+                host = event.get("host", "")
+                if not isinstance(host, str) or not host.startswith("["):
+                    return False
+                try:
+                    actual = urlsplit("//" + host)
+                    return (
+                        ipaddress.ip_address(actual.hostname or "")
+                        == ipaddress.ip_address(initial.hostname or "")
+                        and actual.port == initial.port
+                    )
+                except ValueError:
+                    return False
+
+            if not any(
+                event["kind"] == "http"
+                and urlsplit(event.get("path", "")).path == "/page"
+                and matches_literal_host(event)
+                for event in events
+            ):
+                failures.append("literal-host-header")
         if not any(
             event["kind"] == "turn_data"
             and event["bytes"] >= 20
@@ -201,11 +230,38 @@ def assertion_sensitivity(cases: list[dict[str, Any]]) -> list[dict[str, str]]:
     if "tls-http-leak" not in case_failures(altered):
         raise RuntimeError("TLS HTTP leak accepted")
     checks.append({"mutation": "insert TLS HTTP leak", "rejected_by": "tls-http-leak"})
+    literal = next(case for case in cases if case["name"] == "positive-global6-http")
+    if case_failures(literal):
+        raise RuntimeError("cannot calibrate literal Host assertion against a failing case")
+    altered = copy.deepcopy(literal)
+    for events in altered["events"].values():
+        for event in events:
+            if event["kind"] == "http" and urlsplit(event.get("path", "")).path == "/page":
+                event["host"] = event.get("host", "").replace("[", "").replace("]", "")
+    if "literal-host-header" not in case_failures(altered):
+        raise RuntimeError("missing IPv6 Host brackets accepted")
+    checks.append(
+        {"mutation": "remove IPv6 Host brackets", "rejected_by": "literal-host-header"}
+    )
     return checks
 
 
 def run(output: Path) -> None:
+    output = output.resolve()
+    runtime = (PRODUCT / ".runtime").resolve()
+    if output == runtime or not output.is_relative_to(runtime):
+        raise ValueError("Qualification output must be inside the product .runtime/")
     output.mkdir(parents=True, exist_ok=False)
+    command_env = os.environ.copy()
+    for key, directory in {
+        "TMPDIR": "tmp",
+        "XDG_CACHE_HOME": "cache",
+        "XDG_STATE_HOME": "state",
+    }.items():
+        path = output / directory
+        path.mkdir()
+        command_env[key] = str(path)
+    command_env["PYTHONDONTWRITEBYTECODE"] = "1"
     prefix = "dws-browser-containment-" + uuid.uuid4().hex[:10]
     containers: list[str] = []
     networks: list[str] = []
@@ -214,7 +270,9 @@ def run(output: Path) -> None:
 
     def command(argv: list[str], check: bool = True, timeout: int = 90) -> str:
         start = time.monotonic()
-        cp = subprocess.run(argv, capture_output=True, text=True, timeout=timeout)
+        cp = subprocess.run(
+            argv, capture_output=True, text=True, timeout=timeout, env=command_env
+        )
         with (output / "commands.jsonl").open("a") as stream:
             stream.write(
                 json.dumps(
@@ -278,7 +336,8 @@ except urllib.error.HTTPError as e:
         command(args)
     extensions = fixture_files / "server.ext"
     extensions.write_text(
-        "subjectAltName=DNS:public.dws.test,DNS:public6.dws.test\n"
+        "subjectAltName=DNS:public.dws.test,DNS:public6.dws.test,"
+        f"IP:{PUBLIC4},IP:{PUBLIC6},IP:::ffff:{PUBLIC4}\n"
         "basicConstraints=critical,CA:FALSE\nextendedKeyUsage=serverAuth\n"
     )
     command(
@@ -322,6 +381,7 @@ except urllib.error.HTTPError as e:
     for name in ("browser_containment_fixture.py", "browser_fixture_trust.py"):
         common += ["--mount", f"type=bind,src={QUALIFICATION / name},dst=/{name},readonly"]
     try:
+        built = True  # Track the owned tag even if the build command times out.
         docker(
             "build",
             "--network",
@@ -329,10 +389,9 @@ except urllib.error.HTTPError as e:
             "--pull=false",
             "-t",
             prefix,
-            "dws/docker/crawl4ai-egress",
+            str(OVERLAY),
             timeout=120,
         )
-        built = True
         info = json.loads(docker("image", "inspect", prefix))[0]
         image = info["Id"]
         result["image_metadata"] = info
@@ -356,11 +415,13 @@ except urllib.error.HTTPError as e:
         }
         result["guards"] = {}
         for name, args in guards.items():
+            guard = prefix + "-guard"
+            containers.append(guard)
             docker(
                 "run",
                 "--rm",
                 "--name",
-                prefix + "-guard",
+                guard,
                 "--network",
                 "none",
                 "--cap-drop",
@@ -377,6 +438,7 @@ except urllib.error.HTTPError as e:
                 *args,
                 check=False,
             )
+            containers.remove(guard)  # --rm completed; timeouts remain tracked.
             receipt = json.loads((output / "commands.jsonl").read_text().splitlines()[-1])
             result["guards"][name] = {"rc": receipt["rc"], "stderr": receipt["stderr"]}
             if receipt["rc"] != 1 or "RuntimeError: DWS" not in receipt["stderr"]:
@@ -394,6 +456,7 @@ except urllib.error.HTTPError as e:
         ]
         for kind, args in definitions:
             network = prefix + "-" + kind
+            networks.append(network)
             docker(
                 "network",
                 "create",
@@ -403,7 +466,6 @@ except urllib.error.HTTPError as e:
                 *args,
                 network,
             )
-            networks.append(network)
         fixture, browser = prefix + "-fixture", prefix + "-browser"
         connections = [
             (networks[1], ["--ip6", "fd71:d05::3"]),
@@ -413,6 +475,7 @@ except urllib.error.HTTPError as e:
             (networks[5], ["--ip6", "fe80:0:0:71::3"]),
         ]
         # Start a waiting fixture container, assign addresses, then start observers.
+        containers.append(fixture)
         docker(
             "run",
             "-d",
@@ -430,7 +493,6 @@ except urllib.error.HTTPError as e:
             image,
             "900",
         )
-        containers.append(fixture)
         for network, args in connections:
             docker("network", "connect", *args, network, fixture)
         fixture_info = json.loads(docker("inspect", fixture))[0]
@@ -446,6 +508,7 @@ except urllib.error.HTTPError as e:
         }
         (fixture_files / "dns.json").write_text(json.dumps(dns_config))
         docker("exec", "-d", fixture, "python", "/browser_containment_fixture.py")
+        containers.append(browser)
         docker(
             "run",
             "-d",
@@ -468,7 +531,6 @@ except urllib.error.HTTPError as e:
             "-c",
             "python /browser_fixture_trust.py && exec bash entrypoint.sh",
         )
-        containers.append(browser)
         for network in networks[1:]:
             docker("network", "connect", network, browser)
         docker("exec", "-d", browser, "python", "/browser_containment_fixture.py")
@@ -482,12 +544,29 @@ except urllib.error.HTTPError as e:
             time.sleep(1)
         else:
             raise RuntimeError("provider startup failed within bounded wait")
+        identity_code = """import hashlib,importlib.metadata,importlib.util,json,pathlib
+spec=importlib.util.find_spec('crawl4ai')
+if spec is None or spec.origin is None:
+ raise RuntimeError('installed Crawl4AI package unavailable')
+manager=pathlib.Path(spec.origin).parent/'browser_manager.py'
+broker=pathlib.Path('/app/egress_broker.py')
+proxy=pathlib.Path('/app/egress_proxy.py')
+print(json.dumps({'broker_sha256':hashlib.sha256(broker.read_bytes()).hexdigest(),
+ 'proxy_sha256':hashlib.sha256(proxy.read_bytes()).hexdigest(),
+ 'browser_manager_sha256':hashlib.sha256(manager.read_bytes()).hexdigest(),
+ 'crawl4ai_version':importlib.metadata.version('crawl4ai'),
+ 'playwright_version':importlib.metadata.version('playwright')}))
+"""
+        result["runtime_identity"] = json.loads(
+            docker("exec", browser, "python", "-c", identity_code)
+        )
         result["startup_processes"] = docker("top", browser, "-eo", "pid,args")
         # Explicit test-only direct-browser positive control. It shares only
         # the synthetic public network, uses normal TLS, and never fetches a
         # forbidden target. It bypasses Crawl4AI/proxy and omits disable-quic;
         # the production overlay and candidate launch path are unchanged.
         control = prefix + "-quic-control"
+        containers.append(control)
         docker(
             "run",
             "-d",
@@ -507,7 +586,6 @@ except urllib.error.HTTPError as e:
             image,
             "120",
         )
-        containers.append(control)
         docker("exec", control, "python", "/browser_fixture_trust.py")
         before_control = len(observations(fixture))
         control_code = """import asyncio,json,pathlib
@@ -638,6 +716,11 @@ print(json.dumps(out))
             "mapped": f"[::ffff:{private4}]",
             "nat64": "[64:ff9b::a00:3]",
             "six_to_four": "[2002:7f00:1::3]",
+            "site_local6": "[fec0::1]",
+            "reserved6": "[4000::1]",
+            "translated6": "[::ffff:0:127.0.0.1]",
+            "multicast6": "[ff0e::1]",
+            "multicast4": "224.0.0.1",
         }
 
         def crawl_case(
@@ -708,6 +791,17 @@ print(json.dumps(out))
                     base + "/redirect?to=" + quote(page, safe=""),
                     True,
                 )
+        # Both IPv6 literals and recognized mapped-public aliases must work for
+        # absolute HTTP proxy requests and HTTPS CONNECT. Resources retain the
+        # normal public hostname and certificate verification remains enabled.
+        for name, literal in (("mapped-public", "::ffff:" + PUBLIC4), ("global6", PUBLIC6)):
+            for scheme, port in (("http", 8080), ("https", 8443)):
+                crawl_case(
+                    f"positive-{name}-{scheme}",
+                    f"{scheme}://[{literal}]:{port}/page?to="
+                    + quote(f"{scheme}://public.dws.test:{port}/positive", safe=""),
+                    True,
+                )
         crawl_case("tls-untrusted", "https://public.dws.test:8444/page")
         crawl_case("tls-wrong-host", "https://wrong.dws.test:8443/page")
         base = "http://public.dws.test:8080"
@@ -765,6 +859,9 @@ print(json.dumps(out))
         for case in result["cases"]:
             case["assertion_failures"] = case_failures(case)
         failed = [c["name"] for c in result["cases"] if c["assertion_failures"]]
+        result["case_count"] = len(result["cases"])
+        if result["case_count"] != 86:
+            failed.append("matrix-case-count")
         result["assertion_sensitivity"] = assertion_sensitivity(result["cases"])
         # Include traffic between case windows, after listener calibration.
         all_live = [
@@ -843,21 +940,42 @@ print(json.dumps(out))
         result["verdict"] = "INCOMPLETE"
         raise
     finally:
+        cleanup_errors: list[dict[str, str]] = []
+
+        def cleanup(kind: str, name: str, *args: str) -> None:
+            try:
+                result["cleanup"].append(
+                    {"kind": kind, "name": name, "output": docker(*args), "removed": True}
+                )
+            except (OSError, subprocess.TimeoutExpired, RuntimeError) as error:
+                cleanup_errors.append(
+                    {"kind": kind, "name": name, "error_type": type(error).__name__}
+                )
+
         for name in reversed(containers):
-            docker("logs", "--tail", "150", name, check=False)
-            result["cleanup"].append(docker("rm", "-f", name, check=False))
+            try:
+                docker("logs", "--tail", "150", name, check=False)
+            except (OSError, subprocess.TimeoutExpired) as error:
+                cleanup_errors.append(
+                    {"kind": "logs", "name": name, "error_type": type(error).__name__}
+                )
+            cleanup("container", name, "rm", "-f", name)
         for name in reversed(networks):
-            result["cleanup"].append(docker("network", "rm", name, check=False))
+            cleanup("network", name, "network", "rm", name)
         if built:
-            result["cleanup"].append(docker("image", "rm", prefix, check=False))
+            cleanup("image", prefix, "image", "rm", prefix)
+        result["cleanup_errors"] = cleanup_errors
+        if cleanup_errors:
+            result.setdefault("failed_cases", []).append("resource-cleanup")
+            result["verdict"] = "INCOMPLETE"
         result["source_sha256"] = {
-            str(p): hashlib.sha256(p.read_bytes()).hexdigest()
+            str(p.relative_to(PRODUCT)): hashlib.sha256(p.read_bytes()).hexdigest()
             for p in [
-                Path(__file__),
+                Path(__file__).resolve(),
                 QUALIFICATION / "browser_containment_fixture.py",
                 QUALIFICATION / "browser_fixture_trust.py",
-                Path("dws/docker/crawl4ai-egress/patch.py"),
-                Path("dws/docker/crawl4ai-egress/Dockerfile"),
+                OVERLAY / "patch.py",
+                OVERLAY / "Dockerfile",
             ]
         }
         (output / "results.json").write_text(json.dumps(result, indent=2) + "\n")

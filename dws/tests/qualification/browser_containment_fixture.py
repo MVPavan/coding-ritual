@@ -155,6 +155,7 @@ class Handler(BaseHTTPRequestHandler):
             record(
                 "http",
                 path=self.path,
+                host=self.headers.get("Host", ""),
                 destination=address(self.connection.getsockname()[0]),
                 port=self.connection.getsockname()[1],
             )

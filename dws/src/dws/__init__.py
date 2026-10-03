@@ -1,8 +1,4 @@
-"""DWS — an engine-only distribution that currently contains no product capability.
-
-This package exists to fix the ownership boundary and the tooling around it.
-Everything else in the DWS design is unimplemented.
-"""
+"""DWS: reusable local web evidence acquisition and retrieval."""
 
 from __future__ import annotations
 

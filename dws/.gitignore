@@ -1,0 +1,10 @@
+.runtime/
+.venv/
+__pycache__/
+scratchpad/
+.state/
+.cache/
+.env
+*.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm

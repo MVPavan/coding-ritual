@@ -1,23 +1,198 @@
-# P1 qualification only; invoke with a unique -p dws-image-browser-<run>.
-# This deliberately contains no invented API or worker startup commands.
-# The stock browser image failed UDP egress containment; the protective overlay
-# is a separate candidate pending independent review.
+# Run scripts/setup.sh init once, then use --env-file .runtime/owner.env.
+name: dws-product
+
+x-dws-environment: &dws-environment
+  DWS_DATA_DIR: /app/.state
+  DWS_TOKEN: ${DWS_TOKEN:?Run scripts/setup.sh init}
+  DWS_SEARXNG_URL: http://searxng:8080
+  DWS_CRAWL4AI_URL: http://crawl4ai:11235
+  DWS_CRAWL4AI_TOKEN: ${DWS_CRAWL4AI_TOKEN:?Run scripts/setup.sh init}
+  DWS_MCP_ENABLED: ${DWS_MCP_ENABLED:-false}
+  # Optional owner settings: unresolved keys are omitted from container env,
+  # leaving defaults in Settings rather than duplicating them here.
+  DWS_MAX_BYTES:
+  DWS_MAX_TEXT_CHARS:
+  DWS_MAX_OUTPUT_CHARS:
+  DWS_MAX_RESPONSE_BYTES:
+  DWS_REQUEST_TIMEOUT:
+  DWS_MAX_PAGES:
+  DWS_MAX_DEPTH:
+  DWS_MAX_CRAWL_SECONDS:
+  DWS_MAX_JOBS:
+  DWS_ACQUISITION_SLOTS:
+  DWS_MAX_STORAGE_BYTES:
+  DWS_MIN_FREE_BYTES:
+  DWS_RETENTION_SECONDS:
+  DWS_LEASE_SECONDS:
+  DWS_DDGS_ENABLED:
+  XDG_CACHE_HOME: /app/.runtime/cache
+  XDG_STATE_HOME: /app/.runtime/state
+  XDG_CONFIG_HOME: /app/.runtime/config
+  TMPDIR: /app/.runtime/tmp
+  UV_CACHE_DIR: /app/.runtime/uv-cache
+  UV_PROJECT_ENVIRONMENT: /app/.runtime/container-env
+  UV_LINK_MODE: copy
+  UV_PYTHON_DOWNLOADS: never
+  PYTHONDONTWRITEBYTECODE: "1"
+  PYTHONUNBUFFERED: "1"
+
+x-dws-service: &dws-service
+  image: dws-runtime:local
+  build:
+    context: .
+    target: application
+  platform: linux/amd64
+  user: ${DWS_UID:-1000}:${DWS_GID:-1000}
+  working_dir: /app
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  environment: *dws-environment
+  volumes:
+    - type: bind
+      source: .
+      target: /app
+      read_only: true
+    - type: bind
+      source: ./.runtime
+      target: /app/.runtime
+    - type: bind
+      source: ./.state
+      target: /app/.state
+  networks: [dws]
+  logging:
+    driver: local
+    options:
+      max-size: 10m
+      max-file: "3"
+
 services:
-  image-volume-probe:
-    profiles: [image-browser-qualification]
-    build:
-      context: docker
-      dockerfile: ../Dockerfile
-      target: image-volume-qualification
-    user: "1000:1000"
-    network_mode: none
+  prepare:
+    <<: *dws-service
+    entrypoint: [/bin/sh, /app/docker/prepare_environment.sh]
+    restart: "no"
+    pids_limit: 128
+    mem_limit: 1g
+    cpus: 2
+
+  dws-api:
+    <<: *dws-service
+    entrypoint: [/bin/sh, /app/docker/run_application.sh]
+    command: [api, --host, 0.0.0.0, --port, "8765"]
+    restart: unless-stopped
+    depends_on:
+      prepare:
+        condition: service_completed_successfully
+      searxng:
+        condition: service_started
+      crawl4ai:
+        condition: service_started
+    ports: [127.0.0.1:8765:8765]
+    pids_limit: 128
+    mem_limit: 768m
+    cpus: 2
+    healthcheck:
+      test:
+        - CMD
+        - /app/.runtime/container-env/bin/python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8765/health', timeout=3).close()"
+      interval: 15s
+      timeout: 5s
+      start_period: 10s
+      retries: 4
+
+  dws-worker:
+    <<: *dws-service
+    entrypoint: [/bin/sh, /app/docker/run_application.sh]
+    command: [worker]
+    restart: unless-stopped
+    depends_on:
+      prepare:
+        condition: service_completed_successfully
+      searxng:
+        condition: service_started
+      crawl4ai:
+        condition: service_started
+    stop_grace_period: 60s
+    pids_limit: 128
+    mem_limit: 1g
+    cpus: 2
+
+  searxng:
+    image: ghcr.io/searxng/searxng@sha256:a93b665d10ce0675e8d2124187943111399ba69f384228c51b4cd21fdceda0bc
+    platform: linux/amd64
+    user: "977:977"
     read_only: true
     cap_drop: [ALL]
     security_opt: [no-new-privileges:true]
-    pids_limit: 64
-    mem_limit: 256m
-    cpus: 1
+    restart: unless-stopped
+    environment:
+      SEARXNG_SECRET: ${SEARXNG_SECRET:?Run scripts/setup.sh init}
+      GRANIAN_HOST: 0.0.0.0
+      GRANIAN_WORKERS: "1"
+      FORCE_OWNERSHIP: "false"
     volumes:
-      - image-browser-state:/state
-volumes:
-  image-browser-state:
+      - type: bind
+        source: ./docker/searxng
+        target: /etc/searxng
+        read_only: true
+      - type: bind
+        source: ./docker/searxng/healthcheck.py
+        target: /healthcheck.py
+        read_only: true
+    tmpfs:
+      - /var/cache/searxng:rw,noexec,nosuid,size=32m,uid=977,gid=977
+      - /tmp:rw,noexec,nosuid,size=32m,uid=977,gid=977
+    healthcheck:
+      test: [CMD, /usr/local/searxng/.venv/bin/python, /healthcheck.py]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+    pids_limit: 128
+    mem_limit: 512m
+    memswap_limit: 512m
+    cpus: 1
+    networks: [dws]
+
+  crawl4ai:
+    image: dws-crawl4ai:local
+    build:
+      context: ./docker/crawl4ai-egress
+    platform: linux/amd64
+    user: "999:999"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    restart: unless-stopped
+    environment:
+      CRAWL4AI_API_TOKEN: ${DWS_CRAWL4AI_TOKEN:?Run scripts/setup.sh init}
+      GUNICORN_BIND: 0.0.0.0:11235
+      CRAWL4AI_ALLOW_INTERNAL_URLS: "false"
+      CRAWL4AI_ALLOW_INSECURE_TLS: "false"
+      CRAWL4AI_HOOKS_ENABLED: "false"
+    tmpfs:
+      - /tmp:rw,nosuid,size=512m,uid=999,gid=999
+      - /var/lib/redis:rw,noexec,nosuid,size=64m,uid=999,gid=999
+      - /home/appuser/.crawl4ai:rw,noexec,nosuid,size=128m,uid=999,gid=999
+      - /home/appuser/.gunicorn:rw,noexec,nosuid,size=4m,uid=999,gid=999
+    shm_size: 256m
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import os,urllib.request; urllib.request.urlopen(urllib.request.Request('http://127.0.0.1:11235/health',headers={'Authorization':'Bearer '+os.environ['CRAWL4AI_API_TOKEN']}),timeout=5).close()"
+      interval: 30s
+      timeout: 10s
+      start_period: 40s
+      retries: 4
+    pids_limit: 256
+    mem_limit: 2g
+    memswap_limit: 2g
+    cpus: 2
+    networks: [dws]
+
+networks:
+  dws: {}
