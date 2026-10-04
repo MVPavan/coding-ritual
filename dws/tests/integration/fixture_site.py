@@ -5,6 +5,7 @@ from __future__ import annotations
 import gzip
 import json
 import threading
+import time
 from contextlib import AbstractContextManager, suppress
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -58,6 +59,14 @@ class FixtureSite(AbstractContextManager["FixtureSite"]):
         self.revision = "original"
         self.search_down = False
         self.search_partial_status: int | None = None
+        self.search_unresponsive: list[list[str]] = []
+        self.revalidation_version = 1
+        self.revalidation_redirect_changed = False
+        self.revalidation_304_gzip = False
+        self.qualification_started = threading.Event()
+        self.qualification_release = threading.Event()
+        self.qualification_active = 0
+        self.qualification_peak = 0
         self.requests: list[str] = []
         self.slow_started = threading.Event()
         self.release_slow = threading.Event()
@@ -237,6 +246,8 @@ class FixtureSite(AbstractContextManager["FixtureSite"]):
                                     "path": self.path,
                                     "range": self.headers.get("Range"),
                                     "a_im": self.headers.get("A-IM"),
+                                    "if_none_match": self.headers.get("If-None-Match"),
+                                    "if_modified_since": self.headers.get("If-Modified-Since"),
                                 }
                             )
                             + "\n"
@@ -261,7 +272,7 @@ class FixtureSite(AbstractContextManager["FixtureSite"]):
                                     "engines": ["fixture"],
                                 }
                             ],
-                            "unresponsive_engines": [],
+                            "unresponsive_engines": site.search_unresponsive,
                         }
                     ).encode()
                     if site.deep_provider_json:
@@ -275,6 +286,16 @@ class FixtureSite(AbstractContextManager["FixtureSite"]):
                             "Delta-Base": '"search-base"',
                         }
                     content_type = "application/json"
+                elif path == "/revalidate/redirect":
+                    status, body = 302, b""
+                    target = (
+                        "/revalidate/alternate"
+                        if site.revalidation_redirect_changed
+                        else "/revalidate/with-validators"
+                    )
+                    response_headers = {"Location": target}
+                elif path in {"/revalidate/unsolicited", "/revalidate/alternate"}:
+                    status, body = 304, b""
                 elif path == "/article":
                     paragraphs = "".join(
                         f"<p>Architecture section {i}: SharedMarker {site.revision} evidence "
@@ -291,6 +312,49 @@ class FixtureSite(AbstractContextManager["FixtureSite"]):
                         "<tr><td>Latency</td><td>17 milliseconds</td></tr>"
                         "</table></body></html>"
                     ).encode()
+                elif path.startswith("/qualification/"):
+                    with site._lock:
+                        site.qualification_active += 1
+                        site.qualification_peak = max(
+                            site.qualification_peak, site.qualification_active
+                        )
+                    try:
+                        if path.startswith("/qualification/crawl-"):
+                            site.qualification_started.set()
+                            site.qualification_release.wait(timeout=20)
+                        else:
+                            time.sleep(0.35)
+                        body = b"<h1>QualificationMarker retained fixture evidence.</h1>"
+                    finally:
+                        with site._lock:
+                            site.qualification_active -= 1
+                elif path in {
+                    "/revalidate/with-validators",
+                    "/revalidate/no-validators",
+                    "/revalidate/wildcard",
+                }:
+                    body = (
+                        f"<h1>RevalidationMarker version {site.revalidation_version}</h1>"
+                    ).encode()
+                    if path.endswith("with-validators"):
+                        etag = f'"revision-{site.revalidation_version}"'
+                        modified = (
+                            "Mon, 01 Jan 2024 00:00:00 GMT"
+                            if site.revalidation_version == 1
+                            else "Tue, 02 Jan 2024 00:00:00 GMT"
+                        )
+                        response_headers = {"ETag": etag, "Last-Modified": modified}
+                        if self.headers.get("If-None-Match") == etag or (
+                            not self.headers.get("If-None-Match")
+                            and self.headers.get("If-Modified-Since") == modified
+                        ):
+                            status, body = 304, b""
+                            if site.revalidation_304_gzip:
+                                response_headers["Content-Encoding"] = "gzip"
+                    elif path.endswith("wildcard"):
+                        response_headers = {"ETag": "*"}
+                        if self.headers.get("If-None-Match") == "*":
+                            status, body = 304, b""
                 elif path in {
                     "/charset/header.html",
                     "/charset/bom.html",
@@ -620,6 +684,7 @@ class FixtureSite(AbstractContextManager["FixtureSite"]):
         self.release_budget.set()
         self.release_discovery.set()
         self.release_seed.set()
+        self.qualification_release.set()
         self.server.shutdown()
         self.server.server_close()
         self.thread.join(timeout=3)

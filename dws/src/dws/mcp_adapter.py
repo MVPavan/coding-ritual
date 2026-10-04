@@ -149,6 +149,7 @@ def create_mcp(engine: Engine) -> FastMCP:
         document_ids: list[str] | None = None,
         limit: int = 5,
         max_chars: int = 6000,
+        cursor: str | None = None,
     ) -> ToolResult:
         """Retrieve exact retained passages with scope enforced before ranking and limiting."""
         return await execute(
@@ -161,6 +162,7 @@ def create_mcp(engine: Engine) -> FastMCP:
                 "document_ids": document_ids or [],
                 "limit": limit,
                 "max_chars": max_chars,
+                "cursor": cursor,
             },
         )
 

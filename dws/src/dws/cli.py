@@ -78,6 +78,7 @@ def build_parser() -> argparse.ArgumentParser:
     retrieve.add_argument("--document", dest="document_ids", action="append", default=[])
     retrieve.add_argument("--limit", type=int, default=5)
     retrieve.add_argument("--max-chars", type=int, default=6000)
+    retrieve.add_argument("--cursor")
     read = command("read")
     read.add_argument("snapshot_id")
     read.add_argument("--start", dest="line_start", type=int, default=1)
@@ -119,9 +120,48 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+_POLICY_CODES = {
+    "policy_denied",
+    "scope_denied",
+    "local_access_only",
+    "authentication_required",
+    "challenge_page",
+    "invalid_url",
+    "api_redirect_denied",
+}
+_UNAVAILABLE_CODES = {
+    "busy",
+    "acquisition_busy",
+    "retrieval_busy",
+    "store_busy",
+    "queue_full",
+    "provider_unavailable",
+    "search_unavailable",
+    "render_unavailable",
+    "api_unavailable",
+    "source_unavailable",
+    "source_timeout",
+    "dns_failed",
+    "provider_timeout",
+    "request_timeout",
+    "artifact_unavailable",
+    "backup_unavailable",
+    "disk_pressure",
+    "storage_limit",
+}
+
+
+def _exit_code(code: object, status: int | None = None) -> int:
+    if isinstance(code, str) and code in _POLICY_CODES:
+        return 3
+    if (isinstance(code, str) and code in _UNAVAILABLE_CODES) or status in {429, 503, 507}:
+        return 4
+    return 1
+
+
 def _failure(code: str, message: str) -> int:
     print(json.dumps({"error": {"code": code, "message": message}}))
-    return 1
+    return _exit_code(code)
 
 
 class _NoRedirects(HTTPRedirectHandler):
@@ -188,7 +228,11 @@ def _call(args: argparse.Namespace) -> int:
                     "invalid_response", "The API returned an invalid response object."
                 )
             print(json.dumps(result, ensure_ascii=False))
-            return 1 if response.status >= 400 or "error" in result else 0
+            if response.status >= 400 or "error" in result:
+                failure = result.get("error")
+                code = failure.get("code") if isinstance(failure, dict) else None
+                return _exit_code(code, response.status)
+            return 0
     except InvalidURL:
         return _failure("invalid_api_url", "The API URL is malformed.")
     except (URLError, TimeoutError, OSError):

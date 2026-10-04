@@ -82,11 +82,52 @@ curl --fail-with-body http://127.0.0.1:8765/v1/retrieve \
 Copy the snapshot handle returned by `fetch` or `retrieve` into a `read`
 request. The handle identifies captured evidence, not the current live page.
 
+For static HTTP captures, `fetch` reuses a compatible snapshot within
+`max_age_seconds`. When it is stale and has an ETag or Last-Modified validator,
+DWS conditionally requests the source through the normal safe acquisition path.
+A 304 returns the same snapshot with `cached: true`, `revalidated: true`, and
+`observed_at`; it records a new observation and run membership without changing
+the original capture time, hashes, or artifact bytes. A 200 creates a new
+snapshot. `--refresh` always downloads again, and sources without validators
+download again when stale. Browser-rendered Crawl4AI captures are never
+conditionally revalidated. An unsolicited 304 or a 304 reached through a
+different redirect chain returns a typed error instead of reusing evidence.
+
 ```bash
 curl --fail-with-body http://127.0.0.1:8765/v1/read \
   -H "Authorization: Bearer $DWS_TOKEN" -H 'Content-Type: application/json' \
   -d '{"snapshot_id":"REPLACE_WITH_SNAPSHOT_ID","line_start":1,"line_end":30}'
 ```
+
+`retrieve` returns `next_cursor` when another page is available. Send that
+opaque value as `cursor` with the same query, workspace, run, crawl, document
+scope, limit, and character budget (CLI: `retrieve --cursor`). An index update
+or rebuild invalidates it (`stale_cursor`); malformed or changed-scope cursors
+return `invalid_cursor`. The cursor is base64url encoded JSON containing an index
+generation UUID, result offset, and SHA-256 digest of the request fields. The
+cursor is HMAC signed with a separate 0600 server-only key in the DWS state
+directory. The key is created atomically on first cursor use and is never
+derived from the API bearer token. Backups omit this key; restoring into a new
+state directory invalidates old cursors. Direct store use follows the same rule.
+Previously issued bearer-signed cursors are invalidated by this change.
+API authentication and workspace checks remain the access boundary.
+
+Search responses include `engine_path`: `provider` is `searxng` or `ddgs`,
+`backend` is `auto` for DDGS, `upstream_engines` lists engines reported by
+returned SearXNG results, and `failed_primary_engines` lists bounded names
+reported by SearXNG. DDGS does not reveal its chosen upstream engine. A DDGS
+fallback after SearXNG failure therefore carries
+`fallback_upstream_independence_unverified` in `warnings`.
+
+The CLI prints the same JSON as the API and uses these exit classes:
+
+| Exit | Class | Error codes / status |
+|---|---|---|
+| 0 | Success | No error |
+| 2 | Usage | Argument parser errors |
+| 3 | Policy denial | `policy_denied`, `scope_denied`, `local_access_only`, `authentication_required`, `challenge_page`, `invalid_url`, `api_redirect_denied` |
+| 4 | Unavailable or capacity | `busy`, `acquisition_busy`, `retrieval_busy`, `store_busy`, `queue_full`, `provider_unavailable`, `search_unavailable`, `render_unavailable`, `api_unavailable`, `source_unavailable`, `artifact_unavailable`, `backup_unavailable`, `dns_failed`, `source_timeout`, `provider_timeout`, `request_timeout`, `disk_pressure`, `storage_limit`; HTTP 429, 503, 507 |
+| 1 | Other failure | All remaining errors, including not found, malformed input, and invalid or stale cursor |
 
 For browser-rendered content, set `render` to `always`. With `auto`, acquisition
 decides whether the static result needs browser fallback and reports its route.

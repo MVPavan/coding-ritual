@@ -6,16 +6,20 @@ is disposable. No acquisition or provider call runs under a store lock.
 
 from __future__ import annotations
 
+import base64
+import binascii
 import bisect
 import contextlib
 import errno
 import fcntl
 import hashlib
+import hmac
 import json
 import os
 import re
 import shutil
 import sqlite3
+import stat
 import time
 import uuid
 from collections.abc import Callable, Iterator
@@ -27,7 +31,13 @@ from markdown_it import MarkdownIt
 
 from dws.config import Settings, prepare_owner_state
 from dws.errors import DWSError
-from dws.models import Capture, FetchRequest, ReadRequest, RetrieveRequest
+from dws.models import (
+    Capture,
+    FetchRequest,
+    ReadRequest,
+    RetrieveRequest,
+    RevalidationCandidate,
+)
 
 METADATA_HEADROOM = 262_144
 
@@ -42,6 +52,53 @@ def _digest(data: bytes) -> str:
 
 def _json(value: object) -> str:
     return json.dumps(value, ensure_ascii=False, separators=(",", ":"))
+
+
+def _cursor_digest(request: RetrieveRequest) -> str:
+    return _digest(
+        _json(
+            [
+                request.query,
+                request.workspace_id,
+                request.run_id,
+                request.crawl_id,
+                sorted(set(request.document_ids)),
+                request.limit,
+                request.max_chars,
+            ]
+        ).encode()
+    )
+
+
+def _decode_cursor(value: str, digest: str, key: bytes) -> tuple[str, int]:
+    try:
+        raw = base64.urlsafe_b64decode(value + "=" * (-len(value) % 4))
+        data = json.loads(raw)
+        if (
+            not isinstance(data, list)
+            or len(data) != 4
+            or not isinstance(data[0], str)
+            or re.fullmatch(r"[0-9a-f]{32}", data[0]) is None
+            or not isinstance(data[1], int)
+            or isinstance(data[1], bool)
+            or not 0 < data[1] <= 1_000_000
+            or data[2] != digest
+            or not hmac.compare_digest(
+                str(data[3]),
+                hmac.new(key, _json(data[:3]).encode(), hashlib.sha256).hexdigest(),
+            )
+            or base64.urlsafe_b64encode(raw).decode().rstrip("=") != value
+        ):
+            raise ValueError
+        return data[0], data[1]
+    except (ValueError, UnicodeError, TypeError, binascii.Error):
+        raise DWSError("invalid_cursor", "Retrieve cursor is invalid.", 400) from None
+
+
+def _encode_cursor(generation: str, offset: int, digest: str, key: bytes) -> str:
+    data = [generation, offset, digest]
+    data.append(hmac.new(key, _json(data).encode(), hashlib.sha256).hexdigest())
+    return base64.urlsafe_b64encode(_json(data).encode()).decode().rstrip("=")
 
 
 class Store:
@@ -105,6 +162,7 @@ class Store:
                 "INSERT OR IGNORE INTO workspaces VALUES ('default', 'Default', ?)",
                 (time.time(),),
             )
+            self.migrate_revalidation(conn)
         try:
             self._ensure_index()
         except (sqlite3.Error, DWSError) as exc:
@@ -127,6 +185,82 @@ class Store:
         if not resolved.is_relative_to(self.root) or resolved == self.root:
             raise DWSError("unsafe_path", "Path is outside the DWS state directory.", 400)
         return resolved
+
+    def _cursor_key(self) -> bytes:
+        """Persist a private key atomically; bearer credentials never sign cursors."""
+        path = self.root / "cursor-signing-key"
+        try:
+            handle = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK | os.O_CLOEXEC)
+        except FileNotFoundError:
+            temporary = self.root / "staging" / ("cursor-key-" + uuid.uuid4().hex)
+            try:
+                descriptor = os.open(
+                    temporary,
+                    os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW | os.O_CLOEXEC,
+                    0o600,
+                )
+                with os.fdopen(descriptor, "wb") as output:
+                    os.fchmod(output.fileno(), 0o600)
+                    secret = os.urandom(32)
+                    while secret == (self.settings.token or "").encode():
+                        secret = os.urandom(32)
+                    output.write(secret)
+                    output.flush()
+                    os.fsync(output.fileno())
+                try:
+                    os.link(temporary, path, follow_symlinks=False)
+                    directory = os.open(self.root, os.O_RDONLY | os.O_DIRECTORY)
+                    try:
+                        os.fsync(directory)
+                    finally:
+                        os.close(directory)
+                except FileExistsError:
+                    pass
+            except OSError:
+                raise DWSError(
+                    "cursor_key_unavailable", "Cursor signing key is unavailable.", 503
+                ) from None
+            finally:
+                temporary.unlink(missing_ok=True)
+            try:
+                handle = os.open(
+                    path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK | os.O_CLOEXEC
+                )
+            except OSError:
+                raise DWSError(
+                    "cursor_key_unavailable", "Cursor signing key is unavailable.", 503
+                ) from None
+        except OSError:
+            raise DWSError(
+                "cursor_key_unavailable", "Cursor signing key is unavailable.", 503
+            ) from None
+        try:
+            info = os.fstat(handle)
+            if (
+                not stat.S_ISREG(info.st_mode)
+                or info.st_uid != os.geteuid()
+                or stat.S_IMODE(info.st_mode) != 0o600
+                or info.st_size != 32
+            ):
+                raise DWSError("cursor_key_invalid", "Cursor signing key is invalid.", 500)
+            key = os.read(handle, 33)
+            if len(key) != 32:
+                raise DWSError("cursor_key_invalid", "Cursor signing key is invalid.", 500)
+            return key
+        finally:
+            os.close(handle)
+
+    @staticmethod
+    def migrate_revalidation(conn: sqlite3.Connection) -> None:
+        """Add nullable acquisition validators without rewriting old captures."""
+        columns = {row["name"] for row in conn.execute("PRAGMA table_info(snapshots)")}
+        for name, declaration in (
+            ("etag", "TEXT"),
+            ("last_modified", "TEXT"),
+            ("validated_at", "REAL"),
+        ):
+            if name not in columns:
+                conn.execute(f"ALTER TABLE snapshots ADD COLUMN {name} {declaration}")
 
     @contextlib.contextmanager
     def _lock(self, name: str, exclusive: bool = True, timeout: float = 10) -> Iterator[None]:
@@ -226,6 +360,11 @@ class Store:
                     line_start UNINDEXED, line_end UNINDEXED,
                     char_start UNINDEXED, char_end UNINDEXED, tokenize='unicode61'
                 )""")
+                conn.execute(
+                    "CREATE TABLE IF NOT EXISTS index_generation (value TEXT NOT NULL)"
+                )
+                if not conn.execute("SELECT 1 FROM index_generation").fetchone():
+                    conn.execute("INSERT INTO index_generation VALUES (?)", (uuid.uuid4().hex,))
                 conn.commit()
             finally:
                 conn.close()
@@ -509,6 +648,7 @@ class Store:
         run_id: str | None,
         crawl_id: str | None,
         kind: str,
+        observed_at: float | None = None,
     ) -> None:
         conn.execute(
             "INSERT OR IGNORE INTO snapshot_contexts VALUES (?, ?, ?, ?)",
@@ -516,7 +656,15 @@ class Store:
         )
         conn.execute(
             "INSERT INTO capture_events VALUES (?, ?, ?, ?, ?, ?, ?)",
-            (str(uuid.uuid4()), snapshot_id, workspace_id, run_id, crawl_id, time.time(), kind),
+            (
+                str(uuid.uuid4()),
+                snapshot_id,
+                workspace_id,
+                run_id,
+                crawl_id,
+                observed_at if observed_at is not None else time.time(),
+                kind,
+            ),
         )
 
     def save_capture(
@@ -572,6 +720,8 @@ class Store:
             "mapping_hash": mapping_hash,
             "normalizer": capture.normalizer,
             "provider": capture.provider,
+            "etag": capture.etag,
+            "last_modified": capture.last_modified,
             "content_type": capture.content_type,
             "warnings": capture.warnings,
             "links": capture.links,
@@ -611,8 +761,9 @@ class Store:
                     """INSERT INTO snapshots (
                     id,document_id,workspace_id,run_id,crawl_id,requested_url,final_url,captured_at,
                     raw_hash,text_hash,mapping_hash,content_type,title,normalizer,provider,
-                    redirects_json,warnings_json,links_json,artifact_dir,text_chars,line_count,total_bytes,expires_at
-                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                    redirects_json,warnings_json,links_json,artifact_dir,text_chars,line_count,
+                    total_bytes,expires_at,etag,last_modified
+                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                     (
                         snapshot_id,
                         document_id,
@@ -637,6 +788,8 @@ class Store:
                         len(mapping["lines"]),
                         size,
                         expires_at,
+                        capture.etag,
+                        capture.last_modified,
                     ),
                 )
                 self._context(conn, snapshot_id, workspace_id, run_id, crawl_id, "acquired")
@@ -800,9 +953,9 @@ class Store:
                 condition = " AND provider='httpx'"
             row = conn.execute(
                 """SELECT * FROM snapshots WHERE workspace_id=? AND requested_url=?
-                AND expired=0 AND captured_at>=?"""
+                AND expired=0 AND COALESCE(validated_at,captured_at)>=?"""
                 + condition
-                + " ORDER BY captured_at DESC LIMIT 1",
+                + " ORDER BY COALESCE(validated_at,captured_at) DESC LIMIT 1",
                 (request.workspace_id, request.url, time.time() - request.max_age_seconds),
             ).fetchone()
             if row is None:
@@ -817,8 +970,70 @@ class Store:
                 {
                     "excerpt": text[: min(2000, self.settings.max_output_chars)],
                     "cached": True,
-                    "age_seconds": max(0, int(time.time() - row["captured_at"])),
+                    "age_seconds": max(
+                        0, int(time.time() - (row["validated_at"] or row["captured_at"]))
+                    ),
                     "truncated": len(text) > min(2000, self.settings.max_output_chars),
+                }
+            )
+            return result
+
+    def revalidation_candidate(self, request: FetchRequest) -> RevalidationCandidate | None:
+        if request.refresh or request.max_age_seconds == 0 or request.render == "always":
+            return None
+        with self.maintenance(), self.connection() as conn:
+            self._validate_scope(conn, request.workspace_id, request.run_id)
+            condition = " AND provider='httpx'" if request.render == "never" else ""
+            row = conn.execute(
+                """SELECT * FROM snapshots WHERE workspace_id=? AND requested_url=?
+                AND expired=0 AND COALESCE(validated_at,captured_at)<?"""
+                + condition
+                + " ORDER BY COALESCE(validated_at,captured_at) DESC LIMIT 1",
+                (request.workspace_id, request.url, time.time() - request.max_age_seconds),
+            ).fetchone()
+            if (
+                row is None
+                or row["provider"] != "httpx"
+                or not (row["etag"] or row["last_modified"])
+            ):
+                return None
+            return RevalidationCandidate(
+                snapshot_id=row["id"],
+                final_url=row["final_url"],
+                redirects=json.loads(row["redirects_json"]),
+                etag=row["etag"],
+                last_modified=row["last_modified"],
+            )
+
+    def record_revalidation(
+        self, request: FetchRequest, candidate: RevalidationCandidate
+    ) -> dict[str, Any]:
+        with self.maintenance(), self.connection() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            self._validate_scope(conn, request.workspace_id, request.run_id)
+            row = self._row(conn, candidate.snapshot_id, request.workspace_id)
+            text, _ = self._load(row)
+            now = time.time()
+            self.admit_metadata(512)
+            conn.execute("UPDATE snapshots SET validated_at=? WHERE id=?", (now, row["id"]))
+            self._context(
+                conn,
+                row["id"],
+                request.workspace_id,
+                request.run_id,
+                None,
+                "revalidated",
+                now,
+            )
+            result = self._snapshot(row)
+            result.update(
+                {
+                    "excerpt": text[: min(2000, self.settings.max_output_chars)],
+                    "truncated": len(text) > min(2000, self.settings.max_output_chars),
+                    "cached": True,
+                    "revalidated": True,
+                    "observed_at": _stamp(now),
+                    "age_seconds": 0,
                 }
             )
             return result
@@ -944,6 +1159,9 @@ class Store:
                                     for part, ls, le, cs, ce in chunks
                                 ),
                             )
+                        index.execute(
+                            "UPDATE index_generation SET value=?", (uuid.uuid4().hex,)
+                        )
                         index.commit()
                         # Expiry can race indexing. The queued action comparison retains
                         # its newer delete event rather than resurrecting an expired row.
@@ -1021,6 +1239,13 @@ class Store:
         if not tokens:
             raise DWSError("invalid_query", "Query must include a searchable word.")
         match = " OR ".join('"' + token + '"' for token in tokens)
+        digest = _cursor_digest(request)
+        cursor_key = self._cursor_key() if request.cursor else None
+        cursor = (
+            _decode_cursor(request.cursor, digest, cursor_key)
+            if request.cursor and cursor_key
+            else None
+        )
         with self.maintenance(), self._reader_slot(), self.connection() as meta:
             self._validate_scope(meta, request.workspace_id, request.run_id)
             scope = "s.workspace_id=? AND s.expired=0"
@@ -1053,6 +1278,7 @@ class Store:
                 "results": [],
                 "warnings": [],
                 "truncated": False,
+                "next_cursor": None,
             }
             if not self.index_path.exists():
                 result.update(
@@ -1073,6 +1299,11 @@ class Store:
                     "ATTACH DATABASE ? AS meta",
                     (self.metadata_path.as_uri() + "?mode=ro",),
                 )
+                index.execute("BEGIN")
+                generation = index.execute("SELECT value FROM index_generation").fetchone()[0]
+                if cursor and cursor[0] != generation:
+                    raise DWSError("stale_cursor", "Retrieve index changed; start again.", 409)
+                offset = cursor[1] if cursor else 0
                 pending = index.execute(
                     "SELECT count(*) FROM meta.snapshots s WHERE "
                     + scope
@@ -1084,11 +1315,11 @@ class Store:
                     JOIN meta.snapshots s ON s.id=passages.snapshot_id
                     WHERE passages MATCH ? AND """
                     + scope
-                    + " ORDER BY rank LIMIT ?",
-                    [match, *args, request.limit],
+                    + " ORDER BY rank, passages.rowid LIMIT ? OFFSET ?",
+                    [match, *args, request.limit + 1, offset],
                 ).fetchall()
                 remaining = min(request.max_chars, self.settings.max_output_chars)
-                for hit in hits:
+                for hit in hits[: request.limit]:
                     if remaining <= 0:
                         result["truncated"] = True
                         break
@@ -1122,6 +1353,11 @@ class Store:
                     )
                     remaining -= len(exact)
                     result["truncated"] |= ce < wanted
+                consumed = len(result["results"])
+                if consumed and len(hits) > consumed:
+                    result["next_cursor"] = _encode_cursor(
+                        generation, offset + consumed, digest, cursor_key or self._cursor_key()
+                    )
                 result.update(
                     {
                         "index_state": "pending" if pending else "ready",
@@ -1161,6 +1397,8 @@ class Store:
                 text,snapshot_id UNINDEXED,
                 document_id UNINDEXED,line_start UNINDEXED,line_end UNINDEXED,
                 char_start UNINDEXED,char_end UNINDEXED,tokenize='unicode61')""")
+            index.execute("CREATE TABLE index_generation (value TEXT NOT NULL)")
+            index.execute("INSERT INTO index_generation VALUES (?)", (uuid.uuid4().hex,))
             index.commit()
         finally:
             index.close()
@@ -1654,6 +1892,7 @@ class Store:
                 source.backup(candidate)
                 candidate.execute("BEGIN IMMEDIATE")
                 Jobs.migrate_discovery(candidate)
+                self.migrate_revalidation(candidate)
                 candidate.commit()
                 rows = candidate.execute("SELECT * FROM snapshots WHERE expired=0").fetchall()
                 with self.connection() as current:

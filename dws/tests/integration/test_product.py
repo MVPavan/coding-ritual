@@ -8,8 +8,10 @@ All test artifacts remain under the standalone DWS directory.
 
 from __future__ import annotations
 
+import base64
 import errno
 import hashlib
+import hmac
 import json
 import os
 import shutil
@@ -20,6 +22,7 @@ import sys
 import tempfile
 import threading
 import time
+import uuid
 from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from http.client import HTTPConnection
 from pathlib import Path
@@ -579,9 +582,400 @@ def product() -> Any:
             instance.close()
 
 
+def test_exit_classes_and_search_engine_path(product: Product) -> None:
+    denied = product.run_cli("fetch", "http://169.254.169.254/latest/meta-data")
+    assert denied.returncode == 3
+    assert json.loads(denied.stdout)["error"]["code"] == "policy_denied"
+    absent = product.run_cli("read", "missing-snapshot")
+    assert absent.returncode == 1
+    assert json.loads(absent.stdout)["error"]["code"] == "snapshot_not_found"
+    product.site.search_down = True
+    unavailable = product.run_cli("search", "systems architecture")
+    assert unavailable.returncode == 4
+    assert json.loads(unavailable.stdout)["error"]["code"] == "search_unavailable"
+    product.site.search_down = False
+    product.site.search_unresponsive = [["duckduckgo", "timeout"]]
+    partial = product.cli("search", "systems architecture")
+    assert partial["engine_path"]["upstream_engines"] == ["fixture"]
+    assert partial["engine_path"]["failed_primary_engines"] == ["duckduckgo"]
+
+
+def test_ddgs_fallback_discloses_uncertain_upstream(product: Product) -> None:
+    product.stop(product.api)
+    product.env["DWS_DDGS_ENABLED"] = "true"
+    product.site.search_down = True
+    product.start_api(
+        script="""
+import uvicorn
+from dws.api import create_app
+from dws.config import Settings
+import dws.providers as providers
+import sys
+
+async def fake_ddgs(script, payload, settings):
+    if payload["query"] == "unavailable":
+        return {"error": "provider_unavailable"}
+    return {"results": [{"href": "https://example.org/", "title": "Fallback"}]}
+
+providers._helper = fake_ddgs
+uvicorn.run(create_app(Settings.from_env()), host="127.0.0.1", port=int(sys.argv[1]))
+"""
+    )
+    found = product.cli("search", "systems architecture")
+    assert found["engine_path"] == {
+        "provider": "ddgs",
+        "backend": "auto",
+        "upstream_engines": [],
+        "failed_primary_engines": [],
+    }
+    assert "fallback_upstream_independence_unverified" in found["warnings"]
+    unavailable = product.run_cli("search", "unavailable")
+    assert unavailable.returncode == 4
+    assert json.loads(unavailable.stdout)["error"]["code"] == "provider_unavailable"
+
+
+def test_stale_static_capture_revalidation(product: Product) -> None:
+    url = product.site.url + "/revalidate/with-validators"
+    initial = product.cli("fetch", url, "--render", "never")
+    snapshot = initial["snapshot_id"]
+    state = Path(product.env["DWS_DATA_DIR"])
+    artifact = state / "artifacts" / snapshot
+    before_artifacts = {path.name for path in (state / "artifacts").iterdir()}
+    run = product.call("run_create", name="revalidation observation")["run_id"]
+    with sqlite3.connect(state / "management.sqlite3") as database:
+        database.execute(
+            "UPDATE snapshots SET captured_at=? WHERE id=?", (time.time() - 100, snapshot)
+        )
+        original = database.execute(
+            "SELECT captured_at,raw_hash,text_hash FROM snapshots WHERE id=?", (snapshot,)
+        ).fetchone()
+    with ThreadPoolExecutor(max_workers=2) as callers:
+        repeated = list(
+            callers.map(
+                lambda _: product.call(
+                    "fetch", url=url, run_id=run, render="never", max_age_seconds=1
+                ),
+                range(2),
+            )
+        )
+    assert {row["snapshot_id"] for row in repeated} == {snapshot}
+    observations = [row for row in repeated if row.get("revalidated")]
+    assert len(observations) == 1 and observations[0]["observed_at"]
+    assert {path.name for path in (state / "artifacts").iterdir()} == before_artifacts
+    with sqlite3.connect(state / "management.sqlite3") as database:
+        assert (
+            database.execute(
+                "SELECT captured_at,raw_hash,text_hash FROM snapshots WHERE id=?", (snapshot,)
+            ).fetchone()
+            == original
+        )
+        assert (
+            database.execute(
+                "SELECT count(*) FROM capture_events WHERE snapshot_id=? "
+                "AND kind='revalidated'",
+                (snapshot,),
+            ).fetchone()[0]
+            == 1
+        )
+        assert database.execute(
+            "SELECT 1 FROM snapshot_contexts WHERE snapshot_id=? AND run_id=?", (snapshot, run)
+        ).fetchone()
+    assert (artifact / "source.bin").exists()
+    requests = [
+        json.loads(line)
+        for line in (product.directory / "source-http.jsonl").read_text().splitlines()
+        if "/revalidate/with-validators" in line
+    ]
+    assert len(requests) == 2
+    assert requests[-1]["if_none_match"] == '"revision-1"'
+    assert requests[-1]["if_modified_since"] == "Mon, 01 Jan 2024 00:00:00 GMT"
+
+    product.site.revalidation_version = 2
+    time.sleep(1.1)
+    changed = product.cli("fetch", url, "--render", "never", "--max-age", "1")
+    assert changed["snapshot_id"] != snapshot
+    assert "version 2" in product.cli("read", changed["snapshot_id"])["text"]
+    refreshed = product.cli("fetch", url, "--render", "never", "--refresh")
+    assert refreshed["snapshot_id"] != changed["snapshot_id"]
+    requests = [
+        json.loads(line)
+        for line in (product.directory / "source-http.jsonl").read_text().splitlines()
+        if "/revalidate/with-validators" in line
+    ]
+    assert requests[-2]["if_none_match"] == '"revision-1"'
+    assert requests[-1]["if_none_match"] is None
+    assert requests[-1]["if_modified_since"] is None
+
+    bare_url = product.site.url + "/revalidate/no-validators"
+    bare = product.cli("fetch", bare_url, "--render", "never")
+    with sqlite3.connect(state / "management.sqlite3") as database:
+        database.execute(
+            "UPDATE snapshots SET captured_at=? WHERE id=?",
+            (time.time() - 100, bare["snapshot_id"]),
+        )
+    redownloaded = product.cli("fetch", bare_url, "--render", "never", "--max-age", "1")
+    assert redownloaded["snapshot_id"] != bare["snapshot_id"]
+    requests = [
+        json.loads(line)
+        for line in (product.directory / "source-http.jsonl").read_text().splitlines()
+        if "/revalidate/no-validators" in line
+    ]
+    assert requests[-1]["if_none_match"] is None
+    assert requests[-1]["if_modified_since"] is None
+
+
+def test_revalidation_rejects_unsafe_304(product: Product) -> None:
+    status, unsolicited = product.request(
+        "fetch", {"url": product.site.url + "/revalidate/unsolicited", "render": "never"}
+    )
+    assert status == 502 and unsolicited["error"]["code"] == "unexpected_not_modified"
+
+    url = product.site.url + "/revalidate/redirect"
+    initial = product.cli("fetch", url, "--render", "never")
+    state = Path(product.env["DWS_DATA_DIR"])
+    with sqlite3.connect(state / "management.sqlite3") as database:
+        database.execute(
+            "UPDATE snapshots SET captured_at=? WHERE id=?",
+            (time.time() - 100, initial["snapshot_id"]),
+        )
+    product.site.revalidation_redirect_changed = True
+    status, changed = product.request(
+        "fetch", {"url": url, "render": "never", "max_age_seconds": 1}
+    )
+    assert status == 502 and changed["error"]["code"] == "revalidation_redirect_changed"
+    with sqlite3.connect(state / "management.sqlite3") as database:
+        assert database.execute("SELECT count(*) FROM snapshots").fetchone()[0] == 1
+
+
+def test_revalidation_rejects_wildcard_etag(product: Product) -> None:
+    url = product.site.url + "/revalidate/wildcard"
+    original = product.cli("fetch", url, "--render", "never")
+    state = Path(product.env["DWS_DATA_DIR"])
+    with sqlite3.connect(state / "management.sqlite3") as database:
+        database.execute(
+            "UPDATE snapshots SET captured_at=? WHERE id=?",
+            (time.time() - 100, original["snapshot_id"]),
+        )
+    product.site.revalidation_version = 2
+    updated = product.cli("fetch", url, "--render", "never", "--max-age", "1")
+    assert updated["snapshot_id"] != original["snapshot_id"]
+    assert "version 2" in product.cli("read", updated["snapshot_id"])["text"]
+    requests = [
+        json.loads(line)
+        for line in (product.directory / "source-http.jsonl").read_text().splitlines()
+        if "/revalidate/wildcard" in line
+    ]
+    assert requests[-1]["if_none_match"] is None
+
+
+def test_bodyless_304_with_content_encoding(product: Product) -> None:
+    url = product.site.url + "/revalidate/with-validators"
+    original = product.cli("fetch", url, "--render", "never")
+    state = Path(product.env["DWS_DATA_DIR"])
+    with sqlite3.connect(state / "management.sqlite3") as database:
+        database.execute(
+            "UPDATE snapshots SET captured_at=? WHERE id=?",
+            (time.time() - 100, original["snapshot_id"]),
+        )
+    product.site.revalidation_304_gzip = True
+    repeated = product.cli("fetch", url, "--render", "never", "--max-age", "1")
+    assert repeated["snapshot_id"] == original["snapshot_id"]
+    assert repeated["revalidated"] is True
+
+
+def test_revalidation_migrates_legacy_snapshot(product: Product) -> None:
+    url = product.site.url + "/revalidate/with-validators"
+    original = product.cli("fetch", url, "--render", "never")
+    product.stop(product.worker)
+    product.stop(product.api)
+    state = Path(product.env["DWS_DATA_DIR"])
+    with sqlite3.connect(state / "management.sqlite3") as database:
+        for column in ("etag", "last_modified", "validated_at"):
+            database.execute(f"ALTER TABLE snapshots DROP COLUMN {column}")
+        database.execute(
+            "UPDATE snapshots SET captured_at=? WHERE id=?",
+            (time.time() - 100, original["snapshot_id"]),
+        )
+    product.start_api()
+    product.start_worker()
+    redownloaded = product.cli("fetch", url, "--render", "never", "--max-age", "1")
+    assert redownloaded["snapshot_id"] != original["snapshot_id"]
+    with sqlite3.connect(state / "management.sqlite3") as database:
+        columns = {row[1] for row in database.execute("PRAGMA table_info(snapshots)")}
+        assert {"etag", "last_modified", "validated_at"} <= columns
+    requests = [
+        json.loads(line)
+        for line in (product.directory / "source-http.jsonl").read_text().splitlines()
+        if "/revalidate/with-validators" in line
+    ]
+    assert requests[-1]["if_none_match"] is None
+    assert requests[-1]["if_modified_since"] is None
+
+
+def test_retrieve_cursor_scope_and_generation(product: Product) -> None:
+    captures = [
+        product.call("fetch", url=product.site.url + f"/scope/page-{i}", render="never")
+        for i in range(4)
+    ]
+    product.await_retrieval("SharedMarker", document_ids=[captures[-1]["document_id"]])
+    first = product.cli("retrieve", "SharedMarker", "--limit", "1")
+    assert first["next_cursor"]
+    second = product.cli(
+        "retrieve", "SharedMarker", "--limit", "1", "--cursor", first["next_cursor"]
+    )
+    assert second["results"]
+    assert (first["results"][0]["snapshot_id"], first["results"][0]["char_start"]) != (
+        second["results"][0]["snapshot_id"],
+        second["results"][0]["char_start"],
+    )
+    for payload in (
+        {"query": "RevisionMarker", "limit": 1, "cursor": first["next_cursor"]},
+        {
+            "query": "SharedMarker",
+            "limit": 1,
+            "workspace_id": "other",
+            "cursor": first["next_cursor"],
+        },
+        {"query": "SharedMarker", "limit": 1, "cursor": "forged"},
+    ):
+        status, rejected = product.request("retrieve", payload)
+        assert status == 400 and rejected["error"]["code"] == "invalid_cursor"
+    raw = base64.urlsafe_b64decode(first["next_cursor"] + "==")
+    forged = json.loads(raw)
+    forged[1] += 1
+    altered = (
+        base64.urlsafe_b64encode(json.dumps(forged, separators=(",", ":")).encode())
+        .decode()
+        .rstrip("=")
+    )
+    status, rejected = product.request(
+        "retrieve", {"query": "SharedMarker", "limit": 1, "cursor": altered}
+    )
+    assert status == 400 and rejected["error"]["code"] == "invalid_cursor"
+    workspace = product.call("workspace_create", name="forgery target")["workspace_id"]
+    forged = json.loads(base64.urlsafe_b64decode(first["next_cursor"] + "=="))
+    forged[2] = hashlib.sha256(
+        json.dumps(
+            ["SharedMarker", workspace, None, None, [], 1, 6000],
+            separators=(",", ":"),
+        ).encode()
+    ).hexdigest()
+    forged[3] = hmac.new(
+        product.env["DWS_TOKEN"].encode(),
+        json.dumps(forged[:3], separators=(",", ":")).encode(),
+        hashlib.sha256,
+    ).hexdigest()
+    bearer_signed = (
+        base64.urlsafe_b64encode(json.dumps(forged, separators=(",", ":")).encode())
+        .decode()
+        .rstrip("=")
+    )
+    status, rejected = product.request(
+        "retrieve",
+        {
+            "query": "SharedMarker",
+            "workspace_id": workspace,
+            "limit": 1,
+            "cursor": bearer_signed,
+        },
+    )
+    assert status == 400 and rejected["error"]["code"] == "invalid_cursor"
+    signing_key = Path(product.env["DWS_DATA_DIR"]) / "cursor-signing-key"
+    assert signing_key.stat().st_mode & 0o777 == 0o600
+    assert len(signing_key.read_bytes()) == 32
+    assert signing_key.read_bytes() != product.env["DWS_TOKEN"].encode()
+    product.stop(product.api)
+    product.start_api()
+    resumed = product.call(
+        "retrieve", query="SharedMarker", limit=1, cursor=first["next_cursor"]
+    )
+    assert resumed["results"][0]["snapshot_id"] == second["results"][0]["snapshot_id"]
+    product.cli("index", "rebuild")
+    status, rejected = product.request(
+        "retrieve", {"query": "SharedMarker", "limit": 1, "cursor": first["next_cursor"]}
+    )
+    assert status == 409 and rejected["error"]["code"] == "stale_cursor"
+
+
+def test_retrieve_cursor_keeps_one_index_generation(
+    product: Product, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from dws import store as store_module
+    from dws.config import Settings
+    from dws.models import RetrieveRequest
+    from dws.store import Store
+
+    for index in range(3):
+        product.call("fetch", url=product.site.url + f"/scope/page-{index}", render="never")
+    product.await_retrieval("SharedMarker")
+    product.stop(product.worker)
+    first = product.call("retrieve", query="SharedMarker", limit=1)
+    expected = product.call(
+        "retrieve", query="SharedMarker", limit=1, cursor=first["next_cursor"]
+    )["results"][0]["snapshot_id"]
+    state = Path(product.env["DWS_DATA_DIR"])
+    index_path = state / "index.sqlite3"
+    with sqlite3.connect(index_path) as database:
+        first_rowid = database.execute(
+            "SELECT rowid FROM passages WHERE passages MATCH '\"SharedMarker\"' "
+            "ORDER BY bm25(passages), rowid LIMIT 1"
+        ).fetchone()[0]
+    store = Store(Settings(data_dir=state, token=product.env["DWS_TOKEN"]))
+    original_connect = sqlite3.connect
+    interleaved = False
+
+    class InterleavedConnection:
+        def __init__(self, connection: sqlite3.Connection) -> None:
+            self.connection = connection
+
+        @property
+        def row_factory(self) -> Any:
+            return self.connection.row_factory
+
+        @row_factory.setter
+        def row_factory(self, value: Any) -> None:
+            self.connection.row_factory = value
+
+        def execute(self, statement: str, *args: Any) -> sqlite3.Cursor:
+            nonlocal interleaved
+            cursor = self.connection.execute(statement, *args)
+            if statement.startswith("SELECT value FROM index_generation") and not interleaved:
+                interleaved = True
+                with original_connect(index_path) as writer:
+                    writer.execute("DELETE FROM passages WHERE rowid=?", (first_rowid,))
+                    writer.execute("UPDATE index_generation SET value=?", (uuid.uuid4().hex,))
+            return cursor
+
+        def close(self) -> None:
+            self.connection.close()
+
+    def interleaved_connect(*args: Any, **kwargs: Any) -> Any:
+        connection = original_connect(*args, **kwargs)
+        if args and isinstance(args[0], str) and args[0].startswith(index_path.as_uri()):
+            return InterleavedConnection(connection)
+        return connection
+
+    monkeypatch.setattr(store_module.sqlite3, "connect", interleaved_connect)
+    page = store.retrieve(
+        RetrieveRequest(query="SharedMarker", limit=1, cursor=first["next_cursor"])
+    )
+    assert interleaved
+    assert page["results"][0]["snapshot_id"] == expected
+    status, rejected = product.request(
+        "retrieve", {"query": "SharedMarker", "limit": 1, "cursor": page["next_cursor"]}
+    )
+    assert status == 409 and rejected["error"]["code"] == "stale_cursor"
+
+
 def test_research_journeys_retain_exact_evidence(product: Product) -> None:
     discovery = product.cli("search", "systems architecture")
     assert discovery["results"][0]["url"] == product.site.url + "/article"
+    assert discovery["engine_path"] == {
+        "provider": "searxng",
+        "backend": None,
+        "upstream_engines": ["fixture"],
+        "failed_primary_engines": [],
+    }
     captured = product.cli("fetch", discovery["results"][0]["url"], "--render", "never")
     snapshot = captured["snapshot_id"]
     original = product.cli("read", snapshot)
@@ -1358,7 +1752,7 @@ def test_access_outbound_resource_bounds_and_provider_failures(product: Product)
             "diagnostics",
             env_updates=proxy_environment,
         )
-        assert redirected.returncode == 1, (redirected.stdout, redirected.stderr)
+        assert redirected.returncode == 3, (redirected.stdout, redirected.stderr)
         assert json.loads(redirected.stdout)["error"]["code"] == "api_redirect_denied"
         assert "/api-redirect/v1/diagnostics" in product.site.requests
         assert not collector.requests, "The API bearer must never reach a redirect collector"
@@ -1583,7 +1977,7 @@ def test_access_outbound_resource_bounds_and_provider_failures(product: Product)
         rejected_search = product.run_cli(
             "search", f"partial provider response {source_status}"
         )
-        assert rejected_search.returncode == 1
+        assert rejected_search.returncode == 4
         assert json.loads(rejected_search.stdout)["error"]["code"] == "search_unavailable"
     product.site.search_partial_status = None
     with sqlite3.connect(metadata) as database:
@@ -1740,7 +2134,11 @@ def test_access_outbound_resource_bounds_and_provider_failures(product: Product)
             failed
         )
         cli_failed = product.run_cli("fetch", url, "--render", "never", "--refresh")
-        assert cli_failed.returncode == 1, (mode, cli_failed.stdout, cli_failed.stderr)
+        assert cli_failed.returncode == (4 if expected_code == "disk_pressure" else 1), (
+            mode,
+            cli_failed.stdout,
+            cli_failed.stderr,
+        )
         cli_error = json.loads(cli_failed.stdout)
         assert cli_error["error"]["code"] == expected_code, cli_error
         assert len(cli_failed.stdout) < 1024

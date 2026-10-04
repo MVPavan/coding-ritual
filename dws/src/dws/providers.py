@@ -8,6 +8,7 @@ import codecs
 import importlib.metadata
 import json
 import os
+import re
 import signal
 import sys
 from collections.abc import Callable
@@ -24,7 +25,7 @@ from markdownify import markdownify
 
 from dws.config import Settings
 from dws.errors import DWSError
-from dws.models import Capture, FetchRequest, SearchRequest
+from dws.models import Capture, FetchRequest, RevalidationCandidate, SearchRequest
 from dws.net import acquisition_slot, canonical_url, client, resolve_addresses, response_bytes
 
 
@@ -35,6 +36,19 @@ def _reject_incomplete_response(status: int | None) -> None:
             f"Partial or delta HTTP responses are not supported (HTTP {status})",
             502,
         )
+
+
+def _validator(value: str | None, limit: int) -> str | None:
+    if value and len(value) <= limit and all(32 <= ord(char) < 127 for char in value):
+        return value
+    return None
+
+
+def _etag(value: str | None) -> str | None:
+    validated = _validator(value, 512)
+    if validated and re.fullmatch(r'(?:W/)?"[!\x23-\x7e]*"', validated):
+        return validated
+    return None
 
 
 def _normalizer() -> str:
@@ -471,6 +485,25 @@ class Acquisition:
         *,
         scope_check: Callable[[str], bool] | None = None,
     ) -> Capture:
+        capture = await self._acquire(request, scope_check=scope_check)
+        if capture is None:
+            raise DWSError(
+                "unexpected_not_modified", "Source returned an unsolicited 304.", 502
+            )
+        return capture
+
+    async def revalidate(
+        self, request: FetchRequest, candidate: RevalidationCandidate
+    ) -> Capture | None:
+        return await self._acquire(request, candidate=candidate)
+
+    async def _acquire(
+        self,
+        request: FetchRequest,
+        *,
+        scope_check: Callable[[str], bool] | None = None,
+        candidate: RevalidationCandidate | None = None,
+    ) -> Capture | None:
         try:
             async with (
                 acquisition_slot(self.settings),
@@ -481,7 +514,11 @@ class Acquisition:
                     raise DWSError("scope_denied", "Source is outside the crawl scope", 403)
                 if request.render == "always":
                     return await self._render(url, scope_check=scope_check)
-                capture, needs_render = await self._static(url, scope_check=scope_check)
+                capture, needs_render = await self._static(
+                    url, scope_check=scope_check, candidate=candidate
+                )
+                if capture is None:
+                    return None
                 if needs_render and request.render == "auto":
                     return await self._render(url, scope_check=scope_check)
                 if needs_render:
@@ -504,7 +541,8 @@ class Acquisition:
         requested: str,
         *,
         scope_check: Callable[[str], bool] | None = None,
-    ) -> tuple[Capture, bool]:
+        candidate: RevalidationCandidate | None = None,
+    ) -> tuple[Capture | None, bool]:
         current = requested
         redirects: list[str] = []
         async with client(
@@ -518,7 +556,14 @@ class Acquisition:
                     raise DWSError(
                         "scope_denied", "Source redirect is outside the crawl scope", 403
                     )
-                async with http.stream("GET", current) as response:
+                headers: dict[str, str] = {}
+                if candidate is not None:
+                    etag = _etag(candidate.etag)
+                    if etag:
+                        headers["If-None-Match"] = etag
+                    if candidate.last_modified:
+                        headers["If-Modified-Since"] = candidate.last_modified
+                async with http.stream("GET", current, headers=headers) as response:
                     if response.status_code in {301, 302, 303, 307, 308}:
                         if hop == 5 or not response.headers.get("location"):
                             raise DWSError(
@@ -529,6 +574,37 @@ class Acquisition:
                         current = canonical_url(urljoin(current, response.headers["location"]))
                         redirects.append(current)
                         continue
+                    if response.status_code == 304:
+                        if not headers:
+                            raise DWSError(
+                                "unexpected_not_modified",
+                                "Source returned an unsolicited 304.",
+                                502,
+                            )
+                        if (
+                            candidate is None
+                            or current != candidate.final_url
+                            or redirects != candidate.redirects
+                        ):
+                            raise DWSError(
+                                "revalidation_redirect_changed",
+                                "A 304 followed a different source redirect chain.",
+                                502,
+                            )
+                        wire_bytes = 0
+                        async for chunk in response.aiter_raw():
+                            wire_bytes += len(chunk)
+                            if wire_bytes > self.settings.max_bytes:
+                                raise DWSError(
+                                    "response_too_large",
+                                    "Source exceeds the configured byte limit",
+                                    413,
+                                )
+                            if chunk:
+                                raise DWSError(
+                                    "invalid_response", "A 304 carried source bytes.", 502
+                                )
+                        return None, False
                     if not 200 <= response.status_code < 300:
                         raise DWSError(
                             "source_http_error",
@@ -537,6 +613,8 @@ class Acquisition:
                         )
                     _reject_incomplete_response(response.status_code)
                     raw = await response_bytes(response, self.settings.max_bytes)
+                    etag = _etag(response.headers.get("etag"))
+                    last_modified = _validator(response.headers.get("last-modified"), 128)
                     declared_type = response.headers.get("content-type", "")
                     content_type = declared_type.split(";", 1)[0].strip().lower()
                     if raw.startswith(b"%PDF-") or content_type == "application/pdf":
@@ -566,12 +644,14 @@ class Acquisition:
                             warnings=parsed["warnings"],
                             normalizer="pypdf/" + parsed["version"] + "+page-boundaries/1",
                             provider="httpx",
+                            etag=etag,
+                            last_modified=last_modified,
                         ), False
                     if content_type in {"text/html", "application/xhtml+xml"} or (
                         not content_type and raw.lstrip().startswith(b"<")
                     ):
                         charset, charset_warnings = _transport_charset(declared_type)
-                        return await self._normalize_html(
+                        normalized, needs_render = await self._normalize_html(
                             raw,
                             requested,
                             current,
@@ -579,6 +659,9 @@ class Acquisition:
                             charset=charset,
                             charset_warnings=charset_warnings,
                         )
+                        return normalized.model_copy(
+                            update={"etag": etag, "last_modified": last_modified}
+                        ), needs_render
                     if content_type in {"text/plain", "text/markdown"}:
                         charset, warnings = _transport_charset(declared_type)
                         decoded, decoding, encoding_warnings = _decode_text(raw, charset)
@@ -601,6 +684,8 @@ class Acquisition:
                             warnings=warnings,
                             normalizer="text/1" + decoding,
                             provider="httpx",
+                            etag=etag,
+                            last_modified=last_modified,
                         ), False
                     raise DWSError(
                         "unsupported_content",
@@ -813,6 +898,7 @@ class Acquisition:
             ):
                 rows: list[Any] | None = None
                 provider = ""
+                failed_engines: list[str] = []
                 if self.settings.searxng_url:
                     try:
                         async with asyncio.timeout(max(1, self.settings.request_timeout / 2)):
@@ -829,6 +915,16 @@ class Acquisition:
                                 502,
                             )
                         failed = response.get("unresponsive_engines", [])
+                        if isinstance(failed, list):
+                            for item in failed[:20]:
+                                name = (
+                                    item[0]
+                                    if isinstance(item, (list, tuple)) and item
+                                    else item
+                                )
+                                if isinstance(name, str):
+                                    failed_engines.append(name[:64])
+                            failed_engines = sorted(set(failed_engines))[:20]
                         if failed:
                             warnings.append("searxng_engines_incomplete")
                             if not result:
@@ -873,6 +969,7 @@ class Acquisition:
                     )
                 results: list[dict[str, object]] = []
                 seen: set[str] = set()
+                upstream_engines: set[str] = set()
                 for row in rows:
                     if not isinstance(row, dict):
                         warnings.append("malformed_search_result_skipped")
@@ -890,6 +987,11 @@ class Acquisition:
                     if url in seen:
                         continue
                     seen.add(url)
+                    engines = row.get("engines")
+                    if provider == "searxng" and isinstance(engines, list):
+                        upstream_engines.update(
+                            engine[:64] for engine in engines[:20] if isinstance(engine, str)
+                        )
                     results.append(
                         {
                             "url": url,
@@ -911,6 +1013,12 @@ class Acquisition:
                     "workspace_id": request.workspace_id,
                     "domains": domains,
                     "provider": provider,
+                    "engine_path": {
+                        "provider": provider,
+                        "backend": "auto" if provider == "ddgs" else None,
+                        "upstream_engines": sorted(upstream_engines)[:20],
+                        "failed_primary_engines": failed_engines,
+                    },
                     "results": results,
                     "warnings": list(dict.fromkeys(warnings)),
                     "evidence": False,
@@ -919,6 +1027,9 @@ class Acquisition:
                 }
                 if provider == "ddgs":
                     output["provider_details"] = {"backend": "auto", "max_threads": 2}
+                    if "searxng_unavailable" in warnings:
+                        warnings.append("fallback_upstream_independence_unverified")
+                        output["warnings"] = list(dict.fromkeys(warnings))
                 while (
                     results
                     and len(json.dumps(output, ensure_ascii=False))

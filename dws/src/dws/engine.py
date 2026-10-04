@@ -143,11 +143,27 @@ class Engine:
                 if cached is not None:
                     result = cached
                 else:
-                    capture = await self.acquisition.fetch(request)
-                    result = await asyncio.to_thread(
-                        self.store.save_capture, capture, request.workspace_id, request.run_id
+                    candidate = await asyncio.to_thread(
+                        self.store.revalidation_candidate, request
                     )
-                    result["cache"] = {"hit": False, "stale": False}
+                    capture = (
+                        await self.acquisition.revalidate(request, candidate)
+                        if candidate is not None
+                        else await self.acquisition.fetch(request)
+                    )
+                    if capture is None:
+                        assert candidate is not None
+                        result = await asyncio.to_thread(
+                            self.store.record_revalidation, request, candidate
+                        )
+                    else:
+                        result = await asyncio.to_thread(
+                            self.store.save_capture,
+                            capture,
+                            request.workspace_id,
+                            request.run_id,
+                        )
+                        result["cache"] = {"hit": False, "stale": False}
         elif isinstance(request, CrawlRequest):
             result = await self.jobs.submit(request)
         elif isinstance(request, RetrieveRequest):

@@ -302,7 +302,7 @@ def _cli_failure_recovery(product: Product, site: FixtureSite) -> dict[str, Any]
 
     def rejected(code: str, *arguments: str) -> None:
         completed = invoke(*arguments)
-        assert completed.returncode == 1
+        assert completed.returncode == (3 if code == "authentication_required" else 1)
         assert len(completed.stdout.encode("utf-8")) < 2048
         assert decoded(completed)["error"]["code"] == code
 

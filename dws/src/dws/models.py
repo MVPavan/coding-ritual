@@ -44,6 +44,7 @@ class RetrieveRequest(Input):
     document_ids: list[str] = Field(default_factory=list, max_length=100)
     limit: int = Field(default=5, ge=1, le=50)
     max_chars: int = Field(default=6000, ge=256, le=100_000)
+    cursor: str | None = Field(default=None, min_length=1, max_length=2048)
 
 
 class ReadRequest(Input):
@@ -77,3 +78,14 @@ class Capture(BaseModel):
     warnings: list[str] = Field(default_factory=list)
     normalizer: str
     provider: str
+    etag: str | None = None
+    last_modified: str | None = None
+
+
+class RevalidationCandidate(BaseModel):
+    model_config = ConfigDict(frozen=True)
+    snapshot_id: str
+    final_url: str
+    redirects: list[str]
+    etag: str | None
+    last_modified: str | None
