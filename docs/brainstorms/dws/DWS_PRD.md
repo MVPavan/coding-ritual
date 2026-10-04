@@ -1445,7 +1445,7 @@ The ADRs are the durable explanation of **why** DWS has this shape. Each records
 **Consequence / revisit:** A direct Crawl4AI library adapter remains possible if it materially simplifies the tested deployment.
 
 ### ADR-018 — Use QMD lexical retrieval instead of building another FTS layer
-**Status:** Accepted.  
+**Status:** Superseded 2 October 2026 — the shipped product uses a separate, rebuildable SQLite FTS5 retrieval database through Python `sqlite3`; QMD is not a runtime dependency. Measured comparison against Turso/Tantivy and direct Tantivy: `dws/docs/verification/retrieval-choice.md`. Original decision retained below as history.  
 **Decision:** QMD is the sole primary document-search subsystem, through a supported lexical interface.  
 **Why:** Reuses a ready-made document workflow and avoids owning every search/index feature.  
 **Not chosen:** Parallel QMD plus hand-built FTS5 indexes for the same corpus.  
@@ -1459,7 +1459,7 @@ The ADRs are the durable explanation of **why** DWS has this shape. Each records
 **Consequence / revisit:** Lexical recall can miss synonyms and conceptual matches. Add optional semantic retrieval only when a judged query set demonstrates enough value.
 
 ### ADR-020 — Keep DWS and QMD database ownership separate
-**Status:** Accepted after explicit comparison.  
+**Status:** Accepted after explicit comparison; amended 2 October 2026 — the separation now applies to the DWS-owned FTS5 retrieval database instead of QMD's. Management SQLite and canonical artifacts are unchanged; the index holds only derived chunks and is rebuildable (`dws/docs/verification/retrieval-choice.md`).  
 **Decision:** `dws.sqlite` stores application state; QMD owns its SQLite file; normalized artifacts remain independent.  
 **Why:** QMD index maintenance must not own jobs, provenance, retention or DWS schema migrations. Two files do not imply two database services.  
 **Not chosen:** Putting DWS tables inside QMD’s database to achieve one physical file.  
@@ -1480,14 +1480,14 @@ The ADRs are the durable explanation of **why** DWS has this shape. Each records
 **Consequence / revisit:** Keep inexpensive burst/in-flight coalescing, then tune longer caching only with evidence and source freshness needs.
 
 ### ADR-023 — Retain ordinary SQLite; defer Turso
-**Status:** Accepted direction / deferred migration.  
+**Status:** Accepted direction / deferred migration; reaffirmed 2 October 2026 for retrieval too — `pyturso` 0.8.1 rejected an independent reader and writer while another connection was open, so it cannot serve the shared API/worker index without a broker (`dws/docs/verification/retrieval-choice.md`).  
 **Decision:** Use short WAL-mode metadata transactions and fix ownership/scheduling first.  
 **Why:** The expected small metadata writes do not yet justify another engine. Turso’s write-concurrency features do not fix QMD lifecycle or startup contention.  
 **Not chosen:** A speculative migration because several agents might be active.  
 **Consequence / revisit:** Prototype Turso for DWS metadata only if measured writer waiting remains material. Do not assume it transparently replaces QMD FTS5.
 
 ### ADR-024 — Bound QMD calls and serialize its updates
-**Status:** Accepted direction; limits proposed.  
+**Status:** Superseded 2 October 2026 with ADR-018 — QMD process startup and update contention no longer exist; retrieval runs in-process on SQLite FTS5 (`dws/docs/verification/retrieval-choice.md`).  
 **Decision:** Central search admission, one updater, coordinated bootstrap/maintenance and release-specific tests.  
 **Why:** Unrestricted CLI process startup can contend even when operations appear read-oriented.  
 **Not chosen:** One independent QMD process/update per agent with no global limit.  

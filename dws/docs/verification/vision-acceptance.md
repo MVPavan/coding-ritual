@@ -147,9 +147,9 @@ guarantees.
 | uv | 0.9.8, pinned image digest in `Dockerfile` |
 | API/contracts | FastAPI 0.142.2; Pydantic 2.13.5; Uvicorn 0.54.0 |
 | Acquisition | HTTPX 0.28.1/httpcore 1.0.9; Markdownify 1.2.3; BeautifulSoup 4.15.0; pypdf 6.19.0 |
-| Discovery | DDGS 9.16.0; SearXNG image digest `a93b665d10ce0675e8d2124187943111399ba69f384228c51b4cd21fdceda0bc` |
+| Discovery | DDGS 9.16.0; SearXNG image digest `a93b665d10ce0675e8d2124187943111399ba69f384228c51b4cd21fdceda0bc`. 2026-10-04 (cr-d1u6): upgraded to 2026.10.4 (`sha256:0aacb9eb84a4d2611bdf1972190e3cdd21f7a5992b0defc3a8e423ea06f4d0bb`) with `default_lang: en-US` (searxng#6779) and yandex, yep, yahoo, xprivo engines added after measured blocking of duckduckgo, brave and google |
 | Optional MCP | FastMCP 4.0.10; MCP SDK 2.2.0 |
-| Browser | Crawl4AI 0.9.2; Chromium 149.0.7827.55; protected overlay described below |
+| Browser | Crawl4AI 0.9.2; Chromium 149.0.7827.55; protected overlay described below. 2026-10-04 (cr-hq1p): upgraded to Crawl4AI 0.9.4 (`unclecode/crawl4ai@sha256:9021b3cb5c6f12570bbcd5395638495e0a06969b3148e377b953d174af2ebc9b`), Chromium 153.0.8010.12. Overlay re-audited: egress_broker unchanged; egress_proxy/browser_manager patches re-ported with identical intent; the new 0.9.4 upstream-proxy escape hatch fails closed; the server.py patch was dropped since crawl4ai#2116 (v0.9.3+) makes `/crawl` return HTTP 200 with per-result `success:false`+`error_message` instead of 500. Egress containment was re-confirmed live (TLS/loopback/private/metadata/rebind/IPv6 targets all blocked); the browser-qualification denial contract now requires the 200 row with `success:false` plus per-class evidence (ERR_CERT_, ERR_TUNNEL_CONNECTION_FAILED, 3xx stop) and empty forbidden observers; 86/86 cases and 17 sensitivity mutations passed, and `scripts/verify_product.sh --full` passed (`.runtime/verification/20261004T063548Z-1425012/summary.json`). |
 | Retrieval | Separate SQLite FTS5; management SQLite and canonical artifacts remain authoritative |
 
 One Compose deployment has a finite environment preparation job plus API,
