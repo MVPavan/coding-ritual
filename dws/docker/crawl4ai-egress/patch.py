@@ -10,8 +10,8 @@ PROXY = Path("/app/egress_proxy.py")
 MANAGER = Path("/usr/local/lib/python3.12/site-packages/crawl4ai/browser_manager.py")
 EXPECTED = {
     BROKER: "9884e0a4d972607e1cd20aa70bf5d8d86767fe3d61a53ebc6bd3776880c822cf",
-    PROXY: "2a3ddbef47289dcf4d093cb8f87cf142a6da81e9496b81e545d5e4346727d987",
-    MANAGER: "76724e47ccace4cee8c5b654f3c132744d30d9a98706984d77517be06a317c3d",
+    PROXY: "7186076db57735cc6490239ef5c167a932ca524e4243bbb0e6a1db64dc9198e7",
+    MANAGER: "27fd628f27f7f8a0b3a6fc725382a07d8dc23ced9d83cb6028ede18d6becd432",
 }
 
 
@@ -98,6 +98,22 @@ def enforce_egress(browser_config) -> None:
 '''
     )
     proxy = sources[PROXY]
+    # v0.9.4 added upstream-proxy chaining driven by HTTP(S)_PROXY /
+    # CRAWL4AI_UPSTREAM_PROXY: the pinning proxy would dial that operator-free
+    # destination directly (unpinned) and CONNECT the pinned IP through it.
+    # The overlay keeps the local pinning proxy as the sole egress owner, so
+    # refuse to start if such an escape hatch is configured (fail closed).
+    proxy = replace_once(
+        proxy,
+        'logger = logging.getLogger("crawl4ai.egress")\n',
+        'logger = logging.getLogger("crawl4ai.egress")\n'
+        "for _dws_forbidden_proxy in (\n"
+        '    "CRAWL4AI_UPSTREAM_PROXY", "HTTP_PROXY", "http_proxy",\n'
+        '    "HTTPS_PROXY", "https_proxy",\n'
+        "):\n"
+        "    if (os.environ.get(_dws_forbidden_proxy) or \"\").strip():\n"
+        '        raise RuntimeError("DWS provider forbids upstream egress proxy chaining")\n',
+    )
     proxy = replace_once(
         proxy,
         "        port = sp.port or 80\n        try:\n"
@@ -157,6 +173,10 @@ def enforce_egress(browser_config) -> None:
         if manager.count(line) != 2:
             raise RuntimeError("TLS flag context drift")
         manager = manager.replace(line, "")
+    # crawl4ai#2116 (fixed in v0.9.3): the Docker /crawl endpoint now returns a
+    # 200 JSON result with success=false and error_message (e.g. "Blocked by
+    # anti-bot protection: ...") instead of a generic 500, so no server patch is
+    # needed; the provider maps that row shape to its own non-echoed signals.
     for path, text in ((BROKER, broker), (PROXY, proxy), (MANAGER, manager)):
         compile(text, str(path), "exec")
         path.write_text(text)

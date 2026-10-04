@@ -119,6 +119,32 @@ class FixtureSite(AbstractContextManager["FixtureSite"]):
                 if site.render_markdown_fixture and urlsplit(self.path).path == "/crawl":
                     payload = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
                     requested = payload["urls"][0]
+                    # crawl4ai#2116 (fixed in v0.9.3): /crawl answers HTTP 200
+                    # with a per-result success=false row and an error_message,
+                    # not a generic 500.
+                    error_message = {
+                        "/anti-bot.html": "Blocked by anti-bot protection: Cloudflare leak",
+                        "/not-prefixed.html": "Upstream: Blocked by anti-bot protection leak",
+                        "/provider-fault.html": "Internal renderer failure leak",
+                    }.get(urlsplit(requested).path.rsplit("/renderer", 1)[-1])
+                    if error_message is not None:
+                        failure_body = json.dumps(
+                            {
+                                "results": [
+                                    {
+                                        "success": False,
+                                        "url": requested,
+                                        "error_message": error_message,
+                                    }
+                                ]
+                            }
+                        ).encode()
+                        self.send_response(200)
+                        self.send_header("Content-Type", "application/json")
+                        self.send_header("Content-Length", str(len(failure_body)))
+                        self.end_headers()
+                        self.wfile.write(failure_body)
+                        return
                     row: dict[str, object] = {
                         "success": True,
                         "status_code": 200,

@@ -1590,6 +1590,21 @@ def test_access_outbound_resource_bounds_and_provider_failures(product: Product)
         before_rendered_partial = database.execute("SELECT count(*) FROM snapshots").fetchone()[
             0
         ]
+    # crawl4ai#2116 (v0.9.3+): a 200 result row with success=false carries the
+    # reason. Only an error_message that starts with the fixed anti-bot prefix is
+    # a challenge; any other (or merely containing) message is a render failure,
+    # and provider text is never echoed.
+    for route, expected_status, expected_code in (
+        ("anti-bot", 422, "challenge_page"),
+        ("not-prefixed", 502, "render_failed"),
+        ("provider-fault", 502, "render_failed"),
+    ):
+        status, response = product.request(
+            "fetch", {"url": product.site.url + f"/renderer/{route}.html", "render": "always"}
+        )
+        assert status == expected_status, response
+        assert response["error"]["code"] == expected_code, response
+        assert "leak" not in json.dumps(response)
     for route in ("partial", "delta", "transport-partial", "transport-delta"):
         selected_url = product.site.url + f"/renderer/{route}.html"
         status, response = product.request("fetch", {"url": selected_url, "render": "always"})

@@ -717,7 +717,16 @@ class Acquisition:
             )
         row = results[0]
         if row.get("success") is not True:
-            # Do not expose untrusted provider exception text or fall back.
+            # crawl4ai#2116 (v0.9.3+): a 200 result row carries success=false with
+            # an error_message instead of a generic 500. An anti-bot block is a
+            # source outcome, not a provider fault; recognize only that fixed
+            # prefix and never echo the untrusted provider text or fall back.
+            if str(row.get("error_message") or "").startswith("Blocked by anti-bot protection"):
+                raise DWSError(
+                    "challenge_page",
+                    "Source blocked rendering with anti-bot protection",
+                    422,
+                )
             raise DWSError(
                 "render_failed", "Crawl4AI could not acquire the requested page", 502
             )

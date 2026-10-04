@@ -63,6 +63,29 @@ def extract_state(html: str) -> dict[str, Any]:
         return {}
 
 
+def denied_row(case: dict[str, Any]) -> dict[str, Any] | None:
+    """The single crawl result row of a fail-closed denial, or None.
+
+    crawl4ai#2116 (fixed v0.9.3): a blocked in-crawl navigation is reported as
+    HTTP 200 carrying one per-result row whose ``success`` is False, not the
+    pre-0.9.3 generic HTTP 500. Require that exact shape before trusting any
+    transport-specific blocking evidence inside the row.
+    """
+    if case["response"]["status"] != 200:
+        return None
+    try:
+        body = json.loads(case["response"]["body"])
+    except (ValueError, TypeError):
+        return None
+    results = body.get("results") if isinstance(body, dict) else None
+    if not isinstance(results, list) or len(results) != 1:
+        return None
+    row = results[0]
+    if not isinstance(row, dict) or row.get("success") is not False:
+        return None
+    return row
+
+
 def case_failures(case: dict[str, Any]) -> list[str]:
     """Executable receipt contract; also exercised by destructive receipt mutations."""
     failures = []
@@ -136,8 +159,11 @@ def case_failures(case: dict[str, Any]) -> list[str]:
         ):
             failures.append("webtransport-construction")
     if name.startswith("tls-"):
-        if status != 500:
-            failures.append("tls-status")
+        row = denied_row(case)
+        if row is None:
+            failures.append("denial-shape")
+        elif "net::ERR_CERT_" not in str(row.get("error_message") or ""):
+            failures.append("tls-cert-reason")
         if not any(
             e["kind"] == "tcp" and e["port"] == urlsplit(case["url"]).port for e in events
         ):
@@ -147,12 +173,25 @@ def case_failures(case: dict[str, Any]) -> list[str]:
     expected = None
     if name.endswith("-direct") or name.startswith("mixed"):
         expected = 400
-    elif name.endswith(("-redirect", "-connect")) or name.startswith("rebind"):
-        expected = 500
     elif name.startswith("bypass-"):
         expected = 422 if name == "bypass-python-hook" else 400
     if expected is not None and status != expected:
         failures.append("denial-status")
+    # crawl4ai#2116 (v0.9.3+): in-crawl navigation denials surface as a 200
+    # result row with success=false, not a generic HTTP 500. Require that
+    # fail-closed shape plus the transport-specific blocking evidence.
+    if name.endswith(("-redirect", "-connect")) or name.startswith("rebind"):
+        row = denied_row(case)
+        if row is None:
+            failures.append("denial-shape")
+        else:
+            message = str(row.get("error_message") or "")
+            if name.endswith("-connect") and "net::ERR_TUNNEL_CONNECTION_FAILED" not in message:
+                failures.append("connect-not-tunnel-refused")
+            if name.endswith("-redirect"):
+                code = row.get("status_code")
+                if not (isinstance(code, int) and 300 <= code < 400):
+                    failures.append("redirect-not-stopped-public")
     return failures
 
 
@@ -230,6 +269,51 @@ def assertion_sensitivity(cases: list[dict[str, Any]]) -> list[dict[str, str]]:
     if "tls-http-leak" not in case_failures(altered):
         raise RuntimeError("TLS HTTP leak accepted")
     checks.append({"mutation": "insert TLS HTTP leak", "rejected_by": "tls-http-leak"})
+    # crawl4ai#2116 denial shape: a blocked navigation must stay a 200 row with
+    # success=false. Prove that flipping the row to success=true, or substituting
+    # a wholesale 200 success page, is rejected for both a TLS and a CONNECT
+    # denial, and that any forbidden-observer receipt still fails closed.
+    connect = next(case for case in cases if case["name"] == "loopback4-connect")
+    for calibrated in (tls, connect):
+        if case_failures(calibrated):
+            raise RuntimeError(
+                "cannot calibrate denial shape against failing " + calibrated["name"]
+            )
+        flipped = copy.deepcopy(calibrated)
+        flipped_body = json.loads(flipped["response"]["body"])
+        flipped_body["results"][0]["success"] = True
+        flipped["response"]["body"] = json.dumps(flipped_body)
+        if "denial-shape" not in case_failures(flipped):
+            raise RuntimeError("row success=true denial accepted: " + calibrated["name"])
+        checks.append(
+            {
+                "mutation": "flip " + calibrated["name"] + " row to success=true",
+                "rejected_by": "denial-shape",
+            }
+        )
+        replaced = copy.deepcopy(calibrated)
+        replaced["response"]["status"] = 200
+        replaced["response"]["body"] = json.dumps(
+            {
+                "success": True,
+                "results": [{"success": True, "status_code": 200, "html": "<html></html>"}],
+            }
+        )
+        if "denial-shape" not in case_failures(replaced):
+            raise RuntimeError("200 success page denial accepted: " + calibrated["name"])
+        checks.append(
+            {
+                "mutation": "replace " + calibrated["name"] + " body with a 200 success page",
+                "rejected_by": "denial-shape",
+            }
+        )
+    forbidden_probe = copy.deepcopy(connect)
+    forbidden_probe["forbidden"] = [{"kind": "tcp", "detail": "sensitivity probe"}]
+    if "forbidden-receipt" not in case_failures(forbidden_probe):
+        raise RuntimeError("non-empty forbidden receipt accepted")
+    checks.append(
+        {"mutation": "inject forbidden observer hit", "rejected_by": "forbidden-receipt"}
+    )
     literal = next(case for case in cases if case["name"] == "positive-global6-http")
     if case_failures(literal):
         raise RuntimeError("cannot calibrate literal Host assertion against a failing case")
