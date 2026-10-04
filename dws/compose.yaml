@@ -120,7 +120,7 @@ services:
     cpus: 2
 
   searxng:
-    image: ghcr.io/searxng/searxng@sha256:a93b665d10ce0675e8d2124187943111399ba69f384228c51b4cd21fdceda0bc
+    image: ghcr.io/searxng/searxng@sha256:0aacb9eb84a4d2611bdf1972190e3cdd21f7a5992b0defc3a8e423ea06f4d0bb
     platform: linux/amd64
     user: "977:977"
     read_only: true

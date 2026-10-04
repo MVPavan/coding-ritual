@@ -1,10 +1,22 @@
 # Private DWS discovery; requires a deployment-specific SEARXNG_SECRET.
 use_default_settings:
   engines:
-    keep_only: [duckduckgo, wikipedia, brave, google]
+    keep_only: [duckduckgo, wikipedia, brave, google, yandex, yep, yahoo, xprivo]
+# Measured 2026-10-04 from the owner network on 2026.10.4: brave (429) and google
+# (403) are blocked; duckduckgo is intermittent. yandex, yep, yahoo and xprivo
+# answered technical and equity queries relevantly. Revisit when availability changes.
 engines:
   - name: google
     disabled: false
+  - name: yandex
+    disabled: false
+  - name: yep
+    disabled: false
+  - name: yahoo
+    disabled: false
+  - name: xprivo
+    disabled: false
+    inactive: false
 # Optional owner choice: add bing to keep_only and an engines entry with
 # name: bing, disabled: false. It is excluded by default after observed
 # unrelated results for a technical documentation query.
@@ -35,6 +47,8 @@ general:
   instance_name: DWS discovery
 search:
   formats: [html, json]
+  # DuckDuckGo CAPTCHAs every all-languages (wt-wt) request: searxng/searxng#6779.
+  default_lang: "en-US"
   autocomplete: ""
 server:
   limiter: false
