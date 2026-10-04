@@ -105,3 +105,8 @@ actual browser/MCP, standalone installation, upgrade, and Compose maintenance
 scenarios as well, use `scripts/verify_product.sh --full`. See the
 [end-to-end scenario guide](docs/verification/end-to-end-scenarios.md) for
 prerequisites, coverage, and results.
+
+## License
+
+DWS is licensed under the [Apache License 2.0](LICENSE). Bundled services keep
+their own licences; see the [component inventory](docs/verification/component-inventory.md).
