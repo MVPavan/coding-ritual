@@ -63,7 +63,7 @@ run; they are not the new replication's timings or wheel hash.
 | V4 — Exact retained evidence | Verified | Retrieved character spans matched canonical text and bounded line reads. Updating the fixture produced another snapshot; pinned old text remained exact. The pinned live example survived consumer/container replacement. Research journey; maintenance and MCP receipts. |
 | V5 — Scoped retrieval and independent reads | Verified | Four workspaces shared colliding terms alongside eight stronger unrelated decoys. Workspace/run/document/crawl filters returned the correct captures. Deleted index files left reads available and retrieval explicitly partial; reconstruction restored hits. Shared and crawl journeys. |
 | V6 — Durable bounded crawl | Verified | Actual CLI submission persisted before acknowledgement. Killed API/worker resumed the same job without reacquiring completed pages. Cycles, off-scope links, one failed page, page limits, manifest counts, repeated idempotent submission, and cancellation were exercised. Changed request/key conflict and policy-denied replay were also verified. Crawl journey; `.runtime/jobs-replay-product-check/result.json`; real MCP receipt. |
-| V7 — Shared operation | Verified | Four equivalent callers shared one HTTP acquisition and snapshot; reads/retrieval overlapped held acquisitions. The independent worker indexed another capture during the overlap. Seven competing callers against a six-request admission limit produced explicit `429 busy` for excess work, then normal operation resumed. Cross-workspace reads were rejected. Shared journey; final JUnit receipt. This is the measured envelope, not a sustained-load claim. |
+| V7 — Shared operation | Verified | Four equivalent callers shared one HTTP acquisition and snapshot; reads/retrieval overlapped held acquisitions. The independent worker indexed another capture during the overlap. Seven competing callers against a six-request admission limit produced explicit typed 429s; cross-workspace reads were rejected. On 2026-10-04, isolated 1/5/10/20/50 mixed fixture bursts held the four-slot acquisition cap, returned typed capacity with retry hints, and kept job controls responsive, including during a separate protected real-browser fetch. See [concurrency qualification](concurrency-qualification.md). This is a fixture envelope, not sustained-load capacity. |
 | V8 — Retention and recovery | Verified | Pin/export/expiry/GC dry-run, independent index reconstruction, corrupted-artifact repair, old-backup refusal preserving newer pins/jobs, and disk-pressure rejection/recovery all passed. Five write paths returned 507 while retained reads/status and retention cleanup remained useful. `.runtime/product-tests/final-results.xml`; `.runtime/jobs-replay-product-check/quota-result.json`. |
 | V9 — Safe, honest degradation | Verified | Real API/CLI journeys denied unauthorized access, unsafe targets/redirects, malformed headers/schema, oversized wire/decompressed content and provider outages. Adversarial proxy/redirect collectors did not receive CLI bearer credentials. Existing browser traffic qualification was independently bound to the deployed protected provider; scope and exclusions are below. |
 | V10 — Operational completeness | Verified | Actual locked DWS preparation upgraded 0.0.1→0.1.0; live preparation was refused; API/worker replacement preserved a pinned citation and diagnostics passed. A separate installed-product environment upgraded actual idna 3.19→3.20 through locked uv preparation with consumers stopped; exact pinned evidence and acknowledged jobs survived restart. `.runtime/maintenance-product-results.json`; `.runtime/live-preparation-refusal.json`; `.runtime/dependency-upgrade/receipt.json`. |
@@ -137,6 +137,10 @@ Public upstream results are time-specific smoke evidence, not availability
 guarantees.
 
 ## Tested identities and selected architecture
+
+The [deployed component inventory](component-inventory.md) records the running
+image IDs, prepared `uv.lock` environment, provider distributions, OS package
+records, and exact available notices as of 2026-10-04.
 
 | Component | Tested identity |
 |---|---|
@@ -224,7 +228,9 @@ token; owner tokens and fixture private keys were not copied.
   separately returned useful results. Neither promises universal discovery.
 - The default is lexical search. Diverse multilingual relevance, very large
   archives and sustained-load performance have not been established. The
-  measured shared envelope is the bounded scenario described under V7.
+  2026-10-04 [fixture concurrency qualification](concurrency-qualification.md)
+  extends V7 through 50 callers, but at that size 187 of 206 requests received
+  typed capacity responses. It does not establish production throughput.
 - Text PDF extraction preserves page mappings and reports layout limits;
   scanned/complex PDFs can fail. OCR, private-site authentication automation,
   paywall bypass, arbitrary browser control and audio/video are excluded.
