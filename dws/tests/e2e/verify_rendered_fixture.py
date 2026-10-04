@@ -11,6 +11,7 @@ import argparse
 import base64
 import hashlib
 import json
+import math
 import os
 import secrets
 import subprocess
@@ -18,6 +19,7 @@ import sys
 import threading
 import time
 import uuid
+from concurrent.futures import ThreadPoolExecutor
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
@@ -57,6 +59,8 @@ def fixture() -> None:
                 peer=self.client_address[0],
             )
             if path == "/javascript":
+                if self.client_address[0] == os.environ.get("DWS_FIXTURE_BROWSER_PEER"):
+                    time.sleep(float(os.environ.get("DWS_FIXTURE_RENDER_DELAY", "0")))
                 encoded = base64.b64encode(EXPECTED.encode()).decode()
                 private = os.environ["DWS_FIXTURE_PRIVATE_URL"]
                 body = f"""<!doctype html><html><head>
@@ -82,8 +86,8 @@ fetch('{private}/forbidden-browser-subrequest').then(function() {{
 
 
 _HTTP_CLIENT = """
-import json, os, urllib.error, urllib.request
-value = json.load(open('/evidence/request.json'))
+import json, os, sys, urllib.error, urllib.request
+value = json.load(open(sys.argv[1]))
 headers = {'Content-Type': 'application/json'}
 if value.get('authenticated'):
     headers['Authorization'] = 'Bearer ' + os.environ['DWS_TOKEN']
@@ -100,7 +104,7 @@ except urllib.error.HTTPError as exc:
 """
 
 
-def verify(output: Path) -> int:
+def verify(output: Path, *, concurrency_probe: bool = False) -> int:
     output = output.resolve()
     if not output.is_relative_to(PRODUCT) or output == PRODUCT:
         raise ValueError("Verification output must stay beneath the DWS product folder")
@@ -139,6 +143,10 @@ def verify(output: Path) -> int:
         + "\nDWS_FIXTURE_PRIVATE_URL=http://"
         + fixture_private
         + ":8080"
+        + "\nDWS_FIXTURE_BROWSER_PEER="
+        + browser_public
+        + "\nDWS_FIXTURE_RENDER_DELAY="
+        + ("2" if concurrency_probe else "0")
         + "\nPYTHONDONTWRITEBYTECODE=1\nTMPDIR=/evidence/tmp"
         + "\nXDG_CACHE_HOME=/evidence/cache\nXDG_STATE_HOME=/evidence/state\n"
     )
@@ -188,17 +196,22 @@ def verify(output: Path) -> int:
         }
         if body is not None:
             value.update(method="POST", body=body)
-        (output / "request.json").write_text(json.dumps(value))
-        decoded = json.loads(
-            docker(
-                "exec",
-                api,
-                "/app/.runtime/container-env/bin/python",
-                "-c",
-                _HTTP_CLIENT,
-                timeout=45,
+        name = "request-" + uuid.uuid4().hex + ".json"
+        (output / name).write_text(json.dumps(value))
+        try:
+            decoded = json.loads(
+                docker(
+                    "exec",
+                    api,
+                    "/app/.runtime/container-env/bin/python",
+                    "-c",
+                    _HTTP_CLIENT,
+                    "/evidence/" + name,
+                    timeout=45,
+                )
             )
-        )
+        finally:
+            (output / name).unlink(missing_ok=True)
         if not isinstance(decoded, dict):
             raise ValueError("Fixture HTTP client returned a non-object response")
         return decoded
@@ -357,10 +370,61 @@ def verify(output: Path) -> int:
         assert static["status"] == 200 and EXPECTED not in static["body"], (
             "Fixture source already contains rendered evidence"
         )
-        fetched = request(
-            "http://127.0.0.1:8765/v1/fetch",
-            {"url": source_url, "render": "always", "refresh": True},
-        )
+        if concurrency_probe:
+            queued = request(
+                "http://127.0.0.1:8765/v1/crawl",
+                {"seed_url": source_url, "render": "never", "max_pages": 1},
+            )
+            assert queued["status"] == 200, queued
+            job_id = queued["body"]["job_id"]
+            with ThreadPoolExecutor(max_workers=1) as pool:
+                pending = pool.submit(
+                    request,
+                    "http://127.0.0.1:8765/v1/fetch",
+                    {"url": source_url, "render": "always", "refresh": True},
+                )
+                browser_started = time.monotonic() + 30
+                while not any(
+                    event.get("kind") == "http"
+                    and event.get("path") == "/javascript"
+                    and event.get("peer") == browser_public
+                    for event in events()
+                ):
+                    if time.monotonic() >= browser_started or pending.done():
+                        raise AssertionError(
+                            "Real browser fixture work did not overlap controls"
+                        )
+                    time.sleep(0.05)
+                control: dict[str, list[float]] = {"job_status": [], "job_cancel": []}
+                for operation, repetitions in (("job_status", 5), ("job_cancel", 1)):
+                    for _ in range(repetitions):
+                        start_control = time.perf_counter()
+                        observed = request(
+                            "http://127.0.0.1:8765/v1/" + operation,
+                            {"job_id": job_id},
+                        )
+                        control[operation].append(
+                            round((time.perf_counter() - start_control) * 1000, 1)
+                        )
+                        assert observed["status"] == 200, observed
+                        assert not pending.done(), "Browser work completed before control probe"
+                report["browser_control"] = {
+                    operation: {
+                        "p95_ms": sorted(values)[math.ceil(0.95 * len(values)) - 1],
+                        "max_ms": max(values),
+                        "successes": len(values),
+                    }
+                    for operation, values in control.items()
+                }
+                assert all(
+                    value["p95_ms"] < 2500 for value in report["browser_control"].values()
+                )
+                fetched = pending.result(timeout=40)
+        else:
+            fetched = request(
+                "http://127.0.0.1:8765/v1/fetch",
+                {"url": source_url, "render": "always", "refresh": True},
+            )
         assert fetched["status"] == 200, fetched
         capture = fetched["body"]
         assert capture["provider"] == "crawl4ai", capture

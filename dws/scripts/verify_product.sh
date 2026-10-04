@@ -68,6 +68,8 @@ if $verification_full; then
         --output "$verification_dir/browser-policy"
     verify_step rendered_fixture "$verification_python" -B tests/e2e/verify_rendered_fixture.py \
         --output-dir "$verification_dir/rendered-fixture"
+    verify_step concurrency "$verification_python" -B tests/e2e/verify_concurrency.py \
+        --output-dir "$verification_dir/concurrency"
     verify_step live "$verification_python" -B tests/e2e/verify_live.py \
         --output-dir "$verification_dir/live"
     verify_step operations "$verification_python" -B tests/e2e/verify_operations.py \

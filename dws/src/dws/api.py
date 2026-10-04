@@ -111,6 +111,8 @@ class LocalAccess:
         self.token = _valid_token(token)
         self.active_limit = active_limit
         self.active = 0
+        self.normal_active = 0
+        self.control_reserve = min(1, max(0, active_limit - 1))
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] != "http":
@@ -147,9 +149,20 @@ class LocalAccess:
                     scope, receive, send
                 )
                 return
-        if self.active >= self.active_limit:
+        control = scope["path"] in {"/v1/job_status", "/v1/job_cancel"}
+        if self.active >= self.active_limit or (
+            not control and self.normal_active >= self.active_limit - self.control_reserve
+        ):
             await JSONResponse(
-                {"error": {"code": "busy", "message": "Admission limit reached"}}, 429
+                {
+                    "error": {
+                        "code": "busy",
+                        "message": "Admission limit reached",
+                        "retry_after_seconds": 1,
+                    }
+                },
+                429,
+                headers={"Retry-After": "1"},
             )(scope, receive, send)
             return
         length = headers.get("content-length", "0")
@@ -164,10 +177,14 @@ class LocalAccess:
             )
             return
         self.active += 1
+        if not control:
+            self.normal_active += 1
         try:
             await self.serve_bounded(scope, receive, send)
         finally:
             self.active -= 1
+            if not control:
+                self.normal_active -= 1
 
     async def serve_bounded(self, scope: Scope, receive: Receive, send: Send) -> None:
         # Buffer only a bounded request, including chunked bodies, before effects.
@@ -227,6 +244,18 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.exception_handler(DWSError)
     async def dws_error(request: Request, error: DWSError) -> JSONResponse:
+        if error.status == 429:
+            return JSONResponse(
+                {
+                    "error": {
+                        "code": error.code,
+                        "message": error.message,
+                        "retry_after_seconds": 1,
+                    }
+                },
+                status_code=429,
+                headers={"Retry-After": "1"},
+            )
         return JSONResponse(error.payload(), status_code=error.status)
 
     @app.exception_handler(Exception)
