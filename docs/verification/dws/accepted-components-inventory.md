@@ -1,3 +1,5 @@
+**Historical as of 2026-10-04:** This records retired QMD-era images; see the [deployed product inventory](../../../dws/docs/verification/component-inventory.md).
+
 # Accepted application and SearXNG component inventory
 
 **DONE_WITH_CONCERNS — 2026-09-22.** P1 cr-0km.14 evidence for stage5;
