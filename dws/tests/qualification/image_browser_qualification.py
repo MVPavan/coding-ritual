@@ -21,14 +21,16 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import quote, urlsplit
 
-BASE = (
-    "unclecode/crawl4ai@sha256:bd36741e7bdd35ddc1a05d9183e1d6d8cefb61dd640d944a25d026b76e917690"
-)
 PUBLIC4 = "11.203.0.3"
 PUBLIC6 = "2001:4860:abcd:71::3"
 QUALIFICATION = Path(__file__).resolve().parent
 PRODUCT = QUALIFICATION.parents[1]
 OVERLAY = PRODUCT / "docker/crawl4ai-egress"
+BASE = next(
+    line.split()[1]
+    for line in (OVERLAY / "Dockerfile").read_text().splitlines()
+    if line.startswith("FROM ")
+)
 
 
 def extract_state(html: str) -> dict[str, Any]:
@@ -477,6 +479,11 @@ except urllib.error.HTTPError as e:
             timeout=120,
         )
         info = json.loads(docker("image", "inspect", prefix))[0]
+        base_info = json.loads(docker("image", "inspect", BASE))[0]
+        base_layers = base_info["RootFS"]["Layers"]
+        if info["RootFS"]["Layers"][: len(base_layers)] != base_layers:
+            raise RuntimeError("Tested browser image does not contain the audited base")
+        result["base_image_id"] = base_info["Id"]
         image = info["Id"]
         result["image_metadata"] = info
         # Exercise actual missing-proxy and forbidden owner-environment failures.
