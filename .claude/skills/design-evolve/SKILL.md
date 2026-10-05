@@ -16,10 +16,12 @@ preserving source precision and invariants. Integration does not authorize redes
    Read incrementally; delegate bounded independent reads only when beneficial.
 3. For each concept, read the actual discussion and affected core sections before
    editing. A summary guides navigation but is not sufficient evidence for a
-   consequential change. Record source → target section → intended change.
+   consequential change. Record source → target section → intended change. For a
+   multi-concept integration, show this map to whoever started it before editing.
 4. Start each target document from its complete source. Integrate only supported
    decisions; preserve exact identifiers, numbers, error behavior and invariants
-   unless explicitly superseded. Keep ambiguous choices unresolved and continue
+   unless explicitly superseded. Never fill a gap a source leaves open; record it
+   as TBD with its source. Keep ambiguous choices unresolved and continue
    independent integrations while asking about material conflicts.
 5. Update version headers, filenames and internal references. Copy untouched core
    files too. The target must stand alone; prior-version references belong only
