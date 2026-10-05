@@ -242,6 +242,20 @@ matrix. Ledger reasons and casebook events cite these folders as their
 evidence; extend the family folder when its set grows rather than opening a
 second one for an overlapping set.
 
+## `harness-comparisons/` — whole-harness comparisons
+
+One folder per compared set of harnesses, at harness level rather than skill
+family. `pocock-pstack-ours/` holds the Pocock vs pstack comparison, the
+comparison against ours, and `autonomy/` (cited skill maps under `data/`, the
+autonomy report, and its verification rounds).
+
+## `adlc/` — agentic development lifecycle
+
+`GUIDE.md` holds the durable lifecycle principles, each with its
+model-dependent setting and revisit trigger. `harness-map.html` places the
+three compared harnesses on the lifecycle. `sources/` holds the vendor
+capture; `council/` holds the council briefs, member answers and judgments.
+
 ## Limitations (current)
 
 - Frontmatter parsing is minimal (single-line scalars); multi-line descriptions

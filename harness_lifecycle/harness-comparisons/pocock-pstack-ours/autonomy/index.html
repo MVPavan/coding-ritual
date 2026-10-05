@@ -1,0 +1,1619 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>pstack vs Pocock vs ours: how they work and how to run in full autonomy</title>
+<style>
+:root{
+  --bg:#f7f7f5; --surface:#ffffff; --surface2:#f0f0ec; --border:#d9d9d2; --text:#1d1f22; --muted:#55595f;
+  --accent:#2f5fa7; --code:#eef0f3;
+  --c-ps:#ece3f7; --c-ps-b:#7a52b3;
+  --c-ou:#fde7c8; --c-ou-b:#a8650f;
+  --c-both:#dbe8fb; --c-both-b:#3b6fb6;
+  --c-comp:#e1f1e4; --c-comp-b:#3f8a4f;
+  --c-mp:#e9e9e6; --c-mp-b:#6b6b64;
+  --c-blk:#fbd9d3; --c-blk-b:#b4442f;
+  --c-part:#fff1bf; --c-part-b:#a88400;
+  --c-have:#e1f1e4; --c-have-b:#3f8a4f;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#16181c; --surface:#1e2126; --surface2:#262a31; --border:#3a3f48; --text:#e6e8eb; --muted:#aab0b9;
+    --accent:#8db4ef; --code:#2a2e36;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+main{max-width:1240px;margin:0 auto;padding:24px 20px 64px}
+h1{font-size:1.9rem;line-height:1.25;margin:8px 0 4px}
+h2{font-size:1.45rem;margin:0;display:flex;gap:14px;align-items:baseline}
+h2 .num{color:var(--muted);font-weight:400;font-variant-numeric:tabular-nums}
+h3{font-size:1.1rem;margin:32px 0 8px}
+p,li{max-width:75ch}
+.sub{color:var(--muted);margin:0 0 16px}
+section{margin-top:56px;padding-top:8px}
+section>header{border-bottom:1px solid var(--border);padding-bottom:8px;margin-bottom:16px}
+code,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.88em;background:var(--code);padding:1px 4px;border-radius:4px}
+a{color:var(--accent)}
+a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.kpis{display:grid;grid-template-columns:1.1fr 1fr 1fr 0.9fr 1fr;gap:12px;margin:16px 0}
+.kpi{border:1px solid var(--border);background:var(--surface);border-radius:8px;padding:12px 14px}
+.kpi b{display:block;font-size:1.6rem;font-variant-numeric:tabular-nums;line-height:1.2}
+.kpi span{color:var(--muted);font-size:.85rem}
+nav.toc{border:1px solid var(--border);background:var(--surface);border-radius:8px;padding:8px 14px;margin:16px 0}
+nav.toc ol{margin:4px 0;padding-left:22px;columns:2;column-gap:32px}
+nav.toc li{margin:2px 0}
+figure{margin:16px 0 8px;border:1px solid var(--border);border-radius:8px;background:var(--surface);padding:12px}
+figcaption{color:var(--muted);font-size:.92rem;margin-bottom:8px;max-width:none}
+figcaption strong{color:var(--text)}
+.diagram{overflow:auto;max-width:100%}
+.diagram svg{max-width:none;height:auto}
+.diagram.fit svg{max-width:100%}
+.fitbtn{font:inherit;font-size:.8rem;border:1px solid var(--border);background:var(--surface2);color:var(--text);border-radius:6px;padding:2px 10px;cursor:pointer;margin-bottom:6px}
+.fitbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media print{.fitbtn{display:none}.diagram svg{max-width:100%}}
+pre.mm{white-space:pre;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.78rem;background:var(--code);padding:10px;border-radius:6px;overflow:auto;margin:0}
+.mm-err{color:var(--c-blk-b);font-size:.85rem}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.84rem;margin-top:8px;color:var(--text)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{display:inline-block;width:14px;height:14px;border-radius:3px;border:2px solid;vertical-align:middle}
+.sw.dash{border-style:dashed}
+.sw.round{border-radius:8px}
+.sw.hex{clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%)}
+details{border:1px solid var(--border);border-radius:8px;background:var(--surface);margin:8px 0;padding:0 12px}
+details[open]{padding-bottom:12px}
+summary{cursor:pointer;padding:8px 0;font-weight:600}
+table{border-collapse:collapse;width:100%;font-size:.88rem;margin:8px 0}
+th,td{border:1px solid var(--border);padding:5px 8px;text-align:left;vertical-align:top}
+th{background:var(--surface2);position:sticky;top:0}
+td.src{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.78rem;color:var(--muted);white-space:nowrap}
+.tbl-wrap{overflow:auto;max-height:80vh}
+.tag{display:inline-block;padding:1px 8px;border-radius:10px;font-size:.78rem;font-weight:600;border:1px solid;white-space:nowrap;color:#1d1f22}
+.t-alt{background:var(--c-both);border-color:var(--c-both-b)}
+.t-comp{background:var(--c-comp);border-color:var(--c-comp-b)}
+.t-ps{background:var(--c-ps);border-color:var(--c-ps-b)}
+.t-ou{background:var(--c-ou);border-color:var(--c-ou-b)}
+.t-mp{background:var(--c-mp);border-color:var(--c-mp-b)}
+.t-nei{background:var(--c-mp);border-color:var(--c-mp-b)}
+.t-blk{background:var(--c-blk);border-color:var(--c-blk-b)}
+.t-part{background:var(--c-part);border-color:var(--c-part-b)}
+.t-have{background:var(--c-have);border-color:var(--c-have-b)}
+.grid-area{margin:12px 0}
+.grid-area h4{margin:10px 0 6px;font-size:.95rem}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:2px solid;border-radius:6px;padding:3px 8px;font-size:.82rem;color:#1d1f22;line-height:1.3}
+.chip small{display:block;font-size:.7rem;opacity:.85}
+.chip.ps{background:var(--c-ps);border-color:var(--c-ps-b)}
+.chip.ou{background:var(--c-ou);border-color:var(--c-ou-b)}
+.chip.both{background:var(--c-both);border-color:var(--c-both-b)}
+.chip.mp{background:var(--c-mp);border-color:var(--c-mp-b)}
+.chip.p::after{content:" +P";font-weight:700;font-size:.72rem}
+.note{border-left:3px solid var(--accent);padding:4px 12px;color:var(--muted);font-size:.9rem;max-width:none}
+.warn{border-left-color:var(--c-blk-b)}
+footer{margin-top:64px;border-top:1px solid var(--border);padding-top:12px;color:var(--muted);font-size:.85rem}
+ul.tight li{margin:3px 0}
+@media (max-width:720px){
+  .kpis{grid-template-columns:1fr 1fr}
+  nav.toc ol{columns:1}
+  main{padding:16px 12px 48px}
+}
+@media print{
+  body{background:#fff;color:#000}
+  nav.toc{display:none}
+  figure,details{break-inside:avoid;border-color:#bbb}
+  .tbl-wrap{max-height:none;overflow:visible}
+  th{position:static}
+}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <h1>pstack vs Matt Pocock vs ours: how each harness works, and what full autonomy would take</h1>
+  <p class="sub">A local report built only from three survey files: <a href="data/pstack.md">data/pstack.md</a> (pstack v0.15.9), <a href="data/pocock.md">data/pocock.md</a> (Pocock skills v1.3.1) and <a href="data/ours.md">data/ours.md</a> (our harness, branch <code>dws-workflow</code>). Citations are <code>file:line</code> into those files, or straight into a primary repo path where a reviewer fix needed one. <strong>J:</strong> marks judgement. Generated 2026-10-05.</p>
+  <div class="kpis" role="list">
+    <div class="kpi" role="listitem"><b>23 + 50</b><span>pstack playbooks + skills (24 of the skills are principles)</span></div>
+    <div class="kpi" role="listitem"><b>37</b><span>Pocock SKILL.md files, 27 promoted</span></div>
+    <div class="kpi" role="listitem"><b>46 + engine</b><span>our skill entries (8 are aliases or stubs), plus the Python engine</span></div>
+    <div class="kpi" role="listitem"><b>10 / 11 / 1</b><span>J: problems (of 22) where ours vs pstack is an alternative / a complement / ours-only</span></div>
+    <div class="kpi" role="listitem"><b>3</b><span>autonomy blockers in ours (ours.md §6)</span></div>
+  </div>
+  <noscript><p class="note warn">JavaScript is off, so diagrams show as Mermaid source. All tables, sources and findings below are plain HTML and still readable.</p></noscript>
+  <p class="note" id="cdn-note" hidden>Mermaid could not load from the CDN (offline?). Diagrams are shown as their Mermaid source. Tables and findings are unaffected.</p>
+  <nav class="toc" aria-label="Sections">
+    <ol start="0">
+      <li><a href="#s0">Summary</a></li>
+      <li><a href="#s1">pstack</a></li>
+      <li><a href="#s2">Matt Pocock</a></li>
+      <li><a href="#s3">Ours</a></li>
+      <li><a href="#s4">Problem-by-problem comparison</a></li>
+      <li><a href="#s5">Full capability diff</a></li>
+      <li><a href="#s6">Toward full autonomy</a></li>
+    </ol>
+  </nav>
+</header>
+
+<!-- ============================ 0 SUMMARY ============================ -->
+<section id="s0">
+<header><h2><span class="num">00</span>Summary</h2></header>
+<ul class="tight">
+  <li><strong>pstack</strong> is a Cursor plugin. One sticky router skill (<code>poteto-mode</code>) matches 23 playbooks and draws on 24 principle skills. It assumes GitHub PR stacks with CI, Cursor cloud agents, the <code>/loop</code> wake command and three model families. Its described setup also feeds Bugbot and a security-review bot into PR triage, but the data file judges those bots inputs, not requirements, for the autonomy path (pstack.md:440). It enforces nothing in code: every stop rule is prose. Its only deterministic parts are <code>watch-pr</code>, <code>orch</code>, <code>check-plan</code> and <code>worktree-audit</code> (pstack.md:441).</li>
+  <li><strong>Matt Pocock's skills</strong> are human-orchestrated. A skill may never call a user-invoked skill, so a human types each step of the main flow (grill, spec, tickets, implement, retro). The most it runs alone is one <code>implement-spec</code> session, and only if the test seams were agreed beforehand. It leaves truly unattended (AFK) work to an outside loop (pocock.md:39, 278).</li>
+  <li><strong>Ours</strong> has two layers. The prose harness (skills, agents, hooks, Beads) drives a deterministic Python engine: foreman, contractor, inspector, crews, run ledger. There is no CI and no PR flow. Landing is a local compare-and-swap behind a signed human ship gate (ours.md:8-11, 17-18).</li>
+  <li><strong>Headline difference.</strong> pstack hands its gates to GitHub, CI, bots and an independent live verifier, and it enforces by prose. Ours enforces in code (host verify, bwrap sandbox, signed gates, SQLite ledger) but lands locally. J: across the 22 problems, ours vs pstack is an alternative in 10, a complement in 11, and ours-only in 1 (domain glossary and ADRs).</li>
+  <li><strong>Autonomy finding.</strong> In <code>autopilot-full</code>, pstack merges when it holds both the operator's grant and a clean verdict from an agent that did not write the code; in <code>autopilot-stack</code> the operator lands. <code>/loop</code> wakes it. Ours stops at three points (ours.md §6): a human-signed ship gate on every stage, a monitor <code>hook_argv</code> re-wake that is not wired up, and approval gates in the prose layer. J: <a href="#s6">section 6</a> gives a step for each. The ship-gate one is not a small step: it changes the trust model and needs the owner's explicit decision.</li>
+</ul>
+<p class="note"><strong>Verification.</strong> An independent reviewer checked this report: 101 report-to-data units and 36 data-to-primary-source claims. The verdict was REVISE, with 9 major and 6 minor findings. All 15 are fixed here (#1-#15): L9 ship gate (#1), L7 wake path (#2), L4 exit predicate (#3), L5 verification (#4), Pocock seams gate (#5), build-loop red evidence (#6), P03 relabel and tally (#7), family rule scope (#8), L11 transport vs verification (#9), debrief scope (#10), blocking edges (#11), integration mechanism (#12), L12 step (#13), merge by autopilot mode (#14) and bots as inputs (#15). Where a fix corrects a data-file claim, the primary source is cited directly. <strong>Round 2:</strong> all 15 fixes confirmed, and 4 new findings fixed. "Combine parallel work" is now <em>both +P</em>, because pstack arena grafts from parallel candidates (arena/SKILL.md:24-33,53-55); the capability tally is now 28 / 29 / 23 / 3. The three data files now carry the round-1 corrections with primary citations. The L9 ADR requirement is scoped to option (b). The tdd citation now points at SKILL.md:22.</p>
+</section>
+
+<!-- ============================ 1 PSTACK ============================ -->
+<section id="s1">
+<header><h2><span class="num">01</span>pstack (Cursor plugin, v0.15.9)</h2></header>
+
+<h3>1a. Infrastructure it assumes, and what depends on it</h3>
+<figure>
+<figcaption><strong>How to read:</strong> left-hand boxes are things pstack assumes but does not ship. Each arrow points to the skill, playbook or script that breaks without that thing. Dashed amber boxes are assumptions the data file flags as inconsistent, or as inputs that are not required.</figcaption>
+<div class="diagram"><pre class="mm">flowchart LR
+  subgraph FORGE["Forge and VCS"]
+    I1["GitHub PRs, opened ready not draft"]:::inf
+    I2["Stacked PRs: base-branch chains"]:::inf
+    I3["gh CLI or Cursor origin CLI"]:::inf
+    I4["Graphite gt, Orchestrate only"]:::cav
+    I5["CI, required checks, merge queue or auto-merge"]:::inf
+    I6["Bugbot + security-review bot: inputs, not required"]:::cav
+    I7["git worktree per task"]:::inf
+  end
+  subgraph CURSOR["Cursor runtime"]
+    I8["Task subagent API"]:::inf
+    I9["Cursor cloud agents"]:::inf
+    I10["/loop wake built-in"]:::inf
+    I11["Sticky mode, rules, AskQuestion, create-skill"]:::inf
+    I12["agent-transcripts store"]:::inf
+    I13["update_state, webhooks, Slack automations"]:::inf
+  end
+  subgraph EXTS["Other plugins and services"]
+    I14["cursor-team-kit: deslop, control-ui, control-cli"]:::ext
+    I15["project verify-#lt;app#gt; skill, made by create-verification-skill"]:::ext
+    I16["MCPs: tracker, docs, chat, observability, errors, warehouse"]:::ext
+    I17["3 model families via pstack-models.mdc"]:::ext
+    I18["Bun + Node runtime"]:::ext
+    I19["pstack source checked in at pstack/ on trunk"]:::cav
+  end
+  subgraph USES["pstack nodes that depend on them"]
+    C1["pb:opening-a-pr"]
+    C2["pb:babysit"]
+    C3["pb:shipping"]
+    C4["pb:autopilot-full / -stack"]
+    C5["pb:orchestrate + orch"]
+    C6["pb:multi-phase-plan"]
+    C7["pb:autonomous-run"]
+    C8["watch-pr script"]
+    C9["bugbot-triage rubric"]
+    C10["arena, pb:hillclimb"]
+    C11["pb:worktree-cleanup"]
+    C12["poteto-mode router"]
+    C13["swarm"]
+    C14["why, recall"]
+    C15["setup-pstack"]
+    C17["session-pickup, eval, show-me-your-work"]
+    C18["pb:bug-fix, pb:feature live verify"]
+    C19["make-bot-ui, benny, teach"]
+    C20["check-plan script"]
+    C21["reflect"]
+    C22["interrogate, architect"]
+  end
+  I1 --> C1 & C2 & C3 & C4
+  I2 --> C2 & C3 & C4
+  I3 --> C1 & C8
+  I4 -.-> C5
+  I5 --> C2 & C3 & C8
+  I6 --> C9 & C8
+  I7 --> C1 & C5 & C10 & C11
+  I8 --> C12 & C13 & C5 & C14
+  I9 --> C3 & C4 & C5 & C6
+  I10 --> C7 & C2 & C4 & C3
+  I11 --> C12 & C15 & C21
+  I12 --> C17 & C14 & C21 & C11
+  I13 --> C19
+  I14 --> C1 & C18 & C3 & C4
+  I15 --> C18
+  I16 --> C14 & C12
+  I17 --> C10 & C22 & C17
+  I18 --> C5 & C8 & C20
+  I19 -.-> C4
+  classDef inf fill:#dbe8fb,stroke:#3b6fb6,color:#14243d
+  classDef ext fill:#ece3f7,stroke:#7a52b3,color:#25163b
+  classDef cav fill:#fff1bf,stroke:#a88400,color:#332800,stroke-dasharray:5 3
+  classDef sk fill:#f1f1ee,stroke:#7a7a72,color:#1a1a1a
+  class C1,C2,C3,C4,C5,C6,C7,C8,C9,C10,C11,C12,C13,C14,C15,C17,C18,C19,C20,C21,C22 sk</pre></div>
+<div class="legend"><span><i class="sw" style="background:#dbe8fb;border-color:#3b6fb6"></i>Forge or Cursor runtime assumption</span><span><i class="sw" style="background:#ece3f7;border-color:#7a52b3"></i>External plugin, service or model</span><span><i class="sw dash" style="background:#fff1bf;border-color:#a88400"></i>Flagged inconsistent, or input not required</span><span><i class="sw" style="background:#f1f1ee;border-color:#7a7a72"></i>pstack node that depends on it</span></div>
+</figure>
+<details><summary>Infrastructure table and sources</summary>
+<div class="tbl-wrap"><table>
+<thead><tr><th>Assumption</th><th>What breaks without it</th><th>Source</th></tr></thead>
+<tbody>
+<tr><td>Everything ships as a PR. J: investigation, forensics and prototype do not PR, so "every" is overstated</td><td>No terminal step for build playbooks</td><td class="src">pstack.md:11</td></tr>
+<tr><td>Worktree per task, one writer per branch</td><td>Parallel agents overwrite each other</td><td class="src">pstack.md:12</td></tr>
+<tr><td>Stacked PRs</td><td>Babysit "merge frontier" and shipping "contiguous run" lose meaning</td><td class="src">pstack.md:13</td></tr>
+<tr><td>gh or origin CLI, never require gt</td><td>All PR steps; watch-pr shells out to gh</td><td class="src">pstack.md:14</td></tr>
+<tr><td>Graphite gt required by Orchestrate (contradiction)</td><td><code>orch frontier set</code> errors on a gh-only repo</td><td class="src">pstack.md:15</td></tr>
+<tr><td>Built-in PR tool when present; PRs open ready</td><td>Minor; draft PRs may not trigger bots (J)</td><td class="src">pstack.md:16-17</td></tr>
+<tr><td>CI + required checks + merge queue / auto-merge</td><td>Babysit CI classification and watcher verdicts go inert</td><td class="src">pstack.md:18</td></tr>
+<tr><td>Bugbot + agentic security review. Inputs in the described setup, not prerequisites for autonomy</td><td>Bot triage has no input; "babysit's thread triage is a no-op"</td><td class="src">pstack.md:19, 440</td></tr>
+<tr><td>Repo pre-review gates and git hooks (pstack ships none)</td><td>Owners push without local gates</td><td class="src">pstack.md:20</td></tr>
+<tr><td>cursor-team-kit: deslop, control-ui, control-cli</td><td>No live driver; the live lane is the floor of a clean verdict</td><td class="src">pstack.md:21</td></tr>
+<tr><td>Project <code>verify-&lt;app&gt;</code> skill</td><td>Live verification degrades to unit tests</td><td class="src">pstack.md:22</td></tr>
+<tr><td>Cursor Task API (model, readonly, background, cloud env, depth 3)</td><td>Every delegation and fan-out</td><td class="src">pstack.md:23</td></tr>
+<tr><td>Cursor cloud agents</td><td>Verifiers, live swarms, autopilot owners contend for one machine</td><td class="src">pstack.md:24</td></tr>
+<tr><td><code>/loop</code> as the only wake</td><td>No unattended iteration</td><td class="src">pstack.md:25</td></tr>
+<tr><td>Sticky mode, rules, AskQuestion, create-skill</td><td>PM not sticky; model roles fall back</td><td class="src">pstack.md:26</td></tr>
+<tr><td>Agent-transcripts and agent store</td><td>Pickup, eval, trail audit, reflect, recall</td><td class="src">pstack.md:27</td></tr>
+<tr><td>Cursor product tools (update_state, webhooks, Slack)</td><td>make-bot-ui and benny unusable</td><td class="src">pstack.md:28</td></tr>
+<tr><td>MCPs found at run time</td><td><code>why</code> degrades to git + gh</td><td class="src">pstack.md:29</td></tr>
+<tr><td>Issue tracker: none required in core</td><td>Nothing in core lifecycle</td><td class="src">pstack.md:30</td></tr>
+<tr><td>Models: grok, claude-opus, gpt panel. Orchestrate runs a unit's verifier on a different family from its worker</td><td>Panels lose model diversity</td><td class="src">pstack.md:31</td></tr>
+<tr><td>Bun + Node</td><td>orch, watch-pr, check-plan unavailable</td><td class="src">pstack.md:32</td></tr>
+<tr><td>pstack source at <code>pstack/</code> in target repo</td><td>"re-read playbook from trunk" drift guard fails</td><td class="src">pstack.md:33</td></tr>
+<tr><td>Persistence = files + git, no DB</td><td>Recall reconstructs from transcripts</td><td class="src">pstack.md:35</td></tr>
+<tr><td>Autonomy high by default</td><td>J: tension with never-block principle on external messages</td><td class="src">pstack.md:36</td></tr>
+</tbody></table></div>
+</details>
+
+<h3>1b. Connection graph</h3>
+<figure>
+<figcaption><strong>How to read:</strong> the router <code>poteto-mode</code> sends work to five playbook clusters; an arrow into a cluster means it routes to every playbook in it. Solid arrows between playbooks are stated hand-offs. Dotted arrows need a condition or a human word (the edge label names it).</figcaption>
+<div class="diagram"><pre class="mm">flowchart LR
+  PM(["poteto-mode: sticky router"]):::hub
+  FIO["figure-it-out skill"]:::sk
+  subgraph UND["Understand, no PR"]
+    INV["investigation"]:::pb
+    RTF["runtime-forensics"]:::pb
+    TRF["trace-forensics"]:::pb
+  end
+  subgraph BLD["Build and change"]
+    BUG["bug-fix"]:::pb
+    FEA["feature"]:::pb
+    REFA["refactoring"]:::pb
+    PERF["perf-issue"]:::pb
+    HILL["hillclimb"]:::pb
+    PROTO["prototype"]:::pb
+    VP["visual-parity"]:::pb
+    AAS["authoring-a-skill"]:::pb
+    EVAL["eval"]:::pb
+  end
+  subgraph LAND["Land"]
+    POPR["opening-a-pr"]:::pb
+    BAB["babysit"]:::pb
+    SHIP["shipping"]:::pb
+  end
+  subgraph LONG["Long runs and programs"]
+    AR["autonomous-run"]:::pb
+    MPP["multi-phase-plan"]:::pb
+    APF["autopilot-full"]:::pb
+    APS["autopilot-stack"]:::pb
+    PORC["orchestrate"]:::pb
+  end
+  subgraph SESS["Session hygiene"]
+    SPU["session-pickup"]:::pb
+    PAUSE["pause-safely"]:::pb
+    WTC["worktree-cleanup"]:::pb
+  end
+  PM -->|routes-to| UND
+  PM --> BLD
+  PM --> LAND
+  PM --> LONG
+  PM --> SESS
+  PM -->|"large, cross-cutting, or no fit"| FIO
+  INV -.->|"if code change follows"| BUG
+  INV -.-> FEA
+  RTF --> BUG
+  RTF --> PERF
+  TRF --> BUG
+  TRF --> PERF
+  PROTO --> FEA
+  REFA -->|"found feature"| FEA
+  PERF -->|"sustained metric work"| HILL
+  BUG & FEA & REFA & PERF & HILL & VP & AAS --> POPR
+  POPR -.->|"human asks"| BAB
+  BAB -.->|"human: land, ship, merge"| SHIP
+  APF -->|invokes| BAB
+  APS -->|invokes| BAB
+  MPP -->|"each open question"| PROTO
+  MPP -.->|"operator go"| APF
+  MPP -.-> APS
+  MPP -.-> PORC
+  PORC -->|"one babysitter per stack"| BAB
+  PORC -->|"if one agent fits budget"| AR
+  PAUSE --> SPU
+  SPU -->|"routes to matching playbook"| BLD
+  classDef hub fill:#fde7c8,stroke:#a8650f,color:#3a2304,stroke-width:2px
+  classDef pb fill:#e1f1e4,stroke:#3f8a4f,color:#132a17
+  classDef sk fill:#f1f1ee,stroke:#7a7a72,color:#1a1a1a</pre></div>
+<div class="legend"><span><i class="sw round" style="background:#fde7c8;border-color:#a8650f"></i>Router hub</span><span><i class="sw" style="background:#e1f1e4;border-color:#3f8a4f"></i>Playbook (model-matched by the router)</span><span><i class="sw" style="background:#f1f1ee;border-color:#7a7a72"></i>Skill</span><span>Dotted arrow = conditional or human-triggered hand-off</span></div>
+</figure>
+
+<figure>
+<figcaption><strong>How to read:</strong> the skill layer. Solid arrows are <em>invokes</em>, <em>routes-to</em> or <em>produces</em>. Dotted arrows are <em>enforces</em> or <em>requires</em>. The 24 principle skills are folded into one node (listed below). Not drawn: seven skills that read <code>pstack-models.mdc</code> (how, why, arena, swarm, architect, interrogate, reflect), and unslop being enforced by teach, recall, blast-radius and show-me-your-work.</figcaption>
+<div class="diagram"><pre class="mm">flowchart LR
+  PM(["poteto-mode"]):::hub
+  PRIN["24 principle skills"]:::prin
+  PA[["poteto-agent"]]:::agt
+  CSA[["Comment Sicko agent"]]:::agt
+  BUGT["bugbot-triage rubric"]:::art
+  subgraph SETUPG["Setup"]
+    SET["setup-pstack"]:::sk
+    MDC["pstack-models.mdc rule"]:::art
+  end
+  subgraph UNDG["Understand"]
+    HOW["how"]:::sk
+    WHY["why"]:::sk
+    TEACH["teach"]:::sk
+    REC["recall"]:::sk
+    BR["blast-radius"]:::sk
+  end
+  subgraph DESG["Design and fan-out"]
+    ARCH["architect"]:::sk
+    ARENA["arena"]:::sk
+    SWARM["swarm"]:::sk
+    INT["interrogate"]:::sk
+    FIO["figure-it-out"]:::sk
+  end
+  subgraph QUALG["Quality and proof"]
+    NOC["no-comments"]:::sk
+    TDD["tdd"]:::sk
+    BC["benchmark-checklist"]:::sk
+    CVS["create-verification-skill"]:::sk
+    MVS["maintain-verification-skill"]:::sk
+  end
+  subgraph WRITEG["Writing"]
+    UNS["unslop"]:::sk
+    TW["technical-writing"]:::sk
+    BRO["bro"]:::sk
+    TSB["typescript-best-practices"]:::sk
+  end
+  subgraph LEARNG["Trail and learning"]
+    SMYW["show-me-your-work"]:::sk
+    LOGS["log.sh"]:::scr
+    REFL["reflect"]:::sk
+    CORR["correct"]:::sk
+    AM["automate-me"]:::sk
+  end
+  subgraph EXTG["External, not shipped"]
+    DES["ext: deslop"]:::ext
+    CTL["ext: control-ui, control-cli"]:::ext
+    VAPP["ext: verify-#lt;app#gt;"]:::ext
+    CRSK["ext: create-skill"]:::ext
+  end
+  PM -->|"reads index"| PRIN
+  PM -->|routes-to| HOW
+  PM --> ARCH
+  PM --> SWARM
+  PM --> ARENA
+  PM --> INT
+  PM --> FIO
+  PM -.->|enforces| UNS
+  PM -.-> TW
+  PM -.-> DES
+  PM -.-> NOC
+  PM -.-> BC
+  PM -.-> SMYW
+  PM -.->|requires| CTL
+  PM -->|reads| BUGT
+  PM -->|reads| MDC
+  PM -->|"every subagent"| PA
+  PA -->|"reads in full"| PM
+  SET -->|produces| MDC
+  SET -->|offers| CVS
+  ARCH --> HOW
+  ARCH --> WHY
+  ARCH --> ARENA
+  ARCH --> INT
+  ARCH -.-> PRIN
+  ARENA -.-> PRIN
+  FIO -->|reads| PM
+  FIO --> ARCH
+  FIO --> SMYW
+  TEACH --> HOW
+  TEACH --> WHY
+  REC --> WHY
+  REC -->|routes-to| AM
+  BR --> WHY
+  BR --> ARENA
+  NOC --> CSA
+  NOC --> HOW
+  NOC --> ARCH
+  CSA --> HOW
+  CSA --> WHY
+  SMYW --> LOGS
+  REFL -->|hands-off-to| CRSK
+  AM --> CRSK
+  AM --> UNS
+  CVS -->|produces| VAPP
+  CVS -->|offers| MVS
+  MVS -.->|"if no target"| CVS
+  TW -.-> UNS
+  BC -.-> PRIN
+  TSB -.-> PRIN
+  classDef hub fill:#fde7c8,stroke:#a8650f,color:#3a2304,stroke-width:2px
+  classDef sk fill:#f1f1ee,stroke:#7a7a72,color:#1a1a1a
+  classDef prin fill:#e1f1e4,stroke:#3f8a4f,color:#132a17,stroke-width:2px
+  classDef agt fill:#d7eef0,stroke:#2b7f86,color:#0f2a2c
+  classDef art fill:#fafaf7,stroke:#9a9a92,color:#1a1a1a,stroke-dasharray:2 2
+  classDef scr fill:#dbe8fb,stroke:#3b6fb6,color:#14243d
+  classDef ext fill:#ece3f7,stroke:#7a52b3,color:#25163b</pre></div>
+<div class="legend"><span><i class="sw round" style="background:#fde7c8;border-color:#a8650f"></i>Router</span><span><i class="sw" style="background:#f1f1ee;border-color:#7a7a72"></i>Skill (all user-only, reached by routing)</span><span><i class="sw" style="background:#e1f1e4;border-color:#3f8a4f"></i>Principle cluster</span><span><i class="sw" style="background:#d7eef0;border-color:#2b7f86"></i>Agent</span><span><i class="sw" style="background:#dbe8fb;border-color:#3b6fb6"></i>Script</span><span><i class="sw dash" style="background:#fafaf7;border-color:#9a9a92"></i>Rule or reference file</span><span><i class="sw" style="background:#ece3f7;border-color:#7a52b3"></i>External, not shipped</span><span>Leaf skills with no outgoing edge: tdd, correct, bro</span></div>
+</figure>
+
+<figure>
+<figcaption><strong>How to read:</strong> the autonomy machinery. The landing and long-run playbooks (left) and the scripts, skills, external pieces and principles each one uses. This is the part to rebuild to "run like pstack". Dotted arrows are <em>reads</em> or the operator-go hand-off.</figcaption>
+<div class="diagram"><pre class="mm">flowchart LR
+  subgraph PBS["Landing and long-run playbooks"]
+    POPR["opening-a-pr"]:::pb
+    BAB["babysit"]:::pb
+    SHIP["shipping"]:::pb
+    AR["autonomous-run"]:::pb
+    MPP["multi-phase-plan"]:::pb
+    APF["autopilot-full"]:::pb
+    APS["autopilot-stack"]:::pb
+    PORC["orchestrate"]:::pb
+  end
+  subgraph SCR["Deterministic scripts"]
+    WP["watch-pr: NDJSON verdicts"]:::scr
+    SORCH["orch: units, ledger, inbox, gates, frontier"]:::scr
+    CP["check-plan.mjs"]:::scr
+  end
+  subgraph SKL["Skills and agents"]
+    NOC["no-comments"]:::sk
+    TWU["technical-writing + unslop"]:::sk
+    INT["interrogate"]:::sk
+    SWARM["swarm"]:::sk
+    ARENA["arena"]:::sk
+    SMYW["show-me-your-work"]:::sk
+    PA[["poteto-agent explorers"]]:::agt
+    PM(["poteto-mode"]):::hub
+  end
+  subgraph PRN["Principles"]
+    PIW["p:prove-it-works"]:::prin
+    SVU["p:sequence-verifiable-units"]:::prin
+  end
+  subgraph EXW["External: wake and live proof"]
+    LOOP["ext: /loop"]:::ext
+    CTL["ext: control-ui, control-cli"]:::ext
+    DES["ext: deslop"]:::ext
+  end
+  BT["bugbot-triage rubric"]:::art
+  POPR --> DES & NOC & TWU
+  POPR -->|"subagent opening a PR"| INT
+  BAB --> WP
+  BAB -->|requires| LOOP
+  BAB -->|"reads, adds patterns"| BT
+  SHIP -->|"one cloud verifier per PR"| CTL
+  SHIP -->|"--queued-stack wake"| WP
+  SHIP --> LOOP
+  AR --> LOOP
+  AR --> SVU
+  AR -->|"side fixes, own PR"| PM
+  AR -->|"row per iteration"| SMYW
+  PORC --> SORCH
+  PORC --> SMYW
+  PORC -->|"contested decomposition"| ARENA
+  PORC --> CTL
+  APF -->|"owner loop to green"| BAB
+  APF --> PIW & BT & DES & NOC & SMYW
+  APF -->|"verdict per round"| SWARM
+  APF -->|"live lane is the floor"| CTL
+  APF -->|"/loop 1h audit tick"| LOOP
+  APF -.->|"patch-id rule"| SHIP
+  APS --> BAB
+  APS --> BT & DES & NOC & SMYW
+  APS -.->|"reuses steps 2, 4, 6"| APF
+  MPP --> PA
+  MPP -->|"fix every printed line"| CP
+  MPP -->|"ten live lanes per PR"| SWARM
+  MPP --> DES & NOC & BT
+  MPP -.->|"operator go"| APF & APS & PORC
+  classDef pb fill:#e1f1e4,stroke:#3f8a4f,color:#132a17
+  classDef scr fill:#dbe8fb,stroke:#3b6fb6,color:#14243d
+  classDef sk fill:#f1f1ee,stroke:#7a7a72,color:#1a1a1a
+  classDef agt fill:#d7eef0,stroke:#2b7f86,color:#0f2a2c
+  classDef hub fill:#fde7c8,stroke:#a8650f,color:#3a2304,stroke-width:2px
+  classDef prin fill:#e1f1e4,stroke:#3f8a4f,color:#132a17,stroke-width:2px
+  classDef ext fill:#ece3f7,stroke:#7a52b3,color:#25163b
+  classDef art fill:#fafaf7,stroke:#9a9a92,color:#1a1a1a,stroke-dasharray:2 2</pre></div>
+<div class="legend"><span><i class="sw" style="background:#e1f1e4;border-color:#3f8a4f"></i>Playbook or principle</span><span><i class="sw" style="background:#dbe8fb;border-color:#3b6fb6"></i>Deterministic script</span><span><i class="sw" style="background:#f1f1ee;border-color:#7a7a72"></i>Skill</span><span><i class="sw" style="background:#d7eef0;border-color:#2b7f86"></i>Agent</span><span><i class="sw" style="background:#ece3f7;border-color:#7a52b3"></i>External</span><span><i class="sw dash" style="background:#fafaf7;border-color:#9a9a92"></i>Reference file</span></div>
+</figure>
+<details><summary>Node inventory, the 24 principles, and edge sources</summary>
+<p><strong>Entry and config:</strong> poteto-mode (sticky router), poteto-agent, Comment Sicko, setup-pstack, pstack-models.mdc (pstack.md:46-50). <strong>23 playbooks</strong> (pstack.md:56-78). <strong>24 workflow skills</strong> (pstack.md:84-107). <strong>Scripts and external:</strong> orch, watch-pr, check-plan, worktree-audit, bootstrap, log.sh, bugbot-triage, ext:deslop, ext:control-ui/cli, ext:verify-&lt;app&gt;, ext:create-skill, ext:/loop, ext:AskQuestion, benny (pstack.md:142-155).</p>
+<p><strong>The 24 principle skills</strong> (pstack.md:113-136): laziness-protocol, foundational-thinking, redesign-from-first-principles, attack-the-premise, subtract-before-you-add, minimize-reader-load, outcome-oriented-execution, experience-first, exhaust-the-design-space, build-the-lever, model-the-domain, boundary-discipline, type-system-discipline, make-operations-idempotent, migrate-callers-then-delete-legacy-apis, separate-before-serializing-shared-state, prove-it-works, fix-root-causes, sequence-verifiable-units, test-behavior-not-implementation, explain-the-number, guard-the-context-window, never-block-on-the-human, encode-lessons-in-structure.</p>
+<p><strong>Invocation:</strong> every skill except setup-pstack has <code>disable-model-invocation: true</code>. Skills run when the user types them or when PM, a playbook or another skill names them (pstack.md:40).</p>
+<table><thead><tr><th>Edge group</th><th>Source</th></tr></thead><tbody>
+<tr><td>Router to playbooks, skills, agents</td><td class="src">pstack.md:161-190</td></tr>
+<tr><td>Playbook-to-playbook hand-offs</td><td class="src">pstack.md:194-225</td></tr>
+<tr><td>Playbook to skill, script, agent</td><td class="src">pstack.md:229-286</td></tr>
+<tr><td>Skill to skill</td><td class="src">pstack.md:290-335</td></tr>
+</tbody></table>
+</details>
+
+<h3>1c. Lifecycle: request to landed</h3>
+<figure>
+<figcaption><strong>How to read:</strong> top to bottom. Red hexagons are human decisions and yellow diamonds are model or gate decisions. The boxed lower-right path is the full-autonomy autopilot variant, in which the operator's go and grant replace the two human hexagons on the main path.</figcaption>
+<div class="diagram"><pre class="mm">flowchart TD
+  R["Request: /poteto-mode task"]:::st --> M{"PM matches a playbook"}:::gate
+  M -->|narrow| HOW["how, plus why when rationale matters"]:::st
+  M -->|"large, cross-cutting, step-away"| FIO["figure-it-out"]:::st
+  M -->|"multi-day program"| PORC["pb:orchestrate"]:::st
+  M -->|"checkable predicate"| AR["pb:autonomous-run"]:::st
+  HOW --> ARC["architect: arena sketch across 3 model families"]:::st
+  ARC --> HC{{"Human checkpoint only if asked"}}:::hum
+  HC --> AQ{"AskQuestion impulse: answerable by observation?"}:::gate
+  AQ -->|yes| PROTO["pb:prototype"]:::st
+  AQ -->|no| DEL["Delegate to poteto-agent or arena, own worktree"]:::st
+  PROTO --> DEL
+  DEL --> VER{"Verify on the real surface. Inconclusive counts as fail"}:::gate
+  VER -->|fail| DEL
+  VER -->|pass| COM["Small ordered commits. Contested design goes to interrogate"]:::st
+  COM --> PR["pb:opening-a-pr: deslop, no-comments, writing, ready PR"]:::st
+  PR --> REP["Reply with PR link, keep building the stack. No babysit yet"]:::st
+  REP --> HB{{"Human asks for babysit?"}}:::hum
+  HB --> BAB["pb:babysit: watch-pr, conflicts, threads, CI, Bugbot fix, dismiss or ask"]:::st
+  BAB --> RDY{"READY = merge-ready. Babysit never merges"}:::gate
+  RDY --> HL{{"Human says land, ship or merge?"}}:::hum
+  HL --> SHIP["pb:shipping: one cloud verifier per PR, land the contiguous verified run bottom-up, patch-id recheck"]:::st
+  SHIP --> DONE(["Done: verified run merged"]):::done
+  DONE -.-> LRN["Optional: reflect, correct, new bugbot-triage patterns"]:::st
+  subgraph AUTO["Full-autonomy variant: autopilot"]
+    MPP["pb:multi-phase-plan + check-plan"]:::st --> GO{{"Operator go"}}:::hum
+    GO --> APF["autopilot-full or -stack: one cloud owner per PR runs build and babysit"]:::st
+    APF --> SV{"Root swarm verdict per round at the code-ready SHA"}:::gate
+    SV -->|"not clean"| APF
+    SV -->|"clean + operator grant"| MRG(["Owner merges. In -stack the operator lands"]):::done
+    TICK["/loop 1h audit tick: drift, stuck lanes"]:::st -.-> APF
+  end
+  classDef st fill:#f1f1ee,stroke:#7a7a72,color:#1a1a1a
+  classDef gate fill:#fff1bf,stroke:#a88400,color:#332800
+  classDef hum fill:#fbd9d3,stroke:#b4442f,color:#3d120b,stroke-width:2px
+  classDef done fill:#e1f1e4,stroke:#3f8a4f,color:#132a17</pre></div>
+<div class="legend"><span><i class="sw hex" style="background:#b4442f;border-color:#b4442f"></i>Human decision</span><span><i class="sw" style="background:#fff1bf;border-color:#a88400"></i>Model or gate decision</span><span><i class="sw" style="background:#f1f1ee;border-color:#7a7a72"></i>Step</span><span><i class="sw round" style="background:#e1f1e4;border-color:#3f8a4f"></i>Terminal</span></div>
+</figure>
+<details><summary>Lifecycle sources</summary>
+<p>Feature-shaped single-task path, steps 1-13: pstack.md:339-353. Router decision: pstack.md:342. Architect checkpoint opt-in: pstack.md:344. AskQuestion becomes prototype: pstack.md:345. Verify gate: pstack.md:347. "No babysit yet": pstack.md:349. Babysit never merges: pstack.md:351. Shipping: pstack.md:352. Autopilot variant: pstack.md:355.</p>
+</details>
+</section>
+
+<!-- ============================ 2 POCOCK ============================ -->
+<section id="s2">
+<header><h2><span class="num">02</span>Matt Pocock's skills (v1.3.1)</h2></header>
+
+<h3>2a. Infrastructure it assumes</h3>
+<figure>
+<figcaption><strong>How to read:</strong> each assumption on the left points to the skills that need it. The tracker, labels and per-repo config are hard dependencies; the glossary and standards files are soft ones. Dashed amber boxes are optional or external.</figcaption>
+<div class="diagram"><pre class="mm">flowchart LR
+  subgraph RUNT["Harness runtime"]
+    SKT["Skill tool + disable-model-invocation"]:::inf
+    SUB["Generic subagent API, background"]:::inf
+    CTX["About 150k token smart zone"]:::inf
+    LOGS["Harness session logs"]:::inf
+  end
+  subgraph GITI["Git"]
+    WT["git worktree per implementer"]:::inf
+    IB["One integration branch per spec"]:::inf
+    BRS["prototype/ and research/ branches"]:::inf
+    PRO["PRs optional, draft"]:::cav
+  end
+  subgraph TRKI["Tracker: hard dependency"]
+    TRK["GitHub, GitLab, local markdown, or Other"]:::inf
+    BLK["Blocking edges: native links or Blocked by: text"]:::inf
+    LBL["5 triage labels + wayfinder labels"]:::inf
+    CFG["docs/agents config + Agent skills block"]:::inf
+  end
+  subgraph DOCI["Repo docs: soft dependency"]
+    DOM["GLOSSARY.md + docs/adr"]:::ext
+    STD["CODING_STANDARDS, CONTRIBUTING"]:::ext
+  end
+  HK["Hooks: none in core, optional misc"]:::cav
+  AFK["External AFK runner: Sandcastle, script, CI"]:::cav
+  subgraph USES["Pocock nodes that depend on them"]
+    UO["All 16 user-invoked skills"]
+    IMPS["implement-spec"]
+    CR["code-review"]
+    RES["research"]
+    GRL["grilling"]
+    TOSPEC["to-spec"]
+    TOTIX["to-tickets"]
+    TRI["triage"]
+    WAY["wayfinder"]
+    PROTO["prototype"]
+    PRT["pr"]
+    DM["domain-modeling"]
+    WW["wait-what"]
+    RETRO["retro"]
+    SETUP["setup-matt-pocock-skills"]
+    GG["git-guardrails, setup-pre-commit"]
+    PBD["PHASE-BOUNDARIES via ask-matt"]
+  end
+  SKT --> UO
+  SUB --> CR & RES & IMPS & GRL
+  CTX --> PBD
+  LOGS --> RETRO
+  WT --> IMPS
+  IB --> IMPS
+  BRS --> PROTO & WAY
+  PRO --> IMPS & PRT
+  TRK --> TOSPEC & TOTIX & TRI & IMPS & WAY
+  BLK --> TOTIX & IMPS
+  LBL --> TRI & WAY & TOSPEC & TOTIX
+  SETUP -->|produces| CFG
+  CFG --> CR
+  DM -->|produces| DOM
+  DOM --> WW & PRT
+  STD --> CR & RETRO
+  HK --> GG
+  TRI -.->|"ready-for-agent issues"| AFK
+  classDef inf fill:#dbe8fb,stroke:#3b6fb6,color:#14243d
+  classDef ext fill:#ece3f7,stroke:#7a52b3,color:#25163b
+  classDef cav fill:#fff1bf,stroke:#a88400,color:#332800,stroke-dasharray:5 3
+  classDef sk fill:#f1f1ee,stroke:#7a7a72,color:#1a1a1a
+  class UO,IMPS,CR,RES,GRL,TOSPEC,TOTIX,TRI,WAY,PROTO,PRT,DM,WW,RETRO,SETUP,GG,PBD sk</pre></div>
+<div class="legend"><span><i class="sw" style="background:#dbe8fb;border-color:#3b6fb6"></i>Required runtime, git or tracker</span><span><i class="sw" style="background:#ece3f7;border-color:#7a52b3"></i>Soft dependency (output less sharp without it)</span><span><i class="sw dash" style="background:#fff1bf;border-color:#a88400"></i>Optional or external</span><span><i class="sw" style="background:#f1f1ee;border-color:#7a7a72"></i>Dependent skill</span></div>
+</figure>
+<details><summary>Infrastructure table and sources</summary>
+<div class="tbl-wrap"><table><thead><tr><th>Assumption</th><th>What breaks without it</th><th>Source</th></tr></thead><tbody>
+<tr><td>Skill tool + a way to block model invocation</td><td>User-invoked orchestrators could fire on their own</td><td class="src">pocock.md:22</td></tr>
+<tr><td>Plugin or skills.sh distribution</td><td>Native Codex plugin deferred</td><td class="src">pocock.md:23</td></tr>
+<tr><td>No model named</td><td>n/a, no per-role routing</td><td class="src">pocock.md:24</td></tr>
+<tr><td>Generic subagents, background</td><td>code-review axes, research, implement-spec concurrency</td><td class="src">pocock.md:25</td></tr>
+<tr><td>Worktree per implementer</td><td>No isolated parallel implementers</td><td class="src">pocock.md:26</td></tr>
+<tr><td>Integration branch per spec</td><td>No landing target for multi-ticket builds</td><td class="src">pocock.md:27</td></tr>
+<tr><td>prototype/ and research/ branches</td><td>Evidence has no durable home</td><td class="src">pocock.md:28</td></tr>
+<tr><td>PRs optional; no stacks, no merge/release skill</td><td>Merging left to the human</td><td class="src">pocock.md:29-30</td></tr>
+<tr><td>Issue tracker (hard dependency)</td><td>to-spec, to-tickets, triage output "wrong, not just fuzzy"</td><td class="src">pocock.md:31</td></tr>
+<tr><td>Blocking edges between tickets. Native links are one representation; local files and trackers without native links use a "Blocked by" line</td><td>Frontier cannot be computed</td><td class="src">pocock.md:32; to-tickets/SKILL.md:60-65</td></tr>
+<tr><td>Triage labels</td><td>No <code>ready-for-agent</code> signal</td><td class="src">pocock.md:33</td></tr>
+<tr><td>Per-repo config <code>docs/agents/*</code></td><td>Skills tell the user to run setup</td><td class="src">pocock.md:34</td></tr>
+<tr><td>GLOSSARY and ADRs (soft)</td><td>Output less sharp</td><td class="src">pocock.md:35</td></tr>
+<tr><td>Repo standards files</td><td>Review falls back to the Fowler baseline</td><td class="src">pocock.md:36</td></tr>
+<tr><td>CI or bots: none assumed</td><td>n/a</td><td class="src">pocock.md:37</td></tr>
+<tr><td>Hooks: optional misc</td><td>No default git safety</td><td class="src">pocock.md:38</td></tr>
+<tr><td>Human touchpoints: every user-invoked skill</td><td>J: the structural limit on autonomy</td><td class="src">pocock.md:39</td></tr>
+<tr><td>Persistence: tracker, docs, temp handoffs; no run ledger</td><td>No machine-readable run state</td><td class="src">pocock.md:40</td></tr>
+<tr><td>Context budget ~150k</td><td>Mid-phase compaction loses the thread</td><td class="src">pocock.md:41</td></tr>
+<tr><td>Autonomy: human-orchestrated; AFK outside</td><td>See 2c</td><td class="src">pocock.md:42</td></tr>
+</tbody></table></div>
+</details>
+
+<h3>2b. Connection graph: user-invoked vs model-invoked</h3>
+<figure>
+<figcaption><strong>How to read:</strong> <code>ask-matt</code> recommends any of the 25 user-reachable skills; those routing edges are not drawn (pocock.md:103-128). Red rounded nodes are <em>user-invoked</em>: only a human starts them. Blue rectangles are <em>model-invoked</em>. Thin solid arrows are Skill-tool calls, and every one of them ends on a model-invoked skill or a subagent, never on a user-invoked one (pocock.md:191). Thick arrows are the main flow, which the human advances by typing the next skill. Dotted arrows are hand-offs the human has to carry out.</figcaption>
+<div class="diagram"><pre class="mm">flowchart LR
+  ASK(["ask-matt: router"]):::usr
+  subgraph USER["User-invoked: a human types these"]
+    SETUP(["setup-matt-pocock-skills"]):::usr
+    GWD(["grill-with-docs"]):::usr
+    GM(["grill-me"]):::usr
+    TOSPEC(["to-spec"]):::usr
+    TOTIX(["to-tickets"]):::usr
+    IMPL(["implement"]):::usr
+    IMPS(["implement-spec"]):::usr
+    TRI(["triage"]):::usr
+    WAY(["wayfinder"]):::usr
+    ICA(["improve-codebase-architecture"]):::usr
+    RETRO(["retro"]):::usr
+    HAND(["handoff"]):::usr
+    TEACH(["teach"]):::usr
+    TOQ(["to-questionnaire"]):::usr
+    WW(["wait-what"]):::usr
+    IPS(["in-progress: 6 skills"]):::usr
+  end
+  subgraph MODEL["Model-invoked: callable through the Skill tool"]
+    GRL["grilling"]:::mdl
+    DM["domain-modeling"]:::mdl
+    CR["code-review"]:::mdl
+    TDD["tdd"]:::mdl
+    DIAG["diagnosing-bugs"]:::mdl
+    PROTO["prototype"]:::mdl
+    RES["research"]:::mdl
+    CD["codebase-design"]:::mdl
+    PRT["pr"]:::mdl
+    WIZ["wizard"]:::mdl
+    WFA["writing-for-agents"]:::mdl
+    MISC["misc: 4 skills"]:::mdl
+  end
+  subgraph SUBS["Spawned subagents"]
+    FACT[["fact-finding"]]:::agt
+    EXPL[["exploration"]]:::agt
+    IMPSA[["implementer per ticket, own worktree"]]:::agt
+    MERG[["merger"]]:::agt
+    AXES[["Standards + Spec reviewers"]]:::agt
+  end
+  GWD ==>|"human types next"| TOSPEC
+  TOSPEC ==> TOTIX
+  TOTIX ==> IMPS
+  TOTIX ==> IMPL
+  IMPS ==> RETRO
+  IMPL ==> RETRO
+  GWD --> GRL
+  GWD --> DM
+  GM --> GRL
+  GRL --> FACT
+  IMPL --> TDD
+  IMPL --> CR
+  IMPS --> EXPL
+  IMPS --> IMPSA
+  IMPS --> MERG
+  IMPS --> CR
+  IMPSA --> TDD
+  CR --> AXES
+  TDD --> CD
+  TDD -.->|"refactoring belongs to review"| CR
+  RETRO --> WFA
+  TRI --> GRL
+  TRI --> DM
+  WAY --> GRL
+  WAY --> DM
+  WAY --> RES
+  WAY --> PROTO
+  ICA --> CD
+  ICA --> GRL
+  ICA --> DM
+  IPS --> CD
+  IPS --> GRL
+  WAY -.->|"map clears"| TOSPEC
+  ICA -.-> GWD
+  RES -.-> GWD
+  TOQ -.-> GWD
+  TRI -.->|"agent-ready issues"| IMPL
+  DIAG -.-> RETRO
+  classDef usr fill:#fbd9d3,stroke:#b4442f,color:#3d120b
+  classDef mdl fill:#dbe8fb,stroke:#3b6fb6,color:#14243d
+  classDef agt fill:#d7eef0,stroke:#2b7f86,color:#0f2a2c</pre></div>
+<div class="legend"><span><i class="sw round" style="background:#fbd9d3;border-color:#b4442f"></i>User-invoked (human starts it)</span><span><i class="sw" style="background:#dbe8fb;border-color:#3b6fb6"></i>Model-invoked</span><span><i class="sw" style="background:#d7eef0;border-color:#2b7f86"></i>Subagent</span><span>Thick arrow = human advances the main flow · thin solid = Skill-tool call · dotted = human hand-off</span></div>
+</figure>
+<details><summary>Node list, invocation rule and edge sources</summary>
+<p>User-only skills have <code>disable-model-invocation: true</code> (pocock.md:46). Nodes: pocock.md:48-97. Edges: pocock.md:101-191. The no-chaining rule: "(any skill) to (any user-invoked skill): forbidden" (pocock.md:191). <code>implement</code> calls tdd and code-review by bare mentions rather than the Skill tool, which breaks the house rule (pocock.md:15). The misc bucket holds git-guardrails-claude-code, setup-pre-commit, migrate-to-shoehorn and scaffold-exercises (pocock.md:77-80). The in-progress bucket holds claude-handoff, loop-me, setup-ts-deep-modules and writing-fragments/shape/beats (pocock.md:81-86).</p>
+</details>
+
+<h3>2c. Lifecycle: request to done</h3>
+<figure>
+<figcaption><strong>How to read:</strong> top to bottom. Each red hexagon is a human decision or gate, and between them the human types the next user-invoked skill. The teal <code>implement-spec</code> box is the only part that runs unattended, and only once the test seams are settled: its implementers call <code>tdd</code>, which needs user-confirmed seams, and <code>implement-spec</code> has no interactive step for agreeing them (implement-spec/SKILL.md:29; tdd/SKILL.md:22; docs/engineering/implement-spec.md:52). Dotted on-ramps join from triage, debugging and wayfinder.</figcaption>
+<div class="diagram"><pre class="mm">flowchart TD
+  S0["setup-matt-pocock-skills, once per repo"]:::st --> G0{{"Human confirms or edits config"}}:::hum
+  G0 --> A["ask-matt, optional route pick"]:::st
+  A --> B["grill-with-docs: grilling + domain-modeling"]:::st
+  B --> G1{{"Human makes every decision and confirms shared understanding"}}:::hum
+  G1 --> D2{{"Human: can every question be settled in conversation?"}}:::hum
+  D2 -->|no| H1["handoff, prototype in a fresh session, handoff back"]:::st
+  H1 --> D3
+  D2 -->|yes| D3{{"Human: multi-session build?"}}:::hum
+  D3 -->|no| IMPL["implement, same context"]:::st
+  D3 -->|yes| TS["to-spec"]:::st
+  TS --> G2{{"Human confirms seams"}}:::hum
+  G2 --> TT["to-tickets"]:::st
+  TT --> G3{{"Human approves breakdown and edges"}}:::hum
+  G3 --> D4{{"Human: per ticket or whole graph?"}}:::hum
+  D4 -->|"per ticket, /clear between"| IMPL
+  D4 -->|"whole graph"| G6{{"Seams named in spec or tickets beforehand. tdd needs user-confirmed seams"}}:::hum
+  G6 --> IS["implement-spec: worktree implementers, merger, integration branch, one code-review"]:::auto
+  IMPL --> TDD["tdd"]:::st
+  TDD --> G4{{"Seams confirmed with the user"}}:::hum
+  G4 --> CR["code-review"]:::st
+  CR --> COMMIT["Commit on current branch"]:::st
+  IS --> RESV["Resolve tickets or mark draft PR ready"]:::st
+  COMMIT --> PRB["pr body template. No skill merges"]:::st
+  RESV --> PRB
+  PRB --> RETRO["retro, same session"]:::st
+  RETRO --> G5{{"Human picks which environment changes to apply"}}:::hum
+  TRI["triage: ready-for-agent"]:::st -.-> IMPL
+  DIAG["diagnosing-bugs"]:::st -.-> RETRO
+  WAYF["wayfinder map clears"]:::st -.-> TS
+  classDef st fill:#f1f1ee,stroke:#7a7a72,color:#1a1a1a
+  classDef hum fill:#fbd9d3,stroke:#b4442f,color:#3d120b,stroke-width:2px
+  classDef auto fill:#d7eef0,stroke:#2b7f86,color:#0f2a2c,stroke-width:2px</pre></div>
+<div class="legend"><span><i class="sw hex" style="background:#b4442f;border-color:#b4442f"></i>Human decision or gate</span><span><i class="sw" style="background:#d7eef0;border-color:#2b7f86"></i>Runs unattended once seams are pre-agreed</span><span><i class="sw" style="background:#f1f1ee;border-color:#7a7a72"></i>Step</span></div>
+</figure>
+<details><summary>Lifecycle sources</summary>
+<p>Steps 0-6 and on-ramps: pocock.md:195-208. Gates: grilling pocock.md:198, 249; to-spec seams and to-tickets approval pocock.md:202, 250-251; tdd seams pocock.md:204, 252; retro pocock.md:206, 257. implement-spec has no human checkpoint in its steps (pocock.md:241), but its implementers drive tdd, whose seams must be user-confirmed (reference_harnesses/mattpocock_skills/skills/engineering/tdd/SKILL.md:22); upstream docs say to name seams in the spec or tickets (reference_harnesses/mattpocock_skills/docs/engineering/implement-spec.md:52). No merge skill: pocock.md:205, 225. Known autonomy failures (recursive review fan-out, a review/fix loop with no stop rule that ran ~4h): pocock.md:270-276.</p>
+</details>
+</section>
+
+<!-- ============================ 3 OURS ============================ -->
+<section id="s3">
+<header><h2><span class="num">03</span>Ours (coding-ritual, branch <code>dws-workflow</code>)</h2></header>
+
+<h3>3a. Infrastructure it assumes</h3>
+<figure>
+<figcaption><strong>How to read:</strong> each assumption on the left points to the prose-harness or engine node that needs it. Amber dashed boxes are things the data file marks as gaps or caveats. Our assumptions are local: no CI, no PRs, no cloud workers.</figcaption>
+<div class="diagram"><pre class="mm">flowchart LR
+  subgraph VCS["Git, local only"]
+    NOCI["No CI: local host gate only"]:::inf
+    CAS["No PR flow: local CAS landing"]:::inf
+    NOPUSH["Engine never pushes"]:::inf
+    WT["Worktrees, verified base, recovery refs"]:::inf
+  end
+  subgraph STORE["Stores"]
+    BD["Beads bd: Dolt DB + issues.jsonl mirror"]:::inf
+    LEDS["SQLite ledger .wf/ledger.db"]:::inf
+  end
+  subgraph EXEC["Execution runtime"]
+    VCLI["Vendor CLIs: claude, codex, opencode refused"]:::inf
+    CDX["codex exec and resume, called directly"]:::inf
+    BW["bwrap sandbox. Claude network not enforced"]:::cav
+    TOOL["Offline uv and Python seeding"]:::inf
+    SIG["ssh-keygen ed25519 signed gates, allow-list outside workspace"]:::inf
+  end
+  subgraph HOST["Agent host"]
+    CC["Claude Code hooks + Agent tool fields"]:::inf
+    CTWIN["Codex twin .codex. Points at a missing delegation.md"]:::cav
+    MOD["Runtime model roster + agent defs"]:::inf
+  end
+  subgraph USES["Our nodes that depend on them"]
+    VER["verification.md five-stage gate"]
+    CON["contractor"]
+    INSP["inspector"]
+    CREW["crew profiles"]
+    FORE["foreman"]
+    LEDG["ledger CLI"]
+    TRK["tracker port"]
+    EXE["execution skill"]
+    PLAN["planning skill"]
+    TRW["triage, wayfinder"]
+    BEADSK["beads skill + bd-prime hook"]
+    BDIO["bdio gates + approve-gate.sh"]
+    MC["model-council"]
+    HOOKS["hooks"]
+    AMX["agent-matrix"]
+    AGS["agents: implementer, reviewers, docs-researcher"]
+    SR["skill-router"]
+  end
+  NOCI --> VER
+  CAS --> CON
+  NOPUSH --> INSP
+  WT --> INSP & AMX & CREW
+  BD --> EXE & PLAN & TRW & BEADSK & TRK
+  LEDS --> LEDG & CON
+  VCLI --> CREW
+  CDX --> MC
+  BW --> INSP
+  TOOL --> CREW
+  SIG --> BDIO & FORE
+  CC --> HOOKS & AMX
+  CTWIN --> HOOKS & SR
+  MOD --> AGS & AMX
+  classDef inf fill:#dbe8fb,stroke:#3b6fb6,color:#14243d
+  classDef cav fill:#fff1bf,stroke:#a88400,color:#332800,stroke-dasharray:5 3
+  classDef sk fill:#f1f1ee,stroke:#7a7a72,color:#1a1a1a
+  class VER,CON,INSP,CREW,FORE,LEDG,TRK,EXE,PLAN,TRW,BEADSK,BDIO,MC,HOOKS,AMX,AGS,SR sk</pre></div>
+<div class="legend"><span><i class="sw" style="background:#dbe8fb;border-color:#3b6fb6"></i>Assumption</span><span><i class="sw dash" style="background:#fff1bf;border-color:#a88400"></i>Assumption with a flagged gap</span><span><i class="sw" style="background:#f1f1ee;border-color:#7a7a72"></i>Dependent node</span></div>
+</figure>
+<details><summary>Infrastructure table and sources</summary>
+<div class="tbl-wrap"><table><thead><tr><th>Assumption</th><th>What breaks without it</th><th>Source</th></tr></thead><tbody>
+<tr><td>No CI; local host gate is the only gate</td><td>Nothing re-checks landed work</td><td class="src">ours.md:17</td></tr>
+<tr><td>No PR flow; local CAS on a target ref</td><td>No PR review or merge queue modelled</td><td class="src">ours.md:18</td></tr>
+<tr><td>Engine never pushes</td><td>Publication stays human, by design</td><td class="src">ours.md:19</td></tr>
+<tr><td>Local branches, worktrees, recovery refs</td><td>Wrong-base edits; interrupted writers lose content</td><td class="src">ours.md:20</td></tr>
+<tr><td>Beads is the tracker</td><td>Execution cannot claim, close or gate phases</td><td class="src">ours.md:21</td></tr>
+<tr><td>Tracker is a contractor-only port (bd, file, null)</td><td>J: bd optional to engine, required by skills</td><td class="src">ours.md:22</td></tr>
+<tr><td>SQLite run ledger</td><td>No durable engine facts, no closure latch</td><td class="src">ours.md:23</td></tr>
+<tr><td>Vendor CLIs as crews</td><td>No work inside an activation</td><td class="src">ours.md:24</td></tr>
+<tr><td>Codex called directly</td><td>No cross-vendor critic</td><td class="src">ours.md:25</td></tr>
+<tr><td>bwrap sandbox</td><td>Named profiles refuse to launch</td><td class="src">ours.md:26</td></tr>
+<tr><td>Offline toolchain seeding</td><td>Preparation refused</td><td class="src">ours.md:27</td></tr>
+<tr><td>Signed human gates</td><td>Unsigned roots "will never be approved"</td><td class="src">ours.md:28</td></tr>
+<tr><td>Claude Code hooks and Agent tool fields</td><td>Effort and tool limits can't be promised per spawn</td><td class="src">ours.md:29</td></tr>
+<tr><td>Codex twin</td><td>Codex has no guards or routing. J: points at a missing file</td><td class="src">ours.md:30</td></tr>
+<tr><td>Models via roster and agent defs</td><td>Must validate against agent-matrix</td><td class="src">ours.md:31</td></tr>
+<tr><td>Human touchpoints</td><td>See 3c and section 6</td><td class="src">ours.md:32</td></tr>
+<tr><td>Persistence: Beads, MEMORY.md, learnings, progress.md, ledger, debriefs</td><td>Sessions can't resume</td><td class="src">ours.md:33</td></tr>
+<tr><td>Autonomy: prose human-in-loop; engine unattended between gates</td><td>—</td><td class="src">ours.md:34</td></tr>
+</tbody></table></div>
+</details>
+
+<h3>3b. Connection graph</h3>
+<figure>
+<figcaption><strong>How to read:</strong> the core prose flow. Policy files (grey) route into skills (neutral) and agents (teal). The two slash entries (red, user-only) start execution, and execution hands stages to the engine contractor (blue, detailed below). Dotted arrows are conditional (material risk, unresolved scope, after approval).</figcaption>
+<div class="diagram"><pre class="mm">flowchart LR
+  subgraph POL["Always-on policy"]
+    AG["AGENTS.md"]:::doc
+    RC["repo-context: repo-map, docs-index"]:::doc
+    VERD["verification.md"]:::doc
+    BMD["beads.md"]:::doc
+  end
+  SR["skill-router"]:::sk
+  subgraph DECIDE["Decide and plan"]
+    BS["brainstorming"]:::sk
+    SPEC["spec: draft or approved"]:::art
+    GRL["grilling"]:::sk
+    DM["domain-modeling"]:::sk
+    WAY(["wayfinder"]):::usr
+    PROTO["prototype"]:::sk
+    PL["planning"]:::sk
+    BEADS["Beads epics, stages, roadmap"]:::art
+    TRI(["triage"]):::usr
+  end
+  subgraph RUN["Execute"]
+    PE(["/phase-execution"]):::usr
+    RP(["/run-phases: unattended opt-in"]):::usr
+    EXE["execution"]:::sk
+    TE["task-engine ref"]:::doc
+    WM["workstream-mode ref"]:::doc
+    SCR["review-package.sh, task-brief.sh"]:::scr
+    RENDER["bd-render-tracking.sh"]:::scr
+  end
+  subgraph QUAL["Quality"]
+    REV["review: code, document, feedback"]:::sk
+    TDD["test-driven-development"]:::sk
+    DBG["systematic-debugging"]:::sk
+    PERF["performance-optimization"]:::sk
+    SEC["security"]:::sk
+    IMP[["implementer"]]:::agt
+    SPR[["spec-reviewer"]]:::agt
+    CRV[["code-reviewer"]]:::agt
+  end
+  CON["contractor: engine"]:::eng
+  AG -->|requires| VERD
+  AG -->|requires| BMD
+  AG -->|reads| RC
+  AG -->|routes-to| EXE
+  SR -->|routes-to| BS & PL & EXE & REV & GRL & WAY & TRI
+  BS --> GRL
+  BS -->|produces| SPEC
+  BS -.->|"material-risk spec"| REV
+  BS -.->|"when authorized"| PL
+  PL -.->|"unresolved behavior"| BS
+  PL -.->|"material-risk plan"| REV
+  PL -->|"after approval"| BEADS
+  PL --> RENDER
+  PL -->|hands-off-to| EXE
+  GRL -.->|"docs requested"| DM
+  WAY --> BEADS
+  WAY --> PROTO
+  WAY --> GRL
+  TRI -->|"ready-for-agent"| BEADS
+  PE --> EXE
+  RP --> EXE
+  EXE --> WM
+  WM -->|"phase loop"| EXE
+  EXE --> TE
+  EXE -.->|"unresolved scope"| PL
+  EXE --> TDD & SEC & DBG
+  EXE -->|"foreman contract"| CON
+  EXE --> RENDER
+  EXE -->|"claim, close"| BEADS
+  TE --> SCR
+  TE -->|dispatch| IMP
+  TE --> REV
+  SPR --> REV
+  CRV --> REV
+  IMP --> TDD
+  IMP --> VERD
+  DBG -.->|"hypotheses run out"| REV
+  DBG --> PERF
+  PERF --> DBG
+  SEC --> REV
+  classDef doc fill:#e9e9e6,stroke:#6b6b64,color:#1a1a1a
+  classDef sk fill:#f1f1ee,stroke:#7a7a72,color:#1a1a1a
+  classDef usr fill:#fbd9d3,stroke:#b4442f,color:#3d120b
+  classDef agt fill:#d7eef0,stroke:#2b7f86,color:#0f2a2c
+  classDef scr fill:#dbe8fb,stroke:#3b6fb6,color:#14243d
+  classDef eng fill:#dbe8fb,stroke:#3b6fb6,color:#14243d,stroke-width:3px
+  classDef art fill:#fafaf7,stroke:#9a9a92,color:#1a1a1a,stroke-dasharray:2 2</pre></div>
+<div class="legend"><span><i class="sw" style="background:#e9e9e6;border-color:#6b6b64"></i>Policy or reference doc</span><span><i class="sw" style="background:#f1f1ee;border-color:#7a7a72"></i>Skill (model-invoked)</span><span><i class="sw round" style="background:#fbd9d3;border-color:#b4442f"></i>User-only skill</span><span><i class="sw" style="background:#d7eef0;border-color:#2b7f86"></i>Agent</span><span><i class="sw" style="background:#dbe8fb;border-color:#3b6fb6"></i>Script or engine</span><span><i class="sw dash" style="background:#fafaf7;border-color:#9a9a92"></i>Artifact</span></div>
+</figure>
+
+<figure>
+<figcaption><strong>How to read:</strong> support layer. Grey dashed boxes are aliases or stubs, and their dashed arrows point at the skill that now owns the behaviour. Hooks (amber) enforce the targets they point at. The harness-maintenance chain is on the right.</figcaption>
+<div class="diagram"><pre class="mm">flowchart LR
+  subgraph ALIAS["Aliases and stubs, user-only"]
+    DR["document-review"]:::ali
+    RCR["receiving-code-review"]:::ali
+    IR["idea-refine"]:::ali
+    GM["grill-me"]:::ali
+    GWD["grill-with-docs"]:::ali
+    TSN["teach-session"]:::ali
+    VBC["verification-before-completion"]:::ali
+    CE["cost-estimate: method retired, no owner"]:::ali
+  end
+  subgraph OWN["Owners"]
+    REV["review"]:::sk
+    BS["brainstorming"]:::sk
+    GRL["grilling"]:::sk
+    DM["domain-modeling"]:::sk
+    TEACH(["teach"]):::usr
+    AGV["AGENTS.md Verification"]:::doc
+  end
+  DR -.->|"document mode"| REV
+  RCR -.->|"feedback mode"| REV
+  IR -.->|exploration| BS
+  GM -.-> GRL
+  GWD -.-> GRL
+  GWD -.-> DM
+  TSN -.->|"session mode"| TEACH
+  VBC -.-> AGV
+  subgraph HKS["Hooks: always on"]
+    HB["block-dangerous-commands: PreToolUse Bash"]:::hook
+    HG["block-generated-edits: PreToolUse Write, Edit"]:::hook
+    HP["bd-prime: SessionStart"]:::hook
+    HN["harness-staleness-nudge: SessionStart"]:::hook
+  end
+  GS["Git safety, bd store, mirrors"]:::art
+  GEN["Generated mirrors read-only"]:::art
+  BDP["bd prime context"]:::art
+  HB -->|"enforces, exit 2"| GS
+  HG -->|"enforces, exit 2"| GEN
+  HP -->|invokes| BDP
+  subgraph HARN["Harness maintenance"]
+    HS(["harness-status"]):::usr
+    HSC(["harness-scan"]):::usr
+    HE["harness-evaluate"]:::sk
+    HSK["harness-skill-compare"]:::sk
+    SG["scan.py, gap.py"]:::scr
+    HPUB(["harness-publish"]):::usr
+    SKC["skill-catalog.py"]:::scr
+    SR["skill-router catalog + openai.yaml"]:::art
+  end
+  HN -->|"over 30 days"| HS
+  HS --> SG
+  HS --> HSC
+  HSC --> SG
+  HSC --> HE
+  HE --> HSK
+  HPUB --> SKC
+  SKC -->|"produces, lints"| SR
+  subgraph OTH["Other links"]
+    SHOW(["show-me"]):::usr
+    HTML["html-artifact"]:::sk
+    RES["research"]:::sk
+    CRES(["codebase-research"]):::usr
+    ICA(["improve-codebase-architecture"]):::usr
+    CD["codebase-design"]:::sk
+    MC["model-council"]:::sk
+    CODEX["codex exec"]:::scr
+    CHK(["check-invariants"]):::usr
+    INV["invariants.md"]:::doc
+  end
+  TEACH -.->|optional| HTML
+  SHOW --> HTML
+  RES --> CRES
+  ICA -->|reads| CD
+  MC --> CODEX
+  CHK -->|reads| INV
+  classDef ali fill:#f4f4f2,stroke:#8a8a84,color:#333333,stroke-dasharray:3 3
+  classDef sk fill:#f1f1ee,stroke:#7a7a72,color:#1a1a1a
+  classDef usr fill:#fbd9d3,stroke:#b4442f,color:#3d120b
+  classDef doc fill:#e9e9e6,stroke:#6b6b64,color:#1a1a1a
+  classDef hook fill:#fff1bf,stroke:#a88400,color:#332800
+  classDef scr fill:#dbe8fb,stroke:#3b6fb6,color:#14243d
+  classDef art fill:#fafaf7,stroke:#9a9a92,color:#1a1a1a,stroke-dasharray:2 2</pre></div>
+<div class="legend"><span><i class="sw dash" style="background:#f4f4f2;border-color:#8a8a84"></i>Alias or stub</span><span><i class="sw" style="background:#fff1bf;border-color:#a88400"></i>Hook</span><span><i class="sw round" style="background:#fbd9d3;border-color:#b4442f"></i>User-only skill</span><span><i class="sw" style="background:#f1f1ee;border-color:#7a7a72"></i>Model-invoked skill</span><span><i class="sw" style="background:#dbe8fb;border-color:#3b6fb6"></i>Script</span><span><i class="sw dash" style="background:#fafaf7;border-color:#9a9a92"></i>Artifact or target</span></div>
+</figure>
+
+<figure>
+<figcaption><strong>How to read:</strong> the workflow engine. The execution skill calls the <strong>contractor</strong>, which runs a pinned graph that the <strong>foreman</strong> ticks one decision at a time. The <strong>inspector</strong> contains each <strong>crew</strong> activation. Red hexagons are the human gates. The amber dashed box is the re-wake path, which is not wired up.</figcaption>
+<div class="diagram"><pre class="mm">flowchart LR
+  EXE["execution skill: phase loop"]:::sk
+  subgraph PAR["Parallel children"]
+    CH["children admit, drive, collect"]:::eng
+    INTG["integration prepare"]:::eng
+  end
+  CON["contractor: claim, run graph, checks, CAS land, close"]:::eng
+  EXE -->|"foreman contract epic stage"| CON
+  EXE --> CH
+  CH --> INTG
+  INTG --> CON
+  CON -->|"claim, close"| TRK["tracker port: bd, file, null"]:::eng
+  TRK -->|"outbox mirror"| BD["Beads bd"]:::art
+  CON -->|requires| CHK["contractor_checks: pinned host checks"]:::eng
+  CON -->|requires| SGA{{"Signed human ship approval"}}:::hum
+  CON -->|produces| RCPT["CAS land on target + landing receipt"]:::art
+  CON -->|"invokes pinned graph"| FDG
+  subgraph FDG["feature-delivery graph"]
+    FD["implement"]:::eng
+    DB["debrief"]:::eng
+    RV["review"]:::eng
+    SHN{{"ship gate"}}:::hum
+    TG{{"triage gate: rebudget or abandon"}}:::hum
+    SHIPPED(["shipped"]):::done
+    FD --> DB
+    DB --> RV
+    RV -->|"fail_code: rework"| FD
+    RV -->|"region exhausted, 3 entries"| TG
+    RV --> SHN
+    SHN --> SHIPPED
+  end
+  DB -->|produces| KN["docs/workstreams knowledge"]:::art
+  FORE["foreman: one decision per tick"]:::eng -->|ticks| FDG
+  FORE --> INSP["inspector: contain, watch, grade, recover"]:::eng
+  INSP --> CREW["crews: claude, codex, codex-appserver, opencode"]:::eng
+  INSP -->|produces| RREF["recovery refs under refs/wf"]:::art
+  FORE -->|produces| LED["SQLite run ledger"]:::eng
+  BDIO["bdio: gate signature check"]:::eng -->|enforces| SGA
+  APG["approve-gate.sh: human signs"]:::hum -->|produces| INBOX["gate inbox"]:::art
+  MON["monitor: separate process"]:::eng -->|produces| WAKE["bd wake events + hook_argv: unwired"]:::cav
+  OTHER["other graphs: basic, design-spec, integration, build-loop"]:::eng
+  classDef sk fill:#f1f1ee,stroke:#7a7a72,color:#1a1a1a
+  classDef eng fill:#dbe8fb,stroke:#3b6fb6,color:#14243d
+  classDef hum fill:#fbd9d3,stroke:#b4442f,color:#3d120b,stroke-width:2px
+  classDef art fill:#fafaf7,stroke:#9a9a92,color:#1a1a1a,stroke-dasharray:2 2
+  classDef cav fill:#fff1bf,stroke:#a88400,color:#332800,stroke-dasharray:5 3
+  classDef done fill:#e1f1e4,stroke:#3f8a4f,color:#132a17</pre></div>
+<div class="legend"><span><i class="sw" style="background:#dbe8fb;border-color:#3b6fb6"></i>Engine component</span><span><i class="sw hex" style="background:#b4442f;border-color:#b4442f"></i>Human gate or human act</span><span><i class="sw dash" style="background:#fafaf7;border-color:#9a9a92"></i>Artifact</span><span><i class="sw dash" style="background:#fff1bf;border-color:#a88400"></i>Unwired</span></div>
+</figure>
+<details><summary>Node inventory and edge sources</summary>
+<p>Prose harness nodes: ours.md:40-97. Hooks: ours.md:101-106. Scripts: ours.md:110-119. Engine: ours.md:123-136. Edges: ours.md:140-215. The data file does not draw an edge from the gate inbox to the contractor's ship approval, so this report leaves it out too. J: codex-adapter is retired, and Codex is called directly (ours.md:25). The agents point at review-skill sections that were renamed and no longer exist under those names (ours.md:280).</p>
+</details>
+
+<h3>3c. Lifecycle: request to landed</h3>
+<figure>
+<figcaption><strong>How to read:</strong> top to bottom. Red hexagons are human stops and yellow diamonds are automated or critic gates. The blue-bordered cluster runs inside the engine. Every stage passes the signed ship gate. The short left branch is the task-scope path, which has no contractor and no ship gate.</figcaption>
+<div class="diagram"><pre class="mm">flowchart TD
+  R["Request. SessionStart hook injects bd prime"]:::st --> SZ{"Size check"}:::gate
+  SZ -->|"clear bounded task"| TL["Task loop: claim, implement or dispatch implementer, checks, optional review up to 5 rounds, close"]:::st
+  SZ -->|otherwise| BS["brainstorming: draft spec"]:::st
+  BS --> RV1{"Critic review if material risk"}:::gate
+  RV1 --> H1{{"Human approves spec"}}:::hum
+  H1 --> PLD["planning: Decompose"]:::st
+  PLD --> H2{{"Human approves structure before any Beads write"}}:::hum
+  H2 --> SEED["Seed epics and stages, render mirrors"]:::st
+  SEED --> ELAB["planning: Elaborate phase plan"]:::st
+  ELAB --> RV2{"Critic review if material risk"}:::gate
+  RV2 --> ENTRY{{"Human types /phase-execution, or /run-phases as the unattended opt-in"}}:::hum
+  ENTRY --> PH["Phase loop: resolve epic, claim phase, pick a ready stage"]:::st
+  PH --> CONS["contractor: foreman contract epic stage"]:::eng
+  subgraph ENG["Inside the engine"]
+    CONS --> IMPN["implement node"]:::eng
+    IMPN --> HV{"Host verify after each node"}:::gate
+    HV --> DEB["debrief node"]:::eng
+    DEB --> REVN["review node"]:::eng
+    REVN -->|fail_code| IMPN
+    REVN -->|"region exhausted"| TRG{{"Human triage: rebudget or abandon"}}:::hum
+    REVN --> SHIPG{{"Signed human ship gate"}}:::hum
+    SHIPG --> CCHK{"contractor checks on detached candidate"}:::gate
+    CCHK --> CASL["CAS land, receipt, close stage"]:::eng
+  end
+  CASL --> NEXT{"Contractor JSON: result, blocked, refused, phase-exhausted"}:::gate
+  NEXT -->|"result: next stage"| PH
+  NEXT -->|"all stages closed"| EPIC{"Epic close gate: roadmap exit criterion"}:::gate
+  EPIC --> WS["Workstream mode: regenerate tracking, commit per phase if covered, next phase"]:::st
+  WS --> CLOSE["Session close: evidence, gates, resume note"]:::st
+  TL --> CLOSE
+  CLOSE --> CMT{{"Human authorizes commit or push"}}:::hum
+  classDef st fill:#f1f1ee,stroke:#7a7a72,color:#1a1a1a
+  classDef gate fill:#fff1bf,stroke:#a88400,color:#332800
+  classDef hum fill:#fbd9d3,stroke:#b4442f,color:#3d120b,stroke-width:2px
+  classDef eng fill:#dbe8fb,stroke:#3b6fb6,color:#14243d</pre></div>
+<div class="legend"><span><i class="sw hex" style="background:#b4442f;border-color:#b4442f"></i>Human stop</span><span><i class="sw" style="background:#fff1bf;border-color:#a88400"></i>Automated or critic gate</span><span><i class="sw" style="background:#dbe8fb;border-color:#3b6fb6"></i>Engine</span><span><i class="sw" style="background:#f1f1ee;border-color:#7a7a72"></i>Prose step</span></div>
+</figure>
+<details><summary>Lifecycle sources</summary>
+<p>Steps 1-10: ours.md:221-255. Task-scope path: ours.md:257-265. Spec approval and critic: ours.md:224-225. Structure approval before Beads writes: ours.md:227. /run-phases opt-in: ours.md:233. Engine sequence and ship gate: ours.md:238-243. Contractor JSON handling: ours.md:244-246. Epic close gate: ours.md:247. Commit/push authorization: ours.md:255. Triage gate outcomes: ours.md:322.</p>
+</details>
+</section>
+
+<!-- ============================ 4 PROBLEM COMPARISON ============================ -->
+<section id="s4">
+<header><h2><span class="num">04</span>Problem-by-problem comparison (P01-P22)</h2></header>
+<p class="note">The relation between pstack and ours is <strong>judgement (J)</strong>, based on the problem-map rows in each data file. <strong>Alternative</strong> means both solve the problem by different mechanisms, so you pick one. <strong>Complement</strong> means each covers a different part and combining them adds value. Tally: alternative 10, complement 11, ours-only 1, pstack-only 0, neither 0. pstack-only capabilities do exist, but at a finer grain than the problem level; see <a href="#s5">section 5</a>.</p>
+<figure>
+<figcaption><strong>How to read:</strong> each row is one problem. pstack's mechanism is on the left, the problem in the middle, ours on the right. The colour of the middle box and its edges gives the J: relation, which is also written in the box. Part 1 of 3: P01-P08.</figcaption>
+<div class="diagram"><pre class="mm">flowchart LR
+  subgraph LPS["pstack"]
+    A01["how, teach, blast-radius"]:::psn
+    A02["why: git and gh + MCP investigators"]:::psn
+    A03["AskQuestion becomes prototype, never-block"]:::psn
+    A04["architect, arena, interrogate"]:::psn
+    A05["multi-phase-plan + check-plan"]:::psn
+    A06["pb:feature, poteto-agent or arena"]:::psn
+    A07["pb:bug-fix: live repro, binary search"]:::psn
+    A08["perf-issue, hillclimb, forensics, benchmark-checklist"]:::psn
+  end
+  subgraph MID["Problem · J: relation"]
+    Q01["P01 understand code · COMPLEMENT"]:::comp
+    Q02["P02 understand why · COMPLEMENT"]:::comp
+    Q03["P03 clarify requirements · COMPLEMENT"]:::comp
+    Q04["P04 design and architecture · COMPLEMENT"]:::comp
+    Q05["P05 plan and decompose · ALTERNATIVE"]:::alt
+    Q06["P06 implement a feature · ALTERNATIVE"]:::alt
+    Q07["P07 fix a bug · ALTERNATIVE"]:::alt
+    Q08["P08 performance · ALTERNATIVE"]:::alt
+  end
+  subgraph ROU["ours"]
+    U01["show-me, teach, codebase-research for external repos"]:::oun
+    U02["ADRs, learnings.md"]:::oun
+    U03["brainstorming, grilling, wayfinder, triage"]:::oun
+    U04["codebase-design, improve-architecture, design-evolve, ADR"]:::oun
+    U05["planning Decompose and Elaborate to Beads"]:::oun
+    U06["execution to implementer or contractor"]:::oun
+    U07["systematic-debugging"]:::oun
+    U08["performance-optimization"]:::oun
+  end
+  A01 --- Q01 --- U01
+  A02 --- Q02 --- U02
+  A03 --- Q03 --- U03
+  A04 --- Q04 --- U04
+  A05 --- Q05 --- U05
+  A06 --- Q06 --- U06
+  A07 --- Q07 --- U07
+  A08 --- Q08 --- U08
+  linkStyle 0,1,2,3,4,5,6,7 stroke:#3f8a4f,stroke-width:3px
+  linkStyle 8,9,10,11,12,13,14,15 stroke:#3b6fb6,stroke-width:3px
+  classDef psn fill:#ece3f7,stroke:#7a52b3,color:#25163b
+  classDef oun fill:#fde7c8,stroke:#a8650f,color:#3a2304
+  classDef alt fill:#dbe8fb,stroke:#3b6fb6,color:#14243d,stroke-width:3px
+  classDef comp fill:#e1f1e4,stroke:#3f8a4f,color:#132a17,stroke-width:3px</pre></div>
+</figure>
+<figure>
+<figcaption>Part 2 of 3: P09-P15. Same reading rule.</figcaption>
+<div class="diagram"><pre class="mm">flowchart LR
+  subgraph LPS["pstack"]
+    A09["tdd, test-behavior principle"]:::psn
+    A10["interrogate panel, no-comments, bugbot-triage"]:::psn
+    A11["prove-it-works: live verdict by a non-author"]:::psn
+    A12["PR stack, babysit, shipping"]:::psn
+    A13["swarm, arena, cloud agents, orchestrate"]:::psn
+    A14["autonomous-run + /loop, autopilot audit tick"]:::psn
+    A15["session-pickup, pause-safely, recall, trail"]:::psn
+  end
+  subgraph MID["Problem · J: relation"]
+    Q09["P09 write tests · ALTERNATIVE"]:::alt
+    Q10["P10 review code or docs · COMPLEMENT"]:::comp
+    Q11["P11 verify, prove done · COMPLEMENT"]:::comp
+    Q12["P12 land, ship · ALTERNATIVE"]:::alt
+    Q13["P13 parallel, fan-out · ALTERNATIVE"]:::alt
+    Q14["P14 long unattended runs · COMPLEMENT"]:::comp
+    Q15["P15 session continuity · ALTERNATIVE"]:::alt
+  end
+  subgraph ROU["ours"]
+    U09["test-driven-development, build-loop graph"]:::oun
+    U10["review code, document, feedback modes + reviewer agents"]:::oun
+    U11["host gate + pinned contractor checks"]:::oun
+    U12["contractor CAS land behind signed ship gate"]:::oun
+    U13["dispatch, children drive, councils"]:::oun
+    U14["run-phases, foreman run, monitor"]:::oun
+    U15["bd prime, resume notes, progress.md, ledger"]:::oun
+  end
+  A09 --- Q09 --- U09
+  A10 --- Q10 --- U10
+  A11 --- Q11 --- U11
+  A12 --- Q12 --- U12
+  A13 --- Q13 --- U13
+  A14 --- Q14 --- U14
+  A15 --- Q15 --- U15
+  linkStyle 2,3,4,5,10,11 stroke:#3f8a4f,stroke-width:3px
+  linkStyle 0,1,6,7,8,9,12,13 stroke:#3b6fb6,stroke-width:3px
+  classDef psn fill:#ece3f7,stroke:#7a52b3,color:#25163b
+  classDef oun fill:#fde7c8,stroke:#a8650f,color:#3a2304
+  classDef alt fill:#dbe8fb,stroke:#3b6fb6,color:#14243d,stroke-width:3px
+  classDef comp fill:#e1f1e4,stroke:#3f8a4f,color:#132a17,stroke-width:3px</pre></div>
+</figure>
+<figure>
+<figcaption>Part 3 of 3: P16-P22. The grey-dashed pstack box marks a gap.</figcaption>
+<div class="diagram"><pre class="mm">flowchart LR
+  subgraph LPS["pstack"]
+    A16["reflect, correct, bugbot-triage growth"]:::psn
+    A17["unslop, technical-writing, bro"]:::psn
+    A18["none: no glossary or ADR"]:::gap
+    A19["external security bot, ask class, always-pause list"]:::psn
+    A20["PRs + TSV files, no tracker in core"]:::psn
+    A21["authoring-a-skill, blinded eval, reflect, automate-me"]:::psn
+    A22["pb:prototype"]:::psn
+  end
+  subgraph MID["Problem · J: relation"]
+    Q16["P16 learn from mistakes · COMPLEMENT"]:::comp
+    Q17["P17 writing and style · COMPLEMENT"]:::comp
+    Q18["P18 domain language, ADRs · OURS-ONLY"]:::ouo
+    Q19["P19 security · COMPLEMENT"]:::comp
+    Q20["P20 track work · ALTERNATIVE"]:::alt
+    Q21["P21 maintain the harness · COMPLEMENT"]:::comp
+    Q22["P22 prototype · ALTERNATIVE"]:::alt
+  end
+  subgraph ROU["ours"]
+    U16["learnings.md, debrief node, harness-evaluate"]:::oun
+    U17["authoring-for-agents, html-artifact, show-me"]:::oun
+    U18["domain-modeling: CONTEXT.md + ADRs"]:::oun
+    U19["security skill, hooks, bwrap, signed gates"]:::oun
+    U20["Beads, triage, wayfinder"]:::oun
+    U21["authoring-for-agents, skill-catalog.py, harness-*"]:::oun
+    U22["prototype"]:::oun
+  end
+  A16 --- Q16 --- U16
+  A17 --- Q17 --- U17
+  A18 -.- Q18 --- U18
+  A19 --- Q19 --- U19
+  A20 --- Q20 --- U20
+  A21 --- Q21 --- U21
+  A22 --- Q22 --- U22
+  linkStyle 0,1,2,3,6,7,10,11 stroke:#3f8a4f,stroke-width:3px
+  linkStyle 4,5 stroke:#a8650f,stroke-width:3px
+  linkStyle 8,9,12,13 stroke:#3b6fb6,stroke-width:3px
+  classDef psn fill:#ece3f7,stroke:#7a52b3,color:#25163b
+  classDef oun fill:#fde7c8,stroke:#a8650f,color:#3a2304
+  classDef gap fill:#e9e9e6,stroke:#6b6b64,color:#333333,stroke-dasharray:4 3
+  classDef alt fill:#dbe8fb,stroke:#3b6fb6,color:#14243d,stroke-width:3px
+  classDef comp fill:#e1f1e4,stroke:#3f8a4f,color:#132a17,stroke-width:3px
+  classDef ouo fill:#fde7c8,stroke:#a8650f,color:#3a2304,stroke-width:3px</pre></div>
+<div class="legend"><span><i class="sw" style="background:#dbe8fb;border-color:#3b6fb6"></i>ALTERNATIVE</span><span><i class="sw" style="background:#e1f1e4;border-color:#3f8a4f"></i>COMPLEMENT</span><span><i class="sw" style="background:#fde7c8;border-color:#a8650f"></i>OURS-ONLY (box and edge)</span><span><i class="sw" style="background:#ece3f7;border-color:#7a52b3"></i>pstack mechanism</span><span><i class="sw" style="background:#fde7c8;border-color:#a8650f"></i>our mechanism</span><span><i class="sw dash" style="background:#e9e9e6;border-color:#6b6b64"></i>gap</span></div>
+</figure>
+<details open><summary>Comparison table (with Pocock as a third column)</summary>
+<div class="tbl-wrap"><table>
+<thead><tr><th>P</th><th>pstack mechanism</th><th>Ours mechanism</th><th>Pocock mechanism</th><th>J: relation</th><th>J: why</th><th>Source</th></tr></thead>
+<tbody>
+<tr><td>P01 understand code</td><td>how: parallel explorers + explainer. teach, blast-radius</td><td>show-me, teach, codebase-research (external). Partial: no local explainer</td><td>Fact subagent in grilling, exploration subagent. Partial</td><td><span class="tag t-comp">complement</span></td><td>pstack explains the local subsystem; ours covers external repos</td><td class="src">ps:361 · ours:271 · mp:214</td></tr>
+<tr><td>P02 understand why</td><td>why: git/gh anchor, one investigator per MCP, synthesizer</td><td>ADRs and learnings recorded up front. Partial: no git archaeology</td><td>ADRs, prototype branches, commit notes. Partial</td><td><span class="tag t-comp">complement</span></td><td>pstack recovers rationale after the fact (ps:378); ours records it up front</td><td class="src">ps:362 · ours:272 · mp:215</td></tr>
+<tr><td>P03 clarify requirements</td><td>Ask as little as possible: forks become prototypes, defaults under a grant. Gap by design</td><td>brainstorming, grilling, wayfinder, triage</td><td>grill-with-docs or grill-me to grilling, to-questionnaire</td><td><span class="tag t-comp">complement</span></td><td>pstack has no interview skill (gap by design, ps:363), so it is not an equivalent mechanism. Its prototype-first habit can settle observable forks before or instead of interview questions</td><td class="src">ps:363 · ours:273 · mp:216</td></tr>
+<tr><td>P04 design</td><td>At least 2 multi-model sketches, cross-judge, adversarial review</td><td>codebase-design lens, architecture survey, design-evolve, ADR</td><td>codebase-design DESIGN-IT-TWICE, improve-codebase-architecture</td><td><span class="tag t-comp">complement</span></td><td>pstack has a bakeoff that ours lacks; ours has design versioning and ADRs that pstack lacks</td><td class="src">ps:364 · ours:274 · mp:217</td></tr>
+<tr><td>P05 plan</td><td>Checkpoint todos, figure-it-out, multi-phase-plan + check-plan lint</td><td>planning Decompose and Elaborate to Beads epics and stages</td><td>to-spec, to-tickets, wayfinder</td><td><span class="tag t-alt">alternative</span></td><td>Both decompose into checked phases; plan file vs tracker records</td><td class="src">ps:365 · ours:275 · mp:218</td></tr>
+<tr><td>P06 implement</td><td>Name the data shape, delegate, arena if shapes vary, verify, PR</td><td>Task loop or phase loop via contractor</td><td>implement or implement-spec, tdd, code-review</td><td><span class="tag t-alt">alternative</span></td><td>Same delegate-and-verify shape; PR-terminated vs claim/close + CAS</td><td class="src">ps:366 · ours:276 · mp:219</td></tr>
+<tr><td>P07 fix a bug</td><td>Real-surface repro, eliminate hypotheses, failing repro commit first</td><td>Repro, hypothesis, probe, fix, regression. Stop after 2 failed fixes</td><td>diagnosing-bugs: red-capable loop first</td><td><span class="tag t-alt">alternative</span></td><td>Both reproduce first; different stop and surface rules</td><td class="src">ps:367 · ours:277 · mp:220</td></tr>
+<tr><td>P08 performance</td><td>Baseline trace, mantras, 7-question number vetting, hillclimb loop</td><td>Baseline, profile, one-factor change, compare</td><td>diagnosing-bugs perf branch. Partial</td><td><span class="tag t-alt">alternative</span></td><td>Same core method; pstack adds hillclimb and forensics with no counterpart in ours</td><td class="src">ps:368 · ours:278 · mp:221</td></tr>
+<tr><td>P09 tests</td><td>tdd when cheap, behavior assertions, characterization pin</td><td>Test-first, characterization. build-loop graph: write_tests records red-test evidence (agent claim, critic-judged) and the host runs a test parse check</td><td>tdd at agreed seams, mock at boundaries</td><td><span class="tag t-alt">alternative</span></td><td>Both test-first; ours adds a graph node that must record red evidence, but the host check only parses tests and cannot prove semantic red</td><td class="src">ps:369 · ours:279 · build-loop.toml:41-47,67 · docs/usage/verification.md:32-40 · mp:222</td></tr>
+<tr><td>P10 review</td><td>Multi-model panel, comment purge, blast-radius, bot triage. No doc review</td><td>Critic contract, code/document/feedback modes, reviewer agents. Partial: stale section pointers</td><td>Two-axis code-review. No doc review</td><td><span class="tag t-comp">complement</span></td><td>pstack has a model panel and bot triage; ours has a document mode</td><td class="src">ps:370 · ours:280 · mp:223</td></tr>
+<tr><td>P11 verify</td><td>Live real-surface proof by a non-author, verdict keyed to SHA and patch-id</td><td>Claim-to-evidence table, five-stage host gate, pinned contractor checks</td><td>Checklists and pr Evidence. Gap: no independent verifier</td><td><span class="tag t-comp">complement</span></td><td>Live independent proof vs deterministic host checks; different halves of "done"</td><td class="src">ps:371 · ours:281 · mp:224</td></tr>
+<tr><td>P12 land</td><td>Ready stacked PRs, watcher-driven babysit, contiguous bottom-up landing</td><td>Signed-ship-gated local CAS. Partial: no PR, release or push</td><td>Commit, integration branch, pr template. Gap: no merge</td><td><span class="tag t-alt">alternative</span></td><td>Only one landing path can be authoritative</td><td class="src">ps:372 · ours:282 · mp:225</td></tr>
+<tr><td>P13 parallel</td><td>Cloud workers, multi-family panels, ~10 per drain, one writer per worktree</td><td>Bounded workers, children with concurrency cap, councils</td><td>implement-spec frontier, code-review, research</td><td><span class="tag t-alt">alternative</span></td><td>Cloud fan-out vs local capped children</td><td class="src">ps:373 · ours:283 · mp:226</td></tr>
+<tr><td>P14 long runs</td><td>Checkable predicate, event or heartbeat wake, trail, stuck-lane replacement</td><td>Unattended phase walk, tick loop to 8h wall, monitor. Partial: ship gate per stage</td><td>One implement-spec session. Gap</td><td><span class="tag t-comp">complement</span></td><td>pstack has wake + predicate; ours has a bounded deterministic engine. Each lacks the other's half</td><td class="src">ps:374 · ours:284 · mp:227</td></tr>
+<tr><td>P15 continuity</td><td>Transcripts and trails, wip commit + resume note, cloud reattach</td><td>resume notes, ledger re-read, codex resume</td><td>PHASE-BOUNDARIES, handoff, wayfinder map</td><td><span class="tag t-alt">alternative</span></td><td>Transcript-based vs tracker/ledger-based resumption</td><td class="src">ps:375 · ours:285 · mp:228</td></tr>
+<tr><td>P16 learn</td><td>Transcript-mined learnings to approved skill edits, rule table</td><td>learnings.md, debrief written by feature-delivery runs. Partial: no automated loop back</td><td>retro suggestions. Partial</td><td><span class="tag t-comp">complement</span></td><td>pstack closes the loop into skills; ours captures knowledge from feature-delivery runs (the basic graph has no debrief)</td><td class="src">ps:376 · ours:286 · mp:229</td></tr>
+<tr><td>P17 writing</td><td>AI-tell catalog, layered doc standard, reply rules</td><td>Instruction-writing rules, output style, visuals. Partial: no prose style skill</td><td>writing-for-agents, pr, wait-what</td><td><span class="tag t-comp">complement</span></td><td>Prose style (pstack) vs agent-instruction and visual output (ours)</td><td class="src">ps:377 · ours:287 · mp:230</td></tr>
+<tr><td>P18 domain language</td><td>— gap</td><td>Glossary in CONTEXT.md and sparing ADRs</td><td>grill-with-docs, domain-modeling</td><td><span class="tag t-ou">ours-only</span></td><td>pstack: "the codebase is the word list"</td><td class="src">ps:378 · ours:288 · mp:231</td></tr>
+<tr><td>P19 security</td><td>External security bot + escalation rules. Partial gap</td><td>Threat scoping, hook blocks, bwrap mounts, signed gates. Partial: Claude network not enforced</td><td>— gap</td><td><span class="tag t-comp">complement</span></td><td>An external PR reviewer vs in-repo controls</td><td class="src">ps:379 · ours:289 · mp:232</td></tr>
+<tr><td>P20 track work</td><td>PRs + TSV/markdown, no tracker in core. Partial</td><td>Beads, intake states, ready-for-agent, mirrors</td><td>Tracker abstraction, five triage roles. Partial</td><td><span class="tag t-alt">alternative</span></td><td>PR state vs a tracker DB</td><td class="src">ps:380 · ours:290 · mp:233</td></tr>
+<tr><td>P21 harness</td><td>Authoring flow, blinded evals, transcript-mined edits, personal modes</td><td>Surface selection, catalog lint, reference curation, publish</td><td>SKILL-MECHANICS, retro. Partial: no eval</td><td><span class="tag t-comp">complement</span></td><td>pstack has blinded eval that ours lacks; ours has lint and curation</td><td class="src">ps:381 · ours:291 · mp:234</td></tr>
+<tr><td>P22 prototype</td><td>Throwaway variants behind a switcher; also replaces questions</td><td>Throwaway artifact for one named question</td><td>prototype on a prototype/ branch</td><td><span class="tag t-alt">alternative</span></td><td>Same idea; pstack also uses it to avoid asking</td><td class="src">ps:382 · ours:292 · mp:235</td></tr>
+</tbody></table></div>
+<p class="note">Source key: <code>ps:N</code> = data/pstack.md line N, <code>ours:N</code> = data/ours.md, <code>mp:N</code> = data/pocock.md.</p>
+</details>
+</section>
+
+<!-- ============================ 5 FULL DIFF ============================ -->
+<section id="s5">
+<header><h2><span class="num">05</span>Full capability diff</h2></header>
+<p>83 capabilities, the union across the three node and problem tables, grouped by area. Tile colour shows who has each one. <strong>+P</strong> means Pocock has it too. Tally: pstack only 28 · ours only 29 · both 23 · Pocock only 3. J: grouping capabilities is a judgement; the detailed table below cites each one.</p>
+<div class="legend" style="margin-bottom:8px"><span><i class="sw" style="background:var(--c-ps);border-color:var(--c-ps-b)"></i>pstack only</span><span><i class="sw" style="background:var(--c-ou);border-color:var(--c-ou-b)"></i>ours only</span><span><i class="sw" style="background:var(--c-both);border-color:var(--c-both-b)"></i>both</span><span><i class="sw" style="background:var(--c-mp);border-color:var(--c-mp-b)"></i>Pocock only</span><span><b>+P</b> = Pocock also has it</span></div>
+
+<div class="grid-area"><h4>Routing, models, understanding</h4><div class="chips">
+<span class="chip both p">Router or entry skill</span><span class="chip ps">Sticky mode with reminders</span><span class="chip both">Per-role model config</span><span class="chip ps">Local code explainer</span><span class="chip ou p">Research reports from primary sources</span><span class="chip ps">Rationale from git + MCPs</span><span class="chip ps">Blast-radius analysis</span><span class="chip both p">Teach or tutor</span><span class="chip ps p">Plain-language restate</span>
+</div></div>
+<div class="grid-area"><h4>Decide and design</h4><div class="chips">
+<span class="chip ou p">Requirements interview</span><span class="chip ps">Prototype instead of asking</span><span class="chip both p">Throwaway prototype</span><span class="chip ps p">Multi-design bakeoff</span><span class="chip both">Multi-model panel or council</span><span class="chip ou p">Glossary + ADRs</span><span class="chip ou">Versioned design integration</span><span class="chip ou p">Architecture improvement survey</span><span class="chip mp">Questionnaire for others</span>
+</div></div>
+<div class="grid-area"><h4>Plan and track</h4><div class="chips">
+<span class="chip ou p">Spec document</span><span class="chip both p">Phased plan or decomposition</span><span class="chip ps">Plan structure linter</span><span class="chip ou p">Multi-session decision map</span><span class="chip ou p">Issue tracker integration</span><span class="chip ou p">Triage states, ready-for-agent</span>
+</div></div>
+<div class="grid-area"><h4>Build</h4><div class="chips">
+<span class="chip both p">Feature implementation flow</span><span class="chip both p">TDD skill</span><span class="chip ou">Red-test evidence step + host parse check</span><span class="chip both p">Debugging discipline</span><span class="chip ps">Live-surface repro and drive</span><span class="chip both p">Performance workflow</span><span class="chip ps">Metric hill-climb loop</span><span class="chip ps">Runtime and trace forensics</span><span class="chip ps">Refactoring playbook</span><span class="chip ps">Visual-parity migration</span><span class="chip mp">Wizard for human-only steps</span>
+</div></div>
+<div class="grid-area"><h4>Review and verify</h4><div class="chips">
+<span class="chip both p">Code review skill</span><span class="chip ps">Multi-model adversarial review</span><span class="chip ou">Document review</span><span class="chip both">Review or bot comment disposition</span><span class="chip ps">Comment purge agent</span><span class="chip ou">Deterministic host gate</span><span class="chip both">Verdict keyed to SHA</span><span class="chip ou">Invariant checks</span>
+</div></div>
+<div class="grid-area"><h4>Land</h4><div class="chips">
+<span class="chip ps p">PR creation + body standard</span><span class="chip ps">Stacked PRs</span><span class="chip ps">PR watcher: CI, threads, bots</span><span class="chip both">Automated landing</span><span class="chip ou">Signed human ship gate</span><span class="chip ou">Merge-conflict skill</span><span class="chip both p">Combine parallel work<small>different mechanisms</small></span>
+</div></div>
+<div class="grid-area"><h4>Parallelism and autonomy</h4><div class="chips">
+<span class="chip both p">Parallel isolated workers</span><span class="chip ps">Cloud workers</span><span class="chip both">Wake or heartbeat<small>ours: re-wake unwired</small></span><span class="chip ps">Pinned run-level exit predicate<small>ours: phase close check only</small></span><span class="chip ps">Supervision tick, stuck-lane swap</span><span class="chip ou">Deterministic workflow engine</span><span class="chip both">Run ledger</span><span class="chip ou">Worker sandbox</span><span class="chip both">Bounded retries and caps</span><span class="chip ou">Recovery refs</span><span class="chip ps">Decision trail + cross-model audit</span>
+</div></div>
+<div class="grid-area"><h4>Session and learning</h4><div class="chips">
+<span class="chip both p">Pause and resume note</span><span class="chip ps">Transcript recall and pickup</span><span class="chip mp">Phase-boundary context tree</span><span class="chip ou">Session-start context injection</span><span class="chip ps p">Retro to skill or env edits</span><span class="chip ou">Learnings file</span><span class="chip ou">Debrief into repo (feature-delivery)</span>
+</div></div>
+<div class="grid-area"><h4>Writing, safety, harness</h4><div class="chips">
+<span class="chip ps">AI-tell prose catalog</span><span class="chip both p">Writing standard</span><span class="chip ou">Standalone HTML artifact skill</span><span class="chip ou">Security skill</span><span class="chip ou p">Dangerous-command hook</span><span class="chip both">Always-pause list</span><span class="chip ou">Generated-file edit guard</span><span class="chip both p">Skill authoring flow</span><span class="chip ps">Blinded multi-model skill eval</span><span class="chip ou">Skill catalog lint</span><span class="chip ou">Reference-harness curation</span><span class="chip ps">Personal mode generation</span><span class="chip ou">Plugin publish skill</span><span class="chip ou p">Codex twin</span><span class="chip ps">Worktree cleanup audit</span>
+</div></div>
+
+<details><summary>Capability table with mechanisms and sources (83 rows)</summary>
+<div class="tbl-wrap"><table>
+<thead><tr><th>Capability</th><th>pstack</th><th>Ours</th><th>Pocock</th><th>Who</th><th>Source</th></tr></thead>
+<tbody>
+<tr><td>Router or entry skill</td><td>poteto-mode</td><td>skill-router, AGENTS.md</td><td>ask-matt</td><td><span class="tag t-alt">both +P</span></td><td class="src">ps:46 · ours:42,46 · mp:50</td></tr>
+<tr><td>Sticky mode with reminders</td><td>mode: true, reminder</td><td>—</td><td>—</td><td><span class="tag t-ps">pstack</span></td><td class="src">ps:26,46</td></tr>
+<tr><td>Per-role model config</td><td>setup-pstack, pstack-models.mdc</td><td>agent-matrix, roster</td><td>— no model named</td><td><span class="tag t-alt">both</span></td><td class="src">ps:49-50 · ours:31,75 · mp:24</td></tr>
+<tr><td>Local code explainer</td><td>how</td><td>— partial</td><td>— partial</td><td><span class="tag t-ps">pstack</span></td><td class="src">ps:84 · ours:271 · mp:214</td></tr>
+<tr><td>Research reports from primary sources</td><td>—</td><td>research, codebase-research</td><td>research</td><td><span class="tag t-ou">ours +P</span></td><td class="src">ours:64-65 · mp:65</td></tr>
+<tr><td>Rationale from git + MCPs</td><td>why</td><td>—</td><td>—</td><td><span class="tag t-ps">pstack</span></td><td class="src">ps:85 · ours:272 · mp:215</td></tr>
+<tr><td>Blast-radius analysis</td><td>blast-radius</td><td>—</td><td>—</td><td><span class="tag t-ps">pstack</span></td><td class="src">ps:88</td></tr>
+<tr><td>Teach or tutor</td><td>teach</td><td>teach</td><td>teach</td><td><span class="tag t-alt">both +P</span></td><td class="src">ps:87 · ours:83 · mp:73</td></tr>
+<tr><td>Plain-language restate</td><td>bro</td><td>—</td><td>wait-what</td><td><span class="tag t-ps">pstack +P</span></td><td class="src">ps:106 · mp:75</td></tr>
+<tr><td>Requirements interview</td><td>— by design</td><td>brainstorming, grilling</td><td>grilling</td><td><span class="tag t-ou">ours +P</span></td><td class="src">ps:363 · ours:47-48 · mp:71</td></tr>
+<tr><td>Prototype instead of asking</td><td>AskQuestion classification</td><td>—</td><td>—</td><td><span class="tag t-ps">pstack</span></td><td class="src">ps:345,363</td></tr>
+<tr><td>Throwaway prototype</td><td>pb:prototype</td><td>prototype</td><td>prototype</td><td><span class="tag t-alt">both +P</span></td><td class="src">ps:64 · ours:68 · mp:64</td></tr>
+<tr><td>Multi-design bakeoff</td><td>architect + arena</td><td>—</td><td>DESIGN-IT-TWICE</td><td><span class="tag t-ps">pstack +P</span></td><td class="src">ps:89-90 · mp:217</td></tr>
+<tr><td>Multi-model panel or council</td><td>arena, interrogate</td><td>model-council, perspective-council</td><td>—</td><td><span class="tag t-alt">both</span></td><td class="src">ps:90,92 · ours:73-74</td></tr>
+<tr><td>Glossary + ADRs</td><td>— gap</td><td>domain-modeling</td><td>domain-modeling</td><td><span class="tag t-ou">ours +P</span></td><td class="src">ps:378 · ours:67 · mp:66</td></tr>
+<tr><td>Versioned design integration</td><td>—</td><td>design-evolve</td><td>—</td><td><span class="tag t-ou">ours</span></td><td class="src">ours:66</td></tr>
+<tr><td>Architecture improvement survey</td><td>—</td><td>improve-codebase-architecture</td><td>improve-codebase-architecture</td><td><span class="tag t-ou">ours +P</span></td><td class="src">ours:63 · mp:59</td></tr>
+<tr><td>Questionnaire for others</td><td>—</td><td>—</td><td>to-questionnaire</td><td><span class="tag t-mp">Pocock</span></td><td class="src">mp:74</td></tr>
+<tr><td>Spec document</td><td>—</td><td>brainstorming spec</td><td>to-spec</td><td><span class="tag t-ou">ours +P</span></td><td class="src">ours:47 · mp:53</td></tr>
+<tr><td>Phased plan or decomposition</td><td>multi-phase-plan</td><td>planning</td><td>to-tickets</td><td><span class="tag t-alt">both +P</span></td><td class="src">ps:76 · ours:50 · mp:54</td></tr>
+<tr><td>Plan structure linter</td><td>check-plan.mjs</td><td>—</td><td>—</td><td><span class="tag t-ps">pstack</span></td><td class="src">ps:144</td></tr>
+<tr><td>Multi-session decision map</td><td>—</td><td>wayfinder</td><td>wayfinder</td><td><span class="tag t-ou">ours +P</span></td><td class="src">ours:49 · mp:58</td></tr>
+<tr><td>Issue tracker integration</td><td>— none in core</td><td>Beads</td><td>gh, glab, local</td><td><span class="tag t-ou">ours +P</span></td><td class="src">ps:30 · ours:21 · mp:31</td></tr>
+<tr><td>Triage states, ready-for-agent</td><td>—</td><td>triage</td><td>triage</td><td><span class="tag t-ou">ours +P</span></td><td class="src">ours:70 · mp:57</td></tr>
+<tr><td>Feature implementation flow</td><td>pb:feature</td><td>execution</td><td>implement</td><td><span class="tag t-alt">both +P</span></td><td class="src">ps:62 · ours:51 · mp:55</td></tr>
+<tr><td>TDD skill</td><td>tdd</td><td>test-driven-development</td><td>tdd</td><td><span class="tag t-alt">both +P</span></td><td class="src">ps:94 · ours:58 · mp:62</td></tr>
+<tr><td>Red-test evidence step + host parse check</td><td>—</td><td>build-loop write_tests records red command and semantic reason (agent claim, reviewed); host runs scripts/checks/tests-parse.sh, which "cannot establish" semantic red</td><td>—</td><td><span class="tag t-ou">ours</span></td><td class="src">ours:279; workflows/build-loop.toml:41-47,67; docs/usage/verification.md:32-40</td></tr>
+<tr><td>Debugging discipline</td><td>pb:bug-fix</td><td>systematic-debugging</td><td>diagnosing-bugs</td><td><span class="tag t-alt">both +P</span></td><td class="src">ps:57 · ours:59 · mp:63</td></tr>
+<tr><td>Live-surface repro and drive</td><td>ext control-ui/cli, verify-&lt;app&gt;</td><td>—</td><td>—</td><td><span class="tag t-ps">pstack</span></td><td class="src">ps:21-22</td></tr>
+<tr><td>Performance workflow</td><td>pb:perf-issue</td><td>performance-optimization</td><td>diagnosing-bugs, partial</td><td><span class="tag t-alt">both +P</span></td><td class="src">ps:58 · ours:60 · mp:221</td></tr>
+<tr><td>Metric hill-climb loop</td><td>pb:hillclimb</td><td>—</td><td>—</td><td><span class="tag t-ps">pstack</span></td><td class="src">ps:59</td></tr>
+<tr><td>Runtime and trace forensics</td><td>2 playbooks</td><td>—</td><td>—</td><td><span class="tag t-ps">pstack</span></td><td class="src">ps:60-61</td></tr>
+<tr><td>Refactoring playbook</td><td>pb:refactoring</td><td>—</td><td>—</td><td><span class="tag t-ps">pstack</span></td><td class="src">ps:63</td></tr>
+<tr><td>Visual-parity migration</td><td>pb:visual-parity</td><td>—</td><td>—</td><td><span class="tag t-ps">pstack</span></td><td class="src">ps:65</td></tr>
+<tr><td>Wizard for human-only steps</td><td>—</td><td>—</td><td>wizard</td><td><span class="tag t-mp">Pocock</span></td><td class="src">mp:69</td></tr>
+<tr><td>Code review skill</td><td>interrogate</td><td>review</td><td>code-review</td><td><span class="tag t-alt">both +P</span></td><td class="src">ps:92 · ours:56 · mp:61</td></tr>
+<tr><td>Multi-model adversarial review</td><td>interrogate: one reviewer per model</td><td>—</td><td>—</td><td><span class="tag t-ps">pstack</span></td><td class="src">ps:92</td></tr>
+<tr><td>Document review</td><td>— gap</td><td>review document mode</td><td>— gap</td><td><span class="tag t-ou">ours</span></td><td class="src">ps:370 · ours:56 · mp:223</td></tr>
+<tr><td>Review or bot comment disposition</td><td>bugbot-triage fix/dismiss/ask</td><td>review feedback mode</td><td>—</td><td><span class="tag t-alt">both</span></td><td class="src">ps:148 · ours:56-57</td></tr>
+<tr><td>Comment purge agent</td><td>no-comments + Comment Sicko</td><td>—</td><td>—</td><td><span class="tag t-ps">pstack</span></td><td class="src">ps:48,93</td></tr>
+<tr><td>Deterministic host gate</td><td>—</td><td>verification.md five-stage + host verify</td><td>—</td><td><span class="tag t-ou">ours</span></td><td class="src">ours:44,281</td></tr>
+<tr><td>Verdict keyed to SHA</td><td>shipping verdicts, orchestrate ledger</td><td>contractor checks, ledger verify</td><td>—</td><td><span class="tag t-alt">both</span></td><td class="src">ps:371,431 · ours:281,368</td></tr>
+<tr><td>Invariant checks</td><td>—</td><td>check-invariants</td><td>—</td><td><span class="tag t-ou">ours</span></td><td class="src">ours:72</td></tr>
+<tr><td>PR creation + body standard</td><td>pb:opening-a-pr</td><td>— no PR flow</td><td>pr template</td><td><span class="tag t-ps">pstack +P</span></td><td class="src">ps:78 · ours:282 · mp:68</td></tr>
+<tr><td>Stacked PRs</td><td>base-branch chains</td><td>—</td><td>— none</td><td><span class="tag t-ps">pstack</span></td><td class="src">ps:13 · mp:30</td></tr>
+<tr><td>PR watcher</td><td>babysit + watch-pr</td><td>—</td><td>—</td><td><span class="tag t-ps">pstack</span></td><td class="src">ps:68,143</td></tr>
+<tr><td>Automated landing</td><td>shipping, autopilot-full</td><td>contractor CAS land</td><td>— no merge skill</td><td><span class="tag t-alt">both</span></td><td class="src">ps:69,72 · ours:126 · mp:225</td></tr>
+<tr><td>Signed human ship gate</td><td>—</td><td>ed25519-signed gate</td><td>—</td><td><span class="tag t-ou">ours</span></td><td class="src">ours:28</td></tr>
+<tr><td>Merge-conflict skill</td><td>—</td><td>resolving-merge-conflicts</td><td>— archived</td><td><span class="tag t-ou">ours</span></td><td class="src">ours:69 · mp:30</td></tr>
+<tr><td>Combine parallel work</td><td>arena: pick a base from parallel candidates, graft the useful parts of the others</td><td>integration prepare: one combined stage candidate against the target base, with fresh review, checks and ship approval. No per-spec branch</td><td>integration branch per spec + merger subagent</td><td><span class="tag t-alt">both +P</span></td><td class="src">ps:90; arena/SKILL.md:24-33,53-55 · ours:167; docs/usage/contractor.md:48-58 · mp:56</td></tr>
+<tr><td>Parallel isolated workers</td><td>swarm, arena, worktrees</td><td>dispatch, children drive</td><td>implement-spec worktrees</td><td><span class="tag t-alt">both +P</span></td><td class="src">ps:90-91 · ours:283 · mp:56</td></tr>
+<tr><td>Cloud workers</td><td>Cursor cloud agents</td><td>—</td><td>—</td><td><span class="tag t-ps">pstack</span></td><td class="src">ps:24</td></tr>
+<tr><td>Wake or heartbeat</td><td>/loop</td><td>monitor; hook_argv unwired</td><td>—</td><td><span class="tag t-alt">both</span></td><td class="src">ps:25 · ours:132,311</td></tr>
+<tr><td>Pinned run-level exit predicate</td><td>autonomous-run: checkable predicate before iteration 1, never relaxed</td><td>partial: roadmap exit criterion checked at epic close</td><td>—</td><td><span class="tag t-ps">pstack</span></td><td class="src">ps:70,390 · ours:247</td></tr>
+<tr><td>Supervision tick, stuck-lane swap</td><td>autopilot /loop 1h audit</td><td>—</td><td>—</td><td><span class="tag t-ps">pstack</span></td><td class="src">ps:395</td></tr>
+<tr><td>Deterministic workflow engine</td><td>— prose only</td><td>foreman graphs</td><td>— defers to external loop</td><td><span class="tag t-ou">ours</span></td><td class="src">ps:441 · ours:125 · mp:278</td></tr>
+<tr><td>Run ledger</td><td>orch TSV ledger</td><td>SQLite ledger</td><td>— none</td><td><span class="tag t-alt">both</span></td><td class="src">ps:35,142 · ours:129 · mp:40</td></tr>
+<tr><td>Worker sandbox</td><td>—</td><td>bwrap</td><td>—</td><td><span class="tag t-ou">ours</span></td><td class="src">ours:26</td></tr>
+<tr><td>Bounded retries and caps</td><td>orchestrate retry-by-mode</td><td>activation, region, infra caps</td><td>— none</td><td><span class="tag t-alt">both</span></td><td class="src">ps:427 · ours:338-351 · mp:268</td></tr>
+<tr><td>Recovery refs</td><td>—</td><td>refs/wf recovery</td><td>—</td><td><span class="tag t-ou">ours</span></td><td class="src">ours:360</td></tr>
+<tr><td>Decision trail + cross-model audit</td><td>show-me-your-work</td><td>—</td><td>—</td><td><span class="tag t-ps">pstack</span></td><td class="src">ps:97</td></tr>
+<tr><td>Pause and resume note</td><td>pause-safely</td><td>resume with: notes</td><td>handoff</td><td><span class="tag t-alt">both +P</span></td><td class="src">ps:75 · ours:254,380 · mp:72</td></tr>
+<tr><td>Transcript recall and pickup</td><td>recall, session-pickup</td><td>—</td><td>—</td><td><span class="tag t-ps">pstack</span></td><td class="src">ps:74,86</td></tr>
+<tr><td>Phase-boundary context tree</td><td>—</td><td>—</td><td>PHASE-BOUNDARIES</td><td><span class="tag t-mp">Pocock</span></td><td class="src">mp:87</td></tr>
+<tr><td>Session-start context injection</td><td>—</td><td>bd-prime hook</td><td>—</td><td><span class="tag t-ou">ours</span></td><td class="src">ours:105</td></tr>
+<tr><td>Retro to skill or env edits</td><td>reflect, correct</td><td>— partial</td><td>retro</td><td><span class="tag t-ps">pstack +P</span></td><td class="src">ps:98-99 · ours:286 · mp:60</td></tr>
+<tr><td>Learnings file</td><td>—</td><td>learnings.md</td><td>—</td><td><span class="tag t-ou">ours</span></td><td class="src">ours:286</td></tr>
+<tr><td>Debrief into repo (feature-delivery)</td><td>—</td><td>debrief node in feature-delivery; the basic graph has none</td><td>—</td><td><span class="tag t-ou">ours</span></td><td class="src">ours:211; workflows/basic.toml:1-83</td></tr>
+<tr><td>AI-tell prose catalog</td><td>unslop</td><td>—</td><td>—</td><td><span class="tag t-ps">pstack</span></td><td class="src">ps:104</td></tr>
+<tr><td>Writing standard</td><td>technical-writing</td><td>authoring-for-agents (agent instructions)</td><td>writing-for-agents</td><td><span class="tag t-alt">both +P</span></td><td class="src">ps:105 · ours:76,287 · mp:76</td></tr>
+<tr><td>Standalone HTML artifact skill</td><td>—</td><td>html-artifact, show-me</td><td>—</td><td><span class="tag t-ou">ours</span></td><td class="src">ours:81-82</td></tr>
+<tr><td>Security skill</td><td>— relies on bot</td><td>security</td><td>— gap</td><td><span class="tag t-ou">ours</span></td><td class="src">ps:379 · ours:61 · mp:232</td></tr>
+<tr><td>Dangerous-command hook</td><td>— ships no hooks</td><td>block-dangerous-commands</td><td>git-guardrails (misc, optional)</td><td><span class="tag t-ou">ours +P</span></td><td class="src">ps:20 · ours:103 · mp:77</td></tr>
+<tr><td>Always-pause list</td><td>PM always-pause</td><td>AGENTS.md authority + hook asks</td><td>—</td><td><span class="tag t-alt">both</span></td><td class="src">ps:401 · ours:32,332</td></tr>
+<tr><td>Generated-file edit guard</td><td>—</td><td>block-generated-edits</td><td>—</td><td><span class="tag t-ou">ours</span></td><td class="src">ours:104</td></tr>
+<tr><td>Skill authoring flow</td><td>pb:authoring-a-skill</td><td>authoring-for-agents</td><td>SKILL-MECHANICS</td><td><span class="tag t-alt">both +P</span></td><td class="src">ps:66 · ours:76 · mp:234</td></tr>
+<tr><td>Blinded multi-model skill eval</td><td>pb:eval</td><td>—</td><td>— no eval</td><td><span class="tag t-ps">pstack</span></td><td class="src">ps:67 · mp:234</td></tr>
+<tr><td>Skill catalog lint</td><td>—</td><td>skill-catalog.py</td><td>—</td><td><span class="tag t-ou">ours</span></td><td class="src">ours:112</td></tr>
+<tr><td>Reference-harness curation</td><td>—</td><td>harness-status/scan/evaluate</td><td>—</td><td><span class="tag t-ou">ours</span></td><td class="src">ours:77-78</td></tr>
+<tr><td>Personal mode generation</td><td>automate-me</td><td>—</td><td>—</td><td><span class="tag t-ps">pstack</span></td><td class="src">ps:100</td></tr>
+<tr><td>Plugin publish skill</td><td>—</td><td>harness-publish</td><td>—</td><td><span class="tag t-ou">ours</span></td><td class="src">ours:79</td></tr>
+<tr><td>Codex twin</td><td>—</td><td>.codex mirror</td><td>skills.sh copies + openai.yaml policy</td><td><span class="tag t-ou">ours +P</span></td><td class="src">ours:30 · mp:22-23</td></tr>
+<tr><td>Worktree cleanup audit</td><td>pb:worktree-cleanup</td><td>—</td><td>—</td><td><span class="tag t-ps">pstack</span></td><td class="src">ps:77</td></tr>
+</tbody></table></div>
+</details>
+</section>
+
+<!-- ============================ 6 AUTONOMY ============================ -->
+<section id="s6">
+<header><h2><span class="num">06</span>Toward full autonomy</h2></header>
+<p>The layers pstack's autonomy rests on, set against what ours has today. The status of each layer is a judgement made from the data files. Every recommendation is <strong>J:</strong>.</p>
+<figure>
+<figcaption><strong>How to read:</strong> one row per layer, roughly from runtime (top) up to authority. In each row the grey box names the layer, the purple box is pstack's mechanism, and the right-hand box is ours today. Our box's colour and tag give its status: <strong>HAVE</strong> (green), <strong>PARTIAL</strong> (amber) or <strong>BLOCKER</strong> (red, the three known blockers from ours.md §6).</figcaption>
+<div class="diagram"><pre class="mm">flowchart LR
+  Y1["L1 Isolation"]:::lay --> P1["pstack: worktree per run and per agent, one writer per branch"]:::psn --> Q1["ours: worktrees with verified base, bwrap, recovery refs · HAVE"]:::have
+  Y2["L2 Worker runtime and parallelism"]:::lay --> P2["pstack: Cursor Task API + cloud agents, one VM per lane"]:::psn --> Q2["ours: vendor CLI crews, children drive with concurrency cap, local only · PARTIAL"]:::part
+  Y3["L3 Model diversity"]:::lay --> P3["pstack: 3 families. Orchestrate puts a unit's verifier on a different family"]:::psn --> Q3["ours: claude + codex crews, codex exec critic, model chosen per role · HAVE"]:::have
+  Y4["L4 Exit predicate and plan"]:::lay --> P4["pstack: run-level checkable predicate pinned before iteration 1, never relaxed"]:::psn --> Q4["ours: phase close check: roadmap exit criterion at epic close. No pinned run-level predicate · PARTIAL"]:::part
+  Y5["L5 Independent verification"]:::lay --> P5["pstack: non-author verdict, live lane is the floor, CI green is not a verdict"]:::psn --> Q5["ours: host verify, pinned contractor checks, review node. No live-surface driver, no non-author verdict on the surface · PARTIAL"]:::part
+  Y6["L6 Failure recovery and bounds"]:::lay --> P6["pstack: keep or revert, retry-by-mode, swarm respawn, synthetic postmortems"]:::psn --> Q6["ours: activation and region caps, infra retries, idempotent resume, recovery tree, ledger · HAVE"]:::have
+  Y7["L7 Wake and supervision"]:::lay --> P7["pstack: /loop event wake + heartbeat, watch-pr verdicts, 1h audit tick, stuck-lane swap"]:::psn --> Q7["ours: monitor is a separate process, hook_argv unwired, expected stops use no wake slot · BLOCKER"]:::blk
+  Y8["L8 Audit trail"]:::lay --> P8["pstack: decisions.tsv, transcript audit, cross-model Attention review"]:::psn --> Q8["ours: ledger, signed exports, debrief, refusal journal · HAVE"]:::have
+  Y9["L9 Landing authority"]:::lay --> P9["pstack autopilot-full: operator grant + clean verdict = merge authorization. autopilot-stack: operator lands"]:::psn --> Q9["ours: human signature bound to the exact candidate, every stage · BLOCKER, owner decision"]:::blk
+  Y10["L10 Grant and human gates"]:::lay --> P10["pstack: grant parsing, default proceed on reversible work, forks become prototypes"]:::psn --> Q10["ours: /run-phases opt-in, but spec, plan and scope approvals stay human · BLOCKER"]:::blk
+  Y11["L11 Forge integration"]:::lay --> P11["pstack: GitHub PRs, CI, Bugbot, security bot, gh"]:::psn --> Q11["ours: local CAS landing, no external review, nothing re-checks after landing · PARTIAL"]:::part
+  Y12["L12 Learning loop"]:::lay --> P12["pstack: reflect, correct, bugbot-triage grows from sweeps"]:::psn --> Q12["ours: learnings.md, debrief. No automated loop back · PARTIAL"]:::part
+  classDef lay fill:#e9e9e6,stroke:#6b6b64,color:#1a1a1a,font-weight:bold
+  classDef psn fill:#ece3f7,stroke:#7a52b3,color:#25163b
+  classDef have fill:#e1f1e4,stroke:#3f8a4f,color:#132a17,stroke-width:2px
+  classDef part fill:#fff1bf,stroke:#a88400,color:#332800,stroke-width:2px
+  classDef blk fill:#fbd9d3,stroke:#b4442f,color:#3d120b,stroke-width:3px</pre></div>
+<div class="legend"><span><i class="sw" style="background:#ece3f7;border-color:#7a52b3"></i>pstack mechanism</span><span><i class="sw" style="background:#e1f1e4;border-color:#3f8a4f"></i>HAVE</span><span><i class="sw" style="background:#fff1bf;border-color:#a88400"></i>PARTIAL</span><span><i class="sw" style="background:#fbd9d3;border-color:#b4442f"></i>BLOCKER</span></div>
+</figure>
+
+<details open><summary>Layer table: gap and the smallest step to close it</summary>
+<div class="tbl-wrap"><table>
+<thead><tr><th>Layer</th><th>pstack</th><th>Ours today</th><th>Status</th><th>Gap</th><th>J: smallest step</th><th>Source</th></tr></thead>
+<tbody>
+<tr><td>L1 Isolation</td><td>Fresh worktree per run and per agent, one writer</td><td>Worktrees with verified base, bwrap mounts, recovery refs</td><td><span class="tag t-have">have</span></td><td>None material</td><td>None</td><td class="src">ps:392 · ours:20,26</td></tr>
+<tr><td>L2 Worker runtime</td><td>Task API + cloud agents that survive restarts</td><td>Local crews, <code>children drive --max-concurrent</code></td><td><span class="tag t-part">partial</span></td><td>No cloud VMs; lanes share one host (pstack warns a local restack "takes the laptop down")</td><td>J: keep the concurrency cap low. Cloud is not needed to run unattended locally</td><td class="src">ps:23-24 · ours:24,312</td></tr>
+<tr><td>L3 Model diversity</td><td>3 model families. The different-family rule is stated for Orchestrate units; shipping requires a verifier that did not write the code, with no family rule</td><td>claude + codex crews, codex exec, roster</td><td><span class="tag t-have">have</span></td><td>The data shows no rule that a reviewer must be a different family</td><td>J: optional. Bind the review node to a different family from implement in role bindings</td><td class="src">ps:31 · orchestrate.md:17 · shipping.md:7 · ours:24-25,31</td></tr>
+<tr><td>L4 Exit predicate</td><td>Run-level checkable predicate stated before iteration 1; plateau is not a stop; never relaxed</td><td>Phase close check: roadmap exit criterion at epic close; advancement stops on a failed exit criterion</td><td><span class="tag t-part">partial</span></td><td>A phase close check is not a run-level predicate pinned up front and protected from relaxation</td><td>J: have <code>/run-phases</code> record the run's exit predicate before the first phase, and treat any change to it as a human gate</td><td class="src">ps:390 · autonomous-run.md:5-11 · ours:247,331</td></tr>
+<tr><td>L5 Independent verification</td><td>Each PR verified by an agent that did not write the code, on the real surface; CI green is not a verdict</td><td>Host verify after every node, pinned contractor checks, review node</td><td><span class="tag t-part">partial</span></td><td>Three separate pieces are missing or unproven: a runnable surface, a check environment that can drive it, and a non-author verdict on that surface</td><td>J: (1) <strong>Surface</strong>: a driver for the app, the role control-ui/cli plays for pstack. (2) <strong>Environment</strong>: contractor checks run in a detached checkout with PATH <code>/usr/bin:/bin</code>, a fresh HOME and no inherited credentials, venv or caches, so the driver and its dependencies must be provisioned explicitly. (3) <strong>Verdict</strong>: a check exit code is not a verdict. Add a non-author verifier, such as a separate node or agent, that exercises the surface and returns PASS or FAIL for the candidate</td><td class="src">ps:393 · shipping.md:7 · contractor.md:13-25 · ours:281,304</td></tr>
+<tr><td>L6 Recovery and bounds</td><td>Keep or revert, retry-by-mode, respawn, postmortems</td><td>Caps, retries, idempotent resume, recovery tree, ledger. No rollback</td><td><span class="tag t-have">have</span></td><td>No automatic rollback (by design)</td><td>None</td><td class="src">ps:415-436 · ours:336-384</td></tr>
+<tr><td>L7 Wake and supervision</td><td><code>/loop</code> event + heartbeat, watch-pr verdicts, hourly audit tick, stuck-lane swap</td><td>Heartbeat, refusal journal, optional monitor. <code>hook_argv</code> commented out</td><td><span class="tag t-blk">blocker</span></td><td>Nothing re-wakes the LLM orchestrator. The monitor wakes on gate opening, root terminal, refusal, unexpected driver exit or loss, and stale heartbeat. Expected stops at a gate, terminal, wall limit or acknowledged interruption use no wake slot. Lifetime cap: 100 events</td><td>J: the full path has four parts. (1) Run <code>foreman monitor ROOT</code> as its own service-managed process, optionally with the driver's <code>--monitored</code>. (2) Set <code>hook_argv</code> in trusted host config (literal argv, 10 s timeout, 3 attempts). (3) Provide a receiver that deduplicates <code>fire_key</code>, since delivery is at-least-once, and enqueues a coordinator turn. (4) Expected stops produce no wake, so the coordinator also needs its own re-entry: read the driver's returned result, or poll <code>foreman status</code> on a timer</td><td class="src">ps:391,395 · ours:306-311 · engine-bundle.md:159-206</td></tr>
+<tr><td>L8 Audit trail</td><td>decisions.tsv, transcript audit, cross-model review</td><td>Ledger, signed exports, debrief, refusal journal</td><td><span class="tag t-have">have</span></td><td>The data shows no cross-model review of the run trail</td><td>J: optional. A critic pass over the debrief before morning review</td><td class="src">ps:397 · ours:211,364-375</td></tr>
+<tr><td>L9 Landing authority</td><td><code>autopilot-full</code>: the operator's grant + the root's clean verdict authorizes the owner to merge (with patch-id and merge-tree checks). <code>autopilot-stack</code>: the operator lands</td><td>A signed human <code>ship</code> payload names the candidate <code>commit_oid</code>/<code>tree_oid</code>; it is verified at close and consumed by the contractor on every stage</td><td><span class="tag t-blk">blocker</span></td><td><code>/run-phases</code> parks at <code>ship</code> on every stage. Live proofs used fixture signatures</td><td><strong>J: owner decision, not a small step.</strong> A run grant signed before the work exists would be a <em>new trust model</em>. It loses the binding of the approval to the exact candidate commit, which today's payload carries (<code>binds = "immutable"</code>: the signature over the OID is the authority). The coordination spec preserves human ship approval by default and allows graphs to explicitly permit attributable model decisions where supported. Options: (a) keep per-stage signing and batch the human reviews, which leaves the signed-gate design unchanged and needs no ADR unless the gate itself changes, or (b) adopt a pre-signed run grant or a graph-declared model ship decision under a stated policy, which changes the trust model and needs an ADR</td><td class="src">ps:394,405 · autopilot-full.md:9 · ours:316-321 · docs/specs/workflow-interpreter.md:1058-1095 · docs/specs/2026-09-11-workflow-coordination.md:34-36</td></tr>
+<tr><td>L10 Grant and human gates</td><td>Grant parsing; reversible work proceeds; forks become prototypes</td><td><code>/run-phases</code> opt-in; spec, plan and scope approvals are human gates</td><td><span class="tag t-blk">blocker</span></td><td>Approval gates in the prose layer stop an unattended walk</td><td>J: approve spec and plan before invoking <code>/run-phases</code>, and have the invocation record which gate classes it covers. Scope and safety changes stay human</td><td class="src">ps:388-389 · ours:298,324-330</td></tr>
+<tr><td>L11 Forge integration</td><td>GitHub PRs, CI, bots, gh</td><td>No CI, local CAS, engine never pushes. Contractor checks run once on the candidate before landing; replay does not re-run them</td><td><span class="tag t-part">partial</span></td><td>Two separate things. <strong>Landing transport</strong>: local CAS is a working alternative to PR merge. <strong>Independent and repeated verification</strong>: there is no external reviewer and nothing re-checks the target after landing</td><td>J: keep local CAS for transport. For verification, either accept the trade-off explicitly (pre-landing contractor checks plus the review node are the last checks), or add an equivalent: a non-author review (see L5) and a host-gate run on the target after each landing</td><td class="src">ps:11-19 · ours:17-19 · verification.md:8-9,55-75 · contractor.md:9,13-25,45</td></tr>
+<tr><td>L12 Learning loop</td><td>reflect, correct, bugbot-triage grows</td><td>learnings.md; feature-delivery debrief</td><td><span class="tag t-part">partial</span></td><td>No route from debrief evidence to skill changes</td><td>J: a reviewed path. A periodic step reads recent debriefs and proposes learnings entries; for recurring patterns it drafts skill edits through authoring-for-agents, which a human approves</td><td class="src">ps:376 · ours:76,286</td></tr>
+</tbody></table></div>
+</details>
+
+<h3>Our three known blockers (ours.md §6)</h3>
+<ul class="tight">
+  <li><span class="tag t-blk">ship gate</span> Every stage reaches <code>shipped</code> only through a signed human <code>ship</code> gate, and the approval is bound to the exact candidate commit. So <code>/run-phases</code> is not end-to-end unattended on the contractor path (ours.md:316-320; docs/specs/workflow-interpreter.md:1058-1095). Removing this stop is a trust-model change for the owner to decide, not a configuration step. J: the protection stops the foreman and crews from forging an approval. It does not technically stop an interactive orchestrator that has host key access; that boundary is policy (ours.md:321).</li>
+  <li><span class="tag t-blk">re-wake</span> The monitor is a separately run process that can emit wake events, but <code>hook_argv</code> is commented out and nothing in the repo ships a receiver for it. Expected stops at a gate, terminal or wall limit use no wake slot (ours.md:306-311; docs/usage/engine-bundle.md:159-206).</li>
+  <li><span class="tag t-blk">prose gates</span> Spec approval, plan approval before Beads writes, scope and safety changes, commit and push, accepting material risk, and merge abort all stop for a human (ours.md:324-330).</li>
+</ul>
+
+<h3>Caveats: pstack's own inconsistencies</h3>
+<ul class="tight">
+  <li>Orchestrate needs Graphite <code>gt</code> (<code>orch frontier</code> execs <code>gt info</code>), while every other playbook says never to require it (pstack.md:14-15, 442).</li>
+  <li>"opening-a-pr at the end of every playbook" conflicts with the read-only playbooks: investigation, forensics, prototype (pstack.md:11, 442).</li>
+  <li>The README calls Comment Sicko read-only, yet it deletes comments (pstack.md:48, 442).</li>
+  <li>benny opens draft PRs despite the "never draft" rule (pstack.md:17, 442).</li>
+  <li>Audit ticks hard-code <code>origin/main:pstack/...</code>, which fails when pstack is installed as a plugin (pstack.md:33, 442).</li>
+  <li>The Autonomy section allows team-chat posts without asking, while <code>p:never-block-on-the-human</code> lists external messages as needing confirmation (pstack.md:36, 442).</li>
+  <li>J (pstack.md:441): pstack enforces nothing in code. To copy its autonomy you need its prose discipline, or our engine taking the place of that discipline.</li>
+</ul>
+<details><summary>Sources for this section</summary>
+<p>pstack autonomy steps: pstack.md:386-397. Human stops: pstack.md:399-413. Failure and recovery: pstack.md:415-436. Minimum infrastructure judgement: pstack.md:440. Ours autonomy: ours.md:296-312. Human stops: ours.md:314-332. Recovery: ours.md:334-384. Pocock (for context): human-orchestrated, AFK deferred to an external loop (pocock.md:278).</p>
+</details>
+</section>
+
+<footer>
+<p>Sources: data/pstack.md (pstack v0.15.9 map), data/pocock.md (Pocock v1.3.1 map), data/ours.md (our harness on branch dws-workflow), all following data/SCHEMA.md. Every node, edge and claim traces to those files, or to a primary repo path cited inline. The data files were corrected to match the round-1 fixes. J: marks judgement. Diagrams are rendered by Mermaid 11 from jsdelivr, the only external script. Local file, not published.</p>
+</footer>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<script>
+(function(){
+  var blocks = Array.prototype.slice.call(document.querySelectorAll('pre.mm'));
+  blocks.forEach(function(p){ p.dataset.src = p.textContent; });
+  if (!window.mermaid) { var n=document.getElementById('cdn-note'); if(n) n.hidden=false; return; }
+  var mq = window.matchMedia('(prefers-color-scheme: dark)');
+  var seq = 0;
+  function vars(dark){
+    return dark ? {
+      background:'#1e2126', primaryColor:'#2a2e36', primaryTextColor:'#e6e8eb', primaryBorderColor:'#5a6170',
+      lineColor:'#9aa3b2', clusterBkg:'#23272e', clusterBorder:'#454c58', titleColor:'#d8dbe0',
+      edgeLabelBackground:'#262a31', textColor:'#e6e8eb', fontFamily:'system-ui,-apple-system,Segoe UI,Roboto,sans-serif', fontSize:'14px'
+    } : {
+      background:'#ffffff', primaryColor:'#f1f1ee', primaryTextColor:'#1d1f22', primaryBorderColor:'#7a7a72',
+      lineColor:'#5b6472', clusterBkg:'#f8f8f6', clusterBorder:'#cfcfc8', titleColor:'#33363b',
+      edgeLabelBackground:'#ffffff', textColor:'#1d1f22', fontFamily:'system-ui,-apple-system,Segoe UI,Roboto,sans-serif', fontSize:'14px'
+    };
+  }
+  async function renderAll(){
+    var dark = mq.matches;
+    mermaid.initialize({startOnLoad:false, securityLevel:'strict', theme:'base', themeVariables:vars(dark),
+      flowchart:{useMaxWidth:false, htmlLabels:true, curve:'basis', nodeSpacing:30, rankSpacing:45}});
+    for (var i=0;i<blocks.length;i++){
+      var p = blocks[i], host = p.parentNode;
+      var old = host.querySelector('.mm-out'); if (old) old.remove();
+      var err = host.querySelector('.mm-err'); if (err) err.remove();
+      try {
+        var r = await mermaid.render('mmd' + (seq++), p.dataset.src);
+        var div = document.createElement('div'); div.className='mm-out'; div.innerHTML = r.svg;
+        var svg = div.querySelector('svg');
+        if (svg){ svg.setAttribute('role','img');
+          var cap = host.closest('figure') && host.closest('figure').querySelector('figcaption');
+          if (cap) svg.setAttribute('aria-label', cap.textContent.trim().slice(0,300)); }
+        host.appendChild(div); p.hidden = true;
+        if (!host.previousElementSibling || !host.previousElementSibling.classList.contains('fitbtn')){
+          var btn=document.createElement('button'); btn.type='button'; btn.className='fitbtn'; btn.textContent='Fit to width'; btn.setAttribute('aria-pressed','false');
+          btn.addEventListener('click', (function(h,bt){ return function(){ var on=h.classList.toggle('fit'); bt.setAttribute('aria-pressed', on?'true':'false'); bt.textContent = on ? 'Actual size' : 'Fit to width'; }; })(host,btn));
+          host.parentNode.insertBefore(btn, host);
+        }
+      } catch(e){
+        p.hidden = false;
+        var m = document.createElement('p'); m.className='mm-err'; m.textContent='Diagram failed to render; Mermaid source shown. ' + (e && e.message ? e.message : e);
+        host.appendChild(m);
+      }
+    }
+  }
+  renderAll();
+  if (mq.addEventListener) mq.addEventListener('change', renderAll);
+  window.addEventListener('beforeprint', function(){ document.querySelectorAll('details').forEach(function(d){ d.open = true; }); });
+})();
+</script>
+</body>
+</html>

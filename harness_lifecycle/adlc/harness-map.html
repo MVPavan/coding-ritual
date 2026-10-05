@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ADLC Harness Map</title>
+<style>
+:root{
+  --bg:#f7f7f5; --surface:#ffffff; --surface2:#f0f0ec; --border:#d9d9d2; --text:#1d1f22; --muted:#55595f;
+  --accent:#2f5fa7; --code:#eef0f3;
+  --ok:#2f7a40; --ok-bg:#e1f1e4; --mid:#8a6a00; --mid-bg:#fff1bf; --no:#b4442f; --no-bg:#fbd9d3;
+  --ours:#a8650f; --poc:#6b6b64; --ps:#7a52b3;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#16181c; --surface:#1e2126; --surface2:#262a31; --border:#3a3f48; --text:#e6e8eb; --muted:#aab0b9;
+    --accent:#8db4ef; --code:#2a2e36;
+    --ok:#7fcf8f; --ok-bg:#1f3325; --mid:#e8c95a; --mid-bg:#3a3215; --no:#f08a76; --no-bg:#3d211c;
+    --ours:#e9a54a; --poc:#b8b8ae; --ps:#b896e6;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#16181c; --surface:#1e2126; --surface2:#262a31; --border:#3a3f48; --text:#e6e8eb; --muted:#aab0b9;
+  --accent:#8db4ef; --code:#2a2e36;
+  --ok:#7fcf8f; --ok-bg:#1f3325; --mid:#e8c95a; --mid-bg:#3a3215; --no:#f08a76; --no-bg:#3d211c;
+  --ours:#e9a54a; --poc:#b8b8ae; --ps:#b896e6;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:1200px;margin:0 auto;padding:32px 16px 64px}
+h1{font-size:30px;margin:0 0 4px}
+.sub{color:var(--muted);margin:0 0 24px;max-width:75ch}
+section{margin-top:48px}
+h2{display:flex;gap:12px;align-items:baseline;font-size:22px;margin:0 0 8px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+h2 .n{color:var(--muted);font-size:20px;font-variant-numeric:tabular-nums}
+p.lead{max-width:75ch;margin:8px 0 16px}
+.kpis{display:grid;grid-template-columns:1.1fr 1fr 1fr 0.9fr;gap:12px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px}
+.kpi b{display:block;font-size:30px;font-variant-numeric:tabular-nums}
+.kpi span{color:var(--muted);font-size:14px}
+.k-ours b{color:var(--ours)} .k-poc b{color:var(--poc)} .k-ps b{color:var(--ps)}
+figure{margin:0;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px}
+figcaption{color:var(--muted);font-size:14px;margin-top:8px}
+.scroll{overflow-x:auto}
+.scroll svg{min-width:720px;width:100%;height:auto;display:block}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;font-size:14px;color:var(--muted);margin:12px 0}
+.legend span{display:inline-flex;gap:6px;align-items:center}
+table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+th,td{text-align:left;vertical-align:top;padding:10px 12px;border-bottom:1px solid var(--border);font-size:14.5px}
+th{background:var(--surface2);font-size:14px}
+tr.part td{background:var(--surface2);font-weight:600;font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+td.stage{width:17%} td.stage b{display:block} td.stage small{color:var(--muted)}
+th.ours{border-top:3px solid var(--ours)} th.poc{border-top:3px solid var(--poc)} th.ps{border-top:3px solid var(--ps)}
+.pill{display:inline-block;font-size:12px;font-weight:600;border-radius:999px;padding:1px 9px;margin:0 6px 4px 0;border:1px solid}
+.S{color:var(--ok);background:var(--ok-bg);border-color:var(--ok)}
+.P{color:var(--mid);background:var(--mid-bg);border-color:var(--mid)}
+.N{color:var(--no);background:var(--no-bg);border-color:var(--no)}
+.chip{display:inline-block;font:12.5px/1.4 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;padding:1px 7px;margin:2px 3px 2px 0;border-radius:5px;background:var(--code);border:1px solid var(--border)}
+.chip.u{background:transparent;border:1px dashed var(--muted)}
+.gate{display:block;font-size:13.5px;margin-top:4px}
+.gate::before{content:"\25C6  ";color:var(--accent)}
+.note{display:block;color:var(--muted);font-size:13.5px;margin-top:4px}
+.flows{display:grid;gap:16px}
+.flow{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px}
+.flow h3{margin:0 0 4px;font-size:18px}
+.flow.ours{border-left:4px solid var(--ours)} .flow.poc{border-left:4px solid var(--poc)} .flow.ps{border-left:4px solid var(--ps)}
+.flow .how{color:var(--muted);font-size:14.5px;margin:0 0 12px;max-width:85ch}
+ol.steps{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px 0;align-items:stretch}
+ol.steps li{display:flex;align-items:center}
+ol.steps li .s{border:1px solid var(--border);background:var(--surface2);border-radius:6px;padding:6px 9px;font-size:13.5px;max-width:190px}
+ol.steps li .s.h{border:1.5px solid var(--accent);background:transparent}
+ol.steps li .s.g{border:1.5px dashed var(--accent);background:transparent}
+ol.steps li .s.x{border:1px dashed var(--no);color:var(--muted)}
+ol.steps li .s i{font-style:normal;font-size:11px;font-weight:700;letter-spacing:.05em;display:block;color:var(--muted)}
+ol.steps li:not(:last-child)::after{content:"\2192";padding:0 6px;color:var(--muted)}
+.cmp td:first-child{font-weight:600;width:17%}
+.takeaways{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.take{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px}
+.take h3{margin:0 0 6px;font-size:16px}
+.take p{margin:0;font-size:14.5px}
+details{margin-top:12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px}
+summary{cursor:pointer;font-weight:600}
+footer{margin-top:56px;color:var(--muted);font-size:13.5px;border-top:1px solid var(--border);padding-top:16px}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.92em;background:var(--code);padding:0 4px;border-radius:4px}
+@media (max-width:720px){
+  .kpis{grid-template-columns:1fr 1fr}
+  table.map thead{display:none}
+  table.map tr{display:block;border-bottom:2px solid var(--border)}
+  table.map td{display:block;border:0;width:auto}
+  table.map td[data-h]::before{content:attr(data-h);display:block;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+  .cmp td:first-child{width:auto}
+}
+@media print{
+  body{background:#fff;color:#000} .scroll svg{min-width:0}
+  section{break-inside:avoid-page} details{display:block} details>*{display:block}
+}
+</style>
+</head>
+<body>
+<main>
+<h1>Where each harness sits in the ADLC</h1>
+<p class="sub">Our harness (<strong>skills only</strong>; the workflow engine is left out), Matt Pocock's skills, and pstack, mapped onto the 13-stage lifecycle from council v2. Coverage ratings are judgement calls built on the cited skill maps. Snapshot: 2026-10-05.</p>
+
+<div class="kpis" role="list">
+  <div class="kpi" role="listitem"><b>1 of 13</b><span>stages that no harness covers at all (Release, turn on slowly)</span></div>
+  <div class="kpi k-ours" role="listitem"><b>4 / 6 / 3</b><span>Ours: strong / partial / none</span></div>
+  <div class="kpi k-poc" role="listitem"><b>3 / 7 / 3</b><span>Pocock: strong / partial / none</span></div>
+  <div class="kpi k-ps" role="listitem"><b>7 / 5 / 1</b><span>pstack: strong / partial / none</span></div>
+</div>
+
+<section id="lifecycle">
+<h2><span class="n">01</span>The lifecycle itself</h2>
+<p class="lead">Five parts, 13 stages. Work moves left to right. Anything found after release, such as an incident or a scan finding, re-enters as a new item at Part 1. Safety rails run under every stage.</p>
+<figure>
+<div class="scroll">
+<svg viewBox="0 0 1070 290" role="img" aria-labelledby="f1-title f1-desc">
+  <title id="f1-title">The ADLC in five parts</title>
+  <desc id="f1-desc">Accept, then Understand and agree, then Build in pieces, then Release, then Close and learn. A dashed loop returns findings from Close to Accept as new items. A rails band spans all parts.</desc>
+  <defs>
+    <marker id="f1-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/></marker>
+    <marker id="f1-arrow-m" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/></marker>
+  </defs>
+  <g id="f1-rails">
+    <rect x="20" y="225" width="1030" height="50" rx="8" fill="var(--surface2)" stroke="var(--border)"/>
+    <text x="40" y="255" font-size="14" fill="currentColor"><tspan font-weight="700">Always-on rails:</tspan> budget · diary (journal) · loop detector · risk only rises · untrusted text grants nothing</text>
+  </g>
+  <g id="f1-edges" fill="none" stroke-width="2">
+    <path d="M210 95 H228" stroke="var(--accent)" marker-end="url(#f1-arrow)"/>
+    <path d="M420 95 H438" stroke="var(--accent)" marker-end="url(#f1-arrow)"/>
+    <path d="M630 95 H648" stroke="var(--accent)" marker-end="url(#f1-arrow)"/>
+    <path d="M840 95 H858" stroke="var(--accent)" marker-end="url(#f1-arrow)"/>
+    <path d="M955 160 V190 Q955 196 949 196 H121 Q115 196 115 190 V162" stroke="var(--muted)" stroke-dasharray="6 5" marker-end="url(#f1-arrow-m)"/>
+  </g>
+  <g id="f1-loop-label">
+    <rect x="430" y="185" width="210" height="22" fill="var(--surface)"/>
+    <text x="535" y="201" font-size="13" text-anchor="middle" fill="currentColor">finding → new item</text>
+  </g>
+  <g id="f1-nodes" font-size="13" fill="currentColor">
+    <rect x="20" y="30" width="190" height="130" rx="8" fill="var(--surface)" stroke="var(--border)"/>
+    <text x="35" y="55" font-weight="700" font-size="13">1 · Accept</text>
+    <text x="35" y="80">0 Admit</text>
+    <text x="35" y="100" fill="var(--muted)">tier, budget, authority</text>
+
+    <rect x="230" y="30" width="190" height="130" rx="8" fill="var(--surface)" stroke="var(--border)"/>
+    <text x="245" y="55" font-weight="700" font-size="13">2 · Understand &amp; agree</text>
+    <text x="245" y="80">1 Goal</text>
+    <text x="245" y="100">2 Study the code</text>
+    <text x="245" y="120">3 Tests first, locked ◆</text>
+
+    <rect x="440" y="30" width="190" height="130" rx="8" fill="var(--surface)" stroke="var(--border)"/>
+    <text x="455" y="55" font-weight="700" font-size="13">3 · Build in pieces</text>
+    <text x="455" y="80">4 Plan pieces</text>
+    <text x="455" y="100">5 Code · 6 Clean check</text>
+    <text x="455" y="120">7 Second opinion</text>
+    <text x="455" y="140">8 Merge, switched off</text>
+
+    <rect x="650" y="30" width="190" height="130" rx="8" fill="var(--surface)" stroke="var(--border)"/>
+    <text x="665" y="55" font-weight="700" font-size="13">4 · Release</text>
+    <text x="665" y="80">9 Final permission ◆</text>
+    <text x="665" y="100">10 Turn on slowly</text>
+    <text x="665" y="120">11 Watch</text>
+
+    <rect x="860" y="30" width="190" height="130" rx="8" fill="var(--surface)" stroke="var(--border)"/>
+    <text x="875" y="55" font-weight="700" font-size="13">5 · Close</text>
+    <text x="875" y="80">12 Close &amp; learn</text>
+    <text x="875" y="100" fill="var(--muted)">report, evals, lessons</text>
+  </g>
+</svg>
+</div>
+<figcaption>◆ = the two standing human decisions: G1, which approves the goal and the locked tests, and G2, which grants the final permission for an irreversible step. Solid arrows are the main path. The dashed arrow is the loop that brings a later finding back as new work.</figcaption>
+</figure>
+</section>
+
+<section id="map">
+<h2><span class="n">02</span>Coverage map: stage by stage</h2>
+<p class="lead">Each cell shows a coverage rating, the skills that do the work, and any human gate. Rating key: <span class="pill S">Strong</span> means the stage's job is done with a mechanism. <span class="pill P">Partial</span> means some of it is done, or it is done by convention only. <span class="pill N">None</span> means nothing covers it.</p>
+<div class="legend">
+  <span><span class="chip">name</span> the model picks it (or routes it)</span>
+  <span><span class="chip u">/name</span> you type it</span>
+  <span><span class="gate" style="display:inline;margin:0">a human decides here</span></span>
+</div>
+<table class="map">
+<thead><tr><th>Stage</th><th class="ours">Ours (skills only)</th><th class="poc">Pocock</th><th class="ps">pstack</th></tr></thead>
+<tbody>
+<tr class="part"><td colspan="4">Part 1 · Accept</td></tr>
+<tr>
+ <td class="stage"><b>0 Admit</b><small>Is this work allowed, how risky, what budget?</small></td>
+ <td data-h="Ours"><span class="pill P">Partial</span><br><span class="chip">skill-router</span><span class="chip u">/triage</span><span class="chip">beads</span><span class="note">The authority rules in AGENTS.md decide what needs you. There is no risk tier and no budget.</span></td>
+ <td data-h="Pocock"><span class="pill P">Partial</span><br><span class="chip u">/ask-matt</span><span class="chip u">/triage</span><span class="chip u">/setup-matt-pocock-skills</span><span class="note">Labels decide what can run without a human (<code>ready-for-agent</code> or <code>ready-for-human</code>). An out-of-scope knowledge base filters requests. No budget.</span></td>
+ <td data-h="pstack"><span class="pill P">Partial</span><br><span class="chip u">/poteto-mode</span><span class="chip">session-pickup</span><span class="chip">recall</span><span class="note">Parses the grant: "run until done" sets the autonomy level. The router picks a playbook. No risk tier.</span></td>
+</tr>
+<tr class="part"><td colspan="4">Part 2 · Understand &amp; agree</td></tr>
+<tr>
+ <td class="stage"><b>1 Goal</b><small>Capture the outcome before work biases it</small></td>
+ <td data-h="Ours"><span class="pill S">Strong</span><br><span class="chip">brainstorming</span><span class="chip">grilling</span><span class="chip u">/wayfinder</span><span class="chip">research</span><span class="chip">model-council</span><span class="gate">you approve the spec, which must name the direction</span></td>
+ <td data-h="Pocock"><span class="pill S">Strong</span><br><span class="chip u">/grill-with-docs</span><span class="chip">grilling</span><span class="chip u">/wayfinder</span><span class="chip u">/to-questionnaire</span><span class="gate">every decision is yours; the session ends only on shared understanding</span></td>
+ <td data-h="pstack"><span class="pill P">Partial</span><br><span class="chip">figure-it-out</span><span class="note">Deliberately avoids asking. Decisions are defaulted and reported ("never block on the human"). There is no interview or spec skill.</span></td>
+</tr>
+<tr>
+ <td class="stage"><b>2 Study the code</b><small>Know the real system; reproduce the bug</small></td>
+ <td data-h="Ours"><span class="pill P">Partial</span><br><span class="chip">research</span><span class="chip u">/codebase-research</span><span class="chip">codebase-design</span><span class="chip">systematic-debugging</span><span class="chip">domain-modeling</span><span class="note">Bugs: confirm the reported failure first. There is no "how does our code work" or "why is it like this" skill for the repo itself.</span></td>
+ <td data-h="Pocock"><span class="pill P">Partial</span><br><span class="chip">research</span><span class="chip">diagnosing-bugs</span><span class="chip">domain-modeling</span><span class="chip">codebase-design</span><span class="note">diagnosing-bugs refuses to go on until a tight loop goes red.</span></td>
+ <td data-h="pstack"><span class="pill S">Strong</span><br><span class="chip">how</span><span class="chip">why</span><span class="chip">blast-radius</span><span class="chip">recall</span><span class="chip">runtime-forensics</span><span class="chip">trace-forensics</span><span class="note">Parallel read-only explorers. <code>why</code> mines git and connected tools for rationale.</span></td>
+</tr>
+<tr>
+ <td class="stage"><b>3 Tests first, locked</b><small>Executable acceptance, frozen before approval</small></td>
+ <td data-h="Ours"><span class="pill P">Partial</span><br><span class="chip">test-driven-development</span><span class="note">Tests come first, but the implementer writes them and nothing locks them. Planning stages carry written acceptance criteria.</span></td>
+ <td data-h="Pocock"><span class="pill P">Partial</span><br><span class="chip u">/to-spec</span><span class="chip">tdd</span><span class="gate">you confirm the seams the tests will use</span></td>
+ <td data-h="pstack"><span class="pill P">Partial</span><br><span class="chip">autonomous-run</span><span class="chip">tdd</span><span class="chip">hillclimb</span><span class="note">A checkable predicate is set before the first iteration and is never relaxed. Bug fixes commit the failing repro first. This is the closest of the three to "locked".</span></td>
+</tr>
+<tr class="part"><td colspan="4">Part 3 · Build in pieces</td></tr>
+<tr>
+ <td class="stage"><b>4 Plan pieces</b><small>Small, verifiable slices</small></td>
+ <td data-h="Ours"><span class="pill S">Strong</span><br><span class="chip">planning</span><span class="chip">design-evolve</span><span class="chip">prototype</span><span class="gate">you approve the structure before any Beads write</span><span class="note">A material-risk plan gets a critic review.</span></td>
+ <td data-h="Pocock"><span class="pill S">Strong</span><br><span class="chip u">/to-tickets</span><span class="chip">prototype</span><span class="gate">you approve the ticket breakdown and its blocking edges</span><span class="note">Tickets are tracer-bullet slices.</span></td>
+ <td data-h="pstack"><span class="pill S">Strong</span><br><span class="chip">multi-phase-plan</span><span class="chip">architect</span><span class="chip">arena</span><span class="chip">prototype</span><span class="gate">operator says "go"</span><span class="note">The plan is linted by a script (<code>check-plan</code>). Architect sketches at least two designs.</span></td>
+</tr>
+<tr>
+ <td class="stage"><b>5 Code</b><small>Smallest in-scope change</small></td>
+ <td data-h="Ours"><span class="pill S">Strong</span><br><span class="chip">execution</span><span class="chip">implementer</span><span class="chip">test-driven-development</span><span class="chip">systematic-debugging</span><span class="chip">performance-optimization</span><span class="chip">security</span></td>
+ <td data-h="Pocock"><span class="pill S">Strong</span><br><span class="chip u">/implement</span><span class="chip u">/implement-spec</span><span class="chip">tdd</span><span class="chip">wizard</span><span class="note">implement-spec runs implementers in worktrees, in the background.</span></td>
+ <td data-h="pstack"><span class="pill S">Strong</span><br><span class="chip">poteto-agent</span><span class="chip">arena</span><span class="chip">feature</span><span class="chip">bug-fix</span><span class="chip">refactoring</span><span class="chip">no-comments</span></td>
+</tr>
+<tr>
+ <td class="stage"><b>6 Clean check</b><small>Evidence tied to the exact candidate</small></td>
+ <td data-h="Ours"><span class="pill P">Partial</span><br><span class="chip u">/check-invariants</span><span class="note">verification.md maps each claim to its evidence. There is no live-drive check and no clean environment (the engine provided that).</span></td>
+ <td data-h="Pocock"><span class="pill P">Partial</span><br><span class="chip">setup-pre-commit</span><span class="note">implement "runs checks". There is no verification skill.</span></td>
+ <td data-h="pstack"><span class="pill S">Strong</span><br><span class="chip">verify-&lt;app&gt;</span><span class="chip">control-ui</span><span class="chip">control-cli</span><span class="chip">benchmark-checklist</span><span class="note">Checks run on the real surface. "Inconclusive" counts as a fail.</span></td>
+</tr>
+<tr>
+ <td class="stage"><b>7 Second opinion</b><small>Independent, fresh context</small></td>
+ <td data-h="Ours"><span class="pill S">Strong</span><br><span class="chip">review</span><span class="chip">spec-reviewer</span><span class="chip">code-reviewer</span><span class="note">Critic contract with BLOCKER/MAJOR/MINOR severities. A red gate returns the work unreviewed. At most 5 fix rounds.</span></td>
+ <td data-h="Pocock"><span class="pill P">Partial</span><br><span class="chip">code-review</span><span class="note">Reviews on two axes in parallel. There is no stop rule; upstream documents one run of about 4 hours and another that reached 50+ agents.</span></td>
+ <td data-h="pstack"><span class="pill S">Strong</span><br><span class="chip">interrogate</span><span class="chip">swarm</span><span class="chip">show-me-your-work</span><span class="note">One reviewer per model family. A verdict must come from an agent that did not write the code.</span></td>
+</tr>
+<tr>
+ <td class="stage"><b>8 Merge (switched off)</b><small>Land each piece safely</small></td>
+ <td data-h="Ours"><span class="pill N">None</span><br><span class="chip">resolving-merge-conflicts</span><span class="gate">you authorize every commit, push, and merge</span><span class="note">Without the engine, nothing lands work by itself.</span></td>
+ <td data-h="Pocock"><span class="pill P">Partial</span><br><span class="chip">pr</span><span class="note">implement-spec's merger subagent lands work on an integration branch. Merging to main is not covered by any skill.</span></td>
+ <td data-h="pstack"><span class="pill S">Strong</span><br><span class="chip">opening-a-pr</span><span class="chip">babysit</span><span class="chip">shipping</span><span class="note">Lands a contiguous run of verified PRs from the bottom of the stack, rechecking patch-ids.</span></td>
+</tr>
+<tr class="part"><td colspan="4">Part 4 · Release</td></tr>
+<tr>
+ <td class="stage"><b>9 Final permission</b><small>Irreversible step, named approver</small></td>
+ <td data-h="Ours"><span class="pill P">Partial</span><br><span class="chip u">/harness-publish</span><span class="gate">publishing, deployment, and destructive actions need you</span><span class="note">The rule covers everything as one blanket. There are no delegable classes.</span></td>
+ <td data-h="Pocock"><span class="pill N">None</span><span class="note">Out of scope by design.</span></td>
+ <td data-h="pstack"><span class="pill P">Partial</span><span class="gate">the always-pause list: deploys, data deletion, customer messages, force-push</span><span class="note">A grant plus a clean verdict authorizes a merge.</span></td>
+</tr>
+<tr>
+ <td class="stage"><b>10 Turn on slowly</b><small>Flags, canary, rollback rehearsed</small></td>
+ <td data-h="Ours"><span class="pill N">None</span></td>
+ <td data-h="Pocock"><span class="pill N">None</span></td>
+ <td data-h="pstack"><span class="pill N">None</span></td>
+</tr>
+<tr>
+ <td class="stage"><b>11 Watch</b><small>Does the outcome hold in production?</small></td>
+ <td data-h="Ours"><span class="pill N">None</span></td>
+ <td data-h="Pocock"><span class="pill N">None</span></td>
+ <td data-h="pstack"><span class="pill P">Partial</span><br><span class="chip">autopilot (hourly /loop)</span><span class="chip">runtime-forensics</span><span class="note">Watches PRs and CI, not production.</span></td>
+</tr>
+<tr class="part"><td colspan="4">Part 5 · Close</td></tr>
+<tr>
+ <td class="stage"><b>12 Close &amp; learn</b><small>Report, hand off, encode lessons</small></td>
+ <td data-h="Ours"><span class="pill P">Partial</span><br><span class="chip">beads</span><span class="chip">authoring-for-agents</span><span class="chip">harness-evaluate</span><span class="note">Session close writes a "resume with" note and appends to learnings.md. There is no retro skill.</span></td>
+ <td data-h="Pocock"><span class="pill P">Partial</span><br><span class="chip u">/retro</span><span class="chip u">/handoff</span><span class="gate">you choose which environment changes to apply</span></td>
+ <td data-h="pstack"><span class="pill S">Strong</span><br><span class="chip">reflect</span><span class="chip">correct</span><span class="chip">automate-me</span><span class="chip">pause-safely</span><span class="gate">you approve skill edits</span><span class="note"><code>correct</code> fixes each repeated mistake at the highest level it can: architecture, then lint, then tests, then docs.</span></td>
+</tr>
+<tr class="part"><td colspan="4">Under every stage</td></tr>
+<tr>
+ <td class="stage"><b>Rails</b><small>Budget, diary, loop detector, enforcement</small></td>
+ <td data-h="Ours"><span class="pill P">Partial</span><br><span class="chip">hooks (exit 2)</span><span class="note"><strong>Enforced in code:</strong> hooks block dangerous commands and edits to generated files. Round caps: review at most 5, debugging at most 2 fixes. The diary is progress.md plus Beads. There is no budget.</span></td>
+ <td data-h="Pocock"><span class="pill N">None</span><br><span class="chip">git-guardrails (optional)</span><span class="note">Worktrees and ticket claims give isolation. There are no budgets, ledger, or stop rules.</span></td>
+ <td data-h="pstack"><span class="pill P">Partial</span><br><span class="chip">orch</span><span class="chip">watch-pr</span><span class="note">Has a budget stop (no new spawns past about 70%), retry by failure mode, stall detection from side effects, and a decision trail. <strong>All of it is prose</strong>: there are no hooks.</span></td>
+</tr>
+</tbody>
+</table>
+</section>
+
+<section id="flow">
+<h2><span class="n">03</span>How the flow is established</h2>
+<p class="lead">The same lifecycle, but each harness moves work from step to step differently. The difference is <em>who causes the next step</em>.</p>
+<div class="legend">
+  <span><span class="chip" style="border-radius:6px">step</span> the model moves it</span>
+  <span><span class="chip" style="border:1.5px solid var(--accent);background:transparent">step</span> you type it</span>
+  <span><span class="chip" style="border:1.5px dashed var(--accent);background:transparent">gate</span> you decide</span>
+  <span><span class="chip" style="border:1px dashed var(--no);background:transparent">step</span> unavailable without the engine</span>
+</div>
+<div class="flows">
+ <div class="flow ours">
+  <h3>Ours, skills only: model-chained, with gates at the artifacts</h3>
+  <p class="how">You ask in plain words. The model picks each skill from its description. Work stops at each artifact (spec, structure, commit) until you approve it. Beads plus repo docs hold the state. Without the engine, there is no unattended walk: <code>/run-phases</code> and <code>/phase-execution</code> both call the contractor.</p>
+  <ol class="steps">
+   <li><span class="s h"><i>YOU</i>ask in plain words</span></li>
+   <li><span class="s"><i>MODEL</i>brainstorming → spec</span></li>
+   <li><span class="s g"><i>GATE</i>approve spec</span></li>
+   <li><span class="s"><i>MODEL</i>planning: decompose</span></li>
+   <li><span class="s g"><i>GATE</i>approve structure</span></li>
+   <li><span class="s"><i>MODEL</i>planning: elaborate + critic</span></li>
+   <li><span class="s x"><i>ENGINE ONLY</i>/run-phases walk</span></li>
+   <li><span class="s"><i>MODEL</i>execution task loop: implementer → checks → review (≤5)</span></li>
+   <li><span class="s g"><i>GATE</i>authorize commit</span></li>
+   <li><span class="s"><i>MODEL</i>beads close + resume note</span></li>
+  </ol>
+ </div>
+ <div class="flow poc">
+  <h3>Pocock: a chain of your keystrokes</h3>
+  <p class="how">The main-flow skills are user-only, and no skill can invoke a user-only skill, so you type every hop. The issue tracker holds the state (spec issue, tickets, labels). Work runs without you only inside <code>/implement-spec</code>. Upstream's stated position: truly unattended work belongs in an external deterministic loop.</p>
+  <ol class="steps">
+   <li><span class="s h"><i>YOU</i>/grill-with-docs</span></li>
+   <li><span class="s g"><i>GATE</i>shared understanding</span></li>
+   <li><span class="s h"><i>YOU</i>/to-spec</span></li>
+   <li><span class="s g"><i>GATE</i>confirm seams</span></li>
+   <li><span class="s h"><i>YOU</i>/to-tickets</span></li>
+   <li><span class="s g"><i>GATE</i>approve breakdown</span></li>
+   <li><span class="s h"><i>YOU</i>/implement or /implement-spec</span></li>
+   <li><span class="s"><i>MODEL</i>tdd → code-review → commit</span></li>
+   <li><span class="s"><i>MODEL</i>pr body</span></li>
+   <li><span class="s g"><i>YOU</i>merge (no skill)</span></li>
+   <li><span class="s h"><i>YOU</i>/retro</span></li>
+  </ol>
+ </div>
+ <div class="flow ps">
+  <h3>pstack: one router mode, the playbook drives</h3>
+  <p class="how">You type <code>/poteto-mode</code> once, optionally with a grant such as "run until done". The router copies the matching playbook's steps into the todo list and the model walks them. GitHub PRs and CI are the state. You come back for "go" on a plan, for merge (unless the grant covers it), and for the always-pause list. A <code>/loop</code> wake keeps long runs alive.</p>
+  <ol class="steps">
+   <li><span class="s h"><i>YOU</i>/poteto-mode task (+grant)</span></li>
+   <li><span class="s"><i>MODEL</i>match playbook → todo</span></li>
+   <li><span class="s"><i>MODEL</i>how / why</span></li>
+   <li><span class="s"><i>MODEL</i>architect + arena</span></li>
+   <li><span class="s"><i>MODEL</i>delegate in a worktree</span></li>
+   <li><span class="s"><i>MODEL</i>verify on the real surface</span></li>
+   <li><span class="s"><i>MODEL</i>interrogate (if contested)</span></li>
+   <li><span class="s"><i>MODEL</i>opening-a-pr</span></li>
+   <li><span class="s g"><i>GATE</i>"babysit" / "ship", or the grant covers it</span></li>
+   <li><span class="s"><i>MODEL</i>shipping: verified run lands</span></li>
+   <li><span class="s"><i>MODEL</i>reflect / correct</span></li>
+  </ol>
+ </div>
+</div>
+</section>
+
+<section id="compare">
+<h2><span class="n">04</span>Side by side</h2>
+<table class="cmp">
+<thead><tr><th>Dimension</th><th class="ours">Ours (skills only)</th><th class="poc">Pocock</th><th class="ps">pstack</th></tr></thead>
+<tbody>
+<tr><td>Who causes the next step</td><td>The model, picking skills from their descriptions; you approve at each artifact</td><td>You, by typing every hop</td><td>The model, following the router's playbook; you only at go, merge, or an irreversible step</td></tr>
+<tr><td>Where state lives</td><td>Beads, plus repo docs (spec, roadmap, <code>progress.md</code>)</td><td>Issue tracker (labels, blocking edges), GLOSSARY and ADRs</td><td>GitHub PR stack, the todo list, <code>decisions.tsv</code>, the <code>orch</code> ledger</td></tr>
+<tr><td>Human gates</td><td>Spec, structure, commit or push, scope change, destructive actions</td><td>Interview, seams, tickets, tdd seams, retro picks, merge</td><td>Plan go, merge (unless granted), always-pause list, skill edits</td></tr>
+<tr><td>Enforcement</td><td><strong>Hooks (exit 2)</strong> plus prose</td><td>Optional git hook plus prose</td><td>Prose only</td></tr>
+<tr><td>Loop and budget control</td><td>Review at most 5 rounds; debugging stops after 2 failed fixes; no budget</td><td>None; runaways are documented upstream</td><td>Retry by failure mode, stall detection, budget stop at about 70%, attack the premise after 2 failures</td></tr>
+<tr><td>How far it runs unattended</td><td>One task loop per prompt</td><td>One <code>/implement-spec</code> run</td><td>Overnight autopilot through merge</td></tr>
+<tr><td>Assumed infrastructure</td><td>git, Beads, Claude or Codex</td><td>Issue tracker, GitHub</td><td>GitHub PRs and CI, <code>gh</code>, cloud or worktree agents, <code>/loop</code>, two or more model families</td></tr>
+</tbody>
+</table>
+<details>
+<summary>What the workflow engine adds back for us (left out above)</summary>
+<p>The engine supplies:</p>
+<ul>
+<li>The unattended phase walk (<code>/run-phases</code>).</li>
+<li>A deterministic inner loop: implement → debrief → review.</li>
+<li>Host verification after every node.</li>
+<li>A signed human ship gate bound to the exact commit.</li>
+<li>Budgets: 26 activations and 3 region entries.</li>
+<li>The run ledger, the recovery tree, and a monitor.</li>
+</ul>
+<p>With the engine, stage 8 moves from None to Strong and the rails move to Strong. Two things still block full autonomy: the ship gate is signed per stage, and the monitor's re-wake hook is not wired.</p>
+</details>
+</section>
+
+<section id="takeaways">
+<h2><span class="n">05</span>What this tells us</h2>
+<div class="takeaways">
+ <div class="take"><h3>Everyone stops before Release</h3><p>No harness covers stage 10 (turn on slowly), and only pstack partly covers 11 (watch). For all three, the lifecycle effectively ends at merge.</p></div>
+ <div class="take"><h3>We are strongest at "agree" and "enforce"</h3><p>Goal capture, the critic contract, and hooks are our edge. Hooks make us the only one of the three that enforces anything in code.</p></div>
+ <div class="take"><h3>Without the engine, we can't land</h3><p>Stage 8 is None and every hop needs your approval. pstack reaches autonomy through a grant, a verdict from a non-author, and a <code>/loop</code> wake; it needs no engine.</p></div>
+ <div class="take"><h3>pstack covers the most stages, all in prose</h3><p>It is strongest at study, real-surface verification, landing, and learning. It weakens on goal capture by design, and it depends on GitHub.</p></div>
+ <div class="take"><h3>Borrow candidates, by stage</h3><p>2: <code>how</code>/<code>why</code>. 6: a real-surface verify skill. 8: verified-run landing. 12: <code>reflect</code>/<code>correct</code>. 0: grant parsing. Each one still goes through harness-evaluate and the ledger.</p></div>
+</div>
+</section>
+
+<footer>
+<p><strong>Sources.</strong> Skill maps: <code>../harness-comparisons/pocock-pstack-ours/autonomy/data/{ours,pocock,pstack}.md</code>. Every node and gate there cites <code>path:line</code>, and Sol verified the maps over 3 rounds. Lifecycle: <code>council/judge2-final-v2.md</code> §6.2. Principles: <code>GUIDE.md</code>.</p>
+<p><strong>Judgement.</strong> Ratings and takeaways are my reading of those maps, not measured outcomes. Ours excludes foreman, contractor, inspector, monitor, ledger and graphs. Pocock excludes its in-progress and misc skills, except the two hooks noted. pstack counts its external dependencies (<code>verify-&lt;app&gt;</code>, <code>control-ui</code>/<code>control-cli</code>, <code>/loop</code>) because its playbooks require them.</p>
+</footer>
+</main>
+</body>
+</html>

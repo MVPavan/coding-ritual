@@ -1,0 +1,37 @@
+Overall opinion: REVISE. The inventories and many mechanism descriptions are useful, but the owner should not use this report yet to choose an autonomy direction. Several “smallest steps” leave the stated gap open, and the report overstates both the current engine’s guarantees and parts of the reference harnesses.
+
+Findings
+
+1. MAJOR — Section 6, L9 layer table (index.html:1530); docs/specs/workflow-interpreter.md:1058-1095 and docs/specs/2026-09-11-workflow-coordination.md:34-36. A grant signed before the work exists cannot replace approval bound to the exact candidate commit. The proposed run grant changes the ship gate’s authority, not just its frequency. Fix: present this as a new trust model requiring an explicit decision, with its lost artifact binding stated.
+
+2. MAJOR — Section 6, L7 layer table (index.html:1528); docs/usage/engine-bundle.md:159-179,196-206. Enabling `hook_argv` alone will not wake the coordinator after expected stops at a gate, terminal, or wall limit; those stops use no wake slot. The monitor is also a separately operated process, and the hook needs a deduplicating receiver. Fix: specify the complete wake path and the events it can actually deliver.
+
+3. MAJOR — Section 6, L4 diagram and table, and section 5 “Exit predicate” (index.html:1501,1525,1457); ours.md:247,329 and reference_harnesses/cursor_plugins/pstack/skills/poteto-mode/playbooks/autonomous-run.md:5-11. Ours has a phase exit criterion, while pstack requires a checkable predicate before iteration one and forbids relaxing it. The table itself calls the run-level rule unknown, yet marks the layer HAVE and recommends no further step. Fix: mark PARTIAL and distinguish a phase close check from a pinned run-level predicate.
+
+4. MAJOR — Section 6, L5 smallest step (index.html:1526); docs/usage/contractor.md:13-25 and reference_harnesses/cursor_plugins/pstack/skills/poteto-mode/playbooks/shipping.md:7. Adding a live command to `[[contractor_checks]]` can test behavior, but it does not establish a non-author verifier or an independent verdict. Checks also run in a detached checkout with a restricted environment. Fix: specify the runnable surface, provisioned check environment, and independent verdict separately.
+
+5. MAJOR — Section 2c lifecycle and section 0 summary (index.html:779-805,144); reference_harnesses/mattpocock_skills/skills/engineering/implement-spec/SKILL.md:27-36, skills/engineering/tdd/SKILL.md:18-24, and docs/engineering/implement-spec.md:50-52. The report calls `implement-spec` free of written human checkpoints, but its implementers must invoke `tdd`, which requires user-confirmed test seams. Pocock’s own documentation notes that `implement-spec` has no interactive seam-agreement step. Fix: state that an uninterrupted run requires seams agreed beforehand, or expose this unresolved gate.
+
+6. MAJOR — Section 4 P09 and section 5 “Engine-enforced red evidence” (index.html:1347,1430); workflows/build-loop.toml:41-47,67 and docs/usage/verification.md:32-40. The engine’s host check parses tests; it does not prove they failed because the feature was absent. Semantic red evidence is reported by an agent and judged by a critic. Fix: remove “engine-enforced semantic red evidence” and name the actual checks.
+
+7. MAJOR — Section 4 P03 relation and the 11/10/1 tally (index.html:1211,1341,1194); pstack.md:363 and index.html:1413. P03 is labelled ALTERNATIVE even though the report’s capability table says pstack has no requirements interview and the data file marks that problem as a gap by design. Its prototype-first behavior can complement clarification; it is not an equivalent interview mechanism under the report’s definition. Fix: relabel P03 and recompute the tally.
+
+8. MAJOR — Section 6, L3 (index.html:1500,1524); reference_harnesses/cursor_plugins/pstack/skills/poteto-mode/playbooks/orchestrate.md:17 and playbooks/shipping.md:7. The different-model-family rule is stated for Orchestrate units. Shipping requires a verifier who did not write the code, without stating a family rule. Fix: scope the family rule to Orchestrate; keep non-author verification as the general claim.
+
+9. MAJOR — Section 6, L11 smallest step (index.html:1532); .repo-context/verification.md:8-9,55-75 and docs/usage/contractor.md:9,13-25. Local CAS is an alternative way to land a change, but it does not close the row’s stated lack of external review or post-landing CI. “None unless you adopt GitHub” leaves that gap open. Fix: separate landing transport from independent and repeated verification, then state the accepted local tradeoff or an equivalent check.
+
+10. MINOR — Section 4 P16 and section 5 “Per-run debrief” (index.html:1354,1471); ours.md:286 and workflows/basic.toml:1-5,13-28. The data file’s “every engine run” claim is too broad: the basic graph has no debrief node. Fix: say the feature-delivery graph writes a debrief, rather than attributing it to every engine run.
+
+11. MINOR — Section 2a infrastructure diagram and table (index.html:607,645,672); pocock.md:32 and reference_harnesses/mattpocock_skills/skills/engineering/to-tickets/SKILL.md:60-65. Native blocking links are presented as a hard dependency. Local tickets use `Blocked by:` text, and trackers without native links have the same fallback. Fix: call blocking edges the dependency; describe native links as one representation.
+
+12. MINOR — Section 5 “Integration branch” (index.html:1388,1453); ours.md:167 and docs/usage/contractor.md:48-58. `integration prepare` builds a combined stage candidate against a target base; the cited evidence does not establish a dedicated integration branch per spec like Pocock’s. Fix: rename the capability for ours and avoid treating the two mechanisms as identical.
+
+13. MINOR — Section 6, L12 smallest step (index.html:1533); ours.md:286. The gap is no route from debriefs into skill changes, but the proposed step only suggests entries in `learnings.md`. Fix: either name the narrower learning-file step or add an explicit reviewed path from evidence to skill changes.
+
+14. MINOR — Section 0 autonomy finding and section 6 L9 (index.html:147,1506); pstack.md:405 and reference_harnesses/cursor_plugins/pstack/skills/poteto-mode/playbooks/autopilot-full.md:9. Grant plus clean verdict authorizes merging in `autopilot-full`; `autopilot-stack` leaves landing to the operator. Fix: qualify the merge claim by mode.
+
+15. MINOR — Section 0 pstack summary and section 1a bot assumption (index.html:143,244); pstack.md:19,440. Bugbot and the security bot supply review inputs, but the data file’s minimum-infrastructure judgment explicitly says they are not requirements. Fix: distinguish assumed inputs in the described setup from prerequisites for the autonomy path.
+
+Coverage: At report-to-data level, I checked all 10 section 0 summary/KPI items, all 22 section 4 problem rows, all 12 section 6 layer rows, its 3 blocker bullets and 6 caveats, plus 48 claims and edges across sections 1–3 and 5: 101 units, 94 passed without qualification. At data-to-primary level, I opened cited source locations for 36 claims, 12 per harness: 28 passed without qualification. The active skill inventories matched the reported coverage; I found no omitted important active skill. “Passed” counts a row as failed when any material claim in it needs correction.
+
+Verdict: REVISE.
