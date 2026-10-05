@@ -97,7 +97,7 @@ babysit sweeps.
 
 | Group | Skill | Essence |
 |---|---|---|
-| Understand | how | 2–4 read-only explorers plus an explainer answer "how does X work" |
+| Understand | how | A simple question gets one explainer in a single pass; a complex one gets 2–4 read-only explorers, then the explainer. When in doubt, simple (`P/skills/how/SKILL.md:17-21`) |
 | | why | Git anchor, then one investigator per connected source (Slack, Linear, Sentry…) answers "why is it like this" |
 | | recall | Rebuild recent working context from transcripts and shared records |
 | | blast-radius | Find what a change breaks beyond its diff; prove the key safety fact by running code |
@@ -278,7 +278,7 @@ Task: `/poteto-mode add a human-readable --table view to foreman status`
 | # | Layer | What happens |
 |---|---|---|
 | 1 | L2 | New behaviour matches **Feature**. Open `playbooks/feature.md` and copy its 8 steps into the todo list |
-| 2 | L1 + L2 | Step 1 (and the "nontrivial change" trigger): **how** over `foreman status`. 2–4 read-only explorers trace where status is built and printed; an explainer returns the model |
+| 2 | L1 + L2 | Step 1 (and the "nontrivial change" trigger): **how** over `foreman status`. The status code sits in one place, so it is simple: one explainer traces where status is built and printed |
 | 3 | L1 → L3 | "Any code" trigger: name the data shape first under **model-the-domain**. Read the leaf; define one typed `StatusReport` that both the JSON and the table render from |
 | 4 | L1 + L2 | Step 2 (and the "crosses a function boundary" trigger): **architect**. Phase A re-runs how (already done). Phase B: **arena** sketches at least 2 distinct designs on different models, for example format the existing status dict directly versus a separate view model. Screen for red flags; synthesize one. No human checkpoint unless asked |
 | 5 | L1 → L3 | Tempted to ask "show heartbeat age in the table?". It cannot be observed by running something, and it is reversible, so **never-block-on-the-human**: decide, and report it as an open decision |
@@ -298,3 +298,31 @@ What this shows:
   calls on judgement words (steps 5 and 10), and choosing between arena's
   designs (step 4).
 - Everything else is either named by the recipe or fired by a situation.
+
+## 8. Observed run (2026-10-05)
+
+A subagent played `poteto-agent` on the task from §7, read pstack cold, and
+stopped once it had decided an approach. It spawned nothing and changed
+nothing. Its trace matched §7 on the playbook match, the data-shape-first
+step, not asking the human, and how being run twice. It differed in four
+places, which §7 did not predict:
+
+- **how took its simple path.** how sizes the question first and skips
+  explorers for a single module (`P/skills/how/SKILL.md:17-21`).
+- **architect and a principle pulled in opposite directions.** Feature makes
+  architect mandatory (`P/skills/poteto-mode/playbooks/feature.md:6`), but
+  exhaust-the-design-space says it does not apply when a pattern is already
+  established (`P/skills/principle-exhaust-the-design-space/SKILL.md:18-21`).
+  The agent ran a 2-candidate arena instead of 3, by its own judgement.
+- **Delegation cannot be skipped.** Feature step 4 forbids a `skip:`, says
+  Laziness Protocol does not override it, and lets an agent that cannot spawn
+  own the diff with review kept separate
+  (`P/skills/poteto-mode/playbooks/feature.md:12`).
+- **The citation rule limits principle reading.** Only principles whose leaf
+  file was read may be cited (`P/skills/poteto-mode/SKILL.md:15`), so the
+  agent read and cited two and only listed the rest.
+
+Drivers across its 21 steps (some had two): about 8 came from the playbook, 7 from router
+rules, 4 from principles, and 3 from its own judgement. The 3 judgement calls
+were: sizing how as simple; grounding the code itself because it could not
+spawn; scaling arena down. There was no human stop before code.
