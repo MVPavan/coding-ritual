@@ -43,3 +43,6 @@
 [submodule "reference_tools/looptroop"]
 	path = reference_tools/looptroop
 	url = https://github.com/looptroop-ai/LoopTroop.git
+[submodule "reference_harnesses/cursor_plugins"]
+	path = reference_harnesses/cursor_plugins
+	url = https://github.com/cursor/plugins.git
