@@ -3,8 +3,10 @@
 The [JSON inventory](component-inventory.json) records every installed Python
 distribution found in the deployed prepared environment and provider images,
 its version and declared licence metadata, the available OS package lists, and
-1,017 notice provenance entries. Exact notice bytes are deduplicated into 586
-[content-addressed files](component-notices/). This is an installed-component
+1,017 notice provenance entries (original path and SHA-256 of 586 distinct
+texts). DWS is built and run locally from source; no images are distributed,
+so the notice texts themselves are not retained here. Regenerate them from the
+exact images before any redistribution. This is an installed-component
 and notice record, not a verified SBOM, provenance attestation, vulnerability
 clearance, or distribution approval.
 
@@ -81,15 +83,15 @@ SearXNG core are additional to this table.
 ## Copyleft and notices
 
 - SearXNG core declares `AGPL-3.0-or-later` in its installed version file.
-  Its [AGPL text](component-notices/57c8ff33c9c0cfc3ef00e650a1cc910d7ee479a8bc509f6c9209a7c2a11399d6.txt)
+  Its AGPL text (`sha256:57c8ff33c9c0…`)
   is copied from the earlier accepted upstream record because the current
   image has no core LICENSE file. Network service deployment and modified
   source availability need an owner-specific AGPL review.
 - The locked runtime has one declared copyleft Python distribution:
   `certifi` 2026.7.22 (`MPL-2.0`). SearXNG also has that `certifi` version.
   Crawl4AI has `certifi` 2026.7.22 (`MPL-2.0`) and `tqdm` 4.70.1
-  (`MPL-2.0 AND MIT`). Their exact texts are [certifi](component-notices/e93716da6b9c0d5a4a1df60fe695b370f0695603d21f6f83f053e42cfc10caf7.txt)
-  and [tqdm](component-notices/fcff87c3a47ce8028a8512aa182d4fcf0ad1c90544ee75cf9b343684cac194de.txt).
+  (`MPL-2.0 AND MIT`). Their exact texts are certifi (`sha256:e93716da6b9c…`)
+  and tqdm (`sha256:fcff87c3a47c…`).
   No Python distribution in these three installed sets declares GPL or LGPL.
 - The Debian copyright files have GPL/LGPL/MPL-related licence stanzas in 75
   runtime package records and 335 Crawl4AI package records. Each package name,
@@ -97,9 +99,9 @@ SearXNG core are additional to this table.
   JSON. These are references within package copyright files, including
   alternatives and exceptions; they do not establish one effective licence
   for every file. The original copyright files and Debian common licences
-  were copied by hash.
+  are recorded by path and hash.
 - The actual Crawl4AI `/tmp/project/LICENSE` and installed distribution
-  LICENSE match byte-for-byte: [Apache License 2.0](component-notices/193fe32704bee15cd74f5153e569cdf830e26445e19798a55daee32da40758aa.txt).
+  LICENSE match byte-for-byte: Apache License 2.0 (`sha256:193fe32704be…`).
   Redistribution calls for the licence, retained notices, modification
   notices, and any applicable NOTICE contents; the inspected source has no
   top-level NOTICE file. The DWS overlay modifies provider code, so its patch
