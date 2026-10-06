@@ -96,10 +96,10 @@ This is a delivery-order amendment, not removal of MCP requirements or a rewrite
 | MCP framework | Delivery B: Python FastMCP; target the compatible 4.x line and pin a tested build | Accepted; exact build gated for B |
 | Core | Python services with no MCP, host, or research-agent dependency | Accepted |
 | Research | Host-side agent + skill + optional structured profile | Accepted |
-| Discovery | SearXNG as primary search provider | Accepted |
+| Discovery | SearXNG as primary search provider | Historical baseline; superseded by ADR-033 when a TinyFish key is configured |
 | Acquisition | Crawl4AI as primary browser-capable fetch/crawl component | Accepted |
-| Search backup | DDGS as lightweight local-library fallback; TinyFish Search opt-in | Proposed baseline |
-| Hard-page backup | TinyFish Fetch/Browser opt-in; Firecrawl self-hosted profile to evaluate | Proposed / optional |
+| Search backup | DDGS as lightweight local-library fallback; TinyFish Search opt-in | Historical stance superseded by ADR-033 |
+| Hard-page backup | TinyFish Fetch/Browser opt-in; Firecrawl self-hosted profile to evaluate | Fetch stance superseded by ADR-033; Browser/Firecrawl remain optional |
 | Retrieval | Original `tobi/qmd`, lexical FTS5/BM25 path only | Accepted |
 | DWS state | DWS-owned SQLite file for metadata, jobs, provenance, and policies | Accepted |
 | QMD state | Separate QMD-owned SQLite file; no DWS tables or direct schema dependence | Accepted |
@@ -113,7 +113,7 @@ This is a delivery-order amendment, not removal of MCP requirements or a rewrite
 
 The proposed runtime has `dws-api`, `dws-worker`, `searxng`, and a `crawl4ai` service. API and worker may use the same DWS image. QMD runs as a dependency inside the DWS runtime, not as a separately exposed MCP server. DDGS is a library dependency. A lightweight HTTP fetch/extraction path is proposed inside DWS. Vendor-required supporting processes must be declared honestly; “no DWS Redis queue” does not mean an upstream image contains no Redis process.
 
-Firecrawl and additional supporting services belong to an **optional Compose profile**, not automatically to every startup. TinyFish adapters require explicit configuration and may send queries or target URLs to a hosted service. The base product must still start and perform useful search, acquisition, and local retrieval without paid-provider credentials.
+Firecrawl and additional supporting services belong to an **optional Compose profile**, not automatically to every startup. TinyFish adapters require a configured key and may send queries or target URLs to a hosted service. The earlier opt-in routing stance is superseded by ADR-033 for Search and Fetch. The base product must still start and perform useful search, acquisition, and local retrieval without paid-provider credentials.
 
 ### 1.3 The central trade-off
 
@@ -653,12 +653,12 @@ This matrix distinguishes **observed upstream capabilities** from **DWS’s prop
 
 | Component | Role in DWS | Benefit | Cost or limitation | Selection |
 |---|---|---|---|---|
-| SearXNG | Primary public-web discovery | Aggregates multiple search engines behind one interface | Upstream engines can fail, block, or share correlated outages; instance must enable the needed API output | Accepted primary [S07] [S08] |
+| SearXNG | Primary public-web discovery | Aggregates multiple search engines behind one interface | Upstream engines can fail, block, or share correlated outages; instance must enable the needed API output | Historical primary; fallback with a TinyFish key under ADR-033 [S07] [S08] |
 | DDGS | Lightweight discovery fallback | Python/CLI integration without another persistent server | Not a guaranteed search index or independent SLA; overlaps with other engines and can be rate-limited | Proposed enabled backup [S13] |
 | HTTPX + Trafilatura | Cheap HTTP acquisition and main-content extraction | Avoids browser startup for suitable pages | Does not replace rendering, traversal, PDF parsing, or access to blocked sites | Proposed baseline optimization [S15] [S30] |
 | Crawl4AI | Browser-capable acquisition and primary crawl backend | Python-oriented crawling and content extraction | Browser dependencies, resource usage, extraction variability; pin and secure the chosen deployment | Accepted primary [S09] [S10] |
 | Firecrawl self-hosted | Optional acquisition/crawl fallback | Another maintained acquisition pipeline and native crawl API | Overlap with Crawl4AI; several supporting services; open-source/cloud feature differences | Optional profile after evaluation [S11] [S37] |
-| TinyFish Search / Fetch / Browser | Explicitly enabled hosted escape paths | Alternative discovery or remote acquisition for difficult sources | External service, credentials, variable cost/limits; each API requires its own adapter | Optional [S12] [S38] [S39] [S40] |
+| TinyFish Search / Fetch / Browser | Explicitly enabled hosted escape paths | Alternative discovery or remote acquisition for difficult sources | External service, credentials, variable cost/limits; each API requires its own adapter | Historical optional stance; Search/Fetch superseded by ADR-033; Browser remains optional [S12] [S38] [S39] [S40] |
 | Spider Rust engine | Candidate native crawl backend | Separate crawling implementation suitable for a provider adapter | Additional runtime/integration; not automatically the best choice without corpus tests | Deferred evaluation; distinguish from Spider Cloud [S14] |
 | pypdf | Text-bearing PDF extraction | Local parser with no OCR model requirement | Reading order, tables and scanned pages require care; it is not OCR | Proposed baseline PDF adapter [S31] |
 | QMD | Retained-document lexical retrieval | Ready-made indexing, collection, search, and document interfaces | Node/Bun/native dependency stack and lifecycle integration | Accepted text-only search subsystem [S16] [S20] |
@@ -718,7 +718,7 @@ Firecrawl and Spider are not mandatory deployments merely because their interfac
 
 Retries must be bounded by attempts, elapsed time, and provider budget. Use backoff with jitter for retryable failures. Do not retry invalid input, unsafe targets, unsupported authentication, or a known hard output limit as though they were transient errors.
 
-Persist provider, effective backend if known, requested capability, duration, safe error code, and outcome. A degraded successful result is useful, but it must not erase the fact that some requested work failed. Hosted escalation is opt-in and has a separate expenditure ceiling.
+Persist provider, effective backend if known, requested capability, duration, safe error code, and outcome. A degraded successful result is useful, but it must not erase the fact that some requested work failed. Hosted escalation is opt-in and has a separate expenditure ceiling. **Historical TinyFish Search/Fetch stance superseded by ADR-033; quota ceilings remain required.**
 
 ## 10. Document pipeline and data model
 
@@ -1089,7 +1089,7 @@ Fetched text is evidence, not an instruction to the host or DWS. Do not execute 
 
 Enforce download, decompression, parsing, rendering, and output limits. Isolate crawlers and untrusted parsers where practical. Use generated paths and opaque IDs to prevent traversal. QMD subprocesses receive validated arguments, bounded stdin/stdout, and a minimal environment.
 
-Provider keys stay in secret configuration, not tool inputs/results, resources, URLs, logs, or `_meta`. No metadata field is treated as a secure vault. Hosted escalation may send the query, target URL, or content to another provider; this must be opt-in and recorded.
+Provider keys stay in secret configuration, not tool inputs/results, resources, URLs, logs, or `_meta`. No metadata field is treated as a secure vault. Hosted escalation may send the query, target URL, or content to another provider; this must be opt-in and recorded. **For TinyFish Search/Fetch, ADR-033 supersedes opt-in routing with enabled-by-default behavior after owner key configuration and explicit disable switches.**
 
 ### 16.5 Access restrictions and budget approval
 
@@ -1312,7 +1312,7 @@ QMD replacement is a separate issue: compatibility documentation distinguishes T
 | Firecrawl always on alongside Crawl4AI | Not default: potentially useful coverage but significant overlap and supporting services |
 | Firecrawl optional self-host profile | Keep as the most direct self-hosted backup candidate; require benefit/resource measurements |
 | Firecrawl hosted API | Not a baseline dependency; user prefers not to rely on its hosted limits/cost. No universal pricing judgment is asserted |
-| TinyFish | Optional distinct APIs, not one undifferentiated agent tool; hosted escalation remains explicit |
+| TinyFish | Historical optional stance superseded by ADR-033 for Search/Fetch; distinct APIs and explicit acquisition provenance remain required |
 | Spider Rust | Candidate backend, not an assumed “second-best” ranking; evaluate before adding runtime complexity |
 | Raw Playwright/Scrapy traversal | Valid building blocks, but rebuilding a crawler is not V1’s objective; revisit for a concrete capability gap |
 | Always use a browser | Rejected as a default; cheap acquisition is sufficient for many supported fixtures |
@@ -1548,6 +1548,13 @@ The ADRs are the durable explanation of **why** DWS has this shape. Each records
 **Why:** Earlier conversation and mutable documentation contained inconsistent release claims. Intentional uncertainty is safer than installing an unverified historical version.  
 **Not chosen:** Copying “latest stable” assertions from chat, using mutable image tags, or treating `main` as a release.  
 **Consequence / revisit:** Upgrades require the contract/restore/concurrency suite and an explicit dependency record.
+
+### ADR-033 — Default TinyFish discovery; escalate only blocked public acquisition
+**Status:** Accepted owner decision, 2026-10-06; supersedes the historical TinyFish Search/Fetch opt-in stance above. Browser/Agent APIs remain outside this change.
+**Decision:** With an owner API key, enable TinyFish by default: Search → SearXNG → DDGS. Keep HTTPX/Crawl4AI acquisition primary, escalating to TinyFish Fetch only for public blocked sources: challenges, HTTP 401/403/429/451, render failures, or required rendering without Crawl4AI. `render=never`, private/allowed-private targets, credential URLs, policy/scope denials, byte/empty-content errors, and local request timeouts never escalate. Separate whole-provider and fetch-escalation switches disable routing.
+**Why / gate evidence:** SearXNG engine blocking has been observed on this host (searxng#6779, Brave HTTP 429, Google HTTP 403), and the owner's 2026-10-04 E2E run reported `challenge_page` failures on equity-research sources. The [acceptance record](../../../dws/docs/verification/vision-acceptance.md) records the SearXNG upgrade and measured engine blocking. These source failures satisfy the bounded provider-expansion gate; they do not establish universal hosted acquisition success.
+**Constraints:** Atomically reserve before HTTP in a separate disposable SQLite quota database shared by API/worker: Search 30 requests/minute and 500/hour; Fetch 150 URLs/minute and 1000/day, rolling windows, failures counted. Honor server cooldowns, never send credentials through redirects, and never hold a quota write transaction during HTTP. Search receives a bounded share of the existing deadline; blocked fetch opens a separate bounded escalation budget, still under crawl's total deadline.
+**Consequences:** Default keyed search sends every query to a hosted provider, and escalation sends selected URLs; ordinary local fetches remain local. Disclose ordered discovery attempts and safe skip/failure codes. Hosted captures hash exact retained provider Markdown with explicit warnings that original source bytes and local egress attestation are unavailable. Enforce public-address checks and final crawl scope. No new dependencies, agent API, or unconditional hosted fetch. No key preserves baseline operation; paid credentials remain unnecessary. Revisit using measured reliability, privacy needs, and quota usage.
 
 ## 22. Discussion chronology and superseded statements
 

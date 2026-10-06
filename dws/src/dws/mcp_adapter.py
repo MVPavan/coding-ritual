@@ -97,20 +97,19 @@ def create_mcp(engine: Engine) -> FastMCP:
         run_id: str | None = None,
         refresh: bool = False,
         render: Literal["auto", "always", "never"] = "auto",
-        max_age_seconds: int = 3600,
+        max_age_seconds: int | None = None,
     ) -> ToolResult:
         """Capture a selected public URL and return a stable retained-evidence handle."""
-        return await execute(
-            "fetch",
-            {
-                "url": url,
-                "workspace_id": workspace_id,
-                "run_id": run_id,
-                "refresh": refresh,
-                "render": render,
-                "max_age_seconds": max_age_seconds,
-            },
-        )
+        payload: dict[str, Any] = {
+            "url": url,
+            "workspace_id": workspace_id,
+            "run_id": run_id,
+            "refresh": refresh,
+            "render": render,
+        }
+        if max_age_seconds is not None:
+            payload["max_age_seconds"] = max_age_seconds
+        return await execute("fetch", payload)
 
     @mcp.tool(output_schema=None)
     async def crawl(

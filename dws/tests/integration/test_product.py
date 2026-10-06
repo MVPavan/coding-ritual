@@ -623,6 +623,11 @@ uvicorn.run(create_app(Settings.from_env()), host="127.0.0.1", port=int(sys.argv
     )
     found = product.cli("search", "systems architecture")
     assert found["engine_path"] == {
+        "attempts": [
+            {"provider": "tinyfish", "reason": "not_configured"},
+            {"provider": "searxng", "reason": "unavailable"},
+            {"provider": "ddgs", "reason": "served"},
+        ],
         "provider": "ddgs",
         "backend": "auto",
         "upstream_engines": [],
@@ -971,6 +976,10 @@ def test_research_journeys_retain_exact_evidence(product: Product) -> None:
     discovery = product.cli("search", "systems architecture")
     assert discovery["results"][0]["url"] == product.site.url + "/article"
     assert discovery["engine_path"] == {
+        "attempts": [
+            {"provider": "tinyfish", "reason": "not_configured"},
+            {"provider": "searxng", "reason": "served"},
+        ],
         "provider": "searxng",
         "backend": None,
         "upstream_engines": ["fixture"],

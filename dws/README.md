@@ -62,6 +62,14 @@ Management SQLite is separate from the rebuildable SQLite FTS5 retrieval index.
 No Node/QMD, embeddings, inference, research agent, or paid-provider keys are
 required for the default product.
 
+With `DWS_TINYFISH_API_KEY` configured, TinyFish Search is the default ahead of
+SearXNG/DDGS; TinyFish Fetch escalates only eligible blocked public sources after
+local acquisition fails. Shared rolling quotas bound API/worker use. Search
+queries and escalated URLs go to this hosted service; ordinary fetches stay
+local. Hosted captures retain provider Markdown, with original bytes unavailable.
+Set `DWS_TINYFISH_ENABLED=false` to disable it entirely or
+`DWS_TINYFISH_FETCH_ESCALATION=false` for search only. See the operator guide.
+
 Provider outages, missing extraction, index lag, expiry, truncation, and crawl
 limits are explicit. Scanned PDFs do not imply OCR support. Private authenticated
 scraping, paywall bypass, arbitrary browser control, audio/video processing, and

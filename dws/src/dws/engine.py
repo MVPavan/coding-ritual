@@ -116,7 +116,7 @@ class Engine:
                     fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
                     break
                 except BlockingIOError:
-                    if time.monotonic() - started > self.settings.request_timeout:
+                    if time.monotonic() - started > self.acquisition.acquisition_timeout:
                         raise DWSError(
                             "busy", "Equivalent acquisition is still running", 429
                         ) from None
@@ -135,7 +135,7 @@ class Engine:
             result = await self.acquisition.search(request)
         elif isinstance(request, FetchRequest):
             request = FetchRequest.model_validate(
-                {**request.model_dump(), "url": canonical_url(request.url)}
+                {**request.model_dump(exclude_unset=True), "url": canonical_url(request.url)}
             )
             # Look up retained evidence before contacting any provider.
             async with self.acquisition_group(request):

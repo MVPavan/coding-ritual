@@ -9,11 +9,14 @@ import importlib.metadata
 import json
 import os
 import re
+import secrets
 import signal
 import sys
+import time
 from collections.abc import Callable
 from contextlib import suppress
 from email.message import Message
+from threading import Event
 from typing import Any
 from urllib.parse import quote, urljoin, urlsplit, urlunsplit
 
@@ -27,6 +30,7 @@ from dws.config import Settings
 from dws.errors import DWSError
 from dws.models import Capture, FetchRequest, RevalidationCandidate, SearchRequest
 from dws.net import acquisition_slot, canonical_url, client, resolve_addresses, response_bytes
+from dws.tinyfish_quota import Operation, TinyFishQuota
 
 
 def _reject_incomplete_response(status: int | None) -> None:
@@ -467,6 +471,32 @@ async def _helper(
 class Acquisition:
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
+        self.tinyfish_quota = TinyFishQuota(settings)
+
+    def _tinyfish_skip(self, *, fetch: bool = False) -> str | None:
+        if not self.settings.tinyfish_enabled or (
+            fetch and not self.settings.tinyfish_fetch_escalation
+        ):
+            return "disabled"
+        if not self.settings.tinyfish_api_key:
+            return "not_configured"
+        return None
+
+    @property
+    def tinyfish_fetch_budget(self) -> float:
+        return min(self.settings.request_timeout, 25)
+
+    @property
+    def acquisition_timeout(self) -> float:
+        if self._tinyfish_skip(fetch=True) is not None:
+            return self.settings.request_timeout
+        # A crawl page timer encloses slot admission as well as both acquisition
+        # timers. Reserve the bounded slot wait so it cannot shorten escalation.
+        return (
+            min(5.0, self.settings.request_timeout)
+            + self.settings.request_timeout
+            + self.tinyfish_fetch_budget
+        )
 
     async def validate_url(self, url: str) -> str:
         value = canonical_url(url)
@@ -505,25 +535,96 @@ class Acquisition:
         candidate: RevalidationCandidate | None = None,
     ) -> Capture | None:
         try:
-            async with (
-                acquisition_slot(self.settings),
-                asyncio.timeout(self.settings.request_timeout),
-            ):
-                url = await self.validate_url(request.url)
-                if scope_check is not None and not scope_check(url):
-                    raise DWSError("scope_denied", "Source is outside the crawl scope", 403)
-                if request.render == "always":
-                    return await self._render(url, scope_check=scope_check)
-                capture, needs_render = await self._static(
-                    url, scope_check=scope_check, candidate=candidate
-                )
-                if capture is None:
-                    return None
-                if needs_render and request.render == "auto":
-                    return await self._render(url, scope_check=scope_check)
-                if needs_render:
-                    raise DWSError("render_required", "Source requires browser rendering", 422)
-                return capture
+            async with acquisition_slot(self.settings):
+                # Local acquisition retains its full original deadline. Only a
+                # completed blocked-source failure opens a separate hosted budget.
+                needs_render_without_provider = False
+                try:
+                    async with asyncio.timeout(self.settings.request_timeout):
+                        url = await self.validate_url(request.url)
+                        if scope_check is not None and not scope_check(url):
+                            raise DWSError(
+                                "scope_denied", "Source is outside the crawl scope", 403
+                            )
+                        if request.render == "always":
+                            return await self._render(url, scope_check=scope_check)
+                        capture, needs_render = await self._static(
+                            url, scope_check=scope_check, candidate=candidate
+                        )
+                        if capture is None:
+                            return None
+                        if needs_render and request.render == "auto":
+                            needs_render_without_provider = not self.settings.crawl4ai_url
+                            return await self._render(url, scope_check=scope_check)
+                        if needs_render:
+                            raise DWSError(
+                                "render_required", "Source requires browser rendering", 422
+                            )
+                        return capture
+                except DWSError as original:
+                    # Missing local rendering is an internal escalation trigger;
+                    # callers still receive the original render_unavailable/503.
+                    escalation_code = (
+                        "render_required" if needs_render_without_provider else original.code
+                    )
+                    eligible = request.render != "never" and (
+                        original.code in {"challenge_page", "render_failed"}
+                        or (
+                            original.code == "source_http_error"
+                            and original.source_status in {401, 403, 429, 451}
+                        )
+                        or (
+                            escalation_code == "render_required"
+                            and not self.settings.crawl4ai_url
+                        )
+                    )
+                    reason = "ineligible" if not eligible else self._tinyfish_skip(fetch=True)
+                    target_status = None
+                    if reason is None:
+                        try:
+                            deadline = time.monotonic() + self.tinyfish_fetch_budget
+                            async with asyncio.timeout_at(deadline):
+                                # Public validation is stricter than the owner's
+                                # local private-host override, including all DNS answers.
+                                await self._tinyfish_public_url(url)
+                                return await self._tinyfish_fetch(
+                                    url,
+                                    escalation_code,
+                                    scope_check,
+                                    deadline=deadline,
+                                    ttl=(
+                                        0
+                                        if request.refresh
+                                        else request.max_age_seconds
+                                        if "max_age_seconds" in request.model_fields_set
+                                        else self.settings.tinyfish_fetch_ttl
+                                    ),
+                                )
+                        except DWSError as failure:
+                            reason = (
+                                failure.code
+                                if failure.code
+                                in {
+                                    "quota_minute",
+                                    "quota_day",
+                                    "server_cooldown",
+                                    "rate_limited",
+                                    "auth_failed",
+                                    "invalid_response",
+                                    "unavailable",
+                                    "provider_timeout",
+                                    "target_blocked",
+                                    "scope_denied",
+                                }
+                                else "ineligible"
+                            )
+                            target_status = failure.target_status
+                        except TimeoutError:
+                            reason = "provider_timeout"
+                    original.escalation = {"provider": "tinyfish", "reason": reason}
+                    if target_status is not None:
+                        original.escalation["target_status"] = target_status
+                    raise original from None
         except TimeoutError:
             raise DWSError(
                 "source_timeout", "Source acquisition exceeded its deadline", 504
@@ -535,6 +636,214 @@ class Acquisition:
             httpcore.TimeoutException,
         ):
             raise DWSError("source_unavailable", "Source transport failed", 502) from None
+
+    async def _tinyfish_public_url(self, url: str) -> str:
+        value = await self.validate_url(url)
+        parsed = urlsplit(value)
+        if parsed.hostname in self.settings.allowed_private_hosts:
+            raise DWSError(
+                "policy_denied", "Hosted acquisition denies private-host overrides", 403
+            )
+        await resolve_addresses(
+            parsed.hostname or "", parsed.port or (443 if parsed.scheme == "https" else 80), ()
+        )
+        return value
+
+    async def _tinyfish_json(
+        self,
+        kind: Operation,
+        *,
+        params: dict[str, str] | None = None,
+        body: dict[str, object] | None = None,
+        deadline: float | None = None,
+    ) -> dict[str, Any]:
+        if deadline is None:
+            reason = await asyncio.to_thread(self.tinyfish_quota.reserve, kind)
+            if reason:
+                raise DWSError(reason, "Hosted provider quota is unavailable", 503)
+        else:
+            assert kind == "fetch" and body is not None
+            margin_ms = max(100, min(1000, int(self.tinyfish_fetch_budget * 1000) // 5))
+            minimum_remaining = (margin_ms + 100) / 1000
+            if deadline - time.monotonic() < minimum_remaining:
+                raise DWSError("provider_timeout", "Hosted acquisition has no usable time", 503)
+            # Identify only this reservation so an unsent call can release it.
+            # The cancellation signal also fences a late executor/SQLite writer.
+            reservation_id = secrets.randbits(63) or 1
+            abandoned = Event()
+            sending = False
+            possibly_reserved = True
+            try:
+                reason = await asyncio.to_thread(
+                    self.tinyfish_quota.reserve,
+                    kind,
+                    reservation_id=reservation_id,
+                    deadline=deadline,
+                    minimum_remaining=minimum_remaining,
+                    abandoned=abandoned,
+                )
+                possibly_reserved = reason is None
+                if reason:
+                    raise DWSError(reason, "Hosted provider quota is unavailable", 503)
+                # Validation, SQLite and executor scheduling have already spent
+                # part of the absolute budget. Leave HTTP headroom and a 100ms floor.
+                provider_ms = int((deadline - time.monotonic()) * 1000) - margin_ms
+                if provider_ms < 100:
+                    raise DWSError(
+                        "provider_timeout", "Hosted acquisition has no usable time", 503
+                    )
+                body["per_url_timeout_ms"] = provider_ms
+                sending = True
+            finally:
+                if not sending:
+                    abandoned.set()
+                    if possibly_reserved:
+                        await asyncio.to_thread(
+                            self.tinyfish_quota.release, kind, reservation_id
+                        )
+        try:
+            return await self._provider_json(
+                self.settings.tinyfish_search_url
+                if kind == "search"
+                else self.settings.tinyfish_fetch_url,
+                "GET" if kind == "search" else "POST",
+                params=params,
+                body=body,
+                tinyfish_operation=kind,
+            )
+        except DWSError as error:
+            if error.code in {"rate_limited", "auth_failed"}:
+                raise
+            code = (
+                "invalid_response"
+                if error.code
+                in {"invalid_provider_response", "partial_response", "response_too_large"}
+                else "unavailable"
+            )
+            raise DWSError(code, "Hosted provider could not serve the request", 503) from None
+        except (
+            httpx.HTTPError,
+            httpcore.NetworkError,
+            httpcore.ProtocolError,
+            httpcore.TimeoutException,
+            TimeoutError,
+            ValueError,
+        ):
+            raise DWSError(
+                "unavailable", "Hosted provider could not serve the request", 503
+            ) from None
+
+    async def _tinyfish_fetch(
+        self,
+        url: str,
+        local_code: str,
+        scope_check: Callable[[str], bool] | None,
+        *,
+        ttl: int,
+        deadline: float,
+    ) -> Capture:
+        response = await self._tinyfish_json(
+            "fetch",
+            deadline=deadline,
+            body={
+                "urls": [url],
+                "format": "markdown",
+                "links": True,
+                "ttl": ttl,
+                "include_etag_and_last_modified": False,
+            },
+        )
+        rows, errors = response.get("results"), response.get("errors")
+        if isinstance(errors, list) and errors:
+            detail = errors[0] if isinstance(errors[0], dict) else {}
+            token = detail.get("error")
+            code = (
+                "provider_timeout"
+                if token == "timeout"
+                else "target_blocked"
+                if token == "target_http_error"
+                else "unavailable"
+            )
+            failure = DWSError(code, "Hosted provider failed to acquire the source", 503)
+            status = detail.get("status")
+            if code == "target_blocked" and type(status) is int and 100 <= status <= 599:
+                failure.target_status = status
+            raise failure
+        if (
+            not isinstance(rows, list)
+            or len(rows) != 1
+            or not isinstance(rows[0], dict)
+            or not isinstance(errors, list)
+        ):
+            raise DWSError("invalid_response", "Hosted provider omitted its page result", 502)
+        row = rows[0]
+        if (
+            row.get("url") != url
+            or row.get("format") != "markdown"
+            or not isinstance(row.get("text"), str)
+            or not row["text"].strip()
+            or not isinstance(row.get("final_url"), str)
+        ):
+            raise DWSError(
+                "invalid_response", "Hosted provider returned an invalid page result", 502
+            )
+        final = await self._tinyfish_public_url(row["final_url"])
+        if scope_check is not None and not scope_check(final):
+            raise DWSError("scope_denied", "Hosted destination is outside the crawl scope", 403)
+        try:
+            raw = row["text"].encode("utf-8")
+        except UnicodeError:
+            raise DWSError("invalid_response", "Hosted text is not valid UTF-8", 502) from None
+        if len(raw) > self.settings.max_bytes:
+            raise DWSError("invalid_response", "Hosted text exceeds its byte limit", 413)
+        warnings = [
+            "provider_text_only_original_bytes_unavailable",
+            "hosted_provider_acquisition",
+            "escalated_from_" + local_code,
+        ]
+        if ttl > 0:
+            warnings.append("provider_cache_permitted")
+        if scope_check is not None:
+            warnings.append("hosted_crawl_scope_checked_after_navigation")
+        links: list[str] = []
+        chars = 0
+        supplied = row.get("links", [])
+        if not isinstance(supplied, list):
+            raise DWSError("invalid_response", "Hosted links are malformed", 502)
+        for link in supplied:
+            reference = link.get("url") if isinstance(link, dict) else link
+            if not isinstance(reference, str):
+                warnings.append("invalid_or_unsupported_html_link_ignored")
+                continue
+            try:
+                href = _html_url(reference, final)
+            except (DWSError, ValueError):
+                warnings.append("invalid_or_unsupported_html_link_ignored")
+                continue
+            if href not in links:
+                if (
+                    len(links) >= min(2000, self.settings.max_pages * 20)
+                    or chars + len(href) > 200000
+                ):
+                    warnings.append("discovered_links_truncated")
+                    break
+                links.append(href)
+                chars += len(href)
+        if len(row["text"]) > self.settings.max_text_chars:
+            warnings.append("normalized_text_truncated")
+        return Capture(
+            requested_url=url,
+            final_url=final,
+            content_type="text/vnd.tinyfish.markdown",
+            title=str(row.get("title") or "")[:512],
+            raw=raw,
+            text=row["text"][: self.settings.max_text_chars],
+            links=links,
+            redirects=[final] if final != url else [],
+            provider="tinyfish",
+            normalizer="tinyfish/fetch-markdown/1",
+            warnings=list(dict.fromkeys(warnings)),
+        )
 
     async def _static(
         self,
@@ -606,11 +915,13 @@ class Acquisition:
                                 )
                         return None, False
                     if not 200 <= response.status_code < 300:
-                        raise DWSError(
+                        error = DWSError(
                             "source_http_error",
                             f"Source returned HTTP {response.status_code}",
                             502,
                         )
+                        error.source_status = response.status_code
+                        raise error
                     _reject_incomplete_response(response.status_code)
                     raw = await response_bytes(response, self.settings.max_bytes)
                     etag = _etag(response.headers.get("etag"))
@@ -736,6 +1047,7 @@ class Acquisition:
         params: dict[str, str] | None = None,
         body: dict[str, object] | None = None,
         token: str | None = None,
+        tinyfish_operation: Operation | None = None,
     ) -> dict[str, Any]:
         endpoint = canonical_url(endpoint)
         provider_host = urlsplit(endpoint).hostname or ""
@@ -743,9 +1055,61 @@ class Acquisition:
         # It is never added to the allowed hosts for requested web content.
         async with client((provider_host,), self.settings.request_timeout) as http:
             headers = {"Authorization": "Bearer " + token} if token else {}
+            if tinyfish_operation is not None:
+                headers = {
+                    "X-API-Key": self.settings.tinyfish_api_key or "",
+                    "Accept": "application/json",
+                }
             async with http.stream(
                 method, endpoint, params=params, json=body, headers=headers
             ) as response:
+                if tinyfish_operation is not None:
+                    signal_body = None
+                    # Save header signals before reading a potentially stalled body.
+                    await asyncio.to_thread(
+                        self.tinyfish_quota.observe,
+                        tinyfish_operation,
+                        response.status_code,
+                        response.headers,
+                    )
+                    if response.status_code == 429:
+                        try:
+                            async with asyncio.timeout(
+                                min(0.2, self.settings.request_timeout / 8)
+                            ):
+                                data = await response_bytes(
+                                    response, min(self.settings.max_bytes, 65536)
+                                )
+                            value = json.loads(data)
+                            if isinstance(value, dict):
+                                signal_body = value
+                        except (
+                            DWSError,
+                            ValueError,
+                            RecursionError,
+                            TimeoutError,
+                            httpx.HTTPError,
+                            httpcore.NetworkError,
+                            httpcore.ProtocolError,
+                            httpcore.TimeoutException,
+                        ):
+                            pass
+                    if signal_body is not None:
+                        await asyncio.to_thread(
+                            self.tinyfish_quota.observe,
+                            tinyfish_operation,
+                            response.status_code,
+                            response.headers,
+                            signal_body,
+                        )
+                    if response.status_code == 429:
+                        raise DWSError(
+                            "rate_limited", "Hosted provider rate limit reached", 503
+                        )
+                    if response.status_code in {401, 403}:
+                        raise DWSError(
+                            "auth_failed", "Hosted provider authentication failed", 503
+                        )
                 if not 200 <= response.status_code < 300:
                     raise DWSError(
                         "provider_unavailable",
@@ -758,6 +1122,13 @@ class Acquisition:
             value = json.loads(raw)
             if not isinstance(value, dict):
                 raise ValueError
+            if tinyfish_operation is not None and self.settings.tinyfish_api_key:
+                escaped_key = json.dumps(self.settings.tinyfish_api_key, ensure_ascii=False)[
+                    1:-1
+                ]
+                if escaped_key in json.dumps(value, ensure_ascii=False):
+                    # Reject reflected credentials rather than alter retained evidence.
+                    raise ValueError
             return value
         except (ValueError, json.JSONDecodeError, RecursionError):
             raise DWSError(
@@ -805,7 +1176,8 @@ class Acquisition:
             # crawl4ai#2116 (v0.9.3+): a 200 result row carries success=false with
             # an error_message instead of a generic 500. An anti-bot block is a
             # source outcome, not a provider fault; recognize only that fixed
-            # prefix and never echo the untrusted provider text or fall back.
+            # prefix without echoing provider text. Hosted escalation eligibility
+            # is decided by _acquire after this typed local failure.
             if str(row.get("error_message") or "").startswith("Blocked by anti-bot protection"):
                 raise DWSError(
                     "challenge_page",
@@ -817,9 +1189,11 @@ class Acquisition:
             )
         status = row.get("status_code")
         if status is not None and (not isinstance(status, int) or not 200 <= status < 300):
-            raise DWSError(
+            error = DWSError(
                 "source_http_error", "Rendered source returned an unsuccessful HTTP status", 502
             )
+            error.source_status = status if isinstance(status, int) else None
+            raise error
         _reject_incomplete_response(status)
         final = await self.validate_url(str(row.get("redirected_url") or row.get("url") or url))
         if scope_check is not None and not scope_check(final):
@@ -891,6 +1265,8 @@ class Acquisition:
     async def search(self, request: SearchRequest) -> dict[str, object]:
         warnings: list[str] = []
         domains = self._domains(request.domains)
+        attempts: list[dict[str, str]] = []
+        active_provider: str | None = None
         try:
             async with (
                 acquisition_slot(self.settings),
@@ -899,9 +1275,46 @@ class Acquisition:
                 rows: list[Any] | None = None
                 provider = ""
                 failed_engines: list[str] = []
-                if self.settings.searxng_url:
+                reason = self._tinyfish_skip()
+                if reason is None:
                     try:
-                        async with asyncio.timeout(max(1, self.settings.request_timeout / 2)):
+                        async with asyncio.timeout(min(5, self.settings.request_timeout / 4)):
+                            params = {"query": request.query}
+                            if domains:
+                                params["include_domains"] = ",".join(domains)
+                            response = await self._tinyfish_json("search", params=params)
+                        result = response.get("results")
+                        if (
+                            not isinstance(result, list)
+                            or not isinstance(response.get("query"), str)
+                            or not isinstance(response.get("total_results"), int)
+                            or not isinstance(response.get("page"), int)
+                            or any(
+                                not isinstance(row, dict)
+                                or any(
+                                    not isinstance(row.get(key), str)
+                                    for key in ("url", "title", "snippet")
+                                )
+                                for row in result
+                            )
+                        ):
+                            raise DWSError(
+                                "invalid_response", "Hosted search response is malformed", 502
+                            )
+                        rows, provider = result, "tinyfish"
+                        reason = "served"
+                    except DWSError as error:
+                        reason = error.code
+                    except TimeoutError:
+                        reason = "unavailable"
+                attempts.append({"provider": "tinyfish", "reason": reason})
+                if rows is None and self.settings.searxng_url:
+                    active_provider = "searxng"
+                    try:
+                        searxng_budget = self.settings.request_timeout / 2
+                        if self._tinyfish_skip() is not None:
+                            searxng_budget = max(1, searxng_budget)
+                        async with asyncio.timeout(searxng_budget):
                             response = await self._provider_json(
                                 self.settings.searxng_url.rstrip("/") + "/search",
                                 "GET",
@@ -934,10 +1347,12 @@ class Acquisition:
                                     503,
                                 )
                         rows, provider = result, "searxng"
+                        attempts.append({"provider": "searxng", "reason": "served"})
                     except DWSError as exc:
                         if exc.code in {"policy_denied", "invalid_url", "response_too_large"}:
                             raise
                         warnings.append("searxng_unavailable")
+                        attempts.append({"provider": "searxng", "reason": "unavailable"})
                     except (
                         httpx.HTTPError,
                         httpcore.NetworkError,
@@ -946,7 +1361,12 @@ class Acquisition:
                         TimeoutError,
                     ):
                         warnings.append("searxng_unavailable")
+                        attempts.append({"provider": "searxng", "reason": "unavailable"})
+                    active_provider = None
+                elif rows is None:
+                    attempts.append({"provider": "searxng", "reason": "not_configured"})
                 if rows is None and self.settings.ddgs_enabled:
+                    active_provider = "ddgs"
                     value = await _helper(
                         _DDGS_SCRIPT,
                         {
@@ -963,7 +1383,10 @@ class Acquisition:
                             503,
                         )
                     rows, provider = value["results"], "ddgs"
+                    attempts.append({"provider": "ddgs", "reason": "served"})
+                    active_provider = None
                 if rows is None:
+                    attempts.append({"provider": "ddgs", "reason": "disabled"})
                     raise DWSError(
                         "search_unavailable", "No usable search provider is configured", 503
                     )
@@ -1002,6 +1425,8 @@ class Acquisition:
                             "rank": len(results) + 1,
                         }
                     )
+                    if provider == "tinyfish" and isinstance(row.get("date"), str):
+                        results[-1]["date"] = row["date"][:128]
                     if len(results) >= request.limit:
                         break
                 if domains:
@@ -1014,6 +1439,7 @@ class Acquisition:
                     "domains": domains,
                     "provider": provider,
                     "engine_path": {
+                        "attempts": attempts,
                         "provider": provider,
                         "backend": "auto" if provider == "ddgs" else None,
                         "upstream_engines": sorted(upstream_engines)[:20],
@@ -1046,8 +1472,16 @@ class Acquisition:
                         422,
                     )
                 return output
-        except TimeoutError:
-            raise DWSError("provider_timeout", "Search exceeded its deadline", 504) from None
+        except (DWSError, TimeoutError) as failure:
+            if active_provider is not None:
+                attempts.append({"provider": active_provider, "reason": "unavailable"})
+            search_error = (
+                failure
+                if isinstance(failure, DWSError)
+                else DWSError("provider_timeout", "Search exceeded its deadline", 504)
+            )
+            search_error.engine_path = {"attempts": attempts}
+            raise search_error from None
 
     @staticmethod
     def _domains(domains: list[str]) -> list[str]:

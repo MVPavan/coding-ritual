@@ -112,12 +112,104 @@ state directory invalidates old cursors. Direct store use follows the same rule.
 Previously issued bearer-signed cursors are invalidated by this change.
 API authentication and workspace checks remain the access boundary.
 
-Search responses include `engine_path`: `provider` is `searxng` or `ddgs`,
-`backend` is `auto` for DDGS, `upstream_engines` lists engines reported by
-returned SearXNG results, and `failed_primary_engines` lists bounded names
-reported by SearXNG. DDGS does not reveal its chosen upstream engine. A DDGS
-fallback after SearXNG failure therefore carries
-`fallback_upstream_independence_unverified` in `warnings`.
+Search defaults to TinyFish when `DWS_TINYFISH_API_KEY` is configured, then
+falls back to SearXNG and DDGS. Without a key, the existing SearXNG/DDGS route
+remains available. **Privacy:** every search query and its domain filters go to
+TinyFish by default with a key; eligible blocked-source URLs also go to TinyFish
+Fetch. Ordinary successful local fetches do not contact TinyFish. Set
+`DWS_TINYFISH_ENABLED=false` to disable both, or
+`DWS_TINYFISH_FETCH_ESCALATION=false` to disable only fetch escalation.
+
+| Owner setting (also optional Compose environment keys) | Default |
+|---|---|
+| `DWS_TINYFISH_API_KEY` | Unset; secret, excluded from serialized settings |
+| `DWS_TINYFISH_ENABLED` | `true`, effective only with a key |
+| `DWS_TINYFISH_FETCH_ESCALATION` | `true` |
+| `DWS_TINYFISH_FETCH_TTL` | `3600` seconds; `0` prefers live acquisition, maximum `31536000` |
+| `DWS_TINYFISH_SEARCH_URL` | `https://api.search.tinyfish.ai/` |
+| `DWS_TINYFISH_FETCH_URL` | `https://api.fetch.tinyfish.ai/` |
+| `DWS_TINYFISH_SEARCH_PER_MINUTE` / `DWS_TINYFISH_SEARCH_PER_HOUR` | `30` / `500` requests |
+| `DWS_TINYFISH_FETCH_PER_MINUTE` / `DWS_TINYFISH_FETCH_PER_DAY` | `150` / `1000` URLs |
+
+Endpoints allow only their respective product host over HTTPS on port 443,
+plus HTTP loopback test endpoints. Provider redirects are refused with
+credentials attached. Keep the key in owner secret
+configuration, never tool inputs. Quotas use rolling windows and atomic
+reservations shared by API and worker in `data_dir/tinyfish-quota.sqlite3`.
+Reservations count before HTTP, including failed calls. Server zero-remaining
+and 429 signals add bounded cooldowns; exceeding either local window sends no
+request. The quota database is disposable operational state, omitted from
+application backups and evidence exports. Deleting it resets local accounting;
+it does not reset provider usage. Use one shared state directory per key: other
+applications/state directories using the key are outside DWS's accounting.
+If validation or reservation leaves too little hosted time to send a request,
+DWS skips it without spending a unit; any unused reservation is released.
+
+Search `engine_path.attempts` lists providers in order up to the serving provider,
+with short `reason` codes: `served`, `quota_minute`, `quota_hour`,
+`server_cooldown`, `rate_limited`, `unavailable`, `auth_failed`,
+`invalid_response`, `disabled`, or `not_configured`. Existing fields remain:
+`provider`, DDGS `backend: auto`, `upstream_engines`, and
+`failed_primary_engines`. SearXNG failure still emits `searxng_unavailable`;
+DDGS fallback emits `fallback_upstream_independence_unverified` because DDGS
+cannot identify its upstream. TinyFish's `date` is an unverified provider claim,
+not a source observation; search results remain non-evidence. TinyFish gets up
+to one quarter of `request_timeout`, capped at five seconds, leaving time for
+fallback within the unchanged whole-search deadline.
+
+Local HTTPX/Crawl4AI acquisition stays primary. Hosted Fetch is eligible only
+for a public URL after `challenge_page`, `render_failed`, source HTTP
+401/403/429/451 (static or rendered), or required rendering without Crawl4AI.
+For missing local rendering, a skipped/failed escalation preserves the original
+`render_unavailable`/503; `render_required` identifies only the internal trigger
+and successful escalation warning.
+`render=never`, private/allowed-private hosts, credential URLs, policy/scope
+denials, size/empty-content failures, and whole-local-request timeouts never
+escalate. Local acquisition keeps its full `request_timeout`; an eligible
+completed failure opens an additional budget of `min(request_timeout, 25)`
+seconds, measured against one absolute monotonic deadline. After public-address
+validation and quota reservation, TinyFish's per-URL timeout uses the remaining
+time minus HTTP headroom: 20% of the initial budget (minimum 100ms, maximum 1s).
+If fewer than 100ms remain for the provider after headroom, no request is sent
+and `provider_timeout` is reported without spending quota.
+Crawls allow this per-page budget plus the bounded acquisition-slot wait when
+escalation is enabled, but still obey their total job deadline and shared daily
+quota. Failure or skip preserves the original local code/message and adds
+`error.escalation` (crawl manifest: `escalation`), with
+`provider: tinyfish` and a typed reason, including `quota_day`, `ineligible`,
+or `scope_denied`. A per-URL `timeout` becomes `provider_timeout` (also used when
+the hosted budget expires); `target_http_error` becomes `target_blocked`, with
+`target_status` only for an integer HTTP status from 100 to 599. Other per-URL
+failures become `unavailable`. Failed URLs still spend quota. Provider error
+text is never returned.
+
+When escalation is enabled, the acquisition allowance is
+`A = min(5, request_timeout) + request_timeout + min(request_timeout, 25)`,
+including slot admission. An equivalent fetch waits up to `A` for the stripe
+lock, then can spend another `A` acquiring its page. The worst case is about
+`2 * A`: 120 seconds at the default 30-second request timeout, or 300 seconds
+at the maximum 120-second setting, plus storage/response overhead. The CLI
+allows 360 seconds for fetch responses. API execution and MCP tools impose no
+shorter operation timer; configure external HTTP/MCP read/tool timeouts to at
+least 360 seconds. The installed FastMCP HTTP client's 300-second default is
+too short for this upper bound; use `Client(url, timeout=360)`.
+
+Hosted captures use `provider: tinyfish`, `normalizer: tinyfish/fetch-markdown/1`,
+and `content_type: text/vnd.tinyfish.markdown`. They are weaker evidence:
+`source.bin` and its raw hash cover the exact UTF-8 provider text, **not original
+source bytes**, which are unavailable. Warnings include
+`provider_text_only_original_bytes_unavailable`, `hosted_provider_acquisition`,
+and `escalated_from_<local_error_code>`. `--refresh` / `refresh=true` sends hosted
+`ttl: 0`; otherwise an explicitly supplied `--max-age` / `max_age_seconds` sets
+the TTL, or the owner `DWS_TINYFISH_FETCH_TTL` applies when omitted. A positive
+TTL adds `provider_cache_permitted`: `captured_at` is DWS's acquisition time,
+and the hosted text may be a provider-cached copy up to the requested TTL in age.
+It is not an observation of when the origin served those bytes. Final URLs are
+canonicalized, validated as public, and checked against crawl scope after remote
+navigation; remote intermediate redirects/subrequests cannot be attested by
+local egress policy.
+Hosted snapshots can be reused for `auto`/`always` while enabled, never for
+`never`; only HTTPX snapshots support conditional revalidation.
 
 The CLI prints the same JSON as the API and uses these exit classes:
 

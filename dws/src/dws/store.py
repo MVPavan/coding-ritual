@@ -947,8 +947,19 @@ class Store:
             conn.execute("BEGIN IMMEDIATE")
             self._validate_scope(conn, request.workspace_id, request.run_id)
             condition = ""
+            tinyfish_cache = (
+                self.settings.tinyfish_enabled
+                and self.settings.tinyfish_fetch_escalation
+                and bool(self.settings.tinyfish_api_key)
+            )
+            if not tinyfish_cache:
+                condition = " AND provider!='tinyfish'"
             if request.render == "always":
-                condition = " AND provider='crawl4ai'"
+                condition = (
+                    " AND provider IN ('crawl4ai','tinyfish')"
+                    if tinyfish_cache
+                    else " AND provider='crawl4ai'"
+                )
             elif request.render == "never":
                 condition = " AND provider='httpx'"
             row = conn.execute(

@@ -164,6 +164,8 @@ class FixtureSite(AbstractContextManager["FixtureSite"]):
                         row["markdown"] = {"raw_markdown": " \n\t "}
                     elif requested.endswith("/raw.html"):
                         row["markdown"] = {"raw_markdown": site.provider_markdown}
+                    elif "/blocked/" in requested:
+                        row["status_code"] = int(requested.rsplit("/", 1)[-1])
                     elif requested.endswith("/partial.html"):
                         row["status_code"] = 206
                         row["html"] = "<h1>PartialRenderedMarker retained rendered prefix.</h1>"
@@ -646,6 +648,11 @@ class FixtureSite(AbstractContextManager["FixtureSite"]):
                     if path == "/compressed-oversized":
                         body = gzip.compress(body)
                         content_encoding = "gzip"
+                elif path.startswith("/blocked/"):
+                    status = int(path.rsplit("/", 1)[-1])
+                    body = b"Blocked source"
+                elif path == "/challenge":
+                    body = b"<title>Just a moment</title><p>Verify you are human</p>"
                 elif path == "/javascript":
                     body = (
                         b'<html><body><div id="app"></div>'

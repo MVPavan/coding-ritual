@@ -18,7 +18,7 @@ import subprocess
 
 def dws(*arguments):
     result = subprocess.run(
-        ["dws", *arguments], capture_output=True, text=True, timeout=120
+        ["dws", *arguments], capture_output=True, text=True, timeout=390
     )
     response = json.loads(result.stdout)
     if result.returncode:
@@ -59,6 +59,14 @@ the same workspace/run fields shown above. MCP exposes `search`, `fetch`,
 `crawl`, `retrieve`, `read`, `job_status`, and `job_cancel` at `/mcp/` when the
 optional extra is enabled. Its retained resource links identify the same
 snapshots; use bounded `read` calls for large documents.
+
+Allow at least 360 seconds for synchronous fetch HTTP responses/MCP tools.
+At the maximum settings, waiting for an equivalent fetch plus slot admission,
+local acquisition and hosted escalation can take about 300 seconds before
+storage/response overhead. For FastMCP use `Client(url, timeout=360)`; its default
+HTTP read timeout is 300 seconds. The CLI uses a 360-second fetch timeout; a
+subprocess wrapper should allow startup/response time too, as in the 390-second
+example above.
 
 Crawl jobs belong to DWS, even if a host disconnects. Retain the acknowledged
 job ID and an idempotency key, then query status after reconnecting. Cancellation

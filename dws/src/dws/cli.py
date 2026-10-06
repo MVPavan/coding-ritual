@@ -60,7 +60,7 @@ def build_parser() -> argparse.ArgumentParser:
     fetch.add_argument("url")
     fetch.add_argument("--run", dest="run_id")
     fetch.add_argument("--refresh", action="store_true")
-    fetch.add_argument("--max-age", dest="max_age_seconds", type=int, default=3600)
+    fetch.add_argument("--max-age", dest="max_age_seconds", type=int, default=None)
     render(fetch)
     crawl = command("crawl")
     crawl.add_argument("seed_url")
@@ -210,7 +210,9 @@ def _call(args: argparse.Namespace) -> int:
         )
         opener = build_opener(ProxyHandler({}), _NoRedirects())
         try:
-            response = opener.open(request, timeout=120)
+            # Fetch can wait for admission, then local acquisition and escalation:
+            # 150s group + 5s slot + 120s local + 25s hosted, with response headroom.
+            response = opener.open(request, timeout=360 if args.operation == "fetch" else 120)
         except HTTPError as error:
             if 300 <= error.code < 400:
                 error.close()
@@ -254,7 +256,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         return _call(args)
     from dws.config import Settings
 
-    values = Settings.from_env().model_dump()
+    environment = Settings.from_env()
+    # Serialization intentionally omits secrets; launch overrides must preserve
+    # all field values and revalidate them rather than round-trip through JSON.
+    values = {name: getattr(environment, name) for name in Settings.model_fields}
     for key in ("api_url", "token", "data_dir"):
         if getattr(args, key) is not None:
             values[key] = getattr(args, key)

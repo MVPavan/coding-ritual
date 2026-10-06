@@ -397,7 +397,7 @@ Native MCP Tasks remain a separate optional extension over the same job state.
 | HTML and PDF normalizer selection | P5 s3–s4 | Trafilatura and pypdf are candidates, not accepted choices; golden extraction fixtures and licence review decide (G-06, G-12) |
 | Browser egress enforcement (G-05, G-09) | P1 s4, P6 s2 | An unverified egress path cannot ship as generally safe; gate or disable P6 — it must not block P8 |
 | Hardware limits, quotas and retention durations (G-10) | P10 s1, P11 s5 | Begin with documented configurable limits, measure, report the supported workload; hard limits never come from callers |
-| Optional providers: Firecrawl, TinyFish, Spider | Not scheduled | Requires an acquisition corpus the baseline stack demonstrably fails on (G-07, G-08); reputation is not evidence |
+| Hosted/optional providers: TinyFish, Firecrawl, Spider | TinyFish Search default with key; Fetch blocked-source escalation implemented (ADR-033, cr-mkmx); full verification and live E2E passed 2026-10-06. Firecrawl/Spider not scheduled | Gate evidence: host search-engine blocking and 2026-10-04 equity-source challenges. Shared quotas and weaker hosted provenance required; Firecrawl/Spider still require separate corpus evidence (G-07, G-08) |
 
 ## Revision history
 

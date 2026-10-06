@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import ipaddress
 import os
 import stat
 from datetime import UTC, datetime
 from pathlib import Path
+from urllib.parse import urlsplit
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validator
 
 
 def prepare_owner_state(path: Path) -> Path:
@@ -47,13 +49,23 @@ def prepare_owner_state(path: Path) -> Path:
 
 
 class Settings(BaseModel):
-    model_config = ConfigDict(frozen=True, extra="forbid")
+    model_config = ConfigDict(frozen=True, extra="forbid", hide_input_in_errors=True)
     data_dir: Path = Path(".state")
     api_url: str = "http://127.0.0.1:8765"
     token: str | None = Field(default=None, repr=False)
     searxng_url: str | None = None
     crawl4ai_url: str | None = None
     crawl4ai_token: str | None = Field(default=None, repr=False)
+    tinyfish_api_key: str | None = Field(default=None, repr=False, exclude=True)
+    tinyfish_enabled: bool = True
+    tinyfish_fetch_escalation: bool = True
+    tinyfish_fetch_ttl: int = Field(default=3600, ge=0, le=31_536_000)
+    tinyfish_search_url: str = "https://api.search.tinyfish.ai/"
+    tinyfish_fetch_url: str = "https://api.fetch.tinyfish.ai/"
+    tinyfish_search_per_minute: int = Field(default=30, ge=1)
+    tinyfish_search_per_hour: int = Field(default=500, ge=1)
+    tinyfish_fetch_per_minute: int = Field(default=150, ge=1)
+    tinyfish_fetch_per_day: int = Field(default=1000, ge=1)
     ddgs_enabled: bool = True
     allowed_private_hosts: tuple[str, ...] = ()
     max_bytes: int = Field(default=8_000_000, ge=1024, le=100_000_000)
@@ -70,6 +82,41 @@ class Settings(BaseModel):
     min_free_bytes: int = Field(default=100_000_000, ge=0)
     retention_seconds: int = Field(default=2_592_000, ge=1)
     lease_seconds: int = Field(default=120, ge=10, le=600)
+
+    @field_validator("tinyfish_search_url", "tinyfish_fetch_url")
+    @classmethod
+    def tinyfish_endpoint(cls, value: str, info: ValidationInfo) -> str:
+        # Local import avoids the Settings/net dependency cycle.
+        from dws.errors import DWSError
+        from dws.net import canonical_url
+
+        try:
+            endpoint = canonical_url(value)
+            parsed = urlsplit(endpoint)
+            host = parsed.hostname or ""
+            try:
+                loopback = ipaddress.ip_address(host).is_loopback
+            except ValueError:
+                loopback = host == "localhost"
+            product_host = (
+                "api.search.tinyfish.ai"
+                if info.field_name == "tinyfish_search_url"
+                else "api.fetch.tinyfish.ai"
+            )
+            if not (
+                (
+                    parsed.scheme == "https"
+                    and host == product_host
+                    and parsed.port in {None, 443}
+                )
+                or (parsed.scheme == "http" and loopback)
+            ):
+                raise ValueError
+            return endpoint
+        except (DWSError, ValueError):
+            raise ValueError(
+                "TinyFish requires its HTTPS product host or an HTTP loopback endpoint"
+            ) from None
 
     @field_validator("retention_seconds")
     @classmethod

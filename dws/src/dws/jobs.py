@@ -92,6 +92,11 @@ class Jobs:
     def migrate_discovery(db: sqlite3.Connection) -> None:
         """Upgrade legacy jobs in a caller-owned serialized transaction."""
         columns = {row["name"] for row in db.execute("PRAGMA table_info(dws_jobs)")}
+        frontier_columns = {
+            row["name"] for row in db.execute("PRAGMA table_info(dws_frontier)")
+        }
+        if frontier_columns and "error_escalation_json" not in frontier_columns:
+            db.execute("ALTER TABLE dws_frontier ADD COLUMN error_escalation_json TEXT")
         if not columns or "discovery_limited_count" in columns:
             return
         db.execute(
@@ -257,7 +262,8 @@ class Jobs:
             counts = self._counts(db, request.job_id)
             discovery_limited_count = self._discovery_limited_count(db, job)
             rows = db.execute(
-                "SELECT url,depth,state,attempts,snapshot_id,error_code,error_message "
+                "SELECT url,depth,state,attempts,snapshot_id,error_code,error_message,"
+                "error_escalation_json "
                 "FROM dws_frontier "
                 "WHERE job_id=? ORDER BY depth,created_at,url LIMIT ? OFFSET ?",
                 (request.job_id, request.limit, request.offset),
@@ -311,6 +317,10 @@ class Jobs:
                     "discovery_limited counts pages; the omitted link count is unknown",
                 ],
             }
+            for page_result in result["manifest"]:
+                escalation = page_result.pop("error_escalation_json", None)
+                if escalation:
+                    page_result["escalation"] = json.loads(escalation)
             result["discovery"]["discovery_limited"] = discovery_limited_count
             if stored_request is None:
                 result["request_error"] = {
@@ -672,7 +682,7 @@ class Jobs:
                 heartbeat = asyncio.create_task(self._heartbeat(job, stopped))
                 try:
                     timeout = min(
-                        self.settings.request_timeout,
+                        self.acquisition.acquisition_timeout,
                         max(0.001, job["deadline_at"] - time.time()),
                     )
                     async with asyncio.timeout(timeout):
@@ -736,7 +746,14 @@ class Jobs:
                         )
                         and page["attempts"] + 1 < 2
                     )
-                    self._release_page(job, page, code, message, retry)
+                    self._release_page(
+                        job,
+                        page,
+                        code,
+                        message,
+                        retry,
+                        escalation=error.escalation if isinstance(error, DWSError) else None,
+                    )
                 finally:
                     stopped.set()
                     await heartbeat
@@ -745,7 +762,13 @@ class Jobs:
                 self._executing = False
 
     def _release_page(
-        self, job: dict[str, Any], page: dict[str, Any], code: str, message: str, retry: bool
+        self,
+        job: dict[str, Any],
+        page: dict[str, Any],
+        code: str,
+        message: str,
+        retry: bool,
+        escalation: dict[str, str | int] | None = None,
     ) -> None:
         with self._db() as db:
             db.execute("BEGIN IMMEDIATE")
@@ -755,13 +778,15 @@ class Jobs:
             ).fetchone()
             if current:
                 db.execute(
-                    "UPDATE dws_frontier SET state=?,error_code=?,error_message=?,updated_at=? "
+                    "UPDATE dws_frontier SET state=?,error_code=?,error_message=?,updated_at=?,"
+                    "error_escalation_json=? "
                     "WHERE job_id=? AND url=? AND state='in_progress'",
                     (
                         "queued" if retry else "failed",
                         code,
                         message[:512],
                         time.time(),
+                        json.dumps(escalation) if escalation is not None else None,
                         job["job_id"],
                         page["url"],
                     ),
