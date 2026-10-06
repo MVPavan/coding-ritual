@@ -326,3 +326,39 @@ Drivers across its 21 steps (some had two): about 8 came from the playbook, 7 fr
 rules, 4 from principles, and 3 from its own judgement. The 3 judgement calls
 were: sizing how as simple; grounding the code itself because it could not
 spawn; scaling arena down. There was no human stop before code.
+
+## 9. Four observed runs compared (2026-10-05)
+
+Same set-up as §8, with three harder tasks, each run read-only and stopped before any code.
+
+| Run | Task | Playbook chosen | Alternatives weighed | What decided it | Human stop before code |
+|---|---|---|---|---|---|
+| 1 | Add a `--table` view to `foreman status` | feature | none | Router list, unambiguous | None |
+| 2 | Monitor sometimes never sends the stale wake; cannot reproduce | bug-fix | runtime-forensics, investigation, trace-forensics | Own judgement: the user wants it fixed, not diagnosed | None. A human call is possible at fix time if the throttle is deliberate policy |
+| 3 | Move every foreman and ledger command onto one output layer | figure-it-out | feature, refactoring, orchestrate | The explicit override for cross-cutting work (`P/skills/poteto-mode/SKILL.md:123`) | One non-blocking checkpoint: scope of `ledger_render.py` |
+| 4 | "Going to bed": fix and land the open follow-up beads | autopilot-full | autonomous-run, figure-it-out, autopilot-stack, orchestrate | Own judgement, flagged as close | None. It would merge to the default branch under the grant |
+
+What changed with harder tasks:
+
+- **Judgement concentrates in the playbook match.** It was trivial in runs 1
+  and 3 and a real decision in runs 2 and 4. Runs 3 and 4 read the same
+  sentence (`SKILL.md:123`) in opposite ways. Run 3 treated the
+  cross-cutting clause as decisive. Run 4 set the "step away and trust later"
+  clause aside because a bundled playbook fit.
+- **No run stopped for the human before code.** Run 4 read "land what's
+  verified" plus the autonomy grant as merge authority
+  (`P/skills/poteto-mode/playbooks/autopilot-full.md:9`). It had no knowledge of
+  repository rules that keep this branch off the default branch.
+- **Scoping was done by judgement and was correct.** Run 4 found that the
+  store-restructure scope was already done, separated beads that only share
+  the word "ledger", and routed an epic to decomposition instead of a fix. All
+  three checked out against Beads.
+- **Depth scaled per run.** how went simple in run 1 and complex in runs 2 and
+  3. Principle files read: 2, 1, 8, 0. The citation rule
+  (`SKILL.md:15`) makes principles opt-in in practice; run 4 read none.
+- **Verification is prose, and it slipped once.** Run 3 cited prove-it-works
+  while reporting `scripts/verify-debrief.sh` as missing. The file exists; the
+  check most likely ran from the wrong directory.
+- **Every run invented substitutes for missing infrastructure.** control-cli,
+  deslop, `/loop`, cloud agents, and CI were each replaced ad hoc: a pytest
+  clock harness, the repository gate, a background heartbeat loop.

@@ -251,10 +251,13 @@ autonomy report, and its verification rounds).
 
 ## `adlc/` — agentic development lifecycle
 
-`GUIDE.md` holds the durable lifecycle principles, each with its
-model-dependent setting and revisit trigger. `harness-map.html` places the
-three compared harnesses on the lifecycle. `sources/` holds the vendor
-capture; `council/` holds the council briefs, member answers and judgments.
+`GUIDE.md` holds the lifecycle's stages and sub-stages (§1) and the durable
+principles, each with its model-dependent setting and revisit trigger.
+`skill-map.md` places every skill of the three compared harnesses on those
+sub-stages, and `harness-map.html` rates their coverage. `document-model.md`
+defines the documents a project keeps across the lifecycle and their layout.
+`sources/` holds the vendor capture; `council/` holds the council briefs,
+member answers and judgments (`council/stages/` chose the stage names).
 
 ## Limitations (current)
 
