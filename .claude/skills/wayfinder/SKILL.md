@@ -12,14 +12,16 @@ included. If the route is already clear, use ordinary planning or execution.
 
 ## Map and tickets
 
-Use Beads: one map issue labelled `wayfinder:map`, with decision tickets as children
-and native prerequisite edges. The map contains Destination, Notes, Decisions so
+Use Beads: one map epic (`-t epic`, title starting `Map:`), with decision tickets
+as children and native prerequisite edges. The map contains Destination, Notes, Decisions so
 far, Not yet specified, and Out of scope. Keep resolution detail on the ticket;
 the map carries a named pointer and short gist. Reference names with IDs/links so
 readers can understand the map without opening every item.
 
-A ticket asks one bounded question with a resolution criterion. Use a
-`wayfinder:<type>` label: research, prototype, grilling or task. Size by decision
+A ticket asks one bounded question with a resolution criterion. Research,
+prototype and grilling tickets are type `spike`, with the kind first in the
+title (`Research: …`); prerequisite work is type `task`. Record a settled
+architecture-level answer as a `decision` bead. Create no labels. Size by decision
 coherence and dependencies, not an assumed context-window size.
 
 - Research establishes missing facts; direct lookups are fine, delegation optional.

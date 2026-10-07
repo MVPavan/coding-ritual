@@ -43,8 +43,9 @@ requirements that planning and execution consume, usually in `docs/specs/`.
 
 **Bead**: One durable work item in Beads (`bd`), distinct from an in-turn step.
 
-**Ready-for-agent**: Specified enough for autonomous execution under
-`.beads/beads.md`. Distinct from `bd ready`, which means unblocked.
+**Agent-ready**: An open bead with acceptance criteria, which an agent may take
+(the `beads` skill, `references/usage.md` §10). Distinct from `bd ready`, which
+means unblocked.
 
 ## Workflow interpreter
 

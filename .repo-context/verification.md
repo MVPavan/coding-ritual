@@ -30,7 +30,7 @@ human check / Why.
 | Shell | `bash -n <file>`; `shellcheck <file>` when available |
 | JSON | `python3 -m json.tool <file> >/dev/null` |
 | Python hooks/scripts | `python3 -m py_compile <file>`; scoped lint/type checks from `.repo-context/coding-style.md` |
-| Beads | `bd ready` or `bd list` succeeds; refresh the export per `.beads/beads.md` |
+| Beads | `bd ready` or `bd list` succeeds; keep `.beads/issues.jsonl` current per the `beads` skill (`references/usage.md` §15) |
 | Skills | `python3 .claude/scripts/skill-catalog.py --check` validates catalog, pointers and invocation metadata; `--write` regenerates them |
 
 **Dangerous-commands hook** — after changing

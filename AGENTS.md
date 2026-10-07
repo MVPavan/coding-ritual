@@ -106,6 +106,6 @@ Keep conditional references as plain paths, not automatic imports.
 
 ## Track durable work
 
-- Use Beads (`bd`) to track durable work; follow `.beads/beads.md` for task lifecycle,
-  actor attribution, and session closeout. Run `bd prime` when runtime context
-  has not already been supplied or needs recovery.
+- Use Beads (`bd`) to track durable work. Its core rules arrive at session start
+  through `bd prime`; the `beads` skill holds the full policy, setup and session
+  closeout. Run `bd prime` when that context is missing or needs recovery.

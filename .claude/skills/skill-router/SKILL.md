@@ -64,6 +64,6 @@ user-supplied skill path can be read without changing integration files.
 | `/show-me` | Show the current topic visually, inline in the conversation. |
 | `/teach` | Teach a concept, walk through a session, or conduct an explicitly requested ongoing course. |
 | `/teach-session` | Walk through the current session using the shared teach workflow. |
-| `/triage` | Evaluate unevaluated beads issues and move each to an intake state — ready-for-agent, human, needs-info, backlog, or a wontfix close. |
+| `/triage` | Evaluate untriaged beads and decide each one — agent-ready under a parent, owner's work, questions for the owner, deferred, or a wontfix close. |
 | `/verification-before-completion` | Use only when explicitly invoking this legacy entrypoint; verification policy is owned by AGENTS.md. |
 | `/wayfinder` | Map and resolve material decision dependencies across a multi-session effort. |

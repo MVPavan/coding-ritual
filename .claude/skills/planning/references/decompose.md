@@ -9,7 +9,7 @@ New workstream → create `docs/workstreams/<name>/`:
 
 - `README.md` — the charter, one screen: what this workstream is, how it is
   tracked.
-- `roadmap.md` — the phased plan (the bd `--design` anchor). Per phase: Goal ·
+- `roadmap.md` — the phased plan (the bd `--spec-id` anchor). Per phase: Goal ·
   deliverables table `| # | Stage | Create/modify paths | Verify |` · spec
   references · `Exit (phase):` line · test focus · risk (standard/deep, defined in
   `.claude/skills/execution/SKILL.md` under Scope selector) · for
@@ -23,14 +23,15 @@ roadmap rows and bd epics. Use whatever identifier scheme the roadmap uses;
 keep it consistent within the workstream.
 
 **Flat operational work** (no phases): the `README.md` charter is the anchor.
-Seed plain tasks labelled `ws-<name>` — no epics, no roadmap.
+Seed one epic with `--spec-id docs/workstreams/<name>/README.md` and plain task
+children — no phases, no roadmap.
 
 ## Extending an existing workstream
 
 - Append the new phases to the existing `roadmap.md`, continuing its phase
   numbering; do not renumber or rewrite existing phases.
-- Reuse the workstream's existing `ws-<name>` label on the new epics.
-- New epics may carry a different `--spec-id` than older ones — a workstream
+- Keep the workstream's existing `--spec-id` (its roadmap) on the new epics.
+- New epics may carry a different `--design` than older ones — a workstream
   accumulates epics from many specs.
 - Add epic→epic edges where a new phase genuinely depends on an old one.
 - Re-render the tracking mirrors after seeding.
@@ -49,11 +50,11 @@ choices. Clarify only material ambiguity; do not demand a repeated approval phra
 
 ## Seeding commands
 
-`--actor "<runtime>:<session>"` (Claude Code: `cc:${CLAUDE_CODE_SESSION_ID:0:8}`;
-Codex: `codex:<thread>`) on every bd write.
+`--actor "<coding-agent>:<unique-id>"` (cc: `cc:${CLAUDE_CODE_SESSION_ID:0:8}`;
+codex: `codex:${CODEX_THREAD_ID:0:8}`) on every bd write.
 
 1. **Epic per phase:**
-   `bd create -t epic "[<phase-id>] <phase>" --spec-id docs/workstreams/<name>/roadmap.md --design docs/specs/<spec>.md -l ws-<name> --actor … -q`
+   `bd create -t epic "[<phase-id>] <phase>" --spec-id docs/workstreams/<name>/roadmap.md --design docs/specs/<spec>.md --actor … -q`
    — **`--spec-id` is the workstream anchor: it must be the roadmap.** The
    renderer derives the workstream name and the `tracking/` output directory
    from `dirname(spec_id)`, so an anchor outside `docs/workstreams/<name>/`
@@ -63,8 +64,8 @@ Codex: `codex:<thread>`) on every bd write.
    can feed one workstream. Keep every epic in a workstream on the **same**
    `spec_id`: the renderer groups by exact match and writes the same
    `tracking/` directory once per distinct value, so a split anchor silently
-   leaves only the last group in the mirror. The `ws-<name>` label remains the
-   key execution filters on.
+   leaves only the last group in the mirror. Execution finds a workstream's
+   epics by this anchor: `bd list -t epic --all --spec docs/workstreams/<name>/`.
 
    The flag names read backwards here: the field called `--spec-id` holds the
    roadmap and the field called `--design` holds the spec.
@@ -84,10 +85,10 @@ Codex: `codex:<thread>`) on every bd write.
 
 For an approved spec that is one phase of work (SKILL.md scope-check): after
 the stage-level approval, seed one epic with `--spec-id` and stage children
-with acceptance — no roadmap, no workstream directory, no `ws-` label. The
+with acceptance — no roadmap, no workstream directory. The
 epic's consumer is task-scope execution driven by the Elaborate plan and its
-bd stages, not phase execution (which resolves epics through a workstream
-label).
+bd stages, not phase execution (which resolves epics through the workstream's roadmap
+anchor).
 
 ## Summary format
 

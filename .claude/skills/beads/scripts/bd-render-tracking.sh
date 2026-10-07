@@ -95,10 +95,10 @@ $rollup
 ## Ready now (top of queue)
 $ready"
 
-  # ideas.md / backlog.md : parked label-based inbox.
+  # ideas.md / backlog.md : parked work. Ideas are deferred spikes; backlog is every other deferred bead.
   local ideas backlog
-  ideas="$(bd_ list -l idea --json 2>/dev/null | jq -r 'if length==0 then "_none._" else (.[] | "- `" + .id + "` " + .title) end')"
-  backlog="$(bd_ list -l backlog --json 2>/dev/null | jq -r 'if length==0 then "_none._" else (.[] | "- `" + .id + "` " + .title) end')"
+  ideas="$(bd_ list -t spike --status deferred --limit 0 --json 2>/dev/null | jq -r 'if length==0 then "_none._" else (.[] | "- `" + .id + "` " + .title) end')"
+  backlog="$(bd_ list --status deferred --limit 0 --json 2>/dev/null | jq -r '[.[] | select(.issue_type != "spike")] | if length==0 then "_none._" else (.[] | "- `" + .id + "` " + .title) end')"
   write_generated "$dir/ideas.md" "$(header 'Ideas (parked, unvetted)')
 $ideas"
   write_generated "$dir/backlog.md" "$(header 'Backlog (parked, vetted)')

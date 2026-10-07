@@ -56,8 +56,9 @@ risks, and what nobody has named yet. A plan with material risk gets a critic
 review (review skill) before approval.
 
 Save phase plans under `docs/workstreams/<name>/plans/`, standalone plans under
-`docs/plans/`, or the supplied path. Put `plan: <path>` in Beads notes. An epic's
-`--spec-id` holds its spec and `--design` its roadmap, never its plan. Attribute
+`docs/plans/`, or the supplied path. Put `plan: <path>` in Beads notes. A phase
+epic's `--spec-id` holds its workstream roadmap and `--design` its governing
+spec; other beads' `--spec-id` holds their spec. Neither holds a plan. Attribute
 Beads writes with `--actor` and reuse existing records.
 
 ## Slicing

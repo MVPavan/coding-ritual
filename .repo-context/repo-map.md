@@ -14,7 +14,7 @@ implements a Python workflow interpreter. `AGENTS.md` owns policy;
 | Specs and decisions | `docs/specs/`, `docs/adr/` |
 | Verification and session tooling | `scripts/` |
 | Reference curation | `harness_lifecycle/`, `harness_learnings/` |
-| Task state and lifecycle | `.beads/`; policy in `.beads/beads.md` |
+| Task state and lifecycle | `.beads/` (data, config, hooks); policy in the `beads` skill |
 | Temporary artifacts | `scratchpad/` (gitignored) |
 
 `docs/workstreams/` holds active roadmaps, plans, and execution evidence.

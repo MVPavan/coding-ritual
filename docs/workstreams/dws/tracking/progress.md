@@ -1,12 +1,22 @@
 <!-- BD:GENERATED START -->
 # Progress — dws
-_generated from bd @ 2026-09-17T11:28:10Z — DO NOT EDIT (run: BD_RENDER=1 bash <beads-skill-dir>/scripts/bd-render-tracking.sh)_
-_Roadmap: [roadmap.md](../roadmap.md) · Brainstorm: [cli-engine-implementation-plan.md](../../../../docs/plans/dws/cli-engine-implementation-plan.md)_
+_generated from bd @ 2026-10-07T05:00:44Z — DO NOT EDIT (run: BD_RENDER=1 bash <beads-skill-dir>/scripts/bd-render-tracking.sh)_
+_Roadmap: [roadmap.md](../roadmap.md) · Brainstorm: [DWS_PRD.md](../../../../docs/brainstorms/dws/DWS_PRD.md)_
 ## [P10] Operations and recovery
-
+- `cr-tnv.1` Retention, freshness and expiry policy — Delivered in a4d6538 (standalone DWS product); verified by dws/docs/verification/vision-acceptance.md (V1-V12) and the integration suite. Original phased plan superseded by the one-shot build.  (2026-10-04T06:10:29Z)
+- `cr-tnv.2` Pin, unpin and bounded export — Delivered in a4d6538 (standalone DWS product); verified by dws/docs/verification/vision-acceptance.md (V1-V12) and the integration suite. Original phased plan superseded by the one-shot build.  (2026-10-04T06:10:30Z)
+- `cr-tnv.3` Garbage collection, tombstones and disk pressure — Delivered in a4d6538 (standalone DWS product); verified by dws/docs/verification/vision-acceptance.md (V1-V12) and the integration suite. Original phased plan superseded by the one-shot build.  (2026-10-04T06:10:56Z)
+- `cr-tnv.4` Quiesced backup and verified restore — Delivered in a4d6538 (standalone DWS product); verified by dws/docs/verification/vision-acceptance.md (V1-V12) and the integration suite. Original phased plan superseded by the one-shot build.  (2026-10-04T06:10:57Z)
+- `cr-tnv.5` Maintenance interruption recovery — Delivered in a4d6538 (standalone DWS product); verified by dws/docs/verification/vision-acceptance.md (V1-V12) and the integration suite. Original phased plan superseded by the one-shot build.  (2026-10-04T06:11:25Z)
+- `cr-tnv.6` Upgrade, rollback and schema compatibility — Delivered in a4d6538 (standalone DWS product); verified by dws/docs/verification/vision-acceptance.md (V1-V12) and the integration suite. Original phased plan superseded by the one-shot build.  (2026-10-04T06:11:24Z)
 
 ## [P11] Release qualification
-
+- `cr-e0k.1` Compose bootstrap, readiness and restart — Delivered in a4d6538 (standalone DWS product); verified by dws/docs/verification/vision-acceptance.md (V1-V12) and the integration suite. Original phased plan superseded by the one-shot build.  (2026-10-04T06:10:29Z)
+- `cr-e0k.2` Sanitized diagnostics and structured logging — Delivered in a4d6538 (standalone DWS product); verified by dws/docs/verification/vision-acceptance.md (V1-V12) and the integration suite. Original phased plan superseded by the one-shot build.  (2026-10-04T06:10:29Z)
+- `cr-e0k.3` Adversarial input and bounded-output qualification — Delivered in a4d6538 (standalone DWS product); verified by dws/docs/verification/vision-acceptance.md (V1-V12) and the integration suite. Original phased plan superseded by the one-shot build.  (2026-10-04T06:10:54Z)
+- `cr-e0k.4` Host CLI workflow template — Delivered in a4d6538 (standalone DWS product); verified by dws/docs/verification/vision-acceptance.md (V1-V12) and the integration suite. Original phased plan superseded by the one-shot build.  (2026-10-04T06:10:53Z)
+- `cr-e0k.5` Measured concurrency qualification — Partially delivered (V7: 4 shared callers, 7 vs 6-slot admission); burst qualification tracked in cr-vnoz.  (2026-10-04T06:10:53Z)
+- `cr-e0k.6` Release gate and acceptance matrix — Delivered in a4d6538 (standalone DWS product); verified by dws/docs/verification/vision-acceptance.md (V1-V12) and the integration suite. Original phased plan superseded by the one-shot build.  (2026-10-04T06:11:23Z)
 
 ## [P12] MCP adapter (Delivery B)
 
@@ -15,31 +25,79 @@ _Roadmap: [roadmap.md](../roadmap.md) · Brainstorm: [cli-engine-implementation-
 - `cr-0km.1` Package boundary and tooling — (no reason)  (2026-09-14T10:54:11Z)
 - `cr-0km.2` QMD lexical qualification — phase bridge landing receipt=f3778c2f749eba007eeb2381c666f0613210aa6b9ac4ad9dc4e16781e3bfdc3d  (2026-09-15T12:12:33Z)
 - `cr-0km.3` Lock and child-process qualification — phase bridge landing receipt=53330fcc6ca00a2514fc251c14ae1ecf85784eba3d473db0c27838df8aec3575  (2026-09-14T13:00:57Z)
+- `cr-0km.4` Image, volume and browser egress qualification — Delivered in a4d6538 (Implement and qualify the standalone DWS product): browser/egress qualification (86 browser cases) and distribution inventory recorded; vision acceptance in dws/docs/verification/vision-acceptance.md.  (2026-10-03T04:08:11Z)
+- `cr-0km.5` Pinned runtime manifest and distribution review — Delivered at a4d6538 (docs/verification/dws/accepted-components-inventory*); refresh after 2026-10-04 upgrades tracked in cr-xucl.  (2026-10-04T06:10:23Z)
+- `cr-0km.6` Delivery-order record in PRD and design — CLI-first Delivery A and later thin MCP Delivery B recorded in both active PRD/design v1.1. Frozen candidate unchanged; independent gpt-5.6-sol high review COMPLIANT/APPROVE with no findings, scratchpad/dws/reviews/delivery-result.md. Review verified preserved historical ADR bytes and requirement identifiers, links, scoped diff and git diff --check. No runtime completion inferred.  (2026-09-22T05:48:05Z)
+- `cr-0km.7` Domain contracts, provider ports and policy — Delivered in a4d6538 (standalone DWS product); verified by dws/docs/verification/vision-acceptance.md (V1-V12) and the integration suite. Original phased plan superseded by the one-shot build.  (2026-10-04T06:10:34Z)
 - `cr-0km.8` Recover DWS package candidate through independent pointer review — phase bridge landing receipt=056fcc263fb79a5d011e6001d062f1549c28df3bfff74250b39af64e6cdb3b69  (2026-09-14T11:08:23Z)
+- `cr-0km.9` Prepare DWS orchestrated implementation goal — Updated docs/plans/dws/implementation-goal.md with compact goal-state coordination, bounded child briefs and delta reports, completion-driven monitoring, targeted evidence opens and candidate-specific review/check verification. Links and whitespace validated; no product execution.  (2026-09-22T05:33:26Z)
+- `cr-0km.10` Integrate reviewed DWS pilot artifacts into current DWS branch — Integrated 17 byte-identical reviewed pilot files; independent Sol high review verified ancestry, exact blobs, package independence and check logs with no material findings. Minor final-check reporting contradiction corrected by Astra and verified against exit-0 log; only report changed from reviewed snapshot. Locked setup/CLI/lint/types/wheel passed, 16 tests passed; four QMD setup errors remain explicitly open under cr-0km.11. G02/G03/deployment release qualification not claimed. Evidence docs/verification/dws/pilot-integration.md and scratchpad/dws/reviews/integration-result.md.  (2026-09-22T05:51:05Z)
+- `cr-0km.11` Requalify pinned QMD runtime in current DWS environment — Fresh QMD2.8.3/Node22.22.0/SQLite3.53.4 qualified: four unchanged tests pass with bwrap network denial and empty caches. Sol high independently verified substantive evidence, source/native/artifact integrity; two minor record findings corrected by Astra. Coordinator verified new JUnit4/0/0/0, exit0, monotonic3.340313085s,22 artifact hashes and unchanged tests/package blobs. Registry receipt claims narrowed; original evidence retained. No production/volume/child-supervision claim. Report docs/verification/dws/qmd-requalification.md; review/fix evidence scratchpad/dws/qmd-requalification/.  (2026-09-22T06:04:53Z)
+- `cr-0km.12` Reconcile DWS source and tracking references — All 12 DWS epic references verified live: spec_id canonical PRD, design roadmap. README/roadmap current v1.1 roles and authorization text independently reviewed by Sol high COMPLIANT/APPROVE; frozen hashes unchanged; stage/dependency/acceptance/history preserved, links and diff check pass. Known shared renderer still assumes obsolete field arrangement; not run, global boards untouched, no generated-mirror completion claim. Evidence scratchpad/dws/tracking-references/review-result.md.  (2026-09-22T05:58:51Z)
+- `cr-0km.13` Qualify actual QMD child lock lifetime on the application volume — Actual pinned QMD stdin-carrier lifetime accepted after fresh Sol xhigh COMPLIANT/APPROVE.4 frozen files unchanged; coordinator verified19 artifact hashes and real matrices: carrier BUSY/BUSY/BUSY/ACQUIRED after worker ready/controller death/launcher death/worker exit, parent-only BUSY/ACQUIRED/ACQUIRED/ACQUIRED with counters0/1/2/3. Exact worker identity, fd0/inode/flock, complete output and reaping reviewed; no cleanup failures or remaining resources. Scope Linux/amd64,QMD2.8.3,accepted app image/local ext4; internal noninteractive stdin reserved and upgrades require requalification. Broader production supervision/G03/release unclaimed. Evidence docs/verification/dws/qmd-child-qualification.md and stdin-carrier/review/result.md.  (2026-09-22T06:47:12Z)
+- `cr-0km.14` Collect accepted application and SearXNG distribution inventory — Delivered in a4d6538 (Implement and qualify the standalone DWS product): browser/egress qualification (86 browser cases) and distribution inventory recorded; vision acceptance in dws/docs/verification/vision-acceptance.md.  (2026-10-03T04:08:11Z)
+- `cr-0km.15` Decide retrieval backend before resuming DWS implementation — Done in a4d6538: SQLite FTS5 chosen over QMD/Turso/Tantivy with measured comparison in dws/docs/verification/retrieval-choice.md; ADR-018/020/023/024 statuses annotated in docs/brainstorms/dws/DWS_PRD.md.  (2026-10-03T04:08:09Z)
 
 ## [P2] Evidence core
-
+- `cr-42y.1` Schema, migrations and transaction ownership — Delivered in a4d6538 (standalone DWS product); verified by dws/docs/verification/vision-acceptance.md (V1-V12) and the integration suite. Original phased plan superseded by the one-shot build.  (2026-10-04T06:10:34Z)
+- `cr-42y.2` Artifact publication and structure sidecar — Delivered in a4d6538 (standalone DWS product); verified by dws/docs/verification/vision-acceptance.md (V1-V12) and the integration suite. Original phased plan superseded by the one-shot build.  (2026-10-04T06:10:34Z)
+- `cr-42y.3` Document, snapshot, acquisition and membership records — Delivered in a4d6538 (standalone DWS product); verified by dws/docs/verification/vision-acceptance.md (V1-V12) and the integration suite. Original phased plan superseded by the one-shot build.  (2026-10-04T06:11:21Z)
+- `cr-42y.4` Bounded direct read — Delivered in a4d6538 (standalone DWS product); verified by dws/docs/verification/vision-acceptance.md (V1-V12) and the integration suite. Original phased plan superseded by the one-shot build.  (2026-10-04T06:11:21Z)
+- `cr-42y.5` Metadata-plus-outbox commit — Delivered in a4d6538 (standalone DWS product); verified by dws/docs/verification/vision-acceptance.md (V1-V12) and the integration suite. Original phased plan superseded by the one-shot build.  (2026-10-04T06:11:36Z)
+- `cr-42y.6` Publication crash recovery — Delivered in a4d6538 (standalone DWS product); verified by dws/docs/verification/vision-acceptance.md (V1-V12) and the integration suite. Original phased plan superseded by the one-shot build.  (2026-10-04T06:11:37Z)
 
 ## [P3] Command surface: daemon and CLI
-
+- `cr-3ah.1` Local command API transport — Delivered in a4d6538 (standalone DWS product); verified by dws/docs/verification/vision-acceptance.md (V1-V12) and the integration suite. Original phased plan superseded by the one-shot build.  (2026-10-04T06:10:34Z)
+- `cr-3ah.2` CLI parsing, output and exit classes — Delivered in a4d6538 (standalone DWS product); verified by dws/docs/verification/vision-acceptance.md (V1-V12) and the integration suite. Original phased plan superseded by the one-shot build.  (2026-10-04T06:10:34Z)
+- `cr-3ah.3` Configuration discovery and local access policy — Delivered in a4d6538 (standalone DWS product); verified by dws/docs/verification/vision-acceptance.md (V1-V12) and the integration suite. Original phased plan superseded by the one-shot build.  (2026-10-04T06:11:18Z)
+- `cr-3ah.4` Workspace and run administration — Delivered in a4d6538 (standalone DWS product); verified by dws/docs/verification/vision-acceptance.md (V1-V12) and the integration suite. Original phased plan superseded by the one-shot build.  (2026-10-04T06:11:19Z)
+- `cr-3ah.5` Administrative DTO reservation and diagnostics — Delivered in a4d6538 (standalone DWS product); verified by dws/docs/verification/vision-acceptance.md (V1-V12) and the integration suite. Original phased plan superseded by the one-shot build.  (2026-10-04T06:11:17Z)
+- `cr-3ah.6` Process entry points and bootstrap mode — Delivered in a4d6538 (standalone DWS product); verified by dws/docs/verification/vision-acceptance.md (V1-V12) and the integration suite. Original phased plan superseded by the one-shot build.  (2026-10-04T06:11:35Z)
 
 ## [P4] Runtime controls
-
+- `cr-wxi.1` Cross-process acquisition slots — Delivered in a4d6538 (standalone DWS product); verified by dws/docs/verification/vision-acceptance.md (V1-V12) and the integration suite. Original phased plan superseded by the one-shot build.  (2026-10-04T06:10:34Z)
+- `cr-wxi.2` Store-maintenance and index-lifecycle gates — Delivered in a4d6538 (standalone DWS product); verified by dws/docs/verification/vision-acceptance.md (V1-V12) and the integration suite. Original phased plan superseded by the one-shot build.  (2026-10-04T06:10:34Z)
+- `cr-wxi.3` Supervised child execution — Obsolete: QMD replaced by in-process SQLite FTS5 (dws/docs/verification/retrieval-choice.md; ADR-018/024 superseded). No QMD child, adapter or per-path index verification exists.  (2026-10-04T06:11:15Z)
+- `cr-wxi.4` Admission, backpressure and fairness — Delivered in a4d6538 (standalone DWS product); verified by dws/docs/verification/vision-acceptance.md (V1-V12) and the integration suite. Original phased plan superseded by the one-shot build.  (2026-10-04T06:11:16Z)
+- `cr-wxi.5` Residual provider work reconciliation — Delivered in a4d6538 (standalone DWS product); verified by dws/docs/verification/vision-acceptance.md (V1-V12) and the integration suite. Original phased plan superseded by the one-shot build.  (2026-10-04T06:11:34Z)
 
 ## [P5] Static acquisition
-
+- `cr-a9a.1` Outbound URL safety policy — Delivered in a4d6538 (standalone DWS product); verified by dws/docs/verification/vision-acceptance.md (V1-V12) and the integration suite. Original phased plan superseded by the one-shot build.  (2026-10-04T06:10:34Z)
+- `cr-a9a.2` Static HTTP acquisition — Delivered in a4d6538 (standalone DWS product); verified by dws/docs/verification/vision-acceptance.md (V1-V12) and the integration suite. Original phased plan superseded by the one-shot build.  (2026-10-04T06:11:13Z)
+- `cr-a9a.3` HTML extraction and line map — Delivered in a4d6538 (standalone DWS product); verified by dws/docs/verification/vision-acceptance.md (V1-V12) and the integration suite. Original phased plan superseded by the one-shot build.  (2026-10-04T06:11:14Z)
+- `cr-a9a.4` PDF extraction and page map — Delivered in a4d6538 (standalone DWS product); verified by dws/docs/verification/vision-acceptance.md (V1-V12) and the integration suite. Original phased plan superseded by the one-shot build.  (2026-10-04T06:11:33Z)
+- `cr-a9a.5` Freshness reuse and acquisition coalescing — Delivered max-age reuse, refresh and shared in-flight acquisition (V7); conditional revalidation tracked in cr-53b0.  (2026-10-04T06:11:46Z)
 
 ## [P6] Rendered acquisition
-
+- `cr-u0m.1` Crawl4AI adapter and escalation signals — Delivered in a4d6538 (standalone DWS product); verified by dws/docs/verification/vision-acceptance.md (V1-V12) and the integration suite. Original phased plan superseded by the one-shot build.  (2026-10-04T06:10:33Z)
+- `cr-u0m.2` Browser egress and isolation enforcement — Delivered in a4d6538 (standalone DWS product); verified by dws/docs/verification/vision-acceptance.md (V1-V12) and the integration suite. Original phased plan superseded by the one-shot build.  (2026-10-04T06:10:34Z)
+- `cr-u0m.3` Rendered acquisition under shared limits — Delivered in a4d6538 (standalone DWS product); verified by dws/docs/verification/vision-acceptance.md (V1-V12) and the integration suite. Original phased plan superseded by the one-shot build.  (2026-10-04T06:11:11Z)
 
 ## [P7] Discovery
-
+- `cr-b7e.1` SearXNG adapter — Delivered in a4d6538 (standalone DWS product); verified by dws/docs/verification/vision-acceptance.md (V1-V12) and the integration suite. Original phased plan superseded by the one-shot build.  (2026-10-04T06:10:24Z)
+- `cr-b7e.2` DDGS fallback and capability routing — Delivered in a4d6538 (standalone DWS product); verified by dws/docs/verification/vision-acceptance.md (V1-V12) and the integration suite. Original phased plan superseded by the one-shot build.  (2026-10-04T06:10:24Z)
+- `cr-b7e.3` Outcome typing and search history — Delivered in a4d6538 (standalone DWS product); verified by dws/docs/verification/vision-acceptance.md (V1-V12) and the integration suite. Original phased plan superseded by the one-shot build.  (2026-10-04T06:11:10Z)
+- `cr-b7e.4` Effective dependency recording — Not delivered; low priority; tracked in cr-krv5.  (2026-10-04T06:11:09Z)
 
 ## [P8] Retrieval
-
+- `cr-ggx.1` Indexer ownership and collection views — Delivered in a4d6538 (standalone DWS product); verified by dws/docs/verification/vision-acceptance.md (V1-V12) and the integration suite. Original phased plan superseded by the one-shot build.  (2026-10-04T06:10:30Z)
+- `cr-ggx.2` Outbox batch algorithm and generations — Delivered in a4d6538 (standalone DWS product); verified by dws/docs/verification/vision-acceptance.md (V1-V12) and the integration suite. Original phased plan superseded by the one-shot build.  (2026-10-04T06:10:30Z)
+- `cr-ggx.3` Restricted QMD adapter — Obsolete: QMD replaced by in-process SQLite FTS5 (dws/docs/verification/retrieval-choice.md; ADR-018/024 superseded). No QMD child, adapter or per-path index verification exists.  (2026-10-04T06:11:03Z)
+- `cr-ggx.4` Per-path verification of index updates — Obsolete: QMD replaced by in-process SQLite FTS5 (dws/docs/verification/retrieval-choice.md; ADR-018/024 superseded). No QMD child, adapter or per-path index verification exists.  (2026-10-04T06:11:08Z)
+- `cr-ggx.5` Index rebuild from canonical artifacts — Delivered in a4d6538 (standalone DWS product); verified by dws/docs/verification/vision-acceptance.md (V1-V12) and the integration suite. Original phased plan superseded by the one-shot build.  (2026-10-04T06:11:08Z)
+- `cr-ggx.6` Scoped candidate resolution and passage construction — Delivered in a4d6538 (standalone DWS product); verified by dws/docs/verification/vision-acceptance.md (V1-V12) and the integration suite. Original phased plan superseded by the one-shot build.  (2026-10-04T06:11:30Z)
+- `cr-ggx.7` Cursor and generation consistency — Design changed: retrieve is bounded by limit/max_chars without cursors; tracked as conditional cr-km3x.  (2026-10-04T06:11:30Z)
+- `cr-ggx.8` Coverage and index-state honesty — Delivered in a4d6538 (standalone DWS product); verified by dws/docs/verification/vision-acceptance.md (V1-V12) and the integration suite. Original phased plan superseded by the one-shot build.  (2026-10-04T06:11:44Z)
 
 ## [P9] Durable crawl
-
+- `cr-o71.1` Job records, submission and idempotency — Delivered in a4d6538 (standalone DWS product); verified by dws/docs/verification/vision-acceptance.md (V1-V12) and the integration suite. Original phased plan superseded by the one-shot build.  (2026-10-04T06:10:30Z)
+- `cr-o71.2` Claiming, leases and fencing — Delivered in a4d6538 (standalone DWS product); verified by dws/docs/verification/vision-acceptance.md (V1-V12) and the integration suite. Original phased plan superseded by the one-shot build.  (2026-10-04T06:10:30Z)
+- `cr-o71.3` Restart recovery scan — Delivered in a4d6538 (standalone DWS product); verified by dws/docs/verification/vision-acceptance.md (V1-V12) and the integration suite. Original phased plan superseded by the one-shot build.  (2026-10-04T06:11:00Z)
+- `cr-o71.4` DWS-owned frontier and scope enforcement — Delivered in a4d6538 (standalone DWS product); verified by dws/docs/verification/vision-acceptance.md (V1-V12) and the integration suite. Original phased plan superseded by the one-shot build.  (2026-10-04T06:11:00Z)
+- `cr-o71.5` Budgets and reconciling counters — Delivered in a4d6538 (standalone DWS product); verified by dws/docs/verification/vision-acceptance.md (V1-V12) and the integration suite. Original phased plan superseded by the one-shot build.  (2026-10-04T06:11:27Z)
+- `cr-o71.6` Cancellation and deadline separation — Delivered in a4d6538 (standalone DWS product); verified by dws/docs/verification/vision-acceptance.md (V1-V12) and the integration suite. Original phased plan superseded by the one-shot build.  (2026-10-04T06:11:28Z)
+- `cr-o71.7` Bounded crawl manifest — Delivered in a4d6538 (standalone DWS product); verified by dws/docs/verification/vision-acceptance.md (V1-V12) and the integration suite. Original phased plan superseded by the one-shot build.  (2026-10-04T06:11:43Z)
+- `cr-o71.8` Crawl and indexing coexistence in one worker — Delivered in a4d6538 (standalone DWS product); verified by dws/docs/verification/vision-acceptance.md (V1-V12) and the integration suite. Original phased plan superseded by the one-shot build.  (2026-10-04T06:11:26Z)
 
 
 <!-- BD:GENERATED END -->

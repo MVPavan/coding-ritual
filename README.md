@@ -21,7 +21,7 @@ workflow interpreter and its tests.
 - `.claude/` + `.codex/` — shared skills, agent definitions, and runtime integrations.
 - `.repo-context/` — shared repository guidance and `CONTEXT.md` domain vocabulary;
   `AGENTS.md` defines when agents read it.
-- `.beads/` — Beads issue tracker store (see `.beads/beads.md`).
+- `.beads/` — Beads issue tracker store; the policy is in the `beads` skill (`.claude/skills/beads/`).
 
 ## Read First
 

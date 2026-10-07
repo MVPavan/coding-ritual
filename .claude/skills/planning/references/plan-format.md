@@ -68,7 +68,7 @@ bd create "<title>" -t task \
   --description "<why this work exists and what it changes>" \
   --acceptance "<the plan's goal, stated checkably>" \
   --notes "plan: <plan-path>" \
-  -l ready-for-agent --actor … -q
+  --actor … -q
 ```
 
 Dotted children only for genuinely independent units within the ask. Never

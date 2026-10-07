@@ -68,3 +68,4 @@
 sync.remote: "git+https://github.com/MVPavan/coding-ritual.git"
 
 export.auto: true
+export.git-add: false
