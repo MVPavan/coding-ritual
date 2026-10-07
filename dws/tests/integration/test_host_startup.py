@@ -9,7 +9,6 @@ import sqlite3
 import stat
 import subprocess
 import sys
-import tempfile
 import threading
 import time
 from pathlib import Path
@@ -392,10 +391,10 @@ def _cli_failure_recovery(product: Product, site: FixtureSite) -> dict[str, Any]
     }
 
 
-def test_host_token_startup_survives_interruption_and_concurrent_publication() -> None:
-    artifacts = PRODUCT / ".runtime/host-startup-tests"
-    artifacts.mkdir(parents=True, exist_ok=True)
-    directory = Path(tempfile.mkdtemp(prefix="journey-", dir=artifacts))
+def test_host_token_startup_survives_interruption_and_concurrent_publication(
+    tmp_path: Path,
+) -> None:
+    directory = tmp_path
     receipt: dict[str, Any] = {"journey": "host_token_startup", "passed": False, "checks": {}}
     products: list[Product] = []
     try:

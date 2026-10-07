@@ -54,6 +54,7 @@ class Jobs:
         self.lock_path = settings.data_dir / "worker-execution.lock"
         self.lock_path.parent.mkdir(parents=True, exist_ok=True)
         self._executing = False
+        self._monotonic_deadlines: dict[str, float] = {}
         with self._db() as db:
             db.executescript("""
                 CREATE TABLE IF NOT EXISTS dws_jobs (
@@ -423,6 +424,7 @@ class Jobs:
         )
 
     def _claim(self) -> tuple[dict[str, Any], dict[str, Any]] | None:
+        monotonic_now = time.monotonic()
         now = time.time()
         with self._db() as db:
             db.execute("BEGIN IMMEDIATE")
@@ -438,6 +440,12 @@ class Jobs:
                 "SELECT * FROM dws_jobs WHERE state IN ('queued','running') "
                 "ORDER BY updated_at,created_at"
             ).fetchall()
+            active_ids = {job["job_id"] for job in jobs}
+            self._monotonic_deadlines = {
+                job_id: deadline
+                for job_id, deadline in self._monotonic_deadlines.items()
+                if job_id in active_ids
+            }
             for job in jobs:
                 if job["cancel_requested"]:
                     self._finish(db, job["job_id"], "cancelled")
@@ -453,7 +461,12 @@ class Jobs:
                     self._finish(db, job["job_id"], "invalid_persisted_request")
                     continue
                 deadline = job["deadline_at"] or now + request.max_seconds
-                if now >= deadline:
+                # UTC persists across worker restarts; elapsed time within this
+                # worker must not jump with corrections to the system wall clock.
+                monotonic_deadline = self._monotonic_deadlines.get(
+                    job["job_id"], monotonic_now + (deadline - now)
+                )
+                if time.monotonic() >= monotonic_deadline:
                     self._finish(db, job["job_id"], "time_limit")
                     continue
                 page = db.execute(
@@ -496,11 +509,13 @@ class Jobs:
                 claimed.update(
                     lease_epoch=epoch,
                     deadline_at=deadline,
+                    deadline_monotonic=monotonic_deadline,
                     request_json=json.dumps(
                         request.model_dump(mode="json"), sort_keys=True, separators=(",", ":")
                     ),
                 )
                 db.commit()
+                self._monotonic_deadlines[job["job_id"]] = monotonic_deadline
                 return claimed, dict(page)
             db.commit()
         return None
@@ -652,7 +667,7 @@ class Jobs:
         admission_stop = self._publish_links(db, job, page, capture.final_url, capture.links)
         if admission_stop is not None:
             self._finish(db, job["job_id"], admission_stop)
-        elif time.time() >= job["deadline_at"]:
+        elif time.monotonic() >= job["deadline_monotonic"]:
             self._finish(db, job["job_id"], "time_limit")
         elif not self._counts(db, job["job_id"])["queued"]:
             self._finish(db, job["job_id"])
@@ -683,7 +698,7 @@ class Jobs:
                 try:
                     timeout = min(
                         self.acquisition.acquisition_timeout,
-                        max(0.001, job["deadline_at"] - time.time()),
+                        max(0.001, job["deadline_monotonic"] - time.monotonic()),
                     )
                     async with asyncio.timeout(timeout):
                         capture = await self.acquisition.fetch(
@@ -793,7 +808,7 @@ class Jobs:
                 )
                 if current["cancel_requested"]:
                     self._finish(db, job["job_id"], "cancelled")
-                elif time.time() >= current["deadline_at"]:
+                elif time.monotonic() >= job["deadline_monotonic"]:
                     self._finish(db, job["job_id"], "time_limit")
                 elif not self._counts(db, job["job_id"])["queued"]:
                     self._finish(db, job["job_id"])

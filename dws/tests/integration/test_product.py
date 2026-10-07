@@ -19,7 +19,6 @@ import socket
 import sqlite3
 import subprocess
 import sys
-import tempfile
 import threading
 import time
 import uuid
@@ -568,10 +567,8 @@ class Product:
 
 
 @pytest.fixture
-def product() -> Any:
-    artifacts = PRODUCT / ".runtime" / "product-tests"
-    artifacts.mkdir(parents=True, exist_ok=True)
-    directory = Path(tempfile.mkdtemp(prefix="journey-", dir=artifacts))
+def product(tmp_path: Path) -> Any:
+    directory = tmp_path
     with FixtureSite(directory) as site:
         instance = Product(directory, site)
         try:
@@ -727,6 +724,139 @@ def test_stale_static_capture_revalidation(product: Product) -> None:
     ]
     assert requests[-1]["if_none_match"] is None
     assert requests[-1]["if_modified_since"] is None
+
+
+@pytest.mark.parametrize("validated", [False, True])
+def test_future_capture_observation_requires_revalidation(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, validated: bool
+) -> None:
+    import asyncio
+    from types import SimpleNamespace
+
+    from dws import store as store_module
+    from dws.config import Settings
+    from dws.engine import Engine
+
+    now = time.time()
+    monkeypatch.setattr(
+        store_module,
+        "time",
+        SimpleNamespace(time=lambda: now, monotonic=time.monotonic, sleep=time.sleep),
+    )
+    with FixtureSite(tmp_path / "source") as site:
+        engine = Engine(
+            Settings(
+                data_dir=tmp_path / "state",
+                allowed_private_hosts=("127.0.0.1",),
+                min_free_bytes=0,
+            )
+        )
+        payload = {
+            "url": site.url + "/revalidate/with-validators",
+            "render": "never",
+            "max_age_seconds": 1,
+        }
+
+        async def run() -> None:
+            nonlocal now
+            initial = await engine.execute("fetch", payload)
+            if validated:
+                now += 100
+                repeated = await engine.execute("fetch", payload)
+                assert repeated["revalidated"]
+                assert repeated["snapshot_id"] == initial["snapshot_id"]
+            site.revalidation_version = 2
+            now -= 9
+            changed = await engine.execute("fetch", payload)
+            assert changed["snapshot_id"] != initial["snapshot_id"], changed
+            assert "version 2" in changed["excerpt"]
+            assert changed["cache"]["hit"] is False
+
+        asyncio.run(run())
+        requests = [
+            json.loads(line)
+            for line in (tmp_path / "source/source-http.jsonl").read_text().splitlines()
+        ]
+        assert len(requests) == (3 if validated else 2)
+        assert requests[-1]["if_none_match"] == '"revision-1"'
+
+
+@pytest.mark.parametrize(
+    ("capture_times", "lookup_time", "max_age", "restore"),
+    [
+        pytest.param((100, 106), 102, 5, False, id="latest-clock-rollback"),
+        pytest.param((109, 100), 110, 5, False, id="superseded-fast-clock-cache"),
+        pytest.param((109, 100), 104, 1, True, id="superseded-fast-clock-validator"),
+    ],
+)
+def test_latest_capture_selected_before_freshness(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capture_times: tuple[int, int],
+    lookup_time: int,
+    max_age: int,
+    restore: bool,
+) -> None:
+    import asyncio
+    from types import SimpleNamespace
+
+    from dws import store as store_module
+    from dws.config import Settings
+    from dws.engine import Engine
+
+    now = capture_times[0]
+    monkeypatch.setattr(
+        store_module,
+        "time",
+        SimpleNamespace(time=lambda: now, monotonic=time.monotonic, sleep=time.sleep),
+    )
+    with FixtureSite(tmp_path / "source") as site:
+        engine = Engine(
+            Settings(
+                data_dir=tmp_path / "state",
+                allowed_private_hosts=("127.0.0.1",),
+                min_free_bytes=0,
+            )
+        )
+        payload = {
+            "url": site.url + "/revalidate/with-validators",
+            "render": "never",
+            "max_age_seconds": max_age,
+        }
+
+        async def run() -> None:
+            nonlocal now
+            initial = await engine.execute("fetch", payload)
+            now = capture_times[1]
+            site.revalidation_version = 2
+            latest = await engine.execute("fetch", {**payload, "refresh": True})
+            assert latest["snapshot_id"] != initial["snapshot_id"]
+            if restore:
+                with engine.store.connection() as conn:
+                    order = conn.execute("SELECT rowid,id FROM snapshots").fetchall()
+                    order = [tuple(row) for row in order]
+                backup = engine.store.backup()
+                engine.store.restore(backup["backup_id"])
+                engine.store.rebuild_index()
+                with engine.store.connection() as conn:
+                    assert [
+                        tuple(row) for row in conn.execute("SELECT rowid,id FROM snapshots")
+                    ] == order
+            now = lookup_time
+            result = await engine.execute("fetch", payload)
+            assert result["snapshot_id"] == latest["snapshot_id"], result
+            assert result["revalidated"], result
+            assert "version 2" in result["excerpt"]
+            with engine.store.connection() as conn:
+                assert conn.execute("SELECT count(*) FROM snapshots").fetchone()[0] == 2
+
+        asyncio.run(run())
+        requests = [
+            json.loads(line)
+            for line in (tmp_path / "source/source-http.jsonl").read_text().splitlines()
+        ]
+        assert len(requests) == 3
+        assert requests[-1]["if_none_match"] == '"revision-2"'
 
 
 def test_revalidation_rejects_unsafe_304(product: Product) -> None:

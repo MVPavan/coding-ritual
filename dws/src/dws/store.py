@@ -38,6 +38,7 @@ from dws.models import (
     RetrieveRequest,
     RevalidationCandidate,
 )
+from dws.tinyfish_quota import TinyFishQuota
 
 METADATA_HEADROOM = 262_144
 
@@ -940,36 +941,45 @@ class Store:
             )
         return raw
 
+    def _latest_fetch_snapshot(
+        self, conn: sqlite3.Connection, request: FetchRequest
+    ) -> sqlite3.Row | None:
+        condition = ""
+        tinyfish_cache = (
+            self.settings.tinyfish_enabled
+            and self.settings.tinyfish_fetch_escalation
+            and bool(self.settings.tinyfish_api_key)
+        )
+        if not tinyfish_cache:
+            condition = " AND provider!='tinyfish'"
+        if request.render == "always":
+            condition = (
+                " AND provider IN ('crawl4ai','tinyfish')"
+                if tinyfish_cache
+                else " AND provider='crawl4ai'"
+            )
+        elif request.render == "never":
+            condition = " AND provider='httpx'"
+        # Retained rowids track insertion order; SQLite backup/restore and index
+        # rebuild preserve them. Wall-clock timestamps only determine freshness.
+        row: sqlite3.Row | None = conn.execute(
+            """SELECT *, COALESCE(validated_at,captured_at) AS observed_at
+            FROM snapshots WHERE workspace_id=? AND requested_url=? AND expired=0"""
+            + condition
+            + " ORDER BY rowid DESC LIMIT 1",
+            (request.workspace_id, request.url),
+        ).fetchone()
+        return row
+
     def cached_fetch(self, request: FetchRequest) -> dict[str, Any] | None:
         if request.refresh or request.max_age_seconds == 0:
             return None
         with self.maintenance(), self.connection() as conn:
             conn.execute("BEGIN IMMEDIATE")
             self._validate_scope(conn, request.workspace_id, request.run_id)
-            condition = ""
-            tinyfish_cache = (
-                self.settings.tinyfish_enabled
-                and self.settings.tinyfish_fetch_escalation
-                and bool(self.settings.tinyfish_api_key)
-            )
-            if not tinyfish_cache:
-                condition = " AND provider!='tinyfish'"
-            if request.render == "always":
-                condition = (
-                    " AND provider IN ('crawl4ai','tinyfish')"
-                    if tinyfish_cache
-                    else " AND provider='crawl4ai'"
-                )
-            elif request.render == "never":
-                condition = " AND provider='httpx'"
-            row = conn.execute(
-                """SELECT * FROM snapshots WHERE workspace_id=? AND requested_url=?
-                AND expired=0 AND COALESCE(validated_at,captured_at)>=?"""
-                + condition
-                + " ORDER BY COALESCE(validated_at,captured_at) DESC LIMIT 1",
-                (request.workspace_id, request.url, time.time() - request.max_age_seconds),
-            ).fetchone()
-            if row is None:
+            row = self._latest_fetch_snapshot(conn, request)
+            now = time.time()
+            if row is None or not (now - request.max_age_seconds <= row["observed_at"] <= now):
                 return None
             text, _ = self._load(row)
             self.admit_metadata(512)
@@ -981,9 +991,7 @@ class Store:
                 {
                     "excerpt": text[: min(2000, self.settings.max_output_chars)],
                     "cached": True,
-                    "age_seconds": max(
-                        0, int(time.time() - (row["validated_at"] or row["captured_at"]))
-                    ),
+                    "age_seconds": max(0, int(now - row["observed_at"])),
                     "truncated": len(text) > min(2000, self.settings.max_output_chars),
                 }
             )
@@ -994,16 +1002,11 @@ class Store:
             return None
         with self.maintenance(), self.connection() as conn:
             self._validate_scope(conn, request.workspace_id, request.run_id)
-            condition = " AND provider='httpx'" if request.render == "never" else ""
-            row = conn.execute(
-                """SELECT * FROM snapshots WHERE workspace_id=? AND requested_url=?
-                AND expired=0 AND COALESCE(validated_at,captured_at)<?"""
-                + condition
-                + " ORDER BY COALESCE(validated_at,captured_at) DESC LIMIT 1",
-                (request.workspace_id, request.url, time.time() - request.max_age_seconds),
-            ).fetchone()
+            row = self._latest_fetch_snapshot(conn, request)
+            now = time.time()
             if (
                 row is None
+                or now - request.max_age_seconds <= row["observed_at"] <= now
                 or row["provider"] != "httpx"
                 or not (row["etag"] or row["last_modified"])
             ):
@@ -2111,4 +2114,5 @@ class Store:
                 "index_reader_slots": 4,
                 "state_dir": str(self.root),
                 "sqlite_version": sqlite3.sqlite_version,
+                "tinyfish": TinyFishQuota(self.settings).diagnostics(),
             }

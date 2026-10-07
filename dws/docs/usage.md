@@ -85,6 +85,8 @@ request. The handle identifies captured evidence, not the current live page.
 For static HTTP captures, `fetch` reuses a compatible snapshot within
 `max_age_seconds`. When it is stale and has an ETag or Last-Modified validator,
 DWS conditionally requests the source through the normal safe acquisition path.
+A future-dated capture or validation cannot establish freshness; DWS reacquires
+it or uses its validators for a conditional request.
 A 304 returns the same snapshot with `cached: true`, `revalidated: true`, and
 `observed_at`; it records a new observation and run membership without changing
 the original capture time, hashes, or artifact bytes. A 200 creates a new
@@ -145,6 +147,16 @@ applications/state directories using the key are outside DWS's accounting.
 If validation or reservation leaves too little hosted time to send a request,
 DWS skips it without spending a unit; any unused reservation is released.
 
+`dws diagnostics` (API `/v1/diagnostics`) includes a `tinyfish`
+section with key-presence and owner-switch flags, local rolling-window usage,
+limits, remaining units, and future cooldowns in UTC. It never contacts TinyFish
+or creates/prunes quota state: a missing DB reports zeros; an unreadable or busy
+DB reports `accounting: unavailable` with unknown (`null`) usage/remaining values
+while other diagnostics remain available. Reads may delay reservation commits by
+about 0.1 s, within the writer's 1 s wait. `scope: dws_reservations_only` means
+usage by other clients of the key is excluded; switches take effect only with
+a configured key.
+
 Search `engine_path.attempts` lists providers in order up to the serving provider,
 with short `reason` codes: `served`, `quota_minute`, `quota_hour`,
 `server_cooldown`, `rate_limited`, `unavailable`, `auth_failed`,
@@ -174,7 +186,9 @@ If fewer than 100ms remain for the provider after headroom, no request is sent
 and `provider_timeout` is reported without spending quota.
 Crawls allow this per-page budget plus the bounded acquisition-slot wait when
 escalation is enabled, but still obey their total job deadline and shared daily
-quota. Failure or skip preserves the original local code/message and adds
+quota. The worker measures elapsed job time monotonically; restart recovery uses
+the persisted UTC deadline. Failure or skip preserves the original local
+code/message and adds
 `error.escalation` (crawl manifest: `escalation`), with
 `provider: tinyfish` and a typed reason, including `quota_day`, `ineligible`,
 or `scope_denied`. A per-URL `timeout` becomes `provider_timeout` (also used when

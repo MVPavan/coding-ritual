@@ -383,6 +383,8 @@ def test_fetch_provenance_and_secrets(
         exported = store.export(saved["snapshot_id"], "default")
         assert (Path(exported["path"]) / "source.bin").read_bytes() == capture.raw
         diagnostic = store.diagnostics()
+        assert diagnostic["tinyfish"]["configured"] is True
+        assert diagnostic["tinyfish"]["fetch"]["windows"][0]["used"] == 1
         backup = store.backup()
         assert KEY not in repr(Settings.from_env())
         assert KEY not in Settings.from_env().model_dump_json()
@@ -673,6 +675,10 @@ uvicorn.run(create_app(Settings.from_env()), host='127.0.0.1', port=int(sys.argv
                 product.call("diagnostics"),
                 product.call("backup"),
             ]
+            api_diagnostics = product.call("diagnostics")["tinyfish"]
+            assert api_diagnostics == product.cli("diagnostics")["tinyfish"]
+            assert api_diagnostics["search"]["windows"][0]["used"] == 1
+            assert api_diagnostics["fetch"]["windows"][0]["used"] == 1
             job = product.call("crawl", seed_url=PUBLIC, max_pages=1)
             worker = subprocess.run(
                 [
@@ -694,6 +700,7 @@ uvicorn.run(create_app(Settings.from_env()), host='127.0.0.1', port=int(sys.argv
             mcp_code = (
                 setup
                 + """
+import json
 from fastmcp import Client
 from dws.config import Settings
 from dws.engine import Engine
@@ -703,7 +710,7 @@ async def probe():
         result = await client.call_tool('search', {'query': 'query'})
         assert result.structured_content['provider'] == 'tinyfish'
         assert result.structured_content['engine_path']['attempts'][0]['reason'] == 'served'
-        print(result.structured_content)
+        print(json.dumps(result.structured_content))
 asyncio.run(probe())
 """
             )
@@ -1110,7 +1117,8 @@ def test_longer_hosted_budget_and_crawl_deadlines(
     monkeypatch.setenv("DWS_REQUEST_TIMEOUT", "1")
     with FixtureSite(Settings.from_env().data_dir / "source") as source:
         acquisition = public_source(monkeypatch, source)
-        local = acquisition._static
+        local_started = asyncio.Event()
+        release_local = asyncio.Event()
         if wait_for_slot:
             from contextlib import asynccontextmanager
 
@@ -1128,14 +1136,32 @@ def test_longer_hosted_budget_and_crawl_deadlines(
             monkeypatch.setattr(providers, "acquisition_slot", delayed_slot)
 
         async def delayed_block(url: str, **kwargs: Any):
-            await asyncio.sleep(0.6)
-            return await local(url, **kwargs)
+            local_started.set()
+            await release_local.wait()
+            raise DWSError("challenge_page", "Fixture source requires a browser", 422)
+
+        async def timed_attempt(operation: Any):
+            # Control local phase duration; HTTP/parser startup must not consume
+            # the unallocated 0.4s of this one-second local acquisition budget.
+            task = asyncio.create_task(operation)
+            timer = None
+            try:
+                async with asyncio.timeout(4):
+                    await local_started.wait()
+                    timer = asyncio.get_running_loop().call_later(0.6, release_local.set)
+                    return await task
+            finally:
+                if timer is not None:
+                    timer.cancel()
+                task.cancel()
+                with suppress(asyncio.CancelledError):
+                    await task
 
         monkeypatch.setattr(acquisition, "_static", delayed_block)
         configured.fetch_delay = 0.7  # exceeds the previous half-second hosted budget
         started = time.monotonic()
         if crawl_seconds is None:
-            capture = asyncio.run(acquisition.fetch(FetchRequest(url=PUBLIC)))
+            capture = asyncio.run(timed_attempt(acquisition.fetch(FetchRequest(url=PUBLIC))))
             assert capture.provider == "tinyfish"
         else:
             jobs = Jobs(Settings.from_env(), Store(Settings.from_env()), acquisition)
@@ -1148,7 +1174,7 @@ def test_longer_hosted_budget_and_crawl_deadlines(
                     )
                 )
             )
-            assert asyncio.run(jobs.tick())
+            assert asyncio.run(timed_attempt(jobs.tick()))
             result = jobs.status(JobRequest(job_id=job["job_id"]))
             if crawl_seconds == 1:
                 assert result["stop_reason"] == "time_limit"
@@ -1163,6 +1189,127 @@ def test_longer_hosted_budget_and_crawl_deadlines(
         capped = Acquisition(Settings(request_timeout=120, tinyfish_api_key=KEY))
         assert capped.tinyfish_fetch_budget == 25
         assert capped.acquisition_timeout == 150
+
+
+def test_failed_claim_commit_does_not_start_crawl_deadline(
+    configured: TinySite, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from types import SimpleNamespace
+
+    from dws import jobs as jobs_module
+    from dws.jobs import Jobs
+    from dws.models import CrawlRequest, JobRequest
+
+    acquisition = Acquisition(Settings.from_env())
+    store = Store(Settings.from_env())
+    jobs = Jobs(Settings.from_env(), store, acquisition)
+    job = asyncio.run(jobs.submit(CrawlRequest(seed_url=PUBLIC, max_pages=1, max_seconds=3)))
+    request = JobRequest(job_id=job["job_id"])
+    wall, elapsed = time.time(), time.monotonic()
+    monkeypatch.setattr(
+        jobs_module, "time", SimpleNamespace(time=lambda: wall, monotonic=lambda: elapsed)
+    )
+    connect = sqlite3.connect
+    fail_commit = True
+
+    class FailingCommit(sqlite3.Connection):
+        def commit(self) -> None:
+            nonlocal fail_commit
+            if fail_commit:
+                fail_commit = False
+                raise sqlite3.OperationalError("Transient commit failure")
+            super().commit()
+
+    def hooked_connect(database: Any, **kwargs: Any):
+        if database == store.metadata_path:
+            kwargs["factory"] = FailingCommit
+        return connect(database, **kwargs)
+
+    monkeypatch.setattr(sqlite3, "connect", hooked_connect)
+    with pytest.raises(sqlite3.OperationalError, match="Transient commit failure"):
+        asyncio.run(jobs.tick())
+    rolled_back = jobs.status(request)
+    assert rolled_back["state"] == "queued"
+    assert rolled_back["started_at"] is rolled_back["deadline_at"] is None
+    wall += 4
+    elapsed += 4
+    claim = jobs._claim()
+    assert claim is not None  # An uncommitted claim cannot spend the job's budget.
+    assert claim[0]["deadline_monotonic"] == elapsed + 3
+    running = jobs.status(request)
+    assert running["state"] == "running"
+    assert running["started_at"] == wall
+    assert running["deadline_at"] == wall + 3
+    assert not configured.calls
+
+
+@pytest.mark.parametrize(
+    ("wall_step", "elapsed_step", "max_pages", "expected"),
+    [
+        (10, 0, 1, "succeeded"),
+        (10, 0, 2, "succeeded"),
+        (-10, 4, 1, "partial"),
+        (-10, 2, 2, "partial"),
+    ],
+)
+def test_crawl_deadline_uses_elapsed_time_across_clock_steps(
+    configured: TinySite,
+    monkeypatch: pytest.MonkeyPatch,
+    wall_step: int,
+    elapsed_step: int,
+    max_pages: int,
+    expected: str,
+) -> None:
+    from types import SimpleNamespace
+
+    from dws import jobs as jobs_module
+    from dws.jobs import Jobs
+    from dws.models import CrawlRequest, JobRequest
+
+    wall_start, elapsed_start = time.time(), time.monotonic()
+    wall_offset = elapsed_offset = 0
+    clock = SimpleNamespace(
+        time=lambda: wall_start + time.monotonic() - elapsed_start + wall_offset,
+        monotonic=lambda: time.monotonic() + elapsed_offset,
+    )
+    monkeypatch.setattr(jobs_module, "time", clock)
+    with FixtureSite(Settings.from_env().data_dir / "source") as source:
+        acquisition = public_source(monkeypatch, source)
+        fetch = acquisition.fetch
+
+        async def stepped_fetch(*args: Any, **kwargs: Any):
+            nonlocal wall_offset, elapsed_offset
+            capture = await fetch(*args, **kwargs)
+            wall_offset = wall_step
+            elapsed_offset += elapsed_step
+            return capture
+
+        monkeypatch.setattr(acquisition, "fetch", stepped_fetch)
+        jobs = Jobs(Settings.from_env(), Store(Settings.from_env()), acquisition)
+
+        async def run() -> dict[str, Any]:
+            job = await jobs.submit(
+                CrawlRequest(
+                    seed_url=PUBLIC,
+                    scope="same_path" if max_pages == 1 else "same_host",
+                    max_pages=max_pages,
+                    max_seconds=3,
+                )
+            )
+            for page in range(max_pages):
+                assert await jobs.tick()
+                result = jobs.status(JobRequest(job_id=job["job_id"]))
+                if page + 1 < max_pages:
+                    assert result["state"] == "running", result
+            return result
+
+        result = asyncio.run(run())
+        assert result["state"] == expected, result
+        assert result["stop_reason"] == (
+            "exhausted" if expected == "succeeded" else "time_limit"
+        )
+        assert result["counts"]["succeeded"] == max_pages
+        assert len(configured.calls) == max_pages
 
 
 @pytest.mark.parametrize(
@@ -1325,3 +1472,207 @@ def test_identical_fetch_waits_through_render_and_hosted_escalation(
             assert len(configured.calls) == 1
 
         asyncio.run(run())
+
+
+def test_mcp_catalog_stays_seven_tools(configured: TinySite) -> None:
+    from fastmcp import Client
+
+    from dws.engine import Engine
+    from dws.mcp_adapter import create_mcp
+
+    async def run() -> None:
+        async with Client(create_mcp(Engine(Settings.from_env()))) as client:
+            tools = await client.list_tools()
+            assert {tool.name for tool in tools} == {
+                "search",
+                "fetch",
+                "crawl",
+                "retrieve",
+                "read",
+                "job_status",
+                "job_cancel",
+            }
+
+    asyncio.run(run())
+    assert not configured.calls
+
+
+def test_quota_reservation_commits_after_bounded_diagnostics_read(
+    configured: TinySite, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from concurrent.futures import ThreadPoolExecutor
+
+    from dws.tinyfish_quota import TinyFishQuota
+
+    quota = TinyFishQuota(Settings.from_env())
+    assert quota.reserve("search") is None
+    read_started = threading.Event()
+    commit_started = threading.Event()
+    committed = threading.Event()
+    connect = sqlite3.connect
+    used = quota._used
+
+    class WriterConnection(sqlite3.Connection):
+        def commit(self) -> None:
+            commit_started.set()
+            super().commit()
+            committed.set()
+
+    def hooked_connect(database: Any, **kwargs: Any):
+        if database == quota.path:
+            kwargs["factory"] = WriterConnection
+        return connect(database, **kwargs)
+
+    def hold_read(conn: sqlite3.Connection, kind: Any, now: float, seconds: int) -> int:
+        count = used(conn, kind, now, seconds)
+        if not isinstance(conn, WriterConnection) and not read_started.is_set():
+            # The SELECT acquired SHARED; let the real writer reach COMMIT first.
+            read_started.set()
+            assert commit_started.wait(1)
+            time.sleep(0.08)
+            assert not committed.is_set()
+        return count
+
+    monkeypatch.setattr(sqlite3, "connect", hooked_connect)
+    monkeypatch.setattr(quota, "_used", hold_read)
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        reader = pool.submit(quota.diagnostics)
+        assert read_started.wait(1)
+        writer = pool.submit(quota.reserve, "search")
+        result = reader.result(timeout=2)
+        assert writer.result(timeout=2) is None
+    assert committed.is_set()
+    assert result["accounting"] == "ok"
+    assert result["search"]["windows"][0]["used"] == 1
+    assert quota.diagnostics()["search"]["windows"][0]["used"] == 2
+    assert not configured.calls
+
+
+def test_quota_diagnostics_real_usage_cooldown_and_readonly(
+    configured: TinySite,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from datetime import UTC, datetime
+
+    assert search()["provider"] == "tinyfish"
+    assert search()["provider"] == "tinyfish"
+    with FixtureSite(Settings.from_env().data_dir / "source") as source:
+        acquisition = public_source(monkeypatch, source)
+        assert asyncio.run(acquisition.fetch(FetchRequest(url=PUBLIC))).provider == "tinyfish"
+        configured.mode = "429"
+        assert search()["provider"] == "searxng"
+        path = acquisition.tinyfish_quota.path
+        now = time.time()
+        with sqlite3.connect(path) as db:
+            db.executemany(
+                "INSERT INTO reservations VALUES (?,?,?)",
+                [
+                    ("search", now - 61, 2),
+                    ("search", now - 3601, 1000),
+                    ("fetch", now - 86401, 1000),
+                ],
+            )
+            db.execute("INSERT INTO cooldown VALUES (?,?)", ("fetch", now - 1))
+        before = path.read_bytes()
+        calls = len(configured.calls)
+        # A RESERVED writer lock allows reads but would block attempted quota writes.
+        with sqlite3.connect(path) as writer:
+            writer.execute("BEGIN IMMEDIATE")
+            result = Store(Settings.from_env()).diagnostics()["tinyfish"]
+            writer.rollback()
+        assert result["accounting"] == "ok"
+        assert result["scope"] == "dws_reservations_only"
+        assert result["search"]["windows"] == [
+            {"window": "minute", "used": 3, "limit": 30, "remaining": 27},
+            {"window": "hour", "used": 5, "limit": 500, "remaining": 495},
+        ]
+        assert result["fetch"]["windows"] == [
+            {"window": "minute", "used": 1, "limit": 150, "remaining": 149},
+            {"window": "day", "used": 1, "limit": 1000, "remaining": 999},
+        ]
+        cooldown = datetime.fromisoformat(result["search"]["cooldown_until"])
+        assert cooldown.utcoffset() == datetime.now(UTC).utcoffset()
+        assert cooldown.timestamp() > time.time()
+        assert result["fetch"]["cooldown_until"] is None
+        assert path.read_bytes() == before  # Includes old rows; reporting never prunes.
+        assert len(configured.calls) == calls
+        assert KEY not in json.dumps(result)
+
+
+@pytest.mark.parametrize(
+    ("key", "enabled", "fetch"), [(False, True, True), (True, False, True), (True, True, False)]
+)
+def test_quota_diagnostics_missing_database_and_flags(
+    configured: TinySite,
+    monkeypatch: pytest.MonkeyPatch,
+    key: bool,
+    enabled: bool,
+    fetch: bool,
+) -> None:
+    monkeypatch.setenv("DWS_TINYFISH_API_KEY", KEY if key else "")
+    monkeypatch.setenv("DWS_TINYFISH_ENABLED", str(enabled))
+    monkeypatch.setenv("DWS_TINYFISH_FETCH_ESCALATION", str(fetch))
+    monkeypatch.setenv("DWS_TINYFISH_SEARCH_PER_MINUTE", "2")
+    monkeypatch.setenv("DWS_TINYFISH_FETCH_PER_DAY", "7")
+    store = Store(Settings.from_env())
+    path = store.root / "tinyfish-quota.sqlite3"
+    assert not path.exists()
+    result = store.diagnostics()["tinyfish"]
+    assert (result["configured"], result["enabled"], result["fetch_escalation"]) == (
+        key,
+        enabled,
+        fetch,
+    )
+    assert result["accounting"] == "ok"
+    assert result["search"]["windows"][0]["limit"] == 2
+    assert result["fetch"]["windows"][1]["limit"] == 7
+    for operation in ("search", "fetch"):
+        assert result[operation]["cooldown_until"] is None
+        for window in result[operation]["windows"]:
+            assert window["used"] == 0
+            assert window["remaining"] == window["limit"]
+    assert not list(store.root.glob("tinyfish-quota.sqlite3*"))
+    assert not configured.calls
+    assert KEY not in json.dumps(result)
+
+
+@pytest.mark.parametrize("failure", ["corrupt", "locked", "permission"])
+def test_quota_diagnostics_unavailable_preserves_other_diagnostics(
+    configured: TinySite,
+    monkeypatch: pytest.MonkeyPatch,
+    failure: str,
+) -> None:
+    from contextlib import ExitStack, closing
+
+    store = Store(Settings.from_env())
+    path = store.root / "tinyfish-quota.sqlite3"
+    if failure == "corrupt":
+        path.write_bytes(b"not a database")
+    else:
+        assert Acquisition(Settings.from_env()).tinyfish_quota.reserve("search") is None
+    with ExitStack() as stack:
+        if failure == "locked":
+            writer = stack.enter_context(closing(sqlite3.connect(path)))
+            writer.execute("BEGIN EXCLUSIVE")
+        elif failure == "permission":
+            connect = sqlite3.connect
+
+            def denied(database: Any, **kwargs: Any):
+                if str(database).startswith(path.as_uri()):
+                    raise PermissionError(KEY)
+                return connect(database, **kwargs)
+
+            monkeypatch.setattr(sqlite3, "connect", denied)
+        started = time.monotonic()
+        result = store.diagnostics()
+        assert time.monotonic() - started < 0.5
+        assert result["status"] == "ok"
+        assert result["metadata_integrity"] == "ok"
+        assert result["tinyfish"]["accounting"] == "unavailable"
+        assert result["tinyfish"]["configured"] is True
+        for operation in ("search", "fetch"):
+            for window in result["tinyfish"][operation]["windows"]:
+                assert window["used"] is None
+                assert window["remaining"] is None
+        assert not configured.calls
+        assert KEY not in json.dumps(result)

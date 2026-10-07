@@ -9,10 +9,11 @@ from __future__ import annotations
 import math
 import os
 import sqlite3
+import stat
 import time
 from collections.abc import Iterator, Mapping
-from contextlib import contextmanager
-from datetime import datetime
+from contextlib import closing, contextmanager
+from datetime import UTC, datetime
 from threading import Event
 from typing import Any, Literal
 
@@ -25,6 +26,82 @@ class TinyFishQuota:
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
         self.path = settings.data_dir / "tinyfish-quota.sqlite3"
+
+    def _windows(self, kind: Operation) -> tuple[tuple[str, int, int], ...]:
+        if kind == "search":
+            return (
+                ("minute", 60, self.settings.tinyfish_search_per_minute),
+                ("hour", 3600, self.settings.tinyfish_search_per_hour),
+            )
+        return (
+            ("minute", 60, self.settings.tinyfish_fetch_per_minute),
+            ("day", 86400, self.settings.tinyfish_fetch_per_day),
+        )
+
+    @staticmethod
+    def _used(conn: sqlite3.Connection, kind: Operation, now: float, seconds: int) -> int:
+        return int(
+            conn.execute(
+                "SELECT COALESCE(sum(units),0) FROM reservations WHERE kind=? AND at>?",
+                (kind, now - seconds),
+            ).fetchone()[0]
+        )
+
+    def diagnostics(self) -> dict[str, Any]:
+        """Read local accounting only; a missing database represents empty usage."""
+        result: dict[str, Any] = {
+            "configured": bool(self.settings.tinyfish_api_key),
+            "enabled": self.settings.tinyfish_enabled,
+            "fetch_escalation": self.settings.tinyfish_fetch_escalation,
+            "accounting": "ok",
+            "scope": "dws_reservations_only",
+        }
+        kinds: tuple[Operation, ...] = ("search", "fetch")
+        for kind in kinds:
+            result[kind] = {
+                "windows": [
+                    {"window": window, "used": 0, "limit": limit, "remaining": limit}
+                    for window, _seconds, limit in self._windows(kind)
+                ],
+                "cooldown_until": None,
+            }
+        try:
+            try:
+                info = self.path.lstat()
+            except FileNotFoundError:
+                return result
+            if not stat.S_ISREG(info.st_mode):
+                raise ValueError("Quota state is not a regular file")
+            with closing(
+                sqlite3.connect(
+                    self.path.absolute().as_uri() + "?mode=ro", uri=True, timeout=0.1
+                )
+            ) as conn:
+                deadline = time.monotonic() + 0.1
+                conn.set_progress_handler(lambda: int(time.monotonic() >= deadline), 1000)
+                # The ~0.1s read lock may delay COMMIT within the writer's 1s busy timeout.
+                conn.execute("BEGIN")  # One read snapshot across windows and cooldowns.
+                now = time.time()
+                for kind in kinds:
+                    for window, (_name, seconds, limit) in zip(
+                        result[kind]["windows"], self._windows(kind), strict=True
+                    ):
+                        used = self._used(conn, kind, now, seconds)
+                        window.update(used=used, remaining=max(0, limit - used))
+                    row = conn.execute(
+                        "SELECT until FROM cooldown WHERE kind=?", (kind,)
+                    ).fetchone()
+                    if row and row[0] > now:
+                        result[kind]["cooldown_until"] = datetime.fromtimestamp(
+                            row[0], UTC
+                        ).isoformat()
+        except (sqlite3.Error, OSError, ValueError, TypeError, OverflowError):
+            result["accounting"] = "unavailable"
+            for kind in kinds:
+                result[kind]["cooldown_until"] = None
+                for window in result[kind]["windows"]:
+                    window.update(used=None, remaining=None)
+        return result
 
     @contextmanager
     def connection(self) -> Iterator[sqlite3.Connection]:
@@ -66,25 +143,11 @@ class TinyFishQuota:
                 if row and row[0] > now:
                     conn.commit()
                     return "server_cooldown"
-                windows = (
-                    (
-                        (60, self.settings.tinyfish_search_per_minute, "quota_minute"),
-                        (3600, self.settings.tinyfish_search_per_hour, "quota_hour"),
-                    )
-                    if kind == "search"
-                    else (
-                        (60, self.settings.tinyfish_fetch_per_minute, "quota_minute"),
-                        (86400, self.settings.tinyfish_fetch_per_day, "quota_day"),
-                    )
-                )
-                for seconds, limit, code in windows:
-                    used = conn.execute(
-                        "SELECT COALESCE(sum(units),0) FROM reservations WHERE kind=? AND at>?",
-                        (kind, now - seconds),
-                    ).fetchone()[0]
+                for window, seconds, limit in self._windows(kind):
+                    used = self._used(conn, kind, now, seconds)
                     if used + units > limit:
                         conn.commit()
-                        return code
+                        return "quota_" + window
                 # A delayed/cancelled executor must not spend an unsendable unit.
                 # This check occurs under the write lock, immediately before insert.
                 if (abandoned is not None and abandoned.is_set()) or (
