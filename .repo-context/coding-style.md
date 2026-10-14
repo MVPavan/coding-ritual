@@ -1,7 +1,7 @@
 # Python Conventions
 
-Read before writing or changing Python code. These are project choices, not a
-general style checklist.
+Read before writing or changing Python code or a ledger. These are project
+choices, not a general style checklist.
 
 ## Formatting, linting, and types
 
@@ -49,3 +49,27 @@ general style checklist.
 - Manage dependencies with `uv add` / `uv remove` (`--dev` for development tools).
   Keep `pyproject.toml` and `uv.lock` consistent; do not use ad hoc pip installs
   as a substitute for declaring project dependencies.
+
+## Ledgers
+
+A ledger is an append-only record of decisions or changes with their reasons
+(for example the prompting-guide ledger and the casebook).
+
+- **Format:** JSON Lines (`.jsonl`), UTF-8, one JSON object per physical line;
+  never pretty-print a record.
+- **One file per round** (a vendor release, an analysis round):
+  `<ledger-dir>/<yyyy-mm-dd>-<slug>.jsonl`. Seal it when the round is complete;
+  the validator fails if a sealed file changes.
+- **Append only.** Never edit or delete a record. Correct or reverse one by
+  appending a record with `"supersedes": "<id>"`.
+- **Every record** has `id` (stable, unique in the ledger), `date` (ISO 8601),
+  `kind` (the action), `subject` (what it is about), `why`, and `evidence`
+  (`path:line`, URL or commit); each ledger adds its own fields.
+- **Schema and validator:** a Pydantic model (`extra="forbid"`) and a script
+  that validates every file and rejects duplicate IDs and dangling
+  `supersedes`.
+- **Human view:** a Markdown file generated from the records and marked as
+  generated; never hand-edit it.
+- `harness_lifecycle/casebook/` follows this pattern.
+  `harness_lifecycle/ledger.json` (one mutable file, edited in place) predates
+  it and is to be migrated.

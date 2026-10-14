@@ -88,7 +88,7 @@ work, also recover the active Bead and handoff.
 
 ### When needed
 
-- Python changes: `.repo-context/coding-style.md`.
+- Python or ledger changes: `.repo-context/coding-style.md`.
 - Running Codex from another agent: `.repo-context/running-codex.md`.
 - Domain/repo terminology: `.repo-context/CONTEXT.md`. Architecture/contracts: relevant `docs/adr/`
   and `.repo-context/invariants.md`.

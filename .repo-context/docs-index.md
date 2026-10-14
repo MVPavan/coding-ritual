@@ -9,7 +9,7 @@ Archived research is evidence, not operating policy.
 |---|---|
 | Orientation | `.repo-context/repo-map.md` |
 | Domain terminology | `.repo-context/CONTEXT.md` |
-| Python conventions | `.repo-context/coding-style.md` |
+| Python conventions; ledger format | `.repo-context/coding-style.md` |
 | Checks and prerequisites | `.repo-context/verification.md` |
 | Architecture/contracts | `.repo-context/invariants.md`, `docs/adr/README.md` |
 | Investigation | Search `.repo-context/learnings.md`; open matching evidence |

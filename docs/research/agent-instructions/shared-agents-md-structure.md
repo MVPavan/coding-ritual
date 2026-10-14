@@ -29,8 +29,9 @@ it. Keep conditional pointers to project facts, commands, and specific workflows
 keep native enforcement in harness configuration. Do not consolidate by copying
 every existing rule into the root file.
 
-Draft: `harness_lifecycle/prompting-updates/drafts/AGENTS.proposed.md` (paths inside
-the draft are relative to the repository root, where it would be installed).
+Draft: `harness_lifecycle/prompting-updates/drafts/AGENTS.proposed.md`, deleted
+on 2026-10-14 after its structure was adopted as the root `AGENTS.md`; it remains
+in git history.
 
 The proposed structure is a design recommendation, not a measured optimum for
 GPT-5.6, Astra, Opus, or Fable. No vendor specifies a universally best outline.

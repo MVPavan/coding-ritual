@@ -91,6 +91,19 @@ for overlap and redundancy.
 
 **Casebook**: The append-only history explaining curation rulings by bucket.
 
+**Prompting guide**: `harness_lifecycle/prompting-guides/GUIDE.md`, the
+vendor-derived rules for writing agent instructions, with its ledger. Used only
+when changing this repository's skills and instructions; never shipped or
+referenced by shipped files.
+
+**Writing principles**: `.claude/skills/authoring-for-agents/references/writing-principles.md`,
+the distilled excerpt of the prompting guide. The only writing guidance that
+ships to other repositories.
+
+**ADLC guide**: `harness_lifecycle/adlc/GUIDE.md`, the lifecycle stages, their
+design principles, and how skills map onto them. It gives no advice on writing
+skills.
+
 **Adoption**: Qualify the two meanings: *capability adoption* brings a reference
 pattern into this harness; *repo adoption* installs the distributed harness into
 a target repository.

@@ -27,7 +27,6 @@ generation lands, run the revisit protocol in §4.
 | `skill-map.md` | Every skill from our harness, Pocock and pstack, mapped onto §1 |
 | `document-model.md` | Which documents a project keeps per lifecycle stage, where they live, and what each holds |
 | `tracker-model.md` | How the tracker (Beads) represents the lifecycle: statuses, where a bead stands, and epic sizing by outcome |
-| `../prompting-guides/GUIDE.md` | Rules for how to write instructions. This guide does not restate them |
 
 ## 1. The lifecycle
 
