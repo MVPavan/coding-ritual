@@ -1,8 +1,8 @@
 ---
 skill: improve-codebase-architecture
 domain: engineering
-stage: Design
-substage: Architecture
+stage: Operations
+substage: Maintenance
 secondary: []
 family: architecture-audit
 aliases: []

@@ -1,8 +1,8 @@
 ---
 skill: execution
 domain: engineering
-stage: Building
-substage: Implementation
+stage: X
+substage: Coordination
 secondary: []
 family: plan-execution
 aliases: [phase-execution, run-phases]

@@ -7,7 +7,7 @@ Domain → stage → sub-stage. Each active skill under its primary home.
 ## core
 
 ### Discovery
-- **Charting**: model-council, perspective-council, wayfinder
+- **Charting**: wayfinder
 - **Research**: research
 
 ### Intake
@@ -26,22 +26,23 @@ Domain → stage → sub-stage. Each active skill under its primary home.
 ### X
 - **Communication**: html-artifact, i-have-adhd, show-me
 - **Continuity**: beads
-- **Orchestration**: agent-matrix, skill-router
+- **Coordination**: agent-matrix, model-council, perspective-council, skill-router
 
 ### U
 - **Tutoring**: teach
 
 ## engineering
 
+### Discovery
+- **Research**: codebase-research
+
 ### Design
-- **Architecture**: codebase-design, design-evolve, domain-modeling, improve-codebase-architecture, prototype
+- **Architecture**: codebase-design, design-evolve, domain-modeling, prototype
 - **Decomposition**: planning
-- **Grounding**: codebase-research
-- **Specification**: test-driven-development
 
 ### Building
 - **Diagnosis**: performance-optimization, systematic-debugging
-- **Implementation**: execution
+- **Implementation**: test-driven-development
 
 ### Verification
 - **Review**: security
@@ -50,16 +51,21 @@ Domain → stage → sub-stage. Each active skill under its primary home.
 ### Delivery
 - **Integration**: resolving-merge-conflicts
 
+### Operations
+- **Maintenance**: improve-codebase-architecture
+
+### X
+- **Coordination**: execution
+
 ## Merge candidates
 
 Two or more active skills share one domain · sub-stage (README §2 rule 3):
 
-- core · Discovery · Charting: model-council, perspective-council, wayfinder
 - core · Intake · Clarification: brainstorming, grilling
 - core · Improvement · Codification: authoring-for-agents, harness-evaluate, harness-scan, harness-skill-compare, harness-status, migrate-claude-to-codex
 - core · X · Communication: html-artifact, i-have-adhd, show-me
-- core · X · Orchestration: agent-matrix, skill-router
-- engineering · Design · Architecture: codebase-design, design-evolve, domain-modeling, improve-codebase-architecture, prototype
+- core · X · Coordination: agent-matrix, model-council, perspective-council, skill-router
+- engineering · Design · Architecture: codebase-design, design-evolve, domain-modeling, prototype
 - engineering · Building · Diagnosis: performance-optimization, systematic-debugging
 
 ## Aliases

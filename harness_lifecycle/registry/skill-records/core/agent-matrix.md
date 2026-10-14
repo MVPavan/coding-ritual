@@ -2,7 +2,7 @@
 skill: agent-matrix
 domain: core
 stage: X
-substage: Orchestration
+substage: Coordination
 secondary: []
 family: 
 aliases: []

@@ -82,7 +82,7 @@ incidents/<date>-<slug>.md     # timeline plus postmortem
 | `research/…/README.md` | Question, conclusion, sources, confidence, used by (links to workstreams and ADRs) | Research; brainstorms and councils from Clarification or Charting | Charting, Architecture |
 | `adr/NNNN-<slug>.md` | Context, decision, alternatives, consequences, status (accepted, or superseded by NNNN) | Architecture, Charting | Everyone, before changing that area |
 | `spec.md` | **Intent** ◆ (the vision component it serves, goal, non-goals, success outcomes in the human's words); **Acceptance** ◆ (criteria, verification commands, links to failing tests, a reproduction for defects). Frozen once approved | Clarification, Specification | Grounding, Testing, Validation |
-| `roadmap.md` | **Design** (structure, interfaces, ADR links); **increments** ◆ (each with goal, check, undo, dependencies, tracker ID) | Architecture, Decomposition | Building, Orchestration |
+| `roadmap.md` | **Design** (structure, interfaces, ADR links); **increments** ◆ (each with goal, check, undo, dependencies, tracker ID) | Architecture, Decomposition | Building, Coordination |
 | `log.md` | **Current state** at the top (where we are, next step, blockers); dated entries below; **Closure** at the end (see below) | Building, Verification, Closure | Resumption, Retrospective, `STATUS.md` |
 | `lessons.md` | Lesson, evidence, occurrence count, codified in (link to the changed skill, rule or hook) | Retrospective, Codification | Codification |
 | `evals/` | Cases and rubric; a dated result for each agent change | Evaluation | Codification |

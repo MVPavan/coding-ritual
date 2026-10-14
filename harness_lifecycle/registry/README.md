@@ -69,7 +69,7 @@ onto coordinates as follows:
 | 4 Implementation · 6 Debugging | Building · Implementation, Diagnosis |
 | 5 Testing · 7 Review | Verification · Testing, Review |
 | 8 Version control · 9 Release, operations | Delivery · Integration, Release; Operations |
-| 10 Orchestration, handoff | X · Orchestration, Continuity |
+| 10 Orchestration, handoff | X · Coordination, Continuity |
 | 11 Harness authoring | Improvement · Codification |
 | 12 Tooling, guardrails | X · Governance; U · Tooling |
 | 13 Research, documentation · 14 Learning, content | Discovery · Research; X · Communication; U · Tutoring |
@@ -84,7 +84,7 @@ skill: planning                 # the .claude/skills/<name> folder
 domain: engineering
 stage: Design
 substage: Decomposition
-secondary: [Orchestration]
+secondary: [Coordination]
 family: task-decomposition      # capability family shared with reference skills
 aliases: []                     # alias and stub entrypoints that route here
 status: active                  # active | retired
@@ -205,20 +205,5 @@ It imports `../scan.py` for catalogs.
 
 ## 7. Changing skills
 
-Every change to a skill is one ADLC change and follows one path:
-
-| Step | What happens |
-|---|---|
-| Intake | A bead: `spike` for an upstream review, `bug` for an observed failure, `feature` for a new capability |
-| Design | Evidence: `/harness-scan` and a review (§5a) for upstream; the failure, observed before the change, for our own. The decision becomes ledger events |
-| Building | In a git worktree on its own branch, so running sessions keep the current skills. Edit the skill by `authoring-for-agents`, and its record |
-| Verify | The checks in `authoring-for-agents`, `skill-catalog.py --check`, `registry.py check`; Sol high batch review when the owner asks |
-| Delivery | Merge (the promotion), then `.codex` sync, then `/harness-publish` |
-
-| Operation | Starts from | Records |
-|---|---|---|
-| Add | a new need; check overlap first | `add`; a new skill record |
-| Update | our own failure or lesson | `update`, with the failure as evidence |
-| Upgrade from upstream | a reference release | one ruling per borrowed or declined part; a submodule pointer moves only with its review document |
-| Merge or split | overlap, or a skill grown too big | `merge` or `split`; references fixed in the same change |
-| Retire | unused or merged | `retire`; a stub stays for one plugin release, then the folder is removed |
+The method for every change (placing, upstream reviews, comparisons,
+evaluations, updates and retirement) is in `../playbook.md`.

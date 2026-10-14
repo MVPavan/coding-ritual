@@ -1,9 +1,9 @@
 ---
 skill: test-driven-development
 domain: engineering
-stage: Design
-substage: Specification
-secondary: [Implementation]
+stage: Building
+substage: Implementation
+secondary: [Specification]
 family: tdd
 aliases: []
 status: active

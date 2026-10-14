@@ -38,7 +38,7 @@ Discovery → Intake → Design → [Building → Verification → Integration] 
   → Release → Closure → Operations → Improvement
                 ↑                         │
                 └── finding / incident → new request (Triage)
-Crosscutting under every stage: Orchestration · Continuity · Governance · Communication
+Crosscutting under every stage: Coordination · Continuity · Governance · Communication
 ```
 
 Integration, Release and Closure are the three Delivery sub-stages. Integration
@@ -90,7 +90,7 @@ direction (many changes) → Discovery
 | | | Codification | Turn recurring lessons into instructions, skills, rules, hooks or checks (including harness setup); prune stale ones. |
 | | | Evaluation | Measure whether the agent and harness actually improved, with evals or before/after runs. |
 | X | **Crosscutting concerns** | | Concerns that apply in every stage. |
-| | | Orchestration | Coordinate multi-step, parallel or unattended work: delegation, loops, routing to skills, agents and models. |
+| | | Coordination | Coordinate multi-step, parallel or unattended work: delegation, loops, routing to skills, agents and models. |
 | | | Continuity | Keep work state across sessions, compaction and agents: tracking, memory, handoff, checkpoints, resumption, decision trail. |
 | | | Governance | Permissions, sandboxes, budgets, and human approval gates at intent, plan, merge, publish and destructive steps. |
 | | | Communication | Report status, explain the work and the codebase, write clearly for humans. |
@@ -131,7 +131,7 @@ Test = Verification · Deploy = Delivery · Maintain = Operations + Improvement.
 | Retrospective | What went wrong or keeps hurting? | Lessons | Repeated mistakes go unnoticed |
 | Codification | How do we stop the agent repeating it? | A changed instruction, skill, rule or hook | Lessons that never change behaviour |
 | Evaluation | Did the agent actually get better? | Eval results | Changes that feel better but are not |
-| Orchestration | Who or what does the next step? | Routing and delegation | Stalls and the wrong tool |
+| Coordination | Who or what does the next step? | Routing and delegation | Stalls and the wrong tool |
 | Continuity | Can the work resume after a break? | State, handoff, checkpoints | Lost context |
 | Governance | Is this allowed, and who must approve? | Allow, block or approval | Irreversible mistakes |
 | Communication | Does the human understand? | Clear reports | Confusion and bad decisions |
@@ -148,7 +148,7 @@ and the definitions above say so.
 | Research ↔ Architecture, Charting | Strict | Research produces evidence and never decides; the others decide. A Research experiment asks "is it possible?", an Architecture spike asks "does this design hold here?" |
 | Architecture ↔ Decomposition | Strict | Changes the end state → Architecture; changes only the order or size of steps → Decomposition |
 | Specification ↔ Testing | Strict | Writing the checks vs running them |
-| Triage ↔ Orchestration | Strict | Routes a request vs routes a step |
+| Triage ↔ Coordination | Strict | Routes a request vs routes a step |
 | Closure ↔ Continuity ↔ Retrospective | Strict | Work finished vs work paused to resume vs a lesson for the agent |
 | Research ↔ Grounding | Strict by source | Material already in our system (code, docs, history, dependencies in use) → Grounding; anything outside → Research. Brainstorming is neither: it generates options, so it belongs to Clarification or Charting |
 | Clarification ↔ Specification | Soft | Outcomes in the human's words vs runnable checks; Grounding sits between them |
@@ -258,4 +258,5 @@ Trigger: a new model generation in the roster, or a quarter without review.
 | 2026-10-05 | Created from the 2026-08-21 playbook and council lifecycle v2 | `sources/`, `council/` |
 | 2026-10-06 | §1 replaced the 13-stage spine with 8 stages and 28 sub-stages plus mapping rules. Approval moved from a single Authorize stage to a Governance gate, which removes the conflict with A-07 (merge is gated) | `council/stages/`, `skill-map.md` |
 | 2026-10-06 | Renamed Roadmapping → Charting and Closeout → Closure (both collided with repo terms). Added the unit per stage, the per-sub-stage answers, and the boundary table; Research vs Grounding is now decided by source, not timing | User review of §1 |
+| 2026-10-14 | Renamed the crosscutting sub-stage Orchestration → Coordination: "orchestration" also names a role, a skill and a class of agent frameworks. Triage routes a request; Coordination routes a step | User review of the skill placements |
 | 2026-10-14 | Added `tracker-model.md`: the `review` status, bead position without stage labels, and epics sized by outcome rather than phase. Only `review` is adopted in the skills | `tracker-model.md` §3, §6 |

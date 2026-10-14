@@ -16,7 +16,7 @@ useful low-cost guidance. Use harness-skill-compare for a substantive comparison
 
 Evaluation alone produces a recommendation. Record a curation decision only when
 ledger changes are authorized, as one event per capability in the open round
-(`harness_lifecycle/registry/README.md` §5–7):
+(`harness_lifecycle/registry/README.md` §5, method in `harness_lifecycle/playbook.md`):
 
 ```text
 uv run python harness_lifecycle/registry/registry.py record --kind <reject|defer|out-of-scope|adopt|adopt-merged> --subject <repo>:<logical_id> --why <reason> --evidence <path:line or registry/reviews/<file>>

@@ -26,6 +26,7 @@ Archived research is evidence, not operating policy.
 | Harness design | `harness_learnings/coding-harness-best-practices.md` |
 | Cross-runtime collaboration | `harness_learnings/claude-codex-collaboration.md` |
 | Reference curation; skill records and rulings | `harness_lifecycle/README.md`; `harness_lifecycle/registry/README.md` |
+| Adding, reviewing, comparing or updating a skill | `harness_lifecycle/playbook.md` |
 | Designing autonomy features or lifecycle-level skills | `harness_lifecycle/adlc/GUIDE.md` |
 | Reference adoption/updates | `harness_learnings/reference-harness-workflow.md` |
 | Reference comparisons | `harness_learnings/harness-patterns-by-capability.md`, `harness_learnings/reference-harness-repos.md` |

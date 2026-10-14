@@ -1,8 +1,8 @@
 ---
 skill: codebase-research
 domain: engineering
-stage: Design
-substage: Grounding
+stage: Discovery
+substage: Research
 secondary: []
 family: 
 aliases: []

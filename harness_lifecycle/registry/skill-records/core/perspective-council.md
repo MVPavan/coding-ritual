@@ -1,8 +1,8 @@
 ---
 skill: perspective-council
 domain: core
-stage: Discovery
-substage: Charting
+stage: X
+substage: Coordination
 secondary: []
 family: 
 aliases: []

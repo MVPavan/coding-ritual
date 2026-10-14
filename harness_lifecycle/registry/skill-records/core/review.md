@@ -3,7 +3,7 @@ skill: review
 domain: core
 stage: Verification
 substage: Review
-secondary: []
+secondary: [Specification, Decomposition]
 family: code-review
 aliases: [document-review, receiving-code-review]
 status: active

@@ -21,14 +21,14 @@ harness's coverage of every sub-stage. Snapshot: 2026-10-06.
 | Stage | Sub-stage | Skills |
 |---|---|---|
 | **0 Discovery** | Research | ours:research · ours:codebase-research · mp:research |
-| | Charting | ours:model-council · ours:perspective-council · ours:wayfinder · mp:wayfinder |
+| | Charting | ours:wayfinder · mp:wayfinder |
 | **1 Intake** | Triage | ours:triage · mp:triage · ours:cost-estimate *(stub, retired)* |
 | | Clarification | ours:brainstorming · ours:grilling · mp:grilling · mp:grill-me · mp:grill-with-docs · mp:to-questionnaire · mp:loop-me (in progress) · ps-pr:experience-first · ours:idea-refine *(alias)* · ours:grill-me *(alias)* · ours:grill-with-docs *(alias)* |
 | **2 Design** | Grounding | ps:how · ps:why · ps:blast-radius · ps-pb:investigation · ps-pb:runtime-forensics · ps-pb:trace-forensics · *no skill from ours or mp* |
-| | Specification | ours:test-driven-development · mp:to-spec · mp:tdd · ps:tdd · ps-pr:test-behavior-not-implementation |
-| | Architecture | ours:codebase-design · ours:improve-codebase-architecture · ours:design-evolve · ours:domain-modeling · ours:prototype · mp:codebase-design · mp:improve-codebase-architecture · mp:domain-modeling · mp:prototype · ps:architect · ps:arena · ps-pb:prototype · ps-pr:foundational-thinking · ps-pr:redesign-from-first-principles · ps-pr:exhaust-the-design-space · ps-pr:model-the-domain · ps-pr:boundary-discipline · ps-pr:type-system-discipline · ps-pr:make-operations-idempotent |
+| | Specification | mp:to-spec · mp:tdd · ps:tdd · ps-pr:test-behavior-not-implementation |
+| | Architecture | ours:codebase-design · ours:design-evolve · ours:domain-modeling · ours:prototype · mp:codebase-design · mp:improve-codebase-architecture · mp:domain-modeling · mp:prototype · ps:architect · ps:arena · ps-pb:prototype · ps-pr:foundational-thinking · ps-pr:redesign-from-first-principles · ps-pr:exhaust-the-design-space · ps-pr:model-the-domain · ps-pr:boundary-discipline · ps-pr:type-system-discipline · ps-pr:make-operations-idempotent |
 | | Decomposition | ours:planning · mp:to-tickets · ps:figure-it-out · ps-pb:multi-phase-plan · ps-pr:sequence-verifiable-units · ps-pr:outcome-oriented-execution · ps-pr:separate-before-serializing-shared-state |
-| **3 Building** | Implementation | ours:execution · mp:implement · mp:wizard · mp:scaffold-exercises · mp:setup-pre-commit · mp:setup-ts-deep-modules (in progress) · ps:no-comments · ps:typescript-best-practices · ps-pb:feature · ps-pb:refactoring · ps-pb:visual-parity · ps-pr:laziness-protocol · ps-pr:subtract-before-you-add · ps-pr:build-the-lever |
+| **3 Building** | Implementation | ours:test-driven-development · mp:implement · mp:wizard · mp:scaffold-exercises · mp:setup-pre-commit · mp:setup-ts-deep-modules (in progress) · ps:no-comments · ps:typescript-best-practices · ps-pb:feature · ps-pb:refactoring · ps-pb:visual-parity · ps-pr:laziness-protocol · ps-pr:subtract-before-you-add · ps-pr:build-the-lever |
 | | Diagnosis | ours:systematic-debugging · ours:performance-optimization · mp:diagnosing-bugs · ps-pb:bug-fix · ps-pb:perf-issue · ps-pb:hillclimb · ps-pr:fix-root-causes · ps-pr:attack-the-premise |
 | **4 Verification** | Testing | ours:check-invariants · ps:benchmark-checklist · ps-pr:prove-it-works · ps-pr:explain-the-number · ours:verification-before-completion *(stub)* · *no skill from mp* |
 | | Review | ours:review · ours:security · mp:code-review · ps:interrogate · ps-pr:minimize-reader-load · ours:document-review *(alias)* · ours:receiving-code-review *(alias)* |
@@ -38,11 +38,11 @@ harness's coverage of every sub-stage. Snapshot: 2026-10-06.
 | | Closure | ps-pb:worktree-cleanup · *ours: the session close is in `.beads/beads.md`, not a skill* |
 | **6 Operations** | Monitoring | *none in any harness* |
 | | Response | *none in any harness* |
-| | Maintenance | mp:migrate-to-shoehorn · ps-pr:migrate-callers-then-delete-legacy-apis |
+| | Maintenance | ours:improve-codebase-architecture · mp:migrate-to-shoehorn · ps-pr:migrate-callers-then-delete-legacy-apis |
 | **7 Improvement** | Retrospective | mp:retro · ps:reflect |
 | | Codification | ours:authoring-for-agents · ours:harness-status · ours:harness-scan · ours:harness-evaluate · ours:harness-skill-compare · ours:migrate-claude-to-codex · mp:writing-for-agents · mp:setup-matt-pocock-skills · ps:correct · ps:automate-me · ps:setup-pstack · ps:create-verification-skill · ps:maintain-verification-skill · ps-pb:authoring-a-skill · ps-pr:encode-lessons-in-structure |
 | | Evaluation | ps-pb:eval · *no skill from ours or mp* |
-| **X Crosscutting concerns** | Orchestration | ours:skill-router · ours:run-phases · ours:phase-execution · ours:agent-matrix · mp:ask-matt · mp:implement-spec · ps:poteto-mode · ps:swarm · ps-pb:autonomous-run · ps-pb:autopilot-full · ps-pb:autopilot-stack · ps-pb:orchestrate · ps-pr:never-block-on-the-human |
+| **X Crosscutting concerns** | Coordination | ours:skill-router · ours:execution · ours:model-council · ours:perspective-council · ours:agent-matrix · ours:run-phases *(alias)* · ours:phase-execution *(alias)* · mp:ask-matt · mp:implement-spec · ps:poteto-mode · ps:swarm · ps-pb:autonomous-run · ps-pb:autopilot-full · ps-pb:autopilot-stack · ps-pb:orchestrate · ps-pr:never-block-on-the-human |
 | | Continuity | ours:beads · mp:handoff · mp:claude-handoff (in progress) · ps:recall · ps:show-me-your-work · ps-pb:session-pickup · ps-pb:pause-safely · ps-pr:guard-the-context-window |
 | | Governance | mp:git-guardrails-claude-code · *ours: hooks and rules, not skills* |
 | | Communication | ours:i-have-adhd · ours:show-me · ours:html-artifact · mp:wait-what · mp:writing-fragments · mp:writing-shape · mp:writing-beats (in progress) · ps:unslop · ps:technical-writing · ps:bro |
@@ -51,15 +51,17 @@ harness's coverage of every sub-stage. Snapshot: 2026-10-06.
 
 ## Placement notes
 
-1. **Routers are Orchestration.** skill-router, ask-matt and poteto-mode route to other skills, so they are not Triage.
+1. **Routers are Coordination.** skill-router, ask-matt and poteto-mode route to other skills, so they are not Triage.
 2. **Session resumption is Continuity.** This covers recall, session-pickup, pause-safely and handoff.
 3. **Skills that author verification skills are Codification.** ps:create-verification-skill and ps:maintain-verification-skill write agent configuration (rule 7), so they are not Testing.
-4. **ps:swarm is Orchestration.** It fans work out to parallel workers. ps:interrogate is the reviewer.
+4. **ps:swarm is Coordination.** It fans work out to parallel workers. ps:interrogate is the reviewer.
 5. **ours:harness-publish is Release.** It versions, builds and publishes the plugin. It is the only Release skill in the three harnesses.
 6. **Spans, recorded as secondary tags:**
    - brainstorming also writes the spec (secondary: Specification).
    - prototype also serves Discovery (secondary: Research).
-   - test-driven-development also runs during Implementation.
+   - test-driven-development also writes the failing tests that define done (secondary: Specification).
+   - review also reviews specs and plans (secondary: Specification, Decomposition).
+7. **Ours moved on 2026-10-14** (`registry/` is now the source for our placements): execution and the two councils to Coordination, test-driven-development to Implementation, improve-codebase-architecture to Maintenance. The Pocock and pstack counterparts keep their earlier placement until they are reviewed.
    - security is a lens tag that also applies at Architecture.
    - poteto-mode routes to every stage.
 

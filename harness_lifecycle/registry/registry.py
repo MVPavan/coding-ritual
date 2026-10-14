@@ -50,7 +50,7 @@ SUBSTAGES: dict[str, frozenset[str]] = {
     "Delivery": frozenset({"Integration", "Release", "Closure"}),
     "Operations": frozenset({"Monitoring", "Response", "Maintenance"}),
     "Improvement": frozenset({"Retrospective", "Codification", "Evaluation"}),
-    "X": frozenset({"Orchestration", "Continuity", "Governance", "Communication"}),
+    "X": frozenset({"Coordination", "Continuity", "Governance", "Communication"}),
     "U": frozenset({"Tooling", "Tutoring"}),
 }
 STAGE_ORDER = list(SUBSTAGES)

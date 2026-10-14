@@ -2,7 +2,7 @@
 skill: skill-router
 domain: core
 stage: X
-substage: Orchestration
+substage: Coordination
 secondary: []
 family: skill-routing
 aliases: []
