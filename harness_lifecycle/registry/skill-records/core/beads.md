@@ -21,3 +21,7 @@ Use for Beads (bd) work beyond the core rules injected at session start - creati
 <!-- registry:generated history -->
 - `2026-08-14` **adopt** (2026-10-14-migration:147): Adopted-in-part: session close now records method with state (beads.md Session Close step 5 — which skills/approach the next session resumes with). Supersedes …
 <!-- /registry:generated history -->
+
+<!-- registry:generated reviews -->
+- [skill-comparisons/session-handoff](../../../archive/skill-comparisons/session-handoff/)
+<!-- /registry:generated reviews -->

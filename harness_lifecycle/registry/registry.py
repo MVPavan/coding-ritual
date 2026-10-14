@@ -21,6 +21,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import shlex
 import sys
 from datetime import UTC, datetime
@@ -189,6 +190,9 @@ def _require_iso(value: str, where: str) -> None:
 
 def _today_iso() -> str:
     return datetime.now(tz=UTC).date().isoformat()
+
+
+_DATE_PREFIX_RE = re.compile(r"^\d{4}-\d{2}-\d{2}-")
 
 
 class Frontmatter(BaseModel):
@@ -631,14 +635,19 @@ def cmd_round(cfg: RegistryConfig, args: argparse.Namespace) -> int:
         if open_rounds(cfg):
             names = ", ".join(p.name for p in open_rounds(cfg))
             raise SystemExit(f"a round is already open ({names}) — seal it first")
-        round_id = args.slug
+        date = args.date or _today_iso()
+        # round_id is <yyyy-mm-dd>-<slug>; a slug that already carries a date
+        # prefix is used as-is so the date is never doubled (cr-alnr).
+        round_id = (
+            args.slug if _DATE_PREFIX_RE.match(args.slug) else f"{date}-{args.slug}"
+        )
         path = cfg.ledger_dir / f"{round_id}.jsonl"
         if path.exists():
             raise SystemExit(f"round file already exists: {path}")
         data = _json_arg(args)
         data["type"] = "round"
         data["round_id"] = round_id
-        data.setdefault("date", args.date or _today_iso())
+        data.setdefault("date", date)
         if args.scope is not None:
             data["scope"] = args.scope
         data.setdefault("scope", "")
@@ -754,6 +763,14 @@ LINEAGE_OPEN = "<!-- registry:generated lineage -->"
 LINEAGE_CLOSE = "<!-- /registry:generated lineage -->"
 HISTORY_OPEN = "<!-- registry:generated history -->"
 HISTORY_CLOSE = "<!-- /registry:generated history -->"
+REVIEWS_OPEN = "<!-- registry:generated reviews -->"
+REVIEWS_CLOSE = "<!-- /registry:generated reviews -->"
+
+# Citation forms recognised in an event's `evidence` entries and `why` text.
+# A registry review file (with or without a `harness_lifecycle/registry/`
+# prefix) and an old-prose comparison folder, now under archive/.
+_REVIEW_RE = re.compile(r"reviews/(\d{4}-\d{2}-\d{2}-[a-z]+-[A-Za-z0-9._-]+?\.md)")
+_COMPARISON_RE = re.compile(r"skill-comparisons/([A-Za-z0-9._-]+)")
 
 
 def parse_record(text: str) -> tuple[Frontmatter, str]:
@@ -831,13 +848,52 @@ def _history_block(skill: str, events: list[Event], dead: set[str]) -> str:
     return "\n".join(lines)
 
 
+def _reviews_block(skill: str, events: list[Event]) -> str:
+    """Every review cited by the same events the history block lists. Registry
+    reviews first (newest file name first), then archived comparisons
+    (alphabetical). Deduplicated; empty renders a single sentinel line."""
+    rows = [e for e in events if e.skill == skill or e.subject == f"ours:{skill}"]
+    review_files: set[str] = set()
+    comparisons: set[str] = set()
+    for event in rows:
+        for text in [*event.evidence, event.why]:
+            review_files.update(m.group(1) for m in _REVIEW_RE.finditer(text))
+            comparisons.update(m.group(1) for m in _COMPARISON_RE.finditer(text))
+    lines = [
+        f"- [{name}](../../reviews/{name})"
+        for name in sorted(review_files, reverse=True)
+    ]
+    lines += [
+        f"- [skill-comparisons/{family}](../../../archive/skill-comparisons/{family}/)"
+        for family in sorted(comparisons)
+    ]
+    return "\n".join(lines) if lines else "None yet."
+
+
 def render_record(text: str, events: list[Event], dead: set[str]) -> str:
     fm, _ = parse_record(text)
     lineage = _lineage_block(fm.skill, events)
     history = _history_block(fm.skill, events, dead)
+    reviews = _reviews_block(fm.skill, events)
     out = _replace_block(text, LINEAGE_OPEN, LINEAGE_CLOSE, lineage)
     out = _replace_block(out, HISTORY_OPEN, HISTORY_CLOSE, history)
+    if REVIEWS_OPEN in out:
+        out = _replace_block(out, REVIEWS_OPEN, REVIEWS_CLOSE, reviews)
+    else:
+        out = _insert_after(
+            out, HISTORY_CLOSE, f"{REVIEWS_OPEN}\n{reviews}\n{REVIEWS_CLOSE}"
+        )
     return out
+
+
+def _insert_after(text: str, marker: str, block: str) -> str:
+    """Insert a block one blank line after `marker` (used to add the reviews
+    block to records that predate it)."""
+    idx = text.find(marker)
+    if idx == -1:
+        raise ValueError(f"record is missing the {marker} block")
+    end = idx + len(marker)
+    return f"{text[:end]}\n\n{block}{text[end:]}"
 
 
 def _replace_block(text: str, open_tag: str, close_tag: str, body: str) -> str:
@@ -1062,10 +1118,7 @@ def cmd_check(cfg: RegistryConfig, args: argparse.Namespace) -> int:
     errors += _check_skill_coverage(cfg, records)
     aliases = {alias for fm in records.values() for alias in fm.aliases}
     ours = build_ours(cfg)
-    target_errors, warnings = _check_effective_targets(
-        events, set(records), aliases, ours, known_rounds
-    )
-    errors += target_errors
+    errors += _check_effective_targets(events, set(records), aliases, ours)
 
     if not errors:
         try:
@@ -1080,8 +1133,6 @@ def cmd_check(cfg: RegistryConfig, args: argparse.Namespace) -> int:
                     f"{_rel(cfg, path)}: generated file is stale — run `build`"
                 )
 
-    for line in warnings:
-        print(f"warning: {line}", file=sys.stderr)
     if errors:
         for line in errors:
             print(f"error: {line}", file=sys.stderr)
@@ -1089,7 +1140,7 @@ def cmd_check(cfg: RegistryConfig, args: argparse.Namespace) -> int:
         return 1
     print(
         f"ok: {len(headers)} round(s), {len(events)} event(s), "
-        f"{len(records)} skill record(s), {len(warnings)} owner-review warning(s)"
+        f"{len(records)} skill record(s)"
     )
     return 0
 
@@ -1187,39 +1238,6 @@ def _check_structure(cfg: RegistryConfig) -> list[str]:
 # Non-skill target kinds a `kind:name` adoption target may name.
 NONSKILL_KINDS = frozenset({"agent", "command", "hook", "rule", "mcp", "plugin"})
 
-# Historical migration adoptions whose effective target cannot resolve to a
-# capability this harness ships today. Each is a genuine owner-review case: the
-# ruling stands but the target points at a never-built skill or at a
-# cross-cutting surface (a rule or a retired command) the catalog does not
-# track. `check` WARNs on each (exit 0) and FAILs if any listed event stops
-# being an effective adoption with an invalid target, so the list cannot rot.
-OWNER_REVIEW_EVENTS: dict[str, str] = {
-    "2026-10-14-migration:062": (
-        "git-workflow-and-versioning — council adopt-merged (2026-08-11) beat "
-        "the earlier ledger reject (2026-07-15); the skill was never built"
-    ),
-    "2026-10-14-migration:070": (
-        "context-engineering — council adopt-merged (2026-08-11) beat the "
-        "earlier ledger reject (2026-07-15); the skill was never built"
-    ),
-    "2026-10-14-migration:093": (
-        "doubt-driven-development — merged into command:commands/use-codex, a "
-        "command this harness no longer ships"
-    ),
-    "2026-10-14-migration:139": (
-        "setup-matt-pocock-skills — merged into command:commands/adopt, a "
-        "command this harness no longer ships"
-    ),
-    "2026-10-14-migration:153": (
-        "dispatching-parallel-agents — adopted into rule:core/01-delegation, a "
-        "rule the catalog does not track"
-    ),
-    "2026-10-14-migration:154": (
-        "finishing-a-development-branch — adopted into rule:core/git-safety, a "
-        "rule the catalog does not track"
-    ),
-}
-
 
 def _target_exists(target: str | None, existing: set[str], ours: Any) -> bool:
     """True when an adoption target resolves. A plain name must be a skill
@@ -1250,18 +1268,12 @@ def _check_effective_targets(
     records: set[str],
     aliases: set[str],
     ours: Any,
-    known_rounds: set[str],
-) -> tuple[list[str], list[str]]:
+) -> list[str]:
     """Every live adoption carries a source and a target that resolves today.
-    An unresolved target is an error unless the event is listed in
-    OWNER_REVIEW_EVENTS, where it becomes a WARNING instead. The list cannot
-    rot: a listed id whose round is loaded but is no longer an effective
-    adoption with an unresolved target is itself an error."""
+    An unresolved target is an error."""
     existing = records | aliases | STUB_SKILLS
     effective = effective_by_subject(events)
     errors: list[str] = []
-    warnings: list[str] = []
-    unresolved: set[str] = set()
     for subject, event in effective.items():
         if event.kind not in {"adopt", "adopt-merged"}:
             continue
@@ -1269,24 +1281,11 @@ def _check_effective_targets(
             errors.append(f"{event.id}: live adoption of {subject} has no source")
         if _target_exists(event.skill, existing, ours):
             continue
-        unresolved.add(event.id)
-        if event.id in OWNER_REVIEW_EVENTS:
-            warnings.append(
-                f"{event.id}: owner-review — {OWNER_REVIEW_EVENTS[event.id]}"
-            )
-        else:
-            errors.append(
-                f"{event.id}: live adoption of {subject} has an invalid "
-                f"skill target {event.skill!r}"
-            )
-    for listed in OWNER_REVIEW_EVENTS:
-        round_id = listed.rsplit(":", 1)[0]
-        if round_id in known_rounds and listed not in unresolved:
-            errors.append(
-                f"{listed}: listed in OWNER_REVIEW_EVENTS but is no longer an "
-                "effective adoption with an unresolved target — remove it"
-            )
-    return errors, warnings
+        errors.append(
+            f"{event.id}: live adoption of {subject} has an invalid "
+            f"skill target {event.skill!r}"
+        )
+    return errors
 
 
 def _rel(cfg: RegistryConfig, path: Path) -> str:

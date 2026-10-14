@@ -31,3 +31,7 @@ Build and sharpen a project's domain model. Use when the user wants to pin down 
 - `2026-08-11` **adopt-merged** (2026-10-14-migration:087): Copied verbatim as grill-with-docs' dependency. Also the first skill in bucket 3 (Architecture & Modeling), which was empty - it arrived as a dependency, so it…
 - `2026-08-11` **adopt-merged** (2026-10-14-migration:036) *(superseded)*: The only skill maintaining shared vocabulary as an active discipline. Becomes the single home for architecture decision records — the judge found two skills bo…
 <!-- /registry:generated history -->
+
+<!-- registry:generated reviews -->
+None yet.
+<!-- /registry:generated reviews -->

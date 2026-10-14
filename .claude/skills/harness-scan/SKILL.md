@@ -13,6 +13,9 @@ Resolve the named reference harness or path; ask only when ambiguous.
    upstream since their ruling, and those we have but never ruled on.
 3. Report material drift and useful candidates, considering existing equivalents.
    Use harness-evaluate for an authorized curation decision.
+4. When the submodule pointer moves, write the upstream review in the same
+   change: `harness_lifecycle/registry/reviews/<yyyy-mm-dd>-upstream-<name>-<version>.md`
+   (`registry/README.md` §5a), and regenerate the catalog at the new pin.
 
 Scanning does not authorize ledger records or adoption. When filing follow-up
 work is authorized, `registry.py gap <name> --beads` prints creation commands to

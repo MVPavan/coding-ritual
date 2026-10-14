@@ -23,3 +23,7 @@ Use for substantive module-interface, encapsulation, or testability decisions. S
 - `2026-08-13` **adopt** (2026-10-14-migration:117): Adopted verbatim (SKILL + DEEPENING + DESIGN-IT-TWICE; their agents/openai.yaml metadata excluded). Only source of the deep-module vocabulary (module/interface…
 - `2026-08-11` **adopt** (2026-10-14-migration:035) *(superseded)*: The only source of deep-module vocabulary, with the anti-synonym rule, the deletion test and the two-adapters seam rule.
 <!-- /registry:generated history -->
+
+<!-- registry:generated reviews -->
+None yet.
+<!-- /registry:generated reviews -->

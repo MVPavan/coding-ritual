@@ -9,9 +9,9 @@ Catalog: `44c9b2d6e889982ac18c27d05a19fefe335194e1`, 16 capabilities.
 | `hook:hooks/session-start` | reject |  | 2026-10-14-migration | hash unknown |
 | `plugin:superpowers` | reject |  | 2026-10-14-migration | hash unknown |
 | `skill:skills/brainstorming` | adopt | brainstorming | 2026-10-14-migration | no |
-| `skill:skills/dispatching-parallel-agents` | adopt | rule:core/01-delegation | 2026-10-14-migration | no |
+| `skill:skills/dispatching-parallel-agents` | reject |  | 2026-10-14-owner-review | no |
 | `skill:skills/executing-plans` | reject |  | 2026-10-14-migration | hash unknown |
-| `skill:skills/finishing-a-development-branch` | adopt | rule:core/git-safety | 2026-10-14-migration | no |
+| `skill:skills/finishing-a-development-branch` | reject |  | 2026-10-14-owner-review | no |
 | `skill:skills/receiving-code-review` | adopt | review | 2026-10-14-migration | no |
 | `skill:skills/requesting-code-review` | adopt | review | 2026-10-14-migration | no |
 | `skill:skills/subagent-driven-development` | adopt-merged | execution | 2026-10-14-migration | no |

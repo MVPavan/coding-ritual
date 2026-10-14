@@ -21,3 +21,7 @@ Use for material changes to trust boundaries, sensitive data, permissions, depen
 <!-- registry:generated history -->
 - `2026-08-12` **adopt** (2026-10-14-migration:098): Closes the 2026-07-15 deferral, whose 'optional production-readiness plugin' never existed (comparison: post-implementation-passes/). Adopted as the security s…
 <!-- /registry:generated history -->
+
+<!-- registry:generated reviews -->
+None yet.
+<!-- /registry:generated reviews -->

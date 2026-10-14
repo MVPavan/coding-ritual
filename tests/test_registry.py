@@ -279,6 +279,99 @@ def test_round_record_seal_and_structured_json(tmp_path: Path) -> None:
     assert registry.open_round(cfg) is None
 
 
+def test_round_open_prefixes_date_without_doubling(tmp_path: Path) -> None:
+    cfg = _make_cfg(tmp_path)
+    # a bare slug gets <date>- prepended (cr-alnr)
+    assert (
+        registry.cmd_round(
+            cfg,
+            _ns(
+                round_command="open",
+                slug="agent-skills",
+                date="2026-10-14",
+                scope="s",
+                json=None,
+                json_file=None,
+                stdin=False,
+            ),
+        )
+        == 0
+    )
+    path = cfg.ledger_dir / "2026-10-14-agent-skills.jsonl"  # type: ignore[attr-defined]
+    assert path.exists()
+    assert json.loads(path.read_text().splitlines()[0])["round_id"] == (
+        "2026-10-14-agent-skills"
+    )
+    registry.seal(cfg, "2026-10-14-agent-skills")
+    # a slug that already carries a date prefix is left alone (no doubling)
+    assert (
+        registry.cmd_round(
+            cfg,
+            _ns(
+                round_command="open",
+                slug="2026-10-14-other",
+                date="2026-10-14",
+                scope="s",
+                json=None,
+                json_file=None,
+                stdin=False,
+            ),
+        )
+        == 0
+    )
+    assert (cfg.ledger_dir / "2026-10-14-other.jsonl").exists()  # type: ignore[attr-defined]
+    assert not (
+        cfg.ledger_dir / "2026-10-14-2026-10-14-other.jsonl"  # type: ignore[attr-defined]
+    ).exists()
+
+
+def test_reviews_block_renders_both_citation_forms_and_empty(tmp_path: Path) -> None:
+    cfg = _make_cfg(tmp_path)
+    _write_skill(cfg, "planning")
+    _write_record(cfg, "planning", "engineering", "Design", "Decomposition")
+    _write_skill(cfg, "foo")
+    _write_record(cfg, "foo", "engineering", "Building", "Diagnosis")
+    _write_round(
+        cfg,
+        "2026-10-14-r",
+        _ours_event(
+            "2026-10-14-r:1",
+            "add",
+            "planning",
+            evidence=[
+                "harness_lifecycle/registry/reviews/2026-10-14-upstream-x-1.0.md"
+            ],
+        ),
+        _ours_event(
+            "2026-10-14-r:2",
+            "update",
+            "planning",
+            why="rebuilt per skill-comparisons/debugging-loop/ analysis",
+        ),
+        _ours_event("2026-10-14-r:3", "add", "foo"),
+    )
+    assert registry.cmd_build(cfg, _ns()) == 0
+    planning = (
+        cfg.skill_records_dir / "engineering" / "planning.md"  # type: ignore[attr-defined]
+    ).read_text()
+    assert registry.REVIEWS_OPEN in planning and registry.REVIEWS_CLOSE in planning
+    # review-file citation (prefix stripped) links into reviews/
+    assert (
+        "[2026-10-14-upstream-x-1.0.md](../../reviews/2026-10-14-upstream-x-1.0.md)"
+        in planning
+    )
+    # old-prose comparison links into the archived folder
+    assert (
+        "[skill-comparisons/debugging-loop]"
+        "(../../../archive/skill-comparisons/debugging-loop/)"
+    ) in planning
+    # a skill whose events cite no review gets the empty sentinel
+    foo = (
+        cfg.skill_records_dir / "engineering" / "foo.md"  # type: ignore[attr-defined]
+    ).read_text()
+    assert "None yet." in foo.split(registry.REVIEWS_OPEN)[1]
+
+
 def test_record_autofills_reference_source(tmp_path: Path) -> None:
     cfg = _make_cfg(tmp_path)
     _catalog(cfg, "refrepo", [_cap("skill", "foo", "skill:skills/foo", "hcur")])
@@ -475,45 +568,6 @@ def test_target_exists_accepts_only_real_kinds_and_shipped_caps(
         )
         is False
     )
-
-
-def test_check_warns_for_listed_owner_review_event(
-    tmp_path: Path,
-    capsys: pytest.CaptureFixture[str],
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    cfg = _baseline(tmp_path)
-    _write_round(
-        cfg,
-        "2026-10-14-r",
-        _ref_event("2026-10-14-r:1", "reject", "refrepo", "skill:skills/x"),
-        _ref_event(
-            "2026-10-14-r:2",
-            "adopt",
-            "refrepo",
-            "skill:skills/x",
-            skill="ghost-skill",
-            supersedes=["2026-10-14-r:1"],
-        ),
-    )
-    registry.cmd_build(cfg, _ns())
-    monkeypatch.setattr(
-        registry, "OWNER_REVIEW_EVENTS", {"2026-10-14-r:2": "owner must decide"}
-    )
-    assert registry.cmd_check(cfg, _ns()) == 0
-    assert "owner-review" in capsys.readouterr().err
-
-
-def test_check_fails_when_owner_review_list_rots(
-    tmp_path: Path,
-    capsys: pytest.CaptureFixture[str],
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    cfg = _baseline(tmp_path)
-    monkeypatch.setattr(
-        registry, "OWNER_REVIEW_EVENTS", {"2026-10-14-r:999": "stale entry"}
-    )
-    _fails_with(cfg, capsys, "no longer an effective adoption")
 
 
 def test_check_rejects_cross_subject_supersede(

@@ -16,6 +16,8 @@ maintained and their hardcoded input paths no longer resolve after the move.
 | `capability_usefulness-2026-08-11.csv` | Flat export of that triage | `registry/ledger/` |
 | `casebook/` | Append-only curation record 2026-08-11 to 2026-08-21: sealed rounds 001–008, bucket views, `casebook.py` | `registry/ledger/` (its migration round) |
 | `inventory/skill-buckets.md` | The 14-bucket taxonomy of the 84 reference skills | registry coordinates (`registry/README.md` §2) |
+| `skill-comparisons/` | Three-level comparisons per capability family (2026-08-12 to 08-20); ledger reasons cite them as `skill-comparisons/<family>` | `registry/reviews/` (skill reviews) |
+| `harness-comparisons/` | Whole-harness comparison of Pocock, pstack and ours, with the autonomy report | `adlc/skill-map.md`, `registry/reviews/` |
 | `catalogs/` | Catalogs of removed submodules: claude-plugins-official, compound-engineering-plugin, everything-claude-code | — |
 
 ## Why these were retired

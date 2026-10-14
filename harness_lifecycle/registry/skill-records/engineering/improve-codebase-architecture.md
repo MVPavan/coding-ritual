@@ -25,3 +25,7 @@ Find evidence-backed architecture improvements within a named area or requested 
 - `2026-08-13` **adopt** (2026-10-14-migration:118): Adopted verbatim per user ruling 2026-08-13 (SKILL + HTML-REPORT; agents/openai.yaml excluded), overriding the council's demote-the-CDN-report change — user wi…
 - `2026-08-11` **adopt** (2026-10-14-migration:037) *(superseded)*: The only skill that FINDS restructuring candidates rather than applying a known one, scoped by commit-history hot spots. It consumes codebase-design's vocabula…
 <!-- /registry:generated history -->
+
+<!-- registry:generated reviews -->
+None yet.
+<!-- /registry:generated reviews -->

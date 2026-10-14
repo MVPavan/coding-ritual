@@ -19,7 +19,7 @@ ledger changes are authorized, as one event per capability in the open round
 (`harness_lifecycle/registry/README.md` §5–7):
 
 ```text
-uv run python harness_lifecycle/registry/registry.py record --kind <reject|defer|out-of-scope|adopt|adopt-merged> --subject <repo>:<logical_id> --why <reason> --evidence <path:line or comparison folder>
+uv run python harness_lifecycle/registry/registry.py record --kind <reject|defer|out-of-scope|adopt|adopt-merged> --subject <repo>:<logical_id> --why <reason> --evidence <path:line or registry/reviews/<file>>
 ```
 
 Authorized adoption edits the actual canonical source. Shared policy belongs in

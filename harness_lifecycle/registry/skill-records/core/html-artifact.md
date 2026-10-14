@@ -91,3 +91,7 @@ Use for requested standalone HTML documents or interactive explanations when tha
 - `2026-08-20` **adopt-merged** (2026-10-14-migration:179) *(superseded)*: Adopted-merged into html-artifact per the line-level dossier: 14 of 39 components in reduced form, 4 REMOVEs executed on our side (spacing duplicate, framing r…
 - `2026-08-20` **adopt-merged** (2026-10-14-migration:178) *(superseded)*: Adopted in part into html-artifact — the geometry grammar and honesty doctrine, none of the machinery. references/svg-craft.md now carries the six connector ru…
 <!-- /registry:generated history -->
+
+<!-- registry:generated reviews -->
+- [skill-comparisons/visual-explanation](../../../archive/skill-comparisons/visual-explanation/)
+<!-- /registry:generated reviews -->

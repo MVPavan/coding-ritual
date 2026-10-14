@@ -31,3 +31,7 @@ Use when creating or changing agent instructions or their activation behavior. S
 - `2026-08-12` **adopt** (2026-10-14-migration:091): Adopted as the structural contract in authoring-for-agents references/skill-anatomy.md: layout, frontmatter rules, recommended body pattern, supporting-file th…
 - `2026-08-11` **adopt-merged** (2026-10-14-migration:077) *(superseded)*: The only empirical method for proving a document actually changes behaviour. Chosen as base for that testing loop.
 <!-- /registry:generated history -->
+
+<!-- registry:generated reviews -->
+None yet.
+<!-- /registry:generated reviews -->

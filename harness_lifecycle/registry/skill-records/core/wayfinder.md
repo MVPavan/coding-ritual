@@ -27,3 +27,7 @@ Map and resolve material decision dependencies across a multi-session effort.
 - `2026-08-12` **adopt** (2026-10-14-migration:106): Copied verbatim (SKILL.md + agents/, ships user-invoked via disable-model-invocation). Adopted as-is per user decision 2026-08-12; local customization (beads-n…
 - `2026-08-11` **adopt** (2026-10-14-migration:032) *(superseded)*: The only planner for work larger than one context window under genuine uncertainty: fog-of-war decision tickets resolved one at a time until the route is clear…
 <!-- /registry:generated history -->
+
+<!-- registry:generated reviews -->
+- [skill-comparisons/interaction-utilities](../../../archive/skill-comparisons/interaction-utilities/)
+<!-- /registry:generated reviews -->

@@ -23,3 +23,7 @@ Evaluate untriaged beads and decide each one — agent-ready under a parent, own
 - `2026-08-12` **adopt** (2026-10-14-migration:105): Adapted, not copied: state machine remapped onto beads natives (category=bd type; needs-info/human labels + bd human; wontfix=close-reason, replacing .out-of-s…
 - `2026-08-11` **adopt** (2026-10-14-migration:031) *(superseded)*: The only inbound-work state machine, with concept-level redundancy checks and a prior-rejection knowledge base so the same proposal is not re-litigated.
 <!-- /registry:generated history -->
+
+<!-- registry:generated reviews -->
+None yet.
+<!-- /registry:generated reviews -->

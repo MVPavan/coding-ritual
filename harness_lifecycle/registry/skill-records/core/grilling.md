@@ -33,3 +33,7 @@ Use when the user explicitly requests a grilling interview to resolve or challen
 - `2026-08-11` **adopt-merged** (2026-10-14-migration:090): Copied verbatim. Frontier rounds and non-blocking sub-agent fact-finding are genuinely absent from our grill-me, which paces at 1-3 questions and answers facts…
 - `2026-08-11` **adopt-merged** (2026-10-14-migration:023) *(superseded)*: The only adversarial design-tree exhaustion: it walks the unblocked frontier of a FORMED plan breadth-first and forbids action until every branch is visited. D…
 <!-- /registry:generated history -->
+
+<!-- registry:generated reviews -->
+- [skill-comparisons/interaction-utilities](../../../archive/skill-comparisons/interaction-utilities/)
+<!-- /registry:generated reviews -->

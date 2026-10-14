@@ -43,3 +43,8 @@ Use for a critic review of any artifact, a substantive review of code or of a sp
 - `2026-08-14` **adopt-merged** (2026-10-14-migration:124): Re-merged 2026-08-14 into the code-review skill (evidence: skill-comparisons/review-protocols/): approval philosophy, within-bucket structural lead, review-tes…
 - `2026-08-11` **adopt-merged** (2026-10-14-migration:056) *(superseded)*: The review rubric and the dispatch mechanism belong in one place. Chosen as base for its multi-axis rubric.
 <!-- /registry:generated history -->
+
+<!-- registry:generated reviews -->
+- [skill-comparisons/git-agent-workflow](../../../archive/skill-comparisons/git-agent-workflow/)
+- [skill-comparisons/review-protocols](../../../archive/skill-comparisons/review-protocols/)
+<!-- /registry:generated reviews -->

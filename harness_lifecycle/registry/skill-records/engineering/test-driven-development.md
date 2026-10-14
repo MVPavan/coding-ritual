@@ -37,3 +37,7 @@ Use for risky behavior changes, regression proof, legacy characterization, or su
 - `2026-08-12` **adopt** (2026-10-14-migration:100): Superseding correction of the 2026-07-15 entry, whose 'covered by the local loop' claim was wrong about everything except the loop (comparison: execution-disci…
 - `2026-08-11` **adopt-merged** (2026-10-14-migration:050) *(superseded)*: The only discipline gate whose violation is recoverable only by deleting the code, with a mandatory watched-RED step. Chosen as merge base for enforcement stre…
 <!-- /registry:generated history -->
+
+<!-- registry:generated reviews -->
+None yet.
+<!-- /registry:generated reviews -->

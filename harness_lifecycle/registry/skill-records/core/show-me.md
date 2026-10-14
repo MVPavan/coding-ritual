@@ -39,3 +39,7 @@ Show the current topic visually, inline in the conversation. Use when the user a
 - `2026-08-20` **adopt-merged** (2026-10-14-migration:189): Adopted 2026-08-20 (round-005, supersedes round-003 defer) as a user-invoked skill .claude/skills/show-me (disable-model-invocation: true — kills the misfire r…
 - `2026-08-20` **adopt-merged** (2026-10-14-migration:177) *(superseded)*: Adopted as .claude/skills/show-me, user-invoked only (disable-model-invocation: true). The round-003 defer precondition (record a prose-vs-diagram failure firs…
 <!-- /registry:generated history -->
+
+<!-- registry:generated reviews -->
+None yet.
+<!-- /registry:generated reviews -->

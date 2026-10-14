@@ -18,7 +18,7 @@ Catalog: `84fdeffd12f2ee307994d1eb6feb48173b6e0502`, 36 capabilities.
 | `skill:skills/engineering/prototype` | adopt | prototype | 2026-10-14-migration | no |
 | `skill:skills/engineering/research` | adopt | research | 2026-10-14-migration | no |
 | `skill:skills/engineering/resolving-merge-conflicts` | adopt | resolving-merge-conflicts | 2026-10-14-migration | no |
-| `skill:skills/engineering/setup-matt-pocock-skills` | adopt | command:commands/adopt | 2026-10-14-migration | no |
+| `skill:skills/engineering/setup-matt-pocock-skills` | reject |  | 2026-10-14-owner-review | no |
 | `skill:skills/engineering/tdd` | adopt | test-driven-development | 2026-10-14-migration | no |
 | `skill:skills/engineering/to-spec` | adopt | brainstorming | 2026-10-14-migration | no |
 | `skill:skills/engineering/to-tickets` | adopt | planning | 2026-10-14-migration | no |

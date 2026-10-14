@@ -23,3 +23,7 @@ Use when a runnable throwaway experiment can resolve a specific design, state-mo
 - `2026-08-13` **adopt** (2026-10-14-migration:119): Adopted verbatim per user ruling 2026-08-13 (SKILL + LOGIC + UI; their agents/openai.yaml metadata excluded). Both branches kept: UI.md stays behind progressiv…
 - `2026-08-11` **adopt** (2026-10-14-migration:038) *(superseded)*: The only skill that answers a design question by building running throwaway code.
 <!-- /registry:generated history -->
+
+<!-- registry:generated reviews -->
+None yet.
+<!-- /registry:generated reviews -->

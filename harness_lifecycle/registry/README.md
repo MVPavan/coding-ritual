@@ -19,6 +19,7 @@ registry/
 │   └── MANIFEST.json              # sha256 of every sealed round
 ├── skill-records/<domain>/<skill>.md   # our skills (§3)
 ├── references/<harness>.md        # generated: their capabilities and our ruling (§4)
+├── reviews/<yyyy-mm-dd>-<type>-<slug>.md  # evidence behind rulings (§5a)
 └── INDEX.md                       # generated: domain → stage → sub-stage
 ```
 
@@ -103,6 +104,10 @@ records.
 <!-- registry:generated history -->
 Every ledger record about this skill, newest first.
 <!-- /registry:generated -->
+
+<!-- registry:generated reviews -->
+Every review a ledger record about this skill cites.
+<!-- /registry:generated -->
 ```
 
 Only the frontmatter and Capability are written by hand; `registry.py build`
@@ -169,6 +174,21 @@ rejected or deferred capability changes upstream.
 an existing skill record, alias, stub or non-skill `kind:name`), and optional on
 a superseded historical one, which may name a skill we no longer have.
 
+## 5a. Reviews
+
+A review is the evidence behind one or more rulings. One flat folder,
+`reviews/`, named `<yyyy-mm-dd>-<type>-<slug>.md`, with two types:
+
+| Type | When | Covers |
+|---|---|---|
+| `upstream` | A reference harness release; the submodule pointer moves in the same change | Every changed capability: what changed, our counterpart, what is worth taking. Slug: `<harness>-<version>` |
+| `skill` | Deciding a merge, upgrade or rebuild of one of our skills | That skill against its upstream counterparts: a component matrix with `file:line` citations, the stronger mechanism per row, and a verdict. Slug: our skill name |
+
+Ledger events cite a review in `evidence`. `build` lists, in each skill
+record, every review cited by an event about that skill; there are no
+hand-kept links. The earlier per-family comparisons are in
+`../archive/skill-comparisons/`.
+
 ## 6. `registry.py`
 
 Run with `uv run python harness_lifecycle/registry/registry.py <command>`.
@@ -190,7 +210,7 @@ Every change to a skill is one ADLC change and follows one path:
 | Step | What happens |
 |---|---|
 | Intake | A bead: `spike` for an upstream review, `bug` for an observed failure, `feature` for a new capability |
-| Design | Evidence: `/harness-scan` and `harness-skill-compare` for upstream; the failure, observed before the change, for our own. The decision becomes ledger events |
+| Design | Evidence: `/harness-scan` and a review (§5a) for upstream; the failure, observed before the change, for our own. The decision becomes ledger events |
 | Building | In a git worktree on its own branch, so running sessions keep the current skills. Edit the skill by `authoring-for-agents`, and its record |
 | Verify | The checks in `authoring-for-agents`, `skill-catalog.py --check`, `registry.py check`; Sol high batch review when the owner asks |
 | Delivery | Merge (the promotion), then `.codex` sync, then `/harness-publish` |

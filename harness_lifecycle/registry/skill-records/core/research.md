@@ -25,3 +25,7 @@ Use when a decision needs multiple sources gathered and weighed. Answer a single
 - `2026-08-14` **adopt** (2026-10-14-migration:131): Round 2 supersede: conflict A/B stop, rationalization rows, and claim-bound citation formatting absorbed into skill:skills/research. Upstream drift answered: t…
 - `2026-08-11` **adopt** (2026-10-14-migration:080) *(superseded)*: The only background-delegated primary-source investigation producing a durable cited artifact. Distinct from source-driven-development, which grounds decisions…
 <!-- /registry:generated history -->
+
+<!-- registry:generated reviews -->
+- [skill-comparisons/research-workflow](../../../archive/skill-comparisons/research-workflow/)
+<!-- /registry:generated reviews -->

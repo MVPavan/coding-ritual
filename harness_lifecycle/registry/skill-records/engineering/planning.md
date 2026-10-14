@@ -37,3 +37,7 @@ Use when settled work needs a durable implementation plan, dependency graph, or 
 - `2026-08-12` **adopt** (2026-10-14-migration:096): Closes the 2026-07-15 deferral. Ruled a discipline by execution-disciplines/; its durable content is now distributed: vertical slicing + tracer bullets in plan…
 - `2026-08-11` **adopt-merged** (2026-10-14-migration:033) *(superseded)*: The only skill turning approved work into units executable with zero prior context. Chosen as merge base for its plan structure and required-sub-skill header.
 <!-- /registry:generated history -->
+
+<!-- registry:generated reviews -->
+None yet.
+<!-- /registry:generated reviews -->

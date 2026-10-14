@@ -3,7 +3,7 @@
 Submodule `reference_harnesses/agent-skills` (addyosmani/agent-skills) moved
 from `7676817` to `aeac41d` (0.6.13, 2026-10-13): 170 commits, 132 files.
 Three read-only reviewers compared the changes with our counterparts and the
-46 earlier rulings in `../ledger.json`; the gap claims for items 2–4 below
+46 earlier rulings in `ledger.json` (now the registry ledger); the gap claims for items 2–4 below
 were re-checked by grep. Nothing was changed in our skills.
 
 Paths are relative to the submodule unless they start with `.claude/`.

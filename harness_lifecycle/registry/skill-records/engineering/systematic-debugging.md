@@ -37,3 +37,7 @@ Use when a failure cause is unclear, an attempted fix failed, or flaky behavior 
 - `2026-08-14` **adopt** (2026-10-14-migration:126): Re-recorded 2026-08-14, superseding the stale 2026-07-15 'covered by our workflow' claim which held only at step-name level (evidence: skill-comparisons/debugg…
 - `2026-08-11` **adopt-merged** (2026-10-14-migration:052) *(superseded)*: The only skill that makes building a reliable reproduction the skill itself, with a checkable phase-one exit: one command, already run at least once, that show…
 <!-- /registry:generated history -->
+
+<!-- registry:generated reviews -->
+- [skill-comparisons/debugging-loop](../../../archive/skill-comparisons/debugging-loop/)
+<!-- /registry:generated reviews -->

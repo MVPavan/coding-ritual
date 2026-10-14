@@ -21,3 +21,7 @@ Use when a git merge, rebase, or cherry-pick is already in a conflicted state an
 <!-- registry:generated history -->
 - `2026-08-14` **adopt** (2026-10-14-migration:138): Adopted nearly whole as a model-invocable skill — deviation from the comparison's rule-page recommendation, recorded per critic finding 8. Steps R1-R6 kept; 'i…
 <!-- /registry:generated history -->
+
+<!-- registry:generated reviews -->
+- [skill-comparisons/git-agent-workflow](../../../archive/skill-comparisons/git-agent-workflow/)
+<!-- /registry:generated reviews -->

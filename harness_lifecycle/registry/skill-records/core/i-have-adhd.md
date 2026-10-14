@@ -21,3 +21,7 @@ Use when the user invokes /i-have-adhd.
 <!-- registry:generated history -->
 - `2026-08-14` **adopt** (2026-10-14-migration:150): Adopted-in-part: controlled-language (ASD-STE100-style) re-pitch as a fifth override in i-have-adhd. No standalone skill. Evidence: skill-comparisons/interacti…
 <!-- /registry:generated history -->
+
+<!-- registry:generated reviews -->
+- [skill-comparisons/interaction-utilities](../../../archive/skill-comparisons/interaction-utilities/)
+<!-- /registry:generated reviews -->

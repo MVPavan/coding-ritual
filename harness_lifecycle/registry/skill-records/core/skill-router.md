@@ -23,3 +23,8 @@ Use when unsure which skill or command fits a task, when two seem to overlap, or
 - `2026-08-14` **adopt** (2026-10-14-migration:143): Adopted 2026-08-14 pattern-only (evidence: skill-comparisons/harness-bootstrap/): prove-the-rules-bite (SKILL.md:79-87) — observe a guardrail fail on a deliber…
 - `2026-08-14` **adopt** (2026-10-14-migration:134): Round 2 supersede: PHASE-BOUNDARIES.md deferral resolved — three borrows into execution/references/workstream-mode.md (/compact with an instruction argument; r…
 <!-- /registry:generated history -->
+
+<!-- registry:generated reviews -->
+- [skill-comparisons/harness-bootstrap](../../../archive/skill-comparisons/harness-bootstrap/)
+- [skill-comparisons/plan-execution-engines](../../../archive/skill-comparisons/plan-execution-engines/)
+<!-- /registry:generated reviews -->

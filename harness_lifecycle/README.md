@@ -85,7 +85,8 @@ Thresholds (15 lines / 10%) are conservative defaults; tune in `classify_change`
 
 The registry records every skill we own (`skill-records/`, placed on domain ×
 ADLC stage × sub-stage), every ruling on a reference capability, and every
-change, in one append-only JSONL ledger. Its tool imports `scan.py`. The method,
+change, in one append-only JSONL ledger, with the reviews behind each ruling
+(`reviews/`). Its tool imports `scan.py`. The method,
 layout and ledger schema are in [`registry/README.md`](registry/README.md).
 
 ```bash
@@ -114,7 +115,7 @@ whatever was on disk when it ran. Regenerate it rather than trusting its age.
 ## `archive/` — retired artifacts
 
 Frozen and superseded material: the 2026-08 casebook, the 14-bucket
-taxonomy, catalogs of removed submodules, the earlier usefulness pipelines
+taxonomy, the per-family skill comparisons and the whole-harness comparison, catalogs of removed submodules, the earlier usefulness pipelines
 and the generated HTML dashboards. The registry ledger now answers "which
 reference capabilities should we take?".
 
@@ -132,23 +133,6 @@ kept out of the shipped template by `template-exclude.txt`:
 - **`harness-*` skills and `AGENTS.md`** — curation and repository guardrails.
 - **`.claude/hooks/harness-staleness-nudge.sh`** — SessionStart reminder when the
   catalogs are more than 30 days old.
-
-## `skill-comparisons/` — the evidence behind a ruling
-
-One folder per **capability family** (`plan-execution-engines`,
-`agentic-control-loops`, …), written with the `harness-skill-compare` skill:
-`README.md` holds the placement table and capability profiles with a verdict;
-`components.md` holds the `file:line` component inventory and cross-skill
-matrix. Registry ledger events cite these folders as their
-evidence; extend the family folder when its set grows rather than opening a
-second one for an overlapping set.
-
-## `harness-comparisons/` — whole-harness comparisons
-
-One folder per compared set of harnesses, at harness level rather than skill
-family. `pocock-pstack-ours/` holds the Pocock vs pstack comparison, the
-comparison against ours, and `autonomy/` (cited skill maps under `data/`, the
-autonomy report, and its verification rounds).
 
 ## `adlc/` — agentic development lifecycle
 

@@ -28,3 +28,7 @@ Use for measured latency, throughput, memory or cost problems, profiling, or exp
 - `2026-08-11` **adopt** (2026-10-14-migration:085) *(superseded)*: STAYS ADOPTED — scope-trimmed, not dropped. It covers frontend, backend, queries and databases; only the frontend portion is out of scope. Its load-bearing con…
 - `2026-08-11` **adopt** (2026-10-14-migration:053) *(superseded)*: The only skill with a disposal rule for unsuccessful work ('neutral is a revert') and an attempt ledger. Both members rejected folding it into the debugger.
 <!-- /registry:generated history -->
+
+<!-- registry:generated reviews -->
+- [skill-comparisons/debugging-loop](../../../archive/skill-comparisons/debugging-loop/)
+<!-- /registry:generated reviews -->

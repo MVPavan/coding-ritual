@@ -1,6 +1,7 @@
 {
   "_comment": "sha256 of every sealed round file. registry.py check fails if a sealed file is modified or deleted. Never edit by hand.",
   "rounds": {
-    "2026-10-14-migration.jsonl": "8cc852e274b32cd9067fbabcd82a651f291b3822e588b95775f2316390061914"
+    "2026-10-14-migration.jsonl": "8cc852e274b32cd9067fbabcd82a651f291b3822e588b95775f2316390061914",
+    "2026-10-14-owner-review.jsonl": "b49225eb122224094942b2e7e4f779686186a4eb0eb1ede9521e2f86dc181958"
   }
 }

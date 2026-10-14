@@ -29,3 +29,7 @@ Use to execute tracked multi-step work, a standalone plan, or a roadmap phase. C
 - `2026-08-12` **adopt-merged** (2026-10-14-migration:111): Adopted-merged into the execution skill's task engine (comparison: harness_lifecycle/skill-comparisons/plan-execution-engines/): bounded 5-round fix loop with …
 - `2026-08-11` **adopt-merged** (2026-10-14-migration:046) *(superseded)*: The only plan executor with bounded fix loops, capability escalation and an adjudication ledger that survives compaction. Superpowers' own writing-plans names …
 <!-- /registry:generated history -->
+
+<!-- registry:generated reviews -->
+- [skill-comparisons/plan-execution-engines](../../../archive/skill-comparisons/plan-execution-engines/)
+<!-- /registry:generated reviews -->
