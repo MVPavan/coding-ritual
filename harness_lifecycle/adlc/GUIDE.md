@@ -26,6 +26,7 @@ generation lands, run the revisit protocol in §4.
 | `council/stages/` | The stage and sub-stage names in §1 (council, 2026-10-06; the user later renamed Roadmapping → Charting and Closeout → Closure) |
 | `skill-map.md` | Every skill from our harness, Pocock and pstack, mapped onto §1 |
 | `document-model.md` | Which documents a project keeps per lifecycle stage, where they live, and what each holds |
+| `tracker-model.md` | How the tracker (Beads) represents the lifecycle: statuses, where a bead stands, and epic sizing by outcome |
 | `../prompting-guides/GUIDE.md` | Rules for how to write instructions. This guide does not restate them |
 
 ## 1. The lifecycle
@@ -258,3 +259,4 @@ Trigger: a new model generation in the roster, or a quarter without review.
 | 2026-10-05 | Created from the 2026-08-21 playbook and council lifecycle v2 | `sources/`, `council/` |
 | 2026-10-06 | §1 replaced the 13-stage spine with 8 stages and 28 sub-stages plus mapping rules. Approval moved from a single Authorize stage to a Governance gate, which removes the conflict with A-07 (merge is gated) | `council/stages/`, `skill-map.md` |
 | 2026-10-06 | Renamed Roadmapping → Charting and Closeout → Closure (both collided with repo terms). Added the unit per stage, the per-sub-stage answers, and the boundary table; Research vs Grounding is now decided by source, not timing | User review of §1 |
+| 2026-10-14 | Added `tracker-model.md`: the `review` status, bead position without stage labels, and epics sized by outcome rather than phase. Only `review` is adopted in the skills | `tracker-model.md` §3, §6 |
