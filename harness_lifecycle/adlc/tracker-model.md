@@ -236,7 +236,7 @@ These depend on §5 and are not yet decided:
 | Decision beads vs ADRs | the decision bead exists only while the choice is open (as a wait); it closes with the ADR path as its reason; the ADR holds the reasoning |
 | Close reason vs `log.md` | the close reason holds the evidence (command, result, commit SHA); `log.md` records the increment, the bead ID and any deviation |
 | Approvals | the record is one line in the approved document; the `human` task is the wait, and it closes naming the document and commit it approved |
-| Folder layout | `workstreams/<area>/` holds the area roadmap; each epic gets `<epic-id>-<slug>/` inside it with `spec.md` and `log.md`. This replaces `document-model.md`'s one `workstreams/<tracker-id>-<slug>/` folder per epic, where "workstream" meant an outcome |
+| Folder layout | `workstreams/<area>/` holds the area roadmap; each epic gets `<epic-id>-<slug>/` inside it with `spec.md` and `log.md`. This replaces `document-model.md`'s one `workstreams/<tracker-id>-<slug>/` folder per epic, where "workstream" meant an outcome. Mapped to sub-stages in `document-model.md` §7 |
 
 ## 8. Adopting the rest
 

@@ -140,3 +140,59 @@ incidents/<date>-<slug>.md     # timeline plus postmortem
 | Exhaustive | 45 documents, one per independent thing | Most of them pass none of the five tests on their own; they work as sections or tracker fields |
 | Minimal | 9 documents | Puts both approvals (intent and plan) and the whole work history into one change file |
 | **This model** | 2 vision + 3 per workstream, plus research, ADRs and improvement | Each file maps to one approval, one author, or one reader |
+
+## 7. Proposed layout by lifecycle stage (2026-10-14, not decided)
+
+This proposal follows the tracker model (`tracker-model.md` §5): a workstream
+is an ongoing area, and each epic is one outcome with its own folder. It would
+replace §2 once accepted. Each entry names the sub-stage that writes it.
+
+```text
+docs/
+├── vision/
+│   ├── VISION.md                  # Charting ◆: the direction; Triage and Clarification read it
+│   └── STATUS.md                  # Closure: one line per component, updated when an epic closes
+├── research/<date>-<kind>-<slug>/ # Research; also brainstorms and councils from Clarification or Charting
+├── adr/NNNN-<slug>.md             # Architecture: one hard-to-reverse decision each
+├── workstreams/
+│   └── <area>/                    # Charting: an ongoing area, never a bead
+│       ├── README.md              # Charting: purpose, vision component, which outcomes come next
+│       ├── tracking/              # Communication: generated from bd, never hand-edited
+│       └── <epic-id>-<slug>/      # Intake: created when the epic is accepted
+│           ├── spec.md            # Clarification (intent ◆), Specification (acceptance ◆)
+│           ├── plan.md            # Architecture (design) + Decomposition (increments ◆)
+│           ├── log.md             # Building, Verification, Delivery; ends with Closure
+│           └── reviews/           # Review: raw rounds, gitignored
+├── improvement/
+│   ├── lessons.md                 # Retrospective, Codification
+│   └── evals/                     # Evaluation
+├── releases/<version>.md          # Release (only for projects that ship)
+└── incidents/<date>-<slug>.md     # Response (only for projects that run in production)
+```
+
+**No folder:** Triage and Implementation work through the tracker and the
+code. Integration happens in git and the pull request. Governance lives in
+`AGENTS.md`. Grounding and Monitoring produce no document of their own.
+
+**Why this shape:**
+
+- **Tracker paths group automatically.** An epic's `spec_id` is
+  `…/<area>/<epic-id>-<slug>/spec.md`, so
+  `bd list --spec docs/workstreams/<area>/` finds every epic in an area. No
+  labels and no title convention are needed.
+- **A folder exists only for an epic.** A lone bug or task gets no folder;
+  its bead is enough.
+- **Each scope has its own documents.** Area files sit at the area level,
+  and outcome files sit in the epic folder (merge rule 3 in §1).
+
+**Open choices:**
+
+1. **The area file is `README.md`:** the area's charter. The order of work
+   lives in dependency edges between epics, not in this file.
+2. **The epic's file is `plan.md`, not `roadmap.md`** (recommended). It is
+   what the planning skill already produces, `CONTEXT.md` defines "Roadmap"
+   as a workstream's phased plan, and this model has no phases inside an
+   epic.
+3. **Existing folders stay as they are.** `dws/` and `agent-bridge/` become
+   areas and keep their `roadmap.md` as history; only new epics use
+   `<epic-id>-<slug>/`.
