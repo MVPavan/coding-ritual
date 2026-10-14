@@ -70,6 +70,4 @@ A ledger is an append-only record of decisions or changes with their reasons
   `supersedes`.
 - **Human view:** a Markdown file generated from the records and marked as
   generated; never hand-edit it.
-- `harness_lifecycle/casebook/` follows this pattern.
-  `harness_lifecycle/ledger.json` (one mutable file, edited in place) predates
-  it and is to be migrated.
+- `harness_lifecycle/registry/ledger/` follows this pattern.

@@ -81,39 +81,22 @@ The scanner deduplicates to logical units:
 
 Thresholds (15 lines / 10%) are conservative defaults; tune in `classify_change`.
 
-## `gap.py` — gap report + adoption ledger
+## `registry/` — our skills, reference rulings, and the ledger
 
-Answers "what do the reference harnesses ship that **our** harness doesn't?" and
-records what we've decided so it stops re-nagging. Imports `scan.py`.
+The registry records every skill we own (`skill-records/`, placed on domain ×
+ADLC stage × sub-stage), every ruling on a reference capability, and every
+change, in one append-only JSONL ledger. Its tool imports `scan.py`. The method,
+layout and ledger schema are in [`registry/README.md`](registry/README.md).
 
 ```bash
-# Catalog our own reusable surface (root .claude/ + every mvp-harness plugin)
-python3 harness_lifecycle/gap.py ours
-
-# What does a reference harness have that we don't? (ledgered decisions excluded)
-python3 harness_lifecycle/gap.py gap reference_harnesses/superpowers
-python3 harness_lifecycle/gap.py gap superpowers --kind skill --beads
-
-# Record a decision so the gap report stops surfacing it
-python3 harness_lifecycle/gap.py ledger add --repo superpowers \
-    --id skill:writing-plans --status adopted --our-id skill:planning \
-    --reason "covered by our planning skill"
-python3 harness_lifecycle/gap.py ledger list
+uv run python harness_lifecycle/registry/registry.py gap superpowers --kind skill --beads   # unruled, changed since ruled, present but unruled
+uv run python harness_lifecycle/registry/registry.py ours --out harness_lifecycle/catalogs/ours.json
+uv run python harness_lifecycle/registry/registry.py build && uv run python harness_lifecycle/registry/registry.py check
 ```
 
-- **"Ours"** merges the root `.claude/` **and `.codex/`** capabilities with every
-  plugin under `mvp-harness/plugins/*` (excluding each plugin's `template/` copy of
-  the root harness), so plugin-provided capabilities (codex-adapter, code-intel)
-  never show up as false gaps.
-- **Matching** a reference capability to ours: exact `logical_id` → curated alias
-  (`aliases.json`) → normalized name → otherwise it is a gap. A close lexical name
-  match is shown as a `[similar to ours: X]` hint only — never auto-matched.
-- **Ledger** (`ledger.json`): `adopted | rejected | deferred` + reason +
-  `source_sha`. Ledgered capabilities drop out of the gap report. An `adopted`
-  entry stores the reference capability's hash, so a later upstream change to it
-  is surfaced as **⚑ upstream improved since we adopted**.
-- **`--beads`** prints ready-to-run `bd create` lines for the gaps; it never files
-  issues itself — that stays a human / `harness-evaluate` decision.
+It replaced `gap.py`, `ledger.json`, `aliases.json`, `export_csv.py`, the
+`inventory/` CSVs and `casebook/casebook.py` on 2026-10-14; their content is in
+the ledger's migration round, and the files stay in git history.
 
 ## `catalogs/` — committed baselines
 
@@ -122,23 +105,18 @@ Re-`catalog` + `diff` against these to see what changed since the last review.
 Schema id: `harness-capability-catalog/v1` (see `Catalog.to_dict` in `scan.py`).
 
 `ours.json` is the odd one out — **our own** harness, written by
-`gap.py ours --out` rather than `scan.py catalog`, because only `build_ours`
+`registry.py ours --out` rather than `scan.py catalog`, because only `build_ours`
 knows what "ours" means (root `.claude/` + `.codex/` + every plugin, minus each
 plugin's `template/` copy of the root harness). It is a **working-tree snapshot**,
 so its `source_commit` is null; the reference catalogs are pinned, this one is
 whatever was on disk when it ran. Regenerate it rather than trusting its age.
 
-```bash
-python3 harness_lifecycle/gap.py ours --out harness_lifecycle/catalogs/ours.json
-```
-
 ## `archive/` — retired artifacts
 
-The earlier per-row usefulness pipelines (`codex_analysis/`, `fable_analysis/`)
-and every generated HTML dashboard (`visualizations/`). The pipelines answered
-"which reference capabilities should we take?", which `casebook/` now answers
-with current, appended rulings; the dashboards were read-only review aids that
-went stale silently whenever a submodule pin moved.
+Frozen and superseded material: the 2026-08 casebook, the 14-bucket
+taxonomy, catalogs of removed submodules, the earlier usefulness pipelines
+and the generated HTML dashboards. The registry ledger now answers "which
+reference capabilities should we take?".
 
 Nothing live reads `archive/`. See [`archive/README.md`](archive/README.md).
 
@@ -150,87 +128,10 @@ kept out of the shipped template by `template-exclude.txt`:
 - **`/harness-status`** — upstream-drift one-liner across all reference harnesses.
 - **`/harness-scan <name>`** — deep drift + gap for one harness, then routing.
 - **`harness-evaluate` skill** — decide template / new-plugin / merge / reject for a
-  candidate and drive the sync-back; records the decision in the ledger.
+  candidate and drive the sync-back; records the decision in the registry ledger.
 - **`harness-*` skills and `AGENTS.md`** — curation and repository guardrails.
 - **`.claude/hooks/harness-staleness-nudge.sh`** — SessionStart reminder when the
   catalogs are more than 30 days old.
-
-## `export_csv.py` — per-kind inventory CSVs
-
-Flattens catalogs into one CSV per kind, so a review question maps to one file.
-
-```bash
-python3 harness_lifecycle/export_csv.py harness_lifecycle/catalogs/superpowers.json \
-    --out-dir harness_lifecycle/inventory
-```
-
-A CSV is written for **every** kind, including kinds with zero rows (header only),
-so a genuinely absent kind is visible as an empty file rather than a missing one.
-Inventory only — adoption verdicts live in `ledger.json`, and model-judged
-usefulness ratings come from the separate analysis pipelines. Neither is
-reproducible from a scan, so neither appears here.
-
-### Where each inventory lives
-
-| Path | Holds | Rebuild from |
-|---|---|---|
-| `inventory/*.csv` | the curated reference harnesses (agent-skills, mattpocock_skills, superpowers, humanlayer_skills, The-Claude-Protocol, diagram-design, html-artifacts) | their `catalogs/*.json` |
-| `inventory/ours/*.csv` | **our own** 76 capabilities | `catalogs/ours.json` |
-
-Kept apart deliberately. `inventory/skill.csv` (84 rows) and
-`inventory/skill-buckets.csv` (84 rows) are in 1:1 correspondence, and the
-casebook roster is a subset of the same set. Merging our 31 skills into
-`skill.csv` would silently break that correspondence and make the bucket file
-look incomplete when nothing is wrong.
-
-```bash
-python3 harness_lifecycle/export_csv.py harness_lifecycle/catalogs/ours.json \
-    --out-dir harness_lifecycle/inventory/ours
-```
-
-Name-matching across the two is weak on purpose: `gap.py` matches by id, alias,
-then normalized name, so it will not discover that our `grill-me` and their
-`grilling` are the same capability. Only 3 of our 31 skills name-match anything
-upstream. Capability-level comparison is judgement work, not a derivation.
-
-## `inventory/skill-buckets.{md,csv}` — the skill routing taxonomy
-
-A hand-curated categorisation of every skill in `inventory/skill.csv` into 14
-buckets: one **primary** bucket per skill (the outcome that caused the
-invocation) plus secondary buckets where a skill genuinely spans two.
-
-Unlike everything else here it is a **judgement, not a derivation** — nothing
-regenerates it, so `skill-buckets.csv` is its own source of truth. Re-run the
-scan and it will drift; reconcile by hand against `skill.csv`.
-
-Bucket membership answers *what do I reach for?*. It does **not** answer *which of
-these are redundant?* — `frontend-ui-engineering` and `security-and-hardening` share
-a bucket and substitute for nothing. That second question is answered by
-`capability_family` plus `family_relation` (`substitutes` / `complements` /
-`pipeline` / `genus`); only the `substitutes` rows are adopt-one-not-both calls.
-`adoption_scope` marks the bucket-14 skills (teaching, prose, conversation repair)
-as out of scope — inventoried for completeness, not adoption candidates.
-
-## `casebook/` — the append-only curation record
-
-Which reference skills we adopted, which we rejected, and why — kept per bucket
-and never rewritten. Answers "we looked at this before; what did we decide, and
-has it changed since?"
-
-`rounds/*.jsonl` is the authored log; `current.json` and `views/bucket-NN.md` are
-generated. Editing a sealed round fails `casebook.py validate`. Changing a ruling
-means appending an event that supersedes the old one, not editing it.
-
-```bash
-python3 harness_lifecycle/casebook/casebook.py validate
-python3 harness_lifecycle/casebook/casebook.py build --seal
-python3 harness_lifecycle/casebook/casebook.py query <skill>
-```
-
-Distinct from `ledger.json` on purpose: the ledger is a mutable current-state
-index (`gap.py ledger add` replaces entries and only hashes adopted ones), so it
-cannot hold history or notice that a *rejected* skill changed upstream. See
-`casebook/README.md`.
 
 ## `skill-comparisons/` — the evidence behind a ruling
 
@@ -238,7 +139,7 @@ One folder per **capability family** (`plan-execution-engines`,
 `agentic-control-loops`, …), written with the `harness-skill-compare` skill:
 `README.md` holds the placement table and capability profiles with a verdict;
 `components.md` holds the `file:line` component inventory and cross-skill
-matrix. Ledger reasons and casebook events cite these folders as their
+matrix. Registry ledger events cite these folders as their
 evidence; extend the family folder when its set grows rather than opening a
 second one for an overlapping set.
 

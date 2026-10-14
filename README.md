@@ -46,7 +46,7 @@ Follow `harness_learnings/reference-harness-workflow.md`.
 Run `/harness-status` (what changed upstream since our pins) then
 `/harness-scan <repo>` (what it ships that we don't), and triage candidates with
 the `harness-evaluate` skill. Deterministic tooling lives in `harness_lifecycle/`
-(`scan.py`, `gap.py`).
+(`scan.py`, `registry/registry.py`).
 
 ## Reference Repo Policy
 

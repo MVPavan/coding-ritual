@@ -1,0 +1,3930 @@
+{
+  "schema": "harness-capability-catalog/v1",
+  "repo": "cursor_plugins",
+  "source": "working-tree",
+  "source_commit": "e43c7ee26e0038c6c1fa8380dd34ce86ff94cb2a",
+  "physical_scanned": 890,
+  "excluded": 1,
+  "counts": {
+    "agent": {
+      "physical": 14,
+      "logical": 14
+    },
+    "hook": {
+      "physical": 8,
+      "logical": 8
+    },
+    "mcp": {
+      "physical": 80,
+      "logical": 80
+    },
+    "skill": {
+      "physical": 104,
+      "logical": 104
+    }
+  },
+  "capabilities": [
+    {
+      "kind": "agent",
+      "name": "advisor-subagent",
+      "category": "agents",
+      "logical_id": "agent:advisor/agents/advisor-subagent",
+      "canonical_path": "advisor/agents/advisor-subagent.md",
+      "paths": [
+        "advisor/agents/advisor-subagent.md"
+      ],
+      "description": "Stronger-model advisor for the Advisor plugin. Consulted by the main agent at key checkpoints (before a major decision, when stuck on an error, before declaring a task done) with a briefing and, when available, the conversation transcript. Read-only. Returns a verdict and concrete guidance, not edits.",
+      "content_hash": "2031ceda36214936d3a98a39a3b95b7b6e52ff34",
+      "signature_hash": "a3e9b09a2870747ead57cad8e17d47c14926509e",
+      "variant_hashes": [
+        "2031ceda36214936d3a98a39a3b95b7b6e52ff34"
+      ],
+      "line_count": 48,
+      "assets": []
+    },
+    {
+      "kind": "agent",
+      "name": "compatibility-scan-review",
+      "category": "agents",
+      "logical_id": "agent:agent-compatibility/agents/compatibility-scan-review",
+      "canonical_path": "agent-compatibility/agents/compatibility-scan-review.md",
+      "paths": [
+        "agent-compatibility/agents/compatibility-scan-review.md"
+      ],
+      "description": "Run the agent-compatibility CLI and return the raw repository score with its main problems",
+      "content_hash": "b8833c03b6524f433b04f5a9bcd14a8607a1968f",
+      "signature_hash": "d4b311a7369d46700d63d82f96360a3d9eb2e70e",
+      "variant_hashes": [
+        "b8833c03b6524f433b04f5a9bcd14a8607a1968f"
+      ],
+      "line_count": 40,
+      "assets": []
+    },
+    {
+      "kind": "agent",
+      "name": "docs-reliability-review",
+      "category": "agents",
+      "logical_id": "agent:agent-compatibility/agents/docs-reliability-review",
+      "canonical_path": "agent-compatibility/agents/docs-reliability-review.md",
+      "paths": [
+        "agent-compatibility/agents/docs-reliability-review.md"
+      ],
+      "description": "Check whether the documented setup and run paths reliably lead to the real working path",
+      "content_hash": "e9a98a28e946a057079accf57c23804f382a88b4",
+      "signature_hash": "c6bdb11a89c692f078cdd6a1344a4fa86f04abd0",
+      "variant_hashes": [
+        "e9a98a28e946a057079accf57c23804f382a88b4"
+      ],
+      "line_count": 44,
+      "assets": []
+    },
+    {
+      "kind": "agent",
+      "name": "startup-review",
+      "category": "agents",
+      "logical_id": "agent:agent-compatibility/agents/startup-review",
+      "canonical_path": "agent-compatibility/agents/startup-review.md",
+      "paths": [
+        "agent-compatibility/agents/startup-review.md"
+      ],
+      "description": "Try to bootstrap and start a repository like a cold agent, then report where the path breaks down",
+      "content_hash": "e54bdb17ea48469b841fa4e7a111f841e4a3d46a",
+      "signature_hash": "81190e75b41aa8ea86be1a91ecf794e7bd850fbe",
+      "variant_hashes": [
+        "e54bdb17ea48469b841fa4e7a111f841e4a3d46a"
+      ],
+      "line_count": 51,
+      "assets": []
+    },
+    {
+      "kind": "agent",
+      "name": "validation-review",
+      "category": "agents",
+      "logical_id": "agent:agent-compatibility/agents/validation-review",
+      "canonical_path": "agent-compatibility/agents/validation-review.md",
+      "paths": [
+        "agent-compatibility/agents/validation-review.md"
+      ],
+      "description": "Assess whether an agent can verify a small change without guessing or running an unnecessarily heavy loop",
+      "content_hash": "0302af7ec803dde64f2a1506e711673028afdd59",
+      "signature_hash": "5a08bcd9e2dcd165c6c1ee1cabc0d6422a1dfb19",
+      "variant_hashes": [
+        "0302af7ec803dde64f2a1506e711673028afdd59"
+      ],
+      "line_count": 50,
+      "assets": []
+    },
+    {
+      "kind": "agent",
+      "name": "agents-memory-updater",
+      "category": "agents",
+      "logical_id": "agent:continual-learning/agents/agents-memory-updater",
+      "canonical_path": "continual-learning/agents/agents-memory-updater.md",
+      "paths": [
+        "continual-learning/agents/agents-memory-updater.md"
+      ],
+      "description": "Mine high-signal transcript deltas, update `AGENTS.md`, and keep the incremental transcript index in sync.",
+      "content_hash": "5784e37d6434197246ce634665a856a8b8cf7074",
+      "signature_hash": "751ce19cffb8c06e9647830ef039991a71a5efeb",
+      "variant_hashes": [
+        "5784e37d6434197246ce634665a856a8b8cf7074"
+      ],
+      "line_count": 47,
+      "assets": []
+    },
+    {
+      "kind": "agent",
+      "name": "plugin-architect",
+      "category": "agents",
+      "logical_id": "agent:create-plugin/agents/plugin-architect",
+      "canonical_path": "create-plugin/agents/plugin-architect.md",
+      "paths": [
+        "create-plugin/agents/plugin-architect.md"
+      ],
+      "description": "Plugin architecture specialist. Use when deciding the right component mix, structure, and metadata for a new Cursor plugin.",
+      "content_hash": "de28110bc8c87886b5f808e1f478c31fe8cb6af8",
+      "signature_hash": "4c976ed39c553b6faa9775ec4138a19a0d6055e3",
+      "variant_hashes": [
+        "de28110bc8c87886b5f808e1f478c31fe8cb6af8"
+      ],
+      "line_count": 28,
+      "assets": []
+    },
+    {
+      "kind": "agent",
+      "name": "ci-watcher",
+      "category": "agents",
+      "logical_id": "agent:cursor-team-kit/agents/ci-watcher",
+      "canonical_path": "cursor-team-kit/agents/ci-watcher.md",
+      "paths": [
+        "cursor-team-kit/agents/ci-watcher.md"
+      ],
+      "description": "Watch PR CI for the current branch and report pass/fail with relevant failure links. Use when waiting for CI results or CI has failed. Use proactively to monitor branch CI.",
+      "content_hash": "8c6afb614a1fb7bdeecab0aef205edc93634245e",
+      "signature_hash": "218fae71b8bd271c19d3c5c9f9d4943630d5808d",
+      "variant_hashes": [
+        "8c6afb614a1fb7bdeecab0aef205edc93634245e"
+      ],
+      "line_count": 28,
+      "assets": []
+    },
+    {
+      "kind": "agent",
+      "name": "thermo-nuclear-code-quality-review",
+      "category": "agents",
+      "logical_id": "agent:cursor-team-kit/agents/thermo-nuclear-code-quality-review",
+      "canonical_path": "cursor-team-kit/agents/thermo-nuclear-code-quality-review.md",
+      "paths": [
+        "cursor-team-kit/agents/thermo-nuclear-code-quality-review.md"
+      ],
+      "description": "Thermo-nuclear code quality audit (maintainability, structure, 1k-line rule, spaghetti, code-judo). Invoked via Task after a parent gathers diff and file contents. Loads the rubric from the `thermo-nuclear-code-quality-review` skill in the cursor-team-kit plugin.",
+      "content_hash": "7539cca925845d43fe13eddb5bb22209611ca66b",
+      "signature_hash": "e0e9bd90699f284258d1eeb0f49afc01c5202e13",
+      "variant_hashes": [
+        "7539cca925845d43fe13eddb5bb22209611ca66b"
+      ],
+      "line_count": 23,
+      "assets": []
+    },
+    {
+      "kind": "agent",
+      "name": "dyl-agent",
+      "category": "agents",
+      "logical_id": "agent:dyl-stack/agents/dyl-agent",
+      "canonical_path": "dyl-stack/agents/dyl-agent.md",
+      "paths": [
+        "dyl-stack/agents/dyl-agent.md"
+      ],
+      "description": "Routing target for `/dyl-mode` and any request for Dylan's style. Resume an existing `dyl-agent` for the conversation rather than spawning a sibling. Reads the `dyl-mode` skill's `SKILL.md` in full before any work, then the pstack `poteto-mode` skill it layers on. Substituting `generalPurpose` skips those reads and drifts.",
+      "content_hash": "1c2e4b1f18942521eda033cb3d885186f9907c84",
+      "signature_hash": "f12e970fc2fe2e10a09c38fa3ada04fa39514b2d",
+      "variant_hashes": [
+        "1c2e4b1f18942521eda033cb3d885186f9907c84"
+      ],
+      "line_count": 14,
+      "assets": []
+    },
+    {
+      "kind": "agent",
+      "name": "Comment Sicko",
+      "category": "agents",
+      "logical_id": "agent:pstack/agents/comment-sicko",
+      "canonical_path": "pstack/agents/comment-sicko.md",
+      "paths": [
+        "pstack/agents/comment-sicko.md"
+      ],
+      "description": "A deranged comment-hater that savors deletion and condemns workaround code.",
+      "content_hash": "e00bee0e70077abd9735d68640103b3d7dc6687e",
+      "signature_hash": "a7383758c6409d0fd3f97227a97456be6565c7d1",
+      "variant_hashes": [
+        "e00bee0e70077abd9735d68640103b3d7dc6687e"
+      ],
+      "line_count": 32,
+      "assets": []
+    },
+    {
+      "kind": "agent",
+      "name": "poteto-agent",
+      "category": "agents",
+      "logical_id": "agent:pstack/agents/poteto-agent",
+      "canonical_path": "pstack/agents/poteto-agent.md",
+      "paths": [
+        "pstack/agents/poteto-agent.md"
+      ],
+      "description": "Routing target for `/poteto-mode` and any request for poteto's style. Spawn a fresh `poteto-agent` for each new task, and resume one only in the strict cases that poteto-mode's Subagents section names. Reads the `poteto-mode` skill's `SKILL.md` in full before any work, including its inline Principles index. Substituting `generalPurpose` skips that read and drifts.",
+      "content_hash": "aeb47658611387b0fbcc1373e9e368c7ee678f71",
+      "signature_hash": "534a25fe2b63a41652ecc8913ce2b5c04cc1c39e",
+      "variant_hashes": [
+        "aeb47658611387b0fbcc1373e9e368c7ee678f71"
+      ],
+      "line_count": 9,
+      "assets": []
+    },
+    {
+      "kind": "agent",
+      "name": "thermo-nuclear-code-quality-review-subagent",
+      "category": "agents",
+      "logical_id": "agent:thermos/agents/thermo-nuclear-code-quality-review-subagent",
+      "canonical_path": "thermos/agents/thermo-nuclear-code-quality-review-subagent.md",
+      "paths": [
+        "thermos/agents/thermo-nuclear-code-quality-review-subagent.md"
+      ],
+      "description": "Thermo-nuclear code quality audit (maintainability, structure, 1k-line rule, spaghetti, code-judo). Invoked via Task after a parent gathers diff and file contents. Loads rubric from the thermo-nuclear-code-quality-review skill in the Thermos plugin.",
+      "content_hash": "d42fbaf4ea1b3310e0d82177f2d83b0fbf4ea9e2",
+      "signature_hash": "45914f8c93e92c4491d10d3b2b43a0ede561d61f",
+      "variant_hashes": [
+        "d42fbaf4ea1b3310e0d82177f2d83b0fbf4ea9e2"
+      ],
+      "line_count": 23,
+      "assets": []
+    },
+    {
+      "kind": "agent",
+      "name": "thermo-nuclear-review-subagent",
+      "category": "agents",
+      "logical_id": "agent:thermos/agents/thermo-nuclear-review-subagent",
+      "canonical_path": "thermos/agents/thermo-nuclear-review-subagent.md",
+      "paths": [
+        "thermos/agents/thermo-nuclear-review-subagent.md"
+      ],
+      "description": "Thermo-nuclear branch audit (bugs, breaking changes, security, devex, feature-flag leaks) scoped to the diff. Invoked via Task after a parent gathers diff and file contents. Loads rubric from the thermo-nuclear-review skill in the Thermos plugin.",
+      "content_hash": "0520e0e1c342a5d117f0d3bedb82680c280606fa",
+      "signature_hash": "56237c8ee956eb18deee2ac5f8c3ad0cf6fed4e8",
+      "variant_hashes": [
+        "0520e0e1c342a5d117f0d3bedb82680c280606fa"
+      ],
+      "line_count": 28,
+      "assets": []
+    },
+    {
+      "kind": "hook",
+      "name": "capture-response.sh",
+      "category": "hooks",
+      "logical_id": "hook:advisor/hooks/capture-response",
+      "canonical_path": "advisor/hooks/capture-response.sh",
+      "paths": [
+        "advisor/hooks/capture-response.sh"
+      ],
+      "description": "",
+      "content_hash": "33225a3c91aa3174d05da58afd7606053fb0234e",
+      "signature_hash": "5eaf568820d7a2af3d778a115338f8d2ac089c8d",
+      "variant_hashes": [
+        "33225a3c91aa3174d05da58afd7606053fb0234e"
+      ],
+      "line_count": 20,
+      "assets": []
+    },
+    {
+      "kind": "hook",
+      "name": "lib.sh",
+      "category": "hooks",
+      "logical_id": "hook:advisor/hooks/lib",
+      "canonical_path": "advisor/hooks/lib.sh",
+      "paths": [
+        "advisor/hooks/lib.sh"
+      ],
+      "description": "",
+      "content_hash": "bdbf79467611fd121fa53e447b5ee21eca3ac317",
+      "signature_hash": "87b517e6d60fdf38c5acdeadeffa978a83934c90",
+      "variant_hashes": [
+        "bdbf79467611fd121fa53e447b5ee21eca3ac317"
+      ],
+      "line_count": 61,
+      "assets": []
+    },
+    {
+      "kind": "hook",
+      "name": "mark-pending.sh",
+      "category": "hooks",
+      "logical_id": "hook:advisor/hooks/mark-pending",
+      "canonical_path": "advisor/hooks/mark-pending.sh",
+      "paths": [
+        "advisor/hooks/mark-pending.sh"
+      ],
+      "description": "",
+      "content_hash": "1beba5f77113a980f26e2f733c2ede35d2a6452d",
+      "signature_hash": "e5adcde85722bc8fd7bbfec034605e3daf003c04",
+      "variant_hashes": [
+        "1beba5f77113a980f26e2f733c2ede35d2a6452d"
+      ],
+      "line_count": 27,
+      "assets": []
+    },
+    {
+      "kind": "hook",
+      "name": "record-consult.sh",
+      "category": "hooks",
+      "logical_id": "hook:advisor/hooks/record-consult",
+      "canonical_path": "advisor/hooks/record-consult.sh",
+      "paths": [
+        "advisor/hooks/record-consult.sh"
+      ],
+      "description": "",
+      "content_hash": "18ad41753b0f14e130b4ebd717899fa865100646",
+      "signature_hash": "b0193de524bb2612da7e72e5eac63c22aede865d",
+      "variant_hashes": [
+        "18ad41753b0f14e130b4ebd717899fa865100646"
+      ],
+      "line_count": 41,
+      "assets": []
+    },
+    {
+      "kind": "hook",
+      "name": "stop-hook.sh",
+      "category": "hooks",
+      "logical_id": "hook:advisor/hooks/stop-hook",
+      "canonical_path": "advisor/hooks/stop-hook.sh",
+      "paths": [
+        "advisor/hooks/stop-hook.sh"
+      ],
+      "description": "",
+      "content_hash": "4b89a997ac25eb46f28b761ff0c81eb12a7350d2",
+      "signature_hash": "f36db46ba569cd78691db0bec528dcc6770f8140",
+      "variant_hashes": [
+        "4b89a997ac25eb46f28b761ff0c81eb12a7350d2"
+      ],
+      "line_count": 48,
+      "assets": []
+    },
+    {
+      "kind": "hook",
+      "name": "continual-learning-stop.ts",
+      "category": "hooks",
+      "logical_id": "hook:continual-learning/hooks/continual-learning-stop",
+      "canonical_path": "continual-learning/hooks/continual-learning-stop.ts",
+      "paths": [
+        "continual-learning/hooks/continual-learning-stop.ts"
+      ],
+      "description": "",
+      "content_hash": "b3a4f592d5051b687e4bc6b9110d206181ca8a40",
+      "signature_hash": "1b46372a6ee45114006256c8d61bdf16a8e24174",
+      "variant_hashes": [
+        "b3a4f592d5051b687e4bc6b9110d206181ca8a40"
+      ],
+      "line_count": 247,
+      "assets": []
+    },
+    {
+      "kind": "hook",
+      "name": "capture-response.sh",
+      "category": "hooks",
+      "logical_id": "hook:ralph-loop/hooks/capture-response",
+      "canonical_path": "ralph-loop/hooks/capture-response.sh",
+      "paths": [
+        "ralph-loop/hooks/capture-response.sh"
+      ],
+      "description": "",
+      "content_hash": "716fd33dd2faa975d41e94fcbbe4af06c6b54e22",
+      "signature_hash": "5eaf568820d7a2af3d778a115338f8d2ac089c8d",
+      "variant_hashes": [
+        "716fd33dd2faa975d41e94fcbbe4af06c6b54e22"
+      ],
+      "line_count": 46,
+      "assets": []
+    },
+    {
+      "kind": "hook",
+      "name": "stop-hook.sh",
+      "category": "hooks",
+      "logical_id": "hook:ralph-loop/hooks/stop-hook",
+      "canonical_path": "ralph-loop/hooks/stop-hook.sh",
+      "paths": [
+        "ralph-loop/hooks/stop-hook.sh"
+      ],
+      "description": "",
+      "content_hash": "388b1abbc13bb544f048f5cb7a75dbad8d3af71c",
+      "signature_hash": "f36db46ba569cd78691db0bec528dcc6770f8140",
+      "variant_hashes": [
+        "388b1abbc13bb544f048f5cb7a75dbad8d3af71c"
+      ],
+      "line_count": 86,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "ahrefs",
+      "category": "",
+      "logical_id": "mcp:third_party/ahrefs/mcp.json#ahrefs",
+      "canonical_path": "third_party/ahrefs/mcp.json#ahrefs",
+      "paths": [
+        "third_party/ahrefs/mcp.json#ahrefs"
+      ],
+      "description": "https://api.ahrefs.com/mcp/mcp",
+      "content_hash": "2ababb104ca167b987de9970b2f387d5a1d02372",
+      "signature_hash": "aeeeefb62b440c73284fbf714bb6326576ccbf17",
+      "variant_hashes": [
+        "2ababb104ca167b987de9970b2f387d5a1d02372"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "amplemarket",
+      "category": "",
+      "logical_id": "mcp:third_party/amplemarket/mcp.json#amplemarket",
+      "canonical_path": "third_party/amplemarket/mcp.json#amplemarket",
+      "paths": [
+        "third_party/amplemarket/mcp.json#amplemarket"
+      ],
+      "description": "https://mcp.amplemarket.com/mcp",
+      "content_hash": "058bd7287b93b47287782d97e1fbee37d13fda6f",
+      "signature_hash": "06c3bd9872f0bfc2786b6fb114aefef0ac308d00",
+      "variant_hashes": [
+        "058bd7287b93b47287782d97e1fbee37d13fda6f"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "ashby",
+      "category": "",
+      "logical_id": "mcp:third_party/ashby/mcp.json#ashby",
+      "canonical_path": "third_party/ashby/mcp.json#ashby",
+      "paths": [
+        "third_party/ashby/mcp.json#ashby"
+      ],
+      "description": "https://mcp.ashbyhq.com/mcp/v1",
+      "content_hash": "4d8c32c29b9a199c2b9070743adfc7a3e398f45c",
+      "signature_hash": "95bdb920b67bfad96a7e5ef5c4c85356061d429e",
+      "variant_hashes": [
+        "4d8c32c29b9a199c2b9070743adfc7a3e398f45c"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "attio",
+      "category": "",
+      "logical_id": "mcp:third_party/attio/mcp.json#attio",
+      "canonical_path": "third_party/attio/mcp.json#attio",
+      "paths": [
+        "third_party/attio/mcp.json#attio"
+      ],
+      "description": "https://mcp.attio.com/mcp",
+      "content_hash": "195f740b62305aec6d92956fb4124ec09a5ee92d",
+      "signature_hash": "12abcafff1564a5c40981cdeb47404c4115a7d5a",
+      "variant_hashes": [
+        "195f740b62305aec6d92956fb4124ec09a5ee92d"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "beehiiv",
+      "category": "",
+      "logical_id": "mcp:third_party/beehiiv/mcp.json#beehiiv",
+      "canonical_path": "third_party/beehiiv/mcp.json#beehiiv",
+      "paths": [
+        "third_party/beehiiv/mcp.json#beehiiv"
+      ],
+      "description": "https://mcp.beehiiv.com/mcp",
+      "content_hash": "f6278c59efb194144ab8108ec7d2f1d03aba9013",
+      "signature_hash": "f13a5dfd6171cff3f6c2ea4f74436dba2e388f3b",
+      "variant_hashes": [
+        "f6278c59efb194144ab8108ec7d2f1d03aba9013"
+      ],
+      "line_count": 5,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "brevo",
+      "category": "",
+      "logical_id": "mcp:third_party/brevo/mcp.json#brevo",
+      "canonical_path": "third_party/brevo/mcp.json#brevo",
+      "paths": [
+        "third_party/brevo/mcp.json#brevo"
+      ],
+      "description": "https://mcp.brevo.com/v1/brevo/mcp",
+      "content_hash": "cef05b4fdaa905e8b49fd7f0ad3aa4607cb7b261",
+      "signature_hash": "e47bf4ff20dff6633f9c51ddf07941ab2ab2d7d9",
+      "variant_hashes": [
+        "cef05b4fdaa905e8b49fd7f0ad3aa4607cb7b261"
+      ],
+      "line_count": 7,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "brex",
+      "category": "",
+      "logical_id": "mcp:third_party/brex/mcp.json#brex",
+      "canonical_path": "third_party/brex/mcp.json#brex",
+      "paths": [
+        "third_party/brex/mcp.json#brex"
+      ],
+      "description": "https://api.brex.com/mcp",
+      "content_hash": "591ae22ded3642c83f3d1f53d67ff75a9be77b75",
+      "signature_hash": "ff6dee951e2a081c0685c81d52a8afcb6a10de28",
+      "variant_hashes": [
+        "591ae22ded3642c83f3d1f53d67ff75a9be77b75"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "buffer",
+      "category": "",
+      "logical_id": "mcp:third_party/buffer/mcp.json#buffer",
+      "canonical_path": "third_party/buffer/mcp.json#buffer",
+      "paths": [
+        "third_party/buffer/mcp.json#buffer"
+      ],
+      "description": "https://mcp.buffer.com/mcp",
+      "content_hash": "c4128c952d59a6965e7fa40b6e8067817ed5e3d0",
+      "signature_hash": "0b6f1cf39ee74c7321acfa275d1d11ad2327add5",
+      "variant_hashes": [
+        "c4128c952d59a6965e7fa40b6e8067817ed5e3d0"
+      ],
+      "line_count": 5,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "calendly",
+      "category": "",
+      "logical_id": "mcp:third_party/calendly/mcp.json#calendly",
+      "canonical_path": "third_party/calendly/mcp.json#calendly",
+      "paths": [
+        "third_party/calendly/mcp.json#calendly"
+      ],
+      "description": "https://mcp.calendly.com/",
+      "content_hash": "2403dfc36b171b2116eb497d91a1dc437b1501a3",
+      "signature_hash": "c8c978e9e44c4be02e480518a2aeb97d6bcf2df1",
+      "variant_hashes": [
+        "2403dfc36b171b2116eb497d91a1dc437b1501a3"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "circleback",
+      "category": "",
+      "logical_id": "mcp:third_party/circleback/mcp.json#circleback",
+      "canonical_path": "third_party/circleback/mcp.json#circleback",
+      "paths": [
+        "third_party/circleback/mcp.json#circleback"
+      ],
+      "description": "https://circleback.ai/api/mcp",
+      "content_hash": "8ecdb08162dd28962db3c5d7f487e2ce60d3b7fd",
+      "signature_hash": "4478c0aef1b1f2c2c02ab850cb03215c77c3ff32",
+      "variant_hashes": [
+        "8ecdb08162dd28962db3c5d7f487e2ce60d3b7fd"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "clay",
+      "category": "",
+      "logical_id": "mcp:third_party/clay/mcp.json#clay",
+      "canonical_path": "third_party/clay/mcp.json#clay",
+      "paths": [
+        "third_party/clay/mcp.json#clay"
+      ],
+      "description": "https://api.clay.com/v3/mcp",
+      "content_hash": "507ff5bd8c9182786d460f60e8d901350b70d698",
+      "signature_hash": "254646bd3d3e5dc3bd1404bfc3086fd470ef93ce",
+      "variant_hashes": [
+        "507ff5bd8c9182786d460f60e8d901350b70d698"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "coda",
+      "category": "",
+      "logical_id": "mcp:third_party/coda/mcp.json#coda",
+      "canonical_path": "third_party/coda/mcp.json#coda",
+      "paths": [
+        "third_party/coda/mcp.json#coda"
+      ],
+      "description": "https://docs.superhuman.com/apis/mcp",
+      "content_hash": "48ffa76fb7584e6000b3d598fd01c3bccf050383",
+      "signature_hash": "45aa39043ca9f6a13f2336d5a9ce7e54107ffaf9",
+      "variant_hashes": [
+        "48ffa76fb7584e6000b3d598fd01c3bccf050383"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "coinbase",
+      "category": "",
+      "logical_id": "mcp:third_party/coinbase/mcp.json#coinbase",
+      "canonical_path": "third_party/coinbase/mcp.json#coinbase",
+      "paths": [
+        "third_party/coinbase/mcp.json#coinbase"
+      ],
+      "description": "https://agents.coinbase.com/mcp",
+      "content_hash": "d2730ec76e7cb5b6e62b994f2ad1eab0ed2248b3",
+      "signature_hash": "4d0ac75a34a5a87850ef87df1b756315ae72bbfc",
+      "variant_hashes": [
+        "d2730ec76e7cb5b6e62b994f2ad1eab0ed2248b3"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "craft",
+      "category": "",
+      "logical_id": "mcp:third_party/craft/mcp.json#craft",
+      "canonical_path": "third_party/craft/mcp.json#craft",
+      "paths": [
+        "third_party/craft/mcp.json#craft"
+      ],
+      "description": "https://mcp.craft.do/my/mcp",
+      "content_hash": "f1c12f0a8f7c6f46e08930eb5e1fab6bbed25921",
+      "signature_hash": "c44fcae64e7e4986f30700bb82820b8982770756",
+      "variant_hashes": [
+        "f1c12f0a8f7c6f46e08930eb5e1fab6bbed25921"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "customer-io",
+      "category": "",
+      "logical_id": "mcp:third_party/customer-io/mcp.json#customer-io",
+      "canonical_path": "third_party/customer-io/mcp.json#customer-io",
+      "paths": [
+        "third_party/customer-io/mcp.json#customer-io"
+      ],
+      "description": "https://mcp.customer.io/mcp",
+      "content_hash": "fa421bf7759221e71f855a6d69faca42ea543f7a",
+      "signature_hash": "bd04d35987681b5779202c740056c1fc0bfddeea",
+      "variant_hashes": [
+        "fa421bf7759221e71f855a6d69faca42ea543f7a"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "daloopa",
+      "category": "",
+      "logical_id": "mcp:third_party/daloopa/mcp.json#daloopa",
+      "canonical_path": "third_party/daloopa/mcp.json#daloopa",
+      "paths": [
+        "third_party/daloopa/mcp.json#daloopa"
+      ],
+      "description": "https://mcp.daloopa.com/server/mcp",
+      "content_hash": "e0678cc8dd36ed778b9a10dcb3fc0f783a5e39a0",
+      "signature_hash": "51095bde11d932c39fed02aa25aa27068dadaf84",
+      "variant_hashes": [
+        "e0678cc8dd36ed778b9a10dcb3fc0f783a5e39a0"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "docusign",
+      "category": "",
+      "logical_id": "mcp:third_party/docusign/mcp.json#docusign",
+      "canonical_path": "third_party/docusign/mcp.json#docusign",
+      "paths": [
+        "third_party/docusign/mcp.json#docusign"
+      ],
+      "description": "https://mcp.docusign.com/mcp",
+      "content_hash": "174c8720ea6d612228325cf9c9cd1e4d3a39141c",
+      "signature_hash": "f7ff7a94c20965dd71d174852c04eabd4bd2058a",
+      "variant_hashes": [
+        "174c8720ea6d612228325cf9c9cd1e4d3a39141c"
+      ],
+      "line_count": 8,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "etoro-trading",
+      "category": "",
+      "logical_id": "mcp:third_party/etoro-trading/mcp.json#etoro-trading",
+      "canonical_path": "third_party/etoro-trading/mcp.json#etoro-trading",
+      "paths": [
+        "third_party/etoro-trading/mcp.json#etoro-trading"
+      ],
+      "description": "https://mcp.public-api.etoro.com",
+      "content_hash": "7abef7680eac244d78456b0956e22011f8dda862",
+      "signature_hash": "2030802ca3e4dbe80aa3cd7030b999e7061010a9",
+      "variant_hashes": [
+        "7abef7680eac244d78456b0956e22011f8dda862"
+      ],
+      "line_count": 5,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "excalidraw",
+      "category": "",
+      "logical_id": "mcp:third_party/excalidraw/mcp.json#excalidraw",
+      "canonical_path": "third_party/excalidraw/mcp.json#excalidraw",
+      "paths": [
+        "third_party/excalidraw/mcp.json#excalidraw"
+      ],
+      "description": "https://mcp.excalidraw.com/mcp",
+      "content_hash": "d62096ac24825eaa6bc83c94efab3f86dafb1b27",
+      "signature_hash": "1ccf97459081268bd6503b05453effe43e5126e9",
+      "variant_hashes": [
+        "d62096ac24825eaa6bc83c94efab3f86dafb1b27"
+      ],
+      "line_count": 7,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "fathom",
+      "category": "",
+      "logical_id": "mcp:third_party/fathom/mcp.json#fathom",
+      "canonical_path": "third_party/fathom/mcp.json#fathom",
+      "paths": [
+        "third_party/fathom/mcp.json#fathom"
+      ],
+      "description": "https://api.fathom.ai/mcp",
+      "content_hash": "923f51e2a78b1ad527b574c4836bf81422a8a909",
+      "signature_hash": "ae6dc95b180d74e2115eaec05ddcae917732484c",
+      "variant_hashes": [
+        "923f51e2a78b1ad527b574c4836bf81422a8a909"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "finance",
+      "category": "",
+      "logical_id": "mcp:third_party/finance/mcp.json#finance",
+      "canonical_path": "third_party/finance/mcp.json#finance",
+      "paths": [
+        "third_party/finance/mcp.json#finance"
+      ],
+      "description": "https://connectors-gateway.grok.com/gateway/v1/finance/mcp",
+      "content_hash": "a396109b62f7acc0742f0a95273b8a9fcae818b6",
+      "signature_hash": "8629a919bbd275730cd0d961565be62f450c87b1",
+      "variant_hashes": [
+        "a396109b62f7acc0742f0a95273b8a9fcae818b6"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "fireflies",
+      "category": "",
+      "logical_id": "mcp:third_party/fireflies/mcp.json#fireflies",
+      "canonical_path": "third_party/fireflies/mcp.json#fireflies",
+      "paths": [
+        "third_party/fireflies/mcp.json#fireflies"
+      ],
+      "description": "https://api.fireflies.ai/mcp",
+      "content_hash": "5d8c5dbaa4292c50af82b4c04db98a0c8971cf31",
+      "signature_hash": "26a38205aa4c03274a3e8a93ee15f5414060cffd",
+      "variant_hashes": [
+        "5d8c5dbaa4292c50af82b4c04db98a0c8971cf31"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "gamma",
+      "category": "",
+      "logical_id": "mcp:third_party/gamma/mcp.json#gamma",
+      "canonical_path": "third_party/gamma/mcp.json#gamma",
+      "paths": [
+        "third_party/gamma/mcp.json#gamma"
+      ],
+      "description": "https://mcp.gamma.app/mcp",
+      "content_hash": "4f24f294bba304172fe87f78af4f0c0e90910aa1",
+      "signature_hash": "4a1851122f71c5cd6e3b1a70f61fdd630c53f5ca",
+      "variant_hashes": [
+        "4f24f294bba304172fe87f78af4f0c0e90910aa1"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "github",
+      "category": "",
+      "logical_id": "mcp:third_party/github/mcp.json#github",
+      "canonical_path": "third_party/github/mcp.json#github",
+      "paths": [
+        "third_party/github/mcp.json#github"
+      ],
+      "description": "https://api.githubcopilot.com/mcp/",
+      "content_hash": "c49bd31fb48489b1fa5493d2fd7b8ddb93087b5d",
+      "signature_hash": "c30336b0eaca752e6a6ccffbb8614bb1f55cdc26",
+      "variant_hashes": [
+        "c49bd31fb48489b1fa5493d2fd7b8ddb93087b5d"
+      ],
+      "line_count": 7,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "gmail",
+      "category": "",
+      "logical_id": "mcp:third_party/gmail/mcp.json#gmail",
+      "canonical_path": "third_party/gmail/mcp.json#gmail",
+      "paths": [
+        "third_party/gmail/mcp.json#gmail"
+      ],
+      "description": "https://gmailmcp.googleapis.com/mcp/v1",
+      "content_hash": "b244b4dda70d3c208c07406cfbde06468a055797",
+      "signature_hash": "701662c0442aeaca70d868ff23bdeaa83713c378",
+      "variant_hashes": [
+        "b244b4dda70d3c208c07406cfbde06468a055797"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "godaddy",
+      "category": "",
+      "logical_id": "mcp:third_party/godaddy/mcp.json#godaddy",
+      "canonical_path": "third_party/godaddy/mcp.json#godaddy",
+      "paths": [
+        "third_party/godaddy/mcp.json#godaddy"
+      ],
+      "description": "https://api.godaddy.com/v1/domains/mcp",
+      "content_hash": "361d76e68b7b643136c8e5b2167cfe94b1ef5cef",
+      "signature_hash": "20a15be0b1e3492f0dd54c5017603306d4f73513",
+      "variant_hashes": [
+        "361d76e68b7b643136c8e5b2167cfe94b1ef5cef"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "gong",
+      "category": "",
+      "logical_id": "mcp:third_party/gong/mcp.json#gong",
+      "canonical_path": "third_party/gong/mcp.json#gong",
+      "paths": [
+        "third_party/gong/mcp.json#gong"
+      ],
+      "description": "https://mcp.gong.io/mcp",
+      "content_hash": "410b7b880ff63ecf7d55f6f1bf636e2d9a85dc90",
+      "signature_hash": "b76c0821dab7bfd6e0d9e9ab3cd3e5d30dbfe5bd",
+      "variant_hashes": [
+        "410b7b880ff63ecf7d55f6f1bf636e2d9a85dc90"
+      ],
+      "line_count": 7,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "google-calendar",
+      "category": "",
+      "logical_id": "mcp:third_party/google-calendar/mcp.json#google-calendar",
+      "canonical_path": "third_party/google-calendar/mcp.json#google-calendar",
+      "paths": [
+        "third_party/google-calendar/mcp.json#google-calendar"
+      ],
+      "description": "https://calendarmcp.googleapis.com/mcp/v1",
+      "content_hash": "aed88cc0ce1851aa5fce94df44d7860fc39d0235",
+      "signature_hash": "f8f070db426befa1d9f53596a5e471aeac3aa2e2",
+      "variant_hashes": [
+        "aed88cc0ce1851aa5fce94df44d7860fc39d0235"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "google-cloud-bigquery",
+      "category": "",
+      "logical_id": "mcp:third_party/google-cloud-bigquery/mcp.json#google-cloud-bigquery",
+      "canonical_path": "third_party/google-cloud-bigquery/mcp.json#google-cloud-bigquery",
+      "paths": [
+        "third_party/google-cloud-bigquery/mcp.json#google-cloud-bigquery"
+      ],
+      "description": "https://bigquery.googleapis.com/mcp",
+      "content_hash": "e51da8ea2a736433f342c006fb045ffcc78f7264",
+      "signature_hash": "d36700040fd72bbcacae29ad59fa5f04f18deeaa",
+      "variant_hashes": [
+        "e51da8ea2a736433f342c006fb045ffcc78f7264"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "google-docs",
+      "category": "",
+      "logical_id": "mcp:third_party/google-docs/mcp.json#google-docs",
+      "canonical_path": "third_party/google-docs/mcp.json#google-docs",
+      "paths": [
+        "third_party/google-docs/mcp.json#google-docs"
+      ],
+      "description": "https://api.cursor.com/rest-mcp/google-docs/mcp",
+      "content_hash": "862f4b0f40d16583a3af5312c728a2f5f744376f",
+      "signature_hash": "c16923a6dc8451aecbb2c47b84729d7994988f79",
+      "variant_hashes": [
+        "862f4b0f40d16583a3af5312c728a2f5f744376f"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "google-drive",
+      "category": "",
+      "logical_id": "mcp:third_party/google-drive/mcp.json#google-drive",
+      "canonical_path": "third_party/google-drive/mcp.json#google-drive",
+      "paths": [
+        "third_party/google-drive/mcp.json#google-drive"
+      ],
+      "description": "https://api.cursor.com/rest-mcp/google-drive/mcp",
+      "content_hash": "a4d58a27450021b6ee45a9b3c937205127071f3c",
+      "signature_hash": "9e74560886639658e7320e2a7f616d0f1e7fea8f",
+      "variant_hashes": [
+        "a4d58a27450021b6ee45a9b3c937205127071f3c"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "google-sheets",
+      "category": "",
+      "logical_id": "mcp:third_party/google-sheets/mcp.json#google-sheets",
+      "canonical_path": "third_party/google-sheets/mcp.json#google-sheets",
+      "paths": [
+        "third_party/google-sheets/mcp.json#google-sheets"
+      ],
+      "description": "https://api.cursor.com/rest-mcp/google-sheets/mcp",
+      "content_hash": "404c89bb8b4ccf4b8c26928f8ee43bf4194b643c",
+      "signature_hash": "a804c03ab4b0a8da2ce15f5cd0a3022cbc6c242f",
+      "variant_hashes": [
+        "404c89bb8b4ccf4b8c26928f8ee43bf4194b643c"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "google-slides",
+      "category": "",
+      "logical_id": "mcp:third_party/google-slides/mcp.json#google-slides",
+      "canonical_path": "third_party/google-slides/mcp.json#google-slides",
+      "paths": [
+        "third_party/google-slides/mcp.json#google-slides"
+      ],
+      "description": "https://api.cursor.com/rest-mcp/google-slides/mcp",
+      "content_hash": "51f09cdd7d7bdc467e85526d8b07c7493eef64da",
+      "signature_hash": "d007fed1915e2d9d6b7cfc33139b1f519da37b10",
+      "variant_hashes": [
+        "51f09cdd7d7bdc467e85526d8b07c7493eef64da"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "greenhouse",
+      "category": "",
+      "logical_id": "mcp:third_party/greenhouse/mcp.json#greenhouse",
+      "canonical_path": "third_party/greenhouse/mcp.json#greenhouse",
+      "paths": [
+        "third_party/greenhouse/mcp.json#greenhouse"
+      ],
+      "description": "https://mcp.us.greenhouse.io/mcp",
+      "content_hash": "7ab210ad381cc7d560dfffbe3687367e66b19368",
+      "signature_hash": "9d99aee186b42ee182a5449f4560d7e47ff56d42",
+      "variant_hashes": [
+        "7ab210ad381cc7d560dfffbe3687367e66b19368"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "guru",
+      "category": "",
+      "logical_id": "mcp:third_party/guru/mcp.json#guru",
+      "canonical_path": "third_party/guru/mcp.json#guru",
+      "paths": [
+        "third_party/guru/mcp.json#guru"
+      ],
+      "description": "https://mcp.api.getguru.com/mcp",
+      "content_hash": "65f9b4426bc9f6dcf4ac74d18dad2fb7df1ecd33",
+      "signature_hash": "96697a98dd32a8c78fc8a896ef46340d2cb4dd7c",
+      "variant_hashes": [
+        "65f9b4426bc9f6dcf4ac74d18dad2fb7df1ecd33"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "hubspot",
+      "category": "",
+      "logical_id": "mcp:third_party/hubspot/mcp.json#hubspot",
+      "canonical_path": "third_party/hubspot/mcp.json#hubspot",
+      "paths": [
+        "third_party/hubspot/mcp.json#hubspot"
+      ],
+      "description": "https://mcp.hubspot.com",
+      "content_hash": "a13c3b69b6c29d6aadfc965319caef70554450b5",
+      "signature_hash": "8e0b7ec56b937d9bf7104b5e1ffe11786161d4e1",
+      "variant_hashes": [
+        "a13c3b69b6c29d6aadfc965319caef70554450b5"
+      ],
+      "line_count": 8,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "hunter",
+      "category": "",
+      "logical_id": "mcp:third_party/hunter/mcp.json#hunter",
+      "canonical_path": "third_party/hunter/mcp.json#hunter",
+      "paths": [
+        "third_party/hunter/mcp.json#hunter"
+      ],
+      "description": "https://mcp.hunter.io/mcp",
+      "content_hash": "5b186a1f872f78bfe4984c5552499fe636230c4b",
+      "signature_hash": "d227067e9771ebf6c9268a366c911f58993b216b",
+      "variant_hashes": [
+        "5b186a1f872f78bfe4984c5552499fe636230c4b"
+      ],
+      "line_count": 7,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "interactive-brokers",
+      "category": "",
+      "logical_id": "mcp:third_party/interactive-brokers/mcp.json#interactive-brokers",
+      "canonical_path": "third_party/interactive-brokers/mcp.json#interactive-brokers",
+      "paths": [
+        "third_party/interactive-brokers/mcp.json#interactive-brokers"
+      ],
+      "description": "https://api.ibkr.com/v1/api/mcp-public",
+      "content_hash": "ab81e34006b5dbbdeb2ddcee763fe311154c9c43",
+      "signature_hash": "2c54636f8787e9f996ceb53122192431439912ca",
+      "variant_hashes": [
+        "ab81e34006b5dbbdeb2ddcee763fe311154c9c43"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "intercom",
+      "category": "",
+      "logical_id": "mcp:third_party/intercom/mcp.json#intercom",
+      "canonical_path": "third_party/intercom/mcp.json#intercom",
+      "paths": [
+        "third_party/intercom/mcp.json#intercom"
+      ],
+      "description": "https://mcp.intercom.com/mcp",
+      "content_hash": "d971f20ccd473d6239693ceba299babf9959409f",
+      "signature_hash": "1985862248b1e192d39299f38c13a7452557790b",
+      "variant_hashes": [
+        "d971f20ccd473d6239693ceba299babf9959409f"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "jotform",
+      "category": "",
+      "logical_id": "mcp:third_party/jotform/mcp.json#jotform",
+      "canonical_path": "third_party/jotform/mcp.json#jotform",
+      "paths": [
+        "third_party/jotform/mcp.json#jotform"
+      ],
+      "description": "https://mcp.jotform.com",
+      "content_hash": "d1e942593d900142343196459efb484898dac278",
+      "signature_hash": "5bfed861891535aa4e6fc713ea27f1bd9f75482e",
+      "variant_hashes": [
+        "d1e942593d900142343196459efb484898dac278"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "juicebox",
+      "category": "",
+      "logical_id": "mcp:third_party/juicebox/mcp.json#juicebox",
+      "canonical_path": "third_party/juicebox/mcp.json#juicebox",
+      "paths": [
+        "third_party/juicebox/mcp.json#juicebox"
+      ],
+      "description": "https://mcp.juicebox.ai/v1",
+      "content_hash": "4128077beca9b85bb9936f8914077201336ff26e",
+      "signature_hash": "a507d5589315df5bfb42f5d53837737481c863e7",
+      "variant_hashes": [
+        "4128077beca9b85bb9936f8914077201336ff26e"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "klaviyo",
+      "category": "",
+      "logical_id": "mcp:third_party/klaviyo/mcp.json#klaviyo",
+      "canonical_path": "third_party/klaviyo/mcp.json#klaviyo",
+      "paths": [
+        "third_party/klaviyo/mcp.json#klaviyo"
+      ],
+      "description": "https://mcp.klaviyo.com/mcp",
+      "content_hash": "8af70f755a80fedd0f7ca38a3ef201aff37bb1ab",
+      "signature_hash": "84bb232c6bd983c2dcd92f7a625f4209623e6686",
+      "variant_hashes": [
+        "8af70f755a80fedd0f7ca38a3ef201aff37bb1ab"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "mailerlite",
+      "category": "",
+      "logical_id": "mcp:third_party/mailerlite/mcp.json#mailerlite",
+      "canonical_path": "third_party/mailerlite/mcp.json#mailerlite",
+      "paths": [
+        "third_party/mailerlite/mcp.json#mailerlite"
+      ],
+      "description": "https://mcp.mailerlite.com/mcp",
+      "content_hash": "81f00786ec4f95fa7f6bd95d984cd1568536da1f",
+      "signature_hash": "c48e6920c93292e8c9d0fc3e9fa8c043a4440618",
+      "variant_hashes": [
+        "81f00786ec4f95fa7f6bd95d984cd1568536da1f"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "meltwater",
+      "category": "",
+      "logical_id": "mcp:third_party/meltwater/mcp.json#meltwater",
+      "canonical_path": "third_party/meltwater/mcp.json#meltwater",
+      "paths": [
+        "third_party/meltwater/mcp.json#meltwater"
+      ],
+      "description": "https://api.meltwater.com/v2/mcp",
+      "content_hash": "42141225857b6b55b97c2cc8a2b5fddc3cb1933d",
+      "signature_hash": "c9d14dca8cc566fb1ea40cdc1a3bc296bc267058",
+      "variant_hashes": [
+        "42141225857b6b55b97c2cc8a2b5fddc3cb1933d"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "mem",
+      "category": "",
+      "logical_id": "mcp:third_party/mem/mcp.json#mem",
+      "canonical_path": "third_party/mem/mcp.json#mem",
+      "paths": [
+        "third_party/mem/mcp.json#mem"
+      ],
+      "description": "https://mcp.mem.ai/mcp",
+      "content_hash": "2bb987c7ad78941cc77be04f0b12d37f6067c830",
+      "signature_hash": "2cad8bcf6ec49e71ed34f639127bf99468623878",
+      "variant_hashes": [
+        "2bb987c7ad78941cc77be04f0b12d37f6067c830"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "mercury",
+      "category": "",
+      "logical_id": "mcp:third_party/mercury/mcp.json#mercury",
+      "canonical_path": "third_party/mercury/mcp.json#mercury",
+      "paths": [
+        "third_party/mercury/mcp.json#mercury"
+      ],
+      "description": "https://mcp.mercury.com/mcp",
+      "content_hash": "7aa6e8ef686cd7f0751a55508cf69086d98abcf0",
+      "signature_hash": "2b9499f1868db7c36ed6e7e375eba98a1f81486b",
+      "variant_hashes": [
+        "7aa6e8ef686cd7f0751a55508cf69086d98abcf0"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "navan",
+      "category": "",
+      "logical_id": "mcp:third_party/navan/mcp.json#navan",
+      "canonical_path": "third_party/navan/mcp.json#navan",
+      "paths": [
+        "third_party/navan/mcp.json#navan"
+      ],
+      "description": "https://mcp.navan.com/mcp",
+      "content_hash": "19edba6a7bfce6107907058528a18e231d90313f",
+      "signature_hash": "2310907f1488632fae3fda44910a5d328076a27e",
+      "variant_hashes": [
+        "19edba6a7bfce6107907058528a18e231d90313f"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "onedrive",
+      "category": "",
+      "logical_id": "mcp:third_party/onedrive/mcp.json#onedrive",
+      "canonical_path": "third_party/onedrive/mcp.json#onedrive",
+      "paths": [
+        "third_party/onedrive/mcp.json#onedrive"
+      ],
+      "description": "https://api.cursor.com/rest-mcp/onedrive/mcp",
+      "content_hash": "8e7114fcc5ad668f5030c6ae045bd508811e920d",
+      "signature_hash": "6d9384e35b9ebbe183849d8daed13c4cccd27161",
+      "variant_hashes": [
+        "8e7114fcc5ad668f5030c6ae045bd508811e920d"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "otter",
+      "category": "",
+      "logical_id": "mcp:third_party/otter/mcp.json#otter",
+      "canonical_path": "third_party/otter/mcp.json#otter",
+      "paths": [
+        "third_party/otter/mcp.json#otter"
+      ],
+      "description": "https://mcp.otter.ai/mcp",
+      "content_hash": "9169fcf57a8c465b4a2a0027c81987a4195df44a",
+      "signature_hash": "87fdf1b55b2ef25491765d3df500a421c75715f1",
+      "variant_hashes": [
+        "9169fcf57a8c465b4a2a0027c81987a4195df44a"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "outlook-calendar",
+      "category": "",
+      "logical_id": "mcp:third_party/outlook-calendar/mcp.json#outlook-calendar",
+      "canonical_path": "third_party/outlook-calendar/mcp.json#outlook-calendar",
+      "paths": [
+        "third_party/outlook-calendar/mcp.json#outlook-calendar"
+      ],
+      "description": "https://api.cursor.com/rest-mcp/outlook-calendar/mcp",
+      "content_hash": "3538c158582607cfc74c4fb870846c6efa83e5a3",
+      "signature_hash": "1352f913c685ae6605f52883c4141efe1ea157fa",
+      "variant_hashes": [
+        "3538c158582607cfc74c4fb870846c6efa83e5a3"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "outlook",
+      "category": "",
+      "logical_id": "mcp:third_party/outlook/mcp.json#outlook",
+      "canonical_path": "third_party/outlook/mcp.json#outlook",
+      "paths": [
+        "third_party/outlook/mcp.json#outlook"
+      ],
+      "description": "https://api.cursor.com/rest-mcp/outlook/mcp",
+      "content_hash": "f8e65b3b1b2dfcce8dddd087cb9f16f0025def41",
+      "signature_hash": "de6dc04d75ac7df1de3f13e6e3cb33682b65805b",
+      "variant_hashes": [
+        "f8e65b3b1b2dfcce8dddd087cb9f16f0025def41"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "outreach",
+      "category": "",
+      "logical_id": "mcp:third_party/outreach/mcp.json#outreach",
+      "canonical_path": "third_party/outreach/mcp.json#outreach",
+      "paths": [
+        "third_party/outreach/mcp.json#outreach"
+      ],
+      "description": "https://api.outreach.io/mcp",
+      "content_hash": "a362d5b88af1ec2efcedc10f490e7f4ca73c782f",
+      "signature_hash": "8faa725d2ea4b5115bd3cfb7ab66d9de6c0d1ce2",
+      "variant_hashes": [
+        "a362d5b88af1ec2efcedc10f490e7f4ca73c782f"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "plaud",
+      "category": "",
+      "logical_id": "mcp:third_party/plaud/mcp.json#plaud",
+      "canonical_path": "third_party/plaud/mcp.json#plaud",
+      "paths": [
+        "third_party/plaud/mcp.json#plaud"
+      ],
+      "description": "https://mcp.plaud.ai/mcp",
+      "content_hash": "06673bd4afa6bee857cd4bec1cb56d50c6367d8e",
+      "signature_hash": "8187ec816aab9f3df56ea155595f133cd2709f79",
+      "variant_hashes": [
+        "06673bd4afa6bee857cd4bec1cb56d50c6367d8e"
+      ],
+      "line_count": 5,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "playwright",
+      "category": "",
+      "logical_id": "mcp:third_party/playwright/mcp.json#playwright",
+      "canonical_path": "third_party/playwright/mcp.json#playwright",
+      "paths": [
+        "third_party/playwright/mcp.json#playwright"
+      ],
+      "description": "npx",
+      "content_hash": "95f536eeb690a9e0ba8eade53ceadd29288a3d6b",
+      "signature_hash": "2691eae66817ee62966b99e9fbefe3dc49e16929",
+      "variant_hashes": [
+        "95f536eeb690a9e0ba8eade53ceadd29288a3d6b"
+      ],
+      "line_count": 7,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "posthog",
+      "category": "",
+      "logical_id": "mcp:third_party/posthog-mcp/mcp.json#posthog",
+      "canonical_path": "third_party/posthog-mcp/mcp.json#posthog",
+      "paths": [
+        "third_party/posthog-mcp/mcp.json#posthog"
+      ],
+      "description": "https://mcp.posthog.com/mcp",
+      "content_hash": "32aa8df8e6bc425bdeec82d4ab3614ba7a5afe5d",
+      "signature_hash": "40f3621794fab77d8610080ee5a3933ab9de5adc",
+      "variant_hashes": [
+        "32aa8df8e6bc425bdeec82d4ab3614ba7a5afe5d"
+      ],
+      "line_count": 5,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "profound",
+      "category": "",
+      "logical_id": "mcp:third_party/profound/mcp.json#profound",
+      "canonical_path": "third_party/profound/mcp.json#profound",
+      "paths": [
+        "third_party/profound/mcp.json#profound"
+      ],
+      "description": "https://mcp.tryprofound.com/mcp",
+      "content_hash": "113cc38c68ab83240d20c1b4b22ed6c5ec712468",
+      "signature_hash": "039c2f92fcc334be0420cb948e34e1210500c3e8",
+      "variant_hashes": [
+        "113cc38c68ab83240d20c1b4b22ed6c5ec712468"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "readwise",
+      "category": "",
+      "logical_id": "mcp:third_party/readwise/mcp.json#readwise",
+      "canonical_path": "third_party/readwise/mcp.json#readwise",
+      "paths": [
+        "third_party/readwise/mcp.json#readwise"
+      ],
+      "description": "https://mcp2.readwise.io/mcp",
+      "content_hash": "4936a057309acc4fa7ecdef933b2d0c74e684fe3",
+      "signature_hash": "dab86ccdea16b69a0a19ccba1184e2d5a96e5da0",
+      "variant_hashes": [
+        "4936a057309acc4fa7ecdef933b2d0c74e684fe3"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "robinhood",
+      "category": "",
+      "logical_id": "mcp:third_party/robinhood/mcp.json#robinhood",
+      "canonical_path": "third_party/robinhood/mcp.json#robinhood",
+      "paths": [
+        "third_party/robinhood/mcp.json#robinhood"
+      ],
+      "description": "https://agent.robinhood.com/mcp/trading",
+      "content_hash": "6591cc333491cf7df4158680b1e838166cbdedec",
+      "signature_hash": "112cdd6dc32e7eb21525abed3f582a1199b1a6f5",
+      "variant_hashes": [
+        "6591cc333491cf7df4158680b1e838166cbdedec"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "salesforce",
+      "category": "",
+      "logical_id": "mcp:third_party/salesforce/mcp.json#salesforce",
+      "canonical_path": "third_party/salesforce/mcp.json#salesforce",
+      "paths": [
+        "third_party/salesforce/mcp.json#salesforce"
+      ],
+      "description": "${SALESFORCE_MCP_URL}",
+      "content_hash": "59397076dd2e8a6c25b06f984f8b748f4cd0c4b5",
+      "signature_hash": "7347f5992d49624b58028f02ba4614aa0c85644d",
+      "variant_hashes": [
+        "59397076dd2e8a6c25b06f984f8b748f4cd0c4b5"
+      ],
+      "line_count": 11,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "semrush",
+      "category": "",
+      "logical_id": "mcp:third_party/semrush/mcp.json#semrush",
+      "canonical_path": "third_party/semrush/mcp.json#semrush",
+      "paths": [
+        "third_party/semrush/mcp.json#semrush"
+      ],
+      "description": "https://mcp.semrush.com/v2/mcp",
+      "content_hash": "bb0ba686d6620214d7d5166fd53e1a6d90e37ab2",
+      "signature_hash": "530a0a434a2d87e76ce24632a06b68f4516db33f",
+      "variant_hashes": [
+        "bb0ba686d6620214d7d5166fd53e1a6d90e37ab2"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "sharepoint",
+      "category": "",
+      "logical_id": "mcp:third_party/sharepoint/mcp.json#sharepoint",
+      "canonical_path": "third_party/sharepoint/mcp.json#sharepoint",
+      "paths": [
+        "third_party/sharepoint/mcp.json#sharepoint"
+      ],
+      "description": "https://api.cursor.com/rest-mcp/sharepoint/mcp",
+      "content_hash": "f054ec6d7272a1c5ab150a3c567099e4f2bf4e0f",
+      "signature_hash": "d21d403ce7b820fdb2dfd74a8ad72c470f93b6d5",
+      "variant_hashes": [
+        "f054ec6d7272a1c5ab150a3c567099e4f2bf4e0f"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "shopify",
+      "category": "",
+      "logical_id": "mcp:third_party/shopify-store/mcp.json#shopify",
+      "canonical_path": "third_party/shopify-store/mcp.json#shopify",
+      "paths": [
+        "third_party/shopify-store/mcp.json#shopify"
+      ],
+      "description": "https://setup.shopify.com/mcp",
+      "content_hash": "0280e094570a94e3bc9b24291b8549dceabf438b",
+      "signature_hash": "5b218b848a47ef4cb0a733faac98e0da22b2da15",
+      "variant_hashes": [
+        "0280e094570a94e3bc9b24291b8549dceabf438b"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "similarweb",
+      "category": "",
+      "logical_id": "mcp:third_party/similarweb/mcp.json#similarweb",
+      "canonical_path": "third_party/similarweb/mcp.json#similarweb",
+      "paths": [
+        "third_party/similarweb/mcp.json#similarweb"
+      ],
+      "description": "https://mcp.similarweb.com",
+      "content_hash": "11430fc2d1662adb747fb5cdd54ff9f1646d6022",
+      "signature_hash": "2aee4e4f03c1d3f67520cad9d371a05a498d7351",
+      "variant_hashes": [
+        "11430fc2d1662adb747fb5cdd54ff9f1646d6022"
+      ],
+      "line_count": 7,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "smartsheet",
+      "category": "",
+      "logical_id": "mcp:third_party/smartsheet/mcp.json#smartsheet",
+      "canonical_path": "third_party/smartsheet/mcp.json#smartsheet",
+      "paths": [
+        "third_party/smartsheet/mcp.json#smartsheet"
+      ],
+      "description": "https://mcp.smartsheet.com",
+      "content_hash": "286c5eb72c944f343b546456175bcaa03a6ac34a",
+      "signature_hash": "bf85cbb448d9c0011bb5ef6316a51ac5f28103f3",
+      "variant_hashes": [
+        "286c5eb72c944f343b546456175bcaa03a6ac34a"
+      ],
+      "line_count": 7,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "sp-global",
+      "category": "",
+      "logical_id": "mcp:third_party/sp-global/mcp.json#sp-global",
+      "canonical_path": "third_party/sp-global/mcp.json#sp-global",
+      "paths": [
+        "third_party/sp-global/mcp.json#sp-global"
+      ],
+      "description": "https://kfinance.kensho.com/integrations/mcp",
+      "content_hash": "193cc033d2fa496e0a894346a1361fd869d404ac",
+      "signature_hash": "b3c7e9edb81f94b8f973ff3b67fa62502c2d2648",
+      "variant_hashes": [
+        "193cc033d2fa496e0a894346a1361fd869d404ac"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "statsig",
+      "category": "",
+      "logical_id": "mcp:third_party/statsig/mcp.json#statsig",
+      "canonical_path": "third_party/statsig/mcp.json#statsig",
+      "paths": [
+        "third_party/statsig/mcp.json#statsig"
+      ],
+      "description": "https://api.statsig.com/v1/mcp",
+      "content_hash": "52693bc7cfe808d8f16c9e098400b1654481342e",
+      "signature_hash": "fb3c755ebb814d97c8b5dd252d917feaacc947c6",
+      "variant_hashes": [
+        "52693bc7cfe808d8f16c9e098400b1654481342e"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "teams",
+      "category": "",
+      "logical_id": "mcp:third_party/teams/mcp.json#teams",
+      "canonical_path": "third_party/teams/mcp.json#teams",
+      "paths": [
+        "third_party/teams/mcp.json#teams"
+      ],
+      "description": "https://api.cursor.com/rest-mcp/teams/mcp",
+      "content_hash": "a982f6d5102994825da10331f4617c585de83f49",
+      "signature_hash": "6b199d7624f8490ae1bcac3aaf72de9966d67cd7",
+      "variant_hashes": [
+        "a982f6d5102994825da10331f4617c585de83f49"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "tinyfish",
+      "category": "",
+      "logical_id": "mcp:third_party/tinyfish/mcp.json#tinyfish",
+      "canonical_path": "third_party/tinyfish/mcp.json#tinyfish",
+      "paths": [
+        "third_party/tinyfish/mcp.json#tinyfish"
+      ],
+      "description": "https://agent.tinyfish.ai/mcp",
+      "content_hash": "44f0141e972be8616eff14ff0f16f5eda9855d97",
+      "signature_hash": "d0de5e2b77ad235d0af21530ac0e7b610df7a634",
+      "variant_hashes": [
+        "44f0141e972be8616eff14ff0f16f5eda9855d97"
+      ],
+      "line_count": 5,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "todoist",
+      "category": "",
+      "logical_id": "mcp:third_party/todoist/mcp.json#todoist",
+      "canonical_path": "third_party/todoist/mcp.json#todoist",
+      "paths": [
+        "third_party/todoist/mcp.json#todoist"
+      ],
+      "description": "https://ai.todoist.net/mcp",
+      "content_hash": "bcb19c1fc20c7df34a43d0d0b649549f3e36e0a5",
+      "signature_hash": "c1cecab4eca59f35aac49190b2f5a1a68242600f",
+      "variant_hashes": [
+        "bcb19c1fc20c7df34a43d0d0b649549f3e36e0a5"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "trello",
+      "category": "",
+      "logical_id": "mcp:third_party/trello/mcp.json#trello",
+      "canonical_path": "third_party/trello/mcp.json#trello",
+      "paths": [
+        "third_party/trello/mcp.json#trello"
+      ],
+      "description": "https://mcp.trello.com/v1",
+      "content_hash": "4c2ff3788d67e797f763e94a832b35f112dca3f4",
+      "signature_hash": "69ba2cd387076ba2cd6cee2e06dd554ea149ea14",
+      "variant_hashes": [
+        "4c2ff3788d67e797f763e94a832b35f112dca3f4"
+      ],
+      "line_count": 5,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "typeform",
+      "category": "",
+      "logical_id": "mcp:third_party/typeform/mcp.json#typeform",
+      "canonical_path": "third_party/typeform/mcp.json#typeform",
+      "paths": [
+        "third_party/typeform/mcp.json#typeform"
+      ],
+      "description": "https://api.typeform.com/mcp",
+      "content_hash": "35376abe72c016d70144ab2b3de4148c75acf490",
+      "signature_hash": "da924a68dd6c1d3c0d4e6fa0d6815a1003e20034",
+      "variant_hashes": [
+        "35376abe72c016d70144ab2b3de4148c75acf490"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "upwork",
+      "category": "",
+      "logical_id": "mcp:third_party/upwork/mcp.json#upwork",
+      "canonical_path": "third_party/upwork/mcp.json#upwork",
+      "paths": [
+        "third_party/upwork/mcp.json#upwork"
+      ],
+      "description": "https://mcp.upwork.com/mcp",
+      "content_hash": "c39f78ac1fdcb2b1014b60635a8fbf9c61f5e650",
+      "signature_hash": "f175b3b36198aac203616a5d5af3f18c29ffce33",
+      "variant_hashes": [
+        "c39f78ac1fdcb2b1014b60635a8fbf9c61f5e650"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "webull",
+      "category": "",
+      "logical_id": "mcp:third_party/webull/mcp.json#webull",
+      "canonical_path": "third_party/webull/mcp.json#webull",
+      "paths": [
+        "third_party/webull/mcp.json#webull"
+      ],
+      "description": "https://api.webull.com/mcp",
+      "content_hash": "fae2eb7b4891425a52c227d2a2c0035c83f87425",
+      "signature_hash": "21e37d6a56247c3e07ac7e694b9ca5816580c7ae",
+      "variant_hashes": [
+        "fae2eb7b4891425a52c227d2a2c0035c83f87425"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "workable",
+      "category": "",
+      "logical_id": "mcp:third_party/workable/mcp.json#workable",
+      "canonical_path": "third_party/workable/mcp.json#workable",
+      "paths": [
+        "third_party/workable/mcp.json#workable"
+      ],
+      "description": "https://mcp.workable.com/mcp",
+      "content_hash": "e1852f44d4a2d685f1c707aad6a96bc9d67f3b93",
+      "signature_hash": "bf0277e56bf3f40b32fc4b8871eb5fced41e1065",
+      "variant_hashes": [
+        "e1852f44d4a2d685f1c707aad6a96bc9d67f3b93"
+      ],
+      "line_count": 4,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "wrike",
+      "category": "",
+      "logical_id": "mcp:third_party/wrike/mcp.json#wrike",
+      "canonical_path": "third_party/wrike/mcp.json#wrike",
+      "paths": [
+        "third_party/wrike/mcp.json#wrike"
+      ],
+      "description": "https://mcp.wrike.com/v2",
+      "content_hash": "fd9d60c2d20d0dc1e276e5740456c155ea5d1162",
+      "signature_hash": "28ae9678a0810eaa4da9ecf28a7a7ac6dadecb65",
+      "variant_hashes": [
+        "fd9d60c2d20d0dc1e276e5740456c155ea5d1162"
+      ],
+      "line_count": 7,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "x-ads",
+      "category": "",
+      "logical_id": "mcp:third_party/x-ads/mcp.json#x-ads",
+      "canonical_path": "third_party/x-ads/mcp.json#x-ads",
+      "paths": [
+        "third_party/x-ads/mcp.json#x-ads"
+      ],
+      "description": "https://ads-api.x.com/mcp",
+      "content_hash": "cbab552044cfeadc89875b86bcf529c5274437cd",
+      "signature_hash": "e43ec0a9fe05147bde5052d7e40ceedb37d8bd8d",
+      "variant_hashes": [
+        "cbab552044cfeadc89875b86bcf529c5274437cd"
+      ],
+      "line_count": 13,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "x-money",
+      "category": "",
+      "logical_id": "mcp:third_party/x-money/mcp.json#x-money",
+      "canonical_path": "third_party/x-money/mcp.json#x-money",
+      "paths": [
+        "third_party/x-money/mcp.json#x-money"
+      ],
+      "description": "https://mcp.money.x.com/mcp",
+      "content_hash": "3fb9d7ff8faf7f2d657b5a6adfba7be6cf7edb3f",
+      "signature_hash": "256a8d56149245abf445e036e60ccb077331ef0e",
+      "variant_hashes": [
+        "3fb9d7ff8faf7f2d657b5a6adfba7be6cf7edb3f"
+      ],
+      "line_count": 5,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "x",
+      "category": "",
+      "logical_id": "mcp:third_party/x/mcp.json#x",
+      "canonical_path": "third_party/x/mcp.json#x",
+      "paths": [
+        "third_party/x/mcp.json#x"
+      ],
+      "description": "https://api.x.com/mcp",
+      "content_hash": "2e419f48cac77f12adb50832704332d6c1ceffec",
+      "signature_hash": "21dfbb4ec329270ce536ab150e28f46a1f602ce6",
+      "variant_hashes": [
+        "2e419f48cac77f12adb50832704332d6c1ceffec"
+      ],
+      "line_count": 26,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "xero",
+      "category": "",
+      "logical_id": "mcp:third_party/xero/mcp.json#xero",
+      "canonical_path": "third_party/xero/mcp.json#xero",
+      "paths": [
+        "third_party/xero/mcp.json#xero"
+      ],
+      "description": "npx",
+      "content_hash": "eafb5de192b197302c1d28bd030ab48cb8c335eb",
+      "signature_hash": "a9fe267fee998d45457bac67ad89f5ec7119d748",
+      "variant_hashes": [
+        "eafb5de192b197302c1d28bd030ab48cb8c335eb"
+      ],
+      "line_count": 12,
+      "assets": []
+    },
+    {
+      "kind": "mcp",
+      "name": "zoom",
+      "category": "",
+      "logical_id": "mcp:third_party/zoom/mcp.json#zoom",
+      "canonical_path": "third_party/zoom/mcp.json#zoom",
+      "paths": [
+        "third_party/zoom/mcp.json#zoom"
+      ],
+      "description": "https://mcp.zoom.us/mcp/zoom/streamable",
+      "content_hash": "c5f53f2b04203df9b8f4ae9dcb8a6b590f9d71da",
+      "signature_hash": "5c0560f5bab05bb6b29783c57576487f5ca36297",
+      "variant_hashes": [
+        "c5f53f2b04203df9b8f4ae9dcb8a6b590f9d71da"
+      ],
+      "line_count": 8,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "advisor",
+      "category": "skills",
+      "logical_id": "skill:advisor/skills/advisor",
+      "canonical_path": "advisor/skills/advisor/SKILL.md",
+      "paths": [
+        "advisor/skills/advisor/SKILL.md"
+      ],
+      "description": ">-",
+      "content_hash": "807a15b592c25632fb9864ecc4b26e0f8a5ca7d6",
+      "signature_hash": "d16731bbcff52e97b1946b2eea9d430bc2dad44a",
+      "variant_hashes": [
+        "807a15b592c25632fb9864ecc4b26e0f8a5ca7d6"
+      ],
+      "line_count": 123,
+      "assets": [
+        "advisor/skills/advisor/references/briefing-template.md"
+      ]
+    },
+    {
+      "kind": "skill",
+      "name": "check-agent-compatibility",
+      "category": "skills",
+      "logical_id": "skill:agent-compatibility/skills/check-agent-compatibility",
+      "canonical_path": "agent-compatibility/skills/check-agent-compatibility/SKILL.md",
+      "paths": [
+        "agent-compatibility/skills/check-agent-compatibility/SKILL.md"
+      ],
+      "description": "Run the full repository compatibility pass: scanner score, startup path, validation loop, and docs reliability.",
+      "content_hash": "7af8752e661a20895fa2b4a398679a11eaf8a4ab",
+      "signature_hash": "88e6d039bdad04ed1ebd8be65da7f83f90d159a1",
+      "variant_hashes": [
+        "7af8752e661a20895fa2b4a398679a11eaf8a4ab"
+      ],
+      "line_count": 46,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "cli-for-agents",
+      "category": "skills",
+      "logical_id": "skill:cli-for-agent/skills/cli-for-agents",
+      "canonical_path": "cli-for-agent/skills/cli-for-agents/SKILL.md",
+      "paths": [
+        "cli-for-agent/skills/cli-for-agents/SKILL.md"
+      ],
+      "description": ">-",
+      "content_hash": "5aa97236aa319106f364ac42c79b01c0f471e166",
+      "signature_hash": "6fa3ef07d48384505125ff2cd47e2dd5af0d4a34",
+      "variant_hashes": [
+        "5aa97236aa319106f364ac42c79b01c0f471e166"
+      ],
+      "line_count": 87,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "continual-learning",
+      "category": "skills",
+      "logical_id": "skill:continual-learning/skills/continual-learning",
+      "canonical_path": "continual-learning/skills/continual-learning/SKILL.md",
+      "paths": [
+        "continual-learning/skills/continual-learning/SKILL.md"
+      ],
+      "description": "Orchestrate continual learning by delegating transcript mining and AGENTS.md updates to `agents-memory-updater`.",
+      "content_hash": "33d93db695aa52616fb182925951504dd248fccf",
+      "signature_hash": "3a9f5d360134232c0cda40cf6e7e73cf520febaa",
+      "variant_hashes": [
+        "33d93db695aa52616fb182925951504dd248fccf"
+      ],
+      "line_count": 24,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "create-plugin-scaffold",
+      "category": "skills",
+      "logical_id": "skill:create-plugin/skills/create-plugin-scaffold",
+      "canonical_path": "create-plugin/skills/create-plugin-scaffold/SKILL.md",
+      "paths": [
+        "create-plugin/skills/create-plugin-scaffold/SKILL.md"
+      ],
+      "description": "Create a new Cursor plugin scaffold with a valid manifest, component directories, and marketplace wiring. Use when starting a new plugin or adding a plugin to a multi-plugin repository.",
+      "content_hash": "176b6ad6add9ebecaa976fa83e7c7cb371467990",
+      "signature_hash": "fa83e68a7d0203b8140fa4232ad095e9f37c89df",
+      "variant_hashes": [
+        "176b6ad6add9ebecaa976fa83e7c7cb371467990"
+      ],
+      "line_count": 70,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "review-plugin-submission",
+      "category": "skills",
+      "logical_id": "skill:create-plugin/skills/review-plugin-submission",
+      "canonical_path": "create-plugin/skills/review-plugin-submission/SKILL.md",
+      "paths": [
+        "create-plugin/skills/review-plugin-submission/SKILL.md"
+      ],
+      "description": "Audit a Cursor plugin for marketplace readiness. Use when validating manifests, component metadata, discovery paths, and submission quality before publishing.",
+      "content_hash": "caff59e53e29d0dc9655fa5c4bd6eeb78eb6b7a9",
+      "signature_hash": "58ee93a08bde655e500b285f9969ed4870085806",
+      "variant_hashes": [
+        "caff59e53e29d0dc9655fa5c4bd6eeb78eb6b7a9"
+      ],
+      "line_count": 49,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "cursor-sdk",
+      "category": "skills",
+      "logical_id": "skill:cursor-sdk/skills/cursor-sdk",
+      "canonical_path": "cursor-sdk/skills/cursor-sdk/SKILL.md",
+      "paths": [
+        "cursor-sdk/skills/cursor-sdk/SKILL.md"
+      ],
+      "description": "Guide users building apps, scripts, CI pipelines, or automations on top of the Cursor TypeScript SDK (`@cursor/sdk`). Use this skill whenever the user mentions integrating, installing, or writing code against the Cursor SDK; whenever they say `Agent.create`, `Agent.prompt`, `Agent.resume`, `agent.send`, `run.stream`, `CursorAgentError`, or `@cursor/sdk`; whenever they ask to run Cursor agents programmatically from a script, CI/CD pipeline, GitHub Action, backend service, or any other code that isn't the Cursor IDE itself; and whenever they want to pick between local and cloud runtime, configure MCP servers for an SDK agent, or handle streaming, cancellation, or errors from an SDK agent. Also trigger when a user is wiring Cursor into an automation, writing a bot that runs Cursor, or porting REST `/v1/agents` calls to the SDK, even if they don't explicitly name the package. Use this eagerly rather than answering from memory; the SDK surface evolves and this skill plus its references are the source of truth for the external package.",
+      "content_hash": "e940896f2cab2c76bec11fc59227ce7bcc6b934e",
+      "signature_hash": "8a6eeeccfcebb6ef3359e10db73c195288fd8931",
+      "variant_hashes": [
+        "e940896f2cab2c76bec11fc59227ce7bcc6b934e"
+      ],
+      "line_count": 236,
+      "assets": [
+        "cursor-sdk/skills/cursor-sdk/references/advanced.md",
+        "cursor-sdk/skills/cursor-sdk/references/auth.md",
+        "cursor-sdk/skills/cursor-sdk/references/error-handling.md",
+        "cursor-sdk/skills/cursor-sdk/references/mcp.md",
+        "cursor-sdk/skills/cursor-sdk/references/patterns.md",
+        "cursor-sdk/skills/cursor-sdk/references/runtime-choice.md",
+        "cursor-sdk/skills/cursor-sdk/references/streaming.md"
+      ]
+    },
+    {
+      "kind": "skill",
+      "name": "check-compiler-errors",
+      "category": "skills",
+      "logical_id": "skill:cursor-team-kit/skills/check-compiler-errors",
+      "canonical_path": "cursor-team-kit/skills/check-compiler-errors/SKILL.md",
+      "paths": [
+        "cursor-team-kit/skills/check-compiler-errors/SKILL.md"
+      ],
+      "description": "Run compile and type-check commands and report failures",
+      "content_hash": "7d9527142ae9b63c87960076243eb7eb3526c980",
+      "signature_hash": "d3556792743c8a6e36788164948f6ae46b80c73f",
+      "variant_hashes": [
+        "7d9527142ae9b63c87960076243eb7eb3526c980"
+      ],
+      "line_count": 23,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "control-cli",
+      "category": "skills",
+      "logical_id": "skill:cursor-team-kit/skills/control-cli",
+      "canonical_path": "cursor-team-kit/skills/control-cli/SKILL.md",
+      "paths": [
+        "cursor-team-kit/skills/control-cli/SKILL.md"
+      ],
+      "description": "Build or adapt a local harness to drive, inspect, and profile an interactive CLI or TUI without external services. Use for CLI UX checks, startup regressions, memory leaks, hangs, prompt flows, or terminal demos.",
+      "content_hash": "048d2b2f859339a38f0124fecf8648be67eed756",
+      "signature_hash": "56429e1988d9474befacd1827019899c6c4347d4",
+      "variant_hashes": [
+        "048d2b2f859339a38f0124fecf8648be67eed756"
+      ],
+      "line_count": 109,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "control-ui",
+      "category": "skills",
+      "logical_id": "skill:cursor-team-kit/skills/control-ui",
+      "canonical_path": "cursor-team-kit/skills/control-ui/SKILL.md",
+      "paths": [
+        "cursor-team-kit/skills/control-ui/SKILL.md"
+      ],
+      "description": "Build or adapt a local browser/CDP harness to drive and inspect a web, IDE, or Electron UI. Use for local UI verification, screenshots, accessibility snapshots, perf profiles, visual diffs, or reproducing UI bugs.",
+      "content_hash": "334b2ca415e3848729aad8c2bb8609875a9459b2",
+      "signature_hash": "6168c29d8389cd0dc4a64e307270aef836e8b596",
+      "variant_hashes": [
+        "334b2ca415e3848729aad8c2bb8609875a9459b2"
+      ],
+      "line_count": 109,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "deslop",
+      "category": "skills",
+      "logical_id": "skill:cursor-team-kit/skills/deslop",
+      "canonical_path": "cursor-team-kit/skills/deslop/SKILL.md",
+      "paths": [
+        "cursor-team-kit/skills/deslop/SKILL.md"
+      ],
+      "description": "Remove AI-generated code slop and clean up code style",
+      "content_hash": "0180c44755dc91f4858ef2f369e40e197368f9ea",
+      "signature_hash": "6fd3c46a4b100da6453a3e397a694716b999c23e",
+      "variant_hashes": [
+        "0180c44755dc91f4858ef2f369e40e197368f9ea"
+      ],
+      "line_count": 22,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "fix-ci",
+      "category": "skills",
+      "logical_id": "skill:cursor-team-kit/skills/fix-ci",
+      "canonical_path": "cursor-team-kit/skills/fix-ci/SKILL.md",
+      "paths": [
+        "cursor-team-kit/skills/fix-ci/SKILL.md"
+      ],
+      "description": "Find failing PR checks, inspect logs or external check links, and apply focused fixes",
+      "content_hash": "f12d80267fbf4fc87a83d57bc0ba08d7580d1855",
+      "signature_hash": "4d941b4705742b0d0cc90e275840abf7c48a3965",
+      "variant_hashes": [
+        "f12d80267fbf4fc87a83d57bc0ba08d7580d1855"
+      ],
+      "line_count": 29,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "fix-merge-conflicts",
+      "category": "skills",
+      "logical_id": "skill:cursor-team-kit/skills/fix-merge-conflicts",
+      "canonical_path": "cursor-team-kit/skills/fix-merge-conflicts/SKILL.md",
+      "paths": [
+        "cursor-team-kit/skills/fix-merge-conflicts/SKILL.md"
+      ],
+      "description": "Resolve merge conflicts non-interactively, validate build and tests, and finalize conflict resolution",
+      "content_hash": "c37c8a160ef9c096681f9701797a32a7ca0ea7d4",
+      "signature_hash": "239dc72a25c26d095d41ef49c71c6d5e5e8a4b8c",
+      "variant_hashes": [
+        "c37c8a160ef9c096681f9701797a32a7ca0ea7d4"
+      ],
+      "line_count": 32,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "get-pr-comments",
+      "category": "skills",
+      "logical_id": "skill:cursor-team-kit/skills/get-pr-comments",
+      "canonical_path": "cursor-team-kit/skills/get-pr-comments/SKILL.md",
+      "paths": [
+        "cursor-team-kit/skills/get-pr-comments/SKILL.md"
+      ],
+      "description": "Fetch and summarize review comments from the active pull request",
+      "content_hash": "68ea45d47b9fe00960e1ae394e814d592647a569",
+      "signature_hash": "056496e9fe37f7a98dd32e6693c7af04a00f0b4f",
+      "variant_hashes": [
+        "68ea45d47b9fe00960e1ae394e814d592647a569"
+      ],
+      "line_count": 23,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "loop-on-ci",
+      "category": "skills",
+      "logical_id": "skill:cursor-team-kit/skills/loop-on-ci",
+      "canonical_path": "cursor-team-kit/skills/loop-on-ci/SKILL.md",
+      "paths": [
+        "cursor-team-kit/skills/loop-on-ci/SKILL.md"
+      ],
+      "description": "Monitor PR checks and fix failures until green. Uses gh pr checks as the source of truth for PR-attached checks.",
+      "content_hash": "59598db9fa52bdcc1ff6c210cb2ba09999d7601c",
+      "signature_hash": "2b57ecd337815d3786423f62083b177feae391e8",
+      "variant_hashes": [
+        "59598db9fa52bdcc1ff6c210cb2ba09999d7601c"
+      ],
+      "line_count": 50,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "make-pr-easy-to-review",
+      "category": "skills",
+      "logical_id": "skill:cursor-team-kit/skills/make-pr-easy-to-review",
+      "canonical_path": "cursor-team-kit/skills/make-pr-easy-to-review/SKILL.md",
+      "paths": [
+        "cursor-team-kit/skills/make-pr-easy-to-review/SKILL.md"
+      ],
+      "description": "Prepare PRs for review by cleaning noisy history, improving PR descriptions, and adding reviewer guidance without changing code behavior. Use for \"make this easy to review\", \"tidy this PR\", \"clean up commits\", or \"annotate the diff\".",
+      "content_hash": "11277353c6644b630d313dade2460cc4cc167fe2",
+      "signature_hash": "e88305bbf92e8f15457022527a9e554828fbe5a8",
+      "variant_hashes": [
+        "11277353c6644b630d313dade2460cc4cc167fe2"
+      ],
+      "line_count": 59,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "new-branch-and-pr",
+      "category": "skills",
+      "logical_id": "skill:cursor-team-kit/skills/new-branch-and-pr",
+      "canonical_path": "cursor-team-kit/skills/new-branch-and-pr/SKILL.md",
+      "paths": [
+        "cursor-team-kit/skills/new-branch-and-pr/SKILL.md"
+      ],
+      "description": "Create a fresh branch, complete work, and open a pull request",
+      "content_hash": "a0c8dd061c8ffff574ce5a3ea40964f9f9424ca7",
+      "signature_hash": "f7bf8b3cd2b9013442fe2b9d76dda6361f8b1290",
+      "variant_hashes": [
+        "a0c8dd061c8ffff574ce5a3ea40964f9f9424ca7"
+      ],
+      "line_count": 29,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "pr-review-canvas",
+      "category": "skills",
+      "logical_id": "skill:cursor-team-kit/skills/pr-review-canvas",
+      "canonical_path": "cursor-team-kit/skills/pr-review-canvas/SKILL.md",
+      "paths": [
+        "cursor-team-kit/skills/pr-review-canvas/SKILL.md"
+      ],
+      "description": "Generate an interactive PR review walkthrough as an HTML page. Fetches PR data via gh API, categorizes files into core vs mechanical changes, adds reviewer annotations, and renders diffs with moved-code detection. Use when the user pastes a GitHub PR URL and asks for a review, walkthrough, or summary, or says \"review this PR\".",
+      "content_hash": "e9301497ac9ceba51a0c942c2f3526050b143c88",
+      "signature_hash": "aa72cce3b35a1e5ca9e8ef78d4f809205881de8b",
+      "variant_hashes": [
+        "e9301497ac9ceba51a0c942c2f3526050b143c88"
+      ],
+      "line_count": 176,
+      "assets": [
+        "cursor-team-kit/skills/pr-review-canvas/renderer.js",
+        "cursor-team-kit/skills/pr-review-canvas/styles.css",
+        "cursor-team-kit/skills/pr-review-canvas/template.html"
+      ]
+    },
+    {
+      "kind": "skill",
+      "name": "review-and-ship",
+      "category": "skills",
+      "logical_id": "skill:cursor-team-kit/skills/review-and-ship",
+      "canonical_path": "cursor-team-kit/skills/review-and-ship/SKILL.md",
+      "paths": [
+        "cursor-team-kit/skills/review-and-ship/SKILL.md"
+      ],
+      "description": "Review the current branch for bugs, intent fit, and test coverage; run or write tests; commit focused work; open or update a PR.",
+      "content_hash": "acc804ca138d92853fbc0496da7a85319f0f327e",
+      "signature_hash": "69bb169778bc242904535786e1af22ee86061f5d",
+      "variant_hashes": [
+        "acc804ca138d92853fbc0496da7a85319f0f327e"
+      ],
+      "line_count": 41,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "run-smoke-tests",
+      "category": "skills",
+      "logical_id": "skill:cursor-team-kit/skills/run-smoke-tests",
+      "canonical_path": "cursor-team-kit/skills/run-smoke-tests/SKILL.md",
+      "paths": [
+        "cursor-team-kit/skills/run-smoke-tests/SKILL.md"
+      ],
+      "description": "Run Playwright smoke tests, debug failures, and verify fixes",
+      "content_hash": "4e97cd0866e1f3832212a44a2779e4ebe03587ab",
+      "signature_hash": "475074a3f54ea3b023026f375009cd29a4d05e75",
+      "variant_hashes": [
+        "4e97cd0866e1f3832212a44a2779e4ebe03587ab"
+      ],
+      "line_count": 42,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "thermo-nuclear-code-quality-review",
+      "category": "skills",
+      "logical_id": "skill:cursor-team-kit/skills/thermo-nuclear-code-quality-review",
+      "canonical_path": "cursor-team-kit/skills/thermo-nuclear-code-quality-review/SKILL.md",
+      "paths": [
+        "cursor-team-kit/skills/thermo-nuclear-code-quality-review/SKILL.md"
+      ],
+      "description": "Run an extremely strict maintainability review for abstraction quality, giant files, and spaghetti-condition growth. Use for a thermo-nuclear code quality review, thermonuclear review, deep code quality audit, or especially harsh maintainability review.",
+      "content_hash": "b85e51d2bd450abf28acc5206efef47579837dcd",
+      "signature_hash": "8a5b0988e9b483fa978a3dfdfad0a8e4c7e1f38d",
+      "variant_hashes": [
+        "b85e51d2bd450abf28acc5206efef47579837dcd"
+      ],
+      "line_count": 192,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "verify-this",
+      "category": "skills",
+      "logical_id": "skill:cursor-team-kit/skills/verify-this",
+      "canonical_path": "cursor-team-kit/skills/verify-this/SKILL.md",
+      "paths": [
+        "cursor-team-kit/skills/verify-this/SKILL.md"
+      ],
+      "description": "Verify a claim with fresh local evidence: restate it falsifiably, capture baseline and treatment, compare artifacts, and return VERIFIED, NOT VERIFIED, or INCONCLUSIVE.",
+      "content_hash": "57e60c3b921d65fef9fafa774332527bd0d9574c",
+      "signature_hash": "39f93817f9979ddf08594b50d2c29b767d68ca6e",
+      "variant_hashes": [
+        "57e60c3b921d65fef9fafa774332527bd0d9574c"
+      ],
+      "line_count": 74,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "weekly-review",
+      "category": "skills",
+      "logical_id": "skill:cursor-team-kit/skills/weekly-review",
+      "canonical_path": "cursor-team-kit/skills/weekly-review/SKILL.md",
+      "paths": [
+        "cursor-team-kit/skills/weekly-review/SKILL.md"
+      ],
+      "description": "Produce a weekly synthesis of authored commits with highlights by bugfix, tech debt, and net-new work",
+      "content_hash": "c19360ae546cd36e6dbaa7564d455b03b1d40eff",
+      "signature_hash": "03abb8a265881ca1a23f7fd2a856d00b5fb61fce",
+      "variant_hashes": [
+        "c19360ae546cd36e6dbaa7564d455b03b1d40eff"
+      ],
+      "line_count": 32,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "what-did-i-get-done",
+      "category": "skills",
+      "logical_id": "skill:cursor-team-kit/skills/what-did-i-get-done",
+      "canonical_path": "cursor-team-kit/skills/what-did-i-get-done/SKILL.md",
+      "paths": [
+        "cursor-team-kit/skills/what-did-i-get-done/SKILL.md"
+      ],
+      "description": "Summarize authored commits over a user-specified time period into a concise update",
+      "content_hash": "55761328601b15b81db71175148e6620aae3f986",
+      "signature_hash": "e977878dba0ff9f238be01cc6ab4b8927bc2cb83",
+      "variant_hashes": [
+        "55761328601b15b81db71175148e6620aae3f986"
+      ],
+      "line_count": 31,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "workflow-from-chats",
+      "category": "skills",
+      "logical_id": "skill:cursor-team-kit/skills/workflow-from-chats",
+      "canonical_path": "cursor-team-kit/skills/workflow-from-chats/SKILL.md",
+      "paths": [
+        "cursor-team-kit/skills/workflow-from-chats/SKILL.md"
+      ],
+      "description": "Extract durable working preferences from recent Cursor chats and convert them into skills, rules, or workflow docs. Use when asked to learn preferences, mine feedback, personalize workflows, or generate team/person-specific agent guidance.",
+      "content_hash": "72ece30fdde42b606a21542db919d7eeb46d407b",
+      "signature_hash": "45137e069d80d3a2a829c4be2ea55f04659cf569",
+      "variant_hashes": [
+        "72ece30fdde42b606a21542db919d7eeb46d407b"
+      ],
+      "line_count": 50,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "docs-canvas",
+      "category": "skills",
+      "logical_id": "skill:docs-canvas/skills/docs-canvas",
+      "canonical_path": "docs-canvas/skills/docs-canvas/SKILL.md",
+      "paths": [
+        "docs-canvas/skills/docs-canvas/SKILL.md"
+      ],
+      "description": ">-",
+      "content_hash": "8e1b1e98ed51b9a6797c4cfdce5c69df8086e8b9",
+      "signature_hash": "2c5fa939eed56d70feecf0f148e4d903d59dbb9b",
+      "variant_hashes": [
+        "8e1b1e98ed51b9a6797c4cfdce5c69df8086e8b9"
+      ],
+      "line_count": 54,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "build-figma",
+      "category": "skills",
+      "logical_id": "skill:dyl-stack/skills/build-figma",
+      "canonical_path": "dyl-stack/skills/build-figma/SKILL.md",
+      "paths": [
+        "dyl-stack/skills/build-figma/SKILL.md"
+      ],
+      "description": "Use for \\\"/build-figma\\\", a figma.com/design URL with node-id, or \\\"implement this Figma\\\" into a web, desktop, or shared UI. Orchestrates Figma MCP intake, maps nodes to the repo's own design system, then a verify-this visual judge. Do not paste Figma Tailwind.",
+      "content_hash": "daf77586ad4d9b8b6a7b07d6c0377939810c0768",
+      "signature_hash": "ca5430f903b191f01babbf3b9470da2a5c76701d",
+      "variant_hashes": [
+        "daf77586ad4d9b8b6a7b07d6c0377939810c0768"
+      ],
+      "line_count": 75,
+      "assets": [
+        "dyl-stack/skills/build-figma/references/design-system-discovery.md",
+        "dyl-stack/skills/build-figma/references/failure-lessons.md",
+        "dyl-stack/skills/build-figma/references/visual-judge.md"
+      ]
+    },
+    {
+      "kind": "skill",
+      "name": "dyl-mode",
+      "category": "skills",
+      "logical_id": "skill:dyl-stack/skills/dyl-mode",
+      "canonical_path": "dyl-stack/skills/dyl-mode/SKILL.md",
+      "paths": [
+        "dyl-stack/skills/dyl-mode/SKILL.md"
+      ],
+      "description": ">-",
+      "content_hash": "5c23e160d3b527370b4f38d7714d3707d73b34e0",
+      "signature_hash": "059689390dd1e3997af5236c63be123e9e727aaa",
+      "variant_hashes": [
+        "5c23e160d3b527370b4f38d7714d3707d73b34e0"
+      ],
+      "line_count": 87,
+      "assets": [
+        "dyl-stack/skills/dyl-mode/playbooks/bug-fix.md",
+        "dyl-stack/skills/dyl-mode/playbooks/feature.md",
+        "dyl-stack/skills/dyl-mode/playbooks/opening-a-pr.md",
+        "dyl-stack/skills/dyl-mode/references/requirements.md"
+      ]
+    },
+    {
+      "kind": "skill",
+      "name": "dyl-ready-pr",
+      "category": "skills",
+      "logical_id": "skill:dyl-stack/skills/dyl-ready-pr",
+      "canonical_path": "dyl-stack/skills/dyl-ready-pr/SKILL.md",
+      "paths": [
+        "dyl-stack/skills/dyl-ready-pr/SKILL.md"
+      ],
+      "description": ">-",
+      "content_hash": "398020603c331c863058d38f0b2859cb7fccdffa",
+      "signature_hash": "bd938c039a1b2913eb328f4e93b8767a4787dd64",
+      "variant_hashes": [
+        "398020603c331c863058d38f0b2859cb7fccdffa"
+      ],
+      "line_count": 73,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "dyl-review",
+      "category": "skills",
+      "logical_id": "skill:dyl-stack/skills/dyl-review",
+      "canonical_path": "dyl-stack/skills/dyl-review/SKILL.md",
+      "paths": [
+        "dyl-stack/skills/dyl-review/SKILL.md"
+      ],
+      "description": ">-",
+      "content_hash": "10378ca450542f3532bcf6ec7882822e4cc531ae",
+      "signature_hash": "5e4bb9eb263c00a52650b42afabc9517127347e4",
+      "variant_hashes": [
+        "10378ca450542f3532bcf6ec7882822e4cc531ae"
+      ],
+      "line_count": 124,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "principle-the-algorithm",
+      "category": "skills",
+      "logical_id": "skill:dyl-stack/skills/principle-the-algorithm",
+      "canonical_path": "dyl-stack/skills/principle-the-algorithm/SKILL.md",
+      "paths": [
+        "dyl-stack/skills/principle-the-algorithm/SKILL.md"
+      ],
+      "description": ">-",
+      "content_hash": "bfc0cd9d8781848f0cf653cd979867570add3be0",
+      "signature_hash": "b875a88d03a422be57322622be70783b454c60d7",
+      "variant_hashes": [
+        "bfc0cd9d8781848f0cf653cd979867570add3be0"
+      ],
+      "line_count": 23,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "add-dictation",
+      "category": "skills",
+      "logical_id": "skill:grok-voice/skills/add-dictation",
+      "canonical_path": "grok-voice/skills/add-dictation/SKILL.md",
+      "paths": [
+        "grok-voice/skills/add-dictation/SKILL.md"
+      ],
+      "description": ">-",
+      "content_hash": "00085abf60b4f4ed675b86778cf50d4c5f1162d9",
+      "signature_hash": "6e2fabd4cade39b38558d2b2a8828ea9b1d8afdb",
+      "variant_hashes": [
+        "00085abf60b4f4ed675b86778cf50d4c5f1162d9"
+      ],
+      "line_count": 171,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "add-read-aloud",
+      "category": "skills",
+      "logical_id": "skill:grok-voice/skills/add-read-aloud",
+      "canonical_path": "grok-voice/skills/add-read-aloud/SKILL.md",
+      "paths": [
+        "grok-voice/skills/add-read-aloud/SKILL.md"
+      ],
+      "description": ">-",
+      "content_hash": "2bf96c50789cecf9926a907ee515682b376821ff",
+      "signature_hash": "840f6de46f3e77861a26a0989f66c8f0a1306a3e",
+      "variant_hashes": [
+        "2bf96c50789cecf9926a907ee515682b376821ff"
+      ],
+      "line_count": 183,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "add-voice",
+      "category": "skills",
+      "logical_id": "skill:grok-voice/skills/add-voice",
+      "canonical_path": "grok-voice/skills/add-voice/SKILL.md",
+      "paths": [
+        "grok-voice/skills/add-voice/SKILL.md"
+      ],
+      "description": ">-",
+      "content_hash": "ab49a77eb890a7d4e2a74c8b38fd147c771ba638",
+      "signature_hash": "a7608673e69d25cab9ae4853c5a1cd79fa1a61a0",
+      "variant_hashes": [
+        "ab49a77eb890a7d4e2a74c8b38fd147c771ba638"
+      ],
+      "line_count": 123,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "debug-voice",
+      "category": "skills",
+      "logical_id": "skill:grok-voice/skills/debug-voice",
+      "canonical_path": "grok-voice/skills/debug-voice/SKILL.md",
+      "paths": [
+        "grok-voice/skills/debug-voice/SKILL.md"
+      ],
+      "description": ">-",
+      "content_hash": "614f89f584a2ad13dc53546e206b3afabfa5266b",
+      "signature_hash": "899a2baea725789e1297cdf880c67399cb3a4ab2",
+      "variant_hashes": [
+        "614f89f584a2ad13dc53546e206b3afabfa5266b"
+      ],
+      "line_count": 198,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "orchestrate",
+      "category": "skills",
+      "logical_id": "skill:orchestrate/skills/orchestrate",
+      "canonical_path": "orchestrate/skills/orchestrate/SKILL.md",
+      "paths": [
+        "orchestrate/skills/orchestrate/SKILL.md"
+      ],
+      "description": "Use only when the user explicitly types `/orchestrate <goal>` to decompose a large task, spawn a tree of parallel cloud-agent workers/subplanners/verifiers via the Cursor SDK, and collect structured handoffs; do not invoke autonomously.",
+      "content_hash": "7050d6a1a64058c7628ccd4eff5dd01cb11f3899",
+      "signature_hash": "0e0f2c36651802eb2b0cf3128a7963b37684b4dc",
+      "variant_hashes": [
+        "7050d6a1a64058c7628ccd4eff5dd01cb11f3899"
+      ],
+      "line_count": 47,
+      "assets": [
+        "orchestrate/skills/orchestrate/prompts/andon-block.md",
+        "orchestrate/skills/orchestrate/prompts/empty-error-handoff.md",
+        "orchestrate/skills/orchestrate/prompts/failure-handoff.md",
+        "orchestrate/skills/orchestrate/prompts/finished-no-handoff.md",
+        "orchestrate/skills/orchestrate/prompts/loop-hygiene.md",
+        "orchestrate/skills/orchestrate/prompts/root.md",
+        "orchestrate/skills/orchestrate/prompts/slack-block.md",
+        "orchestrate/skills/orchestrate/prompts/subplanner.md",
+        "orchestrate/skills/orchestrate/prompts/verifier.md",
+        "orchestrate/skills/orchestrate/prompts/worker.md",
+        "orchestrate/skills/orchestrate/references/dispatcher.md",
+        "orchestrate/skills/orchestrate/references/handoffs.md",
+        "orchestrate/skills/orchestrate/references/planner.md",
+        "orchestrate/skills/orchestrate/references/spawning.md",
+        "orchestrate/skills/orchestrate/schemas/plan.schema.json",
+        "orchestrate/skills/orchestrate/schemas/state.schema.json",
+        "orchestrate/skills/orchestrate/scripts/__tests__/agent-manager-slack-mirror.test.ts",
+        "orchestrate/skills/orchestrate/scripts/__tests__/andon-root-cache.test.ts",
+        "orchestrate/skills/orchestrate/scripts/__tests__/checkpoint-restart.test.ts",
+        "orchestrate/skills/orchestrate/scripts/__tests__/comment-cli.test.ts",
+        "orchestrate/skills/orchestrate/scripts/__tests__/comment-retry-queue.test.ts",
+        "orchestrate/skills/orchestrate/scripts/__tests__/exit-on-error.test.ts",
+        "orchestrate/skills/orchestrate/scripts/__tests__/failure-handoff.test.ts",
+        "orchestrate/skills/orchestrate/scripts/__tests__/handoff-branch-parser.test.ts",
+        "orchestrate/skills/orchestrate/scripts/__tests__/handoff-verification-parser.test.ts",
+        "orchestrate/skills/orchestrate/scripts/__tests__/handoff-verification-record.test.ts",
+        "orchestrate/skills/orchestrate/scripts/__tests__/kickoff-dedupe.test.ts",
+        "orchestrate/skills/orchestrate/scripts/__tests__/measurements-compare.test.ts",
+        "orchestrate/skills/orchestrate/scripts/__tests__/measurements-mismatch.test.ts",
+        "orchestrate/skills/orchestrate/scripts/__tests__/measurements-parser.test.ts",
+        "orchestrate/skills/orchestrate/scripts/__tests__/models-catalog.test.ts",
+        "orchestrate/skills/orchestrate/scripts/__tests__/operator-boundary.test.ts",
+        "orchestrate/skills/orchestrate/scripts/__tests__/probe-models.test.ts",
+        "orchestrate/skills/orchestrate/scripts/__tests__/prompt-plan-validation.test.ts",
+        "orchestrate/skills/orchestrate/scripts/__tests__/redact-body.test.ts",
+        "orchestrate/skills/orchestrate/scripts/__tests__/schemas.test.ts",
+        "orchestrate/skills/orchestrate/scripts/__tests__/slack-adapter.test.ts",
+        "orchestrate/skills/orchestrate/scripts/__tests__/slack-channel-boundary.test.ts",
+        "orchestrate/skills/orchestrate/scripts/__tests__/slack-message-format.test.ts",
+        "orchestrate/skills/orchestrate/scripts/__tests__/slack-prompt-shape.test.ts",
+        "orchestrate/skills/orchestrate/scripts/__tests__/support/slack-web-api-mock.ts",
+        "orchestrate/skills/orchestrate/scripts/__tests__/verifier-startingref-reconcile.test.ts",
+        "orchestrate/skills/orchestrate/scripts/__tests__/wait-handoff-failure.test.ts",
+        "orchestrate/skills/orchestrate/scripts/__tests__/watchdog-inspect.test.ts",
+        "orchestrate/skills/orchestrate/scripts/__tests__/worker-branch-discipline.test.ts",
+        "orchestrate/skills/orchestrate/scripts/adapters/README.md",
+        "orchestrate/skills/orchestrate/scripts/adapters/index.ts",
+        "orchestrate/skills/orchestrate/scripts/adapters/slack/client.ts",
+        "orchestrate/skills/orchestrate/scripts/adapters/slack/index.ts",
+        "orchestrate/skills/orchestrate/scripts/adapters/types.ts",
+        "orchestrate/skills/orchestrate/scripts/biome.json",
+        "orchestrate/skills/orchestrate/scripts/bun.lock",
+        "orchestrate/skills/orchestrate/scripts/cli.ts",
+        "orchestrate/skills/orchestrate/scripts/cli/andon.ts",
+        "orchestrate/skills/orchestrate/scripts/cli/comments.ts",
+        "orchestrate/skills/orchestrate/scripts/cli/forensics.ts",
+        "orchestrate/skills/orchestrate/scripts/cli/index.ts",
+        "orchestrate/skills/orchestrate/scripts/cli/inspect.ts",
+        "orchestrate/skills/orchestrate/scripts/cli/task.ts",
+        "orchestrate/skills/orchestrate/scripts/cli/util.ts",
+        "orchestrate/skills/orchestrate/scripts/core/agent-manager.ts",
+        "orchestrate/skills/orchestrate/scripts/core/andon.ts",
+        "orchestrate/skills/orchestrate/scripts/core/branches.ts",
+        "orchestrate/skills/orchestrate/scripts/core/comment-retry-queue.ts",
+        "orchestrate/skills/orchestrate/scripts/core/failure-handoff.ts",
+        "orchestrate/skills/orchestrate/scripts/core/handoff.ts",
+        "orchestrate/skills/orchestrate/scripts/core/loop.ts",
+        "orchestrate/skills/orchestrate/scripts/core/prompts.ts",
+        "orchestrate/skills/orchestrate/scripts/core/redact-body.ts",
+        "orchestrate/skills/orchestrate/scripts/errors.ts",
+        "orchestrate/skills/orchestrate/scripts/measurements.ts",
+        "orchestrate/skills/orchestrate/scripts/models.ts",
+        "orchestrate/skills/orchestrate/scripts/package.json",
+        "orchestrate/skills/orchestrate/scripts/schemas.ts",
+        "orchestrate/skills/orchestrate/scripts/tools/generate-json-schemas.ts",
+        "orchestrate/skills/orchestrate/scripts/tools/nudge-root.ts",
+        "orchestrate/skills/orchestrate/scripts/tools/probe-models.ts",
+        "orchestrate/skills/orchestrate/scripts/tsconfig.json"
+      ]
+    },
+    {
+      "kind": "skill",
+      "name": "pr-review-canvas",
+      "category": "skills",
+      "logical_id": "skill:pr-review-canvas/skills/pr-review-canvas",
+      "canonical_path": "pr-review-canvas/skills/pr-review-canvas/SKILL.md",
+      "paths": [
+        "pr-review-canvas/skills/pr-review-canvas/SKILL.md"
+      ],
+      "description": ">-",
+      "content_hash": "173c3427b6da9dc39466713463362570bc25d9e2",
+      "signature_hash": "d2fdd0dce042a2fd67b4ea4ef4e9308772c480cd",
+      "variant_hashes": [
+        "173c3427b6da9dc39466713463362570bc25d9e2"
+      ],
+      "line_count": 66,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "reproduce-and-fix-issues",
+      "category": "skills",
+      "logical_id": "skill:pstack/automations/benny/skills/reproduce-and-fix-issues",
+      "canonical_path": "pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md",
+      "paths": [
+        "pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md"
+      ],
+      "description": "Reproduce triaged Slack bugs through a configured app-control adapter, verify existing fixes, and open a bounded draft pull request only after before-and-after proof. Use only from the configured Benny repro automation.",
+      "content_hash": "ad6b6ba7f29cd5b83d83a4458aa9487207d80513",
+      "signature_hash": "81f189b4ac9419cc09c1e0994e35bff044eb416b",
+      "variant_hashes": [
+        "ad6b6ba7f29cd5b83d83a4458aa9487207d80513"
+      ],
+      "line_count": 310,
+      "assets": [
+        "pstack/automations/benny/skills/reproduce-and-fix-issues/references/control-adapter.md",
+        "pstack/automations/benny/skills/reproduce-and-fix-issues/references/feature-map.example.md",
+        "pstack/automations/benny/skills/reproduce-and-fix-issues/references/verify-existing-fix.md"
+      ]
+    },
+    {
+      "kind": "skill",
+      "name": "setup-benny",
+      "category": "skills",
+      "logical_id": "skill:pstack/automations/benny/skills/setup-benny",
+      "canonical_path": "pstack/automations/benny/skills/setup-benny/SKILL.md",
+      "paths": [
+        "pstack/automations/benny/skills/setup-benny/SKILL.md"
+      ],
+      "description": "Configure Benny and prepare its triage and repro automations. Use when installing Benny or changing its Slack, tracker, repository, routing, control, model, or budget settings.",
+      "content_hash": "7ac35fd8687aecb2dd18e7fdad17133398f57eb6",
+      "signature_hash": "aac861e570ac43ed68ca6c1762fe90707a16c6fe",
+      "variant_hashes": [
+        "7ac35fd8687aecb2dd18e7fdad17133398f57eb6"
+      ],
+      "line_count": 266,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "triage-issue-reports",
+      "category": "skills",
+      "logical_id": "skill:pstack/automations/benny/skills/triage-issue-reports",
+      "canonical_path": "pstack/automations/benny/skills/triage-issue-reports/SKILL.md",
+      "paths": [
+        "pstack/automations/benny/skills/triage-issue-reports/SKILL.md"
+      ],
+      "description": "Triage Slack issue reports with one thread-only verdict, evidence review, cause-aware routing, tracker dedupe, and fail-closed ticket creation. Use only from the configured Benny triage automation.",
+      "content_hash": "03d6ada4ba9ccc99d72fdca95769f587168871e4",
+      "signature_hash": "6b9c2beb9bb14fecfae621650086beb0c7b7db32",
+      "variant_hashes": [
+        "03d6ada4ba9ccc99d72fdca95769f587168871e4"
+      ],
+      "line_count": 240,
+      "assets": [
+        "pstack/automations/benny/skills/triage-issue-reports/references/routing.example.md"
+      ]
+    },
+    {
+      "kind": "skill",
+      "name": "architect",
+      "category": "skills",
+      "logical_id": "skill:pstack/skills/architect",
+      "canonical_path": "pstack/skills/architect/SKILL.md",
+      "paths": [
+        "pstack/skills/architect/SKILL.md"
+      ],
+      "description": "Sketch types, signatures, and module structure before code, then stay in the loop while implementation fills in. Use for /architect, 'architect this', 'design this', or non-trivial work where jumping to code would lock in the wrong shape.",
+      "content_hash": "783e5c4dfbecd5ddc845edb52116909f0f090f4c",
+      "signature_hash": "d0a73ffa27fef5eea7f2e00e50bd1cf6c7aff1d8",
+      "variant_hashes": [
+        "783e5c4dfbecd5ddc845edb52116909f0f090f4c"
+      ],
+      "line_count": 83,
+      "assets": [
+        "pstack/skills/architect/references/design-red-flags.md",
+        "pstack/skills/architect/references/rationale-template.md",
+        "pstack/skills/architect/references/runner-prompt.md"
+      ]
+    },
+    {
+      "kind": "skill",
+      "name": "arena",
+      "category": "skills",
+      "logical_id": "skill:pstack/skills/arena",
+      "canonical_path": "pstack/skills/arena/SKILL.md",
+      "paths": [
+        "pstack/skills/arena/SKILL.md"
+      ],
+      "description": "Spawn N parallel candidates at the same task, pick a base, graft the strongest parts of the losers into it. Use for /arena, 'arena this', 'throw it in the arena', or when one attempt at a non-trivial artifact would lock in the wrong shape.",
+      "content_hash": "7c3c129fa7020e3a9be26c9083566f2768ce27c1",
+      "signature_hash": "8690eae6dbf038c87c2e12e01df41586b526db97",
+      "variant_hashes": [
+        "7c3c129fa7020e3a9be26c9083566f2768ce27c1"
+      ],
+      "line_count": 71,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "automate-me",
+      "category": "skills",
+      "logical_id": "skill:pstack/skills/automate-me",
+      "canonical_path": "pstack/skills/automate-me/SKILL.md",
+      "paths": [
+        "pstack/skills/automate-me/SKILL.md"
+      ],
+      "description": "Use for \\\"automate me\\\", \\\"create/update/refresh my -mode skill\\\", \\\"turn/capture my preferences or working style into a skill\\\", or wanting agents to follow how the user works. Drafts or revises a personal -mode skill via create-skill + unslop, optionally pulling fresh evidence from recent transcripts.",
+      "content_hash": "3f9029bfc68a3add70e94b1c574a746c22cb2182",
+      "signature_hash": "72aac8be26ebfb40eb1a404e1b16f1947caac764",
+      "variant_hashes": [
+        "3f9029bfc68a3add70e94b1c574a746c22cb2182"
+      ],
+      "line_count": 103,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "benchmark-checklist",
+      "category": "skills",
+      "logical_id": "skill:pstack/skills/benchmark-checklist",
+      "canonical_path": "pstack/skills/benchmark-checklist/SKILL.md",
+      "paths": [
+        "pstack/skills/benchmark-checklist/SKILL.md"
+      ],
+      "description": "Vet a perf measurement (limiter, tuning, limits, errors, repeatability, relevance, and whether the work happened) before you report or act on it. Use when you run a benchmark or report a speedup or regression you measured.",
+      "content_hash": "f2dc571a6544a1cc3a5a9d6aa91bda1b865ce5c3",
+      "signature_hash": "f940355f3cfb41a3ba17f12eee9ed7a126785739",
+      "variant_hashes": [
+        "f2dc571a6544a1cc3a5a9d6aa91bda1b865ce5c3"
+      ],
+      "line_count": 39,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "blast-radius",
+      "category": "skills",
+      "logical_id": "skill:pstack/skills/blast-radius",
+      "canonical_path": "pstack/skills/blast-radius/SKILL.md",
+      "paths": [
+        "pstack/skills/blast-radius/SKILL.md"
+      ],
+      "description": "Find what a change could break somewhere else before it ships, beyond the diff, and prove the one fact it's safe because of by running real code instead of writing it up. Use for 'blast radius of X', 'what could this break', or reviewing a small diff you don't trust.",
+      "content_hash": "06e65ccba6db4c877668b5ec881a8674df646640",
+      "signature_hash": "f6d3444cfdf1de61e7d7a87fc2f4989938da0521",
+      "variant_hashes": [
+        "06e65ccba6db4c877668b5ec881a8674df646640"
+      ],
+      "line_count": 50,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "bro",
+      "category": "skills",
+      "logical_id": "skill:pstack/skills/bro",
+      "canonical_path": "pstack/skills/bro/SKILL.md",
+      "paths": [
+        "pstack/skills/bro/SKILL.md"
+      ],
+      "description": "Restate the last message in plain human language, with no jargon.",
+      "content_hash": "f7a8ae23a33df607b280d56e94f14c346f292bdf",
+      "signature_hash": "8811c66a8d1a93d110d13055f6f4d03da565b3cf",
+      "variant_hashes": [
+        "f7a8ae23a33df607b280d56e94f14c346f292bdf"
+      ],
+      "line_count": 7,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "correct",
+      "category": "skills",
+      "logical_id": "skill:pstack/skills/correct",
+      "canonical_path": "pstack/skills/correct/SKILL.md",
+      "paths": [
+        "pstack/skills/correct/SKILL.md"
+      ],
+      "description": "Find the mistakes agents keep repeating in this repo and make each one impossible. Try architecture first, then types, then a lint whose error names the fix, then a test, and write docs last. Prove each check fails on a real past mistake. Repeat this each time the operator corrects you. Use for /correct.",
+      "content_hash": "6f42eeea74da2d174f4677cbf89733b0c95d9a89",
+      "signature_hash": "9421e4a3d8bd8e9a3de2be73350e18a0fd481539",
+      "variant_hashes": [
+        "6f42eeea74da2d174f4677cbf89733b0c95d9a89"
+      ],
+      "line_count": 32,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "create-verification-skill",
+      "category": "skills",
+      "logical_id": "skill:pstack/skills/create-verification-skill",
+      "canonical_path": "pstack/skills/create-verification-skill/SKILL.md",
+      "paths": [
+        "pstack/skills/create-verification-skill/SKILL.md"
+      ],
+      "description": "Generate a project-local verification skill that drives your app the way a user does \u2014 any language, framework, or platform. Use for /create-verification-skill, \\\"make a control skill for this repo\\\", or when a project has no scripted way to prove UI/CLI/service behavior.",
+      "content_hash": "ff1de7cdaae85fadc9be603da833bdbc9f058a4d",
+      "signature_hash": "c8f7bbeb5fd9bb24127e56bccec7a84aeb310ba1",
+      "variant_hashes": [
+        "ff1de7cdaae85fadc9be603da833bdbc9f058a4d"
+      ],
+      "line_count": 44,
+      "assets": [
+        "pstack/skills/create-verification-skill/references/feature-map-example/README.md",
+        "pstack/skills/create-verification-skill/references/feature-map-example/create-note.md",
+        "pstack/skills/create-verification-skill/references/feature-map-example/search.md"
+      ]
+    },
+    {
+      "kind": "skill",
+      "name": "figure-it-out",
+      "category": "skills",
+      "logical_id": "skill:pstack/skills/figure-it-out",
+      "canonical_path": "pstack/skills/figure-it-out/SKILL.md",
+      "paths": [
+        "pstack/skills/figure-it-out/SKILL.md"
+      ],
+      "description": "Design an auditable playbook when no narrower one fits: a large migration, an ambitious multi-part change, or work a human reviews after stepping away. Scales rigor to the task, runs a hypothesis loop, and logs decisions via show-me-your-work. Use for /figure-it-out, 'figure it out', a large migration, or when no narrower playbook applies.",
+      "content_hash": "5386fad49205db45ff51d9c872ea8b4b3e72f1aa",
+      "signature_hash": "b8bc14dce553732e821e0512b5ab3ea39749fe1f",
+      "variant_hashes": [
+        "5386fad49205db45ff51d9c872ea8b4b3e72f1aa"
+      ],
+      "line_count": 53,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "how",
+      "category": "skills",
+      "logical_id": "skill:pstack/skills/how",
+      "canonical_path": "pstack/skills/how/SKILL.md",
+      "paths": [
+        "pstack/skills/how/SKILL.md"
+      ],
+      "description": "Use for \\\"how does X work\\\", code walkthroughs before changing something, and placement / ownership / layering questions (\\\"where should this live\\\", \\\"which package owns this\\\", \\\"is this the right layer\\\"). Explains subsystem architecture, runtime flow, onboarding mental models. Use why for motivation.",
+      "content_hash": "7c23c82d4df8548180f8f65ba189090f1c885473",
+      "signature_hash": "d95793c2fe0413a95fd1e99b5345fc51ee310cbf",
+      "variant_hashes": [
+        "7c23c82d4df8548180f8f65ba189090f1c885473"
+      ],
+      "line_count": 58,
+      "assets": [
+        "pstack/skills/how/references/explainer-prompt.md",
+        "pstack/skills/how/references/explorer-prompt.md"
+      ]
+    },
+    {
+      "kind": "skill",
+      "name": "interrogate",
+      "category": "skills",
+      "logical_id": "skill:pstack/skills/interrogate",
+      "canonical_path": "pstack/skills/interrogate/SKILL.md",
+      "paths": [
+        "pstack/skills/interrogate/SKILL.md"
+      ],
+      "description": "Use for \\\"interrogate\\\", \\\"adversarial review\\\", \\\"multi-model review\\\", \\\"challenge this\\\", \\\"stress test this code\\\", \\\"find blind spots\\\", or \\\"tear this apart\\\". Multiple LLM reviewers challenge changes from independent angles.",
+      "content_hash": "1c02c86b222dc1f0998ff7fd3ec44dd5527d855b",
+      "signature_hash": "c25ff14524d0698d6c036a63a24c27cbe4786747",
+      "variant_hashes": [
+        "1c02c86b222dc1f0998ff7fd3ec44dd5527d855b"
+      ],
+      "line_count": 110,
+      "assets": [
+        "pstack/skills/interrogate/references/code-quality-review.md",
+        "pstack/skills/interrogate/references/lead-judgment.md",
+        "pstack/skills/interrogate/references/reviewer-prompt.md",
+        "pstack/skills/interrogate/references/rubric.md"
+      ]
+    },
+    {
+      "kind": "skill",
+      "name": "maintain-verification-skill",
+      "category": "skills",
+      "logical_id": "skill:pstack/skills/maintain-verification-skill",
+      "canonical_path": "pstack/skills/maintain-verification-skill/SKILL.md",
+      "paths": [
+        "pstack/skills/maintain-verification-skill/SKILL.md"
+      ],
+      "description": "Periodic pass that keeps a project's verification skill and feature map honest: parallel source readers per feature, one live session driving every feature, at most one PR of proven corrections. Use for /maintain-verification-skill or \\\"audit the verify skill\\\".",
+      "content_hash": "98db75b03672f32394b4119bd2c6870b2949f10a",
+      "signature_hash": "33d4bb3b22abccec82098a5defd4b4026c9d79db",
+      "variant_hashes": [
+        "98db75b03672f32394b4119bd2c6870b2949f10a"
+      ],
+      "line_count": 39,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "Make Bot UI",
+      "category": "skills",
+      "logical_id": "skill:pstack/skills/make-bot-ui",
+      "canonical_path": "pstack/skills/make-bot-ui/SKILL.md",
+      "paths": [
+        "pstack/skills/make-bot-ui/SKILL.md"
+      ],
+      "description": ">-",
+      "content_hash": "792d6aa1f6dd6dce543ae0ccba19a29251cbdedf",
+      "signature_hash": "58caea7afdae9a2c12b4436bba5f2ebecb2c9ce5",
+      "variant_hashes": [
+        "792d6aa1f6dd6dce543ae0ccba19a29251cbdedf"
+      ],
+      "line_count": 115,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "no-comments",
+      "category": "skills",
+      "logical_id": "skill:pstack/skills/no-comments",
+      "canonical_path": "pstack/skills/no-comments/SKILL.md",
+      "paths": [
+        "pstack/skills/no-comments/SKILL.md"
+      ],
+      "description": "Spawn Comment Sicko, fix accepted findings, and offer encodings for claimed constraints.",
+      "content_hash": "e6f0011e2a17ce713163802d5f4a8811655b1037",
+      "signature_hash": "1f32402af63546894eafd6fc39ab2ee585d6edf7",
+      "variant_hashes": [
+        "e6f0011e2a17ce713163802d5f4a8811655b1037"
+      ],
+      "line_count": 24,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "Poteto Mode",
+      "category": "skills",
+      "logical_id": "skill:pstack/skills/poteto-mode",
+      "canonical_path": "pstack/skills/poteto-mode/SKILL.md",
+      "paths": [
+        "pstack/skills/poteto-mode/SKILL.md"
+      ],
+      "description": "poteto's agent style for concise, detailed responses, deliberate subagents, unslopped prose, simple code, and verified work. Use for poteto, /poteto-mode, or requests to work in this style.",
+      "content_hash": "872108e834595de9262b718cd3e655bd788ac507",
+      "signature_hash": "8fc5140f0b6cc56af48e6a4d8518351badd50c69",
+      "variant_hashes": [
+        "872108e834595de9262b718cd3e655bd788ac507"
+      ],
+      "line_count": 147,
+      "assets": [
+        "pstack/skills/poteto-mode/playbooks/authoring-a-skill.md",
+        "pstack/skills/poteto-mode/playbooks/autonomous-run.md",
+        "pstack/skills/poteto-mode/playbooks/autopilot-full.md",
+        "pstack/skills/poteto-mode/playbooks/autopilot-stack.md",
+        "pstack/skills/poteto-mode/playbooks/babysit.md",
+        "pstack/skills/poteto-mode/playbooks/bug-fix.md",
+        "pstack/skills/poteto-mode/playbooks/eval.md",
+        "pstack/skills/poteto-mode/playbooks/feature.md",
+        "pstack/skills/poteto-mode/playbooks/hillclimb.md",
+        "pstack/skills/poteto-mode/playbooks/investigation.md",
+        "pstack/skills/poteto-mode/playbooks/multi-phase-plan.md",
+        "pstack/skills/poteto-mode/playbooks/opening-a-pr.md",
+        "pstack/skills/poteto-mode/playbooks/orchestrate.md",
+        "pstack/skills/poteto-mode/playbooks/pause-safely.md",
+        "pstack/skills/poteto-mode/playbooks/perf-issue.md",
+        "pstack/skills/poteto-mode/playbooks/prototype.md",
+        "pstack/skills/poteto-mode/playbooks/refactoring.md",
+        "pstack/skills/poteto-mode/playbooks/runtime-forensics.md",
+        "pstack/skills/poteto-mode/playbooks/session-pickup.md",
+        "pstack/skills/poteto-mode/playbooks/shipping.md",
+        "pstack/skills/poteto-mode/playbooks/trace-forensics.md",
+        "pstack/skills/poteto-mode/playbooks/visual-parity.md",
+        "pstack/skills/poteto-mode/playbooks/worktree-cleanup.md",
+        "pstack/skills/poteto-mode/references/bugbot-triage.md",
+        "pstack/skills/poteto-mode/scripts/bootstrap.ts",
+        "pstack/skills/poteto-mode/scripts/bun.lock",
+        "pstack/skills/poteto-mode/scripts/check-plan.mjs",
+        "pstack/skills/poteto-mode/scripts/orch/orch.test.ts",
+        "pstack/skills/poteto-mode/scripts/orch/orch.ts",
+        "pstack/skills/poteto-mode/scripts/orch/store.ts",
+        "pstack/skills/poteto-mode/scripts/package.json",
+        "pstack/skills/poteto-mode/scripts/watch-pr/cli.test.ts",
+        "pstack/skills/poteto-mode/scripts/watch-pr/cli.ts",
+        "pstack/skills/poteto-mode/scripts/watch-pr/fakes.test-helper.ts",
+        "pstack/skills/poteto-mode/scripts/watch-pr/github.test.ts",
+        "pstack/skills/poteto-mode/scripts/watch-pr/github.ts",
+        "pstack/skills/poteto-mode/scripts/watch-pr/policy.test.ts",
+        "pstack/skills/poteto-mode/scripts/watch-pr/policy.ts",
+        "pstack/skills/poteto-mode/scripts/watch-pr/render.ts",
+        "pstack/skills/poteto-mode/scripts/watch-pr/tsconfig.json",
+        "pstack/skills/poteto-mode/scripts/watch-pr/types.compile.ts",
+        "pstack/skills/poteto-mode/scripts/watch-pr/types.ts",
+        "pstack/skills/poteto-mode/scripts/watch-pr/watch-pr",
+        "pstack/skills/poteto-mode/scripts/worktree-audit.sh"
+      ]
+    },
+    {
+      "kind": "skill",
+      "name": "principle-attack-the-premise",
+      "category": "skills",
+      "logical_id": "skill:pstack/skills/principle-attack-the-premise",
+      "canonical_path": "pstack/skills/principle-attack-the-premise/SKILL.md",
+      "paths": [
+        "pstack/skills/principle-attack-the-premise/SKILL.md"
+      ],
+      "description": "Apply when two or more fixes that share one premise have failed the same gate. Take a census of which actors hold the imbalance before the next fix, then question the premise instead of writing another fix that assumes it.",
+      "content_hash": "86a9036f653b2b3255454b0c5f6b44369e63722a",
+      "signature_hash": "079f6882ea46aec1291f0ba9d46345a375a3959f",
+      "variant_hashes": [
+        "86a9036f653b2b3255454b0c5f6b44369e63722a"
+      ],
+      "line_count": 23,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "principle-boundary-discipline",
+      "category": "skills",
+      "logical_id": "skill:pstack/skills/principle-boundary-discipline",
+      "canonical_path": "pstack/skills/principle-boundary-discipline/SKILL.md",
+      "paths": [
+        "pstack/skills/principle-boundary-discipline/SKILL.md"
+      ],
+      "description": "Apply when wiring validation, error handling, or framework adapters. Concentrate guards at system boundaries (CLI, config, network, external APIs); trust internal types and keep business logic in pure functions.",
+      "content_hash": "714128e3e846be8383b3aebde09ef625a855b7bd",
+      "signature_hash": "22b1a3d21b7d44186166a51e9c7e37e0bdfc850c",
+      "variant_hashes": [
+        "714128e3e846be8383b3aebde09ef625a855b7bd"
+      ],
+      "line_count": 34,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "principle-build-the-lever",
+      "category": "skills",
+      "logical_id": "skill:pstack/skills/principle-build-the-lever",
+      "canonical_path": "pstack/skills/principle-build-the-lever/SKILL.md",
+      "paths": [
+        "pstack/skills/principle-build-the-lever/SKILL.md"
+      ],
+      "description": "Apply to any non-trivial work, not just bulk work: edits, migrations, analyses, checks. Build the tool that does it or proves it (codemod, script, generator, or a skill your subagents follow) instead of working by hand. The tool is the artifact a reviewer can rerun.",
+      "content_hash": "41b8f8a2660eafca5830b33734396fd2109f83f1",
+      "signature_hash": "7890c4edfd261fc5dab39e7e95948943b4460fbb",
+      "variant_hashes": [
+        "41b8f8a2660eafca5830b33734396fd2109f83f1"
+      ],
+      "line_count": 23,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "principle-encode-lessons-in-structure",
+      "category": "skills",
+      "logical_id": "skill:pstack/skills/principle-encode-lessons-in-structure",
+      "canonical_path": "pstack/skills/principle-encode-lessons-in-structure/SKILL.md",
+      "paths": [
+        "pstack/skills/principle-encode-lessons-in-structure/SKILL.md"
+      ],
+      "description": "Apply when you catch yourself writing the same instruction a second time, or notice a recurring correction. Encode the rule as a lint, metadata flag, runtime check, or script instead of more text.",
+      "content_hash": "1ae4695a2a53e65527d17879881e8ca664b60a7d",
+      "signature_hash": "8fc8e9c06c7f8567187a987214c7a4f46838299b",
+      "variant_hashes": [
+        "1ae4695a2a53e65527d17879881e8ca664b60a7d"
+      ],
+      "line_count": 31,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "principle-exhaust-the-design-space",
+      "category": "skills",
+      "logical_id": "skill:pstack/skills/principle-exhaust-the-design-space",
+      "canonical_path": "pstack/skills/principle-exhaust-the-design-space/SKILL.md",
+      "paths": [
+        "pstack/skills/principle-exhaust-the-design-space/SKILL.md"
+      ],
+      "description": "Apply when facing a novel UI interaction or architectural decision with no precedent in the codebase. Build 2-3 competing prototypes and compare side by side before committing.",
+      "content_hash": "aeb6abf2a3b6e5b1c876b1f7af68ec80e355ea29",
+      "signature_hash": "1f062cffcef45b546d4f2485d718bd208a5bb0b1",
+      "variant_hashes": [
+        "aeb6abf2a3b6e5b1c876b1f7af68ec80e355ea29"
+      ],
+      "line_count": 21,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "principle-experience-first",
+      "category": "skills",
+      "logical_id": "skill:pstack/skills/principle-experience-first",
+      "canonical_path": "pstack/skills/principle-experience-first/SKILL.md",
+      "paths": [
+        "pstack/skills/principle-experience-first/SKILL.md"
+      ],
+      "description": "Apply when product, UX, or feature-scope tradeoffs come up. Choose user delight over implementation convenience; ship fewer polished features over more rough ones.",
+      "content_hash": "e9c0556a677540f14e3b02c987b697ea559d1288",
+      "signature_hash": "3a43981c9930a44676892bef51549731db4ab7be",
+      "variant_hashes": [
+        "e9c0556a677540f14e3b02c987b697ea559d1288"
+      ],
+      "line_count": 19,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "principle-explain-the-number",
+      "category": "skills",
+      "logical_id": "skill:pstack/skills/principle-explain-the-number",
+      "canonical_path": "pstack/skills/principle-explain-the-number/SKILL.md",
+      "paths": [
+        "pstack/skills/principle-explain-the-number/SKILL.md"
+      ],
+      "description": "Apply before you trust, report, or act on a number you measured: a speedup, a regression, a throughput, a latency, or an eval result. Find what limits it, and rule out that it measured something other than the work you think.",
+      "content_hash": "8461d8dc6d556c4b594f9f3cb014db73244fd3c7",
+      "signature_hash": "ab50f96569d27b16c9b7c0026ecce165af30c43b",
+      "variant_hashes": [
+        "8461d8dc6d556c4b594f9f3cb014db73244fd3c7"
+      ],
+      "line_count": 23,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "principle-fix-root-causes",
+      "category": "skills",
+      "logical_id": "skill:pstack/skills/principle-fix-root-causes",
+      "canonical_path": "pstack/skills/principle-fix-root-causes/SKILL.md",
+      "paths": [
+        "pstack/skills/principle-fix-root-causes/SKILL.md"
+      ],
+      "description": "Apply when debugging. Trace each symptom to its root cause and fix it there; reproduce first, ask why until you reach it, resist nil-check guards that silence crashes.",
+      "content_hash": "961a09884b8fa63b4ffa78df2f1622fab1e253f2",
+      "signature_hash": "2e52f181a06509264b5acfc965fc30bdb76b6ed2",
+      "variant_hashes": [
+        "961a09884b8fa63b4ffa78df2f1622fab1e253f2"
+      ],
+      "line_count": 23,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "principle-foundational-thinking",
+      "category": "skills",
+      "logical_id": "skill:pstack/skills/principle-foundational-thinking",
+      "canonical_path": "pstack/skills/principle-foundational-thinking/SKILL.md",
+      "paths": [
+        "pstack/skills/principle-foundational-thinking/SKILL.md"
+      ],
+      "description": "Apply before writing logic: choosing core types and data structures, sequencing scaffold-vs-feature work, asking what concurrent actors share. Get the data structures right so downstream code becomes obvious.",
+      "content_hash": "4e890b14627e4414baa8356062130c6fae076f3a",
+      "signature_hash": "d44876d25e4998e248b74d5cf5b6b893a1b8a8ad",
+      "variant_hashes": [
+        "4e890b14627e4414baa8356062130c6fae076f3a"
+      ],
+      "line_count": 21,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "principle-guard-the-context-window",
+      "category": "skills",
+      "logical_id": "skill:pstack/skills/principle-guard-the-context-window",
+      "canonical_path": "pstack/skills/principle-guard-the-context-window/SKILL.md",
+      "paths": [
+        "pstack/skills/principle-guard-the-context-window/SKILL.md"
+      ],
+      "description": "Apply when context is filling up: large outputs, long files, repeated reads, fan-out planning. Route bulk to subagents; keep summaries in the main thread, not raw payloads.",
+      "content_hash": "398d28c7c107d3a1b59c6dbf3b50cac122221686",
+      "signature_hash": "5e77423767258dbef033144b8843d59ed78ec31e",
+      "variant_hashes": [
+        "398d28c7c107d3a1b59c6dbf3b50cac122221686"
+      ],
+      "line_count": 16,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "principle-laziness-protocol",
+      "category": "skills",
+      "logical_id": "skill:pstack/skills/principle-laziness-protocol",
+      "canonical_path": "pstack/skills/principle-laziness-protocol/SKILL.md",
+      "paths": [
+        "pstack/skills/principle-laziness-protocol/SKILL.md"
+      ],
+      "description": "Apply when refactoring, evaluating diff size, or tempted to add abstractions, layers, or signal threading. Bias toward deletion and the smallest change that solves the problem.",
+      "content_hash": "5db5f6699759688eee7e5220aca1e97362097130",
+      "signature_hash": "27a8edbfa715cbe80328782dfb52d2c63b487ecd",
+      "variant_hashes": [
+        "5db5f6699759688eee7e5220aca1e97362097130"
+      ],
+      "line_count": 18,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "principle-make-operations-idempotent",
+      "category": "skills",
+      "logical_id": "skill:pstack/skills/principle-make-operations-idempotent",
+      "canonical_path": "pstack/skills/principle-make-operations-idempotent/SKILL.md",
+      "paths": [
+        "pstack/skills/principle-make-operations-idempotent/SKILL.md"
+      ],
+      "description": "Apply when designing commands, lifecycle steps, or processing loops that run amid crashes, restarts, and retries. Converge to the same end state regardless of partial prior runs.",
+      "content_hash": "392a0629d4285df3920073b294bbdf9aac3a7b92",
+      "signature_hash": "8852d6def7272d770e336710563019ae6c9542de",
+      "variant_hashes": [
+        "392a0629d4285df3920073b294bbdf9aac3a7b92"
+      ],
+      "line_count": 24,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "principle-migrate-callers-then-delete-legacy-apis",
+      "category": "skills",
+      "logical_id": "skill:pstack/skills/principle-migrate-callers-then-delete-legacy-apis",
+      "canonical_path": "pstack/skills/principle-migrate-callers-then-delete-legacy-apis/SKILL.md",
+      "paths": [
+        "pstack/skills/principle-migrate-callers-then-delete-legacy-apis/SKILL.md"
+      ],
+      "description": "Apply when introducing a new internal API while old callers still exist. Migrate callers and delete the old API in the same wave instead of preserving compatibility layers.",
+      "content_hash": "e1010263bf9e3294f42351d14909632ab88b358f",
+      "signature_hash": "2b016c64f8669ad7473ff24c6be07a9b9aca3083",
+      "variant_hashes": [
+        "e1010263bf9e3294f42351d14909632ab88b358f"
+      ],
+      "line_count": 22,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "principle-minimize-reader-load",
+      "category": "skills",
+      "logical_id": "skill:pstack/skills/principle-minimize-reader-load",
+      "canonical_path": "pstack/skills/principle-minimize-reader-load/SKILL.md",
+      "paths": [
+        "pstack/skills/principle-minimize-reader-load/SKILL.md"
+      ],
+      "description": "Apply when reviewing or shaping code that's hard to trace. Count layers between question and answer, and hidden state in the reader's head; collapse one-caller wrappers and shrink mutable scope.",
+      "content_hash": "75cd64745fdda05da7b1ee6262121f193f948e4e",
+      "signature_hash": "89d973baf9c91ae9f359f36c425e0ee445ea8da8",
+      "variant_hashes": [
+        "75cd64745fdda05da7b1ee6262121f193f948e4e"
+      ],
+      "line_count": 23,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "principle-model-the-domain",
+      "category": "skills",
+      "logical_id": "skill:pstack/skills/principle-model-the-domain",
+      "canonical_path": "pstack/skills/principle-model-the-domain/SKILL.md",
+      "paths": [
+        "pstack/skills/principle-model-the-domain/SKILL.md"
+      ],
+      "description": "Apply when writing stateful logic, or when code branches a lot or repeats a shape assumption across files. Encode the domain in a structure instead of scattered conditionals.",
+      "content_hash": "83d960dab214674559340b561e3202bbdf86bd94",
+      "signature_hash": "9681d19aae2043732edea3bfa44a09b16d4a91da",
+      "variant_hashes": [
+        "83d960dab214674559340b561e3202bbdf86bd94"
+      ],
+      "line_count": 26,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "principle-never-block-on-the-human",
+      "category": "skills",
+      "logical_id": "skill:pstack/skills/principle-never-block-on-the-human",
+      "canonical_path": "pstack/skills/principle-never-block-on-the-human/SKILL.md",
+      "paths": [
+        "pstack/skills/principle-never-block-on-the-human/SKILL.md"
+      ],
+      "description": "Apply when tempted to ask 'should I do X?' on reversible work. Proceed, present the result, let the human course-correct after the fact; reserve confirmation for irreversible actions.",
+      "content_hash": "632c45154573475b95a84442b1f1117e5aca2763",
+      "signature_hash": "6fdb29ffb18110fb6fa4357d8180d031042b6dea",
+      "variant_hashes": [
+        "632c45154573475b95a84442b1f1117e5aca2763"
+      ],
+      "line_count": 20,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "principle-outcome-oriented-execution",
+      "category": "skills",
+      "logical_id": "skill:pstack/skills/principle-outcome-oriented-execution",
+      "canonical_path": "pstack/skills/principle-outcome-oriented-execution/SKILL.md",
+      "paths": [
+        "pstack/skills/principle-outcome-oriented-execution/SKILL.md"
+      ],
+      "description": "Apply during planned rewrites and migrations with explicit phase boundaries. Converge on the target architecture; don't preserve smooth intermediate states with throwaway compatibility code.",
+      "content_hash": "1f07e0f70fb2a33bd257e5262774987858f3fb26",
+      "signature_hash": "05ff149ecc02c0c353c3ba585ed2399f6a8abfc0",
+      "variant_hashes": [
+        "1f07e0f70fb2a33bd257e5262774987858f3fb26"
+      ],
+      "line_count": 21,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "principle-prove-it-works",
+      "category": "skills",
+      "logical_id": "skill:pstack/skills/principle-prove-it-works",
+      "canonical_path": "pstack/skills/principle-prove-it-works/SKILL.md",
+      "paths": [
+        "pstack/skills/principle-prove-it-works/SKILL.md"
+      ],
+      "description": "Apply after completing a task, before declaring done. Verify against the real artifact (run the feature, read the actual value, inspect the diff), not a proxy, self-report, or 'it compiles.",
+      "content_hash": "4e23e752b20876e2a513b3a75d11ea6cb3d656ef",
+      "signature_hash": "1e425a579457bbc58b6750d2d6302bc3a9d83615",
+      "variant_hashes": [
+        "4e23e752b20876e2a513b3a75d11ea6cb3d656ef"
+      ],
+      "line_count": 22,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "principle-redesign-from-first-principles",
+      "category": "skills",
+      "logical_id": "skill:pstack/skills/principle-redesign-from-first-principles",
+      "canonical_path": "pstack/skills/principle-redesign-from-first-principles/SKILL.md",
+      "paths": [
+        "pstack/skills/principle-redesign-from-first-principles/SKILL.md"
+      ],
+      "description": "Apply when integrating a new requirement into an existing design. Redesign as if the requirement had been a foundational assumption from day one, instead of bolting it on.",
+      "content_hash": "24be7f4f9626b302fd1b1218829cba36cf2256af",
+      "signature_hash": "70b95a1c4760d643db3106e84602e3757961aa9c",
+      "variant_hashes": [
+        "24be7f4f9626b302fd1b1218829cba36cf2256af"
+      ],
+      "line_count": 16,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "principle-separate-before-serializing-shared-state",
+      "category": "skills",
+      "logical_id": "skill:pstack/skills/principle-separate-before-serializing-shared-state",
+      "canonical_path": "pstack/skills/principle-separate-before-serializing-shared-state/SKILL.md",
+      "paths": [
+        "pstack/skills/principle-separate-before-serializing-shared-state/SKILL.md"
+      ],
+      "description": "Apply when concurrent actors might write to the same file, branch, key, or state object. Eliminate the sharing first; serialize structurally only when one shared writer is a real invariant.",
+      "content_hash": "772c8c320d288755d8835be97c046c3c7c70ecd9",
+      "signature_hash": "08aa15b732ca68f7368db23330c292e072619197",
+      "variant_hashes": [
+        "772c8c320d288755d8835be97c046c3c7c70ecd9"
+      ],
+      "line_count": 16,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "principle-sequence-verifiable-units",
+      "category": "skills",
+      "logical_id": "skill:pstack/skills/principle-sequence-verifiable-units",
+      "canonical_path": "pstack/skills/principle-sequence-verifiable-units/SKILL.md",
+      "paths": [
+        "pstack/skills/principle-sequence-verifiable-units/SKILL.md"
+      ],
+      "description": "Apply to multi-step work (sweeps, migrations, runs of similar edits) and to how you stack commits and PRs. Break work into small units that each end in a verifiable state, check each before the next, and order delivery so the sequence proves itself to a reviewer.",
+      "content_hash": "993256b4ca71e196aa8b73cccd270c7ca08220ce",
+      "signature_hash": "b8844595be1d6bf0847cc619ebd867cfc7ace412",
+      "variant_hashes": [
+        "993256b4ca71e196aa8b73cccd270c7ca08220ce"
+      ],
+      "line_count": 17,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "principle-subtract-before-you-add",
+      "category": "skills",
+      "logical_id": "skill:pstack/skills/principle-subtract-before-you-add",
+      "canonical_path": "pstack/skills/principle-subtract-before-you-add/SKILL.md",
+      "paths": [
+        "pstack/skills/principle-subtract-before-you-add/SKILL.md"
+      ],
+      "description": "Apply when sequencing an addition, refactor, or rewrite. Remove dead code, redundant validators, and stub references first, then build on the simpler base.",
+      "content_hash": "666338e9a65492b481dc6cd55a7ecd27a870714a",
+      "signature_hash": "bb993387c14d521bb88f8324d97d46ab070d80c9",
+      "variant_hashes": [
+        "666338e9a65492b481dc6cd55a7ecd27a870714a"
+      ],
+      "line_count": 21,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "principle-test-behavior-not-implementation",
+      "category": "skills",
+      "logical_id": "skill:pstack/skills/principle-test-behavior-not-implementation",
+      "canonical_path": "pstack/skills/principle-test-behavior-not-implementation/SKILL.md",
+      "paths": [
+        "pstack/skills/principle-test-behavior-not-implementation/SKILL.md"
+      ],
+      "description": "Apply when you write, change, or keep a test. Call the code the way its users do and assert the result they observe against a literal expected value. If the test would still pass when every imported function returns undefined, rewrite the assertion or delete the test.",
+      "content_hash": "55bc7475fc634cd734933af7c3a7805a3e964952",
+      "signature_hash": "de9430ccc35aa466f86104ad04c1746466bffe19",
+      "variant_hashes": [
+        "55bc7475fc634cd734933af7c3a7805a3e964952"
+      ],
+      "line_count": 25,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "principle-type-system-discipline",
+      "category": "skills",
+      "logical_id": "skill:pstack/skills/principle-type-system-discipline",
+      "canonical_path": "pstack/skills/principle-type-system-discipline/SKILL.md",
+      "paths": [
+        "pstack/skills/principle-type-system-discipline/SKILL.md"
+      ],
+      "description": "Apply when designing types, reviewing a function signature, or writing code in any statically-typed language. Make illegal states unrepresentable, brand semantic primitives, parse external data at boundaries, refuse to lie to the compiler, exhaust variants, derive from authoritative schemas.",
+      "content_hash": "d75c4660d32680c85f4f93d1e0c1d90b8e0b67ba",
+      "signature_hash": "ef3de5839f9c83b41ef11dc28d43c0cc61730557",
+      "variant_hashes": [
+        "d75c4660d32680c85f4f93d1e0c1d90b8e0b67ba"
+      ],
+      "line_count": 31,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "recall",
+      "category": "skills",
+      "logical_id": "skill:pstack/skills/recall",
+      "canonical_path": "pstack/skills/recall/SKILL.md",
+      "paths": [
+        "pstack/skills/recall/SKILL.md"
+      ],
+      "description": "Reconstruct your recent working context from your own chat history, live state, and the shared record (user reports, prior fixes, incidents), then hand back a tight current-state brief. Use for 'recall my work on X', 'catch me up', 'what have I been working on', 'where did I leave off', before starting or resuming work.",
+      "content_hash": "0c6944c151b0116852619e3fd80ed062f364eae8",
+      "signature_hash": "cdc46c0a6ac7dd8383966b0bfff92b1f5f2fc233",
+      "variant_hashes": [
+        "0c6944c151b0116852619e3fd80ed062f364eae8"
+      ],
+      "line_count": 35,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "reflect",
+      "category": "skills",
+      "logical_id": "skill:pstack/skills/reflect",
+      "canonical_path": "pstack/skills/reflect/SKILL.md",
+      "paths": [
+        "pstack/skills/reflect/SKILL.md"
+      ],
+      "description": "Spawn three parallel review subagents over the active transcript, surface learnings, and route each to a concrete edit on an existing skill. Use when the user says reflect.",
+      "content_hash": "7e7117cce1a79315c96beb7c88f5b1c7c3ade6b4",
+      "signature_hash": "ec9cc3fe8f0361f2fa3c83127d05aa2ec69d9ce7",
+      "variant_hashes": [
+        "7e7117cce1a79315c96beb7c88f5b1c7c3ade6b4"
+      ],
+      "line_count": 73,
+      "assets": [
+        "pstack/skills/reflect/references/divergent-reviewer.md",
+        "pstack/skills/reflect/references/judgment-reviewer.md",
+        "pstack/skills/reflect/references/synthesizer.md",
+        "pstack/skills/reflect/references/tooling-reviewer.md"
+      ]
+    },
+    {
+      "kind": "skill",
+      "name": "setup-pstack",
+      "category": "skills",
+      "logical_id": "skill:pstack/skills/setup-pstack",
+      "canonical_path": "pstack/skills/setup-pstack/SKILL.md",
+      "paths": [
+        "pstack/skills/setup-pstack/SKILL.md"
+      ],
+      "description": "Configure which models pstack uses per role and at what reasoning budget. Detects your available models and writes an always-applied rule that overrides the skill defaults. Use for /setup-pstack, \"configure pstack models\", \"pstack budget\", or changing pstack's model choices.",
+      "content_hash": "0e18f237832e68697dcdde72edac83caf389653a",
+      "signature_hash": "2ad8ed9bffe9b88df60c3b2a416ae164738c1736",
+      "variant_hashes": [
+        "0e18f237832e68697dcdde72edac83caf389653a"
+      ],
+      "line_count": 74,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "show-me-your-work",
+      "category": "skills",
+      "logical_id": "skill:pstack/skills/show-me-your-work",
+      "canonical_path": "pstack/skills/show-me-your-work/SKILL.md",
+      "paths": [
+        "pstack/skills/show-me-your-work/SKILL.md"
+      ],
+      "description": "Keep a reviewable decision trail for long-running or unattended work: a TSV log with one row per decision (what, why, evidence, result). Local by default; commit it when a reviewer needs the trail to trust the result. Use for /show-me-your-work, autonomous or multi-phase runs, or work a human reviews after stepping away.",
+      "content_hash": "953a4f97a8d28cf7b8b8d05a768f0601a137d7e4",
+      "signature_hash": "dcbfeb285a5402b063aa3e2addeb1bb2191ee244",
+      "variant_hashes": [
+        "953a4f97a8d28cf7b8b8d05a768f0601a137d7e4"
+      ],
+      "line_count": 82,
+      "assets": [
+        "pstack/skills/show-me-your-work/references/decision-log-template.tsv",
+        "pstack/skills/show-me-your-work/scripts/log.sh"
+      ]
+    },
+    {
+      "kind": "skill",
+      "name": "swarm",
+      "category": "skills",
+      "logical_id": "skill:pstack/skills/swarm",
+      "canonical_path": "pstack/skills/swarm/SKILL.md",
+      "paths": [
+        "pstack/skills/swarm/SKILL.md"
+      ],
+      "description": "Fan out N parallel workers, drain them, and return one report. Use for /swarm, 'swarm this', or parallel coverage, races, gauntlets, and exploration.",
+      "content_hash": "5a05ab435846aaed2935ea43383f24faf88acc2c",
+      "signature_hash": "b1f1aaefaa217a5e69bde4f7aaf2b7e66ea05ce5",
+      "variant_hashes": [
+        "5a05ab435846aaed2935ea43383f24faf88acc2c"
+      ],
+      "line_count": 46,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "tdd",
+      "category": "skills",
+      "logical_id": "skill:pstack/skills/tdd",
+      "canonical_path": "pstack/skills/tdd/SKILL.md",
+      "paths": [
+        "pstack/skills/tdd/SKILL.md"
+      ],
+      "description": "Use only when the user explicitly asks for TDD, a failing test, or a regression test, OR when the bug has an obvious cheap local test target. Skip when the test path is unclear, expensive, integration-heavy, or not requested.",
+      "content_hash": "b17165a89b533a4dea4d6a8634dc40f3db35901f",
+      "signature_hash": "6f11994ab6620728be6b11dddacbc7a74154e5e5",
+      "variant_hashes": [
+        "b17165a89b533a4dea4d6a8634dc40f3db35901f"
+      ],
+      "line_count": 42,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "teach",
+      "category": "skills",
+      "logical_id": "skill:pstack/skills/teach",
+      "canonical_path": "pstack/skills/teach/SKILL.md",
+      "paths": [
+        "pstack/skills/teach/SKILL.md"
+      ],
+      "description": "Explain a body of work plainly so a person actually understands it. Runs the `how` and `why` skills and weaves what they find into one clear explanation. Use for 'teach me this', 'help me really understand X', 'explain this change or subsystem to me'.",
+      "content_hash": "4d90b0248691c4137fcfa6812d601d429c684b78",
+      "signature_hash": "d0788091594dec0debf2abc793d89ea17b63fa32",
+      "variant_hashes": [
+        "4d90b0248691c4137fcfa6812d601d429c684b78"
+      ],
+      "line_count": 21,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "technical-writing",
+      "category": "skills",
+      "logical_id": "skill:pstack/skills/technical-writing",
+      "canonical_path": "pstack/skills/technical-writing/SKILL.md",
+      "paths": [
+        "pstack/skills/technical-writing/SKILL.md"
+      ],
+      "description": "Layered technical-writing standard: Di\u00e1taxis structure, Google developer style sentences, STE instruction rules, Global English syntax. Use for /technical-writing or when writing or reviewing docs, RFCs, readmes, PR descriptions, or commit messages.",
+      "content_hash": "4706fd89f11992d1b1fabde945904a9ed00a3eea",
+      "signature_hash": "f63020daca2f2ca472530e0351b62adceaa60cfa",
+      "variant_hashes": [
+        "4706fd89f11992d1b1fabde945904a9ed00a3eea"
+      ],
+      "line_count": 106,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "typescript-best-practices",
+      "category": "skills",
+      "logical_id": "skill:pstack/skills/typescript-best-practices",
+      "canonical_path": "pstack/skills/typescript-best-practices/SKILL.md",
+      "paths": [
+        "pstack/skills/typescript-best-practices/SKILL.md"
+      ],
+      "description": "TypeScript best practices. Use when reading or editing any .ts or .tsx file.",
+      "content_hash": "8a3584efae273c0d2d3b465facd3f0ce25511448",
+      "signature_hash": "19f4513b65e65561482db07480563c186275a839",
+      "variant_hashes": [
+        "8a3584efae273c0d2d3b465facd3f0ce25511448"
+      ],
+      "line_count": 31,
+      "assets": [
+        "pstack/skills/typescript-best-practices/references/patterns.md"
+      ]
+    },
+    {
+      "kind": "skill",
+      "name": "unslop",
+      "category": "skills",
+      "logical_id": "skill:pstack/skills/unslop",
+      "canonical_path": "pstack/skills/unslop/SKILL.md",
+      "paths": [
+        "pstack/skills/unslop/SKILL.md"
+      ],
+      "description": "Cut AI tells from any writing. Must always apply.",
+      "content_hash": "82de06530e2f86b07d77112ec29d95abb69d6089",
+      "signature_hash": "d8ec325c308cfff65f1100afce3fec8e5f4adfc0",
+      "variant_hashes": [
+        "82de06530e2f86b07d77112ec29d95abb69d6089"
+      ],
+      "line_count": 67,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "why",
+      "category": "skills",
+      "logical_id": "skill:pstack/skills/why",
+      "canonical_path": "pstack/skills/why/SKILL.md",
+      "paths": [
+        "pstack/skills/why/SKILL.md"
+      ],
+      "description": "Use for 'why does X work this way', 'why we picked Y', design rationale, regressions, postmortems, or data-backed thresholds. Discovers available MCPs and queries each evidence category (source control, issue tracker, long-form docs, real-time chat, infrastructure observability, error tracking, product analytics warehouse) in parallel, then returns a cited read on decisions and tradeoffs. Use how for runtime behavior.",
+      "content_hash": "83ec894b03edb5512183f7ca89440cdb4df2bc7e",
+      "signature_hash": "e3ada61a280be8825a8c9cd04131bd2117c87533",
+      "variant_hashes": [
+        "83ec894b03edb5512183f7ca89440cdb4df2bc7e"
+      ],
+      "line_count": 158,
+      "assets": [
+        "pstack/skills/why/references/epistemics.md",
+        "pstack/skills/why/references/investigator-prompt.md",
+        "pstack/skills/why/references/source-playbook.md",
+        "pstack/skills/why/references/sources/code-archaeology.md",
+        "pstack/skills/why/references/sources/databricks.md",
+        "pstack/skills/why/references/sources/datadog.md",
+        "pstack/skills/why/references/sources/incident-postmortem.md",
+        "pstack/skills/why/references/sources/linear.md",
+        "pstack/skills/why/references/sources/notion.md",
+        "pstack/skills/why/references/sources/sentry.md",
+        "pstack/skills/why/references/sources/slack.md",
+        "pstack/skills/why/references/synthesizer-prompt.md"
+      ]
+    },
+    {
+      "kind": "skill",
+      "name": "cancel-ralph",
+      "category": "skills",
+      "logical_id": "skill:ralph-loop/skills/cancel-ralph",
+      "canonical_path": "ralph-loop/skills/cancel-ralph/SKILL.md",
+      "paths": [
+        "ralph-loop/skills/cancel-ralph/SKILL.md"
+      ],
+      "description": "Cancel an active Ralph Loop. Use when the user wants to stop, cancel, or abort a running ralph loop.",
+      "content_hash": "ff252f01d635356b1dfa1741869a08e8be0b1aa4",
+      "signature_hash": "114467e52974ebf6b09819262e982150443757ec",
+      "variant_hashes": [
+        "ff252f01d635356b1dfa1741869a08e8be0b1aa4"
+      ],
+      "line_count": 28,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "ralph-loop",
+      "category": "skills",
+      "logical_id": "skill:ralph-loop/skills/ralph-loop",
+      "canonical_path": "ralph-loop/skills/ralph-loop/SKILL.md",
+      "paths": [
+        "ralph-loop/skills/ralph-loop/SKILL.md"
+      ],
+      "description": "Start a Ralph Loop for iterative self-referential development. Use when the user asks to run a ralph loop, start an iterative loop, or wants repeated autonomous iteration on a task until completion.",
+      "content_hash": "ace660d1c7fe94c9d5e960c2181ede8a12c1e8b0",
+      "signature_hash": "9f19f7ba0462cd8563c265b80d7fb0d6d54ba842",
+      "variant_hashes": [
+        "ace660d1c7fe94c9d5e960c2181ede8a12c1e8b0"
+      ],
+      "line_count": 54,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "ralph-loop-help",
+      "category": "skills",
+      "logical_id": "skill:ralph-loop/skills/ralph-loop-help",
+      "canonical_path": "ralph-loop/skills/ralph-loop-help/SKILL.md",
+      "paths": [
+        "ralph-loop/skills/ralph-loop-help/SKILL.md"
+      ],
+      "description": "Explain the Ralph Loop plugin, how it works, and available skills. Use when the user asks for help with ralph loop, wants to understand the technique, or needs usage examples.",
+      "content_hash": "774fc834b649db1e7bd10a52d59fba48277808b3",
+      "signature_hash": "a272a07fbfe208351e5e27b04b989590ff1b844d",
+      "variant_hashes": [
+        "774fc834b649db1e7bd10a52d59fba48277808b3"
+      ],
+      "line_count": 81,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "create-learning-path",
+      "category": "skills",
+      "logical_id": "skill:teaching/skills/create-learning-path",
+      "canonical_path": "teaching/skills/create-learning-path/SKILL.md",
+      "paths": [
+        "teaching/skills/create-learning-path/SKILL.md"
+      ],
+      "description": "Build a personalized learning roadmap with milestones and practice checkpoints",
+      "content_hash": "ede4a09e3f80d9e2b1123a8f281c882c86bc13c4",
+      "signature_hash": "300cc07ba140b1e5b33b85fa507fd8420a44c5bd",
+      "variant_hashes": [
+        "ede4a09e3f80d9e2b1123a8f281c882c86bc13c4"
+      ],
+      "line_count": 34,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "run-learning-retrospective",
+      "category": "skills",
+      "logical_id": "skill:teaching/skills/run-learning-retrospective",
+      "canonical_path": "teaching/skills/run-learning-retrospective/SKILL.md",
+      "paths": [
+        "teaching/skills/run-learning-retrospective/SKILL.md"
+      ],
+      "description": "Evaluate learning progress, identify blockers, and adjust the learning plan",
+      "content_hash": "fa7baa95e49a3b6929dd35024a59ca09bc08ba87",
+      "signature_hash": "52f26fc02a0ccff924e037483ede6625cbe582de",
+      "variant_hashes": [
+        "fa7baa95e49a3b6929dd35024a59ca09bc08ba87"
+      ],
+      "line_count": 28,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "thermo-nuclear-code-quality-review",
+      "category": "skills",
+      "logical_id": "skill:thermos/skills/thermo-nuclear-code-quality-review",
+      "canonical_path": "thermos/skills/thermo-nuclear-code-quality-review/SKILL.md",
+      "paths": [
+        "thermos/skills/thermo-nuclear-code-quality-review/SKILL.md"
+      ],
+      "description": "Run an extremely strict maintainability review for abstraction quality, giant files, and spaghetti-condition growth. Use for a thermo-nuclear code quality review, thermonuclear review, deep code quality audit, or especially harsh maintainability review.",
+      "content_hash": "b85e51d2bd450abf28acc5206efef47579837dcd",
+      "signature_hash": "8a5b0988e9b483fa978a3dfdfad0a8e4c7e1f38d",
+      "variant_hashes": [
+        "b85e51d2bd450abf28acc5206efef47579837dcd"
+      ],
+      "line_count": 192,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "thermo-nuclear-review",
+      "category": "skills",
+      "logical_id": "skill:thermos/skills/thermo-nuclear-review",
+      "canonical_path": "thermos/skills/thermo-nuclear-review/SKILL.md",
+      "paths": [
+        "thermos/skills/thermo-nuclear-review/SKILL.md"
+      ],
+      "description": "Comprehensive security and correctness audit of a branch's changes. Use for thermo nuclear, thermonuclear, or deep review requests, or branch/PR diff audits focused on bugs, breaking changes, security issues, devex regressions, and feature-gate leaks.",
+      "content_hash": "a2e24426037531a8207ee8c3bea6b5e26d8f6324",
+      "signature_hash": "f4b05071aba69d18192e2e8243c6e9724d442d06",
+      "variant_hashes": [
+        "a2e24426037531a8207ee8c3bea6b5e26d8f6324"
+      ],
+      "line_count": 50,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "thermos",
+      "category": "skills",
+      "logical_id": "skill:thermos/skills/thermos",
+      "canonical_path": "thermos/skills/thermos/SKILL.md",
+      "paths": [
+        "thermos/skills/thermos/SKILL.md"
+      ],
+      "description": "Launch both thermo-nuclear review subagents in parallel, then synthesize their findings. Use for thermos, double thermo review, or combined bug/security and code-quality branch audits.",
+      "content_hash": "f3d48d78b40ab0f2fca7b516eedbb80ddf68cffa",
+      "signature_hash": "eb023441051ad267e132bb455504e58879fee74f",
+      "variant_hashes": [
+        "f3d48d78b40ab0f2fca7b516eedbb80ddf68cffa"
+      ],
+      "line_count": 21,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "google-docs",
+      "category": "skills",
+      "logical_id": "skill:third_party/google-docs/skills/google-docs",
+      "canonical_path": "third_party/google-docs/skills/google-docs/SKILL.md",
+      "paths": [
+        "third_party/google-docs/skills/google-docs/SKILL.md"
+      ],
+      "description": "Author and edit Google Docs with the google-docs tools - structured writing, character and paragraph styling, lists, tables, images, headers/footers. Use when creating a formatted document, editing document content, or applying styles.",
+      "content_hash": "8d2b3725c2d320238f68580c3e9cfafe176bd973",
+      "signature_hash": "a854f82dbead70947360d5c05e22758430e9de1f",
+      "variant_hashes": [
+        "8d2b3725c2d320238f68580c3e9cfafe176bd973"
+      ],
+      "line_count": 119,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "google-drive",
+      "category": "skills",
+      "logical_id": "skill:third_party/google-drive/skills/google-drive",
+      "canonical_path": "third_party/google-drive/skills/google-drive/SKILL.md",
+      "paths": [
+        "third_party/google-drive/skills/google-drive/SKILL.md"
+      ],
+      "description": "Work with Google Drive through its MCP tools - search, read, create, organize, share, comment, and export files. Use when creating files in specific folders, moving or renaming, converting Markdown/CSV into Docs/Sheets, managing comments, or exporting a rendered PDF.",
+      "content_hash": "8ebb67b4e5185f943546ef10fffeeb130738856c",
+      "signature_hash": "31e26152f72c80131bf6bf048be70d87650c7905",
+      "variant_hashes": [
+        "8ebb67b4e5185f943546ef10fffeeb130738856c"
+      ],
+      "line_count": 97,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "google-sheets",
+      "category": "skills",
+      "logical_id": "skill:third_party/google-sheets/skills/google-sheets",
+      "canonical_path": "third_party/google-sheets/skills/google-sheets/SKILL.md",
+      "paths": [
+        "third_party/google-sheets/skills/google-sheets/SKILL.md"
+      ],
+      "description": "Build and edit Google Sheets with the google-sheets tools - values, formatting, charts, conditional formatting, structure, validation, named and protected ranges. Use when creating a spreadsheet or dashboard, formatting cells, adding or fixing charts, or reorganizing tabs and rows.",
+      "content_hash": "6002dd06c7baae0832b28a6f89b292512346c3d6",
+      "signature_hash": "ce0bbed6ea6e1895d682e0d51829b9db0cac235b",
+      "variant_hashes": [
+        "6002dd06c7baae0832b28a6f89b292512346c3d6"
+      ],
+      "line_count": 86,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "google-slides",
+      "category": "skills",
+      "logical_id": "skill:third_party/google-slides/skills/google-slides",
+      "canonical_path": "third_party/google-slides/skills/google-slides/SKILL.md",
+      "paths": [
+        "third_party/google-slides/skills/google-slides/SKILL.md"
+      ],
+      "description": "Build and edit Google Slides through the google-slides MCP tools - slides, grids of cards and columns, text boxes, shapes, images, tables, styling, layout inspection, and per-slide PNG rendering. Use when creating a deck, laying out slide elements, matching a template, or verifying how a slide looks.",
+      "content_hash": "3b2331937cedba2b328d40b42022ec64498dd1f1",
+      "signature_hash": "92c92ca2ab72da8640e2c033c1cd6a76d1b3b88a",
+      "variant_hashes": [
+        "3b2331937cedba2b328d40b42022ec64498dd1f1"
+      ],
+      "line_count": 124,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "X Money guide",
+      "category": "skills",
+      "logical_id": "skill:third_party/x-money/skills/x-money-guide",
+      "canonical_path": "third_party/x-money/skills/x-money-guide/SKILL.md",
+      "paths": [
+        "third_party/x-money/skills/x-money-guide/SKILL.md"
+      ],
+      "description": ">-",
+      "content_hash": "cfa5c12ada490d716d452e5dba6f2dc8141dc18d",
+      "signature_hash": "b2eab6d4cda2dbb63cc06bdfaec4035107090767",
+      "variant_hashes": [
+        "cfa5c12ada490d716d452e5dba6f2dc8141dc18d"
+      ],
+      "line_count": 172,
+      "assets": []
+    },
+    {
+      "kind": "skill",
+      "name": "X MCP guide",
+      "category": "skills",
+      "logical_id": "skill:third_party/x/skills/x-api-mcp-guide",
+      "canonical_path": "third_party/x/skills/x-api-mcp-guide/SKILL.md",
+      "paths": [
+        "third_party/x/skills/x-api-mcp-guide/SKILL.md"
+      ],
+      "description": ">-",
+      "content_hash": "dd260bc367d162901cb340d444d8b51ef136202a",
+      "signature_hash": "818d862179a3721247070e10a25483c40320c4b4",
+      "variant_hashes": [
+        "dd260bc367d162901cb340d444d8b51ef136202a"
+      ],
+      "line_count": 494,
+      "assets": [
+        "third_party/x/skills/x-api-mcp-guide/references/pricing.md"
+      ]
+    }
+  ]
+}

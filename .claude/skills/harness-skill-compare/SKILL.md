@@ -10,8 +10,9 @@ question, read descriptions, relevant body branches and their direct dependencie
 For a full behavioral comparison, inventory all shipped instructions, metadata
 and scripts, distinguishing inspected code from executed behavior.
 
-Consult `harness_lifecycle/inventory/skill-buckets.md` for classification and
-`harness_lifecycle/ledger.json` for relevant prior decisions. Use configured bounded
+Consult `harness_lifecycle/registry/` for classification and prior decisions:
+`INDEX.md` for coordinates, `skill-records/` for our skills' lineage and history,
+`references/<harness>.md` for rulings on reference capabilities. Use configured bounded
 delegation only when helpful; no mandatory subagent-choice question applies.
 
 For a durable full comparison, use `harness_lifecycle/skill-comparisons/<family>/`:

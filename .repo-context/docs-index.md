@@ -25,7 +25,7 @@ Archived research is evidence, not operating policy.
 | Codex remote-control daemon (`codex-rc` systemd unit) | `scripts/README.md` |
 | Harness design | `harness_learnings/coding-harness-best-practices.md` |
 | Cross-runtime collaboration | `harness_learnings/claude-codex-collaboration.md` |
-| Reference curation | `harness_lifecycle/README.md`; rulings in `harness_lifecycle/casebook/README.md` |
+| Reference curation; skill records and rulings | `harness_lifecycle/README.md`; `harness_lifecycle/registry/README.md` |
 | Designing autonomy features or lifecycle-level skills | `harness_lifecycle/adlc/GUIDE.md` |
 | Reference adoption/updates | `harness_learnings/reference-harness-workflow.md` |
 | Reference comparisons | `harness_learnings/harness-patterns-by-capability.md`, `harness_learnings/reference-harness-repos.md` |

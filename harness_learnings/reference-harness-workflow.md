@@ -64,12 +64,12 @@ routes each candidate through the `harness-evaluate` skill.
 
 Expected behavior:
 
-- compare the new repo against our own harness surface (`gap.py ours`)
+- compare the new repo against our own harness surface (`registry.py ours`)
 - update `harness_learnings/` only where the new repo adds a better durable pattern
 - adopt into `mvp-harness/` only where the smallest useful improvement is clear
 - reject heavier, narrower, or repo-specific patterns
-- record every decision in `harness_lifecycle/ledger.json`, so the gap report
-  stops re-surfacing it
+- record every decision in the registry ledger (`harness_lifecycle/registry/`),
+  so the gap report stops re-surfacing it
 
 ## Borrowing Rule
 

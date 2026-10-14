@@ -30,7 +30,7 @@ by two or more model-invocable skill descriptions; an ALLOWED_SLASHES entry no
 longer referenced anywhere; a commented-out disable-model-invocation key the
 loader ignores.
 
-Pure standard library; mirrors harness_lifecycle/gap.py conventions.
+Pure standard library; mirrors harness_lifecycle/scan.py conventions.
 """
 
 from __future__ import annotations

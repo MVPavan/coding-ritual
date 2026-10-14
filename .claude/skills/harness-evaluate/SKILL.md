@@ -15,10 +15,11 @@ distinct dependency/domain boundary, or shared template adoption for broadly
 useful low-cost guidance. Use harness-skill-compare for a substantive comparison.
 
 Evaluation alone produces a recommendation. Record a curation decision only when
-ledger changes are authorized:
+ledger changes are authorized, as one event per capability in the open round
+(`harness_lifecycle/registry/README.md` §5–7):
 
 ```text
-python3 harness_lifecycle/gap.py ledger add --repo <repo> --id <logical_id> --status <rejected|deferred> --reason <evidence>
+uv run python harness_lifecycle/registry/registry.py record --kind <reject|defer|out-of-scope|adopt|adopt-merged> --subject <repo>:<logical_id> --why <reason> --evidence <path:line or comparison folder>
 ```
 
 Authorized adoption edits the actual canonical source. Shared policy belongs in
@@ -34,7 +35,10 @@ implementation also requires authorization for that submodule work.
 
 The `codex-adapter` plugin is retired; call the Codex CLI directly.
 
-Record adoption with `--status adopted --our-id <local-id> --source-sha <ref-sha>`
-and a source-backed reason only after the adopted state exists. Publication,
+Record `adopt` or `adopt-merged` with `--skill <our-skill>` only after the
+adopted state exists. For `adopt-merged`, pass the adaptation (`merged_from`,
+`modifications`, `deliberately_dropped`) with `--json`. The source commit and
+content hash are filled from the catalog. Then update that skill's record in
+`registry/skill-records/`. Publication,
 commits and pointer updates require their own existing authority; otherwise
 report the prepared result. Borrow the smallest useful pattern.

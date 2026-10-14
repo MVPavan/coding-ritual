@@ -81,15 +81,21 @@ The authoritative interpreter semantics are in
 
 ## Reference curation
 
-**Bucket**: A capability category used to compare skills across harnesses.
+**Registry**: `harness_lifecycle/registry/`: our skill records, rulings on
+reference capabilities, and the ledger that holds both.
+
+**Coordinate**: A skill's one primary home: domain · ADLC stage · sub-stage.
+Replaced the 14 buckets, which survive only as frozen history.
 
 **Capability family**: Skills across harnesses claiming the same job, compared
 for overlap and redundancy.
 
-**Ledger**: The current adopt/reject/defer ruling per reference capability in
-`harness_lifecycle/ledger.json`.
+**Ledger**: The registry's append-only JSONL record of every skill change and
+every ruling on a reference capability (`registry/ledger/`). The ruling on a
+subject is its latest event not superseded.
 
-**Casebook**: The append-only history explaining curation rulings by bucket.
+**Casebook**: The frozen 2026-08 curation record (`harness_lifecycle/archive/casebook/`);
+its events were migrated into the registry ledger.
 
 **Prompting guide**: `harness_lifecycle/prompting-guides/GUIDE.md`, the
 vendor-derived rules for writing agent instructions, with its ledger. Used only

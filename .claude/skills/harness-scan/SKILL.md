@@ -9,13 +9,14 @@ disable-model-invocation: true
 Resolve the named reference harness or path; ask only when ambiguous.
 
 1. Run `python3 harness_lifecycle/scan.py drift reference_harnesses/<name>`.
-2. Run `python3 harness_lifecycle/gap.py gap reference_harnesses/<name>`.
+2. Run `uv run python harness_lifecycle/registry/registry.py gap <name>`: capabilities never ruled on, those changed
+   upstream since their ruling, and those we have but never ruled on.
 3. Report material drift and useful candidates, considering existing equivalents.
    Use harness-evaluate for an authorized curation decision.
 
-Scanning does not authorize ledger mutation or adoption. When filing follow-up
-work is authorized, `gap.py gap ... --beads` supplies creation commands to review.
-Record decided outcomes in the ledger only within that authority.
+Scanning does not authorize ledger records or adoption. When filing follow-up
+work is authorized, `registry.py gap <name> --beads` prints creation commands to
+review. Record decided outcomes in the registry ledger only within that authority.
 
 These commands preserve submodule pins. Drift may fetch upstream refs; use its
 `--no-fetch` option when offline or network access is outside the request.
