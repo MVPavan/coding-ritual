@@ -84,6 +84,7 @@ Six types; no others:
 |---|---|---|
 | `open` | available | default |
 | `in_progress` | someone is working on it now | `--claim` |
+| `review` | built; waiting for its verification | the author, `bd update <id> -s review` |
 | `deferred` | not now: ideas and backlog alike | `bd defer` |
 | `closed` | done, rejected or replaced | `bd close`, `duplicate`, `supersede` |
 | `pinned` | permanent; refuses edits and close without `--force` | rarely needed |
@@ -95,6 +96,11 @@ Six types; no others:
   `bd ready` after that date returns it to open.
 - `bd list --status deferred` shows the whole backlog; add `-t spike` for
   ideas.
+- **`review` is a custom status** (`status.custom` = `review:wip`), set
+  per project (setup.md §2). It keeps the bead out of `bd ready`, and its
+  epic stays open while it is in review. Which check it waits on is the
+  task it depends on: a review task by another actor, a CI gate, or a
+  `human` validation task. Pass: close it. Fail: back to `in_progress`.
 - Never set `blocked` by hand. A stored `blocked` status with no dependency is
   invisible to both `bd ready` and `bd blocked`. Record every wait as an edge
   (§9).
@@ -269,11 +275,16 @@ There are no intake labels. Triage reads the bead and decides one of:
 
 - Bd has no review field.
 - A review that must pass before work continues is its own task, which the
-  work depends on, claimed by an actor other than the author.
+  work depends on, claimed by an actor other than the author. When the build
+  is done, the author sets the reviewed bead to `review`
+  (`bd update <id> -s review`) and links it to the review task with
+  `bd dep add <reviewed> <review-task>`.
 - Findings go on the reviewed bead as comments by the reviewer's actor. A
   finding that needs work becomes a bead linked `discovered-from` the
   reviewed bead.
-- The review task closes with the verdict as its reason.
+- The review task closes with the verdict as its reason. The author then
+  closes the reviewed bead on a pass, or returns it to `in_progress` on a
+  fail.
 
 ## 13. Closing
 

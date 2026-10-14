@@ -147,6 +147,7 @@ $st"
       [ $DIRECT_FILTER ] | sort_by((.id|ltrimstr(\$e+\".\"))|(tonumber? // 0)) | .[]
       | (if .status==\"closed\" then \"- [x] \`\" + .id + \"\` \" + .title
         elif .status==\"in_progress\" then \"- [ ] \`\" + .id + \"\` \" + .title + \"  🔄 in progress\"
+        elif .status==\"review\" then \"- [ ] \`\" + .id + \"\` \" + .title + \"  🔍 in review\"
         elif (.id as \$i | \$r | index(\$i)) then \"- [ ] \`\" + .id + \"\` \" + .title + \"  ← ready\"
         else \"- [ ] \`\" + .id + \"\` \" + .title + \"  (blocked)\" end)
         + (if ((.notes // \"\")|length) > 0 then \"\n  - 📝 \" + (.notes|gsub(\"\n\";\"  /  \")) else \"\" end)")"$'\n\n'

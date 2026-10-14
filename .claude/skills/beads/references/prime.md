@@ -85,8 +85,10 @@ default, 4 the lowest.
   A parent closes only after all its children are closed.
 - **Claim:** `bd update <id> --claim`, one bead at a time.
 - **Pause:** `bd unclaim <id>`, then `bd note <id> "resume with: …"`.
-- **Review:** a separate task done by another actor. Findings are comments;
-  work they reveal becomes `discovered-from` beads.
+- **Review:** a separate task done by another actor, which the work depends
+  on. The author sets the work to `bd update <id> -s review` while it waits.
+  Findings are comments; work they reveal becomes `discovered-from` beads.
+  Pass: close the work. Fail: back to `in_progress`.
 - **Close** when acceptance holds: `bd close <id> [<id>…] --reason
   "<evidence>"`.
   - Never `--force` past open children.

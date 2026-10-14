@@ -51,6 +51,18 @@ repository.
 
    Check the result with `bd config show`. Keep machine-specific settings in
    `.beads/config.local.yaml`, never in the tracked file.
+
+   Then add the custom `review` status (usage.md §4):
+
+   ```bash
+   bd config set status.custom "review:wip"
+   ```
+
+   This is a **project setting, not a bd install setting**. It is stored in
+   the project's database, not in `config.yaml` or anywhere global, so
+   installing bd on a machine sets nothing, and every new project needs this
+   command once. A clone joined with `bd bootstrap` receives it with the
+   database (§3).
 6. **Ignore the gate lock.** Add `*.gate.lock*` to the root `.gitignore`.
    Bd 1.3.0 keeps a permanent `.beads.gate.lock` there; never delete it.
 7. **Git hooks.** Run `bd hooks install --beads`, which writes the hook files
@@ -87,6 +99,9 @@ repository.
 - Beads that were never pushed from the other machine will be missing.
   Compare counts (`bd count`) before relying on the clone.
 - Run `bd metrics off`, then `bd hooks list`.
+- Run `bd statuses`: it must list the custom `review` status, which arrives
+  with the database. If it is missing, the project was never configured, or
+  the remote is stale; set it as in §2 step 5 and push.
 - A git worktree needs none of this: it uses the main clone's database
   (`bd where` shows which).
 
@@ -99,6 +114,7 @@ repository.
 | `bd prime \| head -5` | `# Beads: core rules` |
 | `bd hooks list` | five hooks installed |
 | `bd config get export.auto` | `true` |
+| `bd config get status.custom` | `review:wip` |
 | `bd metrics` | off |
 | `git status` | no unexpected files from init |
 
