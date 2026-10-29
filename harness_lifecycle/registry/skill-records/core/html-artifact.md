@@ -14,6 +14,24 @@ status: active
 
 Use for requested standalone HTML documents or interactive explanations when that format materially helps. Skip agent-facing files, Markdown-native deliverables, and ordinary short answers.
 
+<!-- registry:generated traits -->
+- `self-contained-contract`: Produce one HTML file with inline CSS and JS, viewport metadata and no build step, working offline with no external fonts, trackers, fetches or runtime assets.
+- `accessibility-contract`: Use semantic markup, keyboard access and adequate contrast, adapt to narrow screens, honour reduced motion, and provide print styles.
+- `progressive-enhancement`: Ensure the explanation, data and limitations exist before scripts run and survive with JavaScript disabled.
+- `honest-content`: Show only sourced data and explicitly label assumptions and illustrative values.
+- `preset-report`: Shape a skim-by-section report — orientation KPIs, numbered sections with a per-type order, and a source footer.
+- `preset-dashboard`: Shape a chart-first document where prose only captions inline-SVG charts, with a drill-down data table.
+- `preset-explainer`: Shape a concept walkthrough — a TL;DR box, question-headed sections, a glossary and tabbed samples.
+- `preset-editor`: Shape an interactive throwaway editor built around a mandatory paste-ready export, with no backend or persisted storage.
+- `tokens-first-style`: Derive the artifact's styling from the project's own tokens when they exist, otherwise apply the default neutral aesthetic, never inventing look-alike tokens.
+- `component-vocabulary`: Lay content out from a small set of components — KPI tiles, numbered section headers, copy-button code blocks, severity tags, native collapsibles and inline SVG — shaped to the content rather than translating markdown one-to-one.
+- `svg-figure-grammar`: Draw inline SVG figures with a viewBox for scaling, currentColor ink, orthogonal masked connectors, a defined paint order and a bottom legend, keeping real text and rounded coordinates.
+- `svg-complexity-budget`: Hold each figure to at most nine nodes, twelve arrows and two accents, splitting into overview-plus-detail rather than shrinking, and omit a figure a sentence can carry.
+- `svg-accessibility`: Give each inline SVG a role, figure-prefixed title and description IDs, carry meaning in both shape and colour, and mark direction on every edge.
+- `honest-data-encoding`: Never clip, truncate, impute or move a mark to make a chart legible; disclose the domain drawn and name any exemption.
+- `deliver-verify`: Deliver a link rather than pasted source and verify content fidelity, local links, key interactions, responsive and print behaviour and JS-disabled readability, reporting checks that could not run.
+<!-- /registry:generated traits -->
+
 <!-- registry:generated lineage -->
 - **diagram-design:skill:skills/diagram-design** `skills/diagram-design/SKILL.md` @ 4b57361
   - merged from: diagram-design SKILL.md §6-7,12
@@ -95,3 +113,11 @@ Use for requested standalone HTML documents or interactive explanations when tha
 <!-- registry:generated reviews -->
 - [skill-comparisons/visual-explanation](../../../archive/skill-comparisons/visual-explanation/)
 <!-- /registry:generated reviews -->
+
+<!-- registry:generated sources -->
+No adopted traits recorded.
+<!-- /registry:generated sources -->
+
+<!-- registry:generated declined -->
+No declined traits recorded.
+<!-- /registry:generated declined -->

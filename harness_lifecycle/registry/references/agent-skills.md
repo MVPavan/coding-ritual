@@ -7,46 +7,46 @@ Catalog: `aeac41d4d005999432bb7312f7ff06383a91d59d`, 44 capabilities.
 | Their capability | Status | Into ours | Last ruled at | Changed upstream since? |
 |---|---|---|---|---|
 | `agent:agents/code-reviewer` | adopt | agent:code-reviewer | 2026-10-14-migration | yes |
-| `agent:agents/security-auditor` | defer |  | 2026-10-14-migration | hash unknown |
-| `agent:agents/test-engineer` | reject |  | 2026-10-14-migration | hash unknown |
-| `agent:agents/web-performance-auditor` | reject |  | 2026-10-14-migration | hash unknown |
-| `command:commands/build` | reject |  | 2026-10-14-migration | hash unknown |
-| `command:commands/code-simplify` | reject |  | 2026-10-14-migration | hash unknown |
+| `agent:agents/security-auditor` | defer |  | 2026-10-14-migration | no |
+| `agent:agents/test-engineer` | reject |  | 2026-10-14-migration | yes |
+| `agent:agents/web-performance-auditor` | reject |  | 2026-10-14-migration | no |
+| `command:commands/build` | reject |  | 2026-10-14-migration | no |
+| `command:commands/code-simplify` | reject |  | 2026-10-14-migration | no |
 | `command:commands/constraints` | not reviewed |  |  |  |
-| `command:commands/plan` | reject |  | 2026-10-14-migration | hash unknown |
-| `command:commands/review` | reject |  | 2026-10-14-migration | hash unknown |
-| `command:commands/ship` | reject |  | 2026-10-14-migration | hash unknown |
-| `command:commands/spec` | reject |  | 2026-10-14-migration | hash unknown |
-| `command:commands/test` | reject |  | 2026-10-14-migration | hash unknown |
-| `command:commands/webperf` | reject |  | 2026-10-14-migration | hash unknown |
-| `hook:hooks/sdd-cache-post` | reject |  | 2026-10-14-migration | hash unknown |
-| `hook:hooks/sdd-cache-pre` | reject |  | 2026-10-14-migration | hash unknown |
-| `hook:hooks/session-start` | reject |  | 2026-10-14-migration | hash unknown |
-| `hook:hooks/simplify-ignore` | reject |  | 2026-10-14-migration | hash unknown |
-| `plugin:agent-skills` | reject |  | 2026-10-14-migration | hash unknown |
-| `rule:rules/skills-contributing` | reject |  | 2026-10-14-migration | hash unknown |
-| `skill:skills/api-and-interface-design` | reject |  | 2026-10-14-migration | hash unknown |
-| `skill:skills/browser-testing-with-devtools` | reject |  | 2026-10-14-migration | hash unknown |
-| `skill:skills/ci-cd-and-automation` | defer |  | 2026-10-14-migration | hash unknown |
+| `command:commands/plan` | reject |  | 2026-10-14-migration | yes |
+| `command:commands/review` | reject |  | 2026-10-14-migration | yes |
+| `command:commands/ship` | reject |  | 2026-10-14-migration | yes |
+| `command:commands/spec` | reject |  | 2026-10-14-migration | yes |
+| `command:commands/test` | reject |  | 2026-10-14-migration | no |
+| `command:commands/webperf` | reject |  | 2026-10-14-migration | no |
+| `hook:hooks/sdd-cache-post` | reject |  | 2026-10-14-migration | no |
+| `hook:hooks/sdd-cache-pre` | reject |  | 2026-10-14-migration | no |
+| `hook:hooks/session-start` | reject |  | 2026-10-14-migration | yes |
+| `hook:hooks/simplify-ignore` | reject |  | 2026-10-14-migration | yes |
+| `plugin:agent-skills` | reject |  | 2026-10-14-migration | yes |
+| `rule:rules/skills-contributing` | reject |  | 2026-10-14-migration | no |
+| `skill:skills/api-and-interface-design` | reject |  | 2026-10-14-migration | yes |
+| `skill:skills/browser-testing-with-devtools` | reject |  | 2026-10-14-migration | no |
+| `skill:skills/ci-cd-and-automation` | defer |  | 2026-10-14-migration | no |
 | `skill:skills/code-review-and-quality` | adopt-merged | review | 2026-10-14-migration | yes |
 | `skill:skills/code-simplification` | adopt | execution | 2026-10-14-migration | no |
 | `skill:skills/constraint-driven-development` | not reviewed |  |  |  |
 | `skill:skills/context-engineering` | defer |  | 2026-10-14-owner-review | no |
 | `skill:skills/debugging-and-error-recovery` | adopt | systematic-debugging | 2026-10-14-migration | yes |
-| `skill:skills/deprecation-and-migration` | defer |  | 2026-10-14-migration | hash unknown |
+| `skill:skills/deprecation-and-migration` | defer |  | 2026-10-14-migration | yes |
 | `skill:skills/documentation-and-adrs` | adopt | domain-modeling | 2026-10-14-migration | yes |
 | `skill:skills/doubt-driven-development` | defer |  | 2026-10-14-owner-review | no |
-| `skill:skills/frontend-ui-engineering` | reject |  | 2026-10-14-migration | hash unknown |
+| `skill:skills/frontend-ui-engineering` | reject |  | 2026-10-14-migration | yes |
 | `skill:skills/git-workflow-and-versioning` | adopt-merged | harness-publish | 2026-10-14-owner-review | no |
 | `skill:skills/idea-refine` | adopt | idea-refine | 2026-10-14-migration | yes |
 | `skill:skills/incremental-implementation` | adopt | planning | 2026-10-14-migration | yes |
 | `skill:skills/interview-me` | adopt | brainstorming | 2026-10-14-migration | yes |
-| `skill:skills/observability-and-instrumentation` | defer |  | 2026-10-14-migration | hash unknown |
+| `skill:skills/observability-and-instrumentation` | defer |  | 2026-10-14-migration | yes |
 | `skill:skills/performance-optimization` | adopt | performance-optimization | 2026-10-14-migration | yes |
-| `skill:skills/planning-and-task-breakdown` | reject |  | 2026-10-14-migration | hash unknown |
+| `skill:skills/planning-and-task-breakdown` | reject |  | 2026-10-14-migration | yes |
 | `skill:skills/security-and-hardening` | adopt | security | 2026-10-14-migration | yes |
-| `skill:skills/shipping-and-launch` | defer |  | 2026-10-14-migration | hash unknown |
+| `skill:skills/shipping-and-launch` | defer |  | 2026-10-14-migration | yes |
 | `skill:skills/source-driven-development` | adopt | research | 2026-10-14-migration | yes |
 | `skill:skills/spec-driven-development` | adopt-merged | brainstorming | 2026-10-14-migration | yes |
 | `skill:skills/test-driven-development` | adopt | test-driven-development | 2026-10-14-migration | yes |
-| `skill:skills/using-agent-skills` | reject |  | 2026-10-14-migration | hash unknown |
+| `skill:skills/using-agent-skills` | reject |  | 2026-10-14-migration | yes |

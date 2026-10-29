@@ -14,6 +14,24 @@ status: active
 
 Use for a critic review of any artifact, a substantive review of code or of a spec or plan, or to verify and act on review findings. Skip routine final diff inspection; to interrogate the author instead, use grilling.
 
+<!-- registry:generated traits -->
+- `independent-critic-verdict`: A reviewer who did not author the work gives evidence-backed findings and a verdict, approving only what was verified and listing the rest as unverified.
+- `severity-and-verdict`: Rate each finding by consequence and approve only with no open blocker or major, otherwise require revision, never counting preference alone as a finding. (A plan-mandated defect is still reported as major, labelled plan-mandated, for the user to decide.)
+- `scope-establishment`: Fix the diff and the base it is measured from before reviewing.
+- `pre-existing-edit-separation`: Separate pre-existing edits from the task's own changes using the task baseline, not filenames.
+- `callers-and-evidence`: Read enough surrounding code and affected callers, treating implementer and reviewer reports as evidence to verify rather than authority.
+- `mechanical-gate-precedence`: A failing mechanical verification gate returns the work unreviewed as failed verification unless the requester explicitly waives it.
+- `requirements-before-quality`: Check missing, extra and misunderstood requirements before judging code quality.
+- `distinct-axis-verdicts`: Report each review axis's verdict separately so one axis passing never masks another failing.
+- `test-quality-judgment`: Judge tests by whether they detect meaningful failures with independent expectations, and do not treat test changes as inherently defects.
+- `actionable-defects-only`: Report only actionable defects with trigger, consequence and evidence, defer formatting to configured tools, and state plainly when none are found rather than inventing findings.
+- `read-only-isolation`: A read-only review preserves the checkout, index and refs, using permitted isolated facilities for any check that needs mutation.
+- `verdict-contract`: Dispatched reviewers and re-reviews emit a fixed verdict output of verdict, unverified requirements, located issues and actual checks with limitations.
+- `re-review-finding-tracking`: A re-review rules each prior finding addressed or not with located evidence, flags new breakage in the fix delta, and may rule a finding incorrect without demanding cosmetic edits.
+- `document-review`: Check a spec or plan against repository context for internal inconsistency, missing constraints, unverifiable claims and scope bloat, editing only unambiguous wording when fixes were requested.
+- `finding-adjudication`: Verify each incoming review finding against requirements, code and primary evidence before acting, and give each a visible disposition: fix a confirmed in-scope defect, answer an incorrect one with a retained ruling, record an out-of-scope follow-up.
+<!-- /registry:generated traits -->
+
 <!-- registry:generated lineage -->
 - **agent-skills:skill:skills/code-review-and-quality** `reference_harnesses/agent-skills/skills/code-review-and-quality/SKILL.md` @ 7676817
   - merged from: code-review (mattpocock)
@@ -48,3 +66,11 @@ Use for a critic review of any artifact, a substantive review of code or of a sp
 - [skill-comparisons/git-agent-workflow](../../../archive/skill-comparisons/git-agent-workflow/)
 - [skill-comparisons/review-protocols](../../../archive/skill-comparisons/review-protocols/)
 <!-- /registry:generated reviews -->
+
+<!-- registry:generated sources -->
+No adopted traits recorded.
+<!-- /registry:generated sources -->
+
+<!-- registry:generated declined -->
+No declined traits recorded.
+<!-- /registry:generated declined -->

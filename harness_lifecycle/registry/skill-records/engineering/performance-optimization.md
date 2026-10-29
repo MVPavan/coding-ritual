@@ -14,6 +14,22 @@ status: active
 
 Use for measured latency, throughput, memory or cost problems, profiling, or explicit resource targets. Skip prose optimization and speculative tuning.
 
+<!-- registry:generated traits -->
+- `define-metric`: Define the metric, workload and target first, proposing the measurement or asking about the tradeoff before tuning code.
+- `baseline`: Capture a baseline measurement before attempting a performance fix.
+- `representative-baseline`: Take the baseline under representative data, cache state, concurrency and environment, repeated enough to estimate variability, with percentiles for tail-latency targets and the command and conditions recorded.
+- `locate-cost`: Locate the material cost with measurements, focused instrumentation or profiling, letting code inspection only suggest candidates.
+- `one-factor`: Change one attributable factor where practical, explaining the coupling for an inseparable set and preserving semantics, freshness, safety and accessibility.
+- `like-for-like-comparison`: Compare a performance change against its baseline under the same conditions and run the applicable correctness checks.
+- `noise-inconclusive`: Treat a measured difference within noise as inconclusive rather than as a gain or a loss.
+- `benefit-justifies-complexity`: Keep a performance change only when its measured benefit justifies the complexity it adds.
+- `revert-ineffective-experiments`: Remove your own ineffective experimental edits, preserving all other work.
+- `attempt-ledger`: Keep a compact baseline-to-result attempt record with decision and reason so failed experiments are not repeated after context recovery.
+- `regression-guard`: For a material recurring risk add an economical guard — query counts, bounded allocations or a controlled benchmark — scaled to the risk and avoiding flaky wall-clock assertions.
+- `measurement-recipes`: Supply backend tool mechanics for measurement — monotonic timing, sampling and allocation profilers, query plans and N+1 counting, benchmark gating, and the host and runtime view.
+- `frontend-performance`: Supply browser performance mechanics — Core Web Vitals targets, synthetic plus real-user measurement, a symptom-to-measurement tree, fix patterns and budgets.
+<!-- /registry:generated traits -->
+
 <!-- registry:generated lineage -->
 - **agent-skills:skill:skills/performance-optimization** `reference_harnesses/agent-skills/skills/performance-optimization/SKILL.md` @ 7676817
 - **agent-skills:skill:skills/performance-optimization** `skills/performance-optimization/SKILL.md` @ 7676817
@@ -32,3 +48,11 @@ Use for measured latency, throughput, memory or cost problems, profiling, or exp
 <!-- registry:generated reviews -->
 - [skill-comparisons/debugging-loop](../../../archive/skill-comparisons/debugging-loop/)
 <!-- /registry:generated reviews -->
+
+<!-- registry:generated sources -->
+No adopted traits recorded.
+<!-- /registry:generated sources -->
+
+<!-- registry:generated declined -->
+No declined traits recorded.
+<!-- /registry:generated declined -->

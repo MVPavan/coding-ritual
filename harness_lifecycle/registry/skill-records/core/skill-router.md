@@ -14,6 +14,14 @@ status: active
 
 Use when unsure which skill or command fits a task, when two seem to overlap, or when the user asks what skills or commands exist, what one does, or which to use.
 
+<!-- registry:generated traits -->
+- `need-to-skill-routing`: Map a task need to the narrowest fitting skill or command, or to no skill at all.
+- `narrowest-contract`: Default to the narrowest useful specialist contract, with clear bounded work needing no skill and the router treated as optional rather than a startup checklist.
+- `overlap-arbitration`: Name the single owner when two skills or commands appear to overlap.
+- `legacy-entrypoint-flagging`: Flag thin aliases and retired workflows so their retired steps are not recommended as automatic.
+- `catalog-trust-boundary`: Treat the generated skill catalog as canonical but not proof, verifying actual runtime discovery before relying on availability.
+<!-- /registry:generated traits -->
+
 <!-- registry:generated lineage -->
 - **mattpocock_skills:skill:skills/engineering/ask-matt** `skills/engineering/ask-matt/SKILL.md` @ 84fdeff
 - **mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules** `skills/in-progress/setup-ts-deep-modules/SKILL.md` @ 84fdeffd12f2ee307994d1eb6feb48173b6e0502
@@ -28,3 +36,11 @@ Use when unsure which skill or command fits a task, when two seem to overlap, or
 - [skill-comparisons/harness-bootstrap](../../../archive/skill-comparisons/harness-bootstrap/)
 - [skill-comparisons/plan-execution-engines](../../../archive/skill-comparisons/plan-execution-engines/)
 <!-- /registry:generated reviews -->
+
+<!-- registry:generated sources -->
+No adopted traits recorded.
+<!-- /registry:generated sources -->
+
+<!-- registry:generated declined -->
+No declined traits recorded.
+<!-- /registry:generated declined -->

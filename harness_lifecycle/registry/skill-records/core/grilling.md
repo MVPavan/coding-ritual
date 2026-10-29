@@ -14,6 +14,20 @@ status: active
 
 Use when the user explicitly requests a grilling interview to resolve or challenge material decisions. For a written critique, review the artifact directly.
 
+<!-- registry:generated traits -->
+- `map-decisions`: Map the material decisions and their prerequisites before questioning.
+- `question-batching`: Batch independent questions whose prerequisites are settled and defer each dependent question until its prerequisites are answered.
+- `recommended-answer`: Attach a recommended answer to each question, letting the respondent disagree. (Labels the recommendation's assumptions.)
+- `self-serve-facts`: Look up available facts yourself rather than asking, leaving only the decisions to the live participant. (Ordinary lookups stay inline; only bounded work is delegated.)
+- `settled-stop`: Recompute the unresolved choices after each answer and stop once the needed ones are settled, deferred or blocked, without exhausting every branch.
+- `absent-respondent`: When the needed respondent is absent, prepare a questionnaire for them instead of interviewing the present user about the subject.
+- `grill-the-send`: Ask the present user only about the send (who it goes to and what they need back), never about the subject the recipient knows.
+- `gap-targeted-questions`: Aim a questionnaire's questions at the gap between what the recipient knows and what the sender needs.
+- `interview-not-authority`: Treat conducting an interview or drafting a questionnaire as neither implementation authority nor permission to send it.
+- `optional-docs`: When requested, record settled domain terms and qualifying architectural decisions through domain-modeling, not as an automatic by-product of the interview.
+- `decision-summary`: Produce the durable decision log in a fixed template — context, a decision table with rationale and implications, open items, a dependency map and a risk register.
+<!-- /registry:generated traits -->
+
 <!-- registry:generated lineage -->
 - **mattpocock_skills:skill:skills/productivity/grilling** `reference_harnesses/mattpocock_skills/skills/productivity/grilling/SKILL.md` @ 84fdeff
   - merged from: grill-me
@@ -37,3 +51,11 @@ Use when the user explicitly requests a grilling interview to resolve or challen
 <!-- registry:generated reviews -->
 - [skill-comparisons/interaction-utilities](../../../archive/skill-comparisons/interaction-utilities/)
 <!-- /registry:generated reviews -->
+
+<!-- registry:generated sources -->
+No adopted traits recorded.
+<!-- /registry:generated sources -->
+
+<!-- registry:generated declined -->
+No declined traits recorded.
+<!-- /registry:generated declined -->

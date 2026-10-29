@@ -14,6 +14,21 @@ status: active
 
 Use when settled work needs a durable implementation plan, dependency graph, or workstream decomposition. Skip planning ceremonies for clear bounded tasks.
 
+<!-- registry:generated traits -->
+- `route-by-scale`: Route between brainstorming, a brief local sequence, elaborate, decompose, or executing from a roadmap row according to the work's scale.
+- `decompose-phases`: Split an approved spec into demoable phases with checkable exits and flat stages that each carry acceptance.
+- `vertical-slices`: Prefer independently verifiable vertical slices over horizontal layers.
+- `expand-contract`: For a broad refactor use expand, migrate then contract with genuine dependencies, naming one integration boundary when intermediate tasks cannot stay green.
+- `dependency-edges`: Encode real blocking edges in the tracker and let the ready frontier drive execution rather than listing order.
+- `beads-native-tracking`: Seed epics and stages and render tracking natively in the tracker, keeping the roadmap anchor on the epics and the stage mapping that execution closes against, and writing nothing before its matching approval. (The roadmap anchor is the --spec-id and the governing spec is --design; the renderer derives the workstream from the anchor, so a plan path never goes in --design.)
+- `durable-plan-format`: Produce a durable plan with ownership boundaries, interfaces, verification, dependencies and known files, saved to the plans path and approval-gated.
+- `plan-evidence-bound`: List known files but do not invent exact symbols or freeze a file map without evidence, leaving implementers to discover internals within their ownership.
+- `test-first-marking`: Mark risky changes test-first or characterization-first in the plan.
+- `no-placeholder-plan`: Reject plan placeholders such as TBD, vague error-handling notes, unnamed test behaviours, same-as-another-task references and unresolved cross-task contracts, naming concrete acceptance instead.
+- `plan-self-review`: Self-review the finished plan for spec-requirement coverage, consistent names and types across tasks, and a gap-naming pass that turns unnamed seams, migrations, rollout and cleanup into tasks or explicit exclusions.
+- `reviewer-rejectable-sizing`: Size each task so a reviewer could accept or reject it independently of its neighbour, folding setup, scaffolding and docs into the deliverable they serve.
+<!-- /registry:generated traits -->
+
 <!-- registry:generated lineage -->
 - **superpowers:skill:skills/writing-plans** `reference_harnesses/superpowers/skills/writing-plans/SKILL.md` @ 44c9b2d
   - merged from: planning-and-task-breakdown
@@ -41,3 +56,11 @@ Use when settled work needs a durable implementation plan, dependency graph, or 
 <!-- registry:generated reviews -->
 None yet.
 <!-- /registry:generated reviews -->
+
+<!-- registry:generated sources -->
+No adopted traits recorded.
+<!-- /registry:generated sources -->
+
+<!-- registry:generated declined -->
+No declined traits recorded.
+<!-- /registry:generated declined -->

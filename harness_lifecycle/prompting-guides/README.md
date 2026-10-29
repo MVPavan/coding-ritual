@@ -2,6 +2,8 @@
 
 **Current guide:** [GUIDE.md](GUIDE.md) is the authoritative consolidated guide for this collection. [`sources/`](sources/) holds the verbatim vendor captures; [LEDGER.md](LEDGER.md) records supersessions and unresolved tensions. The older paraphrase notes under `anthropic/` and `openai/` are superseded and kept for history.
 
+**When GUIDE.md changes:** only when a frontier model lab publishes new prompting guidance, or a well-known article reports prompting experiments. Skill reviews and reference harnesses never change it; writing ideas taken from a reference harness go into `.claude/skills/authoring-for-agents/references/writing-principles.md`.
+
 ## Historical notes
 
 Retrieved: 2026-09-09. Question: how should prompting differ across the four requested model guides?

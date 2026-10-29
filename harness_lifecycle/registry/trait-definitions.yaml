@@ -1,0 +1,2176 @@
+# Trait definitions: the shared vocabulary every skill, ours and upstream, maps to.
+# Rules: harness_lifecycle/registry/README.md §4a. Map to these only after a blind
+# extraction (harness_lifecycle/playbook.md §4). Grouped by placement.
+# Migration evidence: docs/workstreams/skill-curation/trait-migration-2026-10-28.md
+
+# ---- core · Discovery · Research ----
+cited-artifact:
+  definition: "Bind citations to the claims they support in the research output."
+  placement: {domain: core, stage: Discovery, substage: Research}
+  secondary: [Communication]
+decision-framing:
+  definition: "State the decision, scope, constraints and material unknowns, and choose sources by what would change the answer."
+  placement: {domain: core, stage: Discovery, substage: Research}
+  distinct_from: [decision-frame]
+  note: "Frames a research question to choose sources; decision-frame fixes outcome and success criteria before choosing a design."
+decision-sufficient-stop:
+  definition: "Stop investigating when remaining uncertainty no longer changes the decision, or when a named access or budget limit is reached."
+  placement: {domain: core, stage: Discovery, substage: Research}
+disconfirming-red-team:
+  definition: "Surface the strongest case against the conclusion and name what would reverse the recommendation."
+  placement: {domain: core, stage: Discovery, substage: Research}
+  distinct_from: [evidence-separation]
+  note: "evidence-separation categorizes evidence; this actively argues the opposite and states reversal conditions."
+evidence-separation:
+  definition: "Compare alternatives and counterevidence while separating verified fact, inference, uncertainty and conflicts with recorded decisions."
+  placement: {domain: core, stage: Discovery, substage: Research}
+findings-file:
+  definition: "Always write the findings to one Markdown file saved where the repository keeps such notes."
+  placement: {domain: core, stage: Discovery, substage: Research}
+  secondary: [Communication]
+  distinct_from: [scaled-report]
+  note: "Always writes the file; scaled-report saves a report only when requested or useful."
+judgment-frameworks:
+  definition: "Apply one to three comparison frameworks to sharpen a choice rather than to decorate the report."
+  placement: {domain: core, stage: Discovery, substage: Research}
+  secondary: [Architecture]
+primary-source-preference:
+  definition: "Prefer primary sources such as official docs, source code and specs over secondary write-ups."
+  placement: {domain: core, stage: Discovery, substage: Research}
+research-playbooks:
+  definition: "Follow a research sequence matched to the question's domain, pulling from a second only when it truly spans domains."
+  placement: {domain: core, stage: Discovery, substage: Research}
+scaled-report:
+  definition: "Answer at the requested scale, saving a durable report only when requested or useful for an authorized handoff."
+  placement: {domain: core, stage: Discovery, substage: Research}
+  secondary: [Communication]
+  distinct_from: [findings-file]
+  note: "Scales the output to the request; findings-file always writes one Markdown file."
+sizeable-delegation:
+  definition: "Delegate only a sizeable, independent part of the investigation."
+  placement: {domain: core, stage: Discovery, substage: Research}
+  secondary: [Coordination]
+  distinct_from: [background-agent]
+  note: "Delegates only a sizeable independent part; background-agent always delegates the reading."
+source-version-dating:
+  definition: "Record the versions and dates of the sources behind changing facts."
+  placement: {domain: core, stage: Discovery, substage: Research}
+source-weighting:
+  definition: "Weight each source by how well its type supports the claim's domain, discounting weak-alone signals and documented red flags."
+  placement: {domain: core, stage: Discovery, substage: Research}
+  distinct_from: [primary-source-preference]
+  note: "primary-source-preference is about primacy; this is about matching source class to the claim's domain and discounting weak evidence."
+structured-synthesis:
+  definition: "For a complex question, organize evidence with a claim table and a pattern scan that turns facts into decision-relevant implications."
+  placement: {domain: core, stage: Discovery, substage: Research}
+vendor-claim-testing:
+  definition: "Test vendor claims with independent observation, distinguishing reported experience from proof."
+  placement: {domain: core, stage: Discovery, substage: Research}
+
+# ---- core · Discovery · Charting ----
+bounded-decision-ticket:
+  definition: "Make each ticket one bounded question whose answer is a decision."
+  placement: {domain: core, stage: Discovery, substage: Charting}
+claim-before-work:
+  definition: "Choose the requested or a ready unclaimed child and claim it before working on it."
+  placement: {domain: core, stage: Discovery, substage: Charting}
+  secondary: [Coordination]
+coherence-sized-tickets:
+  definition: "Size decision tickets by decision coherence and dependencies, not an assumed context-window size."
+  placement: {domain: core, stage: Discovery, substage: Charting}
+  distinct_from: [session-sized-tickets]
+  note: "Sizes by decision coherence; session-sized-tickets sizes to one agent session's window."
+decision-map-epic:
+  definition: "Chart a large effort as one map item on the tracker whose children are decision tickets."
+  placement: {domain: core, stage: Discovery, substage: Charting}
+destination-first:
+  definition: "Name the destination first, since it fixes the scope and shapes every ticket."
+  placement: {domain: core, stage: Discovery, substage: Charting}
+human-decision-gate:
+  definition: "Stop at a required human decision and prepare concrete options before requesting the final gate."
+  placement: {domain: core, stage: Discovery, substage: Charting}
+  secondary: [Governance]
+label-free-typing:
+  definition: "Express each ticket's kind through the tracker's native item type and a title prefix, creating no labels."
+  placement: {domain: core, stage: Discovery, substage: Charting}
+  distinct_from: [no-triage-labels]
+  note: "Creates no labels at all; no-triage-labels allows only the type labels."
+map-as-index:
+  definition: "Keep resolution detail on each ticket while the map holds only a named pointer and a gist."
+  placement: {domain: core, stage: Discovery, substage: Charting}
+  secondary: [Continuity]
+map-body-sections:
+  definition: "Structure the map body as Destination, Notes, Decisions so far, Not yet specified, and Out of scope."
+  placement: {domain: core, stage: Discovery, substage: Charting}
+multi-ticket-sessions:
+  definition: "Continue through additional authorized ready tickets with no one-ticket-per-session limit, parallel work needing disjoint ownership."
+  placement: {domain: core, stage: Discovery, substage: Charting}
+  secondary: [Coordination]
+no-map-without-fog:
+  definition: "If breadth-first charting surfaces no fog, stop and ask how to proceed rather than building a map."
+  placement: {domain: core, stage: Discovery, substage: Charting}
+no-triage-labels:
+  definition: "Carry only wayfinder-type labels on a map and its tickets, never a triage label."
+  placement: {domain: core, stage: Discovery, substage: Charting}
+one-ticket-per-session:
+  definition: "Resolve no more than one ticket per session, except research tickets."
+  placement: {domain: core, stage: Discovery, substage: Charting}
+  secondary: [Coordination]
+  distinct_from: [multi-ticket-sessions]
+  note: "One ticket per session except research; ours continues through further authorized tickets."
+out-of-scope-close:
+  definition: "Close an out-of-scope ticket with an explicit exclusion reason rather than a claim of delivery."
+  placement: {domain: core, stage: Discovery, substage: Charting}
+plan-not-do:
+  definition: "Keep the map to planning: each ticket resolves a decision rather than executing a build slice."
+  placement: {domain: core, stage: Discovery, substage: Charting}
+question-graduation:
+  definition: "Ticket a question once it is sharp enough to state, even while blocked, and hold not-yet-specifiable work aside until earlier answers make it expressible."
+  placement: {domain: core, stage: Discovery, substage: Charting}
+real-id-wiring:
+  definition: "Wire cross-references and dependencies with real identifiers, never placeholders."
+  placement: {domain: core, stage: Discovery, substage: Charting}
+  secondary: [Decomposition]
+record-resolution:
+  definition: "On resolving a ticket, record the answer on it, close it, and add a pointer to the map's decisions so far."
+  placement: {domain: core, stage: Discovery, substage: Charting}
+reference-by-name:
+  definition: "Reference tickets by name with identifiers and links so the map reads without opening every item."
+  placement: {domain: core, stage: Discovery, substage: Charting}
+session-sized-tickets:
+  definition: "Size each ticket to fit one agent session's context window."
+  placement: {domain: core, stage: Discovery, substage: Charting}
+  distinct_from: [coherence-sized-tickets]
+  note: "Sizes to one session's window; coherence-sized-tickets sizes by decision coherence."
+ticket-type-set:
+  definition: "A fixed set of ticket kinds: research for facts, prototype for fidelity, grilling for a live interview, and task for prerequisite work that unblocks a decision."
+  placement: {domain: core, stage: Discovery, substage: Charting}
+live-human-resolution:
+  definition: "Resolve a human-in-the-loop item only through a live exchange with the human, never answering the human's side yourself."
+  placement: {domain: core, stage: Discovery, substage: Charting}
+type-directed-resolution:
+  definition: "Resolve each ticket as the type its label names, reading the label rather than inferring from the body."
+  placement: {domain: core, stage: Discovery, substage: Charting}
+
+# ---- core · Intake · Triage ----
+agent-ready-gate:
+  definition: "Make a bead agent-executable only when acceptance criteria, current and desired behaviour, and out-of-scope notes all hold."
+  placement: {domain: core, stage: Intake, substage: Triage}
+ai-disclaimer:
+  definition: "Open every comment or issue posted during the work with an AI-generated-during-triage disclaimer."
+  placement: {domain: core, stage: Intake, substage: Triage}
+  secondary: [Communication]
+attention-buckets:
+  definition: "Present the items needing triage attention as named buckets, oldest first."
+  placement: {domain: core, stage: Intake, substage: Triage}
+claim-verification:
+  definition: "Verify a reported claim before acting on it, reproducing a bug or recording exactly why it could not be reproduced."
+  placement: {domain: core, stage: Intake, substage: Triage}
+  secondary: [Grounding]
+durable-unit-scope:
+  definition: "Track one durable unit of work per bead, keeping turn checklists out, searching before creating, and filing incidental finds as discovered-from beads."
+  placement: {domain: core, stage: Intake, substage: Triage}
+  secondary: [Continuity]
+prior-rejection-check:
+  definition: "Check earlier rejections for one resembling the request and surface any match before deciding."
+  placement: {domain: core, stage: Intake, substage: Triage}
+redundancy-check:
+  definition: "Search the codebase by domain concept for an existing implementation and report where you looked before deciding."
+  placement: {domain: core, stage: Intake, substage: Triage}
+  secondary: [Grounding]
+triage-decision:
+  definition: "Decide and apply each triage outcome within existing authority rather than deferring every call to the owner."
+  placement: {domain: core, stage: Intake, substage: Triage}
+triage-resume-notes:
+  definition: "Resume triage from the notes of earlier passes, never re-asking a question already answered."
+  placement: {domain: core, stage: Intake, substage: Triage}
+triage-routing:
+  definition: "Route each triaged item to one outcome expressed in the tracker's native fields (admit with acceptance, hand to a human task, defer, reject, or mark duplicate) with no separate intake labels."
+  placement: {domain: core, stage: Intake, substage: Triage}
+  secondary: [Continuity]
+
+# ---- core · Intake · Clarification ----
+absent-respondent:
+  definition: "When the needed respondent is absent, prepare a questionnaire for them instead of interviewing the present user about the subject."
+  placement: {domain: core, stage: Intake, substage: Clarification}
+  secondary: [Communication]
+approval-interpretation:
+  definition: "Treat a clear acceptance of a concrete proposal or an explicit delegation of routine choices as usable authority, and silence as not approval."
+  placement: {domain: core, stage: Intake, substage: Clarification}
+  secondary: [Governance]
+decision-frame:
+  definition: "Establish the outcome, intended user, success criteria, constraints and exclusions before committing to an approach."
+  placement: {domain: core, stage: Intake, substage: Clarification}
+decision-summary:
+  definition: "Produce the durable decision log in a fixed template — context, a decision table with rationale and implications, open items, a dependency map and a risk register."
+  placement: {domain: core, stage: Intake, substage: Clarification}
+  secondary: [Communication]
+document-during-interview:
+  definition: "Pair a clarifying interview with live documentation so the glossary and decision records are produced as the interview settles each question."
+  placement: {domain: core, stage: Intake, substage: Clarification}
+  distinct_from: [optional-docs]
+  note: "Documents live as the interview settles each question; optional-docs records terms and decisions only when requested."
+document-structure:
+  definition: "Fill a fixed questionnaire template, ordered most-important-first, of purpose, from/to/use, context, how-to-answer, themed sections of one-idea questions with answer stubs, and a closing catch-all."
+  placement: {domain: core, stage: Intake, substage: Clarification}
+  secondary: [Communication]
+exhaustive-completion:
+  definition: "End the session only when the frontier is empty and every branch of the tree has been visited, with nothing silently assumed."
+  placement: {domain: core, stage: Intake, substage: Clarification}
+  distinct_from: [settled-stop]
+  note: "Visits every branch; settled-stop ends once the needed decisions are settled."
+exploration-lenses:
+  definition: "Apply ideation lenses such as SCAMPER or Jobs-to-Be-Done selectively to unlock options, never as a mandatory quota or sequence."
+  placement: {domain: core, stage: Intake, substage: Clarification}
+  secondary: [Charting]
+  distinct_from: [judgment-frameworks]
+  note: "Lenses unlock options during ideation; judgment-frameworks sharpen a comparison between options (overlap audit #9)."
+gap-targeted-questions:
+  definition: "Aim a questionnaire's questions at the gap between what the recipient knows and what the sender needs."
+  placement: {domain: core, stage: Intake, substage: Clarification}
+grill-the-send:
+  definition: "Ask the present user only about the send (who it goes to and what they need back), never about the subject the recipient knows."
+  placement: {domain: core, stage: Intake, substage: Clarification}
+loop-lens:
+  definition: "See the user's life as loops within loops to find recurring activities worth delegating, proposing ones they have not noticed."
+  placement: {domain: core, stage: Intake, substage: Clarification}
+map-decisions:
+  definition: "Map the material decisions and their prerequisites before questioning."
+  placement: {domain: core, stage: Intake, substage: Clarification}
+match-interaction-to-ambiguity:
+  definition: "Match the interaction depth to the ambiguity — return to the task, ask one focused question, or run a structured exploration — rather than over- or under-investigating."
+  placement: {domain: core, stage: Intake, substage: Clarification}
+observable-outcomes:
+  definition: "Translate vague goals such as scalable or simple into observable outcomes only when the distinction affects the design."
+  placement: {domain: core, stage: Intake, substage: Clarification}
+options-with-tradeoffs:
+  definition: "Present materially different options with their tradeoffs when alternatives remain."
+  placement: {domain: core, stage: Intake, substage: Clarification}
+  secondary: [Charting]
+question-batching:
+  definition: "Batch independent questions whose prerequisites are settled and defer each dependent question until its prerequisites are answered."
+  placement: {domain: core, stage: Intake, substage: Clarification}
+questionnaire-artifact:
+  definition: "Write the questionnaire to a slug-named markdown file in the current directory and report its path."
+  placement: {domain: core, stage: Intake, substage: Clarification}
+  secondary: [Communication]
+recommended-answer:
+  definition: "Attach a recommended answer to each question, letting the respondent disagree."
+  placement: {domain: core, stage: Intake, substage: Clarification}
+  distinct_from: [yes-accepts-recommendation]
+  note: "Attaches the recommendation; yes-accepts-recommendation words the question so a yes accepts it."
+reconfirm-before-action:
+  definition: "Do not act until the user confirms a shared understanding has been reached."
+  placement: {domain: core, stage: Intake, substage: Clarification}
+  secondary: [Governance]
+  distinct_from: [approval-interpretation]
+  note: "Always reconfirms shared understanding before acting; approval-interpretation accepts clear acceptance of a concrete proposal."
+reuse-before-new:
+  definition: "Name the closest existing solution before proposing a new one."
+  placement: {domain: core, stage: Intake, substage: Clarification}
+  secondary: [Architecture]
+round-format:
+  definition: "Lay out each round in a fixed question-and-recommendation markdown format, one block per question."
+  placement: {domain: core, stage: Intake, substage: Clarification}
+  secondary: [Communication]
+scoped-context-read:
+  definition: "Read only the existing code, authoritative docs and constraints needed to distinguish the live choices."
+  placement: {domain: core, stage: Intake, substage: Clarification}
+  secondary: [Grounding]
+self-serve-facts:
+  definition: "Look up available facts yourself rather than asking, leaving only the decisions to the live participant."
+  placement: {domain: core, stage: Intake, substage: Clarification}
+settled-stop:
+  definition: "Recompute the unresolved choices after each answer and stop once the needed ones are settled, deferred or blocked, without exhausting every branch."
+  placement: {domain: core, stage: Intake, substage: Clarification}
+structured-divergence:
+  definition: "Generate only enough distinct options to expose the tradeoff, compare them on value, feasibility, cost and reversibility, test the assumption most likely to reverse the choice first, and keep rejected options with their reasons."
+  placement: {domain: core, stage: Intake, substage: Clarification}
+  secondary: [Charting]
+  distinct_from: [options-with-tradeoffs]
+  note: "structured-divergence is the fuller exploration pass with risk-testing and kept rejections; options-with-tradeoffs is the inline presentation of alternatives."
+synthesize-settled:
+  definition: "When the decisions are already settled, synthesize them into a spec without reopening the discussion."
+  placement: {domain: core, stage: Intake, substage: Clarification}
+  secondary: [Specification]
+two-exchange-interview:
+  definition: "Run the interview as two bounded exchanges, the recipient and what the user needs back."
+  placement: {domain: core, stage: Intake, substage: Clarification}
+world-notes:
+  definition: "Capture the user's world, tools, channels and terminology in a notes file, interviewing them first when it is thin."
+  placement: {domain: core, stage: Intake, substage: Clarification}
+  secondary: [Continuity]
+yes-accepts-recommendation:
+  definition: "Word each question so that a yes accepts your recommended answer."
+  placement: {domain: core, stage: Intake, substage: Clarification}
+  distinct_from: [recommended-answer]
+  note: "recommended-answer attaches a recommendation; this trait is the wording so a yes accepts it."
+
+# ---- core · Design · Specification ----
+mandate-nothing-structural:
+  definition: "Impose no structure such as AI, a checkpoint or a schedule on a workflow unless the interview shows it is needed."
+  placement: {domain: core, stage: Design, substage: Specification}
+no-stale-code-snippets:
+  definition: "Keep code snippets out of a durable spec or ticket because they go stale."
+  placement: {domain: core, stage: Design, substage: Specification}
+no-stale-file-paths:
+  definition: "Keep concrete file paths out of a durable spec, ticket or brief, describing interfaces and behaviour that survive code drift."
+  placement: {domain: core, stage: Design, substage: Specification}
+none-keeps-heading:
+  definition: "Keep every spec heading, writing None in an empty section so its absence reads as a decision."
+  placement: {domain: core, stage: Design, substage: Specification}
+spec-approval-gate:
+  definition: "Keep a spec in draft until explicit authorization names its direction and scope, with any blocking question resolved or moved to out-of-scope first."
+  placement: {domain: core, stage: Design, substage: Specification}
+  secondary: [Governance]
+  distinct_from: [approval-interpretation]
+  note: "spec-approval-gate is the spec's draft/approved status gate; approval-interpretation is reading whether a human's assent during an interview counts as usable authority."
+spec-criteria-and-questions:
+  definition: "Add success-criteria and open-questions sections to the spec skeleton."
+  placement: {domain: core, stage: Design, substage: Specification}
+spec-done-when-buildable:
+  definition: "Treat a spec as done only when an implementer could build it without asking a single question."
+  placement: {domain: core, stage: Design, substage: Specification}
+spec-template:
+  definition: "Capture the spec in a fixed skeleton: problem, solution, user stories, implementation decisions, testing decisions, out of scope and further notes."
+  placement: {domain: core, stage: Design, substage: Specification}
+visuals-into-spec:
+  definition: "Re-express an approved diagram inside the durable spec as a Mermaid block, or record what a mockup showed and decided, rather than linking disposable scratch files."
+  placement: {domain: core, stage: Design, substage: Specification}
+  secondary: [Communication]
+workflow-spec-artifact:
+  definition: "Keep each workflow's spec in its own markdown file as the single source of truth."
+  placement: {domain: core, stage: Design, substage: Specification}
+workflow-vocabulary:
+  definition: "Describe a workflow with a shared vocabulary of Trigger, an event or schedule, and Checkpoint."
+  placement: {domain: core, stage: Design, substage: Specification}
+
+# ---- core · Design · Architecture ----
+optional-docs:
+  definition: "When requested, record settled domain terms and qualifying architectural decisions through domain-modeling, not as an automatic by-product of the interview."
+  placement: {domain: core, stage: Design, substage: Architecture}
+  secondary: [Clarification]
+
+# ---- core · Design · Decomposition ----
+quiz-the-user:
+  definition: "Present the breakdown as a numbered list of title, blocked-by and what it delivers, and iterate on granularity, edges and splits until the user approves."
+  placement: {domain: core, stage: Design, substage: Decomposition}
+ticket-template:
+  definition: "Fill a fixed ticket template of behavioural what-to-build, blocked-by, and checkable acceptance criteria."
+  placement: {domain: core, stage: Design, substage: Decomposition}
+
+# ---- core · Building · Diagnosis ----
+debug-spiral-reset:
+  definition: "After repeated failed fix turns, stop iterating on code, name the assumption that may be wrong, and ask one diagnostic question."
+  placement: {domain: core, stage: Building, substage: Diagnosis}
+  distinct_from: [two-failure-stop]
+  note: "A conversation-level reset after repeated failed fix turns; two-failure-stop stops after two failed fixes and brings the attempt log to the owner (overlap audit #15)."
+
+# ---- core · Verification · Review ----
+distinct-axis-verdicts:
+  definition: "Report each review axis's verdict separately so one axis passing never masks another failing."
+  placement: {domain: core, stage: Verification, substage: Review}
+document-review:
+  definition: "Check a spec or plan against repository context for internal inconsistency, missing constraints, unverifiable claims and scope bloat, editing only unambiguous wording when fixes were requested."
+  placement: {domain: core, stage: Verification, substage: Review}
+  secondary: [Specification]
+independent-critic-verdict:
+  definition: "A reviewer who did not author the work gives evidence-backed findings and a verdict, approving only what was verified and listing the rest as unverified."
+  placement: {domain: core, stage: Verification, substage: Review}
+material-risk-review:
+  definition: "Route an artifact or change with material risk or a broad blast radius through an independent critic review before it is accepted."
+  placement: {domain: core, stage: Verification, substage: Review}
+  secondary: [Governance]
+read-only-isolation:
+  definition: "A read-only review preserves the checkout, index and refs, using permitted isolated facilities for any check that needs mutation."
+  placement: {domain: core, stage: Verification, substage: Review}
+  secondary: [Governance]
+requirements-before-quality:
+  definition: "Check missing, extra and misunderstood requirements before judging code quality."
+  placement: {domain: core, stage: Verification, substage: Review}
+  secondary: [Validation]
+review-as-task:
+  definition: "Represent a review as its own task by an actor other than the author, which the reviewed bead depends on and sits in review status until it passes."
+  placement: {domain: core, stage: Verification, substage: Review}
+  secondary: [Continuity]
+reviewer-owns-standards:
+  definition: "Allocate coding-standards enforcement to the review agent rather than the implementation agent."
+  placement: {domain: core, stage: Verification, substage: Review}
+separate-review-stage:
+  definition: "Run review as a separate, low-context-pressure stage from implementation."
+  placement: {domain: core, stage: Verification, substage: Review}
+  distinct_from: [independent-critic-verdict]
+  note: "Separates the review stage from implementation; independent-critic-verdict is the non-author reviewer's evidence-backed verdict."
+severity-and-verdict:
+  definition: "Rate each finding by consequence and approve only with no open blocker or major, otherwise require revision, never counting preference alone as a finding."
+  placement: {domain: core, stage: Verification, substage: Review}
+
+# ---- core · Delivery · Integration ----
+plugin-repo-review:
+  definition: "Review the separate plugin repository, stage explicit paths, and commit naming the plugin version and source commit only when commit authority was granted, never pushing."
+  placement: {domain: core, stage: Delivery, substage: Integration}
+  secondary: [Release]
+submodule-pointer:
+  definition: "Bump and commit the submodule pointer only when authorized, otherwise report the prepared state and proposed update with an update command verified against the consumer's current CLI."
+  placement: {domain: core, stage: Delivery, substage: Integration}
+  secondary: [Release]
+
+# ---- core · Delivery · Release ----
+dry-run:
+  definition: "Run the publish script's check mode to preview the gates, neutrality audit and rsync diff while writing nothing, fixing anything it reports in the source repo rather than the shipped plugin."
+  placement: {domain: core, stage: Delivery, substage: Release}
+failure-table:
+  definition: "Map each publish-script failure line to its cause and fix."
+  placement: {domain: core, stage: Delivery, substage: Release}
+  secondary: [Diagnosis]
+manual-root-only:
+  definition: "Run publishing as a manual, user-run step only in the source workshop, never in an adopted repo."
+  placement: {domain: core, stage: Delivery, substage: Release}
+never-edit-build-output:
+  definition: "Never hand-edit the shipped plugin's skills or agents, which are build output; edit plugin-owned skills and scripts in the plugin itself."
+  placement: {domain: core, stage: Delivery, substage: Release}
+preflight-gates:
+  definition: "Before publishing, run the catalog check and require a clean tree unless an explicitly authorized dirty-tree mode applies."
+  placement: {domain: core, stage: Delivery, substage: Release}
+  secondary: [Integration]
+prerequisites-scope:
+  definition: "Confirm the plugin submodule is initialized with its publish script present, reporting a missing prerequisite rather than pretending publication ran."
+  placement: {domain: core, stage: Delivery, substage: Release}
+publish-bump:
+  definition: "Run the publish bump at the level chosen from what changed, with an optional throwaway smoke install and a dirty-tree override only on explicit consent."
+  placement: {domain: core, stage: Delivery, substage: Release}
+repo-context-check:
+  definition: "Verify the plugin-owned template, installer, updater and doctor use the shared repo-context location and preserve the glossary."
+  placement: {domain: core, stage: Delivery, substage: Release}
+
+# ---- core · Operations · Monitoring ----
+concise-output:
+  definition: "Keep status output to the table plus a one-line recommendation, never dumping full diffs."
+  placement: {domain: core, stage: Operations, substage: Monitoring}
+  secondary: [Communication]
+offline-continue:
+  definition: "On a failed fetch, note it and continue with the remaining repos."
+  placement: {domain: core, stage: Operations, substage: Monitoring}
+pin-preserving-fetch:
+  definition: "Fetching upstream refs updates only the local cache and never moves pinned submodule commits, with a no-fetch option to skip the network when offline."
+  placement: {domain: core, stage: Operations, substage: Monitoring}
+  secondary: [Evaluation]
+scan-candidates:
+  definition: "Flag the repos with material changes as candidates for a deeper scan."
+  placement: {domain: core, stage: Operations, substage: Monitoring}
+summary-table:
+  definition: "Summarise the result as a table of repo, added, removed, material-changed and minor."
+  placement: {domain: core, stage: Operations, substage: Monitoring}
+  secondary: [Communication]
+
+# ---- core · Improvement · Codification ----
+activation-boundary:
+  definition: "Put the activation boundary first — positive cases and the nearest misleading case to skip — and let a description select rather than duplicate the workflow."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+adopt-after-state-exists:
+  definition: "Record an adopt or adopt-merged event only after the adopted state exists, passing the adaptation as JSON for a merge, then update the skill's record."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+agent-conversion:
+  definition: "Convert source agents into conservative target config scaffolds, inferring a sandbox mode and flagging that model identifiers do not carry over."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+beads-followup:
+  definition: "Let the gap command print tracker-create lines to review by hand, never auto-running them, and only within filing authority."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+  secondary: [Governance]
+beads-setup:
+  definition: "Install the tracker, adopt it in a project, and join from a new clone with bootstrap rather than a re-init."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+  secondary: [Continuity]
+co-location:
+  definition: "Keep a concept's definition, rules and caveats under one heading so reading one part brings its neighbours."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+command-conversion:
+  definition: "Convert source commands into target skill scaffolds, reporting any name collision with an existing skill."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+compatibility-alias:
+  definition: "Keep a manual or legacy entrypoint as a thin pointer that delegates to the canonical owner, not as an independent workflow others auto-activate."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+completion-criteria-clarity:
+  definition: "End each step on an observable, checkable done-or-not-done criterion that resists premature completion."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+completion-criteria-demand:
+  definition: "Phrase the criterion to demand thorough work, driving the legwork latent in its wording."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+config-scaffold:
+  definition: "Write a target runtime config file and a migration-notes document as scaffolds."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+context-pointers:
+  definition: "Write a pointer that names the material and the condition for reaching it, front-loading the trigger."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+destination-protection:
+  definition: "Never overwrite an existing skill destination even under force, which applies only to generated scaffolds."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+  secondary: [Governance]
+dry-run-default:
+  definition: "Preview all planned changes by default and write only under an explicit apply flag."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+  secondary: [Governance]
+edit-canonical-source:
+  definition: "Make an authorized adoption edit the one canonical source, placing shared policy in the shared files without duplicating it across provider directories."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+environment-as-cache:
+  definition: "Point to authoritative commands and lookups instead of copying volatile facts the agent can find itself."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+hook-conversion:
+  definition: "Copy hooks and rewrite hook registrations into the target format, flagging that fixtures must validate before enforcement is trusted."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+inline-vs-disclose:
+  definition: "Inline what every branch needs and disclose branch-specific material behind a conditional pointer."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+invocation-mode:
+  definition: "Choose model-invoked or user-invoked activation, setting the disable-model-invocation flag for manual workflows."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+invocation-sidecar-sync:
+  definition: "Pair the manual-invocation flag with the provider's implicit-invocation policy and regenerate the catalog and sidecars together after metadata edits."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+leading-words:
+  definition: "Anchor behaviour in a compact pretrained concept repeated as a token, reaching for an existing word before coining one."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+negation-avoidance:
+  definition: "Steer by the positive target because negation makes the forbidden behaviour more available, keeping prohibitions a last-resort guardrail."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+  secondary: [Communication]
+  distinct_from: [one-effective-instruction]
+  note: "Steers by the positive target; one-effective-instruction prefers one instruction over repeated prohibitions."
+no-op-deletion:
+  definition: "Delete instructions the model already follows by default."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+non-destructive:
+  definition: "Never delete, stage or commit the source assets."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+  secondary: [Governance]
+one-effective-instruction:
+  definition: "Prefer one effective instruction over repeated prohibitions or ritual steps, treating wording techniques as hypotheses rather than laws."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+outputs-and-authority:
+  definition: "State outputs, material invariants, authority boundaries and stop conditions explicitly."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+precision-and-discretion:
+  definition: "Match prescription to fragility: exact recipes for deterministic operations, judgment for context-dependent choices."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+record-command:
+  definition: "Append a curation decision with the registry record command carrying its kind, subject, reason and evidence."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+relevance-check:
+  definition: "Check every line still bears on the document's task, pruning stale or irrelevant ones."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+router-skills:
+  definition: "When user-invoked skills multiply, add a user-invoked router skill that names the others and when to reach each, hinting rather than firing them."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+  secondary: [Coordination]
+sequence-isolation:
+  definition: "Split a run of steps so later post-completion steps stay out of view, driving more legwork on the step in front."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+shared-policy-untouched:
+  definition: "Leave shared policy canonical and rule or execution-policy routing manual, generating no rule files, execution policy or policy-document edits."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+  secondary: [Governance]
+shared-reference-home:
+  definition: "Put reference several skills need in one model-invoked, all-reference skill they can each invoke."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+single-source-of-truth:
+  definition: "Keep each meaning in one authoritative place so changing it is a one-place edit."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+skill-packaging:
+  definition: "Keep one canonical directory per workflow with a SKILL.md, adding references only for substantial conditional material and scripts for reusable mechanical work."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+skill-review-file:
+  definition: "For a durable merge, upgrade or rebuild decision, write a dated skill review file that opens with the compared set and that a later ruling cites as evidence."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+skill-symlinking:
+  definition: "Expose canonical skills to the target runtime via relative symlinks without copying, preserving legacy filename casing at the destination."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+split-by-invocation:
+  definition: "Split off a model-invoked skill only when a distinct leading word should trigger it or another skill must reach it."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+structural-verify:
+  definition: "Provide a verify command that parses the generated assets and optionally runs discovery, disclosing that structural success proves neither semantic parity nor routing."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+  secondary: [Validation]
+surface-choice:
+  definition: "Choose the right owner for an instruction — policy file, project document with a pointer, skill, manual alias, conditional reference, or an existing hook or check — and search for an existing owner first."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+template-adoption-gate:
+  definition: "For template adoption, verify the initialized template tools, run the sync and template-build scripts, and inspect the neutrality and leak results."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+  secondary: [Validation]
+test-before-reliance:
+  definition: "Run the migrator's own tests and trial it in a disposable target before relying on changed behavior."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+  secondary: [Testing]
+two-loads:
+  definition: "Weigh always-loaded context cost on the agent against cognitive load on the human."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+unsupported-claim-removal:
+  definition: "Remove unsupported claims and invented thresholds from instructions."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+upstream-review-on-pin-move:
+  definition: "When the submodule pointer moves, write the upstream review in the same change and regenerate the catalog at the new pin."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+
+# ---- core · Improvement · Evaluation ----
+component-inventory:
+  definition: "Cite each behavioural component — step, gate, template, rule, heuristic or red-flag table — with file and line, treating a heading as not a component."
+  placement: {domain: core, stage: Improvement, substage: Evaluation}
+decision-dimensions:
+  definition: "Weigh a candidate on behavioural gain, overlap, dependencies, context cost and maintenance."
+  placement: {domain: core, stage: Improvement, substage: Evaluation}
+disposition-choice:
+  definition: "Choose among reject or defer, merge into an existing capability, a separate plugin for a distinct dependency or domain, or shared-template adoption for broadly useful low-cost guidance."
+  placement: {domain: core, stage: Improvement, substage: Evaluation}
+drift-scan:
+  definition: "Run the drift scan to surface upstream changes since our pin."
+  placement: {domain: core, stage: Improvement, substage: Evaluation}
+  secondary: [Monitoring]
+gap-report:
+  definition: "Run the gap report for capabilities never ruled on, changed upstream since their ruling, or held but never ruled on."
+  placement: {domain: core, stage: Improvement, substage: Evaluation}
+inspected-vs-executed:
+  definition: "Distinguish inspected code from executed behaviour and never infer invocation frequency from description text."
+  placement: {domain: core, stage: Improvement, substage: Evaluation}
+material-report:
+  definition: "Report the material drift and useful candidates against existing equivalents."
+  placement: {domain: core, stage: Improvement, substage: Evaluation}
+  secondary: [Communication]
+narrow-stays-in-chat:
+  definition: "Keep a narrow comparison in chat with no file, stating its coverage and any unverified behaviour."
+  placement: {domain: core, stage: Improvement, substage: Evaluation}
+  secondary: [Communication]
+presence-matrix:
+  definition: "Tabulate one row per component and one column per skill, marking present, variant or absent, and explain how each varying row is realised and which is stronger."
+  placement: {domain: core, stage: Improvement, substage: Evaluation}
+  secondary: [Communication]
+read-first:
+  definition: "Before judging a candidate, read its canonical source, the relevant prior ledger decision and the closest local implementation, keeping reference repositories as read-only evidence."
+  placement: {domain: core, stage: Improvement, substage: Evaluation}
+recommendation-vs-record:
+  definition: "Treat evaluation as yielding only a recommendation and record a curation event solely under authorization, one per capability in the open round."
+  placement: {domain: core, stage: Improvement, substage: Evaluation}
+  secondary: [Governance]
+registry-consult:
+  definition: "Consult the registry index, skill records and reference pages for classification and prior decisions."
+  placement: {domain: core, stage: Improvement, substage: Evaluation}
+reject-valid:
+  definition: "Treat reject or defer as a valid outcome when a candidate adds no durable behavioural value."
+  placement: {domain: core, stage: Improvement, substage: Evaluation}
+resolve-target:
+  definition: "Resolve the named reference harness or path, asking only when it is ambiguous."
+  placement: {domain: core, stage: Improvement, substage: Evaluation}
+scale-to-question:
+  definition: "Scale comparison depth to the question — descriptions and relevant branches for a narrow overlap, every shipped instruction, metadata and script for a full comparison."
+  placement: {domain: core, stage: Improvement, substage: Evaluation}
+verdict:
+  definition: "Conclude whether the skills substitute or complement, stating what to take, from where, and what to leave, each with a reason."
+  placement: {domain: core, stage: Improvement, substage: Evaluation}
+verification:
+  definition: "Inspect the diff for lost contracts, scale fresh-context and pressure trials to behavioural risk, and report unavailable behavioural checks as a limit instead of manufacturing evidence."
+  placement: {domain: core, stage: Improvement, substage: Evaluation}
+  secondary: [Testing]
+
+# ---- core · X · Coordination ----
+anonymized-peer-review:
+  definition: "When peer review is included, anonymize responses before reviewers compare their reasoning and gaps."
+  placement: {domain: core, stage: X, substage: Coordination}
+  secondary: [Review]
+background-agent:
+  definition: "Delegate reading legwork to a background agent so the caller keeps working while it investigates."
+  placement: {domain: core, stage: X, substage: Coordination}
+  secondary: [Research]
+  distinct_from: [sizeable-delegation]
+  note: "Always delegates the reading so the caller keeps working; sizeable-delegation delegates only a sizeable independent part."
+catalog-source:
+  definition: "Read every selectable model, effort, capability and skill value from the single catalog file and never copy its lists into a prompt or a permanent definition."
+  placement: {domain: core, stage: X, substage: Coordination}
+catalog-trust-boundary:
+  definition: "Treat the generated skill catalog as canonical but not proof, verifying actual runtime discovery before relying on availability."
+  placement: {domain: core, stage: X, substage: Coordination}
+  secondary: [Governance]
+consolidated-delivery:
+  definition: "Deliver a concise consolidation with member-position summaries and paths to every full report, inlining full text only on request."
+  placement: {domain: core, stage: X, substage: Coordination}
+  secondary: [Communication]
+context-modes:
+  definition: "Resolve fresh context versus full context deliberately, treating last-N turns and pasted summaries as unsupported substitutes for a real fork."
+  placement: {domain: core, stage: X, substage: Coordination}
+declared-scale:
+  definition: "Choose and state the council's scale before dispatch, naming membership and whether peer review is included."
+  placement: {domain: core, stage: X, substage: Coordination}
+delegate-afk-work:
+  definition: "Send a tightly scoped task needing no steering to a subagent and leave the current session untouched."
+  placement: {domain: core, stage: X, substage: Coordination}
+effective-tools:
+  definition: "Treat a declared tool list as not the effective one, accounting for the background and Bash-interaction filters, and have the child report its resolved tools when the task depends on one."
+  placement: {domain: core, stage: X, substage: Coordination}
+effort-unverified:
+  definition: "Record effort as requested-but-unverified, since it is definition-only and not observable from inside a child."
+  placement: {domain: core, stage: X, substage: Coordination}
+evidence-calibration:
+  definition: "Require each role to give evidence and calibrated uncertainty rather than forced certainty or ignored risk."
+  placement: {domain: core, stage: X, substage: Coordination}
+failed-member-recovery:
+  definition: "Give a failed member bounded safe recovery before treating it as missing."
+  placement: {domain: core, stage: X, substage: Coordination}
+fork-overrides:
+  definition: "Never promise model, effort, tool or permission overrides on a fork, which inherits the parent's model, tools, prompt and history wholesale."
+  placement: {domain: core, stage: X, substage: Coordination}
+identity-recording:
+  definition: "Record the actual model identities wherever the runtime provides evidence of them."
+  placement: {domain: core, stage: X, substage: Coordination}
+  secondary: [Continuity]
+independent-synthesis:
+  definition: "A fresh synthesizer that did not participate receives every member's full report and produces agreement, disputes, blind spots and a best-supported recommendation, treating agreement as no proof."
+  placement: {domain: core, stage: X, substage: Coordination}
+  secondary: [Review]
+inherit-defaults:
+  definition: "Inherit the session model and effort defaults when none is requested."
+  placement: {domain: core, stage: X, substage: Coordination}
+layer-placement:
+  definition: "Separate the invocation layer's small accepted field set from the definition layer, which alone carries effort, tools, permissions, memory, skills, MCP and full model IDs."
+  placement: {domain: core, stage: X, substage: Coordination}
+legacy-entrypoint-flagging:
+  definition: "Flag thin aliases and retired workflows so their retired steps are not recommended as automatic."
+  placement: {domain: core, stage: X, substage: Coordination}
+member-isolation:
+  definition: "Give each member the shared brief in isolation so none sees another's response; sequential dispatch is allowed."
+  placement: {domain: core, stage: X, substage: Coordination}
+member-resolution:
+  definition: "Resolve the members and judge from the request's explicit selections, asking only for missing choices or unreachable members."
+  placement: {domain: core, stage: X, substage: Coordination}
+narrowest-contract:
+  definition: "Default to the narrowest useful specialist contract, with clear bounded work needing no skill and the router treated as optional rather than a startup checklist."
+  placement: {domain: core, stage: X, substage: Coordination}
+need-to-skill-routing:
+  definition: "Map a task need to the narrowest fitting skill or command, or to no skill at all."
+  placement: {domain: core, stage: X, substage: Coordination}
+neutral-framing:
+  definition: "Frame one neutral shared brief for every member, stating the question, constraints and uncertainty with no preferred conclusion."
+  placement: {domain: core, stage: X, substage: Coordination}
+no-definition-sprawl:
+  definition: "Do not create a permanent definition file per model-effort-capability combination."
+  placement: {domain: core, stage: X, substage: Coordination}
+no-silent-substitution:
+  definition: "Never backfill a missing member with your own answer or a silent substitute; report the gap and whether the synthesizer saw an incomplete set."
+  placement: {domain: core, stage: X, substage: Coordination}
+opposing-lens-set:
+  definition: "Draw advisors from a fixed set of opposing lenses, each contributing a defined kind of challenge."
+  placement: {domain: core, stage: X, substage: Coordination}
+overlap-arbitration:
+  definition: "Name the single owner when two skills or commands appear to overlap."
+  placement: {domain: core, stage: X, substage: Coordination}
+preserve-role-prompt:
+  definition: "Keep role behaviour in one role prompt independent of the runtime metadata applied around it at invocation."
+  placement: {domain: core, stage: X, substage: Coordination}
+push-right:
+  definition: "Defer the human checkpoint as far as it will go, doing maximal work first so the human is asked once, late, with everything prepared."
+  placement: {domain: core, stage: X, substage: Coordination}
+read-skill-before-claiming:
+  definition: "Read a skill's own instructions before describing what it does or recommending its step be skipped, treating router summaries as orientation only."
+  placement: {domain: core, stage: X, substage: Coordination}
+  distinct_from: [catalog-trust-boundary]
+  note: "Reads a skill's own text before describing it; catalog-trust-boundary verifies a skill is actually available."
+repeated-procedures:
+  definition: "Capture short repeated runs as disposable wisps and fixed multi-step procedures as poured formulas, checking what the tracker actually parsed."
+  placement: {domain: core, stage: X, substage: Coordination}
+  secondary: [Continuity]
+report-preservation:
+  definition: "Save every member's full attributed report under the run directory rather than discarding it after synthesis."
+  placement: {domain: core, stage: X, substage: Coordination}
+  secondary: [Continuity]
+report-resolution:
+  definition: "Report which values were selected from the catalog, accepted by the active surface, inherited, or rejected and unavailable."
+  placement: {domain: core, stage: X, substage: Coordination}
+runtime-capability-check:
+  definition: "Verify actual runtime dispatch interfaces before assuming cross-provider access from a model name or placing effort only in prose when a runtime control exists."
+  placement: {domain: core, stage: X, substage: Coordination}
+  secondary: [Governance]
+three-reaches:
+  definition: "Route a spawn through one of three paths — the Agent tool, an ephemeral inline definition, or an independent process — by where a capability must be fixed."
+  placement: {domain: core, stage: X, substage: Coordination}
+transcript-on-request:
+  definition: "Save a council transcript only when it is requested."
+  placement: {domain: core, stage: X, substage: Coordination}
+  secondary: [Continuity]
+validate-selection:
+  definition: "Validate every selected spawn dimension deterministically before spawning, rejecting any value the catalog does not declare rather than substituting a nearby one."
+  placement: {domain: core, stage: X, substage: Coordination}
+
+# ---- core · X · Continuity ----
+actor-identity:
+  definition: "Carry one stable actor for the whole session, claiming on start and acting only on your own claims."
+  placement: {domain: core, stage: X, substage: Continuity}
+bead-type-taxonomy:
+  definition: "Use only the six bead types (epic, feature, task, bug, spike, decision) and the single human label, never inventing others."
+  placement: {domain: core, stage: X, substage: Continuity}
+boundary-only-context-decisions:
+  definition: "Make context-management choices only at the fuzzy boundary between two phases of work, never mid-phase where they lose the thread."
+  placement: {domain: core, stage: X, substage: Continuity}
+clear-disposable-context:
+  definition: "Clear the window outright when everything in the session is irrelevant to what comes next."
+  placement: {domain: core, stage: X, substage: Continuity}
+compact-last:
+  definition: "Treat compaction as the default fallback chosen only after the cheaper context moves are ruled out, not the first reach."
+  placement: {domain: core, stage: X, substage: Continuity}
+compact-with-instruction:
+  definition: "Pass compaction an explicit instruction so the summary keeps what the next phase needs."
+  placement: {domain: core, stage: X, substage: Continuity}
+dolt-sync:
+  definition: "Treat the versioned database as the source of truth and the exported jsonl as a review mirror, syncing copies only with authority."
+  placement: {domain: core, stage: X, substage: Continuity}
+field-roles:
+  definition: "Give each bead field its single job — description, design, acceptance, spec_id, notes, comments and close reason — and never overload one."
+  placement: {domain: core, stage: X, substage: Continuity}
+handoff-doc:
+  definition: "Write a handoff document summarising the current conversation so a fresh agent can continue the work."
+  placement: {domain: core, stage: X, substage: Continuity}
+  distinct_from: [context-recovery]
+  note: "Summarises the conversation into a document; context-recovery rebuilds from ledger, tracker and Git rather than a summary."
+handoff-for-portability:
+  definition: "Write a portable handoff file only when the work must travel to another harness, directory, person, or a forked side task."
+  placement: {domain: core, stage: X, substage: Continuity}
+knowledge-in-files:
+  definition: "Keep durable knowledge in files, never in the tracker's remember, memories or key-value stores."
+  placement: {domain: core, stage: X, substage: Continuity}
+link-dont-copy:
+  definition: "Reference existing artifacts by path or URL rather than copying their content into a handoff."
+  placement: {domain: core, stage: X, substage: Continuity}
+  distinct_from: [single-source-of-truth]
+  note: "Applies to a handoff's content; single-source-of-truth governs where an instruction lives."
+phase-epic-contract:
+  definition: "Shape a phase epic to the status-renderer contract — a bracketed phase-id title, the roadmap as spec_id, the governing spec path as design, and acceptance matching the roadmap's verify rows."
+  placement: {domain: core, stage: X, substage: Continuity}
+  secondary: [Coordination]
+  distinct_from: [beads-native-tracking]
+  note: "The tracker's field contract for a phase epic; beads-native-tracking is planning seeding epics and stages against it (overlap audit #3)."
+primary-vs-secondary-source:
+  definition: "Recognise that every context move but continuing replaces the live session (a primary source) with a lossy summary that restores facts but not reasoning."
+  placement: {domain: core, stage: X, substage: Continuity}
+resume-line:
+  definition: "On pause or handoff, unclaim and append a resume line naming the approach to resume with and where the work stands."
+  placement: {domain: core, stage: X, substage: Continuity}
+rule-out-continue-first:
+  definition: "Rule out simply continuing in the current session, which costs and loses nothing, before any lossy context move."
+  placement: {domain: core, stage: X, substage: Continuity}
+  distinct_from: [context-recovery]
+  note: "Chooses whether to leave the live session at all; context-recovery governs what to persist once a move happens."
+session-close:
+  definition: "Close a session by closing finished beads with evidence, unclaiming the rest with resume lines, running the gates, refreshing the export, and reporting."
+  placement: {domain: core, stage: X, substage: Continuity}
+  secondary: [Closure]
+session-recovery:
+  definition: "At session start or after compaction, list in-progress beads and resume from each one's last note."
+  placement: {domain: core, stage: X, substage: Continuity}
+smart-zone-budget:
+  definition: "Treat the window in which the model still reasons sharply (~150k tokens) as a budget, compacting at the nearest phase boundary rather than pushing on degraded."
+  placement: {domain: core, stage: X, substage: Continuity}
+status-model:
+  definition: "Drive status through the model's own transitions — the custom review status, deferred as the whole backlog, and never a hand-set blocked."
+  placement: {domain: core, stage: X, substage: Continuity}
+suggested-skills:
+  definition: "Name in the handoff which skills the next agent should reach for."
+  placement: {domain: core, stage: X, substage: Continuity}
+  secondary: [Coordination]
+tailor-to-next-focus:
+  definition: "Treat any passed arguments as the next session's focus and tailor the handoff to it."
+  placement: {domain: core, stage: X, substage: Continuity}
+temp-dir-destination:
+  definition: "Save the handoff to the operating system's temporary directory rather than the workspace."
+  placement: {domain: core, stage: X, substage: Continuity}
+unbroken-planning-window:
+  definition: "Keep the stages that build on each other's reasoning in one unbroken context window until the planning artifact is produced, so each stage builds on the same thinking."
+  placement: {domain: core, stage: X, substage: Continuity}
+wait-as-edge:
+  definition: "Record every wait as an explicit edge — a blocks dependency, a human task, or a gate — written in the needs direction so ready-work stays truthful."
+  placement: {domain: core, stage: X, substage: Continuity}
+  distinct_from: [dependency-edges]
+  note: "Every wait, including human decisions and gates, becomes an edge; dependency-edges encodes the work's real blocking order."
+workstream-render:
+  definition: "Regenerate the workstream status, ideas and backlog boards from the tracker through the render script, never hand-editing them."
+  placement: {domain: core, stage: X, substage: Continuity}
+  secondary: [Communication]
+
+# ---- core · X · Governance ----
+authority-separation:
+  definition: "Confirm publication and commit authority separately, treating a no-commit instruction as binding."
+  placement: {domain: core, stage: X, substage: Governance}
+  secondary: [Release]
+destructive-command-guard:
+  definition: "Never run the tracker's deleting commands, reclaiming space with a non-destructive compact instead."
+  placement: {domain: core, stage: X, substage: Governance}
+  secondary: [Continuity]
+interview-not-authority:
+  definition: "Treat conducting an interview or drafting a questionnaire as neither implementation authority nor permission to send it."
+  placement: {domain: core, stage: X, substage: Governance}
+  secondary: [Clarification]
+redact-secrets:
+  definition: "Redact secrets and personal data as placeholders in anything shown or saved, driving commands from environment variables so credentials never appear."
+  placement: {domain: core, stage: X, substage: Governance}
+  secondary: [Diagnosis]
+
+# ---- core · X · Communication ----
+accessibility-contract:
+  definition: "Use semantic markup, keyboard access and adequate contrast, adapt to narrow screens, honour reduced motion, and provide print styles."
+  placement: {domain: core, stage: X, substage: Communication}
+capped-lists:
+  definition: "Cap a list at five items, ranking them or splitting into now and later."
+  placement: {domain: core, stage: X, substage: Communication}
+component-vocabulary:
+  definition: "Lay content out from a small set of components — KPI tiles, numbered section headers, copy-button code blocks, severity tags, native collapsibles and inline SVG — shaped to the content rather than translating markdown one-to-one."
+  placement: {domain: core, stage: X, substage: Communication}
+concrete-time-estimates:
+  definition: "Give estimates in concrete units as agent execution plus review time rather than human workdays."
+  placement: {domain: core, stage: X, substage: Communication}
+controlled-language:
+  definition: "Re-pitch in controlled simplified language with short sentences and common words."
+  placement: {domain: core, stage: X, substage: Communication}
+decision-summary-brief:
+  definition: "Present a checkpoint as a tight, decision-ready summary of what was produced and why with a link, never the raw output."
+  placement: {domain: core, stage: X, substage: Communication}
+deliver-verify:
+  definition: "Deliver a link rather than pasted source and verify content fidelity, local links, key interactions, responsive and print behaviour and JS-disabled readability, reporting checks that could not run."
+  placement: {domain: core, stage: X, substage: Communication}
+  secondary: [Testing]
+domain-vocabulary:
+  definition: "Use the project's established domain vocabulary throughout what you write."
+  placement: {domain: core, stage: X, substage: Communication}
+  secondary: [Grounding]
+explain-on-request:
+  definition: "When the user asks to explain or walk through, run as long as the topic needs while keeping the brevity discipline."
+  placement: {domain: core, stage: X, substage: Communication}
+  secondary: [Tutoring]
+honest-content:
+  definition: "Show only sourced data and explicitly label assumptions and illustrative values."
+  placement: {domain: core, stage: X, substage: Communication}
+  distinct_from: [honest-data-encoding]
+  note: "honest-content governs the artifact's prose and data provenance; honest-data-encoding governs the integrity of an inline chart's visual encoding."
+honest-data-encoding:
+  definition: "Never clip, truncate, impute or move a mark to make a chart legible; disclose the domain drawn and name any exemption."
+  placement: {domain: core, stage: X, substage: Communication}
+html-handoff:
+  definition: "Escalate to the dedicated HTML-artifact skill only under its full gate, and never emit rendered HTML directly."
+  placement: {domain: core, stage: X, substage: Communication}
+  secondary: [Tooling]
+html-mockup-on-request:
+  definition: "On explicit request only, produce one self-contained offline HTML mockup under the scratch directory for what a diagram cannot carry."
+  placement: {domain: core, stage: X, substage: Communication}
+  secondary: [Clarification]
+inline-diagrams:
+  definition: "Draw a structure, flow, sequence or state question as a small inline Mermaid block, using prose for requirements and trade-offs."
+  placement: {domain: core, stage: X, substage: Communication}
+  secondary: [Clarification]
+  distinct_from: [smallest-view, medium-appropriate-form]
+  note: "Picks Mermaid for structure, flow, sequence or state questions during design; the show-me traits govern the choice of visual in general (overlap audit #8)."
+matter-of-fact-errors:
+  definition: "State an error's cause and fix plainly with no alarm language."
+  placement: {domain: core, stage: X, substage: Communication}
+medium-appropriate-form:
+  definition: "Prefer text forms over Mermaid in a terminal and a table over any diagram for a flat list or comparison."
+  placement: {domain: core, stage: X, substage: Communication}
+next-action-first:
+  definition: "Lead with the next concrete action — a command, path or snippet — before any prose."
+  placement: {domain: core, stage: X, substage: Communication}
+no-preamble:
+  definition: "Open with the answer and stop when it is done, with no preamble, recap or closing pleasantry."
+  placement: {domain: core, stage: X, substage: Communication}
+numbered-steps:
+  definition: "Render multi-step work as a numbered list with one bounded action per step."
+  placement: {domain: core, stage: X, substage: Communication}
+pre-send-check:
+  definition: "Before sending, delete announcements, closers, sidebars and empty hedges."
+  placement: {domain: core, stage: X, substage: Communication}
+preset-dashboard:
+  definition: "Shape a chart-first document where prose only captions inline-SVG charts, with a drill-down data table."
+  placement: {domain: core, stage: X, substage: Communication}
+preset-editor:
+  definition: "Shape an interactive throwaway editor built around a mandatory paste-ready export, with no backend or persisted storage."
+  placement: {domain: core, stage: X, substage: Communication}
+  secondary: [Tooling]
+preset-explainer:
+  definition: "Shape a concept walkthrough — a TL;DR box, question-headed sections, a glossary and tabbed samples."
+  placement: {domain: core, stage: X, substage: Communication}
+  secondary: [Tutoring]
+preset-report:
+  definition: "Shape a skim-by-section report — orientation KPIs, numbered sections with a per-type order, and a source footer."
+  placement: {domain: core, stage: X, substage: Communication}
+progressive-enhancement:
+  definition: "Ensure the explanation, data and limitations exist before scripts run and survive with JavaScript disabled."
+  placement: {domain: core, stage: X, substage: Communication}
+real-code-names:
+  definition: "Use real names from the actual code, never invented placeholders."
+  placement: {domain: core, stage: X, substage: Communication}
+repitch-trigger:
+  definition: "When a message did not land, stop and re-pitch it rather than adding more."
+  placement: {domain: core, stage: X, substage: Communication}
+self-contained-contract:
+  definition: "Produce one HTML file with inline CSS and JS, viewport metadata and no build step, working offline with no external fonts, trackers, fetches or runtime assets."
+  placement: {domain: core, stage: X, substage: Communication}
+single-next-action:
+  definition: "Close with exactly one concrete next action the reader can do in under two minutes."
+  placement: {domain: core, stage: X, substage: Communication}
+smallest-view:
+  definition: "Pick the smallest view that makes the point, placing each visual next to the brief prose it supports."
+  placement: {domain: core, stage: X, substage: Communication}
+state-restatement:
+  definition: "Restate the current progress state every turn so the reader need not hold it in memory."
+  placement: {domain: core, stage: X, substage: Communication}
+structural-diff:
+  definition: "Show a change as a diff against the structure the reader already holds rather than against raw source."
+  placement: {domain: core, stage: X, substage: Communication}
+svg-accessibility:
+  definition: "Give each inline SVG a role, figure-prefixed title and description IDs, carry meaning in both shape and colour, and mark direction on every edge."
+  placement: {domain: core, stage: X, substage: Communication}
+  distinct_from: [accessibility-contract]
+  note: "svg-accessibility is the per-figure SVG contract (role, title/desc IDs, shape-plus-colour); accessibility-contract is the page-level contract (keyboard, contrast, responsive, print)."
+svg-complexity-budget:
+  definition: "Hold each figure to at most nine nodes, twelve arrows and two accents, splitting into overview-plus-detail rather than shrinking, and omit a figure a sentence can carry."
+  placement: {domain: core, stage: X, substage: Communication}
+svg-figure-grammar:
+  definition: "Draw inline SVG figures with a viewBox for scaling, currentColor ink, orthogonal masked connectors, a defined paint order and a bottom legend, keeping real text and rounded coordinates."
+  placement: {domain: core, stage: X, substage: Communication}
+tangent-suppression:
+  definition: "Finish the current issue first, then offer any other concern as a separate question."
+  placement: {domain: core, stage: X, substage: Communication}
+tokens-first-style:
+  definition: "Derive the artifact's styling from the project's own tokens when they exist, otherwise apply the default neutral aesthetic, never inventing look-alike tokens."
+  placement: {domain: core, stage: X, substage: Communication}
+visible-progress:
+  definition: "Show completed work in concrete, runnable terms instead of burying it in a recap."
+  placement: {domain: core, stage: X, substage: Communication}
+visual-form-catalog:
+  definition: "Offer a set of inline visual forms — pseudocode, call, component and file trees, Mermaid and whole-block — each with its own shape rules."
+  placement: {domain: core, stage: X, substage: Communication}
+visual-placement:
+  definition: "Place each visual immediately after the sentence it supports and include only the detail the current question needs."
+  placement: {domain: core, stage: X, substage: Communication}
+
+# ---- core · U · Tooling ----
+codex-direct:
+  definition: "Call the Codex CLI directly rather than through the retired adapter plugin."
+  placement: {domain: core, stage: U, substage: Tooling}
+
+# ---- core · U · Tutoring ----
+always-stateful-course:
+  definition: "Treat every teaching request as a stateful multi-session course kept in the workspace."
+  placement: {domain: core, stage: U, substage: Tutoring}
+  secondary: [Continuity]
+  distinct_from: [learning-shape, authorized-course-location]
+  note: "Always opens a course; learning-shape chooses a shape and authorized-course-location opens a course only when one is requested."
+authorized-course-location:
+  definition: "Open a course workspace only for an explicitly requested ongoing course, in an authorized supplied location, creating its files lazily."
+  placement: {domain: core, stage: U, substage: Tutoring}
+  secondary: [Continuity]
+glossary-admission-on-use:
+  definition: "Add a term to the learner's glossary only once the learner can use it correctly."
+  placement: {domain: core, stage: U, substage: Tutoring}
+interleaving:
+  definition: "Interleave different but related topics in practice."
+  placement: {domain: core, stage: U, substage: Tutoring}
+learning-records:
+  definition: "ADR-like records of lessons and established prior knowledge that steer what to teach next."
+  placement: {domain: core, stage: U, substage: Tutoring}
+  secondary: [Continuity]
+learning-shape:
+  definition: "Choose one of a single concept explanation, a session walkthrough, or an explicitly requested ongoing course."
+  placement: {domain: core, stage: U, substage: Tutoring}
+html-lessons:
+  definition: "Deliver every lesson as one self-contained HTML file."
+  placement: {domain: core, stage: U, substage: Tutoring}
+lesson-format:
+  definition: "Make each lesson short and self-contained, teaching one tightly scoped objective tied to the learner's goal."
+  placement: {domain: core, stage: U, substage: Tutoring}
+level-adaptation:
+  definition: "Infer the learner's level from the conversation and adjust from their responses."
+  placement: {domain: core, stage: U, substage: Tutoring}
+  distinct_from: [proximal-next-lesson]
+  note: "Infers level from the conversation; proximal-next-lesson chooses the next lesson from the learning records and mission."
+mission-grounding:
+  definition: "A mission document capturing the concrete real-world reason for learning that anchors every teaching choice."
+  placement: {domain: core, stage: U, substage: Tutoring}
+preference-notes:
+  definition: "Record the learner's stated teaching preferences in a notes file to steer future lessons."
+  placement: {domain: core, stage: U, substage: Tutoring}
+proximal-next-lesson:
+  definition: "When the learner names no target, choose the next lesson from the learning records and mission so it challenges them just enough."
+  placement: {domain: core, stage: U, substage: Tutoring}
+  distinct_from: [level-adaptation]
+  note: "Chooses from the learning records; level-adaptation infers level from the conversation."
+quiz-answer-hygiene:
+  definition: "Keep quiz options plausible and free of giveaways, never matched to exact answer length."
+  placement: {domain: core, stage: U, substage: Tutoring}
+quiz-equal-length:
+  definition: "Make every quiz answer the same number of words, and characters where possible, so formatting gives nothing away."
+  placement: {domain: core, stage: U, substage: Tutoring}
+  distinct_from: [quiz-answer-hygiene]
+  note: "Equal-length answers; ours avoids giveaways without matching exact character counts."
+reference-sheets:
+  definition: "Build durable quick-reference documents that outlive the lessons that spawned them."
+  placement: {domain: core, stage: U, substage: Tutoring}
+resources-curation:
+  definition: "A curated, annotated set of high-trust knowledge and community sources, with gaps surfaced explicitly."
+  placement: {domain: core, stage: U, substage: Tutoring}
+retrieval-practice:
+  definition: "Have the learner retrieve answers from memory through exercises or questions."
+  placement: {domain: core, stage: U, substage: Tutoring}
+reusable-assets:
+  definition: "Reuse existing lesson assets before creating new ones."
+  placement: {domain: core, stage: U, substage: Tutoring}
+shared-component-extraction:
+  definition: "Write each new reusable lesson piece as a shared component and link to it, never inlining code a later lesson would duplicate."
+  placement: {domain: core, stage: U, substage: Tutoring}
+scope-discipline:
+  definition: "Record progress only within course scope and never treat the repository root as a teaching workspace."
+  placement: {domain: core, stage: U, substage: Tutoring}
+  secondary: [Governance]
+sourced-explanations:
+  definition: "Draw explanations from trusted, cited sources and check unfamiliar or changing facts rather than relying on unverified recall."
+  placement: {domain: core, stage: U, substage: Tutoring}
+spacing:
+  definition: "Space practice over time to build long-term retention."
+  placement: {domain: core, stage: U, substage: Tutoring}
+storage-strength:
+  definition: "Favour long-term retention over in-the-moment fluency, which can give an illusory sense of mastery."
+  placement: {domain: core, stage: U, substage: Tutoring}
+teaching-workspace:
+  definition: "Keep a multi-session course's state (mission, resources, learning records, glossary and lessons) as files in one course workspace."
+  placement: {domain: core, stage: U, substage: Tutoring}
+  secondary: [Continuity]
+tight-feedback-loop:
+  definition: "Teach skills through an interactive feedback loop that is as tight and immediate, ideally automatic, as possible."
+  placement: {domain: core, stage: U, substage: Tutoring}
+vary-answer-position:
+  definition: "Vary which position holds the correct answer across questions so order gives nothing away."
+  placement: {domain: core, stage: U, substage: Tutoring}
+what-vs-why:
+  definition: "Separate what happened from why it was chosen when explaining."
+  placement: {domain: core, stage: U, substage: Tutoring}
+wisdom-community-referral:
+  definition: "For questions needing real-world wisdom, attempt an answer but ultimately refer the learner to a high-reputation community."
+  placement: {domain: core, stage: U, substage: Tutoring}
+  distinct_from: [resources-curation]
+  note: "Refers wisdom questions to a community; resources-curation lists sources, community ones included."
+workspace-from-run-dir:
+  definition: "Resolve workspace paths from the directory the skill was run in, resolving only the format-template links from the skill folder."
+  placement: {domain: core, stage: U, substage: Tutoring}
+
+# ---- engineering · Discovery · Research ----
+claim-honesty:
+  definition: "Mark interpretation as INFERENCE, cite file and line for every source-traced claim, and for a closed target name the strongest available artifact and its limits."
+  placement: {domain: engineering, stage: Discovery, substage: Research}
+evidence-flags:
+  definition: "Record two independent claim flags per capability — whether prose documents it and whether a manifest or config declares it."
+  placement: {domain: engineering, stage: Discovery, substage: Research}
+execution-authorization:
+  definition: "Reach the EXERCISED state only under explicit runtime authorization, in a disposable isolated copy without credentials and with commands and side effects named first."
+  placement: {domain: engineering, stage: Discovery, substage: Research}
+inline-for-bounded:
+  definition: "Answer a bounded explanatory question inline with source pointers, without standing up a research registry."
+  placement: {domain: engineering, stage: Discovery, substage: Research}
+levels-vs-dive:
+  definition: "Treat L1 and L2 as nested levels of one study while a deep dive is a standalone trace that may follow L1, carries its own snapshot, and never marks a repo complete."
+  placement: {domain: engineering, stage: Discovery, substage: Research}
+oversell-finding:
+  definition: "Report a documented-and-PRESENT but never-WIRED capability as an explicit finding, since that gap is how docs oversell."
+  placement: {domain: engineering, stage: Discovery, substage: Research}
+reachability-ladder:
+  definition: "Rate what was actually found on the ABSENT/PRESENT/WIRED/SOURCE-TRACED/EXERCISED ladder, each state earned by a specific act and L1 capped at PRESENT."
+  placement: {domain: engineering, stage: Discovery, substage: Research}
+research-branch-pr-policy:
+  definition: "Push the research branch but open no pull request from it, and never merge it."
+  placement: {domain: engineering, stage: Discovery, substage: Research}
+research-subagent-branch:
+  definition: "Resolve research tickets with subagents that capture findings on a throwaway research branch."
+  placement: {domain: engineering, stage: Discovery, substage: Research}
+  secondary: [Coordination]
+  distinct_from: [research-branch-pr-policy]
+  note: "This trait is how research tickets are resolved; research-branch-pr-policy is the branch's lifecycle rule."
+scope-authorization:
+  definition: "Map the invocation to the highest explicitly authorized scope, never exceed it, and escalate only when the user widens scope."
+  placement: {domain: engineering, stage: Discovery, substage: Research}
+snapshot-header:
+  definition: "Stamp every artifact with the studied commit, worktree cleanliness and date, mark a dirty tree provisional, sweep rows written at an older sha as stale, and refresh a stale lower level before building a higher one."
+  placement: {domain: engineering, stage: Discovery, substage: Research}
+three-modes:
+  definition: "Offer three research modes — an L1 capability survey, an L2 architecture map, and a deep dive on one named question — all landing under a per-target research directory."
+  placement: {domain: engineering, stage: Discovery, substage: Research}
+trust-boundary:
+  definition: "Treat the target's docs, scripts and help text as evidence rather than instructions and stay read-only in the target and its submodules."
+  placement: {domain: engineering, stage: Discovery, substage: Research}
+verify-before-report:
+  definition: "Before reporting, confirm the registry matches disk, every row carries its flags and state, every source-traced claim cites file and line, and the target is untouched."
+  placement: {domain: engineering, stage: Discovery, substage: Research}
+
+# ---- engineering · Discovery · Charting ----
+artifact-contracts:
+  definition: "Follow a fixed required-section set and order per artifact type, stating an empty section rather than dropping it."
+  placement: {domain: engineering, stage: Discovery, substage: Charting}
+registry-index:
+  definition: "Keep a single index file as the artifact registry, updated in the same run that writes or invalidates an artifact, with dated immutable deep dives that supersede earlier ones by name."
+  placement: {domain: engineering, stage: Discovery, substage: Charting}
+
+# ---- engineering · Intake · Triage ----
+category-state-roles:
+  definition: "Assign each item exactly one category role of bug or enhancement and one state role from a fixed set."
+  placement: {domain: engineering, stage: Intake, substage: Triage}
+external-pr-discovery-filter:
+  definition: "In discovery, surface only external-author pull requests, while still triaging any explicitly named one."
+  placement: {domain: engineering, stage: Intake, substage: Triage}
+out-of-scope-kb:
+  definition: "Keep a concept-keyed knowledge base of rejected enhancements for deduplication, writing to it only for rejected enhancements and never for already-built features."
+  placement: {domain: engineering, stage: Intake, substage: Triage}
+  secondary: [Continuity]
+pr-as-issue:
+  definition: "Treat an external pull request as an issue with attached code, running it through the same roles and state machine."
+  placement: {domain: engineering, stage: Intake, substage: Triage}
+ready-for-agent-label:
+  definition: "Tag the published work with the ready-for-agent triage label so it needs no further triage."
+  placement: {domain: engineering, stage: Intake, substage: Triage}
+  distinct_from: [agent-ready-gate]
+  note: "Applies a label on publish; agent-ready-gate checks the bead's fields before it becomes agent-executable."
+ready-for-human-rationale:
+  definition: "When an item is ready for a human rather than an agent, use the same brief structure but record why it cannot be delegated."
+  placement: {domain: engineering, stage: Intake, substage: Triage}
+recommend-then-wait:
+  definition: "Recommend a category and state with reasoning and a short codebase summary, then wait for the maintainer's direction before acting."
+  placement: {domain: engineering, stage: Intake, substage: Triage}
+  secondary: [Governance]
+  distinct_from: [triage-decision]
+  note: "Recommends and waits for the maintainer; triage-decision decides within existing authority."
+state-transitions:
+  definition: "Move items along defined state transitions, flagging unusual moves and letting the maintainer override at any time."
+  placement: {domain: engineering, stage: Intake, substage: Triage}
+
+# ---- engineering · Intake · Clarification ----
+agent-brief-contract:
+  definition: "Treat the posted agent brief as the authoritative contract the downstream agent works from, over the original body and discussion."
+  placement: {domain: engineering, stage: Intake, substage: Clarification}
+  secondary: [Specification]
+brief-behavioural:
+  definition: "Describe what the system should do, not how to implement it, leaving implementation choices to the executing agent."
+  placement: {domain: engineering, stage: Intake, substage: Clarification}
+needs-info-notes:
+  definition: "Post structured triage notes recording what is established so far and the specific, actionable questions still needed from the reporter."
+  placement: {domain: engineering, stage: Intake, substage: Clarification}
+  distinct_from: [triage-resume-notes]
+  note: "Posts what is established and the reporter's open questions; triage-resume-notes records what was settled for the next session."
+
+# ---- engineering · Design · Grounding ----
+active-discipline:
+  definition: "Actively build the model by challenging terms, inventing scenarios and writing it down, as distinct from merely reading the glossary."
+  placement: {domain: engineering, stage: Design, substage: Grounding}
+authorized-model-writes:
+  definition: "Edit the glossary and decision records only when documentation work is authorized, otherwise reporting the proposed terms and decisions."
+  placement: {domain: engineering, stage: Design, substage: Grounding}
+challenge-glossary:
+  definition: "Call out immediately a term that conflicts with the existing glossary language."
+  placement: {domain: engineering, stage: Design, substage: Grounding}
+concrete-scenarios:
+  definition: "Stress-test domain relationships with invented edge-case scenarios that force precision about boundaries."
+  placement: {domain: engineering, stage: Design, substage: Grounding}
+context-map-lookup:
+  definition: "Follow the context map to the right context's glossary when the repository has several."
+  placement: {domain: engineering, stage: Design, substage: Grounding}
+  distinct_from: [multi-context-map]
+  note: "Only reads the map to find a glossary; multi-context-map maintains it."
+context-specific-terms:
+  definition: "Admit only terms specific to the project's context to the glossary, leaving general programming concepts out."
+  placement: {domain: engineering, stage: Design, substage: Grounding}
+cross-reference-code:
+  definition: "Check whether the code agrees with a stated domain rule and surface contradictions."
+  placement: {domain: engineering, stage: Design, substage: Grounding}
+declared-glossary-location:
+  definition: "Use the glossary location declared by project instructions, reusing an existing root glossary rather than creating a competing one."
+  placement: {domain: engineering, stage: Design, substage: Grounding}
+detect-package-conventions:
+  definition: "Detect the package manager and packages root before configuring, confirming with the user when the repo already has a different convention."
+  placement: {domain: engineering, stage: Design, substage: Grounding}
+glossary-format:
+  definition: "Write opinionated glossary entries with an Avoid list and tight is-not-does definitions, grouped under subheadings when clusters emerge."
+  placement: {domain: engineering, stage: Design, substage: Grounding}
+glossary-is-glossary:
+  definition: "Keep the glossary free of implementation details and never treat it as a spec or scratchpad."
+  placement: {domain: engineering, stage: Design, substage: Grounding}
+ground-in-codebase:
+  definition: "Explore the current state of the code before writing, so the artifact targets what actually exists."
+  placement: {domain: engineering, stage: Design, substage: Grounding}
+  distinct_from: [scoped-context-read]
+  note: "Requires exploring the current code before writing; scoped-context-read limits reading to what distinguishes live choices."
+lazy-glossary-and-adr:
+  definition: "Create glossary and decision-record files lazily, only when there is something concrete to write."
+  placement: {domain: engineering, stage: Design, substage: Grounding}
+multi-context-map:
+  definition: "Maintain a root context map listing contexts, their locations and relationships, inferring which context a topic belongs to or asking."
+  placement: {domain: engineering, stage: Design, substage: Grounding}
+sharpen-fuzzy:
+  definition: "Propose one precise canonical term for a vague or overloaded one."
+  placement: {domain: engineering, stage: Design, substage: Grounding}
+update-inline:
+  definition: "Write a resolved term into the glossary as soon as it is resolved rather than batching changes."
+  placement: {domain: engineering, stage: Design, substage: Grounding}
+
+# ---- engineering · Design · Specification ----
+brief-acceptance-criteria:
+  definition: "Give every brief concrete, independently testable acceptance criteria."
+  placement: {domain: engineering, stage: Design, substage: Specification}
+  distinct_from: [agent-ready-gate]
+  note: "A writing rule for the brief; agent-ready-gate is the gate that checks it with other fields."
+brief-scope-boundaries:
+  definition: "State explicitly what is out of scope so the agent does not gold-plate."
+  placement: {domain: engineering, stage: Design, substage: Specification}
+classify-maturity:
+  definition: "Inventory source and discussions by concept, separating authoritative decisions from proposals, scratchpads and unresolved conflicts."
+  placement: {domain: engineering, stage: Design, substage: Specification}
+concept-map:
+  definition: "Keep a compact concept map of source, maturity, affected sections, decision, exclusions and conflicts as an evidence artifact, with durable status in the tracker."
+  placement: {domain: engineering, stage: Design, substage: Specification}
+consistency-check:
+  definition: "Check cross-document consistency, section links, invariant coverage and stale version references, consolidating routine duplication but asking when consolidation changes meaning or authority."
+  placement: {domain: engineering, stage: Design, substage: Specification}
+evidence-before-edit:
+  definition: "Read the actual discussion and affected core sections before a consequential change and record a source-to-target change map, shown before a multi-concept edit."
+  placement: {domain: engineering, stage: Design, substage: Specification}
+integration-not-redesign:
+  definition: "Integrate only authorized decisions into the next version and never treat integration as licence to redesign."
+  placement: {domain: engineering, stage: Design, substage: Specification}
+layout-mirror:
+  definition: "Mirror the source layout and filename convention under the target version, searching every form of the old version identifier rather than blind-replacing."
+  placement: {domain: engineering, stage: Design, substage: Specification}
+named-question:
+  definition: "Build a throwaway artifact to answer one named design question."
+  placement: {domain: engineering, stage: Design, substage: Specification}
+no-gap-filling:
+  definition: "Never fill a gap the source leaves open; record it as TBD with its source and keep ambiguous choices unresolved."
+  placement: {domain: engineering, stage: Design, substage: Specification}
+no-placeholder-plan:
+  definition: "Reject plan placeholders such as TBD, vague error-handling notes, unnamed test behaviours, same-as-another-task references and unresolved cross-task contracts, naming concrete acceptance instead."
+  placement: {domain: engineering, stage: Design, substage: Specification}
+per-seam-note:
+  definition: "Give each proposed seam a one-line note on what it catches and what it misses."
+  placement: {domain: engineering, stage: Design, substage: Specification}
+plan-evidence-bound:
+  definition: "List known files but do not invent exact symbols or freeze a file map without evidence, leaving implementers to discover internals within their ownership."
+  placement: {domain: engineering, stage: Design, substage: Specification}
+plan-seams-no-approval:
+  definition: "Take test seams from the plan without separate approval, surfacing a missing seam only when it materially changes scope or the obtainable evidence."
+  placement: {domain: engineering, stage: Design, substage: Specification}
+  distinct_from: [seam-preconfirmation]
+  note: "Needs no seam approval; seam-preconfirmation confirms every seam with the user before any test."
+plan-self-review:
+  definition: "Self-review the finished plan for spec-requirement coverage, consistent names and types across tasks, and a gap-naming pass that turns unnamed seams, migrations, rollout and cleanup into tasks or explicit exclusions."
+  placement: {domain: engineering, stage: Design, substage: Specification}
+preserve-structure:
+  definition: "Preserve heading hierarchy, invariant identifiers, table meanings and link targets, distilling implementation guides into decisions only when their meaning is clear."
+  placement: {domain: engineering, stage: Design, substage: Specification}
+prototype-snippet:
+  definition: "Inline a prototype snippet in the spec only when it encodes a decision more precisely than prose can."
+  placement: {domain: engineering, stage: Design, substage: Specification}
+  distinct_from: [no-stale-code-snippets]
+  note: "The single exception to keeping code snippets out of a spec."
+public-only-seams:
+  definition: "Test only at public boundaries, never against internals."
+  placement: {domain: engineering, stage: Design, substage: Specification}
+  distinct_from: [seam-selection, internal-seams]
+  note: "Tests only at public boundaries; ours allows internal seams and focused internal tests."
+report-provenance:
+  definition: "Report integrated concepts, files, decisions and deferred items with source pointers, never labelling unresolved scratchpad proposals as approved design."
+  placement: {domain: engineering, stage: Design, substage: Specification}
+resolve-scope:
+  definition: "Resolve source version, target path and included discussion files from the request, using supplied paths without reconfirmation and asking only about missing scope or overwrite permission."
+  placement: {domain: engineering, stage: Design, substage: Specification}
+seam-preconfirmation:
+  definition: "Write down the seams under test and confirm them with the user before writing any test."
+  placement: {domain: engineering, stage: Design, substage: Specification}
+seam-selection:
+  definition: "Choose the test boundary that exercises the real contract without reaching inside."
+  placement: {domain: engineering, stage: Design, substage: Specification}
+start-from-source:
+  definition: "Begin each target from its complete source and preserve exact identifiers, numbers, error behaviour and invariants unless explicitly superseded."
+  placement: {domain: engineering, stage: Design, substage: Specification}
+testing-seam-decision:
+  definition: "Record in the spec which seam the feature is tested at, preferring an existing and the highest useful seam and the fewest seams."
+  placement: {domain: engineering, stage: Design, substage: Specification}
+  distinct_from: [seam-selection]
+  note: "The spec records a seam preferring existing, highest and fewest seams; seam-selection picks the boundary that exercises the real contract (overlap audit #1)."
+version-rekey:
+  definition: "Update version headers, filenames and internal references and copy untouched core files so the target stands alone with prior versions only in provenance."
+  placement: {domain: engineering, stage: Design, substage: Specification}
+
+# ---- engineering · Design · Architecture ----
+abuse-cases:
+  definition: "Derive concrete abuse cases and select relevant controls, scaling a tiny boundary change to a short threat note and a proving test."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+adr-code-gotcha-link:
+  definition: "Leave a short comment at a code trap or constraint linking the decision record that explains it."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+adr-match-convention:
+  definition: "Match an existing decision-record convention (location, extension, numbering, headings) before applying defaults, surfacing conflicts instead of adding a second scheme."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+adr-minimal-template:
+  definition: "Use a one-paragraph decision record with optional status, options and consequences and sequential numbering."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+adr-supersede-lifecycle:
+  definition: "Never delete a decision record; supersede it with a new one and mark the old one superseded."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+adr-three-gate:
+  definition: "Offer a decision record only when the decision is hard to reverse, surprising without context, and the result of a real trade-off."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+adr-what-qualifies:
+  definition: "Apply a worked list of decision kinds (architectural shape, integration patterns, lock-in choices, boundaries, deliberate deviations, hidden constraints, non-obvious rejections) that warrant a decision record."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+auto-fold-and-branch:
+  definition: "Fold the validated decision into real code and commit the prototype to a throwaway branch out of main with a context pointer on the issue."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+  secondary: [Integration]
+  distinct_from: [separate-promotion]
+  note: "Folds the decision into real code and commits the prototype to a branch; separate-promotion leaves promotion as separate authorized work."
+capture-outcome:
+  definition: "Record the prototype's verdict and the question it settled, with a pointer to the preserved artifact."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+cheap-assertions:
+  definition: "Use a small assertion as the cheapest proof where it helps, since a prototype implies neither a full test suite nor a ban on checks."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+covered-test-removal:
+  definition: "Remove an old test only when its behaviour is covered elsewhere or deliberately retired, inspecting a changed test rather than deleting it automatically."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+deep-module-shape:
+  definition: "Make every package a deep module whose behaviour hides in subfolders and is reachable only through its root entry-point files."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+  secondary: [Implementation]
+deletion-test:
+  definition: "Question a layer that only forwards and keep one whose removal would spread complexity across callers."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+dependency-categories:
+  definition: "Classify a module's dependencies as in-process, locally substitutable, owned remote or true external to choose how it is tested across its seam."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+depth-as-leverage:
+  definition: "Prefer modules whose manageable interface hides a large amount of useful behaviour."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+design-it-twice:
+  definition: "Optionally compare a few materially different interface designs before a consequential choice, without forcing a multi-agent exercise on a clear one."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+discourage-barrels:
+  definition: "Discourage barrel files that re-export a whole subtree, favouring several small entry points."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+entry-point-only-imports:
+  definition: "Enforce that code outside a package imports only that package's root entry points, never its subfolders."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+flat-packages:
+  definition: "Keep packages flat, one tier of children under the root, so a package never contains another package."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+grilling-loop:
+  definition: "Once the user picks a candidate, drive a grilling session on it and let the domain-model side effects (new terms, offered records, alternative-interface exploration) happen inline as decisions crystallise."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+  secondary: [Clarification]
+  distinct_from: [review-no-auto-followup]
+  note: "Enters a grilling session once a candidate is picked; review-no-auto-followup never enters one automatically."
+host-in-existing-page:
+  definition: "Host UI variants inside an existing page with its real data and layout, using a new throwaway route only when no page can host them."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+  distinct_from: [ui-contextual-preview]
+  note: "Prefers the existing page; ui-contextual-preview prefers an isolated preview and allows an existing page only when authorized and leak-proof."
+inject-dependencies:
+  definition: "Pass a module's external dependencies in as arguments rather than constructing them inside it, so callers and tests can substitute them."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+interface-is-everything:
+  definition: "Treat an interface as every fact a caller must know — invariants, ordering, errors, configuration and performance — not just the type signature."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+interface-is-test-surface:
+  definition: "Treat the interface as the surface both callers and tests cross, so needing to test past it signals the module is the wrong shape."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+  secondary: [Testing]
+  distinct_from: [internal-seams]
+  note: "Needing to test past the interface signals a wrong shape; internal-seams allows focused internal tests."
+internal-seams:
+  definition: "Allow internal seams and focused internal tests without exposing internals through the public interface merely to satisfy a testing rule."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+intra-package-freedom:
+  definition: "Allow a package's own files to import each other freely."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+logic-pure-module:
+  definition: "Keep domain logic readable apart from presentation as a reducer, state machine, pure functions or small stateful module."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+logic-shareable-html:
+  definition: "Offer a self-contained HTML demo with the question, a readable state panel, controls and guided scenarios that reset to a known state."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+module-vocabulary:
+  definition: "Reason about design with a shared deep-module glossary: module, interface, depth, seam, adapter and locality."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+no-cycles:
+  definition: "Forbid dependency cycles."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+no-interfaces-yet:
+  definition: "Keep the survey free of proposed interfaces and instead ask the user which candidate to explore."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+no-tests-ban:
+  definition: "Add no tests to a prototype; one that needs tests is no longer a prototype."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+  distinct_from: [cheap-assertions]
+  note: "Forbids tests in a prototype; cheap-assertions allows a small assertion where it helps."
+parallel-constrained-designs:
+  definition: "Generate several radically different interfaces in parallel, each under a different design constraint, then compare them and recommend one."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+  secondary: [Coordination]
+  distinct_from: [design-it-twice]
+  note: "Mandatory parallel exercise; ours design-it-twice is an optional comparison that is never forced on a clear choice."
+persistence-when-needed:
+  definition: "Bring persistence into a prototype only when the question needs it."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+pick-form:
+  definition: "Let the question being answered pick the prototype's form, such as a state demo for logic or a UI mockup for layout."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+project-term-allowance:
+  definition: "Let the project's own precise terms, such as API, service or boundary, stand beside the design glossary rather than banning them."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+  distinct_from: [vocabulary-ban]
+  note: "Allows the project's terms; vocabulary-ban forbids such substitutes."
+public-surface-is-root-files:
+  definition: "Treat every root file as part of the public surface rather than one designated index file."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+respect-area-adrs:
+  definition: "Honour the recorded architectural decisions that govern the area being changed."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+return-not-mutate:
+  definition: "Design functions to return results rather than cause side effects, so behaviour can be observed directly."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+rewrite-not-promote:
+  definition: "Rewrite prototype code to production standards when folding the winning decision in, never promoting the throwaway code directly."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+  secondary: [Integration]
+scope-threat:
+  definition: "Name the changed entrypoints, assets, identities and consequences, tracing untrusted input to consequential sinks including model outputs used as commands, paths, queries or markup."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+scoped-data:
+  definition: "Use synthetic or appropriately scoped data, bringing in external calls and real integration only when the question needs them and they are authorized."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+sdk-interfaces:
+  definition: "Prefer specific per-operation interface functions over one generic fetcher so each mock returns a single shape."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+  secondary: [Testing]
+separate-promotion:
+  definition: "Treat promoting a prototype's decision or code into production as separate work with its own scope and checks."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+  distinct_from: [auto-fold-and-branch]
+  note: "Leaves promotion to separate authorized work; auto-fold-and-branch folds the decision in as part of the prototype."
+single-adapter-justified:
+  definition: "Accept an interface justified by encapsulation, ownership or a present testing need with a single adapter, treating extra adapters as evidence of real variation rather than a prerequisite."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+skip-polish:
+  definition: "Add no error handling beyond runnability and no abstractions, so the prototype only serves fast learning."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+small-interface-surface:
+  definition: "Keep a module's interface surface small — fewer methods and simpler parameters — to reduce what callers and tests must learn."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+  distinct_from: [depth-as-leverage]
+  note: "Minimises the interface itself; depth-as-leverage weighs behaviour gained per unit of interface."
+state-question-up-front:
+  definition: "Write the question the prototype answers visibly at the top of the prototype before building, so it can be checked later."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+structural-variants:
+  definition: "Make UI variants differ in meaningful structure and layout, not just colour or styling."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+surface-state:
+  definition: "Surface the relevant state and the invalid transitions the design might mishandle."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+tests-through-entry-points:
+  definition: "Let test files import any package's entry points and their own fixtures but never any package's subfolder internals."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+  secondary: [Testing]
+throwaway-marked:
+  definition: "Keep prototypes clearly marked as throwaway and separate from production."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+trivial-to-run:
+  definition: "Make the prototype trivial to run: one command, or a single HTML file the user opens directly."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+two-adapters-rule:
+  definition: "Introduce a seam only when behaviour actually varies across it — one adapter is a hypothetical seam, two is a real one."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+  distinct_from: [single-adapter-justified]
+  note: "Requires two adapters for a real seam; single-adapter-justified accepts one when encapsulation, ownership or a present test need justifies it."
+ui-accessibility:
+  definition: "Keep focus, contrast and interaction states usable in a UI prototype while real mutations are stubbed."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+ui-contextual-preview:
+  definition: "Prefer an isolated preview, or an authorized existing-page preview that cannot leak into production, over a new live route."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+ui-keyboard-safety:
+  definition: "Keep a prototype's keyboard shortcuts from intercepting input while an editable field is focused."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+ui-variants-one-route:
+  definition: "For a UI prototype, generate several structurally different variants (default three, capped at five) on one route switchable by a search param."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+  distinct_from: [variants-when-comparing]
+  note: "Always builds several variants (default three, at most five) on one route; variants-when-comparing builds them only when comparison is the question."
+variant-switcher:
+  definition: "Provide a labelled control for switching between UI variants."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+variants-when-comparing:
+  definition: "Build UI variants only when comparing alternatives is the question the prototype answers."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+vocabulary-ban:
+  definition: "Use the design vocabulary exactly and never substitute looser words like component, service, API, or boundary."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+  distinct_from: [project-term-allowance]
+  note: "Forbids looser substitutes; project-term-allowance lets the project's precise terms stand."
+
+# ---- engineering · Design · Decomposition ----
+beads-native-tracking:
+  definition: "Seed epics and stages and render tracking natively in the tracker, keeping the roadmap anchor on the epics and the stage mapping that execution closes against, and writing nothing before its matching approval."
+  placement: {domain: engineering, stage: Design, substage: Decomposition}
+decompose-phases:
+  definition: "Split an approved spec into demoable phases with checkable exits and flat stages that each carry acceptance."
+  placement: {domain: engineering, stage: Design, substage: Decomposition}
+dependency-edges:
+  definition: "Encode real blocking edges in the tracker and let the ready frontier drive execution rather than listing order."
+  placement: {domain: engineering, stage: Design, substage: Decomposition}
+durable-plan-format:
+  definition: "Produce a durable plan with ownership boundaries, interfaces, verification, dependencies and known files, saved to the plans path and approval-gated."
+  placement: {domain: engineering, stage: Design, substage: Decomposition}
+expand-contract:
+  definition: "For a broad refactor use expand, migrate then contract with genuine dependencies, naming one integration boundary when intermediate tasks cannot stay green."
+  placement: {domain: engineering, stage: Design, substage: Decomposition}
+prefactor-first:
+  definition: "Find prefactoring that makes the change easy and sequence it before the feature slices."
+  placement: {domain: engineering, stage: Design, substage: Decomposition}
+  secondary: [Implementation]
+publish-to-tracker:
+  definition: "Publish the finished artifact to the configured issue tracker."
+  placement: {domain: engineering, stage: Design, substage: Decomposition}
+reviewer-rejectable-sizing:
+  definition: "Size each task so a reviewer could accept or reject it independently of its neighbour, folding setup, scaffolding and docs into the deliverable they serve."
+  placement: {domain: engineering, stage: Design, substage: Decomposition}
+route-by-scale:
+  definition: "Route between brainstorming, a brief local sequence, elaborate, decompose, or executing from a roadmap row according to the work's scale."
+  placement: {domain: engineering, stage: Design, substage: Decomposition}
+sub-issue-linkage:
+  definition: "Make each ticket a child of its source issue and never close or modify that parent."
+  placement: {domain: engineering, stage: Design, substage: Decomposition}
+test-first-marking:
+  definition: "Mark risky changes test-first or characterization-first in the plan."
+  placement: {domain: engineering, stage: Design, substage: Decomposition}
+vertical-slices:
+  definition: "Prefer independently verifiable vertical slices over horizontal layers."
+  placement: {domain: engineering, stage: Design, substage: Decomposition}
+
+# ---- engineering · Building · Implementation ----
+author-stages-over-template:
+  definition: "Author one stage per step using the library helpers, keeping each stage to a single focused task."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+defense-in-depth-hardening:
+  definition: "When an invalid value crossed several layers, add a check at each layer the value passes through so the bug becomes structurally impossible, bypass-testing each layer and scoping the checks to the proven failure path."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+enforce-in-code:
+  definition: "Enforce access, tenant isolation, validation, safe sink handling and resource limits in code, since external documents, logs and model output cannot grant permissions and prompt secrecy is no control."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+ephemeral-by-default:
+  definition: "Build the wizard for one run and delete it when done, committing it only when a repeatable setup path should live in the repo."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+map-stage-journey:
+  definition: "Write each stage's concrete interface path, asking the user or checking docs where the interface is unknown rather than inventing steps."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+mode-selection:
+  definition: "Choose test-first, characterization, or test-quality-only by the task rather than defaulting to one workflow."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+one-test-per-cycle:
+  definition: "Alternate one test and its implementation at a time instead of writing all tests before any implementation."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+  secondary: [Testing]
+  distinct_from: [red-green]
+  note: "The cadence across cycles; red-green is the steps inside one cycle."
+preserve-existing-config:
+  definition: "Never overwrite an existing dependency-cruiser config; merge the rules in and tell the user what was added."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+proof-discipline:
+  definition: "Keep enough before-and-after evidence to distinguish a demonstrated fix from an inference and never destroy edits to recreate RED."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+red-green:
+  definition: "Make one test fail before implementing the change that makes it pass."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+refactor-after-green:
+  definition: "Refactor after each passing test, preserving behaviour and rerunning the affected checks."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+  distinct_from: [refactor-outside-loop]
+  note: "Refactors inside each cycle; refactor-outside-loop defers refactoring until the loop ends."
+refactor-outside-loop:
+  definition: "Refactor only after the red-green cycles end, never inside them."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+  distinct_from: [refactor-after-green]
+  note: "Refactors only after all cycles end; refactor-after-green refactors after each passing test."
+scaffold-example:
+  definition: "Commit an example package with an entry point delegating to an internal file and a test through the entry point, as a copy-me template."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+scope-the-procedure:
+  definition: "Enumerate every manual step and captured value by reading the repo's configuration rather than asking cold, and confirm the ordered stage list with the user."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+task-loop:
+  definition: "Claim the exact task, implement in dependency order within owned paths, run applicable checks, and close with evidence and material limitations."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+template-library:
+  definition: "Build each wizard over a shared bash UX library that sits above the stages marker and is never hand-edited."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+  secondary: [Tooling]
+template-robustness:
+  definition: "Keep the template hardened for mid-run safety with Readline-edited input, EOF handling, a restrictive file mode, careful quoting, and parsing the whole file before the first prompt."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+  distinct_from: [template-library]
+  note: "template-library is the no-hand-edit shared UX library; this trait is the specific hardening of that template."
+wire-umbrella-check:
+  definition: "Add a boundary-lint script and fold it into the repo's umbrella check command alongside typecheck."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+  secondary: [Integration]
+
+# ---- engineering · Building · Diagnosis ----
+attempt-ledger:
+  definition: "Keep a compact baseline-to-result attempt record with decision and reason so failed experiments are not repeated after context recovery."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [attempt-log]
+  note: "Keeps a baseline-to-result record with a keep-or-revert decision for experiments; attempt-log logs hypothesis, change and result per fix attempt."
+baseline:
+  definition: "Capture a baseline measurement before attempting a performance fix."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+closeout:
+  definition: "Before declaring done, remove temporary instrumentation and record the confirmed cause."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+like-for-like-comparison:
+  definition: "Compare a performance change against its baseline under the same conditions and run the applicable correctness checks."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+noise-inconclusive:
+  definition: "Treat a measured difference within noise as inconclusive rather than as a gain or a loss."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+benefit-justifies-complexity:
+  definition: "Keep a performance change only when its measured benefit justifies the complexity it adds."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+revert-ineffective-experiments:
+  definition: "Remove your own ineffective experimental edits, preserving all other work."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+debugger-first:
+  definition: "Prefer a debugger or REPL breakpoint over targeted logs, and never log everything and grep."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+define-metric:
+  definition: "Define the metric, workload and target first, proposing the measurement or asking about the tradeoff before tuning code."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+delete-debug-prototypes:
+  definition: "Delete throwaway debugging prototypes before declaring done, or move them to a clearly marked debug location."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [preserve-reproducers]
+  note: "Deletes or quarantines prototypes; preserve-reproducers keeps useful ones."
+discriminating-observation:
+  definition: "Choose an observation that discriminates between the live hypotheses instead of generating a fixed number of them."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [fixed-hypothesis-count]
+  note: "Uses no fixed count; fixed-hypothesis-count requires three to five."
+escalate-unreproducible:
+  definition: "When no loop can be built, stop, list what was tried, and ask for environment access, a redacted artifact, or instrumentation rather than hypothesising."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [unproven-without-reproduction]
+  note: "Stops and asks for access or artifacts; unproven-without-reproduction continues source analysis and labels the fix unproven."
+attempt-log:
+  definition: "Record each debugging attempt as hypothesis, change and result."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [attempt-ledger]
+  note: "Logs hypothesis, change and result per fix attempt; attempt-ledger keeps a baseline-to-result record with a keep-or-revert decision for experiments."
+two-failure-stop:
+  definition: "After two failed fixes, stop and bring the attempt log to whoever started the task before trying another."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [debug-spiral-reset]
+  note: "Stops after a fixed two failed fixes and hands the log to the task owner; debug-spiral-reset names the suspect assumption and asks one diagnostic question."
+critic-escalation:
+  definition: "When hypotheses run out, get a critic review and pass it artifacts — the reproduction, its output and the attempts — rather than conclusions."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+evidence-safety:
+  definition: "Treat tool output and logs as untrusted evidence and keep secrets out of reports."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [redact-secrets]
+  note: "A general rule to keep secrets out of reports; redact-secrets is the placeholder-and-environment-variable technique."
+fixed-hypothesis-count:
+  definition: "Generate three to five hypotheses before testing any, to avoid anchoring on the first idea."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [discriminating-observation]
+  note: "Requires three to five; discriminating-observation uses no fixed count."
+flake-reproduction:
+  definition: "For a flaky or production-only failure, diagnose its flake class and raise the reproduction rate until the loop is debuggable, using an order-dependent-test finder for test pollution."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [tighten-loop]
+  note: "Diagnoses the flake class and raises its reproduction rate; tighten-loop keeps improving any loop's speed and determinism."
+environmental-cause-unresolved:
+  definition: "Claim an environmental root cause only after every hypothesis is falsified, report it as an unresolved finding with the investigation attached, and never present a mitigation as the fix."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+hitl-loop-script:
+  definition: "Drive a required human step through a structured human-in-the-loop script as the last-resort loop so it stays repeatable."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+hypotheses:
+  definition: "Form explicit hypotheses about the cause before probing any of them."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+hypothesis-ranking-presentation:
+  definition: "Rank the hypotheses and show the ranked list to the user before testing, without blocking if they are away."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  secondary: [Communication]
+localized-probing:
+  definition: "Probe the suspected boundary or variable and repeat only while new evidence appears, using cross-layer tracing, working-versus-broken comparison or bisection to find the failing layer."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+locate-cost:
+  definition: "Locate the material cost with measurements, focused instrumentation or profiling, letting code inspection only suggest candidates."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+loop-construction:
+  definition: "Build the reproduction in the form that fits the failure: a focused test, CLI fixture, captured trace or isolated scratch harness."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+minimize-to-discriminate:
+  definition: "Minimize a reproduction only as far as needed to distinguish the candidate causes."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+missing-seam-finding:
+  definition: "When no correct seam exists to lock down the bug, treat that architectural absence as itself the finding and flag it."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [seam-selection]
+  note: "Reports a missing seam as an architectural finding; seam-selection chooses among existing boundaries."
+one-factor:
+  definition: "Change one attributable factor where practical, explaining the coupling for an inseparable set and preserving semantics, freshness, safety and accessibility."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+one-variable-at-a-time:
+  definition: "Change exactly one variable per probe, each mapped to a specific prediction."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [one-factor]
+  note: "For debugging probes, each tied to a prediction; one-factor governs performance experiments."
+owning-fix:
+  definition: "Fix only a confirmed cause at its owning layer, since a change that merely hides the symptom is not a fix."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+perf-bisection:
+  definition: "Locate a performance regression by bisecting between known-good and known-bad states rather than by adding logs."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [locate-cost]
+  note: "Bisects states to find where the regression entered; locate-cost profiles or instruments to find where the cost sits."
+phase1-completion-criterion:
+  definition: "Forbid any hypothesis until one named command, already run once, is proven red-capable, deterministic, fast, and agent-runnable."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [reproduction-first]
+  note: "A hard gate on one named, already-run, deterministic, fast command before any hypothesis."
+preserve-reproducers:
+  definition: "Keep useful reproducers and user artifacts when cleaning up after a fix."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [delete-debug-prototypes]
+  note: "Keeps useful reproducers; delete-debug-prototypes removes throwaway prototypes."
+prove-the-red:
+  definition: "When forcing the red by mutating code or a fixture, diff against a pristine copy to prove the mutation landed before trusting it."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+regression-guard:
+  definition: "For a material recurring risk add an economical guard — query counts, bounded allocations or a controlled benchmark — scaled to the risk and avoiding flaky wall-clock assertions."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+representative-baseline:
+  definition: "Take the baseline under representative data, cache state, concurrency and environment, repeated enough to estimate variability, with percentiles for tail-latency targets and the command and conditions recorded."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+reproduce-and-minimize:
+  definition: "Shrink the reproduction one element at a time until every remaining part is load-bearing — removing any one makes it pass."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [minimize-to-discriminate]
+  note: "Shrinks until every element is load-bearing; minimize-to-discriminate stops once causes can be told apart."
+reproduction-first:
+  definition: "Obtain a reproduction that shows the reported failure, not a nearby one, before diagnosing it."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+tagged-debug-logs:
+  definition: "Tag every debug log with a unique prefix so cleanup is a single search."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+tighten-loop:
+  definition: "Treat the loop as a product and keep making it faster, sharper, and more deterministic, raising the reproduction rate for flaky bugs until it is debuggable."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [flake-reproduction]
+  note: "Keeps improving any loop's speed and determinism; flake-reproduction diagnoses the flake class and raises its reproduction rate."
+unproven-without-reproduction:
+  definition: "When no reproduction is obtainable, continue safe source analysis and qualify any resulting fix as unproven."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+
+# ---- engineering · Verification · Testing ----
+break-naming-validation:
+  definition: "Before accepting substantive tests, name the specific wrong branch, missing validation or side effect they catch, confirming by a safe mutation trial rather than mental inspection when worth its cost."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+deterministic-state:
+  definition: "Prefer deterministic inputs and isolated state, controlling time, randomness and shared state that cause nondeterminism."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+evidence-tests:
+  definition: "Test the material abuse path and legitimate use, verify authorization per resource rather than merely login, and check leakage, retries and failure behaviour."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+independent-expectation:
+  definition: "Derive expected values from an independent source such as a spec, worked example or trusted fixture, never computing both sides with the implementation under test."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+meaningful-behaviour-assertion:
+  definition: "Assert meaningful results, state or boundary interactions at a stable boundary rather than internal call choreography."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+mock-boundaries:
+  definition: "Use test doubles only at boundaries, never in place of the behaviour under test."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [system-boundary-mocks-only]
+  note: "Allows doubles at any boundary that keeps the behaviour under test real; system-boundary-mocks-only allows them only at system boundaries and never for owned modules."
+system-boundary-mocks-only:
+  definition: "Use test doubles only at system boundaries such as external services, time and the file system, never for modules you own."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [mock-boundaries]
+  note: "Forbids doubles for owned modules; mock-boundaries allows them at any boundary that keeps the behaviour under test real."
+no-implementation-coupling:
+  definition: "Avoid tests coupled to the implementation's internal structure, so they survive behaviour-preserving refactors."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+prove-the-rules-bite:
+  definition: "Before trusting the guardrail, observe it pass clean, fail on a deliberately planted violation, then pass again."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+regression-check:
+  definition: "Turn the failure into a durable regression check when feasible, showing failure before the fix and success after, then rerun the original scenario."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [red-green]
+  note: "Turns a diagnosed failure into a durable check after debugging; red-green is the test-first cycle (overlap audit #4)."
+replace-dont-layer:
+  definition: "Once the deepened interface is tested, delete the old shallow-module unit tests and assert only on observable outcomes that survive internal refactors."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [covered-test-removal]
+  note: "Deletes the old shallow tests once the deepened interface is tested; covered-test-removal removes a test only when its behaviour is covered or retired."
+syntax-check-handoff:
+  definition: "Syntax-check the script and make it executable, then tell the user how to run it instead of running it end-to-end yourself."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [static-trace-verification]
+  note: "This is the syntax check, make-executable and run instructions; static-trace-verification is the data-flow and secret-name tracing."
+
+# ---- engineering · Verification · Review ----
+actionable-defects-only:
+  definition: "Report only actionable defects with trigger, consequence and evidence, defer formatting to configured tools, and state plainly when none are found rather than inventing findings."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+boundary-controls-ref:
+  definition: "Supply per-surface control methods — authorization distinct from authentication, SSRF allowlisting with DNS-rebinding residual, upload constraints, dependency triage, supply-chain install boundary, and rotate-first secret handling."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+boundary-review:
+  definition: "Report security findings through the shared review skill's severity and output contract, supplying the security lens rather than running a second compulsory review process."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+bounded-fix-loop:
+  definition: "Group compatible confirmed findings into one fix unit, re-review only the delta plus any breakage it caused, adjudicate every round, and treat a small fixed count of completed fix/re-review rounds as a ceiling rather than a target."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+  distinct_from: [re-review-finding-tracking]
+  note: "The fix loop's grouping and round ceiling; re-review-finding-tracking is the reviewer's per-finding output."
+callers-and-evidence:
+  definition: "Read enough surrounding code and affected callers, treating implementer and reviewer reports as evidence to verify rather than authority."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+dependency-triage:
+  definition: "Triage dependency advisories by reachability and impact rather than count, recording material exceptions with a revisit condition."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+finding-adjudication:
+  definition: "Verify each incoming review finding against requirements, code and primary evidence before acting, and give each a visible disposition: fix a confirmed in-scope defect, answer an incorrect one with a retained ruling, record an out-of-scope follow-up."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+fixed-point-preflight:
+  definition: "Confirm the review ref resolves and the diff is non-empty before fanning out, failing fast rather than inside sub-agents."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+llm-surface-ref:
+  definition: "Supply the LLM and agent attack surface — untrusted model output, prompt injection, minimum tool scope, consumption bounds, RAG retrieval trust, model supply chain, and not acting on unverified claims."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+mechanical-gate-precedence:
+  definition: "A failing mechanical verification gate returns the work unreviewed as failed verification unless the requester explicitly waives it."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+  secondary: [Testing]
+no-cross-axis-rerank:
+  definition: "Never merge or rerank findings across review axes or pick a single overall winner."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+  distinct_from: [distinct-axis-verdicts]
+  note: "This governs aggregation and the final summary; distinct-axis-verdicts governs keeping each axis's verdict unmixed."
+parallel-subagents:
+  definition: "Run the review axes as parallel foreground sub-agents so their contexts do not pollute each other."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+  secondary: [Coordination]
+pre-existing-edit-separation:
+  definition: "Separate pre-existing edits from the task's own changes using the task baseline, not filenames."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+re-review-finding-tracking:
+  definition: "A re-review rules each prior finding addressed or not with located evidence, flags new breakage in the fix delta, and may rule a finding incorrect without demanding cosmetic edits."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+scope-base-review-package:
+  definition: "Review uncommitted working-tree and untracked changes against a recorded base revision by passing the authorized owned-path list, never attributing a baseline-dirty file's whole diff to the task."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+  distinct_from: [scope-establishment]
+  note: "The dispatcher packages the base and owned paths; scope-establishment is the reviewer fixing its own scope."
+scope-establishment:
+  definition: "Fix the diff and the base it is measured from before reviewing."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+smell-baseline:
+  definition: "Carry a fixed code-smell baseline as labelled judgement calls that documented repo standards override and that skips anything tooling already enforces."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+spec-source-discovery:
+  definition: "Find the originating spec in a fixed order — commit issue references, a user-supplied path, conventional spec directories — and ask only as a last resort."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+standards-source-discovery:
+  definition: "Search the repo for every file documenting how code should be written, always including the conventional standards and contributing files."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+static-trace-verification:
+  definition: "Statically trace a script you must not run, checking every captured value lands where it was scoped and every secret name matches a CI reference."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+targeted-control-groups:
+  definition: "Consult only the matching control group for the surface at hand — authentication, URL fetching, uploads, dependencies, secrets or agent systems."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+test-quality-judgment:
+  definition: "Judge tests by whether they detect meaningful failures with independent expectations, and do not treat test changes as inherently defects."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+  secondary: [Testing]
+three-dot-merge-base:
+  definition: "Compare against the merge-base using a three-dot git diff so unrelated upstream changes are excluded."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+two-axis-review:
+  definition: "Review a diff along two separate axes — conformance to the repo's documented standards and faithfulness to the originating spec."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+  distinct_from: [requirements-before-quality]
+  note: "Axes are documented repo standards and spec faithfulness; requirements-before-quality orders a spec check before general quality."
+verdict-contract:
+  definition: "Dispatched reviewers and re-reviews emit a fixed verdict output of verdict, unverified requirements, located issues and actual checks with limitations."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+web-reference:
+  definition: "Also consult the web-surface controls reference for a web-facing surface."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+
+# ---- engineering · Verification · Validation ----
+explicit-commands-only:
+  definition: "Run only invariants that carry an explicit runnable command, leaving everything else unexecuted."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+pass-fail-report:
+  definition: "Report a plain pass or fail result for each invariant that was run."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+read-overlay:
+  definition: "Read the project's declared invariants file and run each listed check against the current tree."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+repo-relative-paths:
+  definition: "Present every result using repository-relative paths only."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+skip-aspirational:
+  definition: "Name and skip any invariant that is aspirational rather than mechanically checkable instead of guessing a verdict."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+
+# ---- engineering · Delivery · Integration ----
+capture-conflict-set:
+  definition: "Capture the conflicted file set up front from the version control's unmerged-paths listing."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+commit-authority-gate:
+  definition: "Commit or continue the rebase only with granted authority, otherwise stop with the resolution staged and report what would be committed."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+evidence-before-after:
+  definition: "Show concrete before/after evidence that the change works, preferring screenshots, then execution-based test or console output."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+explicit-staging:
+  definition: "Stage only the resolved files from the captured conflict set by explicit path."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+merge-danger:
+  definition: "State the merge's one-way or two-way door and its blast radius."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+pr-body-template:
+  definition: "Fill a fixed PR-body skeleton with Summary, Evidence, and Merge Danger sections."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+resolve-over-abort:
+  definition: "Resolve rather than reflexively aborting, stopping to ask the user before aborting when intents cannot reconcile or the operation itself is wrong."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+resolve-preserve-both:
+  definition: "Resolve each hunk preserving both intents where possible, picking the one matching the merge's stated goal where incompatible and noting the trade-off, inventing no new behaviour."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+run-project-checks:
+  definition: "Discover and run the project's automated checks and fix what the merge broke."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+trace-intent:
+  definition: "Find the primary source of each conflict via commit messages and requirements first, expanding to PRs or issues only when a disputed hunk needs that history."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+
+# ---- engineering · Improvement · Retrospective ----
+environment-retro-categories:
+  definition: "Review a session for improvements to the agent's environment across fixed categories (navigation, automated checks, coding standards, steering files, tool economy, no-ops, information access)."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+read-session-sources:
+  definition: "Read the primary sources (session logs) for the session under review, defaulting to the current one."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+severity-ordered-proposals:
+  definition: "Present improvement candidates to the user in order of severity."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+  secondary: [Communication]
+
+# ---- engineering · Improvement · Codification ----
+build-check-over-rule:
+  definition: "Default to building a deterministic check over writing a prose rule for any mechanical finding."
+  placement: {domain: engineering, stage: Improvement, substage: Codification}
+document-boundary-readme:
+  definition: "Document the boundary convention in a README beside the packages it governs."
+  placement: {domain: engineering, stage: Improvement, substage: Codification}
+  secondary: [Communication]
+link-convention-from-agents-file:
+  definition: "Add a context pointer to that README from the repo's agent-instructions file so an agent discovers the rule."
+  placement: {domain: engineering, stage: Improvement, substage: Codification}
+mechanical-vs-judgement:
+  definition: "Classify each finding as mechanical (a fixed syntactic pattern suiting a deterministic check) or judgement (cross-file consistency suiting a standards doc)."
+  placement: {domain: engineering, stage: Improvement, substage: Codification}
+read-existing-check-first:
+  definition: "Read the repo's own lint and check commands before proposing one, treating an unwired or broken check, or the absence of any guardrail, as itself the finding."
+  placement: {domain: engineering, stage: Improvement, substage: Codification}
+
+# ---- engineering · Improvement · Evaluation ----
+adr-conflict-callout:
+  definition: "When a candidate conflicts with a decision record, explain the new evidence that might justify revisiting it."
+  placement: {domain: engineering, stage: Improvement, substage: Evaluation}
+candidate-comparison:
+  definition: "Give each candidate its files, friction, direction, benefit, migration cost, evidence and confidence, then present a concise comparison and the strongest supported recommendation."
+  placement: {domain: engineering, stage: Improvement, substage: Evaluation}
+friction-signals:
+  definition: "Surface architectural friction that current code actually supports rather than speculative smells."
+  placement: {domain: engineering, stage: Improvement, substage: Evaluation}
+optional-report:
+  definition: "Produce a standalone HTML report only when requested or clearly helpful, delegating presentation to the shared artifact skill and requiring any before/after diagram to show a real structural difference."
+  placement: {domain: engineering, stage: Improvement, substage: Evaluation}
+review-no-auto-followup:
+  definition: "Do not automatically enter a grilling loop, interview, alternative-design exercise or domain-document update after delivering the review; each happens only when requested or already authorized."
+  placement: {domain: engineering, stage: Improvement, substage: Evaluation}
+scope-by-evidence:
+  definition: "Scope the audit to a named module or pain point, otherwise to the hot spots in recent change history."
+  placement: {domain: engineering, stage: Improvement, substage: Evaluation}
+
+# ---- engineering · X · Coordination ----
+child-workflows:
+  definition: "Run independent graphs as admitted child workflows where collection is evidence and landing goes through the contractor, not automatic result binding."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+close-gate:
+  definition: "Close a phase only when it has at least one stage, every stage is closed, and its roadmap exit criterion has run with evidence recorded."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+delegated-report-recovery:
+  definition: "Interpret each delegated worker's status (done, done-with-concerns, needs-context, blocked) and recover by supplying context, splitting, debugging or replanning, since bare repetition is not recovery."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+phase-loop:
+  definition: "Resolve the roadmap phase's single epic, drive ready stages through the contractor that owns execution to closure, and refresh tracking between stages."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+risk-sized-review:
+  definition: "Size work small, standard or deep and match inline work, delegation and independent review to that size."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+scope-selector:
+  definition: "Pick task, phase or workstream scope from the request and route unresolved material scope back to planning or brainstorming."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+stop-on-failure:
+  definition: "Let a failed gate, exit criterion or material blocker stop advancement and diagnose instead of re-dispatching without new evidence."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+workstream-mode:
+  definition: "Run remaining phases in order only on explicit opt-in, with per-phase tracking refresh and commits only when the invocation covers them."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+
+# ---- engineering · X · Continuity ----
+context-recovery:
+  definition: "Stay in context while useful and, before compacting or handing off, persist scope, decisions and next work to the ledger, tracker and Git, then rebuild from those rather than from a summary."
+  placement: {domain: engineering, stage: X, substage: Continuity}
+  distinct_from: [session-recovery]
+  note: "Persists scope, decisions and next work to ledger, tracker and Git before compaction and rebuilds from them; session-recovery resumes from each in-progress bead's last note (overlap audit #2)."
+
+# ---- engineering · X · Governance ----
+authority-gate:
+  definition: "Treat existing approval of the exact change as satisfying the gate while an unapproved sensitive-data category, integration, permission grant or material relaxation needs a fresh decision, and routine controls within an approved feature need no repeated gate."
+  placement: {domain: engineering, stage: X, substage: Governance}
+
+# ---- engineering · X · Communication ----
+diagram-patterns:
+  definition: "Draw before/after architecture visuals from a catalogue of patterns (dependency graph, hand-built boxes, cross-section, mass diagram, call-graph collapse) rather than one generic style."
+  placement: {domain: engineering, stage: X, substage: Communication}
+  secondary: [Architecture]
+html-candidate-report:
+  definition: "Present candidates as a self-contained HTML file written to the OS temp directory, each a card with files, problem, solution, benefits, a before/after diagram, and a strength badge, ending in a top recommendation."
+  placement: {domain: engineering, stage: X, substage: Communication}
+  secondary: [Architecture]
+  distinct_from: [optional-report]
+  note: "Always produces the HTML report with candidate cards; optional-report produces one only when requested or clearly helpful."
+
+# ---- engineering · U · Tooling ----
+frontend-performance:
+  definition: "Supply browser performance mechanics — Core Web Vitals targets, synthetic plus real-user measurement, a symptom-to-measurement tree, fix patterns and budgets."
+  placement: {domain: engineering, stage: U, substage: Tooling}
+measurement-recipes:
+  definition: "Supply backend tool mechanics for measurement — monotonic timing, sampling and allocation profilers, query plans and N+1 counting, benchmark gating, and the host and runtime view."
+  placement: {domain: engineering, stage: U, substage: Tooling}

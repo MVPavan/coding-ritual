@@ -32,6 +32,7 @@ def _load_registry() -> ModuleType:
 
 
 registry = _load_registry()
+scan = registry.scan  # the scan module registry imported (for tree-hash helpers)
 
 
 # --- helpers ------------------------------------------------------------------
@@ -53,6 +54,9 @@ def _make_cfg(tmp_path: Path) -> object:
         skill_records_dir=reg / "skill-records",
         references_dir=reg / "references",
         index_path=reg / "INDEX.md",
+        trait_definitions_path=reg / "trait-definitions.yaml",
+        traits_path=reg / "traits.yaml",
+        traits_md_path=reg / "TRAITS.md",
         catalogs_dir=repo / "catalogs",
         skills_dir=repo / ".claude" / "skills",
         our_harness_root=repo / ".claude",
@@ -92,13 +96,24 @@ def _write_record(
     return out
 
 
-def _write_round(cfg: object, round_id: str, *events: dict) -> Path:
-    header = {
+def _write_round(
+    cfg: object,
+    round_id: str,
+    *events: dict,
+    trait_level: bool = False,
+    pins: dict[str, str] | None = None,
+    date: str = "2026-10-14",
+) -> Path:
+    header: dict[str, object] = {
         "type": "round",
         "round_id": round_id,
-        "date": "2026-10-14",
+        "date": date,
         "scope": "test",
     }
+    if trait_level:
+        header["trait_level"] = True
+    if pins:
+        header["pins"] = pins
     path = cfg.ledger_dir / f"{round_id}.jsonl"  # type: ignore[attr-defined]
     path.write_text(
         "\n".join([json.dumps(header)] + [json.dumps(e) for e in events]) + "\n",
@@ -400,6 +415,15 @@ def test_record_autofills_reference_source(tmp_path: Path) -> None:
     assert events[0].source is not None
     assert events[0].source.content_hash == "hcur"  # auto-filled from the catalog
 
+    # completing a pending adopt copies the pending source, not the catalog (r1 #4)
+    trait = "refrepo:skill:skills/foo#seams"
+    old = {"repo": "refrepo", "logical_id": "skill:skills/foo", "sha": "old1234"}
+    for extra in ({"pending": "cr-1", "source": old}, {}):
+        payload = {"kind": "adopt", "subject": trait, "why": "w", "skill": "foo"}
+        assert registry.cmd_record(cfg, _rec_ns(json=json.dumps(payload | extra))) == 0
+    _, events, _ = registry.load_ledger(cfg)
+    assert events[-1].source == events[-2].source
+
 
 # --- check: baseline + one specific diagnostic each ---------------------------
 
@@ -568,6 +592,13 @@ def test_target_exists_accepts_only_real_kinds_and_shipped_caps(
         )
         is False
     )
+    # doc: targets must stay inside repo_root (review #15).
+    (cfg.repo_root / "docs").mkdir(parents=True, exist_ok=True)  # type: ignore[attr-defined]
+    (cfg.repo_root / "docs" / "method.md").write_text("x", encoding="utf-8")  # type: ignore[attr-defined]
+    assert registry._target_exists("doc:docs/method.md", existing, ours2, cfg)
+    assert registry._target_exists("doc:/etc/passwd", existing, ours2, cfg) is False
+    assert registry._target_exists("doc:../escape.md", existing, ours2, cfg) is False
+    assert registry._target_exists("doc:docs/missing.md", existing, ours2, cfg) is False
 
 
 def test_check_rejects_cross_subject_supersede(
@@ -740,7 +771,9 @@ def test_check_rejects_uncovered_skill_dir(
     _fails_with(cfg, capsys, "no record, and not an alias")
 
 
-def test_check_accepts_alias_stub_and_in_progress(tmp_path: Path) -> None:
+def test_check_accepts_alias_stub_and_in_progress(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
     cfg = _baseline(tmp_path)
     _write_skill(cfg, "document-review")  # alias of review
     _write_skill(cfg, "cost-estimate")  # stub
@@ -751,6 +784,8 @@ def test_check_accepts_alias_stub_and_in_progress(tmp_path: Path) -> None:
     )
     assert registry.cmd_build(cfg, _ns()) == 0
     assert registry.cmd_check(cfg, _ns()) == 0
+    # lazy records without a traits.yaml entry are reported as a count
+    assert "without a traits.yaml entry" in capsys.readouterr().out
 
 
 def test_check_rejects_duplicate_record(
@@ -806,39 +841,35 @@ def test_gap_and_reference_classify_identically(
 ) -> None:
     cfg = _make_cfg(tmp_path)
     _write_skill(cfg, "foo")  # ours has skill:skills/foo
+    # baz carries a tree_hash that differs from its ruling's — the §4 cascade
+    # (no content_hash fallback, review #1) flags it changed through tree_hash.
+    baz = {**_cap("skill", "baz", "skill:skills/baz", "hnow"), "tree_hash": "tnew"}
     _catalog(
         cfg,
         "refrepo",
         [
             _cap("skill", "foo", "skill:skills/foo", "hnow"),  # present, unruled
             _cap("skill", "bar", "skill:skills/bar", "hnow"),  # not reviewed
-            _cap("skill", "baz", "skill:skills/baz", "hnow"),  # ruled, hash changed
+            baz,  # ruled, tree hash changed
         ],
     )
-    _write_round(
-        cfg,
-        "2026-10-14-r",
-        _ref_event(
-            "2026-10-14-r:1",
-            "adopt",
-            "refrepo",
-            "skill:skills/baz",
-            content_hash="hold",
-            skill="foo",
-        ),
+    baz_event = _ref_event(
+        "2026-10-14-r:1", "adopt", "refrepo", "skill:skills/baz", skill="foo"
     )
+    baz_event["source"]["tree_hash"] = "told"  # type: ignore[index]
+    _write_round(cfg, "2026-10-14-r", baz_event)
     # gap
     assert registry.cmd_gap(cfg, _ns(reference="refrepo", kind=None, beads=False)) == 0
     out = capsys.readouterr().out
     assert "not reviewed" in out and "skill:skills/bar" in out
     assert "present, unruled" in out and "skill:skills/foo" in out
     assert "changed since ruled" in out and "skill:skills/baz" in out
-    # reference page uses the same classify_capability, so statuses match
+    # reference page shares the same classification, so statuses match
     assert registry.cmd_build(cfg, _ns()) == 0
     ref = (cfg.references_dir / "refrepo.md").read_text()  # type: ignore[attr-defined]
     assert "| `skill:skills/foo` | present, unruled |" in ref
     assert "| `skill:skills/bar` | not reviewed |" in ref
-    assert "| `skill:skills/baz` | adopt |" in ref and "| yes |" in ref
+    assert "| `skill:skills/baz` | adopt |" in ref
 
 
 def test_gap_truncates_long_descriptions(
@@ -856,3 +887,1092 @@ def test_gap_truncates_long_descriptions(
         ln for ln in capsys.readouterr().out.splitlines() if "skill:skills/bar" in ln
     )
     assert "…" in line and len(line) < 160
+
+
+# --- traits (traits-design.md Acceptance 1-11) --------------------------------
+
+SUBJECT = "refrepo:skill:skills/engineering/tdd"
+LOGICAL = "skill:skills/engineering/tdd"
+TREE = "treehashT"
+
+_PLACEMENT = "{domain: engineering, stage: Design, substage: Specification}"
+
+
+def _tree_hash_of(cfg: object, skill: str) -> str:
+    return registry._our_tree_hashes(registry.build_ours(cfg))[skill]
+
+
+def _write_defs(cfg: object, text: str) -> None:
+    cfg.trait_definitions_path.write_text(text, encoding="utf-8")  # type: ignore[attr-defined]
+
+
+def _write_traits(cfg: object, text: str) -> None:
+    cfg.traits_path.write_text(text, encoding="utf-8")  # type: ignore[attr-defined]
+
+
+def _defs(*traits: str) -> str:
+    """A trait-definitions.yaml with one simple placement per trait id."""
+    out = []
+    for t in traits:
+        out.append(f"{t}:\n  definition: Does {t}.\n  placement: {_PLACEMENT}\n")
+    return "".join(out)
+
+
+def _ours_entry(skill: str, tree_hash: str, traits: list[str]) -> str:
+    return (
+        f'ours:{skill}:\n  tree_hash: "{tree_hash}"\n  traits: [{", ".join(traits)}]\n'
+    )
+
+
+def _upstream_entry(
+    subject: str,
+    traits: list[str],
+    tree_hash: str = TREE,
+    reviewed_sha: str = "abc1234",
+) -> str:
+    return (
+        f'{subject}:\n  reviewed_sha: "{reviewed_sha}"\n  tree_hash: "{tree_hash}"\n'
+        f"  placement: {_PLACEMENT}\n  traits: [{', '.join(traits)}]\n"
+    )
+
+
+def _checkpoint(
+    eid: str, kind: str, skill: str, tree_hash: str = TREE, **extra: object
+) -> dict:
+    ev = {
+        "type": "event",
+        "id": eid,
+        "date": "2026-10-14",
+        "kind": kind,
+        "subject": SUBJECT,
+        "why": "because",
+        "evidence": ["x:1"],
+        "skill": skill,
+        "source": {
+            "repo": "refrepo",
+            "logical_id": LOGICAL,
+            "content_hash": "h",
+            "tree_hash": tree_hash,
+            "sha": "abc1234",
+        },
+    }
+    ev.update(extra)
+    return ev
+
+
+def _trait(eid: str, kind: str, slug: str, **extra: object) -> dict:
+    ev = {
+        "type": "event",
+        "id": eid,
+        "date": "2026-10-14",
+        "kind": kind,
+        "subject": f"{SUBJECT}#{slug}",
+        "why": "because",
+        "evidence": ["x:1"],
+        "source": {
+            "repo": "refrepo",
+            "logical_id": LOGICAL,
+            "content_hash": "h",
+            "tree_hash": TREE,
+            "sha": "abc1234",
+        },
+    }
+    ev.update(extra)
+    return ev
+
+
+def _trait_cfg(base: Path) -> object:
+    """A passing trait-level registry: one checkpoint, one adopted trait."""
+    cfg = _make_cfg(base)
+    _write_skill(cfg, "tdd")
+    _write_record(cfg, "tdd", "engineering", "Design", "Specification")
+    th = _tree_hash_of(cfg, "tdd")
+    _write_defs(cfg, _defs("seams"))
+    _write_traits(
+        cfg, _ours_entry("tdd", th, ["seams"]) + _upstream_entry(SUBJECT, ["seams"])
+    )
+    _write_round(
+        cfg,
+        "2026-10-14-r",
+        _checkpoint("2026-10-14-r:1", "adopt", "tdd"),
+        _trait("2026-10-14-r:2", "adopt", "seams", skill="tdd"),
+        trait_level=True,
+    )
+    return cfg
+
+
+def test_trait_baseline_passes(tmp_path: Path) -> None:
+    cfg = _trait_cfg(tmp_path)
+    assert registry.cmd_build(cfg, _ns()) == 0
+    assert registry.cmd_check(cfg, _ns()) == 0
+
+
+# Acceptance 1: strict parsing of the two YAML files.
+def test_strict_yaml_parsing_failures(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    # (a) duplicate YAML key
+    a = _trait_cfg(tmp_path / "a")
+    _write_defs(
+        a, _defs("seams") + f"seams:\n  definition: dup.\n  placement: {_PLACEMENT}\n"
+    )
+    _fails_with(a, capsys, "duplicate key")
+
+    # (b) unknown field
+    b = _trait_cfg(tmp_path / "b")
+    _write_defs(
+        b,
+        f"seams:\n  definition: x.\n  placement: {_PLACEMENT}\n  bogus: 1\n",
+    )
+    _fails_with(b, capsys, "seams")
+
+    # (c) an unquoted all-digit sha reads as an int and fails strict parsing
+    c = _trait_cfg(tmp_path / "c")
+    th = _tree_hash_of(c, "tdd")
+    _write_traits(
+        c,
+        _ours_entry("tdd", th, ["seams"])
+        + f'{SUBJECT}:\n  reviewed_sha: 123456\n  tree_hash: "{TREE}"\n'
+        f"  placement: {_PLACEMENT}\n  traits: [seams]\n",
+    )
+    _fails_with(c, capsys, SUBJECT)
+
+    # (d) an undefined trait id
+    d = _trait_cfg(tmp_path / "d")
+    _write_defs(d, _defs("seams"))
+    th = _tree_hash_of(d, "tdd")
+    _write_traits(
+        d,
+        _ours_entry("tdd", th, ["seams", "ghost"])
+        + _upstream_entry(SUBJECT, ["seams"]),
+    )
+    _fails_with(d, capsys, "trait 'ghost' is undefined")
+
+    # (e) a repeated id in one skill
+    e = _trait_cfg(tmp_path / "e")
+    th = _tree_hash_of(e, "tdd")
+    _write_traits(
+        e,
+        _ours_entry("tdd", th, ["seams", "seams"])
+        + _upstream_entry(SUBJECT, ["seams"]),
+    )
+    _fails_with(e, capsys, "listed twice")
+
+    # (f) distinct_from without a note
+    f = _trait_cfg(tmp_path / "f")
+    _write_defs(
+        f,
+        f"seams:\n  definition: x.\n  placement: {_PLACEMENT}\n"
+        f"  distinct_from: [other]\n"
+        f"other:\n  definition: y.\n  placement: {_PLACEMENT}\n",
+    )
+    _fails_with(f, capsys, "seams")
+
+    # (g) review r1 #5: non-kebab IDs, YAML-typed keys and unknown coordinates
+    bad = [
+        (f"Bad_ID:\n  definition: x.\n  placement: {_PLACEMENT}\n", "kebab-case"),
+        (f"no:\n  definition: x.\n  placement: {_PLACEMENT}\n", "False"),
+        (
+            (
+                "seams:\n  definition: x.\n"
+                "  placement: {domain: core, stage: Nowhere, substage: Implementation}\n"
+            ),
+            "unknown stage",
+        ),
+        (
+            (
+                "seams:\n  definition: x.\n"
+                "  placement: {domain: core, stage: Design, substage: Diagnosis}\n"
+            ),
+            "not a sub-stage of Design",
+        ),
+        (
+            (
+                f"seams:\n  definition: x.\n  placement: {_PLACEMENT}\n"
+                "  secondary: [Nowhere]\n"
+            ),
+            "is not a sub-stage",
+        ),
+    ]
+    for i, (text, needle) in enumerate(bad):
+        g = _trait_cfg(tmp_path / f"g{i}")
+        _write_defs(g, _defs("seams") + text if "seams:" not in text else text)
+        _fails_with(g, capsys, needle)
+
+
+# Acceptance 2: a stale ours tree_hash fails check.
+def test_stale_ours_tree_hash_fails(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    cfg = _trait_cfg(tmp_path)
+    _write_traits(
+        cfg,
+        _ours_entry("tdd", "STALEHASH", ["seams"])
+        + _upstream_entry(SUBJECT, ["seams"]),
+    )
+    _fails_with(cfg, capsys, "tree_hash is stale")
+
+
+# Acceptance 3: trait-level round completeness and coverage.
+def test_trait_level_round_failures(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    # (a) an unruled trait, under an adopt checkpoint
+    a = _trait_cfg(tmp_path / "a")
+    th = _tree_hash_of(a, "tdd")
+    _write_traits(
+        a,
+        _ours_entry("tdd", th, ["seams"])
+        + _upstream_entry(SUBJECT, ["seams", "extra"]),
+    )
+    _write_defs(a, _defs("seams", "extra"))
+    _fails_with(a, capsys, "has no effective ruling")
+
+    # (b) an unruled trait under a REJECT checkpoint too (review #8)
+    b = _make_cfg(tmp_path / "b")
+    _write_skill(b, "tdd")
+    _write_record(b, "tdd", "engineering", "Design", "Specification")
+    _write_defs(b, _defs("seams", "extra"))
+    _write_traits(b, _upstream_entry(SUBJECT, ["seams", "extra"]))
+    _write_round(
+        b,
+        "2026-10-14-r",
+        _checkpoint("2026-10-14-r:1", "reject", "tdd"),
+        _trait("2026-10-14-r:2", "reject", "seams"),
+        trait_level=True,
+    )
+    _fails_with(b, capsys, "has no effective ruling")
+
+    # (c) a reject checkpoint whose entry tree_hash differs from the checkpoint's
+    c = _make_cfg(tmp_path / "c")
+    _write_skill(c, "tdd")
+    _write_record(c, "tdd", "engineering", "Design", "Specification")
+    _write_defs(c, _defs("seams"))
+    _write_traits(c, _upstream_entry(SUBJECT, ["seams"], tree_hash="DIFFERENT"))
+    _write_round(
+        c,
+        "2026-10-14-r",
+        _checkpoint("2026-10-14-r:1", "reject", "tdd"),
+        _trait("2026-10-14-r:2", "reject", "seams"),
+        trait_level=True,
+    )
+    _fails_with(c, capsys, "tree_hash disagrees with the checkpoint")
+
+    # (d) an adopt into a skill that lacks the trait fails without pending …
+    d = _make_cfg(tmp_path / "d")
+    _write_skill(d, "tdd")
+    _write_record(d, "tdd", "engineering", "Design", "Specification")
+    th = _tree_hash_of(d, "tdd")
+    _write_defs(d, _defs("seams"))
+    _write_traits(d, _ours_entry("tdd", th, []) + _upstream_entry(SUBJECT, ["seams"]))
+    _write_round(
+        d,
+        "2026-10-14-r",
+        _checkpoint("2026-10-14-r:1", "adopt", "tdd"),
+        _trait("2026-10-14-r:2", "adopt", "seams", skill="tdd"),
+        trait_level=True,
+    )
+    _fails_with(d, capsys, "is not listed by skill 'tdd'")
+
+    # … and passes with pending (intent, not delivery; no membership obligation)
+    dp = _make_cfg(tmp_path / "dp")
+    _write_skill(dp, "tdd")
+    _write_record(dp, "tdd", "engineering", "Design", "Specification")
+    th = _tree_hash_of(dp, "tdd")
+    _write_defs(dp, _defs("seams"))
+    _write_traits(dp, _ours_entry("tdd", th, []) + _upstream_entry(SUBJECT, ["seams"]))
+    _write_round(
+        dp,
+        "2026-10-14-r",
+        _checkpoint("2026-10-14-r:1", "adopt", "tdd"),
+        _trait("2026-10-14-r:2", "adopt", "seams", skill="tdd", pending="cr-1"),
+        trait_level=True,
+    )
+    assert registry.cmd_build(dp, _ns()) == 0
+    assert registry.cmd_check(dp, _ns()) == 0
+
+    # (e) a trait-level checkpoint whose entry reviewed_sha differs
+    e = _trait_cfg(tmp_path / "e")
+    th = _tree_hash_of(e, "tdd")
+    _write_traits(
+        e,
+        _ours_entry("tdd", th, ["seams"])
+        + _upstream_entry(SUBJECT, ["seams"], reviewed_sha="fff9999"),
+    )
+    _fails_with(e, capsys, "reviewed_sha disagrees with the checkpoint")
+
+    # (f) review r1 #2: trait rulings without any capability checkpoint
+    f = _make_cfg(tmp_path / "f")
+    _write_skill(f, "tdd")
+    _write_record(f, "tdd", "engineering", "Design", "Specification")
+    _write_defs(f, _defs("seams", "extra"))
+    _write_traits(
+        f,
+        _ours_entry("tdd", _tree_hash_of(f, "tdd"), ["seams"])
+        + _upstream_entry(SUBJECT, ["seams", "extra"]),
+    )
+    _write_round(
+        f,
+        "2026-10-14-r",
+        _trait("2026-10-14-r:1", "adopt", "seams", skill="tdd"),
+        trait_level=True,
+    )
+    _fails_with(f, capsys, "have no effective capability checkpoint")
+
+    # (g) review r1 #8: a trait adopt into a non-skill capability
+    g = _trait_cfg(tmp_path / "g")
+    _write_round(
+        g,
+        "2026-10-14-r",
+        _checkpoint("2026-10-14-r:1", "adopt", "agent:reviewer"),
+        _trait("2026-10-14-r:2", "adopt", "seams", skill="agent:reviewer"),
+        trait_level=True,
+    )
+    _fails_with(g, capsys, "a trait lands in a skill or a `doc:` file")
+
+
+def test_awaiting_trait_ruling(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Only a pre-trait round's checkpoint is grandfathered; every later one is
+    judged by the trait-level predicate (§5, review r1 #3)."""
+
+    def cfg_at(base: Path, round_id: str, sha: str, *traits: dict) -> object:
+        cfg = _make_cfg(base)
+        _write_skill(cfg, "tdd")
+        _write_record(cfg, "tdd", "engineering", "Design", "Specification")
+        _write_defs(cfg, _defs("seams"))
+        _write_traits(cfg, _upstream_entry(SUBJECT, ["seams"], reviewed_sha=sha))
+        _catalog(cfg, "refrepo", [_cap("skill", "tdd", LOGICAL, "h")])
+        _write_round(
+            cfg, round_id, _checkpoint(f"{round_id}:1", "reject", "tdd"), *traits
+        )
+        return cfg
+
+    old = cfg_at(tmp_path / "old", "2026-10-14-migration", "5beb35b")
+    assert registry.cmd_build(old, _ns()) == 0
+    assert registry.cmd_check(old, _ns()) == 0
+    capsys.readouterr()
+    assert registry.cmd_gap(old, _ns(reference="refrepo", kind=None, beads=False)) == 0
+    out = capsys.readouterr().out
+    assert "awaiting trait ruling (1)" in out
+    assert (
+        f"{LOGICAL}  (checkpoint 2026-10-14-migration:1, traits listed at 5beb35b)"
+        in out
+    )
+
+    # a newer whole-skill ruling over an older inventory is not grandfathered
+    newer = cfg_at(tmp_path / "newer", "2026-10-20-later", "5beb35b")
+    _fails_with(newer, capsys, "reviewed_sha disagrees with the checkpoint")
+
+    # trait-level through its trait rulings, at the entry's sha, without the flag
+    ruled = cfg_at(
+        tmp_path / "ruled",
+        "2026-10-20-later",
+        "abc1234",
+        _trait("2026-10-20-later:2", "reject", "seams"),
+    )
+    assert registry.cmd_build(ruled, _ns()) == 0
+    assert registry.cmd_check(ruled, _ns()) == 0
+
+
+# Acceptance 4: the pending lifecycle.
+def _pending_cfg(base: Path, *events: dict, ours_traits: list[str]) -> object:
+    cfg = _make_cfg(base)
+    _write_skill(cfg, "tdd")
+    _write_record(cfg, "tdd", "engineering", "Design", "Specification")
+    th = _tree_hash_of(cfg, "tdd")
+    _write_defs(cfg, _defs("seams"))
+    _write_traits(
+        cfg,
+        _ours_entry("tdd", th, ours_traits) + _upstream_entry(SUBJECT, ["seams"]),
+    )
+    _write_round(
+        cfg,
+        "2026-10-14-r",
+        _checkpoint("2026-10-14-r:1", "adopt", "tdd"),
+        *events,
+        trait_level=True,
+    )
+    return cfg
+
+
+def test_pending_lifecycle(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    subj = f"{SUBJECT}#seams"
+    adopt = _trait("2026-10-14-r:2", "adopt", "seams", skill="tdd")
+    pending = _trait("2026-10-14-r:2", "adopt", "seams", skill="tdd", pending="cr-9")
+
+    # (a) a pending adopt whose trait is now listed fails (fulfilled: record it)
+    a = _pending_cfg(tmp_path / "a", pending, ours_traits=["seams"])
+    _fails_with(a, capsys, "record the completing adopt")
+
+    # (b) after the completing adopt lands, removing the trait from the list fails
+    b = _pending_cfg(
+        tmp_path / "b",
+        _trait("2026-10-14-r:2", "adopt", "seams", skill="tdd", pending="cr-9"),
+        _trait(
+            "2026-10-14-r:3",
+            "adopt",
+            "seams",
+            skill="tdd",
+            supersedes=["2026-10-14-r:2"],
+        ),
+        ours_traits=[],
+    )
+    _fails_with(b, capsys, "is not listed by skill 'tdd'")
+
+    # (c) a cancelled pending adopt (reject supersedes) leaves no obligation; the
+    # effective ruling is reject, so the checkpoint is reject too.
+    c = _make_cfg(tmp_path / "c")
+    _write_skill(c, "tdd")
+    _write_record(c, "tdd", "engineering", "Design", "Specification")
+    _write_defs(c, _defs("seams"))
+    _write_traits(
+        c,
+        _ours_entry("tdd", _tree_hash_of(c, "tdd"), [])
+        + _upstream_entry(SUBJECT, ["seams"]),
+    )
+    _write_round(
+        c,
+        "2026-10-14-r",
+        _checkpoint("2026-10-14-r:1", "reject", "tdd"),
+        _trait("2026-10-14-r:2", "adopt", "seams", skill="tdd", pending="cr-9"),
+        _trait("2026-10-14-r:3", "reject", "seams", supersedes=["2026-10-14-r:2"]),
+        trait_level=True,
+    )
+    assert registry.cmd_build(c, _ns()) == 0
+    assert registry.cmd_check(c, _ns()) == 0
+
+    # (d) a delivered adopt then a pending revision keeps the delivered obligation
+    d = _pending_cfg(
+        tmp_path / "d",
+        adopt,
+        _trait(
+            "2026-10-14-r:3",
+            "adopt",
+            "seams",
+            skill="tdd",
+            pending="cr-9",
+            supersedes=["2026-10-14-r:2"],
+        ),
+        ours_traits=[],
+    )
+    _fails_with(d, capsys, "is not listed by skill 'tdd'")
+
+    # (e) delivered → withdrawn → pending keeps the withdrawal; the completing
+    # adopt revives the obligation.
+    wd = _pending_cfg(
+        tmp_path / "wd",
+        adopt,
+        _ours_event("2026-10-14-r:3", "update", "tdd", withdraws=[subj]),
+        _trait(
+            "2026-10-14-r:4",
+            "adopt",
+            "seams",
+            skill="tdd",
+            pending="cr-9",
+            supersedes=["2026-10-14-r:2"],
+        ),
+        ours_traits=[],
+    )
+    fwd = registry.build_lifecycle(registry.load_ledger(wd)[1])[0]
+    assert (subj, "tdd") in registry.withdrawn_destinations(
+        registry.load_ledger(wd)[1], fwd
+    )
+    assert registry.cmd_build(wd, _ns()) == 0
+    assert registry.cmd_check(wd, _ns()) == 0  # withdrawn: no obligation
+
+    live = _pending_cfg(
+        tmp_path / "live",
+        adopt,
+        _ours_event("2026-10-14-r:3", "update", "tdd", withdraws=[subj]),
+        _trait(
+            "2026-10-14-r:4",
+            "adopt",
+            "seams",
+            skill="tdd",
+            supersedes=["2026-10-14-r:2"],
+        ),
+        ours_traits=[],
+    )
+    fwd = registry.build_lifecycle(registry.load_ledger(live)[1])[0]
+    assert (subj, "tdd") not in registry.withdrawn_destinations(
+        registry.load_ledger(live)[1], fwd
+    )
+    _fails_with(live, capsys, "is not listed by skill 'tdd'")  # revived obligation
+
+    # review r1 #1: delivered → withdrawn → delivered, then a reject supersedes the
+    # second delivery: the withdrawal stays cleared, so the obligation holds.
+    redo = _pending_cfg(
+        tmp_path / "redo",
+        adopt,
+        _ours_event("2026-10-14-r:3", "update", "tdd", withdraws=[subj]),
+        _trait(
+            "2026-10-14-r:4",
+            "adopt",
+            "seams",
+            skill="tdd",
+            supersedes=["2026-10-14-r:2"],
+        ),
+        _trait("2026-10-14-r:5", "reject", "seams", supersedes=["2026-10-14-r:4"]),
+        ours_traits=[],
+    )
+    _fails_with(redo, capsys, "is not listed by skill 'tdd'")
+
+    # review r1 #4: a completing adopt must copy the pending event's source
+    moved = _trait("2026-10-14-r:3", "adopt", "seams", skill="tdd")
+    moved["source"] = {**moved["source"], "sha": "fff9999"}  # type: ignore[dict-item]
+    changed = _pending_cfg(
+        tmp_path / "changed",
+        pending,
+        moved | {"supersedes": ["2026-10-14-r:2"]},
+        ours_traits=["seams"],
+    )
+    _fails_with(changed, capsys, "must copy `source` from pending 2026-10-14-r:2")
+
+    # (f) a doc-targeted pending adopt passes with no membership check
+    doc = _make_cfg(tmp_path / "doc")
+    _write_skill(doc, "tdd")
+    _write_record(doc, "tdd", "engineering", "Design", "Specification")
+    (doc.repo_root / "docs").mkdir(parents=True)  # type: ignore[attr-defined]
+    (doc.repo_root / "docs" / "m.md").write_text("m", encoding="utf-8")  # type: ignore[attr-defined]
+    _write_defs(doc, _defs("seams"))
+    _write_traits(doc, _upstream_entry(SUBJECT, ["seams"]))
+    _write_round(
+        doc,
+        "2026-10-14-r",
+        _checkpoint("2026-10-14-r:1", "adopt", "doc:docs/m.md"),
+        _trait(
+            "2026-10-14-r:2", "adopt", "seams", skill="doc:docs/m.md", pending="cr-9"
+        ),
+        trait_level=True,
+    )
+    assert registry.cmd_build(doc, _ns()) == 0
+    assert registry.cmd_check(doc, _ns()) == 0
+
+
+# Acceptance 5: a modified adoption into a different trait without modification.
+def test_modified_adoption_requires_modification(tmp_path: Path) -> None:
+    with pytest.raises(ValueError, match="modification"):
+        registry.Event.model_validate(
+            _trait("r:1", "adopt", "seams", skill="tdd", into="other")
+        )
+
+
+def test_modified_adoption_distinct_from(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    # `into` names a trait that does NOT list the upstream trait in distinct_from
+    cfg = _make_cfg(tmp_path)
+    _write_skill(cfg, "tdd")
+    _write_record(cfg, "tdd", "engineering", "Design", "Specification")
+    th = _tree_hash_of(cfg, "tdd")
+    _write_defs(cfg, _defs("seams", "other"))  # other has no distinct_from
+    _write_traits(
+        cfg, _ours_entry("tdd", th, ["other"]) + _upstream_entry(SUBJECT, ["seams"])
+    )
+    _write_round(
+        cfg,
+        "2026-10-14-r",
+        _checkpoint("2026-10-14-r:1", "adopt", "tdd"),
+        _trait(
+            "2026-10-14-r:2",
+            "adopt",
+            "seams",
+            skill="tdd",
+            into="other",
+            modification="looser variant",
+        ),
+        trait_level=True,
+    )
+    _fails_with(cfg, capsys, "must name 'seams' in its distinct_from")
+
+
+# Acceptance 6: an adoption into a merged skill resolves to the survivor.
+def test_merge_resolves_to_survivor(tmp_path: Path) -> None:
+    cfg = _make_cfg(tmp_path)
+    _write_skill(cfg, "old")
+    _write_skill(cfg, "survivor")
+    _write_record(cfg, "old", "engineering", "Design", "Specification")
+    _write_record(cfg, "survivor", "engineering", "Building", "Diagnosis")
+    _write_defs(cfg, _defs("seams"))
+    _write_traits(
+        cfg,
+        _ours_entry("survivor", _tree_hash_of(cfg, "survivor"), ["seams"])
+        + _ours_entry("old", _tree_hash_of(cfg, "old"), [])
+        + _upstream_entry(SUBJECT, ["seams"]),
+    )
+    _write_round(
+        cfg,
+        "2026-10-14-r",
+        _checkpoint("2026-10-14-r:1", "adopt", "old"),
+        _trait("2026-10-14-r:2", "adopt", "seams", skill="old"),
+        _ours_event("2026-10-14-r:3", "merge", "survivor", subject="ours:old"),
+        trait_level=True,
+    )
+    assert registry.cmd_build(cfg, _ns()) == 0
+    assert registry.cmd_check(cfg, _ns()) == 0  # resolves old → survivor, lists seams
+
+
+# Acceptance 7: withdrawal is per source.
+SUBJECT2 = "refrepo:skill:skills/engineering/tdd2"
+
+
+def _upstream_entry2(traits: list[str]) -> str:
+    return (
+        f'{SUBJECT2}:\n  reviewed_sha: "abc1234"\n  tree_hash: "T2"\n'
+        f"  placement: {_PLACEMENT}\n  traits: [{', '.join(traits)}]\n"
+    )
+
+
+def test_withdrawal_is_per_source(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    subj1 = f"{SUBJECT}#seams"
+    subj2 = f"{SUBJECT2}#seams"
+
+    def ck2(eid: str, kind: str, skill: str) -> dict:
+        return {
+            "type": "event",
+            "id": eid,
+            "date": "2026-10-14",
+            "kind": kind,
+            "subject": SUBJECT2,
+            "why": "because",
+            "evidence": ["x:1"],
+            "skill": skill,
+            "source": {
+                "repo": "refrepo",
+                "logical_id": "skill:skills/engineering/tdd2",
+                "content_hash": "h",
+                "tree_hash": "T2",
+                "sha": "abc1234",
+            },
+        }
+
+    def tr2(eid: str, kind: str, **extra: object) -> dict:
+        ev = {
+            "type": "event",
+            "id": eid,
+            "date": "2026-10-14",
+            "kind": kind,
+            "subject": subj2,
+            "why": "because",
+            "evidence": ["x:1"],
+            "source": {
+                "repo": "refrepo",
+                "logical_id": "skill:skills/engineering/tdd2",
+                "tree_hash": "T2",
+                "sha": "abc1234",
+            },
+        }
+        ev.update(extra)
+        return ev
+
+    def setup(base: Path, ours_traits: list[str], *tail: dict) -> object:
+        cfg = _make_cfg(base)
+        _write_skill(cfg, "tdd")
+        _write_record(cfg, "tdd", "engineering", "Design", "Specification")
+        _write_defs(cfg, _defs("seams"))
+        _write_traits(
+            cfg,
+            _ours_entry("tdd", _tree_hash_of(cfg, "tdd"), ours_traits)
+            + _upstream_entry(SUBJECT, ["seams"])
+            + _upstream_entry2(["seams"]),
+        )
+        _write_round(
+            cfg,
+            "2026-10-14-r",
+            _checkpoint("2026-10-14-r:1", "adopt", "tdd"),
+            ck2("2026-10-14-r:2", "adopt", "tdd"),
+            _trait("2026-10-14-r:3", "adopt", "seams", skill="tdd"),
+            tr2("2026-10-14-r:4", "adopt", skill="tdd"),
+            *tail,
+            trait_level=True,
+        )
+        return cfg
+
+    # one source withdrawn, the trait still listed (the other source needs it): ok
+    ok = setup(
+        tmp_path / "ok",
+        ["seams"],
+        _ours_event("2026-10-14-r:5", "update", "tdd", withdraws=[subj1]),
+    )
+    assert registry.cmd_build(ok, _ns()) == 0
+    assert registry.cmd_check(ok, _ns()) == 0
+
+    # the trait removed while one adoption is still retained: fails
+    bad = setup(tmp_path / "bad", [])
+    _fails_with(bad, capsys, "is not listed by skill 'tdd'")
+
+
+# Acceptance 8: retirement.
+def test_retirement_rules(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    retired_defs = (
+        f"seams:\n  definition: x.\n  placement: {_PLACEMENT}\n"
+        f'  retired: {{date: "2026-10-01", replaced_by: [seam-a, seam-b]}}\n'
+        f"seam-a:\n  definition: a.\n  placement: {_PLACEMENT}\n"
+        f"seam-b:\n  definition: b.\n  placement: {_PLACEMENT}\n"
+    )
+
+    # (a) a retired trait still listed warns (not an error)
+    warn = _make_cfg(tmp_path / "warn")
+    _write_skill(warn, "tdd")
+    _write_record(warn, "tdd", "engineering", "Design", "Specification")
+    _write_defs(warn, retired_defs)
+    _write_traits(warn, _ours_entry("tdd", _tree_hash_of(warn, "tdd"), ["seams"]))
+    assert registry.cmd_build(warn, _ns()) == 0
+    assert registry.cmd_check(warn, _ns()) == 0
+    assert "retired trait 'seams' still listed" in capsys.readouterr().err
+
+    # (b) a retained adoption into a retired trait passes when the holder lists
+    # every replacement; the subject's first event predates retirement, so it
+    # continues. Sources show the replacement mapping (review r1 #13).
+    adopted = _make_cfg(tmp_path / "adopted")
+    _write_skill(adopted, "tdd")
+    _write_record(adopted, "tdd", "engineering", "Design", "Specification")
+    _write_defs(adopted, retired_defs)
+    _write_traits(
+        adopted,
+        _ours_entry("tdd", _tree_hash_of(adopted, "tdd"), ["seam-a", "seam-b"])
+        + _upstream_entry(SUBJECT, ["seams"]),
+    )
+    _write_round(
+        adopted,
+        "2026-09-01-old",
+        _trait("2026-09-01-old:1", "defer", "seams", date="2026-09-01"),
+        date="2026-09-01",
+    )
+    registry.seal(adopted, "2026-09-01-old")
+    _write_round(
+        adopted,
+        "2026-10-14-r",
+        _checkpoint("2026-10-14-r:1", "adopt", "tdd"),
+        _trait(
+            "2026-10-14-r:2",
+            "adopt",
+            "seams",
+            skill="tdd",
+            supersedes=["2026-09-01-old:1"],
+        ),
+        trait_level=True,
+    )
+    assert registry.cmd_build(adopted, _ns()) == 0
+    assert registry.cmd_check(adopted, _ns()) == 0
+    record = (adopted.skill_records_dir / "engineering" / "tdd.md").read_text()  # type: ignore[attr-defined]
+    assert "adopted as seams, now seam-a, seam-b" in record
+
+    # (c) a NEW subject using a retired trait fails, even when its first event is
+    # superseded by a later one (review r1 #9)
+    for name, tail in (
+        ("new", [_trait("2026-10-14-r:2", "adopt", "seams", skill="tdd")]),
+        (
+            "renewed",
+            [
+                _trait("2026-10-14-r:2", "defer", "seams"),
+                _trait(
+                    "2026-10-14-r:3",
+                    "adopt",
+                    "seams",
+                    skill="tdd",
+                    supersedes=["2026-10-14-r:2"],
+                ),
+            ],
+        ),
+    ):
+        new = _make_cfg(tmp_path / name)
+        _write_skill(new, "tdd")
+        _write_record(new, "tdd", "engineering", "Design", "Specification")
+        _write_defs(new, retired_defs)
+        _write_traits(
+            new,
+            _ours_entry("tdd", _tree_hash_of(new, "tdd"), ["seam-a", "seam-b"])
+            + _upstream_entry(SUBJECT, ["seams"]),
+        )
+        _write_round(
+            new,
+            "2026-10-14-r",
+            _checkpoint("2026-10-14-r:1", "adopt", "tdd"),
+            *tail,
+            trait_level=True,
+        )
+        _fails_with(new, capsys, "new subject")
+
+
+# Acceptance 9: upstream replaces trait A with B.
+def test_upstream_replaces_a_with_b(tmp_path: Path) -> None:
+    cfg = _make_cfg(tmp_path)
+    _write_skill(cfg, "tdd")
+    _write_record(cfg, "tdd", "engineering", "Design", "Specification")
+    _write_defs(cfg, _defs("seams", "newmech"))
+    # A (seams) moved to `removed`; B (newmech) is listed and rejected, carrying A.
+    _write_traits(
+        cfg,
+        _ours_entry("tdd", _tree_hash_of(cfg, "tdd"), ["seams"])
+        + f'{SUBJECT}:\n  reviewed_sha: "abc1234"\n  tree_hash: "{TREE}"\n'
+        f"  placement: {_PLACEMENT}\n  traits: [newmech]\n"
+        f'  removed: {{seams: "oldsha"}}\n',
+    )
+    _write_round(
+        cfg,
+        "2026-10-14-r",
+        _checkpoint("2026-10-14-r:1", "reject", "tdd"),
+        _trait("2026-10-14-r:2", "adopt", "seams", skill="tdd"),
+        _trait(
+            "2026-10-14-r:3",
+            "reject",
+            "newmech",
+            carried_from=[f"{SUBJECT}#seams"],
+        ),
+        trait_level=True,
+    )
+    assert registry.cmd_build(cfg, _ns()) == 0
+    assert registry.cmd_check(cfg, _ns()) == 0
+    record = (cfg.skill_records_dir / "engineering" / "tdd.md").read_text()  # type: ignore[attr-defined]
+    sources = record.split(registry.SOURCES_OPEN)[1].split(registry.SOURCES_CLOSE)[0]
+    assert "upstream replaced it with newmech (reject)" in sources
+
+
+# Acceptance 10: overlap warning.
+def test_overlap_warning(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    cfg = _make_cfg(tmp_path)
+    _write_skill(cfg, "tdd")
+    _write_skill(cfg, "other")
+    _write_record(cfg, "tdd", "engineering", "Design", "Specification")
+    _write_record(cfg, "other", "engineering", "Building", "Diagnosis")
+    _write_defs(cfg, _defs("seams"))
+    _write_traits(
+        cfg,
+        _ours_entry("tdd", _tree_hash_of(cfg, "tdd"), ["seams"])
+        + _ours_entry("other", _tree_hash_of(cfg, "other"), ["seams"]),
+    )
+    assert registry.cmd_build(cfg, _ns()) == 0
+    assert registry.cmd_check(cfg, _ns()) == 0  # overlap is a warning, not an error
+    err = capsys.readouterr().err
+    assert "overlap" in err and "'seams'" in err and "other, tdd" in err
+
+
+# Acceptance 11: TRAITS.md by-trait view lists ours and upstream holders.
+def test_traits_md_by_trait_view(tmp_path: Path) -> None:
+    cfg = _trait_cfg(tmp_path)
+    assert registry.cmd_build(cfg, _ns()) == 0
+    md = cfg.traits_md_path.read_text(encoding="utf-8")  # type: ignore[attr-defined]
+    assert "## By skill" in md and "## By trait" in md
+    by_trait = md.split("## By trait")[1]
+    assert "### engineering · Design · Specification\n\n#### `seams`" in by_trait
+    assert "- ours: `tdd`" in by_trait
+    assert f"- `{SUBJECT}` — adopt → tdd#seams" in by_trait
+
+
+def test_traits_md_pending_suffix(tmp_path: Path) -> None:
+    cfg = _make_cfg(tmp_path)
+    _write_skill(cfg, "tdd")
+    _write_record(cfg, "tdd", "engineering", "Design", "Specification")
+    _write_defs(cfg, _defs("seams"))
+    _write_traits(
+        cfg,
+        _ours_entry("tdd", _tree_hash_of(cfg, "tdd"), [])
+        + _upstream_entry(SUBJECT, ["seams"]),
+    )
+    _write_round(
+        cfg,
+        "2026-10-14-r",
+        _checkpoint("2026-10-14-r:1", "adopt", "tdd"),
+        _trait("2026-10-14-r:2", "adopt", "seams", skill="tdd", pending="cr-7"),
+        trait_level=True,
+    )
+    assert registry.cmd_build(cfg, _ns()) == 0
+    md = cfg.traits_md_path.read_text(encoding="utf-8")  # type: ignore[attr-defined]
+    assert "adopt, pending cr-7 → tdd#seams" in md
+    # review r1 #12: one lineage entry, labelled pending, no checkpoint duplicate
+    record = (cfg.skill_records_dir / "engineering" / "tdd.md").read_text()  # type: ignore[attr-defined]
+    lineage = record.split(registry.LINEAGE_OPEN)[1].split(registry.LINEAGE_CLOSE)[0]
+    assert lineage.strip() == f"- **{SUBJECT}#seams** @ abc1234 (pending cr-7)"
+
+
+def test_trait_identity_rules() -> None:
+    # adopt-merged is not a valid trait kind
+    with pytest.raises(ValueError, match="trait kinds"):
+        registry.Event.model_validate(
+            _trait("r:1", "adopt-merged", "seams", skill="tdd")
+        )
+    # a trait subject must name a skill logical id
+    agent = _trait("r:1", "adopt", "seams", skill="tdd")
+    agent["subject"] = "refrepo:agent:agents/x#seams"
+    agent["source"] = {"repo": "refrepo", "logical_id": "agent:agents/x"}  # type: ignore[assignment]
+    with pytest.raises(ValueError, match="skills only"):
+        registry.Event.model_validate(agent)
+    # slugs are validated
+    with pytest.raises(ValueError, match="valid trait slug"):
+        registry.Event.model_validate(_trait("r:1", "adopt", "bad slug", skill="tdd"))
+    # review r1 #11: contextual fields only where §5 defines them
+    for ev, needle in (
+        (_trait("r:1", "reject", "seams", pending="cr-1"), "only for a trait adopt"),
+        (_trait("r:1", "reject", "seams", withdraws=["x#y"]), "ours-side update"),
+        (_trait("r:1", "adopt", "seams", skill="tdd", pending=" "), "is empty"),
+    ):
+        with pytest.raises(ValueError, match=needle):
+            registry.Event.model_validate(ev)
+
+
+def test_reference_page_traits_column(tmp_path: Path) -> None:
+    cfg = _trait_cfg(tmp_path)
+    _catalog(cfg, "refrepo", [_cap("skill", "tdd", LOGICAL, "hcur")])
+    assert registry.cmd_build(cfg, _ns()) == 0
+    page = (cfg.references_dir / "refrepo.md").read_text(encoding="utf-8")  # type: ignore[attr-defined]
+    assert "Traits" in page.split("\n")[6]  # the header row carries a Traits column
+    assert "1 adopt" in page
+
+
+def test_build_refuses_invalid_trait_files(tmp_path: Path) -> None:
+    """review r1 #10: a trait file that fails to load stops build before writing."""
+    cfg = _trait_cfg(tmp_path)
+    assert registry.cmd_build(cfg, _ns()) == 0
+    before = cfg.traits_md_path.read_text(encoding="utf-8")  # type: ignore[attr-defined]
+    _write_defs(
+        cfg, f"seams:\n  definition: x.\n  placement: {_PLACEMENT}\n  bogus: 1\n"
+    )
+    with pytest.raises(SystemExit, match="trait files have errors"):
+        registry.cmd_build(cfg, _ns())
+    assert cfg.traits_md_path.read_text(encoding="utf-8") == before  # type: ignore[attr-defined]
+
+
+def test_traits_yaml_keys_and_metadata(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """review r1 #6 and #7: metadata keys and upstream identities are checked."""
+    cases = [
+        # #6: an undefined removed trait, with an effective ruling on it
+        (
+            (
+                f'{SUBJECT}:\n  reviewed_sha: "abc1234"\n  tree_hash: "{TREE}"\n'
+                f"  placement: {_PLACEMENT}\n  traits: [seams]\n"
+                f'  removed: {{ghost: "oldsha"}}\n'
+            ),
+            "removed trait 'ghost' is undefined",
+            [_trait("2026-10-14-r:3", "reject", "ghost")],
+        ),
+        # #6: a note on a trait the entry does not hold
+        (
+            (
+                f'{SUBJECT}:\n  reviewed_sha: "abc1234"\n  tree_hash: "{TREE}"\n'
+                f"  placement: {_PLACEMENT}\n  traits: [seams]\n"
+                f"  notes: {{other: n}}\n"
+            ),
+            "notes trait 'other' is not in the entry",
+            [],
+        ),
+        # #7: a plausible key with no catalog entry and no ledger history
+        (
+            _upstream_entry(SUBJECT, ["seams"])
+            + _upstream_entry("nonexistent:skill:skills/made-up", ["seams"]),
+            "has no removed-upstream history",
+            [],
+        ),
+        # #7: a non-skill capability key
+        (
+            _upstream_entry(SUBJECT, ["seams"])
+            + _upstream_entry("refrepo:agent:agents/x", ["seams"]),
+            "an upstream key is <repo>:skill:<path>",
+            [],
+        ),
+    ]
+    for i, (upstream, needle, extra) in enumerate(cases):
+        cfg = _trait_cfg(tmp_path / str(i))
+        _write_defs(cfg, _defs("seams", "other"))
+        th = _tree_hash_of(cfg, "tdd")
+        _write_traits(cfg, _ours_entry("tdd", th, ["seams"]) + upstream)
+        if extra:
+            _write_round(
+                cfg,
+                "2026-10-14-r",
+                _checkpoint("2026-10-14-r:1", "adopt", "tdd"),
+                _trait("2026-10-14-r:2", "adopt", "seams", skill="tdd"),
+                *extra,
+                trait_level=True,
+            )
+        _fails_with(cfg, capsys, needle)
+
+
+def test_pending_completion_supersedes_effective_pending(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    # review r2 #1: reject → pending adopt → delivered adopt. The completion must
+    # supersede the effective pending adopt (not the reject) and copy its source.
+    reject = _trait("2026-10-14-r:2", "reject", "seams")
+    pending = _trait(
+        "2026-10-14-r:3",
+        "adopt",
+        "seams",
+        skill="tdd",
+        pending="cr-9",
+    )
+    moved = _trait("2026-10-14-r:4", "adopt", "seams", skill="tdd")
+    moved["source"] = {**moved["source"], "sha": "fff9999"}  # type: ignore[dict-item]
+    changed = _pending_cfg(
+        tmp_path / "changed",
+        reject,
+        pending,
+        moved | {"supersedes": ["2026-10-14-r:2"]},
+        ours_traits=["seams"],
+    )
+    assert registry.cmd_build(changed, _ns()) == 0
+    _fails_with(changed, capsys, "must supersede pending 2026-10-14-r:3")
+    _fails_with(changed, capsys, "must copy `source` from pending 2026-10-14-r:3")
+
+    skipped = _pending_cfg(
+        tmp_path / "skipped",
+        reject,
+        pending,
+        _trait("2026-10-14-r:4", "adopt", "seams", skill="tdd"),
+        ours_traits=["seams"],
+    )
+    assert registry.cmd_build(skipped, _ns()) == 0
+    _fails_with(skipped, capsys, "must supersede pending 2026-10-14-r:3")
+
+    good = _pending_cfg(
+        tmp_path / "good",
+        reject,
+        pending,
+        _trait(
+            "2026-10-14-r:4",
+            "adopt",
+            "seams",
+            skill="tdd",
+            supersedes=["2026-10-14-r:3"],
+        ),
+        ours_traits=["seams"],
+    )
+    assert registry.cmd_build(good, _ns()) == 0
+    assert registry.cmd_check(good, _ns()) == 0
+
+
+def test_retirement_uses_first_event_date(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    # review r2 #2: a round opened 2026-09-01 records the subject's first event on
+    # 2026-10-14, after the trait retired on 2026-10-01: it is a new subject.
+    cfg = _make_cfg(tmp_path)
+    _write_skill(cfg, "tdd")
+    _write_record(cfg, "tdd", "engineering", "Design", "Specification")
+    _write_defs(
+        cfg,
+        f"seams:\n  definition: x.\n  placement: {_PLACEMENT}\n"
+        f'  retired: {{date: "2026-10-01", replaced_by: [seam-a]}}\n'
+        f"seam-a:\n  definition: a.\n  placement: {_PLACEMENT}\n",
+    )
+    _write_traits(
+        cfg,
+        _ours_entry("tdd", _tree_hash_of(cfg, "tdd"), ["seam-a"])
+        + _upstream_entry(SUBJECT, ["seams"]),
+    )
+    _write_round(
+        cfg,
+        "2026-09-01-old",
+        _checkpoint("2026-09-01-old:1", "adopt", "tdd"),
+        _trait("2026-09-01-old:2", "adopt", "seams", skill="tdd"),
+        date="2026-09-01",
+        trait_level=True,
+    )
+    assert registry.cmd_build(cfg, _ns()) == 0
+    _fails_with(cfg, capsys, "new subject")

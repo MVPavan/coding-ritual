@@ -14,6 +14,21 @@ status: active
 
 Use for risky behavior changes, regression proof, legacy characterization, or substantive test design. Trivial test renames do not require a test-first workflow.
 
+<!-- registry:generated traits -->
+- `mode-selection`: Choose test-first, characterization, or test-quality-only by the task rather than defaulting to one workflow.
+- `seam-selection`: Choose the test boundary that exercises the real contract without reaching inside. (The smallest such boundary.)
+- `plan-seams-no-approval`: Take test seams from the plan without separate approval, surfacing a missing seam only when it materially changes scope or the obtainable evidence.
+- `red-green`: Make one test fail before implementing the change that makes it pass. (Confirms the intended failure, not a setup error, then implements the owning fix and reruns the proving check.)
+- `refactor-after-green`: Refactor after each passing test, preserving behaviour and rerunning the affected checks.
+- `mock-boundaries`: Use test doubles only at boundaries, never in place of the behaviour under test. (Fakes and partial mocks are valid at any boundary that preserves the contract.)
+- `proof-discipline`: Keep enough before-and-after evidence to distinguish a demonstrated fix from an inference and never destroy edits to recreate RED.
+- `meaningful-behaviour-assertion`: Assert meaningful results, state or boundary interactions at a stable boundary rather than internal call choreography.
+- `independent-expectation`: Derive expected values from an independent source such as a spec, worked example or trusted fixture, never computing both sides with the implementation under test.
+- `no-implementation-coupling`: Avoid tests coupled to the implementation's internal structure, so they survive behaviour-preserving refactors. (Asserts exact source text only when that text is the contract.)
+- `deterministic-state`: Prefer deterministic inputs and isolated state, controlling time, randomness and shared state that cause nondeterminism.
+- `break-naming-validation`: Before accepting substantive tests, name the specific wrong branch, missing validation or side effect they catch, confirming by a safe mutation trial rather than mental inspection when worth its cost.
+<!-- /registry:generated traits -->
+
 <!-- registry:generated lineage -->
 - **superpowers:skill:skills/test-driven-development** `reference_harnesses/superpowers/skills/test-driven-development/SKILL.md` @ 44c9b2d
   - merged from: test-driven-development (agent-skills)
@@ -41,3 +56,11 @@ Use for risky behavior changes, regression proof, legacy characterization, or su
 <!-- registry:generated reviews -->
 None yet.
 <!-- /registry:generated reviews -->
+
+<!-- registry:generated sources -->
+No adopted traits recorded.
+<!-- /registry:generated sources -->
+
+<!-- registry:generated declined -->
+No declined traits recorded.
+<!-- /registry:generated declined -->

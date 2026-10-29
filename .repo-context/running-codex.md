@@ -18,3 +18,6 @@ cd <dir> && codex exec resume <session-id> -m <model> -c sandbox_mode=workspace-
 - The session id is the first `session id:` line on stderr; `-o` writes the
   final answer to a file. Prefer resume over a fresh run for follow-ups.
 - `codex exec` silently accepts bad `-c` values — see `.repo-context/learnings.md`.
+- In a background shell, close stdin with `< /dev/null`. Otherwise `codex exec`
+  logs "Reading additional input from stdin..." and waits with no timeout
+  (2026-10-14: a Sol review hung for over 30 minutes).

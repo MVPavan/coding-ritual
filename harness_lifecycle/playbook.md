@@ -21,7 +21,7 @@ The owner picks which agent or model fills the author and critic roles.
 | Intake | A bead: `spike` for an upstream review, `bug` for an observed failure, `feature` for a new capability | The bead |
 | Evidence | The method for the operation (§3–§7) | A review in `registry/reviews/`, or the observed failure |
 | Ruling | The owner decides; the author records one ledger event per capability | Ledger events citing the evidence |
-| Building | In a git worktree on its own branch, so running sessions keep the current skills. Edit the skill and its record | A diff |
+| Building | In a git worktree on its own branch, so running sessions keep the current skills. Edit the skill, its record and its `traits.yaml` entry. Rewrite every borrowed idea in our words by `authoring-for-agents`; never paste upstream text. Writing ideas from a reference harness go into its `writing-principles.md`, never into `prompting-guides/GUIDE.md` | A diff |
 | Verify | The checks in `authoring-for-agents`, `skill-catalog.py --check`, `registry.py build` and `check`; a critic for new or rewritten skill bodies | Recorded results |
 | Delivery | Merge (the promotion), then `.codex` sync, then `/harness-publish` | A merged commit |
 
@@ -54,33 +54,66 @@ and sub-stages are defined in `adlc/GUIDE.md` §1; its mapping rules (§1,
    active skills in one sub-stage each state their boundary in the record's
    Capability, or they are merge candidates (§5).
 5. Write the Capability: what it does, when it fires, and where it ends and
-   its neighbours begin.
+   its neighbours begin. Then list its traits in `registry/traits.yaml` by
+   the procedure in §4 step 2 (extract blind, then map), with the folder's
+   `tree_hash`.
 
 ## 4. Upstream review: a reference harness released
 
-Unit: one harness, from the pinned commit to the new one.
+Unit: one harness, from the pinned commit to the new one. Skills are ruled
+trait by trait, so a release review covers only what changed and never
+re-decides an earlier take or decline. Other kinds (agents, commands, hooks)
+keep one ruling per capability. Traits and their rules:
+`registry/README.md` §4a.
 
-1. Run `/harness-scan <harness>`: drift, then `registry.py gap`.
-2. For each **changed** capability we have ruled on, read the diff between
-   the two pins for that capability only, then:
+1. Run `/harness-scan <harness>`: drift, then regenerate the catalog at the
+   new pin (`scan.py catalog`), then `registry.py gap`. For each changed
+   skill `gap` prints the diff command for its whole folder and the traits
+   already ruled; it also lists new and removed capabilities.
+2. For each **changed or new** skill, list its traits in two passes:
+   1. **Extract blind.** An agent reads only the upstream skill folder (and
+      the diff) and lists every material mechanism, one line each, by the
+      rules in README §4a. Its brief does not name `trait-definitions.yaml`
+      or `traits.yaml`, so the existing vocabulary cannot anchor it.
+   2. **Map**, as a separate pass: each extracted line gets an existing
+      trait ID when the mechanism is the same, is split when it only partly
+      matches, or gets a new definition. A looser or stricter variant is a
+      new trait with `distinct_from`.
+
+   Update the skill's upstream entry in `traits.yaml`: new traits, `added`
+   and `removed` with the new sha, the new `reviewed_sha` and `tree_hash`.
+   Then classify each new or changed trait:
 
    | Class | Test | Verdict |
    |---|---|---|
-   | Cosmetic | Wording, metadata or version only; no behaviour change | Keep the ruling; record it again at the new hash |
-   | Covered | A behaviour change that our counterpart already has (cite `file:line` in ours) | Keep the ruling; record it again at the new hash |
-   | Conflict | Contradicts one of our rules (`AGENTS.md`, git safety, uv-only, and so on) | Keep the ruling; record why |
-   | Gap | A behaviour we lack, cheap and in scope | `adopt` or `adopt-merged`, and a bead for the edit |
-   | Gap, costly | A behaviour we lack, large, uncertain or out of scope | `defer`, with what would bring it back |
+   | Cosmetic | Wording, metadata or version only; no behaviour change | Keep its ruling; no new trait event |
+   | Covered | A behaviour change our skill already has: our skill lists the same trait (cite `file:line` in ours) | Keep its ruling, or `adopt` if first ruled now |
+   | Conflict | Contradicts one of our rules (`AGENTS.md`, git safety, uv-only, and so on) | `reject`, with the rule |
+   | Gap | A trait we lack, cheap and in scope | `adopt` with `pending`, and a bead for the edit |
+   | Gap, costly | A trait we lack, large, uncertain or out of scope | `defer`, with what would bring it back |
 
-3. Evaluate each **new** capability by §6.
+   Unchanged traits keep their rulings. When upstream moves a skill or
+   replaces a trait, the new trait events name the old subjects in
+   `carried_from`. A trait can go into a method document instead of a skill
+   (`doc:<path>`).
+3. Evaluate each **new** capability by §6, listing its traits by step 2.
 4. Write `registry/reviews/<yyyy-mm-dd>-upstream-<harness>-<version>.md`: the
-   release themes, then one row per capability with its upstream change
-   (`file:line`), our counterpart (`file:line`), class, verdict and reason.
-5. A critic checks the classes and verdicts against the diffs.
-6. The owner rules. Record each ruling with `source.sha` and `content_hash` at
-   the new pin, citing the review.
-7. Move the submodule pointer in the same commit as the review, and
-   regenerate the catalog (`scan.py catalog`) at the new pin.
+   release themes; per skill the blind list and the mapping (extracted line
+   → trait ID, marked match, split or new); then one row per changed or new
+   trait with its upstream change (`file:line`), our counterpart
+   (`file:line`), class, verdict and reason.
+5. A critic checks the blind lists against the folders (nothing missed or
+   bundled), the mappings (nothing forced), and the classes and verdicts
+   against the diffs.
+6. The owner rules. Open the round with `trait_level: true`. Record one trait
+   event per new or changed trait, and one checkpoint per reviewed skill at
+   the new pin whose kind agrees with its traits (`registry/README.md` §5b).
+   Then `build` and `check`.
+7. Move the submodule pointer in the same commit as the review, the round,
+   the catalog and the trait files.
+8. When a pending adoption's edit lands, record the completing `adopt`
+   (README §5b) in the same change as the edit, and refresh the skill's
+   `tree_hash`.
 
 ## 5. Skill review: comparing skills
 
@@ -116,6 +149,10 @@ would bring it back), `out-of-scope` (not our kind of work).
    form to the failure").
 4. Re-run the task, or a fresh-context test of it, and keep both results as
    the `update` event's evidence.
+5. Update the skill's traits in `registry/traits.yaml` and its `tree_hash`.
+   If the fix drops a trait we adopted from upstream, the `update` event
+   lists that upstream trait in `withdraws`; an upstream ruling never removes
+   it for us.
 
 ## 8. Done
 

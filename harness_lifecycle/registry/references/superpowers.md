@@ -6,11 +6,11 @@ Catalog: `44c9b2d6e889982ac18c27d05a19fefe335194e1`, 16 capabilities.
 
 | Their capability | Status | Into ours | Last ruled at | Changed upstream since? |
 |---|---|---|---|---|
-| `hook:hooks/session-start` | reject |  | 2026-10-14-migration | hash unknown |
-| `plugin:superpowers` | reject |  | 2026-10-14-migration | hash unknown |
+| `hook:hooks/session-start` | reject |  | 2026-10-14-migration | no |
+| `plugin:superpowers` | reject |  | 2026-10-14-migration | no |
 | `skill:skills/brainstorming` | adopt | brainstorming | 2026-10-14-migration | no |
 | `skill:skills/dispatching-parallel-agents` | reject |  | 2026-10-14-owner-review | no |
-| `skill:skills/executing-plans` | reject |  | 2026-10-14-migration | hash unknown |
+| `skill:skills/executing-plans` | reject |  | 2026-10-14-migration | no |
 | `skill:skills/finishing-a-development-branch` | reject |  | 2026-10-14-owner-review | no |
 | `skill:skills/receiving-code-review` | adopt | review | 2026-10-14-migration | no |
 | `skill:skills/requesting-code-review` | adopt | review | 2026-10-14-migration | no |
@@ -18,7 +18,7 @@ Catalog: `44c9b2d6e889982ac18c27d05a19fefe335194e1`, 16 capabilities.
 | `skill:skills/systematic-debugging` | adopt | systematic-debugging | 2026-10-14-migration | no |
 | `skill:skills/test-driven-development` | adopt-merged | test-driven-development | 2026-10-14-migration | no |
 | `skill:skills/using-git-worktrees` | adopt | review | 2026-10-14-migration | no |
-| `skill:skills/using-superpowers` | reject |  | 2026-10-14-migration | hash unknown |
+| `skill:skills/using-superpowers` | reject |  | 2026-10-14-migration | no |
 | `skill:skills/verification-before-completion` | adopt | verification-before-completion | 2026-10-14-migration | no |
 | `skill:skills/writing-plans` | adopt-merged | planning | 2026-10-14-migration | no |
 | `skill:skills/writing-skills` | adopt-merged | authoring-for-agents | 2026-10-14-migration | no |

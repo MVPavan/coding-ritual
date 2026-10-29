@@ -105,6 +105,9 @@ class Capability:
     # handed to subagents, helper scripts). They are part of the skill, not
     # separate capabilities, so they are recorded here rather than as own rows.
     assets: tuple[str, ...] = ()
+    # sha256 over every file in a skill's folder (SKILL.md + assets); for other
+    # kinds it equals content_hash. Lets `gap` see asset-only changes (§4).
+    tree_hash: str = ""
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -120,23 +123,40 @@ class Capability:
             "variant_hashes": list(self.variant_hashes),
             "line_count": self.line_count,
             "assets": list(self.assets),
+            # Written verbatim; never fabricated from content_hash. A skill whose
+            # folder hash is unknown stays "" so `gap` treats it as no baseline.
+            "tree_hash": self.tree_hash,
         }
 
     @staticmethod
-    def from_dict(data: dict[str, Any]) -> "Capability":
+    def from_dict(data: dict[str, Any]) -> Capability:
+        content_hash = str(data["content_hash"])
+        kind = Kind(data["kind"])
+        raw_tree = data.get("tree_hash")
+        if raw_tree:
+            tree_hash = str(raw_tree)
+        elif kind is not Kind.SKILL:
+            # For non-skills the tree hash *is* the content hash (§4), so a legacy
+            # catalog without the field can safely reconstruct it.
+            tree_hash = content_hash
+        else:
+            # A legacy skill catalog has no real folder hash; leave it unknown
+            # rather than fabricating one from SKILL.md alone (review #12).
+            tree_hash = ""
         return Capability(
-            kind=Kind(data["kind"]),
+            kind=kind,
             name=str(data["name"]),
             category=str(data.get("category", "")),
             logical_id=str(data["logical_id"]),
             canonical_path=str(data["canonical_path"]),
             paths=tuple(str(p) for p in data.get("paths", [])),
             description=str(data.get("description", "")),
-            content_hash=str(data["content_hash"]),
+            content_hash=content_hash,
             signature_hash=str(data["signature_hash"]),
             variant_hashes=tuple(str(h) for h in data.get("variant_hashes", [])),
             line_count=int(data.get("line_count", 0)),
             assets=tuple(str(a) for a in data.get("assets", [])),
+            tree_hash=tree_hash,
         )
 
 
@@ -165,7 +185,7 @@ class Catalog:
         }
 
     @staticmethod
-    def from_dict(data: dict[str, Any]) -> "Catalog":
+    def from_dict(data: dict[str, Any]) -> Catalog:
         return Catalog(
             repo=str(data["repo"]),
             source=str(data.get("source", "")),
@@ -198,6 +218,7 @@ class _Entry:
     rank: int
     category: str = ""
     assets: tuple[str, ...] = ()
+    tree_hash: str = ""
 
 
 # --- Text helpers -------------------------------------------------------------
@@ -434,7 +455,7 @@ def _plugin_description(text: str) -> str:
 # --- Scanning -----------------------------------------------------------------
 
 
-def _iter_files(root: Path) -> "tuple[list[Path], int]":
+def _iter_files(root: Path) -> tuple[list[Path], int]:
     kept: list[Path] = []
     excluded = 0
     for path in root.rglob("*"):
@@ -448,6 +469,29 @@ def _iter_files(root: Path) -> "tuple[list[Path], int]":
             continue
         kept.append(path)
     return kept, excluded
+
+
+def _skill_tree_hash(skill_dir: Path) -> str:
+    """sha256 over every file in a skill's folder (§4).
+
+    Files are sorted by their path relative to the folder and framed as
+    ``<relpath>\\0<byte length>\\0<raw bytes>`` with no text normalization, so an
+    edit to any bundled reference, script or asset changes the hash.
+    """
+    digest = hashlib.sha256()
+    files = sorted(
+        (p for p in skill_dir.rglob("*") if p.is_file()),
+        key=lambda p: str(p.relative_to(skill_dir)),
+    )
+    for path in files:
+        rel = str(path.relative_to(skill_dir)).encode("utf-8")
+        raw = path.read_bytes()
+        digest.update(rel)
+        digest.update(b"\0")
+        digest.update(str(len(raw)).encode("ascii"))
+        digest.update(b"\0")
+        digest.update(raw)
+    return digest.hexdigest()
 
 
 def _signature_hash(kind: Kind, name: str, surface: str) -> str:
@@ -484,6 +528,7 @@ def _scan_mcp(path: Path, root: Path) -> list[_Entry]:
             description=str(cfg.get("command", cfg.get("url", ""))),
             line_count=body.count("\n") + 1,
             rank=root_rank(Kind.MCP, rel_parts),
+            tree_hash=sha1(normalize(body)),
         ))
     return entries
 
@@ -505,18 +550,22 @@ def _entry_for(
         dkey = dedup_key(kind, parts)
         description = fm.get("description", "")
     normalized = normalize(text)
+    content_hash = sha1(normalized)
+    # A skill's tree hash spans its whole folder; other kinds reuse content_hash.
+    tree_hash = _skill_tree_hash(path.parent) if kind is Kind.SKILL else content_hash
     return _Entry(
         kind=kind,
         name=name,
         relpath=str(path.relative_to(root)),
         dedup_key=dkey,
-        content_hash=sha1(normalized),
+        content_hash=content_hash,
         signature_hash=_signature_hash(kind, name, surface),
         description=description,
         line_count=normalized.count("\n"),
         rank=root_rank(kind, parts),
         category=category(kind, parts),
         assets=assets,
+        tree_hash=tree_hash,
     )
 
 
@@ -578,6 +627,7 @@ def scan_repo(root: Path, repo: str, source: str, source_commit: str | None) -> 
             variant_hashes=variant_hashes,
             line_count=canonical.line_count,
             assets=canonical.assets,
+            tree_hash=canonical.tree_hash,
         ))
     capabilities.sort(key=lambda c: c.logical_id)
 
@@ -709,8 +759,10 @@ def diff_catalogs(
 def render_catalog_summary(catalog: Catalog) -> str:
     lines = [
         f"## catalog: {catalog.repo}  ({catalog.source})",
-        f"scanned {catalog.physical_scanned} files, excluded {catalog.excluded} "
-        f"(docs/tests/vendor)",
+        (
+            f"scanned {catalog.physical_scanned} files, excluded {catalog.excluded} "
+            f"(docs/tests/vendor)"
+        ),
         "",
         f"{'kind':<10}{'physical':>10}{'logical':>10}",
     ]
@@ -731,9 +783,11 @@ def render_diff(old: Catalog, new: Catalog, diff: CatalogDiff) -> str:
         f"## drift: {new.repo}",
         f"{old.source}  ->  {new.source}",
         "",
-        f"material: {len(diff.added)} added, {len(diff.removed)} removed, "
-        f"{len(diff.modified_material)} changed   |   "
-        f"minor: {len(diff.modified_minor)} + {len(diff.moved)} moved",
+        (
+            f"material: {len(diff.added)} added, {len(diff.removed)} removed, "
+            f"{len(diff.modified_material)} changed   |   "
+            f"minor: {len(diff.modified_minor)} + {len(diff.moved)} moved"
+        ),
     ]
     if diff.added:
         lines.append("\n### ADDED (material)")

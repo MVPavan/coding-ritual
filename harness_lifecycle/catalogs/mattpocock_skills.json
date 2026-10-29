@@ -2,17 +2,17 @@
   "schema": "harness-capability-catalog/v1",
   "repo": "mattpocock_skills",
   "source": "working-tree",
-  "source_commit": "84fdeffd12f2ee307994d1eb6feb48173b6e0502",
-  "physical_scanned": 126,
-  "excluded": 26,
+  "source_commit": "5beb35b040e3de97e54fa9e386d7e42d15c295c2",
+  "physical_scanned": 162,
+  "excluded": 30,
   "counts": {
     "plugin": {
       "physical": 1,
       "logical": 1
     },
     "skill": {
-      "physical": 35,
-      "logical": 35
+      "physical": 38,
+      "logical": 38
     }
   },
   "capabilities": [
@@ -25,14 +25,15 @@
       "paths": [
         ".claude-plugin/plugin.json"
       ],
-      "description": "Matt Pocock's agent skills for real engineering \u2014 grilling, spec/ticket flows, TDD, code review, domain modelling and more. Plug-and-play, not vibe coding.",
-      "content_hash": "8b6af6f39e6881847d8c2622373d1fd0770e7d3a",
-      "signature_hash": "1ecaa5532c5a5cb8ecb81da7154888eccdb3ac3d",
+      "description": "Matt Pocock's agent skills for real engineering: grilling, spec/ticket flows, TDD, code review, domain modelling and more. Plug-and-play, not vibe coding.",
+      "content_hash": "470545fe3d2f54549a005ebdeb7eafcf6b5b07e6",
+      "signature_hash": "ef79ecaa870eb7613bec16aaab605a414ff82128",
       "variant_hashes": [
-        "8b6af6f39e6881847d8c2622373d1fd0770e7d3a"
+        "470545fe3d2f54549a005ebdeb7eafcf6b5b07e6"
       ],
-      "line_count": 48,
-      "assets": []
+      "line_count": 50,
+      "assets": [],
+      "tree_hash": "470545fe3d2f54549a005ebdeb7eafcf6b5b07e6"
     },
     {
       "kind": "skill",
@@ -44,16 +45,17 @@
         "skills/engineering/ask-matt/SKILL.md"
       ],
       "description": "Ask which skill or flow fits your situation. A router over the skills in this repo.",
-      "content_hash": "f58f79e7168793a8448e986a54fe6fb16c66fe0e",
+      "content_hash": "b6ebc276bac7b9b59392a3705dfbbfb411283272",
       "signature_hash": "630fea26367d21e5ff9efbc47e5c676d3f74802a",
       "variant_hashes": [
-        "f58f79e7168793a8448e986a54fe6fb16c66fe0e"
+        "b6ebc276bac7b9b59392a3705dfbbfb411283272"
       ],
-      "line_count": 90,
+      "line_count": 97,
       "assets": [
         "skills/engineering/ask-matt/PHASE-BOUNDARIES.md",
         "skills/engineering/ask-matt/agents/openai.yaml"
-      ]
+      ],
+      "tree_hash": "7ff2383b40fe9d8f3e753d267d964fb2b44d120a948fd2a57c3b26ddfc318370"
     },
     {
       "kind": "skill",
@@ -64,16 +66,17 @@
       "paths": [
         "skills/engineering/code-review/SKILL.md"
       ],
-      "description": "Review the changes since a fixed point (commit, branch, tag, or merge-base) along two axes \u2014 Standards (does the code follow this repo's documented coding standards?) and Spec (does the code match what the originating issue/spec asked for?). Runs both reviews in parallel sub-agents and reports them side by side. Use when the user wants to review a branch, a PR, work-in-progress changes, or asks to \"review since X\".",
-      "content_hash": "a114b4ed92b2fd21fe5513e24abdd56706fb72b0",
-      "signature_hash": "e812888fb3f41cca60ceb540ca1266df28484ecc",
+      "description": "Review the changes since a fixed point (commit, branch, tag, or merge-base) along two axes: Standards (does the code follow this repo's documented coding standards?) and Spec (does the code match what the originating issue/spec asked for?). Runs both reviews in parallel sub-agents and reports them side by side. Use when the user wants to review a branch, a PR, work-in-progress changes, or asks to \\\"review since X\\\".",
+      "content_hash": "a8d1e500464597a1a610572327b31858029d4d15",
+      "signature_hash": "d16eb9f13fe8659b4ed1407f26982d1e3a4ed337",
       "variant_hashes": [
-        "a114b4ed92b2fd21fe5513e24abdd56706fb72b0"
+        "a8d1e500464597a1a610572327b31858029d4d15"
       ],
-      "line_count": 87,
+      "line_count": 89,
       "assets": [
         "skills/engineering/code-review/agents/openai.yaml"
-      ]
+      ],
+      "tree_hash": "01451680bee1eec827067cff76ef6c64541bbfe08646e87fcd8f08d47e643e10"
     },
     {
       "kind": "skill",
@@ -85,17 +88,18 @@
         "skills/engineering/codebase-design/SKILL.md"
       ],
       "description": "Shared vocabulary for designing deep modules. Use when the user wants to design or improve a module's interface, find deepening opportunities, decide where a seam goes, make code more testable or AI-navigable, or when another skill needs the deep-module vocabulary.",
-      "content_hash": "5810b0cd4c7957df3bdc5d28fd437a2dff4470e3",
+      "content_hash": "3d848075289b440d3ee18047195ad0273d82c1a5",
       "signature_hash": "b1ef76927e1d9d28278f24df4f443b9e9e7d812b",
       "variant_hashes": [
-        "5810b0cd4c7957df3bdc5d28fd437a2dff4470e3"
+        "3d848075289b440d3ee18047195ad0273d82c1a5"
       ],
       "line_count": 114,
       "assets": [
         "skills/engineering/codebase-design/DEEPENING.md",
         "skills/engineering/codebase-design/DESIGN-IT-TWICE.md",
         "skills/engineering/codebase-design/agents/openai.yaml"
-      ]
+      ],
+      "tree_hash": "721a6a709001482b70d4ecd3a7880a84ec158170236b999b1f14a8a321e20059"
     },
     {
       "kind": "skill",
@@ -107,16 +111,17 @@
         "skills/engineering/diagnosing-bugs/SKILL.md"
       ],
       "description": "Diagnosis loop for hard bugs and performance regressions. Use when the user says \"diagnose\"/\"debug this\", or reports something broken/throwing/failing/slow.",
-      "content_hash": "2210d6709b630ff3923d44d0bbc0b73a217fb96e",
+      "content_hash": "2662d9110da86d5325959fc6246781d0fa87fdca",
       "signature_hash": "90c0b14b6cf2eafdf45f0267cf488ef5d5f3266f",
       "variant_hashes": [
-        "2210d6709b630ff3923d44d0bbc0b73a217fb96e"
+        "2662d9110da86d5325959fc6246781d0fa87fdca"
       ],
-      "line_count": 140,
+      "line_count": 138,
       "assets": [
         "skills/engineering/diagnosing-bugs/agents/openai.yaml",
         "skills/engineering/diagnosing-bugs/scripts/hitl-loop.template.sh"
-      ]
+      ],
+      "tree_hash": "87c78ae966e591f9ceb177789cc5cc9de69277cd26679ffd36ca5300f430d513"
     },
     {
       "kind": "skill",
@@ -127,18 +132,19 @@
       "paths": [
         "skills/engineering/domain-modeling/SKILL.md"
       ],
-      "description": "Build and sharpen a project's domain model. Use when the user wants to pin down domain terminology or a ubiquitous language, record an architectural decision, or when another skill needs to maintain the domain model.",
-      "content_hash": "4391357e14a2c46108bcc0bf40eca96041fab034",
-      "signature_hash": "96b7783cbd35a201d46cb5c046fea532ee1ce6bb",
+      "description": "Build and sharpen a project's domain model. Use when discussing codebase terminology, writing or editing a GLOSSARY.md, or recording or editing an ADR.",
+      "content_hash": "9a3f6cb88f09facf622ce201f3536bbd0054dacb",
+      "signature_hash": "fd6f4d8c27a9821731fda4f7c0d7527bedb0dc93",
       "variant_hashes": [
-        "4391357e14a2c46108bcc0bf40eca96041fab034"
+        "9a3f6cb88f09facf622ce201f3536bbd0054dacb"
       ],
       "line_count": 74,
       "assets": [
         "skills/engineering/domain-modeling/ADR-FORMAT.md",
-        "skills/engineering/domain-modeling/CONTEXT-FORMAT.md",
+        "skills/engineering/domain-modeling/GLOSSARY-FORMAT.md",
         "skills/engineering/domain-modeling/agents/openai.yaml"
-      ]
+      ],
+      "tree_hash": "b78689833404148c769077355e12dbe5ad996a158a1e21e58ddf169e439d9d8c"
     },
     {
       "kind": "skill",
@@ -150,15 +156,16 @@
         "skills/engineering/grill-with-docs/SKILL.md"
       ],
       "description": "A relentless interview to sharpen a plan or design, which also creates docs (ADR's and glossary) as we go.",
-      "content_hash": "893c1f8c9aaf1110645e755f6b9fc5b99ceef9ce",
+      "content_hash": "9aad5d190aa87d659f82e68fdb0ee13636541c48",
       "signature_hash": "c46b69fc964d122e8cda199d372074942276bf41",
       "variant_hashes": [
-        "893c1f8c9aaf1110645e755f6b9fc5b99ceef9ce"
+        "9aad5d190aa87d659f82e68fdb0ee13636541c48"
       ],
       "line_count": 7,
       "assets": [
         "skills/engineering/grill-with-docs/agents/openai.yaml"
-      ]
+      ],
+      "tree_hash": "02e258f41d210f9b2e7cce9faf62b3c59e8fcebe5d2736369c3cd07d471324f8"
     },
     {
       "kind": "skill",
@@ -170,15 +177,37 @@
         "skills/engineering/implement/SKILL.md"
       ],
       "description": "Implement a piece of work based on a spec or set of tickets.",
-      "content_hash": "c1b88b4a95fe3df662a23bee5f7470c6bfa1a919",
+      "content_hash": "1448b4689cd2f63a77195a1b189ea1fb7eda5932",
       "signature_hash": "ed645ee7497aa998cb5f5897fba8e86e6cdb1fb0",
       "variant_hashes": [
-        "c1b88b4a95fe3df662a23bee5f7470c6bfa1a919"
+        "1448b4689cd2f63a77195a1b189ea1fb7eda5932"
       ],
-      "line_count": 15,
+      "line_count": 17,
       "assets": [
         "skills/engineering/implement/agents/openai.yaml"
-      ]
+      ],
+      "tree_hash": "560465496ad0669329993bfdd0604e5c93b5c2446309a76f486040010b063908"
+    },
+    {
+      "kind": "skill",
+      "name": "implement-spec",
+      "category": "engineering",
+      "logical_id": "skill:skills/engineering/implement-spec",
+      "canonical_path": "skills/engineering/implement-spec/SKILL.md",
+      "paths": [
+        "skills/engineering/implement-spec/SKILL.md"
+      ],
+      "description": "Implement the result of /to-spec and /to-tickets in code.",
+      "content_hash": "bb46774417e943331093bfed45f4b9c83faf65e2",
+      "signature_hash": "d69e691579b3d1097b67cda19fe8ab5502c10d7d",
+      "variant_hashes": [
+        "bb46774417e943331093bfed45f4b9c83faf65e2"
+      ],
+      "line_count": 40,
+      "assets": [
+        "skills/engineering/implement-spec/agents/openai.yaml"
+      ],
+      "tree_hash": "3aa684ea42bfe136e4c6c63f7349214b2bb974c2e949f3532a11df796e0f1146"
     },
     {
       "kind": "skill",
@@ -190,16 +219,39 @@
         "skills/engineering/improve-codebase-architecture/SKILL.md"
       ],
       "description": "Scan a codebase for deepening opportunities, present them as a visual HTML report, then grill through whichever one you pick.",
-      "content_hash": "8b13390845f9f5e60ae623f52dbe8733f4329538",
+      "content_hash": "7ac5184ca64f17977884271037850ddd94c9e895",
       "signature_hash": "be479377c2c483be5dfbb37322a94ee79d6203f8",
       "variant_hashes": [
-        "8b13390845f9f5e60ae623f52dbe8733f4329538"
+        "7ac5184ca64f17977884271037850ddd94c9e895"
       ],
       "line_count": 71,
       "assets": [
         "skills/engineering/improve-codebase-architecture/HTML-REPORT.md",
         "skills/engineering/improve-codebase-architecture/agents/openai.yaml"
-      ]
+      ],
+      "tree_hash": "5334eba3370c6124922f8819447b42fabd8df8d11008a242083b8527589a8686"
+    },
+    {
+      "kind": "skill",
+      "name": "pr",
+      "category": "engineering",
+      "logical_id": "skill:skills/engineering/pr",
+      "canonical_path": "skills/engineering/pr/SKILL.md",
+      "paths": [
+        "skills/engineering/pr/SKILL.md"
+      ],
+      "description": "Use when writing a PR body.",
+      "content_hash": "ccee8c8340eb695a98990f421c45c51f7e7c838b",
+      "signature_hash": "f21a3c5fbba789e80738b664588aa0d59437ed01",
+      "variant_hashes": [
+        "ccee8c8340eb695a98990f421c45c51f7e7c838b"
+      ],
+      "line_count": 170,
+      "assets": [
+        "skills/engineering/pr/CREDITS.md",
+        "skills/engineering/pr/agents/openai.yaml"
+      ],
+      "tree_hash": "a66195583d0f9323004cdd4da169f93449071f29023671f3e31a916e740f6861"
     },
     {
       "kind": "skill",
@@ -211,17 +263,18 @@
         "skills/engineering/prototype/SKILL.md"
       ],
       "description": "Build a throwaway prototype to answer a design question. Use when the user wants to sanity-check whether a state model or logic feels right, or explore what a UI should look like.",
-      "content_hash": "e1a5444ff8d72d7d183188cad944d04b1ff302e9",
+      "content_hash": "b7f213671d47e7872b74e06385bd8251a3d74c07",
       "signature_hash": "9136848017ace5c0238aa1d6a1156666d415d3e2",
       "variant_hashes": [
-        "e1a5444ff8d72d7d183188cad944d04b1ff302e9"
+        "b7f213671d47e7872b74e06385bd8251a3d74c07"
       ],
       "line_count": 26,
       "assets": [
         "skills/engineering/prototype/LOGIC.md",
         "skills/engineering/prototype/UI.md",
         "skills/engineering/prototype/agents/openai.yaml"
-      ]
+      ],
+      "tree_hash": "1e3ba2202a5b77b8aa50bc4447432331d6e42590e53ec0935689662cfed199ca"
     },
     {
       "kind": "skill",
@@ -233,35 +286,37 @@
         "skills/engineering/research/SKILL.md"
       ],
       "description": "Investigate a question against high-trust primary sources and capture the findings as a Markdown file in the repo. Use when the user wants a topic researched, docs or API facts gathered, or reading legwork delegated to a background agent.",
-      "content_hash": "5a3eb9250389c087db57270af837c7b44cfd5003",
+      "content_hash": "397e33dd8a726925c5b16999e9b6ebc0419d9e9e",
       "signature_hash": "c08ec7816edae4120b34475f76f2a1ed444f2237",
       "variant_hashes": [
-        "5a3eb9250389c087db57270af837c7b44cfd5003"
+        "397e33dd8a726925c5b16999e9b6ebc0419d9e9e"
       ],
       "line_count": 12,
       "assets": [
         "skills/engineering/research/agents/openai.yaml"
-      ]
+      ],
+      "tree_hash": "5bd6a6b833227dd87ee023c2d4734f4c349f290140514bb80bdc041ead1e837e"
     },
     {
       "kind": "skill",
-      "name": "resolving-merge-conflicts",
+      "name": "retro",
       "category": "engineering",
-      "logical_id": "skill:skills/engineering/resolving-merge-conflicts",
-      "canonical_path": "skills/engineering/resolving-merge-conflicts/SKILL.md",
+      "logical_id": "skill:skills/engineering/retro",
+      "canonical_path": "skills/engineering/retro/SKILL.md",
       "paths": [
-        "skills/engineering/resolving-merge-conflicts/SKILL.md"
+        "skills/engineering/retro/SKILL.md"
       ],
-      "description": "Use when you need to resolve an in-progress git merge/rebase conflict.",
-      "content_hash": "4fc49408c6488df9a19abbb2cbe0c270f7b4ebb5",
-      "signature_hash": "633460878b3def72774df5e2424ab650326b4d20",
+      "description": "Conduct a retrospective on a coding session.",
+      "content_hash": "f2d3b53dbed2104c61dd8a23f867ec8533542112",
+      "signature_hash": "eb270d1eb69ee5ee813893de2b3cad745301544b",
       "variant_hashes": [
-        "4fc49408c6488df9a19abbb2cbe0c270f7b4ebb5"
+        "f2d3b53dbed2104c61dd8a23f867ec8533542112"
       ],
-      "line_count": 14,
+      "line_count": 44,
       "assets": [
-        "skills/engineering/resolving-merge-conflicts/agents/openai.yaml"
-      ]
+        "skills/engineering/retro/agents/openai.yaml"
+      ],
+      "tree_hash": "e260aefb7b75b3548a3ee9883afbf8808e521f2e86feec92399617894f83b7c2"
     },
     {
       "kind": "skill",
@@ -272,13 +327,13 @@
       "paths": [
         "skills/engineering/setup-matt-pocock-skills/SKILL.md"
       ],
-      "description": "Configure this repo for the engineering skills \u2014 set up its issue tracker, triage label vocabulary, and domain doc layout. Run once before first use of the other engineering skills.",
-      "content_hash": "0db37984b6eb50b825d69ee1b59967ed0ff3d6e7",
-      "signature_hash": "3a7bc1a9f15b90f4f516094ced734caaa9a7c9fa",
+      "description": "Configure this repo for the engineering skills: set up its issue tracker, triage label vocabulary, and domain doc layout. Run once before first use of the other engineering skills.",
+      "content_hash": "ca5a8e89df1f748b53e02bd9274f8756775587f4",
+      "signature_hash": "0c54ca27eb40807ebe44981c9dc383110ceef35d",
       "variant_hashes": [
-        "0db37984b6eb50b825d69ee1b59967ed0ff3d6e7"
+        "ca5a8e89df1f748b53e02bd9274f8756775587f4"
       ],
-      "line_count": 116,
+      "line_count": 118,
       "assets": [
         "skills/engineering/setup-matt-pocock-skills/agents/openai.yaml",
         "skills/engineering/setup-matt-pocock-skills/domain.md",
@@ -286,7 +341,8 @@
         "skills/engineering/setup-matt-pocock-skills/issue-tracker-gitlab.md",
         "skills/engineering/setup-matt-pocock-skills/issue-tracker-local.md",
         "skills/engineering/setup-matt-pocock-skills/triage-labels.md"
-      ]
+      ],
+      "tree_hash": "77594679663ef582b544188e02fd4347a8e2aaab1401fb1d2b2b411d0ea729c2"
     },
     {
       "kind": "skill",
@@ -298,17 +354,18 @@
         "skills/engineering/tdd/SKILL.md"
       ],
       "description": "Test-driven development. Use when the user wants to build features or fix bugs test-first, mentions \"red-green-refactor\", or wants integration tests.",
-      "content_hash": "f0170565668f30ee31ec50f7ca1b33293d54ed86",
+      "content_hash": "cf6196c53bbc5f0a76dbd1d2c64df59ef8cea7bb",
       "signature_hash": "ccb2fda663e58b04ddc935925475fc99dfc4ab74",
       "variant_hashes": [
-        "f0170565668f30ee31ec50f7ca1b33293d54ed86"
+        "cf6196c53bbc5f0a76dbd1d2c64df59ef8cea7bb"
       ],
       "line_count": 38,
       "assets": [
         "skills/engineering/tdd/agents/openai.yaml",
         "skills/engineering/tdd/mocking.md",
         "skills/engineering/tdd/tests.md"
-      ]
+      ],
+      "tree_hash": "e3e0f78ff1c2d52ffefa0378baa1e80e129d359288cf9a56f4e59afcd2aac86c"
     },
     {
       "kind": "skill",
@@ -319,16 +376,17 @@
       "paths": [
         "skills/engineering/to-spec/SKILL.md"
       ],
-      "description": "Turn the current conversation into a spec and publish it to the project issue tracker \u2014 no interview, just synthesis of what you've already discussed.",
-      "content_hash": "eb9bbc8cee69ee81d5690cc878e0b523d2400232",
-      "signature_hash": "074077ec230e953095fe91300483033e480a57b3",
+      "description": "Turn the current conversation into a spec and publish it to the project issue tracker: no interview, just synthesis of what you've already discussed.",
+      "content_hash": "2347be948bd290e11a197eba70b13a2903e6adaa",
+      "signature_hash": "0147f8cdfbf3239f97f51cf57d430633481811ef",
       "variant_hashes": [
-        "eb9bbc8cee69ee81d5690cc878e0b523d2400232"
+        "2347be948bd290e11a197eba70b13a2903e6adaa"
       ],
       "line_count": 75,
       "assets": [
         "skills/engineering/to-spec/agents/openai.yaml"
-      ]
+      ],
+      "tree_hash": "eb934b5eda9523c7853a2741544bd4721ee1bea471f5a04f8397827f67bdbdda"
     },
     {
       "kind": "skill",
@@ -339,16 +397,17 @@
       "paths": [
         "skills/engineering/to-tickets/SKILL.md"
       ],
-      "description": "Break a plan, spec, or the current conversation into a set of tracer-bullet tickets, each declaring its blocking edges, published to the configured tracker \u2014 edges as text in one file per ticket locally, or native blocking links on a real tracker.",
-      "content_hash": "57a5add86bfc5e9058dd94c512c4012b3c014336",
-      "signature_hash": "ff660a6b7a4e84fcbbf36a7220c987b57c849cc4",
+      "description": "Break a plan, spec, or the current conversation into a set of tracer-bullet tickets, each declaring its blocking edges, published to the configured tracker (edges as text in one file per ticket locally, or native blocking links on a real tracker).",
+      "content_hash": "6bac78086d7b6227175f82aa49696e9e0fddbd4d",
+      "signature_hash": "6dd56759a6a9904d85120b138ebbb557e662e3a2",
       "variant_hashes": [
-        "57a5add86bfc5e9058dd94c512c4012b3c014336"
+        "6bac78086d7b6227175f82aa49696e9e0fddbd4d"
       ],
       "line_count": 105,
       "assets": [
         "skills/engineering/to-tickets/agents/openai.yaml"
-      ]
+      ],
+      "tree_hash": "17496514c92954f68eacdf2b1221e2ddb39fa231b83f03c70bc7d4422f704b2d"
     },
     {
       "kind": "skill",
@@ -359,18 +418,19 @@
       "paths": [
         "skills/engineering/triage/SKILL.md"
       ],
-      "description": "Move issues and external PRs through a state machine of triage roles \u2014 categorise, verify, grill if needed, and write agent-ready briefs.",
-      "content_hash": "a93a8429df3ff5b4e535f51d722969b15f3d6939",
-      "signature_hash": "ae454e090407f835c3738b34bf47f319f6cd9ead",
+      "description": "Move issues and external PRs through a state machine of triage roles, categorise, verify, grill if needed, and write agent-ready briefs.",
+      "content_hash": "be58b7462ec4f8dc50b0f0144fa8c70f8572a70e",
+      "signature_hash": "5d7d2ff3f55c70ec73e7bd4378fa8a1c49e0b8ba",
       "variant_hashes": [
-        "a93a8429df3ff5b4e535f51d722969b15f3d6939"
+        "be58b7462ec4f8dc50b0f0144fa8c70f8572a70e"
       ],
       "line_count": 112,
       "assets": [
         "skills/engineering/triage/AGENT-BRIEF.md",
         "skills/engineering/triage/OUT-OF-SCOPE.md",
         "skills/engineering/triage/agents/openai.yaml"
-      ]
+      ],
+      "tree_hash": "4342a07c9ebe0696713ec93a883c46e56503a587a34d824fabab5ca61e3bdfbb"
     },
     {
       "kind": "skill",
@@ -381,16 +441,17 @@
       "paths": [
         "skills/engineering/wayfinder/SKILL.md"
       ],
-      "description": "Plan a huge chunk of work \u2014 more than one agent session can hold \u2014 as a shared map of decision tickets on your issue tracker, and resolve them one at a time until the way to the destination is clear.",
-      "content_hash": "7d7f7fd0490a81fd677a035b17f7c14256d144ed",
-      "signature_hash": "e55bac0202695b920b4efb86e9dd842965995f36",
+      "description": "Plan a huge chunk of work (more than one agent session can hold) as a shared map of decision tickets on your issue tracker, and resolve them one at a time until the way to the destination is clear.",
+      "content_hash": "e60793fc456fd2d289bf2efee2e0a89fcd387531",
+      "signature_hash": "edf79b07667c17e1c805fa291d65f29735b4c8bc",
       "variant_hashes": [
-        "7d7f7fd0490a81fd677a035b17f7c14256d144ed"
+        "e60793fc456fd2d289bf2efee2e0a89fcd387531"
       ],
       "line_count": 128,
       "assets": [
         "skills/engineering/wayfinder/agents/openai.yaml"
-      ]
+      ],
+      "tree_hash": "a0aee2945105bc5f682588388b2c33d5cc8a68f68f10a60ece3f725e73076136"
     },
     {
       "kind": "skill",
@@ -402,16 +463,38 @@
         "skills/engineering/wizard/SKILL.md"
       ],
       "description": "Generate an interactive bash wizard that walks a human through steps only they can perform. Use when provisioning infrastructure, setting up credentials or CI secrets, walking an unfamiliar third-party dashboard, or running a one-off migration or cutover. Don't invoke this for steps the agent can perform itself.",
-      "content_hash": "d423843a8783248b9170890cb863699f55607d4e",
+      "content_hash": "ba75c4e15657578dfa9265db09be6a4e2275f106",
       "signature_hash": "04d9bf530f55295c59da594dd02e016ccadc73b8",
       "variant_hashes": [
-        "d423843a8783248b9170890cb863699f55607d4e"
+        "ba75c4e15657578dfa9265db09be6a4e2275f106"
       ],
       "line_count": 44,
       "assets": [
         "skills/engineering/wizard/agents/openai.yaml",
         "skills/engineering/wizard/template.sh"
-      ]
+      ],
+      "tree_hash": "806f7f7461824054ffaf3344e1e56e5e8a42344e22bdf8d22c6a8117eb9b1c38"
+    },
+    {
+      "kind": "skill",
+      "name": "chief-of-staff",
+      "category": "in-progress",
+      "logical_id": "skill:skills/in-progress/chief-of-staff",
+      "canonical_path": "skills/in-progress/chief-of-staff/SKILL.md",
+      "paths": [
+        "skills/in-progress/chief-of-staff/SKILL.md"
+      ],
+      "description": "Pursue a long-running goal in a single session by co-ordinating subagents.",
+      "content_hash": "639bfcdb143ba80e51f42edbf2340a100a6fcd56",
+      "signature_hash": "aacdb25443e0bc8d09903087ae9b44d333ba3308",
+      "variant_hashes": [
+        "639bfcdb143ba80e51f42edbf2340a100a6fcd56"
+      ],
+      "line_count": 68,
+      "assets": [
+        "skills/in-progress/chief-of-staff/agents/openai.yaml"
+      ],
+      "tree_hash": "41c724a82562eda3d5715078198ed5afbea8cb4e6e4b69934a85d1100ad32ad6"
     },
     {
       "kind": "skill",
@@ -423,15 +506,16 @@
         "skills/in-progress/claude-handoff/SKILL.md"
       ],
       "description": "Hand the current conversation off to a fresh background agent that picks up the work immediately.",
-      "content_hash": "fa1b4f64dc924dd15e606ce5f4d123e74aa93132",
+      "content_hash": "4ae4c60bdc306471f4f8de7e7633336f8a939f69",
       "signature_hash": "7bc768ceefbea6a61ba95c583dd3be9112c496f9",
       "variant_hashes": [
-        "fa1b4f64dc924dd15e606ce5f4d123e74aa93132"
+        "4ae4c60bdc306471f4f8de7e7633336f8a939f69"
       ],
       "line_count": 18,
       "assets": [
         "skills/in-progress/claude-handoff/agents/openai.yaml"
-      ]
+      ],
+      "tree_hash": "e903af941877ac195671a1eff550ba42266f5f5a4028ebeae4cd1fec82b88dd4"
     },
     {
       "kind": "skill",
@@ -443,15 +527,16 @@
         "skills/in-progress/loop-me/SKILL.md"
       ],
       "description": "Grill me about specs for the workflows I want to build, within this workspace.",
-      "content_hash": "d7569dc41ef2e8bc1fb30980887b29e6c77733f8",
+      "content_hash": "d638a63b3d1ba99c2c241e32f76609b540f29a35",
       "signature_hash": "d12da01958bf496179f6c54c6fd35c9c0c7c89ac",
       "variant_hashes": [
-        "d7569dc41ef2e8bc1fb30980887b29e6c77733f8"
+        "d638a63b3d1ba99c2c241e32f76609b540f29a35"
       ],
       "line_count": 32,
       "assets": [
         "skills/in-progress/loop-me/agents/openai.yaml"
-      ]
+      ],
+      "tree_hash": "5dac8f9919f3e1a528a4f1f00db07c81c3e6092e706376d81c697d16422ab163"
     },
     {
       "kind": "skill",
@@ -462,17 +547,18 @@
       "paths": [
         "skills/in-progress/setup-ts-deep-modules/SKILL.md"
       ],
-      "description": "Wire dependency-cruiser into a TypeScript repo so each package is a deep module \u2014 implementation hidden in subfolders, reachable only through its entry-point files. User-invoked.",
-      "content_hash": "2a7625c275b7877501f56e155c099588eddf42fa",
-      "signature_hash": "20d2765de29587ec19a95ffb4bda676f14f9b244",
+      "description": "Wire dependency-cruiser into a TypeScript repo so each package is a deep module, with implementation hidden in subfolders and reachable only through its entry-point files. User-invoked.",
+      "content_hash": "94665a3ef73729f869e321cf203534b10a1c86b6",
+      "signature_hash": "750affcff1bb16c71b8aa8b50f61fa2607e6f377",
       "variant_hashes": [
-        "2a7625c275b7877501f56e155c099588eddf42fa"
+        "94665a3ef73729f869e321cf203534b10a1c86b6"
       ],
       "line_count": 102,
       "assets": [
         "skills/in-progress/setup-ts-deep-modules/agents/openai.yaml",
         "skills/in-progress/setup-ts-deep-modules/dependency-cruiser.config.cjs"
-      ]
+      ],
+      "tree_hash": "8a3136caaea8fa439521917a624496769eba40cf8c59f62b4113a0dc916288a3"
     },
     {
       "kind": "skill",
@@ -483,16 +569,17 @@
       "paths": [
         "skills/in-progress/writing-beats/SKILL.md"
       ],
-      "description": "Writing, exploit \u2014 assemble raw material into a journey of beats, grounding each term before a beat leans on it.",
-      "content_hash": "99a91b9ffcd7ad5118f8de38aacfd2268aec1053",
-      "signature_hash": "1a237e111e97b18943f01c7b8738e16b608f0804",
+      "description": "Writing, exploit; assemble raw material into a journey of beats, grounding each term before a beat leans on it.",
+      "content_hash": "0af72bb6f20a4fefa225c8386b7114853ba9dbb9",
+      "signature_hash": "314516cdd5feafd50bb93d4ff3cabaa61dc1ea59",
       "variant_hashes": [
-        "99a91b9ffcd7ad5118f8de38aacfd2268aec1053"
+        "0af72bb6f20a4fefa225c8386b7114853ba9dbb9"
       ],
       "line_count": 67,
       "assets": [
         "skills/in-progress/writing-beats/agents/openai.yaml"
-      ]
+      ],
+      "tree_hash": "5af3ce4383f995c76a4780b3d3029af8e9c69aa1a44d57a6c8bc13a820836b8a"
     },
     {
       "kind": "skill",
@@ -503,16 +590,17 @@
       "paths": [
         "skills/in-progress/writing-fragments/SKILL.md"
       ],
-      "description": "Writing, explore \u2014 mine raw fragments, no structure yet.",
-      "content_hash": "7be19d0379ad360cecc76751564ef1b7cdbdcda7",
-      "signature_hash": "61a01b2263f97495f2a011738d7ab2641c88c00e",
+      "description": "Writing, explore: mine raw fragments, no structure yet.",
+      "content_hash": "067d33231ffee41fc6c607d9aab42360727ce884",
+      "signature_hash": "70ebeaadf40b1ade01985be22c026b843219a340",
       "variant_hashes": [
-        "7be19d0379ad360cecc76751564ef1b7cdbdcda7"
+        "067d33231ffee41fc6c607d9aab42360727ce884"
       ],
       "line_count": 79,
       "assets": [
         "skills/in-progress/writing-fragments/agents/openai.yaml"
-      ]
+      ],
+      "tree_hash": "00d286876c139f3f764e5021923f632c785dba1eb2fd7afdd9f44854a12772d2"
     },
     {
       "kind": "skill",
@@ -523,16 +611,17 @@
       "paths": [
         "skills/in-progress/writing-shape/SKILL.md"
       ],
-      "description": "Writing, exploit \u2014 shape raw material into an article, paragraph by paragraph.",
-      "content_hash": "b8091af19bf2c2673a2af7ed223686fcc7a520ff",
-      "signature_hash": "a6aaa157e4ab09c979133a465b4e16822680068c",
+      "description": "Writing, exploit: shape raw material into an article, paragraph by paragraph.",
+      "content_hash": "89314d4fbab934cad61c4e69980daca0d0e9bd3b",
+      "signature_hash": "1189f799ac4738396aa81339e4eca60002764aaa",
       "variant_hashes": [
-        "b8091af19bf2c2673a2af7ed223686fcc7a520ff"
+        "89314d4fbab934cad61c4e69980daca0d0e9bd3b"
       ],
       "line_count": 79,
       "assets": [
         "skills/in-progress/writing-shape/agents/openai.yaml"
-      ]
+      ],
+      "tree_hash": "7e06f4ca8a96c83b5b9a540c0279e998ba449e74586c77d44f9b8183c1bd8ef8"
     },
     {
       "kind": "skill",
@@ -544,16 +633,17 @@
         "skills/misc/git-guardrails-claude-code/SKILL.md"
       ],
       "description": "Set up Claude Code hooks to block dangerous git commands (push, reset --hard, clean, branch -D, etc.) before they execute. Use when user wants to prevent destructive git operations, add git safety hooks, or block git push/reset in Claude Code.",
-      "content_hash": "c0f340fe19ac9f234018642c89a381f91c29a47b",
+      "content_hash": "b12b6ad869c4f310b9c2031823581427c479aabb",
       "signature_hash": "c6bf6de568643a0ada5b2dccbd7f6aef228fb6d5",
       "variant_hashes": [
-        "c0f340fe19ac9f234018642c89a381f91c29a47b"
+        "b12b6ad869c4f310b9c2031823581427c479aabb"
       ],
       "line_count": 95,
       "assets": [
         "skills/misc/git-guardrails-claude-code/agents/openai.yaml",
         "skills/misc/git-guardrails-claude-code/scripts/block-dangerous-git.sh"
-      ]
+      ],
+      "tree_hash": "7aa92e9d469c6cd0b24ed8accb2e4be681c44c1524d71604c06b4055b7b56482"
     },
     {
       "kind": "skill",
@@ -573,7 +663,8 @@
       "line_count": 118,
       "assets": [
         "skills/misc/migrate-to-shoehorn/agents/openai.yaml"
-      ]
+      ],
+      "tree_hash": "a63549df6d5b5c6595029f8c504ccf31a12f01312f03db70da4b45cb10ba5ca8"
     },
     {
       "kind": "skill",
@@ -593,7 +684,8 @@
       "line_count": 106,
       "assets": [
         "skills/misc/scaffold-exercises/agents/openai.yaml"
-      ]
+      ],
+      "tree_hash": "019bbcc250992c776244aa1c818aed4015364f65bb9d1dbfd3bef9bae196b065"
     },
     {
       "kind": "skill",
@@ -605,15 +697,16 @@
         "skills/misc/setup-pre-commit/SKILL.md"
       ],
       "description": "Set up Husky pre-commit hooks with lint-staged (Prettier), type checking, and tests in the current repo. Use when user wants to add pre-commit hooks, set up Husky, configure lint-staged, or add commit-time formatting/typechecking/testing.",
-      "content_hash": "7b961d7d9cce3ba4ac0524b9b4369ab6ebe810d9",
+      "content_hash": "735b4ac2ece78df399d03ed452e1bda33a98a414",
       "signature_hash": "4f6df385a62304109867460451e5fe07f2d84a4d",
       "variant_hashes": [
-        "7b961d7d9cce3ba4ac0524b9b4369ab6ebe810d9"
+        "735b4ac2ece78df399d03ed452e1bda33a98a414"
       ],
       "line_count": 91,
       "assets": [
         "skills/misc/setup-pre-commit/agents/openai.yaml"
-      ]
+      ],
+      "tree_hash": "98523a8db5977c41a095834df8697123bb845ff6ddbb9500733b161f11441a37"
     },
     {
       "kind": "skill",
@@ -625,15 +718,16 @@
         "skills/productivity/grill-me/SKILL.md"
       ],
       "description": "A relentless interview to sharpen a plan or design.",
-      "content_hash": "0cf459cdf5314375fc9cb64ae9bf206d38cd3f80",
+      "content_hash": "ffae54adff84ac14e24bc2418f479b664d02773f",
       "signature_hash": "6df7b5c9996d6d7524485288415b844d218f8712",
       "variant_hashes": [
-        "0cf459cdf5314375fc9cb64ae9bf206d38cd3f80"
+        "ffae54adff84ac14e24bc2418f479b664d02773f"
       ],
       "line_count": 7,
       "assets": [
         "skills/productivity/grill-me/agents/openai.yaml"
-      ]
+      ],
+      "tree_hash": "ab1acb9fbd9eaee03da254abb8a8de228d1e7a07475fe959da4a5eefa34ea4b9"
     },
     {
       "kind": "skill",
@@ -645,15 +739,16 @@
         "skills/productivity/grilling/SKILL.md"
       ],
       "description": "Grill the user relentlessly about a plan, decision, or idea. Use when the user wants to stress-test their thinking, or uses any 'grill' trigger phrases.",
-      "content_hash": "b979b08ff6ad1244f093b892b534cfcdfeaf4652",
+      "content_hash": "f22f0b699f8820cb6edea8c6fb081e2e9849f793",
       "signature_hash": "ffe7691a7870dbf0993a755dd490fd6a2b535f62",
       "variant_hashes": [
-        "b979b08ff6ad1244f093b892b534cfcdfeaf4652"
+        "f22f0b699f8820cb6edea8c6fb081e2e9849f793"
       ],
-      "line_count": 22,
+      "line_count": 30,
       "assets": [
         "skills/productivity/grilling/agents/openai.yaml"
-      ]
+      ],
+      "tree_hash": "74de5501c2b0cec8410bf4ebc9eaddc84f6f7706e04d2c70a814872b1c44e410"
     },
     {
       "kind": "skill",
@@ -665,15 +760,16 @@
         "skills/productivity/handoff/SKILL.md"
       ],
       "description": "Compact the current conversation into a handoff document for another agent to pick up.",
-      "content_hash": "c84a04907c5347b2b93634c0dc7ed1de905eb76d",
+      "content_hash": "89367f3019ed7b4035a62435240379fc135a5790",
       "signature_hash": "79026be006b749bb88f41600983d28f5268f40f9",
       "variant_hashes": [
-        "c84a04907c5347b2b93634c0dc7ed1de905eb76d"
+        "89367f3019ed7b4035a62435240379fc135a5790"
       ],
       "line_count": 16,
       "assets": [
         "skills/productivity/handoff/agents/openai.yaml"
-      ]
+      ],
+      "tree_hash": "f60a2c3688379b7a306b3a7b8dd4120eab39da44c74fa2cb62d6424935f04aa7"
     },
     {
       "kind": "skill",
@@ -685,10 +781,10 @@
         "skills/productivity/teach/SKILL.md"
       ],
       "description": "Teach the user a new skill or concept, within this workspace.",
-      "content_hash": "e05fbfa02b5b4e8b0aac47d8ab9db0301cee3f17",
+      "content_hash": "51a3e38a76439d9f3c92c2a6be94059491e237a7",
       "signature_hash": "e679ff91a68db6e3e3b72dbf6ff3429a7ecf682c",
       "variant_hashes": [
-        "e05fbfa02b5b4e8b0aac47d8ab9db0301cee3f17"
+        "51a3e38a76439d9f3c92c2a6be94059491e237a7"
       ],
       "line_count": 140,
       "assets": [
@@ -697,7 +793,8 @@
         "skills/productivity/teach/MISSION-FORMAT.md",
         "skills/productivity/teach/RESOURCES-FORMAT.md",
         "skills/productivity/teach/agents/openai.yaml"
-      ]
+      ],
+      "tree_hash": "31bb3eed09dd2787e290e933def99fbf7d65044a29119c224af47c01404ab228"
     },
     {
       "kind": "skill",
@@ -709,15 +806,16 @@
         "skills/productivity/to-questionnaire/SKILL.md"
       ],
       "description": "Turn a decision you can't fully answer into a questionnaire for someone else to fill in.",
-      "content_hash": "fa593bd63a150691f97c725caa0ddc156842d479",
+      "content_hash": "9ba91a9ca40f25a9b2c7ded5690c47e901835f43",
       "signature_hash": "0b526391f4d9a1220cedf921254bcf7eea3e4619",
       "variant_hashes": [
-        "fa593bd63a150691f97c725caa0ddc156842d479"
+        "9ba91a9ca40f25a9b2c7ded5690c47e901835f43"
       ],
       "line_count": 53,
       "assets": [
         "skills/productivity/to-questionnaire/agents/openai.yaml"
-      ]
+      ],
+      "tree_hash": "0bcb2b31a45a3d176daa07c16d6532ee7819b802de081090c3fa856702767b13"
     },
     {
       "kind": "skill",
@@ -728,16 +826,17 @@
       "paths": [
         "skills/productivity/wait-what/SKILL.md"
       ],
-      "description": "Stop. That last message did not land \u2014 re-pitch it.",
-      "content_hash": "6fb288b35ccf50d2e3d70bf79a3a5fef5aee3f2d",
-      "signature_hash": "6d552dd675774be107008a3d21c7c736d32287a4",
+      "description": "Stop. That last message did not land: re-pitch it.",
+      "content_hash": "4ed5e957511e738ad22149fa3c3d98312a2b3688",
+      "signature_hash": "f711658aa687c2ea863439238dab6072ca7bc455",
       "variant_hashes": [
-        "6fb288b35ccf50d2e3d70bf79a3a5fef5aee3f2d"
+        "4ed5e957511e738ad22149fa3c3d98312a2b3688"
       ],
       "line_count": 7,
       "assets": [
         "skills/productivity/wait-what/agents/openai.yaml"
-      ]
+      ],
+      "tree_hash": "70c9bf9f5a84b6849760f9492f569d5aa12307a0310323fde5f583144730c26c"
     },
     {
       "kind": "skill",
@@ -749,16 +848,17 @@
         "skills/productivity/writing-for-agents/SKILL.md"
       ],
       "description": "Writing documents for agents. Use when creating or editing skills, or modifying AGENTS.md or CLAUDE.md.",
-      "content_hash": "a967162dde1e0778b78661cf3858fc6d73b21b07",
+      "content_hash": "048f6c16c72fdf9de23b014788cd0ad326e81618",
       "signature_hash": "42c489259ee0c0dca1b3d8f6f23aef1b7ecfd977",
       "variant_hashes": [
-        "a967162dde1e0778b78661cf3858fc6d73b21b07"
+        "048f6c16c72fdf9de23b014788cd0ad326e81618"
       ],
       "line_count": 81,
       "assets": [
         "skills/productivity/writing-for-agents/SKILL-MECHANICS.md",
         "skills/productivity/writing-for-agents/agents/openai.yaml"
-      ]
+      ],
+      "tree_hash": "e79a2476b2417b228922453478d9505a6b9af19f3a412e560728ce62ed3555ca"
     }
   ]
 }
