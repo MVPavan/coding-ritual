@@ -10,9 +10,9 @@ status: active
 ---
 # migrate-claude-to-codex
 
-## Capability
-
 Adapt Claude harness assets for Codex while preserving shared AGENTS.md policy and canonical skills.
+
+**Boundary:** Ports existing Claude harness assets to Codex form; writing or changing the instructions themselves is authoring-for-agents.
 
 <!-- registry:generated traits -->
 - `dry-run-default`: Preview all planned changes by default and write only under an explicit apply flag.

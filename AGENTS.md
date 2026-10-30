@@ -89,7 +89,7 @@ work, also recover the active Bead and handoff.
 ### When needed
 
 - Python or ledger changes: `.repo-context/coding-style.md`.
-- Running Codex from another agent: `.repo-context/running-codex.md`.
+- Handing work to another agent or model: the `delegation` skill.
 - Domain/repo terminology: `.repo-context/CONTEXT.md`. Architecture/contracts: relevant `docs/adr/`
   and `.repo-context/invariants.md`.
 - Phase/workstream execution: `execution` skill and relevant

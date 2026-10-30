@@ -12,13 +12,13 @@ glossary changes.
 
 Use the named module or pain point. For a broad survey, use recent change history
 and actual maintenance/test friction to choose areas; expand when evidence warrants.
-Read relevant domain terms and ADRs. The codebase-design vocabulary helps evaluate
-interfaces without banning the repository's normal terminology.
+Read relevant domain terms and ADRs. Evaluate interfaces with the codebase-design
+vocabulary.
 
 For each worthwhile candidate, identify affected files, the concrete friction,
 a proposed direction, expected benefit, compatibility/migration cost and evidence.
-Apply the deletion test carefully: does complexity disappear or merely move into
-callers? Distinguish a supported recommendation from an untested hypothesis.
+Apply codebase-design's deletion test to each candidate. Distinguish a supported
+recommendation from an untested hypothesis.
 
 Present a concise comparison and strongest recommendation. Use an inline visual
 when it clarifies structure. HTML is optional; `HTML-REPORT.md` points to the shared

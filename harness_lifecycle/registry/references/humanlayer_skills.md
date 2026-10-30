@@ -4,15 +4,15 @@
 
 Catalog: `3c2629142c5d437428269b1b722b08c0b87f574d`, 10 capabilities.
 
-| Their capability | Status | Into ours | Last ruled at | Changed upstream since? |
-|---|---|---|---|---|
-| `plugin:plugins/build-iterated-agentic-loop/build-iterated-agentic-loop` | reject |  | 2026-10-14-migration | no |
-| `plugin:plugins/design-control-loop/design-control-loop` | defer |  | 2026-10-14-migration | no |
-| `plugin:plugins/improve-claude-md/improve-claude-md` | defer |  | 2026-10-14-migration | no |
-| `plugin:plugins/narrow-react-prop-types/narrow-react-prop-types` | reject |  | 2026-10-14-migration | no |
-| `plugin:plugins/show-me/show-me` | defer |  | 2026-10-14-migration | no |
-| `skill:plugins/build-iterated-agentic-loop/skills/build-iterated-agentic-loop` | reject |  | 2026-10-14-migration | no |
-| `skill:plugins/design-control-loop/skills/design-control-loop` | defer |  | 2026-10-14-migration | no |
-| `skill:plugins/improve-claude-md/skills/improve-claude-md` | defer |  | 2026-10-14-migration | no |
-| `skill:plugins/narrow-react-prop-types/skills/narrow-react-prop-types` | reject |  | 2026-10-14-migration | no |
-| `skill:plugins/show-me/skills/show-me` | adopt-merged | show-me | 2026-10-14-migration | no |
+| Their capability | Status | Stage | Into ours | Last ruled at | Changed upstream since? |
+|---|---|---|---|---|---|
+| `plugin:plugins/build-iterated-agentic-loop/build-iterated-agentic-loop` | reject | decided |  | 2026-10-14-migration | no |
+| `plugin:plugins/design-control-loop/design-control-loop` | defer | decided |  | 2026-10-14-migration | no |
+| `plugin:plugins/improve-claude-md/improve-claude-md` | defer | decided |  | 2026-10-14-migration | no |
+| `plugin:plugins/narrow-react-prop-types/narrow-react-prop-types` | reject | decided |  | 2026-10-14-migration | no |
+| `plugin:plugins/show-me/show-me` | defer | decided |  | 2026-10-14-migration | no |
+| `skill:plugins/build-iterated-agentic-loop/skills/build-iterated-agentic-loop` | reject | decided (whole skill) |  | 2026-10-14-migration | no |
+| `skill:plugins/design-control-loop/skills/design-control-loop` | defer | decided (whole skill) |  | 2026-10-14-migration | no |
+| `skill:plugins/improve-claude-md/skills/improve-claude-md` | defer | decided (whole skill) |  | 2026-10-14-migration | no |
+| `skill:plugins/narrow-react-prop-types/skills/narrow-react-prop-types` | reject | decided (whole skill) |  | 2026-10-14-migration | no |
+| `skill:plugins/show-me/skills/show-me` | adopt-merged | not analysed | show-me | 2026-10-14-migration | no |

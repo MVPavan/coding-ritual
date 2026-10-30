@@ -10,8 +10,6 @@ status: active
 ---
 # research
 
-## Capability
-
 Use when a decision needs multiple sources gathered and weighed. Answer a single factual lookup directly from an appropriate source.
 
 <!-- registry:generated traits -->

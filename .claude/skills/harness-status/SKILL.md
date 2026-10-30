@@ -16,6 +16,8 @@ Report, per reference harness, whether upstream has material changes since our p
    to skip the network and use already-fetched refs.)
 2. Summarise as a table: repo | added | removed | changed (material) | minor.
 3. Call out repos with material changes as candidates for `/harness-scan`.
+   Curation progress per upstream skill is `registry.py status <name>`, not
+   this summary.
 
 ## Rules
 

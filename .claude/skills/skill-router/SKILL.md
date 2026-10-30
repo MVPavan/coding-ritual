@@ -39,7 +39,7 @@ user-supplied skill path can be read without changing integration files.
 
 ## Model-invocable skills
 
-`agent-matrix`, `authoring-for-agents`, `beads`, `brainstorming`, `codebase-design`, `design-evolve`, `domain-modeling`, `execution`, `grilling`, `harness-evaluate`, `harness-skill-compare`, `html-artifact`, `model-council`, `performance-optimization`, `perspective-council`, `planning`, `prototype`, `research`, `resolving-merge-conflicts`, `review`, `security`, `skill-router`, `systematic-debugging`, `test-driven-development`
+`authoring-for-agents`, `beads`, `brainstorming`, `codebase-design`, `delegation`, `design-evolve`, `domain-modeling`, `execution`, `grilling`, `harness-evaluate`, `harness-skill-compare`, `html-artifact`, `model-council`, `performance-optimization`, `perspective-council`, `planning`, `prototype`, `research`, `resolving-merge-conflicts`, `review`, `security`, `skill-router`, `systematic-debugging`, `test-driven-development`
 
 ## Slash-only workflows
 

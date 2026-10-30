@@ -4,51 +4,51 @@
 
 Catalog: `cd5af1fba246df29318cb151e96557bf6ba39538`, 46 capabilities.
 
-| Their capability | Status | Into ours | Last ruled at | Changed upstream since? |
-|---|---|---|---|---|
-| `agent:agent-teams/.claude/agents/time-agent` | not reviewed |  |  |  |
-| `agent:agents/development-workflows-research-agent` | not reviewed |  |  |  |
-| `agent:agents/presentation-curator` | not reviewed |  |  |  |
-| `agent:agents/time-agent` | not reviewed |  |  |  |
-| `agent:agents/weather-agent` | not reviewed |  |  |  |
-| `agent:agents/workflows/best-practice/workflow-claude-commands-agent` | not reviewed |  |  |  |
-| `agent:agents/workflows/best-practice/workflow-claude-settings-agent` | not reviewed |  |  |  |
-| `agent:agents/workflows/best-practice/workflow-claude-skills-agent` | not reviewed |  |  |  |
-| `agent:agents/workflows/best-practice/workflow-claude-subagents-agent` | not reviewed |  |  |  |
-| `agent:agents/workflows/best-practice/workflow-concepts-agent` | not reviewed |  |  |  |
-| `agent:agents/workflows/development-workflows-research-agent` | not reviewed |  |  |  |
-| `agent:development-workflows/rpi/.claude/agents/code-reviewer` | present, unruled |  |  |  |
-| `agent:development-workflows/rpi/.claude/agents/constitutional-validator` | not reviewed |  |  |  |
-| `agent:development-workflows/rpi/.claude/agents/documentation-analyst-writer` | not reviewed |  |  |  |
-| `agent:development-workflows/rpi/.claude/agents/product-manager` | not reviewed |  |  |  |
-| `agent:development-workflows/rpi/.claude/agents/requirement-parser` | not reviewed |  |  |  |
-| `agent:development-workflows/rpi/.claude/agents/senior-software-engineer` | not reviewed |  |  |  |
-| `agent:development-workflows/rpi/.claude/agents/technical-cto-advisor` | not reviewed |  |  |  |
-| `agent:development-workflows/rpi/.claude/agents/ux-designer` | not reviewed |  |  |  |
-| `command:agent-teams/.claude/commands/time-orchestrator` | not reviewed |  |  |  |
-| `command:commands/time-command` | not reviewed |  |  |  |
-| `command:commands/weather-orchestrator` | not reviewed |  |  |  |
-| `command:commands/workflows/best-practice/workflow-claude-commands` | not reviewed |  |  |  |
-| `command:commands/workflows/best-practice/workflow-claude-settings` | not reviewed |  |  |  |
-| `command:commands/workflows/best-practice/workflow-claude-skills` | not reviewed |  |  |  |
-| `command:commands/workflows/best-practice/workflow-claude-subagents` | not reviewed |  |  |  |
-| `command:commands/workflows/best-practice/workflow-concepts` | not reviewed |  |  |  |
-| `command:commands/workflows/development-workflows` | not reviewed |  |  |  |
-| `command:development-workflows/rpi/.claude/commands/rpi/implement` | not reviewed |  |  |  |
-| `command:development-workflows/rpi/.claude/commands/rpi/plan` | not reviewed |  |  |  |
-| `command:development-workflows/rpi/.claude/commands/rpi/research` | not reviewed |  |  |  |
-| `hook:hooks/scripts/hooks` | not reviewed |  |  |  |
-| `mcp:.mcp.json#context7` | not reviewed |  |  |  |
-| `mcp:.mcp.json#deepwiki` | not reviewed |  |  |  |
-| `mcp:.mcp.json#playwright` | not reviewed |  |  |  |
-| `rule:rules/markdown-docs` | not reviewed |  |  |  |
-| `rule:rules/presentation` | not reviewed |  |  |  |
-| `skill:agent-teams/.claude/skills/time-fetcher` | not reviewed |  |  |  |
-| `skill:agent-teams/.claude/skills/time-svg-creator` | not reviewed |  |  |  |
-| `skill:skills/agent-browser` | not reviewed |  |  |  |
-| `skill:skills/presentation/presentation-structure` | not reviewed |  |  |  |
-| `skill:skills/presentation/presentation-styling` | not reviewed |  |  |  |
-| `skill:skills/presentation/vibe-to-agentic-framework` | not reviewed |  |  |  |
-| `skill:skills/time-skill` | not reviewed |  |  |  |
-| `skill:skills/weather-fetcher` | not reviewed |  |  |  |
-| `skill:skills/weather-svg-creator` | not reviewed |  |  |  |
+| Their capability | Status | Stage | Into ours | Last ruled at | Changed upstream since? |
+|---|---|---|---|---|---|
+| `agent:agent-teams/.claude/agents/time-agent` | not reviewed | not reviewed |  |  |  |
+| `agent:agents/development-workflows-research-agent` | not reviewed | not reviewed |  |  |  |
+| `agent:agents/presentation-curator` | not reviewed | not reviewed |  |  |  |
+| `agent:agents/time-agent` | not reviewed | not reviewed |  |  |  |
+| `agent:agents/weather-agent` | not reviewed | not reviewed |  |  |  |
+| `agent:agents/workflows/best-practice/workflow-claude-commands-agent` | not reviewed | not reviewed |  |  |  |
+| `agent:agents/workflows/best-practice/workflow-claude-settings-agent` | not reviewed | not reviewed |  |  |  |
+| `agent:agents/workflows/best-practice/workflow-claude-skills-agent` | not reviewed | not reviewed |  |  |  |
+| `agent:agents/workflows/best-practice/workflow-claude-subagents-agent` | not reviewed | not reviewed |  |  |  |
+| `agent:agents/workflows/best-practice/workflow-concepts-agent` | not reviewed | not reviewed |  |  |  |
+| `agent:agents/workflows/development-workflows-research-agent` | not reviewed | not reviewed |  |  |  |
+| `agent:development-workflows/rpi/.claude/agents/code-reviewer` | present, unruled | not reviewed |  |  |  |
+| `agent:development-workflows/rpi/.claude/agents/constitutional-validator` | not reviewed | not reviewed |  |  |  |
+| `agent:development-workflows/rpi/.claude/agents/documentation-analyst-writer` | not reviewed | not reviewed |  |  |  |
+| `agent:development-workflows/rpi/.claude/agents/product-manager` | not reviewed | not reviewed |  |  |  |
+| `agent:development-workflows/rpi/.claude/agents/requirement-parser` | not reviewed | not reviewed |  |  |  |
+| `agent:development-workflows/rpi/.claude/agents/senior-software-engineer` | not reviewed | not reviewed |  |  |  |
+| `agent:development-workflows/rpi/.claude/agents/technical-cto-advisor` | not reviewed | not reviewed |  |  |  |
+| `agent:development-workflows/rpi/.claude/agents/ux-designer` | not reviewed | not reviewed |  |  |  |
+| `command:agent-teams/.claude/commands/time-orchestrator` | not reviewed | not reviewed |  |  |  |
+| `command:commands/time-command` | not reviewed | not reviewed |  |  |  |
+| `command:commands/weather-orchestrator` | not reviewed | not reviewed |  |  |  |
+| `command:commands/workflows/best-practice/workflow-claude-commands` | not reviewed | not reviewed |  |  |  |
+| `command:commands/workflows/best-practice/workflow-claude-settings` | not reviewed | not reviewed |  |  |  |
+| `command:commands/workflows/best-practice/workflow-claude-skills` | not reviewed | not reviewed |  |  |  |
+| `command:commands/workflows/best-practice/workflow-claude-subagents` | not reviewed | not reviewed |  |  |  |
+| `command:commands/workflows/best-practice/workflow-concepts` | not reviewed | not reviewed |  |  |  |
+| `command:commands/workflows/development-workflows` | not reviewed | not reviewed |  |  |  |
+| `command:development-workflows/rpi/.claude/commands/rpi/implement` | not reviewed | not reviewed |  |  |  |
+| `command:development-workflows/rpi/.claude/commands/rpi/plan` | not reviewed | not reviewed |  |  |  |
+| `command:development-workflows/rpi/.claude/commands/rpi/research` | not reviewed | not reviewed |  |  |  |
+| `hook:hooks/scripts/hooks` | not reviewed | not reviewed |  |  |  |
+| `mcp:.mcp.json#context7` | not reviewed | not reviewed |  |  |  |
+| `mcp:.mcp.json#deepwiki` | not reviewed | not reviewed |  |  |  |
+| `mcp:.mcp.json#playwright` | not reviewed | not reviewed |  |  |  |
+| `rule:rules/markdown-docs` | not reviewed | not reviewed |  |  |  |
+| `rule:rules/presentation` | not reviewed | not reviewed |  |  |  |
+| `skill:agent-teams/.claude/skills/time-fetcher` | not reviewed | not analysed |  |  |  |
+| `skill:agent-teams/.claude/skills/time-svg-creator` | not reviewed | not analysed |  |  |  |
+| `skill:skills/agent-browser` | not reviewed | not analysed |  |  |  |
+| `skill:skills/presentation/presentation-structure` | not reviewed | not analysed |  |  |  |
+| `skill:skills/presentation/presentation-styling` | not reviewed | not analysed |  |  |  |
+| `skill:skills/presentation/vibe-to-agentic-framework` | not reviewed | not analysed |  |  |  |
+| `skill:skills/time-skill` | not reviewed | not analysed |  |  |  |
+| `skill:skills/weather-fetcher` | not reviewed | not analysed |  |  |  |
+| `skill:skills/weather-svg-creator` | not reviewed | not analysed |  |  |  |

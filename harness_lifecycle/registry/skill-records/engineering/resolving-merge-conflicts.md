@@ -10,8 +10,6 @@ status: active
 ---
 # resolving-merge-conflicts
 
-## Capability
-
 Use when a git merge, rebase, or cherry-pick is already in a conflicted state and the conflicts need resolving. Trigger on merge-conflict / rebase-conflict phrases.
 
 <!-- registry:generated traits -->

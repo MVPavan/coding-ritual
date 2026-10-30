@@ -14,7 +14,7 @@ traits. "r1" reasons record the fixes for critic round 1
 (`scratchpad/traits-migration/sol-review-r2.md` findings 3–7): a shared ID
 stays only where both sides provide every clause of its definition; otherwise the shared
 core keeps the ID and each side's differing clause became its own trait or a skill note.
-Pending critic review (§8 step 6).
+Pending critic review (§8 step 6). The 2026-10-29 Pocock rulings added no ID merges: 26 `distinct_from` links on our traits (variants of upstream traits), the two planning rows marked 2026-10-29 below, and two traits extracted in critic round r1 (`decision-relevance-pruning`, `established-notes`; our lists now total 452 traits).
 
 Round-1 renames and replacements carried into the re-keyed pilot drafts
 (`scratchpad/traits-migration/pilot-rekeyed/`):
@@ -63,6 +63,7 @@ Old item is `ours:<skill>#<Covers slug>`; `(new mechanism)` rows are traits the 
 | `ours:authoring-for-agents#pruning` | `single-source-of-truth`, `environment-as-cache`, `no-op-deletion`, `unsupported-claim-removal` | split | merge pass: `pruning` split: bundled four pruning disciplines, each ruled separately upstream |
 | `ours:authoring-for-agents#skill-anatomy` | `skill-packaging`, `invocation-mode`, `invocation-sidecar-sync`, `compatibility-alias` | split | the anatomy reference bundles three separable mechanisms: directory/frontmatter packaging, the model-vs-manual invocation choice, and thin compatibility aliases; r1 sweep: the flag-plus-sidecar regeneration split out of invocation-mode as invocation-sidecar-sync, since upstream shares only the invocation choice |
 | `ours:authoring-for-agents#verification` | `verification` | match |  |
+| `(new mechanism)` | `decision-relevance-pruning` | new | 2026-10-29 Pocock rulings r1: writing-principles.md:29-30 keeps only what changes decisions (conventions, failure modes, interfaces, invariants); neither `no-op-deletion` (default behaviour) nor upstream `relevance-check` (task bearing and staleness) is that test. |
 | `ours:beads#work-types` | `bead-type-taxonomy` | match |  |
 | `ours:beads#field-roles` | `field-roles` | match |  |
 | `ours:beads#waits-as-edges` | `wait-as-edge` | match |  |
@@ -255,7 +256,7 @@ Old item is `ours:<skill>#<Covers slug>`; `(new mechanism)` rows are traits the 
 | `(new mechanism)` | `sourced-explanations` | new | SKILL body and RESOURCES-FORMAT.md require drawing explanations from trusted cited sources rather than unverified recall. |
 | `ours:triage#beads-native-states` | `triage-routing` | merge | Merged with #outcomes: the Beads-native state model and the fixed outcome set are one mechanism — outcomes expressed in Beads natives with no intake labels.; merge pass: `beads-native-outcomes` → `triage-routing`: same outcome model as beads' triage-routing (one outcome in tracker-native fields, no intake labels) |
 | `ours:triage#show-attention` | `attention-buckets` | match |  |
-| `ours:triage#triage-one` | `triage-decision`, `triage-resume-notes` | split | Mapped to the decide/apply/record core; its enumerated redundancy, prior-rejection and verify sub-steps are their own traits.; merge pass: `triage-decision` split: bundled deciding within authority with recording what was settled for resumption |
+| `ours:triage#triage-one` | `triage-decision`, `established-notes`, `triage-resume-notes` | split | Mapped to the decide/apply/record core; its enumerated redundancy, prior-rejection and verify sub-steps are their own traits.; merge pass: `triage-decision` split: bundled deciding within authority with recording what was settled for resumption; 2026-10-29 Pocock rulings r1: recording (`bd note … "Established: …"`, triage/SKILL.md:58-59) split from resuming (:32-33) as `established-notes` |
 | `ours:triage#redundancy-and-prior-rejection` | `redundancy-check`, `prior-rejection-check` | split | Bundles the codebase redundancy search and the closed-bead prior-rejection search, two distinct checks. |
 | `ours:triage#verify-claim` | `claim-verification` | match |  |
 | `ours:triage#agent-ready-gate` | `agent-ready-gate` | match |  |
@@ -369,6 +370,8 @@ Old item is `ours:<skill>#<Covers slug>`; `(new mechanism)` rows are traits the 
 | `ours:planning#plan-evidence-bound` | `plan-evidence-bound` | match |  |
 | `ours:planning#test-first-marking` | `test-first-marking` | match |  |
 | `(new mechanism)` | `no-placeholder-plan` | new | plan-format.md's no-placeholders quality gate was missing from the covers list. |
+| `(new mechanism)` | `real-id-wiring` | new | 2026-10-29 Pocock rulings: decompose.md creates stages first, then wires real `bd dep add` edges; same trait wayfinder lists, missed here. |
+| `(new mechanism)` | `no-stale-code-snippets` | new | 2026-10-29 Pocock rulings: plan-format.md keeps task approach in prose with no code blocks; same trait brainstorming lists for specs, missed here. |
 | `(new mechanism)` | `plan-self-review` | new | plan-format.md's finished-plan self-review (coverage, name/type consistency, gap-naming) was missing. |
 | `(new mechanism)` | `reviewer-rejectable-sizing` | new | plan-format.md's right-sizing test (a reviewer could reject this task while approving its neighbour) was missing. |
 | `ours:prototype#named-question` | `named-question` | match |  |

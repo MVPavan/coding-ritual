@@ -10,8 +10,6 @@ status: active
 ---
 # check-invariants
 
-## Capability
-
 Run mechanically checkable invariants from the project overlay and report pass or fail.
 
 <!-- registry:generated traits -->

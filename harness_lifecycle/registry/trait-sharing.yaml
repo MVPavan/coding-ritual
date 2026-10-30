@@ -1,0 +1,70 @@
+# Why our skills share a trait: <trait>: {skills: [..], why, reviewed}.
+# `check` computes the shared set from traits/ours.yaml (a trait listed by two
+# or more of our active skills, doc:AGENTS.md counted) and warns on a shared
+# trait with no entry; an entry whose skills differ, or for an unshared trait,
+# fails. Rules: docs/workstreams/skill-curation/stages-design.md §Shared traits.
+# Entries are justified by the owner (bead cr-talb).
+dependency-edges:
+  skills: [planning, wayfinder]
+  why: "Each builds its own tracker graph, planning for implementation stages and wayfinder for decision tickets, and lets readiness drive the work; edge semantics stay in beads."
+  reviewed: "2026-10-30"
+real-id-wiring:
+  skills: [planning, wayfinder]
+  why: "Both create beads and then wire edges between the IDs they just created, each inside its own seeding procedure."
+  reviewed: "2026-10-30"
+drift-scan:
+  skills: [harness-scan, harness-status]
+  why: "Both run the one drift command, scan for a single harness and status as a sweep of all of them; a pointer between them would add a hop to a one-line command."
+  reviewed: "2026-10-30"
+pin-preserving-fetch:
+  skills: [harness-scan, harness-status]
+  why: "Both run the fetching drift command themselves, so each must state that a fetch never moves pins and that --no-fetch skips the network."
+  reviewed: "2026-10-30"
+glossary-format:
+  skills: [domain-modeling, teach]
+  why: "Each keeps a glossary of its own (project language, the learner's workspace) in one entry format, with its own admission rules."
+  reviewed: "2026-10-30"
+independent-synthesis:
+  skills: [model-council, perspective-council]
+  why: "Two entrypoints with distinct triggers (named models with a judge, opposing lenses) each run a full council ending in a fresh synthesizer."
+  reviewed: "2026-10-30"
+member-isolation:
+  skills: [model-council, perspective-council]
+  why: "Each council dispatches its own members in isolation."
+  reviewed: "2026-10-30"
+neutral-framing:
+  skills: [model-council, perspective-council]
+  why: "Each council frames its own neutral brief."
+  reviewed: "2026-10-30"
+no-silent-substitution:
+  skills: [model-council, perspective-council]
+  why: "Either council can lose a member, and each must report the gap rather than fill it."
+  reviewed: "2026-10-30"
+material-risk-review:
+  skills: [brainstorming, harness-evaluate]
+  why: "Each gates acceptance of its own output, a spec or a template adoption, on an independent critic; the critic itself belongs to review."
+  reviewed: "2026-10-30"
+no-stale-code-snippets:
+  skills: [brainstorming, planning]
+  why: "Each owns a different durable artifact, a spec or a plan, and its own template must keep code out."
+  reviewed: "2026-10-30"
+question-batching:
+  skills: [brainstorming, grilling]
+  why: "Brainstorming asks the owner questions inside its own exploration; grilling's rules live inside its interview loop, so pointing there would pull brainstorming into that loop."
+  reviewed: "2026-10-30"
+recommended-answer:
+  skills: [brainstorming, grilling]
+  why: "As question-batching: a short rule each skill applies inside its own flow."
+  reviewed: "2026-10-30"
+self-serve-facts:
+  skills: [brainstorming, grilling]
+  why: "As question-batching: a short rule each skill applies inside its own flow."
+  reviewed: "2026-10-30"
+settled-stop:
+  skills: [brainstorming, grilling]
+  why: "As question-batching: each skill stops its own questioning when its decisions are settled."
+  reviewed: "2026-10-30"
+finding-adjudication:
+  skills: [execution, review]
+  why: "Execution rules on findings inside its delivery loop and review owns the method; owner 2026-10-30: execution stays unchanged."
+  reviewed: "2026-10-30"

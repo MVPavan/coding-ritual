@@ -10,9 +10,9 @@ status: active
 ---
 # authoring-for-agents
 
-## Capability
-
 Use when creating or changing agent instructions or their activation behavior. Skip edits that only correct spelling or formatting.
+
+**Boundary:** Writes or changes our own agent instructions and their triggers; judging upstream capabilities is the harness-* skills, and porting assets to Codex is migrate-claude-to-codex.
 
 <!-- registry:generated traits -->
 - `surface-choice`: Choose the right owner for an instruction — policy file, project document with a pointer, skill, manual alias, conditional reference, or an existing hook or check — and search for an existing owner first.
@@ -26,6 +26,7 @@ Use when creating or changing agent instructions or their activation behavior. S
 - `precision-and-discretion`: Match prescription to fragility: exact recipes for deterministic operations, judgment for context-dependent choices.
 - `single-source-of-truth`: Keep each meaning in one authoritative place so changing it is a one-place edit.
 - `environment-as-cache`: Point to authoritative commands and lookups instead of copying volatile facts the agent can find itself.
+- `decision-relevance-pruning`: Keep only content that changes the agent's decisions, such as conventions, non-obvious failure modes, required interfaces and invariants.
 - `no-op-deletion`: Delete instructions the model already follows by default.
 - `unsupported-claim-removal`: Remove unsupported claims and invented thresholds from instructions.
 - `skill-packaging`: Keep one canonical directory per workflow with a SKILL.md, adding references only for substantial conditional material and scripts for reusable mechanical work.

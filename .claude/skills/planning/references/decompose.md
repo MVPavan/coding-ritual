@@ -72,8 +72,8 @@ codex: `codex:${CODEX_THREAD_ID:0:8}`) on every bd write.
 2. **Flat stage children** — one per deliverables row:
    `bd create "<stage>" --parent <epic> -t task --acceptance "<the row's Verify cell>" --actor … -q`
    → dotted ids `<epic>.N`. No sub-tasks. Every stage carries acceptance.
-3. **Dependencies** — real edges only, `bd dep add <issue> <prereq> --actor …`:
-   stage→stage where one genuinely needs another's output; epic→epic where a
+3. **Dependencies** — after every bead exists, wire real edges only, by the IDs
+   `bd create` returned: `bd dep add <issue> <prereq> --actor …`; stage→stage where one genuinely needs another's output; epic→epic where a
    phase gates another. Never blanket-chain listing order — independent work
    stays unchained so it can run in any order or in parallel.
 4. **Render:** `BD_RENDER=1 bash <beads-skill-dir>/scripts/bd-render-tracking.sh <name>` —

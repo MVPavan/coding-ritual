@@ -10,9 +10,9 @@ status: active
 ---
 # domain-modeling
 
-## Capability
-
 Build and sharpen a project's domain model. Use when the user wants to pin down domain terminology or a ubiquitous language, record an architectural decision, or when another skill needs to maintain the domain model. Trigger on ADR phrases (record, write, supersede an ADR).
+
+**Boundary:** Owns domain terminology, the glossary and ADRs; module structure is codebase-design, and revising a design document is design-evolve.
 
 <!-- registry:generated traits -->
 - `active-discipline`: Actively build the model by challenging terms, inventing scenarios and writing it down, as distinct from merely reading the glossary.

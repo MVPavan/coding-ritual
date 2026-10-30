@@ -10,8 +10,6 @@ status: active
 ---
 # execution
 
-## Capability
-
 Use to execute tracked multi-step work, a standalone plan, or a roadmap phase. Clear bounded implementation can proceed directly under AGENTS.md.
 
 <!-- registry:generated traits -->

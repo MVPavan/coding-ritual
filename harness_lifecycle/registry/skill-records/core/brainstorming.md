@@ -10,9 +10,9 @@ status: active
 ---
 # brainstorming
 
-## Capability
-
 Use when material scope or behavior decisions need exploration, or the user requests brainstorming. Handle a single routine ambiguity directly.
+
+**Boundary:** Explores and compares options when scope or behaviour is open; an explicitly requested interview that challenges the owner's own plan is grilling.
 
 <!-- registry:generated traits -->
 - `match-interaction-to-ambiguity`: Match the interaction depth to the ambiguity — return to the task, ask one focused question, or run a structured exploration — rather than over- or under-investigating.

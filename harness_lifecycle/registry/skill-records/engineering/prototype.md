@@ -10,9 +10,9 @@ status: active
 ---
 # prototype
 
-## Capability
-
 Use when a runnable throwaway experiment can resolve a specific design, state-model, algorithm, or UI question.
+
+**Boundary:** Builds a runnable throwaway experiment that answers one design question; the decision it informs belongs to codebase-design or domain-modeling.
 
 <!-- registry:generated traits -->
 - `named-question`: Build a throwaway artifact to answer one named design question. (States the question and observable success before building.)

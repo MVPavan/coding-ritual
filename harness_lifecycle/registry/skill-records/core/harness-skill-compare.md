@@ -10,9 +10,9 @@ status: active
 ---
 # harness-skill-compare
 
-## Capability
-
 Use for a substantive comparison of skill triggers, behavior or curation choices. Scale narrow overlap questions to the relevant branches.
+
+**Boundary:** Compares skills' triggers, behaviour and curation choices in depth as evidence; it records no decision (harness-evaluate) and scans no harness (harness-scan).
 
 <!-- registry:generated traits -->
 - `scale-to-question`: Scale comparison depth to the question — descriptions and relevant branches for a narrow overlap, every shipped instruction, metadata and script for a full comparison.

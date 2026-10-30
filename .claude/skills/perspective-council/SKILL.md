@@ -35,6 +35,7 @@ attribution where helpful. Deliver agreement, disagreements, blind spots,
 recommendation and a practical next step. Agreement among agents is not
 independent factual verification or automatic high confidence.
 
-Use permitted configured agents and shared delegation policy. Report unavailable
-passes honestly. Save a transcript only when requested; a council does not grant
+Dispatch advisors and the chair through the `delegation` skill. Never fill a
+missing advisor's pass yourself: report it, and whether the chair saw an
+incomplete set. Save a transcript only when requested; a council does not grant
 implementation or external-message authority.

@@ -10,8 +10,6 @@ status: active
 ---
 # planning
 
-## Capability
-
 Use when settled work needs a durable implementation plan, dependency graph, or workstream decomposition. Skip planning ceremonies for clear bounded tasks.
 
 <!-- registry:generated traits -->
@@ -27,6 +25,8 @@ Use when settled work needs a durable implementation plan, dependency graph, or 
 - `no-placeholder-plan`: Reject plan placeholders such as TBD, vague error-handling notes, unnamed test behaviours, same-as-another-task references and unresolved cross-task contracts, naming concrete acceptance instead.
 - `plan-self-review`: Self-review the finished plan for spec-requirement coverage, consistent names and types across tasks, and a gap-naming pass that turns unnamed seams, migrations, rollout and cleanup into tasks or explicit exclusions.
 - `reviewer-rejectable-sizing`: Size each task so a reviewer could accept or reject it independently of its neighbour, folding setup, scaffolding and docs into the deliverable they serve.
+- `real-id-wiring`: Wire cross-references and dependencies with real identifiers, never placeholders.
+- `no-stale-code-snippets`: Keep code snippets out of a durable spec or ticket because they go stale.
 <!-- /registry:generated traits -->
 
 <!-- registry:generated lineage -->

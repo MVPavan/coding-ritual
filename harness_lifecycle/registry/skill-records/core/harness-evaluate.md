@@ -10,9 +10,9 @@ status: active
 ---
 # harness-evaluate
 
-## Capability
-
 Use when evaluating a reference-harness capability for adoption, rejection, deferral, or synchronization. Inspection alone does not authorize adoption.
+
+**Boundary:** Decides one reference capability (adopt, reject, defer, sync); finding candidates is harness-scan, and a deep side-by-side analysis is harness-skill-compare.
 
 <!-- registry:generated traits -->
 - `read-first`: Before judging a candidate, read its canonical source, the relevant prior ledger decision and the closest local implementation, keeping reference repositories as read-only evidence.
@@ -24,7 +24,6 @@ Use when evaluating a reference-harness capability for adoption, rejection, defe
 - `template-adoption-gate`: For template adoption, verify the initialized template tools, run the sync and template-build scripts, and inspect the neutrality and leak results.
 - `material-risk-review`: Route an artifact or change with material risk or a broad blast radius through an independent critic review before it is accepted.
 - `adopt-after-state-exists`: Record an adopt or adopt-merged event only after the adopted state exists, passing the adaptation as JSON for a merge, then update the skill's record.
-- `codex-direct`: Call the Codex CLI directly rather than through the retired adapter plugin.
 <!-- /registry:generated traits -->
 
 <!-- registry:generated lineage -->

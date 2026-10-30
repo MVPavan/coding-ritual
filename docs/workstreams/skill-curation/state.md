@@ -15,14 +15,12 @@ built). Beads is the work-state authority; this file is the narrative.
 
 ## Working rules for this workstream
 
-- **Roles.** Opus 5.5 medium writes all code; GPT-6.1 Sol high reviews,
-  read-only. Dispatch both through the T3 `delegate_task` tool with an explicit
-  model, one task at a time (the Agent tool's `implementer` type is pinned to
-  Opus 4.8). A task that hits a rate limit is resumed by T3 itself: never
-  relaunch it. Without T3, Sol runs as
-  `codex exec -C <repo> -s read-only -m gpt-6.1-sol -c model_reasoning_effort=high -o <answer> "<prompt>" < /dev/null`.
-  Skill and harness doc edits are made by the orchestrating session itself,
-  never by the implementer.
+- **Roles.** Delegate through the `delegation` skill: the implementer writes
+  all code and the reviewer or critic reviews read-only, with models from the
+  owner's roster (`.delegation/roster.toml`). One task at a time. A task that
+  hits a rate limit is resumed by its vendor: never relaunch it. Skill and
+  harness doc edits are made by the orchestrating session itself, never by the
+  implementer.
 - **Git.** Stage explicit paths only; commit with `git -c core.hooksPath=/dev/null`;
   push only when the owner says "push". Never commit `.beads/issues.jsonl`
   with other sessions' beads, `tools/T3/` (another workstream), or a
@@ -128,7 +126,8 @@ Playbook §4, pins `84fdeff` → `49dd158`, 125 commits, 39 `gap` items.
   3. Commit together: review, ruling round, `MANIFEST.json`, regenerated
      records and references, catalog, submodule pointer
      `reference_harnesses/mattpocock_skills`, plus the playbook,
-     `prompting-guides/README.md` and `.repo-context/running-codex.md` edits.
+     `prompting-guides/README.md` edits (`running-codex.md` has since moved
+     into the `delegation` skill).
 - The skill edits themselves come later, in a worktree, per playbook §2.
 
 ## Uncommitted work (as of this handoff)
@@ -143,7 +142,6 @@ Playbook §4, pins `84fdeff` → `49dd158`, 125 commits, 39 `gap` items.
 | `reference_harnesses/mattpocock_skills` | pointer moved to `5beb35b`; commit with its ruling round |
 | `harness_lifecycle/playbook.md` | Building step: rewrite borrowed ideas in our words; writing ideas go to `writing-principles.md` |
 | `harness_lifecycle/prompting-guides/README.md` | when `GUIDE.md` may change |
-| `.repo-context/running-codex.md` | close stdin for background `codex exec` |
 | `reference_harnesses/cursor_plugins` | pointer moved to `ce649c0`; waits for its own review |
 | `.beads/issues.jsonl`, `tools/T3/*` | not this workstream; leave alone |
 
@@ -180,8 +178,6 @@ Playbook §4, pins `84fdeff` → `49dd158`, 125 commits, 39 `gap` items.
 
 ## Gotchas
 
-- `codex exec` from a background shell needs `< /dev/null`, or it waits on
-  stdin forever.
 - Run Python with `UV_CACHE_DIR=/tmp/uv-cache uv run …` (pydantic is not in
   the system Python).
 - A ruling's `content_hash` must come from the catalog at the reviewed pin;

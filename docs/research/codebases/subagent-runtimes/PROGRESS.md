@@ -1,5 +1,9 @@
 # Agent Matrix — progress and resume anchor
 
+> Retired 2026-10-30: the `agent-matrix` skill and `tools/agent-matrix/` were
+> removed in favour of the `delegation` skill (bead `cr-sduw`). This file and the
+> catalogs here remain as research history.
+
 Snapshot: 2026-08-11
 
 Workstream state: **paused with catalog reconciliation remaining**

@@ -10,9 +10,9 @@ status: active
 ---
 # show-me
 
-## Capability
-
 Show the current topic visually, inline in the conversation. Use when the user asks to see the shape of code, a flow, an architecture, or a change ("/show-me", "show me", "sketch it", "draw the flow", "what does the structure look like"). For a rendered standalone document, use html-artifact instead.
+
+**Boundary:** Draws the current topic inline in the conversation; a standalone rendered document is html-artifact.
 
 <!-- registry:generated traits -->
 - `smallest-view`: Pick the smallest view that makes the point, placing each visual next to the brief prose it supports. (One form, occasionally two, never a gallery, with a sentence or two of prose each.)

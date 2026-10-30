@@ -13,21 +13,27 @@ It lives under `harness_lifecycle/`, so it is never shipped to adopted repos.
 ```text
 registry/
 ├── README.md                      # this method
-├── registry.py                    # the tool (§6)
+├── registry.py                    # thin entry for the tool (§6); the code is in curation/
+├── skills.yaml                    # our skills: placement, family, aliases, status, boundary (§3)
+├── trait-definitions.yaml         # the trait vocabulary (§4a)
+├── traits/
+│   ├── ours.yaml                  # our skills' trait lists, plus doc: entries (§4a)
+│   └── <harness>.yaml             # one per reference harness: entries and analyses (§4a)
+├── trait-sharing.yaml             # why our skills share a trait (§4a)
+├── trait-policy.yaml              # standing stances on traits (§4a)
 ├── ledger/
 │   ├── <yyyy-mm-dd>-<slug>.jsonl  # one file per round (§5)
-│   └── MANIFEST.json              # sha256 of every sealed round
-├── skill-records/<domain>/<skill>.md   # our skills (§3)
-├── trait-definitions.yaml         # the trait vocabulary (§4a)
-├── traits.yaml                    # which skill, ours or upstream, has which traits (§4a)
-├── references/<harness>.md        # generated: their capabilities and our ruling (§4)
-├── reviews/<yyyy-mm-dd>-<type>-<slug>.md  # evidence behind rulings (§5a)
-├── TRAITS.md                      # generated: every skill's traits, and every trait's holders
+│   └── MANIFEST.json              # sha256 of sealed rounds, sealed reports and cited analyses
+├── reviews/                       # evidence behind rulings (§5a)
+├── skill-records/<domain>/<skill>.md   # generated: one per skill (§3)
+├── references/<harness>.md        # generated: their capabilities, stage and our ruling (§4)
+├── TRAITS.md                      # generated: every skill's traits, every trait's holders, shared traits
 └── INDEX.md                       # generated: domain → stage → sub-stage
 ```
 
-The skills themselves stay in `.claude/skills/`, the only source. Records
-describe them; they never copy them.
+The skills themselves stay in `.claude/skills/`, the only source. Records are
+generated from `skills.yaml` and each skill's description; they never copy
+the skill body.
 
 ## 2. Coordinates
 
@@ -52,9 +58,9 @@ Rules:
    Crosscutting or U Utilities; it does not span stages.
 2. **Secondary tags** record partial fit for search; they never decide
    ownership.
-3. **Two active skills in one domain · sub-stage** must each state the
-   boundary in their record, or they are merge candidates. `INDEX.md` flags
-   them.
+3. **Two active skills in one domain · sub-stage** must each state their
+   `boundary` in `skills.yaml`, or they are merge candidates. `check` fails
+   without it; `INDEX.md` flags them.
 4. **Split by method, not by domain.** When the method is the same across
    domains, keep one `core` skill with a reference file per domain; when the
    method differs, use a domain skill.
@@ -77,72 +83,55 @@ onto coordinates as follows:
 | 12 Tooling, guardrails | X · Governance; U · Tooling |
 | 13 Research, documentation · 14 Learning, content | Discovery · Research; X · Communication; U · Tutoring |
 
-## 3. Skill records
+## 3. Skills file and skill records
 
-`skill-records/<domain>/<skill>.md`, one per real skill:
+`skills.yaml` has one entry per real skill folder in `.claude/skills/`
+(aliases and legacy stubs get none, rule 5):
 
-```markdown
----
-skill: planning                 # the .claude/skills/<name> folder
-domain: engineering
-stage: Design
-substage: Decomposition
-secondary: [Coordination]
-family: task-decomposition      # capability family shared with reference skills
-aliases: []                     # alias and stub entrypoints that route here
-status: active                  # active | retired
----
-# planning
-
-## Capability
-What it does, when it fires, and where it ends and its neighbours begin.
-(Written by hand.)
-
-<!-- registry:generated traits -->
-The skill's traits from `traits.yaml`, with their definitions.
-<!-- /registry:generated traits -->
-
-<!-- registry:generated sources -->
-Per trait, the upstream traits adopted into it; withdrawn, retired and
-replaced-upstream adoptions stay, labelled.
-<!-- /registry:generated sources -->
-
-<!-- registry:generated declined -->
-Upstream traits considered for this skill and rejected or deferred, with why.
-<!-- /registry:generated declined -->
-
-<!-- registry:generated lineage -->
-Each part, and the harness, path and commit it came from, with what was
-modified or deliberately dropped. Generated from adopt and adopt-merged
-records.
-<!-- /registry:generated lineage -->
-
-<!-- registry:generated history -->
-Every ledger record about this skill, newest first.
-<!-- /registry:generated history -->
-
-<!-- registry:generated reviews -->
-Every review a ledger record about this skill cites.
-<!-- /registry:generated reviews -->
+```yaml
+planning:                       # the .claude/skills/<name> folder
+  domain: engineering
+  stage: Design
+  substage: Decomposition
+  secondary: [Coordination]
+  family: task-decomposition    # capability family shared with reference skills
+  aliases: []                   # alias and stub entrypoints that route here
+  status: active                # active | retired
+  boundary: null                # where it ends and its neighbours begin (rule 3)
 ```
 
-Only the frontmatter and Capability are written by hand; `registry.py build`
-rewrites the generated blocks. What the skill does, trait by trait, lives in
-`traits.yaml` (§4a), not in the record.
+`build` writes each `skill-records/<domain>/<skill>.md` whole: the frontmatter
+from `skills.yaml`, the title, the description from the skill's `SKILL.md`,
+the boundary, then these generated blocks:
+
+| Block | Holds |
+|---|---|
+| `traits` | the skill's traits from `traits/ours.yaml`, with their definitions |
+| `lineage` | each part, and the harness, path and commit it came from, from adopt and adopt-merged records |
+| `history` | every ledger record about this skill, newest first |
+| `reviews` | every review a ledger record about this skill cites |
+| `sources` | per trait, the upstream traits adopted into it; withdrawn, retired and replaced-upstream adoptions stay, labelled |
+| `declined` | upstream traits considered for this skill and rejected or deferred, with why |
+
+Never edit a record. Change `skills.yaml` or the skill's `SKILL.md`, then
+`build`. `check` fails on a skill folder without an entry, an entry without a
+folder, or a record that differs from what `build` writes. What the skill
+does, trait by trait, lives in `traits/ours.yaml` (§4a).
 
 ## 4. Reference pages
 
 `references/<harness>.md` is generated from the harness catalog
-(`../catalogs/<harness>.json`) and the ledger. One row per capability the
-harness ships:
+(`../catalogs/<harness>.json`), the trait files, the reports and the ledger.
+One row per capability the harness ships:
 
-| Their capability | Status | Into ours | Last ruled at | Changed upstream since? |
-|---|---|---|---|---|
+| Their capability | Status | Stage | Into ours | Traits | Last ruled at | Changed upstream since? |
+|---|---|---|---|---|---|---|
 
 Status is the effective ruling, or `present, unruled` (we have a same-named
-capability but never ruled), or `not reviewed`. Once a harness has entries
-in `traits.yaml`, a `Traits` column counts each skill's effective trait
-rulings (`3 adopt · 1 reject`, removed traits excluded), and capabilities
+capability but never ruled), or `not reviewed`. Stage is the skill's stage
+from `registry.py status` (§5c); other capabilities show not reviewed,
+decided, changed since or removed. `Traits` counts each skill's effective
+trait rulings (`3 adopt · 1 reject`, removed traits excluded). Capabilities
 removed upstream are listed with their last ruling.
 
 ## 4a. Traits
@@ -151,7 +140,7 @@ A **trait** is one distinct gate, rule, method, template, artifact or output
 quality that a skill gives the agent. Every skill, ours or upstream, is
 described as a list of traits drawn from one shared vocabulary, so "which
 skills have X" and "what have we declined" are lookups. Rulings stay in the
-ledger; the two files only describe.
+ledger; the trait files only describe.
 
 **`trait-definitions.yaml`**, the vocabulary:
 
@@ -177,36 +166,58 @@ independent-expectations:
 
 A definition no skill lists is valid: it records a trait we declined.
 
-**`traits.yaml`**, who has what:
+**`traits/`**, who has what. `traits/ours.yaml` holds our skills and the
+`doc:` entries; `traits/<harness>.yaml` holds that harness's skills. A key
+appears in one file only.
 
 ```yaml
+# traits/ours.yaml
 ours:test-driven-development:
   tree_hash: "efbff4…"
   traits: [mode-selection, good-test, independent-expectations, seam-selection]
+doc:AGENTS.md:
+  tree_hash: "91c0d2…"
+  traits: [applicable-checks-before-done]
+
+# traits/mattpocock_skills.yaml
 mattpocock_skills:skill:skills/engineering/tdd:
-  reviewed_sha: "5beb35b"
-  tree_hash: "e3e0f7…"
-  placement: {domain: engineering, stage: Design, substage: Specification}
-  traits: [good-test, seam-selection, public-only-seams, seam-preconfirmation]
-  notes: {seam-preconfirmation: a live human confirmation, not a plan field}
+  accepted: "84fdeff"          # the analysis the decisions describe, or null
+  proposed: "5beb35b"          # a newer analysis not yet decided, or null
+  analyses:
+    "84fdeff": {…}             # never edited once a sealed round cites it
+    "5beb35b":
+      tree_hash: "e3e0f7…"
+      placement: {domain: engineering, stage: Design, substage: Specification}
+      traits: [good-test, seam-selection, public-only-seams, seam-preconfirmation]
+      added: {seam-preconfirmation: "5beb35b"}
+      changed: {seam-selection: "5beb35b"}
+      removed: {}
+      notes: {seam-preconfirmation: a live human confirmation, not a plan field}
 ```
 
-| Field | Ours | Upstream | Meaning |
-|---|---|---|---|
-| key | `ours:<skill>` | the catalog id `<repo>:<logical_id>` | the record exists / the capability is in the catalog or ruled "removed upstream" |
-| `tree_hash` | yes | yes | the skill folder's tree hash when the list was written; for ours, `check` fails when the folder has changed since |
-| `reviewed_sha` | — | yes | the upstream commit the list describes |
-| `placement` | — (the record's frontmatter) | yes | where the upstream skill sits |
-| `traits` | yes | yes | trait IDs; defined, no repeats |
-| `added`, `removed` | — | no | `{trait: sha}`: appeared after the first trait-level review / dropped upstream (kept for history, out of the counts) |
-| `notes` | no | no | `{trait: text}`: nuance the shared definition omits |
+| Field | Where | Meaning |
+|---|---|---|
+| key | both | `ours:<skill>`, `doc:AGENTS.md`, `doc:.repo-context/<file>`, or the catalog id `<repo>:<logical_id>` |
+| `tree_hash` | ours entries, each analysis | sha256 over the folder's files that git does not ignore (one file for `doc:`); for ours, `check` fails when it is stale |
+| `accepted`, `proposed` | upstream | analysis shas; at least one set; they differ. Only the pointers move |
+| `analyses` | upstream | one immutable trait list per sha |
+| `placement` | analysis | where the upstream skill sits (ours: `skills.yaml`) |
+| `traits` | both | trait IDs; defined, no repeats |
+| `added`, `changed`, `removed` | analysis | `{trait: sha}`: new upstream, changed with the same meaning, dropped upstream |
+| `notes` | both | `{trait: text}`: nuance the shared definition omits |
 
-Both files are read with strict parsing: a duplicate key, an unknown field or
-a value of the wrong type (YAML reads `no` as false and an all-digit sha as a
-number) fails `check`. Quote shas and hashes. No tool writes these files, so
-comments are safe. Entries are created when a skill is first reviewed at
-trait level. Agents, commands, hooks and other kinds keep one ruling per
-capability.
+**What makes a trait present.** Only the compared skill, or `doc:AGENTS.md`
+(always in context), makes an upstream trait present (§5c). Documents
+AGENTS.md references load on demand, so their `doc:.repo-context/<file>`
+entries only show where else a trait lives. A trait listed by any other skill
+of ours is information, never coverage.
+
+All trait files are read with strict parsing: a duplicate key, an unknown
+field or a value of the wrong type (YAML reads `no` as false and an all-digit
+sha as a number) fails `check`. Quote shas and hashes. No tool writes these
+files, so comments are safe. An upstream entry is created when the skill is
+first analysed (§5c). Agents, commands, hooks and other kinds keep one ruling
+per capability.
 
 **Rules for traits.**
 
@@ -239,8 +250,49 @@ an existing subject may. While a skill still lists it, `check` warns. An
 adoption into it is satisfied while the holder lists it or every
 `replaced_by` trait.
 
-**Overlap.** A trait listed by two of our active skills is an overlap;
-`check` warns with the shared IDs.
+**Shared traits** (`trait-sharing.yaml`). Two of our active skills (or a
+skill and `doc:AGENTS.md`) may list the same trait, but the sharing is noted
+and justified, never written into the definition:
+
+```yaml
+glossary-format:
+  skills: [domain-modeling, teach]
+  why: "Both keep glossaries; one format serves both."
+  reviewed: "2026-11-03"
+```
+
+`check` computes the shared set: a shared trait without an entry warns, an
+entry whose `skills` differ from the computed set fails. `TRAITS.md` lists
+them.
+
+**Trait policy** (`trait-policy.yaml`). A standing stance on a mechanism,
+usually from the prompting guide (`../prompting-guides/GUIDE.md`), kept apart
+from the definition and from any one skill:
+
+```yaml
+approval-pause-on-routine-step:
+  stance: avoid                    # avoid | reword
+  rules: {U-02: "3f9a1c0b7d2e"}    # GUIDE rule ID → digest of the text reviewed
+  why: "No approval pause on a routine step."
+  decided: "2026-11-05"
+  reviewed: "2026-11-05"
+  ledger: 2026-11-05-pocock-5beb35b:042   # the decision that set it
+  from: []                         # retired traits whose policy moved here
+```
+
+- Recording an adopt of an `avoid` trait needs `override: "<reason>"`; a
+  `reword` trait's adopt needs a report row whose guide check cites the
+  entry's rules. Each new event stores the policy it was recorded under
+  (`policy_basis`) and is checked against that, never the current file.
+- One of our skills listing an `avoid` trait warns, until an ours-side
+  `update` removes it.
+- Retiring a definition that has an entry reconciles it in the same change
+  (`reconciled: {<replacement>: carried | "<why not>"}`, and `from` on each
+  carried replacement).
+- A rule's digest is the first 12 hex characters of the sha256 of its text
+  (citations stripped). When GUIDE.md changes, `status` shows the entry as
+  *guide changed* until the owner re-reviews it and updates `rules`; the
+  stance holds meanwhile.
 
 ## 5. Ledger
 
@@ -253,7 +305,8 @@ file per round, append only, sealed when complete.
 {"type": "round", "round_id": "2026-10-14-agent-skills-0.6.13", "date": "2026-10-14", "scope": "…", "pins": {"agent-skills": "aeac41d"}, "method": "…", "evidence": ["upstream-reviews/…"], "excluded": [{"rule": "…", "why": "…", "count": 0}], "carried_debts": ["…"]}
 ```
 
-An upstream review round sets `"trait_level": true` (§5b).
+An upstream review round sets `"trait_level": true` (§5b); every round outside
+`pre_trait_rounds` follows the trait rules whatever its flag.
 
 **Every other line: one event.**
 
@@ -272,6 +325,13 @@ An upstream review round sets `"trait_level": true` (§5b).
 | `into`, `modification` | trait `adopt`, optional | `into`: a different trait our skill provides instead (a modified adoption; that trait names the upstream one in `distinct_from`, and `modification` is required). Absent: the same trait ID |
 | `pending` | trait `adopt`, optional | the bead for the edit that will deliver it (§5b) |
 | `carried_from` | optional, trait events | earlier trait subjects whose ruling this restates, when upstream moved the skill or replaced a trait |
+| `report` | trait events outside `pre_trait_rounds` | the sealed report (`reviews/<file>.yaml`) whose row the decision follows (§5b) |
+| `retarget` | optional, trait events | why `skill` differs from the row's provider, compared skill or target |
+| `revisit_when` | every `defer` outside `pre_trait_rounds` | what would bring it back |
+| `rewording`, `target_tree_hash` | trait `adopt`, optional | a wording edit still to make, and the target's hash when it was recorded (§5b) |
+| `guide` | completion of a rewording | `{verdict: ok, rules}`: the delivered wording passes the guide check |
+| `override` | trait `adopt`, optional | why an `avoid` trait is adopted anyway (§4a) |
+| `policy_basis` | trait events | the trait-policy stance and rule digests when recorded (`record` fills it) |
 | `withdraws` | optional, ours-side `update` | upstream trait subjects adopted into this skill that it no longer provides |
 | `family`, `relation` | optional | capability family; `substitutes`, `complements`, `pipeline`, `genus` or `singleton` |
 | `commit`, `bead` | optional | the change's commit and tracker ID |
@@ -301,13 +361,28 @@ a superseded historical one, which may name a skill we no longer have.
 ## 5b. Trait rulings
 
 Upstream skills are ruled trait by trait; the ledger stays the only source of
-status, and the trait files only describe.
+status, and the trait files only describe. The stages that lead to a ruling
+are in §5c.
 
-- **Trait events** have a trait subject (`<repo>:<logical_id>#<trait id>`,
-  the trait listed in that upstream entry of `traits.yaml`) and kind `adopt`,
-  `reject`, `defer` or `out-of-scope`. An `adopt` names `skill` (a skill or
-  `doc:<path>`); the target skill must list the trait, or `into`, unless the
-  adopt is pending.
+- **Trait events** have a trait subject (`<repo>:<logical_id>#<trait id>`)
+  and kind `adopt`, `reject`, `defer` or `out-of-scope`. The trait must be
+  listed in the analysis at the event's source sha. An `adopt` names `skill`
+  (a skill or `doc:<path>`); the target must list the trait, or `into`,
+  unless the adopt is pending.
+- **Every decision cites a report.** Outside `pre_trait_rounds`, a trait
+  event carries `report`: a sealed report for the same harness whose `to_sha`
+  is the event's source sha and which has a row for the trait. Its `skill` is
+  the row's provider, the compared skill or the row's target, or the event
+  says why in `retarget`.
+- **Checked when recorded.** `record` refuses a decision whose row no longer
+  matches today's facts (fact, provider, candidates, `via`, `also_in`), a new
+  delivered adopt whose row's guide verdict is not `ok`, a new pending adopt
+  from a row without a guide verdict or (unless `ok`) without `rewording`,
+  and the trait-policy refusals (§4a). `check` validates structure only, so
+  a later change never invalidates history.
+- **Defer** needs `revisit_when`; it never counts as adopted or rejected.
+- **Reconsideration.** A new decision that supersedes an effective decision
+  at the same sha cites a row with scope `reconsider`.
 - **Checkpoint.** Each reviewed skill also gets a capability-level event at the
   reviewed pin, carrying the hashes `gap` compares. Its kind must agree with
   its effective trait rulings (removed traits excluded):
@@ -320,29 +395,48 @@ status, and the trait files only describe.
   | none `adopt`, mixed | `reject` |
 
   Its `skill` must be one of the traits' targets; views list every target.
-- **Trait-level rounds** (`"trait_level": true`). A checkpoint not
-  grandfathered (below) is trait-level when its round is trait-level, its
-  subject has an upstream entry in `traits.yaml`, or its subject has any
-  trait ruling. For every effective trait-level checkpoint, whatever its
-  kind: the entry exists with the same `reviewed_sha` and `tree_hash`, and
-  every listed trait not removed has an effective ruling. Every effective
-  trait ruling needs an effective checkpoint on its skill. A checkpoint with
-  neither an entry nor trait rulings stays a whole-skill ruling. Superseded
-  checkpoints are never re-checked, so a later release never breaks a sealed
-  round.
+  Every effective trait ruling needs an effective checkpoint on its skill.
+- **Whole-skill rulings.** A skill with no accepted analysis may be ruled as
+  a whole: `defer`, `reject` or `out-of-scope`, with no trait events. Outside
+  `pre_trait_rounds`, a skill-level `adopt` or `adopt-merged` always needs an
+  accepted analysis and its trait rulings. Once a skill has an accepted
+  analysis, `record --whole-skill <kind>` writes one event per listed trait.
+  Earlier adoptions stay retained whatever the later verdict.
+- **Promotion.** In the change that records the round, move the entry's
+  `accepted` pointer to the proposed sha and clear `proposed` (a hand edit).
+  For every entry with `accepted` set, `check` requires an effective
+  checkpoint at that sha and `tree_hash`; a ruling recorded at that sha for
+  every trait in its `added` or `changed` (every trait, for a first
+  analysis); and a carried ruling for every other trait. A ruling is
+  *carried* to a later analysis when the trait is listed in both and is not
+  in the later one's `added` or `changed`. A proposed analysis changes
+  nothing until promotion. Superseded checkpoints are never re-checked.
+- **Analyses are immutable once cited.** `round seal` records the hash of
+  every analysis its trait events cite; `check` fails when one changes.
 - **Awaiting trait ruling.** The rounds sealed before traits existed are
   listed in the config (`pre_trait_rounds`, closed). Their checkpoints, for a
-  subject with an upstream entry and no trait rulings, are grandfathered:
-  `gap` lists them as awaiting a trait ruling and `check` does not fail.
+  subject with an upstream entry, no accepted analysis and no trait rulings,
+  are grandfathered: `gap` lists them as awaiting a trait ruling and `check`
+  does not fail.
 - **Pending adoptions.** A gap (we will add it) is an `adopt` with `pending:
   <bead>`. It is intent, not delivery: the target need not list the trait
   yet, and it never counts as a delivered adoption or clears a withdrawal.
-  When the edit lands, record a new `adopt` on the same subject without
-  `pending`, copying `source` from the pending event. To cancel, supersede it
-  with `reject` or `defer`. `check` fails when the target already lists the
-  trait but the completing `adopt` is missing.
-- **Re-review.** Update the upstream entry, record a new checkpoint at the
-  new pin, and trait events only for new or changed traits.
+  `check` fails when the target already lists the trait but the completing
+  `adopt` is missing.
+  - **Complete** it with an `adopt` without `pending` that supersedes the
+    effective pending adopt, with the same `skill` and `into`; **cancel** it
+    with a `reject` or `defer` that supersedes it, with a reason. Both
+    inherit the pending event's `report`, `source` and `policy_basis`
+    exactly and need no new row; `record --supersedes <id>` fills them.
+    Anything else is a new decision.
+  - **Rewording.** When the guide check asks for a wording change, the adopt
+    is pending with `rewording`, even when the target already lists the
+    trait; `record` stores the target's `target_tree_hash`. Its completion
+    carries `guide: {verdict: ok, rules}` and the reworded lines in
+    `evidence`, and is refused while the target's hash is unchanged.
+- **Re-review.** Add the new analysis to the entry at the new sha as
+  `proposed`, report and rule only its `added` and `changed` traits (§5c),
+  record a new checkpoint at the new pin, then promote.
 - **Upstream replaces trait A with B** (a different mechanism): move A to
   `removed`, list B, and give B's ruling `carried_from: [<subject>#A]`. A
   keeps its ruling, and our skill keeps A; the `sources` block shows
@@ -355,7 +449,8 @@ status, and the trait files only describe.
   makes it live again. This holds even when a later event supersedes the
   `adopt`: the skill must keep the trait listed until it is withdrawn.
   Withdrawal is per source: withdrawing one upstream subject never forces
-  removing a trait another adoption still needs.
+  removing a trait another adoption still needs. An adoption into a `doc:`
+  target needs that document's entry in `traits/ours.yaml`.
 - **Corrections.** Superseded events never operate: a superseded `merge`,
   `retire` or withdrawing `update` has no effect on current checks, though
   the history block still shows it. After a `merge`, adoptions into the
@@ -364,7 +459,7 @@ status, and the trait files only describe.
 **Change detection** (`gap`), per ruled capability, first that applies:
 
 1. the event has `tree_hash`: compare with the catalog (a skill's tree hash
-   covers every file in its folder, as raw bytes);
+   covers every file in its folder that git does not ignore, as raw bytes);
 2. it has `sha`: `git diff` of the folder from that commit to the pin;
 3. neither: from the pin in the event's own round header, labelled
    "baseline inferred from round pin";
@@ -372,32 +467,84 @@ status, and the trait files only describe.
 
 ## 5a. Reviews
 
-A review is the evidence behind one or more rulings. One flat folder,
-`reviews/`, named `<yyyy-mm-dd>-<type>-<slug>.md`, with two types:
+A review is the evidence behind one or more rulings, in `reviews/`:
 
-| Type | When | Covers |
+| Type | File | Covers |
 |---|---|---|
-| `upstream` | A reference harness release; the submodule pointer moves in the same change | Every changed capability: what changed, our counterpart, what is worth taking. Slug: `<harness>-<version>` |
-| `skill` | Deciding a merge, upgrade or rebuild of one of our skills | That skill against its upstream counterparts: a component matrix with `file:line` citations, the stronger mechanism per row, and a verdict. Slug: our skill name |
+| `upstream` | `<yyyy-mm-dd>-upstream-<harness>-<version>.yaml` (the report, §5c), with a generated `.md` beside it | Per upstream skill: the analysis evidence, the pairing, one row per in-scope trait with its facts and recommendation |
+| `skill` | `<yyyy-mm-dd>-skill-<our skill>.md` | Deciding a merge, upgrade or rebuild of one of our skills: a component matrix against its upstream counterparts with `file:line` citations, the stronger mechanism per row, and a verdict |
 
-Ledger events cite a review in `evidence`. `build` lists, in each skill
-record, every review cited by an event about that skill; there are no
-hand-kept links. The earlier per-family comparisons are in
-`../archive/skill-comparisons/`.
+A report is a draft until `registry.py report seal` accepts it; a sealed
+report is immutable (its hash is in `MANIFEST.json`), and a later pass writes
+a new report that `supersedes` it. Older Markdown upstream reviews stay as
+history. `build` lists, in each skill record, every review cited by an event
+about that skill; there are no hand-kept links. The earlier per-family
+comparisons are in `../archive/skill-comparisons/`.
+
+## 5c. Curation stages
+
+Every upstream skill moves through four stages, so nothing is redone. The
+full rules and their rationale are in
+`../../docs/workstreams/skill-curation/stages-design.md`.
+
+1. **What needs analysis.** A new upstream skill has no entry. An existing
+   one needs re-analysis only when its catalog `tree_hash` differs from its
+   newest analysis after an authorized pin move; an untouched skill keeps
+   every stage it reached. `scan.py drift` and `harness-status` only report;
+   moving a pin is a separate, authorized step.
+2. **Analysis.** A new skill gets a blind extraction of its whole folder,
+   then a separate mapping pass (`../playbook.md` §4). A changed skill gets a
+   new analysis from the previous one and `git diff <accepted sha>..<new sha>
+   -- <folder>`: added, changed (same meaning), removed traits. The new
+   analysis is added as `proposed`; earlier analyses are never edited.
+   When one of our skills, AGENTS.md or a `doc:` document changes, its own
+   list is re-analysed at once.
+3. **Comparison and report.** `registry.py report draft <harness> --skill
+   <id> --with <our skill|none>` writes the in-scope rows with computed
+   facts:
+   - `present`: the compared skill lists the trait, or `doc:AGENTS.md` does
+     (`provider`);
+   - `variant`: the compared skill lists a trait whose `distinct_from` names
+     it (`candidates`; the author picks `via`);
+   - `absent`: neither;
+   - `also_in`: every other skill or `doc:` entry that has it, as
+     information only.
+   The report also keeps the pairing signals: trait overlap and placement
+   (computed) and purpose (judged); when the picks differ, `pairing.flag`
+   says why. The author writes `ours` citations, a recommendation per row
+   (`adopt` delivered or pending, `defer` with `revisit_when`, `reject`,
+   `out-of-scope`) and, for every adopt row, the prompting-guide check
+   (`guide: {verdict: ok | reword | conflict, rules}`); trait-policy stances
+   are pre-filled. A partial match is a gap, never coverage. Critics check
+   the analysis and the comparison; `report seal` then freezes it. Scope per
+   row: `new`, `changed`, `recompare` (an undecided trait whose facts
+   moved) or `reconsider` (the owner reopens it).
+4. **Decision.** The owner rules each in-scope trait; `record` enforces §5b.
+   **Status.** `registry.py status <harness> [--skill X] [--traits]`
+   computes, never stores, each trait's stage (removed upstream, needs
+   re-analysis, decided, needs re-comparison, reported, in review, analysed,
+   not analysed), its ruling, and whether we provide it (delivered, pending,
+   withdrawn, no longer provided). A deferred trait shows as decided, never
+   as not analysed.
 
 ## 6. `registry.py`
 
-Run with `uv run python harness_lifecycle/registry/registry.py <command>`.
-It imports `../scan.py` for catalogs.
+Run with `uv run python harness_lifecycle/registry/registry.py <command>`. It
+is a thin entry for the `curation` package at the repo root
+(`curation/registry/`, with the scanner in `curation/scan/` behind
+`../scan.py`).
 
 | Command | Does |
 |---|---|
 | `gap <harness> [--kind K] [--beads]` | Lists capabilities never ruled on, those ruled on whose upstream content changed since (§5b, with the `git diff` command and the traits or adaptation already ruled), and those removed upstream. Capabilities we already have under the same logical ID or normalized name, but never ruled on, are listed separately as `present, unruled`. `--beads` prints `bd create` lines for review; it never runs them |
+| `status <harness> [--skill X] [--traits]` | Each upstream skill's stage, and per trait its stage, ruling and provision (§5c); trait-policy entries whose guide rules changed |
 | `ours` | Catalogs our capabilities: root `.claude/` and `.codex/` plus every `mvp-harness/plugins/*`, excluding each plugin's `template/` copy |
-| `round open <slug>` / `round seal <round_id>` | Starts a round file with its header; seals it into `MANIFEST.json` |
-| `record …` | Appends one validated event to the open round |
-| `build` | Regenerates `INDEX.md`, `TRAITS.md`, `references/*.md`, and the generated blocks of every skill record |
-| `check` | Validates every record (schema, unique IDs, `supersedes` targets exist, sealed rounds unchanged), every skill record's frontmatter, that every `.claude/skills/` folder has a record or is an alias or stub, the trait files (§4a: strict schema, defined IDs, `tree_hash`, retirement) and trait-level rules (§5b: checkpoints, completeness, pending, `carried_from`, `withdraws`), and that generated files are current. Warnings (retired traits still listed, overlaps among our skills) do not fail it |
+| `round open <slug>` / `round seal <round_id>` | Starts a round file with its header; seals it into `MANIFEST.json`, with the hashes of the analyses it cites |
+| `report draft <harness> --skill <id> --with <skill\|none> [--report P] [--reconsider T …] [--refresh]` | Creates or extends a draft report with computed facts and pairing; `--refresh` recomputes them and keeps the judged fields |
+| `report seal <path>` | Freezes a report once both critics pass and every in-scope trait has its row and evidence |
+| `record … [--supersedes <id>] [--whole-skill <kind>]` | Appends one validated event to the open round (§5b); fills `source`, lifecycle inheritance and `policy_basis` |
+| `build` | Regenerates `INDEX.md`, `TRAITS.md`, `references/*.md`, every skill record and every report's `.md` |
+| `check` | Validates the ledger (schema, unique IDs, `supersedes`, sealed rounds and reports unchanged, trait rules of §5b), `skills.yaml` and the records, the trait files (§4a), sharing and policy, the reports, and that generated files are current. Warnings (retired traits still listed, unjustified shared traits, `avoid` traits we still list, changed guide rules) do not fail it |
 
 ## 7. Changing skills
 

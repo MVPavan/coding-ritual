@@ -10,8 +10,6 @@ status: active
 ---
 # security
 
-## Capability
-
 Use for material changes to trust boundaries, sensitive data, permissions, dependency execution, or untrusted inputs, and for requested security reviews.
 
 <!-- registry:generated traits -->

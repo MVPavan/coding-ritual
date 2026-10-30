@@ -10,9 +10,9 @@ status: active
 ---
 # skill-router
 
-## Capability
-
 Use when unsure which skill or command fits a task, when two seem to overlap, or when the user asks what skills or commands exist, what one does, or which to use.
+
+**Boundary:** Routes a task to the fitting skill or command and explains what exists; it spawns no agents (delegation) and convenes no council.
 
 <!-- registry:generated traits -->
 - `need-to-skill-routing`: Map a task need to the narrowest fitting skill or command, or to no skill at all.

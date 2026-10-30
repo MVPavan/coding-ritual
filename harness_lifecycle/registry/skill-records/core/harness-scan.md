@@ -10,9 +10,9 @@ status: active
 ---
 # harness-scan
 
-## Capability
-
 Scan a reference harness for material upstream drift and missing capabilities.
+
+**Boundary:** Finds drift and unruled candidates in one reference harness and reports them; the decision is harness-evaluate, and the quick view across all harnesses is harness-status.
 
 <!-- registry:generated traits -->
 - `resolve-target`: Resolve the named reference harness or path, asking only when it is ambiguous.

@@ -10,14 +10,13 @@ status: active
 ---
 # model-council
 
-## Capability
-
 Use only for an explicitly requested council of named models or agents with a judge. Ordinary review and brainstorming do not need a council.
+
+**Boundary:** Runs an explicitly requested council of named models or agents with a judge; a council of perspectives or roles is perspective-council, and dispatching each member is delegation.
 
 <!-- registry:generated traits -->
 - `member-resolution`: Resolve the members and judge from the request's explicit selections, asking only for missing choices or unreachable members.
 - `runtime-capability-check`: Verify actual runtime dispatch interfaces before assuming cross-provider access from a model name or placing effort only in prose when a runtime control exists.
-- `codex-direct`: Call the Codex CLI directly rather than through the retired adapter plugin.
 - `neutral-framing`: Frame one neutral shared brief for every member, stating the question, constraints and uncertainty with no preferred conclusion.
 - `member-isolation`: Give each member the shared brief in isolation so none sees another's response; sequential dispatch is allowed.
 - `report-preservation`: Save every member's full attributed report under the run directory rather than discarding it after synthesis.

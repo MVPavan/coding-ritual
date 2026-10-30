@@ -10,9 +10,9 @@ status: active
 ---
 # perspective-council
 
-## Capability
-
 Use only when the user explicitly requests a perspective council or war room. Answer ordinary decisions and critique requests without a council.
+
+**Boundary:** Runs an explicitly requested council of perspectives or roles (a war room); a council of named models with a judge is model-council.
 
 <!-- registry:generated traits -->
 - `declared-scale`: Choose and state the council's scale before dispatch, naming membership and whether peer review is included.

@@ -10,8 +10,6 @@ status: active
 ---
 # teach
 
-## Capability
-
 Teach a concept, walk through a session, or conduct an explicitly requested ongoing course.
 
 <!-- registry:generated traits -->

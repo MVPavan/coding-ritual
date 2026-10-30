@@ -1,0 +1,329 @@
+# Our skills: one entry per real .claude/skills/<name> folder (aliases and
+# legacy stubs get none). Records in skill-records/ are generated from this
+# file and each SKILL.md description. Rules: README §2-§3;
+# docs/workstreams/skill-curation/stages-design.md §Skills file.
+
+authoring-for-agents:
+  domain: core
+  stage: Improvement
+  substage: Codification
+  secondary: []
+  family: agent-doc-authoring
+  aliases: []
+  status: active
+  boundary: "Writes or changes our own agent instructions and their triggers; judging upstream capabilities is the harness-* skills, and porting assets to Codex is migrate-claude-to-codex."
+beads:
+  domain: core
+  stage: X
+  substage: Continuity
+  secondary: []
+  family: handoff
+  aliases: []
+  status: active
+  boundary: null
+brainstorming:
+  domain: core
+  stage: Intake
+  substage: Clarification
+  secondary: [Specification]
+  family: spec-authoring
+  aliases: [idea-refine]
+  status: active
+  boundary: "Explores and compares options when scope or behaviour is open; an explicitly requested interview that challenges the owner's own plan is grilling."
+check-invariants:
+  domain: engineering
+  stage: Verification
+  substage: Testing
+  secondary: []
+  family: null
+  aliases: []
+  status: active
+  boundary: null
+codebase-design:
+  domain: engineering
+  stage: Design
+  substage: Architecture
+  secondary: []
+  family: interface-design
+  aliases: []
+  status: active
+  boundary: "Decides module interfaces, encapsulation and testability in code; domain terms and ADRs are domain-modeling, revising design documents is design-evolve, and runnable experiments are prototype."
+codebase-research:
+  domain: engineering
+  stage: Discovery
+  substage: Research
+  secondary: []
+  family: null
+  aliases: []
+  status: active
+  boundary: null
+delegation:
+  domain: core
+  stage: X
+  substage: Coordination
+  secondary: []
+  family: null
+  aliases: []
+  status: active
+  boundary: "Hands one piece of work to another agent or model: role, roster model, vendor, brief, dispatch and the check of what ran; whether to delegate is the calling workflow's choice, councils are model-council and perspective-council, and choosing a skill is skill-router."
+design-evolve:
+  domain: engineering
+  stage: Design
+  substage: Architecture
+  secondary: []
+  family: null
+  aliases: []
+  status: active
+  boundary: "Folds supplied discussions and decisions into the next self-contained version of existing design documents; it makes no new design decision (codebase-design, domain-modeling)."
+domain-modeling:
+  domain: engineering
+  stage: Design
+  substage: Architecture
+  secondary: []
+  family: domain-language
+  aliases: []
+  status: active
+  boundary: "Owns domain terminology, the glossary and ADRs; module structure is codebase-design, and revising a design document is design-evolve."
+execution:
+  domain: engineering
+  stage: X
+  substage: Coordination
+  secondary: []
+  family: plan-execution
+  aliases: [phase-execution, run-phases]
+  status: active
+  boundary: null
+grilling:
+  domain: core
+  stage: Intake
+  substage: Clarification
+  secondary: []
+  family: grilling
+  aliases: [grill-me, grill-with-docs]
+  status: active
+  boundary: "Interrogates the owner's plan question by question, only on explicit request; open option exploration is brainstorming, and a written critique of an artifact is review."
+harness-evaluate:
+  domain: core
+  stage: Improvement
+  substage: Codification
+  secondary: []
+  family: null
+  aliases: []
+  status: active
+  boundary: "Decides one reference capability (adopt, reject, defer, sync); finding candidates is harness-scan, and a deep side-by-side analysis is harness-skill-compare."
+harness-publish:
+  domain: core
+  stage: Delivery
+  substage: Release
+  secondary: []
+  family: null
+  aliases: []
+  status: active
+  boundary: null
+harness-scan:
+  domain: core
+  stage: Improvement
+  substage: Codification
+  secondary: []
+  family: null
+  aliases: []
+  status: active
+  boundary: "Finds drift and unruled candidates in one reference harness and reports them; the decision is harness-evaluate, and the quick view across all harnesses is harness-status."
+harness-skill-compare:
+  domain: core
+  stage: Improvement
+  substage: Codification
+  secondary: []
+  family: null
+  aliases: []
+  status: active
+  boundary: "Compares skills' triggers, behaviour and curation choices in depth as evidence; it records no decision (harness-evaluate) and scans no harness (harness-scan)."
+harness-status:
+  domain: core
+  stage: Improvement
+  substage: Codification
+  secondary: []
+  family: null
+  aliases: []
+  status: active
+  boundary: "Summarises drift across every reference harness in one table without moving pins; candidates within one harness are harness-scan."
+html-artifact:
+  domain: core
+  stage: X
+  substage: Communication
+  secondary: []
+  family: visual-explanation
+  aliases: []
+  status: active
+  boundary: "Produces a standalone rendered HTML document; an inline sketch in the conversation is show-me, and shaping replies for an ADHD reader is i-have-adhd."
+i-have-adhd:
+  domain: core
+  stage: X
+  substage: Communication
+  secondary: []
+  family: conversational-repair
+  aliases: []
+  status: active
+  boundary: "Shapes every reply for an ADHD reader once invoked (next action first, small concrete steps); it produces no document or diagram (html-artifact, show-me)."
+improve-codebase-architecture:
+  domain: engineering
+  stage: Operations
+  substage: Maintenance
+  secondary: []
+  family: architecture-audit
+  aliases: []
+  status: active
+  boundary: null
+migrate-claude-to-codex:
+  domain: core
+  stage: Improvement
+  substage: Codification
+  secondary: []
+  family: null
+  aliases: []
+  status: active
+  boundary: "Ports existing Claude harness assets to Codex form; writing or changing the instructions themselves is authoring-for-agents."
+model-council:
+  domain: core
+  stage: X
+  substage: Coordination
+  secondary: []
+  family: null
+  aliases: []
+  status: active
+  boundary: "Runs an explicitly requested council of named models or agents with a judge; a council of perspectives or roles is perspective-council, and dispatching each member is delegation."
+performance-optimization:
+  domain: engineering
+  stage: Building
+  substage: Diagnosis
+  secondary: []
+  family: performance
+  aliases: []
+  status: active
+  boundary: "Handles measured resource problems: profile, change, re-measure against a target; an unexplained failure or flaky behaviour is systematic-debugging."
+perspective-council:
+  domain: core
+  stage: X
+  substage: Coordination
+  secondary: []
+  family: null
+  aliases: []
+  status: active
+  boundary: "Runs an explicitly requested council of perspectives or roles (a war room); a council of named models with a judge is model-council."
+planning:
+  domain: engineering
+  stage: Design
+  substage: Decomposition
+  secondary: []
+  family: plan-authoring
+  aliases: []
+  status: active
+  boundary: null
+prototype:
+  domain: engineering
+  stage: Design
+  substage: Architecture
+  secondary: [Research]
+  family: design-validation
+  aliases: []
+  status: active
+  boundary: "Builds a runnable throwaway experiment that answers one design question; the decision it informs belongs to codebase-design or domain-modeling."
+research:
+  domain: core
+  stage: Discovery
+  substage: Research
+  secondary: []
+  family: source-research
+  aliases: []
+  status: active
+  boundary: null
+resolving-merge-conflicts:
+  domain: engineering
+  stage: Delivery
+  substage: Integration
+  secondary: []
+  family: git-mechanics
+  aliases: []
+  status: active
+  boundary: null
+review:
+  domain: core
+  stage: Verification
+  substage: Review
+  secondary: [Specification, Decomposition]
+  family: code-review
+  aliases: [document-review, receiving-code-review]
+  status: active
+  boundary: null
+security:
+  domain: engineering
+  stage: Verification
+  substage: Review
+  secondary: [Architecture]
+  family: security-hardening
+  aliases: []
+  status: active
+  boundary: null
+show-me:
+  domain: core
+  stage: X
+  substage: Communication
+  secondary: []
+  family: visual-explanation
+  aliases: []
+  status: active
+  boundary: "Draws the current topic inline in the conversation; a standalone rendered document is html-artifact."
+skill-router:
+  domain: core
+  stage: X
+  substage: Coordination
+  secondary: []
+  family: skill-routing
+  aliases: []
+  status: active
+  boundary: "Routes a task to the fitting skill or command and explains what exists; it spawns no agents (delegation) and convenes no council."
+systematic-debugging:
+  domain: engineering
+  stage: Building
+  substage: Diagnosis
+  secondary: []
+  family: debugging
+  aliases: []
+  status: active
+  boundary: "Finds the cause of an unclear failure, a failed fix or flaky behaviour; slowness or resource use against a target is performance-optimization."
+teach:
+  domain: core
+  stage: U
+  substage: Tutoring
+  secondary: []
+  family: learning-content
+  aliases: [teach-session]
+  status: active
+  boundary: null
+test-driven-development:
+  domain: engineering
+  stage: Building
+  substage: Implementation
+  secondary: [Specification]
+  family: tdd
+  aliases: []
+  status: active
+  boundary: null
+triage:
+  domain: core
+  stage: Intake
+  substage: Triage
+  secondary: []
+  family: issue-state-management
+  aliases: []
+  status: active
+  boundary: null
+wayfinder:
+  domain: core
+  stage: Discovery
+  substage: Charting
+  secondary: []
+  family: task-decomposition
+  aliases: []
+  status: active
+  boundary: null

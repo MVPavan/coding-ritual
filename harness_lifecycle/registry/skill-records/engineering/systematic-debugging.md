@@ -10,9 +10,9 @@ status: active
 ---
 # systematic-debugging
 
-## Capability
-
 Use when a failure cause is unclear, an attempted fix failed, or flaky behavior needs investigation. Handle obvious localized errors with a focused reproduction and fix.
+
+**Boundary:** Finds the cause of an unclear failure, a failed fix or flaky behaviour; slowness or resource use against a target is performance-optimization.
 
 <!-- registry:generated traits -->
 - `reproduction-first`: Obtain a reproduction that shows the reported failure, not a nearby one, before diagnosing it. (Reuses an existing failing test or command first, otherwise builds the smallest useful reproduction.)

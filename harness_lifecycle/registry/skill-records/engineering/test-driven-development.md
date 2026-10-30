@@ -10,8 +10,6 @@ status: active
 ---
 # test-driven-development
 
-## Capability
-
 Use for risky behavior changes, regression proof, legacy characterization, or substantive test design. Trivial test renames do not require a test-first workflow.
 
 <!-- registry:generated traits -->

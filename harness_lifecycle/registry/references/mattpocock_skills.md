@@ -4,47 +4,47 @@
 
 Catalog: `5beb35b040e3de97e54fa9e386d7e42d15c295c2`, 39 capabilities.
 
-| Their capability | Status | Into ours | Traits | Last ruled at | Changed upstream since? |
-|---|---|---|---|---|---|
-| `plugin:mattpocock-skills` | reject |  |  | 2026-10-14-migration | yes |
-| `skill:skills/engineering/ask-matt` | adopt | skill-router | — | 2026-10-14-migration | yes |
-| `skill:skills/engineering/code-review` | adopt | review | — | 2026-10-14-migration | yes |
-| `skill:skills/engineering/codebase-design` | adopt | codebase-design | — | 2026-10-14-migration | yes |
-| `skill:skills/engineering/diagnosing-bugs` | adopt-merged | systematic-debugging | — | 2026-10-14-migration | yes |
-| `skill:skills/engineering/domain-modeling` | adopt-merged | domain-modeling | — | 2026-10-14-migration | yes |
-| `skill:skills/engineering/grill-with-docs` | adopt | grill-with-docs | — | 2026-10-14-migration | yes |
-| `skill:skills/engineering/implement` | reject |  |  | 2026-10-14-migration | yes |
-| `skill:skills/engineering/implement-spec` | not reviewed |  |  |  |  |
-| `skill:skills/engineering/improve-codebase-architecture` | adopt | improve-codebase-architecture | — | 2026-10-14-migration | yes |
-| `skill:skills/engineering/pr` | not reviewed |  | — |  |  |
-| `skill:skills/engineering/prototype` | adopt | prototype | — | 2026-10-14-migration | yes |
-| `skill:skills/engineering/research` | adopt | research | — | 2026-10-14-migration | yes |
-| `skill:skills/engineering/retro` | not reviewed |  | — |  |  |
-| `skill:skills/engineering/setup-matt-pocock-skills` | reject |  |  | 2026-10-14-owner-review | yes |
-| `skill:skills/engineering/tdd` | adopt | test-driven-development | — | 2026-10-14-migration | yes |
-| `skill:skills/engineering/to-spec` | adopt | brainstorming | — | 2026-10-14-migration | yes |
-| `skill:skills/engineering/to-tickets` | adopt | planning | — | 2026-10-14-migration | yes |
-| `skill:skills/engineering/triage` | adopt | triage | — | 2026-10-14-migration | yes |
-| `skill:skills/engineering/wayfinder` | adopt | wayfinder | — | 2026-10-14-migration | yes |
-| `skill:skills/engineering/wizard` | adopt | wayfinder | — | 2026-10-14-migration | yes |
-| `skill:skills/in-progress/chief-of-staff` | not reviewed |  |  |  |  |
-| `skill:skills/in-progress/claude-handoff` | reject |  |  | 2026-10-14-migration | yes |
-| `skill:skills/in-progress/loop-me` | adopt | wayfinder | — | 2026-10-14-migration | yes |
-| `skill:skills/in-progress/setup-ts-deep-modules` | adopt | skill-router | — | 2026-10-14-migration | yes |
-| `skill:skills/in-progress/writing-beats` | out-of-scope |  |  | 2026-10-14-migration | yes |
-| `skill:skills/in-progress/writing-fragments` | out-of-scope |  |  | 2026-10-14-migration | yes |
-| `skill:skills/in-progress/writing-shape` | out-of-scope |  |  | 2026-10-14-migration | yes |
-| `skill:skills/misc/git-guardrails-claude-code` | reject |  |  | 2026-10-14-migration | yes |
-| `skill:skills/misc/migrate-to-shoehorn` | reject |  |  | 2026-10-14-migration | no |
-| `skill:skills/misc/scaffold-exercises` | reject |  |  | 2026-10-14-migration | no |
-| `skill:skills/misc/setup-pre-commit` | reject |  |  | 2026-10-14-migration | yes |
-| `skill:skills/productivity/grill-me` | reject |  |  | 2026-10-14-migration | yes |
-| `skill:skills/productivity/grilling` | adopt-merged | grilling | — | 2026-10-14-migration | yes |
-| `skill:skills/productivity/handoff` | adopt | beads | — | 2026-10-14-migration | yes |
-| `skill:skills/productivity/teach` | adopt | teach | — | 2026-10-14-migration | yes |
-| `skill:skills/productivity/to-questionnaire` | adopt | grilling | — | 2026-10-14-migration | yes |
-| `skill:skills/productivity/wait-what` | adopt | i-have-adhd | — | 2026-10-14-migration | yes |
-| `skill:skills/productivity/writing-for-agents` | adopt | authoring-for-agents | — | 2026-10-14-migration | yes |
+| Their capability | Status | Stage | Into ours | Traits | Last ruled at | Changed upstream since? |
+|---|---|---|---|---|---|---|
+| `plugin:mattpocock-skills` | reject | changed since |  |  | 2026-10-14-migration | yes |
+| `skill:skills/engineering/ask-matt` | adopt | analysed | skill-router | — | 2026-10-14-migration | yes |
+| `skill:skills/engineering/code-review` | adopt | analysed | review | — | 2026-10-14-migration | yes |
+| `skill:skills/engineering/codebase-design` | adopt | analysed | codebase-design | — | 2026-10-14-migration | yes |
+| `skill:skills/engineering/diagnosing-bugs` | adopt-merged | analysed | systematic-debugging | — | 2026-10-14-migration | yes |
+| `skill:skills/engineering/domain-modeling` | adopt-merged | analysed | domain-modeling | — | 2026-10-14-migration | yes |
+| `skill:skills/engineering/grill-with-docs` | adopt | analysed | grill-with-docs | — | 2026-10-14-migration | yes |
+| `skill:skills/engineering/implement` | reject | decided (whole skill) |  |  | 2026-10-14-migration | yes |
+| `skill:skills/engineering/implement-spec` | not reviewed | not analysed |  |  |  |  |
+| `skill:skills/engineering/improve-codebase-architecture` | adopt | analysed | improve-codebase-architecture | — | 2026-10-14-migration | yes |
+| `skill:skills/engineering/pr` | not reviewed | analysed |  | — |  |  |
+| `skill:skills/engineering/prototype` | adopt | analysed | prototype | — | 2026-10-14-migration | yes |
+| `skill:skills/engineering/research` | adopt | analysed | research | — | 2026-10-14-migration | yes |
+| `skill:skills/engineering/retro` | not reviewed | analysed |  | — |  |  |
+| `skill:skills/engineering/setup-matt-pocock-skills` | reject | decided (whole skill) |  |  | 2026-10-14-owner-review | yes |
+| `skill:skills/engineering/tdd` | adopt | analysed | test-driven-development | — | 2026-10-14-migration | yes |
+| `skill:skills/engineering/to-spec` | adopt | analysed | brainstorming | — | 2026-10-14-migration | yes |
+| `skill:skills/engineering/to-tickets` | adopt | analysed | planning | — | 2026-10-14-migration | yes |
+| `skill:skills/engineering/triage` | adopt | analysed | triage | — | 2026-10-14-migration | yes |
+| `skill:skills/engineering/wayfinder` | adopt | analysed | wayfinder | — | 2026-10-14-migration | yes |
+| `skill:skills/engineering/wizard` | adopt | analysed | wayfinder | — | 2026-10-14-migration | yes |
+| `skill:skills/in-progress/chief-of-staff` | not reviewed | not analysed |  |  |  |  |
+| `skill:skills/in-progress/claude-handoff` | reject | decided (whole skill) |  |  | 2026-10-14-migration | yes |
+| `skill:skills/in-progress/loop-me` | adopt | analysed | wayfinder | — | 2026-10-14-migration | yes |
+| `skill:skills/in-progress/setup-ts-deep-modules` | adopt | analysed | skill-router | — | 2026-10-14-migration | yes |
+| `skill:skills/in-progress/writing-beats` | out-of-scope | decided (whole skill) |  |  | 2026-10-14-migration | yes |
+| `skill:skills/in-progress/writing-fragments` | out-of-scope | decided (whole skill) |  |  | 2026-10-14-migration | yes |
+| `skill:skills/in-progress/writing-shape` | out-of-scope | decided (whole skill) |  |  | 2026-10-14-migration | yes |
+| `skill:skills/misc/git-guardrails-claude-code` | reject | decided (whole skill) |  |  | 2026-10-14-migration | yes |
+| `skill:skills/misc/migrate-to-shoehorn` | reject | decided (whole skill) |  |  | 2026-10-14-migration | no |
+| `skill:skills/misc/scaffold-exercises` | reject | decided (whole skill) |  |  | 2026-10-14-migration | no |
+| `skill:skills/misc/setup-pre-commit` | reject | decided (whole skill) |  |  | 2026-10-14-migration | yes |
+| `skill:skills/productivity/grill-me` | reject | decided (whole skill) |  |  | 2026-10-14-migration | yes |
+| `skill:skills/productivity/grilling` | adopt-merged | analysed | grilling | — | 2026-10-14-migration | yes |
+| `skill:skills/productivity/handoff` | adopt | analysed | beads | — | 2026-10-14-migration | yes |
+| `skill:skills/productivity/teach` | adopt | analysed | teach | — | 2026-10-14-migration | yes |
+| `skill:skills/productivity/to-questionnaire` | adopt | analysed | grilling | — | 2026-10-14-migration | yes |
+| `skill:skills/productivity/wait-what` | adopt | analysed | i-have-adhd | — | 2026-10-14-migration | yes |
+| `skill:skills/productivity/writing-for-agents` | adopt | analysed | authoring-for-agents | — | 2026-10-14-migration | yes |
 
 ## Removed capabilities (removed upstream)
 

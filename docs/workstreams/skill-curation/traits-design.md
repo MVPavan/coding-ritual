@@ -156,6 +156,8 @@ Rules:
 5. A definition's meaning never changes. Wording fixes are edits; a new
    meaning is a new ID, and the old ID stays live for whoever still has that
    mechanism. `retired` is only for a malformed definition (§1).
+6. IDs are kebab case and name the mechanism, never the skill
+   (`seam-selection`, not `tdd-seams`).
 
 Procedure for every new or changed skill, ours or upstream:
 
@@ -220,9 +222,11 @@ Overlap in meaning and completeness are checked by the critic.
   `reviewed_sha` and `tree_hash` must equal the checkpoint's, and every
   listed trait (not `removed`) needs an effective trait ruling. Today's
   check covers only `adopt`/`adopt-merged`; `reject` and `defer`
-  checkpoints get the same rules. A checkpoint with neither an entry nor
-  trait rulings stays checkpoint-only (whole-skill reject or out-of-scope).
-  Superseded checkpoints are never checked.
+  checkpoints get the same rules. A skill checkpoint with neither an entry
+  nor trait rulings stays checkpoint-only, even in a `trait_level` round,
+  but only as `reject` or `out-of-scope`: a whole skill is never adopted,
+  adopted-merged or deferred without its traits. Superseded checkpoints are
+  never checked.
 - **Awaiting trait ruling** (amended 2026-10-28, migration; revised after
   Sol's code review, finding 3): the rounds sealed before traits existed are
   listed by ID in the registry config (`pre_trait_rounds`: the two

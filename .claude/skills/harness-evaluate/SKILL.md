@@ -15,8 +15,12 @@ distinct dependency/domain boundary, or shared template adoption for broadly
 useful low-cost guidance. Use harness-skill-compare for a substantive comparison.
 
 Evaluation alone produces a recommendation. Record a curation decision only when
-ledger changes are authorized, as one event per capability in the open round
-(`harness_lifecycle/registry/README.md` §5, method in `harness_lifecycle/playbook.md`):
+ledger changes are authorized, in the open round
+(`harness_lifecycle/registry/README.md` §5–§5c, method in `harness_lifecycle/playbook.md`).
+An upstream skill is ruled trait by trait, each event citing a sealed report
+(`--json` with `report`); a skill without an accepted analysis may only be ruled
+whole as `defer`, `reject` or `out-of-scope` (`--whole-skill`). Other capabilities
+get one event each. A `defer` carries `revisit_when`:
 
 ```text
 uv run python harness_lifecycle/registry/registry.py record --kind <reject|defer|out-of-scope|adopt|adopt-merged> --subject <repo>:<logical_id> --why <reason> --evidence <path:line or registry/reviews/<file>>
@@ -33,12 +37,10 @@ and inspect neutrality/leak results. Obtain independent review when the broad
 blast radius warrants it under shared delegation policy. New/existing plugin
 implementation also requires authorization for that submodule work.
 
-The `codex-adapter` plugin is retired; call the Codex CLI directly.
-
 Record `adopt` or `adopt-merged` with `--skill <our-skill>` only after the
 adopted state exists. For `adopt-merged`, pass the adaptation (`merged_from`,
 `modifications`, `deliberately_dropped`) with `--json`. The source commit and
-content hash are filled from the catalog. Then update that skill's record in
-`registry/skill-records/`. Publication,
+content hash are filled from the catalog. Then run `registry.py build`; skill
+records are generated, never edited. Publication,
 commits and pointer updates require their own existing authority; otherwise
 report the prepared result. Borrow the smallest useful pattern.

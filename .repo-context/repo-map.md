@@ -24,7 +24,6 @@ live under `mvp-harness/plugins/`.
 Check initialization before using their paths. The `.repo-context/` installer
 migration is a separate distribution change; see `docs/usage/mvp-plugin.md`.
 
-Python dependencies live in `pyproject.toml`; Bash handles scripts/hooks, and the
-legacy Codex bridge uses Node.js and must not be used; invoke the Codex CLI
-directly. Tool availability
-and model settings come from the active runtime, not this map.
+Python dependencies live in `pyproject.toml`; Bash handles scripts and hooks.
+Work for another agent or model is delegated through the `delegation` skill.
+Tool availability and model settings come from the active runtime, not this map.

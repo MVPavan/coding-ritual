@@ -10,9 +10,9 @@ status: active
 ---
 # performance-optimization
 
-## Capability
-
 Use for measured latency, throughput, memory or cost problems, profiling, or explicit resource targets. Skip prose optimization and speculative tuning.
+
+**Boundary:** Handles measured resource problems: profile, change, re-measure against a target; an unexplained failure or flaky behaviour is systematic-debugging.
 
 <!-- registry:generated traits -->
 - `define-metric`: Define the metric, workload and target first, proposing the measurement or asking about the tradeoff before tuning code.

@@ -10,9 +10,9 @@ status: active
 ---
 # html-artifact
 
-## Capability
-
 Use for requested standalone HTML documents or interactive explanations when that format materially helps. Skip agent-facing files, Markdown-native deliverables, and ordinary short answers.
+
+**Boundary:** Produces a standalone rendered HTML document; an inline sketch in the conversation is show-me, and shaping replies for an ADHD reader is i-have-adhd.
 
 <!-- registry:generated traits -->
 - `self-contained-contract`: Produce one HTML file with inline CSS and JS, viewport metadata and no build step, working offline with no external fonts, trackers, fetches or runtime assets.

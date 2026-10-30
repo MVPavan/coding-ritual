@@ -393,7 +393,7 @@ silently:
 | `bd init` over an existing database aborts; on a fresh clone `bd ready` says "no beads database found" and suggests `bd init` | `bd bootstrap` |
 | a git worktree has no database of its own: `bd where` resolves to the main clone's | treat worktrees as the same clone in sync and upgrade plans |
 | a fresh HOME starts bd usage metrics on | `bd metrics off` on every new machine, container or sandbox |
-| Codex review sandboxes (`-s read-only`) cannot open the Beads database | paste the relevant notes into the review brief |
+| a delegated reviewer in a read-only sandbox cannot open the Beads database | paste the relevant notes into the review brief |
 | Claude Code cloud sessions get HTTP 403 on `bd dolt push` from the session's git proxy | carry changes back through the committed `.beads/issues.jsonl`; sync Dolt locally |
 | `bd repo sync` reads its repo list only from the tracked `.beads/config.yaml` | do not use `bd repo` in public repos |
 | `external:<project>:<capability>` dependencies never block | describe cross-project waits in the description |

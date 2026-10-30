@@ -1,0 +1,17 @@
+# Copy to .delegation/roster.toml at the repository root (untracked), then edit.
+# One table per role; a role needs a roles/<role>.md contract in this skill.
+# vendor: a folder under vendors/ (t3, codex-cli, claude-cli).
+# Check with: python3 scripts/models.py roster
+
+# T3 Code: model and options exactly as T3's live catalog lists them; options
+# keep T3's own IDs and are passed through unchanged.
+[roles.implementer]
+vendor = "t3"
+model = "<model id>"
+options = { effort = "<level>" }
+
+# Codex CLI or Claude CLI: model and effort from that vendor's list.
+[roles.reviewer]
+vendor = "codex-cli"
+model = "<model id>"
+effort = "<level>"

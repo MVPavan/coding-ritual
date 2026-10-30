@@ -10,9 +10,9 @@ status: active
 ---
 # design-evolve
 
-## Capability
-
 Use when integrating supplied discussions or decisions into a self-contained next version of existing design documents.
+
+**Boundary:** Folds supplied discussions and decisions into the next self-contained version of existing design documents; it makes no new design decision (codebase-design, domain-modeling).
 
 <!-- registry:generated traits -->
 - `integration-not-redesign`: Integrate only authorized decisions into the next version and never treat integration as licence to redesign.

@@ -48,9 +48,7 @@ WRITE_CMD = "python3 .claude/scripts/skill-catalog.py --write"
 # Slash tokens that legitimately resolve outside .claude/skills. One-word
 # reason each; --check warns when an entry stops
 # being referenced so the list stays minimal.
-ALLOWED_SLASHES: dict[str, str] = {
-    "/subtask": "builtin",  # Claude Code full-context fork; agent-matrix context modes
-}
+ALLOWED_SLASHES: dict[str, str] = {}
 
 # `.claude/...` path tokens that legitimately name nothing on disk (an
 # illustrative example, a path that exists only in an adopted repo). One-word

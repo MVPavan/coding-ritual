@@ -40,7 +40,8 @@ verification rather than loading every package into coordination context.
 Extract a plan task with `scripts/task-brief.sh <plan> <N> <workspace>`, or write
 its brief directly when planless. Include goal, acceptance, owned/forbidden paths,
 relevant source sections, invariants, dependencies, checks and commit authority.
-Tell each worker it shares the checkout and must preserve others' edits.
+Dispatch through the `delegation` skill. Tell each worker it shares the checkout
+and must preserve others' edits.
 
 Require a report path and a short status:
 

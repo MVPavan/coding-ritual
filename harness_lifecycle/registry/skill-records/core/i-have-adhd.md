@@ -10,9 +10,9 @@ status: active
 ---
 # i-have-adhd
 
-## Capability
-
 Use when the user invokes /i-have-adhd.
+
+**Boundary:** Shapes every reply for an ADHD reader once invoked (next action first, small concrete steps); it produces no document or diagram (html-artifact, show-me).
 
 <!-- registry:generated traits -->
 - `next-action-first`: Lead with the next concrete action — a command, path or snippet — before any prose.

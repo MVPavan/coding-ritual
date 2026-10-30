@@ -4,6 +4,6 @@
 
 Catalog: `c14a4ec2a5ad09fe24163f4430d46ee4bb8c1269`, 1 capabilities.
 
-| Their capability | Status | Into ours | Last ruled at | Changed upstream since? |
-|---|---|---|---|---|
-| `skill:skill` | adopt-merged | html-artifact | 2026-10-14-migration | no |
+| Their capability | Status | Stage | Into ours | Last ruled at | Changed upstream since? |
+|---|---|---|---|---|---|
+| `skill:skill` | adopt-merged | not analysed | html-artifact | 2026-10-14-migration | no |

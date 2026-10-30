@@ -10,9 +10,9 @@ status: active
 ---
 # harness-status
 
-## Capability
-
 Quick upstream-drift status across all reference_harnesses submodules — what changed since our pinned commits. Fetches upstream refs without moving pinned commits.
+
+**Boundary:** Summarises drift across every reference harness in one table without moving pins; candidates within one harness are harness-scan.
 
 <!-- registry:generated traits -->
 - `drift-scan`: Run the drift scan to surface upstream changes since our pin. (Run for every submodule under the reference harnesses directory.)

@@ -10,14 +10,12 @@ status: active
 ---
 # triage
 
-## Capability
-
 Evaluate untriaged beads and decide each one — agent-ready under a parent, owner's work, questions for the owner, deferred, or a wontfix close. Use to review what needs attention or to triage a specific bead.
 
 <!-- registry:generated traits -->
-- `triage-routing`: Route each triaged item to one outcome expressed in the tracker's native fields (admit with acceptance, hand to a human task, defer, reject, or mark duplicate) with no separate intake labels.
 - `attention-buckets`: Present the items needing triage attention as named buckets, oldest first. (Four buckets (untriaged, ideas, waiting on the owner, missing acceptance) with counts and one-line summaries.)
 - `triage-decision`: Decide and apply each triage outcome within existing authority rather than deferring every call to the owner.
+- `established-notes`: Record what each triage pass settled as a note on the item itself, so the next pass can resume from it.
 - `triage-resume-notes`: Resume triage from the notes of earlier passes, never re-asking a question already answered.
 - `redundancy-check`: Search the codebase by domain concept for an existing implementation and report where you looked before deciding.
 - `prior-rejection-check`: Check earlier rejections for one resembling the request and surface any match before deciding. (Searches closed beads for earlier wontfix closes.)

@@ -10,8 +10,6 @@ status: active
 ---
 # wayfinder
 
-## Capability
-
 Map and resolve material decision dependencies across a multi-session effort.
 
 <!-- registry:generated traits -->

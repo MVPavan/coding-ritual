@@ -4,31 +4,31 @@
 
 Catalog: `af754ef63535a416af4894223edda1b2c730d3c2`, 26 capabilities.
 
-| Their capability | Status | Into ours | Last ruled at | Changed upstream since? |
-|---|---|---|---|---|
-| `agent:templates/agents/architect` | reject |  | 2026-10-14-migration | no |
-| `agent:templates/agents/code-reviewer` | reject |  | 2026-10-14-migration | no |
-| `agent:templates/agents/detective` | reject |  | 2026-10-14-migration | no |
-| `agent:templates/agents/discovery` | reject |  | 2026-10-14-migration | no |
-| `agent:templates/agents/merge-supervisor` | reject |  | 2026-10-14-migration | no |
-| `agent:templates/agents/scout` | reject |  | 2026-10-14-migration | no |
-| `agent:templates/agents/scribe` | reject |  | 2026-10-14-migration | no |
-| `hook:hooks/block-branch-for-epic-child` | reject |  | 2026-10-14-migration | no |
-| `hook:templates/hooks/block-orchestrator-tools` | reject |  | 2026-10-14-migration | no |
-| `hook:templates/hooks/clarify-vague-request` | reject |  | 2026-10-14-migration | no |
-| `hook:templates/hooks/enforce-bead-for-supervisor` | defer |  | 2026-10-14-migration | no |
-| `hook:templates/hooks/enforce-branch-before-edit` | reject |  | 2026-10-14-migration | no |
-| `hook:templates/hooks/enforce-concise-response` | reject |  | 2026-10-14-migration | no |
-| `hook:templates/hooks/enforce-sequential-dispatch` | defer |  | 2026-10-14-migration | no |
-| `hook:templates/hooks/inject-discipline-reminder` | reject |  | 2026-10-14-migration | no |
-| `hook:templates/hooks/log-dispatch-prompt` | defer |  | 2026-10-14-migration | no |
-| `hook:templates/hooks/memory-capture` | defer |  | 2026-10-14-migration | no |
-| `hook:templates/hooks/nudge-claude-md-update` | reject |  | 2026-10-14-migration | no |
-| `hook:templates/hooks/remind-inprogress` | reject |  | 2026-10-14-migration | no |
-| `hook:templates/hooks/session-start` | defer |  | 2026-10-14-migration | no |
-| `hook:templates/hooks/validate-completion` | reject |  | 2026-10-14-migration | no |
-| `hook:templates/hooks/validate-epic-close` | defer |  | 2026-10-14-migration | no |
-| `skill:skills/create-beads-orchestration` | reject |  | 2026-10-14-migration | no |
-| `skill:skills/subagents-discipline` | adopt-merged | verification-before-completion | 2026-10-14-migration | no |
-| `skill:templates/skills/react-best-practices` | reject |  | 2026-10-14-migration | no |
-| `skill:templates/skills/subagents-discipline` | defer |  | 2026-10-14-migration | no |
+| Their capability | Status | Stage | Into ours | Last ruled at | Changed upstream since? |
+|---|---|---|---|---|---|
+| `agent:templates/agents/architect` | reject | decided |  | 2026-10-14-migration | no |
+| `agent:templates/agents/code-reviewer` | reject | decided |  | 2026-10-14-migration | no |
+| `agent:templates/agents/detective` | reject | decided |  | 2026-10-14-migration | no |
+| `agent:templates/agents/discovery` | reject | decided |  | 2026-10-14-migration | no |
+| `agent:templates/agents/merge-supervisor` | reject | decided |  | 2026-10-14-migration | no |
+| `agent:templates/agents/scout` | reject | decided |  | 2026-10-14-migration | no |
+| `agent:templates/agents/scribe` | reject | decided |  | 2026-10-14-migration | no |
+| `hook:hooks/block-branch-for-epic-child` | reject | decided |  | 2026-10-14-migration | no |
+| `hook:templates/hooks/block-orchestrator-tools` | reject | decided |  | 2026-10-14-migration | no |
+| `hook:templates/hooks/clarify-vague-request` | reject | decided |  | 2026-10-14-migration | no |
+| `hook:templates/hooks/enforce-bead-for-supervisor` | defer | decided |  | 2026-10-14-migration | no |
+| `hook:templates/hooks/enforce-branch-before-edit` | reject | decided |  | 2026-10-14-migration | no |
+| `hook:templates/hooks/enforce-concise-response` | reject | decided |  | 2026-10-14-migration | no |
+| `hook:templates/hooks/enforce-sequential-dispatch` | defer | decided |  | 2026-10-14-migration | no |
+| `hook:templates/hooks/inject-discipline-reminder` | reject | decided |  | 2026-10-14-migration | no |
+| `hook:templates/hooks/log-dispatch-prompt` | defer | decided |  | 2026-10-14-migration | no |
+| `hook:templates/hooks/memory-capture` | defer | decided |  | 2026-10-14-migration | no |
+| `hook:templates/hooks/nudge-claude-md-update` | reject | decided |  | 2026-10-14-migration | no |
+| `hook:templates/hooks/remind-inprogress` | reject | decided |  | 2026-10-14-migration | no |
+| `hook:templates/hooks/session-start` | defer | decided |  | 2026-10-14-migration | no |
+| `hook:templates/hooks/validate-completion` | reject | decided |  | 2026-10-14-migration | no |
+| `hook:templates/hooks/validate-epic-close` | defer | decided |  | 2026-10-14-migration | no |
+| `skill:skills/create-beads-orchestration` | reject | decided (whole skill) |  | 2026-10-14-migration | no |
+| `skill:skills/subagents-discipline` | adopt-merged | not analysed | verification-before-completion | 2026-10-14-migration | no |
+| `skill:templates/skills/react-best-practices` | reject | decided (whole skill) |  | 2026-10-14-migration | no |
+| `skill:templates/skills/subagents-discipline` | defer | decided (whole skill) |  | 2026-10-14-migration | no |

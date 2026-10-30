@@ -1,0 +1,8 @@
+# Standing stances on traits:
+#   <trait>: {stance: avoid|reword, rules: {<GUIDE rule ID>: <12-hex digest>},
+#             why, decided, reviewed, ledger: <event id>, from: [<retired IDs>],
+#             reconciled: {<replacement>: carried | "<why not>"}  # retired keys only}
+# `record` enforces the live entry on new decisions and stores it as the
+# event's policy_basis; `check` validates each event against its own basis.
+# Rules: docs/workstreams/skill-curation/stages-design.md §Trait policy.
+{}

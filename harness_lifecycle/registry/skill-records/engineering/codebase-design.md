@@ -10,9 +10,9 @@ status: active
 ---
 # codebase-design
 
-## Capability
-
 Use for substantive module-interface, encapsulation, or testability decisions. Skip ordinary code explanations and cosmetic refactors.
+
+**Boundary:** Decides module interfaces, encapsulation and testability in code; domain terms and ADRs are domain-modeling, revising design documents is design-evolve, and runnable experiments are prototype.
 
 <!-- registry:generated traits -->
 - `module-vocabulary`: Reason about design with a shared deep-module glossary: module, interface, depth, seam, adapter and locality.

@@ -10,8 +10,6 @@ status: active
 ---
 # review
 
-## Capability
-
 Use for a critic review of any artifact, a substantive review of code or of a spec or plan, or to verify and act on review findings. Skip routine final diff inspection; to interrogate the author instead, use grilling.
 
 <!-- registry:generated traits -->

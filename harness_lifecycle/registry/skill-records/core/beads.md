@@ -10,8 +10,6 @@ status: active
 ---
 # beads
 
-## Capability
-
 Use for Beads (bd) work beyond the core rules injected at session start - creating epics, plans or decision beads, dependencies and gates, triage, recovery, workstream tracking, reviews, setting up or joining a Beads project, or questions about Beads policy.
 
 <!-- registry:generated traits -->
@@ -26,7 +24,7 @@ Use for Beads (bd) work beyond the core rules injected at session start - creati
 - `beads-setup`: Install the tracker, adopt it in a project, and join from a new clone with bootstrap rather than a re-init.
 - `workstream-render`: Regenerate the workstream status, ideas and backlog boards from the tracker through the render script, never hand-editing them.
 - `status-model`: Drive status through the model's own transitions — the custom review status, deferred as the whole backlog, and never a hand-set blocked.
-- `triage-routing`: Route each triaged item to one outcome expressed in the tracker's native fields (admit with acceptance, hand to a human task, defer, reject, or mark duplicate) with no separate intake labels. (Sets a numeric priority with the outcome.)
+- `triage-routing`: Route each triaged item to one outcome expressed in the tracker's native fields (admit with acceptance, hand to a human task, defer, reject, or mark duplicate) with no separate intake labels.
 - `durable-unit-scope`: Track one durable unit of work per bead, keeping turn checklists out, searching before creating, and filing incidental finds as discovered-from beads.
 - `review-as-task`: Represent a review as its own task by an actor other than the author, which the reviewed bead depends on and sits in review status until it passes.
 - `phase-epic-contract`: Shape a phase epic to the status-renderer contract — a bracketed phase-id title, the roadmap as spec_id, the governing spec path as design, and acceptance matching the roadmap's verify rows.

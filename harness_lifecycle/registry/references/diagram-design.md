@@ -4,11 +4,11 @@
 
 Catalog: `4b573616cbc0592c5d4d57ade0b22c3f72d36dcf`, 6 capabilities.
 
-| Their capability | Status | Into ours | Last ruled at | Changed upstream since? |
-|---|---|---|---|---|
-| `command:commands/export-diagram` | defer |  | 2026-10-14-migration | no |
-| `command:commands/import-drawio` | defer |  | 2026-10-14-migration | no |
-| `command:commands/import-mermaid` | defer |  | 2026-10-14-migration | no |
-| `command:commands/profile` | defer |  | 2026-10-14-migration | no |
-| `plugin:diagram-design` | defer |  | 2026-10-14-migration | no |
-| `skill:skills/diagram-design` | adopt-merged | html-artifact | 2026-10-14-migration | no |
+| Their capability | Status | Stage | Into ours | Last ruled at | Changed upstream since? |
+|---|---|---|---|---|---|
+| `command:commands/export-diagram` | defer | decided |  | 2026-10-14-migration | no |
+| `command:commands/import-drawio` | defer | decided |  | 2026-10-14-migration | no |
+| `command:commands/import-mermaid` | defer | decided |  | 2026-10-14-migration | no |
+| `command:commands/profile` | defer | decided |  | 2026-10-14-migration | no |
+| `plugin:diagram-design` | defer | decided |  | 2026-10-14-migration | no |
+| `skill:skills/diagram-design` | adopt-merged | not analysed | html-artifact | 2026-10-14-migration | no |

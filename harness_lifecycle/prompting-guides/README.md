@@ -4,6 +4,10 @@
 
 **When GUIDE.md changes:** only when a frontier model lab publishes new prompting guidance, or a well-known article reports prompting experiments. Skill reviews and reference harnesses never change it; writing ideas taken from a reference harness go into `.claude/skills/authoring-for-agents/references/writing-principles.md`.
 
+**Where it is used:** upstream curation checks every recommended adoption against GUIDE.md's rule IDs before the owner rules (`../playbook.md` §4 step 4). Stances that hold for a mechanism in any skill are kept in `../registry/trait-policy.yaml`, which stores each cited rule's digest so a later change to the rule is noticed (`../registry/README.md` §4a).
+
+**Rule IDs are stable:** a rule is never renumbered. A removed rule keeps its line as `- **U-02** Retired <date>; see <ID>.`, so decisions citing it stay resolvable.
+
 ## Historical notes
 
 Retrieved: 2026-09-09. Question: how should prompting differ across the four requested model guides?
