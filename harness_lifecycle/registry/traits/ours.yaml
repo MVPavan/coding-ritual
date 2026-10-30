@@ -4,7 +4,7 @@
 
 ours:authoring-for-agents:
   tree_hash: "86fef3f5af1ee9971615ec34dc05ff3f458ead8e23ce7984367963871c1dd346"
-  traits: [surface-choice, activation-boundary, inline-vs-disclose, outputs-and-authority, one-effective-instruction, context-pointers, two-loads, completion-criteria-clarity, precision-and-discretion, single-source-of-truth, environment-as-cache, decision-relevance-pruning, no-op-deletion, unsupported-claim-removal, skill-packaging, invocation-mode, invocation-sidecar-sync, compatibility-alias, verification]
+  traits: [surface-choice, activation-boundary, inline-vs-disclose, outputs-and-authority, one-effective-instruction, context-pointers, two-loads, completion-criteria-clarity, precision-and-discretion, single-source-of-truth, environment-as-cache, decision-relevance-pruning, no-op-deletion, unsupported-claim-removal, skill-packaging, invocation-mode, invocation-sidecar-sync, compatibility-alias, verification, mechanical-vs-judgement, extend-existing-docs-first]
   notes:
     context-pointers: "Also distinguishes the nearest competing workflow."
     two-loads: "Judges savings by the full read path rather than entrypoint length."
@@ -14,7 +14,7 @@ ours:beads:
   traits: [bead-type-taxonomy, field-roles, wait-as-edge, actor-identity, resume-line, session-close, session-recovery, knowledge-in-files, beads-setup, workstream-render, status-model, triage-routing, durable-unit-scope, review-as-task, phase-epic-contract, destructive-command-guard, repeated-procedures, dolt-sync]
 ours:brainstorming:
   tree_hash: "aa6edeb67bdededb1783e9228a957c82bbcca84ad47a408209ba1ae329572d15"
-  traits: [match-interaction-to-ambiguity, synthesize-settled, scoped-context-read, reuse-before-new, decision-frame, options-with-tradeoffs, spec-template, spec-criteria-and-questions, none-keeps-heading, testing-seam-decision, no-stale-file-paths, no-stale-code-snippets, prototype-snippet, spec-approval-gate, material-risk-review, question-batching, recommended-answer, settled-stop, self-serve-facts, approval-interpretation, observable-outcomes, structured-divergence, exploration-lenses, inline-diagrams, visuals-into-spec, html-mockup-on-request]
+  traits: [match-interaction-to-ambiguity, synthesize-settled, scoped-context-read, reuse-before-new, decision-frame, options-with-tradeoffs, spec-template, spec-criteria-and-questions, none-keeps-heading, testing-seam-decision, no-stale-file-paths, no-stale-code-snippets, prototype-snippet, spec-approval-gate, material-risk-review, question-batching, recommended-answer, settled-stop, self-serve-facts, approval-interpretation, observable-outcomes, structured-divergence, exploration-lenses, inline-diagrams, visuals-into-spec, html-mockup-on-request, user-perspective-framing, implementation-decisions-scope, testing-decisions-contents]
   notes:
     recommended-answer: "Labels the recommendation's assumptions."
 ours:check-invariants:
@@ -22,7 +22,7 @@ ours:check-invariants:
   traits: [read-overlay, explicit-commands-only, pass-fail-report, skip-aspirational, repo-relative-paths]
 ours:codebase-design:
   tree_hash: "6f005d11393c9def41961944e61625177771ed82f7ff704eb750dea3785e27c7"
-  traits: [module-vocabulary, project-term-allowance, interface-is-everything, depth-as-leverage, deletion-test, inject-dependencies, return-not-mutate, single-adapter-justified, internal-seams, dependency-categories, covered-test-removal, design-it-twice]
+  traits: [module-vocabulary, project-term-allowance, interface-is-everything, depth-as-leverage, deletion-test, inject-dependencies, return-not-mutate, single-adapter-justified, internal-seams, dependency-categories, covered-test-removal, design-it-twice, design-proposal-contents, interface-design-recommendation]
   notes:
     inject-dependencies: "Where it clarifies behaviour, not as a blanket rule."
     return-not-mutate: "Pure calculations where they clarify behaviour, isolating legitimate side effects."
@@ -40,7 +40,10 @@ ours:design-evolve:
   traits: [integration-not-redesign, resolve-scope, classify-maturity, evidence-before-edit, start-from-source, no-gap-filling, version-rekey, consistency-check, concept-map, layout-mirror, preserve-structure, report-provenance]
 ours:domain-modeling:
   tree_hash: "eaba589ce980200b239446b3b66d083e7260ea64096175106ceefec2c178bd4d"
-  traits: [active-discipline, declared-glossary-location, lazy-glossary-and-adr, challenge-glossary, sharpen-fuzzy, concrete-scenarios, cross-reference-code, update-inline, authorized-model-writes, glossary-is-glossary, glossary-format, context-specific-terms, multi-context-map, adr-three-gate, adr-minimal-template, adr-what-qualifies, adr-match-convention, adr-supersede-lifecycle, adr-code-gotcha-link]
+  traits: [active-discipline, declared-glossary-location, lazy-glossary-and-adr, challenge-glossary, sharpen-fuzzy, concrete-scenarios, cross-reference-code, update-inline, authorized-model-writes, glossary-is-glossary, glossary-entry-template, canonical-term-and-aliases, tight-concept-definitions, context-specific-terms, context-map-artifact, context-map-lookup, topic-context-resolution, adr-three-gate, minimal-decision-record, sequential-record-numbering, optional-record-sections, adr-what-qualifies, adr-match-convention, adr-supersede-lifecycle, adr-code-gotcha-link, scoped-decision-records]
+  notes:
+    glossary-entry-template: "Lays the file out as a title and a one-or-two-sentence description, then each term in bold followed by its definition and an Avoid line."
+    tight-concept-definitions: "One or two sentences at most."
 ours:execution:
   tree_hash: "6cd22c983b171f11aa61e6089131fbe2ce7ee49e97a602b28f287f26f007cae4"
   traits: [scope-selector, risk-sized-review, task-loop, finding-adjudication, phase-loop, close-gate, workstream-mode, child-workflows, context-recovery, stop-on-failure, bounded-fix-loop, scope-base-review-package, delegated-report-recovery]
@@ -75,7 +78,7 @@ ours:i-have-adhd:
   traits: [next-action-first, numbered-steps, single-next-action, tangent-suppression, state-restatement, concrete-time-estimates, visible-progress, matter-of-fact-errors, capped-lists, no-preamble, explain-on-request, debug-spiral-reset, repitch-trigger, controlled-language, domain-vocabulary, pre-send-check]
 ours:improve-codebase-architecture:
   tree_hash: "c6310b69ad963db1c3c6a045588a04a926f71274ef90ccecc2956f7bed3ec162"
-  traits: [scope-by-evidence, friction-signals, candidate-comparison, optional-report, adr-conflict-callout, review-no-auto-followup]
+  traits: [scope-by-evidence, friction-signals, candidate-comparison, optional-report, adr-conflict-callout, review-no-auto-followup, respect-area-adrs, top-candidate-recommendation]
   notes:
     scope-by-evidence: "Also weighs actual maintenance and test friction when choosing areas."
 ours:migrate-claude-to-codex:
@@ -94,12 +97,12 @@ ours:perspective-council:
     independent-synthesis: "The synthesizer is a fresh chair who restores attribution after anonymized peer review and ends with a practical next step."
 ours:planning:
   tree_hash: "a0e91f883ff0fbab9b5b608fb41c61f4c2c7d3c50bd887bf2745ea78ece26420"
-  traits: [route-by-scale, decompose-phases, vertical-slices, expand-contract, dependency-edges, beads-native-tracking, durable-plan-format, plan-evidence-bound, test-first-marking, no-placeholder-plan, plan-self-review, reviewer-rejectable-sizing, real-id-wiring, no-stale-code-snippets]
+  traits: [route-by-scale, decompose-phases, vertical-slices, expand-contract, dependency-edges, beads-native-tracking, durable-plan-format, plan-evidence-bound, test-first-marking, no-placeholder-plan, plan-self-review, reviewer-rejectable-sizing, real-id-wiring, no-stale-code-snippets, ground-in-codebase, breakdown-approval-before-publish]
   notes:
     beads-native-tracking: "The roadmap anchor is the --spec-id and the governing spec is --design; the renderer derives the workstream from the anchor, so a plan path never goes in --design."
 ours:prototype:
   tree_hash: "116caaaee2817785245ff7e37769a0ef5434de6c99faefa932a983b941714a51"
-  traits: [named-question, pick-form, throwaway-marked, trivial-to-run, surface-state, scoped-data, persistence-when-needed, cheap-assertions, logic-pure-module, logic-shareable-html, ui-contextual-preview, variants-when-comparing, structural-variants, variant-switcher, ui-keyboard-safety, ui-accessibility, capture-outcome, separate-promotion]
+  traits: [named-question, pick-form, throwaway-marked, trivial-to-run, surface-state, scoped-data, persistence-when-needed, cheap-assertions, logic-pure-module, self-contained-html-demo, demo-states-question, readable-state-panel, demo-state-controls, resettable-demo-scenarios, ui-contextual-preview, variants-when-comparing, structural-variants, variant-switcher, ui-keyboard-safety, ui-accessibility, capture-outcome, separate-promotion, stubbed-mutations, production-hidden-switcher]
   notes:
     named-question: "States the question and observable success before building."
     pick-form: "The smallest runnable form, including a script for algorithms."
@@ -107,7 +110,8 @@ ours:prototype:
     trivial-to-run: "Documents the run command and expected signal; an HTML demo works offline."
     persistence-when-needed: "Also only when authorized."
     capture-outcome: "Also records exercised cases and limitations; an inconclusive result is valid."
-    logic-shareable-html: "Only the guided scenarios needed to expose the uncertainty."
+    self-contained-html-demo: "Offered when a non-developer needs to manipulate states; offline when sharing is the goal."
+    resettable-demo-scenarios: "Only the guided scenarios needed to expose the uncertainty."
 ours:research:
   tree_hash: "7aa85b485543698583d183f997ff21fc59a4f41f890060fa15b3bb8e6473ed5a"
   traits: [decision-framing, primary-source-preference, source-version-dating, vendor-claim-testing, source-weighting, evidence-separation, disconfirming-red-team, structured-synthesis, research-playbooks, judgment-frameworks, cited-artifact, scaled-report, decision-sufficient-stop, sizeable-delegation]
@@ -126,27 +130,28 @@ ours:security:
   traits: [scope-threat, abuse-cases, targeted-control-groups, web-reference, boundary-controls-ref, llm-surface-ref, authority-gate, enforce-in-code, evidence-tests, dependency-triage, boundary-review]
 ours:show-me:
   tree_hash: "acf2d91481bb0b78884b34888a203a855a29e9db3f1d6996a3beb59922374f95"
-  traits: [smallest-view, visual-form-catalog, structural-diff, visual-placement, real-code-names, medium-appropriate-form, html-handoff]
+  traits: [minimal-visual-selection, visual-form-catalog, structural-diff, visual-placement, real-code-names, medium-appropriate-form, html-handoff]
   notes:
-    smallest-view: "One form, occasionally two, never a gallery, with a sentence or two of prose each."
+    minimal-visual-selection: "One form, occasionally two, never a gallery, with a sentence or two of prose each."
 ours:skill-router:
   tree_hash: "963b9cdea029ef66f1fbb9d9c6d54fb3f97a67050d8c8f2bab2f8a5ae6cd6c19"
   traits: [need-to-skill-routing, narrowest-contract, overlap-arbitration, legacy-entrypoint-flagging, catalog-trust-boundary]
 ours:systematic-debugging:
   tree_hash: "f3e5327caeaa308597a0de59765b5c25b142b703bce50de1b9e5adade61cf2ae"
-  traits: [reproduction-first, unproven-without-reproduction, loop-construction, minimize-to-discriminate, flake-reproduction, environmental-cause-unresolved, hypotheses, discriminating-observation, localized-probing, owning-fix, attempt-log, two-failure-stop, critic-escalation, regression-check, evidence-safety, closeout, preserve-reproducers, defense-in-depth-hardening]
+  traits: [reproduction-first, unproven-without-reproduction, loop-construction, minimize-to-discriminate, flake-reproduction, environmental-cause-unresolved, hypotheses, discriminating-observation, localized-probing, owning-fix, attempt-log, two-failure-stop, critic-escalation, regression-check, evidence-safety, closeout, preserve-reproducers, defense-in-depth-hardening, tagged-debug-logs]
   notes:
     reproduction-first: "Reuses an existing failing test or command first, otherwise builds the smallest useful reproduction."
     regression-check: "Also reruns the applicable repository checks."
     closeout: "Also records the proving check and remaining limits."
 ours:teach:
   tree_hash: "1f2505143055a6f9564899c6f31dffbf2e5da29ebab87b3bd080cab6e8fd31e8"
-  traits: [learning-shape, level-adaptation, what-vs-why, teaching-workspace, authorized-course-location, mission-grounding, glossary-format, glossary-admission-on-use, learning-records, resources-curation, lesson-format, reusable-assets, quiz-answer-hygiene, retrieval-practice, scope-discipline, sourced-explanations]
+  traits: [learning-shape, level-adaptation, what-vs-why, teaching-workspace, authorized-course-location, mission-grounding, glossary-entry-template, canonical-term-and-aliases, tight-concept-definitions, glossary-self-vocabulary, glossary-admission-on-use, learning-records, learning-resource-register, high-trust-resource-filter, resource-gap-register, prune-invalid-resources, lesson-format, reusable-assets, quiz-answer-hygiene, retrieval-practice, scope-discipline, sourced-explanations, mission-interview-first, community-opt-out, learning-record-criteria, field-term-resolution, in-place-definition-revision, mission-document-template, one-mission-per-workspace, one-screen-mission, minimal-learning-record-template, learning-record-supersession, cross-linked-lessons, domain-vocabulary, sequential-record-numbering, optional-record-sections]
   notes:
     lesson-format: "Rendered HTML is optional."
-    glossary-format: "Uses the glossary's own terms inside definitions."
     retrieval-practice: "Small exercises or prediction questions, with feedback only after the learner responds."
     reusable-assets: "Never invents a component library for a single lesson."
+    glossary-entry-template: "Lays the file out as a title and a one-or-two-sentence description, then each term in bold followed by its definition and an Avoid line."
+    tight-concept-definitions: "One or two sentences at most."
 ours:test-driven-development:
   tree_hash: "efbff403c6946e9b15057739ffa31b8e033862111df77acfaafffcb68c7baea1"
   traits: [mode-selection, seam-selection, plan-seams-no-approval, red-green, refactor-after-green, mock-boundaries, proof-discipline, meaningful-behaviour-assertion, independent-expectation, no-implementation-coupling, deterministic-state, break-naming-validation]
@@ -157,14 +162,14 @@ ours:test-driven-development:
     mock-boundaries: "Fakes and partial mocks are valid at any boundary that preserves the contract."
 ours:triage:
   tree_hash: "81c7a28d3ccc55807748de8b8a382c1c724e65c2f239b16ac0d3c50468cdcc23"
-  traits: [attention-buckets, triage-decision, established-notes, triage-resume-notes, redundancy-check, prior-rejection-check, claim-verification, agent-ready-gate]
+  traits: [attention-buckets, triage-decision, established-notes, triage-resume-notes, redundancy-check, prior-rejection-check, claim-verification, agent-ready-gate, pick-from-summary, durable-rejection-reasons]
   notes:
     attention-buckets: "Four buckets (untriaged, ideas, waiting on the owner, missing acceptance) with counts and one-line summaries."
     claim-verification: "An unreproduced bug gets questions for the owner, never an automatic close."
     prior-rejection-check: "Searches closed beads for earlier wontfix closes."
 ours:wayfinder:
   tree_hash: "33e6eb6616f590f0b79efd9c3bd84005cf6d32867ed2693e9dbf7e258f1c9f90"
-  traits: [decision-map-epic, plan-not-do, dependency-edges, map-as-index, map-body-sections, reference-by-name, bounded-decision-ticket, coherence-sized-tickets, label-free-typing, ticket-type-set, claim-before-work, destination-first, question-graduation, real-id-wiring, record-resolution, out-of-scope-close, human-decision-gate, multi-ticket-sessions]
+  traits: [decision-map-epic, plan-not-do, dependency-edges, map-as-index, map-body-sections, reference-by-name, bounded-decision-ticket, coherence-sized-tickets, label-free-typing, ticket-type-set, claim-before-work, destination-first, question-graduation, real-id-wiring, record-resolution, out-of-scope-close, human-decision-gate, multi-ticket-sessions, prototype-ticket-asset, fog-hygiene, low-res-map-load]
   notes:
     bounded-decision-ticket: "With a resolution criterion."
     ticket-type-set: "Task work must be authorized."

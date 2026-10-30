@@ -34,10 +34,17 @@ Use when the user invokes /i-have-adhd.
 <!-- /registry:generated traits -->
 
 <!-- registry:generated lineage -->
-- **mattpocock_skills:skill:skills/productivity/wait-what** `skills/productivity/wait-what/SKILL.md` @ 84fdeff
+- **mattpocock_skills:skill:skills/productivity/wait-what#repitch-trigger** `skills/productivity/wait-what/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/productivity/wait-what#domain-vocabulary** `skills/productivity/wait-what/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/productivity/wait-what#standard-controlled-language** `skills/productivity/wait-what/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-10-30` **adopt-merged** (2026-10-30-mattpocock_skills-5beb35b:585): Checkpoint at 5beb35b for the owner's trait rulings: 3 adopt, 1 defer.
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:532): Deliberate: the three named rules are what the re-pitch needs, stated so the agent can apply them (U-06).
+- `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:531): Owner deferred the report's reject recommendation, to review the set later: ROUTED: i-have-adhd already keeps CONTEXT.md terms (i-have-adhd/SKILL.md:110); find…
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:530): Ours keeps the project's own terms from CONTEXT.md in the re-pitch.
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:529): Ours re-explains, simpler rather than longer, when the user says the last message did not land.
 - `2026-08-14` **adopt** (2026-10-14-migration:150): Adopted-in-part: controlled-language (ASD-STE100-style) re-pitch as a fifth override in i-have-adhd. No standalone skill. Evidence: skill-comparisons/interacti…
 <!-- /registry:generated history -->
 
@@ -46,9 +53,14 @@ Use when the user invokes /i-have-adhd.
 <!-- /registry:generated reviews -->
 
 <!-- registry:generated sources -->
-No adopted traits recorded.
+- `controlled-language`:
+  - `mattpocock_skills:skill:skills/productivity/wait-what#standard-controlled-language` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `domain-vocabulary`:
+  - `mattpocock_skills:skill:skills/productivity/wait-what#domain-vocabulary` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `repitch-trigger`:
+  - `mattpocock_skills:skill:skills/productivity/wait-what#repitch-trigger` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 <!-- /registry:generated sources -->
 
 <!-- registry:generated declined -->
-No declined traits recorded.
+- `mattpocock_skills:skill:skills/productivity/wait-what#context-map-lookup` (defer): Owner deferred the report's reject recommendation, to review the set later: ROUTED: i-have-adhd already keeps CONTEXT.md terms (i-have-adhd/SKILL.md:110); find…
 <!-- /registry:generated declined -->

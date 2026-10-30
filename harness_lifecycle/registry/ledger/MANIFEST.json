@@ -1,8 +1,41 @@
 {
-  "_comment": "sha256 of every sealed round file. registry.py check fails if a sealed file is modified or deleted. Never edit by hand.",
+  "_comment": "sha256 of every sealed round file and report, and of every analysis a sealed round cites. registry.py check fails if one is modified or deleted. Never edit by hand.",
   "rounds": {
     "2026-10-14-migration.jsonl": "8cc852e274b32cd9067fbabcd82a651f291b3822e588b95775f2316390061914",
     "2026-10-14-owner-review.jsonl": "b49225eb122224094942b2e7e4f779686186a4eb0eb1ede9521e2f86dc181958",
-    "2026-10-30-delegation.jsonl": "75ba1eb38c9244b14faf28e410e8fe688c00135ebb80332374c605c9e209d12d"
+    "2026-10-30-delegation.jsonl": "75ba1eb38c9244b14faf28e410e8fe688c00135ebb80332374c605c9e209d12d",
+    "2026-10-30-mattpocock_skills-5beb35b.jsonl": "cedf7c7ea99062323677d84a7456432a719721c29a867ce397167991128ddb85"
+  },
+  "reports": {
+    "harness_lifecycle/registry/reviews/2026-10-30-upstream-mattpocock_skills-5beb35b.yaml": "fb413772a75f116bd9baeaa06b6e414fe59978c654a951cb53345f17459d7597"
+  },
+  "analyses": {
+    "mattpocock_skills:skill:skills/engineering/ask-matt@5beb35b": "7c26278eeb19e4a6c08a40a33ab804f1d66f7f8ce2209126ebcea2c7d56d51a6",
+    "mattpocock_skills:skill:skills/engineering/code-review@5beb35b": "2c50292854d3cd414fb64e68099072c2a468165b6e1fbfbc65fad6e6704871bc",
+    "mattpocock_skills:skill:skills/engineering/codebase-design@5beb35b": "ad501db52a6ff597cad8ee1d65d141da59e2f6b36ac896f190ee99490c93270f",
+    "mattpocock_skills:skill:skills/engineering/diagnosing-bugs@5beb35b": "f49adda0520afddbb8c2988bc2cf6b7cabce8a654bdae750af5c7785263ec578",
+    "mattpocock_skills:skill:skills/engineering/domain-modeling@5beb35b": "990f99c8b806f80414f2a7bfc98e907016960f529b73dac38a9462f425f0feba",
+    "mattpocock_skills:skill:skills/engineering/grill-with-docs@5beb35b": "9cecb0ee7aa752da1b00c23888ad07f484e6b954e45c7c0f9bffa89633fee18d",
+    "mattpocock_skills:skill:skills/engineering/implement-spec@5beb35b": "e3bff95652f2ec94ebf139b391a3fdfdc2acdfc41ac99f2d330fb9862cfe7292",
+    "mattpocock_skills:skill:skills/engineering/improve-codebase-architecture@5beb35b": "97fb2f6066b96bbcbba2825a9af69cb75aebea13d6b98b2d4fd8385ba41e4422",
+    "mattpocock_skills:skill:skills/engineering/pr@5beb35b": "eba8091c36b58787b4719164d7175a14de32d2c49c7622baa8e251d5ed5de40f",
+    "mattpocock_skills:skill:skills/engineering/prototype@5beb35b": "9152975168d680a3af012afd8b78041d6ba69e504d126c0e171f423f5eac7285",
+    "mattpocock_skills:skill:skills/engineering/research@5beb35b": "fb3ae9e0cd7d274caae38ab6e154f90ea78e53566498121a83085de54449dfa8",
+    "mattpocock_skills:skill:skills/engineering/retro@5beb35b": "01dd05bf1b9a07eeac3980f0faa2950b197605c669508d19f9f50c5342e8a55e",
+    "mattpocock_skills:skill:skills/engineering/tdd@5beb35b": "bad4407ef55e68adf083e6b73900345603c47eb45ef4a8efdcb9d7745746043a",
+    "mattpocock_skills:skill:skills/engineering/to-spec@5beb35b": "59cde85984545313387fd9b40e256502fd0c9fc311232ca2a0848b538c8d485f",
+    "mattpocock_skills:skill:skills/engineering/to-tickets@5beb35b": "cf68a2e3cd145f9481429171ae5f4c1867b5ddf7dc8b8991758ff936bb3c1973",
+    "mattpocock_skills:skill:skills/engineering/triage@5beb35b": "b9a99693d9ec6b7d4a7c0f544678ef350906de7458392081d93759d3a0f7bf8c",
+    "mattpocock_skills:skill:skills/engineering/wayfinder@5beb35b": "916ab980ea81d49cbf6694f732b39567e140c6f2fce470fe1dddf109dd99dd4e",
+    "mattpocock_skills:skill:skills/engineering/wizard@5beb35b": "406dd982bbd5fd83c3ba928cf5e470c35c8915ad52830f9e4d0a7add6bceb6a5",
+    "mattpocock_skills:skill:skills/in-progress/chief-of-staff@5beb35b": "33ded1c27487e8ab7e955b46bfa91549625b15f520da183fc4bd23136e92987e",
+    "mattpocock_skills:skill:skills/in-progress/loop-me@5beb35b": "c1c902368e0e8cf601bf35ce7eed5f16a870b3a37a776d4bae7645808753fa3c",
+    "mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules@5beb35b": "ad79c68f726ceb7fa739b9de1cb7313d1003097f56d10ae34ec2020e0121efed",
+    "mattpocock_skills:skill:skills/productivity/grilling@5beb35b": "fba6b8323aa95eded3894b4a8a59c00c1c2a248152e3f3d2eb14a41560ac8640",
+    "mattpocock_skills:skill:skills/productivity/handoff@5beb35b": "48687c4696d627a4b4bad23d3752ffab36ecf84a05621e337006d32837c0c84b",
+    "mattpocock_skills:skill:skills/productivity/teach@5beb35b": "475081e06470630d85533d2d92273fd734955e1527b3918712db86478a5e2bfd",
+    "mattpocock_skills:skill:skills/productivity/to-questionnaire@5beb35b": "2495520c01b42ac543fb7d5123ed6b069ff6d1ea0aec846549d275432659bc7a",
+    "mattpocock_skills:skill:skills/productivity/wait-what@5beb35b": "10527dd82d847687ae1ed803f60707e9e754a55e98db60772dd0778ebbe67c74",
+    "mattpocock_skills:skill:skills/productivity/writing-for-agents@5beb35b": "914e47ec40adc6a2599d371ad603aa75cd67b5fdbb3f4f3e21bbaee4e51a42b2"
   }
 }

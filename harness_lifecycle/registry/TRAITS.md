@@ -40,6 +40,9 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `out-of-scope-close`: Close an out-of-scope ticket with an explicit exclusion reason rather than a claim of delivery.
 - `human-decision-gate`: Stop at a required human decision and prepare concrete options before requesting the final gate.
 - `multi-ticket-sessions`: Continue through additional authorized ready tickets with no one-ticket-per-session limit, parallel work needing disjoint ownership.
+- `prototype-ticket-asset`: Resolve a prototype ticket by building a rough artifact and linking it from the ticket as an asset.
+- `fog-hygiene`: Keep decided, ticketed and out-of-scope items out of the map's section of not-yet-specified questions.
+- `low-res-map-load`: When working a map, load only its low-resolution body and open related tickets only on demand.
 
 #### core · Discovery · Research — research
 - `decision-framing`: State the decision, scope, constraints and material unknowns, and choose sources by what would change the answer.
@@ -77,6 +80,8 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `invocation-sidecar-sync`: Pair the manual-invocation flag with the provider's implicit-invocation policy and regenerate the catalog and sidecars together after metadata edits.
 - `compatibility-alias`: Keep a manual or legacy entrypoint as a thin pointer that delegates to the canonical owner, not as an independent workflow others auto-activate.
 - `verification`: Inspect the diff for lost contracts, scale fresh-context and pressure trials to behavioural risk, and report unavailable behavioural checks as a limit instead of manufacturing evidence.
+- `mechanical-vs-judgement`: Classify each finding as mechanical (a fixed syntactic pattern suiting a deterministic check) or judgement (cross-file consistency suiting a standards doc).
+- `extend-existing-docs-first`: Prefer extending existing pointed-to documents before writing new ones.
 
 #### core · Improvement · Codification — harness-evaluate
 - `read-first`: Before judging a candidate, read its canonical source, the relevant prior ledger decision and the closest local implementation, keeping reference repositories as read-only evidence.
@@ -157,6 +162,9 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `inline-diagrams`: Draw a structure, flow, sequence or state question as a small inline Mermaid block, using prose for requirements and trade-offs.
 - `visuals-into-spec`: Re-express an approved diagram inside the durable spec as a Mermaid block, or record what a mockup showed and decided, rather than linking disposable scratch files.
 - `html-mockup-on-request`: On explicit request only, produce one self-contained offline HTML mockup under the scratch directory for what a diagram cannot carry.
+- `user-perspective-framing`: Write a spec's problem and solution from the user's perspective.
+- `implementation-decisions-scope`: List a spec's implementation decisions across modules, interfaces, clarifications, architecture, schema, contracts and interactions.
+- `testing-decisions-contents`: Record a spec's testing decisions as what makes a good test, which modules are tested and the prior-art tests to follow.
 
 #### core · Intake · Clarification — grilling
 - `map-decisions`: Map the material decisions and their prerequisites before questioning.
@@ -180,6 +188,8 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `prior-rejection-check`: Check earlier rejections for one resembling the request and surface any match before deciding.
 - `claim-verification`: Verify a reported claim before acting on it, reproducing a bug or recording exactly why it could not be reproduced.
 - `agent-ready-gate`: Make a bead agent-executable only when acceptance criteria, current and desired behaviour, and out-of-scope notes all hold.
+- `pick-from-summary`: Show the count and a one-line summary of each waiting item and let the maintainer pick which to triage.
+- `durable-rejection-reasons`: Reject only for durable reasons of scope, technical constraint or strategy, treating a temporary reason as a deferral.
 
 #### core · U · Tutoring — teach
 - `learning-shape`: Choose one of a single concept explanation, a session walkthrough, or an explicitly requested ongoing course.
@@ -188,16 +198,36 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `teaching-workspace`: Keep a multi-session course's state (mission, resources, learning records, glossary and lessons) as files in one course workspace.
 - `authorized-course-location`: Open a course workspace only for an explicitly requested ongoing course, in an authorized supplied location, creating its files lazily.
 - `mission-grounding`: A mission document capturing the concrete real-world reason for learning that anchors every teaching choice.
-- `glossary-format`: Write opinionated glossary entries with an Avoid list and tight is-not-does definitions, grouped under subheadings when clusters emerge.
+- `glossary-entry-template`: Write glossary entries of a term and its definition, grouped under subheadings when clusters emerge.
+- `canonical-term-and-aliases`: Pick one preferred term per concept and list its other words as aliases to avoid.
+- `tight-concept-definitions`: Define each glossary term tightly by what it is, not what it does.
+- `glossary-self-vocabulary`: Use the glossary's own terms inside its other definitions.
 - `glossary-admission-on-use`: Add a term to the learner's glossary only once the learner can use it correctly.
 - `learning-records`: ADR-like records of lessons and established prior knowledge that steer what to teach next.
-- `resources-curation`: A curated, annotated set of high-trust knowledge and community sources, with gaps surfaced explicitly.
+- `learning-resource-register`: Keep a course resources file that groups sources into knowledge and community sections and annotates each with what it covers and when to use it.
+- `high-trust-resource-filter`: Admit only high-trust sources to the resources file, leaving out marketing posing as education.
+- `resource-gap-register`: List the areas the learning goal needs but no good resource covers in a gaps section of the resources file.
+- `prune-invalid-resources`: Remove resources that proved wrong, shallow or off-mission rather than keeping them.
 - `lesson-format`: Make each lesson short and self-contained, teaching one tightly scoped objective tied to the learner's goal.
 - `reusable-assets`: Reuse existing lesson assets before creating new ones.
 - `quiz-answer-hygiene`: Keep quiz options plausible and free of giveaways, never matched to exact answer length.
 - `retrieval-practice`: Have the learner retrieve answers from memory through exercises or questions.
 - `scope-discipline`: Record progress only within course scope and never treat the repository root as a teaching workspace.
 - `sourced-explanations`: Draw explanations from trusted, cited sources and check unfamiliar or changing facts rather than relying on unverified recall.
+- `mission-interview-first`: When the learning mission is unclear or empty, ask the learner why they want to learn before teaching.
+- `community-opt-out`: Respect the learner's choice not to join communities and record it.
+- `learning-record-criteria`: Write a learning record only for demonstrated understanding, disclosed prior knowledge, a corrected misconception or a mission shift, never for coverage, glossary duplicates or activity logs.
+- `field-term-resolution`: Record in the glossary how loosely used field terms are resolved in this workspace.
+- `in-place-definition-revision`: Revise glossary definitions in place as understanding deepens.
+- `mission-document-template`: Write the learning mission as why, success criteria, constraints and out of scope.
+- `one-mission-per-workspace`: Keep exactly one mission per learning workspace.
+- `one-screen-mission`: Keep the mission document within one screen.
+- `minimal-learning-record-template`: Write a learning record as a title and one to three sentences of what was learned and why it matters later.
+- `learning-record-supersession`: Mark a contradicted learning record superseded rather than deleting it.
+- `cross-linked-lessons`: Cross-link lessons to other lessons and reference documents.
+- `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write.
+- `sequential-record-numbering`: Number a new record one above the highest existing number in its folder.
+- `optional-record-sections`: Add optional sections to a record, such as status or consequences, only when they carry real information.
 
 #### core · Verification · Review — review
 - `independent-critic-verdict`: A reviewer who did not author the work gives evidence-backed findings and a verdict, approving only what was verified and listing the rest as unverified.
@@ -252,7 +282,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `pre-send-check`: Before sending, delete announcements, closers, sidebars and empty hedges.
 
 #### core · X · Communication — show-me
-- `smallest-view`: Pick the smallest view that makes the point, placing each visual next to the brief prose it supports.
+- `minimal-visual-selection`: Use the fewest and smallest visuals that make the point, never a gallery.
 - `visual-form-catalog`: Offer a set of inline visual forms — pseudocode, call, component and file trees, Mermaid and whole-block — each with its own shape rules.
 - `structural-diff`: Show a change as a diff against the structure the reader already holds rather than against raw source.
 - `visual-placement`: Place each visual immediately after the sentence it supports and include only the detail the current question needs.
@@ -362,6 +392,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `closeout`: Before declaring done, remove temporary instrumentation and record the confirmed cause.
 - `preserve-reproducers`: Keep useful reproducers and user artifacts when cleaning up after a fix.
 - `defense-in-depth-hardening`: When an invalid value crossed several layers, add a check at each layer the value passes through so the bug becomes structurally impossible, bypass-testing each layer and scoping the checks to the proven failure path.
+- `tagged-debug-logs`: Tag every debug log with a unique prefix so cleanup is a single search.
 
 #### engineering · Building · Implementation — test-driven-development
 - `mode-selection`: Choose test-first, characterization, or test-quality-only by the task rather than defaulting to one workflow.
@@ -399,6 +430,8 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `dependency-categories`: Classify a module's dependencies as in-process, locally substitutable, owned remote or true external to choose how it is tested across its seam.
 - `covered-test-removal`: Remove an old test only when its behaviour is covered elsewhere or deliberately retired, inspecting a changed test rather than deleting it automatically.
 - `design-it-twice`: Optionally compare a few materially different interface designs before a consequential choice, without forcing a multi-agent exercise on a clear one.
+- `design-proposal-contents`: Have each design proposal return its interface, a usage example, the hidden internals, its dependency strategy and its trade-offs.
+- `interface-design-recommendation`: Finish a comparison of interface designs with an opinionated recommendation.
 
 #### engineering · Design · Architecture — design-evolve
 - `integration-not-redesign`: Integrate only authorized decisions into the next version and never treat integration as licence to redesign.
@@ -425,15 +458,22 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `update-inline`: Write a resolved term into the glossary as soon as it is resolved rather than batching changes.
 - `authorized-model-writes`: Edit the glossary and decision records only when documentation work is authorized, otherwise reporting the proposed terms and decisions.
 - `glossary-is-glossary`: Keep the glossary free of implementation details and never treat it as a spec or scratchpad.
-- `glossary-format`: Write opinionated glossary entries with an Avoid list and tight is-not-does definitions, grouped under subheadings when clusters emerge.
+- `glossary-entry-template`: Write glossary entries of a term and its definition, grouped under subheadings when clusters emerge.
+- `canonical-term-and-aliases`: Pick one preferred term per concept and list its other words as aliases to avoid.
+- `tight-concept-definitions`: Define each glossary term tightly by what it is, not what it does.
 - `context-specific-terms`: Admit only terms specific to the project's context to the glossary, leaving general programming concepts out.
-- `multi-context-map`: Maintain a root context map listing contexts, their locations and relationships, inferring which context a topic belongs to or asking.
+- `context-map-artifact`: Keep a root context map listing each context with its location and purpose and the relationships between contexts.
+- `context-map-lookup`: Follow the context map to the right context's glossary when the repository has several.
+- `topic-context-resolution`: Infer which context the current topic belongs to, asking when it is unclear.
 - `adr-three-gate`: Offer a decision record only when the decision is hard to reverse, surprising without context, and the result of a real trade-off.
-- `adr-minimal-template`: Use a one-paragraph decision record with optional status, options and consequences and sequential numbering.
+- `minimal-decision-record`: Write a decision record as a title and one to three sentences of context, decision and reason.
+- `sequential-record-numbering`: Number a new record one above the highest existing number in its folder.
+- `optional-record-sections`: Add optional sections to a record, such as status or consequences, only when they carry real information.
 - `adr-what-qualifies`: Apply a worked list of decision kinds (architectural shape, integration patterns, lock-in choices, boundaries, deliberate deviations, hidden constraints, non-obvious rejections) that warrant a decision record.
 - `adr-match-convention`: Match an existing decision-record convention (location, extension, numbering, headings) before applying defaults, surfacing conflicts instead of adding a second scheme.
 - `adr-supersede-lifecycle`: Never delete a decision record; supersede it with a new one and mark the old one superseded.
 - `adr-code-gotcha-link`: Leave a short comment at a code trap or constraint linking the decision record that explains it.
+- `scoped-decision-records`: Keep system-wide decision records at the repository root and context-specific ones inside each context.
 
 #### engineering · Design · Architecture — prototype
 - `named-question`: Build a throwaway artifact to answer one named design question.
@@ -445,7 +485,11 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `persistence-when-needed`: Bring persistence into a prototype only when the question needs it.
 - `cheap-assertions`: Use a small assertion as the cheapest proof where it helps, since a prototype implies neither a full test suite nor a ban on checks.
 - `logic-pure-module`: Keep domain logic readable apart from presentation as a reducer, state machine, pure functions or small stateful module.
-- `logic-shareable-html`: Offer a self-contained HTML demo with the question, a readable state panel, controls and guided scenarios that reset to a known state.
+- `self-contained-html-demo`: Offer an interactive demo as one self-contained HTML file that works offline.
+- `demo-states-question`: Include in a demo the question it answers.
+- `readable-state-panel`: Show a demo's current state in a readable panel.
+- `demo-state-controls`: Give a demo controls that drive its state.
+- `resettable-demo-scenarios`: Give a demo guided scenarios that each reset to a known state.
 - `ui-contextual-preview`: Prefer an isolated preview, or an authorized existing-page preview that cannot leak into production, over a new live route.
 - `variants-when-comparing`: Build UI variants only when comparing alternatives is the question the prototype answers.
 - `structural-variants`: Make UI variants differ in meaningful structure and layout, not just colour or styling.
@@ -454,6 +498,8 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `ui-accessibility`: Keep focus, contrast and interaction states usable in a UI prototype while real mutations are stubbed.
 - `capture-outcome`: Record the prototype's verdict and the question it settled, with a pointer to the preserved artifact.
 - `separate-promotion`: Treat promoting a prototype's decision or code into production as separate work with its own scope and checks.
+- `stubbed-mutations`: Point UI variants that need mutations at stubs rather than real backends.
+- `production-hidden-switcher`: Hide a prototype's variant switcher from production builds.
 
 #### engineering · Design · Decomposition — planning
 - `route-by-scale`: Route between brainstorming, a brief local sequence, elaborate, decompose, or executing from a roadmap row according to the work's scale.
@@ -470,6 +516,8 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `reviewer-rejectable-sizing`: Size each task so a reviewer could accept or reject it independently of its neighbour, folding setup, scaffolding and docs into the deliverable they serve.
 - `real-id-wiring`: Wire cross-references and dependencies with real identifiers, never placeholders.
 - `no-stale-code-snippets`: Keep code snippets out of a durable spec or ticket because they go stale.
+- `ground-in-codebase`: Explore the current state of the code before writing, so the artifact targets what actually exists.
+- `breakdown-approval-before-publish`: Iterate on the ticket breakdown until the user approves it, publishing nothing before approval.
 
 #### engineering · Discovery · Research — codebase-research
 - `three-modes`: Offer three research modes — an L1 capability survey, an L2 architecture map, and a deep dive on one named question — all landing under a per-target research directory.
@@ -494,6 +542,8 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `optional-report`: Produce a standalone HTML report only when requested or clearly helpful, delegating presentation to the shared artifact skill and requiring any before/after diagram to show a real structural difference.
 - `adr-conflict-callout`: When a candidate conflicts with a decision record, explain the new evidence that might justify revisiting it.
 - `review-no-auto-followup`: Do not automatically enter a grilling loop, interview, alternative-design exercise or domain-document update after delivering the review; each happens only when requested or already authorized.
+- `respect-area-adrs`: Honour the recorded architectural decisions that govern the area being changed.
+- `top-candidate-recommendation`: End a candidate survey with a single top recommendation.
 
 #### engineering · Verification · Review — security
 - `scope-threat`: Name the changed entrypoints, assets, identities and consequences, tracing untrusted input to consequential sinks including model outputs used as commands, paths, queries or markup.
@@ -643,352 +693,617 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 ### mattpocock_skills
 
 #### core · Discovery · Charting — skill:skills/engineering/wayfinder
-- `decision-map-epic`: Chart a large effort as one map item on the tracker whose children are decision tickets.
-- `plan-not-do`: Keep the map to planning: each ticket resolves a decision rather than executing a build slice.
-- `reference-by-name`: Reference tickets by name with identifiers and links so the map reads without opening every item.
-- `map-as-index`: Keep resolution detail on each ticket while the map holds only a named pointer and a gist.
-- `map-body-sections`: Structure the map body as Destination, Notes, Decisions so far, Not yet specified, and Out of scope.
-- `bounded-decision-ticket`: Make each ticket one bounded question whose answer is a decision.
-- `session-sized-tickets`: Size each ticket to fit one agent session's context window.
-- `claim-before-work`: Choose the requested or a ready unclaimed child and claim it before working on it.
-- `dependency-edges`: Encode real blocking edges in the tracker and let the ready frontier drive execution rather than listing order.
-- `ticket-type-set`: A fixed set of ticket kinds: research for facts, prototype for fidelity, grilling for a live interview, and task for prerequisite work that unblocks a decision.
-- `live-human-resolution`: Resolve a human-in-the-loop item only through a live exchange with the human, never answering the human's side yourself.
-- `question-graduation`: Ticket a question once it is sharp enough to state, even while blocked, and hold not-yet-specifiable work aside until earlier answers make it expressible.
-- `out-of-scope-close`: Close an out-of-scope ticket with an explicit exclusion reason rather than a claim of delivery.
-- `one-ticket-per-session`: Resolve no more than one ticket per session, except research tickets.
-- `research-subagent-branch`: Resolve research tickets with subagents that capture findings on a throwaway research branch.
-- `real-id-wiring`: Wire cross-references and dependencies with real identifiers, never placeholders.
-- `no-triage-labels`: Carry only wayfinder-type labels on a map and its tickets, never a triage label.
-- `research-branch-pr-policy`: Push the research branch but open no pull request from it, and never merge it.
-- `type-directed-resolution`: Resolve each ticket as the type its label names, reading the label rather than inferring from the body.
-- `destination-first`: Name the destination first, since it fixes the scope and shapes every ticket.
-- `no-map-without-fog`: If breadth-first charting surfaces no fog, stop and ask how to proceed rather than building a map.
-- `record-resolution`: On resolving a ticket, record the answer on it, close it, and add a pointer to the map's decisions so far.
+- `decision-map-epic`: Chart a large effort as one map item on the tracker whose children are decision tickets. — adopt → wayfinder#decision-map-epic
+- `plan-not-do`: Keep the map to planning: each ticket resolves a decision rather than executing a build slice. — adopt → wayfinder#plan-not-do
+- `reference-by-name`: Reference tickets by name with identifiers and links so the map reads without opening every item. — adopt → wayfinder#reference-by-name
+- `map-as-index`: Keep resolution detail on each ticket while the map holds only a named pointer and a gist. — adopt → wayfinder#map-as-index
+- `map-body-sections`: Structure the map body as Destination, Notes, Decisions so far, Not yet specified, and Out of scope. — adopt → wayfinder#map-body-sections
+- `bounded-decision-ticket`: Make each ticket one bounded question whose answer is a decision. — adopt → wayfinder#bounded-decision-ticket
+- `session-sized-tickets`: Size each ticket to fit one agent session's context window. — defer
+- `claim-before-work`: Choose the requested or a ready unclaimed child and claim it before working on it. — adopt → wayfinder#claim-before-work
+- `dependency-edges`: Encode real blocking edges in the tracker and let the ready frontier drive execution rather than listing order. — adopt → wayfinder#dependency-edges
+- `ticket-type-set`: A fixed set of ticket kinds: research for facts, prototype for fidelity, grilling for a live interview, and task for prerequisite work that unblocks a decision. — adopt → wayfinder#ticket-type-set
+- `live-human-resolution`: Resolve a human-in-the-loop item only through a live exchange with the human, never answering the human's side yourself. — adopt → wayfinder#human-decision-gate
+- `question-graduation`: Ticket a question once it is sharp enough to state, even while blocked, and hold not-yet-specifiable work aside until earlier answers make it expressible. — adopt → wayfinder#question-graduation
+- `out-of-scope-close`: Close an out-of-scope ticket with an explicit exclusion reason rather than a claim of delivery. — adopt → wayfinder#out-of-scope-close
+- `one-ticket-per-session`: Resolve no more than one ticket per session, except research tickets. — defer
+- `research-subagent-branch`: Resolve research tickets with subagents that capture findings on a throwaway research branch. — defer
+- `real-id-wiring`: Wire cross-references and dependencies with real identifiers, never placeholders. — adopt → wayfinder#real-id-wiring
+- `no-triage-labels`: Carry only wayfinder-type labels on a map and its tickets, never a triage label. — adopt → wayfinder#label-free-typing
+- `research-branch-pr-policy`: Push the research branch but open no pull request from it, and never merge it. — defer
+- `type-directed-resolution`: Resolve each ticket as the type its label names, reading the label rather than inferring from the body. — adopt → wayfinder#ticket-type-set
+- `destination-first`: Name the destination first, since it fixes the scope and shapes every ticket. — adopt → wayfinder#destination-first
+- `no-map-without-fog`: If breadth-first charting surfaces no fog, stop and ask how to proceed rather than building a map. — defer
+- `record-resolution`: On resolving a ticket, record the answer on it, close it, and add a pointer to the map's decisions so far. — adopt → wayfinder#record-resolution
+- `local-tracker-default`: Default to a local markdown tracker when no tracker is configured. — defer
+- `prototype-ticket-asset`: Resolve a prototype ticket by building a rough artifact and linking it from the ticket as an asset. — adopt → wayfinder#prototype-ticket-asset
+- `grilling-default-type`: Make a live interview the default ticket type. — defer
+- `fog-hygiene`: Keep decided, ticketed and out-of-scope items out of the map's section of not-yet-specified questions. — adopt → wayfinder#fog-hygiene
+- `out-of-scope-final`: Never graduate an out-of-scope item back into the map; it returns only as a fresh effort if the destination changes. — defer
+- `breadth-first-charting`: Chart by questioning breadth-first across the whole space to surface the open decisions and first steps before going deep on any. — adopt, pending cr-axdt.6.13 → wayfinder#breadth-first-charting
+- `map-initial-state`: Create a new map with destination and notes filled, decisions empty and the unspecified questions sketched. — defer
+- `chart-only-session`: End the charting session without resolving any ticket. — defer
+- `low-res-map-load`: When working a map, load only its low-resolution body and open related tickets only on demand. — adopt → wayfinder#low-res-map-load
+- `ticket-asset-pointers`: Link assets created while resolving a ticket from the tracker rather than pasting them into it. — defer
+- `prerequisite-task-human-checklist`: Do prerequisite task work alone where possible, otherwise hand the human a precise checklist. — adopt, pending cr-axdt.6.13 → wayfinder#prerequisite-task-human-checklist
+- `prerequisite-task-result-facts`: Record on a prerequisite task the resulting facts later tickets depend on, such as URLs or where credentials live. — adopt, pending cr-axdt.6.13 → wayfinder#prerequisite-task-result-facts
+- `invalidated-ticket-reconciliation`: Update or delete the other tickets that a recorded decision invalidated. — adopt, pending cr-axdt.6.13 → wayfinder#invalidated-ticket-reconciliation
 
 #### core · Discovery · Research — skill:skills/engineering/research
-- `background-agent`: Delegate reading legwork to a background agent so the caller keeps working while it investigates.
-- `primary-source-preference`: Prefer primary sources such as official docs, source code and specs over secondary write-ups.
-- `cited-artifact`: Bind citations to the claims they support in the research output.
-- `findings-file`: Always write the findings to one Markdown file saved where the repository keeps such notes.
+- `background-agent`: Delegate reading legwork to a background agent so the caller keeps working while it investigates. — adopt → research#sizeable-delegation
+- `cited-artifact`: Bind citations to the claims they support in the research output. — adopt → research#cited-artifact
+- `findings-file`: Always write the findings to one Markdown file saved where the repository keeps such notes. — adopt → research#scaled-report
+- `primary-source-only-research`: Research only from primary sources such as official docs, source code and specs, never from a secondary write-up of them. — adopt → research#primary-source-preference
+- `claim-source-tracing`: Follow every claim back to the primary source that owns it. — defer
 
 #### core · Intake · Clarification — skill:skills/engineering/grill-with-docs
-- `document-during-interview`: Pair a clarifying interview with live documentation so the glossary and decision records are produced as the interview settles each question.
+- `document-during-interview`: Pair a clarifying interview with live documentation so the glossary and decision records are produced as the interview settles each question. — adopt → grilling#optional-docs
 
 #### core · Intake · Clarification — skill:skills/in-progress/loop-me
-- `loop-lens`: See the user's life as loops within loops to find recurring activities worth delegating, proposing ones they have not noticed.
-- `workflow-spec-artifact`: Keep each workflow's spec in its own markdown file as the single source of truth.
-- `spec-done-when-buildable`: Treat a spec as done only when an implementer could build it without asking a single question.
-- `world-notes`: Capture the user's world, tools, channels and terminology in a notes file, interviewing them first when it is thin.
-- `workflow-vocabulary`: Describe a workflow with a shared vocabulary of Trigger, an event or schedule, and Checkpoint.
-- `mandate-nothing-structural`: Impose no structure such as AI, a checkpoint or a schedule on a workflow unless the interview shows it is needed.
-- `push-right`: Defer the human checkpoint as far as it will go, doing maximal work first so the human is asked once, late, with everything prepared.
-- `decision-summary-brief`: Present a checkpoint as a tight, decision-ready summary of what was produced and why with a link, never the raw output.
+- `loop-lens`: See the user's life as loops within loops to find recurring activities worth delegating, proposing ones they have not noticed. — defer
+- `workflow-spec-artifact`: Keep each workflow's spec in its own markdown file as the single source of truth. — defer
+- `spec-done-when-buildable`: Treat a spec as done only when an implementer could build it without asking a single question. — defer
+- `world-notes`: Capture the user's world, tools, channels and terminology in a notes file, interviewing them first when it is thin. — defer
+- `workflow-vocabulary`: Describe a workflow with a shared vocabulary of Trigger, an event or schedule, and Checkpoint. — defer
+- `mandate-nothing-structural`: Impose no structure such as AI, a checkpoint or a schedule on a workflow unless the interview shows it is needed. — defer
+- `push-right`: Defer the human checkpoint as far as it will go, doing maximal work first so the human is asked once, late, with everything prepared. — defer
+- `decision-summary-brief`: Present a checkpoint as a tight, decision-ready summary of what was produced and why with a link, never the raw output. — defer
+- `spec-files-only-output`: Run a stateful interview whose only output is the specification files. — defer
+- `answer-before-next-round`: Wait for the respondent's answers to a round before asking the next one. — adopt, pending cr-axdt.6.4 → grilling#answer-before-next-round
+- `recommended-answer`: Attach a recommended answer to each question, letting the respondent disagree. — adopt → grilling#recommended-answer
+- `live-spec-edits`: Create, edit and delete specification files as the interview resolves each point. — defer
+- `prefer-event-triggers`: Prefer an event trigger to a schedule, as usually the more efficient of the two. — defer
+- `sharpen-fuzzy`: Propose one precise canonical term for a vague or overloaded one. — adopt → domain-modeling#sharpen-fuzzy
 
 #### core · Intake · Clarification — skill:skills/productivity/grilling
-- `map-decisions`: Map the material decisions and their prerequisites before questioning.
-- `question-batching`: Batch independent questions whose prerequisites are settled and defer each dependent question until its prerequisites are answered.
-- `recommended-answer`: Attach a recommended answer to each question, letting the respondent disagree.
-- `yes-accepts-recommendation`: Word each question so that a yes accepts your recommended answer.
-- `round-format`: Lay out each round in a fixed question-and-recommendation markdown format, one block per question.
-- `self-serve-facts`: Look up available facts yourself rather than asking, leaving only the decisions to the live participant.
-- `exhaustive-completion`: End the session only when the frontier is empty and every branch of the tree has been visited, with nothing silently assumed.
-- `reconfirm-before-action`: Do not act until the user confirms a shared understanding has been reached.
+- `map-decisions`: Map the material decisions and their prerequisites before questioning. — adopt → grilling#map-decisions
+- `question-batching`: Batch independent questions whose prerequisites are settled and defer each dependent question until its prerequisites are answered. — adopt → grilling#question-batching
+- `recommended-answer`: Attach a recommended answer to each question, letting the respondent disagree. — adopt → grilling#recommended-answer
+- `yes-accepts-recommendation`: Word each question so that a yes accepts your recommended answer. — adopt, pending cr-axdt.6.4 → grilling#yes-accepts-recommendation
+- `round-format`: Lay out each round in a fixed question-and-recommendation markdown format, one block per question. — defer
+- `self-serve-facts`: Look up available facts yourself rather than asking, leaving only the decisions to the live participant. — adopt → grilling#self-serve-facts
+- `exhaustive-completion`: End the session only when the frontier is empty and every branch of the tree has been visited, with nothing silently assumed. — defer
+- `reconfirm-before-action`: Do not act until the user confirms a shared understanding has been reached. — defer
+- `answer-before-next-round`: Wait for the respondent's answers to a round before asking the next one. — adopt, pending cr-axdt.6.4 → grilling#answer-before-next-round
+- `non-blocking-lookup`: Run a fact lookup without blocking the interview, holding back only the questions downstream of it. — defer
 
 #### core · Intake · Clarification — skill:skills/productivity/to-questionnaire
-- `grill-the-send`: Ask the present user only about the send (who it goes to and what they need back), never about the subject the recipient knows.
-- `two-exchange-interview`: Run the interview as two bounded exchanges, the recipient and what the user needs back.
-- `gap-targeted-questions`: Aim a questionnaire's questions at the gap between what the recipient knows and what the sender needs.
-- `questionnaire-artifact`: Write the questionnaire to a slug-named markdown file in the current directory and report its path.
-- `document-structure`: Fill a fixed questionnaire template, ordered most-important-first, of purpose, from/to/use, context, how-to-answer, themed sections of one-idea questions with answer stubs, and a closing catch-all.
+- `grill-the-send`: Ask the present user only about the send (who it goes to and what they need back), never about the subject the recipient knows. — adopt → grilling#grill-the-send
+- `two-exchange-interview`: Run the interview as two bounded exchanges, the recipient and what the user needs back. — defer
+- `gap-targeted-questions`: Aim a questionnaire's questions at the gap between what the recipient knows and what the sender needs. — adopt → grilling#gap-targeted-questions
+- `questionnaire-artifact`: Write the questionnaire to a slug-named markdown file in the current directory and report its path. — defer
+- `absent-respondent`: When the needed respondent is absent, prepare a questionnaire for them instead of interviewing the present user about the subject. — adopt → grilling#absent-respondent
+- `needed-item-coverage`: Finish a questionnaire only when every needed decision or fact is covered by at least one question. — adopt, pending cr-axdt.6.4 → grilling#needed-item-coverage
+- `selective-why-lines`: Add a one-line reason a question matters only where it could be misread or invite a throwaway answer. — defer
+- `importance-ordered-questions`: Order a questionnaire's questions most important first. — adopt, pending cr-axdt.6.4 → grilling#importance-ordered-questions
+- `questionnaire-document-template`: Fill a questionnaire template of purpose, a from-to-use line, a context section, how to answer, themed question sections with answer stubs, and a closing catch-all. — defer
+- `questionnaire-response-expectations`: Tell the respondent the deadline and the rough effort answering will take. — defer
+- `partial-uncertain-answers-welcome`: Invite partial and don't-know answers, asking the respondent to flag uncertainty rather than skip the question. — defer
+- `single-idea-questions`: Make each question a single idea, never a compound one. — adopt, pending cr-axdt.6.4 → grilling#single-idea-questions
 
 #### core · Improvement · Codification — skill:skills/productivity/writing-for-agents
-- `context-pointers`: Write a pointer that names the material and the condition for reaching it, front-loading the trigger.
-- `two-loads`: Weigh always-loaded context cost on the agent against cognitive load on the human.
-- `inline-vs-disclose`: Inline what every branch needs and disclose branch-specific material behind a conditional pointer.
-- `co-location`: Keep a concept's definition, rules and caveats under one heading so reading one part brings its neighbours.
-- `completion-criteria-clarity`: End each step on an observable, checkable done-or-not-done criterion that resists premature completion.
-- `completion-criteria-demand`: Phrase the criterion to demand thorough work, driving the legwork latent in its wording.
-- `split-by-invocation`: Split off a model-invoked skill only when a distinct leading word should trigger it or another skill must reach it.
-- `sequence-isolation`: Split a run of steps so later post-completion steps stay out of view, driving more legwork on the step in front.
-- `leading-words`: Anchor behaviour in a compact pretrained concept repeated as a token, reaching for an existing word before coining one.
-- `negation-avoidance`: Steer by the positive target because negation makes the forbidden behaviour more available, keeping prohibitions a last-resort guardrail.
-- `single-source-of-truth`: Keep each meaning in one authoritative place so changing it is a one-place edit.
-- `environment-as-cache`: Point to authoritative commands and lookups instead of copying volatile facts the agent can find itself.
-- `relevance-check`: Check every line still bears on the document's task, pruning stale or irrelevant ones.
-- `no-op-deletion`: Delete instructions the model already follows by default.
-- `invocation-mode`: Choose model-invoked or user-invoked activation, setting the disable-model-invocation flag for manual workflows.
-- `shared-reference-home`: Put reference several skills need in one model-invoked, all-reference skill they can each invoke.
-- `router-skills`: When user-invoked skills multiply, add a user-invoked router skill that names the others and when to reach each, hinting rather than firing them.
+- `context-pointers`: Write a pointer that names the material and the condition for reaching it, front-loading the trigger. — adopt → authoring-for-agents#context-pointers
+- `two-loads`: Weigh always-loaded context cost on the agent against cognitive load on the human. — adopt → authoring-for-agents#two-loads
+- `inline-vs-disclose`: Inline what every branch needs and disclose branch-specific material behind a conditional pointer. — adopt → authoring-for-agents#inline-vs-disclose
+- `co-location`: Keep a concept's definition, rules and caveats under one heading so reading one part brings its neighbours. — adopt, pending cr-axdt.6.1 → authoring-for-agents#co-location
+- `completion-criteria-clarity`: End each step on an observable, checkable done-or-not-done criterion that resists premature completion. — adopt → authoring-for-agents#completion-criteria-clarity
+- `completion-criteria-demand`: Phrase the criterion to demand thorough work, driving the legwork latent in its wording. — adopt, pending cr-axdt.6.1 → authoring-for-agents#completion-criteria-demand
+- `split-by-invocation`: Split off a model-invoked skill only when a distinct leading word should trigger it or another skill must reach it. — adopt, pending cr-axdt.6.1 → authoring-for-agents#split-by-invocation
+- `sequence-isolation`: Split a run of steps so later post-completion steps stay out of view, driving more legwork on the step in front. — defer
+- `leading-words`: Anchor behaviour in a compact pretrained concept repeated as a token, reaching for an existing word before coining one. — defer
+- `negation-avoidance`: Steer by the positive target because negation makes the forbidden behaviour more available, keeping prohibitions a last-resort guardrail. — defer
+- `single-source-of-truth`: Keep each meaning in one authoritative place so changing it is a one-place edit. — adopt → authoring-for-agents#single-source-of-truth
+- `environment-as-cache`: Point to authoritative commands and lookups instead of copying volatile facts the agent can find itself. — adopt → authoring-for-agents#environment-as-cache
+- `relevance-check`: Check every line still bears on the document's task, pruning stale or irrelevant ones. — adopt, pending cr-axdt.6.1 → authoring-for-agents#relevance-check
+- `no-op-deletion`: Delete instructions the model already follows by default. — adopt → authoring-for-agents#no-op-deletion
+- `invocation-mode`: Choose model-invoked or user-invoked activation, setting the disable-model-invocation flag for manual workflows. — adopt → authoring-for-agents#invocation-mode
+- `shared-reference-home`: Put reference several skills need in one model-invoked, all-reference skill they can each invoke. — defer
+- `router-skills`: When user-invoked skills multiply, add a user-invoked router skill that names the others and when to reach each, hinting rather than firing them. — defer
+- `sharpen-before-inline`: Fix a weakly reached must-have target by sharpening its pointer's wording first, inlining it only if that fails. — adopt, pending cr-axdt.6.1 → authoring-for-agents#sharpen-before-inline
+- `one-trigger-per-branch`: Give each trigger branch of a pointer one trigger, collapsing synonyms. — adopt, pending cr-axdt.6.1 → authoring-for-agents#one-trigger-per-branch
+- `pointer-identity-trim`: Cut from a pointer any identity the target's own body already carries. — adopt, pending cr-axdt.6.1 → authoring-for-agents#pointer-identity-trim
+- `criterion-before-isolation`: Sharpen a vague completion criterion before considering hiding the later steps. — defer
+- `triad-collapse`: Hunt restated triads and long gestures and collapse each into a single leading word. — defer
+- `model-facing-description`: Write a model-invoked skill's description as a model-facing pointer listing its trigger branches. — adopt → authoring-for-agents#activation-boundary
+- `human-facing-description`: Write a user-invoked skill's description as a one-line human summary with triggers stripped. — adopt, pending cr-axdt.6.1 → authoring-for-agents#human-facing-description
+- `external-shared-reference`: Put reference shared by user-invoked skills in a plain external file rather than a skill. — adopt → authoring-for-agents#surface-choice
+- `observed-rushing-context-isolation`: Hide post-completion steps only after sharpening the completion criterion has failed and rushing is observed, and only across a real context boundary such as a handoff or subagent. — defer
+- `empirical-instruction-default-check`: Settle whether an instruction changes behaviour from the model's default by running the document, not by debate. — adopt → authoring-for-agents#verification
 
 #### core · X · Communication — skill:skills/productivity/wait-what
-- `repitch-trigger`: When a message did not land, stop and re-pitch it rather than adding more.
-- `controlled-language`: Re-pitch in controlled simplified language with short sentences and common words.
-- `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write.
-- `context-map-lookup`: Follow the context map to the right context's glossary when the repository has several.
+- `repitch-trigger`: When a message did not land, stop and re-pitch it rather than adding more. — adopt → i-have-adhd#repitch-trigger
+- `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write. — adopt → i-have-adhd#domain-vocabulary
+- `context-map-lookup`: Follow the context map to the right context's glossary when the repository has several. — defer
+- `standard-controlled-language`: Re-pitch in ASD-STE100 Simplified Technical English. — adopt → i-have-adhd#controlled-language
 
 #### core · X · Continuity — skill:skills/productivity/handoff
-- `handoff-doc`: Write a handoff document summarising the current conversation so a fresh agent can continue the work.
-- `temp-dir-destination`: Save the handoff to the operating system's temporary directory rather than the workspace.
-- `suggested-skills`: Name in the handoff which skills the next agent should reach for.
-- `link-dont-copy`: Reference existing artifacts by path or URL rather than copying their content into a handoff.
-- `redact-secrets`: Redact secrets and personal data as placeholders in anything shown or saved, driving commands from environment variables so credentials never appear.
-- `tailor-to-next-focus`: Treat any passed arguments as the next session's focus and tailor the handoff to it.
+- `handoff-doc`: Write a handoff document summarising the current conversation so a fresh agent can continue the work. — defer
+- `temp-dir-destination`: Save the handoff to the operating system's temporary directory rather than the workspace. — defer
+- `suggested-skills`: Name in the handoff which skills the next agent should reach for. — defer
+- `link-dont-copy`: Reference existing artifacts by path or URL rather than copying their content into a handoff. — defer
+- `tailor-to-next-focus`: Treat any passed arguments as the next session's focus and tailor the handoff to it. — defer
+- `placeholder-sensitive-data-redaction`: Replace secrets and personal data with placeholders in anything shown or saved. — defer
+
+#### core · X · Coordination — skill:skills/in-progress/chief-of-staff
+- `single-coordinator-session`: Act as the single accountable coordinator for a long-running goal within one session. — defer
+- `dual-track-thinking`: Think on a tactical track for the current task and a strategic track for improving the environment for the next task. — defer
+- `suggest-schedules`: Suggest recurring schedules that help reach the goal where the harness supports them. — defer
+- `coordinator-delegates-all`: Do all work in subagents so the coordinator's context stays free for coordination. — defer
+- `background-dispatch-for-dialogue`: Run subagents in the background so the coordinator stays in live dialogue with the user. — adopt, pending cr-axdt.6.3 → delegation#background-dispatch-for-dialogue
+- `pointer-only-subagent-briefs`: Keep subagent communication sparse by passing pointers to the spec, tickets, notes and commits rather than copying their content. — defer
+- `persistent-wiki-memory`: Keep durable memory in an interlinked markdown wiki that outlives the session. — defer
+- `agreed-wiki-location`: Agree the wiki's location with the user before the first write. — defer
+- `wiki-index`: Maintain a wiki index listing every page with a link and a one-line summary, grouped by category. — defer
+- `single-subject-pages`: Give each wiki page one subject and link it to related pages. — defer
+- `cite-not-copy-sources`: Cite sources from wiki pages without copying or editing the sources. — defer
+- `wiki-propagation`: On learning something durable, update every affected wiki page and the index. — defer
+- `wiki-consult-first`: Read the wiki index and the linked pages before deciding. — defer
+- `file-answers-as-pages`: File a reusable answer as a new wiki page. — defer
+- `wiki-lint`: Periodically lint the wiki for contradictions, orphans, missing links and stale claims, proposing the lint as a schedule. — defer
+- `dated-history-entries`: Write the wiki as dated history rather than present-tense claims about code. — defer
+- `commit-pinned-claims`: Pin every recorded claim about code to a repository and commit. — defer
+- `supersede-wiki-claims`: Supersede a changed wiki claim with a new dated entry instead of rewriting the old one. — defer
+- `environment-improvement-lens`: Treat every task and user message as a prompt to look first for improvements to the agents' environment. — defer
+- `agent-data-access`: Give agents direct data sources such as process logs, test databases and browser access. — defer
+- `no-workarounds-rule`: Enforce a no-workarounds rule, fixing convention deviations before feature work. — defer
+- `constrained-agent-interfaces`: Give agents tightly constrained APIs and functions so the easy path is the correct one. — defer
+- `correctness-enforcing-lint`: Add lint rules that force correct code so agents cannot drift from it. — defer
+- `reviewer-owns-standards`: Allocate coding-standards enforcement to the review agent rather than the implementation agent. — defer
 
 #### core · U · Tutoring — skill:skills/productivity/teach
-- `teaching-workspace`: Keep a multi-session course's state (mission, resources, learning records, glossary and lessons) as files in one course workspace.
-- `always-stateful-course`: Treat every teaching request as a stateful multi-session course kept in the workspace.
-- `workspace-from-run-dir`: Resolve workspace paths from the directory the skill was run in, resolving only the format-template links from the skill folder.
-- `mission-grounding`: A mission document capturing the concrete real-world reason for learning that anchors every teaching choice.
-- `proximal-next-lesson`: When the learner names no target, choose the next lesson from the learning records and mission so it challenges them just enough.
-- `storage-strength`: Favour long-term retention over in-the-moment fluency, which can give an illusory sense of mastery.
-- `retrieval-practice`: Have the learner retrieve answers from memory through exercises or questions.
-- `spacing`: Space practice over time to build long-term retention.
-- `interleaving`: Interleave different but related topics in practice.
-- `lesson-format`: Make each lesson short and self-contained, teaching one tightly scoped objective tied to the learner's goal.
-- `html-lessons`: Deliver every lesson as one self-contained HTML file.
-- `reusable-assets`: Reuse existing lesson assets before creating new ones.
-- `shared-component-extraction`: Write each new reusable lesson piece as a shared component and link to it, never inlining code a later lesson would duplicate.
-- `glossary-format`: Write opinionated glossary entries with an Avoid list and tight is-not-does definitions, grouped under subheadings when clusters emerge.
-- `glossary-admission-on-use`: Add a term to the learner's glossary only once the learner can use it correctly.
-- `learning-records`: ADR-like records of lessons and established prior knowledge that steer what to teach next.
-- `quiz-equal-length`: Make every quiz answer the same number of words, and characters where possible, so formatting gives nothing away.
-- `vary-answer-position`: Vary which position holds the correct answer across questions so order gives nothing away.
-- `resources-curation`: A curated, annotated set of high-trust knowledge and community sources, with gaps surfaced explicitly.
-- `wisdom-community-referral`: For questions needing real-world wisdom, attempt an answer but ultimately refer the learner to a high-reputation community.
-- `reference-sheets`: Build durable quick-reference documents that outlive the lessons that spawned them.
-- `preference-notes`: Record the learner's stated teaching preferences in a notes file to steer future lessons.
-- `sourced-explanations`: Draw explanations from trusted, cited sources and check unfamiliar or changing facts rather than relying on unverified recall.
-- `tight-feedback-loop`: Teach skills through an interactive feedback loop that is as tight and immediate, ideally automatic, as possible.
+- `teaching-workspace`: Keep a multi-session course's state (mission, resources, learning records, glossary and lessons) as files in one course workspace. — adopt → teach#teaching-workspace
+- `always-stateful-course`: Treat every teaching request as a stateful multi-session course kept in the workspace. — defer
+- `workspace-from-run-dir`: Resolve workspace paths from the directory the skill was run in, resolving only the format-template links from the skill folder. — defer
+- `mission-grounding`: A mission document capturing the concrete real-world reason for learning that anchors every teaching choice. — adopt → teach#mission-grounding
+- `proximal-next-lesson`: When the learner names no target, choose the next lesson from the learning records and mission so it challenges them just enough. — adopt → teach#level-adaptation
+- `storage-strength`: Favour long-term retention over in-the-moment fluency, which can give an illusory sense of mastery. — adopt, pending cr-axdt.6.10 → teach#storage-strength
+- `retrieval-practice`: Have the learner retrieve answers from memory through exercises or questions. — adopt → teach#retrieval-practice
+- `spacing`: Space practice over time to build long-term retention. — adopt, pending cr-axdt.6.10 → teach#spacing
+- `lesson-format`: Make each lesson short and self-contained, teaching one tightly scoped objective tied to the learner's goal. — adopt → teach#lesson-format
+- `html-lessons`: Deliver every lesson as one self-contained HTML file. — defer
+- `reusable-assets`: Reuse existing lesson assets before creating new ones. — adopt → teach#reusable-assets
+- `shared-component-extraction`: Write each new reusable lesson piece as a shared component and link to it, never inlining code a later lesson would duplicate. — defer
+- `glossary-admission-on-use`: Add a term to the learner's glossary only once the learner can use it correctly. — adopt → teach#glossary-admission-on-use
+- `learning-records`: ADR-like records of lessons and established prior knowledge that steer what to teach next. — adopt → teach#learning-records
+- `quiz-equal-length`: Make every quiz answer the same number of words, and characters where possible, so formatting gives nothing away. — defer
+- `vary-answer-position`: Vary which position holds the correct answer across questions so order gives nothing away. — adopt, pending cr-axdt.6.10 → teach#vary-answer-position
+- `wisdom-community-referral`: For questions needing real-world wisdom, attempt an answer but ultimately refer the learner to a high-reputation community. — defer
+- `reference-sheets`: Build durable quick-reference documents that outlive the lessons that spawned them. — defer
+- `preference-notes`: Record the learner's stated teaching preferences in a notes file to steer future lessons. — defer
+- `sourced-explanations`: Draw explanations from trusted, cited sources and check unfamiliar or changing facts rather than relying on unverified recall. — adopt → teach#sourced-explanations
+- `tight-feedback-loop`: Teach skills through an interactive feedback loop that is as tight and immediate, ideally automatic, as possible. — defer
+- `knowledge-skills-wisdom-frame`: Frame learning as knowledge from trusted sources, skills from interactive lessons and wisdom from communities. — adopt, pending cr-axdt.6.10 → teach#knowledge-skills-wisdom-frame
+- `resource-gathering-priority`: Prioritise finding high-quality resources until the resources file is well populated. — defer
+- `polished-lesson-typography`: Make lessons visually polished with clean typography so they serve later review. — defer
+- `open-artifact-for-user`: Open a generated artifact for the user with the platform's opener and give its path. — defer
+- `cross-linked-lessons`: Cross-link lessons to other lessons and reference documents. — adopt → teach#cross-linked-lessons
+- `lesson-primary-source`: Recommend one top primary source with each lesson. — defer
+- `follow-up-prompt`: Remind the learner in each lesson to ask follow-up questions. — defer
+- `mission-interview-first`: When the learning mission is unclear or empty, ask the learner why they want to learn before teaching. — adopt → teach#mission-interview-first
+- `mission-shift-handling`: When the mission shifts or goes stale, confirm with the learner, revise the mission and add a learning record. — adopt, pending cr-axdt.6.10 → teach#mission-shift-handling
+- `just-enough-knowledge`: Include only the knowledge a lesson's target skill needs, teaching it first and then practising. — defer
+- `difficulty-by-kind`: Minimise difficulty when conveying knowledge but make retrieval effortful when building skills. — defer
+- `skill-practice-forms`: Teach skills through quizzes, in-browser tasks or guided real-world step lists. — defer
+- `community-opt-out`: Respect the learner's choice not to join communities and record it. — adopt → teach#community-opt-out
+- `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write. — adopt → teach#domain-vocabulary
+- `learning-record-criteria`: Write a learning record only for demonstrated understanding, disclosed prior knowledge, a corrected misconception or a mission shift, never for coverage, glossary duplicates or activity logs. — adopt → teach#learning-record-criteria
+- `field-term-resolution`: Record in the glossary how loosely used field terms are resolved in this workspace. — adopt → teach#field-term-resolution
+- `in-place-definition-revision`: Revise glossary definitions in place as understanding deepens. — adopt → teach#in-place-definition-revision
+- `learning-resource-register`: Keep a course resources file that groups sources into knowledge and community sections and annotates each with what it covers and when to use it. — adopt → teach#learning-resource-register
+- `skills-only-interleaving`: Interleave related topics only when practising skills, not when conveying knowledge. — defer
+- `mission-document-template`: Write the learning mission as why, success criteria, constraints and out of scope. — adopt → teach#mission-document-template
+- `one-mission-per-workspace`: Keep exactly one mission per learning workspace. — adopt → teach#one-mission-per-workspace
+- `one-screen-mission`: Keep the mission document within one screen. — adopt → teach#one-screen-mission
+- `high-trust-resource-filter`: Admit only high-trust sources to the resources file, leaving out marketing posing as education. — adopt → teach#high-trust-resource-filter
+- `resource-gap-register`: List the areas the learning goal needs but no good resource covers in a gaps section of the resources file. — adopt → teach#resource-gap-register
+- `prune-invalid-resources`: Remove resources that proved wrong, shallow or off-mission rather than keeping them. — adopt → teach#prune-invalid-resources
+- `sequential-record-numbering`: Number a new record one above the highest existing number in its folder. — adopt → teach#sequential-record-numbering
+- `minimal-learning-record-template`: Write a learning record as a title and one to three sentences of what was learned and why it matters later. — adopt → teach#minimal-learning-record-template
+- `optional-record-sections`: Add optional sections to a record, such as status or consequences, only when they carry real information. — adopt → teach#optional-record-sections
+- `learning-record-supersession`: Mark a contradicted learning record superseded rather than deleting it. — adopt → teach#learning-record-supersession
+- `glossary-entry-template`: Write glossary entries of a term and its definition, grouped under subheadings when clusters emerge. — adopt → teach#glossary-entry-template
+- `canonical-term-and-aliases`: Pick one preferred term per concept and list its other words as aliases to avoid. — adopt → teach#canonical-term-and-aliases
+- `tight-concept-definitions`: Define each glossary term tightly by what it is, not what it does. — adopt → teach#tight-concept-definitions
+- `glossary-self-vocabulary`: Use the glossary's own terms inside its other definitions. — adopt → teach#glossary-self-vocabulary
+- `topic-dependent-learning-balance`: Vary the balance between knowledge teaching and skills practice with the topic. — defer
 
 #### engineering · Intake · Triage — skill:skills/engineering/triage
-- `ai-disclaimer`: Open every comment or issue posted during the work with an AI-generated-during-triage disclaimer.
-- `category-state-roles`: Assign each item exactly one category role of bug or enhancement and one state role from a fixed set.
-- `state-transitions`: Move items along defined state transitions, flagging unusual moves and letting the maintainer override at any time.
-- `attention-buckets`: Present the items needing triage attention as named buckets, oldest first.
-- `recommend-then-wait`: Recommend a category and state with reasoning and a short codebase summary, then wait for the maintainer's direction before acting.
-- `claim-verification`: Verify a reported claim before acting on it, reproducing a bug or recording exactly why it could not be reproduced.
-- `needs-info-notes`: Post structured triage notes recording what is established so far and the specific, actionable questions still needed from the reporter.
-- `document-during-interview`: Pair a clarifying interview with live documentation so the glossary and decision records are produced as the interview settles each question.
-- `redundancy-check`: Search the codebase by domain concept for an existing implementation and report where you looked before deciding.
-- `prior-rejection-check`: Check earlier rejections for one resembling the request and surface any match before deciding.
-- `ground-in-codebase`: Explore the current state of the code before writing, so the artifact targets what actually exists.
-- `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write.
-- `respect-area-adrs`: Honour the recorded architectural decisions that govern the area being changed.
-- `agent-brief-contract`: Treat the posted agent brief as the authoritative contract the downstream agent works from, over the original body and discussion.
-- `no-stale-file-paths`: Keep concrete file paths out of a durable spec, ticket or brief, describing interfaces and behaviour that survive code drift.
-- `brief-behavioural`: Describe what the system should do, not how to implement it, leaving implementation choices to the executing agent.
-- `brief-acceptance-criteria`: Give every brief concrete, independently testable acceptance criteria.
-- `brief-scope-boundaries`: State explicitly what is out of scope so the agent does not gold-plate.
-- `ready-for-human-rationale`: When an item is ready for a human rather than an agent, use the same brief structure but record why it cannot be delegated.
-- `out-of-scope-kb`: Keep a concept-keyed knowledge base of rejected enhancements for deduplication, writing to it only for rejected enhancements and never for already-built features.
-- `pr-as-issue`: Treat an external pull request as an issue with attached code, running it through the same roles and state machine.
-- `external-pr-discovery-filter`: In discovery, surface only external-author pull requests, while still triaging any explicitly named one.
-- `triage-resume-notes`: Resume triage from the notes of earlier passes, never re-asking a question already answered.
+- `ai-disclaimer`: Open every comment or issue posted during the work with an AI-generated-during-triage disclaimer. — out-of-scope
+- `category-state-roles`: Assign each item exactly one category role of bug or enhancement and one state role from a fixed set. — defer
+- `state-transitions`: Move items along defined state transitions, flagging unusual moves and letting the maintainer override at any time. — defer
+- `attention-buckets`: Present the items needing triage attention as named buckets, oldest first. — adopt → triage#attention-buckets
+- `recommend-then-wait`: Recommend a category and state with reasoning and a short codebase summary, then wait for the maintainer's direction before acting. — defer
+- `claim-verification`: Verify a reported claim before acting on it, reproducing a bug or recording exactly why it could not be reproduced. — adopt → triage#claim-verification
+- `needs-info-notes`: Post structured triage notes recording what is established so far and the specific, actionable questions still needed from the reporter. — adopt → triage#established-notes
+- `document-during-interview`: Pair a clarifying interview with live documentation so the glossary and decision records are produced as the interview settles each question. — defer
+- `redundancy-check`: Search the codebase by domain concept for an existing implementation and report where you looked before deciding. — adopt → triage#redundancy-check
+- `prior-rejection-check`: Check earlier rejections for one resembling the request and surface any match before deciding. — adopt → triage#prior-rejection-check
+- `ground-in-codebase`: Explore the current state of the code before writing, so the artifact targets what actually exists. — defer
+- `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write. — defer
+- `respect-area-adrs`: Honour the recorded architectural decisions that govern the area being changed. — defer
+- `agent-brief-contract`: Treat the posted agent brief as the authoritative contract the downstream agent works from, over the original body and discussion. — adopt → triage#agent-ready-gate
+- `no-stale-file-paths`: Keep concrete file paths out of a durable spec, ticket or brief, describing interfaces and behaviour that survive code drift. — defer
+- `brief-behavioural`: Describe what the system should do, not how to implement it, leaving implementation choices to the executing agent. — adopt → triage#agent-ready-gate
+- `brief-acceptance-criteria`: Give every brief concrete, independently testable acceptance criteria. — adopt, pending cr-axdt.6.12 → triage#brief-acceptance-criteria
+- `brief-scope-boundaries`: State explicitly what is out of scope so the agent does not gold-plate. — adopt → triage#agent-ready-gate
+- `ready-for-human-rationale`: When an item is ready for a human rather than an agent, use the same brief structure but record why it cannot be delegated. — adopt, pending cr-axdt.6.12 → triage#ready-for-human-rationale
+- `pr-as-issue`: Treat an external pull request as an issue with attached code, running it through the same roles and state machine. — out-of-scope
+- `external-pr-discovery-filter`: In discovery, surface only external-author pull requests, while still triaging any explicitly named one. — out-of-scope
+- `triage-resume-notes`: Resume triage from the notes of earlier passes, never re-asking a question already answered. — adopt → triage#triage-resume-notes
+- `label-name-mapping`: Map the canonical triage role names onto the repository's actual label strings. — defer
+- `natural-language-commands`: Interpret the maintainer's natural-language triage requests into the matching triage actions. — defer
+- `pick-from-summary`: Show the count and a one-line summary of each waiting item and let the maintainer pick which to triage. — adopt → triage#pick-from-summary
+- `read-full-source-issue`: Read the full body, comments and, for a pull request, the diff of any referenced spec, issue or pull request before working from it. — adopt, pending cr-axdt.6.12 → triage#read-full-source-issue
+- `agent-brief-comment`: Post an agent brief as a comment on an item when it becomes ready for an agent. — defer
+- `already-built-close`: Close a request that is already implemented by pointing to where it lives, recording no rejection. — adopt, pending cr-axdt.6.12 → triage#already-built-close
+- `polite-bug-rejection`: Close a rejected bug report with a polite explanation of why. — out-of-scope
+- `direct-move-shortcut`: On a direct instruction to move an item's state, confirm the actions and apply them without an interview. — defer
+- `brief-offer-on-shortcut`: When moving an item to agent-ready without an interview, ask whether to write its agent brief. — defer
+- `pr-remaining-work-brief`: For a pull request, make the agent brief describe what remains to be done to the existing diff. — out-of-scope
+- `agent-brief-template`: Fill a fixed agent-brief template of category, summary, current behaviour, desired behaviour, key interfaces, acceptance criteria and out of scope. — defer
+- `rejection-record-format`: Write each rejection record as a short readable design note with the decision, a substantive reason and the list of prior requests. — defer
+- `durable-rejection-reasons`: Reject only for durable reasons of scope, technical constraint or strategy, treating a temporary reason as a deferral. — adopt → triage#durable-rejection-reasons
+- `rejection-match-outcomes`: When a request matches a prior rejection, append it to the record and close on the maintainer's confirmation, update or delete the record on reconsideration, and proceed on disagreement. — defer
+- `rejection-reversal`: Reverse a rejection by deleting its record without reopening the old requests. — defer
+- `rejected-enhancement-only-records`: Write to the rejection store only for rejected enhancements, never for rejected bugs or requests closed as already built. — defer
+- `rejection-record-closeout`: When rejecting an enhancement as out of scope, append it to the matching rejection record or create one, comment on the request with the record's link, then close it as won't-fix. — defer
+- `concept-keyed-rejection-store`: Keep rejected requests in a store of one file per concept, not per request, so later requests can be deduplicated against it. — defer
 
 #### engineering · Design · Architecture — skill:skills/engineering/codebase-design
-- `module-vocabulary`: Reason about design with a shared deep-module glossary: module, interface, depth, seam, adapter and locality.
-- `vocabulary-ban`: Use the design vocabulary exactly and never substitute looser words like component, service, API, or boundary.
-- `interface-is-everything`: Treat an interface as every fact a caller must know — invariants, ordering, errors, configuration and performance — not just the type signature.
-- `depth-as-leverage`: Prefer modules whose manageable interface hides a large amount of useful behaviour.
-- `deletion-test`: Question a layer that only forwards and keep one whose removal would spread complexity across callers.
-- `interface-is-test-surface`: Treat the interface as the surface both callers and tests cross, so needing to test past it signals the module is the wrong shape.
-- `two-adapters-rule`: Introduce a seam only when behaviour actually varies across it — one adapter is a hypothetical seam, two is a real one.
-- `internal-seams`: Allow internal seams and focused internal tests without exposing internals through the public interface merely to satisfy a testing rule.
-- `inject-dependencies`: Pass a module's external dependencies in as arguments rather than constructing them inside it, so callers and tests can substitute them.
-- `return-not-mutate`: Design functions to return results rather than cause side effects, so behaviour can be observed directly.
-- `small-interface-surface`: Keep a module's interface surface small — fewer methods and simpler parameters — to reduce what callers and tests must learn.
-- `dependency-categories`: Classify a module's dependencies as in-process, locally substitutable, owned remote or true external to choose how it is tested across its seam.
-- `replace-dont-layer`: Once the deepened interface is tested, delete the old shallow-module unit tests and assert only on observable outcomes that survive internal refactors.
-- `parallel-constrained-designs`: Generate several radically different interfaces in parallel, each under a different design constraint, then compare them and recommend one.
+- `module-vocabulary`: Reason about design with a shared deep-module glossary: module, interface, depth, seam, adapter and locality. — adopt → codebase-design#module-vocabulary
+- `vocabulary-ban`: Use the design vocabulary exactly and never substitute looser words like component, service, API, or boundary. — defer
+- `interface-is-everything`: Treat an interface as every fact a caller must know — invariants, ordering, errors, configuration and performance — not just the type signature. — adopt → codebase-design#interface-is-everything
+- `depth-as-leverage`: Prefer modules whose manageable interface hides a large amount of useful behaviour. — adopt → codebase-design#depth-as-leverage
+- `deletion-test`: Question a layer that only forwards and keep one whose removal would spread complexity across callers. — adopt → codebase-design#deletion-test
+- `interface-is-test-surface`: Treat the interface as the surface both callers and tests cross, so needing to test past it signals the module is the wrong shape. — defer
+- `two-adapters-rule`: Introduce a seam only when behaviour actually varies across it — one adapter is a hypothetical seam, two is a real one. — defer
+- `internal-seams`: Allow internal seams and focused internal tests without exposing internals through the public interface merely to satisfy a testing rule. — adopt → codebase-design#internal-seams
+- `inject-dependencies`: Pass a module's external dependencies in as arguments rather than constructing them inside it, so callers and tests can substitute them. — adopt → codebase-design#inject-dependencies
+- `return-not-mutate`: Design functions to return results rather than cause side effects, so behaviour can be observed directly. — adopt → codebase-design#return-not-mutate
+- `small-interface-surface`: Keep a module's interface surface small — fewer methods and simpler parameters — to reduce what callers and tests must learn. — adopt → codebase-design#depth-as-leverage
+- `dependency-categories`: Classify a module's dependencies as in-process, locally substitutable, owned remote or true external to choose how it is tested across its seam. — adopt → codebase-design#dependency-categories
+- `replace-dont-layer`: Once the deepened interface is tested, delete the old shallow-module unit tests and assert only on observable outcomes that survive internal refactors. — defer
+- `local-stand-in-testing`: Test a module whose dependency has a local stand-in by running the stand-in in the suite, keeping that seam internal. — defer
+- `port-with-memory-adapter`: For a remote service you own, define a port with a production transport adapter and an in-memory adapter for tests. — defer
+- `external-port-mock-adapter`: Inject a third-party service as a port and use a mock adapter for it in tests. — defer
+- `problem-space-framing`: Before exploring alternative designs, show the user the constraints, dependency categories and an illustrative sketch, then continue without waiting. — defer
+- `design-brief-vocabulary`: Give each design subagent both the design vocabulary and the project's domain glossary in its brief. — defer
+- `design-proposal-contents`: Have each design proposal return its interface, a usage example, the hidden internals, its dependency strategy and its trade-offs. — adopt → codebase-design#design-proposal-contents
+- `parallel-interface-generation`: Generate several radically different interfaces through parallel designers, each working under a different constraint brief. — adopt → codebase-design#design-it-twice
+- `depth-locality-seam-comparison`: Present alternative designs one at a time, then compare them on depth, locality and seam placement. — adopt, pending cr-axdt.6.2 → codebase-design#depth-locality-seam-comparison
+- `interface-design-recommendation`: Finish a comparison of interface designs with an opinionated recommendation. — adopt → codebase-design#interface-design-recommendation
 
 #### engineering · Design · Architecture — skill:skills/engineering/domain-modeling
-- `active-discipline`: Actively build the model by challenging terms, inventing scenarios and writing it down, as distinct from merely reading the glossary.
-- `lazy-glossary-and-adr`: Create glossary and decision-record files lazily, only when there is something concrete to write.
-- `multi-context-map`: Maintain a root context map listing contexts, their locations and relationships, inferring which context a topic belongs to or asking.
-- `challenge-glossary`: Call out immediately a term that conflicts with the existing glossary language.
-- `sharpen-fuzzy`: Propose one precise canonical term for a vague or overloaded one.
-- `concrete-scenarios`: Stress-test domain relationships with invented edge-case scenarios that force precision about boundaries.
-- `cross-reference-code`: Check whether the code agrees with a stated domain rule and surface contradictions.
-- `update-inline`: Write a resolved term into the glossary as soon as it is resolved rather than batching changes.
-- `glossary-is-glossary`: Keep the glossary free of implementation details and never treat it as a spec or scratchpad.
-- `adr-three-gate`: Offer a decision record only when the decision is hard to reverse, surprising without context, and the result of a real trade-off.
-- `adr-minimal-template`: Use a one-paragraph decision record with optional status, options and consequences and sequential numbering.
-- `adr-what-qualifies`: Apply a worked list of decision kinds (architectural shape, integration patterns, lock-in choices, boundaries, deliberate deviations, hidden constraints, non-obvious rejections) that warrant a decision record.
-- `glossary-format`: Write opinionated glossary entries with an Avoid list and tight is-not-does definitions, grouped under subheadings when clusters emerge.
-- `context-specific-terms`: Admit only terms specific to the project's context to the glossary, leaving general programming concepts out.
+- `active-discipline`: Actively build the model by challenging terms, inventing scenarios and writing it down, as distinct from merely reading the glossary. — adopt → domain-modeling#active-discipline
+- `lazy-glossary-and-adr`: Create glossary and decision-record files lazily, only when there is something concrete to write. — adopt → domain-modeling#lazy-glossary-and-adr
+- `challenge-glossary`: Call out immediately a term that conflicts with the existing glossary language. — adopt → domain-modeling#challenge-glossary
+- `sharpen-fuzzy`: Propose one precise canonical term for a vague or overloaded one. — adopt → domain-modeling#sharpen-fuzzy
+- `concrete-scenarios`: Stress-test domain relationships with invented edge-case scenarios that force precision about boundaries. — adopt → domain-modeling#concrete-scenarios
+- `cross-reference-code`: Check whether the code agrees with a stated domain rule and surface contradictions. — adopt → domain-modeling#cross-reference-code
+- `update-inline`: Write a resolved term into the glossary as soon as it is resolved rather than batching changes. — adopt → domain-modeling#update-inline
+- `glossary-is-glossary`: Keep the glossary free of implementation details and never treat it as a spec or scratchpad. — adopt → domain-modeling#glossary-is-glossary
+- `adr-three-gate`: Offer a decision record only when the decision is hard to reverse, surprising without context, and the result of a real trade-off. — adopt → domain-modeling#adr-three-gate
+- `adr-what-qualifies`: Apply a worked list of decision kinds (architectural shape, integration patterns, lock-in choices, boundaries, deliberate deviations, hidden constraints, non-obvious rejections) that warrant a decision record. — adopt → domain-modeling#adr-what-qualifies
+- `context-specific-terms`: Admit only terms specific to the project's context to the glossary, leaving general programming concepts out. — adopt → domain-modeling#context-specific-terms
+- `scoped-decision-records`: Keep system-wide decision records at the repository root and context-specific ones inside each context. — adopt → domain-modeling#scoped-decision-records
+- `context-map-artifact`: Keep a root context map listing each context with its location and purpose and the relationships between contexts. — adopt → domain-modeling#context-map-artifact
+- `context-map-lookup`: Follow the context map to the right context's glossary when the repository has several. — adopt → domain-modeling#context-map-lookup
+- `sequential-record-numbering`: Number a new record one above the highest existing number in its folder. — adopt → domain-modeling#sequential-record-numbering
+- `minimal-decision-record`: Write a decision record as a title and one to three sentences of context, decision and reason. — adopt → domain-modeling#minimal-decision-record
+- `optional-record-sections`: Add optional sections to a record, such as status or consequences, only when they carry real information. — adopt → domain-modeling#optional-record-sections
+- `glossary-entry-template`: Write glossary entries of a term and its definition, grouped under subheadings when clusters emerge. — adopt → domain-modeling#glossary-entry-template
+- `canonical-term-and-aliases`: Pick one preferred term per concept and list its other words as aliases to avoid. — adopt → domain-modeling#canonical-term-and-aliases
+- `tight-concept-definitions`: Define each glossary term tightly by what it is, not what it does. — adopt → domain-modeling#tight-concept-definitions
+- `topic-context-resolution`: Infer which context the current topic belongs to, asking when it is unclear. — adopt → domain-modeling#topic-context-resolution
 
 #### engineering · Design · Architecture — skill:skills/engineering/improve-codebase-architecture
-- `scope-by-evidence`: Scope the audit to a named module or pain point, otherwise to the hot spots in recent change history.
-- `friction-signals`: Surface architectural friction that current code actually supports rather than speculative smells.
-- `deletion-test`: Question a layer that only forwards and keep one whose removal would spread complexity across callers.
-- `html-candidate-report`: Present candidates as a self-contained HTML file written to the OS temp directory, each a card with files, problem, solution, benefits, a before/after diagram, and a strength badge, ending in a top recommendation.
-- `diagram-patterns`: Draw before/after architecture visuals from a catalogue of patterns (dependency graph, hand-built boxes, cross-section, mass diagram, call-graph collapse) rather than one generic style.
-- `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write.
-- `vocabulary-ban`: Use the design vocabulary exactly and never substitute looser words like component, service, API, or boundary.
-- `adr-conflict-callout`: When a candidate conflicts with a decision record, explain the new evidence that might justify revisiting it.
-- `no-interfaces-yet`: Keep the survey free of proposed interfaces and instead ask the user which candidate to explore.
-- `grilling-loop`: Once the user picks a candidate, drive a grilling session on it and let the domain-model side effects (new terms, offered records, alternative-interface exploration) happen inline as decisions crystallise.
+- `scope-by-evidence`: Scope the audit to a named module or pain point, otherwise to the hot spots in recent change history. — adopt → improve-codebase-architecture#scope-by-evidence
+- `friction-signals`: Surface architectural friction that current code actually supports rather than speculative smells. — adopt → improve-codebase-architecture#friction-signals
+- `deletion-test`: Question a layer that only forwards and keep one whose removal would spread complexity across callers. — adopt → codebase-design#deletion-test
+- `diagram-patterns`: Draw before/after architecture visuals from a catalogue of patterns (dependency graph, hand-built boxes, cross-section, mass diagram, call-graph collapse) rather than one generic style. — defer
+- `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write. — adopt, pending cr-axdt.6.5 → improve-codebase-architecture#domain-vocabulary
+- `vocabulary-ban`: Use the design vocabulary exactly and never substitute looser words like component, service, API, or boundary. — defer
+- `adr-conflict-callout`: When a candidate conflicts with a decision record, explain the new evidence that might justify revisiting it. — adopt → improve-codebase-architecture#adr-conflict-callout
+- `no-interfaces-yet`: Keep the survey free of proposed interfaces and instead ask the user which candidate to explore. — defer
+- `module-vocabulary`: Reason about design with a shared deep-module glossary: module, interface, depth, seam, adapter and locality. — adopt → codebase-design#module-vocabulary
+- `respect-area-adrs`: Honour the recorded architectural decisions that govern the area being changed. — adopt → improve-codebase-architecture#respect-area-adrs
+- `read-domain-docs-first`: Read the domain glossary and the decision records near the code before exploring it. — adopt, pending cr-axdt.6.5 → improve-codebase-architecture#read-domain-docs-first
+- `delegated-codebase-walk`: Delegate the codebase walk to a subagent that explores organically for friction. — defer
+- `open-artifact-for-user`: Open a generated artifact for the user with the platform's opener and give its path. — defer
+- `cdn-only-scripts`: Load only CDN-hosted styling and diagram libraries as scripts, keeping the document otherwise static. — defer
+- `dependency-categories`: Classify a module's dependencies as in-process, locally substitutable, owned remote or true external to choose how it is tested across its seam. — adopt → codebase-design#dependency-categories
+- `document-during-interview`: Pair a clarifying interview with live documentation so the glossary and decision records are produced as the interview settles each question. — defer
+- `rejection-decision-record`: When the user rejects an improvement candidate for a durable reason, offer a decision record so later reviews do not suggest it again, skipping ephemeral or self-evident reasons. — adopt, pending cr-axdt.6.5 → improve-codebase-architecture#rejection-decision-record
+- `report-header-legend`: Open a visual report with a header of repository name, date and a visual legend, and no intro paragraph. — defer
+- `terse-card-prose`: Hold each report card to a one-sentence problem and solution and wins bullets of six words or fewer. — defer
+- `redraw-not-explain`: Redraw a diagram that needs a paragraph to be understood rather than explaining it. — defer
+- `visual-restraint`: Keep visuals restrained, with muted colour and no decorative animation, so the content carries the attention. — defer
+- `concrete-benefit-claims`: Phrase a candidate's benefits in the design vocabulary rather than generic claims such as easier to maintain. — adopt, pending cr-axdt.6.5 → improve-codebase-architecture#concrete-benefit-claims
+- `compress-to-bullets`: Strip hedging, turn sentences into bullets and cut bullets wherever possible. — defer
+- `html-architecture-report`: Write an architecture survey as a standalone HTML report in a file under the system's temporary directory, so nothing lands in the repository. — adopt → improve-codebase-architecture#optional-report
+- `candidate-before-after-visual`: Give every architecture candidate a before-and-after diagram of its structural change. — defer
+- `architecture-candidate-card`: Give each architecture candidate a card of files, problem, solution, benefits and a recommendation-strength badge. — adopt → improve-codebase-architecture#candidate-comparison
+- `candidate-dependency-tag`: Tag each architecture candidate with the dependency category of what it touches. — defer
+- `top-candidate-recommendation`: End a candidate survey with a single top recommendation. — adopt → improve-codebase-architecture#top-candidate-recommendation
+- `candidate-constraint-interview`: Once the user picks an architecture candidate, interview them on its constraints, dependencies, module shape, hidden internals and the tests that survive. — defer
 
 #### engineering · Design · Architecture — skill:skills/engineering/prototype
-- `named-question`: Build a throwaway artifact to answer one named design question.
-- `pick-form`: Let the question being answered pick the prototype's form, such as a state demo for logic or a UI mockup for layout.
-- `state-question-up-front`: Write the question the prototype answers visibly at the top of the prototype before building, so it can be checked later.
-- `throwaway-marked`: Keep prototypes clearly marked as throwaway and separate from production.
-- `trivial-to-run`: Make the prototype trivial to run: one command, or a single HTML file the user opens directly.
-- `persistence-when-needed`: Bring persistence into a prototype only when the question needs it.
-- `skip-polish`: Add no error handling beyond runnability and no abstractions, so the prototype only serves fast learning.
-- `no-tests-ban`: Add no tests to a prototype; one that needs tests is no longer a prototype.
-- `surface-state`: Surface the relevant state and the invalid transitions the design might mishandle.
-- `capture-outcome`: Record the prototype's verdict and the question it settled, with a pointer to the preserved artifact.
-- `auto-fold-and-branch`: Fold the validated decision into real code and commit the prototype to a throwaway branch out of main with a context pointer on the issue.
-- `rewrite-not-promote`: Rewrite prototype code to production standards when folding the winning decision in, never promoting the throwaway code directly.
-- `structural-variants`: Make UI variants differ in meaningful structure and layout, not just colour or styling.
-- `logic-pure-module`: Keep domain logic readable apart from presentation as a reducer, state machine, pure functions or small stateful module.
-- `logic-shareable-html`: Offer a self-contained HTML demo with the question, a readable state panel, controls and guided scenarios that reset to a known state.
-- `ui-variants-one-route`: For a UI prototype, generate several structurally different variants (default three, capped at five) on one route switchable by a search param.
-- `host-in-existing-page`: Host UI variants inside an existing page with its real data and layout, using a new throwaway route only when no page can host them.
-- `ui-keyboard-safety`: Keep a prototype's keyboard shortcuts from intercepting input while an editable field is focused.
-- `variant-switcher`: Provide a labelled control for switching between UI variants.
+- `named-question`: Build a throwaway artifact to answer one named design question. — adopt → prototype#named-question
+- `pick-form`: Let the question being answered pick the prototype's form, such as a state demo for logic or a UI mockup for layout. — adopt → prototype#pick-form
+- `state-question-up-front`: Write the question the prototype answers visibly at the top of the prototype before building, so it can be checked later. — adopt → prototype#named-question
+- `throwaway-marked`: Keep prototypes clearly marked as throwaway and separate from production. — adopt → prototype#throwaway-marked
+- `trivial-to-run`: Make the prototype trivial to run: one command, or a single HTML file the user opens directly. — adopt → prototype#trivial-to-run
+- `persistence-when-needed`: Bring persistence into a prototype only when the question needs it. — adopt → prototype#persistence-when-needed
+- `skip-polish`: Add no error handling beyond runnability and no abstractions, so the prototype only serves fast learning. — adopt, pending cr-axdt.6.7 → prototype#skip-polish
+- `no-tests-ban`: Add no tests to a prototype; one that needs tests is no longer a prototype. — defer
+- `surface-state`: Surface the relevant state and the invalid transitions the design might mishandle. — adopt → prototype#surface-state
+- `capture-outcome`: Record the prototype's verdict and the question it settled, with a pointer to the preserved artifact. — adopt → prototype#capture-outcome
+- `rewrite-not-promote`: Rewrite prototype code to production standards when folding the winning decision in, never promoting the throwaway code directly. — defer
+- `structural-variants`: Make UI variants differ in meaningful structure and layout, not just colour or styling. — adopt → prototype#structural-variants
+- `ui-variants-one-route`: For a UI prototype, generate several structurally different variants (default three, capped at five) on one route switchable by a search param. — adopt → prototype#variants-when-comparing
+- `host-in-existing-page`: Host UI variants inside an existing page with its real data and layout, using a new throwaway route only when no page can host them. — defer
+- `ui-keyboard-safety`: Keep a prototype's keyboard shortcuts from intercepting input while an editable field is focused. — adopt → prototype#ui-keyboard-safety
+- `variant-switcher`: Provide a labelled control for switching between UI variants. — adopt → prototype#variant-switcher
+- `default-form-by-context`: When the prototype's question is ambiguous and the user is unreachable, choose its form from the surrounding code and state the assumption at the top. — defer
+- `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write. — adopt, pending cr-axdt.6.7 → prototype#domain-vocabulary
+- `scenario-coverage-triad`: Give a logic prototype guided scenarios covering the happy path, a tricky edge case and an attempted illegal action. — defer
+- `visual-restraint`: Keep visuals restrained, with muted colour and no decorative animation, so the content carries the attention. — defer
+- `keep-logic-discard-shell`: Keep only the pure logic module of a logic prototype and never ship its demo shell to production. — defer
+- `variant-plan-line`: Before building UI variants, write a one-line plan of variant count, switching method and route at the prototype's location. — defer
+- `fetch-above-switcher`: Keep existing data fetching above a single variant switcher so only the rendered subtree changes between variants. — defer
+- `production-hidden-switcher`: Hide a prototype's variant switcher from production builds. — adopt → prototype#production-hidden-switcher
+- `handover-url-keys`: Hand the user the prototype's URL and its variant keys when it is ready. — adopt, pending cr-axdt.6.7 → prototype#handover-url-keys
+- `losing-variant-cleanup`: After a winner is chosen, remove the losing variants and the switcher from the main line. — defer
+- `no-shared-variant-layout`: Keep layout code unshared between UI variants so each can differ freely. — defer
+- `stubbed-mutations`: Point UI variants that need mutations at stubs rather than real backends. — adopt → prototype#stubbed-mutations
+- `automatic-decision-integration`: Fold a prototype's validated decision into the real code as part of finishing the prototype. — defer
+- `prototype-branch-archive`: Keep the prototype as a primary source by committing it to a throwaway branch out of the main line and pointing to it from the implementation issue. — defer
+- `portable-single-file-demo`: Package an interactive demo as one self-contained HTML file that opens directly, with no framework, bundler or server. — adopt → prototype#self-contained-html-demo
+- `dom-free-portable-logic`: Isolate a prototype's logic in a pure module that never touches the page, which calls into it while nothing reaches inside, so the module lifts into the real code unchanged. — adopt → prototype#logic-pure-module
+- `readable-state-panel`: Show a demo's current state in a readable panel. — adopt → prototype#readable-state-panel
+- `always-available-free-play`: Keep free-play controls available beside any guided scenarios so the user can drive the state directly. — adopt, pending cr-axdt.6.7 → prototype#always-available-free-play
+- `resettable-guided-scenarios`: Give a demo guided scenarios that each reset to a known initial state and step through the real controls. — adopt, pending cr-axdt.6.7 → prototype#resettable-guided-scenarios
+- `helpful-state-change-highlighting`: Highlight what just changed in a prototype's state display where that helps the reader. — defer
+- `variant-purpose-data-fidelity`: Hold every UI variant to the page's real purpose and data. — defer
+- `existing-variant-styling-system`: Build UI variants with the project's existing styling system. — adopt, pending cr-axdt.6.7 → prototype#existing-variant-styling-system
+- `named-variant-components`: Export each UI variant as a clearly named component. — defer
 
 #### engineering · Design · Decomposition — skill:skills/engineering/to-tickets
-- `ground-in-codebase`: Explore the current state of the code before writing, so the artifact targets what actually exists.
-- `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write.
-- `respect-area-adrs`: Honour the recorded architectural decisions that govern the area being changed.
-- `prefactor-first`: Find prefactoring that makes the change easy and sequence it before the feature slices.
-- `vertical-slices`: Prefer independently verifiable vertical slices over horizontal layers.
-- `dependency-edges`: Encode real blocking edges in the tracker and let the ready frontier drive execution rather than listing order.
-- `expand-contract`: For a broad refactor use expand, migrate then contract with genuine dependencies, naming one integration boundary when intermediate tasks cannot stay green.
-- `quiz-the-user`: Present the breakdown as a numbered list of title, blocked-by and what it delivers, and iterate on granularity, edges and splits until the user approves.
-- `publish-to-tracker`: Publish the finished artifact to the configured issue tracker.
-- `real-id-wiring`: Wire cross-references and dependencies with real identifiers, never placeholders.
-- `sub-issue-linkage`: Make each ticket a child of its source issue and never close or modify that parent.
-- `ready-for-agent-label`: Tag the published work with the ready-for-agent triage label so it needs no further triage.
-- `ticket-template`: Fill a fixed ticket template of behavioural what-to-build, blocked-by, and checkable acceptance criteria.
-- `no-stale-file-paths`: Keep concrete file paths out of a durable spec, ticket or brief, describing interfaces and behaviour that survive code drift.
-- `no-stale-code-snippets`: Keep code snippets out of a durable spec or ticket because they go stale.
-- `prototype-snippet`: Inline a prototype snippet in the spec only when it encodes a decision more precisely than prose can.
+- `ground-in-codebase`: Explore the current state of the code before writing, so the artifact targets what actually exists. — adopt → planning#ground-in-codebase
+- `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write. — defer
+- `respect-area-adrs`: Honour the recorded architectural decisions that govern the area being changed. — defer
+- `prefactor-first`: Find prefactoring that makes the change easy and sequence it before the feature slices. — adopt, pending cr-axdt.6.6 → planning#prefactor-first
+- `vertical-slices`: Prefer independently verifiable vertical slices over horizontal layers. — adopt → planning#vertical-slices
+- `dependency-edges`: Encode real blocking edges in the tracker and let the ready frontier drive execution rather than listing order. — adopt → planning#dependency-edges
+- `expand-contract`: For a broad refactor use expand, migrate then contract with genuine dependencies, naming one integration boundary when intermediate tasks cannot stay green. — adopt → planning#expand-contract
+- `publish-to-tracker`: Publish the finished artifact to the configured issue tracker. — adopt → planning#beads-native-tracking
+- `real-id-wiring`: Wire cross-references and dependencies with real identifiers, never placeholders. — adopt → planning#real-id-wiring
+- `sub-issue-linkage`: Make each ticket a child of its source issue and never close or modify that parent. — adopt → planning#beads-native-tracking
+- `ready-for-agent-label`: Tag the published work with the ready-for-agent triage label so it needs no further triage. — defer
+- `ticket-template`: Fill a fixed ticket template of behavioural what-to-build, blocked-by, and checkable acceptance criteria. — defer
+- `no-stale-file-paths`: Keep concrete file paths out of a durable spec, ticket or brief, describing interfaces and behaviour that survive code drift. — defer
+- `no-stale-code-snippets`: Keep code snippets out of a durable spec or ticket because they go stale. — adopt → planning#no-stale-code-snippets
+- `prototype-snippet`: Inline a prototype snippet in the spec only when it encodes a decision more precisely than prose can. — adopt → brainstorming#prototype-snippet
+- `read-full-source-issue`: Read the full body, comments and, for a pull request, the diff of any referenced spec, issue or pull request before working from it. — defer
+- `session-sized-tickets`: Size each ticket to fit one agent session's context window. — defer
+- `blast-radius-batches`: Size migration batches by blast radius and keep the build green between them. — adopt, pending cr-axdt.6.6 → planning#blast-radius-batches
+- `file-per-ticket`: Without a tracker, write one numbered file per ticket in dependency order, never one combined file. — defer
+- `brief-behavioural`: Describe what the system should do, not how to implement it, leaving implementation choices to the executing agent. — adopt → planning#plan-evidence-bound
+- `ticket-breakdown-preview`: Show the proposed ticket breakdown as a numbered list of title, blockers and delivered behaviour before publishing it. — defer
+- `ticket-breakdown-feedback`: Ask the user about the breakdown's granularity, its blocking edges, and tickets to merge or split. — defer
+- `breakdown-approval-before-publish`: Iterate on the ticket breakdown until the user approves it, publishing nothing before approval. — adopt → planning#breakdown-approval-before-publish
 
 #### engineering · Design · Specification — skill:skills/engineering/tdd
-- `meaningful-behaviour-assertion`: Assert meaningful results, state or boundary interactions at a stable boundary rather than internal call choreography.
-- `no-implementation-coupling`: Avoid tests coupled to the implementation's internal structure, so they survive behaviour-preserving refactors.
-- `seam-selection`: Choose the test boundary that exercises the real contract without reaching inside.
-- `public-only-seams`: Test only at public boundaries, never against internals.
-- `seam-preconfirmation`: Write down the seams under test and confirm them with the user before writing any test.
-- `per-seam-note`: Give each proposed seam a one-line note on what it catches and what it misses.
-- `independent-expectation`: Derive expected values from an independent source such as a spec, worked example or trusted fixture, never computing both sides with the implementation under test.
-- `one-test-per-cycle`: Alternate one test and its implementation at a time instead of writing all tests before any implementation.
-- `red-green`: Make one test fail before implementing the change that makes it pass.
-- `refactor-outside-loop`: Refactor only after the red-green cycles end, never inside them.
-- `system-boundary-mocks-only`: Use test doubles only at system boundaries such as external services, time and the file system, never for modules you own.
-- `inject-dependencies`: Pass a module's external dependencies in as arguments rather than constructing them inside it, so callers and tests can substitute them.
-- `sdk-interfaces`: Prefer specific per-operation interface functions over one generic fetcher so each mock returns a single shape.
+- `meaningful-behaviour-assertion`: Assert meaningful results, state or boundary interactions at a stable boundary rather than internal call choreography. — adopt → test-driven-development#meaningful-behaviour-assertion
+- `no-implementation-coupling`: Avoid tests coupled to the implementation's internal structure, so they survive behaviour-preserving refactors. — adopt → test-driven-development#no-implementation-coupling
+- `public-only-seams`: Test only at public boundaries, never against internals. — defer
+- `seam-preconfirmation`: Write down the seams under test and confirm them with the user before writing any test. — defer
+- `per-seam-note`: Give each proposed seam a one-line note on what it catches and what it misses. — adopt, pending cr-axdt.6.11 → test-driven-development#per-seam-note
+- `independent-expectation`: Derive expected values from an independent source such as a spec, worked example or trusted fixture, never computing both sides with the implementation under test. — adopt → test-driven-development#independent-expectation
+- `one-test-per-cycle`: Alternate one test and its implementation at a time instead of writing all tests before any implementation. — adopt, pending cr-axdt.6.11 → test-driven-development#one-test-per-cycle
+- `red-green`: Make one test fail before implementing the change that makes it pass. — adopt → test-driven-development#red-green
+- `refactor-outside-loop`: Refactor only after the red-green cycles end, never inside them. — defer
+- `system-boundary-mocks-only`: Use test doubles only at system boundaries such as external services, time and the file system, never for modules you own. — adopt → test-driven-development#mock-boundaries
+- `inject-dependencies`: Pass a module's external dependencies in as arguments rather than constructing them inside it, so callers and tests can substitute them. — adopt → codebase-design#inject-dependencies
+- `sdk-interfaces`: Prefer specific per-operation interface functions over one generic fetcher so each mock returns a single shape. — defer
+- `rules-during-cycle`: Consult the testing rules before and during every red-green cycle rather than after it. — defer
+- `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write. — defer
+- `respect-area-adrs`: Honour the recorded architectural decisions that govern the area being changed. — defer
+- `module-vocabulary`: Reason about design with a shared deep-module glossary: module, interface, depth, seam, adapter and locality. — adopt → codebase-design#module-vocabulary
+- `one-assertion-per-test`: Keep one logical assertion per test. — defer
+- `behaviour-test-names`: Name each test for the behaviour that exists, not how it is achieved. — adopt, pending cr-axdt.6.11 → test-driven-development#behaviour-test-names
+- `test-database-over-mock`: Prefer a test database to mocking the database. — defer
 
 #### engineering · Design · Specification — skill:skills/engineering/to-spec
-- `synthesize-settled`: When the decisions are already settled, synthesize them into a spec without reopening the discussion.
-- `ground-in-codebase`: Explore the current state of the code before writing, so the artifact targets what actually exists.
-- `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write.
-- `respect-area-adrs`: Honour the recorded architectural decisions that govern the area being changed.
-- `testing-seam-decision`: Record in the spec which seam the feature is tested at, preferring an existing and the highest useful seam and the fewest seams.
-- `seam-preconfirmation`: Write down the seams under test and confirm them with the user before writing any test.
-- `spec-template`: Capture the spec in a fixed skeleton: problem, solution, user stories, implementation decisions, testing decisions, out of scope and further notes.
-- `no-stale-file-paths`: Keep concrete file paths out of a durable spec, ticket or brief, describing interfaces and behaviour that survive code drift.
-- `no-stale-code-snippets`: Keep code snippets out of a durable spec or ticket because they go stale.
-- `prototype-snippet`: Inline a prototype snippet in the spec only when it encodes a decision more precisely than prose can.
-- `publish-to-tracker`: Publish the finished artifact to the configured issue tracker.
-- `ready-for-agent-label`: Tag the published work with the ready-for-agent triage label so it needs no further triage.
+- `synthesize-settled`: When the decisions are already settled, synthesize them into a spec without reopening the discussion. — adopt → brainstorming#synthesize-settled
+- `ground-in-codebase`: Explore the current state of the code before writing, so the artifact targets what actually exists. — adopt → brainstorming#scoped-context-read
+- `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write. — defer
+- `respect-area-adrs`: Honour the recorded architectural decisions that govern the area being changed. — defer
+- `testing-seam-decision`: Record in the spec which seam the feature is tested at, preferring an existing and the highest useful seam and the fewest seams. — adopt → brainstorming#testing-seam-decision
+- `seam-preconfirmation`: Write down the seams under test and confirm them with the user before writing any test. — defer
+- `spec-template`: Capture the spec in a fixed skeleton: problem, solution, user stories, implementation decisions, testing decisions, out of scope and further notes. — adopt → brainstorming#spec-template
+- `no-stale-file-paths`: Keep concrete file paths out of a durable spec, ticket or brief, describing interfaces and behaviour that survive code drift. — adopt → brainstorming#no-stale-file-paths
+- `no-stale-code-snippets`: Keep code snippets out of a durable spec or ticket because they go stale. — adopt → brainstorming#no-stale-code-snippets
+- `prototype-snippet`: Inline a prototype snippet in the spec only when it encodes a decision more precisely than prose can. — adopt → brainstorming#prototype-snippet
+- `publish-to-tracker`: Publish the finished artifact to the configured issue tracker. — defer
+- `ready-for-agent-label`: Tag the published work with the ready-for-agent triage label so it needs no further triage. — defer
+- `user-perspective-framing`: Write a spec's problem and solution from the user's perspective. — adopt → brainstorming#user-perspective-framing
+- `exhaustive-user-stories`: Write a long, exhaustive numbered list of actor-feature-benefit user stories. — defer
+- `implementation-decisions-scope`: List a spec's implementation decisions across modules, interfaces, clarifications, architecture, schema, contracts and interactions. — adopt → brainstorming#implementation-decisions-scope
+- `testing-decisions-contents`: Record a spec's testing decisions as what makes a good test, which modules are tested and the prior-art tests to follow. — adopt → brainstorming#testing-decisions-contents
 
 #### engineering · Building · Diagnosis — skill:skills/engineering/diagnosing-bugs
-- `reproduction-first`: Obtain a reproduction that shows the reported failure, not a nearby one, before diagnosing it.
-- `loop-construction`: Build the reproduction in the form that fits the failure: a focused test, CLI fixture, captured trace or isolated scratch harness.
-- `tighten-loop`: Treat the loop as a product and keep making it faster, sharper, and more deterministic, raising the reproduction rate for flaky bugs until it is debuggable.
-- `reproduce-and-minimize`: Shrink the reproduction one element at a time until every remaining part is load-bearing — removing any one makes it pass.
-- `phase1-completion-criterion`: Forbid any hypothesis until one named command, already run once, is proven red-capable, deterministic, fast, and agent-runnable.
-- `redact-secrets`: Redact secrets and personal data as placeholders in anything shown or saved, driving commands from environment variables so credentials never appear.
-- `hypotheses`: Form explicit hypotheses about the cause before probing any of them.
-- `fixed-hypothesis-count`: Generate three to five hypotheses before testing any, to avoid anchoring on the first idea.
-- `hypothesis-ranking-presentation`: Rank the hypotheses and show the ranked list to the user before testing, without blocking if they are away.
-- `one-variable-at-a-time`: Change exactly one variable per probe, each mapped to a specific prediction.
-- `tagged-debug-logs`: Tag every debug log with a unique prefix so cleanup is a single search.
-- `baseline`: Capture a baseline measurement before attempting a performance fix.
-- `perf-bisection`: Locate a performance regression by bisecting between known-good and known-bad states rather than by adding logs.
-- `debugger-first`: Prefer a debugger or REPL breakpoint over targeted logs, and never log everything and grep.
-- `prove-the-red`: When forcing the red by mutating code or a fixture, diff against a pristine copy to prove the mutation landed before trusting it.
-- `regression-check`: Turn the failure into a durable regression check when feasible, showing failure before the fix and success after, then rerun the original scenario.
-- `missing-seam-finding`: When no correct seam exists to lock down the bug, treat that architectural absence as itself the finding and flag it.
-- `closeout`: Before declaring done, remove temporary instrumentation and record the confirmed cause.
-- `delete-debug-prototypes`: Delete throwaway debugging prototypes before declaring done, or move them to a clearly marked debug location.
-- `hitl-loop-script`: Drive a required human step through a structured human-in-the-loop script as the last-resort loop so it stays repeatable.
-- `escalate-unreproducible`: When no loop can be built, stop, list what was tried, and ask for environment access, a redacted artifact, or instrumentation rather than hypothesising.
+- `reproduction-first`: Obtain a reproduction that shows the reported failure, not a nearby one, before diagnosing it. — adopt → systematic-debugging#reproduction-first
+- `tighten-loop`: Treat the loop as a product and keep making it faster, sharper, and more deterministic, raising the reproduction rate for flaky bugs until it is debuggable. — adopt → systematic-debugging#flake-reproduction
+- `reproduce-and-minimize`: Shrink the reproduction one element at a time until every remaining part is load-bearing — removing any one makes it pass. — adopt → systematic-debugging#minimize-to-discriminate
+- `phase1-completion-criterion`: Forbid any hypothesis until one named command, already run once, is proven red-capable, deterministic, fast, and agent-runnable. — defer
+- `fixed-hypothesis-count`: Generate three to five hypotheses before testing any, to avoid anchoring on the first idea. — defer
+- `hypothesis-ranking-presentation`: Rank the hypotheses and show the ranked list to the user before testing, without blocking if they are away. — defer
+- `one-variable-at-a-time`: Change exactly one variable per probe, each mapped to a specific prediction. — adopt, pending cr-axdt.6.9 → systematic-debugging#one-variable-at-a-time
+- `tagged-debug-logs`: Tag every debug log with a unique prefix so cleanup is a single search. — adopt → systematic-debugging#tagged-debug-logs
+- `baseline`: Capture a baseline measurement before attempting a performance fix. — adopt, pending cr-axdt.6.9 → systematic-debugging#baseline
+- `perf-bisection`: Locate a performance regression by bisecting between known-good and known-bad states rather than by adding logs. — adopt → systematic-debugging#localized-probing
+- `debugger-first`: Prefer a debugger or REPL breakpoint over targeted logs, and never log everything and grep. — defer
+- `prove-the-red`: When forcing the red by mutating code or a fixture, diff against a pristine copy to prove the mutation landed before trusting it. — adopt, pending cr-axdt.6.9 → systematic-debugging#prove-the-red
+- `regression-check`: Turn the failure into a durable regression check when feasible, showing failure before the fix and success after, then rerun the original scenario. — adopt → systematic-debugging#regression-check
+- `missing-seam-finding`: When no correct seam exists to lock down the bug, treat that architectural absence as itself the finding and flag it. — adopt, pending cr-axdt.6.9 → systematic-debugging#missing-seam-finding
+- `closeout`: Before declaring done, remove temporary instrumentation and record the confirmed cause. — adopt → systematic-debugging#closeout
+- `delete-debug-prototypes`: Delete throwaway debugging prototypes before declaring done, or move them to a clearly marked debug location. — defer
+- `hitl-loop-script`: Drive a required human step through a structured human-in-the-loop script as the last-resort loop so it stays repeatable. — defer
+- `escalate-unreproducible`: When no loop can be built, stop, list what was tried, and ask for environment access, a redacted artifact, or instrumentation rather than hypothesising. — defer
+- `justified-phase-skip`: Skip a phase of the diagnosis only with an explicit justification. — defer
+- `read-domain-docs-first`: Read the domain glossary and the decision records near the code before exploring it. — defer
+- `signal-lines-only`: Quote only the signal-carrying lines from captured artifacts that may hold credentials. — defer
+- `ask-when-redaction-blinds`: Ask the user for help when redacted output is too thin to diagnose from. — defer
+- `falsifiable-hypotheses`: State each hypothesis as a falsifiable prediction that changing its cause changes the result, discarding any that cannot be stated so. — adopt, pending cr-axdt.6.9 → systematic-debugging#falsifiable-hypotheses
+- `seam-selection`: Choose the test boundary that exercises the real contract without reaching inside. — adopt → test-driven-development#seam-selection
+- `parseable-hitl-output`: Have a human-in-the-loop script print its captured values as key=value lines the agent can parse. — defer
+- `hitl-no-credential-capture`: Capture only observations through a human-in-the-loop script, leaving sign-in to the person as a plain step since captured values are echoed. — defer
+- `placeholder-sensitive-data-redaction`: Replace secrets and personal data with placeholders in anything shown or saved. — adopt, pending cr-axdt.6.9 → systematic-debugging#placeholder-sensitive-data-redaction
+- `credential-env-indirection`: Build commands on environment variables so credentials stay in the environment and never appear in shown text. — adopt, pending cr-axdt.6.9 → systematic-debugging#credential-env-indirection
+- `loop-construction`: Build the reproduction in the form that fits the failure: a focused test, CLI fixture, captured trace or isolated scratch harness. — adopt → systematic-debugging#loop-construction
+- `preferred-reproduction-order`: Try reproduction techniques roughly in a preference order, starting from a failing test and leaving a human-driven script for last. — adopt → systematic-debugging#loop-construction
 
 #### engineering · Building · Implementation — skill:skills/engineering/wizard
-- `template-library`: Build each wizard over a shared bash UX library that sits above the stages marker and is never hand-edited.
-- `scope-the-procedure`: Enumerate every manual step and captured value by reading the repo's configuration rather than asking cold, and confirm the ordered stage list with the user.
-- `map-stage-journey`: Write each stage's concrete interface path, asking the user or checking docs where the interface is unknown rather than inventing steps.
-- `author-stages-over-template`: Author one stage per step using the library helpers, keeping each stage to a single focused task.
-- `ephemeral-by-default`: Build the wizard for one run and delete it when done, committing it only when a repeatable setup path should live in the repo.
-- `syntax-check-handoff`: Syntax-check the script and make it executable, then tell the user how to run it instead of running it end-to-end yourself.
-- `static-trace-verification`: Statically trace a script you must not run, checking every captured value lands where it was scoped and every secret name matches a CI reference.
-- `template-robustness`: Keep the template hardened for mid-run safety with Readline-edited input, EOF handling, a restrictive file mode, careful quoting, and parsing the whole file before the first prompt.
+- `template-library`: Build each wizard over a shared bash UX library that sits above the stages marker and is never hand-edited. — defer
+- `scope-the-procedure`: Enumerate every manual step and captured value by reading the repo's configuration rather than asking cold, and confirm the ordered stage list with the user. — defer
+- `map-stage-journey`: Write each stage's concrete interface path, asking the user or checking docs where the interface is unknown rather than inventing steps. — defer
+- `author-stages-over-template`: Author one stage per step using the library helpers, keeping each stage to a single focused task. — defer
+- `ephemeral-by-default`: Build the wizard for one run and delete it when done, committing it only when a repeatable setup path should live in the repo. — defer
+- `syntax-check-handoff`: Syntax-check the script and make it executable, then tell the user how to run it instead of running it end-to-end yourself. — defer
+- `static-trace-verification`: Statically trace a script you must not run, checking every captured value lands where it was scoped and every secret name matches a CI reference. — defer
+- `human-step-wizard`: Generate an interactive script that walks a person through the setup steps only they can perform. — defer
+- `migration-state-delta`: For a migration, identify the current state, the target state and the irreversible actions between them before writing stages. — defer
+- `value-provenance-gate`: Finish scoping only when every captured value's source, destination and secrecy are known. — defer
+- `open-url-before-ask`: Open the relevant page before asking the person for a value found there. — defer
+- `hidden-secret-entry`: Read every secret with hidden input. — defer
+- `minimal-ci-secrets`: Push to CI secrets only the values CI actually needs. — defer
+- `irreversible-confirmation`: Require an explicit yes or no confirmation from the person before any irreversible action. — defer
+- `stage-progress-counter`: Show the person's progress as the current stage over the total. — defer
+- `cross-platform-url-open`: Open URLs on every platform including WSL, telling the person to visit manually when no opener works. — defer
+- `resumable-defaults`: Offer each value already captured as the default on a re-run so the script can be resumed. — defer
+- `ci-secrets-via-cli`: Set CI secrets and variables through the hosting platform's CLI, recording each skip when the CLI is missing or unauthenticated. — defer
+- `wizard-closing-summary`: Close an interactive setup script with a summary of the values written, the secrets set and the steps still to do by hand. — defer
+- `terminal-capability-detection`: Adapt output, such as colour and screen clears, to whether it goes to an interactive terminal. — defer
+- `scoped-env-value-upsert`: Upsert into the environment file, idempotently, each value scoped for that destination. — defer
+- `safe-env-file-handling`: Handle the environment file safely: create it private, keep an existing file's mode, write through a symlink, quote values safely, and re-ask rather than decode a stored value that cannot be read back safely. — defer
+- `robust-value-prompting`: Make value prompts robust with line-editable entry, an abort at end of input, and the whole script parsed before the first prompt. — defer
 
 #### engineering · Building · Implementation — skill:skills/in-progress/setup-ts-deep-modules
-- `deep-module-shape`: Make every package a deep module whose behaviour hides in subfolders and is reachable only through its root entry-point files.
-- `entry-point-only-imports`: Enforce that code outside a package imports only that package's root entry points, never its subfolders.
-- `intra-package-freedom`: Allow a package's own files to import each other freely.
-- `tests-through-entry-points`: Let test files import any package's entry points and their own fixtures but never any package's subfolder internals.
-- `no-cycles`: Forbid dependency cycles.
-- `public-surface-is-root-files`: Treat every root file as part of the public surface rather than one designated index file.
-- `discourage-barrels`: Discourage barrel files that re-export a whole subtree, favouring several small entry points.
-- `prove-the-rules-bite`: Before trusting the guardrail, observe it pass clean, fail on a deliberately planted violation, then pass again.
-- `document-boundary-readme`: Document the boundary convention in a README beside the packages it governs.
-- `link-convention-from-agents-file`: Add a context pointer to that README from the repo's agent-instructions file so an agent discovers the rule.
-- `preserve-existing-config`: Never overwrite an existing dependency-cruiser config; merge the rules in and tell the user what was added.
-- `wire-umbrella-check`: Add a boundary-lint script and fold it into the repo's umbrella check command alongside typecheck.
-- `scaffold-example`: Commit an example package with an entry point delegating to an internal file and a test through the entry point, as a copy-me template.
-- `detect-package-conventions`: Detect the package manager and packages root before configuring, confirming with the user when the repo already has a different convention.
-- `flat-packages`: Keep packages flat, one tier of children under the root, so a package never contains another package.
+- `entry-point-only-imports`: Enforce that code outside a package imports only that package's root entry points, never its subfolders. — out-of-scope
+- `intra-package-freedom`: Allow a package's own files to import each other freely. — out-of-scope
+- `tests-through-entry-points`: Let test files import any package's entry points and their own fixtures but never any package's subfolder internals. — out-of-scope
+- `no-cycles`: Forbid dependency cycles. — out-of-scope
+- `public-surface-is-root-files`: Treat every root file as part of the public surface rather than one designated index file. — out-of-scope
+- `discourage-barrels`: Discourage barrel files that re-export a whole subtree, favouring several small entry points. — out-of-scope
+- `prove-the-rules-bite`: Before trusting the guardrail, observe it pass clean, fail on a deliberately planted violation, then pass again. — defer
+- `document-boundary-readme`: Document the boundary convention in a README beside the packages it governs. — out-of-scope
+- `link-convention-from-agents-file`: Add a context pointer to that README from the repo's agent-instructions file so an agent discovers the rule. — defer
+- `preserve-existing-config`: Never overwrite an existing dependency-cruiser config; merge the rules in and tell the user what was added. — out-of-scope
+- `wire-umbrella-check`: Add a boundary-lint script and fold it into the repo's umbrella check command alongside typecheck. — out-of-scope
+- `scaffold-example`: Commit an example package with an entry point delegating to an internal file and a test through the entry point, as a copy-me template. — out-of-scope
+- `detect-package-conventions`: Detect the package manager and packages root before configuring, confirming with the user when the repo already has a different convention. — out-of-scope
+- `flat-packages`: Keep packages flat, one tier of children under the root, so a package never contains another package. — out-of-scope
+- `two-folder-package-layout`: Give each package a conventional shape of root entry points over an implementation subfolder and a tests subfolder. — out-of-scope
+- `test-folder-isolation`: Make a package's tests folder importable only from tests. — out-of-scope
+- `error-severity-rules`: Set every module-boundary lint rule to error severity. — out-of-scope
+- `layering-stub`: Leave package layering rules as a commented stub for the repository to fill in. — out-of-scope
+- `install-boundary-linter`: Install the module-boundary linter as a development dependency. — out-of-scope
+- `bundled-config-copy`: Copy the bundled boundary-lint config and edit only its packages-root constant. — out-of-scope
+- `ci-fallback-instruction`: Without an umbrella check command, add the lint script alone and tell the user to put it in CI. — out-of-scope
+- `group-backreference-rules`: Keep the boundary config's group back-references rather than flattening them into per-package rules. — out-of-scope
+- `commonjs-config`: Use a CommonJS extension for the boundary config so it loads in ES-module repositories. — out-of-scope
+- `cruiser-resolution-config`: Configure the boundary linter to resolve imports the way the compiler does, without traversing installed dependencies. — out-of-scope
+- `preserve-typeconfig-and-aliases`: Wire the boundary lint without changing the TypeScript config or adding path aliases. — out-of-scope
+- `module-vocabulary`: Reason about design with a shared deep-module glossary: module, interface, depth, seam, adapter and locality. — adopt → codebase-design#module-vocabulary
 
 #### engineering · Verification · Review — skill:skills/engineering/code-review
-- `two-axis-review`: Review a diff along two separate axes — conformance to the repo's documented standards and faithfulness to the originating spec.
-- `distinct-axis-verdicts`: Report each review axis's verdict separately so one axis passing never masks another failing.
-- `no-cross-axis-rerank`: Never merge or rerank findings across review axes or pick a single overall winner.
-- `scope-establishment`: Fix the diff and the base it is measured from before reviewing.
-- `fixed-point-preflight`: Confirm the review ref resolves and the diff is non-empty before fanning out, failing fast rather than inside sub-agents.
-- `three-dot-merge-base`: Compare against the merge-base using a three-dot git diff so unrelated upstream changes are excluded.
-- `spec-source-discovery`: Find the originating spec in a fixed order — commit issue references, a user-supplied path, conventional spec directories — and ask only as a last resort.
-- `standards-source-discovery`: Search the repo for every file documenting how code should be written, always including the conventional standards and contributing files.
-- `smell-baseline`: Carry a fixed code-smell baseline as labelled judgement calls that documented repo standards override and that skips anything tooling already enforces.
-- `parallel-subagents`: Run the review axes as parallel foreground sub-agents so their contexts do not pollute each other.
+- `two-axis-review`: Review a diff along two separate axes — conformance to the repo's documented standards and faithfulness to the originating spec. — adopt, pending cr-axdt.6.8 → review#two-axis-review
+- `distinct-axis-verdicts`: Report each review axis's verdict separately so one axis passing never masks another failing. — adopt → review#distinct-axis-verdicts
+- `no-cross-axis-rerank`: Never merge or rerank findings across review axes or pick a single overall winner. — defer
+- `scope-establishment`: Fix the diff and the base it is measured from before reviewing. — adopt → review#scope-establishment
+- `fixed-point-preflight`: Confirm the review ref resolves and the diff is non-empty before fanning out, failing fast rather than inside sub-agents. — adopt, pending cr-axdt.6.8 → review#fixed-point-preflight
+- `three-dot-merge-base`: Compare against the merge-base using a three-dot git diff so unrelated upstream changes are excluded. — defer
+- `spec-source-discovery`: Find the originating spec in a fixed order — commit issue references, a user-supplied path, conventional spec directories — and ask only as a last resort. — adopt, pending cr-axdt.6.8 → review#spec-source-discovery
+- `standards-source-discovery`: Search the repo for every file documenting how code should be written, always including the conventional standards and contributing files. — adopt, pending cr-axdt.6.8 → review#standards-source-discovery
+- `parallel-subagents`: Run the review axes as parallel foreground sub-agents so their contexts do not pollute each other. — defer
+- `missing-spec-axis-skip`: When the user confirms no spec exists, skip the spec review axis and report that no spec was available. — adopt, pending cr-axdt.6.8 → review#missing-spec-axis-skip
+- `skip-tool-enforced`: Skip any review finding that existing tooling already enforces. — adopt → review#actionable-defects-only
+- `self-contained-subagent-brief`: Paste into a subagent's brief any reference material it needs that it cannot otherwise reach. — defer
+- `cited-standard-findings`: Cite the standard's file and rule for every violation and quote the hunk for every smell. — adopt, pending cr-axdt.6.8 → review#cited-standard-findings
+- `spec-conformance-findings`: Report spec findings as missing or partial requirements, unrequested behaviour and wrongly implemented requirements, quoting the spec line for each. — adopt, pending cr-axdt.6.8 → review#spec-conformance-findings
+- `capped-reviewer-report`: Cap each reviewer subagent's report at a fixed word budget. — defer
+- `per-axis-summary-line`: Close a multi-axis review with one line giving each axis's finding count and its worst issue. — defer
+- `code-smell-catalog`: Check changes against a fixed catalogue of named code smells, each with a description and a fix, whether or not the repository documents standards. — defer
+- `repo-standards-over-smells`: Let a documented repository standard override and suppress a conflicting catalogue smell. — defer
+- `smells-as-heuristics`: Report a catalogue smell only as a labelled possible judgement call, never as a hard violation. — defer
 
 #### engineering · Delivery · Integration — skill:skills/engineering/pr
-- `pr-body-template`: Fill a fixed PR-body skeleton with Summary, Evidence, and Merge Danger sections.
-- `smallest-view`: Pick the smallest view that makes the point, placing each visual next to the brief prose it supports.
-- `visual-form-catalog`: Offer a set of inline visual forms — pseudocode, call, component and file trees, Mermaid and whole-block — each with its own shape rules.
-- `evidence-before-after`: Show concrete before/after evidence that the change works, preferring screenshots, then execution-based test or console output.
-- `merge-danger`: State the merge's one-way or two-way door and its blast radius.
+- `pr-body-template`: Fill a fixed PR-body skeleton with Summary, Evidence, and Merge Danger sections. — defer
+- `visual-form-catalog`: Offer a set of inline visual forms — pseudocode, call, component and file trees, Mermaid and whole-block — each with its own shape rules. — adopt → show-me#visual-form-catalog
+- `evidence-before-after`: Show concrete before/after evidence that the change works, preferring screenshots, then execution-based test or console output. — defer
+- `merge-danger`: State the merge's one-way or two-way door and its blast radius. — defer
+- `no-preamble`: Open with the answer and stop when it is done, with no preamble, recap or closing pleasantry. — defer
+- `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write. — defer
+- `structural-diff`: Show a change as a diff against the structure the reader already holds rather than against raw source. — adopt → show-me#structural-diff
+- `visual-placement`: Place each visual immediately after the sentence it supports and include only the detail the current question needs. — adopt → show-me#visual-placement
+- `minimal-visual-selection`: Use the fewest and smallest visuals that make the point, never a gallery. — adopt → show-me#minimal-visual-selection
 
 #### engineering · Improvement · Retrospective — skill:skills/engineering/retro
-- `environment-retro-categories`: Review a session for improvements to the agent's environment across fixed categories (navigation, automated checks, coding standards, steering files, tool economy, no-ops, information access).
-- `mechanical-vs-judgement`: Classify each finding as mechanical (a fixed syntactic pattern suiting a deterministic check) or judgement (cross-file consistency suiting a standards doc).
-- `build-check-over-rule`: Default to building a deterministic check over writing a prose rule for any mechanical finding.
-- `read-existing-check-first`: Read the repo's own lint and check commands before proposing one, treating an unwired or broken check, or the absence of any guardrail, as itself the finding.
-- `read-session-sources`: Read the primary sources (session logs) for the session under review, defaulting to the current one.
-- `severity-ordered-proposals`: Present improvement candidates to the user in order of severity.
-- `separate-review-stage`: Run review as a separate, low-context-pressure stage from implementation.
-- `reviewer-owns-standards`: Allocate coding-standards enforcement to the review agent rather than the implementation agent.
+- `environment-retro-categories`: Review a session for improvements to the agent's environment across fixed categories (navigation, automated checks, coding standards, steering files, tool economy, no-ops, information access). — defer
+- `mechanical-vs-judgement`: Classify each finding as mechanical (a fixed syntactic pattern suiting a deterministic check) or judgement (cross-file consistency suiting a standards doc). — adopt → authoring-for-agents#mechanical-vs-judgement
+- `build-check-over-rule`: Default to building a deterministic check over writing a prose rule for any mechanical finding. — adopt, pending cr-axdt.6.1 → authoring-for-agents#build-check-over-rule
+- `read-existing-check-first`: Read the repo's own lint and check commands before proposing one, treating an unwired or broken check, or the absence of any guardrail, as itself the finding. — defer
+- `read-session-sources`: Read the primary sources (session logs) for the session under review, defaulting to the current one. — defer
+- `severity-ordered-proposals`: Present improvement candidates to the user in order of severity. — defer
+- `separate-review-stage`: Run review as a separate, low-context-pressure stage from implementation. — defer
+- `reviewer-owns-standards`: Allocate coding-standards enforcement to the review agent rather than the implementation agent. — defer
+- `load-writing-guide-first`: Load the agent-writing guidance before writing any improvement suggestion. — defer
+- `sparse-always-loaded-file`: Keep the always-loaded agent instruction file sparse, mostly navigation pointers, moving steering into standards files or checks. — defer
+- `review-time-standards-file`: Treat the coding-standards file as review-time material and split it behind pointers once it passes about a thousand lines. — defer
+- `extend-existing-docs-first`: Prefer extending existing pointed-to documents before writing new ones. — adopt → authoring-for-agents#extend-existing-docs-first
+- `skill-when-description-needed`: Make material a skill only when its description should sit in context or it is a user-invoked command. — defer
 
 #### engineering · X · Coordination — skill:skills/engineering/ask-matt
-- `read-skill-before-claiming`: Read a skill's own instructions before describing what it does or recommending its step be skipped, treating router summaries as orientation only.
-- `unbroken-planning-window`: Keep the stages that build on each other's reasoning in one unbroken context window until the planning artifact is produced, so each stage builds on the same thinking.
-- `smart-zone-budget`: Treat the window in which the model still reasons sharply (~150k tokens) as a budget, compacting at the nearest phase boundary rather than pushing on degraded.
-- `boundary-only-context-decisions`: Make context-management choices only at the fuzzy boundary between two phases of work, never mid-phase where they lose the thread.
-- `rule-out-continue-first`: Rule out simply continuing in the current session, which costs and loses nothing, before any lossy context move.
-- `clear-disposable-context`: Clear the window outright when everything in the session is irrelevant to what comes next.
-- `handoff-for-portability`: Write a portable handoff file only when the work must travel to another harness, directory, person, or a forked side task.
-- `delegate-afk-work`: Send a tightly scoped task needing no steering to a subagent and leave the current session untouched.
-- `compact-last`: Treat compaction as the default fallback chosen only after the cheaper context moves are ruled out, not the first reach.
-- `compact-with-instruction`: Pass compaction an explicit instruction so the summary keeps what the next phase needs.
-- `primary-vs-secondary-source`: Recognise that every context move but continuing replaces the live session (a primary source) with a lossy summary that restores facts but not reasoning.
+- `read-skill-before-claiming`: Read a skill's own instructions before describing what it does or recommending its step be skipped, treating router summaries as orientation only. — defer
+- `unbroken-planning-window`: Keep the stages that build on each other's reasoning in one unbroken context window until the planning artifact is produced, so each stage builds on the same thinking. — defer
+- `smart-zone-budget`: Treat the window in which the model still reasons sharply (~150k tokens) as a budget, compacting at the nearest phase boundary rather than pushing on degraded. — defer
+- `boundary-only-context-decisions`: Make context-management choices only at the fuzzy boundary between two phases of work, never mid-phase where they lose the thread. — defer
+- `rule-out-continue-first`: Rule out simply continuing in the current session, which costs and loses nothing, before any lossy context move. — defer
+- `clear-disposable-context`: Clear the window outright when everything in the session is irrelevant to what comes next. — defer
+- `handoff-for-portability`: Write a portable handoff file only when the work must travel to another harness, directory, person, or a forked side task. — defer
+- `delegate-afk-work`: Send a tightly scoped task needing no steering to a subagent and leave the current session untouched. — defer
+- `compact-last`: Treat compaction as the default fallback chosen only after the cheaper context moves are ruled out, not the first reach. — defer
+- `compact-with-instruction`: Pass compaction an explicit instruction so the summary keeps what the next phase needs. — defer
+- `primary-vs-secondary-source`: Recognise that every context move but continuing replaces the live session (a primary source) with a lossy summary that restores facts but not reasoning. — defer
+- `staged-delivery-flow`: Order the work as interview, optional prototype, spec, tickets, implementation, review and retrospective. — defer
+- `interview-mode-by-workspace`: Choose the stateful, document-writing interview when a working directory exists and the stateless one when it does not. — defer
+- `prototype-detour`: Leave the main flow for a throwaway prototype when a question needs a runnable answer, then return to the flow with the answer. — defer
+- `multi-session-split`: Write a spec and split it into tickets only when the build spans several sessions, otherwise implement in the current window. — defer
+- `ticket-per-fresh-context`: Work build tickets one per fresh context window, clearing between them and taking blockers first. — defer
+- `parallel-frontier-implementers`: Run implementer subagents concurrently over the ready frontier of a ticket graph, dispatching new ones whenever a merge opens more tickets. — defer
+- `single-integration-branch`: Land every ticket of a multi-ticket build on one integration branch. — defer
+- `retro-in-reviewed-session`: Run a retrospective inside the session it reviews before clearing, or point it at that session's log afterwards. — defer
+- `triage-external-only`: Triage only items the user did not author, since tickets the ticketing step produced are already agent-ready. — defer
+- `post-fix-retro`: After a bug fix, ask in the same session what would have prevented it, escalating to architecture work when no good seam exists. — defer
+- `decision-map-for-large-efforts`: Chart a decision map only for an effort too large for one session, feeding its result into spec writing rather than straight into implementation unless the effort proved small. — defer
+- `ordered-context-decision-tree`: Walk the context moves at a phase boundary as an ordered decision tree in which the first yes wins. — defer
+
+#### engineering · X · Coordination — skill:skills/engineering/implement-spec
+- `single-integration-branch`: Land every ticket of a multi-ticket build on one integration branch. — defer
+- `dependency-edges`: Encode real blocking edges in the tracker and let the ready frontier drive execution rather than listing order. — adopt → planning#dependency-edges
+- `pointer-only-subagent-briefs`: Keep subagent communication sparse by passing pointers to the spec, tickets, notes and commits rather than copying their content. — defer
+- `parallel-frontier-implementers`: Run implementer subagents concurrently over the ready frontier of a ticket graph, dispatching new ones whenever a merge opens more tickets. — defer
+- `exploration-notes-subagent`: Optionally run an exploration subagent that saves markdown notes outside the repository for later subagents to read. — defer
+- `draft-closing-pr`: After the first merge, open a draft pull request marked as closing the spec and tickets when the tracker closes work through pull requests or the user asks. — defer
+- `worktree-per-implementer`: Give each implementer subagent its own worktree and branch. — defer
+- `worktree-base-check`: Have each implementer confirm its worktree is based on the integration branch and reset onto it if not. — defer
+- `red-green`: Make one test fail before implementing the change that makes it pass. — adopt → test-driven-development#red-green
+- `pre-report-tip-merge`: Have each implementer merge the integration branch's tip into its own branch before reporting done. — defer
+- `dedicated-merger-agent`: Merge completed work into the integration branch through a dedicated merger subagent. — defer
+- `final-branch-review`: Once all tickets have landed, review the integration branch a single time and fix all findings through a single implementer. — defer
+- `delivery-closeout`: Finish a multi-ticket build by marking the draft pull request ready or closing the tickets, and report the branch. — defer
+- `worktree-cleanup`: Remove every implementer worktree when the build ends. — defer
 
 ## By trait
 
@@ -997,12 +1312,20 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 #### `bounded-decision-ticket`
 Make each ticket one bounded question whose answer is a decision.
 - ours: `wayfinder`
-- `mattpocock_skills:skill:skills/engineering/wayfinder`
+- `mattpocock_skills:skill:skills/engineering/wayfinder` — adopt → wayfinder#bounded-decision-ticket
+
+#### `breadth-first-charting`
+Chart by questioning breadth-first across the whole space to surface the open decisions and first steps before going deep on any.
+- `mattpocock_skills:skill:skills/engineering/wayfinder` — adopt, pending cr-axdt.6.13 → wayfinder#breadth-first-charting
+
+#### `chart-only-session`
+End the charting session without resolving any ticket.
+- `mattpocock_skills:skill:skills/engineering/wayfinder` — defer
 
 #### `claim-before-work`
 Choose the requested or a ready unclaimed child and claim it before working on it.
 - ours: `wayfinder`
-- `mattpocock_skills:skill:skills/engineering/wayfinder`
+- `mattpocock_skills:skill:skills/engineering/wayfinder` — adopt → wayfinder#claim-before-work
 
 #### `coherence-sized-tickets`
 Size decision tickets by decision coherence and dependencies, not an assumed context-window size.
@@ -1011,16 +1334,33 @@ Size decision tickets by decision coherence and dependencies, not an assumed con
 #### `decision-map-epic`
 Chart a large effort as one map item on the tracker whose children are decision tickets.
 - ours: `wayfinder`
-- `mattpocock_skills:skill:skills/engineering/wayfinder`
+- `mattpocock_skills:skill:skills/engineering/wayfinder` — adopt → wayfinder#decision-map-epic
+
+#### `decision-map-for-large-efforts`
+Chart a decision map only for an effort too large for one session, feeding its result into spec writing rather than straight into implementation unless the effort proved small.
+- `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
 
 #### `destination-first`
 Name the destination first, since it fixes the scope and shapes every ticket.
 - ours: `wayfinder`
-- `mattpocock_skills:skill:skills/engineering/wayfinder`
+- `mattpocock_skills:skill:skills/engineering/wayfinder` — adopt → wayfinder#destination-first
+
+#### `fog-hygiene`
+Keep decided, ticketed and out-of-scope items out of the map's section of not-yet-specified questions.
+- ours: `wayfinder`
+- `mattpocock_skills:skill:skills/engineering/wayfinder` — adopt → wayfinder#fog-hygiene
+
+#### `grilling-default-type`
+Make a live interview the default ticket type.
+- `mattpocock_skills:skill:skills/engineering/wayfinder` — defer
 
 #### `human-decision-gate`
 Stop at a required human decision and prepare concrete options before requesting the final gate.
 - ours: `wayfinder`
+
+#### `invalidated-ticket-reconciliation`
+Update or delete the other tickets that a recorded decision invalidated.
+- `mattpocock_skills:skill:skills/engineering/wayfinder` — adopt, pending cr-axdt.6.13 → wayfinder#invalidated-ticket-reconciliation
 
 #### `label-free-typing`
 Express each ticket's kind through the tracker's native item type and a title prefix, creating no labels.
@@ -1028,17 +1368,30 @@ Express each ticket's kind through the tracker's native item type and a title pr
 
 #### `live-human-resolution`
 Resolve a human-in-the-loop item only through a live exchange with the human, never answering the human's side yourself.
-- `mattpocock_skills:skill:skills/engineering/wayfinder`
+- `mattpocock_skills:skill:skills/engineering/wayfinder` — adopt → wayfinder#human-decision-gate
+
+#### `local-tracker-default`
+Default to a local markdown tracker when no tracker is configured.
+- `mattpocock_skills:skill:skills/engineering/wayfinder` — defer
+
+#### `low-res-map-load`
+When working a map, load only its low-resolution body and open related tickets only on demand.
+- ours: `wayfinder`
+- `mattpocock_skills:skill:skills/engineering/wayfinder` — adopt → wayfinder#low-res-map-load
 
 #### `map-as-index`
 Keep resolution detail on each ticket while the map holds only a named pointer and a gist.
 - ours: `wayfinder`
-- `mattpocock_skills:skill:skills/engineering/wayfinder`
+- `mattpocock_skills:skill:skills/engineering/wayfinder` — adopt → wayfinder#map-as-index
 
 #### `map-body-sections`
 Structure the map body as Destination, Notes, Decisions so far, Not yet specified, and Out of scope.
 - ours: `wayfinder`
-- `mattpocock_skills:skill:skills/engineering/wayfinder`
+- `mattpocock_skills:skill:skills/engineering/wayfinder` — adopt → wayfinder#map-body-sections
+
+#### `map-initial-state`
+Create a new map with destination and notes filled, decisions empty and the unspecified questions sketched.
+- `mattpocock_skills:skill:skills/engineering/wayfinder` — defer
 
 #### `multi-ticket-sessions`
 Continue through additional authorized ready tickets with no one-ticket-per-session limit, parallel work needing disjoint ownership.
@@ -1046,67 +1399,93 @@ Continue through additional authorized ready tickets with no one-ticket-per-sess
 
 #### `no-map-without-fog`
 If breadth-first charting surfaces no fog, stop and ask how to proceed rather than building a map.
-- `mattpocock_skills:skill:skills/engineering/wayfinder`
+- `mattpocock_skills:skill:skills/engineering/wayfinder` — defer
 
 #### `no-triage-labels`
 Carry only wayfinder-type labels on a map and its tickets, never a triage label.
-- `mattpocock_skills:skill:skills/engineering/wayfinder`
+- `mattpocock_skills:skill:skills/engineering/wayfinder` — adopt → wayfinder#label-free-typing
 
 #### `one-ticket-per-session`
 Resolve no more than one ticket per session, except research tickets.
-- `mattpocock_skills:skill:skills/engineering/wayfinder`
+- `mattpocock_skills:skill:skills/engineering/wayfinder` — defer
 
 #### `out-of-scope-close`
 Close an out-of-scope ticket with an explicit exclusion reason rather than a claim of delivery.
 - ours: `wayfinder`
-- `mattpocock_skills:skill:skills/engineering/wayfinder`
+- `mattpocock_skills:skill:skills/engineering/wayfinder` — adopt → wayfinder#out-of-scope-close
+
+#### `out-of-scope-final`
+Never graduate an out-of-scope item back into the map; it returns only as a fresh effort if the destination changes.
+- `mattpocock_skills:skill:skills/engineering/wayfinder` — defer
 
 #### `plan-not-do`
 Keep the map to planning: each ticket resolves a decision rather than executing a build slice.
 - ours: `wayfinder`
-- `mattpocock_skills:skill:skills/engineering/wayfinder`
+- `mattpocock_skills:skill:skills/engineering/wayfinder` — adopt → wayfinder#plan-not-do
+
+#### `prerequisite-task-human-checklist`
+Do prerequisite task work alone where possible, otherwise hand the human a precise checklist.
+- `mattpocock_skills:skill:skills/engineering/wayfinder` — adopt, pending cr-axdt.6.13 → wayfinder#prerequisite-task-human-checklist
+
+#### `prerequisite-task-result-facts`
+Record on a prerequisite task the resulting facts later tickets depend on, such as URLs or where credentials live.
+- `mattpocock_skills:skill:skills/engineering/wayfinder` — adopt, pending cr-axdt.6.13 → wayfinder#prerequisite-task-result-facts
+
+#### `prototype-ticket-asset`
+Resolve a prototype ticket by building a rough artifact and linking it from the ticket as an asset.
+- ours: `wayfinder`
+- `mattpocock_skills:skill:skills/engineering/wayfinder` — adopt → wayfinder#prototype-ticket-asset
 
 #### `question-graduation`
 Ticket a question once it is sharp enough to state, even while blocked, and hold not-yet-specifiable work aside until earlier answers make it expressible.
 - ours: `wayfinder`
-- `mattpocock_skills:skill:skills/engineering/wayfinder`
+- `mattpocock_skills:skill:skills/engineering/wayfinder` — adopt → wayfinder#question-graduation
 
 #### `real-id-wiring`
 Wire cross-references and dependencies with real identifiers, never placeholders.
 - ours: `planning`
 - ours: `wayfinder`
-- `mattpocock_skills:skill:skills/engineering/to-tickets`
-- `mattpocock_skills:skill:skills/engineering/wayfinder`
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → planning#real-id-wiring
+- `mattpocock_skills:skill:skills/engineering/wayfinder` — adopt → wayfinder#real-id-wiring
 
 #### `record-resolution`
 On resolving a ticket, record the answer on it, close it, and add a pointer to the map's decisions so far.
 - ours: `wayfinder`
-- `mattpocock_skills:skill:skills/engineering/wayfinder`
+- `mattpocock_skills:skill:skills/engineering/wayfinder` — adopt → wayfinder#record-resolution
 
 #### `reference-by-name`
 Reference tickets by name with identifiers and links so the map reads without opening every item.
 - ours: `wayfinder`
-- `mattpocock_skills:skill:skills/engineering/wayfinder`
+- `mattpocock_skills:skill:skills/engineering/wayfinder` — adopt → wayfinder#reference-by-name
 
 #### `session-sized-tickets`
 Size each ticket to fit one agent session's context window.
-- `mattpocock_skills:skill:skills/engineering/wayfinder`
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — defer
+- `mattpocock_skills:skill:skills/engineering/wayfinder` — defer
+
+#### `ticket-asset-pointers`
+Link assets created while resolving a ticket from the tracker rather than pasting them into it.
+- `mattpocock_skills:skill:skills/engineering/wayfinder` — defer
 
 #### `ticket-type-set`
 A fixed set of ticket kinds: research for facts, prototype for fidelity, grilling for a live interview, and task for prerequisite work that unblocks a decision.
 - ours: `wayfinder`
-- `mattpocock_skills:skill:skills/engineering/wayfinder`
+- `mattpocock_skills:skill:skills/engineering/wayfinder` — adopt → wayfinder#ticket-type-set
 
 #### `type-directed-resolution`
 Resolve each ticket as the type its label names, reading the label rather than inferring from the body.
-- `mattpocock_skills:skill:skills/engineering/wayfinder`
+- `mattpocock_skills:skill:skills/engineering/wayfinder` — adopt → wayfinder#ticket-type-set
 
 ### core · Discovery · Research
 
 #### `cited-artifact`
 Bind citations to the claims they support in the research output.
 - ours: `research`
-- `mattpocock_skills:skill:skills/engineering/research`
+- `mattpocock_skills:skill:skills/engineering/research` — adopt → research#cited-artifact
+
+#### `claim-source-tracing`
+Follow every claim back to the primary source that owns it.
+- `mattpocock_skills:skill:skills/engineering/research` — defer
 
 #### `decision-framing`
 State the decision, scope, constraints and material unknowns, and choose sources by what would change the answer.
@@ -1126,7 +1505,7 @@ Compare alternatives and counterevidence while separating verified fact, inferen
 
 #### `findings-file`
 Always write the findings to one Markdown file saved where the repository keeps such notes.
-- `mattpocock_skills:skill:skills/engineering/research`
+- `mattpocock_skills:skill:skills/engineering/research` — adopt → research#scaled-report
 
 #### `judgment-frameworks`
 Apply one to three comparison frameworks to sharpen a choice rather than to decorate the report.
@@ -1136,10 +1515,13 @@ Apply one to three comparison frameworks to sharpen a choice rather than to deco
 Check consequential claims from summaries, memory and agent reports against primary evidence before relying on them.
 - `doc:AGENTS.md`
 
+#### `primary-source-only-research`
+Research only from primary sources such as official docs, source code and specs, never from a secondary write-up of them.
+- `mattpocock_skills:skill:skills/engineering/research` — adopt → research#primary-source-preference
+
 #### `primary-source-preference`
 Prefer primary sources such as official docs, source code and specs over secondary write-ups.
 - ours: `research`
-- `mattpocock_skills:skill:skills/engineering/research`
 
 #### `research-playbooks`
 Follow a research sequence matched to the question's domain, pulling from a second only when it truly spans domains.
@@ -1178,6 +1560,12 @@ Verify fast-changing tool or provider facts and unfamiliar APIs against official
 #### `absent-respondent`
 When the needed respondent is absent, prepare a questionnaire for them instead of interviewing the present user about the subject.
 - ours: `grilling`
+- `mattpocock_skills:skill:skills/productivity/to-questionnaire` — adopt → grilling#absent-respondent
+
+#### `answer-before-next-round`
+Wait for the respondent's answers to a round before asking the next one.
+- `mattpocock_skills:skill:skills/in-progress/loop-me` — adopt, pending cr-axdt.6.4 → grilling#answer-before-next-round
+- `mattpocock_skills:skill:skills/productivity/grilling` — adopt, pending cr-axdt.6.4 → grilling#answer-before-next-round
 
 #### `approval-interpretation`
 Treat a clear acceptance of a concrete proposal or an explicit delegation of routine choices as usable authority, and silence as not approval.
@@ -1193,16 +1581,16 @@ Produce the durable decision log in a fixed template — context, a decision tab
 
 #### `document-during-interview`
 Pair a clarifying interview with live documentation so the glossary and decision records are produced as the interview settles each question.
-- `mattpocock_skills:skill:skills/engineering/grill-with-docs`
-- `mattpocock_skills:skill:skills/engineering/triage`
+- `mattpocock_skills:skill:skills/engineering/grill-with-docs` — adopt → grilling#optional-docs
+- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — defer
+- `mattpocock_skills:skill:skills/engineering/triage` — defer
 
-#### `document-structure`
+#### `document-structure` *(retired)*
 Fill a fixed questionnaire template, ordered most-important-first, of purpose, from/to/use, context, how-to-answer, themed sections of one-idea questions with answer stubs, and a closing catch-all.
-- `mattpocock_skills:skill:skills/productivity/to-questionnaire`
 
 #### `exhaustive-completion`
 End the session only when the frontier is empty and every branch of the tree has been visited, with nothing silently assumed.
-- `mattpocock_skills:skill:skills/productivity/grilling`
+- `mattpocock_skills:skill:skills/productivity/grilling` — defer
 
 #### `exploration-lenses`
 Apply ideation lenses such as SCAMPER or Jobs-to-Be-Done selectively to unlock options, never as a mandatory quota or sequence.
@@ -1211,21 +1599,29 @@ Apply ideation lenses such as SCAMPER or Jobs-to-Be-Done selectively to unlock o
 #### `gap-targeted-questions`
 Aim a questionnaire's questions at the gap between what the recipient knows and what the sender needs.
 - ours: `grilling`
-- `mattpocock_skills:skill:skills/productivity/to-questionnaire`
+- `mattpocock_skills:skill:skills/productivity/to-questionnaire` — adopt → grilling#gap-targeted-questions
 
 #### `grill-the-send`
 Ask the present user only about the send (who it goes to and what they need back), never about the subject the recipient knows.
 - ours: `grilling`
-- `mattpocock_skills:skill:skills/productivity/to-questionnaire`
+- `mattpocock_skills:skill:skills/productivity/to-questionnaire` — adopt → grilling#grill-the-send
+
+#### `importance-ordered-questions`
+Order a questionnaire's questions most important first.
+- `mattpocock_skills:skill:skills/productivity/to-questionnaire` — adopt, pending cr-axdt.6.4 → grilling#importance-ordered-questions
+
+#### `interview-mode-by-workspace`
+Choose the stateful, document-writing interview when a working directory exists and the stateless one when it does not.
+- `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
 
 #### `loop-lens`
 See the user's life as loops within loops to find recurring activities worth delegating, proposing ones they have not noticed.
-- `mattpocock_skills:skill:skills/in-progress/loop-me`
+- `mattpocock_skills:skill:skills/in-progress/loop-me` — defer
 
 #### `map-decisions`
 Map the material decisions and their prerequisites before questioning.
 - ours: `grilling`
-- `mattpocock_skills:skill:skills/productivity/grilling`
+- `mattpocock_skills:skill:skills/productivity/grilling` — adopt → grilling#map-decisions
 
 #### `match-interaction-to-ambiguity`
 Match the interaction depth to the ambiguity — return to the task, ask one focused question, or run a structured exploration — rather than over- or under-investigating.
@@ -1235,6 +1631,14 @@ Match the interaction depth to the ambiguity — return to the task, ask one foc
 Decide routine details yourself and ask only when an ambiguity materially affects correctness, scope or authority.
 - `doc:AGENTS.md`
 
+#### `needed-item-coverage`
+Finish a questionnaire only when every needed decision or fact is covered by at least one question.
+- `mattpocock_skills:skill:skills/productivity/to-questionnaire` — adopt, pending cr-axdt.6.4 → grilling#needed-item-coverage
+
+#### `non-blocking-lookup`
+Run a fact lookup without blocking the interview, holding back only the questions downstream of it.
+- `mattpocock_skills:skill:skills/productivity/grilling` — defer
+
 #### `observable-outcomes`
 Translate vague goals such as scalable or simple into observable outcomes only when the distinction affects the design.
 - ours: `brainstorming`
@@ -1243,25 +1647,38 @@ Translate vague goals such as scalable or simple into observable outcomes only w
 Present materially different options with their tradeoffs when alternatives remain.
 - ours: `brainstorming`
 
+#### `partial-uncertain-answers-welcome`
+Invite partial and don't-know answers, asking the respondent to flag uncertainty rather than skip the question.
+- `mattpocock_skills:skill:skills/productivity/to-questionnaire` — defer
+
 #### `question-batching`
 Batch independent questions whose prerequisites are settled and defer each dependent question until its prerequisites are answered.
 - ours: `brainstorming`
 - ours: `grilling`
-- `mattpocock_skills:skill:skills/productivity/grilling`
+- `mattpocock_skills:skill:skills/productivity/grilling` — adopt → grilling#question-batching
 
 #### `questionnaire-artifact`
 Write the questionnaire to a slug-named markdown file in the current directory and report its path.
-- `mattpocock_skills:skill:skills/productivity/to-questionnaire`
+- `mattpocock_skills:skill:skills/productivity/to-questionnaire` — defer
+
+#### `questionnaire-document-template`
+Fill a questionnaire template of purpose, a from-to-use line, a context section, how to answer, themed question sections with answer stubs, and a closing catch-all.
+- `mattpocock_skills:skill:skills/productivity/to-questionnaire` — defer
+
+#### `questionnaire-response-expectations`
+Tell the respondent the deadline and the rough effort answering will take.
+- `mattpocock_skills:skill:skills/productivity/to-questionnaire` — defer
 
 #### `recommended-answer`
 Attach a recommended answer to each question, letting the respondent disagree.
 - ours: `brainstorming`
 - ours: `grilling`
-- `mattpocock_skills:skill:skills/productivity/grilling`
+- `mattpocock_skills:skill:skills/in-progress/loop-me` — adopt → grilling#recommended-answer
+- `mattpocock_skills:skill:skills/productivity/grilling` — adopt → grilling#recommended-answer
 
 #### `reconfirm-before-action`
 Do not act until the user confirms a shared understanding has been reached.
-- `mattpocock_skills:skill:skills/productivity/grilling`
+- `mattpocock_skills:skill:skills/productivity/grilling` — defer
 
 #### `reuse-before-new`
 Name the closest existing solution before proposing a new one.
@@ -1269,22 +1686,30 @@ Name the closest existing solution before proposing a new one.
 
 #### `round-format`
 Lay out each round in a fixed question-and-recommendation markdown format, one block per question.
-- `mattpocock_skills:skill:skills/productivity/grilling`
+- `mattpocock_skills:skill:skills/productivity/grilling` — defer
 
 #### `scoped-context-read`
 Read only the existing code, authoritative docs and constraints needed to distinguish the live choices.
 - ours: `brainstorming`
 
+#### `selective-why-lines`
+Add a one-line reason a question matters only where it could be misread or invite a throwaway answer.
+- `mattpocock_skills:skill:skills/productivity/to-questionnaire` — defer
+
 #### `self-serve-facts`
 Look up available facts yourself rather than asking, leaving only the decisions to the live participant.
 - ours: `brainstorming`
 - ours: `grilling`
-- `mattpocock_skills:skill:skills/productivity/grilling`
+- `mattpocock_skills:skill:skills/productivity/grilling` — adopt → grilling#self-serve-facts
 
 #### `settled-stop`
 Recompute the unresolved choices after each answer and stop once the needed ones are settled, deferred or blocked, without exhausting every branch.
 - ours: `brainstorming`
 - ours: `grilling`
+
+#### `single-idea-questions`
+Make each question a single idea, never a compound one.
+- `mattpocock_skills:skill:skills/productivity/to-questionnaire` — adopt, pending cr-axdt.6.4 → grilling#single-idea-questions
 
 #### `structured-divergence`
 Generate only enough distinct options to expose the tradeoff, compare them on value, feasibility, cost and reversibility, test the assumption most likely to reverse the choice first, and keep rejected options with their reasons.
@@ -1293,19 +1718,19 @@ Generate only enough distinct options to expose the tradeoff, compare them on va
 #### `synthesize-settled`
 When the decisions are already settled, synthesize them into a spec without reopening the discussion.
 - ours: `brainstorming`
-- `mattpocock_skills:skill:skills/engineering/to-spec`
+- `mattpocock_skills:skill:skills/engineering/to-spec` — adopt → brainstorming#synthesize-settled
 
 #### `two-exchange-interview`
 Run the interview as two bounded exchanges, the recipient and what the user needs back.
-- `mattpocock_skills:skill:skills/productivity/to-questionnaire`
+- `mattpocock_skills:skill:skills/productivity/to-questionnaire` — defer
 
 #### `world-notes`
 Capture the user's world, tools, channels and terminology in a notes file, interviewing them first when it is thin.
-- `mattpocock_skills:skill:skills/in-progress/loop-me`
+- `mattpocock_skills:skill:skills/in-progress/loop-me` — defer
 
 #### `yes-accepts-recommendation`
 Word each question so that a yes accepts your recommended answer.
-- `mattpocock_skills:skill:skills/productivity/grilling`
+- `mattpocock_skills:skill:skills/productivity/grilling` — adopt, pending cr-axdt.6.4 → grilling#yes-accepts-recommendation
 
 ### core · Intake · Triage
 
@@ -1315,17 +1740,17 @@ Make a bead agent-executable only when acceptance criteria, current and desired 
 
 #### `ai-disclaimer`
 Open every comment or issue posted during the work with an AI-generated-during-triage disclaimer.
-- `mattpocock_skills:skill:skills/engineering/triage`
+- `mattpocock_skills:skill:skills/engineering/triage` — out-of-scope
 
 #### `attention-buckets`
 Present the items needing triage attention as named buckets, oldest first.
 - ours: `triage`
-- `mattpocock_skills:skill:skills/engineering/triage`
+- `mattpocock_skills:skill:skills/engineering/triage` — adopt → triage#attention-buckets
 
 #### `claim-verification`
 Verify a reported claim before acting on it, reproducing a bug or recording exactly why it could not be reproduced.
 - ours: `triage`
-- `mattpocock_skills:skill:skills/engineering/triage`
+- `mattpocock_skills:skill:skills/engineering/triage` — adopt → triage#claim-verification
 
 #### `durable-unit-scope`
 Track one durable unit of work per bead, keeping turn checklists out, searching before creating, and filing incidental finds as discovered-from beads.
@@ -1338,12 +1763,12 @@ Record what each triage pass settled as a note on the item itself, so the next p
 #### `prior-rejection-check`
 Check earlier rejections for one resembling the request and surface any match before deciding.
 - ours: `triage`
-- `mattpocock_skills:skill:skills/engineering/triage`
+- `mattpocock_skills:skill:skills/engineering/triage` — adopt → triage#prior-rejection-check
 
 #### `redundancy-check`
 Search the codebase by domain concept for an existing implementation and report where you looked before deciding.
 - ours: `triage`
-- `mattpocock_skills:skill:skills/engineering/triage`
+- `mattpocock_skills:skill:skills/engineering/triage` — adopt → triage#redundancy-check
 
 #### `triage-decision`
 Decide and apply each triage outcome within existing authority rather than deferring every call to the owner.
@@ -1352,7 +1777,7 @@ Decide and apply each triage outcome within existing authority rather than defer
 #### `triage-resume-notes`
 Resume triage from the notes of earlier passes, never re-asking a question already answered.
 - ours: `triage`
-- `mattpocock_skills:skill:skills/engineering/triage`
+- `mattpocock_skills:skill:skills/engineering/triage` — adopt → triage#triage-resume-notes
 
 #### `triage-routing`
 Route each triaged item to one outcome expressed in the tracker's native fields (admit with acceptance, hand to a human task, defer, reject, or mark duplicate) with no separate intake labels.
@@ -1370,46 +1795,88 @@ When requested, record settled domain terms and qualifying architectural decisio
 
 ### core · Design · Decomposition
 
-#### `quiz-the-user`
+#### `breakdown-approval-before-publish`
+Iterate on the ticket breakdown until the user approves it, publishing nothing before approval.
+- ours: `planning`
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → planning#breakdown-approval-before-publish
+
+#### `quiz-the-user` *(retired)*
 Present the breakdown as a numbered list of title, blocked-by and what it delivers, and iterate on granularity, edges and splits until the user approves.
-- `mattpocock_skills:skill:skills/engineering/to-tickets`
+
+#### `ticket-breakdown-feedback`
+Ask the user about the breakdown's granularity, its blocking edges, and tickets to merge or split.
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — defer
+
+#### `ticket-breakdown-preview`
+Show the proposed ticket breakdown as a numbered list of title, blockers and delivered behaviour before publishing it.
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — defer
 
 #### `ticket-template`
 Fill a fixed ticket template of behavioural what-to-build, blocked-by, and checkable acceptance criteria.
-- `mattpocock_skills:skill:skills/engineering/to-tickets`
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — defer
 
 ### core · Design · Grounding
 
-#### `glossary-format`
-Write opinionated glossary entries with an Avoid list and tight is-not-does definitions, grouped under subheadings when clusters emerge.
+#### `canonical-term-and-aliases`
+Pick one preferred term per concept and list its other words as aliases to avoid.
 - ours: `domain-modeling`
 - ours: `teach`
-- `mattpocock_skills:skill:skills/engineering/domain-modeling`
-- `mattpocock_skills:skill:skills/productivity/teach`
+- `mattpocock_skills:skill:skills/engineering/domain-modeling` — adopt → domain-modeling#canonical-term-and-aliases
+- `mattpocock_skills:skill:skills/productivity/teach` — adopt → teach#canonical-term-and-aliases
+
+#### `glossary-entry-template`
+Write glossary entries of a term and its definition, grouped under subheadings when clusters emerge.
+- ours: `domain-modeling`
+- ours: `teach`
+- `mattpocock_skills:skill:skills/engineering/domain-modeling` — adopt → domain-modeling#glossary-entry-template
+- `mattpocock_skills:skill:skills/productivity/teach` — adopt → teach#glossary-entry-template
+
+#### `glossary-format` *(retired)*
+Write opinionated glossary entries with an Avoid list and tight is-not-does definitions, grouped under subheadings when clusters emerge.
+
+#### `glossary-self-vocabulary`
+Use the glossary's own terms inside its other definitions.
+- ours: `teach`
+- `mattpocock_skills:skill:skills/productivity/teach` — adopt → teach#glossary-self-vocabulary
+
+#### `tight-concept-definitions`
+Define each glossary term tightly by what it is, not what it does.
+- ours: `domain-modeling`
+- ours: `teach`
+- `mattpocock_skills:skill:skills/engineering/domain-modeling` — adopt → domain-modeling#tight-concept-definitions
+- `mattpocock_skills:skill:skills/productivity/teach` — adopt → teach#tight-concept-definitions
 
 ### core · Design · Specification
 
+#### `live-spec-edits`
+Create, edit and delete specification files as the interview resolves each point.
+- `mattpocock_skills:skill:skills/in-progress/loop-me` — defer
+
 #### `mandate-nothing-structural`
 Impose no structure such as AI, a checkpoint or a schedule on a workflow unless the interview shows it is needed.
-- `mattpocock_skills:skill:skills/in-progress/loop-me`
+- `mattpocock_skills:skill:skills/in-progress/loop-me` — defer
 
 #### `no-stale-code-snippets`
 Keep code snippets out of a durable spec or ticket because they go stale.
 - ours: `brainstorming`
 - ours: `planning`
-- `mattpocock_skills:skill:skills/engineering/to-spec`
-- `mattpocock_skills:skill:skills/engineering/to-tickets`
+- `mattpocock_skills:skill:skills/engineering/to-spec` — adopt → brainstorming#no-stale-code-snippets
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → planning#no-stale-code-snippets
 
 #### `no-stale-file-paths`
 Keep concrete file paths out of a durable spec, ticket or brief, describing interfaces and behaviour that survive code drift.
 - ours: `brainstorming`
-- `mattpocock_skills:skill:skills/engineering/to-spec`
-- `mattpocock_skills:skill:skills/engineering/to-tickets`
-- `mattpocock_skills:skill:skills/engineering/triage`
+- `mattpocock_skills:skill:skills/engineering/to-spec` — adopt → brainstorming#no-stale-file-paths
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — defer
+- `mattpocock_skills:skill:skills/engineering/triage` — defer
 
 #### `none-keeps-heading`
 Keep every spec heading, writing None in an empty section so its absence reads as a decision.
 - ours: `brainstorming`
+
+#### `prefer-event-triggers`
+Prefer an event trigger to a schedule, as usually the more efficient of the two.
+- `mattpocock_skills:skill:skills/in-progress/loop-me` — defer
 
 #### `spec-approval-gate`
 Keep a spec in draft until explicit authorization names its direction and scope, with any blocking question resolved or moved to out-of-scope first.
@@ -1421,12 +1888,16 @@ Add success-criteria and open-questions sections to the spec skeleton.
 
 #### `spec-done-when-buildable`
 Treat a spec as done only when an implementer could build it without asking a single question.
-- `mattpocock_skills:skill:skills/in-progress/loop-me`
+- `mattpocock_skills:skill:skills/in-progress/loop-me` — defer
+
+#### `spec-files-only-output`
+Run a stateful interview whose only output is the specification files.
+- `mattpocock_skills:skill:skills/in-progress/loop-me` — defer
 
 #### `spec-template`
 Capture the spec in a fixed skeleton: problem, solution, user stories, implementation decisions, testing decisions, out of scope and further notes.
 - ours: `brainstorming`
-- `mattpocock_skills:skill:skills/engineering/to-spec`
+- `mattpocock_skills:skill:skills/engineering/to-spec` — adopt → brainstorming#spec-template
 
 #### `visuals-into-spec`
 Re-express an approved diagram inside the durable spec as a Mermaid block, or record what a mockup showed and decided, rather than linking disposable scratch files.
@@ -1434,11 +1905,11 @@ Re-express an approved diagram inside the durable spec as a Mermaid block, or re
 
 #### `workflow-spec-artifact`
 Keep each workflow's spec in its own markdown file as the single source of truth.
-- `mattpocock_skills:skill:skills/in-progress/loop-me`
+- `mattpocock_skills:skill:skills/in-progress/loop-me` — defer
 
 #### `workflow-vocabulary`
 Describe a workflow with a shared vocabulary of Trigger, an event or schedule, and Checkpoint.
-- `mattpocock_skills:skill:skills/in-progress/loop-me`
+- `mattpocock_skills:skill:skills/in-progress/loop-me` — defer
 
 ### core · Building · Diagnosis
 
@@ -1461,7 +1932,7 @@ Deliver the correct result with the smallest change that achieves it.
 #### `distinct-axis-verdicts`
 Report each review axis's verdict separately so one axis passing never masks another failing.
 - ours: `review`
-- `mattpocock_skills:skill:skills/engineering/code-review`
+- `mattpocock_skills:skill:skills/engineering/code-review` — adopt → review#distinct-axis-verdicts
 
 #### `document-review`
 Check a spec or plan against repository context for internal inconsistency, missing constraints, unverifiable claims and scope bloat, editing only unambiguous wording when fixes were requested.
@@ -1499,11 +1970,12 @@ Represent a review as its own task by an actor other than the author, which the 
 
 #### `reviewer-owns-standards`
 Allocate coding-standards enforcement to the review agent rather than the implementation agent.
-- `mattpocock_skills:skill:skills/engineering/retro`
+- `mattpocock_skills:skill:skills/engineering/retro` — defer
+- `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — defer
 
 #### `separate-review-stage`
 Run review as a separate, low-context-pressure stage from implementation.
-- `mattpocock_skills:skill:skills/engineering/retro`
+- `mattpocock_skills:skill:skills/engineering/retro` — defer
 
 #### `severity-and-verdict`
 Rate each finding by consequence and approve only with no open blocker or major, otherwise require revision, never counting preference alone as a finding.
@@ -1594,6 +2066,10 @@ Record an adopt or adopt-merged event only after the adopted state exists, passi
 Convert source agents into conservative target config scaffolds, inferring a sandbox mode and flagging that model identifiers do not carry over.
 - ours: `migrate-claude-to-codex`
 
+#### `agent-data-access`
+Give agents direct data sources such as process logs, test databases and browser access.
+- `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — defer
+
 #### `beads-followup`
 Let the gap command print tracker-create lines to review by hand, never auto-running them, and only within filing authority.
 - ours: `harness-scan`
@@ -1604,7 +2080,7 @@ Install the tracker, adopt it in a project, and join from a new clone with boots
 
 #### `co-location`
 Keep a concept's definition, rules and caveats under one heading so reading one part brings its neighbours.
-- `mattpocock_skills:skill:skills/productivity/writing-for-agents`
+- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — adopt, pending cr-axdt.6.1 → authoring-for-agents#co-location
 
 #### `command-conversion`
 Convert source commands into target skill scaffolds, reporting any name collision with an existing skill.
@@ -1617,20 +2093,32 @@ Keep a manual or legacy entrypoint as a thin pointer that delegates to the canon
 #### `completion-criteria-clarity`
 End each step on an observable, checkable done-or-not-done criterion that resists premature completion.
 - ours: `authoring-for-agents`
-- `mattpocock_skills:skill:skills/productivity/writing-for-agents`
+- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — adopt → authoring-for-agents#completion-criteria-clarity
 
 #### `completion-criteria-demand`
 Phrase the criterion to demand thorough work, driving the legwork latent in its wording.
-- `mattpocock_skills:skill:skills/productivity/writing-for-agents`
+- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — adopt, pending cr-axdt.6.1 → authoring-for-agents#completion-criteria-demand
 
 #### `config-scaffold`
 Write a target runtime config file and a migration-notes document as scaffolds.
 - ours: `migrate-claude-to-codex`
 
+#### `constrained-agent-interfaces`
+Give agents tightly constrained APIs and functions so the easy path is the correct one.
+- `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — defer
+
 #### `context-pointers`
 Write a pointer that names the material and the condition for reaching it, front-loading the trigger.
 - ours: `authoring-for-agents`
-- `mattpocock_skills:skill:skills/productivity/writing-for-agents`
+- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — adopt → authoring-for-agents#context-pointers
+
+#### `correctness-enforcing-lint`
+Add lint rules that force correct code so agents cannot drift from it.
+- `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — defer
+
+#### `criterion-before-isolation`
+Sharpen a vague completion criterion before considering hiding the later steps.
+- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — defer
 
 #### `decision-relevance-pruning`
 Keep only content that changes the agent's decisions, such as conventions, non-obvious failure modes, required interfaces and invariants.
@@ -1648,24 +2136,41 @@ Preview all planned changes by default and write only under an explicit apply fl
 Make an authorized adoption edit the one canonical source, placing shared policy in the shared files without duplicating it across provider directories.
 - ours: `harness-evaluate`
 
+#### `empirical-instruction-default-check`
+Settle whether an instruction changes behaviour from the model's default by running the document, not by debate.
+- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — adopt → authoring-for-agents#verification
+
 #### `environment-as-cache`
 Point to authoritative commands and lookups instead of copying volatile facts the agent can find itself.
 - ours: `authoring-for-agents`
-- `mattpocock_skills:skill:skills/productivity/writing-for-agents`
+- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — adopt → authoring-for-agents#environment-as-cache
+
+#### `extend-existing-docs-first`
+Prefer extending existing pointed-to documents before writing new ones.
+- ours: `authoring-for-agents`
+- `mattpocock_skills:skill:skills/engineering/retro` — adopt → authoring-for-agents#extend-existing-docs-first
+
+#### `external-shared-reference`
+Put reference shared by user-invoked skills in a plain external file rather than a skill.
+- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — adopt → authoring-for-agents#surface-choice
 
 #### `hook-conversion`
 Copy hooks and rewrite hook registrations into the target format, flagging that fixtures must validate before enforcement is trusted.
 - ours: `migrate-claude-to-codex`
 
+#### `human-facing-description`
+Write a user-invoked skill's description as a one-line human summary with triggers stripped.
+- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — adopt, pending cr-axdt.6.1 → authoring-for-agents#human-facing-description
+
 #### `inline-vs-disclose`
 Inline what every branch needs and disclose branch-specific material behind a conditional pointer.
 - ours: `authoring-for-agents`
-- `mattpocock_skills:skill:skills/productivity/writing-for-agents`
+- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — adopt → authoring-for-agents#inline-vs-disclose
 
 #### `invocation-mode`
 Choose model-invoked or user-invoked activation, setting the disable-model-invocation flag for manual workflows.
 - ours: `authoring-for-agents`
-- `mattpocock_skills:skill:skills/productivity/writing-for-agents`
+- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — adopt → authoring-for-agents#invocation-mode
 
 #### `invocation-sidecar-sync`
 Pair the manual-invocation flag with the provider's implicit-invocation policy and regenerate the catalog and sidecars together after metadata edits.
@@ -1673,24 +2178,40 @@ Pair the manual-invocation flag with the provider's implicit-invocation policy a
 
 #### `leading-words`
 Anchor behaviour in a compact pretrained concept repeated as a token, reaching for an existing word before coining one.
-- `mattpocock_skills:skill:skills/productivity/writing-for-agents`
+- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — defer
+
+#### `model-facing-description`
+Write a model-invoked skill's description as a model-facing pointer listing its trigger branches.
+- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — adopt → authoring-for-agents#activation-boundary
 
 #### `negation-avoidance`
 Steer by the positive target because negation makes the forbidden behaviour more available, keeping prohibitions a last-resort guardrail.
-- `mattpocock_skills:skill:skills/productivity/writing-for-agents`
+- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — defer
 
 #### `no-op-deletion`
 Delete instructions the model already follows by default.
 - ours: `authoring-for-agents`
-- `mattpocock_skills:skill:skills/productivity/writing-for-agents`
+- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — adopt → authoring-for-agents#no-op-deletion
+
+#### `no-workarounds-rule`
+Enforce a no-workarounds rule, fixing convention deviations before feature work.
+- `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — defer
 
 #### `non-destructive`
 Never delete, stage or commit the source assets.
 - ours: `migrate-claude-to-codex`
 
+#### `observed-rushing-context-isolation`
+Hide post-completion steps only after sharpening the completion criterion has failed and rushing is observed, and only across a real context boundary such as a handoff or subagent.
+- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — defer
+
 #### `one-effective-instruction`
 Prefer one effective instruction over repeated prohibitions or ritual steps, treating wording techniques as hypotheses rather than laws.
 - ours: `authoring-for-agents`
+
+#### `one-trigger-per-branch`
+Give each trigger branch of a pointer one trigger, collapsing synonyms.
+- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — adopt, pending cr-axdt.6.1 → authoring-for-agents#one-trigger-per-branch
 
 #### `outputs-and-authority`
 State outputs, material invariants, authority boundaries and stop conditions explicitly.
@@ -1699,6 +2220,10 @@ State outputs, material invariants, authority boundaries and stop conditions exp
 #### `plain-path-references`
 Keep conditional references as plain paths, never automatic imports.
 - `doc:AGENTS.md`
+
+#### `pointer-identity-trim`
+Cut from a pointer any identity the target's own body already carries.
+- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — adopt, pending cr-axdt.6.1 → authoring-for-agents#pointer-identity-trim
 
 #### `precision-and-discretion`
 Match prescription to fragility: exact recipes for deterministic operations, judgment for context-dependent choices.
@@ -1710,15 +2235,19 @@ Append a curation decision with the registry record command carrying its kind, s
 
 #### `relevance-check`
 Check every line still bears on the document's task, pruning stale or irrelevant ones.
-- `mattpocock_skills:skill:skills/productivity/writing-for-agents`
+- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — adopt, pending cr-axdt.6.1 → authoring-for-agents#relevance-check
+
+#### `review-time-standards-file`
+Treat the coding-standards file as review-time material and split it behind pointers once it passes about a thousand lines.
+- `mattpocock_skills:skill:skills/engineering/retro` — defer
 
 #### `router-skills`
 When user-invoked skills multiply, add a user-invoked router skill that names the others and when to reach each, hinting rather than firing them.
-- `mattpocock_skills:skill:skills/productivity/writing-for-agents`
+- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — defer
 
 #### `sequence-isolation`
 Split a run of steps so later post-completion steps stay out of view, driving more legwork on the step in front.
-- `mattpocock_skills:skill:skills/productivity/writing-for-agents`
+- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — defer
 
 #### `shared-policy-untouched`
 Leave shared policy canonical and rule or execution-policy routing manual, generating no rule files, execution policy or policy-document edits.
@@ -1726,12 +2255,16 @@ Leave shared policy canonical and rule or execution-policy routing manual, gener
 
 #### `shared-reference-home`
 Put reference several skills need in one model-invoked, all-reference skill they can each invoke.
-- `mattpocock_skills:skill:skills/productivity/writing-for-agents`
+- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — defer
+
+#### `sharpen-before-inline`
+Fix a weakly reached must-have target by sharpening its pointer's wording first, inlining it only if that fails.
+- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — adopt, pending cr-axdt.6.1 → authoring-for-agents#sharpen-before-inline
 
 #### `single-source-of-truth`
 Keep each meaning in one authoritative place so changing it is a one-place edit.
 - ours: `authoring-for-agents`
-- `mattpocock_skills:skill:skills/productivity/writing-for-agents`
+- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — adopt → authoring-for-agents#single-source-of-truth
 
 #### `skill-packaging`
 Keep one canonical directory per workflow with a SKILL.md, adding references only for substantial conditional material and scripts for reusable mechanical work.
@@ -1745,9 +2278,17 @@ For a durable merge, upgrade or rebuild decision, write a dated skill review fil
 Expose canonical skills to the target runtime via relative symlinks without copying, preserving legacy filename casing at the destination.
 - ours: `migrate-claude-to-codex`
 
+#### `skill-when-description-needed`
+Make material a skill only when its description should sit in context or it is a user-invoked command.
+- `mattpocock_skills:skill:skills/engineering/retro` — defer
+
+#### `sparse-always-loaded-file`
+Keep the always-loaded agent instruction file sparse, mostly navigation pointers, moving steering into standards files or checks.
+- `mattpocock_skills:skill:skills/engineering/retro` — defer
+
 #### `split-by-invocation`
 Split off a model-invoked skill only when a distinct leading word should trigger it or another skill must reach it.
-- `mattpocock_skills:skill:skills/productivity/writing-for-agents`
+- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — adopt, pending cr-axdt.6.1 → authoring-for-agents#split-by-invocation
 
 #### `structural-verify`
 Provide a verify command that parses the generated assets and optionally runs discovery, disclosing that structural success proves neither semantic parity nor routing.
@@ -1765,10 +2306,14 @@ For template adoption, verify the initialized template tools, run the sync and t
 Run the migrator's own tests and trial it in a disposable target before relying on changed behavior.
 - ours: `migrate-claude-to-codex`
 
+#### `triad-collapse`
+Hunt restated triads and long gestures and collapse each into a single leading word.
+- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — defer
+
 #### `two-loads`
 Weigh always-loaded context cost on the agent against cognitive load on the human.
 - ours: `authoring-for-agents`
-- `mattpocock_skills:skill:skills/productivity/writing-for-agents`
+- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — adopt → authoring-for-agents#two-loads
 
 #### `unsupported-claim-removal`
 Remove unsupported claims and invented thresholds from instructions.
@@ -1871,6 +2416,10 @@ Put factual accuracy ahead of agreement, pointing out errors and unchecked assum
 Cap a list at five items, ranking them or splitting into now and later.
 - ours: `i-have-adhd`
 
+#### `cdn-only-scripts`
+Load only CDN-hosted styling and diagram libraries as scripts, keeping the document otherwise static.
+- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — defer
+
 #### `certainty-labelling`
 Distinguish certain knowledge from inference and speculation, and say when unsure.
 - `doc:AGENTS.md`
@@ -1879,6 +2428,10 @@ Distinguish certain knowledge from inference and speculation, and say when unsur
 Lay content out from a small set of components — KPI tiles, numbered section headers, copy-button code blocks, severity tags, native collapsibles and inline SVG — shaped to the content rather than translating markdown one-to-one.
 - ours: `html-artifact`
 
+#### `compress-to-bullets`
+Strip hedging, turn sentences into bullets and cut bullets wherever possible.
+- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — defer
+
 #### `concrete-time-estimates`
 Give estimates in concrete units as agent execution plus review time rather than human workdays.
 - ours: `i-have-adhd`
@@ -1886,11 +2439,10 @@ Give estimates in concrete units as agent execution plus review time rather than
 #### `controlled-language`
 Re-pitch in controlled simplified language with short sentences and common words.
 - ours: `i-have-adhd`
-- `mattpocock_skills:skill:skills/productivity/wait-what`
 
 #### `decision-summary-brief`
 Present a checkpoint as a tight, decision-ready summary of what was produced and why with a link, never the raw output.
-- `mattpocock_skills:skill:skills/in-progress/loop-me`
+- `mattpocock_skills:skill:skills/in-progress/loop-me` — defer
 
 #### `deliver-verify`
 Deliver a link rather than pasted source and verify content fidelity, local links, key interactions, responsive and print behaviour and JS-disabled readability, reporting checks that could not run.
@@ -1899,11 +2451,16 @@ Deliver a link rather than pasted source and verify content fidelity, local link
 #### `domain-vocabulary`
 Use the project's established domain vocabulary throughout what you write.
 - ours: `i-have-adhd`
-- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture`
-- `mattpocock_skills:skill:skills/engineering/to-spec`
-- `mattpocock_skills:skill:skills/engineering/to-tickets`
-- `mattpocock_skills:skill:skills/engineering/triage`
-- `mattpocock_skills:skill:skills/productivity/wait-what`
+- ours: `teach`
+- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — adopt, pending cr-axdt.6.5 → improve-codebase-architecture#domain-vocabulary
+- `mattpocock_skills:skill:skills/engineering/pr` — defer
+- `mattpocock_skills:skill:skills/engineering/prototype` — adopt, pending cr-axdt.6.7 → prototype#domain-vocabulary
+- `mattpocock_skills:skill:skills/engineering/tdd` — defer
+- `mattpocock_skills:skill:skills/engineering/to-spec` — defer
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — defer
+- `mattpocock_skills:skill:skills/engineering/triage` — defer
+- `mattpocock_skills:skill:skills/productivity/teach` — adopt → teach#domain-vocabulary
+- `mattpocock_skills:skill:skills/productivity/wait-what` — adopt → i-have-adhd#domain-vocabulary
 
 #### `explain-on-request`
 When the user asks to explain or walk through, run as long as the topic needs while keeping the brevity discipline.
@@ -1941,6 +2498,11 @@ State an error's cause and fix plainly with no alarm language.
 Prefer text forms over Mermaid in a terminal and a table over any diagram for a flat list or comparison.
 - ours: `show-me`
 
+#### `minimal-visual-selection`
+Use the fewest and smallest visuals that make the point, never a gallery.
+- ours: `show-me`
+- `mattpocock_skills:skill:skills/engineering/pr` — adopt → show-me#minimal-visual-selection
+
 #### `next-action-first`
 Lead with the next concrete action — a command, path or snippet — before any prose.
 - ours: `i-have-adhd`
@@ -1952,10 +2514,16 @@ Never fabricate citations, data or examples.
 #### `no-preamble`
 Open with the answer and stop when it is done, with no preamble, recap or closing pleasantry.
 - ours: `i-have-adhd`
+- `mattpocock_skills:skill:skills/engineering/pr` — defer
 
 #### `numbered-steps`
 Render multi-step work as a numbered list with one bounded action per step.
 - ours: `i-have-adhd`
+
+#### `open-artifact-for-user`
+Open a generated artifact for the user with the platform's opener and give its path.
+- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — defer
+- `mattpocock_skills:skill:skills/productivity/teach` — defer
 
 #### `pre-send-check`
 Before sending, delete announcements, closers, sidebars and empty hedges.
@@ -1985,10 +2553,18 @@ Ensure the explanation, data and limitations exist before scripts run and surviv
 Use real names from the actual code, never invented placeholders.
 - ours: `show-me`
 
+#### `redraw-not-explain`
+Redraw a diagram that needs a paragraph to be understood rather than explaining it.
+- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — defer
+
 #### `repitch-trigger`
 When a message did not land, stop and re-pitch it rather than adding more.
 - ours: `i-have-adhd`
-- `mattpocock_skills:skill:skills/productivity/wait-what`
+- `mattpocock_skills:skill:skills/productivity/wait-what` — adopt → i-have-adhd#repitch-trigger
+
+#### `report-header-legend`
+Open a visual report with a header of repository name, date and a visual legend, and no intro paragraph.
+- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — defer
 
 #### `self-contained-contract`
 Produce one HTML file with inline CSS and JS, viewport metadata and no build step, working offline with no external fonts, trackers, fetches or runtime assets.
@@ -1998,10 +2574,12 @@ Produce one HTML file with inline CSS and JS, viewport metadata and no build ste
 Close with exactly one concrete next action the reader can do in under two minutes.
 - ours: `i-have-adhd`
 
-#### `smallest-view`
+#### `smallest-view` *(retired)*
 Pick the smallest view that makes the point, placing each visual next to the brief prose it supports.
-- ours: `show-me`
-- `mattpocock_skills:skill:skills/engineering/pr`
+
+#### `standard-controlled-language`
+Re-pitch in ASD-STE100 Simplified Technical English.
+- `mattpocock_skills:skill:skills/productivity/wait-what` — adopt → i-have-adhd#controlled-language
 
 #### `state-restatement`
 Restate the current progress state every turn so the reader need not hold it in memory.
@@ -2010,6 +2588,7 @@ Restate the current progress state every turn so the reader need not hold it in 
 #### `structural-diff`
 Show a change as a diff against the structure the reader already holds rather than against raw source.
 - ours: `show-me`
+- `mattpocock_skills:skill:skills/engineering/pr` — adopt → show-me#structural-diff
 
 #### `svg-accessibility`
 Give each inline SVG a role, figure-prefixed title and description IDs, carry meaning in both shape and colour, and mark direction on every edge.
@@ -2027,6 +2606,10 @@ Draw inline SVG figures with a viewBox for scaling, currentColor ink, orthogonal
 Finish the current issue first, then offer any other concern as a separate question.
 - ours: `i-have-adhd`
 
+#### `terse-card-prose`
+Hold each report card to a one-sentence problem and solution and wins bullets of six words or fewer.
+- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — defer
+
 #### `tokens-first-style`
 Derive the artifact's styling from the project's own tokens when they exist, otherwise apply the default neutral aesthetic, never inventing look-alike tokens.
 - ours: `html-artifact`
@@ -2038,11 +2621,17 @@ Show completed work in concrete, runnable terms instead of burying it in a recap
 #### `visual-form-catalog`
 Offer a set of inline visual forms — pseudocode, call, component and file trees, Mermaid and whole-block — each with its own shape rules.
 - ours: `show-me`
-- `mattpocock_skills:skill:skills/engineering/pr`
+- `mattpocock_skills:skill:skills/engineering/pr` — adopt → show-me#visual-form-catalog
 
 #### `visual-placement`
 Place each visual immediately after the sentence it supports and include only the detail the current question needs.
 - ours: `show-me`
+- `mattpocock_skills:skill:skills/engineering/pr` — adopt → show-me#visual-placement
+
+#### `visual-restraint`
+Keep visuals restrained, with muted colour and no decorative animation, so the content carries the attention.
+- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — defer
+- `mattpocock_skills:skill:skills/engineering/prototype` — defer
 
 ### core · X · Continuity
 
@@ -2050,25 +2639,41 @@ Place each visual immediately after the sentence it supports and include only th
 Carry one stable actor for the whole session, claiming on start and acting only on your own claims.
 - ours: `beads`
 
+#### `agreed-wiki-location`
+Agree the wiki's location with the user before the first write.
+- `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — defer
+
 #### `bead-type-taxonomy`
 Use only the six bead types (epic, feature, task, bug, spike, decision) and the single human label, never inventing others.
 - ours: `beads`
 
 #### `boundary-only-context-decisions`
 Make context-management choices only at the fuzzy boundary between two phases of work, never mid-phase where they lose the thread.
-- `mattpocock_skills:skill:skills/engineering/ask-matt`
+- `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
+
+#### `cite-not-copy-sources`
+Cite sources from wiki pages without copying or editing the sources.
+- `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — defer
 
 #### `clear-disposable-context`
 Clear the window outright when everything in the session is irrelevant to what comes next.
-- `mattpocock_skills:skill:skills/engineering/ask-matt`
+- `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
+
+#### `commit-pinned-claims`
+Pin every recorded claim about code to a repository and commit.
+- `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — defer
 
 #### `compact-last`
 Treat compaction as the default fallback chosen only after the cheaper context moves are ruled out, not the first reach.
-- `mattpocock_skills:skill:skills/engineering/ask-matt`
+- `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
 
 #### `compact-with-instruction`
 Pass compaction an explicit instruction so the summary keeps what the next phase needs.
-- `mattpocock_skills:skill:skills/engineering/ask-matt`
+- `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
+
+#### `dated-history-entries`
+Write the wiki as dated history rather than present-tense claims about code.
+- `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — defer
 
 #### `dolt-sync`
 Treat the versioned database as the source of truth and the exported jsonl as a review mirror, syncing copies only with authority.
@@ -2082,6 +2687,10 @@ Track durable work in the project's issue tracker.
 Give each bead field its single job — description, design, acceptance, spec_id, notes, comments and close reason — and never overload one.
 - ours: `beads`
 
+#### `file-answers-as-pages`
+File a reusable answer as a new wiki page.
+- `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — defer
+
 #### `generated-mirror-read-only`
 Treat generated tracking mirrors as read-only.
 - `doc:AGENTS.md`
@@ -2092,11 +2701,11 @@ Make a handoff carry the scope, decisions, source references, verification done 
 
 #### `handoff-doc`
 Write a handoff document summarising the current conversation so a fresh agent can continue the work.
-- `mattpocock_skills:skill:skills/productivity/handoff`
+- `mattpocock_skills:skill:skills/productivity/handoff` — defer
 
 #### `handoff-for-portability`
 Write a portable handoff file only when the work must travel to another harness, directory, person, or a forked side task.
-- `mattpocock_skills:skill:skills/engineering/ask-matt`
+- `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
 
 #### `knowledge-in-files`
 Keep durable knowledge in files, never in the tracker's remember, memories or key-value stores.
@@ -2108,11 +2717,26 @@ Record verified patterns likely to recur in the shared learnings file.
 
 #### `link-dont-copy`
 Reference existing artifacts by path or URL rather than copying their content into a handoff.
-- `mattpocock_skills:skill:skills/productivity/handoff`
+- `mattpocock_skills:skill:skills/productivity/handoff` — defer
 
 #### `logs-behind-references`
 Keep large logs and histories behind references instead of loading them into context.
 - `doc:AGENTS.md`
+
+#### `optional-record-sections`
+Add optional sections to a record, such as status or consequences, only when they carry real information.
+- ours: `domain-modeling`
+- ours: `teach`
+- `mattpocock_skills:skill:skills/engineering/domain-modeling` — adopt → domain-modeling#optional-record-sections
+- `mattpocock_skills:skill:skills/productivity/teach` — adopt → teach#optional-record-sections
+
+#### `ordered-context-decision-tree`
+Walk the context moves at a phase boundary as an ordered decision tree in which the first yes wins.
+- `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
+
+#### `persistent-wiki-memory`
+Keep durable memory in an interlinked markdown wiki that outlives the session.
+- `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — defer
 
 #### `phase-epic-contract`
 Shape a phase epic to the status-renderer contract — a bracketed phase-id title, the roadmap as spec_id, the governing spec path as design, and acceptance matching the roadmap's verify rows.
@@ -2120,7 +2744,7 @@ Shape a phase epic to the status-renderer contract — a bracketed phase-id titl
 
 #### `primary-vs-secondary-source`
 Recognise that every context move but continuing replaces the live session (a primary source) with a lossy summary that restores facts but not reasoning.
-- `mattpocock_skills:skill:skills/engineering/ask-matt`
+- `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
 
 #### `resume-bead-and-handoff`
 When resuming work, recover the active bead and its handoff.
@@ -2132,7 +2756,7 @@ On pause or handoff, unclaim and append a resume line naming the approach to res
 
 #### `rule-out-continue-first`
 Rule out simply continuing in the current session, which costs and loses nothing, before any lossy context move.
-- `mattpocock_skills:skill:skills/engineering/ask-matt`
+- `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
 
 #### `scoped-reading`
 Search narrowly and read only the context the task needs, widening when dependencies or uncertainty call for it and never bulk-reading.
@@ -2142,6 +2766,13 @@ Search narrowly and read only the context the task needs, widening when dependen
 Put temporary artifacts in the gitignored scratch folder.
 - `doc:AGENTS.md`
 
+#### `sequential-record-numbering`
+Number a new record one above the highest existing number in its folder.
+- ours: `domain-modeling`
+- ours: `teach`
+- `mattpocock_skills:skill:skills/engineering/domain-modeling` — adopt → domain-modeling#sequential-record-numbering
+- `mattpocock_skills:skill:skills/productivity/teach` — adopt → teach#sequential-record-numbering
+
 #### `session-close`
 Close a session by closing finished beads with evidence, unclaiming the rest with resume lines, running the gates, refreshing the export, and reporting.
 - ours: `beads`
@@ -2150,9 +2781,13 @@ Close a session by closing finished beads with evidence, unclaiming the rest wit
 At session start or after compaction, list in-progress beads and resume from each one's last note.
 - ours: `beads`
 
+#### `single-subject-pages`
+Give each wiki page one subject and link it to related pages.
+- `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — defer
+
 #### `smart-zone-budget`
 Treat the window in which the model still reasons sharply (~150k tokens) as a budget, compacting at the nearest phase boundary rather than pushing on degraded.
-- `mattpocock_skills:skill:skills/engineering/ask-matt`
+- `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
 
 #### `status-model`
 Drive status through the model's own transitions — the custom review status, deferred as the whole backlog, and never a hand-set blocked.
@@ -2160,23 +2795,43 @@ Drive status through the model's own transitions — the custom review status, d
 
 #### `suggested-skills`
 Name in the handoff which skills the next agent should reach for.
-- `mattpocock_skills:skill:skills/productivity/handoff`
+- `mattpocock_skills:skill:skills/productivity/handoff` — defer
+
+#### `supersede-wiki-claims`
+Supersede a changed wiki claim with a new dated entry instead of rewriting the old one.
+- `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — defer
 
 #### `tailor-to-next-focus`
 Treat any passed arguments as the next session's focus and tailor the handoff to it.
-- `mattpocock_skills:skill:skills/productivity/handoff`
+- `mattpocock_skills:skill:skills/productivity/handoff` — defer
 
 #### `temp-dir-destination`
 Save the handoff to the operating system's temporary directory rather than the workspace.
-- `mattpocock_skills:skill:skills/productivity/handoff`
+- `mattpocock_skills:skill:skills/productivity/handoff` — defer
 
 #### `unbroken-planning-window`
 Keep the stages that build on each other's reasoning in one unbroken context window until the planning artifact is produced, so each stage builds on the same thinking.
-- `mattpocock_skills:skill:skills/engineering/ask-matt`
+- `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
 
 #### `wait-as-edge`
 Record every wait as an explicit edge — a blocks dependency, a human task, or a gate — written in the needs direction so ready-work stays truthful.
 - ours: `beads`
+
+#### `wiki-consult-first`
+Read the wiki index and the linked pages before deciding.
+- `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — defer
+
+#### `wiki-index`
+Maintain a wiki index listing every page with a link and a one-line summary, grouped by category.
+- `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — defer
+
+#### `wiki-lint`
+Periodically lint the wiki for contradictions, orphans, missing links and stale claims, proposing the lint as a schedule.
+- `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — defer
+
+#### `wiki-propagation`
+On learning something durable, update every affected wiki page and the index.
+- `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — defer
 
 #### `workstream-render`
 Regenerate the workstream status, ideas and backlog boards from the tracker through the render script, never hand-editing them.
@@ -2190,7 +2845,11 @@ When peer review is included, anonymize responses before reviewers compare their
 
 #### `background-agent`
 Delegate reading legwork to a background agent so the caller keeps working while it investigates.
-- `mattpocock_skills:skill:skills/engineering/research`
+- `mattpocock_skills:skill:skills/engineering/research` — adopt → research#sizeable-delegation
+
+#### `background-dispatch-for-dialogue`
+Run subagents in the background so the coordinator stays in live dialogue with the user.
+- `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — adopt, pending cr-axdt.6.3 → delegation#background-dispatch-for-dialogue
 
 #### `capable-native-subagent`
 Use the harness's own subagent tool only when it can run the chosen model with its settings.
@@ -2214,6 +2873,10 @@ Deliver a concise consolidation with member-position summaries and paths to ever
 #### `context-modes`
 Resolve fresh context versus full context deliberately, treating last-N turns and pasted summaries as unsupported substitutes for a real fork.
 
+#### `coordinator-delegates-all`
+Do all work in subagents so the coordinator's context stays free for coordination.
+- `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — defer
+
 #### `coordinator-ownership`
 The coordinator collects every worker result and owns integration, the disposition of findings and final verification.
 - `doc:AGENTS.md`
@@ -2228,11 +2891,15 @@ Choose and state the council's scale before dispatch, naming membership and whet
 
 #### `delegate-afk-work`
 Send a tightly scoped task needing no steering to a subagent and leave the current session untouched.
-- `mattpocock_skills:skill:skills/engineering/ask-matt`
+- `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
 
 #### `delegation-threshold`
 Delegate bounded independent work only when it materially improves speed, context use or review quality within budget, keeping small work local.
 - `doc:AGENTS.md`
+
+#### `dual-track-thinking`
+Think on a tactical track for the current task and a strategic track for improving the environment for the next task.
+- `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — defer
 
 #### `effective-run-record`
 Record the model and settings a vendor reports actually ran for a dispatch, marking any it does not report as requested-but-unverified.
@@ -2248,6 +2915,10 @@ Record effort as requested-but-unverified, since it is definition-only and not o
 Keep a read-only role read-only with the vendor's enforced control, such as a sandbox or tool list, where one exists, and state when the brief is the only control.
 - ours: `delegation`
 
+#### `environment-improvement-lens`
+Treat every task and user message as a prompt to look first for improvements to the agents' environment.
+- `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — defer
+
 #### `evidence-calibration`
 Require each role to give evidence and calibrated uncertainty rather than forced certainty or ignored risk.
 - ours: `perspective-council`
@@ -2255,6 +2926,10 @@ Require each role to give evidence and calibrated uncertainty rather than forced
 #### `explicit-workflow-adherence`
 Follow the workflows and budgets the user sets explicitly.
 - `doc:AGENTS.md`
+
+#### `exploration-notes-subagent`
+Optionally run an exploration subagent that saves markdown notes outside the repository for later subagents to read.
+- `mattpocock_skills:skill:skills/engineering/implement-spec` — defer
 
 #### `failed-member-recovery`
 Give a failed member bounded safe recovery before treating it as missing.
@@ -2340,6 +3015,11 @@ Name the single owner when two skills or commands appear to overlap.
 Take each role's vendor, model and settings from the owner's roster, let a model the owner names override it for one dispatch, and ask the owner when neither exists rather than choosing.
 - ours: `delegation`
 
+#### `pointer-only-subagent-briefs`
+Keep subagent communication sparse by passing pointers to the spec, tickets, notes and commits rather than copying their content.
+- `mattpocock_skills:skill:skills/engineering/implement-spec` — defer
+- `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — defer
+
 #### `preserve-others-edits`
 Preserve changes in the working tree that others made or that are unrelated to the task.
 - `doc:AGENTS.md`
@@ -2354,11 +3034,11 @@ Scale planning, research and review to the uncertainty and consequences of the w
 
 #### `push-right`
 Defer the human checkpoint as far as it will go, doing maximal work first so the human is asked once, late, with everything prepared.
-- `mattpocock_skills:skill:skills/in-progress/loop-me`
+- `mattpocock_skills:skill:skills/in-progress/loop-me` — defer
 
 #### `read-skill-before-claiming`
 Read a skill's own instructions before describing what it does or recommending its step be skipped, treating router summaries as orientation only.
-- `mattpocock_skills:skill:skills/engineering/ask-matt`
+- `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
 
 #### `repeated-procedures`
 Capture short repeated runs as disposable wisps and fixed multi-step procedures as poured formulas, checking what the tracker actually parsed.
@@ -2379,9 +3059,21 @@ Give each delegated role a fixed contract of access, duties and report shape, an
 Verify actual runtime dispatch interfaces before assuming cross-provider access from a model name or placing effort only in prose when a runtime control exists.
 - ours: `model-council`
 
+#### `self-contained-subagent-brief`
+Paste into a subagent's brief any reference material it needs that it cannot otherwise reach.
+- `mattpocock_skills:skill:skills/engineering/code-review` — defer
+
 #### `session-resume-followup`
 Send a follow-up to a worker by resuming its own session rather than starting a fresh one.
 - ours: `delegation`
+
+#### `single-coordinator-session`
+Act as the single accountable coordinator for a long-running goal within one session.
+- `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — defer
+
+#### `suggest-schedules`
+Suggest recurring schedules that help reach the goal where the harness supports them.
+- `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — defer
 
 #### `three-reaches`
 Route a spawn through one of three paths — the Agent tool, an ephemeral inline definition, or an independent process — by where a capability must be fixed.
@@ -2416,6 +3108,10 @@ Give each worker a brief stating the outcome, owned paths, constraints, acceptan
 Keep approvals already given in force for the rest of the work instead of asking for them again.
 - `doc:AGENTS.md`
 
+#### `ask-when-redaction-blinds`
+Ask the user for help when redacted output is too thin to diagnose from.
+- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — defer
+
 #### `authority-separation`
 Confirm publication and commit authority separately, treating a no-commit instruction as binding.
 - ours: `harness-publish`
@@ -2424,9 +3120,21 @@ Confirm publication and commit authority separately, treating a no-commit instru
 Require authorization before publishing, deploying, sending messages, taking destructive actions or expanding scope.
 - `doc:AGENTS.md`
 
+#### `credential-env-indirection`
+Build commands on environment variables so credentials stay in the environment and never appear in shown text.
+- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt, pending cr-axdt.6.9 → systematic-debugging#credential-env-indirection
+
 #### `destructive-command-guard`
 Never run the tracker's deleting commands, reclaiming space with a non-destructive compact instead.
 - ours: `beads`
+
+#### `hidden-secret-entry`
+Read every secret with hidden input.
+- `mattpocock_skills:skill:skills/engineering/wizard` — defer
+
+#### `hitl-no-credential-capture`
+Capture only observations through a human-in-the-loop script, leaving sign-in to the person as a plain step since captured values are echoed.
+- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — defer
 
 #### `implementation-authority-carry`
 Treat a request to implement as authority to carry the work through verification and necessary fixes without asking again.
@@ -2440,18 +3148,29 @@ Treat a review or analysis request as authority to inspect and report only, neve
 Treat conducting an interview or drafting a questionnaire as neither implementation authority nor permission to send it.
 - ours: `grilling`
 
+#### `irreversible-confirmation`
+Require an explicit yes or no confirmation from the person before any irreversible action.
+- `mattpocock_skills:skill:skills/engineering/wizard` — defer
+
 #### `memory-on-request`
 Write persistent memory other than shared learnings only when asked.
 - `doc:AGENTS.md`
+
+#### `minimal-ci-secrets`
+Push to CI secrets only the values CI actually needs.
+- `mattpocock_skills:skill:skills/engineering/wizard` — defer
 
 #### `no-guard-bypass`
 Never bypass permissions, hooks, sandboxes or required gates.
 - `doc:AGENTS.md`
 
-#### `redact-secrets`
+#### `placeholder-sensitive-data-redaction`
+Replace secrets and personal data with placeholders in anything shown or saved.
+- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt, pending cr-axdt.6.9 → systematic-debugging#placeholder-sensitive-data-redaction
+- `mattpocock_skills:skill:skills/productivity/handoff` — defer
+
+#### `redact-secrets` *(retired)*
 Redact secrets and personal data as placeholders in anything shown or saved, driving commands from environment variables so credentials never appear.
-- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs`
-- `mattpocock_skills:skill:skills/productivity/handoff`
 
 #### `safe-retry-only`
 Retry an operation only when repeating it is safe.
@@ -2460,6 +3179,10 @@ Retry an operation only when repeating it is safe.
 #### `secret-containment`
 Keep secrets and private data out of any destination not authorized to hold them.
 - `doc:AGENTS.md`
+
+#### `signal-lines-only`
+Quote only the signal-carrying lines from captured artifacts that may hold credentials.
+- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — defer
 
 #### `simplification-preserves-safeguards`
 When simplifying, preserve trust boundaries, data integrity and accessibility.
@@ -2487,29 +3210,84 @@ Judge an agent CLI run by its structured result's error flag, never by its exit 
 
 #### `always-stateful-course`
 Treat every teaching request as a stateful multi-session course kept in the workspace.
-- `mattpocock_skills:skill:skills/productivity/teach`
+- `mattpocock_skills:skill:skills/productivity/teach` — defer
 
 #### `authorized-course-location`
 Open a course workspace only for an explicitly requested ongoing course, in an authorized supplied location, creating its files lazily.
 - ours: `teach`
 
+#### `community-opt-out`
+Respect the learner's choice not to join communities and record it.
+- ours: `teach`
+- `mattpocock_skills:skill:skills/productivity/teach` — adopt → teach#community-opt-out
+
+#### `cross-linked-lessons`
+Cross-link lessons to other lessons and reference documents.
+- ours: `teach`
+- `mattpocock_skills:skill:skills/productivity/teach` — adopt → teach#cross-linked-lessons
+
+#### `difficulty-by-kind`
+Minimise difficulty when conveying knowledge but make retrieval effortful when building skills.
+- `mattpocock_skills:skill:skills/productivity/teach` — defer
+
+#### `field-term-resolution`
+Record in the glossary how loosely used field terms are resolved in this workspace.
+- ours: `teach`
+- `mattpocock_skills:skill:skills/productivity/teach` — adopt → teach#field-term-resolution
+
+#### `follow-up-prompt`
+Remind the learner in each lesson to ask follow-up questions.
+- `mattpocock_skills:skill:skills/productivity/teach` — defer
+
 #### `glossary-admission-on-use`
 Add a term to the learner's glossary only once the learner can use it correctly.
 - ours: `teach`
-- `mattpocock_skills:skill:skills/productivity/teach`
+- `mattpocock_skills:skill:skills/productivity/teach` — adopt → teach#glossary-admission-on-use
+
+#### `high-trust-resource-filter`
+Admit only high-trust sources to the resources file, leaving out marketing posing as education.
+- ours: `teach`
+- `mattpocock_skills:skill:skills/productivity/teach` — adopt → teach#high-trust-resource-filter
 
 #### `html-lessons`
 Deliver every lesson as one self-contained HTML file.
-- `mattpocock_skills:skill:skills/productivity/teach`
+- `mattpocock_skills:skill:skills/productivity/teach` — defer
+
+#### `in-place-definition-revision`
+Revise glossary definitions in place as understanding deepens.
+- ours: `teach`
+- `mattpocock_skills:skill:skills/productivity/teach` — adopt → teach#in-place-definition-revision
 
 #### `interleaving`
 Interleave different but related topics in practice.
-- `mattpocock_skills:skill:skills/productivity/teach`
+
+#### `just-enough-knowledge`
+Include only the knowledge a lesson's target skill needs, teaching it first and then practising.
+- `mattpocock_skills:skill:skills/productivity/teach` — defer
+
+#### `knowledge-skills-wisdom-frame`
+Frame learning as knowledge from trusted sources, skills from interactive lessons and wisdom from communities.
+- `mattpocock_skills:skill:skills/productivity/teach` — adopt, pending cr-axdt.6.10 → teach#knowledge-skills-wisdom-frame
+
+#### `learning-record-criteria`
+Write a learning record only for demonstrated understanding, disclosed prior knowledge, a corrected misconception or a mission shift, never for coverage, glossary duplicates or activity logs.
+- ours: `teach`
+- `mattpocock_skills:skill:skills/productivity/teach` — adopt → teach#learning-record-criteria
+
+#### `learning-record-supersession`
+Mark a contradicted learning record superseded rather than deleting it.
+- ours: `teach`
+- `mattpocock_skills:skill:skills/productivity/teach` — adopt → teach#learning-record-supersession
 
 #### `learning-records`
 ADR-like records of lessons and established prior knowledge that steer what to teach next.
 - ours: `teach`
-- `mattpocock_skills:skill:skills/productivity/teach`
+- `mattpocock_skills:skill:skills/productivity/teach` — adopt → teach#learning-records
+
+#### `learning-resource-register`
+Keep a course resources file that groups sources into knowledge and community sections and annotates each with what it covers and when to use it.
+- ours: `teach`
+- `mattpocock_skills:skill:skills/productivity/teach` — adopt → teach#learning-resource-register
 
 #### `learning-shape`
 Choose one of a single concept explanation, a session walkthrough, or an explicitly requested ongoing course.
@@ -2518,24 +3296,66 @@ Choose one of a single concept explanation, a session walkthrough, or an explici
 #### `lesson-format`
 Make each lesson short and self-contained, teaching one tightly scoped objective tied to the learner's goal.
 - ours: `teach`
-- `mattpocock_skills:skill:skills/productivity/teach`
+- `mattpocock_skills:skill:skills/productivity/teach` — adopt → teach#lesson-format
+
+#### `lesson-primary-source`
+Recommend one top primary source with each lesson.
+- `mattpocock_skills:skill:skills/productivity/teach` — defer
 
 #### `level-adaptation`
 Infer the learner's level from the conversation and adjust from their responses.
 - ours: `teach`
 
+#### `minimal-learning-record-template`
+Write a learning record as a title and one to three sentences of what was learned and why it matters later.
+- ours: `teach`
+- `mattpocock_skills:skill:skills/productivity/teach` — adopt → teach#minimal-learning-record-template
+
+#### `mission-document-template`
+Write the learning mission as why, success criteria, constraints and out of scope.
+- ours: `teach`
+- `mattpocock_skills:skill:skills/productivity/teach` — adopt → teach#mission-document-template
+
 #### `mission-grounding`
 A mission document capturing the concrete real-world reason for learning that anchors every teaching choice.
 - ours: `teach`
-- `mattpocock_skills:skill:skills/productivity/teach`
+- `mattpocock_skills:skill:skills/productivity/teach` — adopt → teach#mission-grounding
+
+#### `mission-interview-first`
+When the learning mission is unclear or empty, ask the learner why they want to learn before teaching.
+- ours: `teach`
+- `mattpocock_skills:skill:skills/productivity/teach` — adopt → teach#mission-interview-first
+
+#### `mission-shift-handling`
+When the mission shifts or goes stale, confirm with the learner, revise the mission and add a learning record.
+- `mattpocock_skills:skill:skills/productivity/teach` — adopt, pending cr-axdt.6.10 → teach#mission-shift-handling
+
+#### `one-mission-per-workspace`
+Keep exactly one mission per learning workspace.
+- ours: `teach`
+- `mattpocock_skills:skill:skills/productivity/teach` — adopt → teach#one-mission-per-workspace
+
+#### `one-screen-mission`
+Keep the mission document within one screen.
+- ours: `teach`
+- `mattpocock_skills:skill:skills/productivity/teach` — adopt → teach#one-screen-mission
+
+#### `polished-lesson-typography`
+Make lessons visually polished with clean typography so they serve later review.
+- `mattpocock_skills:skill:skills/productivity/teach` — defer
 
 #### `preference-notes`
 Record the learner's stated teaching preferences in a notes file to steer future lessons.
-- `mattpocock_skills:skill:skills/productivity/teach`
+- `mattpocock_skills:skill:skills/productivity/teach` — defer
 
 #### `proximal-next-lesson`
 When the learner names no target, choose the next lesson from the learning records and mission so it challenges them just enough.
-- `mattpocock_skills:skill:skills/productivity/teach`
+- `mattpocock_skills:skill:skills/productivity/teach` — adopt → teach#level-adaptation
+
+#### `prune-invalid-resources`
+Remove resources that proved wrong, shallow or off-mission rather than keeping them.
+- ours: `teach`
+- `mattpocock_skills:skill:skills/productivity/teach` — adopt → teach#prune-invalid-resources
 
 #### `quiz-answer-hygiene`
 Keep quiz options plausible and free of giveaways, never matched to exact answer length.
@@ -2543,26 +3363,33 @@ Keep quiz options plausible and free of giveaways, never matched to exact answer
 
 #### `quiz-equal-length`
 Make every quiz answer the same number of words, and characters where possible, so formatting gives nothing away.
-- `mattpocock_skills:skill:skills/productivity/teach`
+- `mattpocock_skills:skill:skills/productivity/teach` — defer
 
 #### `reference-sheets`
 Build durable quick-reference documents that outlive the lessons that spawned them.
-- `mattpocock_skills:skill:skills/productivity/teach`
+- `mattpocock_skills:skill:skills/productivity/teach` — defer
 
-#### `resources-curation`
-A curated, annotated set of high-trust knowledge and community sources, with gaps surfaced explicitly.
+#### `resource-gap-register`
+List the areas the learning goal needs but no good resource covers in a gaps section of the resources file.
 - ours: `teach`
-- `mattpocock_skills:skill:skills/productivity/teach`
+- `mattpocock_skills:skill:skills/productivity/teach` — adopt → teach#resource-gap-register
+
+#### `resource-gathering-priority`
+Prioritise finding high-quality resources until the resources file is well populated.
+- `mattpocock_skills:skill:skills/productivity/teach` — defer
+
+#### `resources-curation` *(retired)*
+A curated, annotated set of high-trust knowledge and community sources, with gaps surfaced explicitly.
 
 #### `retrieval-practice`
 Have the learner retrieve answers from memory through exercises or questions.
 - ours: `teach`
-- `mattpocock_skills:skill:skills/productivity/teach`
+- `mattpocock_skills:skill:skills/productivity/teach` — adopt → teach#retrieval-practice
 
 #### `reusable-assets`
 Reuse existing lesson assets before creating new ones.
 - ours: `teach`
-- `mattpocock_skills:skill:skills/productivity/teach`
+- `mattpocock_skills:skill:skills/productivity/teach` — adopt → teach#reusable-assets
 
 #### `scope-discipline`
 Record progress only within course scope and never treat the repository root as a teaching workspace.
@@ -2570,33 +3397,45 @@ Record progress only within course scope and never treat the repository root as 
 
 #### `shared-component-extraction`
 Write each new reusable lesson piece as a shared component and link to it, never inlining code a later lesson would duplicate.
-- `mattpocock_skills:skill:skills/productivity/teach`
+- `mattpocock_skills:skill:skills/productivity/teach` — defer
+
+#### `skill-practice-forms`
+Teach skills through quizzes, in-browser tasks or guided real-world step lists.
+- `mattpocock_skills:skill:skills/productivity/teach` — defer
+
+#### `skills-only-interleaving`
+Interleave related topics only when practising skills, not when conveying knowledge.
+- `mattpocock_skills:skill:skills/productivity/teach` — defer
 
 #### `sourced-explanations`
 Draw explanations from trusted, cited sources and check unfamiliar or changing facts rather than relying on unverified recall.
 - ours: `teach`
-- `mattpocock_skills:skill:skills/productivity/teach`
+- `mattpocock_skills:skill:skills/productivity/teach` — adopt → teach#sourced-explanations
 
 #### `spacing`
 Space practice over time to build long-term retention.
-- `mattpocock_skills:skill:skills/productivity/teach`
+- `mattpocock_skills:skill:skills/productivity/teach` — adopt, pending cr-axdt.6.10 → teach#spacing
 
 #### `storage-strength`
 Favour long-term retention over in-the-moment fluency, which can give an illusory sense of mastery.
-- `mattpocock_skills:skill:skills/productivity/teach`
+- `mattpocock_skills:skill:skills/productivity/teach` — adopt, pending cr-axdt.6.10 → teach#storage-strength
 
 #### `teaching-workspace`
 Keep a multi-session course's state (mission, resources, learning records, glossary and lessons) as files in one course workspace.
 - ours: `teach`
-- `mattpocock_skills:skill:skills/productivity/teach`
+- `mattpocock_skills:skill:skills/productivity/teach` — adopt → teach#teaching-workspace
 
 #### `tight-feedback-loop`
 Teach skills through an interactive feedback loop that is as tight and immediate, ideally automatic, as possible.
-- `mattpocock_skills:skill:skills/productivity/teach`
+- `mattpocock_skills:skill:skills/productivity/teach` — defer
+
+#### `topic-dependent-learning-balance`
+Vary the balance between knowledge teaching and skills practice with the topic.
+- `mattpocock_skills:skill:skills/productivity/teach` — defer
 
 #### `vary-answer-position`
 Vary which position holds the correct answer across questions so order gives nothing away.
-- `mattpocock_skills:skill:skills/productivity/teach`
+- `mattpocock_skills:skill:skills/productivity/teach` — adopt, pending cr-axdt.6.10 → teach#vary-answer-position
 
 #### `what-vs-why`
 Separate what happened from why it was chosen when explaining.
@@ -2604,11 +3443,11 @@ Separate what happened from why it was chosen when explaining.
 
 #### `wisdom-community-referral`
 For questions needing real-world wisdom, attempt an answer but ultimately refer the learner to a high-reputation community.
-- `mattpocock_skills:skill:skills/productivity/teach`
+- `mattpocock_skills:skill:skills/productivity/teach` — defer
 
 #### `workspace-from-run-dir`
 Resolve workspace paths from the directory the skill was run in, resolving only the format-template links from the skill folder.
-- `mattpocock_skills:skill:skills/productivity/teach`
+- `mattpocock_skills:skill:skills/productivity/teach` — defer
 
 ### engineering · Discovery · Charting
 
@@ -2652,11 +3491,11 @@ Rate what was actually found on the ABSENT/PRESENT/WIRED/SOURCE-TRACED/EXERCISED
 
 #### `research-branch-pr-policy`
 Push the research branch but open no pull request from it, and never merge it.
-- `mattpocock_skills:skill:skills/engineering/wayfinder`
+- `mattpocock_skills:skill:skills/engineering/wayfinder` — defer
 
 #### `research-subagent-branch`
 Resolve research tickets with subagents that capture findings on a throwaway research branch.
-- `mattpocock_skills:skill:skills/engineering/wayfinder`
+- `mattpocock_skills:skill:skills/engineering/wayfinder` — defer
 
 #### `scope-authorization`
 Map the invocation to the highest explicitly authorized scope, never exceed it, and escalate only when the user widens scope.
@@ -2680,52 +3519,131 @@ Before reporting, confirm the registry matches disk, every row carries its flags
 
 ### engineering · Intake · Clarification
 
+#### `agent-brief-comment`
+Post an agent brief as a comment on an item when it becomes ready for an agent.
+- `mattpocock_skills:skill:skills/engineering/triage` — defer
+
 #### `agent-brief-contract`
 Treat the posted agent brief as the authoritative contract the downstream agent works from, over the original body and discussion.
-- `mattpocock_skills:skill:skills/engineering/triage`
+- `mattpocock_skills:skill:skills/engineering/triage` — adopt → triage#agent-ready-gate
+
+#### `agent-brief-template`
+Fill a fixed agent-brief template of category, summary, current behaviour, desired behaviour, key interfaces, acceptance criteria and out of scope.
+- `mattpocock_skills:skill:skills/engineering/triage` — defer
 
 #### `brief-behavioural`
 Describe what the system should do, not how to implement it, leaving implementation choices to the executing agent.
-- `mattpocock_skills:skill:skills/engineering/triage`
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → planning#plan-evidence-bound
+- `mattpocock_skills:skill:skills/engineering/triage` — adopt → triage#agent-ready-gate
 
 #### `needs-info-notes`
 Post structured triage notes recording what is established so far and the specific, actionable questions still needed from the reporter.
-- `mattpocock_skills:skill:skills/engineering/triage`
+- `mattpocock_skills:skill:skills/engineering/triage` — adopt → triage#established-notes
+
+#### `pr-remaining-work-brief`
+For a pull request, make the agent brief describe what remains to be done to the existing diff.
+- `mattpocock_skills:skill:skills/engineering/triage` — out-of-scope
 
 ### engineering · Intake · Triage
 
+#### `already-built-close`
+Close a request that is already implemented by pointing to where it lives, recording no rejection.
+- `mattpocock_skills:skill:skills/engineering/triage` — adopt, pending cr-axdt.6.12 → triage#already-built-close
+
+#### `brief-offer-on-shortcut`
+When moving an item to agent-ready without an interview, ask whether to write its agent brief.
+- `mattpocock_skills:skill:skills/engineering/triage` — defer
+
 #### `category-state-roles`
 Assign each item exactly one category role of bug or enhancement and one state role from a fixed set.
-- `mattpocock_skills:skill:skills/engineering/triage`
+- `mattpocock_skills:skill:skills/engineering/triage` — defer
+
+#### `concept-keyed-rejection-store`
+Keep rejected requests in a store of one file per concept, not per request, so later requests can be deduplicated against it.
+- `mattpocock_skills:skill:skills/engineering/triage` — defer
+
+#### `direct-move-shortcut`
+On a direct instruction to move an item's state, confirm the actions and apply them without an interview.
+- `mattpocock_skills:skill:skills/engineering/triage` — defer
+
+#### `durable-rejection-reasons`
+Reject only for durable reasons of scope, technical constraint or strategy, treating a temporary reason as a deferral.
+- ours: `triage`
+- `mattpocock_skills:skill:skills/engineering/triage` — adopt → triage#durable-rejection-reasons
 
 #### `external-pr-discovery-filter`
 In discovery, surface only external-author pull requests, while still triaging any explicitly named one.
-- `mattpocock_skills:skill:skills/engineering/triage`
+- `mattpocock_skills:skill:skills/engineering/triage` — out-of-scope
 
-#### `out-of-scope-kb`
+#### `label-name-mapping`
+Map the canonical triage role names onto the repository's actual label strings.
+- `mattpocock_skills:skill:skills/engineering/triage` — defer
+
+#### `natural-language-commands`
+Interpret the maintainer's natural-language triage requests into the matching triage actions.
+- `mattpocock_skills:skill:skills/engineering/triage` — defer
+
+#### `out-of-scope-kb` *(retired)*
 Keep a concept-keyed knowledge base of rejected enhancements for deduplication, writing to it only for rejected enhancements and never for already-built features.
-- `mattpocock_skills:skill:skills/engineering/triage`
+
+#### `pick-from-summary`
+Show the count and a one-line summary of each waiting item and let the maintainer pick which to triage.
+- ours: `triage`
+- `mattpocock_skills:skill:skills/engineering/triage` — adopt → triage#pick-from-summary
+
+#### `polite-bug-rejection`
+Close a rejected bug report with a polite explanation of why.
+- `mattpocock_skills:skill:skills/engineering/triage` — out-of-scope
 
 #### `pr-as-issue`
 Treat an external pull request as an issue with attached code, running it through the same roles and state machine.
-- `mattpocock_skills:skill:skills/engineering/triage`
+- `mattpocock_skills:skill:skills/engineering/triage` — out-of-scope
+
+#### `read-full-source-issue`
+Read the full body, comments and, for a pull request, the diff of any referenced spec, issue or pull request before working from it.
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — defer
+- `mattpocock_skills:skill:skills/engineering/triage` — adopt, pending cr-axdt.6.12 → triage#read-full-source-issue
 
 #### `ready-for-agent-label`
 Tag the published work with the ready-for-agent triage label so it needs no further triage.
-- `mattpocock_skills:skill:skills/engineering/to-spec`
-- `mattpocock_skills:skill:skills/engineering/to-tickets`
+- `mattpocock_skills:skill:skills/engineering/to-spec` — defer
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — defer
 
 #### `ready-for-human-rationale`
 When an item is ready for a human rather than an agent, use the same brief structure but record why it cannot be delegated.
-- `mattpocock_skills:skill:skills/engineering/triage`
+- `mattpocock_skills:skill:skills/engineering/triage` — adopt, pending cr-axdt.6.12 → triage#ready-for-human-rationale
 
 #### `recommend-then-wait`
 Recommend a category and state with reasoning and a short codebase summary, then wait for the maintainer's direction before acting.
-- `mattpocock_skills:skill:skills/engineering/triage`
+- `mattpocock_skills:skill:skills/engineering/triage` — defer
+
+#### `rejected-enhancement-only-records`
+Write to the rejection store only for rejected enhancements, never for rejected bugs or requests closed as already built.
+- `mattpocock_skills:skill:skills/engineering/triage` — defer
+
+#### `rejection-match-outcomes`
+When a request matches a prior rejection, append it to the record and close on the maintainer's confirmation, update or delete the record on reconsideration, and proceed on disagreement.
+- `mattpocock_skills:skill:skills/engineering/triage` — defer
+
+#### `rejection-record-closeout`
+When rejecting an enhancement as out of scope, append it to the matching rejection record or create one, comment on the request with the record's link, then close it as won't-fix.
+- `mattpocock_skills:skill:skills/engineering/triage` — defer
+
+#### `rejection-record-format`
+Write each rejection record as a short readable design note with the decision, a substantive reason and the list of prior requests.
+- `mattpocock_skills:skill:skills/engineering/triage` — defer
+
+#### `rejection-reversal`
+Reverse a rejection by deleting its record without reopening the old requests.
+- `mattpocock_skills:skill:skills/engineering/triage` — defer
 
 #### `state-transitions`
 Move items along defined state transitions, flagging unusual moves and letting the maintainer override at any time.
-- `mattpocock_skills:skill:skills/engineering/triage`
+- `mattpocock_skills:skill:skills/engineering/triage` — defer
+
+#### `triage-external-only`
+Triage only items the user did not author, since tickets the ticketing step produced are already agent-ready.
+- `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
 
 ### engineering · Design · Architecture
 
@@ -2741,10 +3659,8 @@ Leave a short comment at a code trap or constraint linking the decision record t
 Match an existing decision-record convention (location, extension, numbering, headings) before applying defaults, surfacing conflicts instead of adding a second scheme.
 - ours: `domain-modeling`
 
-#### `adr-minimal-template`
+#### `adr-minimal-template` *(retired)*
 Use a one-paragraph decision record with optional status, options and consequences and sequential numbering.
-- ours: `domain-modeling`
-- `mattpocock_skills:skill:skills/engineering/domain-modeling`
 
 #### `adr-supersede-lifecycle`
 Never delete a decision record; supersede it with a new one and mark the old one superseded.
@@ -2753,165 +3669,329 @@ Never delete a decision record; supersede it with a new one and mark the old one
 #### `adr-three-gate`
 Offer a decision record only when the decision is hard to reverse, surprising without context, and the result of a real trade-off.
 - ours: `domain-modeling`
-- `mattpocock_skills:skill:skills/engineering/domain-modeling`
+- `mattpocock_skills:skill:skills/engineering/domain-modeling` — adopt → domain-modeling#adr-three-gate
 
 #### `adr-what-qualifies`
 Apply a worked list of decision kinds (architectural shape, integration patterns, lock-in choices, boundaries, deliberate deviations, hidden constraints, non-obvious rejections) that warrant a decision record.
 - ours: `domain-modeling`
-- `mattpocock_skills:skill:skills/engineering/domain-modeling`
+- `mattpocock_skills:skill:skills/engineering/domain-modeling` — adopt → domain-modeling#adr-what-qualifies
 
-#### `auto-fold-and-branch`
+#### `always-available-free-play`
+Keep free-play controls available beside any guided scenarios so the user can drive the state directly.
+- `mattpocock_skills:skill:skills/engineering/prototype` — adopt, pending cr-axdt.6.7 → prototype#always-available-free-play
+
+#### `architecture-candidate-card`
+Give each architecture candidate a card of files, problem, solution, benefits and a recommendation-strength badge.
+- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — adopt → improve-codebase-architecture#candidate-comparison
+
+#### `auto-fold-and-branch` *(retired)*
 Fold the validated decision into real code and commit the prototype to a throwaway branch out of main with a context pointer on the issue.
-- `mattpocock_skills:skill:skills/engineering/prototype`
+
+#### `automatic-decision-integration`
+Fold a prototype's validated decision into the real code as part of finishing the prototype.
+- `mattpocock_skills:skill:skills/engineering/prototype` — defer
+
+#### `candidate-before-after-visual`
+Give every architecture candidate a before-and-after diagram of its structural change.
+- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — defer
+
+#### `candidate-constraint-interview`
+Once the user picks an architecture candidate, interview them on its constraints, dependencies, module shape, hidden internals and the tests that survive.
+- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — defer
+
+#### `candidate-dependency-tag`
+Tag each architecture candidate with the dependency category of what it touches.
+- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — defer
 
 #### `capture-outcome`
 Record the prototype's verdict and the question it settled, with a pointer to the preserved artifact.
 - ours: `prototype`
-- `mattpocock_skills:skill:skills/engineering/prototype`
+- `mattpocock_skills:skill:skills/engineering/prototype` — adopt → prototype#capture-outcome
 
 #### `cheap-assertions`
 Use a small assertion as the cheapest proof where it helps, since a prototype implies neither a full test suite nor a ban on checks.
 - ours: `prototype`
 
+#### `compare-generated-designs`
+Compare the generated designs with each other.
+
+#### `concrete-benefit-claims`
+Phrase a candidate's benefits in the design vocabulary rather than generic claims such as easier to maintain.
+- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — adopt, pending cr-axdt.6.5 → improve-codebase-architecture#concrete-benefit-claims
+
 #### `covered-test-removal`
 Remove an old test only when its behaviour is covered elsewhere or deliberately retired, inspecting a changed test rather than deleting it automatically.
 - ours: `codebase-design`
 
-#### `deep-module-shape`
+#### `deep-module-shape` *(retired)*
 Make every package a deep module whose behaviour hides in subfolders and is reachable only through its root entry-point files.
-- `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules`
+
+#### `default-form-by-context`
+When the prototype's question is ambiguous and the user is unreachable, choose its form from the surrounding code and state the assumption at the top.
+- `mattpocock_skills:skill:skills/engineering/prototype` — defer
 
 #### `deletion-test`
 Question a layer that only forwards and keep one whose removal would spread complexity across callers.
 - ours: `codebase-design`
-- `mattpocock_skills:skill:skills/engineering/codebase-design`
-- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture`
+- `mattpocock_skills:skill:skills/engineering/codebase-design` — adopt → codebase-design#deletion-test
+- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — adopt → codebase-design#deletion-test
+
+#### `demo-state-controls`
+Give a demo controls that drive its state.
+- ours: `prototype`
+
+#### `demo-states-question`
+Include in a demo the question it answers.
+- ours: `prototype`
 
 #### `dependency-categories`
 Classify a module's dependencies as in-process, locally substitutable, owned remote or true external to choose how it is tested across its seam.
 - ours: `codebase-design`
-- `mattpocock_skills:skill:skills/engineering/codebase-design`
+- `mattpocock_skills:skill:skills/engineering/codebase-design` — adopt → codebase-design#dependency-categories
+- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — adopt → codebase-design#dependency-categories
 
 #### `depth-as-leverage`
 Prefer modules whose manageable interface hides a large amount of useful behaviour.
 - ours: `codebase-design`
-- `mattpocock_skills:skill:skills/engineering/codebase-design`
+- `mattpocock_skills:skill:skills/engineering/codebase-design` — adopt → codebase-design#depth-as-leverage
+
+#### `depth-locality-seam-comparison`
+Present alternative designs one at a time, then compare them on depth, locality and seam placement.
+- `mattpocock_skills:skill:skills/engineering/codebase-design` — adopt, pending cr-axdt.6.2 → codebase-design#depth-locality-seam-comparison
+
+#### `design-brief-vocabulary`
+Give each design subagent both the design vocabulary and the project's domain glossary in its brief.
+- `mattpocock_skills:skill:skills/engineering/codebase-design` — defer
 
 #### `design-it-twice`
 Optionally compare a few materially different interface designs before a consequential choice, without forcing a multi-agent exercise on a clear one.
 - ours: `codebase-design`
 
+#### `design-proposal-contents`
+Have each design proposal return its interface, a usage example, the hidden internals, its dependency strategy and its trade-offs.
+- ours: `codebase-design`
+- `mattpocock_skills:skill:skills/engineering/codebase-design` — adopt → codebase-design#design-proposal-contents
+
 #### `discourage-barrels`
 Discourage barrel files that re-export a whole subtree, favouring several small entry points.
-- `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules`
+- `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules` — out-of-scope
+
+#### `dom-free-portable-logic`
+Isolate a prototype's logic in a pure module that never touches the page, which calls into it while nothing reaches inside, so the module lifts into the real code unchanged.
+- `mattpocock_skills:skill:skills/engineering/prototype` — adopt → prototype#logic-pure-module
 
 #### `entry-point-only-imports`
 Enforce that code outside a package imports only that package's root entry points, never its subfolders.
-- `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules`
+- `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules` — out-of-scope
+
+#### `existing-variant-styling-system`
+Build UI variants with the project's existing styling system.
+- `mattpocock_skills:skill:skills/engineering/prototype` — adopt, pending cr-axdt.6.7 → prototype#existing-variant-styling-system
+
+#### `external-port-mock-adapter`
+Inject a third-party service as a port and use a mock adapter for it in tests.
+- `mattpocock_skills:skill:skills/engineering/codebase-design` — defer
+
+#### `fetch-above-switcher`
+Keep existing data fetching above a single variant switcher so only the rendered subtree changes between variants.
+- `mattpocock_skills:skill:skills/engineering/prototype` — defer
 
 #### `flat-packages`
 Keep packages flat, one tier of children under the root, so a package never contains another package.
-- `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules`
+- `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules` — out-of-scope
 
-#### `grilling-loop`
+#### `grilling-loop` *(retired)*
 Once the user picks a candidate, drive a grilling session on it and let the domain-model side effects (new terms, offered records, alternative-interface exploration) happen inline as decisions crystallise.
-- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture`
+
+#### `handover-url-keys`
+Hand the user the prototype's URL and its variant keys when it is ready.
+- `mattpocock_skills:skill:skills/engineering/prototype` — adopt, pending cr-axdt.6.7 → prototype#handover-url-keys
+
+#### `helpful-state-change-highlighting`
+Highlight what just changed in a prototype's state display where that helps the reader.
+- `mattpocock_skills:skill:skills/engineering/prototype` — defer
 
 #### `host-in-existing-page`
 Host UI variants inside an existing page with its real data and layout, using a new throwaway route only when no page can host them.
-- `mattpocock_skills:skill:skills/engineering/prototype`
+- `mattpocock_skills:skill:skills/engineering/prototype` — defer
 
 #### `inject-dependencies`
 Pass a module's external dependencies in as arguments rather than constructing them inside it, so callers and tests can substitute them.
 - ours: `codebase-design`
-- `mattpocock_skills:skill:skills/engineering/codebase-design`
-- `mattpocock_skills:skill:skills/engineering/tdd`
+- `mattpocock_skills:skill:skills/engineering/codebase-design` — adopt → codebase-design#inject-dependencies
+- `mattpocock_skills:skill:skills/engineering/tdd` — adopt → codebase-design#inject-dependencies
+
+#### `interface-design-recommendation`
+Finish a comparison of interface designs with an opinionated recommendation.
+- ours: `codebase-design`
+- `mattpocock_skills:skill:skills/engineering/codebase-design` — adopt → codebase-design#interface-design-recommendation
 
 #### `interface-is-everything`
 Treat an interface as every fact a caller must know — invariants, ordering, errors, configuration and performance — not just the type signature.
 - ours: `codebase-design`
-- `mattpocock_skills:skill:skills/engineering/codebase-design`
+- `mattpocock_skills:skill:skills/engineering/codebase-design` — adopt → codebase-design#interface-is-everything
 
 #### `interface-is-test-surface`
 Treat the interface as the surface both callers and tests cross, so needing to test past it signals the module is the wrong shape.
-- `mattpocock_skills:skill:skills/engineering/codebase-design`
+- `mattpocock_skills:skill:skills/engineering/codebase-design` — defer
 
 #### `internal-seams`
 Allow internal seams and focused internal tests without exposing internals through the public interface merely to satisfy a testing rule.
 - ours: `codebase-design`
-- `mattpocock_skills:skill:skills/engineering/codebase-design`
+- `mattpocock_skills:skill:skills/engineering/codebase-design` — adopt → codebase-design#internal-seams
 
 #### `intra-package-freedom`
 Allow a package's own files to import each other freely.
-- `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules`
+- `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules` — out-of-scope
+
+#### `keep-logic-discard-shell`
+Keep only the pure logic module of a logic prototype and never ship its demo shell to production.
+- `mattpocock_skills:skill:skills/engineering/prototype` — defer
+
+#### `layering-stub`
+Leave package layering rules as a commented stub for the repository to fill in.
+- `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules` — out-of-scope
+
+#### `local-stand-in-testing`
+Test a module whose dependency has a local stand-in by running the stand-in in the suite, keeping that seam internal.
+- `mattpocock_skills:skill:skills/engineering/codebase-design` — defer
 
 #### `logic-pure-module`
 Keep domain logic readable apart from presentation as a reducer, state machine, pure functions or small stateful module.
 - ours: `prototype`
-- `mattpocock_skills:skill:skills/engineering/prototype`
 
-#### `logic-shareable-html`
+#### `logic-shareable-html` *(retired)*
 Offer a self-contained HTML demo with the question, a readable state panel, controls and guided scenarios that reset to a known state.
-- ours: `prototype`
-- `mattpocock_skills:skill:skills/engineering/prototype`
+
+#### `losing-variant-cleanup`
+After a winner is chosen, remove the losing variants and the switcher from the main line.
+- `mattpocock_skills:skill:skills/engineering/prototype` — defer
+
+#### `minimal-decision-record`
+Write a decision record as a title and one to three sentences of context, decision and reason.
+- ours: `domain-modeling`
+- `mattpocock_skills:skill:skills/engineering/domain-modeling` — adopt → domain-modeling#minimal-decision-record
 
 #### `module-vocabulary`
 Reason about design with a shared deep-module glossary: module, interface, depth, seam, adapter and locality.
 - ours: `codebase-design`
-- `mattpocock_skills:skill:skills/engineering/codebase-design`
+- `mattpocock_skills:skill:skills/engineering/codebase-design` — adopt → codebase-design#module-vocabulary
+- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — adopt → codebase-design#module-vocabulary
+- `mattpocock_skills:skill:skills/engineering/tdd` — adopt → codebase-design#module-vocabulary
+- `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules` — adopt → codebase-design#module-vocabulary
+
+#### `named-variant-components`
+Export each UI variant as a clearly named component.
+- `mattpocock_skills:skill:skills/engineering/prototype` — defer
 
 #### `no-cycles`
 Forbid dependency cycles.
-- `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules`
+- `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules` — out-of-scope
 
 #### `no-interfaces-yet`
 Keep the survey free of proposed interfaces and instead ask the user which candidate to explore.
-- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture`
+- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — defer
+
+#### `no-shared-variant-layout`
+Keep layout code unshared between UI variants so each can differ freely.
+- `mattpocock_skills:skill:skills/engineering/prototype` — defer
 
 #### `no-tests-ban`
 Add no tests to a prototype; one that needs tests is no longer a prototype.
-- `mattpocock_skills:skill:skills/engineering/prototype`
+- `mattpocock_skills:skill:skills/engineering/prototype` — defer
 
-#### `parallel-constrained-designs`
+#### `parallel-constrained-designs` *(retired)*
 Generate several radically different interfaces in parallel, each under a different design constraint, then compare them and recommend one.
-- `mattpocock_skills:skill:skills/engineering/codebase-design`
+
+#### `parallel-interface-generation`
+Generate several radically different interfaces through parallel designers, each working under a different constraint brief.
+- `mattpocock_skills:skill:skills/engineering/codebase-design` — adopt → codebase-design#design-it-twice
 
 #### `persistence-when-needed`
 Bring persistence into a prototype only when the question needs it.
 - ours: `prototype`
-- `mattpocock_skills:skill:skills/engineering/prototype`
+- `mattpocock_skills:skill:skills/engineering/prototype` — adopt → prototype#persistence-when-needed
 
 #### `pick-form`
 Let the question being answered pick the prototype's form, such as a state demo for logic or a UI mockup for layout.
 - ours: `prototype`
-- `mattpocock_skills:skill:skills/engineering/prototype`
+- `mattpocock_skills:skill:skills/engineering/prototype` — adopt → prototype#pick-form
+
+#### `port-with-memory-adapter`
+For a remote service you own, define a port with a production transport adapter and an in-memory adapter for tests.
+- `mattpocock_skills:skill:skills/engineering/codebase-design` — defer
+
+#### `portable-single-file-demo`
+Package an interactive demo as one self-contained HTML file that opens directly, with no framework, bundler or server.
+- `mattpocock_skills:skill:skills/engineering/prototype` — adopt → prototype#self-contained-html-demo
 
 #### `present-requirement-only`
 Add an abstraction, dependency or feature only for a present requirement, never a speculative one.
 - `doc:AGENTS.md`
 
+#### `problem-space-framing`
+Before exploring alternative designs, show the user the constraints, dependency categories and an illustrative sketch, then continue without waiting.
+- `mattpocock_skills:skill:skills/engineering/codebase-design` — defer
+
+#### `production-hidden-switcher`
+Hide a prototype's variant switcher from production builds.
+- ours: `prototype`
+- `mattpocock_skills:skill:skills/engineering/prototype` — adopt → prototype#production-hidden-switcher
+
 #### `project-term-allowance`
 Let the project's own precise terms, such as API, service or boundary, stand beside the design glossary rather than banning them.
 - ours: `codebase-design`
 
+#### `prototype-branch-archive`
+Keep the prototype as a primary source by committing it to a throwaway branch out of the main line and pointing to it from the implementation issue.
+- `mattpocock_skills:skill:skills/engineering/prototype` — defer
+
+#### `prototype-detour`
+Leave the main flow for a throwaway prototype when a question needs a runnable answer, then return to the flow with the answer.
+- `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
+
 #### `public-surface-is-root-files`
 Treat every root file as part of the public surface rather than one designated index file.
-- `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules`
+- `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules` — out-of-scope
+
+#### `readable-state-panel`
+Show a demo's current state in a readable panel.
+- ours: `prototype`
+- `mattpocock_skills:skill:skills/engineering/prototype` — adopt → prototype#readable-state-panel
+
+#### `rejection-decision-record`
+When the user rejects an improvement candidate for a durable reason, offer a decision record so later reviews do not suggest it again, skipping ephemeral or self-evident reasons.
+- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — adopt, pending cr-axdt.6.5 → improve-codebase-architecture#rejection-decision-record
+
+#### `resettable-demo-scenarios`
+Give a demo guided scenarios that each reset to a known state.
+- ours: `prototype`
+
+#### `resettable-guided-scenarios`
+Give a demo guided scenarios that each reset to a known initial state and step through the real controls.
+- `mattpocock_skills:skill:skills/engineering/prototype` — adopt, pending cr-axdt.6.7 → prototype#resettable-guided-scenarios
 
 #### `respect-area-adrs`
 Honour the recorded architectural decisions that govern the area being changed.
-- `mattpocock_skills:skill:skills/engineering/to-spec`
-- `mattpocock_skills:skill:skills/engineering/to-tickets`
-- `mattpocock_skills:skill:skills/engineering/triage`
+- ours: `improve-codebase-architecture`
+- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — adopt → improve-codebase-architecture#respect-area-adrs
+- `mattpocock_skills:skill:skills/engineering/tdd` — defer
+- `mattpocock_skills:skill:skills/engineering/to-spec` — defer
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — defer
+- `mattpocock_skills:skill:skills/engineering/triage` — defer
 
 #### `return-not-mutate`
 Design functions to return results rather than cause side effects, so behaviour can be observed directly.
 - ours: `codebase-design`
-- `mattpocock_skills:skill:skills/engineering/codebase-design`
+- `mattpocock_skills:skill:skills/engineering/codebase-design` — adopt → codebase-design#return-not-mutate
 
 #### `rewrite-not-promote`
 Rewrite prototype code to production standards when folding the winning decision in, never promoting the throwaway code directly.
-- `mattpocock_skills:skill:skills/engineering/prototype`
+- `mattpocock_skills:skill:skills/engineering/prototype` — defer
+
+#### `scenario-coverage-triad`
+Give a logic prototype guided scenarios covering the happy path, a tricky edge case and an attempted illegal action.
+- `mattpocock_skills:skill:skills/engineering/prototype` — defer
 
 #### `scope-threat`
 Name the changed entrypoints, assets, identities and consequences, tracing untrusted input to consequential sinks including model outputs used as commands, paths, queries or markup.
@@ -2921,9 +4001,18 @@ Name the changed entrypoints, assets, identities and consequences, tracing untru
 Use synthetic or appropriately scoped data, bringing in external calls and real integration only when the question needs them and they are authorized.
 - ours: `prototype`
 
+#### `scoped-decision-records`
+Keep system-wide decision records at the repository root and context-specific ones inside each context.
+- ours: `domain-modeling`
+- `mattpocock_skills:skill:skills/engineering/domain-modeling` — adopt → domain-modeling#scoped-decision-records
+
 #### `sdk-interfaces`
 Prefer specific per-operation interface functions over one generic fetcher so each mock returns a single shape.
-- `mattpocock_skills:skill:skills/engineering/tdd`
+- `mattpocock_skills:skill:skills/engineering/tdd` — defer
+
+#### `self-contained-html-demo`
+Offer an interactive demo as one self-contained HTML file that works offline.
+- ours: `prototype`
 
 #### `separate-promotion`
 Treat promoting a prototype's decision or code into production as separate work with its own scope and checks.
@@ -2935,43 +4024,61 @@ Accept an interface justified by encapsulation, ownership or a present testing n
 
 #### `skip-polish`
 Add no error handling beyond runnability and no abstractions, so the prototype only serves fast learning.
-- `mattpocock_skills:skill:skills/engineering/prototype`
+- `mattpocock_skills:skill:skills/engineering/prototype` — adopt, pending cr-axdt.6.7 → prototype#skip-polish
 
 #### `small-interface-surface`
 Keep a module's interface surface small — fewer methods and simpler parameters — to reduce what callers and tests must learn.
-- `mattpocock_skills:skill:skills/engineering/codebase-design`
+- `mattpocock_skills:skill:skills/engineering/codebase-design` — adopt → codebase-design#depth-as-leverage
 
 #### `state-question-up-front`
 Write the question the prototype answers visibly at the top of the prototype before building, so it can be checked later.
-- `mattpocock_skills:skill:skills/engineering/prototype`
+- `mattpocock_skills:skill:skills/engineering/prototype` — adopt → prototype#named-question
 
 #### `structural-variants`
 Make UI variants differ in meaningful structure and layout, not just colour or styling.
 - ours: `prototype`
-- `mattpocock_skills:skill:skills/engineering/prototype`
+- `mattpocock_skills:skill:skills/engineering/prototype` — adopt → prototype#structural-variants
+
+#### `stubbed-mutations`
+Point UI variants that need mutations at stubs rather than real backends.
+- ours: `prototype`
+- `mattpocock_skills:skill:skills/engineering/prototype` — adopt → prototype#stubbed-mutations
 
 #### `surface-state`
 Surface the relevant state and the invalid transitions the design might mishandle.
 - ours: `prototype`
-- `mattpocock_skills:skill:skills/engineering/prototype`
+- `mattpocock_skills:skill:skills/engineering/prototype` — adopt → prototype#surface-state
+
+#### `test-folder-isolation`
+Make a package's tests folder importable only from tests.
+- `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules` — out-of-scope
 
 #### `tests-through-entry-points`
 Let test files import any package's entry points and their own fixtures but never any package's subfolder internals.
-- `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules`
+- `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules` — out-of-scope
 
 #### `throwaway-marked`
 Keep prototypes clearly marked as throwaway and separate from production.
 - ours: `prototype`
-- `mattpocock_skills:skill:skills/engineering/prototype`
+- `mattpocock_skills:skill:skills/engineering/prototype` — adopt → prototype#throwaway-marked
+
+#### `top-candidate-recommendation`
+End a candidate survey with a single top recommendation.
+- ours: `improve-codebase-architecture`
+- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — adopt → improve-codebase-architecture#top-candidate-recommendation
 
 #### `trivial-to-run`
 Make the prototype trivial to run: one command, or a single HTML file the user opens directly.
 - ours: `prototype`
-- `mattpocock_skills:skill:skills/engineering/prototype`
+- `mattpocock_skills:skill:skills/engineering/prototype` — adopt → prototype#trivial-to-run
 
 #### `two-adapters-rule`
 Introduce a seam only when behaviour actually varies across it — one adapter is a hypothetical seam, two is a real one.
-- `mattpocock_skills:skill:skills/engineering/codebase-design`
+- `mattpocock_skills:skill:skills/engineering/codebase-design` — defer
+
+#### `two-folder-package-layout`
+Give each package a conventional shape of root entry points over an implementation subfolder and a tests subfolder.
+- `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules` — out-of-scope
 
 #### `ui-accessibility`
 Keep focus, contrast and interaction states usable in a UI prototype while real mutations are stubbed.
@@ -2984,16 +4091,24 @@ Prefer an isolated preview, or an authorized existing-page preview that cannot l
 #### `ui-keyboard-safety`
 Keep a prototype's keyboard shortcuts from intercepting input while an editable field is focused.
 - ours: `prototype`
-- `mattpocock_skills:skill:skills/engineering/prototype`
+- `mattpocock_skills:skill:skills/engineering/prototype` — adopt → prototype#ui-keyboard-safety
 
 #### `ui-variants-one-route`
 For a UI prototype, generate several structurally different variants (default three, capped at five) on one route switchable by a search param.
-- `mattpocock_skills:skill:skills/engineering/prototype`
+- `mattpocock_skills:skill:skills/engineering/prototype` — adopt → prototype#variants-when-comparing
+
+#### `variant-plan-line`
+Before building UI variants, write a one-line plan of variant count, switching method and route at the prototype's location.
+- `mattpocock_skills:skill:skills/engineering/prototype` — defer
+
+#### `variant-purpose-data-fidelity`
+Hold every UI variant to the page's real purpose and data.
+- `mattpocock_skills:skill:skills/engineering/prototype` — defer
 
 #### `variant-switcher`
 Provide a labelled control for switching between UI variants.
 - ours: `prototype`
-- `mattpocock_skills:skill:skills/engineering/prototype`
+- `mattpocock_skills:skill:skills/engineering/prototype` — adopt → prototype#variant-switcher
 
 #### `variants-when-comparing`
 Build UI variants only when comparing alternatives is the question the prototype answers.
@@ -3001,14 +4116,18 @@ Build UI variants only when comparing alternatives is the question the prototype
 
 #### `vocabulary-ban`
 Use the design vocabulary exactly and never substitute looser words like component, service, API, or boundary.
-- `mattpocock_skills:skill:skills/engineering/codebase-design`
-- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture`
+- `mattpocock_skills:skill:skills/engineering/codebase-design` — defer
+- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — defer
 
 ### engineering · Design · Decomposition
 
 #### `beads-native-tracking`
 Seed epics and stages and render tracking natively in the tracker, keeping the roadmap anchor on the epics and the stage mapping that execution closes against, and writing nothing before its matching approval.
 - ours: `planning`
+
+#### `blast-radius-batches`
+Size migration batches by blast radius and keep the build green between them.
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt, pending cr-axdt.6.6 → planning#blast-radius-batches
 
 #### `decompose-phases`
 Split an approved spec into demoable phases with checkable exits and flat stages that each carry acceptance.
@@ -3018,8 +4137,9 @@ Split an approved spec into demoable phases with checkable exits and flat stages
 Encode real blocking edges in the tracker and let the ready frontier drive execution rather than listing order.
 - ours: `planning`
 - ours: `wayfinder`
-- `mattpocock_skills:skill:skills/engineering/to-tickets`
-- `mattpocock_skills:skill:skills/engineering/wayfinder`
+- `mattpocock_skills:skill:skills/engineering/implement-spec` — adopt → planning#dependency-edges
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → planning#dependency-edges
+- `mattpocock_skills:skill:skills/engineering/wayfinder` — adopt → wayfinder#dependency-edges
 
 #### `durable-plan-format`
 Produce a durable plan with ownership boundaries, interfaces, verification, dependencies and known files, saved to the plans path and approval-gated.
@@ -3028,16 +4148,24 @@ Produce a durable plan with ownership boundaries, interfaces, verification, depe
 #### `expand-contract`
 For a broad refactor use expand, migrate then contract with genuine dependencies, naming one integration boundary when intermediate tasks cannot stay green.
 - ours: `planning`
-- `mattpocock_skills:skill:skills/engineering/to-tickets`
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → planning#expand-contract
+
+#### `file-per-ticket`
+Without a tracker, write one numbered file per ticket in dependency order, never one combined file.
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — defer
+
+#### `multi-session-split`
+Write a spec and split it into tickets only when the build spans several sessions, otherwise implement in the current window.
+- `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
 
 #### `prefactor-first`
 Find prefactoring that makes the change easy and sequence it before the feature slices.
-- `mattpocock_skills:skill:skills/engineering/to-tickets`
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt, pending cr-axdt.6.6 → planning#prefactor-first
 
 #### `publish-to-tracker`
 Publish the finished artifact to the configured issue tracker.
-- `mattpocock_skills:skill:skills/engineering/to-spec`
-- `mattpocock_skills:skill:skills/engineering/to-tickets`
+- `mattpocock_skills:skill:skills/engineering/to-spec` — defer
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → planning#beads-native-tracking
 
 #### `reviewer-rejectable-sizing`
 Size each task so a reviewer could accept or reject it independently of its neighbour, folding setup, scaffolding and docs into the deliverable they serve.
@@ -3049,7 +4177,7 @@ Route between brainstorming, a brief local sequence, elaborate, decompose, or ex
 
 #### `sub-issue-linkage`
 Make each ticket a child of its source issue and never close or modify that parent.
-- `mattpocock_skills:skill:skills/engineering/to-tickets`
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → planning#beads-native-tracking
 
 #### `test-first-marking`
 Mark risky changes test-first or characterization-first in the plan.
@@ -3058,14 +4186,14 @@ Mark risky changes test-first or characterization-first in the plan.
 #### `vertical-slices`
 Prefer independently verifiable vertical slices over horizontal layers.
 - ours: `planning`
-- `mattpocock_skills:skill:skills/engineering/to-tickets`
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → planning#vertical-slices
 
 ### engineering · Design · Grounding
 
 #### `active-discipline`
 Actively build the model by challenging terms, inventing scenarios and writing it down, as distinct from merely reading the glossary.
 - ours: `domain-modeling`
-- `mattpocock_skills:skill:skills/engineering/domain-modeling`
+- `mattpocock_skills:skill:skills/engineering/domain-modeling` — adopt → domain-modeling#active-discipline
 
 #### `authorized-model-writes`
 Edit the glossary and decision records only when documentation work is authorized, otherwise reporting the proposed terms and decisions.
@@ -3074,75 +4202,96 @@ Edit the glossary and decision records only when documentation work is authorize
 #### `challenge-glossary`
 Call out immediately a term that conflicts with the existing glossary language.
 - ours: `domain-modeling`
-- `mattpocock_skills:skill:skills/engineering/domain-modeling`
+- `mattpocock_skills:skill:skills/engineering/domain-modeling` — adopt → domain-modeling#challenge-glossary
 
 #### `concrete-scenarios`
 Stress-test domain relationships with invented edge-case scenarios that force precision about boundaries.
 - ours: `domain-modeling`
-- `mattpocock_skills:skill:skills/engineering/domain-modeling`
+- `mattpocock_skills:skill:skills/engineering/domain-modeling` — adopt → domain-modeling#concrete-scenarios
+
+#### `context-map-artifact`
+Keep a root context map listing each context with its location and purpose and the relationships between contexts.
+- ours: `domain-modeling`
+- `mattpocock_skills:skill:skills/engineering/domain-modeling` — adopt → domain-modeling#context-map-artifact
 
 #### `context-map-lookup`
 Follow the context map to the right context's glossary when the repository has several.
-- `mattpocock_skills:skill:skills/productivity/wait-what`
+- ours: `domain-modeling`
+- `mattpocock_skills:skill:skills/engineering/domain-modeling` — adopt → domain-modeling#context-map-lookup
+- `mattpocock_skills:skill:skills/productivity/wait-what` — defer
 
 #### `context-specific-terms`
 Admit only terms specific to the project's context to the glossary, leaving general programming concepts out.
 - ours: `domain-modeling`
-- `mattpocock_skills:skill:skills/engineering/domain-modeling`
+- `mattpocock_skills:skill:skills/engineering/domain-modeling` — adopt → domain-modeling#context-specific-terms
 
 #### `cross-reference-code`
 Check whether the code agrees with a stated domain rule and surface contradictions.
 - ours: `domain-modeling`
-- `mattpocock_skills:skill:skills/engineering/domain-modeling`
+- `mattpocock_skills:skill:skills/engineering/domain-modeling` — adopt → domain-modeling#cross-reference-code
 
 #### `declared-glossary-location`
 Use the glossary location declared by project instructions, reusing an existing root glossary rather than creating a competing one.
 - ours: `domain-modeling`
 
+#### `delegated-codebase-walk`
+Delegate the codebase walk to a subagent that explores organically for friction.
+- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — defer
+
 #### `detect-package-conventions`
 Detect the package manager and packages root before configuring, confirming with the user when the repo already has a different convention.
-- `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules`
+- `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules` — out-of-scope
 
 #### `glossary-is-glossary`
 Keep the glossary free of implementation details and never treat it as a spec or scratchpad.
 - ours: `domain-modeling`
-- `mattpocock_skills:skill:skills/engineering/domain-modeling`
+- `mattpocock_skills:skill:skills/engineering/domain-modeling` — adopt → domain-modeling#glossary-is-glossary
 
 #### `ground-in-codebase`
 Explore the current state of the code before writing, so the artifact targets what actually exists.
-- `mattpocock_skills:skill:skills/engineering/to-spec`
-- `mattpocock_skills:skill:skills/engineering/to-tickets`
-- `mattpocock_skills:skill:skills/engineering/triage`
+- ours: `planning`
+- `mattpocock_skills:skill:skills/engineering/to-spec` — adopt → brainstorming#scoped-context-read
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → planning#ground-in-codebase
+- `mattpocock_skills:skill:skills/engineering/triage` — defer
 
 #### `lazy-glossary-and-adr`
 Create glossary and decision-record files lazily, only when there is something concrete to write.
 - ours: `domain-modeling`
-- `mattpocock_skills:skill:skills/engineering/domain-modeling`
+- `mattpocock_skills:skill:skills/engineering/domain-modeling` — adopt → domain-modeling#lazy-glossary-and-adr
 
-#### `multi-context-map`
+#### `multi-context-map` *(retired)*
 Maintain a root context map listing contexts, their locations and relationships, inferring which context a topic belongs to or asking.
-- ours: `domain-modeling`
-- `mattpocock_skills:skill:skills/engineering/domain-modeling`
+
+#### `read-domain-docs-first`
+Read the domain glossary and the decision records near the code before exploring it.
+- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — defer
+- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — adopt, pending cr-axdt.6.5 → improve-codebase-architecture#read-domain-docs-first
 
 #### `sharpen-fuzzy`
 Propose one precise canonical term for a vague or overloaded one.
 - ours: `domain-modeling`
-- `mattpocock_skills:skill:skills/engineering/domain-modeling`
+- `mattpocock_skills:skill:skills/engineering/domain-modeling` — adopt → domain-modeling#sharpen-fuzzy
+- `mattpocock_skills:skill:skills/in-progress/loop-me` — adopt → domain-modeling#sharpen-fuzzy
+
+#### `topic-context-resolution`
+Infer which context the current topic belongs to, asking when it is unclear.
+- ours: `domain-modeling`
+- `mattpocock_skills:skill:skills/engineering/domain-modeling` — adopt → domain-modeling#topic-context-resolution
 
 #### `update-inline`
 Write a resolved term into the glossary as soon as it is resolved rather than batching changes.
 - ours: `domain-modeling`
-- `mattpocock_skills:skill:skills/engineering/domain-modeling`
+- `mattpocock_skills:skill:skills/engineering/domain-modeling` — adopt → domain-modeling#update-inline
 
 ### engineering · Design · Specification
 
 #### `brief-acceptance-criteria`
 Give every brief concrete, independently testable acceptance criteria.
-- `mattpocock_skills:skill:skills/engineering/triage`
+- `mattpocock_skills:skill:skills/engineering/triage` — adopt, pending cr-axdt.6.12 → triage#brief-acceptance-criteria
 
 #### `brief-scope-boundaries`
 State explicitly what is out of scope so the agent does not gold-plate.
-- `mattpocock_skills:skill:skills/engineering/triage`
+- `mattpocock_skills:skill:skills/engineering/triage` — adopt → triage#agent-ready-gate
 
 #### `classify-maturity`
 Inventory source and discussions by concept, separating authoritative decisions from proposals, scratchpads and unresolved conflicts.
@@ -3160,6 +4309,15 @@ Check cross-document consistency, section links, invariant coverage and stale ve
 Read the actual discussion and affected core sections before a consequential change and record a source-to-target change map, shown before a multi-concept edit.
 - ours: `design-evolve`
 
+#### `exhaustive-user-stories`
+Write a long, exhaustive numbered list of actor-feature-benefit user stories.
+- `mattpocock_skills:skill:skills/engineering/to-spec` — defer
+
+#### `implementation-decisions-scope`
+List a spec's implementation decisions across modules, interfaces, clarifications, architecture, schema, contracts and interactions.
+- ours: `brainstorming`
+- `mattpocock_skills:skill:skills/engineering/to-spec` — adopt → brainstorming#implementation-decisions-scope
+
 #### `integration-not-redesign`
 Integrate only authorized decisions into the next version and never treat integration as licence to redesign.
 - ours: `design-evolve`
@@ -3171,7 +4329,7 @@ Mirror the source layout and filename convention under the target version, searc
 #### `named-question`
 Build a throwaway artifact to answer one named design question.
 - ours: `prototype`
-- `mattpocock_skills:skill:skills/engineering/prototype`
+- `mattpocock_skills:skill:skills/engineering/prototype` — adopt → prototype#named-question
 
 #### `no-gap-filling`
 Never fill a gap the source leaves open; record it as TBD with its source and keep ambiguous choices unresolved.
@@ -3183,7 +4341,7 @@ Reject plan placeholders such as TBD, vague error-handling notes, unnamed test b
 
 #### `per-seam-note`
 Give each proposed seam a one-line note on what it catches and what it misses.
-- `mattpocock_skills:skill:skills/engineering/tdd`
+- `mattpocock_skills:skill:skills/engineering/tdd` — adopt, pending cr-axdt.6.11 → test-driven-development#per-seam-note
 
 #### `plan-evidence-bound`
 List known files but do not invent exact symbols or freeze a file map without evidence, leaving implementers to discover internals within their ownership.
@@ -3204,12 +4362,12 @@ Preserve heading hierarchy, invariant identifiers, table meanings and link targe
 #### `prototype-snippet`
 Inline a prototype snippet in the spec only when it encodes a decision more precisely than prose can.
 - ours: `brainstorming`
-- `mattpocock_skills:skill:skills/engineering/to-spec`
-- `mattpocock_skills:skill:skills/engineering/to-tickets`
+- `mattpocock_skills:skill:skills/engineering/to-spec` — adopt → brainstorming#prototype-snippet
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → brainstorming#prototype-snippet
 
 #### `public-only-seams`
 Test only at public boundaries, never against internals.
-- `mattpocock_skills:skill:skills/engineering/tdd`
+- `mattpocock_skills:skill:skills/engineering/tdd` — defer
 
 #### `report-provenance`
 Report integrated concepts, files, decisions and deferred items with source pointers, never labelling unresolved scratchpad proposals as approved design.
@@ -3221,22 +4379,32 @@ Resolve source version, target path and included discussion files from the reque
 
 #### `seam-preconfirmation`
 Write down the seams under test and confirm them with the user before writing any test.
-- `mattpocock_skills:skill:skills/engineering/tdd`
-- `mattpocock_skills:skill:skills/engineering/to-spec`
+- `mattpocock_skills:skill:skills/engineering/tdd` — defer
+- `mattpocock_skills:skill:skills/engineering/to-spec` — defer
 
 #### `seam-selection`
 Choose the test boundary that exercises the real contract without reaching inside.
 - ours: `test-driven-development`
-- `mattpocock_skills:skill:skills/engineering/tdd`
+- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt → test-driven-development#seam-selection
 
 #### `start-from-source`
 Begin each target from its complete source and preserve exact identifiers, numbers, error behaviour and invariants unless explicitly superseded.
 - ours: `design-evolve`
 
+#### `testing-decisions-contents`
+Record a spec's testing decisions as what makes a good test, which modules are tested and the prior-art tests to follow.
+- ours: `brainstorming`
+- `mattpocock_skills:skill:skills/engineering/to-spec` — adopt → brainstorming#testing-decisions-contents
+
 #### `testing-seam-decision`
 Record in the spec which seam the feature is tested at, preferring an existing and the highest useful seam and the fewest seams.
 - ours: `brainstorming`
-- `mattpocock_skills:skill:skills/engineering/to-spec`
+- `mattpocock_skills:skill:skills/engineering/to-spec` — adopt → brainstorming#testing-seam-decision
+
+#### `user-perspective-framing`
+Write a spec's problem and solution from the user's perspective.
+- ours: `brainstorming`
+- `mattpocock_skills:skill:skills/engineering/to-spec` — adopt → brainstorming#user-perspective-framing
 
 #### `version-rekey`
 Update version headers, filenames and internal references and copy untouched core files so the target stands alone with prior versions only in provenance.
@@ -3255,7 +4423,7 @@ Record each debugging attempt as hypothesis, change and result.
 #### `baseline`
 Capture a baseline measurement before attempting a performance fix.
 - ours: `performance-optimization`
-- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs`
+- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt, pending cr-axdt.6.9 → systematic-debugging#baseline
 
 #### `benefit-justifies-complexity`
 Keep a performance change only when its measured benefit justifies the complexity it adds.
@@ -3264,7 +4432,7 @@ Keep a performance change only when its measured benefit justifies the complexit
 #### `closeout`
 Before declaring done, remove temporary instrumentation and record the confirmed cause.
 - ours: `systematic-debugging`
-- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs`
+- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt → systematic-debugging#closeout
 
 #### `critic-escalation`
 When hypotheses run out, get a critic review and pass it artifacts — the reproduction, its output and the attempts — rather than conclusions.
@@ -3272,7 +4440,7 @@ When hypotheses run out, get a critic review and pass it artifacts — the repro
 
 #### `debugger-first`
 Prefer a debugger or REPL breakpoint over targeted logs, and never log everything and grep.
-- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs`
+- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — defer
 
 #### `define-metric`
 Define the metric, workload and target first, proposing the measurement or asking about the tradeoff before tuning code.
@@ -3280,7 +4448,7 @@ Define the metric, workload and target first, proposing the measurement or askin
 
 #### `delete-debug-prototypes`
 Delete throwaway debugging prototypes before declaring done, or move them to a clearly marked debug location.
-- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs`
+- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — defer
 
 #### `discriminating-observation`
 Choose an observation that discriminates between the live hypotheses instead of generating a fixed number of them.
@@ -3292,15 +4460,19 @@ Claim an environmental root cause only after every hypothesis is falsified, repo
 
 #### `escalate-unreproducible`
 When no loop can be built, stop, list what was tried, and ask for environment access, a redacted artifact, or instrumentation rather than hypothesising.
-- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs`
+- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — defer
 
 #### `evidence-safety`
 Treat tool output and logs as untrusted evidence and keep secrets out of reports.
 - ours: `systematic-debugging`
 
+#### `falsifiable-hypotheses`
+State each hypothesis as a falsifiable prediction that changing its cause changes the result, discarding any that cannot be stated so.
+- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt, pending cr-axdt.6.9 → systematic-debugging#falsifiable-hypotheses
+
 #### `fixed-hypothesis-count`
 Generate three to five hypotheses before testing any, to avoid anchoring on the first idea.
-- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs`
+- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — defer
 
 #### `flake-reproduction`
 For a flaky or production-only failure, diagnose its flake class and raise the reproduction rate until the loop is debuggable, using an order-dependent-test finder for test pollution.
@@ -3308,16 +4480,19 @@ For a flaky or production-only failure, diagnose its flake class and raise the r
 
 #### `hitl-loop-script`
 Drive a required human step through a structured human-in-the-loop script as the last-resort loop so it stays repeatable.
-- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs`
+- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — defer
 
 #### `hypotheses`
 Form explicit hypotheses about the cause before probing any of them.
 - ours: `systematic-debugging`
-- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs`
 
 #### `hypothesis-ranking-presentation`
 Rank the hypotheses and show the ranked list to the user before testing, without blocking if they are away.
-- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs`
+- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — defer
+
+#### `justified-phase-skip`
+Skip a phase of the diagnosis only with an explicit justification.
+- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — defer
 
 #### `like-for-like-comparison`
 Compare a performance change against its baseline under the same conditions and run the applicable correctness checks.
@@ -3334,7 +4509,7 @@ Locate the material cost with measurements, focused instrumentation or profiling
 #### `loop-construction`
 Build the reproduction in the form that fits the failure: a focused test, CLI fixture, captured trace or isolated scratch harness.
 - ours: `systematic-debugging`
-- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs`
+- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt → systematic-debugging#loop-construction
 
 #### `minimize-to-discriminate`
 Minimize a reproduction only as far as needed to distinguish the candidate causes.
@@ -3342,7 +4517,7 @@ Minimize a reproduction only as far as needed to distinguish the candidate cause
 
 #### `missing-seam-finding`
 When no correct seam exists to lock down the bug, treat that architectural absence as itself the finding and flag it.
-- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs`
+- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt, pending cr-axdt.6.9 → systematic-debugging#missing-seam-finding
 
 #### `noise-inconclusive`
 Treat a measured difference within noise as inconclusive rather than as a gain or a loss.
@@ -3354,7 +4529,7 @@ Change one attributable factor where practical, explaining the coupling for an i
 
 #### `one-variable-at-a-time`
 Change exactly one variable per probe, each mapped to a specific prediction.
-- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs`
+- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt, pending cr-axdt.6.9 → systematic-debugging#one-variable-at-a-time
 
 #### `owning-fix`
 Fix only a confirmed cause at its owning layer, since a change that merely hides the symptom is not a fix.
@@ -3364,13 +4539,21 @@ Fix only a confirmed cause at its owning layer, since a change that merely hides
 Fix a bug at the layer that owns it rather than patching around it.
 - `doc:AGENTS.md`
 
+#### `parseable-hitl-output`
+Have a human-in-the-loop script print its captured values as key=value lines the agent can parse.
+- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — defer
+
 #### `perf-bisection`
 Locate a performance regression by bisecting between known-good and known-bad states rather than by adding logs.
-- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs`
+- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt → systematic-debugging#localized-probing
 
 #### `phase1-completion-criterion`
 Forbid any hypothesis until one named command, already run once, is proven red-capable, deterministic, fast, and agent-runnable.
-- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs`
+- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — defer
+
+#### `preferred-reproduction-order`
+Try reproduction techniques roughly in a preference order, starting from a failing test and leaving a human-driven script for last.
+- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt → systematic-debugging#loop-construction
 
 #### `preserve-reproducers`
 Keep useful reproducers and user artifacts when cleaning up after a fix.
@@ -3378,7 +4561,7 @@ Keep useful reproducers and user artifacts when cleaning up after a fix.
 
 #### `prove-the-red`
 When forcing the red by mutating code or a fixture, diff against a pristine copy to prove the mutation landed before trusting it.
-- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs`
+- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt, pending cr-axdt.6.9 → systematic-debugging#prove-the-red
 
 #### `regression-guard`
 For a material recurring risk add an economical guard — query counts, bounded allocations or a controlled benchmark — scaled to the risk and avoiding flaky wall-clock assertions.
@@ -3390,12 +4573,12 @@ Take the baseline under representative data, cache state, concurrency and enviro
 
 #### `reproduce-and-minimize`
 Shrink the reproduction one element at a time until every remaining part is load-bearing — removing any one makes it pass.
-- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs`
+- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt → systematic-debugging#minimize-to-discriminate
 
 #### `reproduction-first`
 Obtain a reproduction that shows the reported failure, not a nearby one, before diagnosing it.
 - ours: `systematic-debugging`
-- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs`
+- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt → systematic-debugging#reproduction-first
 
 #### `revert-ineffective-experiments`
 Remove your own ineffective experimental edits, preserving all other work.
@@ -3403,11 +4586,12 @@ Remove your own ineffective experimental edits, preserving all other work.
 
 #### `tagged-debug-logs`
 Tag every debug log with a unique prefix so cleanup is a single search.
-- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs`
+- ours: `systematic-debugging`
+- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt → systematic-debugging#tagged-debug-logs
 
 #### `tighten-loop`
 Treat the loop as a product and keep making it faster, sharper, and more deterministic, raising the reproduction rate for flaky bugs until it is debuggable.
-- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs`
+- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt → systematic-debugging#flake-reproduction
 
 #### `two-failure-stop`
 After two failed fixes, stop and bring the attempt log to whoever started the task before trying another.
@@ -3425,7 +4609,7 @@ Never edit or delete a ledger record; correct or reverse one by appending a reco
 
 #### `author-stages-over-template`
 Author one stage per step using the library helpers, keeping each stage to a single focused task.
-- `mattpocock_skills:skill:skills/engineering/wizard`
+- `mattpocock_skills:skill:skills/engineering/wizard` — defer
 
 #### `bounded-concurrency`
 Bound the concurrency of parallel async calls.
@@ -3435,17 +4619,37 @@ Bound the concurrency of parallel async calls.
 Bound the retries of external I/O calls.
 - `doc:.repo-context/coding-style.md`
 
+#### `bundled-config-copy`
+Copy the bundled boundary-lint config and edit only its packages-root constant.
+- `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules` — out-of-scope
+
 #### `caller-impact-check`
 When fixing, inspect the affected callers and preserve their legitimate differences.
 - `doc:AGENTS.md`
+
+#### `ci-fallback-instruction`
+Without an umbrella check command, add the lint script alone and tell the user to put it in CI.
+- `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules` — out-of-scope
 
 #### `closed-schema`
 Make closed input schemas reject unknown fields.
 - `doc:.repo-context/coding-style.md`
 
+#### `commonjs-config`
+Use a CommonJS extension for the boundary config so it loads in ES-module repositories.
+- `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules` — out-of-scope
+
 #### `config-injection`
 Inject configuration at construction and keep environment-variable reads out of business logic.
 - `doc:.repo-context/coding-style.md`
+
+#### `cross-platform-url-open`
+Open URLs on every platform including WSL, telling the person to visit manually when no opener works.
+- `mattpocock_skills:skill:skills/engineering/wizard` — defer
+
+#### `cruiser-resolution-config`
+Configure the boundary linter to resolve imports the way the compiler does, without traversing installed dependencies.
+- `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules` — out-of-scope
 
 #### `declared-dependencies-only`
 Never use an ad hoc pip install as a substitute for declaring a project dependency.
@@ -3461,7 +4665,11 @@ Enforce access, tenant isolation, validation, safe sink handling and resource li
 
 #### `ephemeral-by-default`
 Build the wizard for one run and delete it when done, committing it only when a repeatable setup path should live in the repo.
-- `mattpocock_skills:skill:skills/engineering/wizard`
+- `mattpocock_skills:skill:skills/engineering/wizard` — defer
+
+#### `error-severity-rules`
+Set every module-boundary lint rule to error severity.
+- `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules` — out-of-scope
 
 #### `explicit-signatures`
 Write explicit type signatures for functions.
@@ -3474,6 +4682,18 @@ Make data models immutable by default and mutable only when their lifecycle need
 #### `generated-human-view`
 Give each ledger a Markdown human view generated from its records and marked as generated.
 - `doc:.repo-context/coding-style.md`
+
+#### `group-backreference-rules`
+Keep the boundary config's group back-references rather than flattening them into per-package rules.
+- `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules` — out-of-scope
+
+#### `human-step-wizard`
+Generate an interactive script that walks a person through the setup steps only they can perform.
+- `mattpocock_skills:skill:skills/engineering/wizard` — defer
+
+#### `install-boundary-linter`
+Install the module-boundary linter as a development dependency.
+- `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules` — out-of-scope
 
 #### `io-timeouts`
 Give external I/O calls explicit timeouts.
@@ -3501,7 +4721,11 @@ Keep pyproject.toml and uv.lock consistent with each other.
 
 #### `map-stage-journey`
 Write each stage's concrete interface path, asking the user or checking docs where the interface is unknown rather than inventing steps.
-- `mattpocock_skills:skill:skills/engineering/wizard`
+- `mattpocock_skills:skill:skills/engineering/wizard` — defer
+
+#### `migration-state-delta`
+For a migration, identify the current state, the target state and the irreversible actions between them before writing stages.
+- `mattpocock_skills:skill:skills/engineering/wizard` — defer
 
 #### `mode-selection`
 Choose test-first, characterization, or test-quality-only by the task rather than defaulting to one workflow.
@@ -3533,7 +4757,11 @@ Avoid cleanup unrelated to the requested work.
 
 #### `one-test-per-cycle`
 Alternate one test and its implementation at a time instead of writing all tests before any implementation.
-- `mattpocock_skills:skill:skills/engineering/tdd`
+- `mattpocock_skills:skill:skills/engineering/tdd` — adopt, pending cr-axdt.6.11 → test-driven-development#one-test-per-cycle
+
+#### `open-url-before-ask`
+Open the relevant page before asking the person for a value found there.
+- `mattpocock_skills:skill:skills/engineering/wizard` — defer
 
 #### `parameterized-queries`
 Parameterize SQL and other query inputs.
@@ -3557,7 +4785,14 @@ Keep a component's existing configuration format, never introducing a new format
 
 #### `preserve-existing-config`
 Never overwrite an existing dependency-cruiser config; merge the rules in and tell the user what was added.
-- `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules`
+- `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules` — out-of-scope
+
+#### `preserve-typeconfig-and-aliases`
+Wire the boundary lint without changing the TypeScript config or adding path aliases.
+- `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules` — out-of-scope
+
+#### `private-quoted-env-file`
+Create the environment file with private permissions and quote its values safely.
 
 #### `proof-discipline`
 Keep enough before-and-after evidence to distinguish a demonstrated fix from an inference and never destroy edits to recreate RED.
@@ -3570,7 +4805,8 @@ Prefer Pydantic v2 models to dataclasses or untyped dicts for new structured dom
 #### `red-green`
 Make one test fail before implementing the change that makes it pass.
 - ours: `test-driven-development`
-- `mattpocock_skills:skill:skills/engineering/tdd`
+- `mattpocock_skills:skill:skills/engineering/implement-spec` — adopt → test-driven-development#red-green
+- `mattpocock_skills:skill:skills/engineering/tdd` — adopt → test-driven-development#red-green
 
 #### `refactor-after-green`
 Refactor after each passing test, preserving behaviour and rerunning the affected checks.
@@ -3578,11 +4814,19 @@ Refactor after each passing test, preserving behaviour and rerunning the affecte
 
 #### `refactor-outside-loop`
 Refactor only after the red-green cycles end, never inside them.
-- `mattpocock_skills:skill:skills/engineering/tdd`
+- `mattpocock_skills:skill:skills/engineering/tdd` — defer
+
+#### `resumable-defaults`
+Offer each value already captured as the default on a re-run so the script can be resumed.
+- `mattpocock_skills:skill:skills/engineering/wizard` — defer
 
 #### `reuse-existing-first`
 Prefer existing code, standard-library or platform features and installed dependencies before writing new code.
 - `doc:AGENTS.md`
+
+#### `robust-value-prompting`
+Make value prompts robust with line-editable entry, an abort at end of input, and the whole script parsed before the first prompt.
+- `mattpocock_skills:skill:skills/engineering/wizard` — defer
 
 #### `ruff-format`
 Format Python with ruff format under the repository's configuration.
@@ -3592,13 +4836,25 @@ Format Python with ruff format under the repository's configuration.
 Lint Python with ruff check under the repository's configuration.
 - `doc:.repo-context/coding-style.md`
 
+#### `rules-during-cycle`
+Consult the testing rules before and during every red-green cycle rather than after it.
+- `mattpocock_skills:skill:skills/engineering/tdd` — defer
+
+#### `safe-env-file-handling`
+Handle the environment file safely: create it private, keep an existing file's mode, write through a symlink, quote values safely, and re-ask rather than decode a stored value that cannot be read back safely.
+- `mattpocock_skills:skill:skills/engineering/wizard` — defer
+
 #### `scaffold-example`
 Commit an example package with an entry point delegating to an internal file and a test through the entry point, as a copy-me template.
-- `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules`
+- `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules` — out-of-scope
 
 #### `scope-the-procedure`
 Enumerate every manual step and captured value by reading the repo's configuration rather than asking cold, and confirm the ordered stage list with the user.
-- `mattpocock_skills:skill:skills/engineering/wizard`
+- `mattpocock_skills:skill:skills/engineering/wizard` — defer
+
+#### `scoped-env-value-upsert`
+Upsert into the environment file, idempotently, each value scoped for that destination.
+- `mattpocock_skills:skill:skills/engineering/wizard` — defer
 
 #### `scoped-formatting`
 Run the formatter only on the files of the requested work.
@@ -3607,6 +4863,10 @@ Run the formatter only on the files of the requested work.
 #### `sealed-rounds`
 Seal a finished round's ledger file so the validator fails if it changes.
 - `doc:.repo-context/coding-style.md`
+
+#### `stage-progress-counter`
+Show the person's progress as the current stage over the total.
+- `mattpocock_skills:skill:skills/engineering/wizard` — defer
 
 #### `strict-mypy`
 Type-check Python with strict mypy as the gate.
@@ -3626,11 +4886,18 @@ Claim the exact task, implement in dependency order within owned paths, run appl
 
 #### `template-library`
 Build each wizard over a shared bash UX library that sits above the stages marker and is never hand-edited.
-- `mattpocock_skills:skill:skills/engineering/wizard`
+- `mattpocock_skills:skill:skills/engineering/wizard` — defer
 
-#### `template-robustness`
+#### `template-robustness` *(retired)*
 Keep the template hardened for mid-run safety with Readline-edited input, EOF handling, a restrictive file mode, careful quoting, and parsing the whole file before the first prompt.
-- `mattpocock_skills:skill:skills/engineering/wizard`
+
+#### `terminal-capability-detection`
+Adapt output, such as colour and screen clears, to whether it goes to an interactive terminal.
+- `mattpocock_skills:skill:skills/engineering/wizard` — defer
+
+#### `ticket-per-fresh-context`
+Work build tickets one per fresh context window, clearing between them and taking blockers first.
+- `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
 
 #### `untrusted-input-validation`
 Validate user-controlled paths and shell arguments before use.
@@ -3648,9 +4915,17 @@ Run Python tools and scripts through uv run.
 Build and update the Python environment with uv sync.
 - `doc:.repo-context/coding-style.md`
 
+#### `value-provenance-gate`
+Finish scoping only when every captured value's source, destination and secrecy are known.
+- `mattpocock_skills:skill:skills/engineering/wizard` — defer
+
 #### `wire-umbrella-check`
 Add a boundary-lint script and fold it into the repo's umbrella check command alongside typecheck.
-- `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules`
+- `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules` — out-of-scope
+
+#### `wizard-closing-summary`
+Close an interactive setup script with a summary of the values written, the secrets set and the steps still to do by hand.
+- `mattpocock_skills:skill:skills/engineering/wizard` — defer
 
 ### engineering · Verification · Review
 
@@ -3674,9 +4949,25 @@ Group compatible confirmed findings into one fix unit, re-review only the delta 
 Read enough surrounding code and affected callers, treating implementer and reviewer reports as evidence to verify rather than authority.
 - ours: `review`
 
+#### `capped-reviewer-report`
+Cap each reviewer subagent's report at a fixed word budget.
+- `mattpocock_skills:skill:skills/engineering/code-review` — defer
+
+#### `cited-standard-findings`
+Cite the standard's file and rule for every violation and quote the hunk for every smell.
+- `mattpocock_skills:skill:skills/engineering/code-review` — adopt, pending cr-axdt.6.8 → review#cited-standard-findings
+
+#### `code-smell-catalog`
+Check changes against a fixed catalogue of named code smells, each with a description and a fix, whether or not the repository documents standards.
+- `mattpocock_skills:skill:skills/engineering/code-review` — defer
+
 #### `dependency-triage`
 Triage dependency advisories by reachability and impact rather than count, recording material exceptions with a revisit condition.
 - ours: `security`
+
+#### `final-branch-review`
+Once all tickets have landed, review the integration branch a single time and fix all findings through a single implementer.
+- `mattpocock_skills:skill:skills/engineering/implement-spec` — defer
 
 #### `final-diff-inspection`
 Inspect the final diff and Git status before finishing.
@@ -3684,7 +4975,7 @@ Inspect the final diff and Git status before finishing.
 
 #### `fixed-point-preflight`
 Confirm the review ref resolves and the diff is non-empty before fanning out, failing fast rather than inside sub-agents.
-- `mattpocock_skills:skill:skills/engineering/code-review`
+- `mattpocock_skills:skill:skills/engineering/code-review` — adopt, pending cr-axdt.6.8 → review#fixed-point-preflight
 
 #### `llm-surface-ref`
 Supply the LLM and agent attack surface — untrusted model output, prompt injection, minimum tool scope, consumption bounds, RAG retrieval trust, model supply chain, and not acting on unverified claims.
@@ -3694,13 +4985,21 @@ Supply the LLM and agent attack surface — untrusted model output, prompt injec
 A failing mechanical verification gate returns the work unreviewed as failed verification unless the requester explicitly waives it.
 - ours: `review`
 
+#### `missing-spec-axis-skip`
+When the user confirms no spec exists, skip the spec review axis and report that no spec was available.
+- `mattpocock_skills:skill:skills/engineering/code-review` — adopt, pending cr-axdt.6.8 → review#missing-spec-axis-skip
+
 #### `no-cross-axis-rerank`
 Never merge or rerank findings across review axes or pick a single overall winner.
-- `mattpocock_skills:skill:skills/engineering/code-review`
+- `mattpocock_skills:skill:skills/engineering/code-review` — defer
 
 #### `parallel-subagents`
 Run the review axes as parallel foreground sub-agents so their contexts do not pollute each other.
-- `mattpocock_skills:skill:skills/engineering/code-review`
+- `mattpocock_skills:skill:skills/engineering/code-review` — defer
+
+#### `per-axis-summary-line`
+Close a multi-axis review with one line giving each axis's finding count and its worst issue.
+- `mattpocock_skills:skill:skills/engineering/code-review` — defer
 
 #### `pre-existing-edit-separation`
 Separate pre-existing edits from the task's own changes using the task baseline, not filenames.
@@ -3710,6 +5009,10 @@ Separate pre-existing edits from the task's own changes using the task baseline,
 A re-review rules each prior finding addressed or not with located evidence, flags new breakage in the fix delta, and may rule a finding incorrect without demanding cosmetic edits.
 - ours: `review`
 
+#### `repo-standards-over-smells`
+Let a documented repository standard override and suppress a conflicting catalogue smell.
+- `mattpocock_skills:skill:skills/engineering/code-review` — defer
+
 #### `scope-base-review-package`
 Review uncommitted working-tree and untracked changes against a recorded base revision by passing the authorized owned-path list, never attributing a baseline-dirty file's whole diff to the task.
 - ours: `execution`
@@ -3717,23 +5020,34 @@ Review uncommitted working-tree and untracked changes against a recorded base re
 #### `scope-establishment`
 Fix the diff and the base it is measured from before reviewing.
 - ours: `review`
-- `mattpocock_skills:skill:skills/engineering/code-review`
+- `mattpocock_skills:skill:skills/engineering/code-review` — adopt → review#scope-establishment
 
-#### `smell-baseline`
+#### `skip-tool-enforced`
+Skip any review finding that existing tooling already enforces.
+- `mattpocock_skills:skill:skills/engineering/code-review` — adopt → review#actionable-defects-only
+
+#### `smell-baseline` *(retired)*
 Carry a fixed code-smell baseline as labelled judgement calls that documented repo standards override and that skips anything tooling already enforces.
-- `mattpocock_skills:skill:skills/engineering/code-review`
+
+#### `smells-as-heuristics`
+Report a catalogue smell only as a labelled possible judgement call, never as a hard violation.
+- `mattpocock_skills:skill:skills/engineering/code-review` — defer
+
+#### `spec-conformance-findings`
+Report spec findings as missing or partial requirements, unrequested behaviour and wrongly implemented requirements, quoting the spec line for each.
+- `mattpocock_skills:skill:skills/engineering/code-review` — adopt, pending cr-axdt.6.8 → review#spec-conformance-findings
 
 #### `spec-source-discovery`
 Find the originating spec in a fixed order — commit issue references, a user-supplied path, conventional spec directories — and ask only as a last resort.
-- `mattpocock_skills:skill:skills/engineering/code-review`
+- `mattpocock_skills:skill:skills/engineering/code-review` — adopt, pending cr-axdt.6.8 → review#spec-source-discovery
 
 #### `standards-source-discovery`
 Search the repo for every file documenting how code should be written, always including the conventional standards and contributing files.
-- `mattpocock_skills:skill:skills/engineering/code-review`
+- `mattpocock_skills:skill:skills/engineering/code-review` — adopt, pending cr-axdt.6.8 → review#standards-source-discovery
 
 #### `static-trace-verification`
 Statically trace a script you must not run, checking every captured value lands where it was scoped and every secret name matches a CI reference.
-- `mattpocock_skills:skill:skills/engineering/wizard`
+- `mattpocock_skills:skill:skills/engineering/wizard` — defer
 
 #### `targeted-control-groups`
 Consult only the matching control group for the surface at hand — authentication, URL fetching, uploads, dependencies, secrets or agent systems.
@@ -3745,11 +5059,11 @@ Judge tests by whether they detect meaningful failures with independent expectat
 
 #### `three-dot-merge-base`
 Compare against the merge-base using a three-dot git diff so unrelated upstream changes are excluded.
-- `mattpocock_skills:skill:skills/engineering/code-review`
+- `mattpocock_skills:skill:skills/engineering/code-review` — defer
 
 #### `two-axis-review`
 Review a diff along two separate axes — conformance to the repo's documented standards and faithfulness to the originating spec.
-- `mattpocock_skills:skill:skills/engineering/code-review`
+- `mattpocock_skills:skill:skills/engineering/code-review` — adopt, pending cr-axdt.6.8 → review#two-axis-review
 
 #### `verdict-contract`
 Dispatched reviewers and re-reviews emit a fixed verdict output of verdict, unverified requirements, located issues and actual checks with limitations.
@@ -3764,6 +5078,10 @@ Also consult the web-surface controls reference for a web-facing surface.
 #### `applicable-checks-before-done`
 Run the applicable checks from the repository's verification file before claiming the work done.
 - `doc:AGENTS.md`
+
+#### `behaviour-test-names`
+Name each test for the behaviour that exists, not how it is achieved.
+- `mattpocock_skills:skill:skills/engineering/tdd` — adopt, pending cr-axdt.6.11 → test-driven-development#behaviour-test-names
 
 #### `break-naming-validation`
 Before accepting substantive tests, name the specific wrong branch, missing validation or side effect they catch, confirming by a safe mutation trial rather than mental inspection when worth its cost.
@@ -3780,12 +5098,12 @@ Test the material abuse path and legitimate use, verify authorization per resour
 #### `independent-expectation`
 Derive expected values from an independent source such as a spec, worked example or trusted fixture, never computing both sides with the implementation under test.
 - ours: `test-driven-development`
-- `mattpocock_skills:skill:skills/engineering/tdd`
+- `mattpocock_skills:skill:skills/engineering/tdd` — adopt → test-driven-development#independent-expectation
 
 #### `meaningful-behaviour-assertion`
 Assert meaningful results, state or boundary interactions at a stable boundary rather than internal call choreography.
 - ours: `test-driven-development`
-- `mattpocock_skills:skill:skills/engineering/tdd`
+- `mattpocock_skills:skill:skills/engineering/tdd` — adopt → test-driven-development#meaningful-behaviour-assertion
 
 #### `mock-boundaries`
 Use test doubles only at boundaries, never in place of the behaviour under test.
@@ -3794,7 +5112,11 @@ Use test doubles only at boundaries, never in place of the behaviour under test.
 #### `no-implementation-coupling`
 Avoid tests coupled to the implementation's internal structure, so they survive behaviour-preserving refactors.
 - ours: `test-driven-development`
-- `mattpocock_skills:skill:skills/engineering/tdd`
+- `mattpocock_skills:skill:skills/engineering/tdd` — adopt → test-driven-development#no-implementation-coupling
+
+#### `one-assertion-per-test`
+Keep one logical assertion per test.
+- `mattpocock_skills:skill:skills/engineering/tdd` — defer
 
 #### `original-failure-check`
 Make a check for a bug one that detects the original failure.
@@ -3802,7 +5124,7 @@ Make a check for a bug one that detects the original failure.
 
 #### `prove-the-rules-bite`
 Before trusting the guardrail, observe it pass clean, fail on a deliberately planted violation, then pass again.
-- `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules`
+- `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules` — defer
 
 #### `public-interface-testing`
 Exercise behaviour in tests through public interfaces.
@@ -3811,11 +5133,11 @@ Exercise behaviour in tests through public interfaces.
 #### `regression-check`
 Turn the failure into a durable regression check when feasible, showing failure before the fix and success after, then rerun the original scenario.
 - ours: `systematic-debugging`
-- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs`
+- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt → systematic-debugging#regression-check
 
 #### `replace-dont-layer`
 Once the deepened interface is tested, delete the old shallow-module unit tests and assert only on observable outcomes that survive internal refactors.
-- `mattpocock_skills:skill:skills/engineering/codebase-design`
+- `mattpocock_skills:skill:skills/engineering/codebase-design` — defer
 
 #### `rerun-on-change-only`
 Repeat or broaden checks only for new changes, failures or unresolved risk.
@@ -3839,12 +5161,16 @@ Prefer shared fixtures to setup repeated across test bodies.
 
 #### `syntax-check-handoff`
 Syntax-check the script and make it executable, then tell the user how to run it instead of running it end-to-end yourself.
-- `mattpocock_skills:skill:skills/engineering/wizard`
+- `mattpocock_skills:skill:skills/engineering/wizard` — defer
 
 #### `system-boundary-mocks-only`
 Use test doubles only at system boundaries such as external services, time and the file system, never for modules you own.
 - `doc:.repo-context/coding-style.md`
-- `mattpocock_skills:skill:skills/engineering/tdd`
+- `mattpocock_skills:skill:skills/engineering/tdd` — adopt → test-driven-development#mock-boundaries
+
+#### `test-database-over-mock`
+Prefer a test database to mocking the database.
+- `mattpocock_skills:skill:skills/engineering/tdd` — defer
 
 #### `test-parametrization`
 Prefer parametrized tests to repeated test bodies.
@@ -3878,6 +5204,10 @@ Name and skip any invariant that is aspirational rather than mechanically checka
 Capture the conflicted file set up front from the version control's unmerged-paths listing.
 - ours: `resolving-merge-conflicts`
 
+#### `ci-secrets-via-cli`
+Set CI secrets and variables through the hosting platform's CLI, recording each skip when the CLI is missing or unauthenticated.
+- `mattpocock_skills:skill:skills/engineering/wizard` — defer
+
 #### `commit-authority-gate`
 Commit or continue the rebase only with granted authority, otherwise stop with the resolution staged and report what would be committed.
 - ours: `resolving-merge-conflicts`
@@ -3886,13 +5216,25 @@ Commit or continue the rebase only with granted authority, otherwise stop with t
 Commit or push only when authorized, and amend only when asked.
 - `doc:AGENTS.md`
 
+#### `dedicated-merger-agent`
+Merge completed work into the integration branch through a dedicated merger subagent.
+- `mattpocock_skills:skill:skills/engineering/implement-spec` — defer
+
+#### `delivery-closeout`
+Finish a multi-ticket build by marking the draft pull request ready or closing the tickets, and report the branch.
+- `mattpocock_skills:skill:skills/engineering/implement-spec` — defer
+
 #### `destructive-git-guard`
 Without explicit approval, never skip hooks, force-push, hard-reset, clean, or rewrite history or the tree.
 - `doc:AGENTS.md`
 
+#### `draft-closing-pr`
+After the first merge, open a draft pull request marked as closing the spec and tickets when the tracker closes work through pull requests or the user asks.
+- `mattpocock_skills:skill:skills/engineering/implement-spec` — defer
+
 #### `evidence-before-after`
 Show concrete before/after evidence that the change works, preferring screenshots, then execution-based test or console output.
-- `mattpocock_skills:skill:skills/engineering/pr`
+- `mattpocock_skills:skill:skills/engineering/pr` — defer
 
 #### `explicit-path-staging`
 Stage changes by explicitly named paths, never with a whole-tree add such as git add . or git add -A unless explicitly approved.
@@ -3908,7 +5250,7 @@ Establish the intended base branch before merging.
 
 #### `merge-danger`
 State the merge's one-way or two-way door and its blast radius.
-- `mattpocock_skills:skill:skills/engineering/pr`
+- `mattpocock_skills:skill:skills/engineering/pr` — defer
 
 #### `merged-result-verification`
 Verify the merged result after merging.
@@ -3916,7 +5258,11 @@ Verify the merged result after merging.
 
 #### `pr-body-template`
 Fill a fixed PR-body skeleton with Summary, Evidence, and Merge Danger sections.
-- `mattpocock_skills:skill:skills/engineering/pr`
+- `mattpocock_skills:skill:skills/engineering/pr` — defer
+
+#### `pre-report-tip-merge`
+Have each implementer merge the integration branch's tip into its own branch before reporting done.
+- `mattpocock_skills:skill:skills/engineering/implement-spec` — defer
 
 #### `repo-relative-committed-paths`
 Use repository-relative paths in committed material.
@@ -3934,6 +5280,11 @@ Resolve each hunk preserving both intents where possible, picking the one matchi
 Discover and run the project's automated checks and fix what the merge broke.
 - ours: `resolving-merge-conflicts`
 
+#### `single-integration-branch`
+Land every ticket of a multi-ticket build on one integration branch.
+- `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
+- `mattpocock_skills:skill:skills/engineering/implement-spec` — defer
+
 #### `trace-intent`
 Find the primary source of each conflict via commit messages and requirements first, expanding to PRs or issues only when a disputed hunk needs that history.
 - ours: `resolving-merge-conflicts`
@@ -3942,34 +5293,39 @@ Find the primary source of each conflict via commit messages and requirements fi
 On a failed merge preserve the work, and before destroying unmerged work show what would be lost and get explicit confirmation.
 - `doc:AGENTS.md`
 
+#### `worktree-base-check`
+Have each implementer confirm its worktree is based on the integration branch and reset onto it if not.
+- `mattpocock_skills:skill:skills/engineering/implement-spec` — defer
+
 ### engineering · Improvement · Codification
 
 #### `build-check-over-rule`
 Default to building a deterministic check over writing a prose rule for any mechanical finding.
-- `mattpocock_skills:skill:skills/engineering/retro`
+- `mattpocock_skills:skill:skills/engineering/retro` — adopt, pending cr-axdt.6.1 → authoring-for-agents#build-check-over-rule
 
 #### `document-boundary-readme`
 Document the boundary convention in a README beside the packages it governs.
-- `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules`
+- `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules` — out-of-scope
 
 #### `link-convention-from-agents-file`
 Add a context pointer to that README from the repo's agent-instructions file so an agent discovers the rule.
-- `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules`
+- `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules` — defer
 
 #### `mechanical-vs-judgement`
 Classify each finding as mechanical (a fixed syntactic pattern suiting a deterministic check) or judgement (cross-file consistency suiting a standards doc).
-- `mattpocock_skills:skill:skills/engineering/retro`
+- ours: `authoring-for-agents`
+- `mattpocock_skills:skill:skills/engineering/retro` — adopt → authoring-for-agents#mechanical-vs-judgement
 
 #### `read-existing-check-first`
 Read the repo's own lint and check commands before proposing one, treating an unwired or broken check, or the absence of any guardrail, as itself the finding.
-- `mattpocock_skills:skill:skills/engineering/retro`
+- `mattpocock_skills:skill:skills/engineering/retro` — defer
 
 ### engineering · Improvement · Evaluation
 
 #### `adr-conflict-callout`
 When a candidate conflicts with a decision record, explain the new evidence that might justify revisiting it.
 - ours: `improve-codebase-architecture`
-- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture`
+- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — adopt → improve-codebase-architecture#adr-conflict-callout
 
 #### `candidate-comparison`
 Give each candidate its files, friction, direction, benefit, migration cost, evidence and confidence, then present a concise comparison and the strongest supported recommendation.
@@ -3978,7 +5334,7 @@ Give each candidate its files, friction, direction, benefit, migration cost, evi
 #### `friction-signals`
 Surface architectural friction that current code actually supports rather than speculative smells.
 - ours: `improve-codebase-architecture`
-- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture`
+- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — adopt → improve-codebase-architecture#friction-signals
 
 #### `optional-report`
 Produce a standalone HTML report only when requested or clearly helpful, delegating presentation to the shared artifact skill and requiring any before/after diagram to show a real structural difference.
@@ -3991,35 +5347,50 @@ Do not automatically enter a grilling loop, interview, alternative-design exerci
 #### `scope-by-evidence`
 Scope the audit to a named module or pain point, otherwise to the hot spots in recent change history.
 - ours: `improve-codebase-architecture`
-- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture`
+- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — adopt → improve-codebase-architecture#scope-by-evidence
 
 ### engineering · Improvement · Retrospective
 
 #### `environment-retro-categories`
 Review a session for improvements to the agent's environment across fixed categories (navigation, automated checks, coding standards, steering files, tool economy, no-ops, information access).
-- `mattpocock_skills:skill:skills/engineering/retro`
+- `mattpocock_skills:skill:skills/engineering/retro` — defer
+
+#### `load-writing-guide-first`
+Load the agent-writing guidance before writing any improvement suggestion.
+- `mattpocock_skills:skill:skills/engineering/retro` — defer
+
+#### `post-fix-retro`
+After a bug fix, ask in the same session what would have prevented it, escalating to architecture work when no good seam exists.
+- `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
 
 #### `read-session-sources`
 Read the primary sources (session logs) for the session under review, defaulting to the current one.
-- `mattpocock_skills:skill:skills/engineering/retro`
+- `mattpocock_skills:skill:skills/engineering/retro` — defer
+
+#### `retro-in-reviewed-session`
+Run a retrospective inside the session it reviews before clearing, or point it at that session's log afterwards.
+- `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
 
 #### `severity-ordered-proposals`
 Present improvement candidates to the user in order of severity.
-- `mattpocock_skills:skill:skills/engineering/retro`
+- `mattpocock_skills:skill:skills/engineering/retro` — defer
 
 ### engineering · X · Communication
 
 #### `diagram-patterns`
 Draw before/after architecture visuals from a catalogue of patterns (dependency graph, hand-built boxes, cross-section, mass diagram, call-graph collapse) rather than one generic style.
-- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture`
+- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — defer
 
 #### `final-report-contents`
 Make the final report state outcomes, the checks actually run and limitations, separating pre-existing failures from regressions.
 - `doc:AGENTS.md`
 
-#### `html-candidate-report`
+#### `html-architecture-report`
+Write an architecture survey as a standalone HTML report in a file under the system's temporary directory, so nothing lands in the repository.
+- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — adopt → improve-codebase-architecture#optional-report
+
+#### `html-candidate-report` *(retired)*
 Present candidates as a self-contained HTML file written to the OS temp directory, each a card with files, problem, solution, benefits, a before/after diagram, and a strength badge, ending in a top recommendation.
-- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture`
 
 ### engineering · X · Continuity
 
@@ -4041,6 +5412,11 @@ Close a phase only when it has at least one stage, every stage is closed, and it
 Interpret each delegated worker's status (done, done-with-concerns, needs-context, blocked) and recover by supplying context, splitting, debugging or replanning, since bare repetition is not recovery.
 - ours: `execution`
 
+#### `parallel-frontier-implementers`
+Run implementer subagents concurrently over the ready frontier of a ticket graph, dispatching new ones whenever a merge opens more tickets.
+- `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
+- `mattpocock_skills:skill:skills/engineering/implement-spec` — defer
+
 #### `phase-loop`
 Resolve the roadmap phase's single epic, drive ready stages through the contractor that owns execution to closure, and refresh tracking between stages.
 - ours: `execution`
@@ -4053,6 +5429,10 @@ Size work small, standard or deep and match inline work, delegation and independ
 Pick task, phase or workstream scope from the request and route unresolved material scope back to planning or brainstorming.
 - ours: `execution`
 
+#### `staged-delivery-flow`
+Order the work as interview, optional prototype, spec, tickets, implementation, review and retrospective.
+- `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
+
 #### `stop-on-failure`
 Let a failed gate, exit criterion or material blocker stop advancement and diagnose instead of re-dispatching without new evidence.
 - ours: `execution`
@@ -4060,6 +5440,14 @@ Let a failed gate, exit criterion or material blocker stop advancement and diagn
 #### `workstream-mode`
 Run remaining phases in order only on explicit opt-in, with per-phase tracking refresh and commits only when the invocation covers them.
 - ours: `execution`
+
+#### `worktree-cleanup`
+Remove every implementer worktree when the build ends.
+- `mattpocock_skills:skill:skills/engineering/implement-spec` — defer
+
+#### `worktree-per-implementer`
+Give each implementer subagent its own worktree and branch.
+- `mattpocock_skills:skill:skills/engineering/implement-spec` — defer
 
 ### engineering · X · Governance
 
@@ -4083,19 +5471,24 @@ Traits listed by two or more of our active skills (`doc:AGENTS.md` counts); the 
 
 | Trait | Holders | Why |
 |---|---|---|
+| `canonical-term-and-aliases` | domain-modeling, teach | Each keeps a glossary of its own (project language, the learner's workspace) in one entry format, with its own admission rules. |
 | `dependency-edges` | planning, wayfinder | Each builds its own tracker graph, planning for implementation stages and wayfinder for decision tickets, and lets readiness drive the work; edge semantics stay in beads. |
+| `domain-vocabulary` | i-have-adhd, teach | Each writes for its reader in the project's own terms, i-have-adhd in its re-pitches and teach in its lessons. |
 | `drift-scan` | harness-scan, harness-status | Both run the one drift command, scan for a single harness and status as a sweep of all of them; a pointer between them would add a hop to a one-line command. |
 | `finding-adjudication` | execution, review | Execution rules on findings inside its delivery loop and review owns the method; owner 2026-10-30: execution stays unchanged. |
-| `glossary-format` | domain-modeling, teach | Each keeps a glossary of its own (project language, the learner's workspace) in one entry format, with its own admission rules. |
+| `glossary-entry-template` | domain-modeling, teach | Each keeps a glossary of its own (project language, the learner's workspace) in one entry format, with its own admission rules. |
 | `independent-synthesis` | model-council, perspective-council | Two entrypoints with distinct triggers (named models with a judge, opposing lenses) each run a full council ending in a fresh synthesizer. |
 | `material-risk-review` | brainstorming, harness-evaluate | Each gates acceptance of its own output, a spec or a template adoption, on an independent critic; the critic itself belongs to review. |
 | `member-isolation` | model-council, perspective-council | Each council dispatches its own members in isolation. |
 | `neutral-framing` | model-council, perspective-council | Each council frames its own neutral brief. |
 | `no-silent-substitution` | model-council, perspective-council | Either council can lose a member, and each must report the gap rather than fill it. |
 | `no-stale-code-snippets` | brainstorming, planning | Each owns a different durable artifact, a spec or a plan, and its own template must keep code out. |
+| `optional-record-sections` | domain-modeling, teach | Each keeps its own record folder (ADRs, learning records) in one minimal format. |
 | `pin-preserving-fetch` | harness-scan, harness-status | Both run the fetching drift command themselves, so each must state that a fetch never moves pins and that --no-fetch skips the network. |
 | `question-batching` | brainstorming, grilling | Brainstorming asks the owner questions inside its own exploration; grilling's rules live inside its interview loop, so pointing there would pull brainstorming into that loop. |
 | `real-id-wiring` | planning, wayfinder | Both create beads and then wire edges between the IDs they just created, each inside its own seeding procedure. |
 | `recommended-answer` | brainstorming, grilling | As question-batching: a short rule each skill applies inside its own flow. |
 | `self-serve-facts` | brainstorming, grilling | As question-batching: a short rule each skill applies inside its own flow. |
+| `sequential-record-numbering` | domain-modeling, teach | Each keeps its own record folder (ADRs, learning records) in one minimal format. |
 | `settled-stop` | brainstorming, grilling | As question-batching: each skill stops its own questioning when its decisions are settled. |
+| `tight-concept-definitions` | domain-modeling, teach | Each keeps a glossary of its own (project language, the learner's workspace) in one entry format, with its own admission rules. |

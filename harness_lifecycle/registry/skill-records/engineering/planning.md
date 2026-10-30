@@ -27,6 +27,8 @@ Use when settled work needs a durable implementation plan, dependency graph, or 
 - `reviewer-rejectable-sizing`: Size each task so a reviewer could accept or reject it independently of its neighbour, folding setup, scaffolding and docs into the deliverable they serve.
 - `real-id-wiring`: Wire cross-references and dependencies with real identifiers, never placeholders.
 - `no-stale-code-snippets`: Keep code snippets out of a durable spec or ticket because they go stale.
+- `ground-in-codebase`: Explore the current state of the code before writing, so the artifact targets what actually exists.
+- `breakdown-approval-before-publish`: Iterate on the ticket breakdown until the user approves it, publishing nothing before approval.
 <!-- /registry:generated traits -->
 
 <!-- registry:generated lineage -->
@@ -37,16 +39,53 @@ Use when settled work needs a durable implementation plan, dependency graph, or 
   - modified: absorb to-tickets as an OUTPUT MODE (plan file / tracker tickets with native blocking links / both) — the judge overruled the member who dropped this, because that member had itself called the loss 'the highest-value loss in this ledger'
   - modified: absorb to-tickets' wide-refactor expand-then-contract rule
 - **agent-skills:skill:skills/incremental-implementation** `skills/incremental-implementation/SKILL.md`
-- **mattpocock_skills:skill:skills/engineering/to-tickets** `skills/engineering/to-tickets/SKILL.md`
 - **superpowers:skill:skills/writing-plans** `skills/writing-plans/SKILL.md`
   - merged from: planning-and-task-breakdown
   - merged from: to-tickets
   - modified: absorb planning-and-task-breakdown's task sizing and ordering detail
   - modified: absorb to-tickets as an OUTPUT MODE (plan file / tracker tickets with native blocking links / both) — the judge overruled the member who dropped this, because that member had itself called the loss 'the highest-value loss in this ledger'
   - modified: absorb to-tickets' wide-refactor expand-then-contract rule
+- **mattpocock_skills:skill:skills/engineering/to-tickets#ground-in-codebase** `skills/engineering/to-tickets/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/engineering/to-tickets#prefactor-first** `skills/engineering/to-tickets/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.6)
+- **mattpocock_skills:skill:skills/engineering/to-tickets#vertical-slices** `skills/engineering/to-tickets/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/engineering/to-tickets#dependency-edges** `skills/engineering/to-tickets/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/engineering/to-tickets#expand-contract** `skills/engineering/to-tickets/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/engineering/to-tickets#publish-to-tracker** `skills/engineering/to-tickets/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/engineering/to-tickets#real-id-wiring** `skills/engineering/to-tickets/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/engineering/to-tickets#sub-issue-linkage** `skills/engineering/to-tickets/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/engineering/to-tickets#no-stale-code-snippets** `skills/engineering/to-tickets/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/engineering/to-tickets#blast-radius-batches** `skills/engineering/to-tickets/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.6)
+- **mattpocock_skills:skill:skills/engineering/to-tickets#brief-behavioural** `skills/engineering/to-tickets/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/engineering/to-tickets#breakdown-approval-before-publish** `skills/engineering/to-tickets/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/engineering/implement-spec#dependency-edges** `skills/engineering/implement-spec/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-10-30` **adopt-merged** (2026-10-30-mattpocock_skills-5beb35b:573): Checkpoint at 5beb35b for the owner's trait rulings: 2 adopt, 12 defer.
+- `2026-10-30` **adopt-merged** (2026-10-30-mattpocock_skills-5beb35b:565): Checkpoint at 5beb35b for the owner's trait rulings: 13 adopt, 10 defer.
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:275): HELD: planning (.claude/skills/planning/SKILL.md:33): Encoding real blocking edges is planning's job (SKILL.md:33); execution consumes the ready frontier (exec…
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:121): Ours writes no Beads before the matching approval of the presented structure.
+- `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:120): Owner deferred the report's reject recommendation, to review the set later: Ours clarifies only material ambiguity and uses existing approval (decompose.md:48-…
+- `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:119): Owner deferred the report's reject recommendation, to review the set later: Ours presents the phase list, stage counts, every edge with its reason and open que…
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:118): Ours deliberately pairs behavioural goals with known ownership paths (plan-format.md:27-28, SKILL.md:46-48).
+- `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:117): Owner deferred the report's reject recommendation, to review the set later: We always track in Beads (AGENTS.md, Track durable work), so a tracker-less file-pe…
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:116): Ours orders expand-migrate-contract and names an integration boundary when green cannot hold (SKILL.md:66-68) but does not size the migrate batches; blast-radi…
+- `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:115): Owner deferred the report's reject recommendation, to review the set later: Opposite stance: ours sizes tasks by independent reviewability, an orthogonal crite…
+- `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:114): Owner deferred the report's reject recommendation, to review the set later: Ours's source is an approved spec document read in full (SKILL.md:26); a rule to re…
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:112): Ours's plan approach is prose with no code blocks.
+- `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:111): Owner deferred the report's reject recommendation, to review the set later: Opposite stance: our plans explicitly list known paths and ownership boundaries, wh…
+- `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:110): Owner deferred the report's reject recommendation, to review the set later: Our Beads rules (AGENTS.md, Track durable work) already give every bead a why-and-w…
+- `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:109): Owner deferred the report's reject recommendation, to review the set later: Our Beads rules (AGENTS.md, Track durable work) allow only the `human` label; agent…
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:108): Ours deliberately keeps the spec as a document linked from epics (decompose.md:56-71), so there is no source issue to parent under.
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:107): Ours wires edges after every bead exists, by the returned IDs.
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:106): Ours deliberately tracks in Beads (AGENTS.md, Track durable work) with an approval before each write (SKILL.md:36).
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:105): Ours uses expand, migrate, contract and names an integration boundary when tasks cannot stay green.
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:104): Ours wires only real edges and never chains listing order.
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:103): Ours prefers independently verifiable vertical slices.
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:102): Ours slices vertically and uses expand-migrate-contract (SKILL.md:66-68) but never looks for an enabling refactor first, which lowers the risk of every later s…
+- `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:101): Owner deferred the report's reject recommendation, to review the set later: ROUTED: AGENTS.md:93-94 routes domain terminology and ADRs, and AGENTS.md:26 surfac…
+- `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:100): Owner deferred the report's reject recommendation, to review the set later: ROUTED: AGENTS.md:93-94 routes domain terminology and ADRs, and AGENTS.md:26 surfac…
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:099): Ours reads the relevant code and tests before elaborating and writes later plans against the code they will meet.
 - `2026-08-12` **adopt-merged** (2026-10-14-migration:113): Adopted-merged into the rewritten planning skill (Elaborate mode): file-map-before-tasks, Interfaces Consumes/Produces, reviewer right-sizing test, no-placehol…
 - `2026-08-12` **adopt** (2026-10-14-migration:104): Adopted-merged narrowly into the planning rewrite: expand-contract sequencing for wide refactors incl. non-green-batch integration-branch fallback, tracer-bull…
 - `2026-08-12` **adopt** (2026-10-14-migration:096): Closes the 2026-07-15 deferral. Ruled a discipline by execution-disciplines/; its durable content is now distributed: vertical slicing + tracer bullets in plan…
@@ -58,9 +97,37 @@ None yet.
 <!-- /registry:generated reviews -->
 
 <!-- registry:generated sources -->
-No adopted traits recorded.
+- `beads-native-tracking`:
+  - `mattpocock_skills:skill:skills/engineering/to-tickets#publish-to-tracker` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+  - `mattpocock_skills:skill:skills/engineering/to-tickets#sub-issue-linkage` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `breakdown-approval-before-publish`:
+  - `mattpocock_skills:skill:skills/engineering/to-tickets#breakdown-approval-before-publish` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `dependency-edges`:
+  - `mattpocock_skills:skill:skills/engineering/implement-spec#dependency-edges` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+  - `mattpocock_skills:skill:skills/engineering/to-tickets#dependency-edges` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `expand-contract`:
+  - `mattpocock_skills:skill:skills/engineering/to-tickets#expand-contract` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `ground-in-codebase`:
+  - `mattpocock_skills:skill:skills/engineering/to-tickets#ground-in-codebase` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `no-stale-code-snippets`:
+  - `mattpocock_skills:skill:skills/engineering/to-tickets#no-stale-code-snippets` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `plan-evidence-bound`:
+  - `mattpocock_skills:skill:skills/engineering/to-tickets#brief-behavioural` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `real-id-wiring`:
+  - `mattpocock_skills:skill:skills/engineering/to-tickets#real-id-wiring` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `vertical-slices`:
+  - `mattpocock_skills:skill:skills/engineering/to-tickets#vertical-slices` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 <!-- /registry:generated sources -->
 
 <!-- registry:generated declined -->
-No declined traits recorded.
+- `mattpocock_skills:skill:skills/engineering/to-tickets#domain-vocabulary` (defer): Owner deferred the report's reject recommendation, to review the set later: ROUTED: AGENTS.md:93-94 routes domain terminology and ADRs, and AGENTS.md:26 surfac…
+- `mattpocock_skills:skill:skills/engineering/to-tickets#file-per-ticket` (defer): Owner deferred the report's reject recommendation, to review the set later: We always track in Beads (AGENTS.md, Track durable work), so a tracker-less file-pe…
+- `mattpocock_skills:skill:skills/engineering/to-tickets#no-stale-file-paths` (defer): Owner deferred the report's reject recommendation, to review the set later: Opposite stance: our plans explicitly list known paths and ownership boundaries, wh…
+- `mattpocock_skills:skill:skills/engineering/to-tickets#read-full-source-issue` (defer): Owner deferred the report's reject recommendation, to review the set later: Ours's source is an approved spec document read in full (SKILL.md:26); a rule to re…
+- `mattpocock_skills:skill:skills/engineering/to-tickets#ready-for-agent-label` (defer): Owner deferred the report's reject recommendation, to review the set later: Our Beads rules (AGENTS.md, Track durable work) allow only the `human` label; agent…
+- `mattpocock_skills:skill:skills/engineering/to-tickets#respect-area-adrs` (defer): Owner deferred the report's reject recommendation, to review the set later: ROUTED: AGENTS.md:93-94 routes domain terminology and ADRs, and AGENTS.md:26 surfac…
+- `mattpocock_skills:skill:skills/engineering/to-tickets#session-sized-tickets` (defer): Owner deferred the report's reject recommendation, to review the set later: Opposite stance: ours sizes tasks by independent reviewability, an orthogonal crite…
+- `mattpocock_skills:skill:skills/engineering/to-tickets#ticket-breakdown-feedback` (defer): Owner deferred the report's reject recommendation, to review the set later: Ours clarifies only material ambiguity and uses existing approval (decompose.md:48-…
+- `mattpocock_skills:skill:skills/engineering/to-tickets#ticket-breakdown-preview` (defer): Owner deferred the report's reject recommendation, to review the set later: Ours presents the phase list, stage counts, every edge with its reason and open que…
+- `mattpocock_skills:skill:skills/engineering/to-tickets#ticket-template` (defer): Owner deferred the report's reject recommendation, to review the set later: Our Beads rules (AGENTS.md, Track durable work) already give every bead a why-and-w…
 <!-- /registry:generated declined -->

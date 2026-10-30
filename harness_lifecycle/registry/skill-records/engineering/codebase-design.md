@@ -27,14 +27,63 @@ Use for substantive module-interface, encapsulation, or testability decisions. S
 - `dependency-categories`: Classify a module's dependencies as in-process, locally substitutable, owned remote or true external to choose how it is tested across its seam. (Categories suggest options, never automatic permission to merge modules.)
 - `covered-test-removal`: Remove an old test only when its behaviour is covered elsewhere or deliberately retired, inspecting a changed test rather than deleting it automatically.
 - `design-it-twice`: Optionally compare a few materially different interface designs before a consequential choice, without forcing a multi-agent exercise on a clear one.
+- `design-proposal-contents`: Have each design proposal return its interface, a usage example, the hidden internals, its dependency strategy and its trade-offs.
+- `interface-design-recommendation`: Finish a comparison of interface designs with an opinionated recommendation.
 <!-- /registry:generated traits -->
 
 <!-- registry:generated lineage -->
-- **mattpocock_skills:skill:skills/engineering/codebase-design** `reference_harnesses/mattpocock_skills/skills/engineering/codebase-design/SKILL.md` @ 84fdeff
-- **mattpocock_skills:skill:skills/engineering/codebase-design** `skills/engineering/codebase-design/SKILL.md`
+- **mattpocock_skills:skill:skills/engineering/codebase-design#module-vocabulary** `skills/engineering/codebase-design/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/engineering/codebase-design#interface-is-everything** `skills/engineering/codebase-design/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/engineering/codebase-design#depth-as-leverage** `skills/engineering/codebase-design/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/engineering/codebase-design#deletion-test** `skills/engineering/codebase-design/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/engineering/codebase-design#internal-seams** `skills/engineering/codebase-design/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/engineering/codebase-design#inject-dependencies** `skills/engineering/codebase-design/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/engineering/codebase-design#return-not-mutate** `skills/engineering/codebase-design/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/engineering/codebase-design#small-interface-surface** `skills/engineering/codebase-design/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/engineering/codebase-design#dependency-categories** `skills/engineering/codebase-design/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/engineering/codebase-design#design-proposal-contents** `skills/engineering/codebase-design/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/engineering/codebase-design#parallel-interface-generation** `skills/engineering/codebase-design/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/engineering/codebase-design#depth-locality-seam-comparison** `skills/engineering/codebase-design/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.2)
+- **mattpocock_skills:skill:skills/engineering/codebase-design#interface-design-recommendation** `skills/engineering/codebase-design/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/engineering/improve-codebase-architecture#deletion-test** `skills/engineering/improve-codebase-architecture/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/engineering/improve-codebase-architecture#module-vocabulary** `skills/engineering/improve-codebase-architecture/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/engineering/improve-codebase-architecture#dependency-categories** `skills/engineering/improve-codebase-architecture/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/engineering/tdd#inject-dependencies** `skills/engineering/tdd/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/engineering/tdd#module-vocabulary** `skills/engineering/tdd/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules#module-vocabulary** `skills/in-progress/setup-ts-deep-modules/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-10-30` **adopt-merged** (2026-10-30-mattpocock_skills-5beb35b:577): Checkpoint at 5beb35b for the owner's trait rulings: 1 adopt, 2 defer, 23 out-of-scope.
+- `2026-10-30` **adopt-merged** (2026-10-30-mattpocock_skills-5beb35b:560): Checkpoint at 5beb35b for the owner's trait rulings: 13 adopt, 9 defer.
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:381): HELD: codebase-design: its trigger fires on module-interface and testability decisions (codebase-design/SKILL.md:3), the ones this setup encodes.
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:212): HELD: codebase-design: its trigger fires on testability decisions (codebase-design/SKILL.md:3), which a test-first change makes.
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:207): HELD: codebase-design (.claude/skills/codebase-design/SKILL.md:35): Passing dependencies in is a module-design rule our codebase-design states (SKILL.md:35: pr…
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:037): HELD: codebase-design: ours evaluates interfaces with codebase-design (SKILL.md:15-16), which lists the dependency categories.
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:031): POINTER: .claude/skills/improve-codebase-architecture/SKILL.md:15-16 evaluates interfaces with codebase-design's vocabulary.
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:025): POINTER: .claude/skills/improve-codebase-architecture/SKILL.md:20 applies codebase-design's deletion test to each candidate.
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:022): Ours ends the comparison by recommending one design with reasons.
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:021): Ours compares depth, locality, error behaviour and testability (DESIGN-IT-TWICE.md:11) but not seam placement, which is the third axis the vocabulary defines; …
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:020): Ours deliberately keeps the exercise optional and delegation proportional (DESIGN-IT-TWICE.md:6-8), as U-07 and C-14 require.
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:019): Ours asks each design for its caller-facing contract, a usage example, hidden complexity, dependency strategy and migration cost, then compares trade-offs.
+- `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:018): Owner deferred the report's reject recommendation, to review the set later: AGENTS.md already requires worker briefs to carry relevant context pointers; a skil…
+- `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:017): Owner deferred the report's reject recommendation, to review the set later: Ours already states caller needs, constraints, dependencies and invariants before d…
+- `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:016): Owner deferred the report's reject recommendation, to review the set later: Ours tests the owned boundary with safe fixtures or fakes and verifies provider ass…
+- `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:015): Owner deferred the report's reject recommendation, to review the set later: Ours asks for an explicit transport contract and injects an adapter only when it is…
+- `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:014): Owner deferred the report's reject recommendation, to review the set later: Ours deliberately allows a real lightweight instance or a faithful fake with integr…
+- `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:013): Owner deferred the report's reject recommendation, to review the set later: Opposite stance: ours keeps meaningful internal tests and inspects changed tests; i…
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:012): Ours classifies dependencies into the same four shapes and treats the categories as options, not automatic permission to merge.
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:011): Ours deliberately judges the interface by leverage and leakage (SKILL.md:26-27); a small surface follows where it pays, without a separate minimising rule.
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:010): Ours prefers pure calculations and isolates legitimate side effects.
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:009): Ours prefers explicit dependencies where they clarify behaviour, a qualified form that S-08 favours over a blanket rule.
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:008): Ours allows internal seams and focused internal tests without exposing internals.
+- `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:007): Owner deferred the report's reject recommendation, to review the set later: Opposite stance: a present need can justify one adapter, and ours explicitly does n…
+- `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:006): Owner deferred the report's reject recommendation, to review the set later: Opposite stance: ours treats focused internal tests as valid, not as evidence of a …
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:005): Ours questions a layer whose deletion only removes forwarding and keeps one whose removal spreads complexity.
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:004): Ours defines depth as useful behaviour behind a manageable interface and asks what callers gain.
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:003): Ours defines the interface as invariants, ordering, errors, configuration and performance, not just signatures.
+- `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:002): Owner deferred the report's reject recommendation, to review the set later: Opposite stance: ours uses precise project terms, including the very words upstream…
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:001): Ours defines module, interface, depth, seam, adapter and locality as the shared design glossary.
 - `2026-08-13` **adopt** (2026-10-14-migration:117): Adopted verbatim (SKILL + DEEPENING + DESIGN-IT-TWICE; their agents/openai.yaml metadata excluded). Only source of the deep-module vocabulary (module/interface…
 - `2026-08-11` **adopt** (2026-10-14-migration:035) *(superseded)*: The only source of deep-module vocabulary, with the anti-synonym rule, the deletion test and the two-adapters seam rule.
 <!-- /registry:generated history -->
@@ -44,9 +93,45 @@ None yet.
 <!-- /registry:generated reviews -->
 
 <!-- registry:generated sources -->
-No adopted traits recorded.
+- `deletion-test`:
+  - `mattpocock_skills:skill:skills/engineering/codebase-design#deletion-test` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+  - `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture#deletion-test` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `dependency-categories`:
+  - `mattpocock_skills:skill:skills/engineering/codebase-design#dependency-categories` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+  - `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture#dependency-categories` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `depth-as-leverage`:
+  - `mattpocock_skills:skill:skills/engineering/codebase-design#depth-as-leverage` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+  - `mattpocock_skills:skill:skills/engineering/codebase-design#small-interface-surface` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `design-it-twice`:
+  - `mattpocock_skills:skill:skills/engineering/codebase-design#parallel-interface-generation` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `design-proposal-contents`:
+  - `mattpocock_skills:skill:skills/engineering/codebase-design#design-proposal-contents` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `inject-dependencies`:
+  - `mattpocock_skills:skill:skills/engineering/codebase-design#inject-dependencies` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+  - `mattpocock_skills:skill:skills/engineering/tdd#inject-dependencies` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `interface-design-recommendation`:
+  - `mattpocock_skills:skill:skills/engineering/codebase-design#interface-design-recommendation` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `interface-is-everything`:
+  - `mattpocock_skills:skill:skills/engineering/codebase-design#interface-is-everything` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `internal-seams`:
+  - `mattpocock_skills:skill:skills/engineering/codebase-design#internal-seams` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `module-vocabulary`:
+  - `mattpocock_skills:skill:skills/engineering/codebase-design#module-vocabulary` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+  - `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture#module-vocabulary` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+  - `mattpocock_skills:skill:skills/engineering/tdd#module-vocabulary` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+  - `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules#module-vocabulary` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `return-not-mutate`:
+  - `mattpocock_skills:skill:skills/engineering/codebase-design#return-not-mutate` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 <!-- /registry:generated sources -->
 
 <!-- registry:generated declined -->
-No declined traits recorded.
+- `mattpocock_skills:skill:skills/engineering/codebase-design#design-brief-vocabulary` (defer): Owner deferred the report's reject recommendation, to review the set later: AGENTS.md already requires worker briefs to carry relevant context pointers; a skil…
+- `mattpocock_skills:skill:skills/engineering/codebase-design#external-port-mock-adapter` (defer): Owner deferred the report's reject recommendation, to review the set later: Ours tests the owned boundary with safe fixtures or fakes and verifies provider ass…
+- `mattpocock_skills:skill:skills/engineering/codebase-design#interface-is-test-surface` (defer): Owner deferred the report's reject recommendation, to review the set later: Opposite stance: ours treats focused internal tests as valid, not as evidence of a …
+- `mattpocock_skills:skill:skills/engineering/codebase-design#local-stand-in-testing` (defer): Owner deferred the report's reject recommendation, to review the set later: Ours deliberately allows a real lightweight instance or a faithful fake with integr…
+- `mattpocock_skills:skill:skills/engineering/codebase-design#port-with-memory-adapter` (defer): Owner deferred the report's reject recommendation, to review the set later: Ours asks for an explicit transport contract and injects an adapter only when it is…
+- `mattpocock_skills:skill:skills/engineering/codebase-design#problem-space-framing` (defer): Owner deferred the report's reject recommendation, to review the set later: Ours already states caller needs, constraints, dependencies and invariants before d…
+- `mattpocock_skills:skill:skills/engineering/codebase-design#replace-dont-layer` (defer): Owner deferred the report's reject recommendation, to review the set later: Opposite stance: ours keeps meaningful internal tests and inspects changed tests; i…
+- `mattpocock_skills:skill:skills/engineering/codebase-design#two-adapters-rule` (defer): Owner deferred the report's reject recommendation, to review the set later: Opposite stance: a present need can justify one adapter, and ours explicitly does n…
+- `mattpocock_skills:skill:skills/engineering/codebase-design#vocabulary-ban` (defer): Owner deferred the report's reject recommendation, to review the set later: Opposite stance: ours uses precise project terms, including the very words upstream…
 <!-- /registry:generated declined -->

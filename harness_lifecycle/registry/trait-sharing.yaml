@@ -20,7 +20,15 @@ pin-preserving-fetch:
   skills: [harness-scan, harness-status]
   why: "Both run the fetching drift command themselves, so each must state that a fetch never moves pins and that --no-fetch skips the network."
   reviewed: "2026-10-30"
-glossary-format:
+glossary-entry-template:
+  skills: [domain-modeling, teach]
+  why: "Each keeps a glossary of its own (project language, the learner's workspace) in one entry format, with its own admission rules."
+  reviewed: "2026-10-30"
+canonical-term-and-aliases:
+  skills: [domain-modeling, teach]
+  why: "Each keeps a glossary of its own (project language, the learner's workspace) in one entry format, with its own admission rules."
+  reviewed: "2026-10-30"
+tight-concept-definitions:
   skills: [domain-modeling, teach]
   why: "Each keeps a glossary of its own (project language, the learner's workspace) in one entry format, with its own admission rules."
   reviewed: "2026-10-30"
@@ -67,4 +75,16 @@ settled-stop:
 finding-adjudication:
   skills: [execution, review]
   why: "Execution rules on findings inside its delivery loop and review owns the method; owner 2026-10-30: execution stays unchanged."
+  reviewed: "2026-10-30"
+domain-vocabulary:
+  skills: [i-have-adhd, teach]
+  why: "Each writes for its reader in the project's own terms, i-have-adhd in its re-pitches and teach in its lessons."
+  reviewed: "2026-10-30"
+sequential-record-numbering:
+  skills: [domain-modeling, teach]
+  why: "Each keeps its own record folder (ADRs, learning records) in one minimal format."
+  reviewed: "2026-10-30"
+optional-record-sections:
+  skills: [domain-modeling, teach]
+  why: "Each keeps its own record folder (ADRs, learning records) in one minimal format."
   reviewed: "2026-10-30"

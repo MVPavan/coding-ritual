@@ -29,20 +29,50 @@ Use when the user explicitly requests a grilling interview to resolve or challen
 <!-- /registry:generated traits -->
 
 <!-- registry:generated lineage -->
-- **mattpocock_skills:skill:skills/productivity/grilling** `reference_harnesses/mattpocock_skills/skills/productivity/grilling/SKILL.md` @ 84fdeff
-  - merged from: grill-me
-  - merged from: grill-with-docs
-  - modified: absorb grill-me as a stateless invocation alias
-  - modified: absorb grill-with-docs as a documenting mode that calls domain-modeling when durable vocabulary or ADRs are needed
-- **mattpocock_skills:skill:skills/productivity/grilling** `skills/productivity/grilling/SKILL.md`
-  - merged from: grill-me
-  - merged from: grill-with-docs
-  - modified: absorb grill-me as a stateless invocation alias
-  - modified: absorb grill-with-docs as a documenting mode that calls domain-modeling when durable vocabulary or ADRs are needed
-- **mattpocock_skills:skill:skills/productivity/to-questionnaire** `skills/productivity/to-questionnaire/SKILL.md` @ 84fdeff
+- **mattpocock_skills:skill:skills/productivity/grilling#map-decisions** `skills/productivity/grilling/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/productivity/grilling#question-batching** `skills/productivity/grilling/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/productivity/grilling#recommended-answer** `skills/productivity/grilling/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/productivity/grilling#yes-accepts-recommendation** `skills/productivity/grilling/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.4)
+- **mattpocock_skills:skill:skills/productivity/grilling#self-serve-facts** `skills/productivity/grilling/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/productivity/grilling#answer-before-next-round** `skills/productivity/grilling/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.4)
+- **mattpocock_skills:skill:skills/engineering/grill-with-docs#document-during-interview** `skills/engineering/grill-with-docs/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/productivity/to-questionnaire#grill-the-send** `skills/productivity/to-questionnaire/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/productivity/to-questionnaire#gap-targeted-questions** `skills/productivity/to-questionnaire/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/productivity/to-questionnaire#absent-respondent** `skills/productivity/to-questionnaire/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/productivity/to-questionnaire#needed-item-coverage** `skills/productivity/to-questionnaire/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.4)
+- **mattpocock_skills:skill:skills/productivity/to-questionnaire#importance-ordered-questions** `skills/productivity/to-questionnaire/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.4)
+- **mattpocock_skills:skill:skills/productivity/to-questionnaire#single-idea-questions** `skills/productivity/to-questionnaire/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.4)
+- **mattpocock_skills:skill:skills/in-progress/loop-me#answer-before-next-round** `skills/in-progress/loop-me/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.4)
+- **mattpocock_skills:skill:skills/in-progress/loop-me#recommended-answer** `skills/in-progress/loop-me/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-10-30` **adopt-merged** (2026-10-30-mattpocock_skills-5beb35b:581): Checkpoint at 5beb35b for the owner's trait rulings: 3 adopt, 11 defer.
+- `2026-10-30` **adopt-merged** (2026-10-30-mattpocock_skills-5beb35b:578): Checkpoint at 5beb35b for the owner's trait rulings: 6 adopt, 6 defer.
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:568): Checkpoint at 5beb35b for the owner's trait rulings: 1 adopt.
+- `2026-10-30` **adopt-merged** (2026-10-30-mattpocock_skills-5beb35b:563): Checkpoint at 5beb35b for the owner's trait rulings: 6 adopt, 4 defer.
+- `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:452): Owner deferred the report's reject recommendation, to review the set later: Opposite stance: ours documents only when requested, never as an automatic by-produ…
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:451): Ours includes a recommendation and its assumptions, letting the user disagree.
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:450): Ours defers dependent questions and recomputes after each answer (grilling/SKILL.md:11-13, 20), but never waits for all answers to a round before asking anothe…
+- `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:443): Owner deferred the report's reject recommendation, to review the set later: Opposite stance: ours stops with decisions deferred or blocked instead of requiring…
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:393): Ours says nothing about question shape; a compound question gets half an answer. Carried by the same line as needed-item-coverage.
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:389): Ours does not order questions; most-important-first protects the answers that matter when the respondent stops early. Carried by the same line as needed-item-c…
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:387): Ours targets the knowledge gap (SKILL.md:26) but sets no completion check; covering every needed item gives one.
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:386): Ours prepares a questionnaire when the necessary respondent is absent.
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:384): Ours aims the questionnaire at the respondent's role and knowledge gap.
+- `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:383): Owner deferred the report's reject recommendation, to review the set later: Opposite stance: ours does not force two exchanges when the recipient context and o…
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:382): Ours asks the present user only for missing recipient context and desired outcome.
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:196): Ours deliberately ties document writes to an explicit request (grilling SKILL.md:31-32), with the manual alias granting it (grill-with-docs SKILL.md:9-12), as …
+- `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:082): Owner deferred the report's reject recommendation, to review the set later: AGENTS.md already says to continue independent work while a blocking answer is pend…
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:081): Ours defers dependent questions and recomputes after each answer (grilling/SKILL.md:11-13, 20), but never waits for all answers to a round before asking anothe…
+- `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:080): Owner deferred the report's reject recommendation, to review the set later: Ours carries authorization forward for a step already requested and never treats th…
+- `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:079): Owner deferred the report's reject recommendation, to review the set later: Opposite stance: ours explicitly does not exhaust every branch and stops once the n…
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:078): Ours looks facts up itself, keeping ordinary lookups inline and delegating only bounded work.
+- `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:077): Owner deferred the report's reject recommendation, to review the set later: A fixed markdown block per question is a format recipe (S-03); U-09 leaves formatti…
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:076): Ours attaches a recommendation (SKILL.md:13-14) but does not word questions for a one-word acceptance; the 1.3.1 draft rulings proposed taking it, and it cuts …
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:075): Ours attaches a recommendation with its assumptions and lets the user disagree.
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:074): Ours asks a batch of independent settled-prerequisite questions and defers dependent ones.
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:073): Ours maps material decisions and their prerequisites before asking.
 - `2026-08-14` **adopt** (2026-10-14-migration:149): Adopted-in-part: absent-respondent questionnaire mode into grilling (two-exchange interview: who is it for / what must come back; grill the send, not the subje…
 - `2026-08-11` **adopt-merged** (2026-10-14-migration:090): Copied verbatim. Frontier rounds and non-blocking sub-agent fact-finding are genuinely absent from our grill-me, which paces at 1-3 questions and answers facts…
 - `2026-08-11` **adopt-merged** (2026-10-14-migration:023) *(superseded)*: The only adversarial design-tree exhaustion: it walks the unblocked frontier of a FORMED plan breadth-first and forbids action until every branch is visited. D…
@@ -53,9 +83,31 @@ Use when the user explicitly requests a grilling interview to resolve or challen
 <!-- /registry:generated reviews -->
 
 <!-- registry:generated sources -->
-No adopted traits recorded.
+- `absent-respondent`:
+  - `mattpocock_skills:skill:skills/productivity/to-questionnaire#absent-respondent` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `gap-targeted-questions`:
+  - `mattpocock_skills:skill:skills/productivity/to-questionnaire#gap-targeted-questions` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `grill-the-send`:
+  - `mattpocock_skills:skill:skills/productivity/to-questionnaire#grill-the-send` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `map-decisions`:
+  - `mattpocock_skills:skill:skills/productivity/grilling#map-decisions` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `optional-docs`:
+  - `mattpocock_skills:skill:skills/engineering/grill-with-docs#document-during-interview` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `question-batching`:
+  - `mattpocock_skills:skill:skills/productivity/grilling#question-batching` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `recommended-answer`:
+  - `mattpocock_skills:skill:skills/in-progress/loop-me#recommended-answer` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+  - `mattpocock_skills:skill:skills/productivity/grilling#recommended-answer` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `self-serve-facts`:
+  - `mattpocock_skills:skill:skills/productivity/grilling#self-serve-facts` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 <!-- /registry:generated sources -->
 
 <!-- registry:generated declined -->
-No declined traits recorded.
+- `mattpocock_skills:skill:skills/in-progress/loop-me#live-spec-edits` (defer): Owner deferred the report's reject recommendation, to review the set later: Opposite stance: ours documents only when requested, never as an automatic by-produ…
+- `mattpocock_skills:skill:skills/in-progress/loop-me#spec-done-when-buildable` (defer): Owner deferred the report's reject recommendation, to review the set later: Opposite stance: ours stops with decisions deferred or blocked instead of requiring…
+- `mattpocock_skills:skill:skills/productivity/grilling#exhaustive-completion` (defer): Owner deferred the report's reject recommendation, to review the set later: Opposite stance: ours explicitly does not exhaust every branch and stops once the n…
+- `mattpocock_skills:skill:skills/productivity/grilling#non-blocking-lookup` (defer): Owner deferred the report's reject recommendation, to review the set later: AGENTS.md already says to continue independent work while a blocking answer is pend…
+- `mattpocock_skills:skill:skills/productivity/grilling#reconfirm-before-action` (defer): Owner deferred the report's reject recommendation, to review the set later: Ours carries authorization forward for a step already requested and never treats th…
+- `mattpocock_skills:skill:skills/productivity/grilling#round-format` (defer): Owner deferred the report's reject recommendation, to review the set later: A fixed markdown block per question is a format recipe (S-03); U-09 leaves formatti…
+- `mattpocock_skills:skill:skills/productivity/to-questionnaire#two-exchange-interview` (defer): Owner deferred the report's reject recommendation, to review the set later: Opposite stance: ours does not force two exchanges when the recipient context and o…
 <!-- /registry:generated declined -->

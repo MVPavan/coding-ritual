@@ -34,10 +34,12 @@ Use when handing work to another agent or model (an explorer, implementer, revie
 <!-- /registry:generated traits -->
 
 <!-- registry:generated lineage -->
-No adopted lineage recorded.
+- **mattpocock_skills:skill:skills/in-progress/chief-of-staff#background-dispatch-for-dialogue** `skills/in-progress/chief-of-staff/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.3)
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-10-30` **adopt-merged** (2026-10-30-mattpocock_skills-5beb35b:580): Checkpoint at 5beb35b for the owner's trait rulings: 1 adopt, 23 defer.
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:421): AGENTS.md has the lead continue independent work while waiting (AGENTS.md:9-10) but delegation never says to dispatch in the background; CF-09 asks for exactly…
 - `2026-10-30` **add** (2026-10-30-delegation:001): Owner 2026-10-30: one vendor-neutral skill for every handoff to another agent or model; roles in roles/, vendors in vendors/ (T3, Codex CLI, Claude CLI).
 <!-- /registry:generated history -->
 

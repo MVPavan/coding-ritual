@@ -34,6 +34,8 @@ Use when creating or changing agent instructions or their activation behavior. S
 - `invocation-sidecar-sync`: Pair the manual-invocation flag with the provider's implicit-invocation policy and regenerate the catalog and sidecars together after metadata edits.
 - `compatibility-alias`: Keep a manual or legacy entrypoint as a thin pointer that delegates to the canonical owner, not as an independent workflow others auto-activate.
 - `verification`: Inspect the diff for lost contracts, scale fresh-context and pressure trials to behavioural risk, and report unavailable behavioural checks as a limit instead of manufacturing evidence.
+- `mechanical-vs-judgement`: Classify each finding as mechanical (a fixed syntactic pattern suiting a deterministic check) or judgement (cross-file consistency suiting a standards doc).
+- `extend-existing-docs-first`: Prefer extending existing pointed-to documents before writing new ones.
 <!-- /registry:generated traits -->
 
 <!-- registry:generated lineage -->
@@ -41,13 +43,65 @@ Use when creating or changing agent instructions or their activation behavior. S
   - merged from: writing-for-agents
   - modified: absorb the information ladder, the two-loads model, pointer wording, the no-op test and negation scoping — the vocabulary for deciding what goes where
 - **agent-skills:doc:docs/skill-anatomy.md**
-- **mattpocock_skills:skill:skills/productivity/writing-for-agents** `skills/productivity/writing-for-agents/SKILL.md`
 - **superpowers:skill:skills/writing-skills** `skills/writing-skills/SKILL.md`
   - merged from: writing-for-agents
   - modified: absorb the information ladder, the two-loads model, pointer wording, the no-op test and negation scoping — the vocabulary for deciding what goes where
+- **mattpocock_skills:skill:skills/engineering/retro#build-check-over-rule** `skills/engineering/retro/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.1)
+- **mattpocock_skills:skill:skills/productivity/writing-for-agents#context-pointers** `skills/productivity/writing-for-agents/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/productivity/writing-for-agents#two-loads** `skills/productivity/writing-for-agents/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/productivity/writing-for-agents#inline-vs-disclose** `skills/productivity/writing-for-agents/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/productivity/writing-for-agents#co-location** `skills/productivity/writing-for-agents/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.1)
+- **mattpocock_skills:skill:skills/productivity/writing-for-agents#completion-criteria-clarity** `skills/productivity/writing-for-agents/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/productivity/writing-for-agents#completion-criteria-demand** `skills/productivity/writing-for-agents/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.1)
+- **mattpocock_skills:skill:skills/productivity/writing-for-agents#split-by-invocation** `skills/productivity/writing-for-agents/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.1)
+- **mattpocock_skills:skill:skills/productivity/writing-for-agents#single-source-of-truth** `skills/productivity/writing-for-agents/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/productivity/writing-for-agents#environment-as-cache** `skills/productivity/writing-for-agents/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/productivity/writing-for-agents#relevance-check** `skills/productivity/writing-for-agents/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.1)
+- **mattpocock_skills:skill:skills/productivity/writing-for-agents#no-op-deletion** `skills/productivity/writing-for-agents/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/productivity/writing-for-agents#invocation-mode** `skills/productivity/writing-for-agents/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/productivity/writing-for-agents#sharpen-before-inline** `skills/productivity/writing-for-agents/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.1)
+- **mattpocock_skills:skill:skills/productivity/writing-for-agents#one-trigger-per-branch** `skills/productivity/writing-for-agents/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.1)
+- **mattpocock_skills:skill:skills/productivity/writing-for-agents#pointer-identity-trim** `skills/productivity/writing-for-agents/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.1)
+- **mattpocock_skills:skill:skills/productivity/writing-for-agents#model-facing-description** `skills/productivity/writing-for-agents/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/productivity/writing-for-agents#human-facing-description** `skills/productivity/writing-for-agents/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.1)
+- **mattpocock_skills:skill:skills/productivity/writing-for-agents#external-shared-reference** `skills/productivity/writing-for-agents/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/productivity/writing-for-agents#empirical-instruction-default-check** `skills/productivity/writing-for-agents/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/engineering/retro#mechanical-vs-judgement** `skills/engineering/retro/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/engineering/retro#extend-existing-docs-first** `skills/engineering/retro/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:588): Owner 2026-10-30 approved the list fix: ours:authoring-for-agents now lists the trait.
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:587): Owner 2026-10-30 approved the list fix: ours:authoring-for-agents now lists the trait.
+- `2026-10-30` **adopt-merged** (2026-10-30-mattpocock_skills-5beb35b:586): Checkpoint at 5beb35b for the owner's trait rulings: 19 adopt, 8 defer.
+- `2026-10-30` **adopt-merged** (2026-10-30-mattpocock_skills-5beb35b:583): Checkpoint at 5beb35b for the owner's trait rulings: 3 adopt, 10 defer.
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:559): Deliberate: ours already says a prose review cannot prove obedience (.claude/skills/authoring-for-agents/references/testing-docs.md:3-4) and sizes trials to ri…
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:557): Deliberate: one surface rule covers every reader, the user-invoked case included.
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:556): Ours writes every description as an activation boundary (.claude/skills/authoring-for-agents/references/skill-anatomy.md:9-12), though a manual skill's descrip…
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:555): Deliberate: naming the nearest competing case keeps descriptions from competing (S-01).
+- `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:554): Owner deferred the report's reject recommendation, to review the set later: Ours lets familiar terms compress (.claude/skills/authoring-for-agents/references/w…
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:552): Ours stops a description duplicating the workflow but not restating the skill's identity; extending the same line closes it.
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:551): Ours requires a concise description naming the activation boundary (.claude/skills/authoring-for-agents/references/skill-anatomy.md:9-12) but does not collapse…
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:550): Ours revises the smallest implicated instruction (.claude/skills/authoring-for-agents/SKILL.md:49-50) but gives no order between rewording a pointer and inlini…
+- `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:549): Owner deferred the report's reject recommendation, to review the set later: Ours's skill-router already lists every slash-only workflow from the generated cata…
+- `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:548): Owner deferred the report's reject recommendation, to review the set later: Ours deliberately sends a convention needed for particular work to a project docume…
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:547): Ours sets disable-model-invocation for manual workflows and aliases.
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:546): Ours removes generic advice that adds no behaviour.
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:545): Ours keeps decision-changing content but has no staleness pass; U-08 asks to remove instructions whose benefit no longer holds.
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:544): Ours links authoritative commands and configuration instead of copying volatile facts.
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:543): Ours avoids duplicate policy owners and searches for an existing owner before adding another.
+- `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:542): Owner deferred the report's reject recommendation, to review the set later: Opposite stance: ours imposes no universal positive-first, prohibition-last-resort …
+- `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:541): Owner deferred the report's reject recommendation, to review the set later: Ours keeps the compression point (familiar terms compress; coined labels need defin…
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:539): Ours chooses the surface (.claude/skills/authoring-for-agents/SKILL.md:17-18) and the invocation mode (.claude/skills/authoring-for-agents/references/skill-ana…
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:538): Ours makes criteria checkable (.claude/skills/authoring-for-agents/references/writing-principles.md:17) but not exhaustive; stating the coverage bar is what S-…
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:537): Ours asks for observable conditions and checkable completion criteria.
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:536): Ours avoids duplicate owners (.claude/skills/authoring-for-agents/references/writing-principles.md:11) but says nothing about one meaning scattered across a fi…
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:535): Ours inlines the common contract and links branch-specific material at the branch.
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:534): Ours weighs discovery context against the name a user must remember, judged by the full read path.
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:533): Ours's pointer names the material and the condition for reading it, trigger first.
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:472) *(superseded)*: Ours already says to search for an existing owner before adding another (.claude/skills/authoring-for-agents/SKILL.md:22); the adopt is pending only because au…
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:463): Ours routes deterministic enforcement only to an existing hook or check (.claude/skills/authoring-for-agents/SKILL.md:20); proposing a new check before a prose…
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:462) *(superseded)*: Ours's surface table already sends deterministic enforcement to a hook or check and conventions to a project document (.claude/skills/authoring-for-agents/SKIL…
 - `2026-08-12` **adopt-merged** (2026-10-14-migration:114): Adopted as one third of authoring-for-agents: Match-the-Form-to-the-Failure table, description-never-summarizes-workflow rule, rationalization tables/red flags…
 - `2026-08-12` **adopt** (2026-10-14-migration:108): Adopted as the writing-theory core of authoring-for-agents (references/writing-principles.md): context pointers, the two loads, information hierarchy/progressi…
 - `2026-08-12` **adopt** (2026-10-14-migration:091): Adopted as the structural contract in authoring-for-agents references/skill-anatomy.md: layout, frontmatter rules, recommended body pattern, supporting-file th…
@@ -59,9 +113,38 @@ None yet.
 <!-- /registry:generated reviews -->
 
 <!-- registry:generated sources -->
-No adopted traits recorded.
+- `activation-boundary`:
+  - `mattpocock_skills:skill:skills/productivity/writing-for-agents#model-facing-description` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `completion-criteria-clarity`:
+  - `mattpocock_skills:skill:skills/productivity/writing-for-agents#completion-criteria-clarity` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `context-pointers`:
+  - `mattpocock_skills:skill:skills/productivity/writing-for-agents#context-pointers` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `environment-as-cache`:
+  - `mattpocock_skills:skill:skills/productivity/writing-for-agents#environment-as-cache` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `extend-existing-docs-first`:
+  - `mattpocock_skills:skill:skills/engineering/retro#extend-existing-docs-first` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `inline-vs-disclose`:
+  - `mattpocock_skills:skill:skills/productivity/writing-for-agents#inline-vs-disclose` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `invocation-mode`:
+  - `mattpocock_skills:skill:skills/productivity/writing-for-agents#invocation-mode` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `mechanical-vs-judgement`:
+  - `mattpocock_skills:skill:skills/engineering/retro#mechanical-vs-judgement` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `no-op-deletion`:
+  - `mattpocock_skills:skill:skills/productivity/writing-for-agents#no-op-deletion` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `single-source-of-truth`:
+  - `mattpocock_skills:skill:skills/productivity/writing-for-agents#single-source-of-truth` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `surface-choice`:
+  - `mattpocock_skills:skill:skills/productivity/writing-for-agents#external-shared-reference` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `two-loads`:
+  - `mattpocock_skills:skill:skills/productivity/writing-for-agents#two-loads` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `verification`:
+  - `mattpocock_skills:skill:skills/productivity/writing-for-agents#empirical-instruction-default-check` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 <!-- /registry:generated sources -->
 
 <!-- registry:generated declined -->
-No declined traits recorded.
+- `mattpocock_skills:skill:skills/productivity/writing-for-agents#leading-words` (defer): Owner deferred the report's reject recommendation, to review the set later: Ours keeps the compression point (familiar terms compress; coined labels need defin…
+- `mattpocock_skills:skill:skills/productivity/writing-for-agents#negation-avoidance` (defer): Owner deferred the report's reject recommendation, to review the set later: Opposite stance: ours imposes no universal positive-first, prohibition-last-resort …
+- `mattpocock_skills:skill:skills/productivity/writing-for-agents#router-skills` (defer): Owner deferred the report's reject recommendation, to review the set later: Ours's skill-router already lists every slash-only workflow from the generated cata…
+- `mattpocock_skills:skill:skills/productivity/writing-for-agents#shared-reference-home` (defer): Owner deferred the report's reject recommendation, to review the set later: Ours deliberately sends a convention needed for particular work to a project docume…
+- `mattpocock_skills:skill:skills/productivity/writing-for-agents#triad-collapse` (defer): Owner deferred the report's reject recommendation, to review the set later: Ours lets familiar terms compress (.claude/skills/authoring-for-agents/references/w…
 <!-- /registry:generated declined -->

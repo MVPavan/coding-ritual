@@ -3,131 +3,147 @@
 # docs/workstreams/skill-curation/stages-design.md §Entries.
 
 "mattpocock_skills:skill:skills/engineering/ask-matt":
-  accepted: null
-  proposed: "5beb35b"
+  accepted: "5beb35b"
+  proposed: null
   analyses:
     "5beb35b":
       tree_hash: "7ff2383b40fe9d8f3e753d267d964fb2b44d120a948fd2a57c3b26ddfc318370"
       placement: {domain: engineering, stage: X, substage: Coordination}
-      traits: [read-skill-before-claiming, unbroken-planning-window, smart-zone-budget, boundary-only-context-decisions, rule-out-continue-first, clear-disposable-context, handoff-for-portability, delegate-afk-work, compact-last, compact-with-instruction, primary-vs-secondary-source]
+      traits: [read-skill-before-claiming, unbroken-planning-window, smart-zone-budget, boundary-only-context-decisions, rule-out-continue-first, clear-disposable-context, handoff-for-portability, delegate-afk-work, compact-last, compact-with-instruction, primary-vs-secondary-source, staged-delivery-flow, interview-mode-by-workspace, prototype-detour, multi-session-split, ticket-per-fresh-context, parallel-frontier-implementers, single-integration-branch, retro-in-reviewed-session, triage-external-only, post-fix-retro, decision-map-for-large-efforts, ordered-context-decision-tree]
       added: {read-skill-before-claiming: "5beb35b"}
       changed: {}
 "mattpocock_skills:skill:skills/engineering/code-review":
-  accepted: null
-  proposed: "5beb35b"
+  accepted: "5beb35b"
+  proposed: null
   analyses:
     "5beb35b":
       tree_hash: "01451680bee1eec827067cff76ef6c64541bbfe08646e87fcd8f08d47e643e10"
       placement: {domain: engineering, stage: Verification, substage: Review}
-      traits: [two-axis-review, distinct-axis-verdicts, no-cross-axis-rerank, scope-establishment, fixed-point-preflight, three-dot-merge-base, spec-source-discovery, standards-source-discovery, smell-baseline, parallel-subagents]
+      traits: [two-axis-review, distinct-axis-verdicts, no-cross-axis-rerank, scope-establishment, fixed-point-preflight, three-dot-merge-base, spec-source-discovery, standards-source-discovery, parallel-subagents, missing-spec-axis-skip, skip-tool-enforced, self-contained-subagent-brief, cited-standard-findings, spec-conformance-findings, capped-reviewer-report, per-axis-summary-line, code-smell-catalog, repo-standards-over-smells, smells-as-heuristics]
       added: {standards-source-discovery: "5beb35b"}
       changed: {}
       notes:
         scope-establishment: "Captured once from a user-supplied fixed point and shared with the sub-agents."
+        code-smell-catalog: "Twelve named smells, each stated as what it is and how to fix it."
+        capped-reviewer-report: "400 words per reviewer report."
 "mattpocock_skills:skill:skills/engineering/codebase-design":
-  accepted: null
-  proposed: "5beb35b"
+  accepted: "5beb35b"
+  proposed: null
   analyses:
     "5beb35b":
       tree_hash: "721a6a709001482b70d4ecd3a7880a84ec158170236b999b1f14a8a321e20059"
       placement: {domain: engineering, stage: Design, substage: Architecture}
-      traits: [module-vocabulary, vocabulary-ban, interface-is-everything, depth-as-leverage, deletion-test, interface-is-test-surface, two-adapters-rule, internal-seams, inject-dependencies, return-not-mutate, small-interface-surface, dependency-categories, replace-dont-layer, parallel-constrained-designs]
+      traits: [module-vocabulary, vocabulary-ban, interface-is-everything, depth-as-leverage, deletion-test, interface-is-test-surface, two-adapters-rule, internal-seams, inject-dependencies, return-not-mutate, small-interface-surface, dependency-categories, replace-dont-layer, local-stand-in-testing, port-with-memory-adapter, external-port-mock-adapter, problem-space-framing, design-brief-vocabulary, design-proposal-contents, parallel-interface-generation, depth-locality-seam-comparison, interface-design-recommendation]
       changed: {}
       notes:
         dependency-categories: "In-process dependencies are always deepenable by merging the modules."
+        parallel-interface-generation: "Three or more designers, each briefed with a constraint such as minimal, flexible, common-caller-optimised or ports-and-adapters."
 "mattpocock_skills:skill:skills/engineering/diagnosing-bugs":
-  accepted: null
-  proposed: "5beb35b"
+  accepted: "5beb35b"
+  proposed: null
   analyses:
     "5beb35b":
       tree_hash: "87c78ae966e591f9ceb177789cc5cc9de69277cd26679ffd36ca5300f430d513"
       placement: {domain: engineering, stage: Building, substage: Diagnosis}
-      traits: [reproduction-first, loop-construction, tighten-loop, reproduce-and-minimize, phase1-completion-criterion, redact-secrets, hypotheses, fixed-hypothesis-count, hypothesis-ranking-presentation, one-variable-at-a-time, tagged-debug-logs, baseline, perf-bisection, debugger-first, prove-the-red, regression-check, missing-seam-finding, closeout, delete-debug-prototypes, hitl-loop-script, escalate-unreproducible]
+      traits: [reproduction-first, tighten-loop, reproduce-and-minimize, phase1-completion-criterion, fixed-hypothesis-count, hypothesis-ranking-presentation, one-variable-at-a-time, tagged-debug-logs, baseline, perf-bisection, debugger-first, prove-the-red, regression-check, missing-seam-finding, closeout, delete-debug-prototypes, hitl-loop-script, escalate-unreproducible, justified-phase-skip, read-domain-docs-first, signal-lines-only, ask-when-redaction-blinds, falsifiable-hypotheses, seam-selection, parseable-hitl-output, hitl-no-credential-capture, placeholder-sensitive-data-redaction, credential-env-indirection, loop-construction, preferred-reproduction-order]
       added: {prove-the-red: "5beb35b"}
       changed: {}
       notes:
         closeout: "States the confirmed hypothesis in the commit or PR message."
+        loop-construction: "Also names a property or fuzz loop, a bisection harness, a differential loop, a headless browser script and an HTTP script among the forms."
+        placeholder-sensitive-data-redaction: "Secrets only; personal data is not mentioned."
 "mattpocock_skills:skill:skills/engineering/domain-modeling":
-  accepted: null
-  proposed: "5beb35b"
+  accepted: "5beb35b"
+  proposed: null
   analyses:
     "5beb35b":
       tree_hash: "b78689833404148c769077355e12dbe5ad996a158a1e21e58ddf169e439d9d8c"
       placement: {domain: engineering, stage: Design, substage: Architecture}
-      traits: [active-discipline, lazy-glossary-and-adr, multi-context-map, challenge-glossary, sharpen-fuzzy, concrete-scenarios, cross-reference-code, update-inline, glossary-is-glossary, adr-three-gate, adr-minimal-template, adr-what-qualifies, glossary-format, context-specific-terms]
+      traits: [active-discipline, lazy-glossary-and-adr, challenge-glossary, sharpen-fuzzy, concrete-scenarios, cross-reference-code, update-inline, glossary-is-glossary, adr-three-gate, adr-what-qualifies, context-specific-terms, scoped-decision-records, context-map-artifact, context-map-lookup, sequential-record-numbering, minimal-decision-record, optional-record-sections, glossary-entry-template, canonical-term-and-aliases, tight-concept-definitions, topic-context-resolution]
       changed: {}
+      notes:
+        glossary-entry-template: "Lays the file out as a title and a one-or-two-sentence description, then each term in bold followed by its definition and an Avoid line."
+        tight-concept-definitions: "One or two sentences at most."
 "mattpocock_skills:skill:skills/engineering/grill-with-docs":
-  accepted: null
-  proposed: "5beb35b"
+  accepted: "5beb35b"
+  proposed: null
   analyses:
     "5beb35b":
       tree_hash: "02e258f41d210f9b2e7cce9faf62b3c59e8fcebe5d2736369c3cd07d471324f8"
       placement: {domain: core, stage: Intake, substage: Clarification}
       traits: [document-during-interview]
       changed: {}
+"mattpocock_skills:skill:skills/engineering/implement-spec":
+  accepted: "5beb35b"
+  proposed: null
+  analyses:
+    "5beb35b":
+      tree_hash: "3aa684ea42bfe136e4c6c63f7349214b2bb974c2e949f3532a11df796e0f1146"
+      placement: {domain: engineering, stage: X, substage: Coordination}
+      traits: [single-integration-branch, dependency-edges, pointer-only-subagent-briefs, parallel-frontier-implementers, exploration-notes-subagent, draft-closing-pr, worktree-per-implementer, worktree-base-check, red-green, pre-report-tip-merge, dedicated-merger-agent, final-branch-review, delivery-closeout, worktree-cleanup]
 "mattpocock_skills:skill:skills/engineering/improve-codebase-architecture":
-  accepted: null
-  proposed: "5beb35b"
+  accepted: "5beb35b"
+  proposed: null
   analyses:
     "5beb35b":
       tree_hash: "5334eba3370c6124922f8819447b42fabd8df8d11008a242083b8527589a8686"
       placement: {domain: engineering, stage: Design, substage: Architecture}
-      traits: [scope-by-evidence, friction-signals, deletion-test, html-candidate-report, diagram-patterns, domain-vocabulary, vocabulary-ban, adr-conflict-callout, no-interfaces-yet, grilling-loop]
+      traits: [scope-by-evidence, friction-signals, deletion-test, diagram-patterns, domain-vocabulary, vocabulary-ban, adr-conflict-callout, no-interfaces-yet, module-vocabulary, respect-area-adrs, read-domain-docs-first, delegated-codebase-walk, open-artifact-for-user, cdn-only-scripts, dependency-categories, document-during-interview, rejection-decision-record, report-header-legend, terse-card-prose, redraw-not-explain, visual-restraint, concrete-benefit-claims, compress-to-bullets, html-architecture-report, candidate-before-after-visual, architecture-candidate-card, candidate-dependency-tag, top-candidate-recommendation, candidate-constraint-interview]
       changed: {}
       notes:
         deletion-test: "Applied as a scanning signal: a module whose deletion would concentrate complexity is marked a deepening candidate."
-        friction-signals: "Walked by an exploring sub-agent with a named list of signals."
+        friction-signals: "Names the signals: concept-bouncing across small modules, shallow modules, testability-only extractions, seam leakage and hard-to-test areas."
+        visual-restraint: "Diagrams about 320px tall with schematic uppercase labels."
+        html-architecture-report: "Names the file with a timestamp so each run gets a fresh one."
+        top-candidate-recommendation: "The recommendation links to its candidate's card."
 "mattpocock_skills:skill:skills/engineering/pr":
-  accepted: null
-  proposed: "5beb35b"
+  accepted: "5beb35b"
+  proposed: null
   analyses:
     "5beb35b":
       tree_hash: "a66195583d0f9323004cdd4da169f93449071f29023671f3e31a916e740f6861"
       placement: {domain: engineering, stage: Delivery, substage: Integration}
-      traits: [pr-body-template, smallest-view, visual-form-catalog, evidence-before-after, merge-danger]
+      traits: [pr-body-template, visual-form-catalog, evidence-before-after, merge-danger, no-preamble, domain-vocabulary, structural-diff, visual-placement, minimal-visual-selection]
       changed: {}
 "mattpocock_skills:skill:skills/engineering/prototype":
-  accepted: null
-  proposed: "5beb35b"
+  accepted: "5beb35b"
+  proposed: null
   analyses:
     "5beb35b":
       tree_hash: "1e3ba2202a5b77b8aa50bc4447432331d6e42590e53ec0935689662cfed199ca"
       placement: {domain: engineering, stage: Design, substage: Architecture}
-      traits: [named-question, pick-form, state-question-up-front, throwaway-marked, trivial-to-run, persistence-when-needed, skip-polish, no-tests-ban, surface-state, capture-outcome, auto-fold-and-branch, rewrite-not-promote, structural-variants, logic-pure-module, logic-shareable-html, ui-variants-one-route, host-in-existing-page, ui-keyboard-safety, variant-switcher]
+      traits: [named-question, pick-form, state-question-up-front, throwaway-marked, trivial-to-run, persistence-when-needed, skip-polish, no-tests-ban, surface-state, capture-outcome, rewrite-not-promote, structural-variants, ui-variants-one-route, host-in-existing-page, ui-keyboard-safety, variant-switcher, default-form-by-context, domain-vocabulary, scenario-coverage-triad, visual-restraint, keep-logic-discard-shell, variant-plan-line, fetch-above-switcher, production-hidden-switcher, handover-url-keys, losing-variant-cleanup, no-shared-variant-layout, stubbed-mutations, automatic-decision-integration, prototype-branch-archive, portable-single-file-demo, dom-free-portable-logic, readable-state-panel, always-available-free-play, resettable-guided-scenarios, helpful-state-change-highlighting, variant-purpose-data-fidelity, existing-variant-styling-system, named-variant-components]
       changed: {}
       notes:
-        variant-switcher: "A fixed bottom bar with wrap-around cycling, synced to a URL search param and hidden in production."
-        pick-form: "When the question is ambiguous, defaults by the surrounding code and states the assumption."
+        variant-switcher: "A floating bottom bar with wrap-around arrows and a label, styled apart from the design under test, synced to a URL search param, and kept in one shared component."
         throwaway-marked: "Placed next to the module or page it prototypes for."
         persistence-when-needed: "State lives in memory by default; a needed database is a clearly named scratch store."
 "mattpocock_skills:skill:skills/engineering/research":
-  accepted: null
-  proposed: "5beb35b"
+  accepted: "5beb35b"
+  proposed: null
   analyses:
     "5beb35b":
       tree_hash: "5bd6a6b833227dd87ee023c2d4734f4c349f290140514bb80bdc041ead1e837e"
       placement: {domain: core, stage: Discovery, substage: Research}
-      traits: [background-agent, primary-source-preference, cited-artifact, findings-file]
+      traits: [background-agent, cited-artifact, findings-file, primary-source-only-research, claim-source-tracing]
       changed: {}
-      notes:
-        primary-source-preference: "Follows every claim back to the source that owns it."
 "mattpocock_skills:skill:skills/engineering/retro":
-  accepted: null
-  proposed: "5beb35b"
+  accepted: "5beb35b"
+  proposed: null
   analyses:
     "5beb35b":
       tree_hash: "e260aefb7b75b3548a3ee9883afbf8808e521f2e86feec92399617894f83b7c2"
       placement: {domain: engineering, stage: Improvement, substage: Retrospective}
-      traits: [environment-retro-categories, mechanical-vs-judgement, build-check-over-rule, read-existing-check-first, read-session-sources, severity-ordered-proposals, separate-review-stage, reviewer-owns-standards]
+      traits: [environment-retro-categories, mechanical-vs-judgement, build-check-over-rule, read-existing-check-first, read-session-sources, severity-ordered-proposals, separate-review-stage, reviewer-owns-standards, load-writing-guide-first, sparse-always-loaded-file, review-time-standards-file, extend-existing-docs-first, skill-when-description-needed]
       changed: {}
 "mattpocock_skills:skill:skills/engineering/tdd":
-  accepted: null
-  proposed: "5beb35b"
+  accepted: "5beb35b"
+  proposed: null
   analyses:
     "5beb35b":
       tree_hash: "e3e0f78ff1c2d52ffefa0378baa1e80e129d359288cf9a56f4e59afcd2aac86c"
       placement: {domain: engineering, stage: Design, substage: Specification}
-      traits: [meaningful-behaviour-assertion, no-implementation-coupling, seam-selection, public-only-seams, seam-preconfirmation, per-seam-note, independent-expectation, one-test-per-cycle, red-green, refactor-outside-loop, system-boundary-mocks-only, inject-dependencies, sdk-interfaces]
+      traits: [meaningful-behaviour-assertion, no-implementation-coupling, public-only-seams, seam-preconfirmation, per-seam-note, independent-expectation, one-test-per-cycle, red-green, refactor-outside-loop, system-boundary-mocks-only, inject-dependencies, sdk-interfaces, rules-during-cycle, domain-vocabulary, respect-area-adrs, module-vocabulary, one-assertion-per-test, behaviour-test-names, test-database-over-mock]
       added: {per-seam-note: "5beb35b"}
       changed: {}
       notes:
@@ -135,151 +151,157 @@
         red-green: "Writes only enough code to pass, one seam per cycle."
         no-implementation-coupling: "Names testing private methods and verifying through a side channel such as querying the database."
 "mattpocock_skills:skill:skills/engineering/to-spec":
-  accepted: null
-  proposed: "5beb35b"
+  accepted: "5beb35b"
+  proposed: null
   analyses:
     "5beb35b":
       tree_hash: "eb934b5eda9523c7853a2741544bd4721ee1bea471f5a04f8397827f67bdbdda"
       placement: {domain: engineering, stage: Design, substage: Specification}
-      traits: [synthesize-settled, ground-in-codebase, domain-vocabulary, respect-area-adrs, testing-seam-decision, seam-preconfirmation, spec-template, no-stale-file-paths, no-stale-code-snippets, prototype-snippet, publish-to-tracker, ready-for-agent-label]
+      traits: [synthesize-settled, ground-in-codebase, domain-vocabulary, respect-area-adrs, testing-seam-decision, seam-preconfirmation, spec-template, no-stale-file-paths, no-stale-code-snippets, prototype-snippet, publish-to-tracker, ready-for-agent-label, user-perspective-framing, exhaustive-user-stories, implementation-decisions-scope, testing-decisions-contents]
       changed: {}
       notes:
         seam-preconfirmation: "Confirmed with the user while sketching the spec's seams."
 "mattpocock_skills:skill:skills/engineering/to-tickets":
-  accepted: null
-  proposed: "5beb35b"
+  accepted: "5beb35b"
+  proposed: null
   analyses:
     "5beb35b":
       tree_hash: "17496514c92954f68eacdf2b1221e2ddb39fa231b83f03c70bc7d4422f704b2d"
       placement: {domain: engineering, stage: Design, substage: Decomposition}
-      traits: [ground-in-codebase, domain-vocabulary, respect-area-adrs, prefactor-first, vertical-slices, dependency-edges, expand-contract, quiz-the-user, publish-to-tracker, real-id-wiring, sub-issue-linkage, ready-for-agent-label, ticket-template, no-stale-file-paths, no-stale-code-snippets, prototype-snippet]
+      traits: [ground-in-codebase, domain-vocabulary, respect-area-adrs, prefactor-first, vertical-slices, dependency-edges, expand-contract, publish-to-tracker, real-id-wiring, sub-issue-linkage, ready-for-agent-label, ticket-template, no-stale-file-paths, no-stale-code-snippets, prototype-snippet, read-full-source-issue, session-sized-tickets, blast-radius-batches, file-per-ticket, brief-behavioural, ticket-breakdown-preview, ticket-breakdown-feedback, breakdown-approval-before-publish]
       changed: {}
       notes:
-        vertical-slices: "Each slice is a tracer bullet through every layer, sized to one fresh context window."
-        dependency-edges: "A numbered file per ticket when there is no tracker."
+        vertical-slices: "Each slice is a tracer bullet through every layer."
         real-id-wiring: "Publishes in dependency order, blockers first, so each ticket references real identifiers."
 "mattpocock_skills:skill:skills/engineering/triage":
-  accepted: null
-  proposed: "5beb35b"
+  accepted: "5beb35b"
+  proposed: null
   analyses:
     "5beb35b":
       tree_hash: "4342a07c9ebe0696713ec93a883c46e56503a587a34d824fabab5ca61e3bdfbb"
       placement: {domain: engineering, stage: Intake, substage: Triage}
-      traits: [ai-disclaimer, category-state-roles, state-transitions, attention-buckets, recommend-then-wait, claim-verification, needs-info-notes, document-during-interview, redundancy-check, prior-rejection-check, ground-in-codebase, domain-vocabulary, respect-area-adrs, agent-brief-contract, no-stale-file-paths, brief-behavioural, brief-acceptance-criteria, brief-scope-boundaries, ready-for-human-rationale, out-of-scope-kb, pr-as-issue, external-pr-discovery-filter, triage-resume-notes]
+      traits: [ai-disclaimer, category-state-roles, state-transitions, attention-buckets, recommend-then-wait, claim-verification, needs-info-notes, document-during-interview, redundancy-check, prior-rejection-check, ground-in-codebase, domain-vocabulary, respect-area-adrs, agent-brief-contract, no-stale-file-paths, brief-behavioural, brief-acceptance-criteria, brief-scope-boundaries, ready-for-human-rationale, pr-as-issue, external-pr-discovery-filter, triage-resume-notes, label-name-mapping, natural-language-commands, pick-from-summary, read-full-source-issue, agent-brief-comment, already-built-close, polite-bug-rejection, direct-move-shortcut, brief-offer-on-shortcut, pr-remaining-work-brief, agent-brief-template, rejection-record-format, durable-rejection-reasons, rejection-match-outcomes, rejection-reversal, rejected-enhancement-only-records, rejection-record-closeout, concept-keyed-rejection-store]
       changed: {}
       notes:
         claim-verification: "For a PR, check out the diff and run its tests or commands; for a bug, reproduce from the reporter's steps."
-        out-of-scope-kb: "Concept-keyed files under a repo out-of-scope directory, matched by concept similarity rather than keyword."
         attention-buckets: "Three buckets (unlabeled, needs-triage, needs-info with new reporter activity), with external PRs tagged in them."
         prior-rejection-check: "Reads the out-of-scope knowledge base."
+        concept-keyed-rejection-store: "Files under a repository out-of-scope directory."
 "mattpocock_skills:skill:skills/engineering/wayfinder":
-  accepted: null
-  proposed: "5beb35b"
+  accepted: "5beb35b"
+  proposed: null
   analyses:
     "5beb35b":
       tree_hash: "a0aee2945105bc5f682588388b2c33d5cc8a68f68f10a60ece3f725e73076136"
       placement: {domain: core, stage: Discovery, substage: Charting}
-      traits: [decision-map-epic, plan-not-do, reference-by-name, map-as-index, map-body-sections, bounded-decision-ticket, session-sized-tickets, claim-before-work, dependency-edges, ticket-type-set, live-human-resolution, question-graduation, out-of-scope-close, one-ticket-per-session, research-subagent-branch, real-id-wiring, no-triage-labels, research-branch-pr-policy, type-directed-resolution, destination-first, no-map-without-fog, record-resolution]
+      traits: [decision-map-epic, plan-not-do, reference-by-name, map-as-index, map-body-sections, bounded-decision-ticket, session-sized-tickets, claim-before-work, dependency-edges, ticket-type-set, live-human-resolution, question-graduation, out-of-scope-close, one-ticket-per-session, research-subagent-branch, real-id-wiring, no-triage-labels, research-branch-pr-policy, type-directed-resolution, destination-first, no-map-without-fog, record-resolution, local-tracker-default, prototype-ticket-asset, grilling-default-type, fog-hygiene, out-of-scope-final, breadth-first-charting, map-initial-state, chart-only-session, low-res-map-load, ticket-asset-pointers, prerequisite-task-human-checklist, prerequisite-task-result-facts, invalidated-ticket-reconciliation]
       added: {real-id-wiring: "5beb35b", no-triage-labels: "5beb35b", research-branch-pr-policy: "5beb35b", type-directed-resolution: "5beb35b"}
       changed: {}
       notes:
         plan-not-do: "The effort's notes may override it."
         ticket-type-set: "Each kind is marked human-in-the-loop or agent-alone."
         real-id-wiring: "Creates the items first, then wires them in a second pass."
-        record-resolution: "Updates or deletes the tickets a decision invalidates."
+        claim-before-work: "Other sessions may be editing the tracker concurrently; claiming is the only control, with no locking or conflict resolution."
 "mattpocock_skills:skill:skills/engineering/wizard":
-  accepted: null
-  proposed: "5beb35b"
+  accepted: "5beb35b"
+  proposed: null
   analyses:
     "5beb35b":
       tree_hash: "806f7f7461824054ffaf3344e1e56e5e8a42344e22bdf8d22c6a8117eb9b1c38"
       placement: {domain: engineering, stage: Building, substage: Implementation}
-      traits: [template-library, scope-the-procedure, map-stage-journey, author-stages-over-template, ephemeral-by-default, syntax-check-handoff, static-trace-verification, template-robustness]
-      added: {template-robustness: "5beb35b"}
+      traits: [template-library, scope-the-procedure, map-stage-journey, author-stages-over-template, ephemeral-by-default, syntax-check-handoff, static-trace-verification, human-step-wizard, migration-state-delta, value-provenance-gate, open-url-before-ask, hidden-secret-entry, minimal-ci-secrets, irreversible-confirmation, stage-progress-counter, cross-platform-url-open, resumable-defaults, ci-secrets-via-cli, wizard-closing-summary, terminal-capability-detection, scoped-env-value-upsert, safe-env-file-handling, robust-value-prompting]
       changed: {}
+"mattpocock_skills:skill:skills/in-progress/chief-of-staff":
+  accepted: "5beb35b"
+  proposed: null
+  analyses:
+    "5beb35b":
+      tree_hash: "41c724a82562eda3d5715078198ed5afbea8cb4e6e4b69934a85d1100ad32ad6"
+      placement: {domain: core, stage: X, substage: Coordination}
+      traits: [single-coordinator-session, dual-track-thinking, suggest-schedules, coordinator-delegates-all, background-dispatch-for-dialogue, pointer-only-subagent-briefs, persistent-wiki-memory, agreed-wiki-location, wiki-index, single-subject-pages, cite-not-copy-sources, wiki-propagation, wiki-consult-first, file-answers-as-pages, wiki-lint, dated-history-entries, commit-pinned-claims, supersede-wiki-claims, environment-improvement-lens, agent-data-access, no-workarounds-rule, constrained-agent-interfaces, correctness-enforcing-lint, reviewer-owns-standards]
 "mattpocock_skills:skill:skills/in-progress/loop-me":
-  accepted: null
-  proposed: "5beb35b"
+  accepted: "5beb35b"
+  proposed: null
   analyses:
     "5beb35b":
       tree_hash: "5dac8f9919f3e1a528a4f1f00db07c81c3e6092e706376d81c697d16422ab163"
       placement: {domain: core, stage: Intake, substage: Clarification}
-      traits: [loop-lens, workflow-spec-artifact, spec-done-when-buildable, world-notes, workflow-vocabulary, mandate-nothing-structural, push-right, decision-summary-brief]
+      traits: [loop-lens, workflow-spec-artifact, spec-done-when-buildable, world-notes, workflow-vocabulary, mandate-nothing-structural, push-right, decision-summary-brief, spec-files-only-output, answer-before-next-round, recommended-answer, live-spec-edits, prefer-event-triggers, sharpen-fuzzy]
       changed: {}
 "mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules":
-  accepted: null
-  proposed: "5beb35b"
+  accepted: "5beb35b"
+  proposed: null
   analyses:
     "5beb35b":
       tree_hash: "8a3136caaea8fa439521917a624496769eba40cf8c59f62b4113a0dc916288a3"
       placement: {domain: engineering, stage: Building, substage: Implementation}
-      traits: [deep-module-shape, entry-point-only-imports, intra-package-freedom, tests-through-entry-points, no-cycles, public-surface-is-root-files, discourage-barrels, prove-the-rules-bite, document-boundary-readme, link-convention-from-agents-file, preserve-existing-config, wire-umbrella-check, scaffold-example, detect-package-conventions, flat-packages]
+      traits: [entry-point-only-imports, intra-package-freedom, tests-through-entry-points, no-cycles, public-surface-is-root-files, discourage-barrels, prove-the-rules-bite, document-boundary-readme, link-convention-from-agents-file, preserve-existing-config, wire-umbrella-check, scaffold-example, detect-package-conventions, flat-packages, two-folder-package-layout, test-folder-isolation, error-severity-rules, layering-stub, install-boundary-linter, bundled-config-copy, ci-fallback-instruction, group-backreference-rules, commonjs-config, cruiser-resolution-config, preserve-typeconfig-and-aliases, module-vocabulary]
       changed: {}
 "mattpocock_skills:skill:skills/productivity/grilling":
-  accepted: null
-  proposed: "5beb35b"
+  accepted: "5beb35b"
+  proposed: null
   analyses:
     "5beb35b":
       tree_hash: "74de5501c2b0cec8410bf4ebc9eaddc84f6f7706e04d2c70a814872b1c44e410"
       placement: {domain: core, stage: Intake, substage: Clarification}
-      traits: [map-decisions, question-batching, recommended-answer, yes-accepts-recommendation, round-format, self-serve-facts, exhaustive-completion, reconfirm-before-action]
+      traits: [map-decisions, question-batching, recommended-answer, yes-accepts-recommendation, round-format, self-serve-facts, exhaustive-completion, reconfirm-before-action, answer-before-next-round, non-blocking-lookup]
       added: {yes-accepts-recommendation: "5beb35b", round-format: "5beb35b"}
       changed: {}
       notes:
         recommended-answer: "Numbers each question."
-        self-serve-facts: "Dispatches a non-blocking sub-agent; only the questions downstream of it wait."
+        self-serve-facts: "Looks facts up through a subagent."
 "mattpocock_skills:skill:skills/productivity/handoff":
-  accepted: null
-  proposed: "5beb35b"
+  accepted: "5beb35b"
+  proposed: null
   analyses:
     "5beb35b":
       tree_hash: "f60a2c3688379b7a306b3a7b8dd4120eab39da44c74fa2cb62d6424935f04aa7"
       placement: {domain: core, stage: X, substage: Continuity}
-      traits: [handoff-doc, temp-dir-destination, suggested-skills, link-dont-copy, redact-secrets, tailor-to-next-focus]
+      traits: [handoff-doc, temp-dir-destination, suggested-skills, link-dont-copy, tailor-to-next-focus, placeholder-sensitive-data-redaction]
       changed: {}
 "mattpocock_skills:skill:skills/productivity/teach":
-  accepted: null
-  proposed: "5beb35b"
+  accepted: "5beb35b"
+  proposed: null
   analyses:
     "5beb35b":
       tree_hash: "31bb3eed09dd2787e290e933def99fbf7d65044a29119c224af47c01404ab228"
       placement: {domain: core, stage: U, substage: Tutoring}
-      traits: [teaching-workspace, always-stateful-course, workspace-from-run-dir, mission-grounding, proximal-next-lesson, storage-strength, retrieval-practice, spacing, interleaving, lesson-format, html-lessons, reusable-assets, shared-component-extraction, glossary-format, glossary-admission-on-use, learning-records, quiz-equal-length, vary-answer-position, resources-curation, wisdom-community-referral, reference-sheets, preference-notes, sourced-explanations, tight-feedback-loop]
+      traits: [teaching-workspace, always-stateful-course, workspace-from-run-dir, mission-grounding, proximal-next-lesson, storage-strength, retrieval-practice, spacing, lesson-format, html-lessons, reusable-assets, shared-component-extraction, glossary-admission-on-use, learning-records, quiz-equal-length, vary-answer-position, wisdom-community-referral, reference-sheets, preference-notes, sourced-explanations, tight-feedback-loop, knowledge-skills-wisdom-frame, resource-gathering-priority, polished-lesson-typography, open-artifact-for-user, cross-linked-lessons, lesson-primary-source, follow-up-prompt, mission-interview-first, mission-shift-handling, just-enough-knowledge, difficulty-by-kind, skill-practice-forms, community-opt-out, domain-vocabulary, learning-record-criteria, field-term-resolution, in-place-definition-revision, learning-resource-register, skills-only-interleaving, mission-document-template, one-mission-per-workspace, one-screen-mission, high-trust-resource-filter, resource-gap-register, prune-invalid-resources, sequential-record-numbering, minimal-learning-record-template, optional-record-sections, learning-record-supersession, glossary-entry-template, canonical-term-and-aliases, tight-concept-definitions, glossary-self-vocabulary, topic-dependent-learning-balance]
       added: {workspace-from-run-dir: "5beb35b", vary-answer-position: "5beb35b"}
       changed: {}
       notes:
-        glossary-format: "Uses the glossary's own terms inside definitions."
-        interleaving: "For skills practice only."
         shared-component-extraction: "Starts with a shared stylesheet every lesson links."
+        glossary-entry-template: "Lays the file out as a title and a one-or-two-sentence description, then each term in bold followed by its definition and an Avoid line."
+        tight-concept-definitions: "One or two sentences at most."
 "mattpocock_skills:skill:skills/productivity/to-questionnaire":
-  accepted: null
-  proposed: "5beb35b"
+  accepted: "5beb35b"
+  proposed: null
   analyses:
     "5beb35b":
       tree_hash: "0bcb2b31a45a3d176daa07c16d6532ee7819b802de081090c3fa856702767b13"
       placement: {domain: core, stage: Intake, substage: Clarification}
-      traits: [grill-the-send, two-exchange-interview, gap-targeted-questions, questionnaire-artifact, document-structure]
+      traits: [grill-the-send, two-exchange-interview, gap-targeted-questions, questionnaire-artifact, absent-respondent, needed-item-coverage, selective-why-lines, importance-ordered-questions, questionnaire-document-template, questionnaire-response-expectations, partial-uncertain-answers-welcome, single-idea-questions]
       changed: {}
+      notes:
+        questionnaire-document-template: "Bounds the context to one paragraph."
 "mattpocock_skills:skill:skills/productivity/wait-what":
-  accepted: null
-  proposed: "5beb35b"
+  accepted: "5beb35b"
+  proposed: null
   analyses:
     "5beb35b":
       tree_hash: "70c9bf9f5a84b6849760f9492f569d5aa12307a0310323fde5f583144730c26c"
       placement: {domain: core, stage: X, substage: Communication}
-      traits: [repitch-trigger, controlled-language, domain-vocabulary, context-map-lookup]
+      traits: [repitch-trigger, domain-vocabulary, context-map-lookup, standard-controlled-language]
       added: {context-map-lookup: "5beb35b"}
       changed: {}
-      notes:
-        controlled-language: "Uses ASD-STE100 Simplified Technical English."
 "mattpocock_skills:skill:skills/productivity/writing-for-agents":
-  accepted: null
-  proposed: "5beb35b"
+  accepted: "5beb35b"
+  proposed: null
   analyses:
     "5beb35b":
       tree_hash: "e79a2476b2417b228922453478d9505a6b9af19f3a412e560728ce62ed3555ca"
       placement: {domain: core, stage: Improvement, substage: Codification}
-      traits: [context-pointers, two-loads, inline-vs-disclose, co-location, completion-criteria-clarity, completion-criteria-demand, split-by-invocation, sequence-isolation, leading-words, negation-avoidance, single-source-of-truth, environment-as-cache, relevance-check, no-op-deletion, invocation-mode, shared-reference-home, router-skills]
+      traits: [context-pointers, two-loads, inline-vs-disclose, co-location, completion-criteria-clarity, completion-criteria-demand, split-by-invocation, sequence-isolation, leading-words, negation-avoidance, single-source-of-truth, environment-as-cache, relevance-check, no-op-deletion, invocation-mode, shared-reference-home, router-skills, sharpen-before-inline, one-trigger-per-branch, pointer-identity-trim, criterion-before-isolation, triad-collapse, model-facing-description, human-facing-description, external-shared-reference, observed-rushing-context-isolation, empirical-instruction-default-check]
       changed: {}
       notes:
         inline-vs-disclose: "Ranks material on a ladder of in-file step, in-file reference and disclosed reference."
