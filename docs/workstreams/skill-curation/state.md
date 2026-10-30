@@ -1,7 +1,7 @@
 # Skill curation: handoff
 
-Updated 2026-10-28 (traits replace ideas and Covers). Branch `dws-workflow` (never merge to `main` until DWS is
-built). Beads is the work-state authority; this file is the narrative.
+Updated 2026-10-30 (stages build, `delegation` skill and trait-sharing rulings
+committed). Branch `dws-workflow` (never merge to `main` until DWS is built). Beads is the work-state authority; this file is the narrative.
 
 ## Start here (new session)
 
@@ -34,69 +34,43 @@ built). Beads is the work-state authority; this file is the narrative.
   article. Writing ideas from reference harnesses go into
   `.claude/skills/authoring-for-agents/references/writing-principles.md`.
 
-## Done (all pushed)
+## Done
 
 | Commit | What |
 |---|---|
 | `19f3f5a` | Registry replaces `gap.py`, `ledger.json`, inventory CSVs and the casebook. 36 skill records, sealed migration round (243 events), generated `references/` and `INDEX.md`. Epic `cr-skwm` closed |
 | `fc7feb3` | Six owner rulings on broken migration adoptions (round `2026-10-14-owner-review`); `registry/reviews/` folder; skill and harness comparisons archived; `harness-skill-compare` writes a skill review; `round open` date fix (`cr-alnr`) |
 | `52bf9fc` | `harness_lifecycle/playbook.md`; seven placement fixes; ADLC sub-stage Orchestration renamed Coordination |
+| `c65e0ef` | Traits replace ideas and Covers (`cr-axdt.5`, design `traits-design.md`): `trait-definitions.yaml`, generated `TRAITS.md`; Pocock catalog at `5beb35b` |
+| `2a38fbe` | Stages build (`cr-w92w`, design `stages-design.md`): `curation/` package, `skills.yaml`, `traits/` with accepted and proposed analyses, `status`, reports, `trait-sharing.yaml` (16 shared traits kept with a why), empty `trait-policy.yaml`. `delegation` skill replaces agent-matrix and use-codex (`cr-sduw`, round `2026-10-30-delegation`) |
+
+`c65e0ef` and `2a38fbe` are not pushed.
 
 Decisions behind them: domains `core` and `engineering`; one primary
 coordinate per skill (domain · stage · sub-stage); reviews are flat files
 `reviews/<date>-<upstream|skill>-<slug>.md`, linked into records by `build`;
 frozen material goes to `harness_lifecycle/archive/`.
 
-## In flight: idea-level rulings (epic `cr-axdt`)
+## In flight: Pocock redo (`cr-axdt.4`)
 
-Owner decision, 2026-10-22: before any Pocock ruling, build idea-level
-tracking, bump Pocock to its latest upstream, and redo the review and rulings
-on the new mechanism. Design: `idea-level-design.md`. The draft 1.3.1 rulings
-and the decision record are saved in `pocock-1.3.1-draft-rulings.md`; reuse
-them wherever upstream has not changed since `49dd158`.
+Build step 8 of `stages-design.md`, the last one: the report YAML for the 25
+Pocock skills at `5beb35b`; critics; owner decisions; then the owner's
+question B (pending versus editing now); record, promote, seal, commit with
+the `5beb35b` pointer. Start from `registry.py status mattpocock_skills` and
+playbook §4.
 
-Order: `cr-axdt.1` Sol design review (DONE: approved after 3 rounds; reviews in `scratchpad/sol-design-review*.md`) → `cr-axdt.2` build (Opus implementer)
-and `cr-zo2f` (gap diff, folded in) → `cr-axdt.3` docs → `cr-axdt.4` Pocock
-pilot. `cr-z1hk` waits on the pilot. Finding behind the tree hash: catalog
-`content_hash` covers `SKILL.md` only, so asset-only upstream changes were
-invisible to `gap`.
-
-**Status 2026-10-22 (late):** mechanism built and reviewed (`cr-axdt.1`–`.3`,
-`cr-zo2f` closed); Pocock at `5beb35b`; idea-level review at
-`harness_lifecycle/registry/reviews/2026-10-22-upstream-mattpocock_skills-1.3.1-47.md`.
-
-**Status 2026-10-28: traits replace ideas and Covers (`cr-axdt.5`).** Design
-`traits-design.md` (Sol approved, 4 rounds; §5 amended for grandfathered
-pre-trait rounds). Built and migrated: `registry/trait-definitions.yaml` (597
-traits), `registry/traits.yaml` (36 ours, 25 Pocock entries), generated
-`TRAITS.md`; Covers and `covers_hash` stripped from records; old item →
-trait table `trait-migration-2026-10-28.md`. Sol code+data review: 3 rounds,
-APPROVE. Gates: 56 registry tests, `check` ok (19 overlap warnings, input to
-`cr-talb`), `skill-catalog.py --check` ok. `reference-records/` and
-`CAPABILITIES.md` were never committed; moved to
-`scratchpad/traits-migration/removed/`. Working files and Sol reviews:
-`scratchpad/traits-migration/`.
-
-**Next in the pilot (`cr-axdt.4`), waiting on the owner's ruling.** `gap
-mattpocock_skills` lists 23 skills "awaiting trait ruling" (`pr` and `retro`
-are unreviewed). Draft rulings, re-keyed to traits:
-`scratchpad/traits-migration/pilot-rekeyed/{core,build,design}.jsonl`
-(`dropped.jsonl`: 4 routing drafts). Clean them before recording: six subjects
-carry two drafts; two drafts have a list in `into`; gap drafts that point
-`into` a neighbour become `pending` adopts; `teach#proximal-next-lesson` holds
-an implementer's modification, re-rule it; nine upstream traits have no draft
-(`delete-debug-prototypes`, `context-specific-terms`, `session-sized-tickets`,
-`always-stateful-course`, `findings-file`, `html-lessons`,
-`shared-component-extraction`, `glossary-admission-on-use` on teach,
-`live-human-resolution`). Then `round open` with `trait_level: true`, record,
-seal, `build`, `check`, one bead per pending gap, commit with the `5beb35b`
-pointer.
+Raw material, minus its "covered elsewhere" and overlap-owner logic: the
+trait-level drafts in `scratchpad/traits-migration/rulings/` (298 events,
+Sol-approved 2026-10-29) and the owner's six open questions in the bead's
+notes. Older drafts, superseded by those: the idea-level review
+`registry/reviews/2026-10-22-upstream-mattpocock_skills-1.3.1-47.md`
+(uncommitted) and `scratchpad/traits-migration/pilot-rekeyed/`.
 
 ## Superseded: Pocock 1.2.3 → 1.3.1 draft rulings (kept for reuse)
 
 Playbook §4, pins `84fdeff` → `49dd158`, 125 commits, 39 `gap` items.
 
-- Review: `harness_lifecycle/registry/reviews/2026-10-14-upstream-mattpocock_skills-1.3.1.md`.
+- Review: `pocock-1.3.1-draft-review.md` (this folder).
   Author: Opus medium; critic: Sol high, two rounds. Round 1 REVISE (12
   findings, all applied); round 2 left one MAJOR (wizard verdict) and citation
   fixes, applied by hand. Sol has not re-checked those last edits.
@@ -134,29 +108,23 @@ Playbook §4, pins `84fdeff` → `49dd158`, 125 commits, 39 `gap` items.
 
 | Path | State |
 |---|---|
-| `docs/workstreams/skill-curation/` | new; this handoff, `idea-level-design.md`, `traits-design.md`, `trait-migration-2026-10-28.md`, `overlap-audit-2026-10-22.md`, draft review/rulings |
-| `harness_lifecycle/registry/` | `registry.py` + `tests/test_registry.py` (traits), `trait-definitions.yaml`, `traits.yaml`, `TRAITS.md`, README, regenerated records, references and `INDEX.md` |
-| `harness_lifecycle/playbook.md` | §3–§4, §7 rewritten for traits |
-| `harness_lifecycle/registry/reviews/2026-10-14-upstream-mattpocock_skills-1.3.1.md` | new; the Pocock review (draft; redo at idea level) |
-| `harness_lifecycle/catalogs/mattpocock_skills.json` | regenerated at `5beb35b` |
+| `harness_lifecycle/registry/reviews/2026-10-22-upstream-mattpocock_skills-1.3.1-47.md` | superseded idea-level draft; raw material for the redo |
 | `reference_harnesses/mattpocock_skills` | pointer moved to `5beb35b`; commit with its ruling round |
-| `harness_lifecycle/playbook.md` | Building step: rewrite borrowed ideas in our words; writing ideas go to `writing-principles.md` |
-| `harness_lifecycle/prompting-guides/README.md` | when `GUIDE.md` may change |
 | `reference_harnesses/cursor_plugins` | pointer moved to `ce649c0`; waits for its own review |
-| `.beads/issues.jsonl`, `tools/T3/*` | not this workstream; leave alone |
+| `.beads/issues.jsonl`, `.claude/agents/*`, `tools/T3/*` | not this workstream; leave alone |
 
 ## Next, in order
 
-1. Epic `cr-axdt` (above), ending with the Pocock idea-level rulings.
+1. The Pocock redo (above), then `cr-z1hk`, which waits on it.
 2. agent-skills 0.6.13 rulings by playbook §4: the review exists
    (`reviews/2026-10-14-upstream-agent-skills-0.6.13.md`) but no rulings; `gap
    agent-skills` shows 12 changed and 2 new (constraint-driven-development
    and `/constraints`). Its six borrow candidates feed the verdicts.
 3. Cursor (`cursor_plugins`) upstream review, then commit its pointer.
-4. Data clean-up in the migration round: 29 casebook/ledger disagreements and
+4. `cr-talb`: the overlap-audit items the 2026-10-30 sharing rulings left open
+   (#1–#4, #7–#9, #15 and the stale show-me gate; see its comment).
+5. Data clean-up in the migration round: 29 casebook/ledger disagreements and
    84 rulings with no content hash (re-rule them as each harness is reviewed).
-5. Hand-written Capability text for the 36 skill records (seeded from each
-   skill's description), and proper `family` values.
 
 ## Known loose ends
 
@@ -171,6 +139,12 @@ Playbook §4, pins `84fdeff` → `49dd158`, 125 commits, 39 `gap` items.
   candidate deferred bead.
 - Beads: `cr-fxo8` (release contract into `harness-publish`), `cr-dp83` (port
   agent-skills shared references), `cr-70qs` (trigger evals).
+- `cr-p43t`: at the next `/harness-publish`, update the manifest's expected
+  skills (`delegation` ships, agent-matrix is gone).
+- `harness_lifecycle/catalogs/ours.json` still lists agent-matrix and
+  use-codex; regenerate it with `scan.py catalog`.
+- `mvp-harness/plugins/codex-adapter` is still in the submodule, and the root
+  `README.md` lists it; removing it is submodule work for the owner.
 - Deferred rulings to revisit: `context-engineering` and
   `doubt-driven-development` (agent-skills).
 - The old worktree `coding-ritual-registry` (a sibling of the repo checkout) (branch `wf/registry`,
