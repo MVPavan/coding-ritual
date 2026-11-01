@@ -104,3 +104,11 @@ two-failure-stop:
   skills: [doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, execution]
   why: "Each fixes a failure on its own path, the bug-fix playbook for a bug-fix request and execution inside a task it is running, often delegated, where it cannot start the playbook (R8); both stop after two failed fixes and return the attempt log, the playbook to the user and execution to the task owner."
   reviewed: "2026-10-31"
+single-source-of-truth:
+  skills: [authoring-for-agents, principle-subtract-before-you-add]
+  why: "Each applies one-owner-per-meaning to its own material: authoring-for-agents to agent instructions (search for an existing owner before adding one), the principle to code and data before an addition; neither unit loads the other on its path."
+  reviewed: "2026-11-01"
+no-onward-delegation:
+  skills: [delegation, doc:AGENTS.md, mvp-mode]
+  why: "AGENTS.md holds it as policy every agent loads, so a delegate stops fanning out even when its brief was written by hand; the delegation skill writes it into each role block of the briefs it produces, so a delegate on a vendor or project without our AGENTS.md still receives it; the mvp-mode router states it beside its delegate-independent-by-default rule for plugin users who skip the optional AGENTS.md, so a router that tells them to delegate also tells their delegates not to fan out."
+  reviewed: "2026-11-01"

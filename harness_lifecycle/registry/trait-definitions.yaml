@@ -913,6 +913,16 @@ delegation-threshold:
   placement: {domain: core, stage: X, substage: Coordination}
   distinct_from: [sizeable-delegation, delegate-afk-work]
   note: "sizeable-delegation covers research investigation; delegate-afk-work sends unsteered tasks away; this sets the general threshold."
+delegate-by-default:
+  definition: "At top level, hand most work to subagents and keep the main context for coordination, integration and verification; work locally only when that has a clear advantage."
+  placement: {domain: core, stage: X, substage: Coordination}
+  distinct_from: [bulk-to-subagents, delegation-threshold]
+  note: "bulk-to-subagents delegates only bulk reading and large outputs; delegation-threshold delegates only when that materially helps. This makes delegation the default for most work and local work the exception that needs a reason."
+delegate-independent-by-default:
+  definition: "At top level, hand independent work to subagents and keep the main context for coordination, integration and verification; work locally only when that has a clear advantage."
+  placement: {domain: core, stage: X, substage: Coordination}
+  distinct_from: [delegate-by-default, bulk-to-subagents, delegation-threshold]
+  note: "delegate-by-default hands most work to subagents, independent or not; this hands only independent work. bulk-to-subagents delegates only bulk reading and large outputs; delegation-threshold delegates only when that materially helps."
 worker-brief-contents:
   definition: "Give each worker a brief stating the outcome, owned paths, constraints, acceptance checks and pointers to relevant context."
   placement: {domain: core, stage: X, substage: Coordination}
@@ -3828,3 +3838,490 @@ existing-variant-styling-system:
 named-variant-components:
   definition: "Export each UI variant as a clearly named component."
   placement: {domain: engineering, stage: Design, substage: Architecture}
+
+# ---- pstack principles round, 2026-10-31 (reviews/2026-10-31-upstream-cursor_plugins-pstack-principles.yaml) ----
+# -- core · Building · Implementation --
+tool-over-hand-work:
+  definition: "For non-trivial edits, analyses or checks, write a rerunnable tool that does or proves the work, so a reviewer reruns it instead of trusting a hand-made result."
+  placement: {domain: core, stage: Building, substage: Implementation}
+tool-when-it-pays:
+  definition: "Use existing deterministic tools and checks where they suffice, and build a rerunnable tool only when it materially reduces repeated work or supplies proof a reviewer needs, keeping its output."
+  placement: {domain: core, stage: Building, substage: Implementation}
+  secondary: [Validation]
+  distinct_from: [tool-over-hand-work, scripted-proof]
+  note: "tool-over-hand-work builds a tool for every non-trivial edit, analysis or check, and scripted-proof prefers a script for every proof; this reuses existing tools and checks first and builds one only when it saves repeated work or supplies proof nothing else gives."
+hand-first-recipe:
+  definition: "Do the first unit by hand, then build the tool and show it reproduces the hand result before running it on the rest."
+  placement: {domain: core, stage: Building, substage: Implementation}
+rerun-safe-tool:
+  definition: "Make a work tool safe to rerun on input it has already changed."
+  placement: {domain: core, stage: Building, substage: Implementation}
+  distinct_from: [convergent-operations]
+  note: "convergent-operations is a design rule for state-changing operations, including interrupted runs; this asks only that an edit tool not corrupt input it already edited."
+minimal-tool:
+  definition: "Build the smallest script that does or proves the job, never a framework."
+  placement: {domain: core, stage: Building, substage: Implementation}
+  distinct_from: [smallest-sufficient-change, present-requirement-only]
+  note: "smallest-sufficient-change bounds the change delivered and present-requirement-only bans speculative abstractions; this bounds the tool built to deliver it."
+# -- core · Improvement · Codification --
+recurring-lesson-to-check:
+  definition: "When a correction or instruction recurs, encode it as a lint, flag, runtime check or script instead of adding more instruction text."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+  distinct_from: [build-check-over-rule, mechanical-vs-judgement, learnings-capture]
+  note: "build-check-over-rule defaults any mechanical review finding to a check, whatever its history; this one is triggered by recurrence of a correction or instruction, which may come from a review, a user or the agent's own notes. mechanical-vs-judgement only classifies; learnings-capture records recurring patterns as text."
+judgement-lesson-example:
+  definition: "When a recurring lesson needs judgement and cannot be checked, make its instruction more prominent and pair it with an example of the failure."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+judgement-lesson-failure-example:
+  definition: "When a recurring lesson needs judgement and cannot be checked, revise the instruction it implicates and add one example of the failure, rather than repeating or emphasising the rule."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+  distinct_from: [judgement-lesson-example, one-effective-instruction]
+  note: "Destination variant: drops the upstream prominence step, which one-effective-instruction rejects, and keeps the failure example."
+structural-fix-only:
+  definition: "Once a rule is enforced by structure, delete the instruction that restated it."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+  distinct_from: [no-op-deletion]
+  note: "no-op-deletion removes what the model already does by default; this removes what a check already enforces."
+check-pointer-not-restatement:
+  definition: "Once a check enforces a rule, replace the instruction that restated it with a pointer to the check."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+  distinct_from: [structural-fix-only]
+  note: "Destination variant: structural-fix-only deletes the instruction outright; this keeps a pointer so a reader learns the check exists."
+stub-deletion:
+  definition: "Delete a reference that carries no novel content instead of leaving a stub that points elsewhere."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+  distinct_from: [compatibility-alias]
+  note: "compatibility-alias keeps a legacy entrypoint as a pointer on purpose; this targets references with nothing of their own."
+# -- core · Improvement · Evaluation --
+eval-result-scrutiny:
+  definition: "Before trusting an eval result, check that every run did the task, that the gap holds across trials and models, and that the scenario matters."
+  placement: {domain: core, stage: Improvement, substage: Evaluation}
+# -- core · Verification · Validation --
+scripted-proof:
+  definition: "Prefer a deterministic, rerunnable script as the proof of a result, and keep its output for a reviewer."
+  placement: {domain: core, stage: Verification, substage: Validation}
+  distinct_from: [tool-over-hand-work, direct-observation]
+  note: "tool-over-hand-work is a default for doing all non-trivial work with tools; this prefers a script only for the proof. direct-observation says what to observe, not how to repeat it."
+direct-observation:
+  definition: "Verify a result by observing the real thing (run it, read the actual value, check liveness directly), never a proxy, a cached view or a self-report."
+  placement: {domain: core, stage: Verification, substage: Validation}
+  distinct_from: [primary-evidence-check]
+  note: "primary-evidence-check verifies claims others report; this governs how the agent verifies its own output."
+suspect-the-observation:
+  definition: "When a check fails unexpectedly, test the observation method before concluding the system is wrong."
+  placement: {domain: core, stage: Verification, substage: Validation}
+# -- core · X · Continuity --
+outliving-tool-commit:
+  definition: "Commit a work tool when the work it does outlives the session."
+  placement: {domain: core, stage: X, substage: Continuity}
+  distinct_from: [ephemeral-by-default, scratch-artifact-location]
+  note: "ephemeral-by-default is specific to setup wizards; scratch-artifact-location only says where temporary files go."
+audit-trail-proof-commit:
+  definition: "Keep a proof artifact visible to the human, and commit it only when large or complex work needs an auditable trail."
+  placement: {domain: core, stage: X, substage: Continuity}
+  distinct_from: [outliving-tool-commit]
+  note: "outliving-tool-commit commits a work tool whenever the work outlives the session; this commits a proof only for large or complex work."
+proposed-artifact-commit:
+  definition: "Keep a work tool or proof artifact in the scratch folder and propose committing it when the work will be rerun or audited."
+  placement: {domain: core, stage: X, substage: Continuity}
+  distinct_from: [outliving-tool-commit, audit-trail-proof-commit, scratch-artifact-location]
+  note: "Destination variant: the two upstream rules commit on their own conditions; this keeps the artifact in scratch and turns the commit into a proposal, since commits need authority."
+bulk-to-subagents:
+  definition: "Send bulk reading and large outputs to subagents and keep only their summaries in the main thread."
+  placement: {domain: core, stage: X, substage: Continuity}
+  distinct_from: [logs-behind-references, delegation-threshold]
+  note: "Ours keeps logs behind references and delegates partly for context use; neither names summaries-not-payloads as the rule."
+phase-scope-caps:
+  definition: "Cap each phase's scope with file limits and turn budgets, counting the context cost of the mechanisms used."
+  placement: {domain: core, stage: X, substage: Continuity}
+  distinct_from: [smart-zone-budget, session-sized-tickets]
+  note: "smart-zone-budget sets a token threshold; session-sized-tickets sizes tickets. This one caps a phase's files and turns."
+noticed-problem-followup:
+  definition: "Log a problem noticed in passing and fix it in the next round."
+  placement: {domain: core, stage: X, substage: Continuity}
+  distinct_from: [no-unrelated-cleanup]
+  note: "no-unrelated-cleanup leaves an unrelated problem alone; this logs it and fixes it in the next round without asking."
+# -- core · X · Coordination --
+script-over-fanout:
+  definition: "When one deterministic pass can process every unit, run a script rather than fanning the units out to delegates."
+  placement: {domain: core, stage: X, substage: Coordination}
+  distinct_from: [delegation-threshold]
+  note: "delegation-threshold weighs delegation against local work; this one prefers a script over both."
+shared-delegate-contract:
+  definition: "When fanning work out, give every delegate one shared artifact with the recipe, the verification contract and the fences, kept outside their write scope."
+  placement: {domain: core, stage: X, substage: Coordination}
+  distinct_from: [worker-brief-contents]
+  note: "worker-brief-contents is a per-worker brief; this is one read-only contract all delegates share."
+reversible-work-proceeds:
+  definition: "Proceed without asking on reversible work, then present the result and its reasoning so the human can correct it afterwards, leaving product direction to the human."
+  placement: {domain: core, stage: X, substage: Coordination}
+  distinct_from: [material-ambiguity-ask]
+  note: "material-ambiguity-ask turns on materiality (correctness, scope, authority); this turns on reversibility."
+# -- core · X · Governance --
+irreversible-only-confirmation:
+  definition: "Ask for confirmation only before irreversible actions such as force-pushing, deleting production data or sending external messages."
+  placement: {domain: core, stage: X, substage: Governance}
+  distinct_from: [consequential-action-authorization]
+  note: "Ours also gates reversible but consequential actions: publishing, any message, scope expansion."
+# -- engineering · Building · Diagnosis --
+premise-test-gate:
+  definition: "After two or more fixes that rest on one premise fail the same gate, write that premise as one sentence and test it with an observation that would differ were it false, before any further fix that assumes it."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [two-failure-stop, debug-spiral-reset, no-evidence-pivot]
+  note: "two-failure-stop hands the attempt log back to the requester; debug-spiral-reset asks one diagnostic question; no-evidence-pivot only changes approach. This one names and tests the shared belief itself."
+decision-before-measurement:
+  definition: "Before measuring, name the result that would change a decision and the noise floor the result must clear."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [define-metric]
+  note: "define-metric fixes metric, workload and target; this one fixes the decision threshold and noise floor before the run."
+named-limiter:
+  definition: "Explain a measured number by the resource or code path that bounds it, found from a profile or counters taken during the run and mapped to source, not from reading code."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [locate-cost]
+  note: "locate-cost finds where cost is spent; this asks why the result is not twice as good."
+confound-elimination:
+  definition: "List what else a number could be measuring (errors, skipped or cached work, code that never ran, an untuned side, noise, a negligible share) and rule each out with evidence."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [like-for-like-comparison]
+  note: "like-for-like-comparison fixes the conditions; this one rules out alternative explanations of the result."
+evidence-with-number:
+  definition: "Report a measured number together with its run count, spread and limiter."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [representative-baseline, attempt-ledger]
+  note: "Ours records command, conditions and results; the limiter is the missing field."
+why-chain:
+  definition: "Ask why at each step of a failure until the answer is a wrong decision in the code rather than a consequence of an earlier one."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [localized-probing]
+  note: "localized-probing narrows where the fault is; this sets when the causal chain stops."
+observe-not-guess:
+  definition: "When stuck, add instrumentation and read the actual error and state instead of reasoning from guesses."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [localized-probing]
+  note: "localized-probing chooses where to probe; this forbids substituting inference for observation."
+legitimate-state-test:
+  definition: "Before guarding where a symptom surfaced, decide whether the triggering state is legitimate: handle a legitimate state there, and trace an illegitimate one to what produced it."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [owning-fix]
+  note: "owning-fix rejects symptom-hiding changes; this supplies the test that tells a valid guard from a hiding one."
+persisted-state-suspect:
+  definition: "When a failure appears only after a restart, suspect persisted state (configuration, caches, lock files, serialized state) first."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+fix-every-instance:
+  definition: "Search for every place with the same fault and fix them all, not only the reported instance."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [caller-impact-check]
+  note: "caller-impact-check inspects callers of the changed code; this searches for the same fault elsewhere."
+scoped-instance-fix:
+  definition: "Search for every instance of a confirmed fault, fix those inside the task's scope and report the rest."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [fix-every-instance, no-unrelated-cleanup]
+  note: "Destination variant: fix-every-instance fixes all instances unconditionally; this fixes only in-scope ones and reports the others."
+always-on-signal:
+  definition: "After a fact took a deep investigation to find, propose the cheap always-on signal that would have shown it at first look."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [regression-check]
+  note: "regression-check guards the fixed defect; this improves observability for the next unknown one."
+# -- engineering · Building · Implementation --
+detail-finish:
+  definition: "Finish interaction details such as transitions, alignment, spacing, feedback and error states as part of the work, not as later polish."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+workaround-comment-smell:
+  definition: "Treat a workaround that needs a long justifying comment as a sign the code is wrong, and fix the code instead."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+structural-dry:
+  definition: "Deduplicate structure such as types and data models, but tolerate a few similar statements rather than a premature abstraction."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+  distinct_from: [present-requirement-only]
+  note: "present-requirement-only bans speculative abstractions; this one also says what to deduplicate."
+test-before-fix:
+  definition: "Sequence the test that will check a fix before the fix itself."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+  distinct_from: [red-green, regression-check]
+  note: "red-green and regression-check also require the test to fail first; this asks only for the order."
+deletion-bias:
+  definition: "When refactoring or tempted to add an abstraction, layer or threaded signal, prefer deleting code to adding it."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+  distinct_from: [subtraction-first, smallest-sufficient-change]
+  note: "subtraction-first orders removal before construction; smallest-sufficient-change bounds the diff. This is a preference at the moment of choosing, with no ordering."
+narrowest-state-scope:
+  definition: "Give state the narrowest scope that works: locals over fields over module state over globals."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+  distinct_from: [frozen-by-default, derive-over-sync]
+  note: "frozen-by-default limits mutation; this limits where state lives. derive-over-sync is separate: state can be local and still copied."
+derive-over-sync:
+  definition: "Derive a value from its source when needed instead of storing a copy that must be kept in sync."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+  distinct_from: [narrowest-state-scope, single-source-of-truth]
+  note: "single-source-of-truth keeps a meaning in one authoritative place; this forbids stored derived copies of runtime values."
+verified-unit-sequence:
+  definition: "Split multi-step work into small units that each end in a checked state, and start the next only when the current one passes."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+  distinct_from: [vertical-slices, stop-on-failure]
+  note: "vertical-slices shapes plan tasks; stop-on-failure halts a pipeline on a failed gate. This checks every edit unit of a sweep."
+leave-it-simpler:
+  definition: "Leave each touched design slightly simpler and more capable, behind the same or a smaller surface, than it was found."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+  distinct_from: [no-unrelated-cleanup]
+  note: "no-unrelated-cleanup forbids cleanup the request does not need; this makes improving each touched design a standing duty."
+exhaustive-variant-handling:
+  definition: "Handle every variant of a closed type so the checker reports a variant left unhandled."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+  distinct_from: [unrepresentable-invalid-states]
+  note: "unrepresentable-invalid-states removes impossible states from the type; this makes dispatch over its legal variants complete."
+# -- engineering · Delivery · Integration --
+small-single-purpose-commits:
+  definition: "Keep each commit small and about one thing."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+clean-baseline-first:
+  definition: "Start from a clean, current base so each check measures against the real baseline."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+  distinct_from: [merge-base-selection]
+  note: "merge-base-selection picks the base before merging; this fixes the base before the work's checks."
+argument-order-commits:
+  definition: "Order commits so the history proves the work (failing test before fix, removal before reshape, baseline before treatment, scaffold before feature), each commit standing alone."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+# -- engineering · Design · Architecture --
+boundary-validation:
+  definition: "Concentrate validation, narrowing and error handling where data crosses a system boundary such as CLI arguments, configuration, the network or an external API."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+  distinct_from: [untrusted-input-validation]
+  note: "untrusted-input-validation is a security rule for paths and shell arguments; this one places all validation at the boundary."
+trust-internal-types:
+  definition: "Inside the system, trust data that a boundary already validated into types and propagate errors instead of re-checking it in every layer."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+  distinct_from: [defense-in-depth-hardening]
+  note: "Opposite default: defense-in-depth-hardening adds a check at each layer after a proven failure."
+scoped-internal-trust:
+  definition: "Inside the system, trust data a boundary already validated and propagate errors, adding a check at an inner layer only on a failure path a defect has proven."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+  distinct_from: [trust-internal-types, defense-in-depth-hardening]
+  note: "Destination variant: trust-internal-types never re-checks inside; this allows defense-in-depth-hardening's layered checks on a proven failure path."
+parse-at-boundary:
+  definition: "Turn raw external input into typed domain values with a parse function at the boundary where it enters."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+  distinct_from: [pydantic-models, closed-schema]
+  note: "pydantic-models picks the modelling library and closed-schema rejects unknown fields; neither says where parsing happens."
+domain-not-wire-types:
+  definition: "Expose domain concepts across a public surface, never the transport, storage or framework types behind it."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+  distinct_from: [plain-serialized-contracts]
+  note: "plain-serialized-contracts keeps framework objects out of serialized output; this one keeps wire types out of the API."
+policy-at-edge:
+  definition: "Keep general-purpose mechanism inside a module and special-purpose policy at its edge."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+pure-core-thin-shell:
+  definition: "Keep business logic in pure functions free of framework dependencies, leaving a thin mechanical shell that calls them."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+  distinct_from: [return-not-mutate, logic-pure-module]
+  note: "return-not-mutate is about one function's results; logic-pure-module is a prototype rule. This one splits the whole program into a pure core and a shell."
+competing-prototypes:
+  definition: "Before committing to an interaction or architecture with no precedent in the codebase, or to a product decision whose experience depends on feel, build two or three competing prototypes and compare them side by side."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+  distinct_from: [design-it-twice, variants-when-comparing]
+  note: "design-it-twice optionally compares designs on paper; variants-when-comparing builds variants only when comparison is already the question. This one makes running prototypes the default for its two triggers: an unprecedented decision, and a product decision that depends on feel even when a precedent exists."
+throwaway-design-first:
+  definition: "Settle a design decision in a throwaway artifact before writing production code for it."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+  distinct_from: [competing-prototypes, named-question]
+  note: "One throwaway artifact per decision, by default; competing-prototypes builds several, and named-question builds one only when a named question calls for it."
+data-shape-first:
+  definition: "Settle the core types and data structures, traced against every access pattern, before writing the logic that uses them."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+concurrent-modification-test:
+  definition: "Before sharing state between actors, ask what a concurrent modification would do, and isolate the state unless the answer is nothing."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+  distinct_from: [eliminate-shared-writes]
+  note: "eliminate-shared-writes prescribes how to isolate (owned targets, merge at reads); this is the question that decides whether to isolate at all."
+coherent-increment:
+  definition: "Make each increment land or deepen one coherent abstraction instead of spreading a new capability across callers as special-case coordination."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+convergent-operations:
+  definition: "Design state-changing operations to converge on the same correct end state however often they run and wherever a previous run stopped."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+  distinct_from: [safe-retry-only]
+  note: "safe-retry-only is a usage rule (retry only when safe); this is the design rule that makes retry safe."
+reconcile-from-state:
+  definition: "Derive each step from the observed current state compared with the goal, applying only the difference."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+judgeable-leftovers:
+  definition: "Make everything a run leaves behind (locks, temporary files, partial records, claims) recognisable as stale by the next run, using evidence that holds wherever the run stopped."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+collapse-thin-layers:
+  definition: "Inline layers that cost more than they save, such as one-caller wrappers, adapters with no second implementation and speculative indirection."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+  distinct_from: [two-adapters-rule, deletion-test]
+  note: "The cost test decides: an adapter with no second implementation is an example of a layer that may cost more than it saves, not a prohibition, so an adapter that hides real complexity can stay; two-adapters-rule (deferred upstream) makes a second implementation a prerequisite for any seam. deletion-test only questions pure forwarding."
+invariant-at-boundary:
+  definition: "Name an invariant once, at the boundary that owns it, rather than in every consumer."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+  distinct_from: [interface-is-everything]
+  note: "interface-is-everything counts invariants as part of an interface; this places where an invariant is stated."
+reader-load-net-test:
+  definition: "Before adding a layer or a piece of state, check that it removes at least as much reader load elsewhere as it adds."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+  distinct_from: [present-requirement-only, no-forced-abstraction]
+  note: "present-requirement-only asks whether a need exists now; this weighs reader load added against reader load removed."
+structure-over-conditionals:
+  definition: "Encode domain rules in a fitting data structure (state machine, typed model, lookup table, union, reducer) instead of conditionals scattered across the code."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+  distinct_from: [unrepresentable-invalid-states, logic-pure-module]
+  note: "unrepresentable-invalid-states uses the type checker; this chooses the data structure. logic-pure-module is a prototype rule."
+knowledge-not-phase-modules:
+  definition: "Organise modules around one body of domain knowledge, not around execution phases such as load, validate, transform and save."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+no-forced-abstraction:
+  definition: "Keep boring code that is clear, local and unlikely to grow, adding indirection only when it removes branches, duplicated rules, invalid states or lifecycle risk."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+  distinct_from: [present-requirement-only, reader-load-net-test]
+  note: "present-requirement-only asks whether a need exists; reader-load-net-test weighs reader load. This names what indirection must remove, with no cost inequality."
+foundational-requirement-redesign:
+  definition: "Integrate a new requirement by designing as if it had been a founding assumption, after reading the affected design, rather than bolting it on."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+  distinct_from: [integration-not-redesign]
+  note: "Opposite default: integration-not-redesign forbids redesign during integration without authority."
+proposed-foundational-redesign:
+  definition: "When integrating a new requirement, work out the design as if it had been a founding assumption, and deliver that redesign only where the request authorizes design change, presenting the rest as a proposal."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+  distinct_from: [foundational-requirement-redesign, integration-not-redesign]
+  note: "Destination variant: foundational-requirement-redesign always delivers the redesign; integration-not-redesign never redesigns. This designs foundationally and delivers within the authorized scope."
+full-propagation:
+  definition: "Carry a design change through every reference to it (types, documents, examples, rationale) so no stale trace remains."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+  distinct_from: [caller-impact-check, consistency-check]
+  note: "caller-impact-check inspects the callers of changed code; consistency-check audits documents. This carries one design change into every kind of reference."
+eliminate-shared-writes:
+  definition: "Before coordinating concurrent writers, give each its own write target (file, key, branch or directory) and merge only where results are read."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+  distinct_from: [independence-batching]
+  note: "Opposite default: independence-batching serializes overlapping writes."
+structural-serialization:
+  definition: "When one shared write target is a real invariant, serialize access by structure (lock, sequential phase, single writer, compare-and-swap), never by instruction."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+unrepresentable-invalid-states:
+  definition: "Shape types so the checker rejects impossible states, defining special cases out of existence instead of handling them."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+  distinct_from: [strict-mypy, structure-over-conditionals, exhaustive-variant-handling]
+  note: "strict-mypy is the gate that enforces types; this is how to design them. exhaustive-variant-handling is separate: a sound type can still be dispatched non-exhaustively."
+branded-primitives:
+  definition: "Give semantically distinct values that share a primitive type their own types, validated once at creation and trusted afterwards."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+schema-derived-types:
+  definition: "Derive types from the authoritative schema that owns a shape instead of hand-writing a parallel type."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+  distinct_from: [single-source-of-truth]
+  note: "single-source-of-truth is for instruction documents; this applies it to type definitions with generation."
+# -- engineering · Design · Decomposition --
+scaffold-first:
+  definition: "Sequence first the work every later phase benefits from (CI, linting, test infrastructure, shared types) before features."
+  placement: {domain: engineering, stage: Design, substage: Decomposition}
+  distinct_from: [prefactor-first]
+  note: "prefactor-first finds the refactor that makes one change easy; this front-loads infrastructure for all later phases."
+subtraction-first:
+  definition: "Before adding to a system, remove the complexity in its way (such as dead code, redundant validators and stub references), then build on the simpler base."
+  placement: {domain: engineering, stage: Design, substage: Decomposition}
+  distinct_from: [prefactor-first, no-unrelated-cleanup]
+  note: "prefactor-first restructures to make a change easy; this removes. It sets no scope limit, which no-unrelated-cleanup does."
+touched-scope-subtraction:
+  definition: "Before adding, remove the dead code, redundant validators and stubs that the change touches, and report other removals instead of making them."
+  placement: {domain: engineering, stage: Design, substage: Decomposition}
+  distinct_from: [subtraction-first, no-unrelated-cleanup]
+  note: "Destination variant: subtraction-first removes whatever complexity is in the way; this limits removal to what the change touches and reports the rest."
+same-wave-legacy-removal:
+  definition: "When an internal API with no external dependants is replaced as part of a simplification, in a project that can absorb a coordinated breaking change, migrate every caller and delete the old API in the same change instead of keeping a compatibility layer."
+  placement: {domain: engineering, stage: Design, substage: Decomposition}
+  distinct_from: [expand-contract, compatibility-alias]
+  note: "expand-contract may spread the contraction over later tasks; compatibility-alias keeps legacy agent entrypoints as pointers. All three conditions are part of the mechanism."
+declared-breakage-window:
+  definition: "In a planned migration, accept declared, scoped and reversible intermediate breakage instead of writing throwaway compatibility code to keep every step green."
+  placement: {domain: engineering, stage: Design, substage: Decomposition}
+  distinct_from: [expand-contract]
+  note: "expand-contract keeps tasks green and names one integration boundary when it cannot; this prefers planned breakage over compatibility code."
+migration-group-unit:
+  definition: "Treat an authorized migration group as one verifiable unit: only its declared interior breakage is allowed, and its boundary checks must pass before dependent work proceeds."
+  placement: {domain: engineering, stage: Design, substage: Decomposition}
+  distinct_from: [declared-breakage-window, verified-unit-sequence]
+  note: "Destination variant reconciling the two: declared-breakage-window accepts planned breakage with no boundary gate, and verified-unit-sequence needs every unit green; here the declared group is the unit, so any undeclared failure, unlike a declared red, stops the work."
+whole-design-incremental-delivery:
+  definition: "Think a redesign through as a whole before starting, then deliver it in increments rather than in one drop."
+  placement: {domain: engineering, stage: Design, substage: Decomposition}
+  distinct_from: [verified-unit-sequence, vertical-slices]
+  note: "verified-unit-sequence gates each unit on a passing check and vertical-slices shapes plan tasks; this asks only for whole-first design and incremental delivery."
+cut-before-polish:
+  definition: "Reach the minimum version before investing in its quality."
+  placement: {domain: engineering, stage: Design, substage: Decomposition}
+# -- engineering · Design · Specification --
+experience-over-convenience:
+  definition: "When implementation convenience conflicts with the consumer's experience, choose the experience."
+  placement: {domain: engineering, stage: Design, substage: Specification}
+justified-surface:
+  definition: "Every feature, control and option must earn its place against the core workflow; cut what does not serve it."
+  placement: {domain: engineering, stage: Design, substage: Specification}
+polish-over-breadth:
+  definition: "Ship fewer finished features rather than more rough ones."
+  placement: {domain: engineering, stage: Design, substage: Specification}
+consumer-as-user:
+  definition: "Treat whoever consumes the work (end user, importing colleague, next maintainer) as its user, and explain impact from their side."
+  placement: {domain: engineering, stage: Design, substage: Specification}
+  distinct_from: [user-perspective-framing]
+  note: "user-perspective-framing frames a spec for the end user; this one widens the user to every consumer and applies to any work."
+# -- engineering · Verification · Review --
+interruption-point-audit:
+  definition: "Check a state-changing operation by asking what happens when it runs twice and when it stops at each point, and add reconciliation wherever the answer depends on leftovers."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+  distinct_from: [convergent-operations]
+  note: "convergent-operations is the goal; this is the audit that finds where an operation misses it."
+reader-load-axes:
+  definition: "Judge maintainability by the layers a reader must trace and the state they must hold, not by line counts, complexity scores or architecture labels."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+thirty-second-trace-test:
+  definition: "Check that a new reader can say where a value comes from and what can change it in under thirty seconds."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+  distinct_from: [reader-load-axes]
+  note: "reader-load-axes names what to judge; this is a timed probe of it."
+# -- engineering · Verification · Testing --
+behaviour-and-edge-case-tests:
+  definition: "Judge tests by the behaviours and edge cases they exercise, not by line coverage."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [meaningful-behaviour-assertion, risk-proportional-tests]
+  note: "meaningful-behaviour-assertion says what one assertion checks, at a stable boundary; risk-proportional-tests says how many tests to add. This names edge cases as part of what the suite must cover."
+implementation-test-deletion:
+  definition: "When internals change, rewrite or delete tests that only protect the old implementation, asserting the current contract instead."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [covered-test-removal, replace-dont-layer]
+  note: "covered-test-removal deletes a test only when its behaviour is covered elsewhere; replace-dont-layer is tied to deepening a module."
+touched-area-checks:
+  definition: "During a migration, keep fast high-signal checks running on the areas being changed."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [rerun-on-change-only]
+  note: "rerun-on-change-only limits when checks repeat; this keeps them running on the touched areas throughout a migration."
+full-verification-at-completion:
+  definition: "At the end of a planned migration or rewrite, run full static and runtime verification, not only the checks the last change touched."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [applicable-checks-before-done]
+  note: "applicable-checks-before-done runs the checks the repository's verification file names for the change; this requires the full static and runtime set at plan completion."
+baseline-check-before-change:
+  definition: "Before the first change of multi-step work, run its checks on the starting base and record the results, so later failures are classed as pre-existing or as regressions."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [clean-baseline-first, merge-base-selection]
+  note: "Destination variant: clean-baseline-first rebases onto a clean trunk, a history rewrite our safety rules gate; this records the starting base's results instead."
+hollow-test-forms:
+  definition: "Check a test for the usual hollow forms: an assertion looser than the contract, a restated constant the code never reads, or an assertion on data the test built itself."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [independent-expectation]
+  note: "independent-expectation covers expected values computed by the code; these are the other hollow forms."
+contract-exact-assertion:
+  definition: "Assert exactly what the contract promises, no less and no more, letting the contract decide whether a call, an absence, a payload or an error type is behaviour."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [meaningful-behaviour-assertion]
+  note: "meaningful-behaviour-assertion prefers results over choreography; this adds the no-less-no-more bound."
+absence-positive-control:
+  definition: "Pair an assertion that something did not happen with a positive case showing the same test would see it happen."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [contract-exact-assertion]
+  note: "contract-exact-assertion decides whether an absence is behaviour; this proves the test could observe its presence."
+two-edit-test-judgement:
+  definition: "Judge every test by two imagined edits: breaking the behaviour must fail it, and restructuring the internals must not."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [break-naming-validation, no-implementation-coupling]
+  note: "break-naming-validation names the break for substantive tests and may run a mutation trial; no-implementation-coupling avoids internal coupling. This applies both imagined edits to every test, without naming or a trial."

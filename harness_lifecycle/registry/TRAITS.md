@@ -8,6 +8,12 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 
 ### Ours
 
+#### core · Building · Implementation — build-a-lever
+- `hand-first-recipe`: Do the first unit by hand, then build the tool and show it reproduces the hand result before running it on the rest.
+- `minimal-tool`: Build the smallest script that does or proves the job, never a framework.
+- `rerun-safe-tool`: Make a work tool safe to rerun on input it has already changed.
+- `proposed-artifact-commit`: Keep a work tool or proof artifact in the scratch folder and propose committing it when the work will be rerun or audited.
+
 #### core · Delivery · Release — harness-publish
 - `manual-root-only`: Run publishing as a manual, user-run step only in the source workshop, never in an adopted repo.
 - `prerequisites-scope`: Confirm the plugin submodule is initialized with its publish script present, reporting a missing prerequisite rather than pretending publication ran.
@@ -82,6 +88,8 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `verification`: Inspect the diff for lost contracts, scale fresh-context and pressure trials to behavioural risk, and report unavailable behavioural checks as a limit instead of manufacturing evidence.
 - `mechanical-vs-judgement`: Classify each finding as mechanical (a fixed syntactic pattern suiting a deterministic check) or judgement (cross-file consistency suiting a standards doc).
 - `extend-existing-docs-first`: Prefer extending existing pointed-to documents before writing new ones.
+- `check-pointer-not-restatement`: Once a check enforces a rule, replace the instruction that restated it with a pointer to the check.
+- `judgement-lesson-failure-example`: When a recurring lesson needs judgement and cannot be checked, revise the instruction it implicates and add one example of the failure, rather than repeating or emphasising the rule.
 
 #### core · Improvement · Codification — harness-evaluate
 - `read-first`: Before judging a candidate, read its canonical source, the relevant prior ledger decision and the closest local implementation, keeping reference repositories as read-only evidence.
@@ -348,6 +356,8 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `layered-catalog`: Keep the always-loaded router to playbooks, principles and the skills whose descriptions would miss or collide, and load the generated full skill catalog only when unsure or asked what exists.
 - `platform-skill-invocation`: Invoke a routed skill through the platform's skill mechanism, not by reading its file, so it survives compaction and its invocation settings apply; read router-only units by path.
 - `no-playbook-in-delegate`: Inside a delegated task, route only to skills and principles and never start a playbook: the parent runs it, and the brief is its step.
+- `delegate-independent-by-default`: At top level, hand independent work to subagents and keep the main context for coordination, integration and verification; work locally only when that has a clear advantage.
+- `no-onward-delegation`: A delegated worker does not hand its work on to further agents unless its brief allows it.
 - `playbook-steps-as-todos`: Copy a playbook's steps into the todo list before any task-specific todos.
 - `recorded-step-skip`: Keep a playbook step that will not run in the todo list, marked with its reason, instead of dropping it.
 - `whole-callee`: Invoke each unit a playbook step calls whole, never skipping or overriding its core.
@@ -381,6 +391,16 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `measurement-recipes`: Supply backend tool mechanics for measurement — monotonic timing, sampling and allocation profilers, query plans and N+1 counting, benchmark gating, and the host and runtime view.
 - `frontend-performance`: Supply browser performance mechanics — Core Web Vitals targets, synthetic plus real-user measurement, a symptom-to-measurement tree, fix patterns and budgets.
 
+#### engineering · Building · Diagnosis — principle-attack-the-premise
+- `premise-test-gate`: After two or more fixes that rest on one premise fail the same gate, write that premise as one sentence and test it with an observation that would differ were it false, before any further fix that assumes it.
+
+#### engineering · Building · Diagnosis — principle-explain-the-number
+- `decision-before-measurement`: Before measuring, name the result that would change a decision and the noise floor the result must clear.
+- `named-limiter`: Explain a measured number by the resource or code path that bounds it, found from a profile or counters taken during the run and mapped to source, not from reading code.
+- `confound-elimination`: List what else a number could be measuring (errors, skipped or cached work, code that never ran, an untuned side, noise, a negligible share) and rule each out with evidence.
+- `evidence-with-number`: Report a measured number together with its run count, spread and limiter.
+- `eval-result-scrutiny`: Before trusting an eval result, check that every run did the task, that the gap holds across trials and models, and that the scenario matters.
+
 #### engineering · Building · Diagnosis — systematic-debugging
 - `reproduction-preferred`: Seek a reproduction that shows the reported failure, not a nearby one, before diagnosing, but when none is obtainable confirm a cause by independent evidence such as traces instead.
 - `unproven-without-reproduction`: When no reproduction is obtainable, continue safe source analysis and qualify any resulting fix as unproven.
@@ -397,6 +417,16 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `caller-deferrable-cleanup`: Before answering, remove the temporary instrumentation you added, unless the caller says its own closeout removes it; then leave it in place and list it.
 - `preserve-reproducers`: Keep useful reproducers and user artifacts when cleaning up after a fix.
 - `tagged-debug-logs`: Tag every debug log with a unique prefix so cleanup is a single search.
+- `suspect-the-observation`: When a check fails unexpectedly, test the observation method before concluding the system is wrong.
+- `why-chain`: Ask why at each step of a failure until the answer is a wrong decision in the code rather than a consequence of an earlier one.
+- `legitimate-state-test`: Before guarding where a symptom surfaced, decide whether the triggering state is legitimate: handle a legitimate state there, and trace an illegitimate one to what produced it.
+- `persisted-state-suspect`: When a failure appears only after a restart, suspect persisted state (configuration, caches, lock files, serialized state) first.
+
+#### engineering · Building · Implementation — principle-sequence-verifiable-units
+- `baseline-check-before-change`: Before the first change of multi-step work, run its checks on the starting base and record the results, so later failures are classed as pre-existing or as regressions.
+- `verified-unit-sequence`: Split multi-step work into small units that each end in a checked state, and start the next only when the current one passes.
+- `small-single-purpose-commits`: Keep each commit small and about one thing.
+- `argument-order-commits`: Order commits so the history proves the work (failing test before fix, removal before reshape, baseline before treatment, scaffold before feature), each commit standing alone.
 
 #### engineering · Building · Implementation — test-driven-development
 - `mode-selection`: Choose test-first, characterization, or test-quality-only by the task rather than defaulting to one workflow.
@@ -479,6 +509,51 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `adr-code-gotcha-link`: Leave a short comment at a code trap or constraint linking the decision record that explains it.
 - `scoped-decision-records`: Keep system-wide decision records at the repository root and context-specific ones inside each context.
 
+#### engineering · Design · Architecture — principle-boundary-discipline
+- `boundary-validation`: Concentrate validation, narrowing and error handling where data crosses a system boundary such as CLI arguments, configuration, the network or an external API.
+- `parse-at-boundary`: Turn raw external input into typed domain values with a parse function at the boundary where it enters.
+- `scoped-internal-trust`: Inside the system, trust data a boundary already validated and propagate errors, adding a check at an inner layer only on a failure path a defect has proven.
+- `domain-not-wire-types`: Expose domain concepts across a public surface, never the transport, storage or framework types behind it.
+- `pure-core-thin-shell`: Keep business logic in pure functions free of framework dependencies, leaving a thin mechanical shell that calls them.
+
+#### engineering · Design · Architecture — principle-make-operations-idempotent
+- `convergent-operations`: Design state-changing operations to converge on the same correct end state however often they run and wherever a previous run stopped.
+- `reconcile-from-state`: Derive each step from the observed current state compared with the goal, applying only the difference.
+- `judgeable-leftovers`: Make everything a run leaves behind (locks, temporary files, partial records, claims) recognisable as stale by the next run, using evidence that holds wherever the run stopped.
+- `interruption-point-audit`: Check a state-changing operation by asking what happens when it runs twice and when it stops at each point, and add reconciliation wherever the answer depends on leftovers.
+
+#### engineering · Design · Architecture — principle-minimize-reader-load
+- `reader-load-axes`: Judge maintainability by the layers a reader must trace and the state they must hold, not by line counts, complexity scores or architecture labels.
+- `reader-load-net-test`: Before adding a layer or a piece of state, check that it removes at least as much reader load elsewhere as it adds.
+- `collapse-thin-layers`: Inline layers that cost more than they save, such as one-caller wrappers, adapters with no second implementation and speculative indirection.
+- `narrowest-state-scope`: Give state the narrowest scope that works: locals over fields over module state over globals.
+- `derive-over-sync`: Derive a value from its source when needed instead of storing a copy that must be kept in sync.
+- `invariant-at-boundary`: Name an invariant once, at the boundary that owns it, rather than in every consumer.
+
+#### engineering · Design · Architecture — principle-model-the-domain
+- `data-shape-first`: Settle the core types and data structures, traced against every access pattern, before writing the logic that uses them.
+- `structure-over-conditionals`: Encode domain rules in a fitting data structure (state machine, typed model, lookup table, union, reducer) instead of conditionals scattered across the code.
+- `knowledge-not-phase-modules`: Organise modules around one body of domain knowledge, not around execution phases such as load, validate, transform and save.
+- `coherent-increment`: Make each increment land or deepen one coherent abstraction instead of spreading a new capability across callers as special-case coordination.
+- `structural-dry`: Deduplicate structure such as types and data models, but tolerate a few similar statements rather than a premature abstraction.
+- `no-forced-abstraction`: Keep boring code that is clear, local and unlikely to grow, adding indirection only when it removes branches, duplicated rules, invalid states or lifecycle risk.
+
+#### engineering · Design · Architecture — principle-redesign-from-first-principles
+- `proposed-foundational-redesign`: When integrating a new requirement, work out the design as if it had been a founding assumption, and deliver that redesign only where the request authorizes design change, presenting the rest as a proposal.
+- `whole-design-incremental-delivery`: Think a redesign through as a whole before starting, then deliver it in increments rather than in one drop.
+- `full-propagation`: Carry a design change through every reference to it (types, documents, examples, rationale) so no stale trace remains.
+
+#### engineering · Design · Architecture — principle-separate-before-serializing-shared-state
+- `concurrent-modification-test`: Before sharing state between actors, ask what a concurrent modification would do, and isolate the state unless the answer is nothing.
+- `eliminate-shared-writes`: Before coordinating concurrent writers, give each its own write target (file, key, branch or directory) and merge only where results are read.
+- `structural-serialization`: When one shared write target is a real invariant, serialize access by structure (lock, sequential phase, single writer, compare-and-swap), never by instruction.
+
+#### engineering · Design · Architecture — principle-type-system-discipline
+- `unrepresentable-invalid-states`: Shape types so the checker rejects impossible states, defining special cases out of existence instead of handling them.
+- `exhaustive-variant-handling`: Handle every variant of a closed type so the checker reports a variant left unhandled.
+- `branded-primitives`: Give semantically distinct values that share a primitive type their own types, validated once at creation and trusted afterwards.
+- `schema-derived-types`: Derive types from the authoritative schema that owns a shape instead of hand-writing a parallel type.
+
 #### engineering · Design · Architecture — prototype
 - `named-question`: Build a throwaway artifact to answer one named design question.
 - `pick-form`: Let the question being answered pick the prototype's form, such as a state demo for logic or a UI mockup for layout.
@@ -504,6 +579,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `separate-promotion`: Treat promoting a prototype's decision or code into production as separate work with its own scope and checks.
 - `stubbed-mutations`: Point UI variants that need mutations at stubs rather than real backends.
 - `production-hidden-switcher`: Hide a prototype's variant switcher from production builds.
+- `competing-prototypes`: Before committing to an interaction or architecture with no precedent in the codebase, or to a product decision whose experience depends on feel, build two or three competing prototypes and compare them side by side.
 
 #### engineering · Design · Decomposition — planning
 - `route-by-scale`: Route between brainstorming, a brief local sequence, elaborate, decompose, or executing from a roadmap row according to the work's scale.
@@ -522,6 +598,26 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `no-stale-code-snippets`: Keep code snippets out of a durable spec or ticket because they go stale.
 - `ground-in-codebase`: Explore the current state of the code before writing, so the artifact targets what actually exists.
 - `breakdown-approval-before-publish`: Iterate on the ticket breakdown until the user approves it, publishing nothing before approval.
+
+#### engineering · Design · Decomposition — principle-migrate-without-shims
+- `same-wave-legacy-removal`: When an internal API with no external dependants is replaced as part of a simplification, in a project that can absorb a coordinated breaking change, migrate every caller and delete the old API in the same change instead of keeping a compatibility layer.
+- `migration-group-unit`: Treat an authorized migration group as one verifiable unit: only its declared interior breakage is allowed, and its boundary checks must pass before dependent work proceeds.
+- `touched-area-checks`: During a migration, keep fast high-signal checks running on the areas being changed.
+- `full-verification-at-completion`: At the end of a planned migration or rewrite, run full static and runtime verification, not only the checks the last change touched.
+
+#### engineering · Design · Decomposition — principle-subtract-before-you-add
+- `touched-scope-subtraction`: Before adding, remove the dead code, redundant validators and stubs that the change touches, and report other removals instead of making them.
+- `deletion-bias`: When refactoring or tempted to add an abstraction, layer or threaded signal, prefer deleting code to adding it.
+- `stub-deletion`: Delete a reference that carries no novel content instead of leaving a stub that points elsewhere.
+- `single-source-of-truth`: Keep each meaning in one authoritative place so changing it is a one-place edit.
+- `cut-before-polish`: Reach the minimum version before investing in its quality.
+
+#### engineering · Design · Specification — principle-experience-first
+- `consumer-as-user`: Treat whoever consumes the work (end user, importing colleague, next maintainer) as its user, and explain impact from their side.
+- `experience-over-convenience`: When implementation convenience conflicts with the consumer's experience, choose the experience.
+- `justified-surface`: Every feature, control and option must earn its place against the core workflow; cut what does not serve it.
+- `polish-over-breadth`: Ship fewer finished features rather than more rough ones.
+- `detail-finish`: Finish interaction details such as transitions, alignment, spacing, feedback and error states as part of the work, not as later polish.
 
 #### engineering · Discovery · Research — codebase-research
 - `three-modes`: Offer three research modes — an L1 capability survey, an L2 architecture map, and a deep dive on one named question — all landing under a per-target research directory.
@@ -568,6 +664,15 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `pass-fail-report`: Report a plain pass or fail result for each invariant that was run.
 - `skip-aspirational`: Name and skip any invariant that is aspirational rather than mechanically checkable instead of guessing a verdict.
 - `repo-relative-paths`: Present every result using repository-relative paths only.
+
+#### engineering · Verification · Testing — principle-test-behavior-not-implementation
+- `two-edit-test-judgement`: Judge every test by two imagined edits: breaking the behaviour must fail it, and restructuring the internals must not.
+- `public-interface-testing`: Exercise behaviour in tests through public interfaces.
+- `contract-exact-assertion`: Assert exactly what the contract promises, no less and no more, letting the contract decide whether a call, an absence, a payload or an error type is behaviour.
+- `absence-positive-control`: Pair an assertion that something did not happen with a positive case showing the same test would see it happen.
+- `hollow-test-forms`: Check a test for the usual hollow forms: an assertion looser than the contract, a restated constant the code never reads, or an assertion on data the test built itself.
+- `behaviour-and-edge-case-tests`: Judge tests by the behaviours and edge cases they exercise, not by line coverage.
+- `implementation-test-deletion`: When internals change, rewrite or delete tests that only protect the old implementation, asserting the current contract instead.
 
 #### engineering · X · Coordination — execution
 - `scope-selector`: Pick task, phase or workstream scope from the request and route unresolved material scope back to planning or brainstorming.
@@ -667,7 +772,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `configured-model-use`: Use the configured models and reasoning effort rather than choosing your own.
 - `independence-batching`: Batch independent operations and serialize dependent work and overlapping writes.
 - `no-evidence-pivot`: Change approach when repeated attempts produce no new evidence.
-- `delegation-threshold`: Delegate bounded independent work only when it materially improves speed, context use or review quality within budget, keeping small work local.
+- `no-onward-delegation`: A delegated worker does not hand its work on to further agents unless its brief allows it.
 - `worker-brief-contents`: Give each worker a brief stating the outcome, owned paths, constraints, acceptance checks and pointers to relevant context.
 - `preserve-others-edits`: Preserve changes in the working tree that others made or that are unrelated to the task.
 - `no-duplicate-delegated-work`: Do not also do work that has been delegated.
@@ -698,6 +803,10 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `plain-path-references`: Keep conditional references as plain paths, never automatic imports.
 - `durable-work-tracking`: Track durable work in the project's issue tracker.
 - `router-at-task-start`: Invoke the router at the start of every task, so routing is loaded on any vendor and comes back after compaction.
+- `recurring-lesson-to-check`: When a correction or instruction recurs, encode it as a lint, flag, runtime check or script instead of adding more instruction text.
+- `tool-when-it-pays`: Use existing deterministic tools and checks where they suffice, and build a rerunnable tool only when it materially reduces repeated work or supplies proof a reviewer needs, keeping its output.
+- `script-over-fanout`: When one deterministic pass can process every unit, run a script rather than fanning the units out to delegates.
+- `direct-observation`: Verify a result by observing the real thing (run it, read the actual value, check liveness directly), never a proxy, a cached view or a self-report.
 
 ### Playbooks
 
@@ -706,6 +815,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `obvious-cause-skip`: Skip the diagnosis only when a deterministic failing command, run as reported, shows the failure and its output points at the cause, never for a flaky failure or a cause found by reading code or rerunning in a loop.
 - `existing-check-as-proof`: When the failing check that showed the bug already fails for the reported reason, use it as the regression check and show it passing after the fix.
 - `report-missing-proof`: When no regression check is feasible for a confirmed cause, make the fix anyway and report that its proof is missing.
+- `scoped-instance-fix`: Search for every instance of a confirmed fault, fix those inside the task's scope and report the rest.
 - `rerun-original-repro`: Rerun the original scenario as reported and the touched checks, and report an inconclusive or unavailable rerun as such, never as a pass.
 - `attempt-log`: Record each debugging attempt as hypothesis, change and result.
 - `revert-ineffective-experiments`: Remove your own ineffective experimental edits, preserving all other work.
@@ -713,6 +823,167 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `defense-in-depth-hardening`: When an invalid value crossed several layers, add a check at each layer the value passes through so the bug becomes structurally impossible, bypass-testing each layer and scoping the checks to the proven failure path.
 - `closeout`: Before declaring done, remove temporary instrumentation and record the confirmed cause.
 - `preserve-reproducers`: Keep useful reproducers and user artifacts when cleaning up after a fix.
+- `always-on-signal`: After a fact took a deep investigation to find, propose the cheap always-on signal that would have shown it at first look.
+
+### cursor_plugins
+
+#### core · Building · Implementation — skill:pstack/skills/principle-build-the-lever
+- `tool-over-hand-work`: For non-trivial edits, analyses or checks, write a rerunnable tool that does or proves the work, so a reviewer reruns it instead of trusting a hand-made result. — adopt → doc:AGENTS.md
+- `hand-first-recipe`: Do the first unit by hand, then build the tool and show it reproduces the hand result before running it on the rest. — adopt → build-a-lever#hand-first-recipe
+- `rerun-safe-tool`: Make a work tool safe to rerun on input it has already changed. — adopt → build-a-lever#rerun-safe-tool
+- `script-over-fanout`: When one deterministic pass can process every unit, run a script rather than fanning the units out to delegates. — adopt → doc:AGENTS.md
+- `shared-delegate-contract`: When fanning work out, give every delegate one shared artifact with the recipe, the verification contract and the fences, kept outside their write scope. — defer
+- `outliving-tool-commit`: Commit a work tool when the work it does outlives the session. — adopt → build-a-lever#proposed-artifact-commit
+- `minimal-tool`: Build the smallest script that does or proves the job, never a framework. — adopt → build-a-lever#minimal-tool
+
+#### core · Verification · Validation — skill:pstack/skills/principle-prove-it-works
+- `direct-observation`: Verify a result by observing the real thing (run it, read the actual value, check liveness directly), never a proxy, a cached view or a self-report. — adopt → doc:AGENTS.md
+- `suspect-the-observation`: When a check fails unexpectedly, test the observation method before concluding the system is wrong. — adopt → systematic-debugging#suspect-the-observation
+- `scripted-proof`: Prefer a deterministic, rerunnable script as the proof of a result, and keep its output for a reviewer. — adopt → doc:AGENTS.md
+- `audit-trail-proof-commit`: Keep a proof artifact visible to the human, and commit it only when large or complex work needs an auditable trail. — adopt → build-a-lever#proposed-artifact-commit
+
+#### core · Improvement · Codification — skill:pstack/skills/principle-encode-lessons-in-structure
+- `recurring-lesson-to-check`: When a correction or instruction recurs, encode it as a lint, flag, runtime check or script instead of adding more instruction text. — adopt → doc:AGENTS.md
+- `judgement-lesson-example`: When a recurring lesson needs judgement and cannot be checked, make its instruction more prominent and pair it with an example of the failure. — adopt → authoring-for-agents#judgement-lesson-failure-example
+- `structural-fix-only`: Once a rule is enforced by structure, delete the instruction that restated it. — adopt → authoring-for-agents#check-pointer-not-restatement
+
+#### core · X · Continuity — skill:pstack/skills/principle-guard-the-context-window
+- `bulk-to-subagents`: Send bulk reading and large outputs to subagents and keep only their summaries in the main thread. — adopt → mvp-mode#delegate-independent-by-default
+- `phase-scope-caps`: Cap each phase's scope with file limits and turn budgets, counting the context cost of the mechanisms used. — defer
+
+#### core · X · Coordination — skill:pstack/skills/principle-never-block-on-the-human
+- `reversible-work-proceeds`: Proceed without asking on reversible work, then present the result and its reasoning so the human can correct it afterwards, leaving product direction to the human. — reject
+- `noticed-problem-followup`: Log a problem noticed in passing and fix it in the next round. — reject
+- `irreversible-only-confirmation`: Ask for confirmation only before irreversible actions such as force-pushing, deleting production data or sending external messages. — reject
+
+#### engineering · Design · Architecture — skill:pstack/skills/principle-boundary-discipline
+- `boundary-validation`: Concentrate validation, narrowing and error handling where data crosses a system boundary such as CLI arguments, configuration, the network or an external API. — adopt → principle-boundary-discipline#boundary-validation
+- `trust-internal-types`: Inside the system, trust data that a boundary already validated into types and propagate errors instead of re-checking it in every layer. — adopt → principle-boundary-discipline#scoped-internal-trust
+- `domain-not-wire-types`: Expose domain concepts across a public surface, never the transport, storage or framework types behind it. — adopt → principle-boundary-discipline#domain-not-wire-types
+- `policy-at-edge`: Keep general-purpose mechanism inside a module and special-purpose policy at its edge. — defer
+- `parse-at-boundary`: Turn raw external input into typed domain values with a parse function at the boundary where it enters. — adopt → principle-boundary-discipline#parse-at-boundary
+- `pure-core-thin-shell`: Keep business logic in pure functions free of framework dependencies, leaving a thin mechanical shell that calls them. — adopt → principle-boundary-discipline#pure-core-thin-shell
+
+#### engineering · Design · Architecture — skill:pstack/skills/principle-exhaust-the-design-space
+- `competing-prototypes`: Before committing to an interaction or architecture with no precedent in the codebase, or to a product decision whose experience depends on feel, build two or three competing prototypes and compare them side by side. — adopt → prototype#competing-prototypes
+
+#### engineering · Design · Architecture — skill:pstack/skills/principle-foundational-thinking
+- `data-shape-first`: Settle the core types and data structures, traced against every access pattern, before writing the logic that uses them. — adopt → principle-model-the-domain#data-shape-first
+- `structural-dry`: Deduplicate structure such as types and data models, but tolerate a few similar statements rather than a premature abstraction. — adopt → principle-model-the-domain#structural-dry
+- `behaviour-and-edge-case-tests`: Judge tests by the behaviours and edge cases they exercise, not by line coverage. — adopt → principle-test-behavior-not-implementation#behaviour-and-edge-case-tests
+- `concurrent-modification-test`: Before sharing state between actors, ask what a concurrent modification would do, and isolate the state unless the answer is nothing. — adopt → principle-separate-before-serializing-shared-state#concurrent-modification-test
+- `scaffold-first`: Sequence first the work every later phase benefits from (CI, linting, test infrastructure, shared types) before features. — defer
+- `test-before-fix`: Sequence the test that will check a fix before the fix itself. — reject
+- `small-single-purpose-commits`: Keep each commit small and about one thing. — adopt → principle-sequence-verifiable-units#small-single-purpose-commits
+- `coherent-increment`: Make each increment land or deepen one coherent abstraction instead of spreading a new capability across callers as special-case coordination. — adopt → principle-model-the-domain#coherent-increment
+- `subtraction-first`: Before adding to a system, remove the complexity in its way (such as dead code, redundant validators and stub references), then build on the simpler base. — adopt → principle-subtract-before-you-add#touched-scope-subtraction
+
+#### engineering · Design · Architecture — skill:pstack/skills/principle-make-operations-idempotent
+- `convergent-operations`: Design state-changing operations to converge on the same correct end state however often they run and wherever a previous run stopped. — adopt → principle-make-operations-idempotent#convergent-operations
+- `reconcile-from-state`: Derive each step from the observed current state compared with the goal, applying only the difference. — adopt → principle-make-operations-idempotent#reconcile-from-state
+- `judgeable-leftovers`: Make everything a run leaves behind (locks, temporary files, partial records, claims) recognisable as stale by the next run, using evidence that holds wherever the run stopped. — adopt → principle-make-operations-idempotent#judgeable-leftovers
+- `interruption-point-audit`: Check a state-changing operation by asking what happens when it runs twice and when it stops at each point, and add reconciliation wherever the answer depends on leftovers. — adopt → principle-make-operations-idempotent#interruption-point-audit
+
+#### engineering · Design · Architecture — skill:pstack/skills/principle-minimize-reader-load
+- `reader-load-axes`: Judge maintainability by the layers a reader must trace and the state they must hold, not by line counts, complexity scores or architecture labels. — adopt → principle-minimize-reader-load#reader-load-axes
+- `collapse-thin-layers`: Inline layers that cost more than they save, such as one-caller wrappers, adapters with no second implementation and speculative indirection. — adopt → principle-minimize-reader-load#collapse-thin-layers
+- `deletion-test`: Question a layer that only forwards and keep one whose removal would spread complexity across callers. — adopt → codebase-design#deletion-test
+- `depth-as-leverage`: Prefer modules whose manageable interface hides a large amount of useful behaviour. — adopt → codebase-design#depth-as-leverage
+- `return-not-mutate`: Design functions to return results rather than cause side effects, so behaviour can be observed directly. — adopt → codebase-design#return-not-mutate
+- `narrowest-state-scope`: Give state the narrowest scope that works: locals over fields over module state over globals. — adopt → principle-minimize-reader-load#narrowest-state-scope
+- `derive-over-sync`: Derive a value from its source when needed instead of storing a copy that must be kept in sync. — adopt → principle-minimize-reader-load#derive-over-sync
+- `invariant-at-boundary`: Name an invariant once, at the boundary that owns it, rather than in every consumer. — adopt → principle-minimize-reader-load#invariant-at-boundary
+- `reader-load-net-test`: Before adding a layer or a piece of state, check that it removes at least as much reader load elsewhere as it adds. — adopt → principle-minimize-reader-load#reader-load-net-test
+- `thirty-second-trace-test`: Check that a new reader can say where a value comes from and what can change it in under thirty seconds. — reject
+
+#### engineering · Design · Architecture — skill:pstack/skills/principle-model-the-domain
+- `structure-over-conditionals`: Encode domain rules in a fitting data structure (state machine, typed model, lookup table, union, reducer) instead of conditionals scattered across the code. — adopt → principle-model-the-domain#structure-over-conditionals
+- `knowledge-not-phase-modules`: Organise modules around one body of domain knowledge, not around execution phases such as load, validate, transform and save. — adopt → principle-model-the-domain#knowledge-not-phase-modules
+- `no-forced-abstraction`: Keep boring code that is clear, local and unlikely to grow, adding indirection only when it removes branches, duplicated rules, invalid states or lifecycle risk. — adopt → principle-model-the-domain#no-forced-abstraction
+
+#### engineering · Design · Architecture — skill:pstack/skills/principle-redesign-from-first-principles
+- `foundational-requirement-redesign`: Integrate a new requirement by designing as if it had been a founding assumption, after reading the affected design, rather than bolting it on. — adopt → principle-redesign-from-first-principles#proposed-foundational-redesign
+- `full-propagation`: Carry a design change through every reference to it (types, documents, examples, rationale) so no stale trace remains. — adopt → principle-redesign-from-first-principles#full-propagation
+- `whole-design-incremental-delivery`: Think a redesign through as a whole before starting, then deliver it in increments rather than in one drop. — adopt → principle-redesign-from-first-principles#whole-design-incremental-delivery
+
+#### engineering · Design · Architecture — skill:pstack/skills/principle-separate-before-serializing-shared-state
+- `eliminate-shared-writes`: Before coordinating concurrent writers, give each its own write target (file, key, branch or directory) and merge only where results are read. — adopt → principle-separate-before-serializing-shared-state#eliminate-shared-writes
+- `structural-serialization`: When one shared write target is a real invariant, serialize access by structure (lock, sequential phase, single writer, compare-and-swap), never by instruction. — adopt → principle-separate-before-serializing-shared-state#structural-serialization
+
+#### engineering · Design · Architecture — skill:pstack/skills/principle-type-system-discipline
+- `unrepresentable-invalid-states`: Shape types so the checker rejects impossible states, defining special cases out of existence instead of handling them. — adopt → principle-type-system-discipline#unrepresentable-invalid-states
+- `exhaustive-variant-handling`: Handle every variant of a closed type so the checker reports a variant left unhandled. — adopt → principle-type-system-discipline#exhaustive-variant-handling
+- `branded-primitives`: Give semantically distinct values that share a primitive type their own types, validated once at creation and trusted afterwards. — adopt → principle-type-system-discipline#branded-primitives
+- `parse-at-boundary`: Turn raw external input into typed domain values with a parse function at the boundary where it enters. — adopt → principle-boundary-discipline#parse-at-boundary
+- `schema-derived-types`: Derive types from the authoritative schema that owns a shape instead of hand-writing a parallel type. — adopt → principle-type-system-discipline#schema-derived-types
+
+#### engineering · Design · Decomposition — skill:pstack/skills/principle-migrate-callers-then-delete-legacy-apis
+- `same-wave-legacy-removal`: When an internal API with no external dependants is replaced as part of a simplification, in a project that can absorb a coordinated breaking change, migrate every caller and delete the old API in the same change instead of keeping a compatibility layer. — adopt → principle-migrate-without-shims#same-wave-legacy-removal
+- `implementation-test-deletion`: When internals change, rewrite or delete tests that only protect the old implementation, asserting the current contract instead. — adopt → principle-test-behavior-not-implementation#implementation-test-deletion
+
+#### engineering · Design · Decomposition — skill:pstack/skills/principle-outcome-oriented-execution
+- `declared-breakage-window`: In a planned migration, accept declared, scoped and reversible intermediate breakage instead of writing throwaway compatibility code to keep every step green. — adopt → principle-migrate-without-shims#migration-group-unit
+- `touched-area-checks`: During a migration, keep fast high-signal checks running on the areas being changed. — adopt → principle-migrate-without-shims#touched-area-checks
+- `full-verification-at-completion`: At the end of a planned migration or rewrite, run full static and runtime verification, not only the checks the last change touched. — adopt → principle-migrate-without-shims#full-verification-at-completion
+
+#### engineering · Design · Decomposition — skill:pstack/skills/principle-subtract-before-you-add
+- `subtraction-first`: Before adding to a system, remove the complexity in its way (such as dead code, redundant validators and stub references), then build on the simpler base. — adopt → principle-subtract-before-you-add#touched-scope-subtraction
+- `leave-it-simpler`: Leave each touched design slightly simpler and more capable, behind the same or a smaller surface, than it was found. — reject
+- `cut-before-polish`: Reach the minimum version before investing in its quality. — adopt → principle-subtract-before-you-add#cut-before-polish
+- `present-requirement-only`: Add an abstraction, dependency or feature only for a present requirement, never a speculative one. — adopt → doc:AGENTS.md
+- `decision-relevance-pruning`: Keep only content that changes the agent's decisions, such as conventions, non-obvious failure modes, required interfaces and invariants. — reject
+- `stub-deletion`: Delete a reference that carries no novel content instead of leaving a stub that points elsewhere. — adopt → principle-subtract-before-you-add#stub-deletion
+
+#### engineering · Design · Specification — skill:pstack/skills/principle-experience-first
+- `experience-over-convenience`: When implementation convenience conflicts with the consumer's experience, choose the experience. — adopt → principle-experience-first#experience-over-convenience
+- `justified-surface`: Every feature, control and option must earn its place against the core workflow; cut what does not serve it. — adopt → principle-experience-first#justified-surface
+- `polish-over-breadth`: Ship fewer finished features rather than more rough ones. — adopt → principle-experience-first#polish-over-breadth
+- `throwaway-design-first`: Settle a design decision in a throwaway artifact before writing production code for it. — reject
+- `detail-finish`: Finish interaction details such as transitions, alignment, spacing, feedback and error states as part of the work, not as later polish. — adopt → principle-experience-first#detail-finish
+- `consumer-as-user`: Treat whoever consumes the work (end user, importing colleague, next maintainer) as its user, and explain impact from their side. — adopt → principle-experience-first#consumer-as-user
+
+#### engineering · Building · Diagnosis — skill:pstack/skills/principle-attack-the-premise
+- `premise-test-gate`: After two or more fixes that rest on one premise fail the same gate, write that premise as one sentence and test it with an observation that would differ were it false, before any further fix that assumes it. — adopt → principle-attack-the-premise#premise-test-gate
+- `owning-layer-fix`: Fix a bug at the layer that owns it rather than patching around it. — adopt → doc:AGENTS.md
+
+#### engineering · Building · Diagnosis — skill:pstack/skills/principle-explain-the-number
+- `decision-before-measurement`: Before measuring, name the result that would change a decision and the noise floor the result must clear. — adopt → principle-explain-the-number#decision-before-measurement
+- `noise-inconclusive`: Treat a measured difference within noise as inconclusive rather than as a gain or a loss. — adopt → performance-optimization#noise-inconclusive
+- `named-limiter`: Explain a measured number by the resource or code path that bounds it, found from a profile or counters taken during the run and mapped to source, not from reading code. — adopt → principle-explain-the-number#named-limiter
+- `confound-elimination`: List what else a number could be measuring (errors, skipped or cached work, code that never ran, an untuned side, noise, a negligible share) and rule each out with evidence. — adopt → principle-explain-the-number#confound-elimination
+- `evidence-with-number`: Report a measured number together with its run count, spread and limiter. — adopt → principle-explain-the-number#evidence-with-number
+- `eval-result-scrutiny`: Before trusting an eval result, check that every run did the task, that the gap holds across trials and models, and that the scenario matters. — adopt → principle-explain-the-number#eval-result-scrutiny
+
+#### engineering · Building · Diagnosis — skill:pstack/skills/principle-fix-root-causes
+- `owning-layer-fix`: Fix a bug at the layer that owns it rather than patching around it. — adopt → doc:AGENTS.md
+- `reproduction-first`: Obtain a reproduction that shows the reported failure, not a nearby one, before diagnosing it. — reject
+- `why-chain`: Ask why at each step of a failure until the answer is a wrong decision in the code rather than a consequence of an earlier one. — adopt → systematic-debugging#why-chain
+- `observe-not-guess`: When stuck, add instrumentation and read the actual error and state instead of reasoning from guesses. — reject
+- `legitimate-state-test`: Before guarding where a symptom surfaced, decide whether the triggering state is legitimate: handle a legitimate state there, and trace an illegitimate one to what produced it. — adopt → systematic-debugging#legitimate-state-test
+- `persisted-state-suspect`: When a failure appears only after a restart, suspect persisted state (configuration, caches, lock files, serialized state) first. — adopt → systematic-debugging#persisted-state-suspect
+- `fix-every-instance`: Search for every place with the same fault and fix them all, not only the reported instance. — adopt → doc:.claude/skills/mvp-mode/playbooks/bug-fix.md
+- `workaround-comment-smell`: Treat a workaround that needs a long justifying comment as a sign the code is wrong, and fix the code instead. — defer
+- `always-on-signal`: After a fact took a deep investigation to find, propose the cheap always-on signal that would have shown it at first look. — adopt → doc:.claude/skills/mvp-mode/playbooks/bug-fix.md
+
+#### engineering · Building · Implementation — skill:pstack/skills/principle-laziness-protocol
+- `deletion-bias`: When refactoring or tempted to add an abstraction, layer or threaded signal, prefer deleting code to adding it. — adopt → principle-subtract-before-you-add#deletion-bias
+- `single-source-of-truth`: Keep each meaning in one authoritative place so changing it is a one-place edit. — adopt → principle-subtract-before-you-add#single-source-of-truth
+- `smallest-sufficient-change`: Deliver the correct result with the smallest change that achieves it. — adopt → doc:AGENTS.md
+
+#### engineering · Building · Implementation — skill:pstack/skills/principle-sequence-verifiable-units
+- `verified-unit-sequence`: Split multi-step work into small units that each end in a checked state, and start the next only when the current one passes. — adopt → principle-sequence-verifiable-units#verified-unit-sequence
+- `clean-baseline-first`: Start from a clean, current base so each check measures against the real baseline. — adopt → principle-sequence-verifiable-units#baseline-check-before-change
+- `argument-order-commits`: Order commits so the history proves the work (failing test before fix, removal before reshape, baseline before treatment, scaffold before feature), each commit standing alone. — adopt → principle-sequence-verifiable-units#argument-order-commits
+
+#### engineering · Verification · Testing — skill:pstack/skills/principle-test-behavior-not-implementation
+- `meaningful-behaviour-assertion`: Assert meaningful results, state or boundary interactions at a stable boundary rather than internal call choreography. — adopt → test-driven-development#meaningful-behaviour-assertion
+- `two-edit-test-judgement`: Judge every test by two imagined edits: breaking the behaviour must fail it, and restructuring the internals must not. — adopt → principle-test-behavior-not-implementation#two-edit-test-judgement
+- `independent-expectation`: Derive expected values from an independent source such as a spec, worked example or trusted fixture, never computing both sides with the implementation under test. — adopt → test-driven-development#independent-expectation
+- `hollow-test-forms`: Check a test for the usual hollow forms: an assertion looser than the contract, a restated constant the code never reads, or an assertion on data the test built itself. — adopt → principle-test-behavior-not-implementation#hollow-test-forms
+- `implementation-test-deletion`: When internals change, rewrite or delete tests that only protect the old implementation, asserting the current contract instead. — adopt → principle-test-behavior-not-implementation#implementation-test-deletion
+- `public-interface-testing`: Exercise behaviour in tests through public interfaces. — adopt → principle-test-behavior-not-implementation#public-interface-testing
+- `contract-exact-assertion`: Assert exactly what the contract promises, no less and no more, letting the contract decide whether a call, an absence, a payload or an error type is behaviour. — adopt → principle-test-behavior-not-implementation#contract-exact-assertion
+- `absence-positive-control`: Pair an assertion that something did not happen with a positive case showing the same test would see it happen. — adopt → principle-test-behavior-not-implementation#absence-positive-control
 
 ### mattpocock_skills
 
@@ -1947,8 +2218,32 @@ Change approach when repeated attempts produce no new evidence.
 
 ### core · Building · Implementation
 
+#### `hand-first-recipe`
+Do the first unit by hand, then build the tool and show it reproduces the hand result before running it on the rest.
+- ours: `build-a-lever`
+- `cursor_plugins:skill:pstack/skills/principle-build-the-lever` — adopt → build-a-lever#hand-first-recipe
+
+#### `minimal-tool`
+Build the smallest script that does or proves the job, never a framework.
+- ours: `build-a-lever`
+- `cursor_plugins:skill:pstack/skills/principle-build-the-lever` — adopt → build-a-lever#minimal-tool
+
+#### `rerun-safe-tool`
+Make a work tool safe to rerun on input it has already changed.
+- ours: `build-a-lever`
+- `cursor_plugins:skill:pstack/skills/principle-build-the-lever` — adopt → build-a-lever#rerun-safe-tool
+
 #### `smallest-sufficient-change`
 Deliver the correct result with the smallest change that achieves it.
+- `doc:AGENTS.md`
+- `cursor_plugins:skill:pstack/skills/principle-laziness-protocol` — adopt → doc:AGENTS.md
+
+#### `tool-over-hand-work`
+For non-trivial edits, analyses or checks, write a rerunnable tool that does or proves the work, so a reviewer reruns it instead of trusting a hand-made result.
+- `cursor_plugins:skill:pstack/skills/principle-build-the-lever` — adopt → doc:AGENTS.md
+
+#### `tool-when-it-pays`
+Use existing deterministic tools and checks where they suffice, and build a rerunnable tool only when it materially reduces repeated work or supplies proof a reviewer needs, keeping its output.
 - `doc:AGENTS.md`
 
 ### core · Verification · Review
@@ -2004,6 +2299,22 @@ Run review as a separate, low-context-pressure stage from implementation.
 #### `severity-and-verdict`
 Rate each finding by consequence and approve only with no open blocker or major, otherwise require revision, never counting preference alone as a finding.
 - ours: `review`
+
+### core · Verification · Validation
+
+#### `direct-observation`
+Verify a result by observing the real thing (run it, read the actual value, check liveness directly), never a proxy, a cached view or a self-report.
+- `doc:AGENTS.md`
+- `cursor_plugins:skill:pstack/skills/principle-prove-it-works` — adopt → doc:AGENTS.md
+
+#### `scripted-proof`
+Prefer a deterministic, rerunnable script as the proof of a result, and keep its output for a reviewer.
+- `cursor_plugins:skill:pstack/skills/principle-prove-it-works` — adopt → doc:AGENTS.md
+
+#### `suspect-the-observation`
+When a check fails unexpectedly, test the observation method before concluding the system is wrong.
+- ours: `systematic-debugging`
+- `cursor_plugins:skill:pstack/skills/principle-prove-it-works` — adopt → systematic-debugging#suspect-the-observation
 
 ### core · Delivery · Integration
 
@@ -2102,6 +2413,10 @@ Let the gap command print tracker-create lines to review by hand, never auto-run
 Install the tracker, adopt it in a project, and join from a new clone with bootstrap rather than a re-init.
 - ours: `beads`
 
+#### `check-pointer-not-restatement`
+Once a check enforces a rule, replace the instruction that restated it with a pointer to the check.
+- ours: `authoring-for-agents`
+
 #### `co-location`
 Keep a concept's definition, rules and caveats under one heading so reading one part brings its neighbours.
 - `mattpocock_skills:skill:skills/productivity/writing-for-agents` — adopt, pending cr-axdt.6.1 → authoring-for-agents#co-location
@@ -2147,6 +2462,7 @@ Sharpen a vague completion criterion before considering hiding the later steps.
 #### `decision-relevance-pruning`
 Keep only content that changes the agent's decisions, such as conventions, non-obvious failure modes, required interfaces and invariants.
 - ours: `authoring-for-agents`
+- `cursor_plugins:skill:pstack/skills/principle-subtract-before-you-add` — reject
 
 #### `destination-protection`
 Never overwrite an existing skill destination even under force, which applies only to generated scaffolds.
@@ -2198,6 +2514,14 @@ Choose model-invoked or user-invoked activation, setting the disable-model-invoc
 
 #### `invocation-sidecar-sync`
 Pair the manual-invocation flag with the provider's implicit-invocation policy and regenerate the catalog and sidecars together after metadata edits.
+- ours: `authoring-for-agents`
+
+#### `judgement-lesson-example`
+When a recurring lesson needs judgement and cannot be checked, make its instruction more prominent and pair it with an example of the failure.
+- `cursor_plugins:skill:pstack/skills/principle-encode-lessons-in-structure` — adopt → authoring-for-agents#judgement-lesson-failure-example
+
+#### `judgement-lesson-failure-example`
+When a recurring lesson needs judgement and cannot be checked, revise the instruction it implicates and add one example of the failure, rather than repeating or emphasising the rule.
 - ours: `authoring-for-agents`
 
 #### `leading-words`
@@ -2257,6 +2581,11 @@ Match prescription to fragility: exact recipes for deterministic operations, jud
 Append a curation decision with the registry record command carrying its kind, subject, reason and evidence.
 - ours: `harness-evaluate`
 
+#### `recurring-lesson-to-check`
+When a correction or instruction recurs, encode it as a lint, flag, runtime check or script instead of adding more instruction text.
+- `doc:AGENTS.md`
+- `cursor_plugins:skill:pstack/skills/principle-encode-lessons-in-structure` — adopt → doc:AGENTS.md
+
 #### `relevance-check`
 Check every line still bears on the document's task, pruning stale or irrelevant ones.
 - `mattpocock_skills:skill:skills/productivity/writing-for-agents` — adopt, pending cr-axdt.6.1 → authoring-for-agents#relevance-check
@@ -2288,6 +2617,8 @@ Fix a weakly reached must-have target by sharpening its pointer's wording first,
 #### `single-source-of-truth`
 Keep each meaning in one authoritative place so changing it is a one-place edit.
 - ours: `authoring-for-agents`
+- ours: `principle-subtract-before-you-add`
+- `cursor_plugins:skill:pstack/skills/principle-laziness-protocol` — adopt → principle-subtract-before-you-add#single-source-of-truth
 - `mattpocock_skills:skill:skills/productivity/writing-for-agents` — adopt → authoring-for-agents#single-source-of-truth
 
 #### `skill-packaging`
@@ -2314,9 +2645,18 @@ Keep the always-loaded agent instruction file sparse, mostly navigation pointers
 Split off a model-invoked skill only when a distinct leading word should trigger it or another skill must reach it.
 - `mattpocock_skills:skill:skills/productivity/writing-for-agents` — adopt, pending cr-axdt.6.1 → authoring-for-agents#split-by-invocation
 
+#### `structural-fix-only`
+Once a rule is enforced by structure, delete the instruction that restated it.
+- `cursor_plugins:skill:pstack/skills/principle-encode-lessons-in-structure` — adopt → authoring-for-agents#check-pointer-not-restatement
+
 #### `structural-verify`
 Provide a verify command that parses the generated assets and optionally runs discovery, disclosing that structural success proves neither semantic parity nor routing.
 - ours: `migrate-claude-to-codex`
+
+#### `stub-deletion`
+Delete a reference that carries no novel content instead of leaving a stub that points elsewhere.
+- ours: `principle-subtract-before-you-add`
+- `cursor_plugins:skill:pstack/skills/principle-subtract-before-you-add` — adopt → principle-subtract-before-you-add#stub-deletion
 
 #### `surface-choice`
 Choose the right owner for an instruction — policy file, project document with a pointer, skill, manual alias, conditional reference, or an existing hook or check — and search for an existing owner first.
@@ -2365,6 +2705,11 @@ Choose among reject or defer, merge into an existing capability, a separate plug
 Run the drift scan to surface upstream changes since our pin.
 - ours: `harness-scan`
 - ours: `harness-status`
+
+#### `eval-result-scrutiny`
+Before trusting an eval result, check that every run did the task, that the gap holds across trials and models, and that the scenario matters.
+- ours: `principle-explain-the-number`
+- `cursor_plugins:skill:pstack/skills/principle-explain-the-number` — adopt → principle-explain-the-number#eval-result-scrutiny
 
 #### `gap-report`
 Run the gap report for capabilities never ruled on, changed upstream since their ruling, or held but never ruled on.
@@ -2667,6 +3012,10 @@ Carry one stable actor for the whole session, claiming on start and acting only 
 Agree the wiki's location with the user before the first write.
 - `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — defer
 
+#### `audit-trail-proof-commit`
+Keep a proof artifact visible to the human, and commit it only when large or complex work needs an auditable trail.
+- `cursor_plugins:skill:pstack/skills/principle-prove-it-works` — adopt → build-a-lever#proposed-artifact-commit
+
 #### `bead-type-taxonomy`
 Use only the six bead types (epic, feature, task, bug, spike, decision) and the single human label, never inventing others.
 - ours: `beads`
@@ -2674,6 +3023,10 @@ Use only the six bead types (epic, feature, task, bug, spike, decision) and the 
 #### `boundary-only-context-decisions`
 Make context-management choices only at the fuzzy boundary between two phases of work, never mid-phase where they lose the thread.
 - `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
+
+#### `bulk-to-subagents`
+Send bulk reading and large outputs to subagents and keep only their summaries in the main thread.
+- `cursor_plugins:skill:pstack/skills/principle-guard-the-context-window` — adopt → mvp-mode#delegate-independent-by-default
 
 #### `cite-not-copy-sources`
 Cite sources from wiki pages without copying or editing the sources.
@@ -2747,6 +3100,10 @@ Reference existing artifacts by path or URL rather than copying their content in
 Keep large logs and histories behind references instead of loading them into context.
 - `doc:AGENTS.md`
 
+#### `noticed-problem-followup`
+Log a problem noticed in passing and fix it in the next round.
+- `cursor_plugins:skill:pstack/skills/principle-never-block-on-the-human` — reject
+
 #### `optional-record-sections`
 Add optional sections to a record, such as status or consequences, only when they carry real information.
 - ours: `domain-modeling`
@@ -2758,6 +3115,10 @@ Add optional sections to a record, such as status or consequences, only when the
 Walk the context moves at a phase boundary as an ordered decision tree in which the first yes wins.
 - `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
 
+#### `outliving-tool-commit`
+Commit a work tool when the work it does outlives the session.
+- `cursor_plugins:skill:pstack/skills/principle-build-the-lever` — adopt → build-a-lever#proposed-artifact-commit
+
 #### `persistent-wiki-memory`
 Keep durable memory in an interlinked markdown wiki that outlives the session.
 - `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — defer
@@ -2766,9 +3127,17 @@ Keep durable memory in an interlinked markdown wiki that outlives the session.
 Shape a phase epic to the status-renderer contract — a bracketed phase-id title, the roadmap as spec_id, the governing spec path as design, and acceptance matching the roadmap's verify rows.
 - ours: `beads`
 
+#### `phase-scope-caps`
+Cap each phase's scope with file limits and turn budgets, counting the context cost of the mechanisms used.
+- `cursor_plugins:skill:pstack/skills/principle-guard-the-context-window` — defer
+
 #### `primary-vs-secondary-source`
 Recognise that every context move but continuing replaces the live session (a primary source) with a lossy summary that restores facts but not reasoning.
 - `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
+
+#### `proposed-artifact-commit`
+Keep a work tool or proof artifact in the scratch folder and propose committing it when the work will be rerun or audited.
+- ours: `build-a-lever`
 
 #### `resume-bead-and-handoff`
 When resuming work, recover the active bead and its handoff.
@@ -2917,9 +3286,15 @@ Choose and state the council's scale before dispatch, naming membership and whet
 Send a tightly scoped task needing no steering to a subagent and leave the current session untouched.
 - `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
 
+#### `delegate-by-default`
+At top level, hand most work to subagents and keep the main context for coordination, integration and verification; work locally only when that has a clear advantage.
+
+#### `delegate-independent-by-default`
+At top level, hand independent work to subagents and keep the main context for coordination, integration and verification; work locally only when that has a clear advantage.
+- ours: `mvp-mode`
+
 #### `delegation-threshold`
 Delegate bounded independent work only when it materially improves speed, context use or review quality within budget, keeping small work local.
-- `doc:AGENTS.md`
 
 #### `dual-track-thinking`
 Think on a tactical track for the current task and a strategic track for improving the environment for the next task.
@@ -3024,6 +3399,8 @@ Do not also do work that has been delegated.
 #### `no-onward-delegation`
 A delegated worker does not hand its work on to further agents unless its brief allows it.
 - ours: `delegation`
+- ours: `mvp-mode`
+- `doc:AGENTS.md`
 
 #### `no-playbook-in-delegate`
 Inside a delegated task, route only to skills and principles and never start a playbook: the parent runs it, and the brief is its step.
@@ -3102,6 +3479,10 @@ Save every member's full attributed report under the run directory rather than d
 #### `report-resolution`
 Report which values were selected from the catalog, accepted by the active surface, inherited, or rejected and unavailable.
 
+#### `reversible-work-proceeds`
+Proceed without asking on reversible work, then present the result and its reasoning so the human can correct it afterwards, leaving product direction to the human.
+- `cursor_plugins:skill:pstack/skills/principle-never-block-on-the-human` — reject
+
 #### `role-contracts`
 Give each delegated role a fixed contract of access, duties and report shape, and carry it inside the brief because the worker may not load the delegating instructions.
 - ours: `delegation`
@@ -3114,6 +3495,11 @@ Invoke the router at the start of every task, so routing is loaded on any vendor
 Verify actual runtime dispatch interfaces before assuming cross-provider access from a model name or placing effort only in prose when a runtime control exists.
 - ours: `model-council`
 
+#### `script-over-fanout`
+When one deterministic pass can process every unit, run a script rather than fanning the units out to delegates.
+- `doc:AGENTS.md`
+- `cursor_plugins:skill:pstack/skills/principle-build-the-lever` — adopt → doc:AGENTS.md
+
 #### `self-contained-subagent-brief`
 Paste into a subagent's brief any reference material it needs that it cannot otherwise reach.
 - `mattpocock_skills:skill:skills/engineering/code-review` — defer
@@ -3121,6 +3507,10 @@ Paste into a subagent's brief any reference material it needs that it cannot oth
 #### `session-resume-followup`
 Send a follow-up to a worker by resuming its own session rather than starting a fresh one.
 - ours: `delegation`
+
+#### `shared-delegate-contract`
+When fanning work out, give every delegate one shared artifact with the recipe, the verification contract and the fences, kept outside their write scope.
+- `cursor_plugins:skill:pstack/skills/principle-build-the-lever` — defer
 
 #### `single-coordinator-session`
 Act as the single accountable coordinator for a long-running goal within one session.
@@ -3214,6 +3604,10 @@ Treat conducting an interview or drafting a questionnaire as neither implementat
 #### `irreversible-confirmation`
 Require an explicit yes or no confirmation from the person before any irreversible action.
 - `mattpocock_skills:skill:skills/engineering/wizard` — defer
+
+#### `irreversible-only-confirmation`
+Ask for confirmation only before irreversible actions such as force-pushing, deleting production data or sending external messages.
+- `cursor_plugins:skill:pstack/skills/principle-never-block-on-the-human` — reject
 
 #### `memory-on-request`
 Write persistent memory other than shared learnings only when asked.
@@ -3754,6 +4148,16 @@ Fold the validated decision into real code and commit the prototype to a throwaw
 Fold a prototype's validated decision into the real code as part of finishing the prototype.
 - `mattpocock_skills:skill:skills/engineering/prototype` — defer
 
+#### `boundary-validation`
+Concentrate validation, narrowing and error handling where data crosses a system boundary such as CLI arguments, configuration, the network or an external API.
+- ours: `principle-boundary-discipline`
+- `cursor_plugins:skill:pstack/skills/principle-boundary-discipline` — adopt → principle-boundary-discipline#boundary-validation
+
+#### `branded-primitives`
+Give semantically distinct values that share a primitive type their own types, validated once at creation and trusted afterwards.
+- ours: `principle-type-system-discipline`
+- `cursor_plugins:skill:pstack/skills/principle-type-system-discipline` — adopt → principle-type-system-discipline#branded-primitives
+
 #### `candidate-before-after-visual`
 Give every architecture candidate a before-and-after diagram of its structural change.
 - `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — defer
@@ -3775,16 +4179,46 @@ Record the prototype's verdict and the question it settled, with a pointer to th
 Use a small assertion as the cheapest proof where it helps, since a prototype implies neither a full test suite nor a ban on checks.
 - ours: `prototype`
 
+#### `coherent-increment`
+Make each increment land or deepen one coherent abstraction instead of spreading a new capability across callers as special-case coordination.
+- ours: `principle-model-the-domain`
+- `cursor_plugins:skill:pstack/skills/principle-foundational-thinking` — adopt → principle-model-the-domain#coherent-increment
+
+#### `collapse-thin-layers`
+Inline layers that cost more than they save, such as one-caller wrappers, adapters with no second implementation and speculative indirection.
+- ours: `principle-minimize-reader-load`
+- `cursor_plugins:skill:pstack/skills/principle-minimize-reader-load` — adopt → principle-minimize-reader-load#collapse-thin-layers
+
 #### `compare-generated-designs`
 Compare the generated designs with each other.
+
+#### `competing-prototypes`
+Before committing to an interaction or architecture with no precedent in the codebase, or to a product decision whose experience depends on feel, build two or three competing prototypes and compare them side by side.
+- ours: `prototype`
+- `cursor_plugins:skill:pstack/skills/principle-exhaust-the-design-space` — adopt → prototype#competing-prototypes
 
 #### `concrete-benefit-claims`
 Phrase a candidate's benefits in the design vocabulary rather than generic claims such as easier to maintain.
 - `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — adopt, pending cr-axdt.6.5 → improve-codebase-architecture#concrete-benefit-claims
 
+#### `concurrent-modification-test`
+Before sharing state between actors, ask what a concurrent modification would do, and isolate the state unless the answer is nothing.
+- ours: `principle-separate-before-serializing-shared-state`
+- `cursor_plugins:skill:pstack/skills/principle-foundational-thinking` — adopt → principle-separate-before-serializing-shared-state#concurrent-modification-test
+
+#### `convergent-operations`
+Design state-changing operations to converge on the same correct end state however often they run and wherever a previous run stopped.
+- ours: `principle-make-operations-idempotent`
+- `cursor_plugins:skill:pstack/skills/principle-make-operations-idempotent` — adopt → principle-make-operations-idempotent#convergent-operations
+
 #### `covered-test-removal`
 Remove an old test only when its behaviour is covered elsewhere or deliberately retired, inspecting a changed test rather than deleting it automatically.
 - ours: `codebase-design`
+
+#### `data-shape-first`
+Settle the core types and data structures, traced against every access pattern, before writing the logic that uses them.
+- ours: `principle-model-the-domain`
+- `cursor_plugins:skill:pstack/skills/principle-foundational-thinking` — adopt → principle-model-the-domain#data-shape-first
 
 #### `deep-module-shape` *(retired)*
 Make every package a deep module whose behaviour hides in subfolders and is reachable only through its root entry-point files.
@@ -3796,6 +4230,7 @@ When the prototype's question is ambiguous and the user is unreachable, choose i
 #### `deletion-test`
 Question a layer that only forwards and keep one whose removal would spread complexity across callers.
 - ours: `codebase-design`
+- `cursor_plugins:skill:pstack/skills/principle-minimize-reader-load` — adopt → codebase-design#deletion-test
 - `mattpocock_skills:skill:skills/engineering/codebase-design` — adopt → codebase-design#deletion-test
 - `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — adopt → codebase-design#deletion-test
 
@@ -3816,6 +4251,7 @@ Classify a module's dependencies as in-process, locally substitutable, owned rem
 #### `depth-as-leverage`
 Prefer modules whose manageable interface hides a large amount of useful behaviour.
 - ours: `codebase-design`
+- `cursor_plugins:skill:pstack/skills/principle-minimize-reader-load` — adopt → codebase-design#depth-as-leverage
 - `mattpocock_skills:skill:skills/engineering/codebase-design` — adopt → codebase-design#depth-as-leverage
 
 #### `depth-locality-seam-comparison`
@@ -3843,6 +4279,16 @@ Discourage barrel files that re-export a whole subtree, favouring several small 
 Isolate a prototype's logic in a pure module that never touches the page, which calls into it while nothing reaches inside, so the module lifts into the real code unchanged.
 - `mattpocock_skills:skill:skills/engineering/prototype` — adopt → prototype#logic-pure-module
 
+#### `domain-not-wire-types`
+Expose domain concepts across a public surface, never the transport, storage or framework types behind it.
+- ours: `principle-boundary-discipline`
+- `cursor_plugins:skill:pstack/skills/principle-boundary-discipline` — adopt → principle-boundary-discipline#domain-not-wire-types
+
+#### `eliminate-shared-writes`
+Before coordinating concurrent writers, give each its own write target (file, key, branch or directory) and merge only where results are read.
+- ours: `principle-separate-before-serializing-shared-state`
+- `cursor_plugins:skill:pstack/skills/principle-separate-before-serializing-shared-state` — adopt → principle-separate-before-serializing-shared-state#eliminate-shared-writes
+
 #### `entry-point-only-imports`
 Enforce that code outside a package imports only that package's root entry points, never its subfolders.
 - `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules` — out-of-scope
@@ -3862,6 +4308,15 @@ Keep existing data fetching above a single variant switcher so only the rendered
 #### `flat-packages`
 Keep packages flat, one tier of children under the root, so a package never contains another package.
 - `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules` — out-of-scope
+
+#### `foundational-requirement-redesign`
+Integrate a new requirement by designing as if it had been a founding assumption, after reading the affected design, rather than bolting it on.
+- `cursor_plugins:skill:pstack/skills/principle-redesign-from-first-principles` — adopt → principle-redesign-from-first-principles#proposed-foundational-redesign
+
+#### `full-propagation`
+Carry a design change through every reference to it (types, documents, examples, rationale) so no stale trace remains.
+- ours: `principle-redesign-from-first-principles`
+- `cursor_plugins:skill:pstack/skills/principle-redesign-from-first-principles` — adopt → principle-redesign-from-first-principles#full-propagation
 
 #### `grilling-loop` *(retired)*
 Once the user picks a candidate, drive a grilling session on it and let the domain-model side effects (new terms, offered records, alternative-interface exploration) happen inline as decisions crystallise.
@@ -3907,9 +4362,24 @@ Allow internal seams and focused internal tests without exposing internals throu
 Allow a package's own files to import each other freely.
 - `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules` — out-of-scope
 
+#### `invariant-at-boundary`
+Name an invariant once, at the boundary that owns it, rather than in every consumer.
+- ours: `principle-minimize-reader-load`
+- `cursor_plugins:skill:pstack/skills/principle-minimize-reader-load` — adopt → principle-minimize-reader-load#invariant-at-boundary
+
+#### `judgeable-leftovers`
+Make everything a run leaves behind (locks, temporary files, partial records, claims) recognisable as stale by the next run, using evidence that holds wherever the run stopped.
+- ours: `principle-make-operations-idempotent`
+- `cursor_plugins:skill:pstack/skills/principle-make-operations-idempotent` — adopt → principle-make-operations-idempotent#judgeable-leftovers
+
 #### `keep-logic-discard-shell`
 Keep only the pure logic module of a logic prototype and never ship its demo shell to production.
 - `mattpocock_skills:skill:skills/engineering/prototype` — defer
+
+#### `knowledge-not-phase-modules`
+Organise modules around one body of domain knowledge, not around execution phases such as load, validate, transform and save.
+- ours: `principle-model-the-domain`
+- `cursor_plugins:skill:pstack/skills/principle-model-the-domain` — adopt → principle-model-the-domain#knowledge-not-phase-modules
 
 #### `layering-stub`
 Leave package layering rules as a commented stub for the repository to fill in.
@@ -3951,6 +4421,11 @@ Export each UI variant as a clearly named component.
 Forbid dependency cycles.
 - `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules` — out-of-scope
 
+#### `no-forced-abstraction`
+Keep boring code that is clear, local and unlikely to grow, adding indirection only when it removes branches, duplicated rules, invalid states or lifecycle risk.
+- ours: `principle-model-the-domain`
+- `cursor_plugins:skill:pstack/skills/principle-model-the-domain` — adopt → principle-model-the-domain#no-forced-abstraction
+
 #### `no-interfaces-yet`
 Keep the survey free of proposed interfaces and instead ask the user which candidate to explore.
 - `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — defer
@@ -3970,6 +4445,12 @@ Generate several radically different interfaces in parallel, each under a differ
 Generate several radically different interfaces through parallel designers, each working under a different constraint brief.
 - `mattpocock_skills:skill:skills/engineering/codebase-design` — adopt → codebase-design#design-it-twice
 
+#### `parse-at-boundary`
+Turn raw external input into typed domain values with a parse function at the boundary where it enters.
+- ours: `principle-boundary-discipline`
+- `cursor_plugins:skill:pstack/skills/principle-boundary-discipline` — adopt → principle-boundary-discipline#parse-at-boundary
+- `cursor_plugins:skill:pstack/skills/principle-type-system-discipline` — adopt → principle-boundary-discipline#parse-at-boundary
+
 #### `persistence-when-needed`
 Bring persistence into a prototype only when the question needs it.
 - ours: `prototype`
@@ -3979,6 +4460,10 @@ Bring persistence into a prototype only when the question needs it.
 Let the question being answered pick the prototype's form, such as a state demo for logic or a UI mockup for layout.
 - ours: `prototype`
 - `mattpocock_skills:skill:skills/engineering/prototype` — adopt → prototype#pick-form
+
+#### `policy-at-edge`
+Keep general-purpose mechanism inside a module and special-purpose policy at its edge.
+- `cursor_plugins:skill:pstack/skills/principle-boundary-discipline` — defer
 
 #### `port-with-memory-adapter`
 For a remote service you own, define a port with a production transport adapter and an in-memory adapter for tests.
@@ -3991,6 +4476,7 @@ Package an interactive demo as one self-contained HTML file that opens directly,
 #### `present-requirement-only`
 Add an abstraction, dependency or feature only for a present requirement, never a speculative one.
 - `doc:AGENTS.md`
+- `cursor_plugins:skill:pstack/skills/principle-subtract-before-you-add` — adopt → doc:AGENTS.md
 
 #### `problem-space-framing`
 Before exploring alternative designs, show the user the constraints, dependency categories and an illustrative sketch, then continue without waiting.
@@ -4005,6 +4491,10 @@ Hide a prototype's variant switcher from production builds.
 Let the project's own precise terms, such as API, service or boundary, stand beside the design glossary rather than banning them.
 - ours: `codebase-design`
 
+#### `proposed-foundational-redesign`
+When integrating a new requirement, work out the design as if it had been a founding assumption, and deliver that redesign only where the request authorizes design change, presenting the rest as a proposal.
+- ours: `principle-redesign-from-first-principles`
+
 #### `prototype-branch-archive`
 Keep the prototype as a primary source by committing it to a throwaway branch out of the main line and pointing to it from the implementation issue.
 - `mattpocock_skills:skill:skills/engineering/prototype` — defer
@@ -4017,10 +4507,25 @@ Leave the main flow for a throwaway prototype when a question needs a runnable a
 Treat every root file as part of the public surface rather than one designated index file.
 - `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules` — out-of-scope
 
+#### `pure-core-thin-shell`
+Keep business logic in pure functions free of framework dependencies, leaving a thin mechanical shell that calls them.
+- ours: `principle-boundary-discipline`
+- `cursor_plugins:skill:pstack/skills/principle-boundary-discipline` — adopt → principle-boundary-discipline#pure-core-thin-shell
+
 #### `readable-state-panel`
 Show a demo's current state in a readable panel.
 - ours: `prototype`
 - `mattpocock_skills:skill:skills/engineering/prototype` — adopt → prototype#readable-state-panel
+
+#### `reader-load-net-test`
+Before adding a layer or a piece of state, check that it removes at least as much reader load elsewhere as it adds.
+- ours: `principle-minimize-reader-load`
+- `cursor_plugins:skill:pstack/skills/principle-minimize-reader-load` — adopt → principle-minimize-reader-load#reader-load-net-test
+
+#### `reconcile-from-state`
+Derive each step from the observed current state compared with the goal, applying only the difference.
+- ours: `principle-make-operations-idempotent`
+- `cursor_plugins:skill:pstack/skills/principle-make-operations-idempotent` — adopt → principle-make-operations-idempotent#reconcile-from-state
 
 #### `rejection-decision-record`
 When the user rejects an improvement candidate for a durable reason, offer a decision record so later reviews do not suggest it again, skipping ephemeral or self-evident reasons.
@@ -4046,6 +4551,7 @@ Honour the recorded architectural decisions that govern the area being changed.
 #### `return-not-mutate`
 Design functions to return results rather than cause side effects, so behaviour can be observed directly.
 - ours: `codebase-design`
+- `cursor_plugins:skill:pstack/skills/principle-minimize-reader-load` — adopt → codebase-design#return-not-mutate
 - `mattpocock_skills:skill:skills/engineering/codebase-design` — adopt → codebase-design#return-not-mutate
 
 #### `rewrite-not-promote`
@@ -4055,6 +4561,11 @@ Rewrite prototype code to production standards when folding the winning decision
 #### `scenario-coverage-triad`
 Give a logic prototype guided scenarios covering the happy path, a tricky edge case and an attempted illegal action.
 - `mattpocock_skills:skill:skills/engineering/prototype` — defer
+
+#### `schema-derived-types`
+Derive types from the authoritative schema that owns a shape instead of hand-writing a parallel type.
+- ours: `principle-type-system-discipline`
+- `cursor_plugins:skill:pstack/skills/principle-type-system-discipline` — adopt → principle-type-system-discipline#schema-derived-types
 
 #### `scope-threat`
 Name the changed entrypoints, assets, identities and consequences, tracing untrusted input to consequential sinks including model outputs used as commands, paths, queries or markup.
@@ -4068,6 +4579,10 @@ Use synthetic or appropriately scoped data, bringing in external calls and real 
 Keep system-wide decision records at the repository root and context-specific ones inside each context.
 - ours: `domain-modeling`
 - `mattpocock_skills:skill:skills/engineering/domain-modeling` — adopt → domain-modeling#scoped-decision-records
+
+#### `scoped-internal-trust`
+Inside the system, trust data a boundary already validated and propagate errors, adding a check at an inner layer only on a failure path a defect has proven.
+- ours: `principle-boundary-discipline`
 
 #### `sdk-interfaces`
 Prefer specific per-operation interface functions over one generic fetcher so each mock returns a single shape.
@@ -4097,10 +4612,20 @@ Keep a module's interface surface small — fewer methods and simpler parameters
 Write the question the prototype answers visibly at the top of the prototype before building, so it can be checked later.
 - `mattpocock_skills:skill:skills/engineering/prototype` — adopt → prototype#named-question
 
+#### `structural-serialization`
+When one shared write target is a real invariant, serialize access by structure (lock, sequential phase, single writer, compare-and-swap), never by instruction.
+- ours: `principle-separate-before-serializing-shared-state`
+- `cursor_plugins:skill:pstack/skills/principle-separate-before-serializing-shared-state` — adopt → principle-separate-before-serializing-shared-state#structural-serialization
+
 #### `structural-variants`
 Make UI variants differ in meaningful structure and layout, not just colour or styling.
 - ours: `prototype`
 - `mattpocock_skills:skill:skills/engineering/prototype` — adopt → prototype#structural-variants
+
+#### `structure-over-conditionals`
+Encode domain rules in a fitting data structure (state machine, typed model, lookup table, union, reducer) instead of conditionals scattered across the code.
+- ours: `principle-model-the-domain`
+- `cursor_plugins:skill:pstack/skills/principle-model-the-domain` — adopt → principle-model-the-domain#structure-over-conditionals
 
 #### `stubbed-mutations`
 Point UI variants that need mutations at stubs rather than real backends.
@@ -4120,6 +4645,10 @@ Make a package's tests folder importable only from tests.
 Let test files import any package's entry points and their own fixtures but never any package's subfolder internals.
 - `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules` — out-of-scope
 
+#### `throwaway-design-first`
+Settle a design decision in a throwaway artifact before writing production code for it.
+- `cursor_plugins:skill:pstack/skills/principle-experience-first` — reject
+
 #### `throwaway-marked`
 Keep prototypes clearly marked as throwaway and separate from production.
 - ours: `prototype`
@@ -4134,6 +4663,10 @@ End a candidate survey with a single top recommendation.
 Make the prototype trivial to run: one command, or a single HTML file the user opens directly.
 - ours: `prototype`
 - `mattpocock_skills:skill:skills/engineering/prototype` — adopt → prototype#trivial-to-run
+
+#### `trust-internal-types`
+Inside the system, trust data that a boundary already validated into types and propagate errors instead of re-checking it in every layer.
+- `cursor_plugins:skill:pstack/skills/principle-boundary-discipline` — adopt → principle-boundary-discipline#scoped-internal-trust
 
 #### `two-adapters-rule`
 Introduce a seam only when behaviour actually varies across it — one adapter is a hypothetical seam, two is a real one.
@@ -4159,6 +4692,11 @@ Keep a prototype's keyboard shortcuts from intercepting input while an editable 
 #### `ui-variants-one-route`
 For a UI prototype, generate several structurally different variants (default three, capped at five) on one route switchable by a search param.
 - `mattpocock_skills:skill:skills/engineering/prototype` — adopt → prototype#variants-when-comparing
+
+#### `unrepresentable-invalid-states`
+Shape types so the checker rejects impossible states, defining special cases out of existence instead of handling them.
+- ours: `principle-type-system-discipline`
+- `cursor_plugins:skill:pstack/skills/principle-type-system-discipline` — adopt → principle-type-system-discipline#unrepresentable-invalid-states
 
 #### `variant-plan-line`
 Before building UI variants, write a one-line plan of variant count, switching method and route at the prototype's location.
@@ -4192,6 +4730,15 @@ Seed epics and stages and render tracking natively in the tracker, keeping the r
 Size migration batches by blast radius and keep the build green between them.
 - `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt, pending cr-axdt.6.6 → planning#blast-radius-batches
 
+#### `cut-before-polish`
+Reach the minimum version before investing in its quality.
+- ours: `principle-subtract-before-you-add`
+- `cursor_plugins:skill:pstack/skills/principle-subtract-before-you-add` — adopt → principle-subtract-before-you-add#cut-before-polish
+
+#### `declared-breakage-window`
+In a planned migration, accept declared, scoped and reversible intermediate breakage instead of writing throwaway compatibility code to keep every step green.
+- `cursor_plugins:skill:pstack/skills/principle-outcome-oriented-execution` — adopt → principle-migrate-without-shims#migration-group-unit
+
 #### `decompose-phases`
 Split an approved spec into demoable phases with checkable exits and flat stages that each carry acceptance.
 - ours: `planning`
@@ -4217,6 +4764,10 @@ For a broad refactor use expand, migrate then contract with genuine dependencies
 Without a tracker, write one numbered file per ticket in dependency order, never one combined file.
 - `mattpocock_skills:skill:skills/engineering/to-tickets` — defer
 
+#### `migration-group-unit`
+Treat an authorized migration group as one verifiable unit: only its declared interior breakage is allowed, and its boundary checks must pass before dependent work proceeds.
+- ours: `principle-migrate-without-shims`
+
 #### `multi-session-split`
 Write a spec and split it into tickets only when the build spans several sessions, otherwise implement in the current window.
 - `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
@@ -4238,18 +4789,41 @@ Size each task so a reviewer could accept or reject it independently of its neig
 Route between brainstorming, a brief local sequence, elaborate, decompose, or executing from a roadmap row according to the work's scale.
 - ours: `planning`
 
+#### `same-wave-legacy-removal`
+When an internal API with no external dependants is replaced as part of a simplification, in a project that can absorb a coordinated breaking change, migrate every caller and delete the old API in the same change instead of keeping a compatibility layer.
+- ours: `principle-migrate-without-shims`
+- `cursor_plugins:skill:pstack/skills/principle-migrate-callers-then-delete-legacy-apis` — adopt → principle-migrate-without-shims#same-wave-legacy-removal
+
+#### `scaffold-first`
+Sequence first the work every later phase benefits from (CI, linting, test infrastructure, shared types) before features.
+- `cursor_plugins:skill:pstack/skills/principle-foundational-thinking` — defer
+
 #### `sub-issue-linkage`
 Make each ticket a child of its source issue and never close or modify that parent.
 - `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → planning#beads-native-tracking
+
+#### `subtraction-first`
+Before adding to a system, remove the complexity in its way (such as dead code, redundant validators and stub references), then build on the simpler base.
+- `cursor_plugins:skill:pstack/skills/principle-foundational-thinking` — adopt → principle-subtract-before-you-add#touched-scope-subtraction
+- `cursor_plugins:skill:pstack/skills/principle-subtract-before-you-add` — adopt → principle-subtract-before-you-add#touched-scope-subtraction
 
 #### `test-first-marking`
 Mark risky changes test-first or characterization-first in the plan.
 - ours: `planning`
 
+#### `touched-scope-subtraction`
+Before adding, remove the dead code, redundant validators and stubs that the change touches, and report other removals instead of making them.
+- ours: `principle-subtract-before-you-add`
+
 #### `vertical-slices`
 Prefer independently verifiable vertical slices over horizontal layers.
 - ours: `planning`
 - `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → planning#vertical-slices
+
+#### `whole-design-incremental-delivery`
+Think a redesign through as a whole before starting, then deliver it in increments rather than in one drop.
+- ours: `principle-redesign-from-first-principles`
+- `cursor_plugins:skill:pstack/skills/principle-redesign-from-first-principles` — adopt → principle-redesign-from-first-principles#whole-design-incremental-delivery
 
 ### engineering · Design · Grounding
 
@@ -4368,6 +4942,11 @@ Keep a compact concept map of source, maturity, affected sections, decision, exc
 Check cross-document consistency, section links, invariant coverage and stale version references, consolidating routine duplication but asking when consolidation changes meaning or authority.
 - ours: `design-evolve`
 
+#### `consumer-as-user`
+Treat whoever consumes the work (end user, importing colleague, next maintainer) as its user, and explain impact from their side.
+- ours: `principle-experience-first`
+- `cursor_plugins:skill:pstack/skills/principle-experience-first` — adopt → principle-experience-first#consumer-as-user
+
 #### `evidence-before-edit`
 Read the actual discussion and affected core sections before a consequential change and record a source-to-target change map, shown before a multi-concept edit.
 - ours: `design-evolve`
@@ -4375,6 +4954,11 @@ Read the actual discussion and affected core sections before a consequential cha
 #### `exhaustive-user-stories`
 Write a long, exhaustive numbered list of actor-feature-benefit user stories.
 - `mattpocock_skills:skill:skills/engineering/to-spec` — defer
+
+#### `experience-over-convenience`
+When implementation convenience conflicts with the consumer's experience, choose the experience.
+- ours: `principle-experience-first`
+- `cursor_plugins:skill:pstack/skills/principle-experience-first` — adopt → principle-experience-first#experience-over-convenience
 
 #### `implementation-decisions-scope`
 List a spec's implementation decisions across modules, interfaces, clarifications, architecture, schema, contracts and interactions.
@@ -4384,6 +4968,11 @@ List a spec's implementation decisions across modules, interfaces, clarification
 #### `integration-not-redesign`
 Integrate only authorized decisions into the next version and never treat integration as licence to redesign.
 - ours: `design-evolve`
+
+#### `justified-surface`
+Every feature, control and option must earn its place against the core workflow; cut what does not serve it.
+- ours: `principle-experience-first`
+- `cursor_plugins:skill:pstack/skills/principle-experience-first` — adopt → principle-experience-first#justified-surface
 
 #### `layout-mirror`
 Mirror the source layout and filename convention under the target version, searching every form of the old version identifier rather than blind-replacing.
@@ -4417,6 +5006,11 @@ Take test seams from the plan without separate approval, surfacing a missing sea
 #### `plan-self-review`
 Self-review the finished plan for spec-requirement coverage, consistent names and types across tasks, and a gap-naming pass that turns unnamed seams, migrations, rollout and cleanup into tasks or explicit exclusions.
 - ours: `planning`
+
+#### `polish-over-breadth`
+Ship fewer finished features rather than more rough ones.
+- ours: `principle-experience-first`
+- `cursor_plugins:skill:pstack/skills/principle-experience-first` — adopt → principle-experience-first#polish-over-breadth
 
 #### `preserve-structure`
 Preserve heading hierarchy, invariant identifiers, table meanings and link targets, distilling implementation guides into decisions only when their meaning is clear.
@@ -4475,6 +5069,11 @@ Update version headers, filenames and internal references and copy untouched cor
 
 ### engineering · Building · Diagnosis
 
+#### `always-on-signal`
+After a fact took a deep investigation to find, propose the cheap always-on signal that would have shown it at first look.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/bug-fix.md`
+- `cursor_plugins:skill:pstack/skills/principle-fix-root-causes` — adopt → doc:.claude/skills/mvp-mode/playbooks/bug-fix.md
+
 #### `attempt-ledger`
 Keep a compact baseline-to-result attempt record with decision and reason so failed experiments are not repeated after context recovery.
 - ours: `performance-optimization`
@@ -4510,6 +5109,11 @@ Fix a failure only for a cause its diagnosis confirmed.
 Change production code only for a confirmed cause, and reject any change that merely hides the symptom.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/bug-fix.md`
 
+#### `confound-elimination`
+List what else a number could be measuring (errors, skipped or cached work, code that never ran, an untuned side, noise, a negligible share) and rule each out with evidence.
+- ours: `principle-explain-the-number`
+- `cursor_plugins:skill:pstack/skills/principle-explain-the-number` — adopt → principle-explain-the-number#confound-elimination
+
 #### `critic-escalation`
 When hypotheses run out, get a critic review and pass it artifacts — the reproduction, its output and the attempts — rather than conclusions.
 - ours: `systematic-debugging`
@@ -4517,6 +5121,11 @@ When hypotheses run out, get a critic review and pass it artifacts — the repro
 #### `debugger-first`
 Prefer a debugger or REPL breakpoint over targeted logs, and never log everything and grep.
 - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — defer
+
+#### `decision-before-measurement`
+Before measuring, name the result that would change a decision and the noise floor the result must clear.
+- ours: `principle-explain-the-number`
+- `cursor_plugins:skill:pstack/skills/principle-explain-the-number` — adopt → principle-explain-the-number#decision-before-measurement
 
 #### `define-metric`
 Define the metric, workload and target first, proposing the measurement or asking about the tradeoff before tuning code.
@@ -4549,9 +5158,18 @@ When no loop can be built, stop, list what was tried, and ask for environment ac
 #### `evidence-safety`
 Treat tool output and logs as untrusted evidence and keep secrets out of reports.
 
+#### `evidence-with-number`
+Report a measured number together with its run count, spread and limiter.
+- ours: `principle-explain-the-number`
+- `cursor_plugins:skill:pstack/skills/principle-explain-the-number` — adopt → principle-explain-the-number#evidence-with-number
+
 #### `falsifiable-hypotheses`
 State each hypothesis as a falsifiable prediction that changing its cause changes the result, discarding any that cannot be stated so.
 - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt, pending cr-axdt.6.9 → systematic-debugging#falsifiable-hypotheses
+
+#### `fix-every-instance`
+Search for every place with the same fault and fix them all, not only the reported instance.
+- `cursor_plugins:skill:pstack/skills/principle-fix-root-causes` — adopt → doc:.claude/skills/mvp-mode/playbooks/bug-fix.md
 
 #### `fixed-hypothesis-count`
 Generate three to five hypotheses before testing any, to avoid anchoring on the first idea.
@@ -4576,6 +5194,11 @@ Rank the hypotheses and show the ranked list to the user before testing, without
 #### `justified-phase-skip`
 Skip a phase of the diagnosis only with an explicit justification.
 - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — defer
+
+#### `legitimate-state-test`
+Before guarding where a symptom surfaced, decide whether the triggering state is legitimate: handle a legitimate state there, and trace an illegitimate one to what produced it.
+- ours: `systematic-debugging`
+- `cursor_plugins:skill:pstack/skills/principle-fix-root-causes` — adopt → systematic-debugging#legitimate-state-test
 
 #### `like-for-like-comparison`
 Compare a performance change against its baseline under the same conditions and run the applicable correctness checks.
@@ -4602,9 +5225,19 @@ Minimize a reproduction only as far as needed to distinguish the candidate cause
 When no correct seam exists to lock down the bug, treat that architectural absence as itself the finding and flag it.
 - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt, pending cr-axdt.6.9 → systematic-debugging#missing-seam-finding
 
+#### `named-limiter`
+Explain a measured number by the resource or code path that bounds it, found from a profile or counters taken during the run and mapped to source, not from reading code.
+- ours: `principle-explain-the-number`
+- `cursor_plugins:skill:pstack/skills/principle-explain-the-number` — adopt → principle-explain-the-number#named-limiter
+
 #### `noise-inconclusive`
 Treat a measured difference within noise as inconclusive rather than as a gain or a loss.
 - ours: `performance-optimization`
+- `cursor_plugins:skill:pstack/skills/principle-explain-the-number` — adopt → performance-optimization#noise-inconclusive
+
+#### `observe-not-guess`
+When stuck, add instrumentation and read the actual error and state instead of reasoning from guesses.
+- `cursor_plugins:skill:pstack/skills/principle-fix-root-causes` — reject
 
 #### `obvious-cause-skip`
 Skip the diagnosis only when a deterministic failing command, run as reported, shows the failure and its output points at the cause, never for a flaky failure or a cause found by reading code or rerunning in a loop.
@@ -4624,6 +5257,8 @@ Fix only a confirmed cause at its owning layer, since a change that merely hides
 #### `owning-layer-fix`
 Fix a bug at the layer that owns it rather than patching around it.
 - `doc:AGENTS.md`
+- `cursor_plugins:skill:pstack/skills/principle-attack-the-premise` — adopt → doc:AGENTS.md
+- `cursor_plugins:skill:pstack/skills/principle-fix-root-causes` — adopt → doc:AGENTS.md
 
 #### `parseable-hitl-output`
 Have a human-in-the-loop script print its captured values as key=value lines the agent can parse.
@@ -4633,6 +5268,11 @@ Have a human-in-the-loop script print its captured values as key=value lines the
 Locate a performance regression by bisecting between known-good and known-bad states rather than by adding logs.
 - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt → systematic-debugging#localized-probing
 
+#### `persisted-state-suspect`
+When a failure appears only after a restart, suspect persisted state (configuration, caches, lock files, serialized state) first.
+- ours: `systematic-debugging`
+- `cursor_plugins:skill:pstack/skills/principle-fix-root-causes` — adopt → systematic-debugging#persisted-state-suspect
+
 #### `phase1-completion-criterion`
 Forbid any hypothesis until one named command, already run once, is proven red-capable, deterministic, fast, and agent-runnable.
 - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — defer
@@ -4640,6 +5280,11 @@ Forbid any hypothesis until one named command, already run once, is proven red-c
 #### `preferred-reproduction-order`
 Try reproduction techniques roughly in a preference order, starting from a failing test and leaving a human-driven script for last.
 - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt → systematic-debugging#loop-construction
+
+#### `premise-test-gate`
+After two or more fixes that rest on one premise fail the same gate, write that premise as one sentence and test it with an observation that would differ were it false, before any further fix that assumes it.
+- ours: `principle-attack-the-premise`
+- `cursor_plugins:skill:pstack/skills/principle-attack-the-premise` — adopt → principle-attack-the-premise#premise-test-gate
 
 #### `preserve-reproducers`
 Keep useful reproducers and user artifacts when cleaning up after a fix.
@@ -4664,6 +5309,7 @@ Shrink the reproduction one element at a time until every remaining part is load
 
 #### `reproduction-first`
 Obtain a reproduction that shows the reported failure, not a nearby one, before diagnosing it.
+- `cursor_plugins:skill:pstack/skills/principle-fix-root-causes` — reject
 - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt → systematic-debugging#reproduction-first
 
 #### `reproduction-preferred`
@@ -4673,6 +5319,10 @@ Seek a reproduction that shows the reported failure, not a nearby one, before di
 #### `revert-ineffective-experiments`
 Remove your own ineffective experimental edits, preserving all other work.
 - ours: `performance-optimization`
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/bug-fix.md`
+
+#### `scoped-instance-fix`
+Search for every instance of a confirmed fault, fix those inside the task's scope and report the rest.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/bug-fix.md`
 
 #### `tagged-debug-logs`
@@ -4692,6 +5342,11 @@ After two failed fixes, stop and bring the attempt log to whoever started the ta
 #### `unproven-without-reproduction`
 When no reproduction is obtainable, continue safe source analysis and qualify any resulting fix as unproven.
 - ours: `systematic-debugging`
+
+#### `why-chain`
+Ask why at each step of a failure until the answer is a wrong decision in the code rather than a consequence of an earlier one.
+- ours: `systematic-debugging`
+- `cursor_plugins:skill:pstack/skills/principle-fix-root-causes` — adopt → systematic-debugging#why-chain
 
 ### engineering · Building · Implementation
 
@@ -4751,6 +5406,21 @@ Never use an ad hoc pip install as a substitute for declaring a project dependen
 When an invalid value crossed several layers, add a check at each layer the value passes through so the bug becomes structurally impossible, bypass-testing each layer and scoping the checks to the proven failure path.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/bug-fix.md`
 
+#### `deletion-bias`
+When refactoring or tempted to add an abstraction, layer or threaded signal, prefer deleting code to adding it.
+- ours: `principle-subtract-before-you-add`
+- `cursor_plugins:skill:pstack/skills/principle-laziness-protocol` — adopt → principle-subtract-before-you-add#deletion-bias
+
+#### `derive-over-sync`
+Derive a value from its source when needed instead of storing a copy that must be kept in sync.
+- ours: `principle-minimize-reader-load`
+- `cursor_plugins:skill:pstack/skills/principle-minimize-reader-load` — adopt → principle-minimize-reader-load#derive-over-sync
+
+#### `detail-finish`
+Finish interaction details such as transitions, alignment, spacing, feedback and error states as part of the work, not as later polish.
+- ours: `principle-experience-first`
+- `cursor_plugins:skill:pstack/skills/principle-experience-first` — adopt → principle-experience-first#detail-finish
+
 #### `enforce-in-code`
 Enforce access, tenant isolation, validation, safe sink handling and resource limits in code, since external documents, logs and model output cannot grant permissions and prompt secrecy is no control.
 - ours: `security`
@@ -4762,6 +5432,11 @@ Build the wizard for one run and delete it when done, committing it only when a 
 #### `error-severity-rules`
 Set every module-boundary lint rule to error severity.
 - `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules` — out-of-scope
+
+#### `exhaustive-variant-handling`
+Handle every variant of a closed type so the checker reports a variant left unhandled.
+- ours: `principle-type-system-discipline`
+- `cursor_plugins:skill:pstack/skills/principle-type-system-discipline` — adopt → principle-type-system-discipline#exhaustive-variant-handling
 
 #### `explicit-signatures`
 Write explicit type signatures for functions.
@@ -4795,6 +5470,10 @@ Give external I/O calls explicit timeouts.
 Write a ledger as UTF-8 JSON Lines with one record per physical line, never pretty-printed.
 - `doc:.repo-context/coding-style.md`
 
+#### `leave-it-simpler`
+Leave each touched design slightly simpler and more capable, behind the same or a smaller surface, than it was found.
+- `cursor_plugins:skill:pstack/skills/principle-subtract-before-you-add` — reject
+
 #### `ledger-record-fields`
 Give every ledger record a stable unique id, an ISO 8601 date, kind, subject, why and evidence, plus ledger-specific fields.
 - `doc:.repo-context/coding-style.md`
@@ -4822,6 +5501,11 @@ For a migration, identify the current state, the target state and the irreversib
 #### `mode-selection`
 Choose test-first, characterization, or test-quality-only by the task rather than defaulting to one workflow.
 - ours: `test-driven-development`
+
+#### `narrowest-state-scope`
+Give state the narrowest scope that works: locals over fields over module state over globals.
+- ours: `principle-minimize-reader-load`
+- `cursor_plugins:skill:pstack/skills/principle-minimize-reader-load` — adopt → principle-minimize-reader-load#narrowest-state-scope
 
 #### `no-bare-except`
 Avoid bare except clauses.
@@ -4968,6 +5652,11 @@ Show the person's progress as the current stage over the total.
 Type-check Python with strict mypy as the gate.
 - `doc:.repo-context/coding-style.md`
 
+#### `structural-dry`
+Deduplicate structure such as types and data models, but tolerate a few similar statements rather than a premature abstraction.
+- ours: `principle-model-the-domain`
+- `cursor_plugins:skill:pstack/skills/principle-foundational-thinking` — adopt → principle-model-the-domain#structural-dry
+
 #### `structured-logging`
 Log through structlog, never print.
 - `doc:.repo-context/coding-style.md`
@@ -4990,6 +5679,10 @@ Keep the template hardened for mid-run safety with Readline-edited input, EOF ha
 #### `terminal-capability-detection`
 Adapt output, such as colour and screen clears, to whether it goes to an interactive terminal.
 - `mattpocock_skills:skill:skills/engineering/wizard` — defer
+
+#### `test-before-fix`
+Sequence the test that will check a fix before the fix itself.
+- `cursor_plugins:skill:pstack/skills/principle-foundational-thinking` — reject
 
 #### `ticket-per-fresh-context`
 Work build tickets one per fresh context window, clearing between them and taking blockers first.
@@ -5015,6 +5708,11 @@ Build and update the Python environment with uv sync.
 Finish scoping only when every captured value's source, destination and secrecy are known.
 - `mattpocock_skills:skill:skills/engineering/wizard` — defer
 
+#### `verified-unit-sequence`
+Split multi-step work into small units that each end in a checked state, and start the next only when the current one passes.
+- ours: `principle-sequence-verifiable-units`
+- `cursor_plugins:skill:pstack/skills/principle-sequence-verifiable-units` — adopt → principle-sequence-verifiable-units#verified-unit-sequence
+
 #### `wire-umbrella-check`
 Add a boundary-lint script and fold it into the repo's umbrella check command alongside typecheck.
 - `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules` — out-of-scope
@@ -5022,6 +5720,10 @@ Add a boundary-lint script and fold it into the repo's umbrella check command al
 #### `wizard-closing-summary`
 Close an interactive setup script with a summary of the values written, the secrets set and the steps still to do by hand.
 - `mattpocock_skills:skill:skills/engineering/wizard` — defer
+
+#### `workaround-comment-smell`
+Treat a workaround that needs a long justifying comment as a sign the code is wrong, and fix the code instead.
+- `cursor_plugins:skill:pstack/skills/principle-fix-root-causes` — defer
 
 ### engineering · Verification · Review
 
@@ -5073,6 +5775,11 @@ Inspect the final diff and Git status before finishing.
 Confirm the review ref resolves and the diff is non-empty before fanning out, failing fast rather than inside sub-agents.
 - `mattpocock_skills:skill:skills/engineering/code-review` — adopt, pending cr-axdt.6.8 → review#fixed-point-preflight
 
+#### `interruption-point-audit`
+Check a state-changing operation by asking what happens when it runs twice and when it stops at each point, and add reconciliation wherever the answer depends on leftovers.
+- ours: `principle-make-operations-idempotent`
+- `cursor_plugins:skill:pstack/skills/principle-make-operations-idempotent` — adopt → principle-make-operations-idempotent#interruption-point-audit
+
 #### `llm-surface-ref`
 Supply the LLM and agent attack surface — untrusted model output, prompt injection, minimum tool scope, consumption bounds, RAG retrieval trust, model supply chain, and not acting on unverified claims.
 - ours: `security`
@@ -5104,6 +5811,11 @@ Separate pre-existing edits from the task's own changes using the task baseline,
 #### `re-review-finding-tracking`
 A re-review rules each prior finding addressed or not with located evidence, flags new breakage in the fix delta, and may rule a finding incorrect without demanding cosmetic edits.
 - ours: `review`
+
+#### `reader-load-axes`
+Judge maintainability by the layers a reader must trace and the state they must hold, not by line counts, complexity scores or architecture labels.
+- ours: `principle-minimize-reader-load`
+- `cursor_plugins:skill:pstack/skills/principle-minimize-reader-load` — adopt → principle-minimize-reader-load#reader-load-axes
 
 #### `repo-standards-over-smells`
 Let a documented repository standard override and suppress a conflicting catalogue smell.
@@ -5153,6 +5865,10 @@ Consult only the matching control group for the surface at hand — authenticati
 Judge tests by whether they detect meaningful failures with independent expectations, and do not treat test changes as inherently defects.
 - ours: `review`
 
+#### `thirty-second-trace-test`
+Check that a new reader can say where a value comes from and what can change it in under thirty seconds.
+- `cursor_plugins:skill:pstack/skills/principle-minimize-reader-load` — reject
+
 #### `three-dot-merge-base`
 Compare against the merge-base using a three-dot git diff so unrelated upstream changes are excluded.
 - `mattpocock_skills:skill:skills/engineering/code-review` — defer
@@ -5171,9 +5887,23 @@ Also consult the web-surface controls reference for a web-facing surface.
 
 ### engineering · Verification · Testing
 
+#### `absence-positive-control`
+Pair an assertion that something did not happen with a positive case showing the same test would see it happen.
+- ours: `principle-test-behavior-not-implementation`
+- `cursor_plugins:skill:pstack/skills/principle-test-behavior-not-implementation` — adopt → principle-test-behavior-not-implementation#absence-positive-control
+
 #### `applicable-checks-before-done`
 Run the applicable checks from the repository's verification file before claiming the work done.
 - `doc:AGENTS.md`
+
+#### `baseline-check-before-change`
+Before the first change of multi-step work, run its checks on the starting base and record the results, so later failures are classed as pre-existing or as regressions.
+- ours: `principle-sequence-verifiable-units`
+
+#### `behaviour-and-edge-case-tests`
+Judge tests by the behaviours and edge cases they exercise, not by line coverage.
+- ours: `principle-test-behavior-not-implementation`
+- `cursor_plugins:skill:pstack/skills/principle-foundational-thinking` — adopt → principle-test-behavior-not-implementation#behaviour-and-edge-case-tests
 
 #### `behaviour-test-names`
 Name each test for the behaviour that exists, not how it is achieved.
@@ -5182,6 +5912,11 @@ Name each test for the behaviour that exists, not how it is achieved.
 #### `break-naming-validation`
 Before accepting substantive tests, name the specific wrong branch, missing validation or side effect they catch, confirming by a safe mutation trial rather than mental inspection when worth its cost.
 - ours: `test-driven-development`
+
+#### `contract-exact-assertion`
+Assert exactly what the contract promises, no less and no more, letting the contract decide whether a call, an absence, a payload or an error type is behaviour.
+- ours: `principle-test-behavior-not-implementation`
+- `cursor_plugins:skill:pstack/skills/principle-test-behavior-not-implementation` — adopt → principle-test-behavior-not-implementation#contract-exact-assertion
 
 #### `deterministic-state`
 Prefer deterministic inputs and isolated state, controlling time, randomness and shared state that cause nondeterminism.
@@ -5195,14 +5930,32 @@ Test the material abuse path and legitimate use, verify authorization per resour
 When the failing check that showed the bug already fails for the reported reason, use it as the regression check and show it passing after the fix.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/bug-fix.md`
 
+#### `full-verification-at-completion`
+At the end of a planned migration or rewrite, run full static and runtime verification, not only the checks the last change touched.
+- ours: `principle-migrate-without-shims`
+- `cursor_plugins:skill:pstack/skills/principle-outcome-oriented-execution` — adopt → principle-migrate-without-shims#full-verification-at-completion
+
+#### `hollow-test-forms`
+Check a test for the usual hollow forms: an assertion looser than the contract, a restated constant the code never reads, or an assertion on data the test built itself.
+- ours: `principle-test-behavior-not-implementation`
+- `cursor_plugins:skill:pstack/skills/principle-test-behavior-not-implementation` — adopt → principle-test-behavior-not-implementation#hollow-test-forms
+
+#### `implementation-test-deletion`
+When internals change, rewrite or delete tests that only protect the old implementation, asserting the current contract instead.
+- ours: `principle-test-behavior-not-implementation`
+- `cursor_plugins:skill:pstack/skills/principle-migrate-callers-then-delete-legacy-apis` — adopt → principle-test-behavior-not-implementation#implementation-test-deletion
+- `cursor_plugins:skill:pstack/skills/principle-test-behavior-not-implementation` — adopt → principle-test-behavior-not-implementation#implementation-test-deletion
+
 #### `independent-expectation`
 Derive expected values from an independent source such as a spec, worked example or trusted fixture, never computing both sides with the implementation under test.
 - ours: `test-driven-development`
+- `cursor_plugins:skill:pstack/skills/principle-test-behavior-not-implementation` — adopt → test-driven-development#independent-expectation
 - `mattpocock_skills:skill:skills/engineering/tdd` — adopt → test-driven-development#independent-expectation
 
 #### `meaningful-behaviour-assertion`
 Assert meaningful results, state or boundary interactions at a stable boundary rather than internal call choreography.
 - ours: `test-driven-development`
+- `cursor_plugins:skill:pstack/skills/principle-test-behavior-not-implementation` — adopt → test-driven-development#meaningful-behaviour-assertion
 - `mattpocock_skills:skill:skills/engineering/tdd` — adopt → test-driven-development#meaningful-behaviour-assertion
 
 #### `mock-boundaries`
@@ -5228,7 +5981,9 @@ Before trusting the guardrail, observe it pass clean, fail on a deliberately pla
 
 #### `public-interface-testing`
 Exercise behaviour in tests through public interfaces.
+- ours: `principle-test-behavior-not-implementation`
 - `doc:.repo-context/coding-style.md`
+- `cursor_plugins:skill:pstack/skills/principle-test-behavior-not-implementation` — adopt → principle-test-behavior-not-implementation#public-interface-testing
 
 #### `regression-check`
 Turn the failure into a durable regression check when feasible, showing failure before the fix and success after, then rerun the original scenario.
@@ -5283,6 +6038,16 @@ Prefer a test database to mocking the database.
 Prefer parametrized tests to repeated test bodies.
 - `doc:.repo-context/coding-style.md`
 
+#### `touched-area-checks`
+During a migration, keep fast high-signal checks running on the areas being changed.
+- ours: `principle-migrate-without-shims`
+- `cursor_plugins:skill:pstack/skills/principle-outcome-oriented-execution` — adopt → principle-migrate-without-shims#touched-area-checks
+
+#### `two-edit-test-judgement`
+Judge every test by two imagined edits: breaking the behaviour must fail it, and restructuring the internals must not.
+- ours: `principle-test-behavior-not-implementation`
+- `cursor_plugins:skill:pstack/skills/principle-test-behavior-not-implementation` — adopt → principle-test-behavior-not-implementation#two-edit-test-judgement
+
 ### engineering · Verification · Validation
 
 #### `explicit-commands-only`
@@ -5307,6 +6072,11 @@ Name and skip any invariant that is aspirational rather than mechanically checka
 
 ### engineering · Delivery · Integration
 
+#### `argument-order-commits`
+Order commits so the history proves the work (failing test before fix, removal before reshape, baseline before treatment, scaffold before feature), each commit standing alone.
+- ours: `principle-sequence-verifiable-units`
+- `cursor_plugins:skill:pstack/skills/principle-sequence-verifiable-units` — adopt → principle-sequence-verifiable-units#argument-order-commits
+
 #### `capture-conflict-set`
 Capture the conflicted file set up front from the version control's unmerged-paths listing.
 - ours: `resolving-merge-conflicts`
@@ -5314,6 +6084,10 @@ Capture the conflicted file set up front from the version control's unmerged-pat
 #### `ci-secrets-via-cli`
 Set CI secrets and variables through the hosting platform's CLI, recording each skip when the CLI is missing or unauthenticated.
 - `mattpocock_skills:skill:skills/engineering/wizard` — defer
+
+#### `clean-baseline-first`
+Start from a clean, current base so each check measures against the real baseline.
+- `cursor_plugins:skill:pstack/skills/principle-sequence-verifiable-units` — adopt → principle-sequence-verifiable-units#baseline-check-before-change
 
 #### `commit-authority-gate`
 Commit or continue the rebase only with granted authority, otherwise stop with the resolution staged and report what would be committed.
@@ -5391,6 +6165,11 @@ Discover and run the project's automated checks and fix what the merge broke.
 Land every ticket of a multi-ticket build on one integration branch.
 - `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
 - `mattpocock_skills:skill:skills/engineering/implement-spec` — defer
+
+#### `small-single-purpose-commits`
+Keep each commit small and about one thing.
+- ours: `principle-sequence-verifiable-units`
+- `cursor_plugins:skill:pstack/skills/principle-foundational-thinking` — adopt → principle-sequence-verifiable-units#small-single-purpose-commits
 
 #### `trace-intent`
 Find the primary source of each conflict via commit messages and requirements first, expanding to PRs or issues only when a disputed hunk needs that history.
@@ -5589,6 +6368,7 @@ Traits listed by two or more of our active skills (`doc:AGENTS.md` and playbooks
 | `material-risk-review` | brainstorming, harness-evaluate | Each gates acceptance of its own output, a spec or a template adoption, on an independent critic; the critic itself belongs to review. |
 | `member-isolation` | model-council, perspective-council | Each council dispatches its own members in isolation. |
 | `neutral-framing` | model-council, perspective-council | Each council frames its own neutral brief. |
+| `no-onward-delegation` | delegation, doc:AGENTS.md, mvp-mode | AGENTS.md holds it as policy every agent loads, so a delegate stops fanning out even when its brief was written by hand; the delegation skill writes it into each role block of the briefs it produces, so a delegate on a vendor or project without our AGENTS.md still receives it; the mvp-mode router states it beside its delegate-independent-by-default rule for plugin users who skip the optional AGENTS.md, so a router that tells them to delegate also tells their delegates not to fan out. |
 | `no-silent-substitution` | model-council, perspective-council | Either council can lose a member, and each must report the gap rather than fill it. |
 | `no-stale-code-snippets` | brainstorming, planning | Each owns a different durable artifact, a spec or a plan, and its own template must keep code out. |
 | `optional-record-sections` | domain-modeling, teach | Each keeps its own record folder (ADRs, learning records) in one minimal format. |
@@ -5601,5 +6381,6 @@ Traits listed by two or more of our active skills (`doc:AGENTS.md` and playbooks
 | `self-serve-facts` | brainstorming, grilling | As question-batching: a short rule each skill applies inside its own flow. |
 | `sequential-record-numbering` | domain-modeling, teach | Each keeps its own record folder (ADRs, learning records) in one minimal format. |
 | `settled-stop` | brainstorming, grilling | As question-batching: each skill stops its own questioning when its decisions are settled. |
+| `single-source-of-truth` | authoring-for-agents, principle-subtract-before-you-add | Each applies one-owner-per-meaning to its own material: authoring-for-agents to agent instructions (search for an existing owner before adding one), the principle to code and data before an addition; neither unit loads the other on its path. |
 | `tight-concept-definitions` | domain-modeling, teach | Each keeps a glossary of its own (project language, the learner's workspace) in one entry format, with its own admission rules. |
 | `two-failure-stop` | doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, execution | Each fixes a failure on its own path, the bug-fix playbook for a bug-fix request and execution inside a task it is running, often delegated, where it cannot start the playbook (R8); both stop after two failed fixes and return the attempt log, the playbook to the user and execution to the task owner. |

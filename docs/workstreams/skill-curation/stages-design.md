@@ -171,12 +171,15 @@ One stage **[owner]**, recorded in the same report file as the analysis.
   trait the target already lists, the planned edit otherwise. The row
   records `guide: {verdict: ok | reword | conflict, rules: [U-02, …]}`:
   - `ok` → the recommendation stands; a new delivered adopt needs `ok`
-    (a row without `guide`, or with `conflict`, supports no delivered adopt;
-    a pending adopt from a non-`ok` row needs `rewording`);
+    (a row without `guide`, or with `conflict` and no owner override,
+    supports no delivered adopt; a pending adopt from a non-`ok` row needs
+    `rewording`);
   - `reword` → an edit is outstanding: adopt **pending**, with the wording
     change in `rewording` (new field). For a trait the target already
     lists, this is a *wording-only* pending adopt (3.4a);
-  - `conflict` → recommend reject, citing the rules.
+  - `conflict` → recommend reject, citing the rules, unless the owner rules
+    to adopt anyway: then the row carries `override: {ruling, date}` and
+    supports an adopt (owner ruling 2026-11-01; registry README §5c).
   A trait with a `trait-policy.yaml` entry gets that stance pre-filled
   (`policy`); the author follows it or argues to change it. The guide judges
   how an instruction is written and when it pays; it does not override

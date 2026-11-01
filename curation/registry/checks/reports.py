@@ -38,8 +38,10 @@ def check_reports(
             errors.append(f"{key}: sealed report has been MODIFIED")
     closure = supersede_closure(reports)
     for key, report in reports.items():
-        if report.passed_by_critics and key not in sealed:
-            errors.append(f"{key}: both critics passed but it is not sealed")
+        if report.critics_cleared and key not in sealed:
+            errors.append(
+                f"{key}: both critics passed or accepted but it is not sealed"
+            )
         errors += supersession_errors(key, report, reports, sealed, closure)
         errors += report_errors(cfg, key, report, upstream, complete=key in sealed)
     errors += ambiguity_errors(reports, sealed, closure)
@@ -223,8 +225,14 @@ def _row_errors(
                 errors.append(f"{where}: a reword verdict is an adopt, pending")
             if not row.rewording:
                 errors.append(f"{where}: a reword verdict needs `rewording`")
-        if row.guide.verdict == "conflict" and rec == "adopt":
-            errors.append(f"{where}: a conflict verdict is never an adopt")
+        if (
+            row.guide.verdict == "conflict"
+            and rec == "adopt"
+            and row.guide.override is None
+        ):
+            errors.append(
+                f"{where}: a conflict verdict is an adopt only with an owner `override`"
+            )
     if rec == "adopt":
         if row.delivery is None:
             errors.append(f"{where}: an adopt row needs `delivery`")

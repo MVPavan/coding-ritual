@@ -10,7 +10,7 @@ status: active
 ---
 # prototype
 
-Use when a runnable throwaway experiment can resolve a specific design, state-model, algorithm, or UI question.
+Use when a runnable throwaway experiment can resolve a specific design, state-model, algorithm, or UI question, or before committing to an interaction or architecture with no precedent in the codebase or a product decision that depends on feel.
 
 **Boundary:** Builds a runnable throwaway experiment that answers one design question; the decision it informs belongs to codebase-design or domain-modeling.
 
@@ -39,6 +39,7 @@ Use when a runnable throwaway experiment can resolve a specific design, state-mo
 - `separate-promotion`: Treat promoting a prototype's decision or code into production as separate work with its own scope and checks.
 - `stubbed-mutations`: Point UI variants that need mutations at stubs rather than real backends.
 - `production-hidden-switcher`: Hide a prototype's variant switcher from production builds.
+- `competing-prototypes`: Before committing to an interaction or architecture with no precedent in the codebase, or to a product decision whose experience depends on feel, build two or three competing prototypes and compare them side by side.
 <!-- /registry:generated traits -->
 
 <!-- registry:generated lineage -->
@@ -65,9 +66,13 @@ Use when a runnable throwaway experiment can resolve a specific design, state-mo
 - **mattpocock_skills:skill:skills/engineering/prototype#always-available-free-play** `skills/engineering/prototype/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.7)
 - **mattpocock_skills:skill:skills/engineering/prototype#resettable-guided-scenarios** `skills/engineering/prototype/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.7)
 - **mattpocock_skills:skill:skills/engineering/prototype#existing-variant-styling-system** `skills/engineering/prototype/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.7)
+- **cursor_plugins:skill:pstack/skills/principle-exhaust-the-design-space#competing-prototypes** `pstack/skills/principle-exhaust-the-design-space/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:223): Completes pending 2026-11-01-cursor_plugins-pstack-principles:023: the principles build (cr-r2pa.1.2) delivered competing-prototypes in prototype, checked whol…
+- `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:024): Checkpoint at 4dd1d05 for the owner's trait rulings: 1 adopt.
+- `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:023) *(superseded)*: Lands as a skill or playbook trait. Not covered. Ours builds variants only when comparison is already the question (prototype UI, variants-when-comparing) and …
 - `2026-10-30` **adopt-merged** (2026-10-30-mattpocock_skills-5beb35b:567): Checkpoint at 5beb35b for the owner's trait rulings: 23 adopt, 16 defer.
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:195): Owner deferred the report's reject recommendation, to review the set later: Component naming is an implementation detail; ours already labels variants clearly …
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:194): Ours reuses project components and realistic content density (UI.md:3-5) but never requires new variant styling to use the project's existing styling system.
@@ -119,6 +124,8 @@ None yet.
 <!-- registry:generated sources -->
 - `capture-outcome`:
   - `mattpocock_skills:skill:skills/engineering/prototype#capture-outcome` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `competing-prototypes`:
+  - `cursor_plugins:skill:pstack/skills/principle-exhaust-the-design-space#competing-prototypes` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `logic-pure-module`:
   - `mattpocock_skills:skill:skills/engineering/prototype#dom-free-portable-logic` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `named-question`:

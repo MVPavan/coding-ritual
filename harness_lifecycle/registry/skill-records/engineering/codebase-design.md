@@ -51,9 +51,20 @@ Use for substantive module-interface, encapsulation, or testability decisions. S
 - **mattpocock_skills:skill:skills/engineering/tdd#inject-dependencies** `skills/engineering/tdd/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/engineering/tdd#module-vocabulary** `skills/engineering/tdd/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules#module-vocabulary** `skills/in-progress/setup-ts-deep-modules/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **cursor_plugins:skill:pstack/skills/principle-minimize-reader-load#deletion-test** `pstack/skills/principle-minimize-reader-load/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/principle-minimize-reader-load#depth-as-leverage** `pstack/skills/principle-minimize-reader-load/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/principle-minimize-reader-load#return-not-mutate** `pstack/skills/principle-minimize-reader-load/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-01` **adopt-merged** (2026-11-01-cursor_plugins-pstack-principles:084): Checkpoint at 4dd1d05 for the owner's trait rulings: 9 adopt, 1 reject.
+- `2026-11-01` **reject** (2026-11-01-cursor_plugins-pstack-principles:083): Lands as a principle unit. An agent cannot run it: there is no new reader to time, and the agent's own speed says nothing about a human's. The two axes (reader…
+- `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:078): Lands as covered. codebase-design prefers pure calculations where they clarify (the 'pure functions' part of the line).
+- `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:077): Lands as covered. codebase-design defines depth as behaviour hidden behind a manageable interface.
+- `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:076): Lands as covered. codebase-design questions a layer that only forwards. Matched for the pass-through rule only; the adapter-count question is the collapse-thin…
+- `2026-11-01` **reject** (2026-11-01-cursor_plugins-pstack-principles:054): Lands as a skill or playbook trait. Not held as such. Ours holds stronger forms where a fix has a test: the bug-fix playbook's step 3 calls test-driven-develop…
+- `2026-11-01` **defer** (2026-11-01-cursor_plugins-pstack-principles:053): Lands as a skill or playbook trait. A sequencing rule for planning, not a lens. The pending prefactor-first adoption covers most of it.
+- `2026-11-01` **defer** (2026-11-01-cursor_plugins-pstack-principles:007): Lands as a principle unit. Sound but abstract; without an example it adds little a reader can apply, and codebase-design's depth vocabulary is its natural home.
 - `2026-10-30` **adopt-merged** (2026-10-30-mattpocock_skills-5beb35b:577): Checkpoint at 5beb35b for the owner's trait rulings: 1 adopt, 2 defer, 23 out-of-scope.
 - `2026-10-30` **adopt-merged** (2026-10-30-mattpocock_skills-5beb35b:560): Checkpoint at 5beb35b for the owner's trait rulings: 13 adopt, 9 defer.
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:381): HELD: codebase-design: its trigger fires on module-interface and testability decisions (codebase-design/SKILL.md:3), the ones this setup encodes.
@@ -94,12 +105,14 @@ None yet.
 
 <!-- registry:generated sources -->
 - `deletion-test`:
+  - `cursor_plugins:skill:pstack/skills/principle-minimize-reader-load#deletion-test` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
   - `mattpocock_skills:skill:skills/engineering/codebase-design#deletion-test` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
   - `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture#deletion-test` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `dependency-categories`:
   - `mattpocock_skills:skill:skills/engineering/codebase-design#dependency-categories` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
   - `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture#dependency-categories` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `depth-as-leverage`:
+  - `cursor_plugins:skill:pstack/skills/principle-minimize-reader-load#depth-as-leverage` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
   - `mattpocock_skills:skill:skills/engineering/codebase-design#depth-as-leverage` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
   - `mattpocock_skills:skill:skills/engineering/codebase-design#small-interface-surface` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `design-it-twice`:
@@ -121,10 +134,15 @@ None yet.
   - `mattpocock_skills:skill:skills/engineering/tdd#module-vocabulary` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
   - `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules#module-vocabulary` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `return-not-mutate`:
+  - `cursor_plugins:skill:pstack/skills/principle-minimize-reader-load#return-not-mutate` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
   - `mattpocock_skills:skill:skills/engineering/codebase-design#return-not-mutate` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 <!-- /registry:generated sources -->
 
 <!-- registry:generated declined -->
+- `cursor_plugins:skill:pstack/skills/principle-boundary-discipline#policy-at-edge` (defer): Lands as a principle unit. Sound but abstract; without an example it adds little a reader can apply, and codebase-design's depth vocabulary is its natural home.
+- `cursor_plugins:skill:pstack/skills/principle-foundational-thinking#scaffold-first` (defer): Lands as a skill or playbook trait. A sequencing rule for planning, not a lens. The pending prefactor-first adoption covers most of it.
+- `cursor_plugins:skill:pstack/skills/principle-foundational-thinking#test-before-fix` (reject): Lands as a skill or playbook trait. Not held as such. Ours holds stronger forms where a fix has a test: the bug-fix playbook's step 3 calls test-driven-develop…
+- `cursor_plugins:skill:pstack/skills/principle-minimize-reader-load#thirty-second-trace-test` (reject): Lands as a principle unit. An agent cannot run it: there is no new reader to time, and the agent's own speed says nothing about a human's. The two axes (reader…
 - `mattpocock_skills:skill:skills/engineering/codebase-design#design-brief-vocabulary` (defer): Owner deferred the report's reject recommendation, to review the set later: AGENTS.md already requires worker briefs to carry relevant context pointers; a skil…
 - `mattpocock_skills:skill:skills/engineering/codebase-design#external-port-mock-adapter` (defer): Owner deferred the report's reject recommendation, to review the set later: Ours tests the owned boundary with safe fixtures or fakes and verifies provider ass…
 - `mattpocock_skills:skill:skills/engineering/codebase-design#interface-is-test-surface` (defer): Owner deferred the report's reject recommendation, to review the set later: Opposite stance: ours treats focused internal tests as valid, not as evidence of a …

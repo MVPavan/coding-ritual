@@ -1,0 +1,4455 @@
+harness: cursor_plugins
+from_sha: null
+to_sha: 4dd1d05
+supersedes: null
+analysis_critic:
+  by: gpt-6.1-sol
+  date: '2026-10-31'
+  verdict: pass
+comparison_critic:
+  by: gpt-6.1-sol
+  date: '2026-10-31'
+  verdict: pass
+themes: 'Scope: pstack principles: the 24 skills/principle-*/ folders. Analysed at `4dd1d05818d19792e7cd6e818f1667f95f7e1dbe`
+  (pstack 0.15.36); worktree `876cfa1` pins it.
+
+
+  Critics: Sol (gpt-6.1-sol) critic-1b (REVISE, 9 MAJOR, 5 MINOR) and critic-1b-r2 (REVISE,
+  2 MAJOR, one note), each covering the analysis and the comparison; every finding was fixed
+  and the coordinator accepted the round-3 fixes on 2026-10-31, recorded here as both critics
+  passing.
+
+
+  Row reasons open with where the trait lands: an AGENTS.md line, a principle unit, a skill
+  or playbook trait, covered (present and delivered), or a conflict or open choice settled
+  by an owner ruling below. `ruled under` names the principle whose row rules a shared trait;
+  `into` names our destination variant for a modified adoption. The 102 new trait definitions
+  were installed in `trait-definitions.yaml` with this report.
+
+
+  ## Owner rulings (2026-11-01)
+
+
+  The owner ruled every row and ruling as recommended. R6 was withdrawn before ruling (critic-1b-r2
+  MAJOR 1); the other numbers are kept.
+
+
+  ### R1. Autonomy and authorization
+
+
+  Loosen AGENTS.md''s authorization rule toward upstream''s reversibility test (proceed on
+  reversible work, fix noticed problems next round, confirm only irreversible actions)?
+
+
+  - `keep` (recommended; owner''s choice): Reject all three; AGENTS.md''s materiality test
+  and its authorization list (any message, scope expansion) stand.
+
+  - `loosen-internal`: Keep the list but let internal team-channel and ticket updates proceed
+  without asking, as upstream''s router does; an AGENTS.md change.
+
+  - `adopt`: Adopt upstream''s reversibility test; an AGENTS.md rewrite.
+
+
+  Owner''s choice: `keep`. Why: S-06 wants authorization defined in one clear place, and ours
+  is deliberately stricter: a reversible change can still materially affect scope or authority.
+  Logging noticed problems is already done through Beads.
+
+
+  Rows: `never-block-on-the-human#reversible-work-proceeds`, `never-block-on-the-human#noticed-problem-followup`,
+  `never-block-on-the-human#irreversible-only-confirmation`. Units: `never-block-on-the-human`.
+
+
+  ### R2. Shared writes: separate or serialize
+
+
+  AGENTS.md serializes overlapping writes; upstream eliminates the shared target first. Where
+  does separate-first apply?
+
+
+  - `code-only` (recommended; owner''s choice): Adopt the principle for concurrent actors
+  in code and tooling design; AGENTS.md''s line is unchanged, since owned worker paths already
+  separate agent writes.
+
+  - `amend-agents`: Also amend AGENTS.md: give each writer its own target first, serialize
+  only what must stay shared.
+
+  - `reject`: Reject; keep serialization as the only default.
+
+
+  Owner''s choice: `code-only`. Why: For agent work the coordinator already separates by owned
+  paths and serializes the rest by dispatch order, which is structural; the gap is code with
+  concurrent actors, where ours says nothing.
+
+
+  Rows: `separate-before-serializing-shared-state#eliminate-shared-writes`. Units: `separate-before-serializing-shared-state`.
+
+
+  ### R3. Recurring lessons: check or text
+
+
+  AGENTS.md sends every recurring lesson to learnings.md; upstream makes recurrence the cue
+  for a check. Amend AGENTS.md?
+
+
+  - `amend` (recommended; owner''s choice): Amend the learnings line: a recurring lesson code
+  can decide becomes a check; others go to learnings.md.
+
+  - `keep`: Keep AGENTS.md as it is and rely on unit-kinds rule 2 and authoring-for-agents,
+  which load on demand.
+
+  - `reject`: Reject the trait.
+
+
+  Owner''s choice: `amend`. Why: The always-loaded rule disagrees with two on-demand ones
+  (S-05); one amended line removes the contradiction without adding a unit.
+
+
+  Rows: `encode-lessons-in-structure#recurring-lesson-to-check`. Units: `encode-lessons-in-structure`.
+
+
+  ### R4. Trust inside versus layered hardening
+
+
+  Upstream never re-checks validated data inside the system; the bug-fix hardening reference
+  adds a check at each layer on a proven failure path. Which holds?
+
+
+  - `scoped` (recommended; owner''s choice): Adopt as scoped-internal-trust: trust by default,
+  layered checks only on a proven failure path.
+
+  - `unconditional`: Adopt upstream unchanged and drop layered hardening from bug-fix#6.
+
+  - `reject`: Reject; keep the hardening reference as the only rule.
+
+
+  Owner''s choice: `scoped`. Why: Both rules are right in their own case; the variant states
+  where each applies, so the combined stack has no contradiction.
+
+
+  Rows: `boundary-discipline#trust-internal-types`.
+
+
+  ### R5. Fix every instance of a fault
+
+
+  Upstream fixes every instance of a fault; AGENTS.md gates scope expansion. How far does
+  a bug fix reach?
+
+
+  - `scoped` (recommended; owner''s choice): Adopt as scoped-instance-fix in bug-fix#3: search
+  for all instances, fix in-scope ones, report the rest.
+
+  - `unconditional`: Fix every instance, asking for authority each time one lies outside the
+  task.
+
+  - `reject`: Reject; fix only the reported instance.
+
+
+  Owner''s choice: `scoped`. Why: Searching is always in scope and cheap; fixing beyond scope
+  is scope expansion (AGENTS.md, U-04).
+
+
+  Rows: `fix-root-causes#fix-every-instance`.
+
+
+  ### R7. Subtraction scope
+
+
+  Upstream removes the complexity in the way before building, unscoped; AGENTS.md avoids unrelated
+  cleanup. How far does removal reach?
+
+
+  - `touched` (recommended; owner''s choice): Adopt as touched-scope-subtraction: remove what
+  the change touches, report other removals.
+
+  - `unscoped`: Adopt upstream unchanged; removal beyond the change needs authority each time.
+
+  - `reject`: Reject.
+
+
+  Owner''s choice: `touched`. Why: Removing what the change touches is in scope and is upstream''s
+  point; the rest is scope expansion.
+
+
+  Rows: `subtract-before-you-add#subtraction-first`, `foundational-thinking#subtraction-first`.
+  Units: `subtract-before-you-add`.
+
+
+  ### R8. A standing duty to simplify
+
+
+  Adopt upstream''s ''leave each touched design simpler and more capable'' as a standing duty?
+
+
+  - `reject` (recommended; owner''s choice): Reject on cost and scope; touched-scope-subtraction
+  keeps the in-scope part.
+
+  - `adopt`: Adopt it as an optional stronger policy in the subtraction principle.
+
+
+  Owner''s choice: `reject`. Why: Not a contradiction with AGENTS.md, but it attaches a refactor
+  obligation to every touch, which in practice edits code the change never needed.
+
+
+  Rows: `subtract-before-you-add#leave-it-simpler`.
+
+
+  ### R9. Redesign on integration
+
+
+  Upstream integrates a requirement by redesigning as if it were foundational; design-evolve
+  says integration does not authorize redesign. Which?
+
+
+  - `proposed` (recommended; owner''s choice): Adopt as proposed-foundational-redesign: design
+  foundationally, deliver within the authorized scope, propose the rest.
+
+  - `unconditional`: Adopt upstream unchanged and drop design-evolve''s integration-not-redesign.
+
+  - `reject`: Reject.
+
+
+  Owner''s choice: `proposed`. Why: The design method and the authority boundary are about
+  different things; the variant keeps both.
+
+
+  Rows: `redesign-from-first-principles#foundational-requirement-redesign`. Units: `redesign-from-first-principles`.
+
+
+  ### R10. Build-the-lever: kind and split
+
+
+  Where does build-the-lever land? Its policy applies to any non-trivial work; its technique
+  is ordered and produces a file.
+
+
+  - `agents-plus-skill` (recommended; owner''s choice): AGENTS.md line for the policy (tool-over-hand-work,
+  script-over-fanout as a delegation rule, scripted-proof), plus a small new skill for the
+  technique (hand-first-recipe, rerun-safe-tool, minimal-tool, proposed-artifact-commit).
+
+  - `principle-with-deviation`: A principle narrowed to work a reviewer must rerun: a new
+  narrower variant of tool-over-hand-work, with an E3 deviation row for P2 (output and order),
+  and the technique inside it.
+
+  - `skill-only`: Reject the policy; keep only the technique skill, used on request.
+
+
+  Owner''s choice: `agents-plus-skill`. Why: Section 2 applied to the actual mechanisms: the
+  policy matches rule 1 (it applies whichever unit runs, A1/A3) and the technique matches
+  rule 6 (one job, one deliverable). The principle option keeps both an output and an order,
+  which P2 excludes, so it needs a logged deviation. Cost: one AGENTS.md line, read every
+  session.
+
+
+  Rows: `build-the-lever#tool-over-hand-work`, `build-the-lever#hand-first-recipe`, `build-the-lever#rerun-safe-tool`,
+  `build-the-lever#script-over-fanout`, `build-the-lever#minimal-tool`, `prove-it-works#scripted-proof`.
+  Units: `build-the-lever`.
+
+
+  ### R11. Verification granularity in a migration
+
+
+  The migration lens accepts declared intermediate breakage; the sequencing lens needs every
+  unit green before the next. Both load for a planned migration. What is the verifiable unit?
+
+
+  - `group` (recommended; owner''s choice): Adopt migration-group-unit: an authorized migration
+  group is one unit; only its declared interior breakage is allowed, touched-area checks keep
+  running, its boundary checks must pass before dependent work, and any undeclared failure
+  (unlike a declared red) stops the work.
+
+  - `sequence-wins`: Every change stays green; decline declared-breakage-window and accept
+  compatibility code.
+
+  - `migration-wins`: Declared breakage with no boundary gate inside a migration.
+
+
+  Owner''s choice: `group`. Why: It keeps both intents: no throwaway shim inside a declared
+  group, and no dependent work on a broken boundary.
+
+
+  Rows: `outcome-oriented-execution#declared-breakage-window`. Units: `migrate-callers-then-delete-legacy-apis`,
+  `outcome-oriented-execution`, `sequence-verifiable-units`.
+
+
+  ### R12. Competing prototypes for unprecedented or feel-dependent decisions
+
+
+  Make two or three compared, runnable prototypes mandatory for an interaction or architecture
+  with no precedent in the codebase, or a product decision whose experience depends on feel?
+
+
+  - `prototype-branch` (recommended; owner''s choice): Adopt as a conditional branch of the
+  prototype skill, then add its router line.
+
+  - `keep-optional`: Reject the stronger default; keep variants-when-comparing and the optional
+  design-it-twice.
+
+
+  Owner''s choice: `prototype-branch`. Why: Both triggers are narrow. No precedent is rare
+  in an established codebase, and an unprecedented decision is where a wrong first design
+  costs most. Feel-dependent product decisions are rare in this repository, which builds agent
+  tooling with little interactive UI, and feel is the case text and specs judge worst, so
+  a compared, runnable variant is the cheapest evidence there.
+
+
+  Rows: `exhaust-the-design-space#competing-prototypes`. Units: `exhaust-the-design-space`.
+
+
+  ### R13. Throwaway artifact before every design decision
+
+
+  Make a throwaway artifact the default before production code for any design decision?
+
+
+  - `reject` (recommended; owner''s choice): Reject; prototype stays on request (named-question).
+
+  - `adopt`: Adopt as a default in the experience-first principle.
+
+
+  Owner''s choice: `reject`. Why: Most of our design decisions are settled in text or a spec;
+  a default artifact per decision costs more than it returns. R12 covers the unprecedented
+  and feel-dependent cases.
+
+
+  Rows: `experience-first#throwaway-design-first`.
+
+
+  ### R14. Reproduction first, unconditionally
+
+
+  Upstream reproduces first, always; when no reproduction is obtainable, systematic-debugging
+  continues safe source analysis and can still confirm a cause by independent evidence such
+  as traces, labelling a fix unproven only while the cause stays provisional. Keep our branch?
+
+
+  - `keep-branch` (recommended; owner''s choice): Decline the unconditional form; keep the
+  conditional variant reproduction-preferred that systematic-debugging now lists.
+
+  - `adopt`: Adopt the unconditional form and remove the no-reproduction branch.
+
+
+  Owner''s choice: `keep-branch`. Why: The branch is deliberate: flaky and production-only
+  failures often cannot be reproduced on demand. Independent evidence is a stated route to
+  a confirmed cause, and the provisional status with its unproven label keeps any fix honest
+  when that evidence is missing.
+
+
+  Rows: `fix-root-causes#reproduction-first`.
+
+
+  ### R15. Bulk reading to subagents
+
+
+  Require bulk reading and large outputs to go to subagents, with only summaries returning?
+
+
+  - `reject` (recommended; owner''s choice): Reject; keep AGENTS.md''s conditional delegation
+  and logs-behind-references.
+
+  - `amend`: Amend AGENTS.md''s delegation line to require it when context is filling.
+
+
+  Owner''s choice: `reject`. Why: Delegation costs tokens and we run one agent at a time (C-14);
+  the conditional rule already delegates when context use materially improves.
+
+
+  Rows: `guard-the-context-window#bulk-to-subagents`. Units: `guard-the-context-window`.
+
+
+  ### R16. Baseline before the work''s checks
+
+
+  Upstream rebases onto a clean trunk before multi-step work so checks measure the real baseline.
+  Adopt?
+
+
+  - `record` (recommended; owner''s choice): Adopt as baseline-check-before-change: run the
+  checks on the starting base first and record the results.
+
+  - `rebase`: Adopt upstream unchanged; a rebase needs explicit approval under our git safety
+  rules.
+
+  - `reject`: Reject; AGENTS.md''s ''distinguish pre-existing failures'' stands alone.
+
+
+  Owner''s choice: `record`. Why: Recording the starting results is what makes the pre-existing-versus-regression
+  distinction possible, without a history rewrite.
+
+
+  Rows: `sequence-verifiable-units#clean-baseline-first`.
+
+
+  ## Units
+
+
+  - **attack-the-premise**: a principle unit, adopt as `principle-attack-the-premise`. One
+  new gate, no holder. P2 caveat: the study counts it as an ordered procedure (J); rewritten
+  as one gate plus unordered rules (no further fix until the premise is written and tested),
+  it fits P2 without a deviation. Router line: `principle-attack-the-premise`: Two or more
+  fixes resting on one belief have failed the same gate (test, review, eval). Overlaps: bug-fix
+  playbook step 5 (two-failure-stop: the stop, not the premise test).
+
+  - **boundary-discipline**: a principle unit, adopt as `principle-boundary-discipline`. Five
+  absent traits for one named situation; codebase-design is about interface depth, not validation
+  placement. One conflicting trait (trust-internal-types) lands as a scoped variant (ruling
+  R4). Router line: `principle-boundary-discipline`: Wiring validation, error handling or
+  a framework adapter. Overlaps: codebase-design (pure calculations, partly); coding-style.md
+  (Pydantic external contracts, partly).
+
+  - **build-the-lever**: an open choice (owner ruling), adopt. Open: ruling R10. Applying
+  section 2 to the actual mechanisms splits the unit. The policy (tool-over-hand-work, and
+  script-over-fanout as a delegation rule) applies whichever unit runs, so A1 and A3 send
+  it to AGENTS.md. The rest (hand-first recipe, safe reruns, minimal tool, the commit proposal)
+  is ordered technique whose deliverable is a file, which P2 excludes from principles, so
+  it is a small skill. Narrowing the policy to ''work a reviewer must rerun'' to keep a principle
+  would be a different mechanism (a new variant) and would still carry the output and the
+  order, needing an E3 deviation for P2; the round-1 draft did that silently. No principle
+  unit under the recommended option. Router line: `build-a-lever (new skill)`: Bulk or repeated
+  edits, a migration, an analysis or a check worth rerunning (only if ruling R10 creates the
+  skill).
+
+  - **encode-lessons-in-structure**: a conflict (owner ruling), adopt. Not a principle: recording
+  lessons applies to every task (A1), so it lands as an AGENTS.md amendment (ruling R3); the
+  example and pointer rules go to authoring-for-agents as variants. Upstream note: the body
+  at this commit lost its main rule (cut in pstack #538/#571) and survives only in the description.
+  Overlaps: authoring-for-agents (surface table: deterministic enforcement; partial); unit-kinds
+  §2 rule 2 (a project document, not a unit).
+
+  - **exhaust-the-design-space**: a skill or playbook trait, adopt. A one-rule principle whose
+  mechanism is a technique with an output (P2), so it lands as a conditional branch of the
+  prototype skill, not as a principle or a router rule. The router line is added only after
+  that branch''s contract exists (R2, R3). Ruling R12. Upstream note: its body was cut to
+  one sentence at this commit. Router line: `prototype`: Novel interaction or architecture
+  with no precedent in the codebase, or a product decision whose experience depends on feel
+  (only once prototype has the competing-variants branch). Overlaps: prototype (variants-when-comparing;
+  the optional form only); codebase-design (design-it-twice; optional, on paper).
+
+  - **experience-first**: a principle unit, adopt as `principle-experience-first`. Five absent
+  traits in one named situation. This repository is tooling, but the MVP stack ships to adopters
+  whose work is product work, so the situation is present for the shipped set. Router line:
+  `principle-experience-first`: Product, UX or feature-scope tradeoff.
+
+  - **explain-the-number**: a principle unit, adopt as `principle-explain-the-number`. The
+  situation spans performance work and eval results; performance-optimization holds only the
+  noise rule. The skill should cite the principle for the shared parts (P6, S6). Router line:
+  `principle-explain-the-number`: Before measuring, or before trusting, reporting or acting
+  on a measured number (performance or eval). Overlaps: performance-optimization (noise-inconclusive,
+  baseline variability).
+
+  - **fix-root-causes**: a skill or playbook trait, adopt. Its situation (debugging) is exactly
+  the bug-fix playbook''s request and systematic-debugging''s activation, both already routed,
+  so a principle would duplicate their triggers. The study also counts it as an ordered procedure
+  (P2 fails). The gap traits fold into systematic-debugging (diagnosis) and the bug-fix playbook
+  (fix and closeout); no principle unit. Nothing proposed makes systematic-debugging start
+  the playbook (B11). Overlaps: none left: the in-flight bug-fix gate (confirmed-cause-gate)
+  already drops the owning layer it used to restate from AGENTS.md (A2).
+
+  - **foundational-thinking**: a principle unit, adopt, merged into `principle-model-the-domain`,
+  `principle-separate-before-serializing-shared-state`, `principle-sequence-verifiable-units`,
+  `principle-subtract-before-you-add`, `principle-test-behavior-not-implementation`. Not as
+  its own unit: a bundle of mechanisms each owned by a sharper principle (model-the-domain,
+  separate-before-serializing, sequence-verifiable-units, subtract-before-you-add, test-behavior-not-implementation)
+  or by planning. Merge its traits into those units; no unit of its own.
+
+  - **guard-the-context-window**: an AGENTS.md line, reject. Its one live mechanism would
+  be an AGENTS.md policy, and the recommendation is to keep AGENTS.md''s conditional delegation
+  instead (ruling R15); phase caps wait for smart-zone-budget. No unit. Upstream note: its
+  body was cut to one bullet at this commit. Overlaps: delegation (context pointers in briefs;
+  partial).
+
+  - **laziness-protocol**: a principle unit, adopt, merged into `principle-subtract-before-you-add`.
+  No unit of its own: the core is AGENTS.md''s first line (A3 already applied), and the deletion
+  bias and decision consolidation merge into subtract-before-you-add. Upstream note: its body
+  was cut to two bullets at this commit.
+
+  - **make-operations-idempotent**: a principle unit, adopt as `principle-make-operations-idempotent`.
+  Four absent traits in one design situation that the workflow interpreter meets directly.
+  Upstream''s numbered test is three unordered questions (interruption-point-audit); rewrite
+  without numbers (P2). Router line: `principle-make-operations-idempotent`: Designing a command,
+  lifecycle step or loop that may crash, restart or retry.
+
+  - **migrate-callers-then-delete-legacy-apis**: a principle unit, adopt as `principle-migrate-without-shims`.
+  Merge with outcome-oriented-execution: both say converge on the target without compatibility
+  code. The merged unit keeps two distinguishable branches, each with its own activation:
+  the API branch applies only when all three of same-wave-legacy-removal''s conditions hold;
+  the migration branch only to a planned migration with declared phase boundaries. Verification
+  granularity across the two and sequence-verifiable-units is ruling R11. One unit, our name
+  (P5). Router line: `principle-migrate-without-shims`: Replacing an internal API that no
+  external user depends on, as part of a simplification in a project that can absorb a coordinated
+  break; or running a planned rewrite or migration with declared phase boundaries. Overlaps:
+  planning (expand-contract, partly).
+
+  - **minimize-reader-load**: a principle unit, adopt as `principle-minimize-reader-load`.
+  A review lens; codebase-design is a design-decision skill and does not run during review.
+  Its collapse rule is adopted unchanged with its cost condition; it does not conflict with
+  single-adapter-justified. Router line: `principle-minimize-reader-load`: Reviewing or shaping
+  code that is hard to trace. Overlaps: codebase-design (deletion-test, depth-as-leverage,
+  return-not-mutate).
+
+  - **model-the-domain**: a principle unit, adopt as `principle-model-the-domain`. Absent
+  from ours. Also takes foundational-thinking''s data-shape-first, structural-dry and coherent-increment;
+  keep within P3''s ~35 lines, citing minimize-reader-load (P6) for its separate reader-load
+  gate rather than restating it. Router line: `principle-model-the-domain`: Writing stateful
+  logic, a growing if/else chain, or a shape assumption repeated across files.
+
+  - **never-block-on-the-human**: a conflict (owner ruling), reject. AGENTS.md owns autonomy
+  and authorization (S-06 wants one place). Upstream''s looser stance on messages and follow-up
+  fixes contradicts that rule; keep ours unless the owner wants to loosen it (ruling R1).
+
+  - **outcome-oriented-execution**: a principle unit, adopt as `principle-migrate-without-shims`,
+  merged into `principle-migrate-without-shims`. Merged with migrate-callers-then-delete-legacy-apis
+  into one unit, as its migration branch (ruling R11). Overlaps: planning (expand-contract
+  integration boundary).
+
+  - **prove-it-works**: an AGENTS.md line, adopt. Needed on every task (A3): one amended AGENTS.md
+  Verification line (direct observation, and scripted proof unless ruling R10 puts it in the
+  tool line), plus one clause in systematic-debugging. No principle unit (P4 would make it
+  restate AGENTS.md). Overlaps: bug-fix playbook step 4, test-driven-development, performance-optimization
+  (partial: each runs checks for its own scope; a scoped step that invokes a required check
+  is not a restatement of AGENTS.md''s general rule unless it repeats that rule, so decide
+  each case when the owning mechanism is settled).
+
+  - **redesign-from-first-principles**: a conflict (owner ruling), adopt as `principle-redesign-from-first-principles`.
+  A design lens nothing of ours holds, in tension with design-evolve''s authority rule; adopt
+  with the authority boundary as a variant (ruling R9). Router line: `principle-redesign-from-first-principles`:
+  Integrating a new requirement into an existing design.
+
+  - **separate-before-serializing-shared-state**: a conflict (owner ruling), adopt as `principle-separate-before-serializing-shared-state`.
+  A design lens absent from ours, with one AGENTS.md line holding the opposite default (ruling
+  R2). Also takes foundational-thinking''s concurrent-modification-test as its entry question.
+  P2 caveat: upstream''s numbered decision sequence is ordered (study J); rewrite as a default
+  plus an exception. Router line: `principle-separate-before-serializing-shared-state`: Concurrent
+  actors (processes, agents, workers) might write the same file, branch, key or object.
+
+  - **sequence-verifiable-units**: a principle unit, adopt as `principle-sequence-verifiable-units`.
+  Execution and planning hold it at task scale; the unit and commit scale is absent. Takes
+  small-single-purpose-commits from foundational-thinking. Router line: `principle-sequence-verifiable-units`:
+  Multi-step work (a sweep, a migration, a run of similar edits) or stacking commits. Overlaps:
+  planning (vertical-slices, at plan-task scale; partial); execution (stop-on-failure, at
+  stage scale; not the per-unit gate).
+
+  - **subtract-before-you-add**: a conflict (owner ruling), adopt as `principle-subtract-before-you-add`.
+  A lens partly in AGENTS.md (present requirement) and partly against it (unrelated cleanup).
+  Adopt with the scoped variant (ruling R7) and without the standing simplification duty (ruling
+  R8); takes laziness-protocol''s deletion bias and single-source-of-truth. Router line: `principle-subtract-before-you-add`:
+  Sequencing an addition, refactor or rewrite. Overlaps: authoring-for-agents (decision-relevance-pruning,
+  for instructions).
+
+  - **test-behavior-not-implementation**: a principle unit, adopt as `principle-test-behavior-not-implementation`.
+  Every agent that touches a test needs the lens, but test-driven-development loads only for
+  risky changes and substantive test design. Move writing-good-tests'' quality rules into
+  the principle and have the skill cite it (S6), so they are not held twice. Router line:
+  `principle-test-behavior-not-implementation`: Writing, changing or keeping any test. Overlaps:
+  test-driven-development and its writing-good-tests reference (meaningful-behaviour-assertion,
+  independent-expectation, and parts of two-edit-test-judgement); coding-style.md (public-interface-testing;
+  a project document, not a unit).
+
+  - **type-system-discipline**: a principle unit, adopt as `principle-type-system-discipline`.
+  A language-general lens (not one technology, so not a reference pack under §2.4). coding-style.md
+  stays the Python project document; the principle is what ships. Router line: `principle-type-system-discipline`:
+  Designing types or a function signature in a typed language. Overlaps: coding-style.md (strict-mypy,
+  closed-schema; project document, not a unit).
+
+  '
+skills:
+  skill:pstack/skills/principle-attack-the-premise:
+    upstream_tree_hash: 2c67da15c02e7ffaf356cea6ca1c1cd686bfbdd112bf7074f1abe2aefad4b3a6
+    accepted: null
+    compared_with: none
+    pairing:
+      overlap:
+        doc:AGENTS.md: 1
+      placement_match:
+      - performance-optimization
+      - systematic-debugging
+      suggested: performance-optimization
+      purpose_match: none
+      purpose: Upstream stops a third fix after two fixes on one belief failed the same gate,
+        and makes the agent name and test that belief. Ours (the bug-fix playbook's attempts
+        step, in flight) stops after two failed fixes and escalates with the attempt log;
+        it never names the shared premise.
+      flag: suggested differs
+      reason: 'Suggested performance-optimization only by placement (no trait overlap). Compared
+        with none: the nearest holder is the bug-fix playbook''s attempts step, a doc: holder
+        that cannot be compared_with, and AGENTS.md (provider of owning-layer-fix).'
+    analysis:
+      blind:
+      - After two or more fixes that share one premise fail the same gate, suspect the premise
+        rather than the fixes. (SKILL.md:3, SKILL.md:9)
+      - Write the premise every failed fix assumed as one sentence. (SKILL.md:14)
+      - Before the next fix, make an observation that would differ if the premise were false,
+        looking at how failures are distributed, not only their size. (SKILL.md:15, SKILL.md:19)
+      - If evidence contradicts the premise, look for what the failures share that it did
+        not predict; if it confirms it, keep asking why. (SKILL.md:16)
+      - Remove the condition that causes the failure rather than adding a mechanism that compensates
+        for it. (SKILL.md:17)
+      mapping:
+      - line: 1
+        to:
+        - premise-test-gate
+        mark: new
+      - line: 2
+        to:
+        - premise-test-gate
+        mark: new
+      - line: 3
+        to:
+        - premise-test-gate
+        mark: new
+      - line: 4
+        to:
+        - premise-test-gate
+        mark: new
+      - line: 5
+        to:
+        - owning-layer-fix
+        mark: match
+    traits:
+      premise-test-gate:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/mvp-mode/playbooks/bug-fix.md:63-66
+        - AGENTS.md:41
+        recommendation: adopt
+        delivery: pending
+        target: principle-attack-the-premise
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-08
+        reason: Lands as a principle unit. Ours stops after two failed fixes and hands back
+          the attempt log (bug-fix playbook step 5), and AGENTS.md says only to change approach;
+          neither makes the agent name and test the belief the fixes shared. The situation
+          (repeated failure at one gate) also arises in review fix loops and evals, beyond
+          bug fixes, so it earns a principle that the bug-fix playbook and execution cite.
+      owning-layer-fix:
+        scope: new
+        change: []
+        fact: present
+        provider: doc:AGENTS.md
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - AGENTS.md:36-37
+        recommendation: adopt
+        delivery: delivered
+        target: doc:AGENTS.md
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as covered. AGENTS.md fixes at the owning layer rather than patching
+          around; compensating for a condition is patching around it.
+  skill:pstack/skills/principle-boundary-discipline:
+    upstream_tree_hash: 789a6c2f7d6b938f0830e8292073cb974f5bc7009f253e2c589a0d039a87b090
+    accepted: null
+    compared_with: codebase-design
+    pairing:
+      overlap: {}
+      placement_match:
+      - codebase-design
+      - design-evolve
+      - domain-modeling
+      - prototype
+      suggested: codebase-design
+      purpose_match: codebase-design
+      purpose: Upstream places validation and error handling at system boundaries, trusts
+        typed data inside and keeps logic pure behind a thin shell. Ours touches parts (pure
+        calculations, Pydantic external contracts) but has no boundary-placement rule, and
+        the bug-fix playbook's hardening reference adds checks at every layer.
+      flag: null
+      reason: null
+    analysis:
+      blind:
+      - Validate, narrow and handle errors at system boundaries such as CLI arguments, configuration,
+        external APIs and network protocols. (SKILL.md:9, SKILL.md:14)
+      - Inside the system, trust typed data and propagate errors without re-validating; drop
+        redundant null checks deep in call chains. (SKILL.md:15, SKILL.md:24, SKILL.md:33)
+      - Across a boundary expose domain concepts, not the boundary's private representation;
+        never re-export transport, storage or wire types. (SKILL.md:16, SKILL.md:23)
+      - Keep general-purpose mechanism inside and special-purpose policy at the edge. (SKILL.md:16)
+      - Parse raw data into domain types at the boundary; validate configuration at parse
+        time. (SKILL.md:21, SKILL.md:28)
+      - Keep business logic in pure functions with no framework dependency behind a thin mechanical
+        shell, extracting whatever can be pure. (SKILL.md:9, SKILL.md:11, SKILL.md:27, SKILL.md:34)
+      mapping:
+      - line: 1
+        to:
+        - boundary-validation
+        mark: new
+      - line: 2
+        to:
+        - trust-internal-types
+        mark: new
+      - line: 3
+        to:
+        - domain-not-wire-types
+        mark: new
+      - line: 4
+        to:
+        - policy-at-edge
+        mark: new
+      - line: 5
+        to:
+        - parse-at-boundary
+        mark: new
+      - line: 6
+        to:
+        - pure-core-thin-shell
+        mark: new
+    traits:
+      boundary-validation:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .repo-context/coding-style.md:34
+        recommendation: adopt
+        delivery: pending
+        target: principle-boundary-discipline
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as a principle unit. Ours validates user-controlled paths and shell
+          arguments (coding-style.md) as a security rule but never says where validation belongs;
+          one placement rule removes scattered checks.
+      trust-internal-types:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/mvp-mode/playbooks/bug-fix/hardening.md:3-6
+        - .claude/skills/mvp-mode/playbooks/bug-fix/hardening.md:13
+        recommendation: adopt
+        delivery: pending
+        target: principle-boundary-discipline
+        modification: 'Adopted as scoped-internal-trust: trust validated data inside by default,
+          but allow the bug-fix playbook''s layered checks (defense-in-depth-hardening, step
+          bug-fix#6) on a failure path a defect has proven. Upstream''s unconditional no-recheck
+          rule is not delivered.'
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-05
+        reason: Lands as a conflict (owner ruling), into `scoped-internal-trust`. Opposite
+          default to the bug-fix playbook's hardening reference, which adds a business-logic
+          check at every layer a bad value crossed. Adopting upstream unchanged would contradict
+          that reference in the combined stack (S-05); the variant keeps both. Ruling R4.
+      domain-not-wire-types:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .repo-context/coding-style.md:23
+        recommendation: adopt
+        delivery: pending
+        target: principle-boundary-discipline
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as a principle unit. Ours keeps framework objects out of serialized
+          contracts, the reverse direction; nothing keeps wire types out of a public API.
+      policy-at-edge:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: When codebase-design is next revised, or a design review cites a policy
+          leak into a general module.
+        policy: null
+        guide: null
+        reason: Lands as a principle unit. Sound but abstract; without an example it adds
+          little a reader can apply, and codebase-design's depth vocabulary is its natural
+          home.
+      parse-at-boundary:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .repo-context/coding-style.md:17-18
+        recommendation: adopt
+        delivery: pending
+        target: principle-boundary-discipline
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as a principle unit. Ours picks Pydantic for external contracts but
+          never says the parse happens once, at entry. Shared with type-system-discipline;
+          one principle should own it and the other cite it (P6).
+      pure-core-thin-shell:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/codebase-design/SKILL.md:35-36
+        recommendation: adopt
+        delivery: pending
+        target: principle-boundary-discipline
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as a principle unit. Ours prefers pure calculations where they clarify
+          and accepts isolated side effects; the pure-core and thin-shell split is not stated.
+  skill:pstack/skills/principle-build-the-lever:
+    upstream_tree_hash: b421b8a71bd87599bf5946031c10923ef301a99206bd52be83e50ad81e315fe6
+    accepted: null
+    compared_with: none
+    pairing:
+      overlap: {}
+      placement_match: []
+      suggested: null
+      purpose_match: none
+      purpose: Upstream defaults any non-trivial work to a rerunnable tool (codemod, script,
+        generator, check) that a reviewer can rerun, with a hand-first recipe and a shared
+        contract for delegates. Ours has no such default; unit-kinds §2 sends code-decidable
+        rules to checks, but that is about instructions, not work.
+      flag: null
+      reason: null
+    analysis:
+      blind:
+      - For non-trivial edits, migrations, analyses or checks, build the tool that does or
+        proves the work instead of working by hand; skip only for a couple of obvious edits.
+        (SKILL.md:3, SKILL.md:8, SKILL.md:12, SKILL.md:15, SKILL.md:21)
+      - The tool is the artifact a reviewer reads and reruns to check the work. (SKILL.md:10)
+      - Do the first unit by hand, build the tool, and prove it by rerunning on that unit
+        and diffing against the hand result; make it safe to rerun. (SKILL.md:14)
+      - When one pass of a tool can process every unit, run it yourself rather than fanning
+        out delegates to hand-apply it. (SKILL.md:16)
+      - When fanning out, write the recipe, verification contract and fences as one skill
+        all delegates read, outside their write scope. (SKILL.md:17)
+      - Citing this principle without a tool in the diff means it was not applied. (SKILL.md:18)
+      - Commit the tool when the work outlives the session. (SKILL.md:19)
+      - Build the smallest script that does or proves the job, never a framework. (SKILL.md:21)
+      mapping:
+      - line: 1
+        to:
+        - tool-over-hand-work
+        mark: new
+      - line: 2
+        to:
+        - tool-over-hand-work
+        mark: new
+      - line: 3
+        to:
+        - hand-first-recipe
+        - rerun-safe-tool
+        mark: split
+      - line: 4
+        to:
+        - script-over-fanout
+        mark: new
+      - line: 5
+        to:
+        - shared-delegate-contract
+        mark: new
+      - line: 6
+        to:
+        - tool-over-hand-work
+        mark: new
+      - line: 7
+        to:
+        - outliving-tool-commit
+        mark: new
+      - line: 8
+        to:
+        - minimal-tool
+        mark: new
+    traits:
+      tool-over-hand-work:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .repo-context/unit-kinds.md:58
+        recommendation: adopt
+        delivery: pending
+        target: doc:AGENTS.md
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-01
+        reason: Lands as an open choice (owner ruling). Nothing of ours asks for a rerunnable
+          tool for the work itself; unit-kinds rule 2 covers instructions only. The rerunnable
+          artifact is what lets a critic check bulk work, which our review cascade relies
+          on. Its situation is any non-trivial work, so by A1 and A3 it is an AGENTS.md line;
+          the target follows ruling R10's recommended option and stays open until the owner
+          rules.
+      hand-first-recipe:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: build-a-lever
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as a skill or playbook trait. A cheap proof that the tool reproduces
+          the hand result; no holder. It is ordered technique (hand unit, tool, comparison,
+          the rest) and its deliverable is the tool, so by P2 and section 2 it is a skill's
+          job, not a principle's rule (ruling R10).
+      rerun-safe-tool:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - AGENTS.md:60-61
+        recommendation: adopt
+        delivery: pending
+        target: build-a-lever
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as a skill or playbook trait. AGENTS.md retries only when repetition
+          is safe; nothing makes a work tool safe to rerun on input it already edited, which
+          is what lets a reviewer rerun it. Technique, so it goes with hand-first-recipe (ruling
+          R10).
+      script-over-fanout:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - AGENTS.md:42-43
+        recommendation: adopt
+        delivery: pending
+        target: doc:AGENTS.md
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-07
+          - C-14
+        reason: Lands as an AGENTS.md line. Our delegation threshold weighs delegating against
+          local work but not against a script; the guide's delegation rules (U-07, C-14) agree
+          that mechanical bulk is not delegate work. A delegation decision applies whichever
+          unit runs, so it amends the AGENTS.md delegation line under ruling R10's recommended
+          option.
+      shared-delegate-contract:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - AGENTS.md:44-45
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: When the delegation skill gains a fan-out branch, or a fan-out run shows
+          delegates drifting from one recipe.
+        policy: null
+        guide: null
+        reason: Lands as a skill or playbook trait. Ours gives each worker its own brief (AGENTS.md);
+          a shared read-only contract helps only for wide fan-out, which we run rarely and
+          one agent at a time. Its home would be the delegation skill's fan-out branch.
+      outliving-tool-commit:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - AGENTS.md:76
+        - AGENTS.md:64
+        recommendation: adopt
+        delivery: pending
+        target: build-a-lever
+        modification: 'Adopted as proposed-artifact-commit: the tool stays in the scratch
+          folder and committing it is proposed when the work will be rerun or audited. Upstream
+          commits whenever the work outlives the session; we do not, because commits need
+          authority.'
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as a skill or playbook trait, into `proposed-artifact-commit`. Upstream
+          commits on its own condition; AGENTS.md puts temporary artifacts in the scratch
+          folder and commits only with authority. The variant keeps the intent (a durable
+          lever for durable work) as a proposal.
+      minimal-tool:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - AGENTS.md:3
+        - AGENTS.md:34-35
+        recommendation: adopt
+        delivery: pending
+        target: build-a-lever
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as a skill or playbook trait. AGENTS.md bounds the change delivered
+          and bans speculative abstractions; neither bounds the tool built to deliver it.
+          One clause in the technique skill keeps levers from growing into frameworks.
+  skill:pstack/skills/principle-encode-lessons-in-structure:
+    upstream_tree_hash: 164c25e039539bc5cc04f109f3596d723e40c68f9745cd35129b34d4fe3e706e
+    accepted: null
+    compared_with: authoring-for-agents
+    pairing:
+      overlap: {}
+      placement_match:
+      - authoring-for-agents
+      - harness-evaluate
+      - harness-scan
+      - harness-skill-compare
+      - harness-status
+      - migrate-claude-to-codex
+      suggested: authoring-for-agents
+      purpose_match: authoring-for-agents
+      purpose: Upstream turns a recurring instruction or correction into a lint, flag, runtime
+        check or script, keeps prose only for judgement lessons, and deletes the instruction
+        once structure enforces it. Ours records recurring patterns as text in learnings.md
+        (AGENTS.md); authoring-for-agents and unit-kinds rule 2 send deterministic enforcement
+        to checks.
+      flag: null
+      reason: null
+    analysis:
+      blind:
+      - On writing the same instruction a second time or seeing a recurring correction, encode
+        the rule as a lint, metadata flag, runtime check or script instead of more text. (SKILL.md:3)
+      - When the lesson needs judgement and cannot be encoded, make the instruction more prominent
+        and add an example of the failure. (SKILL.md:9)
+      - When the fix is structural, use only the structural fix; the instruction is the symptom.
+        (SKILL.md:11)
+      mapping:
+      - line: 1
+        to:
+        - recurring-lesson-to-check
+        mark: new
+      - line: 2
+        to:
+        - judgement-lesson-example
+        mark: new
+      - line: 3
+        to:
+        - structural-fix-only
+        mark: new
+    traits:
+      recurring-lesson-to-check:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - AGENTS.md:28
+        - .repo-context/unit-kinds.md:58
+        - .claude/skills/authoring-for-agents/SKILL.md:20
+        recommendation: adopt
+        delivery: pending
+        target: doc:AGENTS.md
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-08
+          - S-05
+        reason: 'Lands as a conflict (owner ruling). AGENTS.md records recurring patterns
+          as text in learnings.md (learnings-capture); upstream says recurrence is the cue
+          for a check, not more text. Ours already agrees in two places (unit-kinds rule 2,
+          authoring-for-agents'' surface table) and build-check-over-rule defaults mechanical
+          review findings to checks, but AGENTS.md, the always-loaded rule, still routes every
+          lesson to text, so the combined stack disagrees with itself (S-05). Recording a
+          lesson applies whatever unit runs, so the fix is an AGENTS.md amendment, not a principle:
+          a recurring lesson code can decide becomes a check, others go to learnings.md. That
+          keeps the mechanism unchanged; AGENTS.md''s authority rules still govern the check''s
+          creation. Ruling R3.'
+      judgement-lesson-example:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/authoring-for-agents/SKILL.md:34-35
+        recommendation: adopt
+        delivery: pending
+        target: authoring-for-agents
+        modification: 'Adopted as judgement-lesson-failure-example: revise the implicated
+          instruction and add one example of the failure. Upstream''s ''make it more prominent''
+          is not delivered: prominence by repetition or emphasis contradicts one-effective-instruction.'
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-08
+        reason: 'Lands as a skill or playbook trait, into `judgement-lesson-failure-example`.
+          Ours prefers one effective instruction and revises the smallest instruction implicated
+          by a failure (U-08: targeted changes to observed failures); it does not say to add
+          an example of the failure. Adding the example is a local hypothesis to test by use,
+          not a guide finding: CF-05 prescribes an example only for one Fable failure (unmarked
+          copied wording) and is not cited as general support.'
+      structural-fix-only:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .repo-context/unit-kinds.md:58
+        - .claude/skills/authoring-for-agents/SKILL.md:20
+        recommendation: adopt
+        delivery: pending
+        target: authoring-for-agents
+        modification: 'Adopted as check-pointer-not-restatement: the restating instruction
+          becomes a pointer to the check instead of being deleted outright, so a reader learns
+          the check exists.'
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-05
+        reason: Lands as a skill or playbook trait, into `check-pointer-not-restatement`.
+          unit-kinds rule 2 already says prose only points to a check that decides the rule,
+          but unit-kinds is an on-demand project document, not a holder, and no unit lists
+          either trait, so nothing is delivered. The pointer is a deliberate difference from
+          upstream's delete-only form, so it is a variant. authoring-for-agents is the unit
+          that runs when instructions are edited and owns the surface table.
+  skill:pstack/skills/principle-exhaust-the-design-space:
+    upstream_tree_hash: 223970dbf26021ca33726e793017dbbeac919edfbd6873d5e9d5eff2babb9bec
+    accepted: null
+    compared_with: prototype
+    pairing:
+      overlap: {}
+      placement_match:
+      - codebase-design
+      - design-evolve
+      - domain-modeling
+      - prototype
+      suggested: codebase-design
+      purpose_match: prototype
+      purpose: 'Upstream builds two or three competing prototypes before an unprecedented
+        interaction or architecture decision, and before a product decision whose experience
+        depends on feel. Ours has the parts as options: prototype variants when comparison
+        is the question, and an optional design-it-twice for consequential interfaces.'
+      flag: suggested differs
+      reason: Suggested codebase-design by placement alone (no overlap). Purpose match is
+        prototype, the technique owner for building and comparing variants; codebase-design's
+        design-it-twice is cited in `ours`.
+    analysis:
+      blind:
+      - For a novel UI interaction or architectural decision with no precedent in the codebase,
+        build two or three competing prototypes and compare them side by side before committing.
+        (SKILL.md:3)
+      - Product decisions where the experience depends on feel also qualify. (SKILL.md:9)
+      mapping:
+      - line: 1
+        to:
+        - competing-prototypes
+        mark: new
+      - line: 2
+        to:
+        - competing-prototypes
+        mark: new
+    traits:
+      competing-prototypes:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/prototype/UI.md:3-4
+        - .claude/skills/codebase-design/SKILL.md:39-41
+        recommendation: adopt
+        delivery: pending
+        target: prototype
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: 'Lands as a skill or playbook trait. Not covered. Ours builds variants only
+          when comparison is already the question (prototype UI, variants-when-comparing)
+          and makes design-it-twice optional, on paper, saying ordinary decisions need none.
+          Upstream makes two or three runnable, compared prototypes mandatory on either of
+          two triggers: an interaction or architecture with no precedent in the codebase,
+          or a product decision whose experience depends on feel (the second applies even
+          when a precedent exists, such as the feel of a familiar interaction). That is a
+          technique with an output, so it belongs to the technique owner, prototype, as a
+          new conditional branch with the whole activation contract: on either trigger, build
+          two or three competing variants (UI or logic) and compare them side by side before
+          committing. The router cannot supply it (R2). Ruling R12 chooses between this and
+          keeping the optional form.'
+  skill:pstack/skills/principle-experience-first:
+    upstream_tree_hash: 7e4608c81af0efa3aaa472ae90d6bb790db47d4678419f0fdda75f81f451a520
+    accepted: null
+    compared_with: brainstorming
+    pairing:
+      overlap: {}
+      placement_match: []
+      suggested: null
+      purpose_match: brainstorming
+      purpose: 'Upstream resolves product, UX and scope tradeoffs toward the consumer''s experience:
+        fewer polished features, details finished, every option justified, and the user widened
+        to anyone consuming the work. Ours frames specs for the intended user and offers options
+        with tradeoffs, but has no tie-breaking stance.'
+      flag: suggested differs
+      reason: 'No computed suggestion (no overlap, no skill at this placement). brainstorming
+        is the nearest purpose: it frames specs for the intended user and offers options with
+        tradeoffs.'
+    analysis:
+      blind:
+      - When implementation convenience conflicts with user delight, choose delight. (SKILL.md:3,
+        SKILL.md:9)
+      - Every feature, control and option must be justified, and every feature serves the
+        core loop or gets out of the way. (SKILL.md:11, SKILL.md:15)
+      - Ship fewer polished features rather than more rough ones. (SKILL.md:12)
+      - Prototype design decisions in throwaway HTML before production code. (SKILL.md:13)
+      - 'Get details right: transitions, alignment, spacing, feedback and error states. (SKILL.md:14)'
+      - The user is whoever consumes the work, including a library's importer and the next
+        maintainer; explain impact from their perspective. (SKILL.md:17)
+      mapping:
+      - line: 1
+        to:
+        - experience-over-convenience
+        mark: new
+      - line: 2
+        to:
+        - justified-surface
+        mark: new
+      - line: 3
+        to:
+        - polish-over-breadth
+        mark: new
+      - line: 4
+        to:
+        - throwaway-design-first
+        mark: new
+      - line: 5
+        to:
+        - detail-finish
+        mark: new
+      - line: 6
+        to:
+        - consumer-as-user
+        mark: new
+    traits:
+      experience-over-convenience:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/brainstorming/SKILL.md:28
+        recommendation: adopt
+        delivery: pending
+        target: principle-experience-first
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as a principle unit. No holder; brainstorming lists options with tradeoffs
+          (SKILL.md) but never says which way a convenience-versus-experience tradeoff breaks.
+      justified-surface:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - AGENTS.md:34-35
+        recommendation: adopt
+        delivery: pending
+        target: principle-experience-first
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as a principle unit. Close to present-requirement-only (AGENTS.md) but
+          judged against the core workflow, not against speculation; worth stating in the
+          product lens.
+      polish-over-breadth:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: principle-experience-first
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as a principle unit. A scope tie-breaker nothing of ours gives.
+      throwaway-design-first:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/prototype/SKILL.md:8
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Lands as a skill or playbook trait. Not held: the prototype skill builds
+          a throwaway artifact when a named question calls for one (named-question), which
+          is opt-in; upstream makes a throwaway artifact the default before production code
+          for every design decision. Recommended: reject the stronger default on cost, since
+          most of our design decisions are settled in text or a spec, and keep prototype on
+          request. Ruling R13.'
+      detail-finish:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: principle-experience-first
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - C-09
+        reason: Lands as a principle unit. No holder. The guide (C-09) wants named frontend
+          patterns rather than a generic quality request; the listed details are concrete
+          enough.
+      consumer-as-user:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/brainstorming/SKILL.md:27
+        recommendation: adopt
+        delivery: pending
+        target: principle-experience-first
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as a principle unit. Brainstorming names an intended user for a spec;
+          widening 'user' to the importer and the next maintainer applies the lens to library
+          and internal work too.
+  skill:pstack/skills/principle-explain-the-number:
+    upstream_tree_hash: 0d7e9b2b6958d7ff5c229bea9915d47271607ede5171a062964d56c30b017975
+    accepted: null
+    compared_with: performance-optimization
+    pairing:
+      overlap:
+        performance-optimization: 1
+      placement_match:
+      - performance-optimization
+      - systematic-debugging
+      suggested: performance-optimization
+      purpose_match: performance-optimization
+      purpose: Upstream refuses to trust a measured number (speedup, latency, eval result)
+        until the decision threshold, noise floor, limiter and confounds are named, and keeps
+        that evidence with it. Ours holds noise and baseline discipline inside performance
+        work only.
+      flag: null
+      reason: null
+    analysis:
+      blind:
+      - Before running, name the result that would change a decision and the noise floor;
+        stop when run-to-run spread exceeds the effect. (SKILL.md:9)
+      - 'Ask why the result is not twice as good: name the bounding resource from a profile
+        or counters taken during the run, mapped to source; a code-reading guess is not a
+        limiter. (SKILL.md:10)'
+      - List what else the number could be measuring (errors, skipped or cached work, code
+        that never ran, an untuned side, noise, a share too small to matter) and rule each
+        out with evidence. (SKILL.md:11)
+      - Keep run count, spread and limiter with the number. (SKILL.md:12)
+      - For an eval result, check every run did the task, the gap holds across trials and
+        models, and the scenario matters. (SKILL.md:14)
+      - The principle was skipped when a run started with no decision-changing result named,
+        or a number has no run count, spread or limiter. (SKILL.md:16)
+      mapping:
+      - line: 1
+        to:
+        - decision-before-measurement
+        - noise-inconclusive
+        mark: split
+      - line: 2
+        to:
+        - named-limiter
+        mark: new
+      - line: 3
+        to:
+        - confound-elimination
+        mark: new
+      - line: 4
+        to:
+        - evidence-with-number
+        mark: new
+      - line: 5
+        to:
+        - eval-result-scrutiny
+        mark: new
+      - line: 6
+        to:
+        - decision-before-measurement
+        - evidence-with-number
+        mark: split
+    traits:
+      decision-before-measurement:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/performance-optimization/SKILL.md:14-15
+        recommendation: adopt
+        delivery: pending
+        target: principle-explain-the-number
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as a principle unit. Ours defines metric, workload and target before
+          tuning; naming the decision threshold and noise floor before the run is the missing
+          half.
+      noise-inconclusive:
+        scope: new
+        change: []
+        fact: present
+        provider: performance-optimization
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/performance-optimization/SKILL.md:28
+        recommendation: adopt
+        delivery: delivered
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as covered. Ours treats a result within noise as inconclusive.
+      named-limiter:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/performance-optimization/SKILL.md:20-22
+        recommendation: adopt
+        delivery: pending
+        target: principle-explain-the-number
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as a principle unit. Ours locates cost with measurements; it never asks
+          what bounds the result, which is what exposes a measurement of the wrong thing.
+      confound-elimination:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/performance-optimization/SKILL.md:26
+        recommendation: adopt
+        delivery: pending
+        target: principle-explain-the-number
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as a principle unit. Ours fixes the comparison conditions but does not
+          list the alternative explanations (cached work, code never run, an untuned side)
+          to rule out.
+      evidence-with-number:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/performance-optimization/SKILL.md:17-19
+        recommendation: adopt
+        delivery: pending
+        target: principle-explain-the-number
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as a principle unit. Ours records command, conditions and results; the
+          limiter is not recorded.
+      eval-result-scrutiny:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: principle-explain-the-number
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-08
+        reason: Lands as a principle unit. No holder, and we run evals (skill trials, prompting-guide
+          checks). The guide asks for representative evaluation (U-08); this is the check
+          on the result.
+  skill:pstack/skills/principle-fix-root-causes:
+    upstream_tree_hash: e7a1fcb2a1050ad9bd3f29150448c64d4ab44ba497b3c4aeb62754a08dbab19a
+    accepted: null
+    compared_with: systematic-debugging
+    pairing:
+      overlap:
+        doc:AGENTS.md: 2
+        systematic-debugging: 1
+      placement_match:
+      - performance-optimization
+      - systematic-debugging
+      suggested: systematic-debugging
+      purpose_match: systematic-debugging
+      purpose: Upstream fixes the first place the system went wrong, with a legitimacy test
+        for guards, restart and recurrence heuristics, and a follow-up signal. Ours holds
+        the core in AGENTS.md (owning layer), systematic-debugging (reproduce, diagnose; in
+        flight, now diagnosis-only) and the bug-fix playbook (no symptom hiding).
+      flag: null
+      reason: null
+    analysis:
+      blind:
+      - Fix the first place the system did something wrong, not where the symptom surfaced.
+        (SKILL.md:3, SKILL.md:9)
+      - Reproduce first. (SKILL.md:14)
+      - Ask why at each step until the answer is a wrong decision in the code, not a consequence
+        of an earlier one. (SKILL.md:15)
+      - When stuck, instrument and read the actual error and state; do not guess. (SKILL.md:16)
+      - 'Ask whether the triggering state is legitimate: if so, handle it where it broke;
+        if not, find what produced it, since guards, retries, swallowed errors and clamps
+        hide bugs. (SKILL.md:17)'
+      - When something fails only after a restart, suspect persisted state first. (SKILL.md:18)
+      - Fix every place with the same fault, not just the instance. (SKILL.md:19)
+      - A workaround that needs a paragraph of justification means the code is wrong. (SKILL.md:20)
+      - When the deciding fact took a deep dig, propose the cheap always-on signal that would
+        have shown it. (SKILL.md:21)
+      mapping:
+      - line: 1
+        to:
+        - owning-layer-fix
+        mark: match
+      - line: 2
+        to:
+        - reproduction-first
+        mark: match
+      - line: 3
+        to:
+        - why-chain
+        mark: new
+      - line: 4
+        to:
+        - observe-not-guess
+        mark: new
+      - line: 5
+        to:
+        - legitimate-state-test
+        mark: new
+      - line: 6
+        to:
+        - persisted-state-suspect
+        mark: new
+      - line: 7
+        to:
+        - fix-every-instance
+        mark: new
+      - line: 8
+        to:
+        - workaround-comment-smell
+        mark: new
+      - line: 9
+        to:
+        - always-on-signal
+        mark: new
+    traits:
+      owning-layer-fix:
+        scope: new
+        change: []
+        fact: present
+        provider: doc:AGENTS.md
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - AGENTS.md:36-37
+        recommendation: adopt
+        delivery: delivered
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: 'Lands as covered. AGENTS.md: fix at the owning layer and inspect callers.'
+      reproduction-first:
+        scope: new
+        change: []
+        fact: variant
+        provider: systematic-debugging
+        candidates:
+        - reproduction-preferred
+        via: reproduction-preferred
+        also_in:
+          doc:AGENTS.md: variant
+        ours:
+        - .claude/skills/systematic-debugging/SKILL.md:14-18
+        - .claude/skills/systematic-debugging/SKILL.md:26-31
+        - .claude/skills/systematic-debugging/SKILL.md:44-45
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Lands as a skill or playbook trait. Variant via reproduction-preferred. systematic-debugging
+          seeks a reproduction first, but when none is obtainable it continues safe source
+          analysis or instrumentation and confirms a cause by independent evidence such as
+          traces (SKILL.md:26-31, 44-50); only a fix proposed for a cause that stays provisional
+          is labelled unproven. Its contract is conditional, not upstream''s unconditional
+          ''reproduce first''. Recommended: keep our conditional form and decline the unconditional
+          one, which would stall diagnosis of flaky and production-only failures. Round 2
+          listed reproduction-first for the skill provisionally; its owning listing in the
+          registry is now corrected to the conditional variant (ledger 2026-10-31-mvp-mode:012,
+          withdrawing the Pocock adoption), and this row is recomputed from it. Ruling R14.'
+      why-chain:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/systematic-debugging/SKILL.md:22-25
+        recommendation: adopt
+        delivery: pending
+        target: systematic-debugging
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as a skill or playbook trait. Ours probes until evidence stops; it never
+          states when the causal chain ends (a wrong decision, not a consequence). One clause
+          in the diagnosis steps.
+      observe-not-guess:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/systematic-debugging/SKILL.md:20-21
+        - .claude/skills/systematic-debugging/SKILL.md:22-25
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Lands as a skill or playbook trait. Not listed by any holder, so not covered.
+          systematic-debugging labels hypotheses as provisional, chooses a discriminating
+          observation and probes the suspected variable with tagged instrumentation; 'instrument
+          rather than guess' adds no behaviour that skill would change. Rejected as redundant
+          there, not as delivered.
+      legitimate-state-test:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/mvp-mode/playbooks/bug-fix.md:37-39
+        recommendation: adopt
+        delivery: pending
+        target: systematic-debugging
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as a skill or playbook trait. The bug-fix gate says a change that hides
+          the symptom is not a fix, but gives no test for when a guard is the real fix. The
+          legitimacy question is that test; it decides where the cause is, so it belongs in
+          the diagnosis (systematic-debugging), one sentence.
+      persisted-state-suspect:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: systematic-debugging
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as a skill or playbook trait. No holder; a cheap, high-yield heuristic.
+          Fits systematic-debugging's references/localization.md rather than the skill body.
+      fix-every-instance:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - AGENTS.md:36-37
+        - AGENTS.md:35
+        - AGENTS.md:11-12
+        recommendation: adopt
+        delivery: pending
+        target: doc:.claude/skills/mvp-mode/playbooks/bug-fix.md
+        modification: 'Adopted as scoped-instance-fix, an action of step bug-fix#3 (in its
+          frontmatter actions and its prose, B12): search for every instance of the confirmed
+          fault, fix those inside the task''s scope and report the rest. Upstream''s fix-them-all
+          is not delivered.'
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-04
+        reason: Lands as a conflict (owner ruling), into `scoped-instance-fix`. Instances
+          of the same fault elsewhere may lie outside the task. AGENTS.md needs authorization
+          for scope expansion and the guide (U-04) says to report unrelated findings, not
+          silently fix them. Searching is always in scope; fixing beyond scope is not. Ruling
+          R5.
+      workaround-comment-smell:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/mvp-mode/playbooks/bug-fix.md:37-39
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: When review gains a smell list, or a review finding cites a justified
+          workaround.
+        policy: null
+        guide: null
+        reason: Lands as a skill or playbook trait. A review heuristic more than a debugging
+          step; our owning-fix rule already rejects workarounds that hide symptoms.
+      always-on-signal:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/mvp-mode/playbooks/bug-fix.md:70-73
+        recommendation: adopt
+        delivery: pending
+        target: doc:.claude/skills/mvp-mode/playbooks/bug-fix.md
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-04
+        reason: Lands as a skill or playbook trait. The bug-fix closeout (step bug-fix#7)
+          records cause and proof but not an observability follow-up. Upstream already asks
+          to propose the signal, not add it, which keeps scope intact (U-04). It lands as
+          an action of bug-fix#7, in the frontmatter and the prose (B12).
+  skill:pstack/skills/principle-foundational-thinking:
+    upstream_tree_hash: 08efbf612b342bcd3ec27d543cec08bb79604f771befb6456da2eaff013da4f6
+    accepted: null
+    compared_with: codebase-design
+    pairing:
+      overlap: {}
+      placement_match:
+      - codebase-design
+      - design-evolve
+      - domain-modeling
+      - prototype
+      suggested: codebase-design
+      purpose_match: codebase-design
+      purpose: 'Upstream bundles design-time habits: data shape before logic, deduplicate
+        structure not lines, test behaviour and edge cases, ask what concurrent actors share,
+        scaffold first, small commits, coherent increments. Each overlaps another pstack principle;
+        ours has present-requirement-only and partial design checks. Not a trait: ''prefer
+        explicit over clever'' (SKILL.md:13) is generic wording with no mechanism beyond structural-dry
+        and AGENTS.md''s smallest-change line (registry rule 3); it is noted here, not mapped.'
+      flag: null
+      reason: null
+    analysis:
+      blind:
+      - 'Get the data shape right before logic: define core types early, trace every access
+        pattern, choose structures for the dominant paths. (SKILL.md:3, SKILL.md:11)'
+      - Deduplicate structure (types, data models), not every line; three similar statements
+        beat a premature abstraction. (SKILL.md:13)
+      - Test behaviour and edge cases, not line counts. (SKILL.md:13)
+      - Before sharing state between actors, ask what a concurrent modification would do;
+        isolate unless the answer is nothing. (SKILL.md:15)
+      - 'Do first what every later phase benefits from: CI, linting, test infrastructure,
+        shared types; setup before features, tests before fixes. (SKILL.md:17)'
+      - Keep commits small and single-purpose. (SKILL.md:17)
+      - Each increment lands or deepens a coherent abstraction; do not spread a capability
+        across callers as special-case coordination. (SKILL.md:19)
+      - Remove dead code before laying foundations. (SKILL.md:21)
+      mapping:
+      - line: 1
+        to:
+        - data-shape-first
+        mark: new
+      - line: 2
+        to:
+        - structural-dry
+        mark: new
+      - line: 3
+        to:
+        - behaviour-and-edge-case-tests
+        mark: new
+      - line: 4
+        to:
+        - concurrent-modification-test
+        mark: new
+      - line: 5
+        to:
+        - scaffold-first
+        - test-before-fix
+        mark: split
+      - line: 6
+        to:
+        - small-single-purpose-commits
+        mark: new
+      - line: 7
+        to:
+        - coherent-increment
+        mark: new
+      - line: 8
+        to:
+        - subtraction-first
+        mark: new
+    traits:
+      data-shape-first:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: principle-model-the-domain
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as a principle unit. No holder; belongs with model-the-domain, whose
+          lens is the same decision (choose the structure before the logic).
+      structural-dry:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - AGENTS.md:34-35
+        recommendation: adopt
+        delivery: pending
+        target: principle-model-the-domain
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as a principle unit. AGENTS.md bans speculative abstractions; this adds
+          what to deduplicate (types, models) and tolerates repeated statements.
+      behaviour-and-edge-case-tests:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/test-driven-development/references/writing-good-tests.md:8-9
+        - AGENTS.md:51
+        recommendation: adopt
+        delivery: pending
+        target: principle-test-behavior-not-implementation
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: 'Lands as a principle unit. Round 1 mapped this to meaningful-behaviour-assertion,
+          whose definition adds a stable-boundary and choreography rule upstream does not
+          state here and drops the edge cases (T5). As its own trait: ours asserts meaningful
+          results and sizes tests to risk, but never names edge cases as part of what a suite
+          must cover or rejects line coverage as the measure. It lands in the testing principle
+          that runs whenever a test is written.'
+      concurrent-modification-test:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - AGENTS.md:40-41
+        recommendation: adopt
+        delivery: pending
+        target: principle-separate-before-serializing-shared-state
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as a principle unit. Round 1 mapped this to eliminate-shared-writes,
+          which adds owned write targets and merging at reads that this source does not prescribe
+          (T5). The question itself (what would a concurrent modification do?) is absent from
+          ours and is the natural entry to the separate-before-serializing lens.
+      scaffold-first:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/planning/SKILL.md:66-68
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: When prefactor-first (adopted, pending, from the Pocock round) is built
+          into planning; fold this in then if planning still lacks it.
+        policy: null
+        guide: null
+        reason: Lands as a skill or playbook trait. A sequencing rule for planning, not a
+          lens. The pending prefactor-first adoption covers most of it.
+      test-before-fix:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/mvp-mode/playbooks/bug-fix.md:51-56
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Lands as a skill or playbook trait. Not held as such. Ours holds stronger
+          forms where a fix has a test: the bug-fix playbook''s step 3 calls test-driven-development
+          in test-first mode (red-green, regression-check: the check fails before the fix).
+          A weaker standalone ordering rule adds no behaviour where those apply, and where
+          no regression check is feasible the playbook reports the missing proof instead.
+          Rejected as redundant with the stronger forms, not as delivered.'
+      small-single-purpose-commits:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - AGENTS.md:64
+        recommendation: adopt
+        delivery: pending
+        target: principle-sequence-verifiable-units
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as a principle unit. This row is the only ruling for the trait; sequence-verifiable-units
+          has no row for it and is only the destination. It fits that unit's commit-ordering
+          lens; commits still need authority.
+      coherent-increment:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/codebase-design/SKILL.md:26-28
+        recommendation: adopt
+        delivery: pending
+        target: principle-model-the-domain
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as a principle unit. codebase-design asks what complexity leaves callers;
+          it never forbids spreading a capability across them as special cases.
+      subtraction-first:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - AGENTS.md:35
+        recommendation: adopt
+        delivery: pending
+        target: principle-subtract-before-you-add
+        modification: 'As ruled under subtract-before-you-add: adopted as touched-scope-subtraction.'
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-04
+        reason: Lands as a conflict (owner ruling), ruled under `subtract-before-you-add`,
+          into `touched-scope-subtraction`. Same mechanism as subtract-before-you-add's first
+          line (remove complexity before building); ruled there (ruling R7).
+  skill:pstack/skills/principle-guard-the-context-window:
+    upstream_tree_hash: d0b6808ab070ab9d020c718687d3f96324833144537d1e635762c90861fe8821
+    accepted: null
+    compared_with: none
+    pairing:
+      overlap: {}
+      placement_match:
+      - beads
+      suggested: beads
+      purpose_match: none
+      purpose: Upstream routes bulk reading to subagents, keeps summaries in the main thread
+        and caps phase scope. Ours keeps logs behind references and delegates partly for context
+        use (AGENTS.md).
+      flag: suggested differs
+      reason: 'Suggested beads by placement alone (no overlap). Compared with none: the mechanisms
+        are context and delegation policy, which only AGENTS.md holds.'
+    analysis:
+      blind:
+      - When context fills from large outputs, long files, repeated reads or fan-out planning,
+        route bulk to subagents and keep summaries, not raw payloads, in the main thread.
+        (SKILL.md:3)
+      - 'Size phases and cap scope: limit files per phase, set turn budgets, account for the
+        mechanisms'' cost. (SKILL.md:12)'
+      mapping:
+      - line: 1
+        to:
+        - bulk-to-subagents
+        mark: new
+      - line: 2
+        to:
+        - phase-scope-caps
+        mark: new
+    traits:
+      bulk-to-subagents:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - AGENTS.md:21
+        - AGENTS.md:42-43
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Lands as an AGENTS.md line. Not covered: AGENTS.md keeps large logs behind
+          references and delegates only when that materially improves speed, context use or
+          review quality, but neither line requires bulk reading to go to delegates or only
+          summaries to come back. Round 1 called this covered on H8''s ''strong'' label, which
+          is not T5 proof. As a policy it would apply whichever unit runs, so its kind is
+          an AGENTS.md line. Recommended: reject the unconditional rule on merit; our conditional
+          delegation threshold is deliberate (delegation costs tokens and we run one agent
+          at a time, C-14), and logs-behind-references already keeps payloads out of context.
+          Ruling R15.'
+      phase-scope-caps:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: When the owner rules on smart-zone-budget (deferred in the Pocock round);
+          rule both together.
+        policy: null
+        guide: null
+        reason: Lands as a principle unit. Same family as the deferred smart-zone-budget.
+          The source gives no numbers, so the objection is not invented thresholds as such
+          but that any fixed file or turn cap we chose would be; rule it with smart-zone-budget.
+  skill:pstack/skills/principle-laziness-protocol:
+    upstream_tree_hash: 23fb5314b8b2bfb6c2b783892e791aca6c59c69313b714eecc11704e4a2d38cb
+    accepted: null
+    compared_with: none
+    pairing:
+      overlap:
+        authoring-for-agents: 1
+        doc:AGENTS.md: 1
+      placement_match:
+      - test-driven-development
+      suggested: authoring-for-agents
+      purpose_match: none
+      purpose: Upstream biases toward deletion, consolidates repeated decisions and minimises
+        the diff. Ours holds the smallest change in AGENTS.md's first line.
+      flag: suggested differs
+      reason: 'Suggested authoring-for-agents for single-source-of-truth alone. Compared with
+        none: the core (smallest change) is AGENTS.md''s; no skill''s purpose is code minimalism.'
+    analysis:
+      blind:
+      - When refactoring or tempted to add abstractions, layers or signal threading, bias
+        toward deletion. (SKILL.md:3)
+      - Make each repeated choice once, behind one source of truth, and pass the result on
+        as a simple flag. (SKILL.md:9)
+      - Make the smallest change that solves the problem; fewer lines beat elegant boilerplate.
+        (SKILL.md:10)
+      mapping:
+      - line: 1
+        to:
+        - deletion-bias
+        mark: new
+      - line: 2
+        to:
+        - single-source-of-truth
+        mark: match
+      - line: 3
+        to:
+        - smallest-sufficient-change
+        mark: match
+    traits:
+      deletion-bias:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - AGENTS.md:3
+        - AGENTS.md:34-35
+        recommendation: adopt
+        delivery: pending
+        target: principle-subtract-before-you-add
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as a principle unit. Round 1 mapped this to subtraction-first, whose
+          definition orders removal before construction; a bias toward deletion at the moment
+          of choice states no ordering (T5). Ours bounds the diff and bans speculative abstractions
+          but states no preference for deleting over adding. One rule in the subtraction lens.
+      single-source-of-truth:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          authoring-for-agents: present
+        ours:
+        - .claude/skills/authoring-for-agents/SKILL.md:22
+        recommendation: adopt
+        delivery: pending
+        target: principle-subtract-before-you-add
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as a principle unit. Ours holds it for instruction documents (authoring-for-agents,
+          also_in); the definition is general, and code needs it too. Carry it in the subtraction
+          lens.
+      smallest-sufficient-change:
+        scope: new
+        change: []
+        fact: present
+        provider: doc:AGENTS.md
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - AGENTS.md:3
+        recommendation: adopt
+        delivery: delivered
+        target: doc:AGENTS.md
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as covered. AGENTS.md's first instruction line.
+  skill:pstack/skills/principle-make-operations-idempotent:
+    upstream_tree_hash: 385a661c7b3962ff7e03a14ef16d8bd9a64dbea9f349c8368d31612e13681588
+    accepted: null
+    compared_with: none
+    pairing:
+      overlap: {}
+      placement_match:
+      - codebase-design
+      - design-evolve
+      - domain-modeling
+      - prototype
+      suggested: codebase-design
+      purpose_match: none
+      purpose: Upstream designs state-changing operations to converge whatever ran before,
+        deriving each step from observed state and leaving only leftovers the next run can
+        judge stale. Ours has only the usage rule (retry only when safe).
+      flag: suggested differs
+      reason: 'Suggested codebase-design by placement alone (no overlap). Compared with none:
+        no skill of ours designs operations for repetition; AGENTS.md has only the retry rule.'
+    analysis:
+      blind:
+      - Design state-changing operations to converge on the correct state however many times
+        they run or wherever a previous run stopped. (SKILL.md:9)
+      - 'Derive each step from the state that exists: read it, compare to the goal, apply
+        only the difference. (SKILL.md:13)'
+      - Make everything a run leaves behind recognisable as stale by the next run, judged
+        by evidence true wherever the run stopped (write then rename, compare by content).
+        (SKILL.md:15)
+      - 'Test: run twice, crash at every point, check convergence; if the answer depends on
+        leftovers, add reconciliation. (SKILL.md:17, SKILL.md:22)'
+      mapping:
+      - line: 1
+        to:
+        - convergent-operations
+        mark: new
+      - line: 2
+        to:
+        - reconcile-from-state
+        mark: new
+      - line: 3
+        to:
+        - judgeable-leftovers
+        mark: new
+      - line: 4
+        to:
+        - interruption-point-audit
+        mark: new
+    traits:
+      convergent-operations:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - AGENTS.md:60-61
+        recommendation: adopt
+        delivery: pending
+        target: principle-make-operations-idempotent
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as a principle unit. AGENTS.md retries only when repetition is safe;
+          nothing makes our own commands, ledgers and engine loops safe to repeat. Our learnings
+          record crash and requeue incidents in the interpreter.
+      reconcile-from-state:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: principle-make-operations-idempotent
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as a principle unit. No holder; the method that makes convergence achievable.
+      judgeable-leftovers:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: principle-make-operations-idempotent
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as a principle unit. No holder; stale locks and claims are a recurring
+          cost in agent tooling.
+      interruption-point-audit:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: principle-make-operations-idempotent
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as a principle unit. Round 1 folded the run-twice and stop-at-every-point
+          questions into convergent-operations, the goal they test. They are a separately
+          adoptable audit (one could hold the goal and skip the audit); no holder asks them.
+          As unordered questions they fit P2.
+  skill:pstack/skills/principle-migrate-callers-then-delete-legacy-apis:
+    upstream_tree_hash: 23afe0ad1c7daa04d8dd306be2f132809dfb18fa7b783d85f749fe83b71d8784
+    accepted: null
+    compared_with: planning
+    pairing:
+      overlap: {}
+      placement_match:
+      - planning
+      suggested: planning
+      purpose_match: planning
+      purpose: Upstream replaces an internal API by migrating every caller and deleting the
+        old one in one wave, with tests moved to the new contract, when no external users
+        depend on it. Ours plans expand, migrate, contract and preserves compatibility constraints
+        when deepening.
+      flag: null
+      reason: null
+    analysis:
+      blind:
+      - When a new internal API arrives while old callers exist, migrate the callers and delete
+        the old API in the same wave rather than keeping compatibility layers. (SKILL.md:3)
+      - Update tests to assert the new contract and delete tests that only protect pre-refactor
+        implementation details. (SKILL.md:9)
+      - Applies only when no external users depend on compatibility, the project can absorb
+        coordinated breaking changes, and the change is part of a simplification. (SKILL.md:11,
+        SKILL.md:14)
+      mapping:
+      - line: 1
+        to:
+        - same-wave-legacy-removal
+        mark: new
+      - line: 2
+        to:
+        - implementation-test-deletion
+        mark: new
+      - line: 3
+        to:
+        - same-wave-legacy-removal
+        mark: new
+    traits:
+      same-wave-legacy-removal:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/planning/SKILL.md:66-68
+        - .claude/skills/codebase-design/SKILL.md:37
+        recommendation: adopt
+        delivery: pending
+        target: principle-migrate-without-shims
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: 'Lands as a principle unit. Planning''s expand-migrate-contract allows the
+          contraction to trail; codebase-design preserves compatibility and operational constraints.
+          Upstream''s three conditions (no external dependants, a project that can absorb
+          a coordinated break, a simplification initiative) are part of the definition, so
+          where any one fails the trait does not apply and ours governs: an API with no external
+          users can still sit under an operational constraint against a coordinated break.
+          With all three stated, no conflict.'
+      implementation-test-deletion:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/test-driven-development/references/writing-good-tests.md:28
+        recommendation: adopt
+        delivery: pending
+        target: principle-test-behavior-not-implementation
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as a principle unit, ruled under `test-behavior-not-implementation`.
+          Ours preserves tests that catch distinct failures and removes a test only when covered;
+          an implementation-pinned test catches no behavioural failure, so deleting it is
+          consistent. Shared with test-behavior-not-implementation; owned there.
+  skill:pstack/skills/principle-minimize-reader-load:
+    upstream_tree_hash: 7f622bdbafaf5392e288194b8807e6a2f85c6efc562d47af4dc5407c4030c8b8
+    accepted: null
+    compared_with: codebase-design
+    pairing:
+      overlap:
+        codebase-design: 3
+      placement_match:
+      - codebase-design
+      - design-evolve
+      - domain-modeling
+      - prototype
+      suggested: codebase-design
+      purpose_match: codebase-design
+      purpose: Upstream measures maintainability as layers to trace and state to hold, collapses
+        thin layers, shrinks state scope and names invariants once. Ours holds depth and the
+        deletion test in codebase-design and accepts single-adapter interfaces.
+      flag: null
+      reason: null
+    analysis:
+      blind:
+      - Measure maintainability as the reader's work along two independent axes, layers to
+        trace and state to hold; line counts and complexity scores are proxies. (SKILL.md:9)
+      - 'Collapse layers that cost more than they save: one-caller wrappers, adapters with
+        no second implementation, speculative indirection. (SKILL.md:11)'
+      - Each adjacent layer must change the abstraction; collapse pass-through layers. (SKILL.md:12)
+      - Prefer boundaries that hide meaningful decisions over broad interfaces hiding little.
+        (SKILL.md:13)
+      - 'Shrink state scope: pure functions, locals over fields over module state over globals;
+        derive instead of sync. (SKILL.md:14)'
+      - Name an invariant at the boundary, not in every consumer. (SKILL.md:15)
+      - Before adding a layer or state, ask whether it removes at least as much reader load
+        elsewhere. (SKILL.md:16)
+      - 'Test: a new reader answers where X comes from and what can change it in under thirty
+        seconds. (SKILL.md:18)'
+      mapping:
+      - line: 1
+        to:
+        - reader-load-axes
+        mark: new
+      - line: 2
+        to:
+        - collapse-thin-layers
+        mark: new
+      - line: 3
+        to:
+        - deletion-test
+        mark: match
+      - line: 4
+        to:
+        - depth-as-leverage
+        mark: match
+      - line: 5
+        to:
+        - return-not-mutate
+        - narrowest-state-scope
+        - derive-over-sync
+        mark: split
+      - line: 6
+        to:
+        - invariant-at-boundary
+        mark: new
+      - line: 7
+        to:
+        - reader-load-net-test
+        mark: new
+      - line: 8
+        to:
+        - thirty-second-trace-test
+        mark: new
+    traits:
+      reader-load-axes:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: principle-minimize-reader-load
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as a principle unit. No holder; gives review two named axes (layers
+          to trace, state to hold) instead of taste. The timed probe is a separate row.
+      collapse-thin-layers:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/codebase-design/SKILL.md:30-32
+        - .claude/skills/codebase-design/SKILL.md:27-28
+        recommendation: adopt
+        delivery: pending
+        target: principle-minimize-reader-load
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as a principle unit. Adopted unchanged, with its cost condition. Upstream
+          collapses layers that cost more than they save and names an adapter with no second
+          implementation as an example of such a cost; the same lens prefers boundaries that
+          hide meaningful decisions (SKILL.md:12-13). So a one-implementation adapter that
+          hides real complexity passes its cost test, as it passes codebase-design's (single-adapter-justified).
+          Nothing in it makes a second implementation a prerequisite for a seam, which is
+          two-adapters-rule (deferred in the Pocock round), so adopting it does not reverse
+          single-adapter-justified and needs no variant or ruling. Its other examples agree
+          with deletion-test and present-requirement-only.
+      deletion-test:
+        scope: new
+        change: []
+        fact: present
+        provider: codebase-design
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/codebase-design/SKILL.md:27-28
+        recommendation: adopt
+        delivery: delivered
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as covered. codebase-design questions a layer that only forwards. Matched
+          for the pass-through rule only; the adapter-count question is the collapse-thin-layers
+          row.
+      depth-as-leverage:
+        scope: new
+        change: []
+        fact: present
+        provider: codebase-design
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/codebase-design/SKILL.md:16
+        recommendation: adopt
+        delivery: delivered
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as covered. codebase-design defines depth as behaviour hidden behind
+          a manageable interface.
+      return-not-mutate:
+        scope: new
+        change: []
+        fact: present
+        provider: codebase-design
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/codebase-design/SKILL.md:35
+        recommendation: adopt
+        delivery: delivered
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as covered. codebase-design prefers pure calculations where they clarify
+          (the 'pure functions' part of the line).
+      narrowest-state-scope:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .repo-context/coding-style.md:20
+        recommendation: adopt
+        delivery: pending
+        target: principle-minimize-reader-load
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as a principle unit. Ours freezes models by default (coding-style.md)
+          but says nothing about where state lives. Split from round 1's state-scope-shrink,
+          which bundled this with derive-over-sync (README §4a rule 1).
+      derive-over-sync:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/authoring-for-agents/SKILL.md:22
+        recommendation: adopt
+        delivery: pending
+        target: principle-minimize-reader-load
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: 'Lands as a principle unit. Ours keeps one owner for instruction meaning (single-source-of-truth,
+          in authoring-for-agents) but nothing forbids storing a runtime copy that must be
+          kept in sync. Separately adoptable from state placement: local state can still be
+          copied.'
+      invariant-at-boundary:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/codebase-design/SKILL.md:14-15
+        recommendation: adopt
+        delivery: pending
+        target: principle-minimize-reader-load
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as a principle unit. codebase-design counts invariants as part of the
+          interface but does not say to name each once at the owning boundary. The definition
+          now says name, as upstream does; round 1's 'state and enforce' added enforcement
+          upstream does not ask for.
+      reader-load-net-test:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - AGENTS.md:34-35
+        recommendation: adopt
+        delivery: pending
+        target: principle-minimize-reader-load
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as a principle unit. AGENTS.md asks whether a need exists now; this
+          asks whether the layer removes at least as much reader load as it adds. Round 1
+          mapped it and model-the-domain's anti-indirection rule to one trait requiring strictly
+          more; the sources differ, so each has its own definition.
+      thirty-second-trace-test:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Lands as a principle unit. An agent cannot run it: there is no new reader
+          to time, and the agent''s own speed says nothing about a human''s. The two axes
+          (reader-load-axes) already give the judgement it probes. Rejected on merit; not
+          absorbed into the axes row.'
+  skill:pstack/skills/principle-model-the-domain:
+    upstream_tree_hash: 0bf32b6131c5556d680cd6744fe7a30ed2cf0c3308eabe61aed2351bae8f9284
+    accepted: null
+    compared_with: codebase-design
+    pairing:
+      overlap: {}
+      placement_match:
+      - codebase-design
+      - design-evolve
+      - domain-modeling
+      - prototype
+      suggested: codebase-design
+      purpose_match: codebase-design
+      purpose: Upstream encodes domain rules in a fitting structure (state machine, typed
+        model, table, reducer, knowledge-organised modules) instead of scattered conditionals,
+        while refusing forced abstractions. Ours has nothing on choosing data structures;
+        domain-modeling is about vocabulary, not code.
+      flag: null
+      reason: null
+    analysis:
+      blind:
+      - Encode the domain in a data structure rather than conditionals scattered across code,
+        so invalid states are unrepresentable and branches disappear; choose it when writing
+        the code. (SKILL.md:3, SKILL.md:9)
+      - Reach for a state machine, typed model, lookup table or union, reducer or event model,
+        or a collection that fits the access pattern; when none fits, derive the structure
+        from what must never happen and how data is read. (SKILL.md:13, SKILL.md:14, SKILL.md:15,
+        SKILL.md:16, SKILL.md:19, SKILL.md:20)
+      - Organise modules around one body of domain knowledge, not a load-validate-transform-save
+        sequence. (SKILL.md:17)
+      - 'Do not force an abstraction: keep boring code that is clear, local and unlikely to
+        grow, and distrust indirection that removes no branches, duplicated rules, invalid
+        states or lifecycle risk. (SKILL.md:22)'
+      - 'Signs of skipping it: a feature adds one more branch to a chain, a second boolean
+        must stay in sync, phase-named modules repeat domain rules. (SKILL.md:24)'
+      mapping:
+      - line: 1
+        to:
+        - structure-over-conditionals
+        mark: new
+      - line: 2
+        to:
+        - structure-over-conditionals
+        mark: new
+      - line: 3
+        to:
+        - knowledge-not-phase-modules
+        mark: new
+      - line: 4
+        to:
+        - no-forced-abstraction
+        mark: new
+      - line: 5
+        to:
+        - structure-over-conditionals
+        - knowledge-not-phase-modules
+        mark: split
+    traits:
+      structure-over-conditionals:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: principle-model-the-domain
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as a principle unit. No holder; our prototype skill keeps logic pure
+          (logic-pure-module) only for prototypes.
+      knowledge-not-phase-modules:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: principle-model-the-domain
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as a principle unit. No holder; temporal decomposition is a common agent
+          failure and the sign is checkable.
+      no-forced-abstraction:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - AGENTS.md:34-35
+        recommendation: adopt
+        delivery: pending
+        target: principle-model-the-domain
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as a principle unit. AGENTS.md requires a present need for an abstraction;
+          it does not say what indirection must remove or to keep boring local code boring.
+          Round 1 shared minimize-reader-load's cost gate here, but this source names what
+          must be removed and sets no cost inequality, so it has its own definition (T5).
+  skill:pstack/skills/principle-never-block-on-the-human:
+    upstream_tree_hash: ab707816f6a0d48148bff1d7e27c56d76b23ef77fe642c094fbb7812e00474d7
+    accepted: null
+    compared_with: none
+    pairing:
+      overlap: {}
+      placement_match:
+      - delegation
+      - model-council
+      - mvp-mode
+      - perspective-council
+      suggested: delegation
+      purpose_match: none
+      purpose: 'Upstream assumes asynchronous supervision: proceed on reversible work and
+        present, log noticed problems to fix next round, and confirm only irreversible actions.
+        Its router also lets team chat and ticket updates proceed without asking (P/skills/poteto-mode/SKILL.md:84).
+        Ours decides routine details and keeps working, but needs authorization for messages
+        and scope expansion.'
+      flag: suggested differs
+      reason: 'Suggested delegation by placement alone (no overlap). Compared with none: autonomy
+        and authorization are AGENTS.md''s.'
+    analysis:
+      blind:
+      - 'The human supervises asynchronously: make reasonable decisions on reversible work,
+        proceed, and let the human correct afterwards; product direction stays with the human.
+        (SKILL.md:3, SKILL.md:9, SKILL.md:14, SKILL.md:15)'
+      - 'Proceed, then present: do X and explain why rather than asking whether to. (SKILL.md:11)'
+      - When you notice a problem, log it and fix it in the next round. (SKILL.md:12)
+      - Irreversible actions (force-push, deleting production data, sending external messages)
+        still require confirmation. (SKILL.md:13)
+      mapping:
+      - line: 1
+        to:
+        - reversible-work-proceeds
+        mark: new
+      - line: 2
+        to:
+        - reversible-work-proceeds
+        mark: new
+      - line: 3
+        to:
+        - noticed-problem-followup
+        mark: new
+      - line: 4
+        to:
+        - irreversible-only-confirmation
+        mark: new
+    traits:
+      reversible-work-proceeds:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - AGENTS.md:9-10
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Lands as a conflict (owner ruling). Mostly held: AGENTS.md decides routine
+          details and keeps working, and the guide (U-02) treats a requested change as authority
+          for in-scope reversible work. The difference is the test: ours asks when an ambiguity
+          materially affects correctness, scope or authority, even if reversible; upstream
+          asks only about irreversibility. Ours is the stricter, deliberate rule. Ruling R1.'
+      noticed-problem-followup:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - AGENTS.md:11-12
+        - AGENTS.md:35
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Lands as a conflict (owner ruling). Fixing a noticed problem 'next round'
+          is scope expansion, which AGENTS.md gates on authorization; the guide (U-04) says
+          to report unrelated findings. Logging it is already done by our Beads rule (a discovered-from
+          bead); the conflict is only the unasked fix. Ruling R1.
+      irreversible-only-confirmation:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - AGENTS.md:11-12
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Lands as a conflict (owner ruling). Ours requires authorization for publishing,
+          deployment, any message, destructive actions and scope expansion; upstream confirms
+          only irreversible ones, and its router lets team chat, ticket updates and eval runs
+          proceed without asking (P/skills/poteto-mode/SKILL.md:84). That router permission
+          is a contextual distinction (internal team channels versus external messages, which
+          the principle still confirms), not permission in the principle itself; but adopting
+          the principle means adopting its irreversibility test, under which an internal message
+          needs no approval. Ours gates any message. Our rule is the deliberate one (S-06:
+          approval in one clear place). Ruling R1.'
+  skill:pstack/skills/principle-outcome-oriented-execution:
+    upstream_tree_hash: 684e3f3887348aed42daa9e51cee47009c84187569c55f3365d16cfef070ff24
+    accepted: null
+    compared_with: planning
+    pairing:
+      overlap: {}
+      placement_match:
+      - planning
+      suggested: planning
+      purpose_match: planning
+      purpose: Upstream optimises a planned migration for its verified end state, accepting
+        declared intermediate breakage instead of throwaway compatibility code, with checks
+        on touched areas and full verification at the end. Ours keeps tasks green and names
+        one integration boundary when that is impossible.
+      flag: null
+      reason: null
+    analysis:
+      blind:
+      - Optimise for the verifiable end state rather than smooth intermediate states; temporary
+        compatibility code becomes long-lived debt. (SKILL.md:9, SKILL.md:11)
+      - Intermediate breakage is acceptable when planned, scoped and reversible, only in planned
+        rewrites and migrations with explicit phase boundaries, declared in advance. (SKILL.md:15,
+        SKILL.md:18, SKILL.md:19)
+      - Keep high-signal checks on actively touched areas while migrating. (SKILL.md:20)
+      - Require full static and runtime verification at plan completion. (SKILL.md:21)
+      mapping:
+      - line: 1
+        to:
+        - declared-breakage-window
+        mark: new
+      - line: 2
+        to:
+        - declared-breakage-window
+        mark: new
+      - line: 3
+        to:
+        - touched-area-checks
+        mark: new
+      - line: 4
+        to:
+        - full-verification-at-completion
+        mark: new
+    traits:
+      declared-breakage-window:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/planning/SKILL.md:67-68
+        - .claude/skills/execution/SKILL.md:95
+        recommendation: adopt
+        delivery: pending
+        target: principle-migrate-without-shims
+        modification: 'Adopted as migration-group-unit: an authorized migration group with
+          declared interior breakage is one verifiable unit, whose boundary checks must pass
+          before dependent work proceeds; any undeclared failure stops the work.'
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-05
+        reason: 'Lands as a conflict (owner ruling), into `migration-group-unit`. Planning
+          already names one integration boundary when tasks cannot stay green; upstream makes
+          declared breakage the preferred path over compatibility code. Unchanged, it conflicts
+          with sequence-verifiable-units'' per-unit green rule, which the router would load
+          for the same migration (apply each principle whose situation holds): the first permits
+          a provider-signature break before its callers move, the second stops at it and invites
+          the shim the first avoids (S-05). The variant makes the declared group the unit
+          and keeps a gate at its boundary. Ruling R11.'
+      touched-area-checks:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - AGENTS.md:51-53
+        recommendation: adopt
+        delivery: pending
+        target: principle-migrate-without-shims
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - O-05
+        reason: 'Lands as a principle unit. Not covered: AGENTS.md runs applicable checks
+          and repeats them for changes (O-05 agrees), but does not keep fast checks running
+          on the touched areas throughout a migration. One rule in the migration branch, where
+          it is what makes declared interior breakage safe to carry.'
+      full-verification-at-completion:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - AGENTS.md:51-53
+        recommendation: adopt
+        delivery: pending
+        target: principle-migrate-without-shims
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - O-05
+        reason: Lands as a principle unit. Round 1 matched this to applicable-checks-before-done,
+          but upstream requires full static and runtime verification at plan completion, which
+          can be more than the applicable checks for the last change (T5). A planned migration
+          with declared breakage is exactly the case where checks scoped to recent changes
+          miss something, so the full set at completion is calibrated to risk (O-05).
+  skill:pstack/skills/principle-prove-it-works:
+    upstream_tree_hash: 0429fc6fad74a95d594fc21ac8d859a571705ba51303c05880d9bd0eafb44adb
+    accepted: null
+    compared_with: none
+    pairing:
+      overlap: {}
+      placement_match: []
+      suggested: null
+      purpose_match: none
+      purpose: Upstream verifies output against the real artifact, never a proxy or self-report,
+        suspects the observation when a check fails, and prefers a rerunnable script kept
+        as an artifact. Ours runs applicable checks, inspects the diff and verifies others'
+        claims against primary evidence (AGENTS.md).
+      flag: null
+      reason: null
+    analysis:
+      blind:
+      - Verify every output against the real thing (run it, read the actual value, inspect
+        the diff, check process liveness directly), never a proxy, a cached view, a self-report
+        or 'it compiles'. (SKILL.md:3, SKILL.md:9, SKILL.md:14, SKILL.md:15)
+      - When verification fails, suspect the observation method before the system. (SKILL.md:16)
+      - The strongest proof is a deterministic rerunnable script whose output is kept for
+        a reviewer. (SKILL.md:20)
+      - Keep the artifact visible to the human; commit it only when large or complex work
+        needs an audit trail. (SKILL.md:22)
+      mapping:
+      - line: 1
+        to:
+        - direct-observation
+        mark: new
+      - line: 2
+        to:
+        - suspect-the-observation
+        mark: new
+      - line: 3
+        to:
+        - scripted-proof
+        mark: new
+      - line: 4
+        to:
+        - audit-trail-proof-commit
+        mark: new
+    traits:
+      direct-observation:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - AGENTS.md:23-24
+        - AGENTS.md:51-53
+        - AGENTS.md:54-55
+        recommendation: adopt
+        delivery: pending
+        target: doc:AGENTS.md
+        modification: null
+        rewording: 'Amend the Verification bullet: verify results against the real artifact,
+          not a proxy or self-report.'
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - C-12
+          - C-13
+        reason: Lands as an AGENTS.md line. AGENTS.md verifies others' reports against primary
+          evidence and runs checks, but never says the agent's own result must be observed
+          directly rather than inferred. It applies whatever unit runs (A1, A3). The guide
+          (C-12, C-13) removes generic 'verify again' steps; this is not one, it defines what
+          counts as evidence, so it amends an existing line rather than adding a step. The
+          rewording keeps the mechanism and drops only the examples.
+      suspect-the-observation:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/systematic-debugging/SKILL.md:14-18
+        recommendation: adopt
+        delivery: pending
+        target: systematic-debugging
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as a skill or playbook trait. No holder; it matters when a check fails
+          unexpectedly, which is debugging's entry. One clause in systematic-debugging's reproduction
+          step.
+      scripted-proof:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - AGENTS.md:51-53
+        recommendation: adopt
+        delivery: pending
+        target: doc:AGENTS.md
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-01
+        reason: Lands as an AGENTS.md line. Round 1 mapped this to tool-over-hand-work, a
+          default for doing all non-trivial work with tools; preferring a script for the proof
+          does not establish that broader policy (T5). Proving a result applies whichever
+          unit runs. Under ruling R10's recommended option it shares the AGENTS.md line with
+          tool-over-hand-work, which implies it; if the owner declines that policy, it stands
+          alone in the Verification bullet.
+      audit-trail-proof-commit:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - AGENTS.md:76
+        - AGENTS.md:64
+        recommendation: adopt
+        delivery: pending
+        target: build-a-lever
+        modification: 'Adopted as proposed-artifact-commit, shared with build-the-lever''s
+          commit rule: the proof stays in the scratch folder and committing it is proposed
+          when the work will be audited.'
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as a skill or playbook trait, into `proposed-artifact-commit`. Upstream
+          keeps the proof visible and commits it only for large or complex work needing an
+          audit trail; round 1 merged this with build-the-lever's commit rule under one generalised
+          trait, which changed both sources' conditions. Each upstream rule now has its own
+          definition; our destination for both is one proposal variant, since commits need
+          authority.
+  skill:pstack/skills/principle-redesign-from-first-principles:
+    upstream_tree_hash: c6b2348402c9c1a4d3b43ab695ad8dbb6a92b19e02e08f6395146ab9b1b61ce9
+    accepted: null
+    compared_with: design-evolve
+    pairing:
+      overlap: {}
+      placement_match:
+      - codebase-design
+      - design-evolve
+      - domain-modeling
+      - prototype
+      suggested: codebase-design
+      purpose_match: design-evolve
+      purpose: Upstream integrates a new requirement by redesigning as if it had been foundational,
+        propagating through every reference and delivering incrementally. Ours (design-evolve)
+        integrates supplied decisions into design documents and explicitly does not authorize
+        redesign.
+      flag: suggested differs
+      reason: Suggested codebase-design by placement alone (no overlap). Purpose match is
+        design-evolve, the skill that integrates new decisions into designs and holds the
+        opposing rule.
+    analysis:
+      blind:
+      - When integrating a new requirement, redesign as if it had been a founding assumption
+        instead of bolting it on, after reading the affected files and asking what you would
+        build from scratch. (SKILL.md:3, SKILL.md:9, SKILL.md:11, SKILL.md:12)
+      - 'Propagate the change through every reference: types, docs, examples, rationale. (SKILL.md:13)'
+      - Think through the whole redesign, then deliver it incrementally. (SKILL.md:14)
+      mapping:
+      - line: 1
+        to:
+        - foundational-requirement-redesign
+        mark: new
+      - line: 2
+        to:
+        - full-propagation
+        mark: new
+      - line: 3
+        to:
+        - whole-design-incremental-delivery
+        mark: new
+    traits:
+      foundational-requirement-redesign:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/design-evolve/SKILL.md:9
+        recommendation: adopt
+        delivery: pending
+        target: principle-redesign-from-first-principles
+        modification: 'Adopted as proposed-foundational-redesign: design as if the requirement
+          were foundational, deliver the redesign only where the request authorizes design
+          change, and present the rest as a proposal. Upstream''s always-deliver-the-redesign
+          is not delivered.'
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-02
+          - U-04
+        reason: 'Lands as a conflict (owner ruling), into `proposed-foundational-redesign`.
+          design-evolve says integration does not authorize redesign; upstream says integration
+          should be a redesign. Both are right about different things: ours guards authority
+          over documents others own, upstream gives the design method. Round 1 called its
+          gated wording a rewording, but adding the gate changes the mechanism, so it is a
+          variant. The guide agrees: a requested change authorizes in-scope work only (U-02)
+          and unrequested additions are reported (U-04). Ruling R9.'
+      full-propagation:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - AGENTS.md:36-37
+        recommendation: adopt
+        delivery: pending
+        target: principle-redesign-from-first-principles
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as a principle unit. AGENTS.md inspects affected callers; design-evolve
+          checks document consistency. Neither says every reference (types, docs, examples,
+          rationale) carries the change.
+      whole-design-incremental-delivery:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/planning/SKILL.md:66
+        recommendation: adopt
+        delivery: pending
+        target: principle-redesign-from-first-principles
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as a principle unit. Round 1 mapped this to verified-unit-sequence,
+          whose per-unit passing gate upstream does not state here (T5). Planning slices work
+          vertically once a plan exists; nothing says to think the redesign through whole
+          before the first increment. One rule in the redesign lens.
+  skill:pstack/skills/principle-separate-before-serializing-shared-state:
+    upstream_tree_hash: 249a412c63e343c56887d582a68024a19da5531d6381f062c16c6d90230d73c3
+    accepted: null
+    compared_with: none
+    pairing:
+      overlap: {}
+      placement_match:
+      - codebase-design
+      - design-evolve
+      - domain-modeling
+      - prototype
+      suggested: codebase-design
+      purpose_match: none
+      purpose: Upstream removes shared mutable write targets first and serializes structurally
+        only when one target is a real invariant. AGENTS.md serializes overlapping writes,
+        while also giving workers owned paths.
+      flag: suggested differs
+      reason: 'Suggested codebase-design by placement alone (no overlap). Compared with none:
+        the opposing default is AGENTS.md''s; no skill covers concurrent writers.'
+    analysis:
+      blind:
+      - When concurrent actors might share mutable state, ask whether they need the same object;
+        if not, eliminate the sharing. (SKILL.md:3, SKILL.md:9, SKILL.md:14)
+      - Give each actor its own file, key, branch or directory and merge only at the read
+        or report boundary; separate fields in one shared file are still shared. (SKILL.md:15)
+      - Only when one shared target is a real invariant, serialize access structurally (lock
+        file, sequential phases, single writer, compare-and-swap); instructions are not concurrency
+        control, and needing a lock is a smell to check. (SKILL.md:9, SKILL.md:16)
+      mapping:
+      - line: 1
+        to:
+        - eliminate-shared-writes
+        mark: new
+      - line: 2
+        to:
+        - eliminate-shared-writes
+        mark: new
+      - line: 3
+        to:
+        - structural-serialization
+        mark: new
+    traits:
+      eliminate-shared-writes:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - AGENTS.md:40-41
+        - AGENTS.md:44-45
+        recommendation: adopt
+        delivery: pending
+        target: principle-separate-before-serializing-shared-state
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: 'Lands as a conflict (owner ruling). Opposite default: AGENTS.md serializes
+          overlapping writes (independence-batching). Ours already separates in part (workers
+          get owned paths, AGENTS.md), and serialization is the right fallback, so the two
+          compose: separate first, then serialize what must share. For code with concurrent
+          actors ours says nothing. The ruling is whether the AGENTS.md line changes or the
+          principle covers only code and tooling design. Ruling R2.'
+      structural-serialization:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: principle-separate-before-serializing-shared-state
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as a principle unit. No holder for code design. For our agent work,
+          'serialize' in AGENTS.md is enforced by the coordinator's dispatch order, which
+          is structural.
+  skill:pstack/skills/principle-sequence-verifiable-units:
+    upstream_tree_hash: f23438862b79a8651b8c5bbfec631ce7d4263ef729a7885fa8a93bd43374b638
+    accepted: null
+    compared_with: execution
+    pairing:
+      overlap: {}
+      placement_match:
+      - test-driven-development
+      suggested: test-driven-development
+      purpose_match: execution
+      purpose: Upstream splits multi-step work into small units each checked before the next,
+        from a clean base, and stacks commits so the history proves the work. Ours checks
+        per plan task and stops pipelines on failed gates, but not per edit in a sweep, and
+        says nothing about commit order.
+      flag: suggested differs
+      reason: Suggested test-driven-development by placement alone (no overlap). Purpose match
+        is execution, which gates work unit by unit at stage scale (stop-on-failure).
+    analysis:
+      blind:
+      - Order work as small units each ending in a checkable state; do not advance until the
+        current one passes. (SKILL.md:3, SKILL.md:9)
+      - In a sweep or migration, bracket each change between a known-good state and its check,
+        even when a tool made the edit. (SKILL.md:13)
+      - Rebase onto a clean trunk first so every check measures against the real baseline.
+        (SKILL.md:13)
+      - Stack commits and PRs in the order that proves the work (failing test then fix, subtraction
+        before reshape, baseline before treatment, scaffold before feature), each landing
+        on its own. (SKILL.md:15)
+      mapping:
+      - line: 1
+        to:
+        - verified-unit-sequence
+        mark: new
+      - line: 2
+        to:
+        - verified-unit-sequence
+        mark: new
+      - line: 3
+        to:
+        - clean-baseline-first
+        mark: new
+      - line: 4
+        to:
+        - argument-order-commits
+        mark: new
+    traits:
+      verified-unit-sequence:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/planning/SKILL.md:66
+        - .claude/skills/execution/SKILL.md:95
+        recommendation: adopt
+        delivery: pending
+        target: principle-sequence-verifiable-units
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - O-05
+        reason: Lands as a principle unit. Planning slices verifiably and execution stops
+          on a failed gate, both at task or stage scale. A sweep of many small edits inside
+          one task has no per-unit check. Adopted unchanged; where a declared migration group
+          applies, migration-group-unit makes the group the unit (ruling R11), and the principle
+          cites it rather than restating it (P6).
+      clean-baseline-first:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - AGENTS.md:66
+        - AGENTS.md:51-53
+        recommendation: adopt
+        delivery: pending
+        target: principle-sequence-verifiable-units
+        modification: 'Adopted as baseline-check-before-change: before the first change, run
+          the work''s checks on the starting base and record the results. Upstream''s rebase
+          onto a clean trunk is not delivered.'
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - O-05
+        reason: 'Lands as a principle unit, into `baseline-check-before-change`. Not covered:
+          AGENTS.md establishes the base before merging (merge-base-selection) and asks to
+          distinguish pre-existing failures from regressions, but neither fixes the baseline
+          before the work''s checks, which is when the distinction is made. Rebasing rewrites
+          history, which our safety rules gate, so the variant records the starting base''s
+          results instead of rebasing. Ruling R16.'
+      argument-order-commits:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - AGENTS.md:64
+        recommendation: adopt
+        delivery: pending
+        target: principle-sequence-verifiable-units
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as a principle unit. No holder. Applies only when commits are authorized;
+          the principle should say so.
+  skill:pstack/skills/principle-subtract-before-you-add:
+    upstream_tree_hash: 97e61b7e5e8fa4aa1673b1d1d3a5508f5f36cc2f888866caf68992469569171e
+    accepted: null
+    compared_with: none
+    pairing:
+      overlap:
+        authoring-for-agents: 1
+        doc:AGENTS.md: 1
+      placement_match:
+      - planning
+      suggested: authoring-for-agents
+      purpose_match: none
+      purpose: Upstream removes complexity before building, leaves designs simpler, cuts before
+        polishing, designs for observed usage and deletes empty stubs. Ours bans speculative
+        features (AGENTS.md) and unrelated cleanup, and keeps legacy entrypoints as thin aliases.
+      flag: suggested differs
+      reason: 'Suggested authoring-for-agents for decision-relevance-pruning alone. Compared
+        with none: present-requirement-only and the unrelated-cleanup bound are AGENTS.md''s;
+        no skill''s purpose is sequencing removal before construction.'
+    analysis:
+      blind:
+      - When evolving a system, remove complexity first and then build; sequence removal before
+        construction. (SKILL.md:3, SKILL.md:9, SKILL.md:13)
+      - Leave the design slightly simpler and more capable behind the same or a smaller surface.
+        (SKILL.md:11)
+      - Cut before you polish. (SKILL.md:14)
+      - Design for observed usage; no speculative validators, parsers or guards beyond the
+        spec. (SKILL.md:15, SKILL.md:16)
+      - Simplify prompts by removing redundant instructions and excessive templates. (SKILL.md:17)
+      - Delete a reference with no novel content rather than leaving a stub. (SKILL.md:18)
+      mapping:
+      - line: 1
+        to:
+        - subtraction-first
+        mark: new
+      - line: 2
+        to:
+        - leave-it-simpler
+        mark: new
+      - line: 3
+        to:
+        - cut-before-polish
+        mark: new
+      - line: 4
+        to:
+        - present-requirement-only
+        mark: match
+      - line: 5
+        to:
+        - decision-relevance-pruning
+        mark: match
+      - line: 6
+        to:
+        - stub-deletion
+        mark: new
+    traits:
+      subtraction-first:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - AGENTS.md:35
+        recommendation: adopt
+        delivery: pending
+        target: principle-subtract-before-you-add
+        modification: 'Adopted as touched-scope-subtraction: remove the dead code, redundant
+          validators and stubs the change touches, and report other removals. Upstream''s
+          unscoped remove-first is not delivered.'
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-04
+        reason: Lands as a conflict (owner ruling), into `touched-scope-subtraction`. AGENTS.md
+          avoids unrelated cleanup and the guide (U-04) keeps scope intact. Removing what
+          the change touches is in scope and is upstream's point; removing beyond it is not.
+          Round 1 called the scoped form a rewording; it changes the mechanism, so it is a
+          variant. Ruling R7.
+      leave-it-simpler:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - AGENTS.md:35
+        - AGENTS.md:3
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Lands as a principle unit. Not a contradiction: simplifying code the change
+          already touches can be in scope, and touched-scope-subtraction keeps that. The difference
+          is that this makes improving each touched design a standing duty. Scenario: fixing
+          one function''s off-by-one in a module, the duty asks the agent to leave the module''s
+          design simpler and more capable behind a smaller surface, for example by narrowing
+          its interface, which edits callers the fix never needed; that is scope expansion
+          AGENTS.md gates on authorization. Recommended: reject on cost and scope, because
+          it adds a refactor obligation to every touch; the owner may prefer it as an optional
+          stronger policy. Ruling R8.'
+      cut-before-polish:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: principle-subtract-before-you-add
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as a principle unit. No holder; a sequencing rule that pairs with experience-first's
+          polish-over-breadth (cut scope, then finish what remains).
+      present-requirement-only:
+        scope: new
+        change: []
+        fact: present
+        provider: doc:AGENTS.md
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - AGENTS.md:34-35
+        recommendation: adopt
+        delivery: delivered
+        target: doc:AGENTS.md
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: 'Lands as covered. AGENTS.md: abstractions and dependencies need a present
+          requirement.'
+      decision-relevance-pruning:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          authoring-for-agents: present
+        ours:
+        - .claude/skills/authoring-for-agents/SKILL.md:9
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Lands as a skill or playbook trait. Not covered by computation: authoring-for-agents
+          holds it (also_in), which is information, not coverage. It is the unit that runs
+          when prompts are edited, and the router reaches it, so the subtraction principle
+          should not restate it (P6). Rejected as duplicate prose for this unit, not as delivered.'
+      stub-deletion:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/authoring-for-agents/SKILL.md:18
+        recommendation: adopt
+        delivery: pending
+        target: principle-subtract-before-you-add
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as a principle unit. Compatible with our thin aliases, which keep a
+          remembered name on purpose; a reference that only points elsewhere has no such reason.
+  skill:pstack/skills/principle-test-behavior-not-implementation:
+    upstream_tree_hash: 51fef59c544f3ae961919dce0acc8790256e05fbf04fec8f4aa7a8e21d5fd81a
+    accepted: null
+    compared_with: test-driven-development
+    pairing:
+      overlap:
+        doc:.repo-context/coding-style.md: 1
+        test-driven-development: 2
+      placement_match:
+      - check-invariants
+      suggested: test-driven-development
+      purpose_match: test-driven-development
+      purpose: Upstream judges every test by two imagined edits (break the behaviour, change
+        the internals), lists hollow assertion forms, and lets the contract decide what is
+        behaviour. Ours holds most of it in test-driven-development and its writing-good-tests
+        reference.
+      flag: null
+      reason: null
+    analysis:
+      blind:
+      - A test asserts what the code's users can observe through their interface (returns,
+        errors, readable state, external effects), not private helpers, call order or intermediate
+        data. (SKILL.md:3, SKILL.md:9)
+      - 'Judge each test by two imagined edits: breaking the behaviour must fail it; restructuring
+        the internals must not. (SKILL.md:11, SKILL.md:14)'
+      - Hollow tests come from assertions looser than the contract, expected values computed
+        by the code, restated constants never read by code, and assertions on data the test
+        built. (SKILL.md:13)
+      - Keep a test that does both; rewrite or delete the rest. (SKILL.md:16)
+      - Drive the code through its users' interface with concrete input and derive the expected
+        value from the requirement. (SKILL.md:16)
+      - 'Assert what the contract promises, no less and no more: an absence of a call can
+        be behaviour (pair it with a positive case), a mocked external payload is behaviour,
+        an exact unread error message is not, an error type callers branch on is; an invariant
+        can be the behaviour. (SKILL.md:16, SKILL.md:18, SKILL.md:20)'
+      mapping:
+      - line: 1
+        to:
+        - meaningful-behaviour-assertion
+        mark: match
+      - line: 2
+        to:
+        - two-edit-test-judgement
+        mark: new
+      - line: 3
+        to:
+        - independent-expectation
+        - hollow-test-forms
+        mark: split
+      - line: 4
+        to:
+        - implementation-test-deletion
+        mark: new
+      - line: 5
+        to:
+        - public-interface-testing
+        - independent-expectation
+        mark: split
+      - line: 6
+        to:
+        - contract-exact-assertion
+        - absence-positive-control
+        mark: split
+    traits:
+      meaningful-behaviour-assertion:
+        scope: new
+        change: []
+        fact: present
+        provider: test-driven-development
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/test-driven-development/references/writing-good-tests.md:8-9
+        recommendation: adopt
+        delivery: delivered
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as covered. writing-good-tests asserts results, state or boundary interactions,
+          not choreography.
+      two-edit-test-judgement:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/test-driven-development/references/writing-good-tests.md:22-24
+        - .claude/skills/test-driven-development/SKILL.md:50
+        recommendation: adopt
+        delivery: pending
+        target: principle-test-behavior-not-implementation
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: 'Lands as a principle unit. Round 1 split this into break-naming-validation
+          and no-implementation-coupling and called both covered. Neither is the whole mechanism
+          (T5): break-naming-validation names the break and may run a mutation trial, for
+          substantive tests only; no-implementation-coupling avoids coupling without an imagined-break
+          test. Upstream applies both imagined edits to every test. Ours holds the parts,
+          so the new gate is cheap; it lands in the principle that runs for every test.'
+      independent-expectation:
+        scope: new
+        change: []
+        fact: present
+        provider: test-driven-development
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/test-driven-development/references/writing-good-tests.md:6-7
+        recommendation: adopt
+        delivery: delivered
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as covered. Ours derives expected values from requirements, never from
+          the code under test.
+      hollow-test-forms:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/test-driven-development/references/writing-good-tests.md:19
+        recommendation: adopt
+        delivery: pending
+        target: principle-test-behavior-not-implementation
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as a principle unit. Ours covers restated source text; it misses assertions
+          looser than the contract and assertions on test-built data.
+      implementation-test-deletion:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/test-driven-development/references/writing-good-tests.md:28
+        recommendation: adopt
+        delivery: pending
+        target: principle-test-behavior-not-implementation
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: 'Lands as a principle unit. Consistent with preserving tests that catch distinct
+          failures: an implementation-pinned test catches none.'
+      public-interface-testing:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          doc:.repo-context/coding-style.md: present
+        ours:
+        - .repo-context/coding-style.md:40
+        recommendation: adopt
+        delivery: pending
+        target: principle-test-behavior-not-implementation
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: 'Lands as a principle unit. Not delivered: coding-style.md lists it, but that
+          is an on-demand Python project document (also_in), not shipped (D2) and not a provider;
+          test-driven-development holds only the related seam-selection. Target: the testing
+          principle, router-only and loaded by the router whenever a test is written, changed
+          or kept (P7), so it reaches every test in every shipped project.'
+      contract-exact-assertion:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/test-driven-development/references/writing-good-tests.md:8-9
+        recommendation: adopt
+        delivery: pending
+        target: principle-test-behavior-not-implementation
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as a principle unit. Ours says outbound calls can be the contract; it
+          lacks the no-less-no-more bound.
+      absence-positive-control:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/test-driven-development/references/writing-good-tests.md:8-9
+        recommendation: adopt
+        delivery: pending
+        target: principle-test-behavior-not-implementation
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as a principle unit. Ours lets an absence of a call be the contract
+          but never asks for a positive control that shows the test could see the call. Round
+          1 named this gap in the reason but left it out of every definition; it is now its
+          own trait.
+  skill:pstack/skills/principle-type-system-discipline:
+    upstream_tree_hash: 835538f784c0c5b1cb64b84489148b926c55934bdd92229a424df6d4069d7765
+    accepted: null
+    compared_with: none
+    pairing:
+      overlap: {}
+      placement_match:
+      - codebase-design
+      - design-evolve
+      - domain-modeling
+      - prototype
+      suggested: codebase-design
+      purpose_match: none
+      purpose: Upstream makes the type checker reject impossible states and unhandled variants,
+        brands semantic primitives, parses external data at boundaries and derives types from
+        authoritative schemas. Ours gates on strict mypy and prefers closed, frozen Pydantic
+        models for Python.
+      flag: suggested differs
+      reason: 'Suggested codebase-design by placement alone (no overlap). Compared with none:
+        our typing rules live in coding-style.md, a project document that cannot be compared_with.'
+    analysis:
+      blind:
+      - Make the compiler reject impossible states, mismatched primitives and unhandled variants;
+        define errors and special cases out of existence rather than adding handlers. (SKILL.md:3,
+        SKILL.md:9)
+      - Brand semantic primitives that share a representation; validate once at creation and
+        trust the type downstream. (SKILL.md:11)
+      - External data is untyped until parsed; have a parse function at every boundary. (SKILL.md:12)
+      - Derive types from the schema that owns a shape instead of a hand-rolled parallel type.
+        (SKILL.md:13)
+      mapping:
+      - line: 1
+        to:
+        - unrepresentable-invalid-states
+        - exhaustive-variant-handling
+        mark: split
+      - line: 2
+        to:
+        - branded-primitives
+        mark: new
+      - line: 3
+        to:
+        - parse-at-boundary
+        mark: new
+      - line: 4
+        to:
+        - schema-derived-types
+        mark: new
+    traits:
+      unrepresentable-invalid-states:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .repo-context/coding-style.md:10
+        - .repo-context/coding-style.md:21
+        recommendation: adopt
+        delivery: pending
+        target: principle-type-system-discipline
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as a principle unit. Ours enforces strict typing and closed schemas
+          but says nothing about designing types so invalid states cannot exist. Split from
+          round 1's unrepresentable-states, which bundled it with exhaustive handling (README
+          §4a rule 1).
+      exhaustive-variant-handling:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .repo-context/coding-style.md:10
+        recommendation: adopt
+        delivery: pending
+        target: principle-type-system-discipline
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: 'Lands as a principle unit. Strict mypy reports an unhandled variant only
+          when dispatch is written to be checked (a closed union with an exhaustiveness check);
+          nothing of ours asks for it. Separately adoptable: a sound domain type can still
+          be dispatched non-exhaustively.'
+      branded-primitives:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: principle-type-system-discipline
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as a principle unit. No holder; cheap in Python (NewType) and catches
+          argument swaps that strict mypy otherwise accepts.
+      parse-at-boundary:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .repo-context/coding-style.md:17-18
+        recommendation: adopt
+        delivery: pending
+        target: principle-boundary-discipline
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as a principle unit, ruled under `boundary-discipline`. Owned by boundary-discipline;
+          this principle cites it.
+      schema-derived-types:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: principle-type-system-discipline
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+        reason: Lands as a principle unit. No holder; parallel hand-written types drift.

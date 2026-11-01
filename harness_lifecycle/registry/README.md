@@ -441,7 +441,9 @@ rejected or deferred capability changes upstream.
 `skill` is required on an effective `adopt`/`adopt-merged` ruling (it must name
 an existing skill record, alias, stub, non-skill `kind:name` or existing
 `doc:` file, resolved through our `rename` and `merge` events), and optional on
-a superseded historical one, which may name a skill we no longer have.
+a superseded historical one, which may name a skill we no longer have. A
+pending trait adopt (§5b) may name a skill its delivering build will create,
+and so may that upstream skill's checkpoint; its completion needs the skill.
 
 ## 5b. Trait rulings
 
@@ -461,9 +463,10 @@ are in §5c.
   says why in `retarget`.
 - **Checked when recorded.** `record` refuses a decision whose row no longer
   matches today's facts (fact, provider, candidates, `via`, `also_in`), a new
-  delivered adopt whose row's guide verdict is not `ok`, a new pending adopt
-  from a row without a guide verdict or (unless `ok`) without `rewording`,
-  and the trait-policy refusals (§4a). `check` validates structure only, so
+  delivered adopt whose row's guide verdict is not `ok` (or a `conflict` with
+  an owner override, §5c), a new pending adopt from a row without a guide
+  verdict or (unless either of those) without `rewording`, and the
+  trait-policy refusals (§4a). `check` validates structure only, so
   a later change never invalidates history.
 - **Defer** needs `revisit_when`; it never counts as adopted or rejected.
 - **Reconsideration.** A new decision that supersedes an effective decision
@@ -505,9 +508,9 @@ are in §5c.
   does not fail.
 - **Pending adoptions.** A gap (we will add it) is an `adopt` with `pending:
   <bead>`. It is intent, not delivery: the target need not list the trait
-  yet, and it never counts as a delivered adoption or clears a withdrawal.
-  `check` fails when the target already lists the trait but the completing
-  `adopt` is missing.
+  yet, nor exist yet when it is a skill to create (§5), and it never counts
+  as a delivered adoption or clears a withdrawal. `check` fails when the
+  target already lists the trait but the completing `adopt` is missing.
   - **Complete** it with an `adopt` without `pending` that supersedes the
     effective pending adopt, with the same `skill` and `into`; **cancel** it
     with a `reject` or `defer` that supersedes it, with a reason. Both
@@ -602,10 +605,20 @@ full rules and their rationale are in
    (`adopt` delivered or pending, `defer` with `revisit_when`, `reject`,
    `out-of-scope`) and, for every adopt row, the prompting-guide check
    (`guide: {verdict: ok | reword | conflict, rules}`); trait-policy stances
-   are pre-filled. A partial match is a gap, never coverage. Critics check
-   the analysis and the comparison; `report seal` then freezes it. Scope per
-   row: `new`, `changed`, `recompare` (an undecided trait whose facts
-   moved) or `reconsider` (the owner reopens it).
+   are pre-filled. A `conflict` row is never an adopt unless the owner keeps
+   the adoption anyway: then the guide check stays `conflict` and carries
+   `override: {ruling, date}`, citing the ruling and its date, and the
+   adopt may rest on it. A partial match is a gap, never coverage. Critics
+   check the analysis and the comparison; `report seal` then freezes it.
+   Each critic field (`analysis_critic`, `comparison_critic`) records `by`,
+   `date` and a verdict: `pass` (the critic passed it), `fail`, or `accepted`
+   (the critic's last round failed, for example REVISE, and the coordinator
+   accepted the fixes without a further critic pass). `accepted` names who
+   accepted (`by`) and when (`date`), and records that round as
+   `last_critic: {by, date, verdict: fail}`. `report seal` accepts `pass` or
+   `accepted` on both fields, nothing else. Scope per row: `new`, `changed`,
+   `recompare` (an undecided trait whose facts moved) or `reconsider` (the
+   owner reopens it).
 4. **Decision.** The owner rules each in-scope trait; `record` enforces §5b.
    **Status.** `registry.py status <harness> [--skill X] [--traits]`
    computes, never stores, each trait's stage (removed upstream, needs
@@ -628,7 +641,7 @@ is a thin entry for the `curation` package at the repo root
 | `ours` | Catalogs our capabilities: root `.claude/` and `.codex/` plus every `mvp-harness/plugins/*`, excluding each plugin's `template/` copy |
 | `round open <slug>` / `round seal <round_id>` | Starts a round file with its header; seals it into `MANIFEST.json`, with the hashes of the analyses it cites |
 | `report draft <harness> --skill <id> --with <skill\|none> [--report P] [--reconsider T …] [--refresh]` | Creates or extends a draft report with computed facts and pairing; `--refresh` recomputes them and keeps the judged fields |
-| `report seal <path>` | Freezes a report once both critics pass and every in-scope trait has its row and evidence |
+| `report seal <path>` | Freezes a report once both critic fields are `pass` or `accepted` (§5c) and every in-scope trait has its row and evidence |
 | `record … [--supersedes <id>] [--whole-skill <kind>]` | Appends one validated event to the open round (§5b); fills `source`, lifecycle inheritance and `policy_basis` |
 | `steps diff <playbook> [<base>] [<head>]` | Lists a playbook's per-step changes between two git revisions; `base` defaults to `HEAD`, `head` to the working tree (§4b) |
 | `build` | Regenerates `INDEX.md`, `TRAITS.md`, `STEPS.md`, `references/*.md`, every skill record and every report's `.md` |

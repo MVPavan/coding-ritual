@@ -395,10 +395,10 @@ def _sha256(path: Path) -> str:
 
 def seal(cfg: RegistryConfig, path: Path) -> list[str]:
     """`report seal`: refuse (errors) or record the report's content hash. A
-    report passes when its schema holds, both critics passed, its `supersedes`
-    names sealed reports with no cycle, its evidence is complete (1.3, 2.1),
-    every in-scope trait has exactly one row (2.7) and the check rules hold in
-    full."""
+    report passes when its schema holds, both critics passed or accepted, its
+    `supersedes` names sealed reports with no cycle, its evidence is complete
+    (1.3, 2.1), every in-scope trait has exactly one row (2.7) and the check
+    rules hold in full."""
     from curation.registry.checks.reports import (
         ambiguity_errors,
         evidence_errors,
@@ -422,8 +422,8 @@ def seal(cfg: RegistryConfig, path: Path) -> list[str]:
     errors: list[str] = []
     for name in ("analysis_critic", "comparison_critic"):
         critic = getattr(report, name)
-        if critic is None or critic.verdict != "pass":
-            errors.append(f"{key}: {name} has not passed")
+        if critic is None or not critic.clears_seal:
+            errors.append(f"{key}: {name} is neither passed nor accepted")
     closure = supersede_closure(ctx.reports)
     errors += supersession_errors(
         key, report, ctx.reports, ctx.sealed, closure, sealing=True
@@ -475,7 +475,13 @@ def _critic(name: str, report: Report) -> str:
     critic = getattr(report, name)
     if critic is None:
         return f"{name.replace('_', ' ')}: none"
-    return f"{name.replace('_', ' ')}: {critic.verdict} ({critic.by}, {critic.date})"
+    text = f"{name.replace('_', ' ')}: {critic.verdict} ({critic.by}, {critic.date})"
+    last = critic.last_critic
+    if last is not None:
+        text += (
+            f", after the critic's last round: {last.verdict} ({last.by}, {last.date})"
+        )
+    return text
 
 
 def render_report(name: str, report: Report) -> str:
@@ -550,6 +556,9 @@ def _row_line(tid: str, row: ReportRow) -> str:
     if row.guide:
         rules = f" [{', '.join(row.guide.rules)}]" if row.guide.rules else ""
         parts.append(f"guide {row.guide.verdict}{rules}")
+        if row.guide.override is not None:
+            o = row.guide.override
+            parts.append(f"owner override: {o.ruling} ({o.date})")
     if row.also_in:
         parts.append(
             "also in " + ", ".join(f"{h} ({v})" for h, v in row.also_in.items())

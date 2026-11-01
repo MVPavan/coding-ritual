@@ -1,0 +1,286 @@
+harness: cursor_plugins
+from_sha: null
+to_sha: 4dd1d05
+supersedes:
+- harness_lifecycle/registry/reviews/2026-10-31-upstream-cursor_plugins-pstack-principles.yaml
+- harness_lifecycle/registry/reviews/2026-11-01-upstream-cursor_plugins-pstack-principles-amend.yaml
+- harness_lifecycle/registry/reviews/2026-11-01-upstream-cursor_plugins-pstack-principles-amend2.yaml
+analysis_critic:
+  by: gpt-6.1-sol (critic-1b-amend3)
+  date: '2026-11-01'
+  verdict: pass
+comparison_critic:
+  by: gpt-6.1-sol (critic-1b-amend3)
+  date: '2026-11-01'
+  verdict: pass
+themes: "Corrects three sealed reports: `2026-10-31-upstream-cursor_plugins-pstack-principles.yaml`\n\
+  (the original), `…-amend.yaml` and `…-amend2.yaml`. It carries the rows of theirs\nthat\
+  \ must survive (the `owning-layer-fix` target correction and R15) and revises\nR10's two\
+  \ policy rows; every other row and ruling stands as ruled where it is.\nOwner rulings of\
+  \ 2026-11-01 on critic 1b-build (Sol, gpt-6.1-sol, REVISE),\nfindings 1, 2 and 4.\n\n##\
+  \ Review history of the three earlier reports (finding 2)\n\nTheir sealed critic fields\
+  \ do not describe the reviews that took place. The\nsealed files stay byte-identical; this\
+  \ is the true record.\n\n- **Original** (sealed 2026-10-31; both critic fields say `pass`\
+  \ by\n  gpt-6.1-sol, 2026-10-31). Sol reviewed the analysis and the comparison\n  twice\
+  \ on 2026-10-31 and returned REVISE both times: critic-1b (9 MAJOR,\n  5 MINOR) and critic-1b-r2\
+  \ (2 MAJOR, one note). The coordinator accepted\n  the round-3 fixes on 2026-10-31 without\
+  \ a further critic pass. The true\n  verdict is `accepted` by the coordinator, after Sol's\
+  \ last round, REVISE.\n- **`-amend`** (sealed 2026-11-01; both fields say `pass` by the\n\
+  \  coordinator, \"no separate critic round\"). No critic reviewed it before\n  sealing.\
+  \ Sol first reviewed it in critic 1b-build on 2026-11-01: REVISE.\n- **`-amend2`** (sealed\
+  \ 2026-11-01; both fields say `pass` by the\n  implementer, \"no separate critic round\"\
+  ). No critic reviewed it before\n  sealing. Sol first reviewed it in critic 1b-build on\
+  \ 2026-11-01: REVISE\n  (finding 4 is on its R15 row).\n\nAn owner ruling gives decision\
+  \ authority; it is not a critic's review. The\nregistry now records acceptance after a failed\
+  \ critic round as its own\nverdict, `accepted`, with who accepted, when, and the last critic\
+  \ round\n(README §5c). This report's own critic fields are filled by an independent\nSol\
+  \ check before it is sealed.\n\n## R10 revised: build a tool when it pays (finding 1)\n\n\
+  The sealed policy wrote a tool for every non-trivial edit, analysis or check,\neven when\
+  \ an existing test or check already proved the work, which competes\nwith reuse first and\
+  \ proportional effort. Owner ruling: the AGENTS.md line\nbecomes \"Use existing deterministic\
+  \ tools and checks where they suffice.\nBuild a rerunnable tool when it materially reduces\
+  \ repeated work or supplies\nproof a reviewer needs, and keep its output\", followed by\
+  \ the unchanged\nscript-over-fanout sentence (`AGENTS.md:43-46`).\n\nUnder T5 this is an\
+  \ adaptation of both policy rows: the line delivers neither\n`tool-over-hand-work` (a tool\
+  \ for all non-trivial work) nor `scripted-proof`\n(a script preferred for every proof) whole.\
+  \ Both now adopt into one new\nvariant, `tool-when-it-pays`, whose `distinct_from` names\
+  \ both; one trait,\nsince the line is one mechanism (reuse first, build when it pays, keep\
+  \ the\noutput). `script-over-fanout` is delivered unchanged and keeps its row in\nthe original.\
+  \ `build-a-lever`'s description and the router row\n(`mvp-mode/SKILL.md`, Skills by situation)\
+  \ are narrowed to match: a tool when\nit saves repeated work or supplies missing proof,\
+  \ never by default. Its\ntechnique traits are unchanged.\n\nBoth rows are `absent` with\
+  \ the variant under `also_in`: the comparison\ncounts a variant only in the compared skill\
+  \ (none here), so the adopt is\npending although the line is in place, and its completion\
+  \ follows at once.\n\n## R15 revised: independent work, and an honest guide verdict (finding\
+  \ 4)\n\n`-amend2` recorded `guide: ok` on the delegation default while its own text\nconceded\
+  \ that C-14 limits Opus delegation to sizeable independent tasks.\nOwner ruling: the router\
+  \ line says \"hand independent work to a subagent\";\nnothing else in it changes (`.claude/skills/mvp-mode/SKILL.md:35-39`).\
+  \ That\nnarrows the mechanism, so under README §4a it is a new variant,\n`delegate-independent-by-default`;\
+  \ `delegate-by-default` keeps its meaning\nand stays defined for the history that adopted\
+  \ into it.\n\nThe guide verdict is now `conflict` [U-07, C-14]: the line meets C-14's\n\
+  independence condition and keeps small work and verification local, but\ndelegating mid-sized\
+  \ independent work by default departs from \"only sizeable\ntasks\". The owner keeps the\
+  \ default anyway, and the row records that as an\nowner override with the ruling and its\
+  \ date, a representation the guide-check\ncontract now has (README §5c). GUIDE §0: the guide\
+  \ does not by itself change\nrepository policy; the override records the departure rather\
+  \ than hiding it.\n\n## Recording correction carried: owning-layer-fix\n\nCarried unchanged\
+  \ from `-amend`: `fix-root-causes#owning-layer-fix` is\ncovered by AGENTS.md, its provider,\
+  \ so the delivered adopt targets\n`doc:AGENTS.md`, not the compared skill. The line is now\
+  \ `AGENTS.md:37-38`.\n\n## Recount\n\n110 rows: 95 adopt, 10 reject, 5 defer, unchanged.\
+  \ Modified adoptions\n(`into`) rise from 12 to 14 (`tool-over-hand-work` and `scripted-proof`\
+  \ into\n`tool-when-it-pays`); `bulk-to-subagents` changes destination variant.\n"
+skills:
+  skill:pstack/skills/principle-build-the-lever:
+    upstream_tree_hash: b421b8a71bd87599bf5946031c10923ef301a99206bd52be83e50ad81e315fe6
+    accepted: 4dd1d05
+    compared_with: none
+    pairing:
+      overlap:
+        build-a-lever: 4
+        doc:AGENTS.md: 2
+      placement_match:
+      - build-a-lever
+      suggested: build-a-lever
+      purpose_match: none
+      purpose: Upstream defaults any non-trivial work to a rerunnable tool and gives a hand-first
+        recipe for building it. Ours reuses existing tools and checks first and builds one
+        only when it pays (AGENTS.md); build-a-lever holds the technique.
+      flag: suggested differs
+      reason: 'Suggested build-a-lever by its overlap on the technique traits, which are not
+        reconsidered here. Compared with none, as in the original: the reconsidered row is
+        the policy, which only AGENTS.md holds.'
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      tool-over-hand-work:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          doc:AGENTS.md: variant
+        ours:
+        - AGENTS.md:43-46
+        recommendation: adopt
+        delivery: pending
+        target: doc:AGENTS.md
+        modification: 'Narrower than upstream: existing deterministic tools and checks come
+          first, and a new rerunnable tool is built only when it materially reduces repeated
+          work or supplies proof a reviewer needs, keeping its output. Upstream builds one
+          for every non-trivial edit, analysis or check.'
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-01
+          override: null
+        reason: 'Lands as an AGENTS.md line, into `tool-when-it-pays`. Owner ruling 2026-11-01
+          on R10 (critic 1b-build finding 1): a tool when it saves repeated work or supplies
+          missing proof, never by default; reuse existing checks first. Already in place at
+          AGENTS.md:43-46; pending only because the variant is outside the compared skill.
+          Guide: U-01, the line states when a tool is warranted and leaves the steps open.'
+  skill:pstack/skills/principle-prove-it-works:
+    upstream_tree_hash: 0429fc6fad74a95d594fc21ac8d859a571705ba51303c05880d9bd0eafb44adb
+    accepted: 4dd1d05
+    compared_with: none
+    pairing:
+      overlap:
+        build-a-lever: 1
+        doc:AGENTS.md: 2
+        systematic-debugging: 1
+      placement_match: []
+      suggested: build-a-lever
+      purpose_match: none
+      purpose: Upstream verifies against the real artifact and prefers a rerunnable script
+        kept for a reviewer. Ours observes the real artifact and builds a proof tool only
+        when a reviewer needs proof nothing else gives (AGENTS.md).
+      flag: suggested differs
+      reason: 'Suggested build-a-lever by one shared commit-proposal trait. Compared with
+        none, as in the original: the reconsidered row is verification policy, which only
+        AGENTS.md holds.'
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      scripted-proof:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          doc:AGENTS.md: variant
+        ours:
+        - AGENTS.md:43-46
+        - AGENTS.md:59-61
+        recommendation: adopt
+        delivery: pending
+        target: doc:AGENTS.md
+        modification: 'Narrower than upstream: a script is built as proof only when a reviewer
+          needs proof that existing deterministic tools and checks do not supply, and its
+          output is kept. Upstream prefers a scripted proof for every result.'
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-01
+          override: null
+        reason: 'Lands as an AGENTS.md line, into `tool-when-it-pays`, shared with tool-over-hand-work:
+          the revised R10 line no longer prefers a script for every proof (T5). Owner ruling
+          2026-11-01 on R10. Already in place at AGENTS.md:43-46; pending only because the
+          variant is outside the compared skill. Guide: U-01.'
+  skill:pstack/skills/principle-guard-the-context-window:
+    upstream_tree_hash: d0b6808ab070ab9d020c718687d3f96324833144537d1e635762c90861fe8821
+    accepted: 4dd1d05
+    compared_with: mvp-mode
+    pairing:
+      overlap:
+        mvp-mode: 1
+      placement_match:
+      - beads
+      suggested: mvp-mode
+      purpose_match: mvp-mode
+      purpose: Upstream routes bulk reading to subagents, keeps summaries in the main thread
+        and caps phase scope. Ours makes delegating independent work the top-level default
+        in the mvp-mode router and keeps logs behind references (AGENTS.md).
+      flag: null
+      reason: null
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      bulk-to-subagents:
+        scope: reconsider
+        change: []
+        fact: variant
+        provider: mvp-mode
+        candidates:
+        - delegate-independent-by-default
+        via: delegate-independent-by-default
+        also_in: {}
+        ours:
+        - .claude/skills/mvp-mode/SKILL.md:35-39
+        - AGENTS.md:47-48
+        recommendation: adopt
+        delivery: delivered
+        target: mvp-mode
+        modification: 'Stronger than upstream: at top level, independent work, not only bulk
+          reading and large outputs, goes to subagents; the main context keeps coordination,
+          integration and verification, and local work needs a clear advantage. Scoped to
+          the top-level agent: a delegate delegates further only when its brief allows it.'
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: conflict
+          rules:
+          - U-07
+          - C-14
+          override:
+            ruling: 'Owner ruling R15 on critic 1b-build finding 4: keep the top-level delegation
+              default for mid-sized independent work as a recorded departure from C-14'
+            date: '2026-11-01'
+        reason: 'Lands in the mvp-mode router, into `delegate-independent-by-default`. Owner
+          ruling 2026-11-01 on R15 (critic 1b-build finding 4): the line hands independent
+          work to a subagent and otherwise stays as ruled in -amend2. Guide conflict: U-07
+          and C-14''s independence condition and local small work and verification hold, but
+          delegating mid-sized work by default departs from C-14''s "only sizeable tasks";
+          the owner keeps the default, recorded as an override.'
+  skill:pstack/skills/principle-fix-root-causes:
+    upstream_tree_hash: e7a1fcb2a1050ad9bd3f29150448c64d4ab44ba497b3c4aeb62754a08dbab19a
+    accepted: 4dd1d05
+    compared_with: systematic-debugging
+    pairing:
+      overlap:
+        doc:.claude/skills/mvp-mode/playbooks/bug-fix.md: 2
+        doc:AGENTS.md: 2
+        systematic-debugging: 4
+      placement_match:
+      - performance-optimization
+      - principle-attack-the-premise
+      - principle-explain-the-number
+      - systematic-debugging
+      suggested: systematic-debugging
+      purpose_match: systematic-debugging
+      purpose: Upstream fixes the first place the system went wrong, with a legitimacy test
+        for guards, restart and recurrence heuristics, and a follow-up signal. Ours holds
+        the core in AGENTS.md (owning layer), systematic-debugging (diagnosis) and the bug-fix
+        playbook.
+      flag: null
+      reason: null
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      owning-layer-fix:
+        scope: reconsider
+        change: []
+        fact: present
+        provider: doc:AGENTS.md
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - AGENTS.md:37-38
+        recommendation: adopt
+        delivery: delivered
+        target: doc:AGENTS.md
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules: []
+          override: null
+        reason: 'Lands as covered. AGENTS.md: fix at the owning layer and inspect callers.
+          Carried from -amend''s recording correction: the delivered adopt targets its provider,
+          AGENTS.md, not the compared skill.'

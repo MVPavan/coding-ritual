@@ -16,11 +16,11 @@ Playbook traits: `confirmed-cause-gate`
 |---|---|---|---|---|
 | `bug-fix#1` | a deterministic failing command, run as reported, shows the failure and its output points at the cause; never a flaky failure, nor a cause found by reading code or rerunning in a loop | `obvious-cause-skip` |  |  |
 | `bug-fix#2` | bug-fix#1 did not skip it |  | `skill:systematic-debugging` |  |
-| `bug-fix#3` | the cause is confirmed | `existing-check-as-proof`, `report-missing-proof` | `skill:test-driven-development` (when: step 1's failing check does not already fail for the reported reason and a durable regression check is feasible) | `.claude/skills/mvp-mode/playbooks/bug-fix/timing-flakes.md` (when: the cause is a timing flake) |
+| `bug-fix#3` | the cause is confirmed | `existing-check-as-proof`, `report-missing-proof`, `scoped-instance-fix` | `skill:test-driven-development` (when: step 1's failing check does not already fail for the reported reason and a durable regression check is feasible) | `.claude/skills/mvp-mode/playbooks/bug-fix/timing-flakes.md` (when: the cause is a timing flake) |
 | `bug-fix#4` | bug-fix#3 changed code | `rerun-original-repro` |  |  |
 | `bug-fix#5` | around bug-fix#3 and bug-fix#4 | `attempt-log`, `revert-ineffective-experiments`, `two-failure-stop` |  |  |
 | `bug-fix#6` | the confirmed defect reveals another boundary problem | `defense-in-depth-hardening` |  | `.claude/skills/mvp-mode/playbooks/bug-fix/hardening.md` |
-| `bug-fix#7` | every exit | `closeout`, `preserve-reproducers` |  |  |
+| `bug-fix#7` | every exit | `closeout`, `preserve-reproducers`, `always-on-signal` |  |  |
 
 ## Recurrence
 

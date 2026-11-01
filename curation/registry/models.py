@@ -69,9 +69,36 @@ class Adaptation(StrictModel):
     deliberately_dropped: list[str] = Field(default_factory=list)
 
 
+class GuideOverride(StrictModel):
+    """The owner keeps an adoption the guide check found in conflict (2.9):
+    the ruling that decided it, and its date."""
+
+    ruling: str
+    date: str
+
+    @model_validator(mode="after")
+    def _check(self) -> GuideOverride:
+        if not self.ruling.strip():
+            raise ValueError("guide override: `ruling` is empty")
+        _require_iso(self.date, "guide override")
+        return self
+
+
 class GuideVerdict(StrictModel):
     verdict: Literal["ok", "reword", "conflict"]
     rules: list[str]
+    override: GuideOverride | None = None
+
+    @model_validator(mode="after")
+    def _check(self) -> GuideVerdict:
+        if self.override is not None and self.verdict != "conflict":
+            raise ValueError("a guide override is only for a `conflict` verdict")
+        return self
+
+    @property
+    def supports_adopt(self) -> bool:
+        """`ok`, or a `conflict` the owner overrode."""
+        return self.verdict == "ok" or self.override is not None
 
 
 Stance = Literal["avoid", "reword"]
@@ -456,15 +483,44 @@ class ChangeInfo(StrictModel):
 # --- report file (stages-design §Report file) ----------------------------------
 
 
-class CriticVerdict(StrictModel):
+class LastCritic(StrictModel):
+    """The critic round an acceptance followed; `fail` is a request for
+    changes (REVISE)."""
+
     by: str
     date: str
-    verdict: Literal["pass", "fail"]
+    verdict: Literal["fail"]
+
+    @model_validator(mode="after")
+    def _check(self) -> LastCritic:
+        _require_iso(self.date, "last critic")
+        return self
+
+
+class CriticVerdict(StrictModel):
+    """`pass`: the critic passed it. `accepted`: after the critic's last round
+    failed, `by` accepted the fixes on `date` without a further critic pass;
+    `last_critic` records that round."""
+
+    by: str
+    date: str
+    verdict: Literal["pass", "fail", "accepted"]
+    last_critic: LastCritic | None = None
 
     @model_validator(mode="after")
     def _check(self) -> CriticVerdict:
         _require_iso(self.date, "critic")
+        if (self.verdict == "accepted") != (self.last_critic is not None):
+            raise ValueError(
+                "`last_critic` is set exactly when the verdict is accepted"
+            )
+        if self.last_critic is not None and self.last_critic.date > self.date:
+            raise ValueError("an acceptance cannot predate the critic round it follows")
         return self
+
+    @property
+    def clears_seal(self) -> bool:
+        return self.verdict in {"pass", "accepted"}
 
 
 class MappingLine(StrictModel):
@@ -583,9 +639,10 @@ class Report(StrictModel):
     skills: dict[str, ReportSkill]
 
     @property
-    def passed_by_critics(self) -> bool:
+    def critics_cleared(self) -> bool:
+        """Both critic fields are `pass` or `accepted`: ready to seal."""
         return all(
-            c is not None and c.verdict == "pass"
+            c is not None and c.clears_seal
             for c in (self.analysis_critic, self.comparison_critic)
         )
 

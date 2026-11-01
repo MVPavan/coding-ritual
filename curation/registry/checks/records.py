@@ -6,7 +6,12 @@ from pathlib import Path
 from typing import Any
 
 from curation.registry.config import RegistryConfig, _rel
-from curation.registry.ledger import effective_by_subject, resolve_skill
+from curation.registry.ledger import (
+    _trait_base,
+    effective_by_subject,
+    is_pending_adopt,
+    resolve_skill,
+)
 from curation.registry.loaders import record_paths
 from curation.registry.models import Event, Frontmatter, SkillEntry
 from curation.registry.views.records import (
@@ -85,9 +90,15 @@ def _check_effective_targets(
     """Every live adoption carries a source and a target that resolves today.
     A target is resolved through our rename/merge lifecycle (§3); a target that
     was retired is "adopted, no longer provided", not an error. An unresolved,
-    still-active target is an error."""
+    still-active target is an error. A pending trait adopt may name a skill
+    its delivering build will create, and so may its skill's checkpoint (§5b);
+    a delivered adopt needs the skill to exist."""
     existing = records | aliases | STUB_SKILLS
     effective = effective_by_subject(events)
+    planned: dict[str, set[str]] = {}
+    for event in effective.values():
+        if is_pending_adopt(event) and event.skill and ":" not in event.skill:
+            planned.setdefault(_trait_base(event.subject), set()).add(event.skill)
     errors: list[str] = []
     for subject, event in effective.items():
         if event.kind not in {"adopt", "adopt-merged"}:
@@ -102,6 +113,10 @@ def _check_effective_targets(
         if resolved in retired:
             continue
         if _target_exists(resolved, existing, ours, cfg):
+            continue
+        if target in planned.get(_trait_base(subject), set()) and (
+            is_pending_adopt(event) or "#" not in subject
+        ):
             continue
         errors.append(
             f"{event.id}: live adoption of {subject} has an invalid "

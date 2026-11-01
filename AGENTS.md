@@ -25,8 +25,9 @@ Deliver correct work with the smallest necessary change, done right the first ti
 - Verify changing tool/provider facts and unfamiliar APIs against official docs
   or implementation. Surface conflicts with recorded architectural decisions.
 - Handoffs retain scope, decisions, source references, verification, and unresolved
-  work. Record verified, likely-to-recur patterns in `.repo-context/learnings.md`;
-  write other persistent memory only when requested.
+  work. A verified, likely-to-recur lesson that code can decide becomes a check
+  (lint, flag, runtime check or script); record others in `.repo-context/learnings.md`.
+  Write other persistent memory only when requested.
 
 ## Implementation and effort
 
@@ -39,8 +40,12 @@ Deliver correct work with the smallest necessary change, done right the first ti
   explicit workflows and budgets; use configured models and reasoning effort.
 - Batch independent operations; serialize dependent work and overlapping writes.
   Change approach when repeated attempts produce no new evidence.
-- Delegate bounded independent work when it materially improves speed, context
-  use, or review quality within budget and runtime limits; keep small work local.
+- Use existing deterministic tools and checks where they suffice. Build a
+  rerunnable tool when it materially reduces repeated work or supplies proof a
+  reviewer needs, and keep its output. When one deterministic pass can process
+  every unit, run a script rather than fanning the units out to delegates.
+- Inside a delegated task, delegate further only when your brief allows it; at
+  top level, `mvp-mode` sets when to delegate. Keep small work local.
 - Give workers an outcome, owned paths, constraints, acceptance checks, and
   relevant context pointers. Require preservation of others' edits.
 - Avoid duplicating delegated work. Collect every result; the coordinator owns
@@ -51,8 +56,9 @@ Deliver correct work with the smallest necessary change, done right the first ti
 - Run applicable checks from `.repo-context/verification.md`. Add tests according
   to behavioral risk, using existing tooling; bug checks must detect the original
   failure. Repeat or broaden checks only for changes, failures, or unresolved risk.
-- Inspect the final diff and Git status. Report outcomes, actual checks, and
-  limitations; distinguish pre-existing failures from regressions.
+- Verify results by observing the real artifact, never a proxy, a cached view,
+  or a self-report. Inspect the final diff and Git status. Report outcomes,
+  actual checks, and limitations; distinguish pre-existing failures from regressions.
 
 ## Safety
 

@@ -12,6 +12,8 @@ status: active
 
 Use when settled work needs a durable implementation plan, dependency graph, or workstream decomposition. Skip planning ceremonies for clear bounded tasks.
 
+**Boundary:** Writes a durable implementation plan, dependency graph or workstream decomposition for settled work; what to remove before adding is principle-subtract-before-you-add, and migrating without shims is principle-migrate-without-shims.
+
 <!-- registry:generated traits -->
 - `route-by-scale`: Route between brainstorming, a brief local sequence, elaborate, decompose, or executing from a roadmap row according to the work's scale.
 - `decompose-phases`: Split an approved spec into demoable phases with checkable exits and flat stages that each carry acceptance.

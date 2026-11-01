@@ -10,7 +10,7 @@ steps:
     calls: [{to: "skill:systematic-debugging"}]
   - id: bug-fix#3
     when: the cause is confirmed
-    actions: [{trait: existing-check-as-proof}, {trait: report-missing-proof}]   # new; the first when step 1's failing check already fails for the reported reason, the second only when no regression check is feasible
+    actions: [{trait: existing-check-as-proof}, {trait: report-missing-proof}, {trait: scoped-instance-fix}]   # new; the first when step 1's failing check already fails for the reported reason, the second only when no regression check is feasible, the third always
     calls: [{to: "skill:test-driven-development", when: step 1's failing check does not already fail for the reported reason and a durable regression check is feasible}]
     loads: [{path: bug-fix/timing-flakes.md, when: the cause is a timing flake}]
   - id: bug-fix#4
@@ -25,7 +25,7 @@ steps:
     loads: [{path: bug-fix/hardening.md}]
   - id: bug-fix#7
     when: every exit
-    actions: [{trait: closeout}, {trait: preserve-reproducers}]
+    actions: [{trait: closeout}, {trait: preserve-reproducers}, {trait: always-on-signal}]   # the last only when finding the cause took a deep investigation
 ---
 
 # Bug fix
@@ -55,7 +55,8 @@ not a fix.
    running the cycle by hand: the check fails for the reported reason before
    the fix and passes after it. Otherwise fix the confirmed cause and report
    the missing proof. For a timing flake, read `bug-fix/timing-flakes.md`
-   first.
+   first. Search for other instances of the confirmed fault: fix those
+   inside the task's scope and report the rest.
 4. **Rerun.** Run the original scenario as reported, not only the minimised
    reproduction, and the repository checks the change touches. An
    inconclusive rerun is not a pass: report it as inconclusive. When the
@@ -70,7 +71,9 @@ not a fix.
 7. **Close out**, on every exit, fixed or not. Remove the temporary
    instrumentation added (search its tag), keep reproducers and user
    artifacts, and record the cause or the status reached, the proving check
-   if there is one, and the remaining limits.
+   if there is one, and the remaining limits. When finding the cause took a
+   deep investigation, propose the cheap always-on signal that would have
+   shown it at first look; do not add it.
 
 ## Reply
 

@@ -17,7 +17,7 @@ workflows as steps.
 
 ## Model-invocable skills
 
-`authoring-for-agents`, `beads`, `brainstorming`, `codebase-design`, `delegation`, `design-evolve`, `domain-modeling`, `execution`, `grilling`, `harness-evaluate`, `harness-skill-compare`, `html-artifact`, `model-council`, `mvp-mode`, `performance-optimization`, `perspective-council`, `planning`, `prototype`, `research`, `resolving-merge-conflicts`, `review`, `security`, `systematic-debugging`, `test-driven-development`
+`authoring-for-agents`, `beads`, `brainstorming`, `build-a-lever`, `codebase-design`, `delegation`, `design-evolve`, `domain-modeling`, `execution`, `grilling`, `harness-evaluate`, `harness-skill-compare`, `html-artifact`, `model-council`, `mvp-mode`, `performance-optimization`, `perspective-council`, `planning`, `prototype`, `research`, `resolving-merge-conflicts`, `review`, `security`, `systematic-debugging`, `test-driven-development`
 
 ## Slash-only workflows
 
@@ -37,6 +37,20 @@ workflows as steps.
 | `/improve-codebase-architecture` | Find evidence-backed architecture improvements within a named area or requested codebase survey. |
 | `/migrate-claude-to-codex` | Adapt Claude harness assets for Codex while preserving shared AGENTS.md policy and canonical skills. |
 | `/phase-execution` | Execute one phase of a workstream roadmap. |
+| `/principle-attack-the-premise` | Apply when two or more fixes resting on one belief have failed the same gate (a test, a review, an eval). |
+| `/principle-boundary-discipline` | Apply when wiring validation, error handling or a framework adapter. |
+| `/principle-experience-first` | Apply when weighing a product, UX or feature-scope tradeoff. |
+| `/principle-explain-the-number` | Apply when about to measure, or before trusting, reporting or acting on a measured number (performance or eval). |
+| `/principle-make-operations-idempotent` | Apply when designing a command, lifecycle step or loop that may crash, restart or retry. |
+| `/principle-migrate-without-shims` | Apply when replacing an internal API that no external user depends on, as part of a simplification in a project that can absorb a coordinated break; or when running a planned rewrite or migration with declared phase boundaries. |
+| `/principle-minimize-reader-load` | Apply when reviewing or shaping code that is hard to trace. |
+| `/principle-model-the-domain` | Apply when writing stateful logic, a growing if/else chain, or a shape assumption repeated across files. |
+| `/principle-redesign-from-first-principles` | Apply when integrating a new requirement into an existing design. |
+| `/principle-separate-before-serializing-shared-state` | Apply when concurrent actors (processes, agents, workers) in code or tooling you are designing might write the same file, branch, key or object. |
+| `/principle-sequence-verifiable-units` | Apply when doing multi-step work (a sweep, a migration, a run of similar edits) or stacking commits. |
+| `/principle-subtract-before-you-add` | Apply when sequencing an addition, refactor or rewrite. |
+| `/principle-test-behavior-not-implementation` | Apply when writing, changing or keeping any test. |
+| `/principle-type-system-discipline` | Apply when designing types or a function signature in a typed language. |
 | `/receiving-code-review` | Use when explicitly invoking the legacy receiving-code-review entrypoint; incoming feedback is owned by review. |
 | `/run-phases` | Run every remaining phase of a workstream unattended. |
 | `/show-me` | Show the current topic visually, inline in the conversation. |

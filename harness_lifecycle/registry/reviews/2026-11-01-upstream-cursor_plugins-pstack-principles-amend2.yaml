@@ -1,0 +1,125 @@
+harness: cursor_plugins
+from_sha: null
+to_sha: 4dd1d05
+supersedes:
+- harness_lifecycle/registry/reviews/2026-11-01-upstream-cursor_plugins-pstack-principles-amend.yaml
+analysis_critic:
+  by: implementer under owner ruling 2026-11-01 (BRIEF-1b-r15; no separate critic round)
+  date: '2026-11-01'
+  verdict: pass
+comparison_critic:
+  by: implementer under owner ruling 2026-11-01 (BRIEF-1b-r15; no separate critic round)
+  date: '2026-11-01'
+  verdict: pass
+themes: 'Amends the sealed report `2026-11-01-upstream-cursor_plugins-pstack-principles-amend.yaml`
+
+  for one row, `guard-the-context-window#bulk-to-subagents`. Its other row
+
+  (`fix-root-causes#owning-layer-fix`, a recording correction) stands as ruled
+
+  there.
+
+
+  ## R15. Where the delegation default lives (owner ruling 2026-11-01)
+
+
+  The owner''s choice: the delegation default must not be in `AGENTS.md`, because
+
+  subagents load `AGENTS.md` too and would delegate onward by default. It lives
+
+  in the `mvp-mode` router, scoped to the top-level agent, and ships with the
+
+  plugin; rule R2 is amended to allow a router rule that differs between the
+
+  top-level agent and a delegate. The previous row''s `rewording` also inverted
+
+  the ruling: "work locally on small tasks and wherever delegation has no clear
+
+  advantage" makes local work the default; the ruling needs a clear advantage
+
+  for local work.
+
+
+  The trait `delegate-by-default` now opens "At top level," so the router line
+
+  matches it whole (T5). The row compares with `mvp-mode`, which lists it: the
+
+  fact is `variant` via `delegate-by-default`, delivered at
+
+  `.claude/skills/mvp-mode/SKILL.md:35-39`. `AGENTS.md` now defers to the
+
+  router for when to delegate and keeps only the delegate''s rule (delegate
+
+  further only when the brief allows it); its conditional `delegation-threshold`
+
+  line is gone.
+
+
+  Guide check: `ok`. U-07 asks to say when delegation improves the result; the
+
+  line says when local work is better instead, which bounds the same decision.
+
+  C-14 keeps small tasks and verification local: the line keeps verification,
+
+  coordination and integration with the top-level agent and names small work (a
+
+  handful of tool calls, a known lookup) as local. C-14''s "delegate only
+
+  sizeable tasks" is narrower than "delegate by default" for mid-sized work;
+
+  that residual difference is the owner''s stated choice, not a guide conflict.
+
+  '
+skills:
+  skill:pstack/skills/principle-guard-the-context-window:
+    upstream_tree_hash: d0b6808ab070ab9d020c718687d3f96324833144537d1e635762c90861fe8821
+    accepted: 4dd1d05
+    compared_with: mvp-mode
+    pairing:
+      overlap:
+        mvp-mode: 1
+      placement_match:
+      - beads
+      suggested: mvp-mode
+      purpose_match: mvp-mode
+      purpose: Upstream routes bulk reading to subagents, keeps summaries in the main thread
+        and caps phase scope. Ours makes delegation the top-level default in the mvp-mode
+        router and keeps logs behind references (AGENTS.md).
+      flag: null
+      reason: null
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      bulk-to-subagents:
+        scope: reconsider
+        change: []
+        fact: variant
+        provider: mvp-mode
+        candidates:
+        - delegate-by-default
+        via: delegate-by-default
+        also_in: {}
+        ours:
+        - .claude/skills/mvp-mode/SKILL.md:35-39
+        - AGENTS.md:47-48
+        recommendation: adopt
+        delivery: delivered
+        target: mvp-mode
+        modification: 'Stronger than upstream: at top level, most work, not only bulk reading
+          and large outputs, goes to subagents; the main context keeps coordination, integration
+          and verification, and local work needs a clear advantage. Scoped to the top-level
+          agent: a delegate delegates further only when its brief allows it.'
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-07
+          - C-14
+        reason: 'Lands in the mvp-mode router, into `delegate-by-default`. Owner ruling 2026-11-01
+          on R15: delegation is the top-level default for most work, and it stays out of AGENTS.md
+          because subagents load it too. Delivered at mvp-mode SKILL.md:35-39; AGENTS.md:47-48
+          now defers to the router. Guide: U-07 and C-14 keep small tasks and verification
+          local, which the line does.'

@@ -19,6 +19,9 @@ fact the agent cannot infer reliably. Remove generic advice that adds no behavio
 | Substantial material used by one branch | Conditional reference |
 | Deterministic enforcement | Existing hook, check, or script where authorized |
 
+Once a check enforces a rule, replace any instruction that restated the rule
+with a pointer to the check.
+
 Search for an existing owner before adding another. Keep shared semantics
 provider-neutral; runtime configuration owns models, effort, permissions and
 integration mechanics. Preserve scope restrictions on which files may change.
@@ -47,4 +50,7 @@ trials to behavioral risk; methods are in `references/testing-docs.md`.
 Structural checks establish packaging, not model behavior. Report unavailable
 behavioral checks as a limit; do not manufacture evidence or bypass runtime
 restrictions to run them. Revise the smallest instruction implicated by a failed
-case, then recheck that case and its affected neighbors.
+case, then recheck that case and its affected neighbors. When a lesson recurs
+but needs judgement, so no check can decide it, revise the instruction it
+implicates and add one example of the failure; do not repeat or emphasise the
+rule.

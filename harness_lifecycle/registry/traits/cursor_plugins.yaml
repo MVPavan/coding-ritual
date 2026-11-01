@@ -1,0 +1,244 @@
+# cursor_plugins skills: analyses keyed by sha, with accepted/proposed pointers.
+# Rules: harness_lifecycle/registry/README.md §4a;
+# docs/workstreams/skill-curation/stages-design.md §Entries.
+
+"cursor_plugins:skill:pstack/skills/principle-attack-the-premise":
+  accepted: "4dd1d05"
+  proposed: null
+  analyses:
+    "4dd1d05":
+      tree_hash: "2c67da15c02e7ffaf356cea6ca1c1cd686bfbdd112bf7074f1abe2aefad4b3a6"
+      placement: {domain: engineering, stage: Building, substage: Diagnosis}
+      traits: [premise-test-gate, owning-layer-fix]
+      added: {}
+      changed: {}
+"cursor_plugins:skill:pstack/skills/principle-boundary-discipline":
+  accepted: "4dd1d05"
+  proposed: null
+  analyses:
+    "4dd1d05":
+      tree_hash: "789a6c2f7d6b938f0830e8292073cb974f5bc7009f253e2c589a0d039a87b090"
+      placement: {domain: engineering, stage: Design, substage: Architecture}
+      traits: [boundary-validation, trust-internal-types, domain-not-wire-types, policy-at-edge, parse-at-boundary, pure-core-thin-shell]
+      added: {}
+      changed: {}
+"cursor_plugins:skill:pstack/skills/principle-build-the-lever":
+  accepted: "4dd1d05"
+  proposed: null
+  analyses:
+    "4dd1d05":
+      tree_hash: "b421b8a71bd87599bf5946031c10923ef301a99206bd52be83e50ad81e315fe6"
+      placement: {domain: core, stage: Building, substage: Implementation}
+      traits: [tool-over-hand-work, hand-first-recipe, rerun-safe-tool, script-over-fanout, shared-delegate-contract, outliving-tool-commit, minimal-tool]
+      added: {}
+      changed: {}
+"cursor_plugins:skill:pstack/skills/principle-encode-lessons-in-structure":
+  accepted: "4dd1d05"
+  proposed: null
+  analyses:
+    "4dd1d05":
+      tree_hash: "164c25e039539bc5cc04f109f3596d723e40c68f9745cd35129b34d4fe3e706e"
+      placement: {domain: core, stage: Improvement, substage: Codification}
+      traits: [recurring-lesson-to-check, judgement-lesson-example, structural-fix-only]
+      added: {}
+      changed: {}
+"cursor_plugins:skill:pstack/skills/principle-exhaust-the-design-space":
+  accepted: "4dd1d05"
+  proposed: null
+  analyses:
+    "4dd1d05":
+      tree_hash: "223970dbf26021ca33726e793017dbbeac919edfbd6873d5e9d5eff2babb9bec"
+      placement: {domain: engineering, stage: Design, substage: Architecture}
+      traits: [competing-prototypes]
+      added: {}
+      changed: {}
+"cursor_plugins:skill:pstack/skills/principle-experience-first":
+  accepted: "4dd1d05"
+  proposed: null
+  analyses:
+    "4dd1d05":
+      tree_hash: "7e4608c81af0efa3aaa472ae90d6bb790db47d4678419f0fdda75f81f451a520"
+      placement: {domain: engineering, stage: Design, substage: Specification}
+      traits: [experience-over-convenience, justified-surface, polish-over-breadth, throwaway-design-first, detail-finish, consumer-as-user]
+      added: {}
+      changed: {}
+"cursor_plugins:skill:pstack/skills/principle-explain-the-number":
+  accepted: "4dd1d05"
+  proposed: null
+  analyses:
+    "4dd1d05":
+      tree_hash: "0d7e9b2b6958d7ff5c229bea9915d47271607ede5171a062964d56c30b017975"
+      placement: {domain: engineering, stage: Building, substage: Diagnosis}
+      traits: [decision-before-measurement, noise-inconclusive, named-limiter, confound-elimination, evidence-with-number, eval-result-scrutiny]
+      added: {}
+      changed: {}
+"cursor_plugins:skill:pstack/skills/principle-fix-root-causes":
+  accepted: "4dd1d05"
+  proposed: null
+  analyses:
+    "4dd1d05":
+      tree_hash: "e7a1fcb2a1050ad9bd3f29150448c64d4ab44ba497b3c4aeb62754a08dbab19a"
+      placement: {domain: engineering, stage: Building, substage: Diagnosis}
+      traits: [owning-layer-fix, reproduction-first, why-chain, observe-not-guess, legitimate-state-test, persisted-state-suspect, fix-every-instance, workaround-comment-smell, always-on-signal]
+      added: {}
+      changed: {}
+"cursor_plugins:skill:pstack/skills/principle-foundational-thinking":
+  accepted: "4dd1d05"
+  proposed: null
+  analyses:
+    "4dd1d05":
+      tree_hash: "08efbf612b342bcd3ec27d543cec08bb79604f771befb6456da2eaff013da4f6"
+      placement: {domain: engineering, stage: Design, substage: Architecture}
+      traits: [data-shape-first, structural-dry, behaviour-and-edge-case-tests, concurrent-modification-test, scaffold-first, test-before-fix, small-single-purpose-commits, coherent-increment, subtraction-first]
+      added: {}
+      changed: {}
+"cursor_plugins:skill:pstack/skills/principle-guard-the-context-window":
+  accepted: "4dd1d05"
+  proposed: null
+  analyses:
+    "4dd1d05":
+      tree_hash: "d0b6808ab070ab9d020c718687d3f96324833144537d1e635762c90861fe8821"
+      placement: {domain: core, stage: X, substage: Continuity}
+      traits: [bulk-to-subagents, phase-scope-caps]
+      added: {}
+      changed: {}
+"cursor_plugins:skill:pstack/skills/principle-laziness-protocol":
+  accepted: "4dd1d05"
+  proposed: null
+  analyses:
+    "4dd1d05":
+      tree_hash: "23fb5314b8b2bfb6c2b783892e791aca6c59c69313b714eecc11704e4a2d38cb"
+      placement: {domain: engineering, stage: Building, substage: Implementation}
+      traits: [deletion-bias, single-source-of-truth, smallest-sufficient-change]
+      added: {}
+      changed: {}
+"cursor_plugins:skill:pstack/skills/principle-make-operations-idempotent":
+  accepted: "4dd1d05"
+  proposed: null
+  analyses:
+    "4dd1d05":
+      tree_hash: "385a661c7b3962ff7e03a14ef16d8bd9a64dbea9f349c8368d31612e13681588"
+      placement: {domain: engineering, stage: Design, substage: Architecture}
+      traits: [convergent-operations, reconcile-from-state, judgeable-leftovers, interruption-point-audit]
+      added: {}
+      changed: {}
+"cursor_plugins:skill:pstack/skills/principle-migrate-callers-then-delete-legacy-apis":
+  accepted: "4dd1d05"
+  proposed: null
+  analyses:
+    "4dd1d05":
+      tree_hash: "23afe0ad1c7daa04d8dd306be2f132809dfb18fa7b783d85f749fe83b71d8784"
+      placement: {domain: engineering, stage: Design, substage: Decomposition}
+      traits: [same-wave-legacy-removal, implementation-test-deletion]
+      added: {}
+      changed: {}
+"cursor_plugins:skill:pstack/skills/principle-minimize-reader-load":
+  accepted: "4dd1d05"
+  proposed: null
+  analyses:
+    "4dd1d05":
+      tree_hash: "7f622bdbafaf5392e288194b8807e6a2f85c6efc562d47af4dc5407c4030c8b8"
+      placement: {domain: engineering, stage: Design, substage: Architecture}
+      traits: [reader-load-axes, collapse-thin-layers, deletion-test, depth-as-leverage, return-not-mutate, narrowest-state-scope, derive-over-sync, invariant-at-boundary, reader-load-net-test, thirty-second-trace-test]
+      added: {}
+      changed: {}
+"cursor_plugins:skill:pstack/skills/principle-model-the-domain":
+  accepted: "4dd1d05"
+  proposed: null
+  analyses:
+    "4dd1d05":
+      tree_hash: "0bf32b6131c5556d680cd6744fe7a30ed2cf0c3308eabe61aed2351bae8f9284"
+      placement: {domain: engineering, stage: Design, substage: Architecture}
+      traits: [structure-over-conditionals, knowledge-not-phase-modules, no-forced-abstraction]
+      added: {}
+      changed: {}
+"cursor_plugins:skill:pstack/skills/principle-never-block-on-the-human":
+  accepted: "4dd1d05"
+  proposed: null
+  analyses:
+    "4dd1d05":
+      tree_hash: "ab707816f6a0d48148bff1d7e27c56d76b23ef77fe642c094fbb7812e00474d7"
+      placement: {domain: core, stage: X, substage: Coordination}
+      traits: [reversible-work-proceeds, noticed-problem-followup, irreversible-only-confirmation]
+      added: {}
+      changed: {}
+"cursor_plugins:skill:pstack/skills/principle-outcome-oriented-execution":
+  accepted: "4dd1d05"
+  proposed: null
+  analyses:
+    "4dd1d05":
+      tree_hash: "684e3f3887348aed42daa9e51cee47009c84187569c55f3365d16cfef070ff24"
+      placement: {domain: engineering, stage: Design, substage: Decomposition}
+      traits: [declared-breakage-window, touched-area-checks, full-verification-at-completion]
+      added: {}
+      changed: {}
+"cursor_plugins:skill:pstack/skills/principle-prove-it-works":
+  accepted: "4dd1d05"
+  proposed: null
+  analyses:
+    "4dd1d05":
+      tree_hash: "0429fc6fad74a95d594fc21ac8d859a571705ba51303c05880d9bd0eafb44adb"
+      placement: {domain: core, stage: Verification, substage: Validation}
+      traits: [direct-observation, suspect-the-observation, scripted-proof, audit-trail-proof-commit]
+      added: {}
+      changed: {}
+"cursor_plugins:skill:pstack/skills/principle-redesign-from-first-principles":
+  accepted: "4dd1d05"
+  proposed: null
+  analyses:
+    "4dd1d05":
+      tree_hash: "c6b2348402c9c1a4d3b43ab695ad8dbb6a92b19e02e08f6395146ab9b1b61ce9"
+      placement: {domain: engineering, stage: Design, substage: Architecture}
+      traits: [foundational-requirement-redesign, full-propagation, whole-design-incremental-delivery]
+      added: {}
+      changed: {}
+"cursor_plugins:skill:pstack/skills/principle-separate-before-serializing-shared-state":
+  accepted: "4dd1d05"
+  proposed: null
+  analyses:
+    "4dd1d05":
+      tree_hash: "249a412c63e343c56887d582a68024a19da5531d6381f062c16c6d90230d73c3"
+      placement: {domain: engineering, stage: Design, substage: Architecture}
+      traits: [eliminate-shared-writes, structural-serialization]
+      added: {}
+      changed: {}
+"cursor_plugins:skill:pstack/skills/principle-sequence-verifiable-units":
+  accepted: "4dd1d05"
+  proposed: null
+  analyses:
+    "4dd1d05":
+      tree_hash: "f23438862b79a8651b8c5bbfec631ce7d4263ef729a7885fa8a93bd43374b638"
+      placement: {domain: engineering, stage: Building, substage: Implementation}
+      traits: [verified-unit-sequence, clean-baseline-first, argument-order-commits]
+      added: {}
+      changed: {}
+"cursor_plugins:skill:pstack/skills/principle-subtract-before-you-add":
+  accepted: "4dd1d05"
+  proposed: null
+  analyses:
+    "4dd1d05":
+      tree_hash: "97e61b7e5e8fa4aa1673b1d1d3a5508f5f36cc2f888866caf68992469569171e"
+      placement: {domain: engineering, stage: Design, substage: Decomposition}
+      traits: [subtraction-first, leave-it-simpler, cut-before-polish, present-requirement-only, decision-relevance-pruning, stub-deletion]
+      added: {}
+      changed: {}
+"cursor_plugins:skill:pstack/skills/principle-test-behavior-not-implementation":
+  accepted: "4dd1d05"
+  proposed: null
+  analyses:
+    "4dd1d05":
+      tree_hash: "51fef59c544f3ae961919dce0acc8790256e05fbf04fec8f4aa7a8e21d5fd81a"
+      placement: {domain: engineering, stage: Verification, substage: Testing}
+      traits: [meaningful-behaviour-assertion, two-edit-test-judgement, independent-expectation, hollow-test-forms, implementation-test-deletion, public-interface-testing, contract-exact-assertion, absence-positive-control]
+      added: {}
+      changed: {}
+"cursor_plugins:skill:pstack/skills/principle-type-system-discipline":
+  accepted: "4dd1d05"
+  proposed: null
+  analyses:
+    "4dd1d05":
+      tree_hash: "835538f784c0c5b1cb64b84489148b926c55934bdd92229a424df6d4069d7765"
+      placement: {domain: engineering, stage: Design, substage: Architecture}
+      traits: [unrepresentable-invalid-states, exhaustive-variant-handling, branded-primitives, parse-at-boundary, schema-derived-types]
+      added: {}
+      changed: {}

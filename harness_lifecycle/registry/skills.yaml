@@ -30,6 +30,15 @@ brainstorming:
   aliases: [idea-refine]
   status: active
   boundary: "Explores and compares options when scope or behaviour is open; an explicitly requested interview that challenges the owner's own plan is grilling."
+build-a-lever:
+  domain: core
+  stage: Building
+  substage: Implementation
+  secondary: []
+  family: null
+  aliases: []
+  status: active
+  boundary: "Builds and proves a rerunnable tool (script, codemod, generator or check) that does or proves real work; a throwaway experiment answering a design question is prototype, and test-first proof of a behaviour change is test-driven-development."
 check-invariants:
   domain: engineering
   stage: Verification
@@ -38,7 +47,7 @@ check-invariants:
   family: null
   aliases: []
   status: active
-  boundary: null
+  boundary: "Runs the project overlay's mechanically checkable invariants and reports pass or fail; judging what a test asserts is principle-test-behavior-not-implementation."
 codebase-design:
   domain: engineering
   stage: Design
@@ -227,7 +236,133 @@ planning:
   family: plan-authoring
   aliases: []
   status: active
-  boundary: null
+  boundary: "Writes a durable implementation plan, dependency graph or workstream decomposition for settled work; what to remove before adding is principle-subtract-before-you-add, and migrating without shims is principle-migrate-without-shims."
+principle-attack-the-premise:
+  domain: engineering
+  stage: Building
+  substage: Diagnosis
+  secondary: []
+  family: null
+  aliases: []
+  status: active
+  boundary: "A gate applied once fixes resting on one belief keep failing: name and test that belief; finding a failure's cause is systematic-debugging, and the fix loop is the bug-fix playbook."
+principle-boundary-discipline:
+  domain: engineering
+  stage: Design
+  substage: Architecture
+  secondary: []
+  family: null
+  aliases: []
+  status: active
+  boundary: "Where data is checked and trusted (boundary validation, parsing, internal trust, public types, pure core); interface shape and depth are codebase-design, and type-level rules are principle-type-system-discipline."
+principle-experience-first:
+  domain: engineering
+  stage: Design
+  substage: Specification
+  secondary: []
+  family: null
+  aliases: []
+  status: active
+  boundary: "Weighs product, UX and scope tradeoffs from the consumer's side; writing the spec is brainstorming, and comparing variants by feel is prototype."
+principle-explain-the-number:
+  domain: engineering
+  stage: Building
+  substage: Diagnosis
+  secondary: []
+  family: null
+  aliases: []
+  status: active
+  boundary: "Decides when a measured number counts as evidence; running the optimisation loop is performance-optimization."
+principle-make-operations-idempotent:
+  domain: engineering
+  stage: Design
+  substage: Architecture
+  secondary: []
+  family: null
+  aliases: []
+  status: active
+  boundary: "Makes state-changing operations safe to rerun and to stop partway; concurrent writers are principle-separate-before-serializing-shared-state."
+principle-migrate-without-shims:
+  domain: engineering
+  stage: Design
+  substage: Decomposition
+  secondary: []
+  family: null
+  aliases: []
+  status: active
+  boundary: "Replaces an internal API or runs a declared migration without compatibility layers; ordinary unit sequencing is principle-sequence-verifiable-units, and the plan itself is planning."
+principle-minimize-reader-load:
+  domain: engineering
+  stage: Design
+  substage: Architecture
+  secondary: []
+  family: null
+  aliases: []
+  status: active
+  boundary: "Judges code by the layers and state a reader must trace; module interface decisions are codebase-design."
+principle-model-the-domain:
+  domain: engineering
+  stage: Design
+  substage: Architecture
+  secondary: []
+  family: null
+  aliases: []
+  status: active
+  boundary: "Chooses data structures and module boundaries around domain knowledge before logic; domain terms and ADRs are domain-modeling, and interface depth is codebase-design."
+principle-redesign-from-first-principles:
+  domain: engineering
+  stage: Design
+  substage: Architecture
+  secondary: []
+  family: null
+  aliases: []
+  status: active
+  boundary: "Reworks an existing design around a new requirement as if it had been founding; revising design documents is design-evolve."
+principle-separate-before-serializing-shared-state:
+  domain: engineering
+  stage: Design
+  substage: Architecture
+  secondary: []
+  family: null
+  aliases: []
+  status: active
+  boundary: "Removes or structurally serializes shared writes in code and tooling being designed; how agent work is divided is delegation and AGENTS.md."
+principle-sequence-verifiable-units:
+  domain: engineering
+  stage: Building
+  substage: Implementation
+  secondary: []
+  family: null
+  aliases: []
+  status: active
+  boundary: "Orders multi-step work into checked units and commits; test-first proof of one change is test-driven-development, and a declared migration group is principle-migrate-without-shims."
+principle-subtract-before-you-add:
+  domain: engineering
+  stage: Design
+  substage: Decomposition
+  secondary: []
+  family: null
+  aliases: []
+  status: active
+  boundary: "Removes what the change touches before adding; decomposing work into a plan is planning."
+principle-test-behavior-not-implementation:
+  domain: engineering
+  stage: Verification
+  substage: Testing
+  secondary: []
+  family: null
+  aliases: []
+  status: active
+  boundary: "Judges what a test asserts and whether it earns its place; the test-first cycle is test-driven-development."
+principle-type-system-discipline:
+  domain: engineering
+  stage: Design
+  substage: Architecture
+  secondary: []
+  family: null
+  aliases: []
+  status: active
+  boundary: "Moves rules into the type checker in a typed language; where raw input becomes typed values is principle-boundary-discipline."
 prototype:
   domain: engineering
   stage: Design
@@ -317,7 +452,7 @@ test-driven-development:
   family: tdd
   aliases: []
   status: active
-  boundary: null
+  boundary: "Runs the test-first cycle for risky behaviour changes, regression proof and characterization; ordering multi-step work and commits into checked units is principle-sequence-verifiable-units."
 triage:
   domain: core
   stage: Intake

@@ -15,15 +15,26 @@ instrumentation. Fixing belongs to the caller, usually the bug-fix playbook.
    failing test or command; otherwise build the smallest useful reproduction.
    Candidate methods include a focused test, CLI fixture, captured trace or
    isolated scratch harness. Minimize only enough to distinguish live causes.
-   Confirm it shows the reported failure, not a nearby one. If fixes were
-   already tried, take their attempt log as evidence.
+   Confirm it shows the reported failure, not a nearby one. When a check
+   fails unexpectedly, test the way it observes (the check, its fixture, the
+   probe, the environment it reads) before concluding the system is wrong.
+   If fixes were already tried, take their attempt log as evidence.
 2. Form provisional hypotheses from code and evidence. Label them as hypotheses;
    choose a discriminating observation instead of generating a fixed count.
+   A failure that appears only after a restart points first at persisted
+   state: configuration files, caches, lock files, serialized state.
 3. Probe the suspected boundary or variable, update the explanation, then repeat
    only while new evidence is produced. Tag every temporary probe with one
    unique prefix so cleanup is a single search. For cross-layer tracing or
-   bisection, consult `references/localization.md`.
-4. Decide the status (below). A cause is confirmed by the reproduction or, when
+   bisection, consult `references/localization.md`. Keep asking why at each
+   link until the answer is a wrong decision in the code, not a consequence
+   of an earlier one.
+4. Before naming the place a symptom surfaced as the cause, decide whether
+   the state that triggered it is legitimate. If the system may be in that
+   state, the code that broke on it is the cause and handling the state there
+   is the fix; if not, a guard there would hide the fault, so trace the state
+   to what produced it.
+5. Decide the status (below). A cause is confirmed by the reproduction or, when
    none is obtainable, by independent evidence such as traces.
 
 For flakes or production-only failures, use `references/non-reproducible-bugs.md`;

@@ -290,6 +290,31 @@ def test_new_adopt_needs_guide_ok(
     _fails(cfg, capsys, f"{ROUND}:4: a new delivered adopt needs the row's guide")
 
 
+def test_owner_override_supports_a_conflict_adopt(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    # critic-1b-build finding 4: an adopt rests on a `conflict` row only with
+    # an owner override citing the ruling and its date.
+    override = {"ruling": "owner ruling R15", "date": "2026-11-01"}
+
+    def overridden(data: dict[str, Any]) -> None:
+        _judge_pending(data)
+        data["skills"][LOGICAL]["traits"]["seams"]["guide"] = {
+            "verdict": "conflict",
+            "rules": ["U-01"],
+            "override": override,
+        }
+
+    cfg = _cfg(tmp_path)
+    ledger.seal(cfg, "2026-10-14-r")
+    key = _seal(cfg, _draft(cfg), overridden)
+    first = _first_round(key)
+    _write_round(cfg, ROUND, *first[:2], *first[3:], trait_level=True)
+    assert _record(cfg, _new(_ev("x", "adopt", "seams", skill="tdd", report=key))) == 0
+    _point(cfg, SHA, None)
+    _ok(cfg, capsys)
+
+
 # --- Acceptance 8: completion, cancellation, reconsideration ----------------------------
 
 
@@ -536,6 +561,37 @@ def test_doc_agents_target(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -
     end = text.index("\n", text.index("traits: []", start)) + 1
     path.write_text(text[:start] + text[end:], encoding="utf-8")
     _fails(cfg, capsys, f"{ROUND}:5: 'doc:AGENTS.md' has no traits/ours.yaml entry")
+
+
+def test_pending_adopt_into_planned_skill(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """A pending adopt and its checkpoint may name a skill not yet built; a
+    delivered adopt may not."""
+
+    def judge(data: dict[str, Any]) -> None:
+        _judge_pending(data)
+        data["skills"][LOGICAL]["traits"]["novel"]["target"] = "planned"
+
+    cfg = _cfg(tmp_path)
+    ledger.seal(cfg, "2026-10-14-r")
+    key = _seal(cfg, _draft(cfg), judge)
+    events = _first_round(key)
+    events[0]["skill"] = "planned"
+    events[-1]["skill"] = "planned"
+    _write_round(cfg, ROUND, *events, trait_level=True, date="2026-10-20")
+    _point(cfg, SHA, None)
+    _ok(cfg, capsys)
+    done = _ev(
+        f"{ROUND}:8",
+        "adopt",
+        "novel",
+        skill="planned",
+        report=key,
+        supersedes=[f"{ROUND}:7"],
+    )
+    _write_round(cfg, ROUND, *events, done, trait_level=True, date="2026-10-20")
+    _fails(cfg, capsys, f"{ROUND}:8: live adoption of {SUBJECT}#novel has an invalid")
 
 
 # --- Acceptance 9: whole-skill mode ------------------------------------------------------------

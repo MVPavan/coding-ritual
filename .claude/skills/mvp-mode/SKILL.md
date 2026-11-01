@@ -32,8 +32,14 @@ only; `AGENTS.md` holds policy and wins if the two disagree.
   Manual (slash-only) skills are the user's to start: suggest them.
 - Read a playbook at `playbooks/<name>.md` in this folder, and a principle at
   `../principle-<name>/SKILL.md`.
+- At top level, delegate by default: hand independent work to a subagent and
+  keep your own context for coordination, integration and verification. Work
+  locally only when that has a clear advantage: a handful of tool calls, a
+  lookup whose target you know, or work that needs this conversation's context
+  or the exact text you will edit.
 - Inside a delegated task, route to skills and principles only and never start
-  a playbook: the parent runs it, and your brief is its step.
+  a playbook: the parent runs it, and your brief is its step; delegate further
+  only when your brief allows it.
 
 ## Running a playbook
 
@@ -53,7 +59,21 @@ One line per playbook: `` - `playbooks/<name>.md`: <the request it fits> ``.
 ## Principles
 
 One line per principle: `` - `principle-<name>`: <the situation it applies in> ``.
-None yet.
+
+- `principle-attack-the-premise`: two or more fixes resting on one belief have failed the same gate (test, review, eval).
+- `principle-boundary-discipline`: wiring validation, error handling or a framework adapter.
+- `principle-experience-first`: a product, UX or feature-scope tradeoff.
+- `principle-explain-the-number`: before measuring, or before trusting, reporting or acting on a measured number (performance or eval).
+- `principle-make-operations-idempotent`: designing a command, lifecycle step or loop that may crash, restart or retry.
+- `principle-migrate-without-shims`: replacing an internal API no external user depends on, as part of a simplification in a project that can absorb a coordinated break; or running a planned rewrite or migration with declared phase boundaries.
+- `principle-minimize-reader-load`: reviewing or shaping code that is hard to trace.
+- `principle-model-the-domain`: writing stateful logic, a growing if/else chain, or a shape assumption repeated across files.
+- `principle-redesign-from-first-principles`: integrating a new requirement into an existing design.
+- `principle-separate-before-serializing-shared-state`: concurrent actors (processes, agents, workers) in code or tooling being designed might write the same file, branch, key or object.
+- `principle-sequence-verifiable-units`: multi-step work (a sweep, a migration, a run of similar edits) or stacking commits.
+- `principle-subtract-before-you-add`: sequencing an addition, refactor or rewrite.
+- `principle-test-behavior-not-implementation`: writing, changing or keeping any test.
+- `principle-type-system-discipline`: designing types or a function signature in a typed language.
 
 ## Skills by situation
 
@@ -67,3 +87,5 @@ Only where a description alone would miss or collide.
 | Survey an area for architecture improvements | `/improve-codebase-architecture` |
 | Untriaged beads need decisions | `/triage`; routine tracking follows `AGENTS.md` |
 | A picture of the current topic, inline | `/show-me` when asked; an ordinary table needs nothing |
+| A rerunnable tool would materially cut repeated work (bulk or repeated edits, a migration) or supply proof a reviewer needs that no existing check gives | `build-a-lever` |
+| An interaction or architecture with no precedent in the codebase, or a product decision whose experience depends on feel | `prototype`, competing-variants branch |

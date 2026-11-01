@@ -1,6 +1,6 @@
 ---
 name: prototype
-description: Use when a runnable throwaway experiment can resolve a specific design, state-model, algorithm, or UI question.
+description: Use when a runnable throwaway experiment can resolve a specific design, state-model, algorithm, or UI question, or before committing to an interaction or architecture with no precedent in the codebase or a product decision that depends on feel.
 ---
 
 # Prototype
@@ -26,3 +26,11 @@ existing task or requested report. An inconclusive experiment is a valid result.
 Promoting the decision or code into production is separate work requiring its own
 scope and normal checks. Preserve the artifact when it supports the conclusion;
 committing, creating production routes and cleanup retain their authority gates.
+
+## Competing variants
+
+Conditional: when the decision is an interaction or architecture with no
+precedent in this codebase, or a product decision whose experience depends on
+feel (even where a precedent exists), build two or three competing runnable
+variants, UI or logic, and compare them side by side before committing to one.
+Record the comparison and the variant chosen with the outcome.

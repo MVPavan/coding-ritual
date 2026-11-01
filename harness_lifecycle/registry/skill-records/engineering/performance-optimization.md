@@ -37,9 +37,12 @@ Use for measured latency, throughput, memory or cost problems, profiling, or exp
   - modified: keep backend, query and database optimization, the profiling method, the disposal rule and the attempt ledger
   - dropped: Core Web Vitals thresholds and frontend load-time guidance
 - **agent-skills:skill:skills/performance-optimization** `skills/performance-optimization/SKILL.md` @ 7676817
+- **cursor_plugins:skill:pstack/skills/principle-explain-the-number#noise-inconclusive** `pstack/skills/principle-explain-the-number/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:038): Checkpoint at 4dd1d05 for the owner's trait rulings: 6 adopt.
+- `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:033): Lands as covered. Ours treats a result within noise as inconclusive.
 - `2026-10-31` **update** (2026-10-31-mvp-mode:008): Restates 2026-10-31-mvp-mode:005 with durable evidence (critic K2). Bug-fix pilot: a regression whose cause is the main question routes to the bug-fix playbook…
 - `2026-10-31` **update** (2026-10-31-mvp-mode:005) *(superseded)*: Bug-fix pilot: a regression whose cause is the main question routes to the bug-fix playbook (through mvp-mode at top level, to the parent from a delegated task…
 - `2026-08-14` **adopt** (2026-10-14-migration:129): Adopted 2026-08-14 per user ruling, superseding the 2026-07-15 deferral and modifying casebook round-002's drop-the-frontend trim: spine is generic systems-eng…
@@ -52,7 +55,8 @@ Use for measured latency, throughput, memory or cost problems, profiling, or exp
 <!-- /registry:generated reviews -->
 
 <!-- registry:generated sources -->
-No adopted traits recorded.
+- `noise-inconclusive`:
+  - `cursor_plugins:skill:pstack/skills/principle-explain-the-number#noise-inconclusive` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 <!-- /registry:generated sources -->
 
 <!-- registry:generated declined -->

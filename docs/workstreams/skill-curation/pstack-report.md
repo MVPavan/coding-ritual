@@ -87,10 +87,10 @@ does so as a logged deviation from B1 and R3 or is routed is open (15).
 Keep workflow graphs for unattended build loops, and link them to steps
 later through ADR 0003's named methods.
 
-**Open decisions** (§6): whether pstack's playbooks are ruled whole before
-the step build (7) and the router's hash (9). Ruled 2026-11-01: review order
-(8), pause commits (13), the UI boundary (14), and the root-only curation
-playbook, which stays unrouted as a logged deviation (15).
+**Decisions** (§6), all ruled 2026-11-01: pstack's playbooks are cataloged
+and ruled whole first (7), review order (8), the router's hash (9), pause
+commits (13), the UI boundary (14), and the root-only curation playbook,
+which stays unrouted as a logged deviation until phase 3 (15).
 
 ## 1. Structure at v0.15.36
 
@@ -1394,7 +1394,7 @@ as if settled and tested by use (E1).
    pstack's principle skills are still extracted blind into atomic traits.
 6. **Name. Settled: "step" and "playbook"** (the rules' definitions, §1 of
    `.repo-context/unit-kinds.md`).
-7. **Registry scope. Partly settled.** The step form is settled: local IDs,
+7. **Registry scope. Settled; the open half ruled 2026-11-01: yes.** The step form is settled: local IDs,
    no step vocabulary, a generated index, per-step change records (St1–St3).
    The order is settled: pilot four playbooks, measure, then decide whether
    every playbook is traited (St5). **Open:** whether pstack's playbooks are
@@ -1406,7 +1406,7 @@ as if settled and tested by use (E1).
    callee rulings (§5.2). **J: recommend (b)**, and rule the pilot's callees
    (how, why, architect, tdd, opening-a-pr) early, since rows 3, 6 and 7 of
    §5.3 wait on them.
-9. **Router skill hash. Open; its holder half superseded.** This applies to
+9. **Router skill hash. Ruled 2026-11-01: (a); its holder half superseded.** This applies to
    both routers, pstack's `poteto-mode` and our `mvp-mode`. Today a skill's
    hash covers its whole folder (`curation/scan/catalog.py:353-362`).
    Options:

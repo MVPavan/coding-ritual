@@ -140,8 +140,9 @@ def _event_errors(
 
 
 def _guide_errors(event: Event, key: str, row: ReportRow) -> list[str]:
-    """2.9, 3.4a: a new delivered adopt needs the row's verdict `ok`; a new
-    pending adopt needs a verdict and, unless `ok`, `rewording`."""
+    """2.9, 3.4a: a new delivered adopt needs the row's verdict `ok`, or a
+    `conflict` with an owner override; a new pending adopt needs a verdict and,
+    unless one of those, `rewording`."""
     if row.guide is None:
         return [f"{event.id}: row {key} has no `guide`; it supports no new adopt"]
     verdict = row.guide.verdict
@@ -153,14 +154,15 @@ def _guide_errors(event: Event, key: str, row: ReportRow) -> list[str]:
                     f"(pend it with `rewording`)"
                 )
             ]
-        if verdict != "ok":
+        if not row.guide.supports_adopt:
             return [
                 (
                     f"{event.id}: a new delivered adopt needs the row's guide "
-                    f"verdict `ok` ({key} has {verdict!r})"
+                    f"verdict `ok`, or `conflict` with an owner override "
+                    f"({key} has {verdict!r})"
                 )
             ]
-    elif verdict != "ok" and event.rewording is None:
+    elif not row.guide.supports_adopt and event.rewording is None:
         return [f"{event.id}: a pending adopt from a `{verdict}` row needs `rewording`"]
     return []
 

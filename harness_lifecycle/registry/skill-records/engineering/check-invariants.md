@@ -12,6 +12,8 @@ status: active
 
 Run mechanically checkable invariants from the project overlay and report pass or fail.
 
+**Boundary:** Runs the project overlay's mechanically checkable invariants and reports pass or fail; judging what a test asserts is principle-test-behavior-not-implementation.
+
 <!-- registry:generated traits -->
 - `read-overlay`: Read the project's declared invariants file and run each listed check against the current tree.
 - `explicit-commands-only`: Run only invariants that carry an explicit runnable command, leaving everything else unexecuted.

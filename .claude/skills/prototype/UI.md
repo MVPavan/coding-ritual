@@ -1,7 +1,8 @@
 # UI prototype
 
 Choose a single mockup when testing one interaction; build variants only when
-comparing alternatives is the question. Reuse project components and realistic
+comparing alternatives is the question, which includes the competing-variants
+branch in `SKILL.md`. Reuse project components and realistic
 content density. Keep production authentication, permissions and data handling
 intact.
 

@@ -95,9 +95,11 @@ material moves to references. [data: H1 holds via standalone use]
 - R1. Exactly one router, `mvp-mode`; `skill-router` retires into it.
   [ruling 2026-10-31]
 - R2. Routing lines, the kind definitions (R4) and the shared rules for
-  running a playbook (B2, B3, B5, B7, R8) only. If it disagrees with
-  `AGENTS.md`, `AGENTS.md` wins and the router is fixed. [ruling: option D,
-  index and shared rules]
+  running a playbook (B2, B3, B5, B7, R8), and the rules that differ between
+  the top-level agent and a delegate (R8, the delegation default) only. If it
+  disagrees with `AGENTS.md`, `AGENTS.md` wins and the router is fixed.
+  [ruling: option D, index and shared rules; amended by owner ruling
+  2026-11-01]
 - R3. Every unit is reachable from the router, in two layers:
   - **always loaded:** every playbook, every principle by its situation,
     and skills by situation where the description alone would miss or
@@ -280,7 +282,7 @@ material moves to references. [data: H1 holds via standalone use]
 |---|---|---|---|---|
 | 2026-10-31 | `mvp-mode` | R2 | It also holds the shared rules for running a playbook (B2, B3, B5, B7, R8): every playbook needs them and the router is their only always-loaded home | R2 amended: revision 1 omitted the shared rules that ruling D already put in the router; a drafting error, not a deviation |
 | 2026-10-31 | `skill-router` | R1 | Kept as a manual-only pointer to `mvp-mode`: the registry's lineage and history views match a skill's exact name and do not follow the recorded `merge` | Open: remove the pointer when the views follow merges |
-| 2026-11-01 | `harness_lifecycle/playbook.md` | B1, R3 | A playbook by behaviour, but root-only lifecycle method: moving it breaks about a dozen live references and sealed citations, and routing it from the shipped router leaks a root-only line into the plugin. AGENTS.md routes lifecycle work to it (owner ruling 2026-11-01, pstack report decision 15 (a)) | Open: a second root-only playbook for the same reason triggers a rule-change proposal (E4) |
+| 2026-11-01 | `harness_lifecycle/playbook.md` | B1, R3 | A playbook by behaviour, but root-only lifecycle method: moving it breaks about a dozen live references and sealed citations, and routing it from the shipped router leaks a root-only line into the plugin. AGENTS.md routes lifecycle work to it (owner ruling 2026-11-01, pstack report decision 15 (a)) | Open: in phase 3, move it to `mvp-mode/playbooks/` and list it in the router once the publish script drops root-only router lines (owner ruling 2026-11-01); a second root-only playbook before then triggers a rule-change proposal (E4) |
 | 2026-11-01 | `bug-fix` playbook, step 3 | B3 | The S8 rerun called `test-driven-development` in 1 of 3 fix runs; the other two ran the test-first cycle by hand and kept the red-before-green proof (owner ruling 2026-11-01) | Open: revisit when phase 2 merges the test-driven-development skills, and rerun the S8 F3 prompts then |
 
 ## 6. Conflicts with what exists, to settle as we go

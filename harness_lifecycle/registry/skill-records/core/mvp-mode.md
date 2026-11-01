@@ -22,6 +22,8 @@ Use at the start of every task to pick the playbook, principle or skill that fit
 - `layered-catalog`: Keep the always-loaded router to playbooks, principles and the skills whose descriptions would miss or collide, and load the generated full skill catalog only when unsure or asked what exists.
 - `platform-skill-invocation`: Invoke a routed skill through the platform's skill mechanism, not by reading its file, so it survives compaction and its invocation settings apply; read router-only units by path.
 - `no-playbook-in-delegate`: Inside a delegated task, route only to skills and principles and never start a playbook: the parent runs it, and the brief is its step.
+- `delegate-independent-by-default`: At top level, hand independent work to subagents and keep the main context for coordination, integration and verification; work locally only when that has a clear advantage.
+- `no-onward-delegation`: A delegated worker does not hand its work on to further agents unless its brief allows it.
 - `playbook-steps-as-todos`: Copy a playbook's steps into the todo list before any task-specific todos.
 - `recorded-step-skip`: Keep a playbook step that will not run in the todo list, marked with its reason, instead of dropping it.
 - `whole-callee`: Invoke each unit a playbook step calls whole, never skipping or overriding its core.
@@ -31,10 +33,16 @@ Use at the start of every task to pick the playbook, principle or skill that fit
 <!-- /registry:generated traits -->
 
 <!-- registry:generated lineage -->
-No adopted lineage recorded.
+- **cursor_plugins:skill:pstack/skills/principle-guard-the-context-window#bulk-to-subagents** `pstack/skills/principle-guard-the-context-window/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-01` **update** (2026-11-01-principles-fixes:009): R10 and R15 revised (owner rulings 2026-11-01, critic 1b-build findings 1 and 4): the build-a-lever situation row now routes a tool only when it cuts repeated …
+- `2026-11-01` **adopt** (2026-11-01-principles-fixes:007): Owner ruling R15 revised (2026-11-01, critic 1b-build finding 4): the router hands independent work to a subagent, a narrower mechanism, so it adopts into the …
+- `2026-11-01` **update** (2026-11-01-principles-fixes:002): Trait list corrected: the router already states no-onward-delegation beside delegate-by-default (a delegate delegates further only when its brief allows it), b…
+- `2026-11-01` **adopt-merged** (2026-11-01-cursor_plugins-pstack-principles:226): Checkpoint at 4dd1d05 after the owner's R15 placement ruling: 1 adopt (delivered into mvp-mode), 1 defer. Supersedes :138, whose skill was AGENTS.md.
+- `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:225) *(superseded)*: Owner ruling 2026-11-01 on R15: the delegation default lives in the mvp-mode router for the top-level agent only, not in AGENTS.md, which subagents also load. …
+- `2026-11-01` **update** (2026-11-01-cursor_plugins-pstack-principles:224): The principles build (cr-r2pa.1.2) changed the bug-fix playbook (doc:.claude/skills/mvp-mode/playbooks/bug-fix.md) to deliver two adoptions of this round, comp…
 - `2026-10-31` **update** (2026-10-31-mvp-mode:010): Restates 2026-10-31-mvp-mode:009 with its bead corrected to cr-r2pa.1.3, the pilot and S8 trial (cr-r2pa.1.4 is the registry support). The bug-fix playbook (do…
 - `2026-10-31` **update** (2026-10-31-mvp-mode:009) *(superseded)*: The bug-fix playbook (doc:.claude/skills/mvp-mode/playbooks/bug-fix.md) after the S8 baseline showed two gate gaps: every fix run took step 1's skip, a flaky f…
 - `2026-10-31` **add** (2026-10-31-mvp-mode:002): Owner 2026-10-31: mvp-mode is the one router (unit-kinds R1): model-invocable and kept on by one AGENTS.md line (R7); it lists every playbook and principle and…
@@ -46,7 +54,8 @@ None yet.
 <!-- /registry:generated reviews -->
 
 <!-- registry:generated sources -->
-No adopted traits recorded.
+- `delegate-independent-by-default`:
+  - `cursor_plugins:skill:pstack/skills/principle-guard-the-context-window#bulk-to-subagents` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 <!-- /registry:generated sources -->
 
 <!-- registry:generated declined -->

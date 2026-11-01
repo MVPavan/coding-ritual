@@ -10,11 +10,12 @@ from typing import Any
 
 import pytest
 import yaml
+from pydantic import ValidationError
 
 from curation.registry import cli, ledger, reports
 from curation.registry import traits as trait_facts
 from curation.registry.loaders import load_skills
-from curation.registry.models import Report
+from curation.registry.models import CriticVerdict, Report
 from tests.curation.test_registry import (
     _PLACEMENT,
     LOGICAL,
@@ -282,12 +283,40 @@ def test_pairing_flag_and_adopt_guide(
         "guide rule Z-99 is not in GUIDE.md",
         "seams: a reword verdict is an adopt, pending",
         "seams: a reword verdict needs `rewording`",
-        "novel: a conflict verdict is never an adopt",
+        "novel: a conflict verdict is an adopt only with an owner `override`",
         "novel: a delivered adopt needs fact present",
         "red-green: a present row cites `ours`",
     ):
         assert needle in errors
     assert not cfg.manifest_path.exists()  # nothing was sealed
+
+
+def test_seal_accepts_an_accepted_critic(tmp_path: Path) -> None:
+    # critic-1b-build finding 2: fixes accepted after a failed critic round
+    # seal, recording who accepted, when, and that round; nothing else does.
+    cfg = _cfg(tmp_path)
+    path = _draft(cfg)
+    last = {"by": "sol", "date": "2026-10-30", "verdict": "fail"}
+    accepted = {"by": "coordinator", "date": "2026-10-31", "verdict": "accepted"}
+
+    def accept(data: dict[str, Any]) -> None:
+        _judge(data)
+        data["analysis_critic"] = accepted | {"last_critic": last}
+
+    _edit(path, accept)
+    assert reports.seal(cfg, path) == []
+    assert cli.cmd_build(cfg, _ns()) == 0
+    assert (
+        "analysis critic: accepted (coordinator, 2026-10-31), after the critic's "
+        "last round: fail (sol, 2026-10-30)"
+    ) in path.with_suffix(".md").read_text(encoding="utf-8")
+    for bad in (
+        accepted,
+        accepted | {"last_critic": last | {"date": "2026-11-01"}},
+        {"by": "sol", "date": "2026-10-30", "verdict": "pass", "last_critic": last},
+    ):
+        with pytest.raises(ValidationError):
+            CriticVerdict.model_validate(bad)
 
 
 def test_seal_needs_evidence(tmp_path: Path) -> None:
@@ -333,7 +362,7 @@ def test_seal_immutability_and_current_row(
     _edit(path, _judge)
     _edit(path, lambda d: d["skills"][LOGICAL]["traits"].pop("novel"))
     assert cli.cmd_build(cfg, _ns()) == 0
-    _fails(cfg, capsys, "both critics passed but it is not sealed")
+    _fails(cfg, capsys, "both critics passed or accepted but it is not sealed")
     assert any(
         "in-scope trait novel (new) has no row" in e for e in reports.seal(cfg, path)
     )

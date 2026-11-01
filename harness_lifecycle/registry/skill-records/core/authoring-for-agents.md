@@ -36,6 +36,8 @@ Use when creating or changing agent instructions or their activation behavior. S
 - `verification`: Inspect the diff for lost contracts, scale fresh-context and pressure trials to behavioural risk, and report unavailable behavioural checks as a limit instead of manufacturing evidence.
 - `mechanical-vs-judgement`: Classify each finding as mechanical (a fixed syntactic pattern suiting a deterministic check) or judgement (cross-file consistency suiting a standards doc).
 - `extend-existing-docs-first`: Prefer extending existing pointed-to documents before writing new ones.
+- `check-pointer-not-restatement`: Once a check enforces a rule, replace the instruction that restated it with a pointer to the check.
+- `judgement-lesson-failure-example`: When a recurring lesson needs judgement and cannot be checked, revise the instruction it implicates and add one example of the failure, rather than repeating or emphasising the rule.
 <!-- /registry:generated traits -->
 
 <!-- registry:generated lineage -->
@@ -68,9 +70,16 @@ Use when creating or changing agent instructions or their activation behavior. S
 - **mattpocock_skills:skill:skills/productivity/writing-for-agents#empirical-instruction-default-check** `skills/productivity/writing-for-agents/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/engineering/retro#mechanical-vs-judgement** `skills/engineering/retro/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/engineering/retro#extend-existing-docs-first** `skills/engineering/retro/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **cursor_plugins:skill:pstack/skills/principle-encode-lessons-in-structure#judgement-lesson-example** `pstack/skills/principle-encode-lessons-in-structure/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/principle-encode-lessons-in-structure#structural-fix-only** `pstack/skills/principle-encode-lessons-in-structure/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:220): Completes pending 2026-11-01-cursor_plugins-pstack-principles:021: the principles build (cr-r2pa.1.2) delivered check-pointer-not-restatement in authoring-for-…
+- `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:219): Completes pending 2026-11-01-cursor_plugins-pstack-principles:020: the principles build (cr-r2pa.1.2) delivered judgement-lesson-failure-example in authoring-f…
+- `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:022): Checkpoint at 4dd1d05 for the owner's trait rulings: 3 adopt.
+- `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:021) *(superseded)*: Lands as a skill or playbook trait, into `check-pointer-not-restatement`. unit-kinds rule 2 already says prose only points to a check that decides the rule, bu…
+- `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:020) *(superseded)*: Lands as a skill or playbook trait, into `judgement-lesson-failure-example`. Ours prefers one effective instruction and revises the smallest instruction implic…
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:588): Owner 2026-10-30 approved the list fix: ours:authoring-for-agents now lists the trait.
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:587): Owner 2026-10-30 approved the list fix: ours:authoring-for-agents now lists the trait.
 - `2026-10-30` **adopt-merged** (2026-10-30-mattpocock_skills-5beb35b:586): Checkpoint at 5beb35b for the owner's trait rulings: 19 adopt, 8 defer.
@@ -115,6 +124,8 @@ None yet.
 <!-- registry:generated sources -->
 - `activation-boundary`:
   - `mattpocock_skills:skill:skills/productivity/writing-for-agents#model-facing-description` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `check-pointer-not-restatement`:
+  - `cursor_plugins:skill:pstack/skills/principle-encode-lessons-in-structure#structural-fix-only` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `completion-criteria-clarity`:
   - `mattpocock_skills:skill:skills/productivity/writing-for-agents#completion-criteria-clarity` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `context-pointers`:
@@ -127,6 +138,8 @@ None yet.
   - `mattpocock_skills:skill:skills/productivity/writing-for-agents#inline-vs-disclose` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `invocation-mode`:
   - `mattpocock_skills:skill:skills/productivity/writing-for-agents#invocation-mode` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `judgement-lesson-failure-example`:
+  - `cursor_plugins:skill:pstack/skills/principle-encode-lessons-in-structure#judgement-lesson-example` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `mechanical-vs-judgement`:
   - `mattpocock_skills:skill:skills/engineering/retro#mechanical-vs-judgement` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `no-op-deletion`:
