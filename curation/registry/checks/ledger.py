@@ -11,6 +11,8 @@ from curation.registry.ledger import (
     _round_of,
     _sha256,
     resolve_skill,
+    superseded_ids,
+    tracks_adoption,
 )
 from curation.registry.loaders import _round_files
 from curation.registry.models import Event, RoundHeader
@@ -144,12 +146,14 @@ def _check_carried_from(events: list[Event]) -> list[str]:
 
 
 def _check_withdraws(events: list[Event], forward: dict[str, str]) -> list[str]:
-    """An ours-side `update` withdraws only traits adopted into this skill (§5).
-    Reads raw events: an adoption superseded by an upstream reject is still a
-    live obligation and remains withdrawable (review r3)."""
+    """An ours-side `update` withdraws only traits adopted into this skill or
+    playbook (§5). A superseded `update` has no effect (§5b), so it is skipped.
+    Reads raw adoptions: one superseded by an upstream reject is still a live
+    obligation and remains withdrawable (review r3)."""
     errors: list[str] = []
+    dead = superseded_ids(events)
     for event in events:
-        if event.kind != "update" or not event.withdraws:
+        if event.kind != "update" or not event.withdraws or event.id in dead:
             continue
         skill = resolve_skill(event.skill or "", forward)
         for subject in event.withdraws:
@@ -157,7 +161,7 @@ def _check_withdraws(events: list[Event], forward: dict[str, str]) -> list[str]:
                 e.kind == "adopt"
                 and e.subject == subject
                 and e.skill
-                and ":" not in e.skill
+                and tracks_adoption(e.skill)
                 and resolve_skill(e.skill, forward) == skill
                 for e in events
             )

@@ -13,6 +13,7 @@ from curation.registry.vocab import (
     _TRAIT_ID_RE,
     ALL_SUBSTAGES,
     OURS_KINDS,
+    PLAYBOOK_KINDS,
     SUBSTAGES,
     TRAIT_DOMAINS,
     TRAIT_KINDS,
@@ -166,7 +167,8 @@ class Event(StrictModel):
     report: str | None = None  # repo-relative path of the cited report (3.2)
     retarget: str | None = None  # why the target is not the row's (3.2)
     rewording: str | None = None  # the wording change of a trait adopt (3.4a)
-    target_tree_hash: str | None = None  # target's hash when a rewording was pended
+    # the target's hash when a rewording was pended, or a playbook event's (§4b)
+    target_tree_hash: str | None = None
     guide: GuideVerdict | None = None  # a rewording completion's confirmation
     revisit_when: str | None = None  # when a defer is reconsidered (3.5)
     # --- trait policy (stages-design §Trait policy) ---
@@ -177,10 +179,14 @@ class Event(StrictModel):
     def _check(self) -> Event:
         _require_iso(self.date, f"event {self.id}")
         self._check_contextual_fields()
-        if self.kind in OURS_KINDS:
+        if self.subject.startswith("doc:"):
+            self._check_playbook_subject()
+        elif self.kind in OURS_KINDS:
             if not self.skill:
                 raise ValueError(f"{self.id}: {self.kind} needs a `skill` target")
-            if self.kind in {"merge", "rename"}:
+            if self.skill.startswith("doc:") and self.kind not in {"merge", "rename"}:
+                self._check_playbook_subject()
+            elif self.kind in {"merge", "rename"}:
                 # subject names the old skill; skill names the survivor/new name
                 if not self.subject.startswith("ours:"):
                     raise ValueError(
@@ -211,6 +217,23 @@ class Event(StrictModel):
         # `adopt-merged needs adaptation` is contextual (only outside trait-level
         # rounds, README §5); it is enforced in `check`, not here (review #4).
         return self
+
+    def _check_playbook_subject(self) -> None:
+        """A playbook is its own subject (§4b). Only the shape is checked here:
+        the playbooks folder is config, so `record` and `check` decide that the
+        path names a playbook."""
+        if self.kind not in PLAYBOOK_KINDS:
+            raise ValueError(
+                f"{self.id}: {self.kind} on a playbook subject: only "
+                f"{sorted(PLAYBOOK_KINDS)}; a playbook has no `retire` yet"
+            )
+        if self.subject != self.skill:
+            raise ValueError(
+                f"{self.id}: a playbook event's subject and skill are the same "
+                f"`doc:<path>`, got {self.subject!r} and {self.skill!r}"
+            )
+        if self.subject == "doc:" or "#" in self.subject:
+            raise ValueError(f"{self.id}: {self.subject!r} is not a playbook path")
 
     def _check_contextual_fields(self) -> None:
         """Trait-level fields only where §5 defines them (review r1 #11)."""
@@ -254,11 +277,13 @@ class Event(StrictModel):
             raise ValueError(f"{self.id}: `override` is only for a trait adopt")
         if self.policy_basis is not None and not trait:
             raise ValueError(f"{self.id}: `policy_basis` is only for trait events")
+        playbook = self.kind in PLAYBOOK_KINDS and self.subject.startswith("doc:")
         if self.target_tree_hash is not None and not (
-            adopt and self.pending and self.rewording
+            playbook or (adopt and self.pending and self.rewording)
         ):
             raise ValueError(
-                f"{self.id}: `target_tree_hash` is only for a pending rewording adopt"
+                f"{self.id}: `target_tree_hash` is only for a pending rewording adopt "
+                f"or a playbook `add`/`update`"
             )
         if self.guide is not None and not (adopt and self.pending is None):
             raise ValueError(f"{self.id}: `guide` is only for a delivered trait adopt")

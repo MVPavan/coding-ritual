@@ -53,7 +53,7 @@ from curation.registry.checks.ledger import (
     _check_withdraws,
     check_immutable,
 )
-from curation.registry.checks.playbooks import playbook_errors
+from curation.registry.checks.playbooks import playbook_errors, playbook_ledger_errors
 from curation.registry.checks.policy import policy_problems
 from curation.registry.checks.records import (
     _check_block_pairing,
@@ -430,6 +430,7 @@ def cmd_check(cfg: RegistryConfig, args: argparse.Namespace) -> int:
     playbooks, playbook_load_errors = load_playbooks(cfg)
     errors += playbook_load_errors
     errors += playbook_errors(cfg, playbooks, definitions)
+    errors += playbook_ledger_errors(cfg, events)
     # One live (non-superseded) event list feeds every lifecycle/withdrawal
     # consumer, so a correction takes effect everywhere at once (N2/N3). Coverage
     # obligations instead read raw events (an upstream reject never withdraws an

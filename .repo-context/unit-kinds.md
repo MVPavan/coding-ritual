@@ -299,7 +299,8 @@ material moves to references. [data: H1 holds via standalone use]
 5. **`mvp-mode` ships in the plugin** (ruling 2026-10-31; pstack report
    revision 4). The publish script still hardcodes `skill-router`;
    retargeting it is phase 3.
-6. **The registry tracks skills only.** T1 and the step index need registry
-   support for principles and playbooks.
+6. **The registry tracked skills only.** Settled (owner ruling 2026-11-01):
+   principles are skill folders, and a playbook holds traits, has a step index
+   and is its own ledger subject (registry README §4b).
 7. **"Strip procedure from skills"** becomes "move order and gates across
    units out of skills" (S3, B4): a skill keeps its own technique.

@@ -4,6 +4,7 @@ changes between revisions."""
 
 from __future__ import annotations
 
+import json
 import subprocess
 from pathlib import Path
 
@@ -12,10 +13,12 @@ import pytest
 from curation.registry import cli, steps
 from curation.registry.traits import _doc_tree_hash
 from tests.curation.test_registry import (
+    SUBJECT,
     _checkpoint,
     _defs,
     _fails_with,
     _ns,
+    _rec_ns,
     _trait,
     _trait_cfg,
     _write_defs,
@@ -55,6 +58,7 @@ steps:
 """
 
 FIX_PATH = ".claude/skills/mvp-mode/playbooks/fix.md"
+SHIP_PATH = ".claude/skills/mvp-mode/playbooks/ship.md"
 
 
 def _write_playbook(cfg: object, name: str, text: str) -> Path:
@@ -62,6 +66,34 @@ def _write_playbook(cfg: object, name: str, text: str) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
     return path
+
+
+def _baselines(cfg: object) -> list[dict]:
+    """Today's `add` event for each fixture playbook (README §4b)."""
+    return [
+        {
+            "type": "event",
+            "id": f"2026-10-14-r:{n}",
+            "date": "2026-10-14",
+            "kind": "add",
+            "subject": f"doc:{rel}",
+            "why": "baseline",
+            "skill": f"doc:{rel}",
+            "target_tree_hash": steps.playbook_tree_hash(cfg, rel),  # type: ignore[arg-type]
+        }
+        for n, rel in enumerate((FIX_PATH, SHIP_PATH), start=100)
+    ]
+
+
+def _record(cfg: object, kind: str, target: str, **extra: object) -> int:
+    """`record` on a playbook subject, through the CLI command."""
+    fields = {"kind": kind, "subject": target, "skill": target, "why": "because"}
+    return cli.cmd_record(cfg, _rec_ns(json=json.dumps(fields | extra)))
+
+
+def _last_event(cfg: object) -> dict:
+    path = cfg.ledger_dir / "2026-10-14-r.jsonl"  # type: ignore[attr-defined]
+    return json.loads(path.read_text(encoding="utf-8").splitlines()[-1])  # type: ignore[no-any-return]
 
 
 def _playbook_cfg(base: Path, fix: str = FIX) -> object:
@@ -77,6 +109,14 @@ def _playbook_cfg(base: Path, fix: str = FIX) -> object:
     refs.mkdir()
     (refs / "notes.md").write_text("Notes.\n", encoding="utf-8")
     (refs / "not-a-playbook.md").write_text("no frontmatter\n", encoding="utf-8")
+    _write_round(
+        cfg,
+        "2026-10-14-r",
+        _checkpoint("2026-10-14-r:1", "adopt", "tdd"),
+        _trait("2026-10-14-r:2", "adopt", "seams", skill="tdd"),
+        *_baselines(cfg),
+        trait_level=True,
+    )
     assert cli.cmd_build(cfg, _ns()) == 0
     return cfg
 
@@ -105,6 +145,7 @@ def test_check_fails_when_steps_md_is_stale(
 ) -> None:
     cfg = _playbook_cfg(tmp_path)
     _write_playbook(cfg, "fix", FIX.replace("when: always", "when: first"))
+    assert _record(cfg, "update", f"doc:{FIX_PATH}") == 0
     _fails_with(cfg, capsys, "STEPS.md: generated file is stale")
 
 
@@ -181,15 +222,14 @@ def test_playbook_holds_adopted_traits(
     never a traits/ours.yaml entry, is its trait list (T3)."""
     target = f"doc:{FIX_PATH}"
     cfg = _playbook_cfg(tmp_path)
-    _write_round(
-        cfg,
-        "2026-10-14-r",
+    adopted = (
         _checkpoint("2026-10-14-r:1", "adopt", target),
         _trait("2026-10-14-r:2", "adopt", "seams", skill=target),
-        trait_level=True,
     )
+    _write_round(cfg, "2026-10-14-r", *adopted, *_baselines(cfg), trait_level=True)
     _fails_with(cfg, capsys, f"trait 'seams' is not listed by {target!r}")
     _write_playbook(cfg, "fix", FIX.replace("traits: [gate]", "traits: [gate, seams]"))
+    _write_round(cfg, "2026-10-14-r", *adopted, *_baselines(cfg), trait_level=True)
     assert cli.cmd_build(cfg, _ns()) == 0
     assert cli.cmd_check(cfg, _ns()) == 0
 
@@ -307,3 +347,199 @@ def test_steps_diff_between_revisions(
     assert "condition  fix#1: always → first" in out
     with pytest.raises(SystemExit, match="'nope' is not a commit"):
         cli.cmd_steps(cfg, _ns(playbook="fix", base="nope", head=None))
+
+
+@pytest.mark.parametrize(
+    "edited", [FIX_PATH, ".claude/skills/mvp-mode/playbooks/fix/notes.md"]
+)
+def test_playbook_edit_needs_an_update(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], edited: str
+) -> None:
+    """An edit to a playbook or its reference fails `check`, naming the event
+    and the remedy, until `record update` stores the new hash; recording again
+    is refused, and a restatement of that update is not."""
+    target = f"doc:{FIX_PATH}"
+    cfg = _playbook_cfg(tmp_path)
+    assert cli.cmd_check(cfg, _ns()) == 0
+    with (cfg.repo_root / edited).open("a") as handle:  # type: ignore[attr-defined]
+        handle.write("Edited.\n")
+    _fails_with(
+        cfg,
+        capsys,
+        f"{FIX_PATH}: changed since 2026-10-14-r:100; `record` an `update`",
+    )
+    with pytest.raises(SystemExit, match="`target_tree_hash` is computed"):
+        _record(cfg, "update", target, target_tree_hash="wrong")
+    assert _record(cfg, "update", target) == 0
+    update = _last_event(cfg)
+    assert update["target_tree_hash"] == steps.playbook_tree_hash(cfg, FIX_PATH)  # type: ignore[arg-type]
+    assert "source" not in update
+    assert cli.cmd_check(cfg, _ns()) == 0
+    with pytest.raises(SystemExit, match="unchanged since 2026-10-14-r:102"):
+        _record(cfg, "update", target)
+    assert _record(cfg, "update", target, supersedes=[update["id"]]) == 0
+    assert cli.cmd_check(cfg, _ns()) == 0
+
+
+def test_a_correction_of_a_reverted_edit_records(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """An edit is recorded, then undone: the update it superseded held the wrong
+    hash, so correcting it records although the file matches the baseline."""
+    target = f"doc:{FIX_PATH}"
+    cfg = _playbook_cfg(tmp_path)
+    _write_playbook(cfg, "fix", FIX + "Edited.\n")
+    assert _record(cfg, "update", target) == 0
+    wrong = _last_event(cfg)["id"]
+    _write_playbook(cfg, "fix", FIX)
+    _fails_with(cfg, capsys, f"{FIX_PATH}: changed since {wrong}")
+    assert _record(cfg, "update", target, supersedes=[wrong]) == 0
+    assert cli.cmd_check(cfg, _ns()) == 0
+
+
+def test_a_correction_of_a_wrong_hash_records(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """A hand-appended event's wrong hash is corrected by superseding it, the
+    file unchanged; `record` still computes the hash and `check` verifies it."""
+    target = f"doc:{FIX_PATH}"
+    cfg = _playbook_cfg(tmp_path)
+    wrong = "2026-10-14-r:102"
+    event = _baselines(cfg)[0] | {
+        "id": wrong,
+        "kind": "update",
+        "target_tree_hash": "x",
+    }
+    path = cfg.ledger_dir / "2026-10-14-r.jsonl"  # type: ignore[attr-defined]
+    with path.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(event) + "\n")
+    _fails_with(cfg, capsys, f"{FIX_PATH}: changed since {wrong}")
+    assert _record(cfg, "update", target, supersedes=[wrong]) == 0
+    now = steps.playbook_tree_hash(cfg, FIX_PATH)  # type: ignore[arg-type]
+    assert _last_event(cfg)["target_tree_hash"] == now
+    assert cli.cmd_check(cfg, _ns()) == 0
+
+
+@pytest.mark.parametrize(
+    "rel",
+    [
+        "AGENTS.md",
+        ".claude/skills/mvp-mode/playbooks/fix/notes.md",
+        ".claude/skills/mvp-mode/playbooks/gone.md",
+        ".claude/skills/mvp-mode/playbooks//fix.md",
+    ],
+)
+def test_record_refuses_a_subject_that_is_no_playbook(tmp_path: Path, rel: str) -> None:
+    cfg = _playbook_cfg(tmp_path)
+    (cfg.repo_root / "AGENTS.md").write_text("x\n")  # type: ignore[attr-defined]
+    with pytest.raises(SystemExit, match="is not a playbook file"):
+        _record(cfg, "update", f"doc:{rel}")
+
+
+def test_check_ties_playbook_files_to_events(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """A playbook with no event, an event with no hash, an event naming no
+    playbook, and a removed playbook all fail."""
+    cfg = _playbook_cfg(tmp_path)
+    _write_playbook(cfg, "new", SHIP.replace("ship#1", "new#1"))
+    assert cli.cmd_build(cfg, _ns()) == 0
+    new = ".claude/skills/mvp-mode/playbooks/new.md"
+    _fails_with(cfg, capsys, f"{new}: no ledger event; `record` an `add`")
+    (cfg.playbooks_dir / "new.md").unlink()  # type: ignore[attr-defined]
+    assert cli.cmd_build(cfg, _ns()) == 0
+
+    bare, ship = _baselines(cfg)
+    del bare["target_tree_hash"]
+    agents = bare | {
+        "id": "2026-10-14-r:102",
+        "subject": "doc:AGENTS.md",
+        "skill": "doc:AGENTS.md",
+    }
+    _write_round(cfg, "2026-10-14-r", bare, ship, agents, trait_level=True)
+    assert cli.cmd_check(cfg, _ns()) == 1
+    err = capsys.readouterr().err
+    assert f"2026-10-14-r:100: doc:{FIX_PATH} has no `target_tree_hash`" in err
+    assert "2026-10-14-r:102: doc:AGENTS.md names no playbook file" in err
+
+    (cfg.playbooks_dir / "ship.md").unlink()  # type: ignore[attr-defined]
+    _fails_with(cfg, capsys, f"{SHIP_PATH}: no such playbook, but 2026-10-14-r:101")
+
+
+def _adopted_into_fix(cfg: object) -> None:
+    """`fix` lists `seams`, adopted into it, at today's hashes."""
+    target = f"doc:{FIX_PATH}"
+    _write_playbook(cfg, "fix", FIX.replace("traits: [gate]", "traits: [gate, seams]"))
+    _write_round(
+        cfg,
+        "2026-10-14-r",
+        _checkpoint("2026-10-14-r:1", "adopt", target),
+        _trait("2026-10-14-r:2", "adopt", "seams", skill=target),
+        *_baselines(cfg),
+        trait_level=True,
+    )
+    assert cli.cmd_build(cfg, _ns()) == 0
+    assert cli.cmd_check(cfg, _ns()) == 0
+
+
+def test_withdraws_on_a_playbook_update(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """A trait adopted into a playbook may leave its frontmatter through the
+    playbook's `update`; a later delivered adopt makes it live again."""
+    target = f"doc:{FIX_PATH}"
+    cfg = _playbook_cfg(tmp_path)
+    _adopted_into_fix(cfg)
+    _write_playbook(cfg, "fix", FIX)
+    assert cli.cmd_build(cfg, _ns()) == 0
+    _fails_with(cfg, capsys, f"trait 'seams' is not listed by {target!r}")
+
+    assert _record(cfg, "update", target, withdraws=[f"{SUBJECT}#seams"]) == 0
+    assert cli.cmd_check(cfg, _ns()) == 0
+
+    readopt = _trait("x", "adopt", "seams", skill=target)
+    del readopt["id"]
+    assert cli.cmd_record(cfg, _rec_ns(json=json.dumps(readopt))) == 0
+    _fails_with(cfg, capsys, f"trait 'seams' is not listed by {target!r}")
+
+
+def test_withdraws_is_per_destination(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """`ship` never adopted the trait `fix` holds, so it cannot withdraw it."""
+    cfg = _playbook_cfg(tmp_path)
+    _adopted_into_fix(cfg)
+    _write_playbook(cfg, "ship", SHIP + "Edited.\n")
+    trait = f"{SUBJECT}#seams"
+    assert _record(cfg, "update", f"doc:{SHIP_PATH}", withdraws=[trait]) == 0
+    _fails_with(cfg, capsys, f"withdraws {trait!r} but no adopt event targets")
+    mistaken = _last_event(cfg)["id"]
+    assert _record(cfg, "update", f"doc:{SHIP_PATH}", supersedes=[mistaken]) == 0
+    assert cli.cmd_check(cfg, _ns()) == 0
+
+
+@pytest.mark.parametrize("kind", ["merge", "rename", "split", "retire"])
+def test_playbook_subject_has_only_add_and_update(tmp_path: Path, kind: str) -> None:
+    cfg = _playbook_cfg(tmp_path)
+    target = f"doc:{FIX_PATH}"
+    with pytest.raises(ValueError, match="on a playbook subject"):
+        _record(cfg, kind, target)
+
+
+def test_a_reference_ruling_cannot_forget_a_playbook(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """A `doc:` subject is a playbook's whatever the kind or source, so a made-up
+    `reject` cannot supersede the baseline of a deleted file."""
+    cfg = _playbook_cfg(tmp_path)
+    (cfg.playbooks_dir / "fix.md").unlink()  # type: ignore[attr-defined]
+    ruling = {
+        "kind": "reject",
+        "subject": f"doc:{FIX_PATH}",
+        "why": "gone",
+        "source": {"repo": "doc", "logical_id": FIX_PATH, "content_hash": "x"},
+        "supersedes": ["2026-10-14-r:100"],
+    }
+    with pytest.raises(ValueError, match="reject on a playbook subject"):
+        cli.cmd_record(cfg, _rec_ns(json=json.dumps(ruling)))
+    _fails_with(cfg, capsys, f"{FIX_PATH}: no such playbook")

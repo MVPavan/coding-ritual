@@ -82,9 +82,10 @@ DocHolderKind = Literal["agents", "project-document", "playbook"]
 def doc_holder_kind(cfg: RegistryConfig, rel: str) -> DocHolderKind | None:
     """What a `doc:` holder's repository path names, or None when it may hold
     no traits: `AGENTS.md`, a flat `.repo-context/<file>` (stages-design 1.5)
-    or a playbook file (T1, T3)."""
+    or a playbook file (T1, T3). Only the normalised spelling names one, so a
+    file has one `doc:` subject."""
     parts = Path(rel).parts
-    if ".." in parts:
+    if ".." in parts or Path(rel).as_posix() != rel:
         return None
     if rel == "AGENTS.md":
         return "agents"
@@ -513,7 +514,9 @@ def _check_trait_level(
         target = adopt.skill
         if target and target.startswith("doc:"):
             # A `doc:` holder lists it too (Acceptance 4); a missing inventory
-            # is an error, never a skip.
+            # is an error, never a skip. A playbook may withdraw it (§4b).
+            if (subject, target) in withdrawn:
+                continue
             tid = adopt.into or _trait_slug(subject) or ""
             doc = doc_traits.get(target)
             if doc is None:

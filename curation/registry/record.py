@@ -30,6 +30,7 @@ from curation.registry.loaders import load_ledger
 from curation.registry.models import Event, Source
 from curation.registry.steps import playbook_tree_hash
 from curation.registry.traits import _doc_tree_hash, _our_tree_hashes
+from curation.registry.vocab import PLAYBOOK_KINDS
 
 WHOLE_SKILL_VERDICTS = ("defer", "reject", "out-of-scope")
 
@@ -66,7 +67,11 @@ def _single(cfg: RegistryConfig, data: dict[str, Any], events: list[Event]) -> E
     )
     if pending is not None:
         _inherit(data, pending)
-    elif "source" not in data and ":" in subject and not subject.startswith("ours:"):
+    elif (
+        "source" not in data
+        and ":" in subject
+        and not subject.startswith(("ours:", "doc:"))
+    ):
         # A trait subject carries a trailing #<slug>; the catalog is keyed by the
         # bare logical id, so strip it before autofilling the source.
         repo, _, logical = subject.partition(":")
@@ -81,6 +86,8 @@ def _single(cfg: RegistryConfig, data: dict[str, Any], events: list[Event]) -> E
         and data.get("skill")
     ):
         data["target_tree_hash"] = _target_hash(cfg, str(data["skill"]), events)
+    if subject.startswith("doc:") and data.get("kind") in PLAYBOOK_KINDS:
+        _fill_playbook_hash(cfg, data, subject, events)
     ctx = report_files.load_context(cfg) if "#" in subject else None
     if ctx is not None:
         _set_policy_basis(data, subject, pending, ctx)
@@ -113,6 +120,34 @@ def _single(cfg: RegistryConfig, data: dict[str, Any], events: list[Event]) -> E
     if errors:
         raise SystemExit("refused:\n" + "\n".join(errors))
     return event
+
+
+def _fill_playbook_hash(
+    cfg: RegistryConfig, data: dict[str, Any], subject: str, events: list[Event]
+) -> None:
+    """A playbook event stores its hash (README §4b). Refuse a subject that is
+    not an existing playbook file, a supplied hash that is not today's, and an
+    event with nothing to record: its hash equals the effective event's. An
+    event with `supersedes` is a correction and skips that last refusal."""
+    rel = subject[len("doc:") :]
+    if doc_holder_kind(cfg, rel) != "playbook" or not (cfg.repo_root / rel).is_file():
+        folder = cfg.playbooks_dir.relative_to(cfg.repo_root)
+        raise SystemExit(
+            f"refused: {subject} is not a playbook file; a `doc:` subject on `add` "
+            f"or `update` names a file directly in {folder}/"
+        )
+    now = playbook_tree_hash(cfg, rel)
+    if data.setdefault("target_tree_hash", now) != now:
+        raise SystemExit(
+            f"refused: `target_tree_hash` is computed by `record`; it is {now}"
+        )
+    if data.get("supersedes"):
+        return
+    prior = effective_by_subject(live_events(events)).get(subject)
+    if prior is not None and prior.target_tree_hash == now:
+        raise SystemExit(
+            f"refused: {subject} is unchanged since {prior.id}; nothing to record"
+        )
 
 
 def _inherit(data: dict[str, Any], pending: Event) -> None:

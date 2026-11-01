@@ -233,6 +233,13 @@ def resolve_skill(name: str, forward: dict[str, str]) -> str:
     return name
 
 
+def tracks_adoption(target: str) -> bool:
+    """Whether an adoption into `target` is an obligation the target keeps: a
+    skill or a `doc:` holder, never a `kind:name` capability. Only a playbook
+    has an `update` to withdraw one with (§4b)."""
+    return ":" not in target or target.startswith("doc:")
+
+
 def withdrawn_destinations(
     events: list[Event], forward: dict[str, str]
 ) -> dict[tuple[str, str], str]:
@@ -263,7 +270,7 @@ def withdrawn_destinations(
             and not event.pending
             and _is_trait_subject(event.subject)
             and event.skill
-            and ":" not in event.skill
+            and tracks_adoption(event.skill)
         ):
             withdrawn.pop((event.subject, resolve_skill(event.skill, forward)), None)
     return withdrawn
@@ -294,7 +301,7 @@ def retained_adoptions(
             and not event.pending
             and _is_trait_subject(event.subject)
             and event.skill
-            and (":" not in event.skill or event.skill.startswith("doc:"))
+            and tracks_adoption(event.skill)
         ):
             dest = resolve_skill(event.skill, forward)
             out[(event.subject, dest)] = event

@@ -1,14 +1,22 @@
 """Playbook checks: step IDs, defined traits, resolvable calls and loads (St1,
-B1, F1)."""
+B1, F1); each playbook's hash against its ledger event (README §4b)."""
 
 from __future__ import annotations
 
 import re
 
 from curation.registry.checks.records import _target_exists
+from curation.registry.checks.traits import doc_holder_kind
 from curation.registry.config import RegistryConfig
-from curation.registry.models import TraitDefinition
-from curation.registry.steps import CALL_KINDS, Playbook
+from curation.registry.ledger import effective_by_subject, live_events
+from curation.registry.models import Event, TraitDefinition
+from curation.registry.steps import (
+    CALL_KINDS,
+    Playbook,
+    playbook_files,
+    playbook_tree_hash,
+)
+from curation.registry.vocab import PLAYBOOK_KINDS
 
 _NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 
@@ -79,4 +87,38 @@ def playbook_errors(
                         f"under {book.references_dir}/; a reference has one "
                         f"owner, F1, F3)"
                     )
+    return errors
+
+
+def playbook_ledger_errors(cfg: RegistryConfig, events: list[Event]) -> list[str]:
+    """Each playbook's hash lives on its effective event (§4b): that event names
+    a playbook file that exists and carries `target_tree_hash`, and every
+    playbook file has such an event, at its current hash. Only effective events
+    are read, so a sealed event is corrected by superseding it."""
+    effective = {
+        subject: event
+        for subject, event in effective_by_subject(live_events(events)).items()
+        if subject.startswith("doc:") and event.kind in PLAYBOOK_KINDS
+    }
+    errors: list[str] = []
+    for subject, event in sorted(effective.items()):
+        rel = subject[len("doc:") :]
+        if doc_holder_kind(cfg, rel) != "playbook":
+            errors.append(f"{event.id}: {subject} names no playbook file")
+        elif not (cfg.repo_root / rel).is_file():
+            errors.append(
+                f"{rel}: no such playbook, but {event.id} is its effective event; "
+                f"removing a playbook has no event yet (README §4b)"
+            )
+        elif event.target_tree_hash is None:
+            errors.append(f"{event.id}: {subject} has no `target_tree_hash`")
+    for file in playbook_files(cfg):
+        rel = str(file.relative_to(cfg.repo_root))
+        found = effective.get(f"doc:{rel}")
+        if found is None:
+            errors.append(f"{rel}: no ledger event; `record` an `add` (README §4b)")
+        elif found.target_tree_hash not in (None, playbook_tree_hash(cfg, rel)):
+            errors.append(
+                f"{rel}: changed since {found.id}; `record` an `update` (README §4b)"
+            )
     return errors

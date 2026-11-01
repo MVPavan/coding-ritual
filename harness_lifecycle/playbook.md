@@ -164,7 +164,9 @@ would bring it back), `out-of-scope` (not our kind of work).
    `tree_hash`.
    If the fix drops a trait we adopted from upstream, the `update` event
    lists that upstream trait in `withdraws`; an upstream ruling never removes
-   it for us.
+   it for us. A playbook has no `traits/ours.yaml` entry: its frontmatter is
+   its trait list, and `record` stores its hash on an `update` of
+   `doc:<its path>` (`registry/README.md` §4b).
 
 ## 8. Done
 

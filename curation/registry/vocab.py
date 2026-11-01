@@ -46,6 +46,8 @@ REFERENCE_KINDS = frozenset(
 
 
 OURS_KINDS = frozenset({"add", "update", "merge", "split", "rename", "retire"})
+# The kinds a playbook subject (`doc:<path>`) may take (README §4b).
+PLAYBOOK_KINDS = frozenset({"add", "update"})
 
 
 EVENT_KINDS = REFERENCE_KINDS | OURS_KINDS
