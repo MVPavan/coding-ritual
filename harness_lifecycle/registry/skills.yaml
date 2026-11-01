@@ -65,7 +65,7 @@ delegation:
   family: null
   aliases: []
   status: active
-  boundary: "Hands one piece of work to another agent or model: role, roster model, vendor, brief, dispatch and the check of what ran; whether to delegate is the calling workflow's choice, councils are model-council and perspective-council, and choosing a skill is skill-router."
+  boundary: "Hands one piece of work to another agent or model: role, roster model, vendor, brief, dispatch and the check of what ran; whether to delegate is the calling workflow's choice, councils are model-council and perspective-council, and choosing a unit is mvp-mode."
 design-evolve:
   domain: engineering
   stage: Design
@@ -192,6 +192,15 @@ model-council:
   aliases: []
   status: active
   boundary: "Runs an explicitly requested council of named models or agents with a judge; a council of perspectives or roles is perspective-council, and dispatching each member is delegation."
+mvp-mode:
+  domain: core
+  stage: X
+  substage: Coordination
+  secondary: []
+  family: skill-routing
+  aliases: []
+  status: active
+  boundary: "Routes a task to the playbook, principle or skill that fits and lists what exists; it holds no policy (AGENTS.md) or technique, spawns no agents (delegation) and convenes no council."
 performance-optimization:
   domain: engineering
   stage: Building
@@ -280,8 +289,8 @@ skill-router:
   secondary: []
   family: skill-routing
   aliases: []
-  status: active
-  boundary: "Routes a task to the fitting skill or command and explains what exists; it spawns no agents (delegation) and convenes no council."
+  status: retired
+  boundary: "Retired into mvp-mode, which now routes every task; kept as a manual-only pointer so its lineage and history stay readable. It delivers none of its former traits."
 systematic-debugging:
   domain: engineering
   stage: Building

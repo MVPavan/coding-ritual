@@ -39,7 +39,13 @@ pre-existing edits are not automatically part of the task.
    Claim the exact task with `--actor "<coding-agent>:<unique-id>"`.
 2. Implement in dependency order, within owned paths. Use test-first or
    characterization when risk calls for it; apply security to material boundary
-   changes and debugging when a failure's cause is unclear.
+   changes. When a failure's cause is unclear, use `systematic-debugging` and fix
+   only a cause it confirms: prove the fix with a regression check when one is
+   feasible, rerun the original failing scenario, log each attempt (hypothesis,
+   change, result), and after two failed fixes stop and return the log to the
+   task owner. Hardening other boundaries the defect exposes is the bug-fix
+   playbook's step, and so is a top-level request to fix a bug: at top level
+   return to `mvp-mode`; inside a delegated task, report that route to the parent.
 3. Validate findings as they arrive. Fix confirmed in-scope defects, answer
    incorrect findings with evidence, and record unresolved decisions. Do not
    spend fix rounds implementing unverified feedback.

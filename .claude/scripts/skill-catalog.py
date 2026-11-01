@@ -1,13 +1,20 @@
 #!/usr/bin/env python3
-"""Skill-catalog generator + slash-pointer linter for the skill-router skill.
+"""Skill-catalog generator + slash-pointer linter for the mvp-mode router.
 
-The router (.claude/skills/skill-router/SKILL.md) is hand-owned above the
-marker line and generated below it. Hand-maintained catalogs rot — a previous
-router shipped dead pointers undetected until an audit — so this script
-generates the mechanical part and lints the rest.
+The router's always-loaded part (.claude/skills/mvp-mode/SKILL.md) is
+hand-owned. Its full skill catalog (.claude/skills/mvp-mode/references/catalog.md)
+is hand-owned above the marker line and generated below it. Hand-maintained
+catalogs rot — a previous router shipped dead pointers undetected until an
+audit — so this script generates the mechanical part and lints the rest.
 
   --check (default)
-      Exit 1 if the generated section is stale; if any /name reference in any
+      Exit 1 if the generated section is stale; if a backticked skill name in
+      the router's hand-owned text names no installed skill; if a principle
+      skill (principle-*) or a playbook file (mvp-mode/playbooks/*.md) has no
+      `target`: situation entry in the router's Playbooks or Principles
+      section, if an entry names nothing installed, or if the router does not
+      point at its catalog — comments and fenced examples excluded (unit-kinds
+      R3); if any /name reference in any
       shipped text file under a skill folder (*.md, *.sh, *.py, *.yaml —
       references, scripts, assets included) resolves to no installed skill and
       no ALLOWED_SLASHES entry; if any `.claude/...` path token in those same
@@ -42,7 +49,11 @@ from dataclasses import dataclass
 from pathlib import Path
 
 MARKER = "<!-- generated:skill-catalog -->"
-ROUTER_REL = Path("skill-router/SKILL.md")  # relative to the skills dir
+ROUTER_DIR = Path("mvp-mode")  # relative to the skills dir
+ROUTER_REL = ROUTER_DIR / "SKILL.md"  # always loaded; hand-owned
+CATALOG_REL = ROUTER_DIR / "references" / "catalog.md"  # generated below MARKER
+PLAYBOOKS_REL = ROUTER_DIR / "playbooks"
+PRINCIPLE_PREFIX = "principle-"
 WRITE_CMD = "python3 .claude/scripts/skill-catalog.py --write"
 
 # Slash tokens that legitimately resolve outside .claude/skills. One-word
@@ -402,6 +413,130 @@ def _rel(path: Path, root: Path) -> str:
         return str(path)
 
 
+def unresolved_names(path: Path, text: str, known: set[str], root: Path) -> list[str]:
+    """Hand-owned router text names skills bare (`grilling`); a rename would
+    leave those stale while the generated catalog stays green."""
+    return [
+        f"unresolved skill name `{name}` at {_rel(path, root)}:{lineno}"
+        " (hand-owned) — no installed skill"
+        for lineno, line in enumerate(text.splitlines(), start=1)
+        for name in (m.group(1) for m in BARE_NAME.finditer(line))
+        if name not in known
+    ]
+
+
+# The router's Playbooks and Principles sections hold one list item per unit:
+#   - `playbooks/<name>.md`: <the request it fits>
+#   - `principle-<name>`: <the situation it applies in>
+# Comments and fenced examples are stripped before parsing, so a mention there
+# routes nothing (unit-kinds R3).
+HTML_COMMENT = re.compile(r"<!--.*?-->", re.DOTALL)
+# A fence opens with three or more backticks or tildes after at most three
+# spaces; it closes at the same character, at least as long, with nothing after
+# it, or at the end of the text. A backtick fence's info string has no backtick.
+FENCE_OPEN = re.compile(r"^ {0,3}(`{3,}(?=[^`]*$)|~{3,})")
+CODE_SPAN = re.compile(r"`([^`\n]+)`")
+SECTION_HEADING = re.compile(r"^## (.+?)\s*$", re.MULTILINE)
+ROUTE_ENTRY = re.compile(r"^- `([^`]+)`:\s*(.*?)\s*$")
+ROUTE_SECTIONS = {
+    "Playbooks": re.compile(r"playbooks/[a-z0-9][a-z0-9-]*\.md"),
+    "Principles": re.compile(re.escape(PRINCIPLE_PREFIX) + r"[a-z0-9][a-z0-9-]*"),
+}
+
+
+def routed_text(router_text: str) -> str:
+    """Router text with comments and fenced examples removed."""
+    kept: list[str] = []
+    fence = ""
+    for line in HTML_COMMENT.sub("", router_text).splitlines():
+        if fence:
+            stripped = line.strip()
+            if (
+                len(line) - len(line.lstrip(" ")) <= 3
+                and stripped.startswith(fence)
+                and not stripped.strip(fence[0])
+            ):
+                fence = ""
+        elif opened := FENCE_OPEN.match(line):
+            fence = opened.group(1)
+        else:
+            kept.append(line)
+    return "\n".join(kept) + "\n"
+
+
+def route_entries(router_text: str) -> tuple[dict[str, list[str]], list[str]]:
+    """({section: [target, ...]}, failures) for the Playbooks and Principles
+    sections. A list item that is not `target`: situation, or whose target
+    does not fit its section, is a failure."""
+    text = routed_text(router_text)
+    headings = list(SECTION_HEADING.finditer(text))
+    entries: dict[str, list[str]] = {name: [] for name in ROUTE_SECTIONS}
+    failures: list[str] = []
+    for name, target_form in ROUTE_SECTIONS.items():
+        found = [h for h in headings if h.group(1) == name]
+        if not found:
+            failures.append(f"router has no `## {name}` section")
+            continue
+        start = found[0].end()
+        later = [h.start() for h in headings if h.start() > start]
+        body = text[start : later[0] if later else len(text)]
+        for line in body.splitlines():
+            if not line.startswith("- "):
+                continue
+            match = ROUTE_ENTRY.match(line)
+            if not match:
+                failures.append(f"{name} entry is not `target`: situation — {line!r}")
+            elif not target_form.fullmatch(match.group(1)):
+                failures.append(f"{name} entry target `{match.group(1)}` is malformed")
+            elif not match.group(2):
+                failures.append(f"{name} entry `{match.group(1)}` names no situation")
+            else:
+                entries[name].append(match.group(1))
+    return entries, failures
+
+
+def unreachable_units(
+    skills: list[Surface], skills_dir: Path, router_text: str, root: Path
+) -> list[str]:
+    """Principles, playbooks and the full catalog are reached only through the
+    router's always-loaded part (unit-kinds R3): each installed principle and
+    playbook needs an entry, each entry a target that exists, and the router
+    must point at its catalog — all outside comments and fenced examples."""
+    router = _rel(skills_dir / ROUTER_REL, root)
+    entries, failures = route_entries(router_text)
+    # The pointer is a whole code span that resolves, from the router's folder,
+    # to the catalog — not any text that merely contains its path.
+    catalog = (skills_dir / CATALOG_REL).resolve()
+    router_dir = skills_dir / ROUTER_DIR
+    if not any(
+        (router_dir / span.group(1)).resolve() == catalog
+        for span in CODE_SPAN.finditer(routed_text(router_text))
+    ):
+        catalog_link = CATALOG_REL.relative_to(ROUTER_DIR)
+        failures.append(f"{router} does not point at {catalog_link}")
+
+    principles = {s.name for s in skills if s.name.startswith(PRINCIPLE_PREFIX)}
+    playbooks_dir = skills_dir / PLAYBOOKS_REL
+    playbooks = (
+        {f"playbooks/{p.name}" for p in playbooks_dir.glob("*.md")}
+        if playbooks_dir.is_dir()
+        else set()
+    )
+    for kind, installed, routed in (
+        ("principle", principles, set(entries["Principles"])),
+        ("playbook", playbooks, set(entries["Playbooks"])),
+    ):
+        failures.extend(
+            f"{kind} {name} has no entry in {router}"
+            for name in sorted(installed - routed)
+        )
+        failures.extend(
+            f"{kind} entry `{name}` in {router} names nothing installed"
+            for name in sorted(routed - installed)
+        )
+    return failures
+
+
 def cmd_check(root: Path, skills_dir: Path) -> int:
     skills = load_skills(skills_dir)
     failures: list[str] = []
@@ -409,24 +544,23 @@ def cmd_check(root: Path, skills_dir: Path) -> int:
 
     known = {s.name for s in skills}
     router = skills_dir / ROUTER_REL
-    if not router.is_file():
+    catalog = skills_dir / CATALOG_REL
+    if router.is_file():
+        router_text = router.read_text(encoding="utf-8")
+        failures.extend(unresolved_names(router, router_text, known, root))
+        failures.extend(unreachable_units(skills, skills_dir, router_text, root))
+    else:
+        failures.append(f"missing {_rel(router, root)}")
+    if not catalog.is_file():
         failures.append(
-            f"missing {_rel(router, root)} — create it with the marker, then run --write"
+            f"missing {_rel(catalog, root)} — create it with the marker, then run --write"
         )
     else:
-        parts = split_at_marker(router.read_text(encoding="utf-8"))
+        parts = split_at_marker(catalog.read_text(encoding="utf-8"))
         if parts is None:
-            failures.append(f"marker {MARKER} missing from {_rel(router, root)}")
+            failures.append(f"marker {MARKER} missing from {_rel(catalog, root)}")
         else:
-            # The hand-owned half names skills bare (`grilling`); a rename
-            # would leave those stale while the generated tables stay green.
-            for lineno, line in enumerate(parts[0].splitlines(), start=1):
-                failures.extend(
-                    f"unresolved skill name `{name}` at {_rel(router, root)}:{lineno}"
-                    " (hand-owned section) — no installed skill"
-                    for name in (m.group(1) for m in BARE_NAME.finditer(line))
-                    if name not in known
-                )
+            failures.extend(unresolved_names(catalog, parts[0], known, root))
         if parts is not None and parts[1] != render_catalog(skills):
             diff = list(
                 difflib.unified_diff(
@@ -506,22 +640,22 @@ def cmd_check(root: Path, skills_dir: Path) -> int:
 
 
 def cmd_write(root: Path, skills_dir: Path) -> int:
-    router = skills_dir / ROUTER_REL
-    if not router.is_file():
-        raise SystemExit(f"refusing: {_rel(router, root)} does not exist")
-    parts = split_at_marker(router.read_text(encoding="utf-8"))
+    catalog = skills_dir / CATALOG_REL
+    if not catalog.is_file():
+        raise SystemExit(f"refusing: {_rel(catalog, root)} does not exist")
+    parts = split_at_marker(catalog.read_text(encoding="utf-8"))
     if parts is None:
         raise SystemExit(
-            f"refusing: marker {MARKER} missing from {_rel(router, root)}"
+            f"refusing: marker {MARKER} missing from {_rel(catalog, root)}"
             " — everything above it is hand-owned; add the marker where the generated section starts"
         )
     skills = load_skills(skills_dir)
     updated = parts[0] + render_catalog(skills)
     if updated == parts[0] + parts[1]:
-        print(f"already current: {_rel(router, root)}")
+        print(f"already current: {_rel(catalog, root)}")
     else:
-        router.write_text(updated, encoding="utf-8")
-        print(f"regenerated: {_rel(router, root)}")
+        catalog.write_text(updated, encoding="utf-8")
+        print(f"regenerated: {_rel(catalog, root)}")
     changed = write_openai_yamls(skills)
     print(
         f"agents/openai.yaml sidecars: {changed} written, {len(skills) - changed} already current"
@@ -533,7 +667,7 @@ def cmd_write(root: Path, skills_dir: Path) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        description="Generate/lint the skill-router catalog."
+        description="Generate/lint the mvp-mode skill catalog."
     )
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument(

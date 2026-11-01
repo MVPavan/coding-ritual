@@ -88,10 +88,9 @@ Keep workflow graphs for unattended build loops, and link them to steps
 later through ADR 0003's named methods.
 
 **Open decisions** (§6): whether pstack's playbooks are ruled whole before
-the step build (7), review order (8), the router's hash (9), pause commits
-(13), the UI boundary (14), and whether the root-only curation playbook,
-a playbook by behaviour, stays unrouted as a logged deviation or is routed
-by changing the router and publish script (15).
+the step build (7) and the router's hash (9). Ruled 2026-11-01: review order
+(8), pause commits (13), the UI boundary (14), and the root-only curation
+playbook, which stays unrouted as a logged deviation (15).
 
 ## 1. Structure at v0.15.36
 
@@ -1264,7 +1263,7 @@ placement agree, Building · Diagnosis):
 
 | # | Upstream occurrence | Action | Order | When | Calls: binding | J: recommendation | Valid under §5.2 because |
 |---|---|---|---|---|---|---|---|
-| 1 | bug-fix#1, `reproduce-on-user-surface` (`PB/bug-fix.md:7`) | variant via `reproduction-first` (`.claude/skills/systematic-debugging/SKILL.md:14-18`) | kept | same | control-skill: external | adopt modified, `into: reproduction-first`; `modification`: a focused command or test is the user's surface for a CLI and library repo; no control skill | A variant names `into` and `modification`; external calls carry no status |
+| 1 | bug-fix#1, `reproduce-on-user-surface` (`PB/bug-fix.md:7`) | variant via `reproduction-preferred` (`.claude/skills/systematic-debugging/SKILL.md:14-18`) | kept | same | control-skill: external | adopt modified, `into: reproduction-preferred`; `modification`: a focused command or test is the user's surface for a CLI and library repo; no control skill | A variant names `into` and `modification`; external calls carry no status |
 | 2 | bug-fix#2, `hypotheses`, `discriminating-observation`, `instrument-unclear-state`, `confirm-cause-before-design` (`PB/bug-fix.md:8`) | `hypotheses`, `discriminating-observation` present (`.claude/skills/systematic-debugging/SKILL.md:19-20`); `instrument-unclear-state` variant via `localized-probing` (`:21-23`); `confirm-cause-before-design` variant via `owning-fix` (`:24-28`) | kept | same | how: unruled, `invoked: none`; why: unruled, `invoked: none`; loop: external | adopt modified; `modification`: hypotheses come from code and evidence inside the skill; live state is read through boundary probes, not a standalone instrumentation rule; the cause is confirmed before the fix, not before design, the weaker local gate, since nothing designs the fix before it (row 3 is deferred); the how, why and loop calls are dropped | Every difference is named; dropped calls are not dependencies, so no prior event is needed. When row 3's design call is bound, the weaker gate no longer suffices and the full gate becomes a pending addition |
 | 3 | bug-fix#3, architect call (`PB/bug-fix.md:9`) | absent | — | — | architect: unruled; candidate `codebase-design` | defer; `revisit_when`: pstack `architect` is ruled | Defer with `revisit_when` |
 | 4 | bug-fix#3, `delegate-scoped-implementation` (`PB/bug-fix.md:9`) | absent | — | — | none | reject as a mandatory step: delegation is conditional for us (`AGENTS.md:42-43`) | Reject on merit |
@@ -1402,7 +1401,7 @@ as if settled and tested by use (E1).
    first cataloged and ruled whole, like agents
    (`harness_lifecycle/registry/README.md:219-220`), so their review is not
    blocked by the step build. **J: recommend yes.**
-8. **Review order. Open.** (a) rule every callee skill before any playbook
+8. **Review order. Ruled 2026-11-01: (b).** (a) rule every callee skill before any playbook
    review; (b) review playbooks now, and let only delivered bindings wait for
    callee rulings (§5.2). **J: recommend (b)**, and rule the pilot's callees
    (how, why, architect, tdd, opening-a-pr) early, since rows 3, 6 and 7 of
@@ -1439,19 +1438,19 @@ as if settled and tested by use (E1).
     playbook files must pass the neutrality audit. Inferred from the
     manifest: if `skill-router` retires in the same change, the `expect
     skills` count (`:34`) is unchanged.
-13. **Pause commits (policy). Open.** (a) keep AGENTS.md as it is: a `wip:`
+13. **Pause commits (policy). Ruled 2026-11-01: (a).** (a) keep AGENTS.md as it is: a `wip:`
     commit at a pause only under existing commit authority, otherwise the
     resume line names the dirty paths; (b) grant standing authority for a
     local `wip:` commit on a non-default branch at an explicit pause, never a
     push. **J: recommend (a).** (b) is the only policy change this report
     proposes; every other pilot rule is adapted to local policy (§4.3).
-14. **UI and simulator boundary. Open.** (a) declare "no UI, mobile or
+14. **UI and simulator boundary. Ruled 2026-11-01: (b).** (a) declare "no UI, mobile or
     simulator surface" a domain boundary, so visual-parity and the simulator
     step of worktree-cleanup are out-of-scope; (b) set no boundary and defer
     them with revisit conditions. **J: recommend (b).** A deferral is cheap
     and does not turn a current tooling choice into a permanent boundary.
-15. **The curation playbook and the shipped router. Open (new in revision
-    4).** By behaviour `harness_lifecycle/playbook.md` is a playbook: it
+15. **The curation playbook and the shipped router. Ruled 2026-11-01:
+    (a) (new in revision 4).** By behaviour `harness_lifecycle/playbook.md` is a playbook: it
     orders the curation stages, calls skills and gates building on a ruling
     (`harness_lifecycle/playbook.md:21-29`, `:70`, `:132-140`;
     `.repo-context/unit-kinds.md` §2, item 5). It is not a project document

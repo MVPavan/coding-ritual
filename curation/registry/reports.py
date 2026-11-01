@@ -41,6 +41,7 @@ from curation.registry.models import (
     UpstreamTraitEntry,
 )
 from curation.registry.policy import live_policy
+from curation.registry.steps import load_playbooks
 from curation.registry.traits import (
     _upstream_traits,
     compute_fact,
@@ -79,6 +80,7 @@ def load_context(cfg: RegistryConfig) -> Context:
     _, events, ledger_errors = load_ledger(cfg)
     reports, report_errors = load_reports(cfg)
     policies, policy_errors = load_trait_policy(cfg)
+    playbooks, playbook_errors = load_playbooks(cfg)
     errors = (
         def_errors
         + trait_errors
@@ -86,12 +88,13 @@ def load_context(cfg: RegistryConfig) -> Context:
         + ledger_errors
         + report_errors
         + policy_errors
+        + playbook_errors
     )
     if errors:
         raise SystemExit("registry has errors; run `check`:\n" + "\n".join(errors))
     return Context(
         upstream=_upstream_traits(traits),
-        held=holders(traits),
+        held=holders(traits, playbooks),
         definitions=definitions,
         skills=skills,
         events=events,

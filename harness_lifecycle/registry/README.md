@@ -28,6 +28,7 @@ registry/
 ├── skill-records/<domain>/<skill>.md   # generated: one per skill (§3)
 ├── references/<harness>.md        # generated: their capabilities, stage and our ruling (§4)
 ├── TRAITS.md                      # generated: every skill's traits, every trait's holders, shared traits
+├── STEPS.md                       # generated: every playbook's steps, and where traits and calls recur (§4b)
 └── INDEX.md                       # generated: domain → stage → sub-stage
 ```
 
@@ -197,7 +198,7 @@ mattpocock_skills:skill:skills/engineering/tdd:
 
 | Field | Where | Meaning |
 |---|---|---|
-| key | both | `ours:<skill>`, `doc:AGENTS.md`, `doc:.repo-context/<file>`, or the catalog id `<repo>:<logical_id>` |
+| key | both | `ours:<skill>`, `doc:AGENTS.md`, `doc:.repo-context/<file>`, or the catalog id `<repo>:<logical_id>`. A playbook is a holder too (§4b), but never a key here |
 | `tree_hash` | ours entries, each analysis | sha256 over the folder's files that git does not ignore (one file for `doc:`); for ours, `check` fails when it is stale |
 | `accepted`, `proposed` | upstream | analysis shas; at least one set; they differ. Only the pointers move |
 | `analyses` | upstream | one immutable trait list per sha |
@@ -293,6 +294,90 @@ approval-pause-on-routine-step:
   (citations stripped). When GUIDE.md changes, `status` shows the entry as
   *guide changed* until the owner re-reviews it and updates `rules`; the
   stance holds meanwhile.
+
+## 4b. Playbooks and steps
+
+A **playbook** (`.repo-context/unit-kinds.md` §3) is a file directly in
+`.claude/skills/mvp-mode/playbooks/`; files in its subfolders are its
+references, never playbooks. Its frontmatter is the one source of its
+trigger, its own traits and its ordered steps (St2):
+
+```yaml
+---
+trigger: A reported defect, failing check or flaky test to fix with proof.
+traits: [confirmed-cause-gate]          # gates and ordering rules (T3)
+steps:                                  # excerpt: one of seven
+  - id: bug-fix#3                       # <playbook>#<position>
+    when: the cause is confirmed        # the whole step's condition
+    actions: [{trait: report-missing-proof}]
+    calls:
+      - {to: "skill:test-driven-development", when: a regression check is feasible}
+    loads: [{path: bug-fix/timing-flakes.md, when: the cause is a timing flake}]
+---
+```
+
+| Field | Required | Meaning |
+|---|---|---|
+| `trigger` | yes | the kind of request the playbook serves |
+| `traits` | no | the playbook's own gates and ordering rules |
+| `steps` | yes | ordered; at least one |
+| `id` | yes | `<playbook>#<n>`, `n` its position from 1 (St1) |
+| `when` | yes | when the step runs or is skipped |
+| `actions` | no | own actions, each `{trait}` (T3) |
+| `calls` | no | `{to, needs, when}`: `to` is `skill:<name>` or `playbook:<name>`; `needs` the callee traits the step relies on (absent: all); `when` a condition on this call only |
+| `loads` | no | `{path, when}`: a reference, by path relative to the playbook file; a load is not a call (St1) |
+
+A step has at least one action, call or load. Two format points are decided:
+
+1. **The step list lives in the frontmatter**, machine-read, with the body
+   saying the same in prose; nothing else lists steps (St2).
+2. **Calls name units by kind and name** (`skill:`, `playbook:`), as the
+   router does. A reference is a load by path relative to its playbook, so
+   the installed text never depends on the repository layout. The registry
+   identifies files by repository path (`doc:<path>`): the playbook as a
+   trait holder, and each load in `STEPS.md`.
+
+Parsing is strict: an unknown field, a wrong type or a duplicate key fails,
+as for the trait files (§4a). `check` also fails when a step's ID is not its
+position, a trait (playbook, action or a call's `needs`) is undefined or
+listed twice in one list, a call names no skill folder or playbook, or a load
+is not a file under the calling playbook's own folder `playbooks/<name>/`
+(F3). So a reference has one owner (F1); a second consumer promotes it (F2).
+
+**A playbook holds traits** (T1, T3): its own `traits` and its steps'
+`actions`, never a callee's. Its holder key is `doc:<its path>`, the same
+key a ledger adopt into it targets; that list comes from the frontmatter, so
+a `traits/ours.yaml` entry for a playbook fails `check`. The router's
+`tree_hash` leaves out its `playbooks/` folder (our skills only: an upstream
+skill's hash keeps every subfolder, so upstream playbook edits still show),
+and a playbook has no stored hash: its lists are read live, so its changes
+show in `steps diff` and in `TRAITS.md` and `STEPS.md`, which `check` keeps
+current. As a ledger target (a rewording's `target_tree_hash`, §5b), a
+playbook's hash covers its file and its `playbooks/<name>/` folder, so a
+reference edit counts. Playbooks appear in
+`TRAITS.md` and in the shared-traits set beside our skills and `AGENTS.md`,
+and in a report row's `also_in` like any other holder.
+
+**The step index** (`STEPS.md`, St2), generated by `build`: every playbook's
+steps with their condition, traits, calls and loads, then the traits and
+calls two or more playbooks use. The same own action in two playbooks is the
+signal to make it a skill (St4). `check` fails when the index is stale.
+
+**Step changes** (St3): `steps diff <playbook> [<base>] [<head>]` lists the
+changes between two git revisions (default: `HEAD` against the working
+tree). Steps pair one to one by what they do, not by number, so
+renumbering after an insertion is no change: identical steps (the same
+action traits, calls and loads) first, preferring the same condition, then
+the nearest position; then the rest by most shared action traits, calls and
+loads, then the same condition, then the nearest position. Two steps that do
+the same thing under the same condition are told apart only by position, and
+a split shows as one changed step plus an added one (a merge: one changed,
+one removed); no split is inferred. Order is the longest
+subsequence of paired steps kept in order, ties keeping earlier positions;
+paired steps outside it are `moved`. Each pair reports `condition`,
+`traits`, `calls` and `loads` changes; unpaired steps are `added` or
+`removed`; the playbook's `trigger` and own traits are reported too. A
+wording edit outside these fields is no change.
 
 ## 5. Ledger
 
@@ -450,7 +535,9 @@ are in §5c.
   `adopt`: the skill must keep the trait listed until it is withdrawn.
   Withdrawal is per source: withdrawing one upstream subject never forces
   removing a trait another adoption still needs. An adoption into a `doc:`
-  target needs that document's entry in `traits/ours.yaml`.
+  target needs that document to list the trait: `AGENTS.md` and a
+  `.repo-context/<file>` through their `traits/ours.yaml` entry, a playbook
+  through its frontmatter, never an entry (§4b).
 - **Corrections.** Superseded events never operate: a superseded `merge`,
   `retire` or withdrawing `update` has no effect on current checks, though
   the history block still shows it. After a `merge`, adoptions into the
@@ -543,8 +630,9 @@ is a thin entry for the `curation` package at the repo root
 | `report draft <harness> --skill <id> --with <skill\|none> [--report P] [--reconsider T …] [--refresh]` | Creates or extends a draft report with computed facts and pairing; `--refresh` recomputes them and keeps the judged fields |
 | `report seal <path>` | Freezes a report once both critics pass and every in-scope trait has its row and evidence |
 | `record … [--supersedes <id>] [--whole-skill <kind>]` | Appends one validated event to the open round (§5b); fills `source`, lifecycle inheritance and `policy_basis` |
-| `build` | Regenerates `INDEX.md`, `TRAITS.md`, `references/*.md`, every skill record and every report's `.md` |
-| `check` | Validates the ledger (schema, unique IDs, `supersedes`, sealed rounds and reports unchanged, trait rules of §5b), `skills.yaml` and the records, the trait files (§4a), sharing and policy, the reports, and that generated files are current. Warnings (retired traits still listed, unjustified shared traits, `avoid` traits we still list, changed guide rules) do not fail it |
+| `steps diff <playbook> [<base>] [<head>]` | Lists a playbook's per-step changes between two git revisions; `base` defaults to `HEAD`, `head` to the working tree (§4b) |
+| `build` | Regenerates `INDEX.md`, `TRAITS.md`, `STEPS.md`, `references/*.md`, every skill record and every report's `.md` |
+| `check` | Validates the ledger (schema, unique IDs, `supersedes`, sealed rounds and reports unchanged, trait rules of §5b), `skills.yaml` and the records, the trait files (§4a), the playbooks (§4b), sharing and policy, the reports, and that generated files are current. Warnings (retired traits still listed, unjustified shared traits, `avoid` traits we still list, changed guide rules) do not fail it |
 
 ## 7. Changing skills
 

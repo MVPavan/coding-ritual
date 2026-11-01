@@ -49,6 +49,16 @@ class RegistryConfig(StrictModel):
         return self.registry_dir / "trait-sharing.yaml"
 
     @property
+    def playbooks_dir(self) -> Path:
+        """Our playbooks, reached only through the router (unit-kinds B1)."""
+        return self.skills_dir / "mvp-mode" / "playbooks"
+
+    @property
+    def steps_md_path(self) -> Path:
+        """The generated step index (unit-kinds St2)."""
+        return self.registry_dir / "STEPS.md"
+
+    @property
     def guide_path(self) -> Path:
         """The prompting guide whose rule IDs adopt rows cite (2.9)."""
         return self.repo_root / "harness_lifecycle" / "prompting-guides" / "GUIDE.md"

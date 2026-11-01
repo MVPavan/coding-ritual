@@ -2358,7 +2358,9 @@ def test_doc_entries(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None
     (cfg.repo_root / "AGENTS.md").unlink()  # type: ignore[attr-defined]
     _fails_with(cfg, capsys, "doc:AGENTS.md: no such file")
     deep = _doc_cfg(tmp_path / "deep", "doc:docs/x.md")
-    _fails_with(deep, capsys, "a doc: key is AGENTS.md or .repo-context/<file>")
+    _fails_with(
+        deep, capsys, "a doc: key is AGENTS.md, .repo-context/<file> or a playbook"
+    )
 
 
 def test_retained_adoption_may_target_doc_agents_md(tmp_path: Path) -> None:

@@ -13,6 +13,7 @@ from curation.registry.models import (
     TraitDefinition,
     UpstreamTraitEntry,
 )
+from curation.registry.steps import Playbook
 from curation.registry.traits import _doc_traits, _ours_traits, _upstream_traits
 from curation.registry.views.index import _domain_key
 from curation.registry.vocab import DOMAIN_ORDER, STAGE_ORDER
@@ -46,9 +47,11 @@ def render_traits(
     traits: dict[str, OursTraitEntry | UpstreamTraitEntry],
     shared: dict[str, list[str]],
     sharing: dict[str, SharingEntry],
+    playbooks: dict[str, Playbook],
 ) -> str:
     """TRAITS.md: a by-skill and a by-trait view of every trait (§7), then the
-    shared traits (stages-design §Shared traits)."""
+    shared traits (stages-design §Shared traits). Playbooks are holders too,
+    under their `doc:` key (T1, T3)."""
     ours = _ours_traits(traits)
     docs = _doc_traits(traits)
     upstream = _upstream_traits(traits)
@@ -94,6 +97,15 @@ def render_traits(
             for tid in entry.traits:
                 lines.append(f"- `{tid}`: {defn(tid)}")
             lines.append("")
+    # Our playbooks: their own traits and their steps' actions (T3).
+    if playbooks:
+        lines.append("### Playbooks")
+        lines.append("")
+        for name, book in sorted(playbooks.items()):
+            lines.append(f"#### {name} — `{book.holder}`")
+            for tid in book.unit_traits():
+                lines.append(f"- `{tid}`: {defn(tid)}")
+            lines.append("")
     # Upstream, grouped by repo then placement, with the effective ruling suffix.
     by_repo: dict[str, list[tuple[str, UpstreamTraitEntry]]] = {}
     for subject, up in upstream.items():
@@ -119,6 +131,8 @@ def render_traits(
     lines.append("")
     listed = {tid for entry in ours.values() for tid in entry.traits}
     listed |= {tid for entry in docs.values() for tid in entry.traits}
+    held_by_book = {book.holder: book.unit_traits() for book in playbooks.values()}
+    listed |= {tid for ids in held_by_book.values() for tid in ids}
     listed |= {tid for entry in upstream.values() for tid in entry.newest.traits}
     all_ids = set(definitions) | listed
     ordered = sorted(
@@ -126,7 +140,7 @@ def render_traits(
         key=lambda tid: (
             _placement_key(definitions[tid].placement)
             if tid in definitions
-            else (len(DOMAIN_ORDER), len(STAGE_ORDER), ""),
+            else ((len(DOMAIN_ORDER) + 1, ""), len(STAGE_ORDER), ""),
             tid,
         ),
     )
@@ -152,6 +166,8 @@ def render_traits(
             lines.append(f"- ours: `{skill}`")
         for key in sorted(k for k, e in docs.items() if tid in e.traits):
             lines.append(f"- `{key}`")
+        for key in sorted(k for k, ids in held_by_book.items() if tid in ids):
+            lines.append(f"- playbook: `{key}`")
         for subject, up in sorted(upstream.items()):
             if tid not in up.newest.traits:
                 continue
@@ -164,7 +180,7 @@ def render_traits(
         "",
         (
             "Traits listed by two or more of our active skills (`doc:AGENTS.md` "
-            "counts); the reason lives in `trait-sharing.yaml`."
+            "and playbooks count); the reason lives in `trait-sharing.yaml`."
         ),
         "",
     ]

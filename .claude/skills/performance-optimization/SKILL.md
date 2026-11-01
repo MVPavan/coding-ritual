@@ -6,8 +6,10 @@ description: Use for measured latency, throughput, memory or cost problems, prof
 # Performance Optimization
 
 Improve a named user outcome with comparable evidence. Prose shortening and
-ordinary cleanup are outside this skill. For a newly introduced regression,
-use systematic-debugging when causal localization is the main question.
+ordinary cleanup are outside this skill. A newly introduced regression whose
+cause is the main question is a bug. To fix it, route to the bug-fix playbook:
+at top level return to `mvp-mode`; inside a delegated task, report that route to
+the parent. For the diagnosis alone, use `systematic-debugging`.
 
 1. Define the relevant metric, workload and target. If unclear, propose the
    measurement or ask about the consequential tradeoff before tuning code.

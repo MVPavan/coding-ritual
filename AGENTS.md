@@ -82,6 +82,9 @@ Deliver correct work with the smallest necessary change, done right the first ti
 
 ### New session
 
+At the start of every task, invoke the `mvp-mode` skill: it routes the task
+to a playbook, principle or skill.
+
 Read `.repo-context/repo-map.md` and `.repo-context/docs-index.md` once unless
 already supplied. The index is a routing map, not a reading list. For resumed
 work, also recover the active Bead and handoff.

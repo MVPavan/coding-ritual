@@ -28,10 +28,12 @@ from curation.registry.loaders import (
 )
 from curation.registry.reports import load_context, render_report
 from curation.registry.status import skill_statuses
+from curation.registry.steps import load_playbooks
 from curation.registry.traits import _ours_traits, _upstream_traits, shared_traits
 from curation.registry.views.index import render_index
 from curation.registry.views.records import render_record
 from curation.registry.views.references import render_reference
+from curation.registry.views.steps_md import render_steps
 from curation.registry.views.traits_md import render_traits
 from curation.scan.models import Catalog
 
@@ -64,6 +66,11 @@ def build_outputs(cfg: RegistryConfig) -> dict[Path, str]:
         raise SystemExit(
             "trait-sharing.yaml has errors; run `check`:\n" + "\n".join(sharing_errors)
         )
+    playbooks, playbook_errors = load_playbooks(cfg)
+    if playbook_errors:
+        raise SystemExit(
+            "playbooks have errors; run `check`:\n" + "\n".join(playbook_errors)
+        )
     ours_traits = _ours_traits(traits)
     upstream_traits = _upstream_traits(traits)
     outputs: dict[Path, str] = {}
@@ -86,9 +93,11 @@ def build_outputs(cfg: RegistryConfig) -> dict[Path, str]:
         forward,
         definitions,
         traits,
-        shared_traits(traits, skills),
+        shared_traits(traits, skills, playbooks),
         sharing,
+        playbooks,
     )
+    outputs[cfg.steps_md_path] = render_steps(playbooks)
     ours = build_ours(cfg)
     our_ids = ours.by_logical_id()
     normalized = _normalized_index(ours)

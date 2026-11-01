@@ -94,8 +94,10 @@ material moves to references. [data: H1 holds via standalone use]
 
 - R1. Exactly one router, `mvp-mode`; `skill-router` retires into it.
   [ruling 2026-10-31]
-- R2. Routing lines and the kind definitions (R4) only. If it disagrees with
-  `AGENTS.md`, `AGENTS.md` wins and the router is fixed. [proposed]
+- R2. Routing lines, the kind definitions (R4) and the shared rules for
+  running a playbook (B2, B3, B5, B7, R8) only. If it disagrees with
+  `AGENTS.md`, `AGENTS.md` wins and the router is fixed. [ruling: option D,
+  index and shared rules]
 - R3. Every unit is reachable from the router, in two layers:
   - **always loaded:** every playbook, every principle by its situation,
     and skills by situation where the description alone would miss or
@@ -192,6 +194,12 @@ material moves to references. [data: H1 holds via standalone use]
 - B9. A human entry is a thin alias skill that names the playbook.
   [proposed; keeps B1]
 - B10. Playbooks may call playbooks; B3 applies. [data: 4 pstack calls]
+- B11. A skill may name a playbook only as a route back through the router:
+  at top level the agent returns to `mvp-mode`; inside a delegated task it
+  reports the route to its parent (R8). A skill never starts a playbook.
+  [proposed: critic 1c]
+- B12. The step list is the playbook file's YAML frontmatter; the prose
+  steps in its body match it. [proposed: critic 1c]
 
 ### References
 
@@ -199,6 +207,8 @@ material moves to references. [data: H1 holds via standalone use]
   unconditionally. [existing: `authoring-for-agents`]
 - F2. Needed by a second unit → it becomes a skill (a job), a principle
   (judgement) or a project document (a fact). [proposed]
+- F3. A playbook's references live in `playbooks/<name>/`, beside it.
+  [proposed: critic 1c]
 
 ### Project documents
 
@@ -228,7 +238,11 @@ material moves to references. [data: H1 holds via standalone use]
 ### Steps
 
 - St1. A step's ID is local to its playbook (`bug-fix#3`). Its fields:
-  condition, actions (each with a trait), calls (each to a unit).
+  condition, actions (each with a trait), calls (each to a unit, by kind
+  and name: `skill:<name>`, `playbook:<name>`) and loads (references, by
+  path relative to the playbook). A load is not a call: B3 does not apply
+  to it. The registry identifies documents by repository path (`doc:`).
+  [calls/loads split proposed: critic 1c]
 - St2. No separate step-definitions file. The playbooks' step lists are the
   source; a generated index (like `TRAITS.md`) shows every step, its traits
   and calls, and where a trait or call recurs. [proposed]
@@ -264,6 +278,10 @@ material moves to references. [data: H1 holds via standalone use]
 
 | Date | Unit | Rule | Why | Outcome |
 |---|---|---|---|---|
+| 2026-10-31 | `mvp-mode` | R2 | It also holds the shared rules for running a playbook (B2, B3, B5, B7, R8): every playbook needs them and the router is their only always-loaded home | R2 amended: revision 1 omitted the shared rules that ruling D already put in the router; a drafting error, not a deviation |
+| 2026-10-31 | `skill-router` | R1 | Kept as a manual-only pointer to `mvp-mode`: the registry's lineage and history views match a skill's exact name and do not follow the recorded `merge` | Open: remove the pointer when the views follow merges |
+| 2026-11-01 | `harness_lifecycle/playbook.md` | B1, R3 | A playbook by behaviour, but root-only lifecycle method: moving it breaks about a dozen live references and sealed citations, and routing it from the shipped router leaks a root-only line into the plugin. AGENTS.md routes lifecycle work to it (owner ruling 2026-11-01, pstack report decision 15 (a)) | Open: a second root-only playbook for the same reason triggers a rule-change proposal (E4) |
+| 2026-11-01 | `bug-fix` playbook, step 3 | B3 | The S8 rerun called `test-driven-development` in 1 of 3 fix runs; the other two ran the test-first cycle by hand and kept the red-before-green proof (owner ruling 2026-11-01) | Open: revisit when phase 2 merges the test-driven-development skills, and rerun the S8 F3 prompts then |
 
 ## 6. Conflicts with what exists, to settle as we go
 
@@ -276,9 +294,9 @@ material moves to references. [data: H1 holds via standalone use]
    summarising this file.
 4. **Our playbooks have frontmatter step lists**, pstack's have none. The
    declaration is location plus the router's list (B1).
-5. **`mvp-mode` in the plugin.** The pstack report keeps it root-only;
-   a sticky router and an "MVP stack" plugin imply it ships. Revisit when
-   the pilots exist.
+5. **`mvp-mode` ships in the plugin** (ruling 2026-10-31; pstack report
+   revision 4). The publish script still hardcodes `skill-router`;
+   retargeting it is phase 3.
 6. **The registry tracks skills only.** T1 and the step index need registry
    support for principles and playbooks.
 7. **"Strip procedure from skills"** becomes "move order and gates across

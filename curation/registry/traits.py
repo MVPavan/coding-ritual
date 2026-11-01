@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+from collections.abc import Mapping
 from typing import Any, Literal
 
 from curation.registry.models import (
@@ -13,6 +14,7 @@ from curation.registry.models import (
     TraitDefinition,
     UpstreamTraitEntry,
 )
+from curation.registry.steps import Playbook
 
 AGENTS_DOC = "doc:AGENTS.md"
 
@@ -37,6 +39,18 @@ def _doc_traits(
         for k, v in traits.items()
         if isinstance(v, OursTraitEntry) and k.startswith("doc:")
     }
+
+
+def doc_holders(
+    traits: dict[str, OursTraitEntry | UpstreamTraitEntry],
+    playbooks: Mapping[str, Playbook],
+) -> dict[str, list[str]]:
+    """Every `doc:` holder's trait list by its full key: the `doc:` entries of
+    traits/ours.yaml, and each playbook, whose list is its frontmatter (T1,
+    T3; a ledger adopt into a playbook targets the same key)."""
+    out = {k: list(e.traits) for k, e in _doc_traits(traits).items()}
+    out.update({book.holder: book.unit_traits() for book in playbooks.values()})
+    return out
 
 
 def _doc_tree_hash(name: str, raw: bytes) -> str:
@@ -93,11 +107,12 @@ class Fact(StrictModel):
 
 def holders(
     traits: dict[str, OursTraitEntry | UpstreamTraitEntry],
+    playbooks: Mapping[str, Playbook],
 ) -> dict[str, set[str]]:
-    """Every holder's trait list: our skills by bare name, `doc:` entries by
-    their full key."""
+    """Every holder's trait list: our skills by bare name, `doc:` holders
+    (playbooks included) by their full key."""
     out = {name: set(e.traits) for name, e in _ours_traits(traits).items()}
-    out.update({key: set(e.traits) for key, e in _doc_traits(traits).items()})
+    out.update({key: set(ids) for key, ids in doc_holders(traits, playbooks).items()})
     return out
 
 
@@ -194,9 +209,11 @@ def compute_pairing(
 def shared_traits(
     traits: dict[str, OursTraitEntry | UpstreamTraitEntry],
     skills: dict[str, SkillEntry],
+    playbooks: Mapping[str, Playbook],
 ) -> dict[str, list[str]]:
     """Trait → its holders, for every trait listed by two or more of our
-    active skills, `doc:AGENTS.md` counted as a holder."""
+    active skills, `doc:AGENTS.md` and each playbook counted as holders (T1,
+    T2: the same check in a skill and a playbook is the same trait)."""
     listed: dict[str, list[str]] = {}
     for name, entry in sorted(_ours_traits(traits).items()):
         if name in skills and skills[name].status == "active":
@@ -205,6 +222,9 @@ def shared_traits(
     agents = _doc_traits(traits).get(AGENTS_DOC)
     for tid in agents.traits if agents else []:
         listed.setdefault(tid, []).append(AGENTS_DOC)
+    for book in playbooks.values():
+        for tid in book.unit_traits():
+            listed.setdefault(tid, []).append(book.holder)
     return {
         tid: sorted(names) for tid, names in sorted(listed.items()) if len(names) > 1
     }

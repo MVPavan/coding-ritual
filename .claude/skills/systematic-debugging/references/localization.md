@@ -1,7 +1,7 @@
 # Localization — finding the failing layer
 
-Load when you cannot yet name the failing component or layer — before ranking
-hypotheses (Phase 3), or when probes keep landing in the wrong place (Phase 4).
+Load when you cannot yet name the failing component or layer — before choosing
+which hypothesis to probe, or when probes keep landing in the wrong place.
 
 ## Layer tree
 
@@ -34,12 +34,12 @@ For a multi-component chain (API → service → store; CI → build → deploy)
 instrument once, then read:
 
 1. At each component boundary, log what enters and what exits, plus the
-   config/env values that should propagate. Tag every line (Phase 4 prefix).
+   config/env values that should propagate. Tag every line with the probe prefix.
 2. Run the loop **once**.
 3. Read where the chain breaks — the boundary whose input is right and output
    is wrong names the failing component.
-4. Investigate that component only. Leave the tags in place; they come out in
-   Phase 6.
+4. Investigate that component only. Leave the tags in place; they come out at
+   cleanup.
 
 ## Backward tracing to the origin
 
@@ -50,7 +50,7 @@ source of the bad value.
 2. Find the immediate cause — the code that directly raised it.
 3. Ask what called it, and what value it passed.
 4. Keep tracing up: where did the bad value *originate*?
-5. Fix at that origin — never only where the error appeared.
+5. Report that origin as the cause — not the place the error appeared.
 
 When the chain is not readable statically, capture it at the dangerous
 operation, before it runs:
@@ -81,8 +81,8 @@ git bisect run <focused test command>   # exit 0 = good, 1–124 = bad, 125 = sk
 git bisect reset
 ```
 
-Use the repository's own focused-test command (the test-driven-development
-skill's Discover-the-stack rule) — never a guessed default.
+Use the repository's own focused-test command (its verification docs) — never
+a guessed default.
 
 ## Test-pollution bisection
 

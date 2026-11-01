@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from datetime import date as date_cls
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 from curation.registry.catalogs import _catalog_subjects
 from curation.registry.config import RegistryConfig
@@ -31,13 +31,14 @@ from curation.registry.models import (
     TraitDefinition,
     UpstreamTraitEntry,
 )
+from curation.registry.steps import Playbook
 from curation.registry.traits import (
-    _doc_traits,
     _doc_tree_hash,
     _our_tree_hashes,
     _ours_traits,
     _trait_satisfied,
     _upstream_traits,
+    doc_holders,
 )
 from curation.scan.models import Catalog
 
@@ -75,17 +76,46 @@ def _check_trait_definitions(
     return errors
 
 
-def _doc_key_errors(cfg: RegistryConfig, key: str, entry: OursTraitEntry) -> list[str]:
-    """A `doc:` entry names `AGENTS.md` or a `.repo-context/<file>` that exists,
-    and its `tree_hash` is current (stages-design 1.4-1.5, check item 5)."""
-    rel = key[len("doc:") :]
+DocHolderKind = Literal["agents", "project-document", "playbook"]
+
+
+def doc_holder_kind(cfg: RegistryConfig, rel: str) -> DocHolderKind | None:
+    """What a `doc:` holder's repository path names, or None when it may hold
+    no traits: `AGENTS.md`, a flat `.repo-context/<file>` (stages-design 1.5)
+    or a playbook file (T1, T3)."""
     parts = Path(rel).parts
-    if not (
-        rel == "AGENTS.md"
-        or (len(parts) == 2 and parts[0] == ".repo-context" and ".." not in parts)
-    ):
+    if ".." in parts:
+        return None
+    if rel == "AGENTS.md":
+        return "agents"
+    if len(parts) == 2 and parts[0] == ".repo-context":
+        return "project-document"
+    playbooks = cfg.playbooks_dir.relative_to(cfg.repo_root).parts
+    if parts[:-1] == playbooks and rel.endswith(".md"):
+        return "playbook"
+    return None
+
+
+def _doc_key_errors(cfg: RegistryConfig, key: str, entry: OursTraitEntry) -> list[str]:
+    """A `doc:` entry of traits/ours.yaml names `AGENTS.md` or a
+    `.repo-context/<file>` that exists, and its `tree_hash` is current
+    (stages-design 1.4-1.5, check item 5). A playbook is a `doc:` holder too,
+    but its list is its frontmatter (St2), never an entry here."""
+    rel = key[len("doc:") :]
+    kind = doc_holder_kind(cfg, rel)
+    if kind == "playbook":
         return [
-            f"traits/ours.yaml: {key}: a doc: key is AGENTS.md or .repo-context/<file>"
+            (
+                f"traits/ours.yaml: {key}: a playbook's traits live in its "
+                f"frontmatter, not here"
+            )
+        ]
+    if kind is None:
+        return [
+            (
+                f"traits/ours.yaml: {key}: a doc: key is AGENTS.md, "
+                f".repo-context/<file> or a playbook"
+            )
         ]
     path = cfg.repo_root / rel
     if not path.is_file():
@@ -260,6 +290,7 @@ def _check_trait_level(
     retired: set[str],
     definitions: dict[str, TraitDefinition],
     traits: dict[str, OursTraitEntry | UpstreamTraitEntry],
+    playbooks: dict[str, Playbook],
 ) -> list[str]:
     """Trait-level consistency, completeness, membership and coverage (§5).
 
@@ -436,7 +467,7 @@ def _check_trait_level(
     # adoption resolves its `distinct_from`; a fulfilled pending adopt errors
     # unless it pends a rewording (3.4a). Membership is by sha, for every
     # trait event (`checks.decisions`, 3.9).
-    doc_traits = _doc_traits(traits)
+    doc_traits = doc_holders(traits, playbooks)
     for subject, event in current.items():
         if not _is_trait_subject(subject):
             continue
@@ -460,13 +491,15 @@ def _check_trait_level(
                 )
         if event.kind == "adopt" and event.pending and event.skill:
             dest = event.skill
+            listed: list[str] | None
             if ":" not in dest:
                 survivor = resolve_skill(dest, forward)
                 oentry = ours_traits.get(survivor)
+                listed = oentry.traits if oentry else None
             else:
-                survivor, oentry = dest, doc_traits.get(dest)
+                survivor, listed = dest, doc_traits.get(dest)
             target_tid = event.into or tid
-            if oentry and target_tid in oentry.traits and event.rewording is None:
+            if listed and target_tid in listed and event.rewording is None:
                 errors.append(
                     f"{event.id}: pending adopt of {subject!r} but {survivor!r} "
                     f"already lists {target_tid!r} (fulfilled: record the "
@@ -485,10 +518,10 @@ def _check_trait_level(
             doc = doc_traits.get(target)
             if doc is None:
                 errors.append(
-                    f"{adopt.id}: {target!r} has no traits/ours.yaml entry; it "
-                    f"keeps adopted trait {tid!r}"
+                    f"{adopt.id}: {target!r} has no traits/ours.yaml entry or "
+                    f"playbook; it keeps adopted trait {tid!r}"
                 )
-            elif not _trait_satisfied(tid, set(doc.traits), definitions):
+            elif not _trait_satisfied(tid, set(doc), definitions):
                 errors.append(f"{adopt.id}: trait {tid!r} is not listed by {target!r}")
             continue
         if not target or ":" in target:

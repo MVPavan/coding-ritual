@@ -1,7 +1,7 @@
 # Post-fix hardening — defense in depth
 
-Load after the fix, when the root cause was invalid data or wrong state
-crossing several layers. One validation says "we fixed the bug"; a check at
+Load at bug-fix step 6, when the confirmed cause was invalid data or wrong
+state crossing several layers. One validation says "we fixed the bug"; a check at
 every layer the value passes through says "the bug is structurally
 impossible" — alternate code paths, refactors, and mocks bypass a single check.
 
@@ -14,8 +14,8 @@ impossible" — alternate code paths, refactors, and mocks bypass a single check
 | Environment guard | forbid dangerous operations in the wrong context | refuse destructive filesystem/git/store ops outside a temp dir under test |
 | Forensic logging | capture context for the case the other layers miss | log value + caller context before the dangerous operation |
 
-In this repo, entry validation is usually a frozen pydantic model — put the
-constraint on the field so the bad value cannot be constructed at all.
+Where the project builds values through a validated model, put the entry
+constraint on the model's field so the bad value cannot be constructed at all.
 
 ```python
 def create_project(name: str, working_directory: Path) -> Project:

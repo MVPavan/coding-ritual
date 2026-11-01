@@ -340,6 +340,21 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `failed-member-recovery`: Give a failed member bounded safe recovery before treating it as missing.
 - `no-silent-substitution`: Never backfill a missing member with your own answer or a silent substitute; report the gap and whether the synthesizer saw an incomplete set.
 
+#### core · X · Coordination — mvp-mode
+- `unit-kind-lines`: Define each unit kind in one line inside the router, so a copy shipped without the repository's rules still distinguishes them.
+- `playbook-pick`: Run the playbook the user names; otherwise run the one whose router line fits the task and say which, or say none fits and work without one.
+- `need-to-skill-routing`: Map a task need to the narrowest fitting skill or command, or to no skill at all.
+- `overlap-arbitration`: Name the single owner when two skills or commands appear to overlap.
+- `layered-catalog`: Keep the always-loaded router to playbooks, principles and the skills whose descriptions would miss or collide, and load the generated full skill catalog only when unsure or asked what exists.
+- `platform-skill-invocation`: Invoke a routed skill through the platform's skill mechanism, not by reading its file, so it survives compaction and its invocation settings apply; read router-only units by path.
+- `no-playbook-in-delegate`: Inside a delegated task, route only to skills and principles and never start a playbook: the parent runs it, and the brief is its step.
+- `playbook-steps-as-todos`: Copy a playbook's steps into the todo list before any task-specific todos.
+- `recorded-step-skip`: Keep a playbook step that will not run in the todo list, marked with its reason, instead of dropping it.
+- `whole-callee`: Invoke each unit a playbook step calls whole, never skipping or overriding its core.
+- `playbook-exit`: End every playbook run, finished or stopped early, by running its closeout and then giving the reply its contract names for that exit.
+- `legacy-entrypoint-flagging`: Flag thin aliases and retired workflows so their retired steps are not recommended as automatic.
+- `catalog-trust-boundary`: Treat the generated skill catalog as canonical but not proof, verifying actual runtime discovery before relying on availability.
+
 #### core · X · Coordination — perspective-council
 - `declared-scale`: Choose and state the council's scale before dispatch, naming membership and whether peer review is included.
 - `opposing-lens-set`: Draw advisors from a fixed set of opposing lenses, each contributing a defined kind of challenge.
@@ -350,13 +365,6 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `independent-synthesis`: A fresh synthesizer that did not participate receives every member's full report and produces agreement, disputes, blind spots and a best-supported recommendation, treating agreement as no proof.
 - `no-silent-substitution`: Never backfill a missing member with your own answer or a silent substitute; report the gap and whether the synthesizer saw an incomplete set.
 - `transcript-on-request`: Save a council transcript only when it is requested.
-
-#### core · X · Coordination — skill-router
-- `need-to-skill-routing`: Map a task need to the narrowest fitting skill or command, or to no skill at all.
-- `narrowest-contract`: Default to the narrowest useful specialist contract, with clear bounded work needing no skill and the router treated as optional rather than a startup checklist.
-- `overlap-arbitration`: Name the single owner when two skills or commands appear to overlap.
-- `legacy-entrypoint-flagging`: Flag thin aliases and retired workflows so their retired steps are not recommended as automatic.
-- `catalog-trust-boundary`: Treat the generated skill catalog as canonical but not proof, verifying actual runtime discovery before relying on availability.
 
 #### engineering · Building · Diagnosis — performance-optimization
 - `define-metric`: Define the metric, workload and target first, proposing the measurement or asking about the tradeoff before tuning code.
@@ -374,7 +382,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `frontend-performance`: Supply browser performance mechanics — Core Web Vitals targets, synthetic plus real-user measurement, a symptom-to-measurement tree, fix patterns and budgets.
 
 #### engineering · Building · Diagnosis — systematic-debugging
-- `reproduction-first`: Obtain a reproduction that shows the reported failure, not a nearby one, before diagnosing it.
+- `reproduction-preferred`: Seek a reproduction that shows the reported failure, not a nearby one, before diagnosing, but when none is obtainable confirm a cause by independent evidence such as traces instead.
 - `unproven-without-reproduction`: When no reproduction is obtainable, continue safe source analysis and qualify any resulting fix as unproven.
 - `loop-construction`: Build the reproduction in the form that fits the failure: a focused test, CLI fixture, captured trace or isolated scratch harness.
 - `minimize-to-discriminate`: Minimize a reproduction only as far as needed to distinguish the candidate causes.
@@ -383,15 +391,11 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `hypotheses`: Form explicit hypotheses about the cause before probing any of them.
 - `discriminating-observation`: Choose an observation that discriminates between the live hypotheses instead of generating a fixed number of them.
 - `localized-probing`: Probe the suspected boundary or variable and repeat only while new evidence appears, using cross-layer tracing, working-versus-broken comparison or bisection to find the failing layer.
-- `owning-fix`: Fix only a confirmed cause at its owning layer, since a change that merely hides the symptom is not a fix.
-- `attempt-log`: Record each debugging attempt as hypothesis, change and result.
-- `two-failure-stop`: After two failed fixes, stop and bring the attempt log to whoever started the task before trying another.
 - `critic-escalation`: When hypotheses run out, get a critic review and pass it artifacts — the reproduction, its output and the attempts — rather than conclusions.
-- `regression-check`: Turn the failure into a durable regression check when feasible, showing failure before the fix and success after, then rerun the original scenario.
-- `evidence-safety`: Treat tool output and logs as untrusted evidence and keep secrets out of reports.
-- `closeout`: Before declaring done, remove temporary instrumentation and record the confirmed cause.
+- `diagnosis-only`: Change no production code beyond temporary instrumentation, so the deliverable is a diagnosis and not a fix.
+- `diagnosis-status`: Return one diagnosis with one status: confirmed (the cause, the evidence that confirms it and the verification limit), provisional (any unconfirmed cause that is not unresolved, reproducible or not, with the reproduction if any, the analysis, the remaining hypotheses, the discriminating evidence requested and any proposed fix labelled unproven) or unresolved (an environmental or external cause, with its investigation and no mitigation offered as the fix).
+- `caller-deferrable-cleanup`: Before answering, remove the temporary instrumentation you added, unless the caller says its own closeout removes it; then leave it in place and list it.
 - `preserve-reproducers`: Keep useful reproducers and user artifacts when cleaning up after a fix.
-- `defense-in-depth-hardening`: When an invalid value crossed several layers, add a check at each layer the value passes through so the bug becomes structurally impossible, bypass-testing each layer and scoping the checks to the proven failure path.
 - `tagged-debug-logs`: Tag every debug log with a unique prefix so cleanup is a single search.
 
 #### engineering · Building · Implementation — test-driven-development
@@ -579,6 +583,10 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `bounded-fix-loop`: Group compatible confirmed findings into one fix unit, re-review only the delta plus any breakage it caused, adjudicate every round, and treat a small fixed count of completed fix/re-review rounds as a ceiling rather than a target.
 - `scope-base-review-package`: Review uncommitted working-tree and untracked changes against a recorded base revision by passing the authorized owned-path list, never attributing a baseline-dirty file's whole diff to the task.
 - `delegated-report-recovery`: Interpret each delegated worker's status (done, done-with-concerns, needs-context, blocked) and recover by supplying context, splitting, debugging or replanning, since bare repetition is not recovery.
+- `confirmed-cause-fix`: Fix a failure only for a cause its diagnosis confirmed.
+- `regression-proof-and-rerun`: Prove a fix with a regression check when one is feasible, then rerun the original failing scenario.
+- `attempt-log`: Record each debugging attempt as hypothesis, change and result.
+- `two-failure-stop`: After two failed fixes, stop and bring the attempt log to whoever started the task before trying another.
 
 ### Docs
 
@@ -689,6 +697,22 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `generated-mirror-read-only`: Treat generated tracking mirrors as read-only.
 - `plain-path-references`: Keep conditional references as plain paths, never automatic imports.
 - `durable-work-tracking`: Track durable work in the project's issue tracker.
+- `router-at-task-start`: Invoke the router at the start of every task, so routing is loaded on any vendor and comes back after compaction.
+
+### Playbooks
+
+#### bug-fix — `doc:.claude/skills/mvp-mode/playbooks/bug-fix.md`
+- `confirmed-cause-gate`: Change production code only for a confirmed cause, and reject any change that merely hides the symptom.
+- `obvious-cause-skip`: Skip the diagnosis only when a deterministic failing command, run as reported, shows the failure and its output points at the cause, never for a flaky failure or a cause found by reading code or rerunning in a loop.
+- `existing-check-as-proof`: When the failing check that showed the bug already fails for the reported reason, use it as the regression check and show it passing after the fix.
+- `report-missing-proof`: When no regression check is feasible for a confirmed cause, make the fix anyway and report that its proof is missing.
+- `rerun-original-repro`: Rerun the original scenario as reported and the touched checks, and report an inconclusive or unavailable rerun as such, never as a pass.
+- `attempt-log`: Record each debugging attempt as hypothesis, change and result.
+- `revert-ineffective-experiments`: Remove your own ineffective experimental edits, preserving all other work.
+- `two-failure-stop`: After two failed fixes, stop and bring the attempt log to whoever started the task before trying another.
+- `defense-in-depth-hardening`: When an invalid value crossed several layers, add a check at each layer the value passes through so the bug becomes structurally impossible, bypass-testing each layer and scoping the checks to the proven failure path.
+- `closeout`: Before declaring done, remove temporary instrumentation and record the confirmed cause.
+- `preserve-reproducers`: Keep useful reproducers and user artifacts when cleaning up after a fix.
 
 ### mattpocock_skills
 
@@ -2860,7 +2884,7 @@ Read every selectable model, effort, capability and skill value from the single 
 
 #### `catalog-trust-boundary`
 Treat the generated skill catalog as canonical but not proof, verifying actual runtime discovery before relying on availability.
-- ours: `skill-router`
+- ours: `mvp-mode`
 
 #### `configured-model-use`
 Use the configured models and reasoning effort rather than choosing your own.
@@ -2957,9 +2981,13 @@ Inherit the session model and effort defaults when none is requested.
 #### `layer-placement`
 Separate the invocation layer's small accepted field set from the definition layer, which alone carries effort, tools, permissions, memory, skills, MCP and full model IDs.
 
+#### `layered-catalog`
+Keep the always-loaded router to playbooks, principles and the skills whose descriptions would miss or collide, and load the generated full skill catalog only when unsure or asked what exists.
+- ours: `mvp-mode`
+
 #### `legacy-entrypoint-flagging`
 Flag thin aliases and retired workflows so their retired steps are not recommended as automatic.
-- ours: `skill-router`
+- ours: `mvp-mode`
 
 #### `member-isolation`
 Give each member the shared brief in isolation so none sees another's response; sequential dispatch is allowed.
@@ -2976,11 +3004,10 @@ Refuse a generated model list when the vendor fetch behind it is missing or olde
 
 #### `narrowest-contract`
 Default to the narrowest useful specialist contract, with clear bounded work needing no skill and the router treated as optional rather than a startup checklist.
-- ours: `skill-router`
 
 #### `need-to-skill-routing`
 Map a task need to the narrowest fitting skill or command, or to no skill at all.
-- ours: `skill-router`
+- ours: `mvp-mode`
 
 #### `neutral-framing`
 Frame one neutral shared brief for every member, stating the question, constraints and uncertainty with no preferred conclusion.
@@ -2998,6 +3025,10 @@ Do not also do work that has been delegated.
 A delegated worker does not hand its work on to further agents unless its brief allows it.
 - ours: `delegation`
 
+#### `no-playbook-in-delegate`
+Inside a delegated task, route only to skills and principles and never start a playbook: the parent runs it, and the brief is its step.
+- ours: `mvp-mode`
+
 #### `no-silent-substitution`
 Never backfill a missing member with your own answer or a silent substitute; report the gap and whether the synthesizer saw an incomplete set.
 - ours: `model-council`
@@ -3009,11 +3040,27 @@ Draw advisors from a fixed set of opposing lenses, each contributing a defined k
 
 #### `overlap-arbitration`
 Name the single owner when two skills or commands appear to overlap.
-- ours: `skill-router`
+- ours: `mvp-mode`
 
 #### `owner-roster`
 Take each role's vendor, model and settings from the owner's roster, let a model the owner names override it for one dispatch, and ask the owner when neither exists rather than choosing.
 - ours: `delegation`
+
+#### `platform-skill-invocation`
+Invoke a routed skill through the platform's skill mechanism, not by reading its file, so it survives compaction and its invocation settings apply; read router-only units by path.
+- ours: `mvp-mode`
+
+#### `playbook-exit`
+End every playbook run, finished or stopped early, by running its closeout and then giving the reply its contract names for that exit.
+- ours: `mvp-mode`
+
+#### `playbook-pick`
+Run the playbook the user names; otherwise run the one whose router line fits the task and say which, or say none fits and work without one.
+- ours: `mvp-mode`
+
+#### `playbook-steps-as-todos`
+Copy a playbook's steps into the todo list before any task-specific todos.
+- ours: `mvp-mode`
 
 #### `pointer-only-subagent-briefs`
 Keep subagent communication sparse by passing pointers to the spec, tickets, notes and commits rather than copying their content.
@@ -3040,6 +3087,10 @@ Defer the human checkpoint as far as it will go, doing maximal work first so the
 Read a skill's own instructions before describing what it does or recommending its step be skipped, treating router summaries as orientation only.
 - `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
 
+#### `recorded-step-skip`
+Keep a playbook step that will not run in the todo list, marked with its reason, instead of dropping it.
+- ours: `mvp-mode`
+
 #### `repeated-procedures`
 Capture short repeated runs as disposable wisps and fixed multi-step procedures as poured formulas, checking what the tracker actually parsed.
 - ours: `beads`
@@ -3054,6 +3105,10 @@ Report which values were selected from the catalog, accepted by the active surfa
 #### `role-contracts`
 Give each delegated role a fixed contract of access, duties and report shape, and carry it inside the brief because the worker may not load the delegating instructions.
 - ours: `delegation`
+
+#### `router-at-task-start`
+Invoke the router at the start of every task, so routing is loaded on any vendor and comes back after compaction.
+- `doc:AGENTS.md`
 
 #### `runtime-capability-check`
 Verify actual runtime dispatch interfaces before assuming cross-provider access from a model name or placing effort only in prose when a runtime control exists.
@@ -3082,6 +3137,10 @@ Route a spawn through one of three paths — the Agent tool, an ephemeral inline
 Save a council transcript only when it is requested.
 - ours: `perspective-council`
 
+#### `unit-kind-lines`
+Define each unit kind in one line inside the router, so a copy shipped without the repository's rules still distinguishes them.
+- ours: `mvp-mode`
+
 #### `validate-selection`
 Validate every selected spawn dimension deterministically before spawning, rejecting any value the catalog does not declare rather than substituting a nearby one.
 - ours: `delegation`
@@ -3093,6 +3152,10 @@ Take the selectable models and efforts from each vendor's own source (its live c
 #### `vendor-owned-dispatch`
 Dispatch through the chosen vendor's own tools and follow their rules, adding no process around a vendor's own orchestrator.
 - ours: `delegation`
+
+#### `whole-callee`
+Invoke each unit a playbook step calls whole, never skipping or overriding its core.
+- ours: `mvp-mode`
 
 #### `work-while-waiting`
 Keep doing independent work while a question waits for an answer.
@@ -4418,7 +4481,8 @@ Keep a compact baseline-to-result attempt record with decision and reason so fai
 
 #### `attempt-log`
 Record each debugging attempt as hypothesis, change and result.
-- ours: `systematic-debugging`
+- ours: `execution`
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/bug-fix.md`
 
 #### `baseline`
 Capture a baseline measurement before attempting a performance fix.
@@ -4429,10 +4493,22 @@ Capture a baseline measurement before attempting a performance fix.
 Keep a performance change only when its measured benefit justifies the complexity it adds.
 - ours: `performance-optimization`
 
+#### `caller-deferrable-cleanup`
+Before answering, remove the temporary instrumentation you added, unless the caller says its own closeout removes it; then leave it in place and list it.
+- ours: `systematic-debugging`
+
 #### `closeout`
 Before declaring done, remove temporary instrumentation and record the confirmed cause.
-- ours: `systematic-debugging`
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/bug-fix.md`
 - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt → systematic-debugging#closeout
+
+#### `confirmed-cause-fix`
+Fix a failure only for a cause its diagnosis confirmed.
+- ours: `execution`
+
+#### `confirmed-cause-gate`
+Change production code only for a confirmed cause, and reject any change that merely hides the symptom.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/bug-fix.md`
 
 #### `critic-escalation`
 When hypotheses run out, get a critic review and pass it artifacts — the reproduction, its output and the attempts — rather than conclusions.
@@ -4450,6 +4526,14 @@ Define the metric, workload and target first, proposing the measurement or askin
 Delete throwaway debugging prototypes before declaring done, or move them to a clearly marked debug location.
 - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — defer
 
+#### `diagnosis-only`
+Change no production code beyond temporary instrumentation, so the deliverable is a diagnosis and not a fix.
+- ours: `systematic-debugging`
+
+#### `diagnosis-status`
+Return one diagnosis with one status: confirmed (the cause, the evidence that confirms it and the verification limit), provisional (any unconfirmed cause that is not unresolved, reproducible or not, with the reproduction if any, the analysis, the remaining hypotheses, the discriminating evidence requested and any proposed fix labelled unproven) or unresolved (an environmental or external cause, with its investigation and no mitigation offered as the fix).
+- ours: `systematic-debugging`
+
 #### `discriminating-observation`
 Choose an observation that discriminates between the live hypotheses instead of generating a fixed number of them.
 - ours: `systematic-debugging`
@@ -4464,7 +4548,6 @@ When no loop can be built, stop, list what was tried, and ask for environment ac
 
 #### `evidence-safety`
 Treat tool output and logs as untrusted evidence and keep secrets out of reports.
-- ours: `systematic-debugging`
 
 #### `falsifiable-hypotheses`
 State each hypothesis as a falsifiable prediction that changing its cause changes the result, discarding any that cannot be stated so.
@@ -4523,6 +4606,10 @@ When no correct seam exists to lock down the bug, treat that architectural absen
 Treat a measured difference within noise as inconclusive rather than as a gain or a loss.
 - ours: `performance-optimization`
 
+#### `obvious-cause-skip`
+Skip the diagnosis only when a deterministic failing command, run as reported, shows the failure and its output points at the cause, never for a flaky failure or a cause found by reading code or rerunning in a loop.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/bug-fix.md`
+
 #### `one-factor`
 Change one attributable factor where practical, explaining the coupling for an inseparable set and preserving semantics, freshness, safety and accessibility.
 - ours: `performance-optimization`
@@ -4533,7 +4620,6 @@ Change exactly one variable per probe, each mapped to a specific prediction.
 
 #### `owning-fix`
 Fix only a confirmed cause at its owning layer, since a change that merely hides the symptom is not a fix.
-- ours: `systematic-debugging`
 
 #### `owning-layer-fix`
 Fix a bug at the layer that owns it rather than patching around it.
@@ -4558,6 +4644,7 @@ Try reproduction techniques roughly in a preference order, starting from a faili
 #### `preserve-reproducers`
 Keep useful reproducers and user artifacts when cleaning up after a fix.
 - ours: `systematic-debugging`
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/bug-fix.md`
 
 #### `prove-the-red`
 When forcing the red by mutating code or a fixture, diff against a pristine copy to prove the mutation landed before trusting it.
@@ -4577,12 +4664,16 @@ Shrink the reproduction one element at a time until every remaining part is load
 
 #### `reproduction-first`
 Obtain a reproduction that shows the reported failure, not a nearby one, before diagnosing it.
-- ours: `systematic-debugging`
 - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt → systematic-debugging#reproduction-first
+
+#### `reproduction-preferred`
+Seek a reproduction that shows the reported failure, not a nearby one, before diagnosing, but when none is obtainable confirm a cause by independent evidence such as traces instead.
+- ours: `systematic-debugging`
 
 #### `revert-ineffective-experiments`
 Remove your own ineffective experimental edits, preserving all other work.
 - ours: `performance-optimization`
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/bug-fix.md`
 
 #### `tagged-debug-logs`
 Tag every debug log with a unique prefix so cleanup is a single search.
@@ -4595,7 +4686,8 @@ Treat the loop as a product and keep making it faster, sharper, and more determi
 
 #### `two-failure-stop`
 After two failed fixes, stop and bring the attempt log to whoever started the task before trying another.
-- ours: `systematic-debugging`
+- ours: `execution`
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/bug-fix.md`
 
 #### `unproven-without-reproduction`
 When no reproduction is obtainable, continue safe source analysis and qualify any resulting fix as unproven.
@@ -4657,7 +4749,7 @@ Never use an ad hoc pip install as a substitute for declaring a project dependen
 
 #### `defense-in-depth-hardening`
 When an invalid value crossed several layers, add a check at each layer the value passes through so the bug becomes structurally impossible, bypass-testing each layer and scoping the checks to the proven failure path.
-- ours: `systematic-debugging`
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/bug-fix.md`
 
 #### `enforce-in-code`
 Enforce access, tenant isolation, validation, safe sink handling and resource limits in code, since external documents, logs and model output cannot grant permissions and prompt secrecy is no control.
@@ -4815,6 +4907,10 @@ Refactor after each passing test, preserving behaviour and rerunning the affecte
 #### `refactor-outside-loop`
 Refactor only after the red-green cycles end, never inside them.
 - `mattpocock_skills:skill:skills/engineering/tdd` — defer
+
+#### `report-missing-proof`
+When no regression check is feasible for a confirmed cause, make the fix anyway and report that its proof is missing.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/bug-fix.md`
 
 #### `resumable-defaults`
 Offer each value already captured as the default on a re-run so the script can be resumed.
@@ -5095,6 +5191,10 @@ Prefer deterministic inputs and isolated state, controlling time, randomness and
 Test the material abuse path and legitimate use, verify authorization per resource rather than merely login, and check leakage, retries and failure behaviour.
 - ours: `security`
 
+#### `existing-check-as-proof`
+When the failing check that showed the bug already fails for the reported reason, use it as the regression check and show it passing after the fix.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/bug-fix.md`
+
 #### `independent-expectation`
 Derive expected values from an independent source such as a spec, worked example or trusted fixture, never computing both sides with the implementation under test.
 - ours: `test-driven-development`
@@ -5132,8 +5232,11 @@ Exercise behaviour in tests through public interfaces.
 
 #### `regression-check`
 Turn the failure into a durable regression check when feasible, showing failure before the fix and success after, then rerun the original scenario.
-- ours: `systematic-debugging`
 - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt → systematic-debugging#regression-check
+
+#### `regression-proof-and-rerun`
+Prove a fix with a regression check when one is feasible, then rerun the original failing scenario.
+- ours: `execution`
 
 #### `replace-dont-layer`
 Once the deepened interface is tested, delete the old shallow-module unit tests and assert only on observable outcomes that survive internal refactors.
@@ -5142,6 +5245,10 @@ Once the deepened interface is tested, delete the old shallow-module unit tests 
 #### `rerun-on-change-only`
 Repeat or broaden checks only for new changes, failures or unresolved risk.
 - `doc:AGENTS.md`
+
+#### `rerun-original-repro`
+Rerun the original scenario as reported and the touched checks, and report an inconclusive or unavailable rerun as such, never as a pass.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/bug-fix.md`
 
 #### `reuse-test-fixtures`
 Reuse the repository's existing test fixtures and markers.
@@ -5467,10 +5574,11 @@ Supply backend tool mechanics for measurement — monotonic timing, sampling and
 
 ## Shared traits
 
-Traits listed by two or more of our active skills (`doc:AGENTS.md` counts); the reason lives in `trait-sharing.yaml`.
+Traits listed by two or more of our active skills (`doc:AGENTS.md` and playbooks count); the reason lives in `trait-sharing.yaml`.
 
 | Trait | Holders | Why |
 |---|---|---|
+| `attempt-log` | doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, execution | Each fixes a failure on its own path, the bug-fix playbook for a bug-fix request and execution inside a task it is running, often delegated, where it cannot start the playbook (R8); both log each fix attempt so a stop hands back usable evidence. |
 | `canonical-term-and-aliases` | domain-modeling, teach | Each keeps a glossary of its own (project language, the learner's workspace) in one entry format, with its own admission rules. |
 | `dependency-edges` | planning, wayfinder | Each builds its own tracker graph, planning for implementation stages and wayfinder for decision tickets, and lets readiness drive the work; edge semantics stay in beads. |
 | `domain-vocabulary` | i-have-adhd, teach | Each writes for its reader in the project's own terms, i-have-adhd in its re-pitches and teach in its lessons. |
@@ -5485,10 +5593,13 @@ Traits listed by two or more of our active skills (`doc:AGENTS.md` counts); the 
 | `no-stale-code-snippets` | brainstorming, planning | Each owns a different durable artifact, a spec or a plan, and its own template must keep code out. |
 | `optional-record-sections` | domain-modeling, teach | Each keeps its own record folder (ADRs, learning records) in one minimal format. |
 | `pin-preserving-fetch` | harness-scan, harness-status | Both run the fetching drift command themselves, so each must state that a fetch never moves pins and that --no-fetch skips the network. |
+| `preserve-reproducers` | doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, systematic-debugging | Each cleans up after its own work: the diagnosis when called alone, the bug-fix playbook at its closeout on every exit. Both keep reproducers, so neither cleanup deletes the evidence the other relies on. |
 | `question-batching` | brainstorming, grilling | Brainstorming asks the owner questions inside its own exploration; grilling's rules live inside its interview loop, so pointing there would pull brainstorming into that loop. |
 | `real-id-wiring` | planning, wayfinder | Both create beads and then wire edges between the IDs they just created, each inside its own seeding procedure. |
 | `recommended-answer` | brainstorming, grilling | As question-batching: a short rule each skill applies inside its own flow. |
+| `revert-ineffective-experiments` | doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, performance-optimization | Each runs its own loop of attempts, fix attempts in the bug-fix playbook and optimization experiments in performance-optimization, and removes its own failed edits before the next attempt. |
 | `self-serve-facts` | brainstorming, grilling | As question-batching: a short rule each skill applies inside its own flow. |
 | `sequential-record-numbering` | domain-modeling, teach | Each keeps its own record folder (ADRs, learning records) in one minimal format. |
 | `settled-stop` | brainstorming, grilling | As question-batching: each skill stops its own questioning when its decisions are settled. |
 | `tight-concept-definitions` | domain-modeling, teach | Each keeps a glossary of its own (project language, the learner's workspace) in one entry format, with its own admission rules. |
+| `two-failure-stop` | doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, execution | Each fixes a failure on its own path, the bug-fix playbook for a bug-fix request and execution inside a task it is running, often delegated, where it cannot start the playbook (R8); both stop after two failed fixes and return the attempt log, the playbook to the user and execution to the task owner. |

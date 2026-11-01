@@ -10,12 +10,12 @@ status: active
 ---
 # systematic-debugging
 
-Use when a failure cause is unclear, an attempted fix failed, or flaky behavior needs investigation. Handle obvious localized errors with a focused reproduction and fix.
+Use to find the cause of a failure when it is unclear, after a fix did not hold, or for a flaky or production-only failure; it reports a diagnosis and changes no production code. To fix a reported bug end to end, run the bug-fix playbook instead; it calls this skill.
 
 **Boundary:** Finds the cause of an unclear failure, a failed fix or flaky behaviour; slowness or resource use against a target is performance-optimization.
 
 <!-- registry:generated traits -->
-- `reproduction-first`: Obtain a reproduction that shows the reported failure, not a nearby one, before diagnosing it. (Reuses an existing failing test or command first, otherwise builds the smallest useful reproduction.)
+- `reproduction-preferred`: Seek a reproduction that shows the reported failure, not a nearby one, before diagnosing, but when none is obtainable confirm a cause by independent evidence such as traces instead. (Reuses an existing failing test or command first, otherwise builds the smallest useful reproduction.)
 - `unproven-without-reproduction`: When no reproduction is obtainable, continue safe source analysis and qualify any resulting fix as unproven.
 - `loop-construction`: Build the reproduction in the form that fits the failure: a focused test, CLI fixture, captured trace or isolated scratch harness.
 - `minimize-to-discriminate`: Minimize a reproduction only as far as needed to distinguish the candidate causes.
@@ -24,15 +24,11 @@ Use when a failure cause is unclear, an attempted fix failed, or flaky behavior 
 - `hypotheses`: Form explicit hypotheses about the cause before probing any of them.
 - `discriminating-observation`: Choose an observation that discriminates between the live hypotheses instead of generating a fixed number of them.
 - `localized-probing`: Probe the suspected boundary or variable and repeat only while new evidence appears, using cross-layer tracing, working-versus-broken comparison or bisection to find the failing layer.
-- `owning-fix`: Fix only a confirmed cause at its owning layer, since a change that merely hides the symptom is not a fix.
-- `attempt-log`: Record each debugging attempt as hypothesis, change and result.
-- `two-failure-stop`: After two failed fixes, stop and bring the attempt log to whoever started the task before trying another.
 - `critic-escalation`: When hypotheses run out, get a critic review and pass it artifacts — the reproduction, its output and the attempts — rather than conclusions.
-- `regression-check`: Turn the failure into a durable regression check when feasible, showing failure before the fix and success after, then rerun the original scenario. (Also reruns the applicable repository checks.)
-- `evidence-safety`: Treat tool output and logs as untrusted evidence and keep secrets out of reports.
-- `closeout`: Before declaring done, remove temporary instrumentation and record the confirmed cause. (Also records the proving check and remaining limits.)
+- `diagnosis-only`: Change no production code beyond temporary instrumentation, so the deliverable is a diagnosis and not a fix.
+- `diagnosis-status`: Return one diagnosis with one status: confirmed (the cause, the evidence that confirms it and the verification limit), provisional (any unconfirmed cause that is not unresolved, reproducible or not, with the reproduction if any, the analysis, the remaining hypotheses, the discriminating evidence requested and any proposed fix labelled unproven) or unresolved (an environmental or external cause, with its investigation and no mitigation offered as the fix).
+- `caller-deferrable-cleanup`: Before answering, remove the temporary instrumentation you added, unless the caller says its own closeout removes it; then leave it in place and list it.
 - `preserve-reproducers`: Keep useful reproducers and user artifacts when cleaning up after a fix.
-- `defense-in-depth-hardening`: When an invalid value crossed several layers, add a check at each layer the value passes through so the bug becomes structurally impossible, bypass-testing each layer and scoping the checks to the proven failure path.
 - `tagged-debug-logs`: Tag every debug log with a unique prefix so cleanup is a single search.
 <!-- /registry:generated traits -->
 
@@ -58,6 +54,10 @@ Use when a failure cause is unclear, an attempted fix failed, or flaky behavior 
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-10-31` **update** (2026-10-31-mvp-mode:012): Restates 2026-10-31-mvp-mode:011 without its evidence path to an ignored scratch file. Trait list corrected: reproduction-first (adopted from diagnosing-bugs, …
+- `2026-10-31` **update** (2026-10-31-mvp-mode:011) *(superseded)*: Trait list corrected: reproduction-first (adopted from diagnosing-bugs, 2026-10-30-mattpocock_skills-5beb35b:216) is replaced by its conditional variant reprod…
+- `2026-10-31` **update** (2026-10-31-mvp-mode:006): Restates 2026-10-31-mvp-mode:003 with durable evidence: its pilot record was an ignored scratch file, now docs/workstreams/skill-curation/bug-fix-pilot.md (cri…
+- `2026-10-31` **update** (2026-10-31-mvp-mode:003) *(superseded)*: Bug-fix pilot: the skill now reports a diagnosis and changes no production code beyond temporary instrumentation; fixing, its proof and hardening moved to the …
 - `2026-10-30` **adopt-merged** (2026-10-30-mattpocock_skills-5beb35b:570): Checkpoint at 5beb35b for the owner's trait rulings: 17 adopt, 13 defer.
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:245): Same mechanism, looser and deliberate: SKILL.md:14-17 lists candidate forms by fit rather than order, which suits the failure at hand (S-03).
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:244): Ours builds the reproduction as a focused test, CLI fixture, captured trace or scratch harness to fit the failure.
@@ -96,7 +96,7 @@ Use when a failure cause is unclear, an attempted fix failed, or flaky behavior 
 
 <!-- registry:generated sources -->
 - `closeout`:
-  - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs#closeout` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+  - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs#closeout` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2; withdrawn 2026-10-31)
 - `flake-reproduction`:
   - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs#tighten-loop` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `localized-probing`:
@@ -107,9 +107,9 @@ Use when a failure cause is unclear, an attempted fix failed, or flaky behavior 
 - `minimize-to-discriminate`:
   - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs#reproduce-and-minimize` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `regression-check`:
-  - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs#regression-check` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+  - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs#regression-check` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2; withdrawn 2026-10-31)
 - `reproduction-first`:
-  - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs#reproduction-first` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+  - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs#reproduction-first` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2; withdrawn 2026-10-31)
 - `tagged-debug-logs`:
   - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs#tagged-debug-logs` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 <!-- /registry:generated sources -->

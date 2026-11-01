@@ -974,6 +974,40 @@ cross-family-review:
 session-resume-followup:
   definition: "Send a follow-up to a worker by resuming its own session rather than starting a fresh one."
   placement: {domain: core, stage: X, substage: Coordination}
+router-at-task-start:
+  definition: "Invoke the router at the start of every task, so routing is loaded on any vendor and comes back after compaction."
+  placement: {domain: core, stage: X, substage: Coordination}
+unit-kind-lines:
+  definition: "Define each unit kind in one line inside the router, so a copy shipped without the repository's rules still distinguishes them."
+  placement: {domain: core, stage: X, substage: Coordination}
+layered-catalog:
+  definition: "Keep the always-loaded router to playbooks, principles and the skills whose descriptions would miss or collide, and load the generated full skill catalog only when unsure or asked what exists."
+  placement: {domain: core, stage: X, substage: Coordination}
+playbook-pick:
+  definition: "Run the playbook the user names; otherwise run the one whose router line fits the task and say which, or say none fits and work without one."
+  placement: {domain: core, stage: X, substage: Coordination}
+platform-skill-invocation:
+  definition: "Invoke a routed skill through the platform's skill mechanism, not by reading its file, so it survives compaction and its invocation settings apply; read router-only units by path."
+  placement: {domain: core, stage: X, substage: Coordination}
+no-playbook-in-delegate:
+  definition: "Inside a delegated task, route only to skills and principles and never start a playbook: the parent runs it, and the brief is its step."
+  placement: {domain: core, stage: X, substage: Coordination}
+playbook-steps-as-todos:
+  definition: "Copy a playbook's steps into the todo list before any task-specific todos."
+  placement: {domain: core, stage: X, substage: Coordination}
+recorded-step-skip:
+  definition: "Keep a playbook step that will not run in the todo list, marked with its reason, instead of dropping it."
+  placement: {domain: core, stage: X, substage: Coordination}
+  distinct_from: [justified-phase-skip]
+  note: "justified-phase-skip guards the phases of one diagnosis; this keeps any skipped playbook step visible with its reason."
+whole-callee:
+  definition: "Invoke each unit a playbook step calls whole, never skipping or overriding its core."
+  placement: {domain: core, stage: X, substage: Coordination}
+playbook-exit:
+  definition: "End every playbook run, finished or stopped early, by running its closeout and then giving the reply its contract names for that exit."
+  placement: {domain: core, stage: X, substage: Coordination}
+  distinct_from: [closeout]
+  note: "closeout ends a diagnosis by removing instrumentation and recording the cause; this makes every playbook exit run that playbook's own closeout and reply."
 
 # ---- core · X · Continuity ----
 actor-identity:
@@ -2190,6 +2224,11 @@ ledger-view-no-hand-edit:
   placement: {domain: engineering, stage: Building, substage: Implementation}
   distinct_from: [workstream-render, never-edit-build-output, generated-human-view]
   note: "workstream-render and never-edit-build-output cover tracker boards and the shipped plugin; generated-human-view produces the view; this only forbids editing it."
+report-missing-proof:
+  definition: "When no regression check is feasible for a confirmed cause, make the fix anyway and report that its proof is missing."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+  distinct_from: [proof-discipline]
+  note: "proof-discipline keeps before-and-after evidence and never destroys edits to recreate RED; this allows a fix with no feasible check and requires disclosing the missing proof."
 
 # ---- engineering · Building · Diagnosis ----
 attempt-ledger:
@@ -2347,6 +2386,11 @@ reproduction-first:
   placement: {domain: engineering, stage: Building, substage: Diagnosis}
   distinct_from: [phase1-completion-criterion]
   note: "Obtains a reproduction before diagnosing; phase1-completion-criterion hard-gates every hypothesis on one already-run, deterministic, fast command."
+reproduction-preferred:
+  definition: "Seek a reproduction that shows the reported failure, not a nearby one, before diagnosing, but when none is obtainable confirm a cause by independent evidence such as traces instead."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [reproduction-first, unproven-without-reproduction]
+  note: "reproduction-first requires the reproduction before diagnosis; this seeks one first and accepts independent evidence as the other route to a confirmed cause. unproven-without-reproduction covers the analysis that continues without one and the unproven label."
 tagged-debug-logs:
   definition: "Tag every debug log with a unique prefix so cleanup is a single search."
   placement: {domain: engineering, stage: Building, substage: Diagnosis}
@@ -2365,6 +2409,46 @@ owning-layer-fix:
   placement: {domain: engineering, stage: Building, substage: Diagnosis}
   distinct_from: [owning-fix]
   note: "owning-fix also requires a confirmed cause; this sets only where the fix goes."
+confirmed-cause-gate:
+  definition: "Change production code only for a confirmed cause, and reject any change that merely hides the symptom."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [owning-fix]
+  note: "owning-fix also puts the fix at its owning layer; this gate leaves the layer to owning-layer-fix in AGENTS.md."
+obvious-cause-skip:
+  definition: "Skip the diagnosis only when a deterministic failing command, run as reported, shows the failure and its output points at the cause, never for a flaky failure or a cause found by reading code or rerunning in a loop."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [justified-phase-skip]
+  note: "justified-phase-skip skips one diagnosis phase on any stated reason; this skips the whole diagnosis on this one condition."
+existing-check-as-proof:
+  definition: "When the failing check that showed the bug already fails for the reported reason, use it as the regression check and show it passing after the fix."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [regression-check, original-failure-check]
+  note: "regression-check turns the failure into a new durable check and reruns the original scenario; original-failure-check sets only what a bug's check must detect; this reuses a check that already fails as the proof."
+confirmed-cause-fix:
+  definition: "Fix a failure only for a cause its diagnosis confirmed."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [confirmed-cause-gate, owning-fix]
+  note: "confirmed-cause-gate also rejects any change that merely hides the symptom; owning-fix also puts the fix at its owning layer; this is the confirmation condition alone."
+regression-proof-and-rerun:
+  definition: "Prove a fix with a regression check when one is feasible, then rerun the original failing scenario."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [regression-check, rerun-original-repro]
+  note: "regression-check also requires showing the check fail before the fix; rerun-original-repro also reruns the touched checks and reports an inconclusive or unavailable rerun as never a pass."
+diagnosis-status:
+  definition: "Return one diagnosis with one status: confirmed (the cause, the evidence that confirms it and the verification limit), provisional (any unconfirmed cause that is not unresolved, reproducible or not, with the reproduction if any, the analysis, the remaining hypotheses, the discriminating evidence requested and any proposed fix labelled unproven) or unresolved (an environmental or external cause, with its investigation and no mitigation offered as the fix)."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [environmental-cause-unresolved, unproven-without-reproduction]
+  note: "The deliverable's statuses; environmental-cause-unresolved is the stricter procedure for claiming an environmental cause, and unproven-without-reproduction is continuing analysis when nothing reproduces."
+diagnosis-only:
+  definition: "Change no production code beyond temporary instrumentation, so the deliverable is a diagnosis and not a fix."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [read-only-isolation]
+  note: "read-only-isolation keeps the checkout unchanged; this allows temporary instrumentation in production code."
+caller-deferrable-cleanup:
+  definition: "Before answering, remove the temporary instrumentation you added, unless the caller says its own closeout removes it; then leave it in place and list it."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [closeout]
+  note: "closeout always removes instrumentation before done and records a confirmed cause; this lets a caller own the removal, and the status reached is diagnosis-status."
 
 # ---- engineering · Verification · Testing ----
 break-naming-validation:
@@ -2450,6 +2534,11 @@ risk-gated-test-first:
   placement: {domain: engineering, stage: Verification, substage: Testing}
   distinct_from: [mode-selection, red-green, test-first-marking]
   note: "mode-selection chooses among workflows; red-green always fails a test first; test-first-marking marks a plan; this requires a test first only when the change is risky."
+rerun-original-repro:
+  definition: "Rerun the original scenario as reported and the touched checks, and report an inconclusive or unavailable rerun as such, never as a pass."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [regression-check]
+  note: "regression-check also turns the failure into a durable check that fails before the fix and passes after; this is the rerun alone (study H7)."
 
 # ---- engineering · Verification · Review ----
 actionable-defects-only:

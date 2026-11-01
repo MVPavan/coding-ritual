@@ -88,3 +88,19 @@ optional-record-sections:
   skills: [domain-modeling, teach]
   why: "Each keeps its own record folder (ADRs, learning records) in one minimal format."
   reviewed: "2026-10-30"
+preserve-reproducers:
+  skills: [doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, systematic-debugging]
+  why: "Each cleans up after its own work: the diagnosis when called alone, the bug-fix playbook at its closeout on every exit. Both keep reproducers, so neither cleanup deletes the evidence the other relies on."
+  reviewed: "2026-10-31"
+revert-ineffective-experiments:
+  skills: [doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, performance-optimization]
+  why: "Each runs its own loop of attempts, fix attempts in the bug-fix playbook and optimization experiments in performance-optimization, and removes its own failed edits before the next attempt."
+  reviewed: "2026-10-31"
+attempt-log:
+  skills: [doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, execution]
+  why: "Each fixes a failure on its own path, the bug-fix playbook for a bug-fix request and execution inside a task it is running, often delegated, where it cannot start the playbook (R8); both log each fix attempt so a stop hands back usable evidence."
+  reviewed: "2026-10-31"
+two-failure-stop:
+  skills: [doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, execution]
+  why: "Each fixes a failure on its own path, the bug-fix playbook for a bug-fix request and execution inside a task it is running, often delegated, where it cannot start the playbook (R8); both stop after two failed fixes and return the attempt log, the playbook to the user and execution to the task owner."
+  reviewed: "2026-10-31"

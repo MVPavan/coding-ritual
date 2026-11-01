@@ -53,6 +53,7 @@ from curation.registry.checks.ledger import (
     _check_withdraws,
     check_immutable,
 )
+from curation.registry.checks.playbooks import playbook_errors
 from curation.registry.checks.policy import policy_problems
 from curation.registry.checks.records import (
     _check_block_pairing,
@@ -105,6 +106,7 @@ from curation.registry.models import (
 )
 from curation.registry.policy import guide_changes, guide_rules
 from curation.registry.status import skill_statuses
+from curation.registry.steps import load_playbooks, playbook_at, step_changes
 from curation.registry.text import _one_line
 from curation.registry.traits import _ours_traits, _upstream_traits, shared_traits
 from curation.registry.vocab import EVENT_KINDS
@@ -425,6 +427,9 @@ def cmd_check(cfg: RegistryConfig, args: argparse.Namespace) -> int:
     definitions, def_errors = load_trait_definitions(cfg)
     traits, trait_errors = load_traits(cfg)
     errors += def_errors + trait_errors
+    playbooks, playbook_load_errors = load_playbooks(cfg)
+    errors += playbook_load_errors
+    errors += playbook_errors(cfg, playbooks, definitions)
     # One live (non-superseded) event list feeds every lifecycle/withdrawal
     # consumer, so a correction takes effect everywhere at once (N2/N3). Coverage
     # obligations instead read raw events (an upstream reject never withdraws an
@@ -450,7 +455,7 @@ def cmd_check(cfg: RegistryConfig, args: argparse.Namespace) -> int:
     sharing, sharing_load_errors = load_trait_sharing(cfg)
     errors += sharing_load_errors
     sharing_errors, sharing_warnings = sharing_problems(
-        shared_traits(traits, skills), sharing
+        shared_traits(traits, skills, playbooks), sharing
     )
     errors += sharing_errors
     warnings += sharing_warnings
@@ -467,7 +472,7 @@ def cmd_check(cfg: RegistryConfig, args: argparse.Namespace) -> int:
     errors += policy_errors
     warnings += policy_warnings
     errors += _check_trait_level(
-        cfg, headers, events, ours, forward, retired, definitions, traits
+        cfg, headers, events, ours, forward, retired, definitions, traits, playbooks
     )
 
     reports, report_errors = load_reports(cfg)
@@ -622,6 +627,26 @@ def cmd_report(cfg: RegistryConfig, args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_steps(cfg: RegistryConfig, args: argparse.Namespace) -> int:
+    """Per-step changes of one playbook between two revisions (St3)."""
+    old = playbook_at(cfg, args.playbook, args.base)
+    new = playbook_at(cfg, args.playbook, args.head)
+    if old is None and new is None:
+        print(f"error: no playbook {args.playbook!r} at either side", file=sys.stderr)
+        return 1
+    span = f"{args.base} → {args.head or 'working tree'}"
+    changes = step_changes(old, new)
+    if not changes:
+        print(f"{args.playbook} ({span}): no step changes")
+        return 0
+    print(f"{args.playbook} ({span}): {len(changes)} step change(s)")
+    width = max(len(c.kind) for c in changes)
+    for change in changes:
+        detail = f": {change.detail}" if change.detail else ""
+        print(f"  {change.kind.ljust(width)}  {change.step}{detail}")
+    return 0
+
+
 def _add_json_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--json", help="a JSON object with the full/partial record")
     parser.add_argument(
@@ -698,8 +723,20 @@ def build_parser() -> argparse.ArgumentParser:
     p_status.add_argument("--traits", action="store_true", help="per trait")
     p_status.set_defaults(func=cmd_status)
 
+    p_steps = sub.add_parser("steps", help="a playbook's step changes")
+    steps_sub = p_steps.add_subparsers(dest="steps_command", required=True)
+    p_steps_diff = steps_sub.add_parser(
+        "diff", help="per-step changes between two revisions"
+    )
+    p_steps_diff.add_argument("playbook", help="playbook name, e.g. bug-fix")
+    p_steps_diff.add_argument("base", nargs="?", default="HEAD", help="default HEAD")
+    p_steps_diff.add_argument(
+        "head", nargs="?", default=None, help="default: the working tree"
+    )
+    p_steps.set_defaults(func=cmd_steps)
+
     sub.add_parser(
-        "build", help="regenerate INDEX.md, references/*.md, records"
+        "build", help="regenerate INDEX.md, TRAITS.md, STEPS.md, references, records"
     ).set_defaults(func=cmd_build)
     sub.add_parser(
         "check", help="validate the ledger, records and generated files"

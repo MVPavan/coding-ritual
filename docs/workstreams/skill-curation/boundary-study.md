@@ -818,8 +818,10 @@ its limits:
 
 - **confirmed**: the cause, shown by the reproduction or, without one, by
   independent evidence such as traces (`O/systematic-debugging/SKILL.md:24-26`);
-- **provisional**: neither a reproduction nor independent confirmation.
-  It carries safe source analysis, the missing evidence named and
+- **provisional**: a cause neither confirmed nor an unresolved finding,
+  whether or not the failure reproduces (corrected in the pilot: a
+  reproducible failure with an unknown cause had no status). It carries
+  any reproduction, the remaining hypotheses, safe source analysis, the missing evidence named and
   requested, and any proposed fix labelled unproven (`:34-36`). It licenses
   no production edit;
 - **unresolved**: an environmental cause, claimable only after every

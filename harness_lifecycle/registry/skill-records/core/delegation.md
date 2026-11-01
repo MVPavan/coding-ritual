@@ -12,7 +12,7 @@ status: active
 
 Use when handing work to another agent or model (an explorer, implementer, reviewer or critic) on any vendor, to choose its model, brief it, dispatch it and check its result. Work you do yourself needs none of this.
 
-**Boundary:** Hands one piece of work to another agent or model: role, roster model, vendor, brief, dispatch and the check of what ran; whether to delegate is the calling workflow's choice, councils are model-council and perspective-council, and choosing a skill is skill-router.
+**Boundary:** Hands one piece of work to another agent or model: role, roster model, vendor, brief, dispatch and the check of what ran; whether to delegate is the calling workflow's choice, councils are model-council and perspective-council, and choosing a unit is mvp-mode.
 
 <!-- registry:generated traits -->
 - `role-contracts`: Give each delegated role a fixed contract of access, duties and report shape, and carry it inside the brief because the worker may not load the delegating instructions.

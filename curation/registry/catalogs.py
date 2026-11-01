@@ -10,7 +10,7 @@ from curation.registry.config import RegistryConfig
 from curation.registry.ledger import _is_trait_subject
 from curation.registry.loaders import _catalog_files
 from curation.registry.models import Event
-from curation.scan.catalog import _is_test_script, scan_repo
+from curation.scan.catalog import UNIT_SUBFOLDERS, _is_test_script, scan_repo
 from curation.scan.drift import pinned_commit
 from curation.scan.models import Capability, Catalog
 
@@ -82,7 +82,11 @@ def build_ours(cfg: RegistryConfig) -> Any:
     for root in roots:
         if root.is_dir():
             cat = scan_repo(
-                root, root.name, source=f"ours:{root.name}", source_commit=None
+                root,
+                root.name,
+                source=f"ours:{root.name}",
+                source_commit=None,
+                unit_subfolders=UNIT_SUBFOLDERS,
             )
             catalogs.append(_drop_template_caps(cat))
     return merge_catalogs("ours", "root .claude/.codex + plugins", catalogs)

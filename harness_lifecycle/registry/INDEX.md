@@ -26,7 +26,7 @@ Domain → stage → sub-stage. Each active skill under its primary home.
 ### X
 - **Communication**: html-artifact, i-have-adhd, show-me
 - **Continuity**: beads
-- **Coordination**: delegation, model-council, perspective-council, skill-router
+- **Coordination**: delegation, model-council, mvp-mode, perspective-council
 
 ### U
 - **Tutoring**: teach
@@ -64,7 +64,7 @@ Two or more active skills share one domain · sub-stage (README §2 rule 3):
 - core · Intake · Clarification: brainstorming, grilling
 - core · Improvement · Codification: authoring-for-agents, harness-evaluate, harness-scan, harness-skill-compare, harness-status, migrate-claude-to-codex
 - core · X · Communication: html-artifact, i-have-adhd, show-me
-- core · X · Coordination: delegation, model-council, perspective-council, skill-router
+- core · X · Coordination: delegation, model-council, mvp-mode, perspective-council
 - engineering · Design · Architecture: codebase-design, design-evolve, domain-modeling, prototype
 - engineering · Building · Diagnosis: performance-optimization, systematic-debugging
 

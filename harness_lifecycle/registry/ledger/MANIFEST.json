@@ -4,7 +4,8 @@
     "2026-10-14-migration.jsonl": "8cc852e274b32cd9067fbabcd82a651f291b3822e588b95775f2316390061914",
     "2026-10-14-owner-review.jsonl": "b49225eb122224094942b2e7e4f779686186a4eb0eb1ede9521e2f86dc181958",
     "2026-10-30-delegation.jsonl": "75ba1eb38c9244b14faf28e410e8fe688c00135ebb80332374c605c9e209d12d",
-    "2026-10-30-mattpocock_skills-5beb35b.jsonl": "cedf7c7ea99062323677d84a7456432a719721c29a867ce397167991128ddb85"
+    "2026-10-30-mattpocock_skills-5beb35b.jsonl": "cedf7c7ea99062323677d84a7456432a719721c29a867ce397167991128ddb85",
+    "2026-10-31-mvp-mode.jsonl": "d7aa90df8933f35b11825de10a90661ee052e7ae3ca30ea4c16371d5671e139a"
   },
   "reports": {
     "harness_lifecycle/registry/reviews/2026-10-30-upstream-mattpocock_skills-5beb35b.yaml": "fb413772a75f116bd9baeaa06b6e414fe59978c654a951cb53345f17459d7597"

@@ -14,6 +14,7 @@ from curation.registry.checks.decisions import (
     decision_errors,
     defer_errors,
 )
+from curation.registry.checks.traits import doc_holder_kind
 from curation.registry.config import RegistryConfig
 from curation.registry.ledger import (
     _next_event_id,
@@ -27,6 +28,7 @@ from curation.registry.ledger import (
 )
 from curation.registry.loaders import load_ledger
 from curation.registry.models import Event, Source
+from curation.registry.steps import playbook_tree_hash
 from curation.registry.traits import _doc_tree_hash, _our_tree_hashes
 
 WHOLE_SKILL_VERDICTS = ("defer", "reject", "out-of-scope")
@@ -194,12 +196,15 @@ def _freshness_errors(event: Event, ctx: report_files.Context) -> list[str]:
 
 
 def _target_hash(cfg: RegistryConfig, target: str, events: list[Event]) -> str:
-    """The target's current tree hash: a skill folder's, or a `doc:` file's."""
+    """The target's current tree hash: a skill folder's, a playbook's (its
+    file and reference folder, F3), or another `doc:` file's."""
     if target.startswith("doc:"):
         rel = target[len("doc:") :]
         file = cfg.repo_root / rel
         if not file.is_file():
             raise SystemExit(f"{target}: no such file to hash")
+        if doc_holder_kind(cfg, rel) == "playbook":
+            return playbook_tree_hash(cfg, rel)
         return _doc_tree_hash(rel, file.read_bytes())
     forward, _ = build_lifecycle(live_events(events))
     survivor = resolve_skill(target, forward)

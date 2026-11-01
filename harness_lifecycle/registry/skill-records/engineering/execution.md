@@ -26,6 +26,10 @@ Use to execute tracked multi-step work, a standalone plan, or a roadmap phase. C
 - `bounded-fix-loop`: Group compatible confirmed findings into one fix unit, re-review only the delta plus any breakage it caused, adjudicate every round, and treat a small fixed count of completed fix/re-review rounds as a ceiling rather than a target.
 - `scope-base-review-package`: Review uncommitted working-tree and untracked changes against a recorded base revision by passing the authorized owned-path list, never attributing a baseline-dirty file's whole diff to the task.
 - `delegated-report-recovery`: Interpret each delegated worker's status (done, done-with-concerns, needs-context, blocked) and recover by supplying context, splitting, debugging or replanning, since bare repetition is not recovery.
+- `confirmed-cause-fix`: Fix a failure only for a cause its diagnosis confirmed.
+- `regression-proof-and-rerun`: Prove a fix with a regression check when one is feasible, then rerun the original failing scenario.
+- `attempt-log`: Record each debugging attempt as hypothesis, change and result.
+- `two-failure-stop`: After two failed fixes, stop and bring the attempt log to whoever started the task before trying another.
 <!-- /registry:generated traits -->
 
 <!-- registry:generated lineage -->
@@ -39,6 +43,8 @@ Use to execute tracked multi-step work, a standalone plan, or a roadmap phase. C
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-10-31` **update** (2026-10-31-mvp-mode:007): Restates 2026-10-31-mvp-mode:004 with durable evidence (critic K2) and its trait inventory (critic K1). Bug-fix pilot: systematic-debugging no longer fixes, so…
+- `2026-10-31` **update** (2026-10-31-mvp-mode:004) *(superseded)*: Bug-fix pilot: systematic-debugging no longer fixes, so execution's task loop calls it for the diagnosis and carries the fix gates on its own path (fix only a …
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:287): Owner deferred the report's reject recommendation, to review the set later: Depends on per-implementer worktrees, rejected in worktree-per-implementer.
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:286): Owner deferred the report's reject recommendation, to review the set later: Ours closes each bead with evidence (SKILL.md:50) and a phase through its close gat…
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:285): Owner deferred the report's reject recommendation, to review the set later: The integrated-scope inspection exists (execution/references/task-engine.md:104-112…

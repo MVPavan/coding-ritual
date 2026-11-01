@@ -64,6 +64,12 @@ TEST_STEM_SUFFIX = "-test"
 
 SKILL_FILENAME = "SKILL.md"
 
+# Subfolders of OUR skill folders that hold other units: each playbook in a
+# router's `playbooks/` is its own unit (unit-kinds B1, T1), so its edits never
+# change the router's tree hash. Only the ours build passes it to `scan_repo`;
+# an upstream skill keeps such a folder in its hash, so upstream edits show.
+UNIT_SUBFOLDERS = frozenset({"playbooks"})
+
 
 def normalize(text: str) -> str:
     """Canonicalise text so cosmetic edits don't read as content changes.
@@ -350,25 +356,21 @@ def _git_visible_files(skill_dir: Path) -> list[Path] | None:
     return [skill_dir / name for name in names if (skill_dir / name).is_file()]
 
 
-def _skill_tree_hash(skill_dir: Path) -> str:
-    """sha256 over every file in a skill's folder (§4), skipping files git
-    ignores when the folder is in a git work tree (caches such as
-    ``__pycache__`` would otherwise make the hash machine-specific).
+def folder_files(folder: Path) -> list[Path]:
+    """Every file under `folder` that git does not ignore; every file on disk
+    when git is unavailable."""
+    listed = _git_visible_files(folder)
+    if listed is not None:
+        return listed
+    return [p for p in folder.rglob("*") if p.is_file()]
 
-    Files are sorted by their path relative to the folder and framed as
-    ``<relpath>\\0<byte length>\\0<raw bytes>`` with no text normalization, so an
-    edit to any bundled reference, script or asset changes the hash.
-    """
+
+def hash_files(base: Path, files: list[Path]) -> str:
+    """sha256 over `files`, sorted by their path relative to `base` and framed
+    as ``<relpath>\\0<byte length>\\0<raw bytes>`` with no text normalization."""
     digest = hashlib.sha256()
-    listed = _git_visible_files(skill_dir)
-    files = sorted(
-        listed
-        if listed is not None
-        else (p for p in skill_dir.rglob("*") if p.is_file()),
-        key=lambda p: str(p.relative_to(skill_dir)),
-    )
-    for path in files:
-        rel = str(path.relative_to(skill_dir)).encode("utf-8")
+    for path in sorted(files, key=lambda p: str(p.relative_to(base))):
+        rel = str(path.relative_to(base)).encode("utf-8")
         raw = path.read_bytes()
         digest.update(rel)
         digest.update(b"\0")
@@ -376,6 +378,23 @@ def _skill_tree_hash(skill_dir: Path) -> str:
         digest.update(b"\0")
         digest.update(raw)
     return digest.hexdigest()
+
+
+def _skill_tree_hash(skill_dir: Path, skip: frozenset[str] = frozenset()) -> str:
+    """sha256 over every file in a skill's folder (§4), skipping files git
+    ignores when the folder is in a git work tree (caches such as
+    ``__pycache__`` would otherwise make the hash machine-specific), so an
+    edit to any bundled reference, script or asset changes the hash. Files in
+    a `skip` subfolder belong to other units and are left out.
+    """
+    return hash_files(
+        skill_dir,
+        [
+            p
+            for p in folder_files(skill_dir)
+            if p.relative_to(skill_dir).parts[0] not in skip
+        ],
+    )
 
 
 def _signature_hash(kind: Kind, name: str, surface: str) -> str:
@@ -426,7 +445,11 @@ def _scan_mcp(path: Path, root: Path) -> list[_Entry]:
 
 
 def _entry_for(
-    path: Path, root: Path, kind: Kind, assets: tuple[str, ...] = ()
+    path: Path,
+    root: Path,
+    kind: Kind,
+    assets: tuple[str, ...] = (),
+    unit_subfolders: frozenset[str] = frozenset(),
 ) -> _Entry:
     parts = path.relative_to(root).parts
     text = read_text(path)
@@ -444,7 +467,11 @@ def _entry_for(
     normalized = normalize(text)
     content_hash = sha1(normalized)
     # A skill's tree hash spans its whole folder; other kinds reuse content_hash.
-    tree_hash = _skill_tree_hash(path.parent) if kind is Kind.SKILL else content_hash
+    tree_hash = (
+        _skill_tree_hash(path.parent, unit_subfolders)
+        if kind is Kind.SKILL
+        else content_hash
+    )
     return _Entry(
         kind=kind,
         name=name,
@@ -485,8 +512,15 @@ def _skill_assets(files: list[Path], root: Path) -> dict[Path, tuple[str, ...]]:
     return {directory: tuple(sorted(paths)) for directory, paths in owned.items()}
 
 
-def scan_repo(root: Path, repo: str, source: str, source_commit: str | None) -> Catalog:
-    """Build a logical capability catalog from a harness working tree."""
+def scan_repo(
+    root: Path,
+    repo: str,
+    source: str,
+    source_commit: str | None,
+    unit_subfolders: frozenset[str] = frozenset(),
+) -> Catalog:
+    """Build a logical capability catalog from a harness working tree; skill
+    tree hashes leave out `unit_subfolders` (ours only: UNIT_SUBFOLDERS)."""
     files, excluded = _iter_files(root)
     assets_by_skill_dir = _skill_assets(files, root)
     entries: list[_Entry] = []
@@ -503,7 +537,7 @@ def scan_repo(root: Path, repo: str, source: str, source_commit: str | None) -> 
             assets = (
                 assets_by_skill_dir.get(path.parent, ()) if kind is Kind.SKILL else ()
             )
-            entries.append(_entry_for(path, root, kind, assets))
+            entries.append(_entry_for(path, root, kind, assets, unit_subfolders))
 
     groups: dict[str, list[_Entry]] = {}
     for entry in entries:
