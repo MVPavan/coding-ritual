@@ -18,6 +18,10 @@
       "physical": 104,
       "logical": 104
     },
+    "playbook": {
+      "physical": 49,
+      "logical": 49
+    },
     "plugin": {
       "physical": 2,
       "logical": 2
@@ -2461,6 +2465,937 @@
       "tree_hash": "c5f53f2b04203df9b8f4ae9dcb8a6b590f9d71da"
     },
     {
+      "kind": "playbook",
+      "name": "bug-fix",
+      "category": "playbooks",
+      "logical_id": "playbook:dyl-stack/skills/dyl-mode/playbooks/bug-fix",
+      "canonical_path": "dyl-stack/skills/dyl-mode/playbooks/bug-fix.md",
+      "paths": [
+        "dyl-stack/skills/dyl-mode/playbooks/bug-fix.md"
+      ],
+      "description": "",
+      "content_hash": "8d4d790c39ac50516579f9216d3b38369ef8d151",
+      "signature_hash": "c2efaf303821cbcf2a89c5b93bf9d60185f42b73",
+      "variant_hashes": [
+        "8d4d790c39ac50516579f9216d3b38369ef8d151"
+      ],
+      "line_count": 11,
+      "assets": [],
+      "tree_hash": "5f2991279082cd8b3f8d5236523d7312d8a852096ec8ccda4d4ab8c083517e24"
+    },
+    {
+      "kind": "playbook",
+      "name": "feature",
+      "category": "playbooks",
+      "logical_id": "playbook:dyl-stack/skills/dyl-mode/playbooks/feature",
+      "canonical_path": "dyl-stack/skills/dyl-mode/playbooks/feature.md",
+      "paths": [
+        "dyl-stack/skills/dyl-mode/playbooks/feature.md"
+      ],
+      "description": "",
+      "content_hash": "5572146ef3f2d86632d8414c27abf2214258a5db",
+      "signature_hash": "6381b8d291f9c84fa617bee4970ae40e0b3cd2d2",
+      "variant_hashes": [
+        "5572146ef3f2d86632d8414c27abf2214258a5db"
+      ],
+      "line_count": 12,
+      "assets": [],
+      "tree_hash": "191716d7f2fbba88373e5a94b660ab589ac360e69195c67a143b9c83d4f49091"
+    },
+    {
+      "kind": "playbook",
+      "name": "opening-a-pr",
+      "category": "playbooks",
+      "logical_id": "playbook:dyl-stack/skills/dyl-mode/playbooks/opening-a-pr",
+      "canonical_path": "dyl-stack/skills/dyl-mode/playbooks/opening-a-pr.md",
+      "paths": [
+        "dyl-stack/skills/dyl-mode/playbooks/opening-a-pr.md"
+      ],
+      "description": "",
+      "content_hash": "30cbaa367b41a0aa23017a4bd13d3cfffd361f4a",
+      "signature_hash": "c75cd6436c593f566616494a7e24d69da961283b",
+      "variant_hashes": [
+        "30cbaa367b41a0aa23017a4bd13d3cfffd361f4a"
+      ],
+      "line_count": 11,
+      "assets": [],
+      "tree_hash": "b494ad6bb740932251b16d6d839abc465d5cc4d6104a62bb1f83baedfb9ec4d5"
+    },
+    {
+      "kind": "playbook",
+      "name": "authoring-a-skill",
+      "category": "playbooks",
+      "logical_id": "playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/authoring-a-skill",
+      "canonical_path": "harness/pstack/claude-code/skills/poteto-mode/playbooks/authoring-a-skill.md",
+      "paths": [
+        "harness/pstack/claude-code/skills/poteto-mode/playbooks/authoring-a-skill.md"
+      ],
+      "description": "",
+      "content_hash": "6b36ba7bbb98ceb0ff19625c07f877f5cc72c313",
+      "signature_hash": "fecf85fa2baa988944bcf0487e8e8c72484e90bb",
+      "variant_hashes": [
+        "6b36ba7bbb98ceb0ff19625c07f877f5cc72c313"
+      ],
+      "line_count": 12,
+      "assets": [],
+      "tree_hash": "bbe6bd8c9e95f100b76d3f2d1864c83ea047d02265e83066f3716a3e2b2f0ea1"
+    },
+    {
+      "kind": "playbook",
+      "name": "autonomous-run",
+      "category": "playbooks",
+      "logical_id": "playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/autonomous-run",
+      "canonical_path": "harness/pstack/claude-code/skills/poteto-mode/playbooks/autonomous-run.md",
+      "paths": [
+        "harness/pstack/claude-code/skills/poteto-mode/playbooks/autonomous-run.md"
+      ],
+      "description": "",
+      "content_hash": "edd420294c7bae57921d253e9f783fd0a8fbb7a6",
+      "signature_hash": "ac32716646f65c6b4d8140c2ae1e37f0d02f1094",
+      "variant_hashes": [
+        "edd420294c7bae57921d253e9f783fd0a8fbb7a6"
+      ],
+      "line_count": 13,
+      "assets": [],
+      "tree_hash": "53d9c959ed368f514d6d9c701533b31fe4c92f129b56c086074983c1ea634a9f"
+    },
+    {
+      "kind": "playbook",
+      "name": "autopilot-full",
+      "category": "playbooks",
+      "logical_id": "playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/autopilot-full",
+      "canonical_path": "harness/pstack/claude-code/skills/poteto-mode/playbooks/autopilot-full.md",
+      "paths": [
+        "harness/pstack/claude-code/skills/poteto-mode/playbooks/autopilot-full.md"
+      ],
+      "description": "",
+      "content_hash": "8f3f43716fbb3011ebaffb2675c902fd49ee319b",
+      "signature_hash": "b731668e8fae6c9428416ea03f04f3d308eda285",
+      "variant_hashes": [
+        "8f3f43716fbb3011ebaffb2675c902fd49ee319b"
+      ],
+      "line_count": 25,
+      "assets": [],
+      "tree_hash": "dd4ee363b64245e963dee37628eb48bb11cb22d59ef8f4a2401597326194bc45"
+    },
+    {
+      "kind": "playbook",
+      "name": "autopilot-stack",
+      "category": "playbooks",
+      "logical_id": "playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/autopilot-stack",
+      "canonical_path": "harness/pstack/claude-code/skills/poteto-mode/playbooks/autopilot-stack.md",
+      "paths": [
+        "harness/pstack/claude-code/skills/poteto-mode/playbooks/autopilot-stack.md"
+      ],
+      "description": "",
+      "content_hash": "7882dc6cccea27cea22117e2e9441d2431b543e6",
+      "signature_hash": "acada3a24c26e4e3d848696d9f54ae39d9546b24",
+      "variant_hashes": [
+        "7882dc6cccea27cea22117e2e9441d2431b543e6"
+      ],
+      "line_count": 8,
+      "assets": [],
+      "tree_hash": "480d5dab421582865b1e1e6b88d9fad99e54e35f7e1f4efdeeb1f39722aa17ba"
+    },
+    {
+      "kind": "playbook",
+      "name": "babysit",
+      "category": "playbooks",
+      "logical_id": "playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/babysit",
+      "canonical_path": "harness/pstack/claude-code/skills/poteto-mode/playbooks/babysit.md",
+      "paths": [
+        "harness/pstack/claude-code/skills/poteto-mode/playbooks/babysit.md"
+      ],
+      "description": "",
+      "content_hash": "0ddd5a258cb2d41198063b01dc4720f311c3691a",
+      "signature_hash": "2e74df70f0b06e59f480954a9a61b2104e2ffeb5",
+      "variant_hashes": [
+        "0ddd5a258cb2d41198063b01dc4720f311c3691a"
+      ],
+      "line_count": 23,
+      "assets": [],
+      "tree_hash": "ced829bc10602b038894d5d9cbb0bfaafb95e0c66af0bcaaed887718a4aa287a"
+    },
+    {
+      "kind": "playbook",
+      "name": "bug-fix",
+      "category": "playbooks",
+      "logical_id": "playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/bug-fix",
+      "canonical_path": "harness/pstack/claude-code/skills/poteto-mode/playbooks/bug-fix.md",
+      "paths": [
+        "harness/pstack/claude-code/skills/poteto-mode/playbooks/bug-fix.md"
+      ],
+      "description": "",
+      "content_hash": "64923d1066c4db81712df3e9184f93ddc1eff9a9",
+      "signature_hash": "c2efaf303821cbcf2a89c5b93bf9d60185f42b73",
+      "variant_hashes": [
+        "64923d1066c4db81712df3e9184f93ddc1eff9a9"
+      ],
+      "line_count": 15,
+      "assets": [],
+      "tree_hash": "a96555f516658a20c4fef1ee69aec82fd6c05831aa95624d4e351f858ec49af7"
+    },
+    {
+      "kind": "playbook",
+      "name": "eval",
+      "category": "playbooks",
+      "logical_id": "playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/eval",
+      "canonical_path": "harness/pstack/claude-code/skills/poteto-mode/playbooks/eval.md",
+      "paths": [
+        "harness/pstack/claude-code/skills/poteto-mode/playbooks/eval.md"
+      ],
+      "description": "",
+      "content_hash": "85fa2a4757a9e4606f38fc0be310a140c1c0c048",
+      "signature_hash": "43c15150aea4d59c8d70f696cf647e0cb2a4b7d2",
+      "variant_hashes": [
+        "85fa2a4757a9e4606f38fc0be310a140c1c0c048"
+      ],
+      "line_count": 25,
+      "assets": [],
+      "tree_hash": "fa6d136a4ce85c4d9401db292c9ede129248cdb06787425885d53cdfc41f0f8e"
+    },
+    {
+      "kind": "playbook",
+      "name": "feature",
+      "category": "playbooks",
+      "logical_id": "playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/feature",
+      "canonical_path": "harness/pstack/claude-code/skills/poteto-mode/playbooks/feature.md",
+      "paths": [
+        "harness/pstack/claude-code/skills/poteto-mode/playbooks/feature.md"
+      ],
+      "description": "",
+      "content_hash": "2ad9f24f50f005fa156297d1f2c2bf4de8c06c5b",
+      "signature_hash": "6381b8d291f9c84fa617bee4970ae40e0b3cd2d2",
+      "variant_hashes": [
+        "2ad9f24f50f005fa156297d1f2c2bf4de8c06c5b"
+      ],
+      "line_count": 21,
+      "assets": [],
+      "tree_hash": "2c15b112b00e620acc7dcd920890f844dddd8f286a23b05590905a07366b139f"
+    },
+    {
+      "kind": "playbook",
+      "name": "hillclimb",
+      "category": "playbooks",
+      "logical_id": "playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/hillclimb",
+      "canonical_path": "harness/pstack/claude-code/skills/poteto-mode/playbooks/hillclimb.md",
+      "paths": [
+        "harness/pstack/claude-code/skills/poteto-mode/playbooks/hillclimb.md"
+      ],
+      "description": "",
+      "content_hash": "e3f43905c4d48ec2628ac5876cc0a949ce889784",
+      "signature_hash": "8ed524c7239060221daf9f7361d15df595e0cfe7",
+      "variant_hashes": [
+        "e3f43905c4d48ec2628ac5876cc0a949ce889784"
+      ],
+      "line_count": 21,
+      "assets": [],
+      "tree_hash": "3dc60a82b9bbe39c971e6a962db544099d3e367d227e87f20e57612f35c2d462"
+    },
+    {
+      "kind": "playbook",
+      "name": "investigation",
+      "category": "playbooks",
+      "logical_id": "playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/investigation",
+      "canonical_path": "harness/pstack/claude-code/skills/poteto-mode/playbooks/investigation.md",
+      "paths": [
+        "harness/pstack/claude-code/skills/poteto-mode/playbooks/investigation.md"
+      ],
+      "description": "",
+      "content_hash": "38163f6aa2aad89d1c1af5585f82d4fddbc416ec",
+      "signature_hash": "18d1c3d8bed3fa3780883ed39ed7a5905343fbec",
+      "variant_hashes": [
+        "38163f6aa2aad89d1c1af5585f82d4fddbc416ec"
+      ],
+      "line_count": 14,
+      "assets": [],
+      "tree_hash": "c7bf9a4e74a52fbb628a701033a9eb8413368004995a3b721884073abeff7646"
+    },
+    {
+      "kind": "playbook",
+      "name": "multi-phase-plan",
+      "category": "playbooks",
+      "logical_id": "playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/multi-phase-plan",
+      "canonical_path": "harness/pstack/claude-code/skills/poteto-mode/playbooks/multi-phase-plan.md",
+      "paths": [
+        "harness/pstack/claude-code/skills/poteto-mode/playbooks/multi-phase-plan.md"
+      ],
+      "description": "",
+      "content_hash": "81f5a5f97fbd0a6efb90ece41b2c8b164bee2142",
+      "signature_hash": "c2fe72e9d7685375d327e08890781603ae04b75c",
+      "variant_hashes": [
+        "81f5a5f97fbd0a6efb90ece41b2c8b164bee2142"
+      ],
+      "line_count": 155,
+      "assets": [],
+      "tree_hash": "909d0a0108185efce7b0c9ca463da13df74d7bb524c007cfb2ef9713d3dd8799"
+    },
+    {
+      "kind": "playbook",
+      "name": "opening-a-pr",
+      "category": "playbooks",
+      "logical_id": "playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/opening-a-pr",
+      "canonical_path": "harness/pstack/claude-code/skills/poteto-mode/playbooks/opening-a-pr.md",
+      "paths": [
+        "harness/pstack/claude-code/skills/poteto-mode/playbooks/opening-a-pr.md"
+      ],
+      "description": "",
+      "content_hash": "c1304772528e7c771eea653c71eef33a9b4192a9",
+      "signature_hash": "c75cd6436c593f566616494a7e24d69da961283b",
+      "variant_hashes": [
+        "c1304772528e7c771eea653c71eef33a9b4192a9"
+      ],
+      "line_count": 34,
+      "assets": [],
+      "tree_hash": "e0e725361f877778afdf56698ec94eac57b09826979c3554183c24beed33ca8c"
+    },
+    {
+      "kind": "playbook",
+      "name": "orchestrate",
+      "category": "playbooks",
+      "logical_id": "playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/orchestrate",
+      "canonical_path": "harness/pstack/claude-code/skills/poteto-mode/playbooks/orchestrate.md",
+      "paths": [
+        "harness/pstack/claude-code/skills/poteto-mode/playbooks/orchestrate.md"
+      ],
+      "description": "",
+      "content_hash": "fd40f6a07b1cfbe60a585bcc64e9415a6a29e1c6",
+      "signature_hash": "cca71cf0ba74474e4f46396d22cc5f6653557ebd",
+      "variant_hashes": [
+        "fd40f6a07b1cfbe60a585bcc64e9415a6a29e1c6"
+      ],
+      "line_count": 25,
+      "assets": [],
+      "tree_hash": "b5e37cbe66dde652e0c2c465ea55644dafc1ab1da649ec9867a1815d7c960f9b"
+    },
+    {
+      "kind": "playbook",
+      "name": "pause-safely",
+      "category": "playbooks",
+      "logical_id": "playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/pause-safely",
+      "canonical_path": "harness/pstack/claude-code/skills/poteto-mode/playbooks/pause-safely.md",
+      "paths": [
+        "harness/pstack/claude-code/skills/poteto-mode/playbooks/pause-safely.md"
+      ],
+      "description": "",
+      "content_hash": "84fa1578a4580e981d3eb855dd80f48aee479176",
+      "signature_hash": "f3007e3e2c3713e2233a943c76ee117a1bd6de57",
+      "variant_hashes": [
+        "84fa1578a4580e981d3eb855dd80f48aee479176"
+      ],
+      "line_count": 10,
+      "assets": [],
+      "tree_hash": "3c9a3eac188333b1e8b377392fed55c7ea1570a9c81162b03dec197c2aec7d21"
+    },
+    {
+      "kind": "playbook",
+      "name": "perf-issue",
+      "category": "playbooks",
+      "logical_id": "playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/perf-issue",
+      "canonical_path": "harness/pstack/claude-code/skills/poteto-mode/playbooks/perf-issue.md",
+      "paths": [
+        "harness/pstack/claude-code/skills/poteto-mode/playbooks/perf-issue.md"
+      ],
+      "description": "",
+      "content_hash": "16c969eca337dd229f68ecc52e8e07f5cf76c8ab",
+      "signature_hash": "330d8f4dd7c59c101cdd12444c024ebdb213f9f5",
+      "variant_hashes": [
+        "16c969eca337dd229f68ecc52e8e07f5cf76c8ab"
+      ],
+      "line_count": 25,
+      "assets": [],
+      "tree_hash": "d3bc3082dbe42f5c67b0ceb7f196e1295c79645a91a54a1f8d02dc1981b4a3bd"
+    },
+    {
+      "kind": "playbook",
+      "name": "prototype",
+      "category": "playbooks",
+      "logical_id": "playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/prototype",
+      "canonical_path": "harness/pstack/claude-code/skills/poteto-mode/playbooks/prototype.md",
+      "paths": [
+        "harness/pstack/claude-code/skills/poteto-mode/playbooks/prototype.md"
+      ],
+      "description": "",
+      "content_hash": "efbcd4e3c9287d8c5a97d202779d4bd886ae08b7",
+      "signature_hash": "a8f8672f7ec44f5472ac433c14eba0021979db86",
+      "variant_hashes": [
+        "efbcd4e3c9287d8c5a97d202779d4bd886ae08b7"
+      ],
+      "line_count": 14,
+      "assets": [],
+      "tree_hash": "b655a479388679cda2a848b1141f344c633f2103bdad73b6c3f62a4e47e3afb3"
+    },
+    {
+      "kind": "playbook",
+      "name": "refactoring",
+      "category": "playbooks",
+      "logical_id": "playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/refactoring",
+      "canonical_path": "harness/pstack/claude-code/skills/poteto-mode/playbooks/refactoring.md",
+      "paths": [
+        "harness/pstack/claude-code/skills/poteto-mode/playbooks/refactoring.md"
+      ],
+      "description": "",
+      "content_hash": "3d9dc443f8a434bb9a7b5ff609b4f44fad334311",
+      "signature_hash": "c9de610d93bd22abcb7ba6ef9b79e73e96ba1d78",
+      "variant_hashes": [
+        "3d9dc443f8a434bb9a7b5ff609b4f44fad334311"
+      ],
+      "line_count": 16,
+      "assets": [],
+      "tree_hash": "a37abc5b691e40476879f49aea8e03ea7527cea83912c32b7fa2fc2c58a3e01a"
+    },
+    {
+      "kind": "playbook",
+      "name": "runtime-forensics",
+      "category": "playbooks",
+      "logical_id": "playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/runtime-forensics",
+      "canonical_path": "harness/pstack/claude-code/skills/poteto-mode/playbooks/runtime-forensics.md",
+      "paths": [
+        "harness/pstack/claude-code/skills/poteto-mode/playbooks/runtime-forensics.md"
+      ],
+      "description": "",
+      "content_hash": "223d667510ecb109ec2d48faa87db7a2c89cfdf3",
+      "signature_hash": "ff4403a46cd97e0407e64ccaf63b6d7101d1190e",
+      "variant_hashes": [
+        "223d667510ecb109ec2d48faa87db7a2c89cfdf3"
+      ],
+      "line_count": 11,
+      "assets": [],
+      "tree_hash": "a0d2ff70d60026b724021aaa4f5d1ff75f48aff304f648ae92057c28dc350851"
+    },
+    {
+      "kind": "playbook",
+      "name": "session-pickup",
+      "category": "playbooks",
+      "logical_id": "playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/session-pickup",
+      "canonical_path": "harness/pstack/claude-code/skills/poteto-mode/playbooks/session-pickup.md",
+      "paths": [
+        "harness/pstack/claude-code/skills/poteto-mode/playbooks/session-pickup.md"
+      ],
+      "description": "",
+      "content_hash": "3bcb5e777fb27079703681b6636f9480df243856",
+      "signature_hash": "abac7b4e3e8d6e03e9bc996ba73f7505fa095c71",
+      "variant_hashes": [
+        "3bcb5e777fb27079703681b6636f9480df243856"
+      ],
+      "line_count": 11,
+      "assets": [],
+      "tree_hash": "7db939fc2ed451a20476b9708961a7ceb1f130edd780679ff0e6d4b638fdb4e2"
+    },
+    {
+      "kind": "playbook",
+      "name": "shipping",
+      "category": "playbooks",
+      "logical_id": "playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/shipping",
+      "canonical_path": "harness/pstack/claude-code/skills/poteto-mode/playbooks/shipping.md",
+      "paths": [
+        "harness/pstack/claude-code/skills/poteto-mode/playbooks/shipping.md"
+      ],
+      "description": "",
+      "content_hash": "30dfd2ee31989e2e609511226b416cac19fd4ba2",
+      "signature_hash": "7577992c40cab51eb0d5e4269e2a9a3defb3080b",
+      "variant_hashes": [
+        "30dfd2ee31989e2e609511226b416cac19fd4ba2"
+      ],
+      "line_count": 12,
+      "assets": [],
+      "tree_hash": "f73ee4bdf93f0c87c1ad6cc3f4faf2455aa503cd5522508696e4e390c4b98c92"
+    },
+    {
+      "kind": "playbook",
+      "name": "trace-forensics",
+      "category": "playbooks",
+      "logical_id": "playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/trace-forensics",
+      "canonical_path": "harness/pstack/claude-code/skills/poteto-mode/playbooks/trace-forensics.md",
+      "paths": [
+        "harness/pstack/claude-code/skills/poteto-mode/playbooks/trace-forensics.md"
+      ],
+      "description": "",
+      "content_hash": "bd645ba753b4dea9784364748e213b035fe1dc69",
+      "signature_hash": "b887be32a82500f80c693db59c2adc52db60bd04",
+      "variant_hashes": [
+        "bd645ba753b4dea9784364748e213b035fe1dc69"
+      ],
+      "line_count": 14,
+      "assets": [],
+      "tree_hash": "aaca1ff715deaf6e7d64b494b2b77837fabfc8bee210cfea3f9d7ac3b6663279"
+    },
+    {
+      "kind": "playbook",
+      "name": "visual-parity",
+      "category": "playbooks",
+      "logical_id": "playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/visual-parity",
+      "canonical_path": "harness/pstack/claude-code/skills/poteto-mode/playbooks/visual-parity.md",
+      "paths": [
+        "harness/pstack/claude-code/skills/poteto-mode/playbooks/visual-parity.md"
+      ],
+      "description": "",
+      "content_hash": "8bad77ce521f311ed6b586643c5bc2d9748f9303",
+      "signature_hash": "dd0be30af77e2110015935cf57492b97aa1e8a5a",
+      "variant_hashes": [
+        "8bad77ce521f311ed6b586643c5bc2d9748f9303"
+      ],
+      "line_count": 11,
+      "assets": [],
+      "tree_hash": "38d78db13ea536daa793c57620d59e46caa41a884263f4d73d1187ceda3e5210"
+    },
+    {
+      "kind": "playbook",
+      "name": "worktree-cleanup",
+      "category": "playbooks",
+      "logical_id": "playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/worktree-cleanup",
+      "canonical_path": "harness/pstack/claude-code/skills/poteto-mode/playbooks/worktree-cleanup.md",
+      "paths": [
+        "harness/pstack/claude-code/skills/poteto-mode/playbooks/worktree-cleanup.md"
+      ],
+      "description": "",
+      "content_hash": "ca2f09177ff3cc658ffe5d8afa2dd71fcb2b5471",
+      "signature_hash": "b3baa49da9b264118724644e6731440d399b7396",
+      "variant_hashes": [
+        "ca2f09177ff3cc658ffe5d8afa2dd71fcb2b5471"
+      ],
+      "line_count": 12,
+      "assets": [],
+      "tree_hash": "053b83574328ff41517afb946abdecf0b0a47ea825040db45f01f98f1c7f118f"
+    },
+    {
+      "kind": "playbook",
+      "name": "authoring-a-skill",
+      "category": "playbooks",
+      "logical_id": "playbook:pstack/skills/poteto-mode/playbooks/authoring-a-skill",
+      "canonical_path": "pstack/skills/poteto-mode/playbooks/authoring-a-skill.md",
+      "paths": [
+        "pstack/skills/poteto-mode/playbooks/authoring-a-skill.md"
+      ],
+      "description": "",
+      "content_hash": "6b36ba7bbb98ceb0ff19625c07f877f5cc72c313",
+      "signature_hash": "fecf85fa2baa988944bcf0487e8e8c72484e90bb",
+      "variant_hashes": [
+        "6b36ba7bbb98ceb0ff19625c07f877f5cc72c313"
+      ],
+      "line_count": 12,
+      "assets": [],
+      "tree_hash": "bbe6bd8c9e95f100b76d3f2d1864c83ea047d02265e83066f3716a3e2b2f0ea1"
+    },
+    {
+      "kind": "playbook",
+      "name": "autonomous-run",
+      "category": "playbooks",
+      "logical_id": "playbook:pstack/skills/poteto-mode/playbooks/autonomous-run",
+      "canonical_path": "pstack/skills/poteto-mode/playbooks/autonomous-run.md",
+      "paths": [
+        "pstack/skills/poteto-mode/playbooks/autonomous-run.md"
+      ],
+      "description": "",
+      "content_hash": "edd420294c7bae57921d253e9f783fd0a8fbb7a6",
+      "signature_hash": "ac32716646f65c6b4d8140c2ae1e37f0d02f1094",
+      "variant_hashes": [
+        "edd420294c7bae57921d253e9f783fd0a8fbb7a6"
+      ],
+      "line_count": 13,
+      "assets": [],
+      "tree_hash": "53d9c959ed368f514d6d9c701533b31fe4c92f129b56c086074983c1ea634a9f"
+    },
+    {
+      "kind": "playbook",
+      "name": "autopilot-full",
+      "category": "playbooks",
+      "logical_id": "playbook:pstack/skills/poteto-mode/playbooks/autopilot-full",
+      "canonical_path": "pstack/skills/poteto-mode/playbooks/autopilot-full.md",
+      "paths": [
+        "pstack/skills/poteto-mode/playbooks/autopilot-full.md"
+      ],
+      "description": "",
+      "content_hash": "8f3f43716fbb3011ebaffb2675c902fd49ee319b",
+      "signature_hash": "b731668e8fae6c9428416ea03f04f3d308eda285",
+      "variant_hashes": [
+        "8f3f43716fbb3011ebaffb2675c902fd49ee319b"
+      ],
+      "line_count": 25,
+      "assets": [],
+      "tree_hash": "dd4ee363b64245e963dee37628eb48bb11cb22d59ef8f4a2401597326194bc45"
+    },
+    {
+      "kind": "playbook",
+      "name": "autopilot-stack",
+      "category": "playbooks",
+      "logical_id": "playbook:pstack/skills/poteto-mode/playbooks/autopilot-stack",
+      "canonical_path": "pstack/skills/poteto-mode/playbooks/autopilot-stack.md",
+      "paths": [
+        "pstack/skills/poteto-mode/playbooks/autopilot-stack.md"
+      ],
+      "description": "",
+      "content_hash": "7882dc6cccea27cea22117e2e9441d2431b543e6",
+      "signature_hash": "acada3a24c26e4e3d848696d9f54ae39d9546b24",
+      "variant_hashes": [
+        "7882dc6cccea27cea22117e2e9441d2431b543e6"
+      ],
+      "line_count": 8,
+      "assets": [],
+      "tree_hash": "480d5dab421582865b1e1e6b88d9fad99e54e35f7e1f4efdeeb1f39722aa17ba"
+    },
+    {
+      "kind": "playbook",
+      "name": "babysit",
+      "category": "playbooks",
+      "logical_id": "playbook:pstack/skills/poteto-mode/playbooks/babysit",
+      "canonical_path": "pstack/skills/poteto-mode/playbooks/babysit.md",
+      "paths": [
+        "pstack/skills/poteto-mode/playbooks/babysit.md"
+      ],
+      "description": "",
+      "content_hash": "0ddd5a258cb2d41198063b01dc4720f311c3691a",
+      "signature_hash": "2e74df70f0b06e59f480954a9a61b2104e2ffeb5",
+      "variant_hashes": [
+        "0ddd5a258cb2d41198063b01dc4720f311c3691a"
+      ],
+      "line_count": 23,
+      "assets": [],
+      "tree_hash": "ced829bc10602b038894d5d9cbb0bfaafb95e0c66af0bcaaed887718a4aa287a"
+    },
+    {
+      "kind": "playbook",
+      "name": "bug-fix",
+      "category": "playbooks",
+      "logical_id": "playbook:pstack/skills/poteto-mode/playbooks/bug-fix",
+      "canonical_path": "pstack/skills/poteto-mode/playbooks/bug-fix.md",
+      "paths": [
+        "pstack/skills/poteto-mode/playbooks/bug-fix.md"
+      ],
+      "description": "",
+      "content_hash": "64923d1066c4db81712df3e9184f93ddc1eff9a9",
+      "signature_hash": "c2efaf303821cbcf2a89c5b93bf9d60185f42b73",
+      "variant_hashes": [
+        "64923d1066c4db81712df3e9184f93ddc1eff9a9"
+      ],
+      "line_count": 15,
+      "assets": [],
+      "tree_hash": "a96555f516658a20c4fef1ee69aec82fd6c05831aa95624d4e351f858ec49af7"
+    },
+    {
+      "kind": "playbook",
+      "name": "eval",
+      "category": "playbooks",
+      "logical_id": "playbook:pstack/skills/poteto-mode/playbooks/eval",
+      "canonical_path": "pstack/skills/poteto-mode/playbooks/eval.md",
+      "paths": [
+        "pstack/skills/poteto-mode/playbooks/eval.md"
+      ],
+      "description": "",
+      "content_hash": "85fa2a4757a9e4606f38fc0be310a140c1c0c048",
+      "signature_hash": "43c15150aea4d59c8d70f696cf647e0cb2a4b7d2",
+      "variant_hashes": [
+        "85fa2a4757a9e4606f38fc0be310a140c1c0c048"
+      ],
+      "line_count": 25,
+      "assets": [],
+      "tree_hash": "fa6d136a4ce85c4d9401db292c9ede129248cdb06787425885d53cdfc41f0f8e"
+    },
+    {
+      "kind": "playbook",
+      "name": "feature",
+      "category": "playbooks",
+      "logical_id": "playbook:pstack/skills/poteto-mode/playbooks/feature",
+      "canonical_path": "pstack/skills/poteto-mode/playbooks/feature.md",
+      "paths": [
+        "pstack/skills/poteto-mode/playbooks/feature.md"
+      ],
+      "description": "",
+      "content_hash": "2ad9f24f50f005fa156297d1f2c2bf4de8c06c5b",
+      "signature_hash": "6381b8d291f9c84fa617bee4970ae40e0b3cd2d2",
+      "variant_hashes": [
+        "2ad9f24f50f005fa156297d1f2c2bf4de8c06c5b"
+      ],
+      "line_count": 21,
+      "assets": [],
+      "tree_hash": "2c15b112b00e620acc7dcd920890f844dddd8f286a23b05590905a07366b139f"
+    },
+    {
+      "kind": "playbook",
+      "name": "hillclimb",
+      "category": "playbooks",
+      "logical_id": "playbook:pstack/skills/poteto-mode/playbooks/hillclimb",
+      "canonical_path": "pstack/skills/poteto-mode/playbooks/hillclimb.md",
+      "paths": [
+        "pstack/skills/poteto-mode/playbooks/hillclimb.md"
+      ],
+      "description": "",
+      "content_hash": "e3f43905c4d48ec2628ac5876cc0a949ce889784",
+      "signature_hash": "8ed524c7239060221daf9f7361d15df595e0cfe7",
+      "variant_hashes": [
+        "e3f43905c4d48ec2628ac5876cc0a949ce889784"
+      ],
+      "line_count": 21,
+      "assets": [],
+      "tree_hash": "3dc60a82b9bbe39c971e6a962db544099d3e367d227e87f20e57612f35c2d462"
+    },
+    {
+      "kind": "playbook",
+      "name": "investigation",
+      "category": "playbooks",
+      "logical_id": "playbook:pstack/skills/poteto-mode/playbooks/investigation",
+      "canonical_path": "pstack/skills/poteto-mode/playbooks/investigation.md",
+      "paths": [
+        "pstack/skills/poteto-mode/playbooks/investigation.md"
+      ],
+      "description": "",
+      "content_hash": "38163f6aa2aad89d1c1af5585f82d4fddbc416ec",
+      "signature_hash": "18d1c3d8bed3fa3780883ed39ed7a5905343fbec",
+      "variant_hashes": [
+        "38163f6aa2aad89d1c1af5585f82d4fddbc416ec"
+      ],
+      "line_count": 14,
+      "assets": [],
+      "tree_hash": "c7bf9a4e74a52fbb628a701033a9eb8413368004995a3b721884073abeff7646"
+    },
+    {
+      "kind": "playbook",
+      "name": "multi-phase-plan",
+      "category": "playbooks",
+      "logical_id": "playbook:pstack/skills/poteto-mode/playbooks/multi-phase-plan",
+      "canonical_path": "pstack/skills/poteto-mode/playbooks/multi-phase-plan.md",
+      "paths": [
+        "pstack/skills/poteto-mode/playbooks/multi-phase-plan.md"
+      ],
+      "description": "",
+      "content_hash": "81f5a5f97fbd0a6efb90ece41b2c8b164bee2142",
+      "signature_hash": "c2fe72e9d7685375d327e08890781603ae04b75c",
+      "variant_hashes": [
+        "81f5a5f97fbd0a6efb90ece41b2c8b164bee2142"
+      ],
+      "line_count": 155,
+      "assets": [],
+      "tree_hash": "909d0a0108185efce7b0c9ca463da13df74d7bb524c007cfb2ef9713d3dd8799"
+    },
+    {
+      "kind": "playbook",
+      "name": "opening-a-pr",
+      "category": "playbooks",
+      "logical_id": "playbook:pstack/skills/poteto-mode/playbooks/opening-a-pr",
+      "canonical_path": "pstack/skills/poteto-mode/playbooks/opening-a-pr.md",
+      "paths": [
+        "pstack/skills/poteto-mode/playbooks/opening-a-pr.md"
+      ],
+      "description": "",
+      "content_hash": "c1304772528e7c771eea653c71eef33a9b4192a9",
+      "signature_hash": "c75cd6436c593f566616494a7e24d69da961283b",
+      "variant_hashes": [
+        "c1304772528e7c771eea653c71eef33a9b4192a9"
+      ],
+      "line_count": 34,
+      "assets": [],
+      "tree_hash": "e0e725361f877778afdf56698ec94eac57b09826979c3554183c24beed33ca8c"
+    },
+    {
+      "kind": "playbook",
+      "name": "orchestrate",
+      "category": "playbooks",
+      "logical_id": "playbook:pstack/skills/poteto-mode/playbooks/orchestrate",
+      "canonical_path": "pstack/skills/poteto-mode/playbooks/orchestrate.md",
+      "paths": [
+        "pstack/skills/poteto-mode/playbooks/orchestrate.md"
+      ],
+      "description": "",
+      "content_hash": "fd40f6a07b1cfbe60a585bcc64e9415a6a29e1c6",
+      "signature_hash": "cca71cf0ba74474e4f46396d22cc5f6653557ebd",
+      "variant_hashes": [
+        "fd40f6a07b1cfbe60a585bcc64e9415a6a29e1c6"
+      ],
+      "line_count": 25,
+      "assets": [],
+      "tree_hash": "b5e37cbe66dde652e0c2c465ea55644dafc1ab1da649ec9867a1815d7c960f9b"
+    },
+    {
+      "kind": "playbook",
+      "name": "pause-safely",
+      "category": "playbooks",
+      "logical_id": "playbook:pstack/skills/poteto-mode/playbooks/pause-safely",
+      "canonical_path": "pstack/skills/poteto-mode/playbooks/pause-safely.md",
+      "paths": [
+        "pstack/skills/poteto-mode/playbooks/pause-safely.md"
+      ],
+      "description": "",
+      "content_hash": "84fa1578a4580e981d3eb855dd80f48aee479176",
+      "signature_hash": "f3007e3e2c3713e2233a943c76ee117a1bd6de57",
+      "variant_hashes": [
+        "84fa1578a4580e981d3eb855dd80f48aee479176"
+      ],
+      "line_count": 10,
+      "assets": [],
+      "tree_hash": "3c9a3eac188333b1e8b377392fed55c7ea1570a9c81162b03dec197c2aec7d21"
+    },
+    {
+      "kind": "playbook",
+      "name": "perf-issue",
+      "category": "playbooks",
+      "logical_id": "playbook:pstack/skills/poteto-mode/playbooks/perf-issue",
+      "canonical_path": "pstack/skills/poteto-mode/playbooks/perf-issue.md",
+      "paths": [
+        "pstack/skills/poteto-mode/playbooks/perf-issue.md"
+      ],
+      "description": "",
+      "content_hash": "16c969eca337dd229f68ecc52e8e07f5cf76c8ab",
+      "signature_hash": "330d8f4dd7c59c101cdd12444c024ebdb213f9f5",
+      "variant_hashes": [
+        "16c969eca337dd229f68ecc52e8e07f5cf76c8ab"
+      ],
+      "line_count": 25,
+      "assets": [],
+      "tree_hash": "d3bc3082dbe42f5c67b0ceb7f196e1295c79645a91a54a1f8d02dc1981b4a3bd"
+    },
+    {
+      "kind": "playbook",
+      "name": "prototype",
+      "category": "playbooks",
+      "logical_id": "playbook:pstack/skills/poteto-mode/playbooks/prototype",
+      "canonical_path": "pstack/skills/poteto-mode/playbooks/prototype.md",
+      "paths": [
+        "pstack/skills/poteto-mode/playbooks/prototype.md"
+      ],
+      "description": "",
+      "content_hash": "efbcd4e3c9287d8c5a97d202779d4bd886ae08b7",
+      "signature_hash": "a8f8672f7ec44f5472ac433c14eba0021979db86",
+      "variant_hashes": [
+        "efbcd4e3c9287d8c5a97d202779d4bd886ae08b7"
+      ],
+      "line_count": 14,
+      "assets": [],
+      "tree_hash": "b655a479388679cda2a848b1141f344c633f2103bdad73b6c3f62a4e47e3afb3"
+    },
+    {
+      "kind": "playbook",
+      "name": "refactoring",
+      "category": "playbooks",
+      "logical_id": "playbook:pstack/skills/poteto-mode/playbooks/refactoring",
+      "canonical_path": "pstack/skills/poteto-mode/playbooks/refactoring.md",
+      "paths": [
+        "pstack/skills/poteto-mode/playbooks/refactoring.md"
+      ],
+      "description": "",
+      "content_hash": "3d9dc443f8a434bb9a7b5ff609b4f44fad334311",
+      "signature_hash": "c9de610d93bd22abcb7ba6ef9b79e73e96ba1d78",
+      "variant_hashes": [
+        "3d9dc443f8a434bb9a7b5ff609b4f44fad334311"
+      ],
+      "line_count": 16,
+      "assets": [],
+      "tree_hash": "a37abc5b691e40476879f49aea8e03ea7527cea83912c32b7fa2fc2c58a3e01a"
+    },
+    {
+      "kind": "playbook",
+      "name": "runtime-forensics",
+      "category": "playbooks",
+      "logical_id": "playbook:pstack/skills/poteto-mode/playbooks/runtime-forensics",
+      "canonical_path": "pstack/skills/poteto-mode/playbooks/runtime-forensics.md",
+      "paths": [
+        "pstack/skills/poteto-mode/playbooks/runtime-forensics.md"
+      ],
+      "description": "",
+      "content_hash": "223d667510ecb109ec2d48faa87db7a2c89cfdf3",
+      "signature_hash": "ff4403a46cd97e0407e64ccaf63b6d7101d1190e",
+      "variant_hashes": [
+        "223d667510ecb109ec2d48faa87db7a2c89cfdf3"
+      ],
+      "line_count": 11,
+      "assets": [],
+      "tree_hash": "a0d2ff70d60026b724021aaa4f5d1ff75f48aff304f648ae92057c28dc350851"
+    },
+    {
+      "kind": "playbook",
+      "name": "session-pickup",
+      "category": "playbooks",
+      "logical_id": "playbook:pstack/skills/poteto-mode/playbooks/session-pickup",
+      "canonical_path": "pstack/skills/poteto-mode/playbooks/session-pickup.md",
+      "paths": [
+        "pstack/skills/poteto-mode/playbooks/session-pickup.md"
+      ],
+      "description": "",
+      "content_hash": "3bcb5e777fb27079703681b6636f9480df243856",
+      "signature_hash": "abac7b4e3e8d6e03e9bc996ba73f7505fa095c71",
+      "variant_hashes": [
+        "3bcb5e777fb27079703681b6636f9480df243856"
+      ],
+      "line_count": 11,
+      "assets": [],
+      "tree_hash": "7db939fc2ed451a20476b9708961a7ceb1f130edd780679ff0e6d4b638fdb4e2"
+    },
+    {
+      "kind": "playbook",
+      "name": "shipping",
+      "category": "playbooks",
+      "logical_id": "playbook:pstack/skills/poteto-mode/playbooks/shipping",
+      "canonical_path": "pstack/skills/poteto-mode/playbooks/shipping.md",
+      "paths": [
+        "pstack/skills/poteto-mode/playbooks/shipping.md"
+      ],
+      "description": "",
+      "content_hash": "30dfd2ee31989e2e609511226b416cac19fd4ba2",
+      "signature_hash": "7577992c40cab51eb0d5e4269e2a9a3defb3080b",
+      "variant_hashes": [
+        "30dfd2ee31989e2e609511226b416cac19fd4ba2"
+      ],
+      "line_count": 12,
+      "assets": [],
+      "tree_hash": "f73ee4bdf93f0c87c1ad6cc3f4faf2455aa503cd5522508696e4e390c4b98c92"
+    },
+    {
+      "kind": "playbook",
+      "name": "trace-forensics",
+      "category": "playbooks",
+      "logical_id": "playbook:pstack/skills/poteto-mode/playbooks/trace-forensics",
+      "canonical_path": "pstack/skills/poteto-mode/playbooks/trace-forensics.md",
+      "paths": [
+        "pstack/skills/poteto-mode/playbooks/trace-forensics.md"
+      ],
+      "description": "",
+      "content_hash": "bd645ba753b4dea9784364748e213b035fe1dc69",
+      "signature_hash": "b887be32a82500f80c693db59c2adc52db60bd04",
+      "variant_hashes": [
+        "bd645ba753b4dea9784364748e213b035fe1dc69"
+      ],
+      "line_count": 14,
+      "assets": [],
+      "tree_hash": "aaca1ff715deaf6e7d64b494b2b77837fabfc8bee210cfea3f9d7ac3b6663279"
+    },
+    {
+      "kind": "playbook",
+      "name": "visual-parity",
+      "category": "playbooks",
+      "logical_id": "playbook:pstack/skills/poteto-mode/playbooks/visual-parity",
+      "canonical_path": "pstack/skills/poteto-mode/playbooks/visual-parity.md",
+      "paths": [
+        "pstack/skills/poteto-mode/playbooks/visual-parity.md"
+      ],
+      "description": "",
+      "content_hash": "8bad77ce521f311ed6b586643c5bc2d9748f9303",
+      "signature_hash": "dd0be30af77e2110015935cf57492b97aa1e8a5a",
+      "variant_hashes": [
+        "8bad77ce521f311ed6b586643c5bc2d9748f9303"
+      ],
+      "line_count": 11,
+      "assets": [],
+      "tree_hash": "38d78db13ea536daa793c57620d59e46caa41a884263f4d73d1187ceda3e5210"
+    },
+    {
+      "kind": "playbook",
+      "name": "worktree-cleanup",
+      "category": "playbooks",
+      "logical_id": "playbook:pstack/skills/poteto-mode/playbooks/worktree-cleanup",
+      "canonical_path": "pstack/skills/poteto-mode/playbooks/worktree-cleanup.md",
+      "paths": [
+        "pstack/skills/poteto-mode/playbooks/worktree-cleanup.md"
+      ],
+      "description": "",
+      "content_hash": "ca2f09177ff3cc658ffe5d8afa2dd71fcb2b5471",
+      "signature_hash": "b3baa49da9b264118724644e6731440d399b7396",
+      "variant_hashes": [
+        "ca2f09177ff3cc658ffe5d8afa2dd71fcb2b5471"
+      ],
+      "line_count": 12,
+      "assets": [],
+      "tree_hash": "053b83574328ff41517afb946abdecf0b0a47ea825040db45f01f98f1c7f118f"
+    },
+    {
       "kind": "plugin",
       "name": "pstack",
       "category": "claude-code",
@@ -3046,12 +3981,9 @@
       ],
       "line_count": 87,
       "assets": [
-        "dyl-stack/skills/dyl-mode/playbooks/bug-fix.md",
-        "dyl-stack/skills/dyl-mode/playbooks/feature.md",
-        "dyl-stack/skills/dyl-mode/playbooks/opening-a-pr.md",
         "dyl-stack/skills/dyl-mode/references/requirements.md"
       ],
-      "tree_hash": "6d376478ad46710f5c5f6369c2a3298cef13dfc931e190e13dc9397d41245959"
+      "tree_hash": "970764a59efefe919293180947b88866f0d773215405da1e47108b337acf07be"
     },
     {
       "kind": "skill",
@@ -3597,29 +4529,6 @@
       ],
       "line_count": 152,
       "assets": [
-        "harness/pstack/claude-code/skills/poteto-mode/playbooks/authoring-a-skill.md",
-        "harness/pstack/claude-code/skills/poteto-mode/playbooks/autonomous-run.md",
-        "harness/pstack/claude-code/skills/poteto-mode/playbooks/autopilot-full.md",
-        "harness/pstack/claude-code/skills/poteto-mode/playbooks/autopilot-stack.md",
-        "harness/pstack/claude-code/skills/poteto-mode/playbooks/babysit.md",
-        "harness/pstack/claude-code/skills/poteto-mode/playbooks/bug-fix.md",
-        "harness/pstack/claude-code/skills/poteto-mode/playbooks/eval.md",
-        "harness/pstack/claude-code/skills/poteto-mode/playbooks/feature.md",
-        "harness/pstack/claude-code/skills/poteto-mode/playbooks/hillclimb.md",
-        "harness/pstack/claude-code/skills/poteto-mode/playbooks/investigation.md",
-        "harness/pstack/claude-code/skills/poteto-mode/playbooks/multi-phase-plan.md",
-        "harness/pstack/claude-code/skills/poteto-mode/playbooks/opening-a-pr.md",
-        "harness/pstack/claude-code/skills/poteto-mode/playbooks/orchestrate.md",
-        "harness/pstack/claude-code/skills/poteto-mode/playbooks/pause-safely.md",
-        "harness/pstack/claude-code/skills/poteto-mode/playbooks/perf-issue.md",
-        "harness/pstack/claude-code/skills/poteto-mode/playbooks/prototype.md",
-        "harness/pstack/claude-code/skills/poteto-mode/playbooks/refactoring.md",
-        "harness/pstack/claude-code/skills/poteto-mode/playbooks/runtime-forensics.md",
-        "harness/pstack/claude-code/skills/poteto-mode/playbooks/session-pickup.md",
-        "harness/pstack/claude-code/skills/poteto-mode/playbooks/shipping.md",
-        "harness/pstack/claude-code/skills/poteto-mode/playbooks/trace-forensics.md",
-        "harness/pstack/claude-code/skills/poteto-mode/playbooks/visual-parity.md",
-        "harness/pstack/claude-code/skills/poteto-mode/playbooks/worktree-cleanup.md",
         "harness/pstack/claude-code/skills/poteto-mode/references/bugbot-triage.md",
         "harness/pstack/claude-code/skills/poteto-mode/scripts/bootstrap.ts",
         "harness/pstack/claude-code/skills/poteto-mode/scripts/bun.lock",
@@ -3640,7 +4549,7 @@
         "harness/pstack/claude-code/skills/poteto-mode/scripts/watch-pr/watch-pr",
         "harness/pstack/claude-code/skills/poteto-mode/scripts/worktree-audit.sh"
       ],
-      "tree_hash": "5219025a53d9342cdc401bec3f67f30081f8645f52c5d8be08e1fa0a6bc6268b"
+      "tree_hash": "03d5ec89f0c011d40174eab577c7dbb7e72f65c7cf923f84ae0105ab28ff9ad6"
     },
     {
       "kind": "skill",
@@ -5030,29 +5939,6 @@
       ],
       "line_count": 150,
       "assets": [
-        "pstack/skills/poteto-mode/playbooks/authoring-a-skill.md",
-        "pstack/skills/poteto-mode/playbooks/autonomous-run.md",
-        "pstack/skills/poteto-mode/playbooks/autopilot-full.md",
-        "pstack/skills/poteto-mode/playbooks/autopilot-stack.md",
-        "pstack/skills/poteto-mode/playbooks/babysit.md",
-        "pstack/skills/poteto-mode/playbooks/bug-fix.md",
-        "pstack/skills/poteto-mode/playbooks/eval.md",
-        "pstack/skills/poteto-mode/playbooks/feature.md",
-        "pstack/skills/poteto-mode/playbooks/hillclimb.md",
-        "pstack/skills/poteto-mode/playbooks/investigation.md",
-        "pstack/skills/poteto-mode/playbooks/multi-phase-plan.md",
-        "pstack/skills/poteto-mode/playbooks/opening-a-pr.md",
-        "pstack/skills/poteto-mode/playbooks/orchestrate.md",
-        "pstack/skills/poteto-mode/playbooks/pause-safely.md",
-        "pstack/skills/poteto-mode/playbooks/perf-issue.md",
-        "pstack/skills/poteto-mode/playbooks/prototype.md",
-        "pstack/skills/poteto-mode/playbooks/refactoring.md",
-        "pstack/skills/poteto-mode/playbooks/runtime-forensics.md",
-        "pstack/skills/poteto-mode/playbooks/session-pickup.md",
-        "pstack/skills/poteto-mode/playbooks/shipping.md",
-        "pstack/skills/poteto-mode/playbooks/trace-forensics.md",
-        "pstack/skills/poteto-mode/playbooks/visual-parity.md",
-        "pstack/skills/poteto-mode/playbooks/worktree-cleanup.md",
         "pstack/skills/poteto-mode/references/bugbot-triage.md",
         "pstack/skills/poteto-mode/scripts/bootstrap.ts",
         "pstack/skills/poteto-mode/scripts/bun.lock",
@@ -5073,7 +5959,7 @@
         "pstack/skills/poteto-mode/scripts/watch-pr/watch-pr",
         "pstack/skills/poteto-mode/scripts/worktree-audit.sh"
       ],
-      "tree_hash": "73115706db1d10cc4885965d48d936ddbb046cdb7690319e6c6037428bd9273b"
+      "tree_hash": "2f1513daf76f57a78a3a4b95664fee6a41eb611a7f7ca0c61ad3dff28e815b57"
     },
     {
       "kind": "skill",

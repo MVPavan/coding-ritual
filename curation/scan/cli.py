@@ -7,13 +7,15 @@ things that actually moved — never hundreds of files.
 
 Subcommands:
   catalog <repo-path> [--name NAME] [--out FILE]
-      Scan a harness working tree into a JSON capability catalog.
+      Scan a harness working tree into a JSON capability catalog; a sparse
+      checkout is scanned from a full export of its HEAD instead.
   diff <old.json> <new.json>
       Materiality-filtered change report between two catalogs.
   drift <submodule-path> [--no-fetch]
       Catalog the pinned commit vs upstream HEAD and report the drift.
 
-A "capability" is a skill / command / agent / rule / hook / MCP server / plugin.
+A "capability" is a skill / playbook / command / agent / rule / hook / MCP server /
+plugin.
 Capabilities are deduplicated to LOGICAL units: harnesses often mirror the same
 skill into several per-tool trees (.claude/, .cursor/, .kiro/, .agents/) and into
 translated docs/ copies. We collapse those by (kind, name), keep the canonical
@@ -45,6 +47,25 @@ from curation.scan.drift import (
 from curation.scan.models import Catalog
 
 
+def _is_sparse_checkout(root: Path) -> bool:
+    try:
+        return _git(root, "config", "--type=bool", "core.sparseCheckout") == "true"
+    except subprocess.CalledProcessError:  # unset
+        return False
+
+
+def _scan_checkout(root: Path, repo: str, commit: str | None) -> Catalog:
+    """Scan `root`, or a full export of its HEAD when it is a sparse checkout: a
+    scan of the partial tree would look complete and still carry the right commit.
+    """
+    if commit is None or not _is_sparse_checkout(root):
+        return scan_repo(root, repo, source="working-tree", source_commit=commit)
+    print(f"sparse checkout: scanning a full export of HEAD {commit[:10]}")
+    with tempfile.TemporaryDirectory(prefix="harness-catalog-") as tmp:
+        archive_ref(root, commit, Path(tmp))
+        return scan_repo(Path(tmp), repo, source="working-tree", source_commit=commit)
+
+
 def cmd_catalog(args: argparse.Namespace) -> int:
     root = Path(args.repo).resolve()
     if not root.is_dir():
@@ -56,7 +77,7 @@ def cmd_catalog(args: argparse.Namespace) -> int:
             commit = pinned_commit(root)
         except subprocess.CalledProcessError:
             commit = None
-    catalog = scan_repo(root, repo, source="working-tree", source_commit=commit)
+    catalog = _scan_checkout(root, repo, commit)
     if args.out:
         Path(args.out).parent.mkdir(parents=True, exist_ok=True)
         Path(args.out).write_text(

@@ -1,7 +1,8 @@
 # Skill curation: handoff
 
-Updated 2026-10-30 (Pocock `5beb35b` trait-level round recorded; pstack
-analysis in flight). Branch `dws-workflow` (never merge to `main` until DWS is built). Beads is the work-state authority; this file is the narrative.
+Updated 2026-11-01 (MVP stack phase 1 closed; phase 2 running on the playbook
+map). Branch `mvp-stack` in the main worktree; `dws-workflow` is retired and
+deleted. Beads is the work-state authority; this file is the narrative.
 
 ## Start here (new session)
 
@@ -18,9 +19,7 @@ analysis in flight). Branch `dws-workflow` (never merge to `main` until DWS is b
 - **Roles.** Delegate through the `delegation` skill: the implementer writes
   all code and the reviewer or critic reviews read-only, with models from the
   owner's roster (`.delegation/roster.toml`). One task at a time. A task that
-  hits a rate limit is resumed by its vendor: never relaunch it. Skill and
-  harness doc edits are made by the orchestrating session itself, never by the
-  implementer.
+  hits a rate limit is resumed by its vendor: never relaunch it.
 - **Git.** Stage explicit paths only; commit with `git -c core.hooksPath=/dev/null`;
   push only when the owner says "push". Never commit `.beads/issues.jsonl`
   with other sessions' beads, `tools/T3/` (another workstream), or a
@@ -45,42 +44,44 @@ analysis in flight). Branch `dws-workflow` (never merge to `main` until DWS is b
 | `2a38fbe` | Stages build (`cr-w92w`, design `stages-design.md`): `curation/` package, `skills.yaml`, `traits/` with accepted and proposed analyses, `status`, reports, `trait-sharing.yaml` (16 shared traits kept with a why), empty `trait-policy.yaml`. `delegation` skill replaces agent-matrix and use-codex (`cr-sduw`, round `2026-10-30-delegation`) |
 | after `222e3d6` | Pocock redo (`cr-axdt.4`): sealed report `reviews/2026-10-30-upstream-mattpocock_skills-5beb35b.yaml` (27 skills, 559 rows, Sol passed analysis and comparison), round `2026-10-30-mattpocock_skills-5beb35b` (591 events), analyses promoted to `5beb35b`, submodule pointer. Owner deferred every reject recommendation (207) to review as a set: `reviews/…-5beb35b-deferred-rejects.md` |
 
-`c65e0ef` onward are not pushed.
+| `a83d5f9`, `876cfa1` | Unit-kinds rules and the boundary study; pstack v0.15.36 report and submodule pointer |
+| `c25ed12`, `eb36cc9`, `382962d` | MVP stack phase 1 (`cr-r2pa.1`): `mvp-mode` router, bug-fix pilot, playbook registry, 14 principles, `build-a-lever`, the delegation default, the playbook map (all rulings as recommended), a playbook as its own ledger subject. Comparison: `mvp-stack-changes.md` |
+
+`main` and `mvp-stack` are pushed. `main` is at `eb36cc9`; later work is on
+`mvp-stack` until the owner asks to merge.
 
 Decisions behind them: domains `core` and `engineering`; one primary
 coordinate per skill (domain · stage · sub-stage); reviews are flat files
 `reviews/<date>-<upstream|skill>-<slug>.md`, linked into records by `build`;
 frozen material goes to `harness_lifecycle/archive/`.
 
-## In flight: pstack analysis (`cr-4bvn`)
+## In flight: MVP stack phase 2 (`cr-r2pa.2`)
 
-Owner 2026-10-30: pstack's split between skills (independent capabilities)
-and playbooks (procedures that call skills in order) should come to ours,
-with a registry mechanism for playbooks, provisionally **steps**, parallel
-to traits. The `cursor_plugins` pointer is synced to upstream main `4dd1d05`
-(pstack v0.15.36; the archived analysis was v0.15.9 at `e43c7ee`).
+Runs on `playbook-map.md`: §5 is the order, §7.2 the seventeen rulings, all ruled
+as recommended on 2026-11-01. Each batch follows the approved cycle: report, Sol
+critic, owner rulings, ledger, build, Sol review, commit after the owner approves.
 
-1. Report `pstack-report.md` (this folder): structure, every playbook and
-   the skills and principles its steps call, ours today, the steps design,
-   owner decisions. Brief: `scratchpad/pstack/BRIEF-report.md`.
-2. Sol critic on the report, then the owner rules on the design.
-3. Then the full pstack review (catalog at `4dd1d05`, blind extraction,
-   report, rulings) and the pointer commit.
+- `cr-r2pa.2.2`: pstack's 23 playbooks cataloged as units and ruled whole (round
+  `2026-11-01-pstack-playbooks`). A `defer` on an adapted playbook means not built
+  yet: the `adopt-merged` that delivers it supersedes the `defer`.
+- `cr-r2pa.2.1`: seven Pocock retargets, each needing an owner-ruled destination.
+- Then batch 0 (`cr-r2pa.2.3`), batch 1 (`.4`), batch 2 (`.5`), pilots 2 and 3 (`.8`,
+  `.9`), batches 3 and 4 (`.6`, `.7`), the remaining Pocock pass (`.10`).
 
-The Pocock pending adoptions are tracked in `cr-axdt.6` (13 tasks, one per
-target skill); each completes its adopts with `record --supersedes`.
+The Pocock pending adoptions are tracked in `cr-axdt.6` (13 tasks, one per target
+skill) and join the batch that touches the same skill; each completes its adopts
+with `record --supersedes`.
 
 ## Uncommitted work (as of this handoff)
 
 | Path | State |
 |---|---|
 | `harness_lifecycle/registry/reviews/2026-10-22-upstream-mattpocock_skills-1.3.1-47.md` | superseded idea-level draft; delete or archive at the owner's word |
-| `reference_harnesses/cursor_plugins` | pointer at upstream `4dd1d05`; commit with the pstack review |
 | `.beads/issues.jsonl`, `.claude/agents/*`, `tools/T3/*` | not this workstream; leave alone |
 
 ## Next, in order
 
-1. pstack (above). Pocock delivery tasks `cr-axdt.6.*` can run in between.
+1. MVP stack phase 2 (above), then phase 3 (`cr-r2pa.3`).
 2. agent-skills 0.6.13 rulings by playbook §4: the review exists
    (`reviews/2026-10-14-upstream-agent-skills-0.6.13.md`) but no rulings; `gap
    agent-skills` shows 12 changed and 2 new (constraint-driven-development
@@ -99,6 +100,9 @@ target skill); each completes its adopts with `record --supersedes`.
   placement moves.
 - `registry.py check` does not flag stray `references/*.md` pages that no
   catalog backs.
+- `catalogs/claude-code-best-practice.json` is at `cd5af1f` while its pin is
+  `e56f1bd`: the pin moved in `31d440e` with no catalog refresh. The other committed
+  catalogs match a fresh scan except an `excluded` count off by one.
 - Unused catalog fields `signature_hash` and `variant_hashes` (no consumer);
   candidate deferred bead.
 - Beads: `cr-fxo8` (release contract into `harness-publish`), `cr-dp83` (port

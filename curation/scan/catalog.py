@@ -64,11 +64,11 @@ TEST_STEM_SUFFIX = "-test"
 
 SKILL_FILENAME = "SKILL.md"
 
-# Subfolders of OUR skill folders that hold other units: each playbook in a
-# router's `playbooks/` is its own unit (unit-kinds B1, T1), so its edits never
-# change the router's tree hash. Only the ours build passes it to `scan_repo`;
-# an upstream skill keeps such a folder in its hash, so upstream edits show.
-UNIT_SUBFOLDERS = frozenset({"playbooks"})
+# Each playbook in a router's `playbooks/` is its own unit (unit-kinds B1, T1), so
+# what it owns never changes the router's tree hash (`_owned_by_playbook`). An
+# upstream playbook is cataloged itself, so its edits show on its own entry; ours
+# are ledger subjects (`doc:<path>`) instead.
+PLAYBOOKS_DIR = "playbooks"
 
 
 def normalize(text: str) -> str:
@@ -153,6 +153,8 @@ def canonical_name(kind: Kind, parts: tuple[str, ...]) -> str:
     """The stable identity of a capability, shared across mirror copies."""
     if kind is Kind.SKILL:
         return parts[-2] if len(parts) >= 2 else parts[-1]
+    if kind is Kind.PLAYBOOK:
+        return parts[-1].rsplit(".", 1)[0]
     if kind in (Kind.COMMAND, Kind.AGENT, Kind.RULE):
         anchor = kind.value + "s"
         idx = _last_index(parts, anchor)
@@ -380,20 +382,46 @@ def hash_files(base: Path, files: list[Path]) -> str:
     return digest.hexdigest()
 
 
-def _skill_tree_hash(skill_dir: Path, skip: frozenset[str] = frozenset()) -> str:
+def _is_playbook_name(path: Path) -> bool:
+    return path.suffix == ".md" and path.name != SKILL_FILENAME
+
+
+def _owned_by_playbook(path: Path, skill_dir: Path, visible: set[Path]) -> bool:
+    """Whether a file in `skill_dir` belongs to a playbook, not the skill: it is
+    a direct `playbooks/*.md`, or lies under `playbooks/<name>/` beside a
+    `playbooks/<name>.md`. `visible` is the scan's file list, so a playbook the scan
+    skips owns nothing. Any other file stays with the skill, so no file is hashed
+    by nobody.
+    """
+    rel = path.relative_to(skill_dir).parts
+    if len(rel) < 2 or rel[0] != PLAYBOOKS_DIR:
+        return False
+    name = rel[1] if len(rel) == 2 else f"{rel[1]}.md"
+    owner = skill_dir / PLAYBOOKS_DIR / name
+    return _is_playbook_name(owner) and owner in visible
+
+
+def _skill_tree_hash(skill_dir: Path) -> str:
     """sha256 over every file in a skill's folder (§4), skipping files git
     ignores when the folder is in a git work tree (caches such as
     ``__pycache__`` would otherwise make the hash machine-specific), so an
-    edit to any bundled reference, script or asset changes the hash. Files in
-    a `skip` subfolder belong to other units and are left out.
+    edit to any bundled reference, script or asset changes the hash. Files a
+    playbook owns belong to that unit and are left out.
     """
+    files = folder_files(skill_dir)
+    visible = set(files)
     return hash_files(
         skill_dir,
-        [
-            p
-            for p in folder_files(skill_dir)
-            if p.relative_to(skill_dir).parts[0] not in skip
-        ],
+        [p for p in files if not _owned_by_playbook(p, skill_dir, visible)],
+    )
+
+
+def _playbook_tree_hash(file: Path) -> str:
+    """sha256 over a playbook's file and its reference folder `playbooks/<name>/`
+    (F3), so a reference edit changes it."""
+    refs = file.with_suffix("")
+    return hash_files(
+        file.parent, [file] + (folder_files(refs) if refs.is_dir() else [])
     )
 
 
@@ -449,7 +477,6 @@ def _entry_for(
     root: Path,
     kind: Kind,
     assets: tuple[str, ...] = (),
-    unit_subfolders: frozenset[str] = frozenset(),
 ) -> _Entry:
     parts = path.relative_to(root).parts
     text = read_text(path)
@@ -466,12 +493,14 @@ def _entry_for(
         description = fm.get("description", "")
     normalized = normalize(text)
     content_hash = sha1(normalized)
-    # A skill's tree hash spans its whole folder; other kinds reuse content_hash.
-    tree_hash = (
-        _skill_tree_hash(path.parent, unit_subfolders)
-        if kind is Kind.SKILL
-        else content_hash
-    )
+    # A skill's and a playbook's tree hash span their folders; other kinds reuse
+    # content_hash.
+    if kind is Kind.SKILL:
+        tree_hash = _skill_tree_hash(path.parent)
+    elif kind is Kind.PLAYBOOK:
+        tree_hash = _playbook_tree_hash(path)
+    else:
+        tree_hash = content_hash
     return _Entry(
         kind=kind,
         name=name,
@@ -488,18 +517,35 @@ def _entry_for(
     )
 
 
-def _skill_assets(files: list[Path], root: Path) -> dict[Path, tuple[str, ...]]:
+def _skill_dirs(files: list[Path], root: Path) -> set[Path]:
+    return {
+        path.parent
+        for path in files
+        if classify(path.relative_to(root).parts) is Kind.SKILL
+    }
+
+
+def _is_playbook(path: Path, skill_dirs: set[Path]) -> bool:
+    """A `*.md` directly in a skill's `playbooks/` folder; files in its subfolders
+    are that playbook's references."""
+    return (
+        _is_playbook_name(path)
+        and path.parent.name == PLAYBOOKS_DIR
+        and path.parent.parent in skill_dirs
+    )
+
+
+def _skill_assets(
+    files: list[Path], root: Path, skill_dirs: set[Path]
+) -> dict[Path, tuple[str, ...]]:
     """Map each skill directory to the non-capability files bundled inside it.
 
     A skill often ships prompt templates and helper scripts in its own folder.
     Those are part of the skill rather than standalone capabilities, so they are
     attributed to the nearest enclosing skill — never promoted to their own row.
+    Files a playbook owns belong to that unit, not the skill.
     """
-    skill_dirs = {
-        path.parent
-        for path in files
-        if classify(path.relative_to(root).parts) is Kind.SKILL
-    }
+    visible = set(files)
     owned: dict[Path, list[str]] = {directory: [] for directory in skill_dirs}
     for path in files:
         if path.name == SKILL_FILENAME:
@@ -508,6 +554,8 @@ def _skill_assets(files: list[Path], root: Path) -> dict[Path, tuple[str, ...]]:
         if not owners:
             continue
         nearest = max(owners, key=lambda directory: len(directory.parts))
+        if _owned_by_playbook(path, nearest, visible):
+            continue
         owned[nearest].append(str(path.relative_to(root)))
     return {directory: tuple(sorted(paths)) for directory, paths in owned.items()}
 
@@ -517,12 +565,13 @@ def scan_repo(
     repo: str,
     source: str,
     source_commit: str | None,
-    unit_subfolders: frozenset[str] = frozenset(),
+    catalog_playbooks: bool = True,
 ) -> Catalog:
-    """Build a logical capability catalog from a harness working tree; skill
-    tree hashes leave out `unit_subfolders` (ours only: UNIT_SUBFOLDERS)."""
+    """Build a logical capability catalog from a harness working tree. The ours
+    build passes `catalog_playbooks=False`: our playbooks are ledger subjects."""
     files, excluded = _iter_files(root)
-    assets_by_skill_dir = _skill_assets(files, root)
+    skill_dirs = _skill_dirs(files, root)
+    assets_by_skill_dir = _skill_assets(files, root, skill_dirs)
     entries: list[_Entry] = []
     for path in files:
         parts = path.relative_to(root).parts
@@ -532,12 +581,20 @@ def scan_repo(
             or path.name == "plugin.json"
         ):
             entries.extend(_scan_mcp(path, root))
+        if _is_playbook(path, skill_dirs):
+            if catalog_playbooks:
+                refs = path.with_suffix("")
+                assets = tuple(
+                    sorted(str(p.relative_to(root)) for p in files if refs in p.parents)
+                )
+                entries.append(_entry_for(path, root, Kind.PLAYBOOK, assets))
+            continue
         kind = classify(parts)
         if kind is not None:
             assets = (
                 assets_by_skill_dir.get(path.parent, ()) if kind is Kind.SKILL else ()
             )
-            entries.append(_entry_for(path, root, kind, assets, unit_subfolders))
+            entries.append(_entry_for(path, root, kind, assets))
 
     groups: dict[str, list[_Entry]] = {}
     for entry in entries:

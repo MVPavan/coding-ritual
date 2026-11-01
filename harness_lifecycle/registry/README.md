@@ -128,6 +128,17 @@ One row per capability the harness ships:
 | Their capability | Status | Stage | Into ours | Traits | Last ruled at | Changed upstream since? |
 |---|---|---|---|---|---|---|
 
+A capability's kind is `skill`, `playbook`, `agent`, `command`, `rule`, `hook`,
+`mcp` or `plugin`. A `playbook` is each `*.md` directly in an upstream skill's
+`playbooks/` folder, with logical ID `playbook:<skill folder>/playbooks/<name>`;
+its `content_hash` covers the file, its `tree_hash` the file and its
+`playbooks/<name>/` folder. Our own playbooks are not cataloged: they are ledger
+subjects (§4b).
+
+`scan.py catalog` scans a sparse reference checkout from a full `git archive`
+export of its HEAD, not its working tree. A scan of the partial tree would look
+complete and carry the right commit, so it could replace the baseline unnoticed.
+
 Status is the effective ruling, or `present, unruled` (we have a same-named
 capability but never ruled), or `not reviewed`. Stage is the skill's stage
 from `registry.py status` (§5c); other capabilities show not reviewed,
@@ -217,8 +228,8 @@ All trait files are read with strict parsing: a duplicate key, an unknown
 field or a value of the wrong type (YAML reads `no` as false and an all-digit
 sha as a number) fails `check`. Quote shas and hashes. No tool writes these
 files, so comments are safe. An upstream entry is created when the skill is
-first analysed (§5c). Agents, commands, hooks and other kinds keep one ruling
-per capability.
+first analysed (§5c). Agents, commands, hooks, upstream playbooks and other
+kinds keep one ruling per capability, with no analysis and no report row.
 
 **Rules for traits.**
 
@@ -347,9 +358,12 @@ is not a file under the calling playbook's own folder `playbooks/<name>/`
 **A playbook holds traits** (T1, T3): its own `traits` and its steps'
 `actions`, never a callee's. Its holder key is `doc:<its path>`, the same
 key a ledger adopt into it targets; that list comes from the frontmatter, so
-a `traits/ours.yaml` entry for a playbook fails `check`. The router's
-`tree_hash` leaves out its `playbooks/` folder (our skills only: an upstream
-skill's hash keeps every subfolder, so upstream playbook edits still show).
+a `traits/ours.yaml` entry for a playbook fails `check`. A skill's `tree_hash`
+leaves out what its playbooks own, ours and upstream alike: each direct `*.md` in
+`playbooks/`, and `playbooks/<name>/` beside a `playbooks/<name>.md`. Any other
+file there stays in the skill's hash and assets, so its edit shows on the skill;
+an upstream playbook edit shows in `gap` through that playbook's own catalog
+entry (§4).
 A playbook's own hash covers its file and its `playbooks/<name>/` folder, so a
 reference edit counts, and is stored on its latest ledger event (below); its
 lists are read live, so its changes show in `steps diff` and in `TRAITS.md` and
@@ -580,7 +594,8 @@ are in §5c.
 **Change detection** (`gap`), per ruled capability, first that applies:
 
 1. the event has `tree_hash`: compare with the catalog (a skill's tree hash
-   covers every file in its folder that git does not ignore, as raw bytes);
+   covers every file in its folder that git does not ignore, as raw bytes,
+   except what its playbooks own, §4b);
 2. it has `sha`: `git diff` of the folder from that commit to the pin;
 3. neither: from the pin in the event's own round header, labelled
    "baseline inferred from round pin";

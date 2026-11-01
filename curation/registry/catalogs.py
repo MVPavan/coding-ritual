@@ -10,7 +10,7 @@ from curation.registry.config import RegistryConfig
 from curation.registry.ledger import _is_trait_subject
 from curation.registry.loaders import _catalog_files
 from curation.registry.models import Event
-from curation.scan.catalog import UNIT_SUBFOLDERS, _is_test_script, scan_repo
+from curation.scan.catalog import _is_test_script, scan_repo
 from curation.scan.drift import pinned_commit
 from curation.scan.models import Capability, Catalog
 
@@ -86,7 +86,7 @@ def build_ours(cfg: RegistryConfig) -> Any:
                 root.name,
                 source=f"ours:{root.name}",
                 source_commit=None,
-                unit_subfolders=UNIT_SUBFOLDERS,
+                catalog_playbooks=False,
             )
             catalogs.append(_drop_template_caps(cat))
     return merge_catalogs("ours", "root .claude/.codex + plugins", catalogs)
@@ -166,7 +166,9 @@ def _scan_dir(root: Path) -> Any:
     return scan_repo(root, root.name, source="working-tree", source_commit=commit)
 
 
-_CAP_KINDS = frozenset({"skill", "agent", "command", "rule", "hook", "mcp", "plugin"})
+_CAP_KINDS = frozenset(
+    {"skill", "playbook", "agent", "command", "rule", "hook", "mcp", "plugin"}
+)
 
 
 def _is_genuine_capability_subject(subject: str) -> bool:
