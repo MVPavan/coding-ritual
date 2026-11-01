@@ -9,6 +9,7 @@
     "2026-11-01-batch-0.jsonl": "6648f7b705e633a3f120dcea531d260b9275b1ff5a24228bfaa200f512323244",
     "2026-11-01-cursor_plugins-pstack-principles.jsonl": "a437805e5e0b99487895fd48c9ef7f0bd3bdafb1b01778244432baf5fb46ebc6",
     "2026-11-01-playbook-ledger.jsonl": "74afd5b5c58c3c537e2fc097dacd7c4aafd9e637b664525acad75797a25ce4a5",
+    "2026-11-01-pocock-retarget.jsonl": "dc77a57992fbd500c803ad843ec73fecca5b0fb55da30d0bea4a7546a1135241",
     "2026-11-01-principles-fixes.jsonl": "60cb639f6a010039aee1d5fed20b421050a13c6177aa778b48044fec53b08e5d",
     "2026-11-01-pstack-playbooks.jsonl": "b42bce846db0a36248782481fb5aed82e03e292ba90a37712d1ff21761db7c40"
   },
@@ -17,7 +18,8 @@
     "harness_lifecycle/registry/reviews/2026-10-31-upstream-cursor_plugins-pstack-principles.yaml": "04474c59bea34d1b3e23c2d2be492ff389a54855ce34d0436063f6522ba6627b",
     "harness_lifecycle/registry/reviews/2026-11-01-upstream-cursor_plugins-pstack-principles-amend.yaml": "0fe4d20025f2c09ba42e51744df26012869cee0b7220921f37260b61dc0c4d3a",
     "harness_lifecycle/registry/reviews/2026-11-01-upstream-cursor_plugins-pstack-principles-amend2.yaml": "fd992f3e1370d0a8371d9fa3b285f6c2726465b0ee91b4072e86e04cb2c966db",
-    "harness_lifecycle/registry/reviews/2026-11-01-upstream-cursor_plugins-pstack-principles-amend3.yaml": "bdbaf1654b93909a72b27ad70bb55f1ad77a20b6712b81890075f9aed45827a7"
+    "harness_lifecycle/registry/reviews/2026-11-01-upstream-cursor_plugins-pstack-principles-amend3.yaml": "bdbaf1654b93909a72b27ad70bb55f1ad77a20b6712b81890075f9aed45827a7",
+    "harness_lifecycle/registry/reviews/2026-11-01-upstream-mattpocock_skills-5beb35b-retarget.yaml": "5c6f37dce6dd035b85d8809ed1e16ee5202f7e17e8068c3257612f6c95f41800"
   },
   "analyses": {
     "cursor_plugins:skill:pstack/skills/principle-attack-the-premise@4dd1d05": "03d11af4ad6191885ccc52be13403b76412a9faae542cc27c3c0f5339963b8e6",

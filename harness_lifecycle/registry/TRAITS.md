@@ -1462,7 +1462,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `testing-decisions-contents`: Record a spec's testing decisions as what makes a good test, which modules are tested and the prior-art tests to follow. — adopt → brainstorming#testing-decisions-contents
 
 #### engineering · Building · Diagnosis — skill:skills/engineering/diagnosing-bugs
-- `reproduction-first`: Obtain a reproduction that shows the reported failure, not a nearby one, before diagnosing it. — adopt → systematic-debugging#reproduction-first
+- `reproduction-first`: Obtain a reproduction that shows the reported failure, not a nearby one, before diagnosing it. — adopt → systematic-debugging#reproduction-preferred
 - `tighten-loop`: Treat the loop as a product and keep making it faster, sharper, and more deterministic, raising the reproduction rate for flaky bugs until it is debuggable. — adopt → systematic-debugging#flake-reproduction
 - `reproduce-and-minimize`: Shrink the reproduction one element at a time until every remaining part is load-bearing — removing any one makes it pass. — adopt → systematic-debugging#minimize-to-discriminate
 - `phase1-completion-criterion`: Forbid any hypothesis until one named command, already run once, is proven red-capable, deterministic, fast, and agent-runnable. — defer
@@ -1473,10 +1473,10 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `baseline`: Capture a baseline measurement before attempting a performance fix. — adopt, pending cr-axdt.6.9 → systematic-debugging#baseline
 - `perf-bisection`: Locate a performance regression by bisecting between known-good and known-bad states rather than by adding logs. — adopt → systematic-debugging#localized-probing
 - `debugger-first`: Prefer a debugger or REPL breakpoint over targeted logs, and never log everything and grep. — defer
-- `prove-the-red`: When forcing the red by mutating code or a fixture, diff against a pristine copy to prove the mutation landed before trusting it. — adopt, pending cr-axdt.6.9 → systematic-debugging#prove-the-red
-- `regression-check`: Turn the failure into a durable regression check when feasible, showing failure before the fix and success after, then rerun the original scenario. — adopt → systematic-debugging#regression-check
-- `missing-seam-finding`: When no correct seam exists to lock down the bug, treat that architectural absence as itself the finding and flag it. — adopt, pending cr-axdt.6.9 → systematic-debugging#missing-seam-finding
-- `closeout`: Before declaring done, remove temporary instrumentation and record the confirmed cause. — adopt → systematic-debugging#closeout
+- `prove-the-red`: When forcing the red by mutating code or a fixture, diff against a pristine copy to prove the mutation landed before trusting it. — adopt, pending cr-axdt.6.11 → test-driven-development#prove-the-red
+- `regression-check`: Turn the failure into a durable regression check when feasible, showing failure before the fix and success after, then rerun the original scenario. — adopt → doc:.claude/skills/mvp-mode/playbooks/bug-fix.md
+- `missing-seam-finding`: When no correct seam exists to lock down the bug, treat that architectural absence as itself the finding and flag it. — adopt, pending cr-r2pa.2.1 → doc:.claude/skills/mvp-mode/playbooks/bug-fix.md
+- `closeout`: Before declaring done, remove temporary instrumentation and record the confirmed cause. — adopt → doc:.claude/skills/mvp-mode/playbooks/bug-fix.md
 - `delete-debug-prototypes`: Delete throwaway debugging prototypes before declaring done, or move them to a clearly marked debug location. — defer
 - `hitl-loop-script`: Drive a required human step through a structured human-in-the-loop script as the last-resort loop so it stays repeatable. — defer
 - `escalate-unreproducible`: When no loop can be built, stop, list what was tried, and ask for environment access, a redacted artifact, or instrumentation rather than hypothesising. — defer
@@ -5185,7 +5185,7 @@ Before answering, remove the temporary instrumentation you added, unless the cal
 #### `closeout`
 Before declaring done, remove temporary instrumentation and record the confirmed cause.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/bug-fix.md`
-- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt → systematic-debugging#closeout
+- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt → doc:.claude/skills/mvp-mode/playbooks/bug-fix.md
 
 #### `confirmed-cause-fix`
 Fix a failure only for a cause its diagnosis confirmed.
@@ -5317,7 +5317,7 @@ Minimize a reproduction only as far as needed to distinguish the candidate cause
 
 #### `missing-seam-finding`
 When no correct seam exists to lock down the bug, treat that architectural absence as itself the finding and flag it.
-- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt, pending cr-axdt.6.9 → systematic-debugging#missing-seam-finding
+- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt, pending cr-r2pa.2.1 → doc:.claude/skills/mvp-mode/playbooks/bug-fix.md
 
 #### `named-limiter`
 Explain a measured number by the resource or code path that bounds it, found from a profile or counters taken during the run and mapped to source, not from reading code.
@@ -5399,7 +5399,7 @@ Keep useful reproducers and user artifacts when cleaning up after a fix.
 
 #### `prove-the-red`
 When forcing the red by mutating code or a fixture, diff against a pristine copy to prove the mutation landed before trusting it.
-- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt, pending cr-axdt.6.9 → systematic-debugging#prove-the-red
+- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt, pending cr-axdt.6.11 → test-driven-development#prove-the-red
 
 #### `queryable-dump-first`
 Before reading a captured artifact, dump it to a form that can be queried, one row per sample, frame or node, kept apart from the artifact.
@@ -5420,7 +5420,7 @@ Shrink the reproduction one element at a time until every remaining part is load
 #### `reproduction-first`
 Obtain a reproduction that shows the reported failure, not a nearby one, before diagnosing it.
 - `cursor_plugins:skill:pstack/skills/principle-fix-root-causes` — reject
-- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt → systematic-debugging#reproduction-first
+- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt → systematic-debugging#reproduction-preferred
 
 #### `reproduction-preferred`
 Seek a reproduction that shows the reported failure, not a nearby one, before diagnosing, but when none is obtainable confirm a cause by independent evidence such as traces instead.
@@ -6101,7 +6101,7 @@ Exercise behaviour in tests through public interfaces.
 
 #### `regression-check`
 Turn the failure into a durable regression check when feasible, showing failure before the fix and success after, then rerun the original scenario.
-- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt → systematic-debugging#regression-check
+- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt → doc:.claude/skills/mvp-mode/playbooks/bug-fix.md
 
 #### `regression-proof-and-rerun`
 Prove a fix with a regression check when one is feasible, then rerun the original failing scenario.

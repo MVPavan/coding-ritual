@@ -55,9 +55,11 @@ Use for risky behavior changes, regression proof, legacy characterization, or su
 - **mattpocock_skills:skill:skills/engineering/implement-spec#red-green** `skills/engineering/implement-spec/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **cursor_plugins:skill:pstack/skills/principle-test-behavior-not-implementation#meaningful-behaviour-assertion** `pstack/skills/principle-test-behavior-not-implementation/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
 - **cursor_plugins:skill:pstack/skills/principle-test-behavior-not-implementation#independent-expectation** `pstack/skills/principle-test-behavior-not-implementation/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **mattpocock_skills:skill:skills/engineering/diagnosing-bugs#prove-the-red** `skills/engineering/diagnosing-bugs/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.11)
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-01` **adopt** (2026-11-01-pocock-retarget:006): Owner ruling 2026-11-01: the regression check left the diagnosis; confirming the red is test-driven-development's technique (S3, B3).
 - `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:128): Checkpoint at 4dd1d05 for the owner's trait rulings: 8 adopt.
 - `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:122): Lands as covered. Ours derives expected values from requirements, never from the code under test.
 - `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:120): Lands as covered. writing-good-tests asserts results, state or boundary interactions, not choreography.

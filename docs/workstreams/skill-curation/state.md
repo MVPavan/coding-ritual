@@ -46,9 +46,12 @@ deleted. Beads is the work-state authority; this file is the narrative.
 
 | `a83d5f9`, `876cfa1` | Unit-kinds rules and the boundary study; pstack v0.15.36 report and submodule pointer |
 | `c25ed12`, `eb36cc9`, `382962d` | MVP stack phase 1 (`cr-r2pa.1`): `mvp-mode` router, bug-fix pilot, playbook registry, 14 principles, `build-a-lever`, the delegation default, the playbook map (all rulings as recommended), a playbook as its own ledger subject. Comparison: `mvp-stack-changes.md` |
+| `f207be9` | pstack's 23 playbooks cataloged as units and ruled whole (`cr-r2pa.2.2`, round `2026-11-01-pstack-playbooks`) |
+| `7449497` | Batch 0: Trace forensics, Worktree cleanup and Eval live (`cr-r2pa.2.3`, round `2026-11-01-batch-0`) |
 
-`main` and `mvp-stack` are pushed. `main` is at `eb36cc9`; later work is on
-`mvp-stack` until the owner asks to merge.
+`main` is at `eb36cc9`; later work is on `mvp-stack` until the owner asks to merge.
+`mvp-stack` is pushed through `7449497`; commits after it are local until the owner
+says to push.
 
 Decisions behind them: domains `core` and `engineering`; one primary
 coordinate per skill (domain · stage · sub-stage); reviews are flat files
@@ -68,10 +71,14 @@ critic, owner rulings, ledger, build, Sol review, commit after the owner approve
   (round `2026-11-01-batch-0`). Owner rulings: a candidate's only network is a proxy to
   the Anthropic API, and `bypassPermissions` needs naming in that Eval's go-ahead. Eval
   has not run a real session; `cr-r2pa.2.12` holds that run and its checklist.
-- `cr-r2pa.2.1`, next: seven Pocock retargets, ruled as recommended on 2026-11-01, with
-  the redaction pair staying on `systematic-debugging`. Their events are still to record.
-- Then batch 1 (`.4`), batch 2 (`.5`), pilots 2 and 3 (`.8`, `.9`), batches 3 and 4 (`.6`,
-  `.7`), the remaining Pocock pass (`.10`).
+- `cr-r2pa.2.1`, done: seven Pocock retargets recorded (round
+  `2026-11-01-pocock-retarget`). `reproduction-first`, `regression-check` and `closeout`
+  are delivered; `prove-the-red` and `missing-seam-finding` are pending for batch 1; the
+  redaction pair stays pending on `systematic-debugging`.
+- `cr-r2pa.2.4`, running: batch 1. The owner ruled its upstream rows as recommended on
+  2026-11-01, as one set. Bead notes hold the state.
+- Then batch 2 (`.5`), pilots 2 and 3 (`.8`, `.9`), batches 3 and 4 (`.6`, `.7`), the
+  remaining Pocock pass (`.10`).
 
 The Pocock pending adoptions are tracked in `cr-axdt.6` (13 tasks, one per target
 skill) and join the batch that touches the same skill; each completes its adopts
@@ -82,6 +89,7 @@ with `record --supersedes`.
 | Path | State |
 |---|---|
 | `harness_lifecycle/registry/reviews/2026-10-22-upstream-mattpocock_skills-1.3.1-47.md` | superseded idea-level draft; delete or archive at the owner's word |
+| Batch 1's files under `harness_lifecycle/registry/` | in progress; one commit at the end of the batch, on the owner's word |
 | `.beads/issues.jsonl`, `.claude/agents/*`, `tools/T3/*` | not this workstream; leave alone |
 
 ## Next, in order
