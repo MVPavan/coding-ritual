@@ -1,6 +1,6 @@
 ---
 name: codebase-design
-description: Use for substantive module-interface, encapsulation, or testability decisions. Skip ordinary code explanations and cosmetic refactors.
+description: Use for substantive module-interface, encapsulation or testability decisions, or to sketch types, signatures and module shape before code that crosses a function boundary. Skip ordinary code explanations (explain-code) and cosmetic refactors.
 ---
 
 # Codebase Design
@@ -37,5 +37,13 @@ side effects are legitimate responsibilities when isolated and well specified.
 Preserve compatibility and operational constraints when deepening a module.
 
 For dependency-oriented deepening, use `DEEPENING.md`. For a consequential interface
-choice with multiple credible designs, optionally use `DESIGN-IT-TWICE.md`;
-ordinary design decisions do not require multiple agents or variants.
+choice with multiple credible designs, or a caller's several valid implementation
+shapes, optionally use `DESIGN-IT-TWICE.md`; ordinary design decisions do not
+require multiple agents or variants.
+
+## Branch: sketch
+
+**Condition:** the caller wants settled shape before code that crosses a function
+boundary, or has several valid implementation shapes, even inside one function.
+Follow `SKETCH.md`. It delivers usage, types, signatures and a module map
+with stub bodies, and this skill writes nothing past them.

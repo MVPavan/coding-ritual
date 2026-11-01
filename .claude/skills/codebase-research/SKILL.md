@@ -1,12 +1,12 @@
 ---
 name: codebase-research
-description: Graduated research on an external or unfamiliar codebase — survey its capabilities, map its architecture, or trace one mechanism — into durable reports under docs/research/codebases/. Descriptive rather than a refactor proposal; local code explanations also fit, while improvement proposals use improve-codebase-architecture.
+description: Graduated research on an external codebase — survey its capabilities, map its architecture, or trace one mechanism — into durable reports under docs/research/codebases/. Descriptive rather than a refactor proposal; improvement proposals use improve-codebase-architecture, and explaining this repository's own code is explain-code.
 disable-model-invocation: true
 ---
 
 # Codebase Research
 
-Turns an unfamiliar codebase into durable project knowledge at the cheapest
+Turns an external codebase into durable project knowledge at the cheapest
 depth that serves the decision. Three modes; two are levels, one is not:
 
 | Mode | Question | Scope |
@@ -96,11 +96,7 @@ text counts as evidence only as committed in docs or source strings.
 
 ## Workflow
 
-For a bounded explanatory question, answer inline with source pointers unless a
-durable report was requested. The registry/artifact steps below apply to report
-work; ordinary local source explanation does not require a research registry.
-
-Step 0 of report work: if `docs/research/codebases/<slug>/00-index.md`
+Step 0: if `docs/research/codebases/<slug>/00-index.md`
 exists, read it and its registry before anything else — know what exists and
 at which sha. If it does not exist, create it in the same run as the first
 artifact. Slug = the target's directory name, lowercased and hyphenated; a

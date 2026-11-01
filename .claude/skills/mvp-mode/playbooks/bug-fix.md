@@ -7,11 +7,11 @@ steps:
     actions: [{trait: obvious-cause-skip}]   # new
   - id: bug-fix#2
     when: bug-fix#1 did not skip it
-    calls: [{to: "skill:systematic-debugging"}]
+    calls: [{to: "skill:explain-code", when: the failing subsystem is unfamiliar or the failure may be a regression}, {to: "skill:systematic-debugging"}]
   - id: bug-fix#3
     when: the cause is confirmed
-    actions: [{trait: existing-check-as-proof}, {trait: report-missing-proof}, {trait: scoped-instance-fix}]   # new; the first when step 1's failing check already fails for the reported reason, the second only when no regression check is feasible, the third always
-    calls: [{to: "skill:test-driven-development", when: step 1's failing check does not already fail for the reported reason and a durable regression check is feasible}]
+    actions: [{trait: existing-check-as-proof}, {trait: report-missing-proof}, {trait: missing-seam-finding}, {trait: scoped-instance-fix}, {trait: implement-against-sketch}]   # the first when step 1's failing check already fails for the reported reason; the second and third only when no regression check is feasible, and the third only when no seam can hold one; the fourth always; the fifth when the fix was sketched
+    calls: [{to: "skill:codebase-design", when: the fix crosses a function boundary}, {to: "skill:test-driven-development", when: step 1's failing check does not already fail for the reported reason and a durable regression check is feasible}]
     loads: [{path: bug-fix/timing-flakes.md, when: the cause is a timing flake}]
   - id: bug-fix#4
     when: bug-fix#3 changed code
@@ -26,6 +26,9 @@ steps:
   - id: bug-fix#7
     when: every exit
     actions: [{trait: closeout}, {trait: preserve-reproducers}, {trait: always-on-signal}]   # the last only when finding the cause took a deep investigation
+  - id: bug-fix#8
+    when: the Fixed exit, after bug-fix#7
+    calls: [{to: "skill:land"}]
 ---
 
 # Bug fix
@@ -43,18 +46,23 @@ not a fix.
    cause is confirmed: skip step 2 and go to step 3. A flaky or intermittent
    failure never qualifies, and neither does a cause found by reading code
    or rerunning in a loop.
-2. **Diagnose.** Invoke `systematic-debugging` and tell it this playbook's
-   closeout removes its instrumentation. Only a **confirmed** diagnosis goes
-   on to step 3. On **provisional** or **unresolved**, change no production
-   code and go to step 7. A mitigation for an unresolved cause ships only on
-   the user's decision, never as the fix.
-3. **Fix with proof.** When the failing check from step 1 already fails for
+2. **Diagnose.** When the failing subsystem is unfamiliar or the failure may be a
+   regression, first invoke `explain-code`. Invoke `systematic-debugging` and tell it
+   this playbook's closeout removes its instrumentation. Only a **confirmed**
+   diagnosis goes on to step 3. On **provisional** or **unresolved**, change no
+   production code and go to step 7. A mitigation for an unresolved cause ships
+   only on the user's decision, never as the fix.
+3. **Fix with proof.** When the fix crosses a function boundary, first invoke
+   `codebase-design` for a sketch, then build against that sketch as the contract:
+   surface any departure, and revise the sketch first when the code must diverge.
+   When the failing check from step 1 already fails for
    the reported reason, it is the regression check: fix the cause and show
    it passing. Otherwise, when a durable regression check is feasible,
    invoke the `test-driven-development` skill in test-first mode rather than
    running the cycle by hand: the check fails for the reported reason before
    the fix and passes after it. Otherwise fix the confirmed cause and report
-   the missing proof. For a timing flake, read `bug-fix/timing-flakes.md`
+   the missing proof; when no seam can hold a regression check, record the
+   missing seam as a finding. For a timing flake, read `bug-fix/timing-flakes.md`
    first. Search for other instances of the confirmed fault: fix those
    inside the task's scope and report the rest.
 4. **Rerun.** Run the original scenario as reported, not only the minimised
@@ -74,13 +82,16 @@ not a fix.
    if there is one, and the remaining limits. When finding the cause took a
    deep investigation, propose the cheap always-on signal that would have
    shown it at first look; do not add it.
+8. **Land.** Only on the Fixed exit, after step 7: invoke `land`. No stopped or
+   unverified path lands, and neither does `Changed, verification incomplete`.
 
 ## Reply
 
 - **Fixed**, only when the original scenario passed its rerun: what was
   broken, the cause and what confirmed it, the fix, the proving check with
   its failing and passing output (or the missing proof), the rerun's result,
-  limits and follow-ups.
+  limits and follow-ups, and `land`'s commits or plan, or its refusal and the
+  gap it named.
 - **Changed, verification incomplete**, when the rerun was inconclusive or
   the original scenario unavailable: the cause, the change, the proof
   available, which scenario could not be verified and why, and the evidence

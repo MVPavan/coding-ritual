@@ -27,7 +27,7 @@ Domain → stage → sub-stage. Each active skill under its primary home.
 - **Codification**: authoring-for-agents, harness-evaluate, harness-scan, harness-skill-compare, harness-status, migrate-claude-to-codex
 
 ### X
-- **Communication**: html-artifact, i-have-adhd, show-me
+- **Communication**: html-artifact, i-have-adhd, prose-pass, show-me
 - **Continuity**: beads
 - **Coordination**: delegation, model-council, mvp-mode, perspective-council
 
@@ -37,7 +37,7 @@ Domain → stage → sub-stage. Each active skill under its primary home.
 ## engineering
 
 ### Discovery
-- **Research**: codebase-research
+- **Research**: codebase-research, explain-code
 
 ### Design
 - **Architecture**: codebase-design, design-evolve, domain-modeling, principle-boundary-discipline, principle-make-operations-idempotent, principle-minimize-reader-load, principle-model-the-domain, principle-redesign-from-first-principles, principle-separate-before-serializing-shared-state, principle-type-system-discipline, prototype
@@ -53,7 +53,7 @@ Domain → stage → sub-stage. Each active skill under its primary home.
 - **Testing**: check-invariants, principle-test-behavior-not-implementation
 
 ### Delivery
-- **Integration**: resolving-merge-conflicts
+- **Integration**: land, resolving-merge-conflicts
 
 ### Operations
 - **Maintenance**: improve-codebase-architecture
@@ -67,13 +67,15 @@ Two or more active skills share one domain · sub-stage (README §2 rule 3):
 
 - core · Intake · Clarification: brainstorming, grilling
 - core · Improvement · Codification: authoring-for-agents, harness-evaluate, harness-scan, harness-skill-compare, harness-status, migrate-claude-to-codex
-- core · X · Communication: html-artifact, i-have-adhd, show-me
+- core · X · Communication: html-artifact, i-have-adhd, prose-pass, show-me
 - core · X · Coordination: delegation, model-council, mvp-mode, perspective-council
+- engineering · Discovery · Research: codebase-research, explain-code
 - engineering · Design · Architecture: codebase-design, design-evolve, domain-modeling, principle-boundary-discipline, principle-make-operations-idempotent, principle-minimize-reader-load, principle-model-the-domain, principle-redesign-from-first-principles, principle-separate-before-serializing-shared-state, principle-type-system-discipline, prototype
 - engineering · Design · Decomposition: planning, principle-migrate-without-shims, principle-subtract-before-you-add
 - engineering · Building · Diagnosis: performance-optimization, principle-attack-the-premise, principle-explain-the-number, systematic-debugging
 - engineering · Building · Implementation: principle-sequence-verifiable-units, test-driven-development
 - engineering · Verification · Testing: check-invariants, principle-test-behavior-not-implementation
+- engineering · Delivery · Integration: land, resolving-merge-conflicts
 
 ## Aliases
 

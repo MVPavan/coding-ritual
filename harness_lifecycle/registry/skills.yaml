@@ -65,7 +65,7 @@ codebase-research:
   family: null
   aliases: []
   status: active
-  boundary: null
+  boundary: "Durable, manually invoked reports on an external codebase; explaining this repository's own code is explain-code, outside sources for a decision are research, and improvement proposals are improve-codebase-architecture."
 delegation:
   domain: core
   stage: X
@@ -102,6 +102,15 @@ execution:
   aliases: [phase-execution, run-phases]
   status: active
   boundary: null
+explain-code:
+  domain: engineering
+  stage: Discovery
+  substage: Research
+  secondary: []
+  family: null
+  aliases: []
+  status: active
+  boundary: "One cited, read-only answer about this repository's code: how it works, why it has its shape, or which option fits. A report on an external codebase is codebase-research, a saved answer about this repository's code is the investigation playbook, outside sources are research, an unexplained failure is systematic-debugging, open scope is brainstorming, and a wanted change goes back through the router."
 grilling:
   domain: core
   stage: Intake
@@ -183,6 +192,15 @@ improve-codebase-architecture:
   aliases: []
   status: active
   boundary: null
+land:
+  domain: engineering
+  stage: Delivery
+  substage: Integration
+  secondary: []
+  family: git-mechanics
+  aliases: []
+  status: active
+  boundary: "Turns verified changes into titled, ordered commits or a commit plan, only on finished work; a tree already in conflict is resolving-merge-conflicts, plugin releases are harness-publish, running the work is execution, and commit size and order come from principle-sequence-verifiable-units."
 migrate-claude-to-codex:
   domain: core
   stage: Improvement
@@ -363,6 +381,15 @@ principle-type-system-discipline:
   aliases: []
   status: active
   boundary: "Moves rules into the type checker in a typed language; where raw input becomes typed values is principle-boundary-discipline."
+prose-pass:
+  domain: core
+  stage: X
+  substage: Communication
+  secondary: []
+  family: null
+  aliases: []
+  status: active
+  boundary: "Edits a reply or document a person will read, keeping its meaning; agent-facing text is authoring-for-agents, a standalone rendered page is html-artifact, shaping replies for an ADHD reader is i-have-adhd, and folding decisions into design documents is design-evolve."
 prototype:
   domain: engineering
   stage: Design
@@ -389,7 +416,7 @@ resolving-merge-conflicts:
   family: git-mechanics
   aliases: []
   status: active
-  boundary: null
+  boundary: "Resolves a merge, rebase or cherry-pick already in conflict and finishes that operation; turning ordinary verified changes into commits is land."
 review:
   domain: core
   stage: Verification

@@ -7,6 +7,7 @@ it. Use existing repository tooling and representative boundaries.
   trusted fixtures. Do not compute both sides with the implementation under test.
 - Assert meaningful results, state or boundary interactions. Outbound call counts,
   arguments and ordering can be the contract; internal call choreography usually is not.
+- Name each test for the behavior it proves, not how the code achieves it.
 - Prefer real components where economical. Fakes, mocks and partial responses are
   legitimate when they preserve the contract exercised and do not replace the
   behavior being proved. Add integration coverage for material assumptions they omit.

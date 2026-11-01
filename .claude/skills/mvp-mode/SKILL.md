@@ -56,6 +56,9 @@ One line per playbook: `` - `playbooks/<name>.md`: <the request it fits> ``.
 
 - `playbooks/bug-fix.md`: a reported defect, failing check or flaky test to fix with proof.
 - `playbooks/eval.md`: an instruction or routing variant to try on fresh Claude Code sessions and judge from what they did, not a reference capability to weigh for adoption.
+- `playbooks/feature.md`: new behaviour to design and build, with no settled plan to execute.
+- `playbooks/investigation.md`: a question about how this repository's code works, why it has its shape or which design to pick, answered from source and history; not a failure, a measurement or a captured artifact.
+- `playbooks/refactoring.md`: a focused structure change that must keep behaviour unchanged, with no settled plan to execute, including a focused redesign of internals; changed behaviour is a feature, and staged work across many modules starts with planning.
 - `playbooks/trace-forensics.md`: an artifact captured earlier (trace, profile, heap dump, core) to explain, with no fix wanted and nothing new to measure.
 - `playbooks/worktree-cleanup.md`: stale Git worktrees to audit and prune.
 
@@ -84,7 +87,7 @@ Only where a description alone would miss or collide.
 
 | Situation | Route |
 |---|---|
-| Describe a codebase or mechanism | Answer from the source; `/codebase-research` when a durable report is wanted |
+| A single lookup in the code | Answer from the source; an external codebase: `/codebase-research` |
 | Interview that should also record terms and decisions | `/grill-with-docs`, only when asked; otherwise `grilling` |
 | Decisions that depend on each other across sessions | `/wayfinder` |
 | Survey an area for architecture improvements | `/improve-codebase-architecture` |

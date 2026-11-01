@@ -48,9 +48,11 @@ deleted. Beads is the work-state authority; this file is the narrative.
 | `c25ed12`, `eb36cc9`, `382962d` | MVP stack phase 1 (`cr-r2pa.1`): `mvp-mode` router, bug-fix pilot, playbook registry, 14 principles, `build-a-lever`, the delegation default, the playbook map (all rulings as recommended), a playbook as its own ledger subject. Comparison: `mvp-stack-changes.md` |
 | `f207be9` | pstack's 23 playbooks cataloged as units and ruled whole (`cr-r2pa.2.2`, round `2026-11-01-pstack-playbooks`) |
 | `7449497` | Batch 0: Trace forensics, Worktree cleanup and Eval live (`cr-r2pa.2.3`, round `2026-11-01-batch-0`) |
+| `862689d` | Seven Pocock retargets (`cr-r2pa.2.1`, round `2026-11-01-pocock-retarget`) |
+| after `862689d` | Batch 1 (`cr-r2pa.2.4`, round `2026-11-01-batch-1`), see below |
 
 `main` is at `eb36cc9`; later work is on `mvp-stack` until the owner asks to merge.
-`mvp-stack` is pushed through `7449497`; commits after it are local until the owner
+`mvp-stack` is pushed through batch 1; commits after it are local until the owner
 says to push.
 
 Decisions behind them: domains `core` and `engineering`; one primary
@@ -75,8 +77,12 @@ critic, owner rulings, ledger, build, Sol review, commit after the owner approve
   `2026-11-01-pocock-retarget`). `reproduction-first`, `regression-check` and `closeout`
   are delivered; `prove-the-red` and `missing-seam-finding` are pending for batch 1; the
   redaction pair stays pending on `systematic-debugging`.
-- `cr-r2pa.2.4`, running: batch 1. The owner ruled its upstream rows as recommended on
-  2026-11-01, as one set. Bead notes hold the state.
+- `cr-r2pa.2.4`, done: batch 1 (round `2026-11-01-batch-1`). `land`, `explain-code`,
+  `prose-pass` and `codebase-design`'s sketch branch are built; Investigation, Feature and
+  Refactoring are live, and Bug fix has its narrower bindings except the long-hunt branch.
+  The owner ruled its 189 upstream rows as recommended, as one set. None of it has run on a
+  real session: trials wait on `cr-r2pa.2.12`, and so does the S8 F3 rerun. `cr-an42` holds
+  the ledger's same-date ordering flaw.
 - Then batch 2 (`.5`), pilots 2 and 3 (`.8`, `.9`), batches 3 and 4 (`.6`, `.7`), the
   remaining Pocock pass (`.10`).
 
@@ -88,9 +94,7 @@ with `record --supersedes`.
 
 | Path | State |
 |---|---|
-| `harness_lifecycle/registry/reviews/2026-10-22-upstream-mattpocock_skills-1.3.1-47.md` | superseded idea-level draft; delete or archive at the owner's word |
-| Batch 1's files under `harness_lifecycle/registry/` | in progress; one commit at the end of the batch, on the owner's word |
-| `.beads/issues.jsonl`, `.claude/agents/*`, `tools/T3/*` | not this workstream; leave alone |
+| `harness_lifecycle/registry/reviews/2026-10-22-upstream-mattpocock_skills-1.3.1-47.md` | superseded idea-level draft; delete or archive at the owner's word || `.beads/issues.jsonl`, `.claude/agents/*`, `tools/T3/*` | not this workstream; leave alone |
 
 ## Next, in order
 

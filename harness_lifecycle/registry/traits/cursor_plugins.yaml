@@ -242,3 +242,44 @@
       traits: [unrepresentable-invalid-states, exhaustive-variant-handling, branded-primitives, parse-at-boundary, schema-derived-types]
       added: {}
       changed: {}
+# Batch 1: how, why, architect, unslop at 4dd1d05, proposed.
+"cursor_plugins:skill:pstack/skills/how":
+  accepted: "4dd1d05"
+  proposed: null
+  analyses:
+    "4dd1d05":
+      tree_hash: "b0dcd53c5491a24d3bf16dd251f65334e7fc21137e0cd60907c2728b44d5541b"
+      placement: {domain: engineering, stage: Discovery, substage: Research}
+      traits: [stated-scope-reading, size-gated-explorers, doubt-takes-simple-path, explanation-sections, cited-flow-walkthrough, reconcile-by-reading, fresh-synthesizer, light-edit-delivery, targeted-gap-check, flow-diagram-when-clarifying, real-code-names, complexity-cause-stated, onboarding-altitude, open-questions-visible, assigned-slice-depth, explorer-report-template, read-only-helper-spawn, role-model-config-line, rejected-model-swap, job-fit-helper-effort]
+      added: {}
+      changed: {}
+"cursor_plugins:skill:pstack/skills/why":
+  accepted: "4dd1d05"
+  proposed: null
+  analyses:
+    "4dd1d05":
+      tree_hash: "52a61145984fec581f95ce58848f12ac195969e09206d890dd95f7d5f59871bc"
+      placement: {domain: engineering, stage: Discovery, substage: Research}
+      traits: [stated-scope-reading, role-model-config-line, rejected-model-swap, job-fit-helper-effort, writable-helper-mode, brief-only-read-only, question-typing, code-anchor-first, pr-discussion-pull, investigator-brief-assembly, full-coverage-search, sources-consulted-line, evidence-source-discovery, evidence-category-fanout, repo-evidence-inventory, pickaxe-history-search, source-control-trust-ranking, incident-source-playbook, incident-commit-signals, category-strength-map, provable-irrelevance-bar, trivial-target-inline-exception, fresh-synthesizer, framework-first-reading, gather-without-concluding, confidence-language-kept, constraints-before-change, recency-bias-check, confidence-tiers, adjacent-citation-gate, tier-tagged-sections, searched-and-unknown, epistemic-wording-bans, no-retrofitted-rationale, consistency-is-not-intent, absence-is-not-evidence, embedded-hypothesis-check, contradiction-shown, human-followup-pointer, pre-delivery-claim-audit, code-not-intent-evidence, empty-gaps-suspicion, assigned-slice-depth, exact-quote-evidence, wide-then-narrow-search, read-whole-item, unreachable-data-is-gap, stop-on-auth-failure, correlation-needs-neighbor-check, interest-is-not-cause, template-filler-discount, plan-date-staleness, casual-remark-not-a-decision, generated-analysis-is-inference, in-source-leads-only, counterfactual-strength-test, ambiguity-left-open, neighbor-evidence-substitution, evidence-record-template, history-answer-frame, competing-hypotheses-section, one-reference-per-shared-source, warehouse-evidence-inventory, typed-models-over-raw, dbt-column-conventions, poll-running-query, probe-schema-before-query, schema-drift-check, refresh-lag-fallback, timeline-against-ship-date, constant-origin-signal, warehouse-motive-signals, warehouse-finding-record, telemetry-evidence-inventory, owning-service-first, curated-views-before-raw, span-and-trace-inspection, narrow-log-lookups, telemetry-motive-signals, telemetry-finding-record, ticket-search-procedure, named-record-first, target-derived-search-terms, ship-window-bound, record-lineage-walk, ticket-motive-signals, record-finding-fields, ticket-external-metadata, document-store-search-procedure, final-draft-preference, document-motive-signals, document-external-metadata, error-trace-relevance, orient-org-and-project, error-finding-record, chat-search-procedure, inspect-chat-tool-schema-first]
+      added: {}
+      changed: {}
+"cursor_plugins:skill:pstack/skills/architect":
+  accepted: "4dd1d05"
+  proposed: null
+  analyses:
+    "4dd1d05":
+      tree_hash: "5c11a2714696b0c7108e9b906707340ff3f558d60f81888947db0a0f95763fa9"
+      placement: {domain: engineering, stage: Design, substage: Architecture}
+      traits: [stub-body-sketch, phase-todos, grounded-sketch, ownership-change-rationale, sketch-by-parallel-runners, role-model-config-line, sketch-required-twice, design-red-flag-screen, next-agent-test, depth-as-leverage, shallow-module-signs, leaked-decision-flag, knowledge-not-phase-modules, pass-through-flag, split-ownership-flag, one-way-per-task, unreachable-internals, derived-or-checked-lists, synthesis-decision-record, sketch-opt-in-checkpoint, sketch-commit-first, fill-in-breakage, pushback-triggers-regrounding, implement-against-sketch, scrap-on-repeated-friction, scrap-redesign-procedure, sketch-rationale, caller-usage-first, next-step-sentence, dominant-access-shape, no-later-index-gate, concurrent-modification-test, eliminate-shared-writes, invariant-enforcement-ranking, boundary-validation, trust-internal-types, pure-core-thin-shell, domain-not-wire-types, single-source-of-truth, repeat-and-crash-question, call-chain-file-limit]
+      added: {}
+      changed: {}
+"cursor_plugins:skill:pstack/skills/unslop":
+  accepted: "4dd1d05"
+  proposed: null
+  analyses:
+    "4dd1d05":
+      tree_hash: "204151f4d5cb9adf24f81e4b4f4142b91077d332e71c78511ce7a6a6083660da"
+      placement: {domain: core, stage: X, substage: Communication}
+      traits: [meaning-and-tone-preserved, ing-phrase-cut, vague-attribution-cut, tell-vocabulary-swap, plain-is-has, not-just-but-cut, forced-triplet-cut, synonym-cycling-cut, false-range-cut, em-dash-ban, mid-sentence-colon-cut, bold-restraint, inline-header-list-convert, sentence-case-headings, no-decorative-emoji, straight-quotes, chatbot-phrase-cut, sycophancy-cut, filler-phrase-cut, hedge-stack-trim, generic-conclusion-cut, metaphor-noun-swap, name-the-mechanism, portable-sentence-cut, dense-sentence-split, active-voice, adverb-cut, plain-word, mannered-prose-cut, over-compression-fix, stable-rule-numbers]
+      added: {}
+      changed: {}

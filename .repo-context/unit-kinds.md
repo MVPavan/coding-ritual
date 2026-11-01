@@ -28,7 +28,7 @@ Described, not loaded: **traits** (what behaviour a unit gives) and
 
 A **unit** is a principle, skill, playbook or the router. References and
 project documents are not units.
-meanwhile
+
 ## 1. Definitions
 
 - **`AGENTS.md`:** policy that applies whichever unit runs.
@@ -283,7 +283,10 @@ material moves to references. [data: H1 holds via standalone use]
 | 2026-10-31 | `mvp-mode` | R2 | It also holds the shared rules for running a playbook (B2, B3, B5, B7, R8): every playbook needs them and the router is their only always-loaded home | R2 amended: revision 1 omitted the shared rules that ruling D already put in the router; a drafting error, not a deviation |
 | 2026-10-31 | `skill-router` | R1 | Kept as a manual-only pointer to `mvp-mode`: the registry's lineage and history views match a skill's exact name and do not follow the recorded `merge` | Open: remove the pointer when the views follow merges |
 | 2026-11-01 | `harness_lifecycle/playbook.md` | B1, R3 | A playbook by behaviour, but root-only lifecycle method: moving it breaks about a dozen live references and sealed citations, and routing it from the shipped router leaks a root-only line into the plugin. AGENTS.md routes lifecycle work to it (owner ruling 2026-11-01, pstack report decision 15 (a)) | Open: in phase 3, move it to `mvp-mode/playbooks/` and list it in the router once the publish script drops root-only router lines (owner ruling 2026-11-01); a second root-only playbook before then triggers a rule-change proposal (E4) |
-| 2026-11-01 | `bug-fix` playbook, step 3 | B3 | The S8 rerun called `test-driven-development` in 1 of 3 fix runs; the other two ran the test-first cycle by hand and kept the red-before-green proof (owner ruling 2026-11-01) | Open: revisit when phase 2 merges the test-driven-development skills, and rerun the S8 F3 prompts then |
+| 2026-11-01 | `bug-fix` playbook, step 3 | B3 | The S8 rerun called `test-driven-development` in 1 of 3 fix runs; the other two ran the test-first cycle by hand and kept the red-before-green proof (owner ruling 2026-11-01) | Open: the Pocock traits landed in batch 1 (`per-seam-note`, `one-test-per-cycle`, `behaviour-test-names`, `prove-the-red`) and bring no new evidence, since `prove-the-red` adds cost only on a forced failure. `skill:pstack/skills/tdd` stays unanalysed. Stays open until the S8 F3 prompts are rerun, which needs `cr-r2pa.2.12` passed and the owner's go-ahead |
+| 2026-11-01 | `codebase-design` | S2 | The sketch is a second deliverable from a skill already logged as mixed role, and playbooks call its branch where S2 speaks of a branch the user opts into. A separate skill would split one design vocabulary across two units (owner ruling 5, 2026-11-01) | Open: revisit if the sketch is asked for alone often enough to stand as its own job, or when mixed-role skills are reworked |
+| 2026-11-01 | `implement-against-sketch` (Feature, Refactoring, `bug-fix`) | St4 | The same own action sits in three playbooks on purpose: owner ruling 5 keeps it out of `codebase-design`, and a skill holding it would rebuild the implement branch the ruling removed, so each build step states it | Accepted, no skill: revisit if a fourth caller changes the wording, or Perf issue needs a different form |
+| 2026-11-01 | `build-closeout` (Feature, Refactoring) | St4, B4 | Each playbook's closeout stays with its own exits and reply contract, and a skill of three short duties would be ceremony | Accepted, no skill: revisit when a third playbook takes this closeout |
 
 ## 6. Conflicts with what exists, to settle as we go
 

@@ -17,14 +17,14 @@ workflows as steps.
 
 ## Model-invocable skills
 
-`authoring-for-agents`, `beads`, `brainstorming`, `build-a-lever`, `codebase-design`, `delegation`, `design-evolve`, `domain-modeling`, `execution`, `grilling`, `harness-evaluate`, `harness-skill-compare`, `html-artifact`, `model-council`, `mvp-mode`, `performance-optimization`, `perspective-council`, `planning`, `prototype`, `research`, `resolving-merge-conflicts`, `review`, `security`, `systematic-debugging`, `test-driven-development`
+`authoring-for-agents`, `beads`, `brainstorming`, `build-a-lever`, `codebase-design`, `delegation`, `design-evolve`, `domain-modeling`, `execution`, `explain-code`, `grilling`, `harness-evaluate`, `harness-skill-compare`, `html-artifact`, `land`, `model-council`, `mvp-mode`, `performance-optimization`, `perspective-council`, `planning`, `prose-pass`, `prototype`, `research`, `resolving-merge-conflicts`, `review`, `security`, `systematic-debugging`, `test-driven-development`
 
 ## Slash-only workflows
 
 | Surface | Use |
 |---|---|
 | `/check-invariants` | Run mechanically checkable invariants from the project overlay and report pass or fail. |
-| `/codebase-research` | Graduated research on an external or unfamiliar codebase — survey its capabilities, map its architecture, or trace one mechanism — into durable reports under docs/research/codebases/. |
+| `/codebase-research` | Graduated research on an external codebase — survey its capabilities, map its architecture, or trace one mechanism — into durable reports under docs/research/codebases/. |
 | `/cost-estimate` | Legacy entrypoint; the uncalibrated code-volume and commit-based estimation method is retired. |
 | `/document-review` | Use when explicitly invoking the legacy document-review entrypoint; spec and plan review is owned by review. |
 | `/grill-me` | Start a decision interview using the shared grilling workflow. |

@@ -22,13 +22,17 @@ behavior is usually stable; internal algorithm tests are appropriate when they
 prove meaningful behavior without mirroring implementation. Use the plan's test
 seams as guidance; routine seam selection needs no separate approval. Surface a
 missing seam only when it materially changes scope or the evidence obtainable.
+For each chosen seam, note in one line which failures it would and would not catch.
 
 ## Test-first
 
-1. Select one behavior and derive expected results from the spec, a worked example
-   or another independent source.
+1. Select one behavior; write no test for a later behavior until this one passes.
+   Derive expected results from the spec, a worked example or another independent
+   source.
 2. Run its test before the fix and confirm the intended failure, not an import or
    setup error. A passing test does not demonstrate the reported regression.
+   A red forced by changing code or a fixture proves nothing yet: first diff
+   against an untouched copy to confirm the change is really there.
 3. Implement the owning fix, rerun the proving check and relevant affected tests.
 4. Refactor while preserving the behavior and repeat checks affected by edits.
 

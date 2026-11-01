@@ -15,12 +15,13 @@ Playbook traits: `confirmed-cause-gate`
 | Step | When | Traits | Calls | Loads |
 |---|---|---|---|---|
 | `bug-fix#1` | a deterministic failing command, run as reported, shows the failure and its output points at the cause; never a flaky failure, nor a cause found by reading code or rerunning in a loop | `obvious-cause-skip` |  |  |
-| `bug-fix#2` | bug-fix#1 did not skip it |  | `skill:systematic-debugging` |  |
-| `bug-fix#3` | the cause is confirmed | `existing-check-as-proof`, `report-missing-proof`, `scoped-instance-fix` | `skill:test-driven-development` (when: step 1's failing check does not already fail for the reported reason and a durable regression check is feasible) | `.claude/skills/mvp-mode/playbooks/bug-fix/timing-flakes.md` (when: the cause is a timing flake) |
+| `bug-fix#2` | bug-fix#1 did not skip it |  | `skill:explain-code` (when: the failing subsystem is unfamiliar or the failure may be a regression); `skill:systematic-debugging` |  |
+| `bug-fix#3` | the cause is confirmed | `existing-check-as-proof`, `report-missing-proof`, `missing-seam-finding`, `scoped-instance-fix`, `implement-against-sketch` | `skill:codebase-design` (when: the fix crosses a function boundary); `skill:test-driven-development` (when: step 1's failing check does not already fail for the reported reason and a durable regression check is feasible) | `.claude/skills/mvp-mode/playbooks/bug-fix/timing-flakes.md` (when: the cause is a timing flake) |
 | `bug-fix#4` | bug-fix#3 changed code | `rerun-original-repro` |  |  |
 | `bug-fix#5` | around bug-fix#3 and bug-fix#4 | `attempt-log`, `revert-ineffective-experiments`, `two-failure-stop` |  |  |
 | `bug-fix#6` | the confirmed defect reveals another boundary problem | `defense-in-depth-hardening` |  | `.claude/skills/mvp-mode/playbooks/bug-fix/hardening.md` |
 | `bug-fix#7` | every exit | `closeout`, `preserve-reproducers`, `always-on-signal` |  |  |
+| `bug-fix#8` | the Fixed exit, after bug-fix#7 |  | `skill:land` |  |
 
 ## eval
 
@@ -40,6 +41,58 @@ Playbook traits: `candidate-blinding`, `judge-blinding`
 | `eval#6` | the candidates ran on Claude Code | `chain-from-tool-events` |  | `.claude/skills/mvp-mode/playbooks/eval/classify.py` |
 | `eval#7` | the judge has reported | `read-every-output` |  |  |
 | `eval#8` | every exit | `eval-closeout` |  |  |
+
+## feature
+
+`.claude/skills/mvp-mode/playbooks/feature.md`
+
+Trigger: New behaviour to design and build, with no settled plan to execute.
+
+Playbook traits: `lead-owns-design`
+
+| Step | When | Traits | Calls | Loads |
+|---|---|---|---|---|
+| `feature#1` | always |  | `skill:explain-code` |  |
+| `feature#2` | the change crosses a function boundary, or a delegate returned with several valid shapes |  | `skill:codebase-design` |  |
+| `feature#3` | always | `throughput-checkpoint` |  |  |
+| `feature#4` | always | `build-brief-shape`, `implement-against-sketch`, `shared-fix-ported` | `skill:delegation` (when: the router's delegation rule sends the code-writing to a subagent); `skill:review` (when: feature#2 ran) |  |
+| `feature#5` | feature#4 changed code | `matching-surface-verify` |  |  |
+| `feature#6` | the design is contested |  | `skill:review` |  |
+| `feature#7` | every exit | `build-closeout` |  |  |
+| `feature#8` | finished and verified, after feature#7 |  | `skill:land` |  |
+
+## investigation
+
+`.claude/skills/mvp-mode/playbooks/investigation.md`
+
+Trigger: A question about how this repository's code works, why it has its shape, or which design to pick.
+
+Playbook traits: `read-only-answer-gate`
+
+| Step | When | Traits | Calls | Loads |
+|---|---|---|---|---|
+| `investigation#1` | always |  | `skill:explain-code` |  |
+| `investigation#2` | an answer was drafted |  | `skill:prose-pass` |  |
+| `investigation#3` | every exit | `read-only-closeout` |  |  |
+
+## refactoring
+
+`.claude/skills/mvp-mode/playbooks/refactoring.md`
+
+Trigger: A focused structure change that must keep behaviour unchanged, with no settled plan to execute.
+
+Playbook traits: `structure-only-gate`
+
+| Step | When | Traits | Calls | Loads |
+|---|---|---|---|---|
+| `refactoring#1` | always | `behaviour-pin-gate` | `skill:explain-code`; `skill:test-driven-development` (when: no existing check pins the behaviour) |  |
+| `refactoring#2` | always | `branch-deleting-reshape` |  |  |
+| `refactoring#3` | always | `named-target-shape` | `skill:codebase-design` (when: the target crosses a function boundary) |  |
+| `refactoring#4` | the pin holds | `pin-green-moves`, `rename-spot-check`, `implement-against-sketch` | `skill:delegation` (when: the edits are mechanical) |  |
+| `refactoring#5` | refactoring#4 changed code | `behaviour-equivalence-proof` |  |  |
+| `refactoring#6` | refactoring#5 passed | `reader-load-keep-or-revert` |  |  |
+| `refactoring#7` | every exit | `build-closeout` |  |  |
+| `refactoring#8` | finished, the proof held and the change was kept, after refactoring#7 |  | `skill:land` |  |
 
 ## trace-forensics
 
@@ -81,10 +134,17 @@ Traits and calls used by two or more playbooks. Repeating a step is fine; the sa
 
 ### Traits
 
-None.
+| Item | Playbooks |
+|---|---|
+| `build-closeout` | feature: `feature#7`; refactoring: `refactoring#7` |
+| `implement-against-sketch` | bug-fix: `bug-fix#3`; feature: `feature#4`; refactoring: `refactoring#4` |
 
 ### Calls
 
 | Item | Playbooks |
 |---|---|
-| `skill:delegation` | eval: `eval#5`; trace-forensics: `trace-forensics#1` |
+| `skill:codebase-design` | bug-fix: `bug-fix#3`; feature: `feature#2`; refactoring: `refactoring#3` |
+| `skill:delegation` | eval: `eval#5`; feature: `feature#4`; refactoring: `refactoring#4`; trace-forensics: `trace-forensics#1` |
+| `skill:explain-code` | bug-fix: `bug-fix#2`; feature: `feature#1`; investigation: `investigation#1`; refactoring: `refactoring#1` |
+| `skill:land` | bug-fix: `bug-fix#8`; feature: `feature#8`; refactoring: `refactoring#8` |
+| `skill:test-driven-development` | bug-fix: `bug-fix#3`; refactoring: `refactoring#1` |

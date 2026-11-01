@@ -1,0 +1,82 @@
+harness: mattpocock_skills
+from_sha: null
+to_sha: 5beb35b
+supersedes:
+- harness_lifecycle/registry/reviews/2026-10-30-upstream-mattpocock_skills-5beb35b.yaml
+analysis_critic:
+  by: gpt-6.1-sol (critic-2e)
+  date: '2026-11-01'
+  verdict: pass
+comparison_critic:
+  by: gpt-6.1-sol (critic-2e)
+  date: '2026-11-01'
+  verdict: pass
+themes: 'One row, reconsidering the pending event 2026-10-30-mattpocock_skills-5beb35b:021:
+  the ruling stands and is recorded correctly, as an adopt modified into design-axes-comparison,
+  since the full trait requires a presentation the owner left out. The owner''s omission of
+  one-at-a-time presentation stands. It supersedes the 2026-10-30 report because two sealed
+  reports may not cover one trait unrelated; every other row of that report stands.'
+skills:
+  skill:skills/engineering/codebase-design:
+    upstream_tree_hash: 721a6a709001482b70d4ecd3a7880a84ec158170236b999b1f14a8a321e20059
+    accepted: 5beb35b
+    compared_with: codebase-design
+    pairing:
+      overlap:
+        codebase-design: 16
+        doc:.repo-context/coding-style.md: 1
+        doc:AGENTS.md: 1
+        principle-boundary-discipline: 1
+        principle-minimize-reader-load: 3
+        principle-test-behavior-not-implementation: 1
+      placement_match:
+      - codebase-design
+      - design-evolve
+      - domain-modeling
+      - principle-boundary-discipline
+      - principle-make-operations-idempotent
+      - principle-minimize-reader-load
+      - principle-model-the-domain
+      - principle-redesign-from-first-principles
+      - principle-separate-before-serializing-shared-state
+      - principle-type-system-discipline
+      - prototype
+      suggested: codebase-design
+      purpose_match: codebase-design
+      purpose: Upstream gives a deep-module design vocabulary, testability rules, dependency-shaped
+        deepening and an optional design-it-twice exercise, used when designing or changing
+        a module interface. Our codebase-design is the same lens for the same decisions.
+      flag: null
+      reason: null
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      depth-locality-seam-comparison:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/codebase-design/DESIGN-IT-TWICE.md:11-12
+        recommendation: adopt
+        delivery: pending
+        target: codebase-design
+        modification: Into `design-axes-comparison`. Keeps the comparison and adds seam placement
+          to the axes ours already has; omits presenting the designs one at a time.
+        rewording: Compare depth, locality, seam placement, error behavior and testability.
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-06
+          override: null
+        reason: The event :021 adopted this trait without the one-at-a-time presentation its
+          definition requires, so the delivered line is a variant, not the full trait. A completion
+          must keep the pending event's `into`, and `check` cannot catch the mismatch, so
+          a one-row reconsideration records the same ruling correctly, adopt modified, pending,
+          superseding :021.

@@ -167,16 +167,16 @@ Catalog: `4dd1d05818d19792e7cd6e818f1667f95f7e1dbe`, 352 capabilities.
 | `playbook:pstack/skills/poteto-mode/playbooks/babysit` | defer | decided |  |  | 2026-11-01-pstack-playbooks | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/bug-fix` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/bug-fix.md |  | 2026-11-01-pstack-playbooks | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/eval` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/eval.md |  | 2026-11-01-batch-0 | no |
-| `playbook:pstack/skills/poteto-mode/playbooks/feature` | defer | decided |  |  | 2026-11-01-pstack-playbooks | no |
+| `playbook:pstack/skills/poteto-mode/playbooks/feature` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/feature.md |  | 2026-11-01-batch-1 | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/hillclimb` | defer | decided |  |  | 2026-11-01-pstack-playbooks | no |
-| `playbook:pstack/skills/poteto-mode/playbooks/investigation` | defer | decided |  |  | 2026-11-01-pstack-playbooks | no |
+| `playbook:pstack/skills/poteto-mode/playbooks/investigation` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/investigation.md |  | 2026-11-01-batch-1 | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/multi-phase-plan` | defer | decided |  |  | 2026-11-01-pstack-playbooks | no |
-| `playbook:pstack/skills/poteto-mode/playbooks/opening-a-pr` | defer | decided |  |  | 2026-11-01-pstack-playbooks | no |
+| `playbook:pstack/skills/poteto-mode/playbooks/opening-a-pr` | adopt-merged | decided | land |  | 2026-11-01-batch-1 | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/orchestrate` | defer | decided |  |  | 2026-11-01-pstack-playbooks | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/pause-safely` | defer | decided |  |  | 2026-11-01-pstack-playbooks | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/perf-issue` | defer | decided |  |  | 2026-11-01-pstack-playbooks | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/prototype` | defer | decided |  |  | 2026-11-01-pstack-playbooks | no |
-| `playbook:pstack/skills/poteto-mode/playbooks/refactoring` | defer | decided |  |  | 2026-11-01-pstack-playbooks | no |
+| `playbook:pstack/skills/poteto-mode/playbooks/refactoring` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/refactoring.md |  | 2026-11-01-batch-1 | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/runtime-forensics` | defer | decided |  |  | 2026-11-01-pstack-playbooks | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/session-pickup` | defer | decided |  |  | 2026-11-01-pstack-playbooks | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/shipping` | defer | decided |  |  | 2026-11-01-pstack-playbooks | no |
@@ -285,7 +285,7 @@ Catalog: `4dd1d05818d19792e7cd6e818f1667f95f7e1dbe`, 352 capabilities.
 | `skill:pstack/automations/benny/skills/reproduce-and-fix-issues` | not reviewed | not analysed |  |  |  |  |
 | `skill:pstack/automations/benny/skills/setup-benny` | not reviewed | not analysed |  |  |  |  |
 | `skill:pstack/automations/benny/skills/triage-issue-reports` | not reviewed | not analysed |  |  |  |  |
-| `skill:pstack/skills/architect` | not reviewed | not analysed |  |  |  |  |
+| `skill:pstack/skills/architect` | adopt-merged | decided | codebase-design#depth-as-leverage, codebase-design#grounded-sketch, codebase-design#ownership-change-rationale, codebase-design#caller-usage-first, codebase-design#stub-body-sketch, codebase-design#design-red-flag-screen, codebase-design#shallow-module-signs, codebase-design#leaked-decision-flag, codebase-design#pass-through-flag, codebase-design#split-ownership-flag, codebase-design#one-way-per-task, codebase-design#unreachable-internals, codebase-design#derived-or-checked-lists, codebase-design#next-agent-test, codebase-design#sketch-rationale, doc:.claude/skills/mvp-mode/playbooks/feature.md | 16 adopt · 1 defer · 24 reject | 2026-11-01-batch-1 | no |
 | `skill:pstack/skills/arena` | not reviewed | not analysed |  |  |  |  |
 | `skill:pstack/skills/automate-me` | not reviewed | not analysed |  |  |  |  |
 | `skill:pstack/skills/benchmark-checklist` | not reviewed | not analysed |  |  |  |  |
@@ -295,7 +295,7 @@ Catalog: `4dd1d05818d19792e7cd6e818f1667f95f7e1dbe`, 352 capabilities.
 | `skill:pstack/skills/create-formal-verification-skill` | not reviewed | not analysed |  |  |  |  |
 | `skill:pstack/skills/create-verification-skill` | not reviewed | not analysed |  |  |  |  |
 | `skill:pstack/skills/figure-it-out` | not reviewed | not analysed |  |  |  |  |
-| `skill:pstack/skills/how` | not reviewed | not analysed |  |  |  |  |
+| `skill:pstack/skills/how` | adopt-merged | decided | explain-code#immaterial-ambiguity-reading, explain-code#angles-when-wide, explain-code#explanation-sections, explain-code#cited-flow-walkthrough, explain-code#reconcile-by-reading | 5 adopt · 15 reject | 2026-11-01-batch-1 | no |
 | `skill:pstack/skills/in-your-own-words` | not reviewed | not analysed |  |  |  |  |
 | `skill:pstack/skills/interrogate` | not reviewed | not analysed |  |  |  |  |
 | `skill:pstack/skills/ketchup` | not reviewed | not analysed |  |  |  |  |
@@ -341,8 +341,8 @@ Catalog: `4dd1d05818d19792e7cd6e818f1667f95f7e1dbe`, 352 capabilities.
 | `skill:pstack/skills/teach` | present, unruled | not analysed |  |  |  |  |
 | `skill:pstack/skills/technical-writing` | not reviewed | not analysed |  |  |  |  |
 | `skill:pstack/skills/typescript-best-practices` | not reviewed | not analysed |  |  |  |  |
-| `skill:pstack/skills/unslop` | not reviewed | not analysed |  |  |  |  |
-| `skill:pstack/skills/why` | not reviewed | not analysed |  |  |  |  |
+| `skill:pstack/skills/unslop` | adopt-merged | decided | prose-pass#meaning-preserved-edit, prose-pass#ing-phrase-cut, prose-pass#vague-attribution-cut, prose-pass#tell-vocabulary-swap, prose-pass#plain-is-has, prose-pass#not-just-but-cut, prose-pass#forced-triplet-cut, prose-pass#synonym-cycling-cut, prose-pass#false-range-cut, prose-pass#no-em-dash, prose-pass#mid-sentence-colon-cut, prose-pass#bold-restraint, prose-pass#inline-header-list-convert, prose-pass#sentence-case-headings, prose-pass#no-decorative-emoji, prose-pass#straight-quotes, prose-pass#chatbot-phrase-cut, prose-pass#sycophancy-cut, prose-pass#filler-phrase-cut, prose-pass#hedge-stack-trim, prose-pass#generic-conclusion-cut, prose-pass#local-metaphor-noun-swap, prose-pass#name-the-mechanism, prose-pass#dense-sentence-split, prose-pass#active-voice, prose-pass#adverb-cut, prose-pass#plain-word, prose-pass#mannered-prose-cut, prose-pass#over-compression-fix | 29 adopt · 2 reject | 2026-11-01-batch-1 | no |
+| `skill:pstack/skills/why` | adopt-merged | decided | prose-pass#confidence-language-kept, explain-code#immaterial-ambiguity-reading, explain-code#gather-without-concluding, explain-code#code-anchor-first, explain-code#named-record-first, explain-code#target-derived-search-terms, explain-code#local-evidence-sources, explain-code#pickaxe-history-search, explain-code#full-record-reading, explain-code#record-lineage-walk, explain-code#recency-bias-check, explain-code#embedded-hypothesis-check, explain-code#confidence-tiers, explain-code#adjacent-citation-gate, explain-code#code-not-intent-evidence, explain-code#no-retrofitted-rationale, explain-code#consistency-is-not-intent, explain-code#absence-is-not-evidence, explain-code#contradiction-shown, explain-code#competing-hypotheses-section, explain-code#searched-and-unknown, explain-code#unreachable-data-is-gap, explain-code#sources-consulted-line, explain-code#constraints-before-change | 26 adopt · 28 defer · 43 reject | 2026-11-01-batch-1 | no |
 | `skill:ralph-loop/skills/cancel-ralph` | not reviewed | not analysed |  |  |  |  |
 | `skill:ralph-loop/skills/ralph-loop` | not reviewed | not analysed |  |  |  |  |
 | `skill:ralph-loop/skills/ralph-loop-help` | not reviewed | not analysed |  |  |  |  |

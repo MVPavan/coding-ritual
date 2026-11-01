@@ -12,6 +12,8 @@ status: active
 
 Use when a git merge, rebase, or cherry-pick is already in a conflicted state and the conflicts need resolving. Trigger on merge-conflict / rebase-conflict phrases.
 
+**Boundary:** Resolves a merge, rebase or cherry-pick already in conflict and finishes that operation; turning ordinary verified changes into commits is land.
+
 <!-- registry:generated traits -->
 - `capture-conflict-set`: Capture the conflicted file set up front from the version control's unmerged-paths listing.
 - `trace-intent`: Find the primary source of each conflict via commit messages and requirements first, expanding to PRs or issues only when a disputed hunk needs that history.

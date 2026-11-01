@@ -27,6 +27,10 @@ Use for risky behavior changes, regression proof, legacy characterization, or su
 - `no-implementation-coupling`: Avoid tests coupled to the implementation's internal structure, so they survive behaviour-preserving refactors. (Asserts exact source text only when that text is the contract.)
 - `deterministic-state`: Prefer deterministic inputs and isolated state, controlling time, randomness and shared state that cause nondeterminism.
 - `break-naming-validation`: Before accepting substantive tests, name the specific wrong branch, missing validation or side effect they catch, confirming by a safe mutation trial rather than mental inspection when worth its cost.
+- `per-seam-note`: Give each proposed seam a one-line note on what it catches and what it misses.
+- `one-test-per-cycle`: Alternate one test and its implementation at a time instead of writing all tests before any implementation.
+- `behaviour-test-names`: Name each test for the behaviour that exists, not how it is achieved.
+- `prove-the-red`: When forcing the red by mutating code or a fixture, diff against a pristine copy to prove the mutation landed before trusting it.
 <!-- /registry:generated traits -->
 
 <!-- registry:generated lineage -->
@@ -45,29 +49,34 @@ Use for risky behavior changes, regression proof, legacy characterization, or su
   - modified: add a characterization-test allowance for legacy code — this matches the repo's own testing rule
 - **mattpocock_skills:skill:skills/engineering/tdd#meaningful-behaviour-assertion** `skills/engineering/tdd/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/engineering/tdd#no-implementation-coupling** `skills/engineering/tdd/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
-- **mattpocock_skills:skill:skills/engineering/tdd#per-seam-note** `skills/engineering/tdd/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.11)
 - **mattpocock_skills:skill:skills/engineering/tdd#independent-expectation** `skills/engineering/tdd/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
-- **mattpocock_skills:skill:skills/engineering/tdd#one-test-per-cycle** `skills/engineering/tdd/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.11)
 - **mattpocock_skills:skill:skills/engineering/tdd#red-green** `skills/engineering/tdd/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/engineering/tdd#system-boundary-mocks-only** `skills/engineering/tdd/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
-- **mattpocock_skills:skill:skills/engineering/tdd#behaviour-test-names** `skills/engineering/tdd/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.11)
 - **mattpocock_skills:skill:skills/engineering/diagnosing-bugs#seam-selection** `skills/engineering/diagnosing-bugs/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/engineering/implement-spec#red-green** `skills/engineering/implement-spec/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/engineering/tdd#per-seam-note** `skills/engineering/tdd/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/engineering/tdd#one-test-per-cycle** `skills/engineering/tdd/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/engineering/tdd#behaviour-test-names** `skills/engineering/tdd/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/engineering/diagnosing-bugs#prove-the-red** `skills/engineering/diagnosing-bugs/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **cursor_plugins:skill:pstack/skills/principle-test-behavior-not-implementation#meaningful-behaviour-assertion** `pstack/skills/principle-test-behavior-not-implementation/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
 - **cursor_plugins:skill:pstack/skills/principle-test-behavior-not-implementation#independent-expectation** `pstack/skills/principle-test-behavior-not-implementation/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
-- **mattpocock_skills:skill:skills/engineering/diagnosing-bugs#prove-the-red** `skills/engineering/diagnosing-bugs/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.11)
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
-- `2026-11-01` **adopt** (2026-11-01-pocock-retarget:006): Owner ruling 2026-11-01: the regression check left the diagnosis; confirming the red is test-driven-development's technique (S3, B3).
+- `2026-11-01` **adopt** (2026-11-01-pocock-retarget:006) *(superseded)*: Owner ruling 2026-11-01: the regression check left the diagnosis; confirming the red is test-driven-development's technique (S3, B3).
 - `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:128): Checkpoint at 4dd1d05 for the owner's trait rulings: 8 adopt.
 - `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:122): Lands as covered. Ours derives expected values from requirements, never from the code under test.
 - `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:120): Lands as covered. writing-good-tests asserts results, state or boundary interactions, not choreography.
+- `2026-11-01` **adopt** (2026-11-01-batch-1:202): Completes pending 2026-11-01-pocock-retarget:006: prove-the-red is written at .claude/skills/test-driven-development/SKILL.md:34-35, read against its definitio…
+- `2026-11-01` **adopt** (2026-11-01-batch-1:201): Completes pending 2026-10-30-mattpocock_skills-5beb35b:214: behaviour-test-names is written at .claude/skills/test-driven-development/references/writing-good-t…
+- `2026-11-01` **adopt** (2026-11-01-batch-1:200): Completes pending 2026-10-30-mattpocock_skills-5beb35b:203: one-test-per-cycle is written at .claude/skills/test-driven-development/SKILL.md:29-31, read agains…
+- `2026-11-01` **adopt** (2026-11-01-batch-1:199): Completes pending 2026-10-30-mattpocock_skills-5beb35b:201: per-seam-note is written at .claude/skills/test-driven-development/SKILL.md:25, read against its de…
+- `2026-11-01` **update** (2026-11-01-batch-1:197): Delivers four ruled traits with their sealed rewordings: a per-seam note, one behaviour per cycle, the pristine-copy diff guard on a forced red, and test names…
 - `2026-10-30` **adopt-merged** (2026-10-30-mattpocock_skills-5beb35b:569): Checkpoint at 5beb35b for the owner's trait rulings: 10 adopt, 9 defer.
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:282): POINTER: execution SKILL.md:40-41 sends each task to test-first or characterization (test-driven-development's modes) when risk calls for it, rather than alway…
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:239): HELD: test-driven-development (.claude/skills/test-driven-development/SKILL.md:20-24): Choosing the test boundary is test-driven-development's rule (SKILL.md:2…
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:215): Owner deferred the report's reject recommendation, to review the set later: Ours already decides real-versus-double by cost and contract for every boundary (wr…
-- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:214): Ours says nothing about test names; behaviour names make a failure readable without the source, and one line in the test reference carries it.
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:214) *(superseded)*: Ours says nothing about test names; behaviour names make a failure readable without the source, and one line in the test reference carries it.
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:213): Owner deferred the report's reject recommendation, to review the set later: A fixed one-assertion rule constrains a context-dependent choice (S-08) and conflic…
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:211): Owner deferred the report's reject recommendation, to review the set later: ROUTED: AGENTS.md:93-94 routes domain terminology and ADRs, and AGENTS.md:26 surfac…
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:210): Owner deferred the report's reject recommendation, to review the set later: ROUTED: AGENTS.md:93-94 routes domain terminology and ADRs, and AGENTS.md:26 surfac…
@@ -75,9 +84,9 @@ Use for risky behavior changes, regression proof, legacy characterization, or su
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:206): Same mechanism, looser and deliberate: doubles stay at boundaries and never replace the behaviour under test (SKILL.md:48-50; writing-good-tests.md:10-12).
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:205): Owner deferred the report's reject recommendation, to review the set later: Opposite stance: ours refactors inside each cycle while preserving behaviour (SKILL…
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:204): Ours confirms the intended failure before the fix, then implements the owning fix and reruns the check.
-- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:203): Ours runs the loop per selected behaviour (SKILL.md:28) but never forbids writing tests in bulk first; the difference is not stated as deliberate, so one claus…
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:203) *(superseded)*: Ours runs the loop per selected behaviour (SKILL.md:28) but never forbids writing tests in bulk first; the difference is not stated as deliberate, so one claus…
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:202): Ours derives expected values from the spec, a worked example or a trusted fixture, never from the implementation.
-- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:201): Ours picks seams (SKILL.md:20-24) but never records what each one catches and misses; one line per seam makes the coverage gap visible to a reviewer at little …
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:201) *(superseded)*: Ours picks seams (SKILL.md:20-24) but never records what each one catches and misses; one line per seam makes the coverage gap visible to a reviewer at little …
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:200): Owner deferred the report's reject recommendation, to review the set later: Opposite stance: ours deliberately takes seams from the plan without separate appro…
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:199): Owner deferred the report's reject recommendation, to review the set later: Opposite stance: ours lets internal algorithm tests earn their place, the same stan…
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:198): Ours avoids tests that mirror implementation and keeps internal tests only where they prove behaviour.
@@ -93,6 +102,8 @@ None yet.
 <!-- /registry:generated reviews -->
 
 <!-- registry:generated sources -->
+- `behaviour-test-names`:
+  - `mattpocock_skills:skill:skills/engineering/tdd#behaviour-test-names` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `independent-expectation`:
   - `cursor_plugins:skill:pstack/skills/principle-test-behavior-not-implementation#independent-expectation` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
   - `mattpocock_skills:skill:skills/engineering/tdd#independent-expectation` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
@@ -103,6 +114,12 @@ None yet.
   - `mattpocock_skills:skill:skills/engineering/tdd#system-boundary-mocks-only` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `no-implementation-coupling`:
   - `mattpocock_skills:skill:skills/engineering/tdd#no-implementation-coupling` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `one-test-per-cycle`:
+  - `mattpocock_skills:skill:skills/engineering/tdd#one-test-per-cycle` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `per-seam-note`:
+  - `mattpocock_skills:skill:skills/engineering/tdd#per-seam-note` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `prove-the-red`:
+  - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs#prove-the-red` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `red-green`:
   - `mattpocock_skills:skill:skills/engineering/implement-spec#red-green` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
   - `mattpocock_skills:skill:skills/engineering/tdd#red-green` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)

@@ -23,7 +23,7 @@ The owner picks which agent or model fills the author and critic roles.
 | Ruling | The owner decides; the author records the ledger events (one per trait for an upstream skill) | Ledger events citing the evidence |
 | Building | In a git worktree on its own branch, so running sessions keep the current skills. Edit the skill, its `registry/skills.yaml` entry when placement or boundary change, and its `registry/traits/ours.yaml` entry, then `registry.py build`; records are generated, never edited. Rewrite every borrowed idea in our words by `authoring-for-agents`; never paste upstream text. Writing ideas from a reference harness go into its `writing-principles.md`, never into `prompting-guides/GUIDE.md` | A diff |
 | Verify | The checks in `authoring-for-agents`, `skill-catalog.py --check`, `registry.py build` and `check`; a critic for new or rewritten skill bodies | Recorded results |
-| Delivery | Merge (the promotion), then `.codex` sync, then `/harness-publish` | A merged commit |
+| Delivery | Commits through `land`, then merge (the promotion), then `.codex` sync, then `/harness-publish` | A merged commit |
 
 A ruling is recorded before the skill changes. A ruling of `adopt` or
 `adopt-merged` waits until the adopted state exists.
