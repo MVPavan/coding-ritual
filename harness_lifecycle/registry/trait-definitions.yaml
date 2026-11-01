@@ -4325,3 +4325,101 @@ two-edit-test-judgement:
   placement: {domain: engineering, stage: Verification, substage: Testing}
   distinct_from: [break-naming-validation, no-implementation-coupling]
   note: "break-naming-validation names the break for substantive tests and may run a mutation trial; no-implementation-coupling avoids internal coupling. This applies both imagined edits to every test, without naming or a trial."
+fixed-artifact-gate:
+  definition: "Treat a captured artifact as a fixed dataset: query it, leave it unchanged, and never re-run the scenario to get a different one."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+no-fix-handback:
+  definition: "Change no code and add no instrumentation while explaining a captured artifact, and hand back the diagnosis with any follow-up named as a new request."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [diagnosis-only]
+  note: "diagnosis-only allows temporary instrumentation in production code; this allows none, and ends the run at the handback."
+artifact-format-load:
+  definition: "Identify a captured artifact's format and open it with a tool made for that format."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+queryable-dump-first:
+  definition: "Before reading a captured artifact, dump it to a form that can be queried, one row per sample, frame or node, kept apart from the artifact."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+narrow-by-artifact-shape:
+  definition: "Narrow a capture by the query its shape calls for: the hot path through the call tree, the retainer chain to a root, or the stuck thread and its wait."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [locate-cost]
+  note: "locate-cost gathers measurements and may add instrumentation; this only queries data already captured."
+source-attribution-or-gap:
+  definition: "Map a finding to a file, symbol and line through the artifact's own symbols, or state that the artifact does not carry them; an unmapped frame is not a diagnosis."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+paired-capture-confirmation:
+  definition: "Confirm a finding by diffing a before and an after capture, and without a pair label it the strongest hypothesis the artifact supports."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+forensics-closeout:
+  definition: "On every exit of an artifact reading, leave the artifact unchanged, name the derived files kept and delete the rest."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [closeout]
+  note: "closeout removes instrumentation and records a confirmed cause; nothing here was instrumented and the cause may be only a hypothesis."
+advisory-audit-bucket:
+  definition: "Treat an audit's cleanup bucket as advice that the owner's list of pinned work overrides."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+prune-on-approval-gate:
+  definition: "Remove a worktree only after the owner approves that exact worktree, even when it is clean and merged."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+  distinct_from: [irreversible-only-confirmation]
+  note: "irreversible-only-confirmation would let a recoverable removal proceed; this asks for every removal."
+listed-worktree-audit:
+  definition: "Audit worktrees from the paths Git lists, never typed ones, classifying each read-only by uncommitted work, last activity, prunable record and merge state against one base commit resolved once for all of them."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+pinned-set-cross-check:
+  definition: "Cross-check every cleanup candidate against the owner's list of pinned or in-use worktrees, holding a recently active one to ask."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+uncommitted-work-pause:
+  definition: "Pause on a worktree with uncommitted work, show its diff or name its untracked files, and wait for the owner's decision."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+  distinct_from: [unmerged-work-protection]
+  note: "unmerged-work-protection covers a failed merge and unmerged work; this covers files never committed in a worktree up for removal."
+removal-proposal:
+  definition: "Propose each removal with its branch, merge state, last activity and the ignored files removal would also delete, then wait for approval by name."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+approved-worktree-prune:
+  definition: "Remove only the approved worktrees and records, each by its exact path and never by a global prune, keeping their branch refs and forcing only if the owner approves it after Git refuses."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+  distinct_from: [worktree-cleanup]
+  note: "worktree-cleanup removes every implementer worktree when a build ends; this removes only what the owner named, at any time."
+cleanup-closeout:
+  definition: "On every exit of a cleanup, rerun the audit and the disk snapshot and record what changed."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+candidate-blinding:
+  definition: "Keep every name, path and prompt a candidate session can see free of any sign that it is being measured or that other candidates exist."
+  placement: {domain: core, stage: Improvement, substage: Evaluation}
+judge-blinding:
+  definition: "Show the judge outputs only under neutral labels, with no model name and no sign of which variant produced them."
+  placement: {domain: core, stage: Improvement, substage: Evaluation}
+judge-only-rubric:
+  definition: "Frame the variant and the behaviour that counts as success, and hold a rubric of three to six concrete criteria for the judge alone."
+  placement: {domain: core, stage: Improvement, substage: Evaluation}
+eval-spend-go-ahead:
+  definition: "State a trial's prompts, runs, model, turn limit and permission mode, and start paid runs only on the go-ahead for that spend, with bypassed permissions needing their own explicit approval."
+  placement: {domain: core, stage: Improvement, substage: Evaluation}
+sandbox-template-per-variant:
+  definition: "Build one secret-free repository template per variant with its baseline committed and the variant at its normal discovery location."
+  placement: {domain: core, stage: Improvement, substage: Evaluation}
+organic-prompt:
+  definition: "Give every candidate the same prompt, written as a user would type it, stating the goal and nothing of what is measured."
+  placement: {domain: core, stage: Improvement, substage: Evaluation}
+top-level-candidate-runs:
+  definition: "Run each candidate as a fresh top-level headless session in its own new copy of the template, never as a delegate, with one log per run ID."
+  placement: {domain: core, stage: Improvement, substage: Evaluation}
+candidate-run-boundary:
+  definition: "Run each candidate inside an enforced boundary that refuses to start without its tool: only its copy writable at one fixed path under an empty home, a chosen environment with authentication inherited rather than passed on a command line, no view of the host, other runs or the logs, a network of its own whose only way out is a host-side proxy that allows one API target and logs each decision, a syscall filter that refuses socket families the namespace does not isolate, and its diff taken over the files inside the same boundary, never through the copy's Git."
+  placement: {domain: core, stage: Improvement, substage: Evaluation}
+one-judge-one-scale:
+  definition: "Have one judge score every output, both sets of a comparison in one pass on one scale."
+  placement: {domain: core, stage: Improvement, substage: Evaluation}
+chain-from-tool-events:
+  definition: "Grade which units a candidate used from its own tool calls matched to their results, counting only successful skill invocations and reads tied to the exact file in the run's workspace, sending unprovable shell evidence to a person and reporting delegates' reads apart, never from its own claims."
+  placement: {domain: core, stage: Improvement, substage: Evaluation}
+  distinct_from: [direct-observation]
+  note: "direct-observation governs verifying your own output; this scores another session from its event stream."
+read-every-output:
+  definition: "Read every candidate's output end to end and compare with the judge, reporting a disagreement as a biased judge or an ambiguous rubric."
+  placement: {domain: core, stage: Improvement, substage: Evaluation}
+eval-closeout:
+  definition: "On every exit of a trial, keep the logs, prompts, rubric and patterns, record the runs and their cost, and leave the variant's real home unchanged."
+  placement: {domain: core, stage: Improvement, substage: Evaluation}

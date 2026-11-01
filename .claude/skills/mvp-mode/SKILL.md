@@ -55,6 +55,9 @@ only; `AGENTS.md` holds policy and wins if the two disagree.
 One line per playbook: `` - `playbooks/<name>.md`: <the request it fits> ``.
 
 - `playbooks/bug-fix.md`: a reported defect, failing check or flaky test to fix with proof.
+- `playbooks/eval.md`: an instruction or routing variant to try on fresh Claude Code sessions and judge from what they did, not a reference capability to weigh for adoption.
+- `playbooks/trace-forensics.md`: an artifact captured earlier (trace, profile, heap dump, core) to explain, with no fix wanted and nothing new to measure.
+- `playbooks/worktree-cleanup.md`: stale Git worktrees to audit and prune.
 
 ## Principles
 

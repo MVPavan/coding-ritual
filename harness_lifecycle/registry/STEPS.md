@@ -22,6 +22,59 @@ Playbook traits: `confirmed-cause-gate`
 | `bug-fix#6` | the confirmed defect reveals another boundary problem | `defense-in-depth-hardening` |  | `.claude/skills/mvp-mode/playbooks/bug-fix/hardening.md` |
 | `bug-fix#7` | every exit | `closeout`, `preserve-reproducers`, `always-on-signal` |  |  |
 
+## eval
+
+`.claude/skills/mvp-mode/playbooks/eval.md`
+
+Trigger: An instruction or routing variant to try on fresh Claude Code sessions and judge from what they actually did.
+
+Playbook traits: `candidate-blinding`, `judge-blinding`
+
+| Step | When | Traits | Calls | Loads |
+|---|---|---|---|---|
+| `eval#1` | always | `judge-only-rubric`, `eval-spend-go-ahead` |  |  |
+| `eval#2` | the go-ahead was given | `sandbox-template-per-variant` |  |  |
+| `eval#3` | the sandbox template is ready | `organic-prompt` |  |  |
+| `eval#4` | the prompt is written | `top-level-candidate-runs`, `candidate-run-boundary` |  | `.claude/skills/mvp-mode/playbooks/eval/run.sh` |
+| `eval#5` | every planned run has ended | `one-judge-one-scale` | `skill:delegation` |  |
+| `eval#6` | the candidates ran on Claude Code | `chain-from-tool-events` |  | `.claude/skills/mvp-mode/playbooks/eval/classify.py` |
+| `eval#7` | the judge has reported | `read-every-output` |  |  |
+| `eval#8` | every exit | `eval-closeout` |  |  |
+
+## trace-forensics
+
+`.claude/skills/mvp-mode/playbooks/trace-forensics.md`
+
+Trigger: An artifact captured earlier (trace, profile, heap dump, core) to explain, with no fix wanted.
+
+Playbook traits: `fixed-artifact-gate`, `no-fix-handback`
+
+| Step | When | Traits | Calls | Loads |
+|---|---|---|---|---|
+| `trace-forensics#1` | always | `artifact-format-load` | `skill:delegation` (when: parsing the artifact would flood this session's context) |  |
+| `trace-forensics#2` | the artifact is not already in a form that can be queried | `queryable-dump-first` |  |  |
+| `trace-forensics#3` | always | `narrow-by-artifact-shape` |  |  |
+| `trace-forensics#4` | a cause has been narrowed to a frame, object or thread | `source-attribution-or-gap` |  |  |
+| `trace-forensics#5` | a cause has been narrowed to a frame, object or thread | `paired-capture-confirmation` |  |  |
+| `trace-forensics#6` | every exit | `forensics-closeout` |  |  |
+
+## worktree-cleanup
+
+`.claude/skills/mvp-mode/playbooks/worktree-cleanup.md`
+
+Trigger: Stale Git worktrees to audit and prune.
+
+Playbook traits: `advisory-audit-bucket`, `prune-on-approval-gate`
+
+| Step | When | Traits | Calls | Loads |
+|---|---|---|---|---|
+| `worktree-cleanup#1` | always | `listed-worktree-audit` |  | `.claude/skills/mvp-mode/playbooks/worktree-cleanup/audit.py` |
+| `worktree-cleanup#2` | the audit ran | `pinned-set-cross-check` |  |  |
+| `worktree-cleanup#3` | a worktree has uncommitted work | `uncommitted-work-pause` |  |  |
+| `worktree-cleanup#4` | the audit left at least one candidate | `removal-proposal` |  |  |
+| `worktree-cleanup#5` | the owner approved named worktrees | `approved-worktree-prune` |  |  |
+| `worktree-cleanup#6` | every exit | `cleanup-closeout` |  |  |
+
 ## Recurrence
 
 Traits and calls used by two or more playbooks. Repeating a step is fine; the same own action in two playbooks is the signal to make it a skill (St4).
@@ -32,4 +85,6 @@ None.
 
 ### Calls
 
-None.
+| Item | Playbooks |
+|---|---|
+| `skill:delegation` | eval: `eval#5`; trace-forensics: `trace-forensics#1` |

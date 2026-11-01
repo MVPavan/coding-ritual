@@ -166,7 +166,7 @@ Catalog: `4dd1d05818d19792e7cd6e818f1667f95f7e1dbe`, 352 capabilities.
 | `playbook:pstack/skills/poteto-mode/playbooks/autopilot-stack` | defer | decided |  |  | 2026-11-01-pstack-playbooks | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/babysit` | defer | decided |  |  | 2026-11-01-pstack-playbooks | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/bug-fix` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/bug-fix.md |  | 2026-11-01-pstack-playbooks | no |
-| `playbook:pstack/skills/poteto-mode/playbooks/eval` | defer | decided |  |  | 2026-11-01-pstack-playbooks | no |
+| `playbook:pstack/skills/poteto-mode/playbooks/eval` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/eval.md |  | 2026-11-01-batch-0 | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/feature` | defer | decided |  |  | 2026-11-01-pstack-playbooks | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/hillclimb` | defer | decided |  |  | 2026-11-01-pstack-playbooks | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/investigation` | defer | decided |  |  | 2026-11-01-pstack-playbooks | no |
@@ -180,9 +180,9 @@ Catalog: `4dd1d05818d19792e7cd6e818f1667f95f7e1dbe`, 352 capabilities.
 | `playbook:pstack/skills/poteto-mode/playbooks/runtime-forensics` | defer | decided |  |  | 2026-11-01-pstack-playbooks | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/session-pickup` | defer | decided |  |  | 2026-11-01-pstack-playbooks | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/shipping` | defer | decided |  |  | 2026-11-01-pstack-playbooks | no |
-| `playbook:pstack/skills/poteto-mode/playbooks/trace-forensics` | defer | decided |  |  | 2026-11-01-pstack-playbooks | no |
+| `playbook:pstack/skills/poteto-mode/playbooks/trace-forensics` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/trace-forensics.md |  | 2026-11-01-batch-0 | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/visual-parity` | defer | decided |  |  | 2026-11-01-pstack-playbooks | no |
-| `playbook:pstack/skills/poteto-mode/playbooks/worktree-cleanup` | defer | decided |  |  | 2026-11-01-pstack-playbooks | no |
+| `playbook:pstack/skills/poteto-mode/playbooks/worktree-cleanup` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/worktree-cleanup.md |  | 2026-11-01-batch-0 | no |
 | `plugin:harness/pstack/claude-code/pstack` | not reviewed | not reviewed |  |  |  |  |
 | `plugin:origin-apps/origin-apps` | not reviewed | not reviewed |  |  |  |  |
 | `skill:advisor/skills/advisor` | not reviewed | not analysed |  |  |  |  |

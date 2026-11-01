@@ -61,12 +61,17 @@ Runs on `playbook-map.md`: §5 is the order, §7.2 the seventeen rulings, all ru
 as recommended on 2026-11-01. Each batch follows the approved cycle: report, Sol
 critic, owner rulings, ledger, build, Sol review, commit after the owner approves.
 
-- `cr-r2pa.2.2`: pstack's 23 playbooks cataloged as units and ruled whole (round
-  `2026-11-01-pstack-playbooks`). A `defer` on an adapted playbook means not built
-  yet: the `adopt-merged` that delivers it supersedes the `defer`.
-- `cr-r2pa.2.1`: seven Pocock retargets, each needing an owner-ruled destination.
-- Then batch 0 (`cr-r2pa.2.3`), batch 1 (`.4`), batch 2 (`.5`), pilots 2 and 3 (`.8`,
-  `.9`), batches 3 and 4 (`.6`, `.7`), the remaining Pocock pass (`.10`).
+- `cr-r2pa.2.2`, done (`f207be9`): pstack's 23 playbooks cataloged as units and ruled
+  whole (round `2026-11-01-pstack-playbooks`). A `defer` on an adapted playbook means
+  not built yet: the `adopt-merged` that delivers it supersedes the `defer`.
+- `cr-r2pa.2.3`, done: batch 0's Trace forensics, Worktree cleanup and Eval are live
+  (round `2026-11-01-batch-0`). Owner rulings: a candidate's only network is a proxy to
+  the Anthropic API, and `bypassPermissions` needs naming in that Eval's go-ahead. Eval
+  has not run a real session; `cr-r2pa.2.12` holds that run and its checklist.
+- `cr-r2pa.2.1`, next: seven Pocock retargets, ruled as recommended on 2026-11-01, with
+  the redaction pair staying on `systematic-debugging`. Their events are still to record.
+- Then batch 1 (`.4`), batch 2 (`.5`), pilots 2 and 3 (`.8`, `.9`), batches 3 and 4 (`.6`,
+  `.7`), the remaining Pocock pass (`.10`).
 
 The Pocock pending adoptions are tracked in `cr-axdt.6` (13 tasks, one per target
 skill) and join the batch that touches the same skill; each completes its adopts

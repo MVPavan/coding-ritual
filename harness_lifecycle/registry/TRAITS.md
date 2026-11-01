@@ -825,6 +825,40 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `preserve-reproducers`: Keep useful reproducers and user artifacts when cleaning up after a fix.
 - `always-on-signal`: After a fact took a deep investigation to find, propose the cheap always-on signal that would have shown it at first look.
 
+#### eval — `doc:.claude/skills/mvp-mode/playbooks/eval.md`
+- `candidate-blinding`: Keep every name, path and prompt a candidate session can see free of any sign that it is being measured or that other candidates exist.
+- `judge-blinding`: Show the judge outputs only under neutral labels, with no model name and no sign of which variant produced them.
+- `judge-only-rubric`: Frame the variant and the behaviour that counts as success, and hold a rubric of three to six concrete criteria for the judge alone.
+- `eval-spend-go-ahead`: State a trial's prompts, runs, model, turn limit and permission mode, and start paid runs only on the go-ahead for that spend, with bypassed permissions needing their own explicit approval.
+- `sandbox-template-per-variant`: Build one secret-free repository template per variant with its baseline committed and the variant at its normal discovery location.
+- `organic-prompt`: Give every candidate the same prompt, written as a user would type it, stating the goal and nothing of what is measured.
+- `top-level-candidate-runs`: Run each candidate as a fresh top-level headless session in its own new copy of the template, never as a delegate, with one log per run ID.
+- `candidate-run-boundary`: Run each candidate inside an enforced boundary that refuses to start without its tool: only its copy writable at one fixed path under an empty home, a chosen environment with authentication inherited rather than passed on a command line, no view of the host, other runs or the logs, a network of its own whose only way out is a host-side proxy that allows one API target and logs each decision, a syscall filter that refuses socket families the namespace does not isolate, and its diff taken over the files inside the same boundary, never through the copy's Git.
+- `one-judge-one-scale`: Have one judge score every output, both sets of a comparison in one pass on one scale.
+- `chain-from-tool-events`: Grade which units a candidate used from its own tool calls matched to their results, counting only successful skill invocations and reads tied to the exact file in the run's workspace, sending unprovable shell evidence to a person and reporting delegates' reads apart, never from its own claims.
+- `read-every-output`: Read every candidate's output end to end and compare with the judge, reporting a disagreement as a biased judge or an ambiguous rubric.
+- `eval-closeout`: On every exit of a trial, keep the logs, prompts, rubric and patterns, record the runs and their cost, and leave the variant's real home unchanged.
+
+#### trace-forensics — `doc:.claude/skills/mvp-mode/playbooks/trace-forensics.md`
+- `fixed-artifact-gate`: Treat a captured artifact as a fixed dataset: query it, leave it unchanged, and never re-run the scenario to get a different one.
+- `no-fix-handback`: Change no code and add no instrumentation while explaining a captured artifact, and hand back the diagnosis with any follow-up named as a new request.
+- `artifact-format-load`: Identify a captured artifact's format and open it with a tool made for that format.
+- `queryable-dump-first`: Before reading a captured artifact, dump it to a form that can be queried, one row per sample, frame or node, kept apart from the artifact.
+- `narrow-by-artifact-shape`: Narrow a capture by the query its shape calls for: the hot path through the call tree, the retainer chain to a root, or the stuck thread and its wait.
+- `source-attribution-or-gap`: Map a finding to a file, symbol and line through the artifact's own symbols, or state that the artifact does not carry them; an unmapped frame is not a diagnosis.
+- `paired-capture-confirmation`: Confirm a finding by diffing a before and an after capture, and without a pair label it the strongest hypothesis the artifact supports.
+- `forensics-closeout`: On every exit of an artifact reading, leave the artifact unchanged, name the derived files kept and delete the rest.
+
+#### worktree-cleanup — `doc:.claude/skills/mvp-mode/playbooks/worktree-cleanup.md`
+- `advisory-audit-bucket`: Treat an audit's cleanup bucket as advice that the owner's list of pinned work overrides.
+- `prune-on-approval-gate`: Remove a worktree only after the owner approves that exact worktree, even when it is clean and merged.
+- `listed-worktree-audit`: Audit worktrees from the paths Git lists, never typed ones, classifying each read-only by uncommitted work, last activity, prunable record and merge state against one base commit resolved once for all of them.
+- `pinned-set-cross-check`: Cross-check every cleanup candidate against the owner's list of pinned or in-use worktrees, holding a recently active one to ask.
+- `uncommitted-work-pause`: Pause on a worktree with uncommitted work, show its diff or name its untracked files, and wait for the owner's decision.
+- `removal-proposal`: Propose each removal with its branch, merge state, last activity and the ignored files removal would also delete, then wait for approval by name.
+- `approved-worktree-prune`: Remove only the approved worktrees and records, each by its exact path and never by a global prune, keeping their branch refs and forcing only if the owner approves it after Git refuses.
+- `cleanup-closeout`: On every exit of a cleanup, rerun the audit and the disk snapshot and record what changed.
+
 ### cursor_plugins
 
 #### core · Building · Implementation — skill:pstack/skills/principle-build-the-lever
@@ -2689,6 +2723,18 @@ When the submodule pointer moves, write the upstream review in the same change a
 
 ### core · Improvement · Evaluation
 
+#### `candidate-blinding`
+Keep every name, path and prompt a candidate session can see free of any sign that it is being measured or that other candidates exist.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/eval.md`
+
+#### `candidate-run-boundary`
+Run each candidate inside an enforced boundary that refuses to start without its tool: only its copy writable at one fixed path under an empty home, a chosen environment with authentication inherited rather than passed on a command line, no view of the host, other runs or the logs, a network of its own whose only way out is a host-side proxy that allows one API target and logs each decision, a syscall filter that refuses socket families the namespace does not isolate, and its diff taken over the files inside the same boundary, never through the copy's Git.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/eval.md`
+
+#### `chain-from-tool-events`
+Grade which units a candidate used from its own tool calls matched to their results, counting only successful skill invocations and reads tied to the exact file in the run's workspace, sending unprovable shell evidence to a person and reporting delegates' reads apart, never from its own claims.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/eval.md`
+
 #### `component-inventory`
 Cite each behavioural component — step, gate, template, rule, heuristic or red-flag table — with file and line, treating a heading as not a component.
 - ours: `harness-skill-compare`
@@ -2706,10 +2752,18 @@ Run the drift scan to surface upstream changes since our pin.
 - ours: `harness-scan`
 - ours: `harness-status`
 
+#### `eval-closeout`
+On every exit of a trial, keep the logs, prompts, rubric and patterns, record the runs and their cost, and leave the variant's real home unchanged.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/eval.md`
+
 #### `eval-result-scrutiny`
 Before trusting an eval result, check that every run did the task, that the gap holds across trials and models, and that the scenario matters.
 - ours: `principle-explain-the-number`
 - `cursor_plugins:skill:pstack/skills/principle-explain-the-number` — adopt → principle-explain-the-number#eval-result-scrutiny
+
+#### `eval-spend-go-ahead`
+State a trial's prompts, runs, model, turn limit and permission mode, and start paid runs only on the go-ahead for that spend, with bypassed permissions needing their own explicit approval.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/eval.md`
 
 #### `gap-report`
 Run the gap report for capabilities never ruled on, changed upstream since their ruling, or held but never ruled on.
@@ -2718,6 +2772,14 @@ Run the gap report for capabilities never ruled on, changed upstream since their
 #### `inspected-vs-executed`
 Distinguish inspected code from executed behaviour and never infer invocation frequency from description text.
 - ours: `harness-skill-compare`
+
+#### `judge-blinding`
+Show the judge outputs only under neutral labels, with no model name and no sign of which variant produced them.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/eval.md`
+
+#### `judge-only-rubric`
+Frame the variant and the behaviour that counts as success, and hold a rubric of three to six concrete criteria for the judge alone.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/eval.md`
 
 #### `material-report`
 Report the material drift and useful candidates against existing equivalents.
@@ -2731,9 +2793,21 @@ Borrow only the smallest justified pattern from a reference repository.
 Keep a narrow comparison in chat with no file, stating its coverage and any unverified behaviour.
 - ours: `harness-skill-compare`
 
+#### `one-judge-one-scale`
+Have one judge score every output, both sets of a comparison in one pass on one scale.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/eval.md`
+
+#### `organic-prompt`
+Give every candidate the same prompt, written as a user would type it, stating the goal and nothing of what is measured.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/eval.md`
+
 #### `presence-matrix`
 Tabulate one row per component and one column per skill, marking present, variant or absent, and explain how each varying row is realised and which is stronger.
 - ours: `harness-skill-compare`
+
+#### `read-every-output`
+Read every candidate's output end to end and compare with the judge, reporting a disagreement as a biased judge or an ambiguous rubric.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/eval.md`
 
 #### `read-first`
 Before judging a candidate, read its canonical source, the relevant prior ledger decision and the closest local implementation, keeping reference repositories as read-only evidence.
@@ -2759,9 +2833,17 @@ Treat reject or defer as a valid outcome when a candidate adds no durable behavi
 Resolve the named reference harness or path, asking only when it is ambiguous.
 - ours: `harness-scan`
 
+#### `sandbox-template-per-variant`
+Build one secret-free repository template per variant with its baseline committed and the variant at its normal discovery location.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/eval.md`
+
 #### `scale-to-question`
 Scale comparison depth to the question — descriptions and relevant branches for a narrow overlap, every shipped instruction, metadata and script for a full comparison.
 - ours: `harness-skill-compare`
+
+#### `top-level-candidate-runs`
+Run each candidate as a fresh top-level headless session in its own new copy of the template, never as a delegate, with one log per run ID.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/eval.md`
 
 #### `verdict`
 Conclude whether the skills substitute or complement, stating what to take, from where, and what to leave, each with a reason.
@@ -5074,6 +5156,10 @@ After a fact took a deep investigation to find, propose the cheap always-on sign
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/bug-fix.md`
 - `cursor_plugins:skill:pstack/skills/principle-fix-root-causes` — adopt → doc:.claude/skills/mvp-mode/playbooks/bug-fix.md
 
+#### `artifact-format-load`
+Identify a captured artifact's format and open it with a tool made for that format.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/trace-forensics.md`
+
 #### `attempt-ledger`
 Keep a compact baseline-to-result attempt record with decision and reason so failed experiments are not repeated after context recovery.
 - ours: `performance-optimization`
@@ -5171,6 +5257,10 @@ State each hypothesis as a falsifiable prediction that changing its cause change
 Search for every place with the same fault and fix them all, not only the reported instance.
 - `cursor_plugins:skill:pstack/skills/principle-fix-root-causes` — adopt → doc:.claude/skills/mvp-mode/playbooks/bug-fix.md
 
+#### `fixed-artifact-gate`
+Treat a captured artifact as a fixed dataset: query it, leave it unchanged, and never re-run the scenario to get a different one.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/trace-forensics.md`
+
 #### `fixed-hypothesis-count`
 Generate three to five hypotheses before testing any, to avoid anchoring on the first idea.
 - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — defer
@@ -5178,6 +5268,10 @@ Generate three to five hypotheses before testing any, to avoid anchoring on the 
 #### `flake-reproduction`
 For a flaky or production-only failure, diagnose its flake class and raise the reproduction rate until the loop is debuggable, using an order-dependent-test finder for test pollution.
 - ours: `systematic-debugging`
+
+#### `forensics-closeout`
+On every exit of an artifact reading, leave the artifact unchanged, name the derived files kept and delete the rest.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/trace-forensics.md`
 
 #### `hitl-loop-script`
 Drive a required human step through a structured human-in-the-loop script as the last-resort loop so it stays repeatable.
@@ -5230,6 +5324,14 @@ Explain a measured number by the resource or code path that bounds it, found fro
 - ours: `principle-explain-the-number`
 - `cursor_plugins:skill:pstack/skills/principle-explain-the-number` — adopt → principle-explain-the-number#named-limiter
 
+#### `narrow-by-artifact-shape`
+Narrow a capture by the query its shape calls for: the hot path through the call tree, the retainer chain to a root, or the stuck thread and its wait.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/trace-forensics.md`
+
+#### `no-fix-handback`
+Change no code and add no instrumentation while explaining a captured artifact, and hand back the diagnosis with any follow-up named as a new request.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/trace-forensics.md`
+
 #### `noise-inconclusive`
 Treat a measured difference within noise as inconclusive rather than as a gain or a loss.
 - ours: `performance-optimization`
@@ -5259,6 +5361,10 @@ Fix a bug at the layer that owns it rather than patching around it.
 - `doc:AGENTS.md`
 - `cursor_plugins:skill:pstack/skills/principle-attack-the-premise` — adopt → doc:AGENTS.md
 - `cursor_plugins:skill:pstack/skills/principle-fix-root-causes` — adopt → doc:AGENTS.md
+
+#### `paired-capture-confirmation`
+Confirm a finding by diffing a before and an after capture, and without a pair label it the strongest hypothesis the artifact supports.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/trace-forensics.md`
 
 #### `parseable-hitl-output`
 Have a human-in-the-loop script print its captured values as key=value lines the agent can parse.
@@ -5295,6 +5401,10 @@ Keep useful reproducers and user artifacts when cleaning up after a fix.
 When forcing the red by mutating code or a fixture, diff against a pristine copy to prove the mutation landed before trusting it.
 - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt, pending cr-axdt.6.9 → systematic-debugging#prove-the-red
 
+#### `queryable-dump-first`
+Before reading a captured artifact, dump it to a form that can be queried, one row per sample, frame or node, kept apart from the artifact.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/trace-forensics.md`
+
 #### `regression-guard`
 For a material recurring risk add an economical guard — query counts, bounded allocations or a controlled benchmark — scaled to the risk and avoiding flaky wall-clock assertions.
 - ours: `performance-optimization`
@@ -5324,6 +5434,10 @@ Remove your own ineffective experimental edits, preserving all other work.
 #### `scoped-instance-fix`
 Search for every instance of a confirmed fault, fix those inside the task's scope and report the rest.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/bug-fix.md`
+
+#### `source-attribution-or-gap`
+Map a finding to a file, symbol and line through the artifact's own symbols, or state that the artifact does not carry them; an unmapped frame is not a diagnosis.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/trace-forensics.md`
 
 #### `tagged-debug-logs`
 Tag every debug log with a unique prefix so cleanup is a single search.
@@ -6072,6 +6186,14 @@ Name and skip any invariant that is aspirational rather than mechanically checka
 
 ### engineering · Delivery · Integration
 
+#### `advisory-audit-bucket`
+Treat an audit's cleanup bucket as advice that the owner's list of pinned work overrides.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/worktree-cleanup.md`
+
+#### `approved-worktree-prune`
+Remove only the approved worktrees and records, each by its exact path and never by a global prune, keeping their branch refs and forcing only if the owner approves it after Git refuses.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/worktree-cleanup.md`
+
 #### `argument-order-commits`
 Order commits so the history proves the work (failing test before fix, removal before reshape, baseline before treatment, scaffold before feature), each commit standing alone.
 - ours: `principle-sequence-verifiable-units`
@@ -6088,6 +6210,10 @@ Set CI secrets and variables through the hosting platform's CLI, recording each 
 #### `clean-baseline-first`
 Start from a clean, current base so each check measures against the real baseline.
 - `cursor_plugins:skill:pstack/skills/principle-sequence-verifiable-units` — adopt → principle-sequence-verifiable-units#baseline-check-before-change
+
+#### `cleanup-closeout`
+On every exit of a cleanup, rerun the audit and the disk snapshot and record what changed.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/worktree-cleanup.md`
 
 #### `commit-authority-gate`
 Commit or continue the rebase only with granted authority, otherwise stop with the resolution staged and report what would be committed.
@@ -6125,6 +6251,10 @@ Stage changes by explicitly named paths, never with a whole-tree add such as git
 Stage only the resolved files from the captured conflict set by explicit path.
 - ours: `resolving-merge-conflicts`
 
+#### `listed-worktree-audit`
+Audit worktrees from the paths Git lists, never typed ones, classifying each read-only by uncommitted work, last activity, prunable record and merge state against one base commit resolved once for all of them.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/worktree-cleanup.md`
+
 #### `merge-base-selection`
 Establish the intended base branch before merging.
 - `doc:AGENTS.md`
@@ -6137,6 +6267,10 @@ State the merge's one-way or two-way door and its blast radius.
 Verify the merged result after merging.
 - `doc:AGENTS.md`
 
+#### `pinned-set-cross-check`
+Cross-check every cleanup candidate against the owner's list of pinned or in-use worktrees, holding a recently active one to ask.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/worktree-cleanup.md`
+
 #### `pr-body-template`
 Fill a fixed PR-body skeleton with Summary, Evidence, and Merge Danger sections.
 - `mattpocock_skills:skill:skills/engineering/pr` — defer
@@ -6144,6 +6278,14 @@ Fill a fixed PR-body skeleton with Summary, Evidence, and Merge Danger sections.
 #### `pre-report-tip-merge`
 Have each implementer merge the integration branch's tip into its own branch before reporting done.
 - `mattpocock_skills:skill:skills/engineering/implement-spec` — defer
+
+#### `prune-on-approval-gate`
+Remove a worktree only after the owner approves that exact worktree, even when it is clean and merged.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/worktree-cleanup.md`
+
+#### `removal-proposal`
+Propose each removal with its branch, merge state, last activity and the ignored files removal would also delete, then wait for approval by name.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/worktree-cleanup.md`
 
 #### `repo-relative-committed-paths`
 Use repository-relative paths in committed material.
@@ -6174,6 +6316,10 @@ Keep each commit small and about one thing.
 #### `trace-intent`
 Find the primary source of each conflict via commit messages and requirements first, expanding to PRs or issues only when a disputed hunk needs that history.
 - ours: `resolving-merge-conflicts`
+
+#### `uncommitted-work-pause`
+Pause on a worktree with uncommitted work, show its diff or name its untracked files, and wait for the owner's decision.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/worktree-cleanup.md`
 
 #### `unmerged-work-protection`
 On a failed merge preserve the work, and before destroying unmerged work show what would be lost and get explicit confirmation.

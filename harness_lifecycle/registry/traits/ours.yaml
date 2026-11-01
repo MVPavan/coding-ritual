@@ -91,7 +91,7 @@ ours:model-council:
   tree_hash: "ecd76ba1196f1260210e82483806f9d62a3c55cd6a28a8d8c603c254ccf8f828"
   traits: [member-resolution, runtime-capability-check, neutral-framing, member-isolation, report-preservation, independent-synthesis, consolidated-delivery, identity-recording, failed-member-recovery, no-silent-substitution]
 ours:mvp-mode:
-  tree_hash: "773cb78b3f3ffa7cc05df8470aeec80eaae593779310ce0e1a606c2d68c27c05"
+  tree_hash: "2cffbc60429ee77e5ee9e1d05852656a8323e468f30c35c944c8149216ce4146"
   traits: [unit-kind-lines, playbook-pick, need-to-skill-routing, overlap-arbitration, layered-catalog, platform-skill-invocation, no-playbook-in-delegate, delegate-independent-by-default, no-onward-delegation, playbook-steps-as-todos, recorded-step-skip, whole-callee, playbook-exit, legacy-entrypoint-flagging, catalog-trust-boundary]
 ours:performance-optimization:
   tree_hash: "b41ca5d5b70a75ad3ae53291692d6cfc13e495804c34d8b3e1f9be3d3ba6ad79"
