@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+from curation.registry.checks.traits import doc_holder_kind
 from curation.registry.config import RegistryConfig, _rel
 from curation.registry.ledger import (
     _trait_base,
@@ -78,6 +79,17 @@ def _target_exists(
     return False
 
 
+def _can_be_planned(cfg: RegistryConfig, target: str) -> bool:
+    """A target a delivering build may still create: a skill, or a playbook
+    whose prospective path stays inside repo_root, even through symlinks."""
+    if target.startswith("doc:"):
+        rel = target[len("doc:") :]
+        if doc_holder_kind(cfg, rel) != "playbook":
+            return False
+        return (cfg.repo_root / rel).resolve().is_relative_to(cfg.repo_root.resolve())
+    return ":" not in target
+
+
 def _check_effective_targets(
     cfg: RegistryConfig,
     events: list[Event],
@@ -90,14 +102,18 @@ def _check_effective_targets(
     """Every live adoption carries a source and a target that resolves today.
     A target is resolved through our rename/merge lifecycle (§3); a target that
     was retired is "adopted, no longer provided", not an error. An unresolved,
-    still-active target is an error. A pending trait adopt may name a skill
-    its delivering build will create, and so may its skill's checkpoint (§5b);
-    a delivered adopt needs the skill to exist."""
+    still-active target is an error. A pending trait adopt may name a skill or
+    playbook its delivering build will create, and so may its skill's checkpoint
+    (§5b); a delivered adopt needs the target to exist."""
     existing = records | aliases | STUB_SKILLS
     effective = effective_by_subject(events)
     planned: dict[str, set[str]] = {}
     for event in effective.values():
-        if is_pending_adopt(event) and event.skill and ":" not in event.skill:
+        if (
+            is_pending_adopt(event)
+            and event.skill
+            and _can_be_planned(cfg, event.skill)
+        ):
             planned.setdefault(_trait_base(event.subject), set()).add(event.skill)
     errors: list[str] = []
     for subject, event in effective.items():

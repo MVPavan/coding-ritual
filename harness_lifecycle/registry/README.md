@@ -485,8 +485,9 @@ rejected or deferred capability changes upstream.
 an existing skill record, alias, stub, non-skill `kind:name` or existing
 `doc:` file, resolved through our `rename` and `merge` events), and optional on
 a superseded historical one, which may name a skill we no longer have. A
-pending trait adopt (§5b) may name a skill its delivering build will create,
-and so may that upstream skill's checkpoint; its completion needs the skill.
+pending trait adopt (§5b) may name a skill or playbook its delivering build will
+create, and so may that upstream skill's checkpoint; its completion needs the
+target to exist.
 
 ## 5b. Trait rulings
 
@@ -551,7 +552,7 @@ are in §5c.
   does not fail.
 - **Pending adoptions.** A gap (we will add it) is an `adopt` with `pending:
   <bead>`. It is intent, not delivery: the target need not list the trait
-  yet, nor exist yet when it is a skill to create (§5), and it never counts
+  yet, nor exist yet when it is a skill or playbook to create (§5), and it never counts
   as a delivered adoption or clears a withdrawal. `check` fails when the
   target already lists the trait but the completing `adopt` is missing.
   - **Complete** it with an `adopt` without `pending` that supersedes the

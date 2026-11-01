@@ -621,6 +621,74 @@ def test_check_rejects_superseded_reject_then_adopt_with_bad_target(
     _fails_with(cfg, capsys, "invalid skill target")
 
 
+UNBUILT_PLAYBOOK = "doc:.claude/skills/mvp-mode/playbooks/feature.md"
+
+
+def test_check_accepts_pending_adopt_into_unbuilt_playbook(tmp_path: Path) -> None:
+    """The checkpoint may name it too, as it may a skill not yet built (§5b)."""
+    cfg = _pending_cfg(
+        tmp_path,
+        _trait(
+            "2026-10-14-r:2", "adopt", "seams", skill=UNBUILT_PLAYBOOK, pending="cr-9"
+        ),
+        ours_traits=[],
+        checkpoint_skill=UNBUILT_PLAYBOOK,
+    )
+    assert cli.cmd_build(cfg, _ns()) == 0
+    assert cli.cmd_check(cfg, _ns()) == 0
+
+
+@pytest.mark.parametrize(
+    ("target", "pending"),
+    [
+        ("doc:docs/unbuilt.md", "cr-9"),
+        ("doc:.claude/skills/mvp-mode/playbooks/feature/reference.md", "cr-9"),
+        (UNBUILT_PLAYBOOK, None),
+    ],
+    ids=["pending-outside-folder", "pending-playbook-reference", "delivered-playbook"],
+)
+def test_check_rejects_missing_doc_target_a_build_cannot_excuse(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], target: str, pending: str | None
+) -> None:
+    """Both the trait adopt and the checkpoint naming the same target fail."""
+    extra = {"pending": pending} if pending else {}
+    cfg = _pending_cfg(
+        tmp_path,
+        _trait("2026-10-14-r:2", "adopt", "seams", skill=target, **extra),
+        ours_traits=[],
+        checkpoint_skill=target,
+    )
+    cli.cmd_build(cfg, _ns())
+    assert cli.cmd_check(cfg, _ns()) == 1
+    err = capsys.readouterr().err
+    for eid in ("2026-10-14-r:1", "2026-10-14-r:2"):
+        assert f"{eid}: live adoption" in err and "invalid skill target" in err
+
+
+def test_check_rejects_pending_playbook_through_symlink_out_of_repo(
+    tmp_path: Path,
+    tmp_path_factory: pytest.TempPathFactory,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A missing target may be excused; one that escapes the repository may not."""
+    cfg = _pending_cfg(
+        tmp_path,
+        _trait(
+            "2026-10-14-r:2", "adopt", "seams", skill=UNBUILT_PLAYBOOK, pending="cr-9"
+        ),
+        ours_traits=[],
+        checkpoint_skill=UNBUILT_PLAYBOOK,
+    )
+    playbooks = cfg.repo_root / UNBUILT_PLAYBOOK[len("doc:") :].rsplit("/", 1)[0]
+    playbooks.parent.mkdir(parents=True, exist_ok=True)
+    playbooks.symlink_to(tmp_path_factory.mktemp("outside"), target_is_directory=True)
+    cli.cmd_build(cfg, _ns())
+    assert cli.cmd_check(cfg, _ns()) == 1
+    err = capsys.readouterr().err
+    for eid in ("2026-10-14-r:1", "2026-10-14-r:2"):
+        assert f"{eid}: live adoption" in err and "invalid skill target" in err
+
+
 def test_target_exists_accepts_only_real_kinds_and_shipped_caps(
     tmp_path: Path,
 ) -> None:
@@ -1515,7 +1583,9 @@ def test_awaiting_trait_ruling(
 
 
 # Acceptance 4: the pending lifecycle.
-def _pending_cfg(base: Path, *events: dict, ours_traits: list[str]) -> object:
+def _pending_cfg(
+    base: Path, *events: dict, ours_traits: list[str], checkpoint_skill: str = "tdd"
+) -> object:
     cfg = _make_cfg(base)
     _write_skill(cfg, "tdd")
     _write_record(cfg, "tdd", "engineering", "Design", "Specification")
@@ -1528,7 +1598,7 @@ def _pending_cfg(base: Path, *events: dict, ours_traits: list[str]) -> object:
     _write_round(
         cfg,
         "2026-10-14-r",
-        _checkpoint("2026-10-14-r:1", "adopt", "tdd"),
+        _checkpoint("2026-10-14-r:1", "adopt", checkpoint_skill),
         *events,
         trait_level=True,
     )
