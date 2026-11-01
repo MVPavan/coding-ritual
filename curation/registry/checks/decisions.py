@@ -43,15 +43,26 @@ def decision_errors(
     `source` (3.4); outside `pre_trait_rounds`, any other event cites a
     sealed report's row and its target (3.2), reconsiders through a
     `reconsider` row (3.4) and obeys a `reword` verdict (3.4a). Each event
-    is classified with the rename/merge state preceding it, as `record` saw
-    it, so a later merge never rewrites an earlier classification."""
+    is judged against the event of its subject it supersedes when file order
+    puts that one later, whatever the order of `supersedes`, else the latest
+    live earlier one, so a completion must still supersede the effective event;
+    and it is classified with the rename/merge state preceding it, as `record`
+    saw it, so a later merge never rewrites an earlier classification."""
     errors: list[str] = []
     dead: set[str] = set()
     history: dict[str, list[Event]] = {}
+    by_id = {e.id: e for e in events}
     for idx, event in enumerate(events):
         if _is_trait_subject(event.subject):
             forward, _ = build_lifecycle(live_events(events[:idx]))
-            prior = next(
+            later = _later_predecessors(event, history, by_id)
+            if len(later) > 1:
+                ids = ", ".join(e.id for e in later)
+                errors.append(
+                    f"{event.id}: supersedes several later events of its subject "
+                    f"({ids})"
+                )
+            prior = (later[0] if len(later) == 1 else None) or next(
                 (
                     e
                     for e in reversed(history.get(event.subject, []))
@@ -65,6 +76,20 @@ def decision_errors(
         dead.update(event.supersedes)
         history.setdefault(event.subject, []).append(event)
     return errors
+
+
+def _later_predecessors(
+    event: Event, history: dict[str, list[Event]], by_id: dict[str, Event]
+) -> list[Event]:
+    """The events of this subject that this one supersedes, file order putting
+    them later. One is its predecessor; several are refused, since no array order
+    may choose among them."""
+    seen = {e.id for e in history.get(event.subject, [])}
+    return [
+        by_id[s]
+        for s in event.supersedes
+        if s not in seen and s in by_id and by_id[s].subject == event.subject
+    ]
 
 
 def _event_errors(
