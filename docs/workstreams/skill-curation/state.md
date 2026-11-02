@@ -75,7 +75,8 @@ critic, owner rulings, ledger, build, Sol review, commit after the owner approve
 - `cr-r2pa.2.3`, done: batch 0's Trace forensics, Worktree cleanup and Eval are live
   (round `2026-11-01-batch-0`). Owner rulings: a candidate's only network is a proxy to
   the Anthropic API, and `bypassPermissions` needs naming in that Eval's go-ahead. Eval
-  has not run a real session; `cr-r2pa.2.12` holds that run and its checklist.
+  has since run real sessions on three Claude models (`cr-r2pa.2.12`, 2026-11-02), and
+  `eval/run.sh` takes `--effort`.
 - `cr-r2pa.2.1`, done: seven Pocock retargets recorded (round
   `2026-11-01-pocock-retarget`). `reproduction-first`, `regression-check` and `closeout`
   are delivered; `prove-the-red` and `missing-seam-finding` are pending for batch 1; the

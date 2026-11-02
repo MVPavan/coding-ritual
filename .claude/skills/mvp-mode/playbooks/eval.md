@@ -75,10 +75,13 @@ model name, and no sign of which variant produced them.
    never a delegate: a delegated task cannot start a playbook, and that is often
    the behaviour under test. It refuses to run without `bwrap`, so Linux only.
    Judge a run's outcome by the `status` and `result_error` that `eval/classify.py`
-   reports, not its exit code. The script's header lists its options. No real
-   session has run in this boundary yet, only a stub and `claude --version`, so
-   make the first run a small one and confirm sign-in, discovery, tools and the
-   proxy log before trusting its results.
+   reports, not its exit code. The script's header lists its options. Make a new
+   setup's first run a small one and confirm sign-in, discovery, tools and the
+   proxy log before trusting its results. Expect the CLI's bundled skills and
+   plugins beside the template's and one refused telemetry host per run. Models
+   differ: one may read a skill's file instead of calling it, which grades as
+   `unproven`, and one may edit through the shell, which counts only with a
+   `bash_write` pattern.
 5. **Judge.** Dispatch one critic through `delegation`, from a different model
    family than the candidates, by the roster. Its brief holds the rubric and the
    outputs under neutral labels. To compare two variants, it scores both sets in

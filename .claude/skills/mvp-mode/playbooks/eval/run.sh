@@ -6,6 +6,7 @@
 #               --prompt <file> --model <model> --permission-mode <mode>
 #               --auth-env <NAME> [--auth-env <NAME>]...
 #               [--max-turns N] [--timeout seconds] [--path-prepend <dir>]
+#               [--effort <level>]
 #
 # Inside, every run looks the same: the copy is writable at /home/user/project,
 # which is the working directory, under an empty home. /usr/ and the /etc/ files
@@ -88,7 +89,7 @@ trap 'stop_session; exit 130' INT
 trap 'stop_session; exit 143' TERM
 
 template='' runs='' logs='' id='' prompt='' model='' permission_mode=''
-max_turns=15 limit=900 path_prepend='' auth_envs=()
+max_turns=15 limit=900 path_prepend='' effort='' auth_envs=()
 while [ $# -gt 0 ]; do
   [ $# -ge 2 ] || die "$1 needs a value"
   case $1 in
@@ -103,6 +104,7 @@ while [ $# -gt 0 ]; do
     --max-turns) max_turns=$2 ;;
     --timeout) limit=$2 ;;
     --path-prepend) path_prepend=$2 ;;
+    --effort) effort=$2 ;;
     *) die "unknown option: $1" ;;
   esac
   shift 2
@@ -241,10 +243,13 @@ exec /opt/cli/claude "$@"'
 network=(--ro-bind "$private/proxy.sock" /run/proxy.sock --ro-bind "$private/egress.py" /opt/cli/egress.py
   --setenv HTTPS_PROXY "http://127.0.0.1:$port" --setenv https_proxy "http://127.0.0.1:$port")
 
+effort_args=()
+[ -z "$effort" ] || effort_args=(--effort "$effort")
+
 # Pipes, not files: the candidate's descriptors must not name a host path.
 session() {
   cat "$prompt" | in_box "${auth_envs[*]}" "${network[@]}" /usr/bin/bash -c "$start" bash -p \
-    --model "$model" \
+    --model "$model" "${effort_args[@]}" \
     --setting-sources project --strict-mcp-config \
     --permission-mode "$permission_mode" \
     --max-turns "$max_turns" \
