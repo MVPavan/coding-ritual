@@ -68,8 +68,10 @@ project documents are not units.
 
 **5 against 6, the composite test.** Remove every call from the candidate.
 Technique left that still produces the deliverable → a skill that calls
-others (composite). Nothing left but order and gates → a playbook.
-[proposed; the study found no content rule that separates them exactly]
+others (composite). Nothing left but order and gates → a playbook. An
+exception is named in the deviation log with the owner's ruling.
+[proposed; the study found no content rule that separates them exactly;
+ruling: owner, 2026-11-02 (E4), added the named exception]
 
 **Promotion by reuse.** A technique starts where its one user is (a
 playbook step, or a reference). It becomes a skill when it gets a second
@@ -256,7 +258,9 @@ material moves to references. [data: H1 holds via standalone use]
   changed, traits changed), so a small change is an edit, not a new
   playbook. [owner's goal]
 - St4. Repeating a step across playbooks is fine. The same own action in two
-  playbooks is the signal to make it a skill (promotion by reuse).
+  playbooks is the signal to make it a skill (promotion by reuse). A short
+  closeout identical across playbooks may stay local when logged. [ruling:
+  owner, 2026-11-02 (E4), added the closeout]
 - St5. Pilot first: tag the four pilot playbooks, measure the cost (the
   study counts 31 new trait definitions), then decide whether every playbook
   is traited. [data: H7]
@@ -294,6 +298,9 @@ material moves to references. [data: H1 holds via standalone use]
 | 2026-11-02 | `decision-trail` | S7 | A critic per run is a costly opt-in, which S7 keeps manual, but only a model-invocable skill can be called through the platform (R6) and Hillclimb calls it. Owner ruling 9 accepted the cost | Accepted: a calling playbook invokes it automatically, and its description limits standalone use to an explicit request. Revisit if real sessions (`cr-r2pa.2.12`) show it invoked unasked |
 | 2026-11-02 | `skip-polish` on `prototype` | T5 | The definition allows no error handling beyond runnability and no abstractions. The sealed rewording keeps the error handling and safety checks needed to run safely, and abstractions that help answer the question. That rewording is frozen and a completion keeps the same trait and `into`, so the text follows the rewording; `traits/ours.yaml` notes it | Accepted for this row |
 | 2026-11-02 | `handover-url-keys` on `prototype` | T5 | The definition names a URL. The sealed rewording says a preview pointer, for a surface with no URL, and is frozen in the same way | Accepted for this row. It is the second deviation for this reason, so E4 fired: the owner ruled on 2026-11-02 and T5 now allows it, still logged |
+| 2026-11-02 | `session-pickup`, `pause-safely`, `trace-forensics`, `worktree-cleanup` | §2 composite test | Remove each one's calls and its whole result survives from its own actions, so the test calls it a skill. The map and the owner named each a playbook, and a request reaches it directly. Bug fix's obvious-cause path, Refactoring with an existing pin and Feature's local build survive only on that branch, and their normal paths keep their calls, so they are no exception. `eval` loses its required independent judge and verdict, and `runtime-forensics`, `hillclimb`, `investigation`, `perf-issue` and `multi-phase-plan` lose their capture, method, answer, baseline or plan: each passes as a playbook | Accepted by the owner's ruling of 2026-11-02 (E4), for these four: the test stays as written and now says an exception is named here |
+| 2026-11-02 | `pause-safely`, step 2 | B5 | A pause can reach a point in a running playbook that its reply contract names no exit for, such as Bug fix's first fix after a confirmed diagnosis. Pause's own reply stands in: it states the step reached, marks proof `not reached` rather than failed, and gives that playbook's closeout result, so no caller is edited | Accepted for a pause only. Revisit if real sessions (`cr-r2pa.2.12`) show a pause misreporting a stopped run |
+| 2026-11-02 | `read-only-closeout` (Investigation, `session-pickup`) | St4 | The same short closeout in two playbooks is the signal for a skill, but it belongs to each playbook's exits and reply (B7), and a skill for it would be ceremony | Accepted, no skill. With `build-closeout` this is the second deviation from St4 for this reason, so E4 fired: the owner ruled on 2026-11-02, and St4 now allows it when logged |
 
 ## 6. Conflicts with what exists, to settle as we go
 

@@ -111,6 +111,22 @@ Playbook traits: `plan-only-gate`
 | `multi-phase-plan#5` | multi-phase-plan#4 wrote a plan file |  | `skill:prose-pass` (when: on the sections a person reads, leaving task fields as they are) |  |
 | `multi-phase-plan#6` | every exit | `plan-only-closeout` |  |  |
 
+## pause-safely
+
+`.claude/skills/mvp-mode/playbooks/pause-safely.md`
+
+Trigger: An explicit request to stop work now so that a later session can resume it.
+
+Playbook traits: `explicit-pause-only`, `no-irreversible-pause`
+
+| Step | When | Traits | Calls | Loads |
+|---|---|---|---|---|
+| `pause-safely#1` | always | `safe-boundary-stop` |  |  |
+| `pause-safely#2` | a playbook run is open and pause-safely#1 reached a stop | `running-playbook-exit` |  |  |
+| `pause-safely#3` | this run left uncommitted edits, commit authority covers them, and nothing bars a commit | `authorized-wip-commit` |  |  |
+| `pause-safely#4` | there is work to resume | `resume-note-tree-state`, `checkpoint-by-work-identity`, `frozen-tree-checkpoint` |  |  |
+| `pause-safely#5` | every exit | `pause-closeout` |  |  |
+
 ## perf-issue
 
 `.claude/skills/mvp-mode/playbooks/perf-issue.md`
@@ -161,6 +177,22 @@ Playbook traits: `live-diagnosis-gate`
 | `runtime-forensics#2` | runtime-forensics#1 located a candidate |  | `skill:systematic-debugging` |  |
 | `runtime-forensics#3` | every exit | `live-forensics-closeout` |  |  |
 
+## session-pickup
+
+`.claude/skills/mvp-mode/playbooks/session-pickup.md`
+
+Trigger: A request to resume work a prior session or agent left, where this conversation does not already hold its state.
+
+Playbook traits: `pickup-read-only-gate`
+
+| Step | When | Traits | Calls | Loads |
+|---|---|---|---|---|
+| `session-pickup#1` | always | `locate-prior-trail` | `skill:delegation` (when: the router's delegation rule sends reading a long trail to a subagent, in its explorer role) |  |
+| `session-pickup#2` | session-pickup#1 found one trail | `verify-inherited-state` |  |  |
+| `session-pickup#3` | session-pickup#2 found no contradiction | `skip-needs-proof`, `resume-point-named` |  |  |
+| `session-pickup#4` | session-pickup#3 named a resume point | `pickup-verdict`, `resumed-run-handover` |  |  |
+| `session-pickup#5` | every exit | `read-only-closeout` |  |  |
+
 ## trace-forensics
 
 `.claude/skills/mvp-mode/playbooks/trace-forensics.md`
@@ -205,13 +237,14 @@ Traits and calls used by two or more playbooks. Repeating a step is fine; the sa
 |---|---|
 | `build-closeout` | feature: `feature#7`; perf-issue: `perf-issue#5`; refactoring: `refactoring#7` |
 | `implement-against-sketch` | bug-fix: `bug-fix#3`; feature: `feature#4`; perf-issue: `perf-issue#3`; refactoring: `refactoring#4` |
+| `read-only-closeout` | investigation: `investigation#3`; session-pickup: `session-pickup#5` |
 
 ### Calls
 
 | Item | Playbooks |
 |---|---|
 | `skill:codebase-design` | bug-fix: `bug-fix#3`; feature: `feature#2`; perf-issue: `perf-issue#3`; refactoring: `refactoring#3` |
-| `skill:delegation` | eval: `eval#5`; feature: `feature#4`; hillclimb: `hillclimb#4`; multi-phase-plan: `multi-phase-plan#2`; perf-issue: `perf-issue#3`, `perf-issue#4`; refactoring: `refactoring#4`; runtime-forensics: `runtime-forensics#1`; trace-forensics: `trace-forensics#1` |
+| `skill:delegation` | eval: `eval#5`; feature: `feature#4`; hillclimb: `hillclimb#4`; multi-phase-plan: `multi-phase-plan#2`; perf-issue: `perf-issue#3`, `perf-issue#4`; refactoring: `refactoring#4`; runtime-forensics: `runtime-forensics#1`; session-pickup: `session-pickup#1`; trace-forensics: `trace-forensics#1` |
 | `skill:explain-code` | bug-fix: `bug-fix#2`; feature: `feature#1`; hillclimb: `hillclimb#1`; investigation: `investigation#1`; perf-issue: `perf-issue#2`; refactoring: `refactoring#1` |
 | `skill:land` | bug-fix: `bug-fix#8`; feature: `feature#8`; hillclimb: `hillclimb#8`; perf-issue: `perf-issue#6`; refactoring: `refactoring#8` |
 | `skill:performance-optimization` | hillclimb: `hillclimb#1`; perf-issue: `perf-issue#1`; runtime-forensics: `runtime-forensics#1` |

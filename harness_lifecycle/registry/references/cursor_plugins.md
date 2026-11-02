@@ -173,12 +173,12 @@ Catalog: `4dd1d05818d19792e7cd6e818f1667f95f7e1dbe`, 352 capabilities.
 | `playbook:pstack/skills/poteto-mode/playbooks/multi-phase-plan` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/multi-phase-plan.md |  | 2026-11-02-pilot-2 | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/opening-a-pr` | adopt-merged | decided | land |  | 2026-11-01-batch-1 | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/orchestrate` | defer | decided |  |  | 2026-11-01-pstack-playbooks | no |
-| `playbook:pstack/skills/poteto-mode/playbooks/pause-safely` | defer | decided |  |  | 2026-11-01-pstack-playbooks | no |
+| `playbook:pstack/skills/poteto-mode/playbooks/pause-safely` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/pause-safely.md |  | 2026-11-02-pilot-3 | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/perf-issue` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/perf-issue.md |  | 2026-11-02-batch-2 | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/prototype` | adopt-merged | decided | prototype |  | 2026-11-02-pilot-2 | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/refactoring` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/refactoring.md |  | 2026-11-01-batch-1 | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/runtime-forensics` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/runtime-forensics.md |  | 2026-11-02-batch-2 | no |
-| `playbook:pstack/skills/poteto-mode/playbooks/session-pickup` | defer | decided |  |  | 2026-11-01-pstack-playbooks | no |
+| `playbook:pstack/skills/poteto-mode/playbooks/session-pickup` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/session-pickup.md |  | 2026-11-02-pilot-3 | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/shipping` | defer | decided |  |  | 2026-11-01-pstack-playbooks | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/trace-forensics` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/trace-forensics.md |  | 2026-11-01-batch-0 | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/visual-parity` | defer | decided |  |  | 2026-11-01-pstack-playbooks | no |

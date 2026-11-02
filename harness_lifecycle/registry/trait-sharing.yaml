@@ -120,3 +120,7 @@ build-closeout:
   skills: [doc:.claude/skills/mvp-mode/playbooks/feature.md, doc:.claude/skills/mvp-mode/playbooks/perf-issue.md, doc:.claude/skills/mvp-mode/playbooks/refactoring.md]
   why: "Each playbook's closeout runs on its own exits and feeds its own reply, and these three have the same three duties; a skill of three duties would be ceremony (unit-kinds deviation log, St4 and B4)."
   reviewed: "2026-11-02"
+read-only-closeout:
+  skills: ["doc:.claude/skills/mvp-mode/playbooks/investigation.md", "doc:.claude/skills/mvp-mode/playbooks/session-pickup.md"]
+  why: "Each is a read-only run whose closeout belongs to its own exits and reply; logged under St4 in unit-kinds."
+  reviewed: "2026-11-02"

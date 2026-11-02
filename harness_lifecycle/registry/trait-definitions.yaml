@@ -5636,3 +5636,65 @@ plan-only-closeout:
   placement: {domain: engineering, stage: Design, substage: Decomposition}
   distinct_from: [read-only-closeout]
   note: "read-only-closeout allows only a requested reply artifact; this allows the plan file and the tracker's export."
+explicit-pause-only:
+  definition: "Pause only on an explicit request to stop so a later session can resume, never on a request to keep going or on compaction alone."
+  placement: {domain: core, stage: X, substage: Continuity}
+no-irreversible-pause:
+  definition: "Take no irreversible action in order to pause (push, pull request, merge, amend, rewrite, destroyed work) and gain no authority from being asked to pause."
+  placement: {domain: core, stage: X, substage: Continuity}
+  distinct_from: [irreversible-only-confirmation]
+  note: "irreversible-only-confirmation asks before an irreversible action; this rules such actions out of a pause."
+safe-boundary-stop:
+  definition: "Finish or back out of the atomic step, begin nothing else, cancel or wait for this run's children, stop or name its jobs, and name what is not this run's to stop."
+  placement: {domain: core, stage: X, substage: Continuity}
+running-playbook-exit:
+  definition: "When pausing inside a playbook, run its closeout whole and use its stopped reply where one truthfully fits; otherwise state the step reached, mark proof not reached rather than failed, and give the closeout's result."
+  placement: {domain: core, stage: X, substage: Continuity}
+authorized-wip-commit:
+  definition: "At a pause, make one wip commit naming this run's explicit paths, so a path someone else staged stays staged and a file also holding another's edit stays out, only under the owner's own words covering commits on this work, never where a gate or frozen tree bars it, never past a refused hook, and never amended unasked."
+  placement: {domain: core, stage: X, substage: Continuity}
+  distinct_from: [commit-push-authority]
+  note: "commit-push-authority is the general rule; this fixes what authority means at a pause, its one commit and what bars it."
+resume-note-tree-state:
+  definition: "Leave a note off-context holding the work's identity, the time and where it sits, every uncommitted path with its expected state (present or deleted) and what its edits claim, what was verified by which command, each finished step with its supporting artifact, and the first action on resume."
+  placement: {domain: core, stage: X, substage: Continuity}
+  distinct_from: [resume-line, handoff-contents]
+  note: "resume-line names approach and standing; handoff-contents names what any handoff carries; this adds the tree state and per-step support a cold pickup checks."
+checkpoint-by-work-identity:
+  definition: "Key a machine-local or no-tracker resume file by the work's durable identity as one safe filename component, never its branch, in the Git common directory or outside Git in the working folder, a later pause of the same work replacing only its own file after reading that the file is this work's."
+  placement: {domain: core, stage: X, substage: Continuity}
+frozen-tree-checkpoint:
+  definition: "When a stop has frozen the tree, write only the checkpoint file outside it, leaving tracker writes and export pending and saying so with the reason."
+  placement: {domain: core, stage: X, substage: Continuity}
+pause-closeout:
+  definition: "On every exit of a pause, confirm no child of this run is running, or on the Not safe exit that a note names one left unresolved, and, where a note was written, read it back and confirm the tree, HEAD and each path's expected state match it, naming any difference; otherwise say no note was needed."
+  placement: {domain: core, stage: X, substage: Continuity}
+  distinct_from: [closeout]
+  note: "closeout finishes a run; this confirms a note against the state it describes."
+pickup-read-only-gate:
+  definition: "End a resume request at a named resume point, changing nothing, tracker included, and treating a note as a claim that authorizes nothing."
+  placement: {domain: core, stage: X, substage: Continuity}
+  distinct_from: [read-only-answer-gate]
+  note: "read-only-answer-gate ends a question about code at its answer; this ends a resume request at a resume point and takes no authority from what it reads."
+locate-prior-trail:
+  definition: "Find a prior run's trail from what the request names, a tracker search covering paused work, resume files, then what they point at and Git, taking a search hit only when something ties it to this work, never searching across projects, and reconciling the selected work's tracker trail with its resume file, newest first, naming any conflict."
+  placement: {domain: core, stage: X, substage: Continuity}
+  distinct_from: [session-recovery]
+  note: "session-recovery lists in-progress beads at session start; an unclaim leaves a paused bead open, so this searches notes on a resume request."
+verify-inherited-state:
+  definition: "Check the state a trail claims by reading first, with one branch in Git and one outside it with its limit stated, stop before running anything on a contradiction, and only then rerun a relied-on check, one that may write only in a disposable copy or else reported unavailable."
+  placement: {domain: core, stage: X, substage: Continuity}
+  distinct_from: [primary-evidence-check, context-recovery]
+  note: "primary-evidence-check is the general rule; this names the checks for a resume and when a stale claim is a stop."
+skip-needs-proof:
+  definition: "Count a step a note calls finished as done only after opening its supporting artifact and confirming it supports the claim and applies to the current contents; otherwise redo the step or stop."
+  placement: {domain: core, stage: X, substage: Continuity}
+resume-point-named:
+  definition: "Compare what was planned with what exists, name the first thing left, and list a running playbook's steps as proved done, open or to redo."
+  placement: {domain: core, stage: X, substage: Continuity}
+pickup-verdict:
+  definition: "Pick one verdict for the resumed work (carry on, finished, uphold or reverse a conclusion, look into a failed run) and name the unit that takes it, as a selection and not a call."
+  placement: {domain: core, stage: X, substage: Continuity}
+resumed-run-handover:
+  definition: "Tell the run taking resumed work on how to list its steps: a proved step as a skip with evidence, an open call invoked again whole, a gate held as new, and that it owns the work's checkpoint file."
+  placement: {domain: core, stage: X, substage: Continuity}

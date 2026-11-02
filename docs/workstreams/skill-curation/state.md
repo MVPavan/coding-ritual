@@ -1,7 +1,7 @@
 # Skill curation: handoff
 
 Updated 2026-11-02 (MVP stack phase 1 closed; phase 2 running on the playbook
-map, batch 2 and pilot 2 done). Branch `mvp-stack` in the main worktree; `dws-workflow` is retired and
+map, batch 2 and pilots 2 and 3 done). Branch `mvp-stack` in the main worktree; `dws-workflow` is retired and
 deleted. Beads is the work-state authority; this file is the narrative.
 
 ## Start here (new session)
@@ -52,9 +52,10 @@ deleted. Beads is the work-state authority; this file is the narrative.
 | after `862689d` | Batch 1 (`cr-r2pa.2.4`, round `2026-11-01-batch-1`), see below |
 | after `ba56f66` | Batch 2 (`cr-r2pa.2.5`, round `2026-11-02-batch-2`), see below |
 | after `d079219` | Pilot 2 (`cr-r2pa.2.8`, round `2026-11-02-pilot-2`), see below |
+| after `2bc70a2` | Pilot 3 (`cr-r2pa.2.9`, round `2026-11-02-pilot-3`), see below |
 
 `main` is at `eb36cc9`; later work is on `mvp-stack` until the owner asks to merge.
-`mvp-stack` is pushed through pilot 2; commits after it are local until the owner
+`mvp-stack` is pushed through pilot 3; commits after it are local until the owner
 says to push.
 
 Decisions behind them: domains `core` and `engineering`; one primary
@@ -103,7 +104,14 @@ critic, owner rulings, ledger, build, Sol review, commit after the owner approve
   the playbook over `planning` or Feature, whether a span holds across a compaction,
   whether `execution` runs tick boxes and whether workers misread task text all wait on
   `cr-r2pa.2.12`.
-- Then pilot 3 (`.9`), batches 3 and 4 (`.6`, `.7`), the remaining Pocock
+- `cr-r2pa.2.9`, done: pilot 3 (round `2026-11-02-pilot-3`).
+  Session pickup and Pause safely are written with router lines and ledger events. `session-trail` is no skill:
+  reading and writing are the two playbooks' own actions, and `beads`, `execution`, `decision-trail` and `land` do not
+  change. A note lives on the bead or in a checkpoint file keyed by the work's identity, and ruling 15 holds: no `wip:`
+  commit without the owner's own words. Two E4 proposals go to the owner at the commit request. None of it has run on a
+  real session: whether a model picks either playbook, opens artifacts before a skip, keeps open calls whole on a
+  resumed run or cleans up its file all wait on `cr-r2pa.2.12`.
+- Then batches 3 and 4 (`.6`, `.7`), the remaining Pocock
   pass (`.10`).
 - `cr-r2pa.2.13`: analyse every skill of ours, Pocock and pstack; its scope is still to
   agree with the owner.

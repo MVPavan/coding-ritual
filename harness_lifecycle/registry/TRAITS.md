@@ -1058,6 +1058,17 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `settle-by-observation`: Sort each question that changes a plan: observe by running what a run can answer, decide and record a routine choice, and ask the owner a material one with options and a recommendation, writing the tasks that do not depend on it and marking those that do as blocked.
 - `plan-only-closeout`: On every exit of a planning run, confirm against the starting state, by a checksum for a path already dirty, that only the plan file, the tracker's export and ignored scratch differ, name anything else, and leave the plan uncommitted.
 
+#### pause-safely — `doc:.claude/skills/mvp-mode/playbooks/pause-safely.md`
+- `explicit-pause-only`: Pause only on an explicit request to stop so a later session can resume, never on a request to keep going or on compaction alone.
+- `no-irreversible-pause`: Take no irreversible action in order to pause (push, pull request, merge, amend, rewrite, destroyed work) and gain no authority from being asked to pause.
+- `safe-boundary-stop`: Finish or back out of the atomic step, begin nothing else, cancel or wait for this run's children, stop or name its jobs, and name what is not this run's to stop.
+- `running-playbook-exit`: When pausing inside a playbook, run its closeout whole and use its stopped reply where one truthfully fits; otherwise state the step reached, mark proof not reached rather than failed, and give the closeout's result.
+- `authorized-wip-commit`: At a pause, make one wip commit naming this run's explicit paths, so a path someone else staged stays staged and a file also holding another's edit stays out, only under the owner's own words covering commits on this work, never where a gate or frozen tree bars it, never past a refused hook, and never amended unasked.
+- `resume-note-tree-state`: Leave a note off-context holding the work's identity, the time and where it sits, every uncommitted path with its expected state (present or deleted) and what its edits claim, what was verified by which command, each finished step with its supporting artifact, and the first action on resume.
+- `checkpoint-by-work-identity`: Key a machine-local or no-tracker resume file by the work's durable identity as one safe filename component, never its branch, in the Git common directory or outside Git in the working folder, a later pause of the same work replacing only its own file after reading that the file is this work's.
+- `frozen-tree-checkpoint`: When a stop has frozen the tree, write only the checkpoint file outside it, leaving tracker writes and export pending and saying so with the reason.
+- `pause-closeout`: On every exit of a pause, confirm no child of this run is running, or on the Not safe exit that a note names one left unresolved, and, where a note was written, read it back and confirm the tree, HEAD and each path's expected state match it, naming any difference; otherwise say no note was needed.
+
 #### perf-issue — `doc:.claude/skills/mvp-mode/playbooks/perf-issue.md`
 - `measurement-tied-fix-gate`: Tie every fix to a measurement, with the lead owning the number whoever writes the code.
 - `implement-against-sketch`: Build against the sketch as the contract, surfacing any departure and revising the sketch first when the code must diverge.
@@ -1080,6 +1091,16 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 #### runtime-forensics — `doc:.claude/skills/mvp-mode/playbooks/runtime-forensics.md`
 - `live-diagnosis-gate`: Capture from the live process rather than theorise from source and fix nothing, within the capture boundary of the skill's diagnosis branch, with a restart the last resort.
 - `live-forensics-closeout`: On every exit of a live diagnosis, leave the process as found, remove instrumentation by its tag and name the artifacts kept.
+
+#### session-pickup — `doc:.claude/skills/mvp-mode/playbooks/session-pickup.md`
+- `pickup-read-only-gate`: End a resume request at a named resume point, changing nothing, tracker included, and treating a note as a claim that authorizes nothing.
+- `locate-prior-trail`: Find a prior run's trail from what the request names, a tracker search covering paused work, resume files, then what they point at and Git, taking a search hit only when something ties it to this work, never searching across projects, and reconciling the selected work's tracker trail with its resume file, newest first, naming any conflict.
+- `verify-inherited-state`: Check the state a trail claims by reading first, with one branch in Git and one outside it with its limit stated, stop before running anything on a contradiction, and only then rerun a relied-on check, one that may write only in a disposable copy or else reported unavailable.
+- `skip-needs-proof`: Count a step a note calls finished as done only after opening its supporting artifact and confirming it supports the claim and applies to the current contents; otherwise redo the step or stop.
+- `resume-point-named`: Compare what was planned with what exists, name the first thing left, and list a running playbook's steps as proved done, open or to redo.
+- `pickup-verdict`: Pick one verdict for the resumed work (carry on, finished, uphold or reverse a conclusion, look into a failed run) and name the unit that takes it, as a selection and not a call.
+- `resumed-run-handover`: Tell the run taking resumed work on how to list its steps: a proved step as a skip with evidence, an open call invoked again whole, a gate held as new, and that it owns the work's checkpoint file.
+- `read-only-closeout`: On every exit of a read-only run, confirm against the starting state, by a checksum for a path already dirty, that nothing changed but an explicitly requested reply artifact, and name the scratch files kept.
 
 #### trace-forensics — `doc:.claude/skills/mvp-mode/playbooks/trace-forensics.md`
 - `fixed-artifact-gate`: Treat a captured artifact as a fixed dataset: query it, leave it unchanged, and never re-run the scenario to get a different one.
@@ -3844,6 +3865,10 @@ Have an audit change no row, even an invented one, and add a row superseding it 
 Keep a proof artifact visible to the human, and commit it only when large or complex work needs an auditable trail.
 - `cursor_plugins:skill:pstack/skills/principle-prove-it-works` — adopt → build-a-lever#proposed-artifact-commit
 
+#### `authorized-wip-commit`
+At a pause, make one wip commit naming this run's explicit paths, so a path someone else staged stays staged and a file also holding another's edit stays out, only under the owner's own words covering commits on this work, never where a gate or frozen tree bars it, never past a refused hook, and never amended unasked.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/pause-safely.md`
+
 #### `automatic-utc-stamp`
 Have the log helper stamp each row with the current UTC time so the caller supplies none.
 - ours: `decision-trail`
@@ -3869,6 +3894,10 @@ Let a caller add declared columns after a trail's fixed ones, the same set on ev
 Replace tabs, newlines and carriage returns in each cell with spaces.
 - ours: `decision-trail`
 - `cursor_plugins:skill:pstack/skills/show-me-your-work` — adopt → decision-trail#cell-whitespace-strip
+
+#### `checkpoint-by-work-identity`
+Key a machine-local or no-tracker resume file by the work's durable identity as one safe filename component, never its branch, in the Git common directory or outside Git in the working folder, a later pause of the same work replacing only its own file after reading that the file is this work's.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/pause-safely.md`
 
 #### `cite-not-copy-sources`
 Cite sources from wiki pages without copying or editing the sources.
@@ -3931,6 +3960,10 @@ Check that each audited row's pointer resolves and supports what the row says.
 - ours: `decision-trail`
 - `cursor_plugins:skill:pstack/skills/show-me-your-work` — adopt → decision-trail#evidence-resolves-check
 
+#### `explicit-pause-only`
+Pause only on an explicit request to stop so a later session can resume, never on a request to keep going or on compaction alone.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/pause-safely.md`
+
 #### `field-roles`
 Give each bead field its single job — description, design, acceptance, spec_id, notes, comments and close reason — and never overload one.
 - ours: `beads`
@@ -3947,6 +3980,10 @@ Supersede a row outside the audited stretches only when this run's own work show
 #### `formula-cell-quote`
 Prefix a single quote to any cell starting with a character a spreadsheet parses as a formula, so hostile text cannot execute when the log is opened.
 - `cursor_plugins:skill:pstack/skills/show-me-your-work` — adopt → decision-trail#numeric-safe-formula-quote
+
+#### `frozen-tree-checkpoint`
+When a stop has frozen the tree, write only the checkpoint file outside it, leaving tracker writes and export pending and saying so with the reason.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/pause-safely.md`
 
 #### `generated-mirror-read-only`
 Treat generated tracking mirrors as read-only.
@@ -3992,6 +4029,10 @@ Reference existing artifacts by path or URL rather than copying their content in
 Keep the log as an uncommitted working file at a fixed name in the work directory, or under a hidden audit folder by task slug when several efforts run at once.
 - `cursor_plugins:skill:pstack/skills/show-me-your-work` — adopt → decision-trail#trail-location-rule
 
+#### `locate-prior-trail`
+Find a prior run's trail from what the request names, a tracker search covering paused work, resume files, then what they point at and Git, taking a search hit only when something ties it to this work, never searching across projects, and reconciling the selected work's tracker trail with its resume file, newest first, naming any conflict.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/session-pickup.md`
+
 #### `locked-single-header`
 Hold an exclusive lock across reading and appending, so simultaneous first writers make one header and rows never interleave.
 - ours: `decision-trail`
@@ -4008,6 +4049,10 @@ Append rows through a helper that takes named cells and declared extra columns, 
 Never search across project transcript folders during an audit, because that exposes unrelated private conversations.
 - ours: `decision-trail`
 - `cursor_plugins:skill:pstack/skills/show-me-your-work` — adopt → decision-trail#no-cross-project-transcript-search
+
+#### `no-irreversible-pause`
+Take no irreversible action in order to pause (push, pull request, merge, amend, rewrite, destroyed work) and gain no authority from being asked to pause.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/pause-safely.md`
 
 #### `noticed-problem-followup`
 Log a problem noticed in passing and fix it in the next round.
@@ -4032,6 +4077,10 @@ Walk the context moves at a phase boundary as an ordered decision tree in which 
 Commit a work tool when the work it does outlives the session.
 - `cursor_plugins:skill:pstack/skills/principle-build-the-lever` — adopt → build-a-lever#proposed-artifact-commit
 
+#### `pause-closeout`
+On every exit of a pause, confirm no child of this run is running, or on the Not safe exit that a note names one left unresolved, and, where a note was written, read it back and confirm the tree, HEAD and each path's expected state match it, naming any difference; otherwise say no note was needed.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/pause-safely.md`
+
 #### `persistent-wiki-memory`
 Keep durable memory in an interlinked markdown wiki that outlives the session.
 - `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — defer
@@ -4043,6 +4092,14 @@ Shape a phase epic to the status-renderer contract — a bracketed phase-id titl
 #### `phase-scope-caps`
 Cap each phase's scope with file limits and turn budgets, counting the context cost of the mechanisms used.
 - `cursor_plugins:skill:pstack/skills/principle-guard-the-context-window` — defer
+
+#### `pickup-read-only-gate`
+End a resume request at a named resume point, changing nothing, tracker included, and treating a note as a claim that authorizes nothing.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/session-pickup.md`
+
+#### `pickup-verdict`
+Pick one verdict for the resumed work (carry on, finished, uphold or reverse a conclusion, look into a failed run) and name the unit that takes it, as a selection and not a call.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/session-pickup.md`
 
 #### `plain-row-wording`
 Write rows the way you would tell a colleague, in concrete words, spelling a guiding principle out in place of citing it as a tag.
@@ -4073,6 +4130,18 @@ When resuming work, recover the active bead and its handoff.
 On pause or handoff, unclaim and append a resume line naming the approach to resume with and where the work stands.
 - ours: `beads`
 
+#### `resume-note-tree-state`
+Leave a note off-context holding the work's identity, the time and where it sits, every uncommitted path with its expected state (present or deleted) and what its edits claim, what was verified by which command, each finished step with its supporting artifact, and the first action on resume.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/pause-safely.md`
+
+#### `resume-point-named`
+Compare what was planned with what exists, name the first thing left, and list a running playbook's steps as proved done, open or to redo.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/session-pickup.md`
+
+#### `resumed-run-handover`
+Tell the run taking resumed work on how to list its steps: a proved step as a skip with evidence, an open call invoked again whole, a gate held as new, and that it owns the work's checkpoint file.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/session-pickup.md`
+
 #### `row-maps-to-real-event`
 Check that each audited row corresponds to a decision or action that actually occurred.
 - `cursor_plugins:skill:pstack/skills/show-me-your-work` — adopt → decision-trail#verified-record-row-walk
@@ -4090,6 +4159,14 @@ Rule out simply continuing in the current session, which costs and loses nothing
 Count one agent conversation with its later turns and summaries as one run, and a pickup, replacement agent or new chat as a new one.
 - ours: `decision-trail`
 - `cursor_plugins:skill:pstack/skills/show-me-your-work` — adopt → decision-trail#run-boundary
+
+#### `running-playbook-exit`
+When pausing inside a playbook, run its closeout whole and use its stopped reply where one truthfully fits; otherwise state the step reached, mark proof not reached rather than failed, and give the closeout's result.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/pause-safely.md`
+
+#### `safe-boundary-stop`
+Finish or back out of the atomic step, begin nothing else, cancel or wait for this run's children, stop or name its jobs, and name what is not this run's to stop.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/pause-safely.md`
 
 #### `scoped-reading`
 Search narrowly and read only the context the task needs, widening when dependencies or uncertainty call for it and never bulk-reading.
@@ -4131,6 +4208,10 @@ Have other skills needing a trail refer to this one by name and define no trail 
 Keep one authoritative decision log as a single TSV file with one single-line row per decision.
 - ours: `decision-trail`
 - `cursor_plugins:skill:pstack/skills/show-me-your-work` — adopt → decision-trail#single-tsv-decision-log
+
+#### `skip-needs-proof`
+Count a step a note calls finished as done only after opening its supporting artifact and confirming it supports the claim and applies to the current contents; otherwise redo the step or stop.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/session-pickup.md`
 
 #### `smart-zone-budget`
 Treat the window in which the model still reasons sharply (~150k tokens) as a budget, compacting at the nearest phase boundary rather than pushing on degraded.
@@ -4207,6 +4288,10 @@ Treat a fork, pivot or abandoned path that shaped the work with no row as a gap,
 #### `verified-record-row-walk`
 Check each audited row against a real event only in an event record the caller names, verified and scoped to this workspace.
 - ours: `decision-trail`
+
+#### `verify-inherited-state`
+Check the state a trail claims by reading first, with one branch in Git and one outside it with its limit stated, stop before running anything on a contradiction, and only then rerun a relied-on check, one that may write only in a disposable copy or else reported unavailable.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/session-pickup.md`
 
 #### `wait-as-edge`
 Record every wait as an explicit edge — a blocks dependency, a human task, or a gate — written in the needs direction so ready-work stays truthful.
@@ -5297,6 +5382,7 @@ End a question about the code at its answer, changing nothing but an explicitly 
 #### `read-only-closeout`
 On every exit of a read-only run, confirm against the starting state, by a checksum for a path already dirty, that nothing changed but an explicitly requested reply artifact, and name the scratch files kept.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/investigation.md`
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/session-pickup.md`
 
 #### `read-only-explanation`
 Change nothing while explaining, not even temporary instrumentation.
@@ -8545,6 +8631,7 @@ Traits listed by two or more of our active skills (`doc:AGENTS.md` and playbooks
 | `pin-preserving-fetch` | harness-scan, harness-status | Both run the fetching drift command themselves, so each must state that a fetch never moves pins and that --no-fetch skips the network. |
 | `preserve-reproducers` | doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, systematic-debugging | Each cleans up after its own work: the diagnosis when called alone, the bug-fix playbook at its closeout on every exit. Both keep reproducers, so neither cleanup deletes the evidence the other relies on. |
 | `question-batching` | brainstorming, grilling | Brainstorming asks the owner questions inside its own exploration; grilling's rules live inside its interview loop, so pointing there would pull brainstorming into that loop. |
+| `read-only-closeout` | doc:.claude/skills/mvp-mode/playbooks/investigation.md, doc:.claude/skills/mvp-mode/playbooks/session-pickup.md | Each is a read-only run whose closeout belongs to its own exits and reply; logged under St4 in unit-kinds. |
 | `real-id-wiring` | planning, wayfinder | Both create beads and then wire edges between the IDs they just created, each inside its own seeding procedure. |
 | `recommended-answer` | brainstorming, grilling | As question-batching: a short rule each skill applies inside its own flow. |
 | `revert-ineffective-experiments` | doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, performance-optimization | Each runs its own loop of attempts, fix attempts in the bug-fix playbook and optimization experiments in performance-optimization, and removes its own failed edits before the next attempt. |
