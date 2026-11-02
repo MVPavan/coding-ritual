@@ -61,6 +61,25 @@ Playbook traits: `lead-owns-design`
 | `feature#7` | every exit | `build-closeout` |  |  |
 | `feature#8` | finished and verified, after feature#7 |  | `skill:land` |  |
 
+## hillclimb
+
+`.claude/skills/mvp-mode/playbooks/hillclimb.md`
+
+Trigger: Sustained, attended improvement of one measurable metric against a stop predicate, with no settled plan to execute.
+
+Playbook traits: `attended-only-gate`, `one-change-one-measurement`
+
+| Step | When | Traits | Calls | Loads |
+|---|---|---|---|---|
+| `hillclimb#1` | always | `repro-before-climb`, `stop-predicate-with-floor` | `skill:explain-code`; `skill:performance-optimization` (when: this one whole call stays open through hillclimb#5; the predicate is its stop condition) |  |
+| `hillclimb#2` | hillclimb#1 fixed the metric and predicate | `attempt-isolation-gate`, `sensitivity-proof-then-freeze`, `gate-green-baseline` | `skill:build-a-lever` (when: no existing command emits the metric) | `.claude/skills/mvp-mode/playbooks/hillclimb/attempt.py` |
+| `hillclimb#3` | the harness is frozen |  | `skill:decision-trail` (when: extra columns before, after, delta, tests; this one whole call stays open through hillclimb#7) |  |
+| `hillclimb#4` | once per attempt, entered from hillclimb#3, hillclimb#5 or hillclimb#6 | `read-trail-first`, `keep-or-undo-rule`, `attempt-snapshot-undo` | `skill:delegation` (when: the router's delegation rule sends the attempt to a subagent; one factor per brief; told not to stage) |  |
+| `hillclimb#5` | after each attempt; predicate met, or no cheap untried idea left, goes to hillclimb#7; several rejects in a row go to hillclimb#6; anything else returns to hillclimb#4 | `predicate-held-stop` |  |  |
+| `hillclimb#6` | hillclimb#5 found several rejects in a row with the predicate unmet; returns to hillclimb#4 | `plateau-pivot` |  |  |
+| `hillclimb#7` | every exit | `climb-closeout` |  |  |
+| `hillclimb#8` | finished with one or more attempts kept and in the working tree, after hillclimb#7 |  | `skill:land` |  |
+
 ## investigation
 
 `.claude/skills/mvp-mode/playbooks/investigation.md`
@@ -74,6 +93,23 @@ Playbook traits: `read-only-answer-gate`
 | `investigation#1` | always |  | `skill:explain-code` |  |
 | `investigation#2` | an answer was drafted |  | `skill:prose-pass` |  |
 | `investigation#3` | every exit | `read-only-closeout` |  |  |
+
+## perf-issue
+
+`.claude/skills/mvp-mode/playbooks/perf-issue.md`
+
+Trigger: A measured or reported slowness or resource cost to fix once against a target, with no settled plan to execute.
+
+Playbook traits: `measurement-tied-fix-gate`
+
+| Step | When | Traits | Calls | Loads |
+|---|---|---|---|---|
+| `perf-issue#1` | always |  | `skill:performance-optimization` (when: this one whole call stays open through perf-issue#4; its steps 1-3 and vetting run here) |  |
+| `perf-issue#2` | the vetted baseline misses the target |  | `skill:explain-code` (when: the located cost's code is unfamiliar) |  |
+| `perf-issue#3` | the vetted baseline misses the target; this is the skill's step 4, one candidate at a time | `implement-against-sketch` | `skill:codebase-design` (when: the change crosses a function boundary); `skill:delegation` (when: the router's delegation rule sends the code-writing to a subagent; one brief per factor); `skill:review` (when: a sketch ran) |  |
+| `perf-issue#4` | perf-issue#3 attempted a change to code, configuration or runtime settings; this is the skill's step 5, and a candidate that misses returns to perf-issue#3 | `paired-artifact-diff` | `skill:delegation` (when: parsing the artifacts would flood this session's context) |  |
+| `perf-issue#5` | every exit | `build-closeout` |  |  |
+| `perf-issue#6` | finished, with a comparison past noise on the matching surface, after perf-issue#5 | `measurement-in-commit-body` | `skill:land` |  |
 
 ## refactoring
 
@@ -93,6 +129,20 @@ Playbook traits: `structure-only-gate`
 | `refactoring#6` | refactoring#5 passed | `reader-load-keep-or-revert` |  |  |
 | `refactoring#7` | every exit | `build-closeout` |  |  |
 | `refactoring#8` | finished, the proof held and the change was kept, after refactoring#7 |  | `skill:land` |  |
+
+## runtime-forensics
+
+`.claude/skills/mvp-mode/playbooks/runtime-forensics.md`
+
+Trigger: A symptom in a process running now (spinning, leaking, stuck) to diagnose from what it is doing, with no fix wanted.
+
+Playbook traits: `live-diagnosis-gate`
+
+| Step | When | Traits | Calls | Loads |
+|---|---|---|---|---|
+| `runtime-forensics#1` | always |  | `skill:performance-optimization` (when: its diagnosis-only branch for a caller's live capture; evidence only); `skill:delegation` (when: parsing the artifact would flood this session's context) |  |
+| `runtime-forensics#2` | runtime-forensics#1 located a candidate |  | `skill:systematic-debugging` |  |
+| `runtime-forensics#3` | every exit | `live-forensics-closeout` |  |  |
 
 ## trace-forensics
 
@@ -136,15 +186,18 @@ Traits and calls used by two or more playbooks. Repeating a step is fine; the sa
 
 | Item | Playbooks |
 |---|---|
-| `build-closeout` | feature: `feature#7`; refactoring: `refactoring#7` |
-| `implement-against-sketch` | bug-fix: `bug-fix#3`; feature: `feature#4`; refactoring: `refactoring#4` |
+| `build-closeout` | feature: `feature#7`; perf-issue: `perf-issue#5`; refactoring: `refactoring#7` |
+| `implement-against-sketch` | bug-fix: `bug-fix#3`; feature: `feature#4`; perf-issue: `perf-issue#3`; refactoring: `refactoring#4` |
 
 ### Calls
 
 | Item | Playbooks |
 |---|---|
-| `skill:codebase-design` | bug-fix: `bug-fix#3`; feature: `feature#2`; refactoring: `refactoring#3` |
-| `skill:delegation` | eval: `eval#5`; feature: `feature#4`; refactoring: `refactoring#4`; trace-forensics: `trace-forensics#1` |
-| `skill:explain-code` | bug-fix: `bug-fix#2`; feature: `feature#1`; investigation: `investigation#1`; refactoring: `refactoring#1` |
-| `skill:land` | bug-fix: `bug-fix#8`; feature: `feature#8`; refactoring: `refactoring#8` |
+| `skill:codebase-design` | bug-fix: `bug-fix#3`; feature: `feature#2`; perf-issue: `perf-issue#3`; refactoring: `refactoring#3` |
+| `skill:delegation` | eval: `eval#5`; feature: `feature#4`; hillclimb: `hillclimb#4`; perf-issue: `perf-issue#3`, `perf-issue#4`; refactoring: `refactoring#4`; runtime-forensics: `runtime-forensics#1`; trace-forensics: `trace-forensics#1` |
+| `skill:explain-code` | bug-fix: `bug-fix#2`; feature: `feature#1`; hillclimb: `hillclimb#1`; investigation: `investigation#1`; perf-issue: `perf-issue#2`; refactoring: `refactoring#1` |
+| `skill:land` | bug-fix: `bug-fix#8`; feature: `feature#8`; hillclimb: `hillclimb#8`; perf-issue: `perf-issue#6`; refactoring: `refactoring#8` |
+| `skill:performance-optimization` | hillclimb: `hillclimb#1`; perf-issue: `perf-issue#1`; runtime-forensics: `runtime-forensics#1` |
+| `skill:review` | feature: `feature#4`, `feature#6`; perf-issue: `perf-issue#3` |
+| `skill:systematic-debugging` | bug-fix: `bug-fix#2`; runtime-forensics: `runtime-forensics#2` |
 | `skill:test-driven-development` | bug-fix: `bug-fix#3`; refactoring: `refactoring#1` |

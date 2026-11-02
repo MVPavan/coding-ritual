@@ -1,7 +1,7 @@
 # Skill curation: handoff
 
-Updated 2026-11-01 (MVP stack phase 1 closed; phase 2 running on the playbook
-map). Branch `mvp-stack` in the main worktree; `dws-workflow` is retired and
+Updated 2026-11-02 (MVP stack phase 1 closed; phase 2 running on the playbook
+map, batch 2 done). Branch `mvp-stack` in the main worktree; `dws-workflow` is retired and
 deleted. Beads is the work-state authority; this file is the narrative.
 
 ## Start here (new session)
@@ -50,9 +50,10 @@ deleted. Beads is the work-state authority; this file is the narrative.
 | `7449497` | Batch 0: Trace forensics, Worktree cleanup and Eval live (`cr-r2pa.2.3`, round `2026-11-01-batch-0`) |
 | `862689d` | Seven Pocock retargets (`cr-r2pa.2.1`, round `2026-11-01-pocock-retarget`) |
 | after `862689d` | Batch 1 (`cr-r2pa.2.4`, round `2026-11-01-batch-1`), see below |
+| after `ba56f66` | Batch 2 (`cr-r2pa.2.5`, round `2026-11-02-batch-2`), see below |
 
 `main` is at `eb36cc9`; later work is on `mvp-stack` until the owner asks to merge.
-`mvp-stack` is pushed through batch 1; commits after it are local until the owner
+`mvp-stack` is pushed through batch 2; commits after it are local until the owner
 says to push.
 
 Decisions behind them: domains `core` and `engineering`; one primary
@@ -83,8 +84,23 @@ critic, owner rulings, ledger, build, Sol review, commit after the owner approve
   The owner ruled its 189 upstream rows as recommended, as one set. None of it has run on a
   real session: trials wait on `cr-r2pa.2.12`, and so does the S8 F3 rerun. `cr-an42` holds
   the ledger's same-date ordering flaw.
-- Then batch 2 (`.5`), pilots 2 and 3 (`.8`, `.9`), batches 3 and 4 (`.6`, `.7`), the
-  remaining Pocock pass (`.10`).
+- `cr-r2pa.2.5`, done: batch 2 (round `2026-11-02-batch-2`). `performance-optimization` gains the cost
+  order, a vetting reference and a diagnosis-only branch; `decision-trail` is new; Perf
+  issue, Runtime forensics and attended Hillclimb, with `hillclimb/attempt.py`, are live.
+  The owner ruled its upstream rows as recommended, as one set, keeping
+  `script-evidence-preference`. Hillclimb's loop commits nothing and lands once at the
+  end; S2 now lets a calling playbook opt into a branch's deliverable. Parallel attempts
+  are dropped, and unattended climbs wait on batch 4 (`cr-r2pa.2.7`). None of it has run on
+  a real session: whether a model picks Perf issue over the skill, whether a span holds
+  across a compaction, whether a critic per trail pays, whether a live capture works on a
+  stuck process and whether a delegate keeps to one factor all wait on `cr-r2pa.2.12`.
+- Then pilots 2 and 3 (`.8`, `.9`), batches 3 and 4 (`.6`, `.7`), the remaining Pocock
+  pass (`.10`).
+- `cr-r2pa.2.13`: analyse every skill of ours, Pocock and pstack; its scope is still to
+  agree with the owner.
+- `cr-r2pa.3.3`: at the end of the project, show the owner everything deferred or
+  rejected, from the ledger's `defer` events, the deferred beads and each
+  `deliberately_dropped` with its `revisit_when`, to revise and adapt.
 
 The Pocock pending adoptions are tracked in `cr-axdt.6` (13 tasks, one per target
 skill) and join the batch that touches the same skill; each completes its adopts

@@ -20,7 +20,7 @@ beads:
   family: handoff
   aliases: []
   status: active
-  boundary: null
+  boundary: "Tracks durable work state and how to resume it; a reviewable log of one run's decisions is decision-trail, which a bead note may point at."
 brainstorming:
   domain: core
   stage: Intake
@@ -66,6 +66,15 @@ codebase-research:
   aliases: []
   status: active
   boundary: "Durable, manually invoked reports on an external codebase; explaining this repository's own code is explain-code, outside sources for a decision are research, and improvement proposals are improve-codebase-architecture."
+decision-trail:
+  domain: core
+  stage: X
+  substage: Continuity
+  secondary: []
+  family: handoff
+  aliases: []
+  status: active
+  boundary: "Keeps one run's decisions as an append-only log, audits it and gets it independently reviewed; work state is beads, a plan's run is execution, a compact attempt record is performance-optimization, and reviewing other artifacts is review."
 delegation:
   domain: core
   stage: X
@@ -236,7 +245,7 @@ performance-optimization:
   family: performance
   aliases: []
   status: active
-  boundary: "Handles measured resource problems: profile, change, re-measure against a target; an unexplained failure or flaky behaviour is systematic-debugging."
+  boundary: "Handles measured resource problems: locate a cost, or profile, change and re-measure against a target, vetting the numbers on the way; a caller may bring another measurable outcome. What makes a number evidence is principle-explain-the-number. A standalone causal investigation of a failure, flaky behaviour or a regression is systematic-debugging; a live capture a caller asks for gathers evidence even from a failing process and leaves the cause to the caller's debugging call. An artifact captured earlier is trace-forensics."
 perspective-council:
   domain: core
   stage: X
@@ -461,7 +470,7 @@ systematic-debugging:
   family: debugging
   aliases: []
   status: active
-  boundary: "Finds the cause of an unclear failure, a failed fix or flaky behaviour; slowness or resource use against a target is performance-optimization."
+  boundary: "Finds the cause of an unclear failure, a failed fix or flaky behaviour; slowness or resource use against a target is performance-optimization; a live capture a caller asks for, or where a resource goes with no failure, is performance-optimization's diagnosis-only branch."
 teach:
   domain: core
   stage: U

@@ -12,6 +12,8 @@ status: active
 
 Use for Beads (bd) work beyond the core rules injected at session start - creating epics, plans or decision beads, dependencies and gates, triage, recovery, workstream tracking, reviews, setting up or joining a Beads project, or questions about Beads policy.
 
+**Boundary:** Tracks durable work state and how to resume it; a reviewable log of one run's decisions is decision-trail, which a bead note may point at.
+
 <!-- registry:generated traits -->
 - `bead-type-taxonomy`: Use only the six bead types (epic, feature, task, bug, spike, decision) and the single human label, never inventing others.
 - `field-roles`: Give each bead field its single job — description, design, acceptance, spec_id, notes, comments and close reason — and never overload one.

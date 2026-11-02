@@ -12,20 +12,24 @@
     "2026-11-01-playbook-ledger.jsonl": "74afd5b5c58c3c537e2fc097dacd7c4aafd9e637b664525acad75797a25ce4a5",
     "2026-11-01-pocock-retarget.jsonl": "dc77a57992fbd500c803ad843ec73fecca5b0fb55da30d0bea4a7546a1135241",
     "2026-11-01-principles-fixes.jsonl": "60cb639f6a010039aee1d5fed20b421050a13c6177aa778b48044fec53b08e5d",
-    "2026-11-01-pstack-playbooks.jsonl": "b42bce846db0a36248782481fb5aed82e03e292ba90a37712d1ff21761db7c40"
+    "2026-11-01-pstack-playbooks.jsonl": "b42bce846db0a36248782481fb5aed82e03e292ba90a37712d1ff21761db7c40",
+    "2026-11-02-batch-2.jsonl": "ca419ef7a5378af3af497f2bc5609efdd862de8da4d634a025bda320637ac5e1"
   },
   "reports": {
     "harness_lifecycle/registry/reviews/2026-10-30-upstream-mattpocock_skills-5beb35b.yaml": "fb413772a75f116bd9baeaa06b6e414fe59978c654a951cb53345f17459d7597",
     "harness_lifecycle/registry/reviews/2026-10-31-upstream-cursor_plugins-pstack-principles.yaml": "04474c59bea34d1b3e23c2d2be492ff389a54855ce34d0436063f6522ba6627b",
     "harness_lifecycle/registry/reviews/2026-11-01-upstream-cursor_plugins-4dd1d05-batch-1.yaml": "baf55129549f5f5f89c0738df2ae3751cf931b8b014bbb92e2f8cff241adee8a",
+    "harness_lifecycle/registry/reviews/2026-11-01-upstream-cursor_plugins-4dd1d05-batch-2.yaml": "d1d3ac9a9401e4657ad74d772e56e5d26a86f2ca72053d6042b1649bc3f561f4",
     "harness_lifecycle/registry/reviews/2026-11-01-upstream-cursor_plugins-pstack-principles-amend.yaml": "0fe4d20025f2c09ba42e51744df26012869cee0b7220921f37260b61dc0c4d3a",
     "harness_lifecycle/registry/reviews/2026-11-01-upstream-cursor_plugins-pstack-principles-amend2.yaml": "fd992f3e1370d0a8371d9fa3b285f6c2726465b0ee91b4072e86e04cb2c966db",
     "harness_lifecycle/registry/reviews/2026-11-01-upstream-cursor_plugins-pstack-principles-amend3.yaml": "bdbaf1654b93909a72b27ad70bb55f1ad77a20b6712b81890075f9aed45827a7",
     "harness_lifecycle/registry/reviews/2026-11-01-upstream-mattpocock_skills-5beb35b-reconsider.yaml": "18613a317dc752c4b61e9ab6da846b715ded5770b0bd42ff8e2b79831ee5b268",
-    "harness_lifecycle/registry/reviews/2026-11-01-upstream-mattpocock_skills-5beb35b-retarget.yaml": "5c6f37dce6dd035b85d8809ed1e16ee5202f7e17e8068c3257612f6c95f41800"
+    "harness_lifecycle/registry/reviews/2026-11-01-upstream-mattpocock_skills-5beb35b-retarget.yaml": "5c6f37dce6dd035b85d8809ed1e16ee5202f7e17e8068c3257612f6c95f41800",
+    "harness_lifecycle/registry/reviews/2026-11-02-upstream-cursor_plugins-4dd1d05-reconsider.yaml": "1f9a65d63405e6cc3f4f9deec6c47858aa5f2ab97d2db16b2fd23ef1043fca9e"
   },
   "analyses": {
     "cursor_plugins:skill:pstack/skills/architect@4dd1d05": "2f6b30fcea183d931ebb90718d90b26bed22bd0053ffc7322ede7757a9a18920",
+    "cursor_plugins:skill:pstack/skills/benchmark-checklist@4dd1d05": "45228662c0597a4acdca6966815239a1728c906a666f7883d5520ea7f2705230",
     "cursor_plugins:skill:pstack/skills/how@4dd1d05": "2247b97596d47c4b05d53f0bc93ba31b191041ac3f818de30b2bfa78ce52d8b7",
     "cursor_plugins:skill:pstack/skills/principle-attack-the-premise@4dd1d05": "03d11af4ad6191885ccc52be13403b76412a9faae542cc27c3c0f5339963b8e6",
     "cursor_plugins:skill:pstack/skills/principle-boundary-discipline@4dd1d05": "2a6553e804b60ef0ad7ef809acd2bd13daee0acdbc75d206b1d7e338cb7c69cc",
@@ -51,6 +55,7 @@
     "cursor_plugins:skill:pstack/skills/principle-subtract-before-you-add@4dd1d05": "f71c5b8a46b629b7a35ef26aa5766311ab468dc41e332e0d4aa25e6e66b86a4b",
     "cursor_plugins:skill:pstack/skills/principle-test-behavior-not-implementation@4dd1d05": "d9dec81806ea53ea139e8f4066732ca3442f3ce41dac7d6248dc85b348475d24",
     "cursor_plugins:skill:pstack/skills/principle-type-system-discipline@4dd1d05": "2cf9cb0dd8065938c14225198d51a26874060e190d771a0feaba4b3204dca3cd",
+    "cursor_plugins:skill:pstack/skills/show-me-your-work@4dd1d05": "6c3a4f34bbdac8b197827d7a4e3abe71cdaeadac891d505043eb0adcf5ca0a01",
     "cursor_plugins:skill:pstack/skills/unslop@4dd1d05": "f81653419e306628c1e0e3fa8bad11eae59dac96680ce9337fee939fd3ffb631",
     "cursor_plugins:skill:pstack/skills/why@4dd1d05": "227c7d897de582d6a13886864c14284c5eefb10adce12abe12e24f8aebdc00b5",
     "mattpocock_skills:skill:skills/engineering/ask-matt@5beb35b": "7c26278eeb19e4a6c08a40a33ab804f1d66f7f8ce2209126ebcea2c7d56d51a6",

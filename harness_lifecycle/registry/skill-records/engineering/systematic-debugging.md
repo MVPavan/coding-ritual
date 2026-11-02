@@ -12,7 +12,7 @@ status: active
 
 Use to find the cause of a failure when it is unclear, after a fix did not hold, or for a flaky or production-only failure; it reports a diagnosis and changes no production code. To fix a reported bug end to end, run the bug-fix playbook instead; it calls this skill.
 
-**Boundary:** Finds the cause of an unclear failure, a failed fix or flaky behaviour; slowness or resource use against a target is performance-optimization.
+**Boundary:** Finds the cause of an unclear failure, a failed fix or flaky behaviour; slowness or resource use against a target is performance-optimization; a live capture a caller asks for, or where a resource goes with no failure, is performance-optimization's diagnosis-only branch.
 
 <!-- registry:generated traits -->
 - `reproduction-preferred`: Seek a reproduction that shows the reported failure, not a nearby one, before diagnosing, but when none is obtainable confirm a cause by independent evidence such as traces instead. (Reuses an existing failing test or command first, otherwise builds the smallest useful reproduction.)

@@ -113,10 +113,10 @@ no-onward-delegation:
   why: "AGENTS.md holds it as policy every agent loads, so a delegate stops fanning out even when its brief was written by hand; the delegation skill writes it into each role block of the briefs it produces, so a delegate on a vendor or project without our AGENTS.md still receives it; the mvp-mode router states it beside its delegate-independent-by-default rule for plugin users who skip the optional AGENTS.md, so a router that tells them to delegate also tells their delegates not to fan out."
   reviewed: "2026-11-01"
 implement-against-sketch:
-  skills: [doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/feature.md, doc:.claude/skills/mvp-mode/playbooks/refactoring.md]
+  skills: [doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/feature.md, doc:.claude/skills/mvp-mode/playbooks/perf-issue.md, doc:.claude/skills/mvp-mode/playbooks/refactoring.md]
   why: "Owner ruling 5 keeps the sketch design-only, so each playbook's own build step writes the code and holds this rule; a skill for it would bring back the implement branch the ruling removed (unit-kinds deviation log, St4)."
-  reviewed: "2026-11-01"
+  reviewed: "2026-11-02"
 build-closeout:
-  skills: [doc:.claude/skills/mvp-mode/playbooks/feature.md, doc:.claude/skills/mvp-mode/playbooks/refactoring.md]
-  why: "Each playbook's closeout runs on its own exits and feeds its own reply, and these two have the same three duties; a skill of three duties would be ceremony (unit-kinds deviation log, St4 and B4)."
-  reviewed: "2026-11-01"
+  skills: [doc:.claude/skills/mvp-mode/playbooks/feature.md, doc:.claude/skills/mvp-mode/playbooks/perf-issue.md, doc:.claude/skills/mvp-mode/playbooks/refactoring.md]
+  why: "Each playbook's closeout runs on its own exits and feeds its own reply, and these three have the same three duties; a skill of three duties would be ceremony (unit-kinds deviation log, St4 and B4)."
+  reviewed: "2026-11-02"

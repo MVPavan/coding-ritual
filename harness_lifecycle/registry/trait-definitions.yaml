@@ -5152,3 +5152,442 @@ matching-surface-verify:
   placement: {domain: engineering, stage: Verification, substage: Testing}
   distinct_from: [direct-observation]
   note: "direct-observation rules out proxies for a result; this also fixes which surface counts."
+# ---- pstack batch 2, 2026-11-01 (reviews/2026-11-01-upstream-cursor_plugins-4dd1d05-batch-2.yaml) ----
+run-evidence-answers:
+  definition: "Settle every vetting question with data from an actual run, never from reasoning about the code."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [confound-elimination, named-limiter]
+  note: "confound-elimination asks for evidence without saying it comes from a run; named-limiter bars reading code for the limiter only."
+ballpark-path:
+  definition: "For a rough figure the user asked for, let one run do while still checking errors and that the work happened, saying it is one run, and applying the other checks only if the run looks wrong."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+choice-never-ballpark:
+  definition: "Never let a measurement that chooses between options take the rough one-run path."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+shipped-claim-first:
+  definition: "Before any run, write the exact result sentence you expect to publish, with its metric and dataset, and test the vetting questions against that sentence."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [decision-before-measurement]
+  note: "decision-before-measurement names the result that would change a decision and its noise floor; this fixes the published wording and has no noise floor."
+script-reading-first:
+  definition: "Read the measuring script before a run and note what it times, what it counts and what it leaves out."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+machine-load-check:
+  definition: "Before measuring, check the load average and core count and find what is occupying a busy machine."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+interleave-unstoppable-load:
+  definition: "When competing load cannot be stopped, run the compared sides in turn so the noise hits both equally, and disclose that in the report."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [alternated-sides]
+  note: "alternated-sides runs on every comparison to cancel warmup and drift; this is the response to outside load and carries a disclosure."
+unreported-profile-run:
+  definition: "Profile and trace in a separate run whose numbers are never reported, because instrumentation distorts timing."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+per-process-cpu-read:
+  definition: "Inspect CPU use per process when hunting a limiter."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+runtime-profiler-read:
+  definition: "Use a language or system profiler when hunting a limiter."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+io-wait-read:
+  definition: "Inspect I/O wait when hunting a limiter."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+syscall-count-read:
+  definition: "Inspect system call counts when hunting a limiter."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+load-generator-saturation:
+  definition: "Watch the load generator during a run, since a saturated generator means the result describes it and not the target."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+limiter-before-dismissal:
+  definition: "When a change leaves the number unmoved, find the limiter before concluding the change has no value."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [revert-ineffective-experiments]
+  note: "revert-ineffective-experiments removes an edit once it is judged ineffective; this asks what masked it before that judgement."
+production-parity-sides:
+  definition: "Run every compared side as production runs it: release builds, flags and environment, batching and transactions, connection pools, cache temperature, and the same versions and data."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [representative-baseline, like-for-like-comparison]
+  note: "representative-baseline shapes one baseline's conditions and like-for-like-comparison holds conditions equal; neither requires each side to run as production does."
+defaults-compare-configurations:
+  definition: "Treat a result with one side on defaults as a comparison of configurations and not of implementations."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [confound-elimination]
+  note: "confound-elimination names an untuned side as a thing to rule out; this says running on defaults makes it one."
+settings-limiter-untuned:
+  definition: "Treat a side whose limiter is a setting, such as per-row commits, a debug build or a missing index, as untuned."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+tuned-before-winner:
+  definition: "Tune an untuned side and measure again before naming a winner, and name none from a run whose side cannot be tuned."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+no-narrowing-for-adoption:
+  definition: "When someone is choosing what to adopt, do not cure an untuned comparison by narrowing the claim to today's as-shipped settings."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+capacity-arithmetic:
+  definition: "Check throughput in bytes against disk and network capacity and operations per second times cost per operation against available cores, and read a result past a limit as having measured something else, for example a cache, a no-op or a defect."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+share-bound-on-gain:
+  definition: "Bound a claimed gain by the fraction f of elapsed time the changed part takes: for 0 <= f < 1, elapsed-time reduction is at most f and the matching throughput speedup at most 1/(1-f), at f = 1 the model gives no finite speedup bound, and a reported percentage names which it is."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+failure-count:
+  definition: "Count failures and non-success responses, adding the count when the measuring script has none, because fast rejections and slow timeouts both skew timing."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+correct-output-check:
+  definition: "Check that a measured run's outputs are correct and not merely present."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+five-run-floor:
+  definition: "Run each compared side at least five times."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [representative-baseline]
+  note: "representative-baseline repeats enough to estimate variability and fixes no count."
+alternated-sides:
+  definition: "Alternate the compared sides run by run so warmup, lazy initialization, caches and drift favour neither."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+median-and-range-report:
+  definition: "Report the median and the range across a comparison's runs."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [evidence-with-number]
+  note: "evidence-with-number requires a spread and names no statistic."
+within-variation-no-difference:
+  definition: "Give a gap smaller than run-to-run variation the verdict no measurable difference."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [noise-inconclusive]
+  note: "noise-inconclusive calls a gap within noise inconclusive; this names a verdict from the raw variation."
+close-call-statistics:
+  definition: "When a comparison is close, test the gap with a rank-sum test or statistics the harness provides."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+end-to-end-share:
+  definition: "Beside any micro result, measure the whole path a user waits on under realistic sizes and concurrency, and state the micro result as its share."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+work-ran-check:
+  definition: "Prove the work happened inside the timed span and the code used its result, since lazy code, discarded results and timeouts can produce numbers for work that never happened."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [eval-result-scrutiny]
+  note: "eval-result-scrutiny checks that an eval's runs did the task and adds trials and scenario relevance; this checks a timed region."
+one-verdict-first:
+  definition: "Open a measurement report with one verdict: slower, faster, inconclusive or no measurable difference."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+measurement-unit:
+  definition: "State every reported number with its unit."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [evidence-with-number]
+  note: "evidence-with-number requires a run count, a spread and a limiter and names no unit."
+no-limiter-inconclusive:
+  definition: "Call a claimed difference inconclusive when its limiter cannot be named."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [named-limiter]
+  note: "named-limiter says how to explain a number; this sets the verdict when that explanation is missing."
+untuned-side-inconclusive:
+  definition: "Call a verdict inconclusive when a side ran untuned."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+unchecked-run-inconclusive:
+  definition: "Call a verdict inconclusive when the error or work check could not be done."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+inconclusive-names-gap:
+  definition: "Have an inconclusive verdict state which check or condition caused it."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+one-number-pr-body:
+  definition: "Keep a pull request body to one primary number, with the supporting evidence linked from it."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+vet-at-flow-gates:
+  definition: "In a performance flow, vet the baseline before planning from it, every later number, and a harness before it is frozen."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+harness-prints-counts:
+  definition: "Make a frozen harness emit error and work counts, which hands each keep-or-revert decision those two checks."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+resolved-no-difference:
+  definition: "Choose before running the margin that would matter to the decision, estimate an interval for the reported difference by a method fit for the statistic and how the runs were sampled, and call it faster or slower only when the whole interval lies beyond the margin on that side, no measurable difference only when the whole interval lies inside the margin, and inconclusive otherwise, never deciding from the raw run range."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [within-variation-no-difference, noise-inconclusive, decision-before-measurement]
+  note: "within-variation-no-difference decides from the raw variation; decision-before-measurement's noise floor is what a result must clear to be believed, not this margin; noise-inconclusive at performance-optimization/SKILL.md:28 still guards unresolved noise, and the vetting reference separates that from established equivalence."
+config-mismatch-comparison:
+  definition: "Treat a result as a comparison of configurations only on a demonstrated mismatch with what production would use or an avoidable limit, never because a side runs on defaults as such."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [defaults-compare-configurations]
+  note: "defaults-compare-configurations fires on any side running defaults."
+tuned-claim-gate:
+  definition: "For a claim about the tuned implementation or an adoption choice, tune an untuned side and measure again before naming a winner, calling the verdict inconclusive if it cannot be tuned, while a documented comparison of deployments as they run stays a legitimate claim."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [tuned-before-winner, untuned-side-inconclusive]
+  note: "Those two bind every comparison and allow no claim about deployments as they run."
+kernel-time-syscall-count:
+  definition: "Only when time is going to the kernel or I/O, count system calls in a separate run whose timing is never quoted."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [syscall-count-read]
+  note: "syscall-count-read lists syscall counts as a signal with no condition or separate run."
+comparison-run-floor:
+  definition: "Run each side of a comparison at least five times unless a run's cost is stated as the reason, treating the floor as no proof of significance."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [five-run-floor, representative-baseline]
+  note: "five-run-floor has no cost exception or caveat; representative-baseline fixes no count."
+single-tsv-decision-log:
+  definition: "Keep one authoritative decision log as a single TSV file with one single-line row per decision."
+  placement: {domain: core, stage: X, substage: Continuity}
+evidence-pointer-cell:
+  definition: "Make a row's evidence cell a resolvable pointer such as a commit, pull request, file and line or artifact path, never narrative."
+  placement: {domain: core, stage: X, substage: Continuity}
+trail-header-template:
+  definition: "Start a new log from a supplied file holding only the header row."
+  placement: {domain: core, stage: X, substage: Continuity}
+trail-six-columns:
+  definition: "Give every row the fixed columns ts in ISO8601, phase or workstream, the decision in one line, why, evidence, and result as an outcome or state."
+  placement: {domain: core, stage: X, substage: Continuity}
+trail-sample-rows:
+  definition: "Show a sample log in the expected plain style."
+  placement: {domain: core, stage: X, substage: Continuity}
+plain-row-wording:
+  definition: "Write rows the way you would tell a colleague, in concrete words, spelling a guiding principle out in place of citing it as a tag."
+  placement: {domain: core, stage: X, substage: Continuity}
+positional-row-helper:
+  definition: "Append rows through a script that takes the log path and exactly five positional cell values, printing usage and failing on any other count."
+  placement: {domain: core, stage: X, substage: Continuity}
+hand-append-caveat:
+  definition: "Allow a row appended by hand, giving cells from generated or user-supplied text the helper's byte-level care."
+  placement: {domain: core, stage: X, substage: Continuity}
+decision-points-only:
+  definition: "Log decision points and checkpoints (a chosen fork, a finished unit with its verification, a pivot or revert with its cause, a surfaced blocker, a fixed gate), never each action or a self-evident step."
+  placement: {domain: core, stage: X, substage: Continuity}
+row-per-iteration:
+  definition: "Have a looping run write one row for each iteration."
+  placement: {domain: core, stage: X, substage: Continuity}
+helper-aborts-on-failure:
+  definition: "Have the log helper abort on any command failure, unset variable or pipeline failure."
+  placement: {domain: core, stage: X, substage: Continuity}
+creates-log-parent:
+  definition: "Have the log helper create a missing parent directory."
+  placement: {domain: core, stage: X, substage: Continuity}
+header-on-empty-file:
+  definition: "Have the log helper write the header row when the log is missing or empty."
+  placement: {domain: core, stage: X, substage: Continuity}
+append-mode-writes:
+  definition: "Write the header and rows only in append mode, so a false empty-file test costs a stray header and never the rows."
+  placement: {domain: core, stage: X, substage: Continuity}
+automatic-utc-stamp:
+  definition: "Have the log helper stamp each row with the current UTC time so the caller supplies none."
+  placement: {domain: core, stage: X, substage: Continuity}
+cell-whitespace-strip:
+  definition: "Replace tabs, newlines and carriage returns in each cell with spaces."
+  placement: {domain: core, stage: X, substage: Continuity}
+formula-cell-quote:
+  definition: "Prefix a single quote to any cell starting with a character a spreadsheet parses as a formula, so hostile text cannot execute when the log is opened."
+  placement: {domain: core, stage: X, substage: Continuity}
+run-boundary:
+  definition: "Count one agent conversation with its later turns and summaries as one run, and a pickup, replacement agent or new chat as a new one."
+  placement: {domain: core, stage: X, substage: Continuity}
+start-row-triggers:
+  definition: "Have a run adding to a log with rows write a `start` row first, and on returning read the log's tail and write a fresh one if another run's `start` has appeared."
+  placement: {domain: core, stage: X, substage: Continuity}
+start-row-contents:
+  definition: "Have a `start` row name the timestamp range of the rows this run did not write and identify this run in its evidence, using the `start` phase for nothing else."
+  placement: {domain: core, stage: X, substage: Continuity}
+local-log-default:
+  definition: "Keep the log as an uncommitted working file at a fixed name in the work directory, or under a hidden audit folder by task slug when several efforts run at once."
+  placement: {domain: core, stage: X, substage: Continuity}
+  distinct_from: [scratch-artifact-location]
+  note: "scratch-artifact-location names the gitignored scratch folder for any temporary artifact; this names the log's own fixed paths."
+commit-on-reviewer-need:
+  definition: "Leave the log out of Git unless the work is large enough that a reviewer could not trust the outcome without it."
+  placement: {domain: core, stage: X, substage: Continuity}
+  distinct_from: [audit-trail-proof-commit]
+  note: "audit-trail-proof-commit also keeps the artifact visible to the human and is written for any proof artifact."
+script-evidence-preference:
+  definition: "Favour evidence generated by committed scripts over hand-made one-off evidence."
+  placement: {domain: core, stage: X, substage: Continuity}
+  distinct_from: [scripted-proof, tool-when-it-pays]
+  note: "scripted-proof prefers any rerunnable script and keeps its output; tool-when-it-pays decides when to build one."
+end-of-run-audit:
+  definition: "Before handing back, check the log for truthfulness against what happened in the run."
+  placement: {domain: core, stage: X, substage: Continuity}
+transcript-path-audit:
+  definition: "Audit from this run's transcript in the active workspace's transcript directory, whose location the system prompt gives."
+  placement: {domain: core, stage: X, substage: Continuity}
+no-cross-project-transcript-search:
+  definition: "Never search across project transcript folders during an audit, because that exposes unrelated private conversations."
+  placement: {domain: core, stage: X, substage: Continuity}
+audit-own-stretches:
+  definition: "Limit an audit to this run's row stretches, each from one of its `start` rows or the log's first row to the next `start` row of another run."
+  placement: {domain: core, stage: X, substage: Continuity}
+row-maps-to-real-event:
+  definition: "Check that each audited row corresponds to a decision or action that actually occurred."
+  placement: {domain: core, stage: X, substage: Continuity}
+evidence-resolves-check:
+  definition: "Check that each audited row's pointer resolves and supports what the row says."
+  placement: {domain: core, stage: X, substage: Continuity}
+unlogged-fork-gap:
+  definition: "Treat a fork, pivot or abandoned path that shaped the work with no row as a gap, and add the row in the audit."
+  placement: {domain: core, stage: X, substage: Continuity}
+audit-supersedes-in-place-of-editing:
+  definition: "Have an audit change no row, even an invented one, and add a row superseding it with what really happened and a pointer that resolves."
+  placement: {domain: core, stage: X, substage: Continuity}
+  distinct_from: [append-only-supersede]
+  note: "append-only-supersede bars editing any record; this makes the audit's correction carry what really happened and a resolving pointer."
+foreign-row-on-own-evidence:
+  definition: "Supersede a row outside the audited stretches only when this run's own work shows it to be wrong."
+  placement: {domain: core, stage: X, substage: Continuity}
+other-family-trail-review:
+  definition: "Before handing back, have a subagent from a different model family review the run, with no self-review in its place."
+  placement: {domain: core, stage: Verification, substage: Review}
+  distinct_from: [cross-family-review]
+  note: "cross-family-review also has the owner approve a same-family review; this has no such path and fixes the moment before hand-back."
+trail-and-transcript-review:
+  definition: "Give the reviewer the audit trail and the run's transcript as its inputs."
+  placement: {domain: core, stage: Verification, substage: Review}
+attention-scan-not-redo:
+  definition: "Have the trail's reviewer look for what is suboptimal or risky for the user's attention and not repeat the work."
+  placement: {domain: core, stage: Verification, substage: Review}
+  distinct_from: [independent-critic-verdict]
+  note: "independent-critic-verdict gives findings and a verdict on the work; this scan gives flags and no verdict."
+trail-review-flags:
+  definition: "Have the trail's reviewer flag weak or absent evidence, checks skipped or claimed without proof, choices risky in hindsight, and gaps a casual read would miss."
+  placement: {domain: core, stage: Verification, substage: Review}
+attention-section:
+  definition: "End every reply of a run with a trail in an Attention section, opening with a line naming the reviewer's model and then each flag with its rows or moments, where no flags is allowed and the model name is not optional."
+  placement: {domain: core, stage: Verification, substage: Review}
+trail-reading-method:
+  definition: "Read a trail from top to bottom, following the evidence pointers and spot-checking."
+  placement: {domain: core, stage: X, substage: Continuity}
+trail-rendering-tips:
+  definition: "Show the log as a table through the forge's TSV view or the `column` command."
+  placement: {domain: core, stage: X, substage: Continuity}
+single-trail-format-owner:
+  definition: "Have other skills needing a trail refer to this one by name and define no trail or columns of their own."
+  placement: {domain: core, stage: X, substage: Continuity}
+named-cell-row-helper:
+  definition: "Append rows through a helper that takes named cells and declared extra columns, and writes nothing when a cell is missing, unknown or undeclared."
+  placement: {domain: core, stage: X, substage: Continuity}
+  distinct_from: [positional-row-helper]
+  note: "positional-row-helper takes five cells by position and only checks their count."
+locked-single-header:
+  definition: "Hold an exclusive lock across reading and appending, so simultaneous first writers make one header and rows never interleave."
+  placement: {domain: core, stage: X, substage: Continuity}
+  distinct_from: [header-on-empty-file]
+  note: "header-on-empty-file tests and writes with no lock, so two first writers can each add a header."
+numeric-safe-formula-quote:
+  definition: "Quote a cell starting with a character a spreadsheet parses as a formula, unless it is a plain signed number or percentage."
+  placement: {domain: core, stage: X, substage: Continuity}
+  distinct_from: [formula-cell-quote]
+  note: "formula-cell-quote also quotes signed numbers and percentages."
+trail-location-rule:
+  definition: "Keep a trail at the caller's path, else at an ignored scratch path by slug, else in Git's own directory, and outside Git in the working folder, saying so in the reply."
+  placement: {domain: core, stage: X, substage: Continuity}
+  distinct_from: [local-log-default, scratch-artifact-location]
+  note: "local-log-default fixes the paths in the work directory; scratch-artifact-location assumes an ignored scratch folder exists."
+proposed-trail-commit:
+  definition: "Propose committing a trail only when a reviewer needs it to trust the outcome, and commit only with authority."
+  placement: {domain: core, stage: X, substage: Continuity}
+  distinct_from: [commit-on-reviewer-need, proposed-artifact-commit]
+  note: "commit-on-reviewer-need commits on that judgement alone; proposed-artifact-commit keeps the artifact in the scratch folder and triggers on rerun or audit."
+verified-record-row-walk:
+  definition: "Check each audited row against a real event only in an event record the caller names, verified and scoped to this workspace."
+  placement: {domain: core, stage: X, substage: Continuity}
+  distinct_from: [row-maps-to-real-event]
+  note: "row-maps-to-real-event runs on every audit against the run's transcript."
+same-family-or-unreviewed:
+  definition: "Have a critic from another model family review the trail before hand-back, one of the same family only with the owner's approval, and otherwise report it not reviewed, never reviewing your own run."
+  placement: {domain: core, stage: Verification, substage: Review}
+  distinct_from: [other-family-trail-review, cross-family-review]
+  note: "other-family-trail-review has no path when no other family can run; cross-family-review has no not-reviewed outcome."
+evidence-pointer-review:
+  definition: "Give a trail's critic the trail and the evidence each row points at, or the trail and a verified workspace-scoped record when one is named."
+  placement: {domain: core, stage: Verification, substage: Review}
+  distinct_from: [trail-and-transcript-review]
+  note: "trail-and-transcript-review always reads a transcript."
+attention-with-coverage:
+  definition: "End a reply with Attention naming the reviewer or `not reviewed` with its reason, each flag with its rows or no flags, and, after an evidence-pointer review, transcript coverage and unlogged-fork detection as unavailable."
+  placement: {domain: core, stage: Verification, substage: Review}
+  distinct_from: [attention-section]
+  note: "attention-section requires a model name and states no coverage limit."
+# ---- ours only, batch 2 (performance-optimization, decision-trail) ----
+ordered-cost-mantras:
+  definition: "For a resource metric, try candidates in a fixed order, cheapest first, from dropping unused work through keeping a result, doing it less, deferring it, moving it off the waited-on path and running it concurrently to making the operation cheaper."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+caller-stop-condition:
+  definition: "Treat a candidate order as what to try next and stop on the caller's stated condition, or with none when a candidate meets the target."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+mechanism-named-hypothesis:
+  definition: "Name how each candidate should move the metric, tied to the located cost."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+single-factor-brief:
+  definition: "Let a delegate write one factor under a brief naming that factor, its mechanism and its owned paths, while the caller keeps the baseline and the comparison."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+no-ceiling-without-run:
+  definition: "Claim no ceiling on a gain until a run has shown it."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+caller-measurable-outcome:
+  definition: "Let a caller bring any named measurable outcome through the measure-and-compare steps, with resource-only advice conditional and inapplicable vetting questions marked not applicable with a reason."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+located-cost-branch:
+  definition: "When a caller wants a live capture or someone asks where a resource goes and no change is wanted, run only the measure-and-locate steps and deliver the artifact, its command, the reduced finding, its location or the gap, and located or hypothesis."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [diagnosis-only]
+  note: "diagnosis-only changes no production code while explaining a failure; this locates a cost or gathers a caller's capture and names no cause."
+caller-trail-columns:
+  definition: "Let a caller add declared columns after a trail's fixed ones, the same set on every call."
+  placement: {domain: core, stage: X, substage: Continuity}
+# ---- ours only, batch 2 playbooks (perf-issue, runtime-forensics, hillclimb) ----
+measurement-tied-fix-gate:
+  definition: "Tie every fix to a measurement, with the lead owning the number whoever writes the code."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+paired-artifact-diff:
+  definition: "Keep the baseline's and the candidate's artifacts from the matching surface and diff them, treating a comparison on another surface or an inconclusive one as no pass."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+measurement-in-commit-body:
+  definition: "Hand the measured number to the commit step for its body."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+live-capture-consent-boundary:
+  definition: "A live capture may sample read-only a process the user named or plainly means, anything injecting code or changing it needs the user's explicit yes, a process not named stays out, and a tool needing elevated permission is a stop with what is needed."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+live-diagnosis-gate:
+  definition: "Capture from the live process rather than theorise from source and fix nothing, within the capture boundary of the skill's diagnosis branch, with a restart the last resort."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [diagnosis-only, no-fix-handback, fixed-artifact-gate]
+  note: "diagnosis-only names no live capture or authority; no-fix-handback bars instrumentation; fixed-artifact-gate never re-runs the scenario."
+live-forensics-closeout:
+  definition: "On every exit of a live diagnosis, leave the process as found, remove instrumentation by its tag and name the artifacts kept."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [forensics-closeout]
+  note: "forensics-closeout reads a fixed artifact, so there is no process to leave or instrumentation to remove."
+attended-only-gate:
+  definition: "Start no unattended run: set no wake or schedule, go on only while the conversation does, and offer an attended run instead."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+one-change-one-measurement:
+  definition: "Make one change, take one measurement, then keep or undo it, never stacking untested changes."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+repro-before-climb:
+  definition: "Name the workload dimensions and pick a case that reproduces the complaint; when none does, repair the case in at most two tries and otherwise stop with what was tried."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+stop-predicate-with-floor:
+  definition: "Fix a stop predicate pairing a target with a floor on attempts, in the user's numbers or agreed."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+attempt-isolation-gate:
+  definition: "Before any baseline, name an artifact directory outside every worktree the climb removes, and run the whole climb in one detached worktree when a changed path holds someone else's edits or another writer may touch anywhere in the tree, its starting state replayed and verified."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+sensitivity-proof-then-freeze:
+  definition: "Show that contrasting workloads separate as expected, vet the harness, then freeze it as one command that no longer changes."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+gate-green-baseline:
+  definition: "Record the baseline and a green run of the regression gate before any change, stopping when the gate is red."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+  distinct_from: [baseline-check-before-change]
+  note: "baseline-check-before-change records results to class later failures; this requires the gate green and pairs it with the metric's baseline."
+read-trail-first:
+  definition: "Read the trail before each attempt and retry nothing it already rejected."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+keep-or-undo-rule:
+  definition: "Keep a win past noise with the gate green or a demonstrated simplification that does not materially worsen the metric and holds correctness, logged as no speedup, and otherwise undo in full."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+attempt-snapshot-undo:
+  definition: "Snapshot the tree around an attempt, stop on a patch naming a path not meant to change, and undo only by reversing that attempt's own patch, proving the result first and verifying it after, any refusal, failure or mismatch being a stop."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+  distinct_from: [revert-ineffective-experiments]
+  note: "revert-ineffective-experiments states the outcome and no mechanism or stop."
+predicate-held-stop:
+  definition: "Never relax the predicate, never quit while a cheap untried hypothesis remains, and surface being stuck."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+plateau-pivot:
+  definition: "On several rejects in a row, change category, combine near-misses and reread the source before concluding."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+climb-closeout:
+  definition: "On every exit of a climb, bring an isolated climb back and remove its worktree or stop naming both, confirm the tree holds only kept attempts, name the kept patches and the harness, and run the trail's audit and review when one opened."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+  distinct_from: [build-closeout]
+  note: "build-closeout removes scaffolding and lists open decisions; this brings work back and accounts for attempts."

@@ -283,3 +283,24 @@
       traits: [meaning-and-tone-preserved, ing-phrase-cut, vague-attribution-cut, tell-vocabulary-swap, plain-is-has, not-just-but-cut, forced-triplet-cut, synonym-cycling-cut, false-range-cut, em-dash-ban, mid-sentence-colon-cut, bold-restraint, inline-header-list-convert, sentence-case-headings, no-decorative-emoji, straight-quotes, chatbot-phrase-cut, sycophancy-cut, filler-phrase-cut, hedge-stack-trim, generic-conclusion-cut, metaphor-noun-swap, name-the-mechanism, portable-sentence-cut, dense-sentence-split, active-voice, adverb-cut, plain-word, mannered-prose-cut, over-compression-fix, stable-rule-numbers]
       added: {}
       changed: {}
+# Batch 2: benchmark-checklist, show-me-your-work at 4dd1d05, proposed.
+"cursor_plugins:skill:pstack/skills/benchmark-checklist":
+  accepted: "4dd1d05"
+  proposed: null
+  analyses:
+    "4dd1d05":
+      tree_hash: "2eaf797ecf11c132329a252ab286cdebbd4c83277910eecf260cc6b28f2a3162"
+      placement: {domain: engineering, stage: Building, substage: Diagnosis}
+      traits: [run-evidence-answers, confound-elimination, ballpark-path, choice-never-ballpark, shipped-claim-first, script-reading-first, machine-load-check, interleave-unstoppable-load, named-limiter, unreported-profile-run, per-process-cpu-read, runtime-profiler-read, io-wait-read, syscall-count-read, load-generator-saturation, limiter-before-dismissal, production-parity-sides, defaults-compare-configurations, settings-limiter-untuned, tuned-before-winner, no-narrowing-for-adoption, capacity-arithmetic, share-bound-on-gain, failure-count, correct-output-check, five-run-floor, alternated-sides, median-and-range-report, within-variation-no-difference, close-call-statistics, end-to-end-share, work-ran-check, one-verdict-first, evidence-with-number, measurement-unit, no-limiter-inconclusive, untuned-side-inconclusive, unchecked-run-inconclusive, inconclusive-names-gap, one-number-pr-body, vet-at-flow-gates, harness-prints-counts]
+      added: {}
+      changed: {}
+"cursor_plugins:skill:pstack/skills/show-me-your-work":
+  accepted: "4dd1d05"
+  proposed: null
+  analyses:
+    "4dd1d05":
+      tree_hash: "930a002ef775753f56b0a766aa47d9416965207fe54491d92d3021450bd0b698"
+      placement: {domain: core, stage: X, substage: Continuity}
+      traits: [single-tsv-decision-log, evidence-pointer-cell, trail-header-template, trail-six-columns, trail-sample-rows, plain-row-wording, positional-row-helper, hand-append-caveat, decision-points-only, row-per-iteration, helper-aborts-on-failure, creates-log-parent, header-on-empty-file, append-mode-writes, automatic-utc-stamp, cell-whitespace-strip, formula-cell-quote, run-boundary, start-row-triggers, start-row-contents, local-log-default, commit-on-reviewer-need, append-only-supersede, script-evidence-preference, end-of-run-audit, transcript-path-audit, no-cross-project-transcript-search, audit-own-stretches, row-maps-to-real-event, evidence-resolves-check, unlogged-fork-gap, audit-supersedes-in-place-of-editing, foreign-row-on-own-evidence, other-family-trail-review, trail-and-transcript-review, attention-scan-not-redo, job-fit-helper-effort, trail-review-flags, attention-section, trail-reading-method, trail-rendering-tips, single-trail-format-owner]
+      added: {}
+      changed: {}

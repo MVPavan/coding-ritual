@@ -1,0 +1,2760 @@
+harness: cursor_plugins
+from_sha: null
+to_sha: 4dd1d05
+supersedes: null
+analysis_critic:
+  by: gpt-6.1-sol (critic-2k-r2)
+  date: '2026-11-01'
+  verdict: pass
+  last_critic: null
+comparison_critic:
+  by: claude-opus-5-5 (coordinator)
+  date: '2026-11-01'
+  verdict: accepted
+  last_critic:
+    by: gpt-6.1-sol (critic-2k-r2)
+    date: '2026-11-01'
+    verdict: fail
+themes: 'These rows serve two capabilities. Vetting a measured number before it is reported,
+  compared or acted on: principle-explain-the-number keeps what makes a number evidence, and
+  performance-optimization takes the procedure. Keeping a reviewable record of a long run''s
+  decisions: a decision-trail skill owns the append-only log, its end-of-run audit and its
+  independent review.'
+skills:
+  skill:pstack/skills/benchmark-checklist:
+    upstream_tree_hash: 2eaf797ecf11c132329a252ab286cdebbd4c83277910eecf260cc6b28f2a3162
+    accepted: null
+    compared_with: principle-explain-the-number
+    pairing:
+      overlap:
+        principle-explain-the-number: 3
+      placement_match:
+      - performance-optimization
+      - principle-attack-the-premise
+      - principle-explain-the-number
+      - systematic-debugging
+      suggested: principle-explain-the-number
+      purpose_match: performance-optimization
+      purpose: 'Upstream vets a measured number before it is reported or acted on. Ours splits
+        that: the principle says what makes a number evidence, and the performance skill''s
+        vetting branch takes the procedure.'
+      flag: Compared with the principle, which owns what makes a number evidence, so what
+        it holds whole is a delivered row; the pending procedure lands in performance-optimization,
+        the purpose match, which holds no row's trait yet.
+      reason: Comparing with performance-optimization would make the principle's traits absent,
+        and a delivered adopt needs its fact present. Suggested principle-explain-the-number
+        by the computed signals only.
+    analysis:
+      blind:
+      - 'answers-from-run-evidence: Every checklist question must be settled with data from
+        an actual run, and reasoning about the code does not count. (SKILL.md:9)'
+      - 'single-run-ballpark-allowance: When the user asked only for a rough figure, a single
+        run is sufficient. (SKILL.md:11)'
+      - 'ballpark-keeps-error-and-work-checks: Even a rough single-run figure must still pass
+        the error check and the did-the-work-run check. (SKILL.md:11)'
+      - 'ballpark-discloses-run-count: A rough figure must state that it rests on one run.
+        (SKILL.md:11)'
+      - 'ballpark-escalates-when-suspicious: On the rough path the remaining questions may
+        be dropped unless the run''s result looks off, in which case they apply. (SKILL.md:11)'
+      - 'option-choice-excluded-from-ballpark: A measurement used to choose between options
+        can never take the rough path. (SKILL.md:11)'
+      - 'claim-written-before-measuring: Before any run, write out the exact result sentence
+        you expect to publish, including metric and dataset. (SKILL.md:15)'
+      - 'questions-test-the-claim-sentence: The checklist questions are applied against that
+        pre-written sentence rather than against the raw numbers. (SKILL.md:15)'
+      - 'read-measurement-script-first: Read the measuring script beforehand and record what
+        it times, what it counts and what it leaves out. (SKILL.md:16)'
+      - 'machine-load-precheck: Check the load average and the core count before measuring.
+        (SKILL.md:17)'
+      - 'identify-competing-load: If the machine is busy, find out which work is occupying
+        it. (SKILL.md:17)'
+      - 'interleave-under-unavoidable-noise: If the competing work cannot be stopped, interleave
+        the compared sides so both experience the same interference. (SKILL.md:17)'
+      - 'disclose-noise-interleaving: State in the report that interleaving was used because
+        of unstoppable background load. (SKILL.md:17)'
+      - 'name-the-limiter: Identify the specific resource or code path that stops the result
+        from being twice as good. (SKILL.md:21)'
+      - 'profile-in-unreported-run: Do profiling and tracing in a separate run whose numbers
+        are never reported, because instrumentation distorts timing. (SKILL.md:21)'
+      - 'per-process-cpu-signal: Inspect CPU use per process when hunting the limiter. (SKILL.md:21)'
+      - 'runtime-profiler-signal: Use a language or system profiler when hunting the limiter.
+        (SKILL.md:21)'
+      - 'io-wait-signal: Inspect I/O wait when hunting the limiter. (SKILL.md:21)'
+      - 'syscall-count-signal: Inspect system call counts when hunting the limiter. (SKILL.md:21)'
+      - 'map-hotspot-to-source: Trace the observed hot spot back to the source code responsible.
+        (SKILL.md:21)'
+      - 'load-generator-saturation-check: Monitor the load generator as well, since a saturated
+        generator means the measurement describes the generator and not the target. (SKILL.md:21)'
+      - 'limiter-before-dismissing-change: When a change leaves the number unmoved, find the
+        limiter before concluding the change has no value. (SKILL.md:21)'
+      - 'production-build-and-flags-parity: Run every side with production builds, flags and
+        environment. (SKILL.md:22)'
+      - 'production-batching-and-transaction-parity: Run every side with production batching
+        and transaction settings. (SKILL.md:22)'
+      - 'production-connection-pool-parity: Run every side with production connection pool
+        settings. (SKILL.md:22)'
+      - 'production-cache-temperature-parity: Run every side with caches as warm or as cold
+        as production has them. (SKILL.md:22)'
+      - 'same-versions-and-data-parity: Run every side on identical versions and identical
+        data. (SKILL.md:22)'
+      - 'default-config-invalidates-comparison: If one side runs on defaults, treat the result
+        as a comparison of configurations rather than of implementations. (SKILL.md:22)'
+      - 'settings-limiter-means-untuned: A limiter that turns out to be a setting, such as
+        per-row commits, a debug build or an absent index, classifies that side as untuned.
+        (SKILL.md:22)'
+      - 'tune-and-remeasure-before-winner: An untuned side must be tuned and measured again
+        before a winner is named. (SKILL.md:22)'
+      - 'no-winner-if-untunable: If tuning a side is not possible, that run may not produce
+        a winner. (SKILL.md:22)'
+      - 'no-claim-narrowing-for-adoption: When the user is deciding what to adopt, restricting
+        the claim to the current as-shipped settings does not cure an untuned comparison.
+        (SKILL.md:22)'
+      - 'bandwidth-sanity-arithmetic: Compare computed bytes per second against disk and network
+        capacity. (SKILL.md:23)'
+      - 'core-budget-sanity-arithmetic: Multiply operations per second by cost per operation
+        and compare the product against available cores. (SKILL.md:23)'
+      - 'removed-share-gain-bound: Check the claimed saving against the time the changed part
+        took, since removing a fraction of a run caps the speedup accordingly. (SKILL.md:23)'
+      - 'past-limit-means-wrong-target: A result beyond a computed limit is read as having
+        measured something else, such as a cache, a no-op or a defect. (SKILL.md:23)'
+      - 'count-failures-and-non-success: Tally failures and non-success responses, because
+        fast rejections and slow timeouts both skew timing. (SKILL.md:24)'
+      - 'verify-output-correctness: Check that outputs are correct and not merely present.
+        (SKILL.md:24)'
+      - 'add-missing-error-count: If the measuring script has no error count, add one. (SKILL.md:24)'
+      - 'minimum-five-runs-per-side: Run each compared side at least five times. (SKILL.md:25)'
+      - 'alternate-side-order: Alternate the sides run by run so warmup, lazy initialization,
+        caches and drift favor neither. (SKILL.md:25)'
+      - 'report-median-and-range: Report the median and the range across runs. (SKILL.md:25)'
+      - 'gap-under-variation-is-no-difference: A gap smaller than run-to-run variation is
+        reported as no measurable difference. (SKILL.md:25)'
+      - 'statistical-test-when-close: When the outcome is close, use a rank-sum test or the
+        statistics built into the measuring harness. (SKILL.md:25)'
+      - 'end-to-end-beside-micro: Whenever a micro result is produced, also measure the whole
+        path a user waits on. (SKILL.md:26)'
+      - 'realistic-size-and-concurrency: The end-to-end measurement uses realistic data sizes
+        and concurrency. (SKILL.md:26)'
+      - 'report-micro-as-share: Express the micro result as a proportion of the whole path.
+        (SKILL.md:26)'
+      - 'share-caps-user-visible-gain: A component''s share of a request is treated as the
+        ceiling on how much the request can improve. (SKILL.md:26)'
+      - 'confirm-work-inside-timed-region: Confirm the work executed within the timed span,
+        for example that the server got the request, rows were persisted and bytes were read.
+        (SKILL.md:27)'
+      - 'confirm-result-consumed: Confirm the code actually used the result, guarding against
+        unconsumed generators, unawaited promises and results a JIT can drop. (SKILL.md:27)'
+      - 'timeout-phantom-number-guard: Treat a number produced by a timeout as possibly describing
+        work that never ran. (SKILL.md:27)'
+      - 'verdict-first: The report opens with the verdict. (SKILL.md:31)'
+      - 'four-value-verdict-vocabulary: The verdict is one of faster, slower, no measurable
+        difference or inconclusive. (SKILL.md:31)'
+      - 'number-carries-unit-runs-range-limiter: A reported figure comes with its unit, run
+        count, range and limiter. (SKILL.md:32)'
+      - 'inconclusive-without-limiter: A claimed difference whose limiter cannot be named
+        must be called inconclusive. (SKILL.md:33)'
+      - 'inconclusive-when-side-untuned: A verdict must be inconclusive when any side ran
+        untuned. (SKILL.md:33)'
+      - 'inconclusive-without-error-or-work-check: A verdict must be inconclusive when the
+        error check or the did-the-work-run check could not be done. (SKILL.md:33)'
+      - 'name-the-gap: An inconclusive verdict states which check or condition caused it.
+        (SKILL.md:33)'
+      - 'one-primary-number-in-pr-body: A pull request description carries a single primary
+        number. (SKILL.md:34)'
+      - 'supporting-evidence-outside-pr-body: Runs, range and limiter evidence go in a linked
+        artifact or notes file rather than the pull request description. (SKILL.md:34)'
+      - 'vet-baseline-before-planning: In a performance-issue flow, the baseline is put through
+        the checklist before any plan is built from it. (SKILL.md:38)'
+      - 'vet-every-later-number: In a performance-issue flow, each number after the baseline
+        is also put through the checklist. (SKILL.md:38)'
+      - 'vet-harness-before-freeze: In an iterative optimization loop, the harness is put
+        through the checklist before it is frozen. (SKILL.md:39)'
+      - 'frozen-harness-prints-error-and-work-counts: In an iterative optimization loop, the
+        frozen harness emits error and work counts so each keep-or-revert decision gets those
+        two checks automatically. (SKILL.md:39)'
+      mapping:
+      - line: 1
+        to:
+        - run-evidence-answers
+        - confound-elimination
+        mark: split
+      - line: 2
+        to:
+        - ballpark-path
+        mark: new
+      - line: 3
+        to:
+        - ballpark-path
+        mark: new
+      - line: 4
+        to:
+        - ballpark-path
+        mark: new
+      - line: 5
+        to:
+        - ballpark-path
+        mark: new
+      - line: 6
+        to:
+        - choice-never-ballpark
+        mark: new
+      - line: 7
+        to:
+        - shipped-claim-first
+        mark: new
+      - line: 8
+        to:
+        - shipped-claim-first
+        mark: new
+      - line: 9
+        to:
+        - script-reading-first
+        mark: new
+      - line: 10
+        to:
+        - machine-load-check
+        mark: new
+      - line: 11
+        to:
+        - machine-load-check
+        mark: new
+      - line: 12
+        to:
+        - interleave-unstoppable-load
+        mark: new
+      - line: 13
+        to:
+        - interleave-unstoppable-load
+        mark: new
+      - line: 14
+        to:
+        - named-limiter
+        mark: match
+      - line: 15
+        to:
+        - unreported-profile-run
+        mark: new
+      - line: 16
+        to:
+        - per-process-cpu-read
+        mark: new
+      - line: 17
+        to:
+        - runtime-profiler-read
+        mark: new
+      - line: 18
+        to:
+        - io-wait-read
+        mark: new
+      - line: 19
+        to:
+        - syscall-count-read
+        mark: new
+      - line: 20
+        to:
+        - named-limiter
+        mark: match
+      - line: 21
+        to:
+        - load-generator-saturation
+        mark: new
+      - line: 22
+        to:
+        - limiter-before-dismissal
+        mark: new
+      - line: 23
+        to:
+        - production-parity-sides
+        mark: new
+      - line: 24
+        to:
+        - production-parity-sides
+        mark: new
+      - line: 25
+        to:
+        - production-parity-sides
+        mark: new
+      - line: 26
+        to:
+        - production-parity-sides
+        mark: new
+      - line: 27
+        to:
+        - production-parity-sides
+        mark: new
+      - line: 28
+        to:
+        - defaults-compare-configurations
+        mark: new
+      - line: 29
+        to:
+        - settings-limiter-untuned
+        mark: new
+      - line: 30
+        to:
+        - tuned-before-winner
+        mark: new
+      - line: 31
+        to:
+        - tuned-before-winner
+        mark: new
+      - line: 32
+        to:
+        - no-narrowing-for-adoption
+        mark: new
+      - line: 33
+        to:
+        - capacity-arithmetic
+        mark: new
+      - line: 34
+        to:
+        - capacity-arithmetic
+        mark: new
+      - line: 35
+        to:
+        - share-bound-on-gain
+        mark: new
+      - line: 36
+        to:
+        - capacity-arithmetic
+        mark: new
+      - line: 37
+        to:
+        - failure-count
+        mark: new
+      - line: 38
+        to:
+        - correct-output-check
+        mark: new
+      - line: 39
+        to:
+        - failure-count
+        mark: new
+      - line: 40
+        to:
+        - five-run-floor
+        mark: new
+      - line: 41
+        to:
+        - alternated-sides
+        mark: new
+      - line: 42
+        to:
+        - median-and-range-report
+        mark: new
+      - line: 43
+        to:
+        - within-variation-no-difference
+        mark: new
+      - line: 44
+        to:
+        - close-call-statistics
+        mark: new
+      - line: 45
+        to:
+        - end-to-end-share
+        mark: new
+      - line: 46
+        to:
+        - end-to-end-share
+        mark: new
+      - line: 47
+        to:
+        - end-to-end-share
+        mark: new
+      - line: 48
+        to:
+        - share-bound-on-gain
+        mark: new
+      - line: 49
+        to:
+        - work-ran-check
+        mark: new
+      - line: 50
+        to:
+        - work-ran-check
+        mark: new
+      - line: 51
+        to:
+        - work-ran-check
+        mark: new
+      - line: 52
+        to:
+        - one-verdict-first
+        mark: new
+      - line: 53
+        to:
+        - one-verdict-first
+        mark: new
+      - line: 54
+        to:
+        - evidence-with-number
+        - measurement-unit
+        mark: split
+      - line: 55
+        to:
+        - no-limiter-inconclusive
+        mark: new
+      - line: 56
+        to:
+        - untuned-side-inconclusive
+        mark: new
+      - line: 57
+        to:
+        - unchecked-run-inconclusive
+        mark: new
+      - line: 58
+        to:
+        - inconclusive-names-gap
+        mark: new
+      - line: 59
+        to:
+        - one-number-pr-body
+        mark: new
+      - line: 60
+        to:
+        - one-number-pr-body
+        mark: new
+      - line: 61
+        to:
+        - vet-at-flow-gates
+        mark: new
+      - line: 62
+        to:
+        - vet-at-flow-gates
+        mark: new
+      - line: 63
+        to:
+        - vet-at-flow-gates
+        mark: new
+      - line: 64
+        to:
+        - harness-prints-counts
+        mark: new
+    traits:
+      run-evidence-answers:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: performance-optimization
+        modification: null
+        rewording: Settle every question from a run's data, never from reading the code.
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-01
+          override: null
+        reason: 'Lands in performance-optimization, references/vetting.md. Upstream: SKILL.md:9.'
+      confound-elimination:
+        scope: new
+        change: []
+        fact: present
+        provider: principle-explain-the-number
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/principle-explain-the-number/SKILL.md:16-18
+        recommendation: adopt
+        delivery: delivered
+        target: principle-explain-the-number
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-06
+          override: null
+        reason: .claude/skills/principle-explain-the-number/SKILL.md:16-18 lists what else
+          a number could be measuring (errors, skipped or cached work, code that never ran,
+          an untuned side, noise, a share too small to matter) and has each ruled out with
+          evidence, which is the list the seven questions walk. Only the rule to settle them
+          from a run is more, and that is run-evidence-answers.
+      ballpark-path:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: performance-optimization
+        modification: null
+        rewording: 'A rough figure the user asked for: one run will do. Count errors, confirm
+          the work happened, say it was one run, and vet further only if the run looks wrong.'
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-01
+          - S-08
+          override: null
+        reason: 'Lands in performance-optimization, SKILL.md. Upstream: SKILL.md:11.'
+      choice-never-ballpark:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: performance-optimization
+        modification: null
+        rewording: A number that picks between options never takes that path.
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-06
+          override: null
+        reason: 'Lands in performance-optimization, SKILL.md. Upstream: SKILL.md:11.'
+      shipped-claim-first:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: performance-optimization
+        modification: null
+        rewording: First write the claim to publish, metric and dataset in; questions test
+          it.
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-06
+          override: null
+        reason: 'Lands in performance-optimization, references/vetting.md. Upstream: SKILL.md:15.'
+      script-reading-first:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: performance-optimization
+        modification: null
+        rewording: 'Read the measuring script: what it times, counts and skips.'
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-06
+          override: null
+        reason: 'Lands in performance-optimization, references/vetting.md. Upstream: SKILL.md:16.'
+      machine-load-check:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: performance-optimization
+        modification: null
+        rewording: Check `uptime` and `nproc`; on a busy machine, find what is running.
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-06
+          override: null
+        reason: 'Lands in performance-optimization, references/vetting.md. Upstream: SKILL.md:17.'
+      interleave-unstoppable-load:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: performance-optimization
+        modification: null
+        rewording: 'Load you cannot stop: interleave the sides and say so in the report.'
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-06
+          override: null
+        reason: 'Lands in performance-optimization, references/vetting.md. Upstream: SKILL.md:17.'
+      named-limiter:
+        scope: new
+        change: []
+        fact: present
+        provider: principle-explain-the-number
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/principle-explain-the-number/SKILL.md:13-15
+        recommendation: adopt
+        delivery: delivered
+        target: principle-explain-the-number
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-06
+          override: null
+        reason: .claude/skills/principle-explain-the-number/SKILL.md:13-15 explains a number
+          by the resource or code path that bounds it, found from a profile or counters and
+          mapped to source, not by reading code.
+      unreported-profile-run:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: performance-optimization
+        modification: null
+        rewording: Profile a separate run on the same workload; quote none of its timings.
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-06
+          override: null
+        reason: 'Lands in performance-optimization, references/vetting.md. Upstream: SKILL.md:21.'
+      per-process-cpu-read:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: performance-optimization
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-06
+          override: null
+        reason: 'Lands in performance-optimization, references/measurement-recipes.md. Upstream:
+          SKILL.md:21. Already there: .claude/skills/performance-optimization/references/measurement-recipes.md:40-41
+          reads one process''s CPU with `pidstat -u`, so the trait is listed with no new text.'
+      runtime-profiler-read:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: performance-optimization
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-06
+          override: null
+        reason: 'Lands in performance-optimization, references/measurement-recipes.md. Upstream:
+          SKILL.md:21. Already there: .claude/skills/performance-optimization/references/measurement-recipes.md:21-33
+          gives `py-spy` and `cProfile`, so the trait is listed with no new text.'
+      io-wait-read:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: performance-optimization
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-06
+          override: null
+        reason: 'Lands in performance-optimization, references/measurement-recipes.md. Upstream:
+          SKILL.md:21. Already there: .claude/skills/performance-optimization/references/measurement-recipes.md:40-41
+          reads I/O wait from `vmstat 1` and `pidstat -d`, so the trait is listed with no
+          new text.'
+      syscall-count-read:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: performance-optimization
+        modification: Into `kernel-time-syscall-count`. Only when time is going to the kernel
+          or I/O, and in a separate run whose timing is not quoted, because tracing is slow
+          and may need permission. The invocation is checked against official documentation
+          when the line is written, or the line is left out with the reason stated.
+        rewording: 'Time going to the kernel or I/O: count syscalls in a separate run you
+          do not quote (`strace -c` on Linux).'
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - S-08
+          - U-06
+          override: null
+        reason: 'Lands in performance-optimization, references/measurement-recipes.md, into
+          `kernel-time-syscall-count`. Upstream: SKILL.md:21.'
+      load-generator-saturation:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: performance-optimization
+        modification: null
+        rewording: A saturated load generator is what you measured, so watch it too.
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-06
+          override: null
+        reason: 'Lands in performance-optimization, references/vetting.md. Upstream: SKILL.md:21.'
+      limiter-before-dismissal:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: performance-optimization
+        modification: null
+        rewording: 'Number unmoved: find what bounds it before calling the change useless.'
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-06
+          override: null
+        reason: 'Lands in performance-optimization, references/vetting.md. Upstream: SKILL.md:21.'
+      production-parity-sides:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: performance-optimization
+        modification: null
+        rewording: 'Run each side as production does: release build, flags and env, batching
+          and transactions, pools, cache temperature, same versions and data.'
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-06
+          override: null
+        reason: 'Lands in performance-optimization, references/vetting.md. Upstream: SKILL.md:22.'
+      defaults-compare-configurations:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: performance-optimization
+        modification: Into `config-mismatch-comparison`. Defaults can be what production really
+          runs, so the trigger is a demonstrated mismatch with what production would use or
+          an avoidable limit, never defaults as such.
+        rewording: 'Defaults alone prove nothing: it compares configurations only on a shown
+          production mismatch or an avoidable limit.'
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - S-08
+          - U-06
+          override: null
+        reason: 'Lands in performance-optimization, references/vetting.md, into `config-mismatch-comparison`.
+          Upstream: SKILL.md:22.'
+      settings-limiter-untuned:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: performance-optimization
+        modification: null
+        rewording: 'Limited by a setting (per-row commits, debug build, missing index): untuned.'
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-06
+          override: null
+        reason: 'Lands in performance-optimization, references/vetting.md. Upstream: SKILL.md:22.'
+      tuned-before-winner:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: performance-optimization
+        modification: Into `tuned-claim-gate`. Binds a claim about the tuned implementation
+          or an adoption choice; a documented comparison of deployments as they run is a legitimate
+          claim and needs no tuning.
+        rewording: 'Claiming the tuned implementation or guiding an adoption: tune that side
+          and re-measure before a winner, else inconclusive. A documented comparison of deployments
+          as they run is a legitimate claim.'
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - S-08
+          - U-06
+          override: null
+        reason: 'Lands in performance-optimization, references/vetting.md, into `tuned-claim-gate`.
+          Upstream: SKILL.md:22.'
+      no-narrowing-for-adoption:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: performance-optimization
+        modification: null
+        rewording: Then narrowing the claim to today's settings cures nothing.
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-06
+          override: null
+        reason: 'Lands in performance-optimization, references/vetting.md. Upstream: SKILL.md:22.'
+      capacity-arithmetic:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: performance-optimization
+        modification: null
+        rewording: 'Arithmetic: bytes/s against disk and network, ops/s times cost per op
+          against cores. Past a limit, it measured a cache, a no-op or a defect.'
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-06
+          override: null
+        reason: 'Lands in performance-optimization, references/vetting.md. Upstream: SKILL.md:23.'
+      share-bound-on-gain:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: performance-optimization
+        modification: null
+        rewording: For 0 <= f < 1, removing fraction f of elapsed time cuts it at most f and
+          speeds throughput at most 1/(1-f); say which a percentage is.
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-06
+          override: null
+        reason: 'Lands in performance-optimization, references/vetting.md. Upstream: SKILL.md:23,
+          26.'
+      failure-count:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: performance-optimization
+        modification: null
+        rewording: Count failures and non-success responses, adding a count if absent.
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-06
+          override: null
+        reason: 'Lands in performance-optimization, references/vetting.md. Upstream: SKILL.md:24.'
+      correct-output-check:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: performance-optimization
+        modification: null
+        rewording: Check outputs are right, not only there.
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-06
+          override: null
+        reason: 'Lands in performance-optimization, references/vetting.md. Upstream: SKILL.md:24.'
+      five-run-floor:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: performance-optimization
+        modification: Into `comparison-run-floor`. Keeps the floor for a comparison, allows
+          fewer when a run's cost is stated as the reason, and says a floor does not prove
+          significance, which keeps the skill's stance that no fixed repeat count does.
+        rewording: A comparison takes at least 5 runs a side unless a run's cost is the stated
+          reason; a floor proves no significance.
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - S-08
+          - U-06
+          override: null
+        reason: 'Lands in performance-optimization, references/vetting.md, into `comparison-run-floor`.
+          Upstream: SKILL.md:25.'
+      alternated-sides:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: performance-optimization
+        modification: null
+        rewording: Alternate the sides (ABAB) so warmup, caches and drift favour neither.
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-06
+          override: null
+        reason: 'Lands in performance-optimization, references/vetting.md. Upstream: SKILL.md:25.'
+      median-and-range-report:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: performance-optimization
+        modification: null
+        rewording: Report median and range; range describes runs, so never decide from it.
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-06
+          override: null
+        reason: 'Lands in performance-optimization, references/vetting.md. Upstream: SKILL.md:25.'
+      within-variation-no-difference:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: performance-optimization
+        modification: 'Into `resolved-no-difference`. Replaces the raw-variation test, because
+          run spread is not the uncertainty of the estimated difference: the verdict rests
+          on an interval for the reported difference against a margin chosen before running.
+          The margin is what would matter to the decision; the noise floor at .claude/skills/principle-explain-the-number/SKILL.md:11-12
+          is what a result must clear to be believed, so they are different numbers. Rank-sum
+          stays supplementary evidence.'
+        rewording: 'Choose a margin before running: what would matter to the decision, not
+          the principle''s noise floor. Estimate an interval for the reported difference by
+          a method fit for the statistic and how the runs were sampled.'
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-06
+          - S-08
+          override: null
+        reason: 'Lands in performance-optimization, references/vetting.md, into `resolved-no-difference`.
+          Upstream: SKILL.md:25.'
+      close-call-statistics:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: performance-optimization
+        modification: null
+        rewording: 'Close call: rank-sum or harness statistics support; the interval decides.'
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-06
+          override: null
+        reason: 'Lands in performance-optimization, references/vetting.md. Upstream: SKILL.md:25.'
+      end-to-end-share:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: performance-optimization
+        modification: null
+        rewording: Beside a micro result, measure the whole path a user waits on at realistic
+          sizes and concurrency; give the micro result as its share.
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-06
+          override: null
+        reason: 'Lands in performance-optimization, references/vetting.md. Upstream: SKILL.md:26.'
+      work-ran-check:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: performance-optimization
+        modification: null
+        rewording: 'Prove the work happened in the timed span and its result got used: lazy
+          code, discarded results and timeouts give numbers for nothing.'
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-06
+          override: null
+        reason: 'Lands in performance-optimization, references/vetting.md. Upstream: SKILL.md:27.'
+      one-verdict-first:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: performance-optimization
+        modification: null
+        rewording: 'Open with one verdict: faster or slower only if the whole interval lies
+          beyond the margin on that side; no measurable difference only if wholly inside it,
+          which establishes equivalence; else inconclusive, like noise.'
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-06
+          override: null
+        reason: 'Lands in performance-optimization, references/vetting.md. Upstream: SKILL.md:31.'
+      evidence-with-number:
+        scope: new
+        change: []
+        fact: present
+        provider: principle-explain-the-number
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/principle-explain-the-number/SKILL.md:19
+        recommendation: adopt
+        delivery: delivered
+        target: principle-explain-the-number
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-06
+          override: null
+        reason: .claude/skills/principle-explain-the-number/SKILL.md:19 has a reported number
+          carry its run count, its spread and its limiter. It names no unit, so `measurement-unit`
+          is a row of its own.
+      measurement-unit:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: performance-optimization
+        modification: null
+        rewording: Give every reported number its unit.
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-06
+          override: null
+        reason: 'Lands in performance-optimization, references/vetting.md. Upstream: SKILL.md:32.'
+      no-limiter-inconclusive:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: performance-optimization
+        modification: null
+        rewording: A reported difference with no named limiter is inconclusive.
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-06
+          override: null
+        reason: 'Lands in performance-optimization, references/vetting.md. Upstream: SKILL.md:33.'
+      untuned-side-inconclusive:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: performance-optimization
+        modification: Into `tuned-claim-gate`. Binds a claim about the tuned implementation
+          or an adoption choice; a documented comparison of deployments as they run may report
+          its verdict.
+        rewording: 'Claiming the tuned implementation or guiding an adoption: tune that side
+          and re-measure before a winner, else inconclusive. A documented comparison of deployments
+          as they run is a legitimate claim.'
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - S-08
+          - U-06
+          override: null
+        reason: 'Lands in performance-optimization, references/vetting.md, into `tuned-claim-gate`.
+          Upstream: SKILL.md:33.'
+      unchecked-run-inconclusive:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: performance-optimization
+        modification: null
+        rewording: So is a run whose error or work check could not run.
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-06
+          override: null
+        reason: 'Lands in performance-optimization, references/vetting.md. Upstream: SKILL.md:33.'
+      inconclusive-names-gap:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: performance-optimization
+        modification: null
+        rewording: An inconclusive verdict names what caused it.
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-06
+          override: null
+        reason: 'Lands in performance-optimization, references/vetting.md. Upstream: SKILL.md:33.'
+      one-number-pr-body:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: We adopt a pull request flow with CI.
+        policy: null
+        guide: null
+        reason: 'We have no pull request flow: docs/workstreams/skill-curation/playbook-map.md
+          §2.13 defers those sections, and `land` carries the number in a commit body or report.'
+      vet-at-flow-gates:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'The vetting branch of performance-optimization will open with this condition
+          (report, compare, freeze or act on a number) and the playbooks'' steps hold the
+          order (.repo-context/unit-kinds.md T3: a call is not a trait), so a sentence naming
+          the playbooks adds no behaviour.'
+      harness-prints-counts:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: performance-optimization
+        modification: null
+        rewording: A frozen harness reports error and work counts for each keep-or-undo.
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-06
+          override: null
+        reason: 'Lands in performance-optimization, references/vetting.md. Upstream: SKILL.md:39.'
+  skill:pstack/skills/show-me-your-work:
+    upstream_tree_hash: 930a002ef775753f56b0a766aa47d9416965207fe54491d92d3021450bd0b698
+    accepted: null
+    compared_with: none
+    pairing:
+      overlap:
+        doc:.repo-context/coding-style.md: 1
+      placement_match:
+      - beads
+      suggested: beads
+      purpose_match: none
+      purpose: Upstream keeps a reviewable decision log for a long run, audited and independently
+        reviewed. Ours has no unit for this until decision-trail is built.
+      flag: suggested differs
+      reason: 'Compared with none: decision-trail, the row target, does not exist yet, and
+        --with takes only an existing skill. Suggested beads by the computed signals only.'
+    analysis:
+      blind:
+      - 'single-canonical-log: Work keeps exactly one authoritative decision log. (SKILL.md:9)'
+      - 'tsv-one-row-per-decision: The log is one tab-separated file where each decision takes
+        one row. (SKILL.md:13)'
+      - 'single-line-cells: No cell may span more than one line. (SKILL.md:13)'
+      - 'evidence-as-pointer: The evidence cell holds a resolvable reference such as a commit,
+        PR number, file and line, or artifact, trace or screenshot path, and never narrative.
+        (SKILL.md:13, SKILL.md:21)'
+      - 'header-template-seed: A new log starts from a supplied file holding only the header
+        row. (SKILL.md:15, references/decision-log-template.tsv:1)'
+      - 'six-column-schema: Rows have the fixed columns timestamp, phase, decision, why, evidence
+        and result. (SKILL.md:17-22, references/decision-log-template.tsv:1)'
+      - 'iso8601-timestamp-column: The timestamp column uses ISO8601. (SKILL.md:17)'
+      - 'phase-or-workstream-column: A column attributes each row to its phase or workstream.
+        (SKILL.md:18)'
+      - 'one-line-decision-column: The decision column says in one line what was chosen or
+        done. (SKILL.md:19)'
+      - 'plain-reason-column: The why column gives the reason plainly, and a guiding principle
+        is spelled out instead of cited as a jargon tag. (SKILL.md:20)'
+      - 'result-as-outcome-or-predicate-state: The result column records an outcome or a state
+        such as passing tests, reverted, zero visual diff, inconclusive or open. (SKILL.md:22)'
+      - 'worked-example-rows: A sample log shows the expected plain style, including a row
+        for discarding a helper''s output after checking the real files. (SKILL.md:26-32)'
+      - 'teammate-voice-log-text: Rows are written as you would describe the action to a colleague,
+        in concrete terms and free of machine-sounding or abstract language. (SKILL.md:36)'
+      - 'helper-script-for-rows: A script takes the log path and five cell values and appends
+        a well-formed row. (SKILL.md:38, scripts/log.sh:1-3)'
+      - 'manual-append-sanitization-caveat: Appending by hand is allowed, but cells from generated
+        or user-supplied text need the same byte-level care the script applies. (SKILL.md:38)'
+      - 'log-decision-points-not-actions: Rows are for decision points and checkpoints, not
+        for each action taken. (SKILL.md:40)'
+      - 'checkpoint-row-categories: Row-worthy events are a chosen fork, a finished unit with
+        its verification result, a pivot or revert with its cause, a surfaced blocker and
+        a fixed gate. (SKILL.md:40)'
+      - 'one-row-per-loop-iteration: Looping runs write one row for each iteration. (SKILL.md:40)'
+      - 'skip-trivial-rows: Trivial or self-evident steps get no row. (SKILL.md:40)'
+      - 'strict-shell-failure-mode: The script aborts on any command failure, unset variable
+        or pipeline failure. (scripts/log.sh:4)'
+      - 'argument-count-guard: The script prints usage and exits non-zero unless given exactly
+        six arguments. (scripts/log.sh:6-9)'
+      - 'auto-create-log-directory: The script creates the log''s parent directory when it
+        is missing. (scripts/log.sh:14-17)'
+      - 'header-on-empty-log: The script writes the header row when the log is missing or
+        empty. (scripts/log.sh:21-23)'
+      - 'header-write-never-truncates: The header is written in append mode, so a false empty-file
+        test on a network mount costs a stray header and no rows. (scripts/log.sh:19-22)'
+      - 'automatic-utc-timestamp: The script stamps each row with the current UTC time so
+        the caller does not supply it. (scripts/log.sh:25)'
+      - 'strip-cell-control-whitespace: The script replaces tabs, newlines and carriage returns
+        in each cell with spaces. (scripts/log.sh:26, scripts/log.sh:34)'
+      - 'spreadsheet-formula-neutralization: The script prefixes a single quote to any cell
+        starting with a formula-triggering character, so hostile evidence text cannot execute
+        when opened in a spreadsheet. (SKILL.md:38, scripts/log.sh:26-38)'
+      - 'append-only-row-write: The script adds the row with an append redirect. (scripts/log.sh:40-42)'
+      - 'run-boundary-definition: A run is one agent conversation with its later turns and
+        summaries, while a pickup, replacement agent or new chat counts as a new run. (SKILL.md:42)'
+      - 'start-row-on-existing-log: A run adding to a log that already has rows first writes
+        a row with the phase `start`. (SKILL.md:42)'
+      - 'start-row-after-foreign-start: A run writes a fresh `start` row when its next row
+        follows another run''s `start` row. (SKILL.md:42)'
+      - 'reread-log-tail-on-return: A run returning to a log in a later turn first reads the
+        last rows to detect writes by other runs. (SKILL.md:42)'
+      - 'start-row-names-foreign-range: A `start` row records the timestamp range of the preceding
+        rows that this run did not write. (SKILL.md:42)'
+      - 'start-row-evidence-identifies-run: The evidence cell of a `start` row identifies
+        the current run, for example by agent id. (SKILL.md:42)'
+      - 'reserved-start-phase: The phase value `start` is used for no other purpose. (SKILL.md:42)'
+      - 'uncommitted-working-artifact-default: By default the log is a working file kept out
+        of version control. (SKILL.md:46)'
+      - 'default-log-path: The default location is a fixed-name TSV in the work directory.
+        (SKILL.md:46)'
+      - 'per-task-path-when-concurrent: When several efforts run at once, each log goes in
+        a hidden audit directory under a task-slug filename. (SKILL.md:46)'
+      - 'commit-only-for-reviewer-trust: The log is committed only when the work is ambitious
+        enough that a reviewer needs the trail to trust the outcome. (SKILL.md:48)'
+      - 'append-only-history: Rows are never edited or deleted, and a wrong call is corrected
+        by a later row that supersedes it. (SKILL.md:52)'
+      - 'prefer-committed-script-evidence: Evidence generated by committed scripts is favored
+        over hand-made one-off evidence. (SKILL.md:53)'
+      - 'end-of-run-log-audit: Before handing back, the run checks its log for truthfulness
+        against what happened. (SKILL.md:57)'
+      - 'audit-reads-own-transcript: The audit uses this run''s transcript from the active
+        workspace''s transcript directory, whose location comes from the system prompt. (SKILL.md:57)'
+      - 'no-cross-project-transcript-glob: The audit must not search across all project transcript
+        folders, because that exposes unrelated private conversations. (SKILL.md:57)'
+      - 'audit-scoped-to-own-stretches: The audit covers only the row stretches belonging
+        to this run, delimited by its `start` rows or the log''s first row and the next `start`
+        row of another run. (SKILL.md:57, SKILL.md:63)'
+      - 'row-maps-to-real-event: Each audited row must correspond to a decision or action
+        that actually occurred. (SKILL.md:59)'
+      - 'evidence-resolves-and-supports: Each audited row''s evidence must resolve and must
+        show what the row asserts. (SKILL.md:60)'
+      - 'unlogged-fork-is-gap: A fork, pivot or abandoned path that shaped the work without
+        a row is a gap that the audit adds. (SKILL.md:61)'
+      - 'audit-corrects-by-superseding: The audit changes nothing in place, even for an invented
+        row, and instead adds a superseding row stating what really happened with a resolving
+        pointer. (SKILL.md:63)'
+      - 'supersede-foreign-row-on-evidence: A row outside the audited stretches is superseded
+        only when this run''s own work shows it to be wrong. (SKILL.md:63)'
+      - 'different-model-family-reviewer: Before handing back, a subagent from a different
+        model family reviews the run, and the author''s self-review does not replace it. (SKILL.md:67)'
+      - 'reviewer-reads-trail-and-transcript: The reviewer''s inputs are the audit trail and
+        the run''s transcript. (SKILL.md:67)'
+      - 'attention-scan-not-redo: The reviewer looks for what is suboptimal or risky for the
+        user''s attention and does not repeat the work. (SKILL.md:67)'
+      - 'reviewer-effort-and-speed-choice: Each reviewer''s reasoning level and speed tier
+        are chosen to suit the job. (SKILL.md:67)'
+      - 'flag-weak-evidence: The reviewer flags logged decisions with thin or missing evidence.
+        (SKILL.md:69)'
+      - 'flag-unproven-verification: The reviewer flags verification that was skipped or claimed
+        without proof in the transcript. (SKILL.md:70)'
+      - 'flag-hindsight-risky-choices: The reviewer flags choices that look premature, scope-expanding
+        or symptom-masking in hindsight. (SKILL.md:71)'
+      - 'flag-skim-invisible-gaps: The reviewer flags gaps a user would miss on a casual read.
+        (SKILL.md:72)'
+      - 'attention-section-closes-reply: Every reply for a run that produced a trail ends
+        with a section called Attention. (SKILL.md:74)'
+      - 'reviewer-model-name-line: The Attention section opens with a line of its own naming
+        the reviewer''s model. (SKILL.md:74)'
+      - 'flags-point-to-rows-or-moments: Each listed flag cites specific rows or moments.
+        (SKILL.md:74)'
+      - 'no-flags-allowed-model-name-required: An empty flag list is acceptable, but the reviewer''s
+        model name may not be omitted. (SKILL.md:74)'
+      - 'reader-walkthrough-method: A human reviewer reads from top to bottom, follows the
+        evidence pointers and spot-checks. (SKILL.md:78)'
+      - 'github-table-rendering: Committing the TSV gives reviewers a table view on GitHub.
+        (SKILL.md:78)'
+      - 'terminal-column-rendering: The `column` command with a tab separator displays the
+        log as a table in a terminal. (SKILL.md:78)'
+      - 'single-owner-of-trail-format: Other skills needing an audit trail refer to this one
+        by name and do not define their own trail or repeat its columns. (SKILL.md:82)'
+      mapping:
+      - line: 1
+        to:
+        - single-tsv-decision-log
+        mark: new
+      - line: 2
+        to:
+        - single-tsv-decision-log
+        mark: new
+      - line: 3
+        to:
+        - single-tsv-decision-log
+        mark: new
+      - line: 4
+        to:
+        - evidence-pointer-cell
+        mark: new
+      - line: 5
+        to:
+        - trail-header-template
+        mark: new
+      - line: 6
+        to:
+        - trail-six-columns
+        mark: new
+      - line: 7
+        to:
+        - trail-six-columns
+        mark: new
+      - line: 8
+        to:
+        - trail-six-columns
+        mark: new
+      - line: 9
+        to:
+        - trail-six-columns
+        mark: new
+      - line: 10
+        to:
+        - plain-row-wording
+        mark: new
+      - line: 11
+        to:
+        - trail-six-columns
+        mark: new
+      - line: 12
+        to:
+        - trail-sample-rows
+        mark: new
+      - line: 13
+        to:
+        - plain-row-wording
+        mark: new
+      - line: 14
+        to:
+        - positional-row-helper
+        mark: new
+      - line: 15
+        to:
+        - hand-append-caveat
+        mark: new
+      - line: 16
+        to:
+        - decision-points-only
+        mark: new
+      - line: 17
+        to:
+        - decision-points-only
+        mark: new
+      - line: 18
+        to:
+        - row-per-iteration
+        mark: new
+      - line: 19
+        to:
+        - decision-points-only
+        mark: new
+      - line: 20
+        to:
+        - helper-aborts-on-failure
+        mark: new
+      - line: 21
+        to:
+        - positional-row-helper
+        mark: new
+      - line: 22
+        to:
+        - creates-log-parent
+        mark: new
+      - line: 23
+        to:
+        - header-on-empty-file
+        mark: new
+      - line: 24
+        to:
+        - append-mode-writes
+        mark: new
+      - line: 25
+        to:
+        - automatic-utc-stamp
+        mark: new
+      - line: 26
+        to:
+        - cell-whitespace-strip
+        mark: new
+      - line: 27
+        to:
+        - formula-cell-quote
+        mark: new
+      - line: 28
+        to:
+        - append-mode-writes
+        mark: new
+      - line: 29
+        to:
+        - run-boundary
+        mark: new
+      - line: 30
+        to:
+        - start-row-triggers
+        mark: new
+      - line: 31
+        to:
+        - start-row-triggers
+        mark: new
+      - line: 32
+        to:
+        - start-row-triggers
+        mark: new
+      - line: 33
+        to:
+        - start-row-contents
+        mark: new
+      - line: 34
+        to:
+        - start-row-contents
+        mark: new
+      - line: 35
+        to:
+        - start-row-contents
+        mark: new
+      - line: 36
+        to:
+        - local-log-default
+        mark: new
+      - line: 37
+        to:
+        - local-log-default
+        mark: new
+      - line: 38
+        to:
+        - local-log-default
+        mark: new
+      - line: 39
+        to:
+        - commit-on-reviewer-need
+        mark: new
+      - line: 40
+        to:
+        - append-only-supersede
+        mark: match
+      - line: 41
+        to:
+        - script-evidence-preference
+        mark: new
+      - line: 42
+        to:
+        - end-of-run-audit
+        mark: new
+      - line: 43
+        to:
+        - transcript-path-audit
+        mark: new
+      - line: 44
+        to:
+        - no-cross-project-transcript-search
+        mark: new
+      - line: 45
+        to:
+        - audit-own-stretches
+        mark: new
+      - line: 46
+        to:
+        - row-maps-to-real-event
+        mark: new
+      - line: 47
+        to:
+        - evidence-resolves-check
+        mark: new
+      - line: 48
+        to:
+        - unlogged-fork-gap
+        mark: new
+      - line: 49
+        to:
+        - audit-supersedes-in-place-of-editing
+        mark: new
+      - line: 50
+        to:
+        - foreign-row-on-own-evidence
+        mark: new
+      - line: 51
+        to:
+        - other-family-trail-review
+        mark: new
+      - line: 52
+        to:
+        - trail-and-transcript-review
+        mark: new
+      - line: 53
+        to:
+        - attention-scan-not-redo
+        mark: new
+      - line: 54
+        to:
+        - job-fit-helper-effort
+        mark: match
+      - line: 55
+        to:
+        - trail-review-flags
+        mark: new
+      - line: 56
+        to:
+        - trail-review-flags
+        mark: new
+      - line: 57
+        to:
+        - trail-review-flags
+        mark: new
+      - line: 58
+        to:
+        - trail-review-flags
+        mark: new
+      - line: 59
+        to:
+        - attention-section
+        mark: new
+      - line: 60
+        to:
+        - attention-section
+        mark: new
+      - line: 61
+        to:
+        - attention-section
+        mark: new
+      - line: 62
+        to:
+        - attention-section
+        mark: new
+      - line: 63
+        to:
+        - trail-reading-method
+        mark: new
+      - line: 64
+        to:
+        - trail-rendering-tips
+        mark: new
+      - line: 65
+        to:
+        - trail-rendering-tips
+        mark: new
+      - line: 66
+        to:
+        - single-trail-format-owner
+        mark: new
+    traits:
+      single-tsv-decision-log:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: decision-trail
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-01
+          override: null
+        reason: 'Lands in decision-trail, SKILL.md. Upstream: SKILL.md:9, 13.'
+      evidence-pointer-cell:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: decision-trail
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-01
+          override: null
+        reason: 'Lands in decision-trail, SKILL.md. Upstream: SKILL.md:13, 21.'
+      trail-header-template:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: The helper writes the header on an empty log, which is what the template file
+          exists to give, and decision-trail needs no reference file for it (`locked-single-header`).
+      trail-six-columns:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: decision-trail
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-01
+          override: null
+        reason: 'Lands in decision-trail, SKILL.md. Upstream: SKILL.md:17-22, references/decision-log-template.tsv:1.'
+      trail-sample-rows:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: '`plain-row-wording` and the column list state what a row holds; a sample
+          adds no gate and costs lines in a skill held to 75.'
+      plain-row-wording:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: decision-trail
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-06
+          override: null
+        reason: 'Lands in decision-trail, SKILL.md. Upstream: SKILL.md:20, 36.'
+      positional-row-helper:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: decision-trail
+        modification: Into `named-cell-row-helper`. Named cells replace positions so order
+          cannot drift, and caller columns are declared; a bad, missing or unknown cell fails
+          and writes nothing.
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-09
+          override: null
+        reason: 'Lands in decision-trail, scripts/log_row.py, into `named-cell-row-helper`.
+          Upstream: SKILL.md:38, scripts/log.sh:1-9.'
+      hand-append-caveat:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Rows go through the helper, so its cell handling lives in one place and no
+          second way to append needs its own warning.
+      decision-points-only:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: decision-trail
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-01
+          override: null
+        reason: 'Lands in decision-trail, SKILL.md. Upstream: SKILL.md:40.'
+      row-per-iteration:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: decision-trail
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-01
+          override: null
+        reason: 'Lands in decision-trail, SKILL.md. Upstream: SKILL.md:40.'
+      helper-aborts-on-failure:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: decision-trail's helper is Python, where a failure raises and stops by default;
+          the shell mode has nothing to do there.
+      creates-log-parent:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: decision-trail
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-09
+          override: null
+        reason: 'Lands in decision-trail, scripts/log_row.py. Upstream: scripts/log.sh:14-17.'
+      header-on-empty-file:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: decision-trail
+        modification: Into `locked-single-header`. An exclusive lock around read and append
+          makes simultaneous first writers produce one header, and rows never interleave.
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-09
+          override: null
+        reason: 'Lands in decision-trail, scripts/log_row.py, into `locked-single-header`.
+          Upstream: scripts/log.sh:21-23.'
+      append-mode-writes:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: decision-trail
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-09
+          override: null
+        reason: 'Lands in decision-trail, scripts/log_row.py. Upstream: scripts/log.sh:19-22,
+          40-42.'
+      automatic-utc-stamp:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: decision-trail
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-09
+          override: null
+        reason: 'Lands in decision-trail, scripts/log_row.py. Upstream: scripts/log.sh:25.'
+      cell-whitespace-strip:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: decision-trail
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-09
+          override: null
+        reason: 'Lands in decision-trail, scripts/log_row.py. Upstream: scripts/log.sh:26,
+          34.'
+      formula-cell-quote:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: decision-trail
+        modification: Into `numeric-safe-formula-quote`. A plain signed number or percentage
+          stays unquoted, because the upstream guard turns a `-12%` delta into `'-12%`.
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-09
+          override: null
+        reason: 'Lands in decision-trail, scripts/log_row.py, into `numeric-safe-formula-quote`.
+          Upstream: SKILL.md:38, scripts/log.sh:26-38.'
+      run-boundary:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: decision-trail
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-01
+          override: null
+        reason: 'Lands in decision-trail, SKILL.md. Upstream: SKILL.md:42.'
+      start-row-triggers:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: decision-trail
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-01
+          override: null
+        reason: 'Lands in decision-trail, SKILL.md. Upstream: SKILL.md:42.'
+      start-row-contents:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: decision-trail
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-01
+          override: null
+        reason: 'Lands in decision-trail, SKILL.md. Upstream: SKILL.md:42.'
+      local-log-default:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: decision-trail
+        modification: Into `trail-location-rule`. Replaces the fixed paths with the caller's
+          path, then an ignored scratch path by slug, then Git's own directory, then the working
+          folder, which the reply names, because a plugin-only install has no ignored scratch
+          folder.
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-01
+          override: null
+        reason: 'Lands in decision-trail, SKILL.md, into `trail-location-rule`. Upstream:
+          SKILL.md:46.'
+      commit-on-reviewer-need:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: decision-trail
+        modification: Into `proposed-trail-commit`. Committing becomes a proposal needing
+          commit authority.
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-06
+          override: null
+        reason: 'Lands in decision-trail, SKILL.md, into `proposed-trail-commit`. Upstream:
+          SKILL.md:48.'
+      append-only-supersede:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          doc:.repo-context/coding-style.md: present
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: decision-trail
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-01
+          override: null
+        reason: 'Lands in decision-trail, SKILL.md. Upstream: SKILL.md:52. The whole mechanism
+          matches: a decision log''s rows are its records.'
+      script-evidence-preference:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Declined on purpose: other adequate evidence is accepted, so a trail may
+          point at hand-made evidence. `tool-when-it-pays` only decides whether to build a
+          tool and does not cover this preference.'
+      end-of-run-audit:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: decision-trail
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-01
+          override: null
+        reason: 'Lands in decision-trail, SKILL.md. Upstream: SKILL.md:57.'
+      transcript-path-audit:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'docs/workstreams/skill-curation/playbook-map.md §3.2 rejects that path: it
+          exists on one vendor only. A named, verified record takes its place in `verified-record-row-walk`.'
+      no-cross-project-transcript-search:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: decision-trail
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-06
+          override: null
+        reason: 'Lands in decision-trail, SKILL.md. Upstream: SKILL.md:57.'
+      audit-own-stretches:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: decision-trail
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-01
+          override: null
+        reason: 'Lands in decision-trail, SKILL.md. Upstream: SKILL.md:57, 63.'
+      row-maps-to-real-event:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: decision-trail
+        modification: Into `verified-record-row-walk`. Runs only against an event record the
+          caller names, verified and scoped to this workspace; without one, the reply says
+          this check was unavailable.
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-01
+          override: null
+        reason: 'Lands in decision-trail, SKILL.md, into `verified-record-row-walk`. Upstream:
+          SKILL.md:59.'
+      evidence-resolves-check:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: decision-trail
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-01
+          override: null
+        reason: 'Lands in decision-trail, SKILL.md. Upstream: SKILL.md:60.'
+      unlogged-fork-gap:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: decision-trail
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-01
+          override: null
+        reason: 'Lands in decision-trail, SKILL.md. Upstream: SKILL.md:61.'
+      audit-supersedes-in-place-of-editing:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: decision-trail
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-01
+          override: null
+        reason: 'Lands in decision-trail, SKILL.md. Upstream: SKILL.md:63.'
+      foreign-row-on-own-evidence:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: decision-trail
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-04
+          override: null
+        reason: 'Lands in decision-trail, SKILL.md. Upstream: SKILL.md:63.'
+      other-family-trail-review:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: decision-trail
+        modification: 'Into `same-family-or-unreviewed`. Adds the two cases upstream leaves
+          open: a same-family critic with the owner''s approval, and `not reviewed` with its
+          reason when none can run. A delegate reports the review as owed to its parent.'
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: conflict
+          rules:
+          - C-12
+          - C-14
+          override:
+            ruling: docs/workstreams/skill-curation/playbook-map.md §7.2 ruling 9
+            date: '2026-11-01'
+        reason: 'Lands in decision-trail, SKILL.md, into `same-family-or-unreviewed`. Upstream:
+          SKILL.md:67.'
+      trail-and-transcript-review:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: decision-trail
+        modification: Into `evidence-pointer-review`. With no verified record, the critic
+          reads the trail and the evidence each row points at; with a verified workspace-scoped
+          record, the trail and that record.
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-07
+          override: null
+        reason: 'Lands in decision-trail, SKILL.md, into `evidence-pointer-review`. Upstream:
+          SKILL.md:67.'
+      attention-scan-not-redo:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: decision-trail
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-07
+          - U-04
+          override: null
+        reason: 'Lands in decision-trail, SKILL.md. Upstream: SKILL.md:67.'
+      job-fit-helper-effort:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: AGENTS.md "use configured models and reasoning effort" holds (configured-model-use).
+      trail-review-flags:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: decision-trail
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-07
+          override: null
+        reason: 'Lands in decision-trail, SKILL.md. Upstream: SKILL.md:69-72.'
+      attention-section:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: decision-trail
+        modification: Into `attention-with-coverage`. Also allows `not reviewed` with its
+          reason in place of a model, and after an evidence-pointer review names transcript
+          coverage and unlogged-fork detection as unavailable.
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-05
+          override: null
+        reason: 'Lands in decision-trail, SKILL.md, into `attention-with-coverage`. Upstream:
+          SKILL.md:74.'
+      trail-reading-method:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Advice to a human reader, in a file only an agent loads; the critic's job
+          is set by `evidence-pointer-review`.
+      trail-rendering-tips:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Two display tips with no gate; a committed trail is the exception and `column`
+          needs no instruction.
+      single-trail-format-owner:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: '.repo-context/unit-kinds.md T3 already gives this: a caller holds no callee''s
+          traits, and the helper refuses a caller''s column that collides with a fixed one.'

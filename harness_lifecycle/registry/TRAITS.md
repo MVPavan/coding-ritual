@@ -350,6 +350,42 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `repeated-procedures`: Capture short repeated runs as disposable wisps and fixed multi-step procedures as poured formulas, checking what the tracker actually parsed.
 - `dolt-sync`: Treat the versioned database as the source of truth and the exported jsonl as a review mirror, syncing copies only with authority.
 
+#### core · X · Continuity — decision-trail
+- `single-tsv-decision-log`: Keep one authoritative decision log as a single TSV file with one single-line row per decision.
+- `evidence-pointer-cell`: Make a row's evidence cell a resolvable pointer such as a commit, pull request, file and line or artifact path, never narrative.
+- `trail-six-columns`: Give every row the fixed columns ts in ISO8601, phase or workstream, the decision in one line, why, evidence, and result as an outcome or state.
+- `caller-trail-columns`: Let a caller add declared columns after a trail's fixed ones, the same set on every call.
+- `plain-row-wording`: Write rows the way you would tell a colleague, in concrete words, spelling a guiding principle out in place of citing it as a tag.
+- `named-cell-row-helper`: Append rows through a helper that takes named cells and declared extra columns, and writes nothing when a cell is missing, unknown or undeclared.
+- `decision-points-only`: Log decision points and checkpoints (a chosen fork, a finished unit with its verification, a pivot or revert with its cause, a surfaced blocker, a fixed gate), never each action or a self-evident step.
+- `row-per-iteration`: Have a looping run write one row for each iteration.
+- `creates-log-parent`: Have the log helper create a missing parent directory.
+- `locked-single-header`: Hold an exclusive lock across reading and appending, so simultaneous first writers make one header and rows never interleave.
+- `append-mode-writes`: Write the header and rows only in append mode, so a false empty-file test costs a stray header and never the rows.
+- `automatic-utc-stamp`: Have the log helper stamp each row with the current UTC time so the caller supplies none.
+- `cell-whitespace-strip`: Replace tabs, newlines and carriage returns in each cell with spaces.
+- `numeric-safe-formula-quote`: Quote a cell starting with a character a spreadsheet parses as a formula, unless it is a plain signed number or percentage.
+- `run-boundary`: Count one agent conversation with its later turns and summaries as one run, and a pickup, replacement agent or new chat as a new one.
+- `start-row-triggers`: Have a run adding to a log with rows write a `start` row first, and on returning read the log's tail and write a fresh one if another run's `start` has appeared.
+- `start-row-contents`: Have a `start` row name the timestamp range of the rows this run did not write and identify this run in its evidence, using the `start` phase for nothing else.
+- `trail-location-rule`: Keep a trail at the caller's path, else at an ignored scratch path by slug, else in Git's own directory, and outside Git in the working folder, saying so in the reply.
+- `proposed-trail-commit`: Propose committing a trail only when a reviewer needs it to trust the outcome, and commit only with authority.
+- `append-only-supersede`: Never edit or delete a ledger record; correct or reverse one by appending a record that supersedes it.
+- `end-of-run-audit`: Before handing back, check the log for truthfulness against what happened in the run.
+- `no-cross-project-transcript-search`: Never search across project transcript folders during an audit, because that exposes unrelated private conversations.
+- `audit-own-stretches`: Limit an audit to this run's row stretches, each from one of its `start` rows or the log's first row to the next `start` row of another run.
+- `verified-record-row-walk`: Check each audited row against a real event only in an event record the caller names, verified and scoped to this workspace.
+- `evidence-resolves-check`: Check that each audited row's pointer resolves and supports what the row says.
+- `unlogged-fork-gap`: Treat a fork, pivot or abandoned path that shaped the work with no row as a gap, and add the row in the audit.
+- `audit-supersedes-in-place-of-editing`: Have an audit change no row, even an invented one, and add a row superseding it with what really happened and a pointer that resolves.
+- `foreign-row-on-own-evidence`: Supersede a row outside the audited stretches only when this run's own work shows it to be wrong.
+- `same-family-or-unreviewed`: Have a critic from another model family review the trail before hand-back, one of the same family only with the owner's approval, and otherwise report it not reviewed, never reviewing your own run.
+- `evidence-pointer-review`: Give a trail's critic the trail and the evidence each row points at, or the trail and a verified workspace-scoped record when one is named.
+- `attention-scan-not-redo`: Have the trail's reviewer look for what is suboptimal or risky for the user's attention and not repeat the work.
+- `trail-review-flags`: Have the trail's reviewer flag weak or absent evidence, checks skipped or claimed without proof, choices risky in hindsight, and gaps a casual read would miss.
+- `attention-with-coverage`: End a reply with Attention naming the reviewer or `not reviewed` with its reason, each flag with its rows or no flags, and, after an evidence-pointer review, transcript coverage and unlogged-fork detection as unavailable.
+- `script-evidence-preference`: Favour evidence generated by committed scripts over hand-made one-off evidence.
+
 #### core · X · Coordination — delegation
 - `role-contracts`: Give each delegated role a fixed contract of access, duties and report shape, and carry it inside the brief because the worker may not load the delegating instructions.
 - `no-onward-delegation`: A delegated worker does not hand its work on to further agents unless its brief allows it.
@@ -422,6 +458,50 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `regression-guard`: For a material recurring risk add an economical guard — query counts, bounded allocations or a controlled benchmark — scaled to the risk and avoiding flaky wall-clock assertions.
 - `measurement-recipes`: Supply backend tool mechanics for measurement — monotonic timing, sampling and allocation profilers, query plans and N+1 counting, benchmark gating, and the host and runtime view.
 - `frontend-performance`: Supply browser performance mechanics — Core Web Vitals targets, synthetic plus real-user measurement, a symptom-to-measurement tree, fix patterns and budgets.
+- `ordered-cost-mantras`: For a resource metric, try candidates in a fixed order, cheapest first, from dropping unused work through keeping a result, doing it less, deferring it, moving it off the waited-on path and running it concurrently to making the operation cheaper.
+- `caller-stop-condition`: Treat a candidate order as what to try next and stop on the caller's stated condition, or with none when a candidate meets the target.
+- `mechanism-named-hypothesis`: Name how each candidate should move the metric, tied to the located cost.
+- `single-factor-brief`: Let a delegate write one factor under a brief naming that factor, its mechanism and its owned paths, while the caller keeps the baseline and the comparison.
+- `no-ceiling-without-run`: Claim no ceiling on a gain until a run has shown it.
+- `caller-measurable-outcome`: Let a caller bring any named measurable outcome through the measure-and-compare steps, with resource-only advice conditional and inapplicable vetting questions marked not applicable with a reason.
+- `located-cost-branch`: When a caller wants a live capture or someone asks where a resource goes and no change is wanted, run only the measure-and-locate steps and deliver the artifact, its command, the reduced finding, its location or the gap, and located or hypothesis.
+- `run-evidence-answers`: Settle every vetting question with data from an actual run, never from reasoning about the code.
+- `ballpark-path`: For a rough figure the user asked for, let one run do while still checking errors and that the work happened, saying it is one run, and applying the other checks only if the run looks wrong.
+- `choice-never-ballpark`: Never let a measurement that chooses between options take the rough one-run path.
+- `shipped-claim-first`: Before any run, write the exact result sentence you expect to publish, with its metric and dataset, and test the vetting questions against that sentence.
+- `script-reading-first`: Read the measuring script before a run and note what it times, what it counts and what it leaves out.
+- `machine-load-check`: Before measuring, check the load average and core count and find what is occupying a busy machine.
+- `interleave-unstoppable-load`: When competing load cannot be stopped, run the compared sides in turn so the noise hits both equally, and disclose that in the report.
+- `unreported-profile-run`: Profile and trace in a separate run whose numbers are never reported, because instrumentation distorts timing.
+- `per-process-cpu-read`: Inspect CPU use per process when hunting a limiter.
+- `runtime-profiler-read`: Use a language or system profiler when hunting a limiter.
+- `io-wait-read`: Inspect I/O wait when hunting a limiter.
+- `kernel-time-syscall-count`: Only when time is going to the kernel or I/O, count system calls in a separate run whose timing is never quoted.
+- `load-generator-saturation`: Watch the load generator during a run, since a saturated generator means the result describes it and not the target.
+- `limiter-before-dismissal`: When a change leaves the number unmoved, find the limiter before concluding the change has no value.
+- `production-parity-sides`: Run every compared side as production runs it: release builds, flags and environment, batching and transactions, connection pools, cache temperature, and the same versions and data.
+- `config-mismatch-comparison`: Treat a result as a comparison of configurations only on a demonstrated mismatch with what production would use or an avoidable limit, never because a side runs on defaults as such.
+- `settings-limiter-untuned`: Treat a side whose limiter is a setting, such as per-row commits, a debug build or a missing index, as untuned.
+- `tuned-claim-gate`: For a claim about the tuned implementation or an adoption choice, tune an untuned side and measure again before naming a winner, calling the verdict inconclusive if it cannot be tuned, while a documented comparison of deployments as they run stays a legitimate claim.
+- `no-narrowing-for-adoption`: When someone is choosing what to adopt, do not cure an untuned comparison by narrowing the claim to today's as-shipped settings.
+- `capacity-arithmetic`: Check throughput in bytes against disk and network capacity and operations per second times cost per operation against available cores, and read a result past a limit as having measured something else, for example a cache, a no-op or a defect.
+- `share-bound-on-gain`: Bound a claimed gain by the fraction f of elapsed time the changed part takes: for 0 <= f < 1, elapsed-time reduction is at most f and the matching throughput speedup at most 1/(1-f), at f = 1 the model gives no finite speedup bound, and a reported percentage names which it is.
+- `failure-count`: Count failures and non-success responses, adding the count when the measuring script has none, because fast rejections and slow timeouts both skew timing.
+- `correct-output-check`: Check that a measured run's outputs are correct and not merely present.
+- `comparison-run-floor`: Run each side of a comparison at least five times unless a run's cost is stated as the reason, treating the floor as no proof of significance.
+- `alternated-sides`: Alternate the compared sides run by run so warmup, lazy initialization, caches and drift favour neither.
+- `median-and-range-report`: Report the median and the range across a comparison's runs.
+- `resolved-no-difference`: Choose before running the margin that would matter to the decision, estimate an interval for the reported difference by a method fit for the statistic and how the runs were sampled, and call it faster or slower only when the whole interval lies beyond the margin on that side, no measurable difference only when the whole interval lies inside the margin, and inconclusive otherwise, never deciding from the raw run range.
+- `close-call-statistics`: When a comparison is close, test the gap with a rank-sum test or statistics the harness provides.
+- `end-to-end-share`: Beside any micro result, measure the whole path a user waits on under realistic sizes and concurrency, and state the micro result as its share.
+- `work-ran-check`: Prove the work happened inside the timed span and the code used its result, since lazy code, discarded results and timeouts can produce numbers for work that never happened.
+- `one-verdict-first`: Open a measurement report with one verdict: slower, faster, inconclusive or no measurable difference.
+- `measurement-unit`: State every reported number with its unit.
+- `no-limiter-inconclusive`: Call a claimed difference inconclusive when its limiter cannot be named.
+- `unchecked-run-inconclusive`: Call a verdict inconclusive when the error or work check could not be done.
+- `inconclusive-names-gap`: Have an inconclusive verdict state which check or condition caused it.
+- `harness-prints-counts`: Make a frozen harness emit error and work counts, which hands each keep-or-revert decision those two checks.
+- `live-capture-consent-boundary`: A live capture may sample read-only a process the user named or plainly means, anything injecting code or changing it needs the user's explicit yes, a process not named stays out, and a tool needing elevated permission is a stop with what is needed.
 
 #### engineering · Building · Diagnosis — principle-attack-the-premise
 - `premise-test-gate`: After two or more fixes that rest on one premise fail the same gate, write that premise as one sentence and test it with an observation that would differ were it false, before any further fix that assumes it.
@@ -938,9 +1018,31 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `matching-surface-verify`: Verify a change on the surface where it will be used, treating an inconclusive result or a pass on another surface as no pass.
 - `build-closeout`: On every exit of a build, remove temporary scaffolding, name what is unfinished in the tree and list the open decisions.
 
+#### hillclimb — `doc:.claude/skills/mvp-mode/playbooks/hillclimb.md`
+- `attended-only-gate`: Start no unattended run: set no wake or schedule, go on only while the conversation does, and offer an attended run instead.
+- `one-change-one-measurement`: Make one change, take one measurement, then keep or undo it, never stacking untested changes.
+- `repro-before-climb`: Name the workload dimensions and pick a case that reproduces the complaint; when none does, repair the case in at most two tries and otherwise stop with what was tried.
+- `stop-predicate-with-floor`: Fix a stop predicate pairing a target with a floor on attempts, in the user's numbers or agreed.
+- `attempt-isolation-gate`: Before any baseline, name an artifact directory outside every worktree the climb removes, and run the whole climb in one detached worktree when a changed path holds someone else's edits or another writer may touch anywhere in the tree, its starting state replayed and verified.
+- `sensitivity-proof-then-freeze`: Show that contrasting workloads separate as expected, vet the harness, then freeze it as one command that no longer changes.
+- `gate-green-baseline`: Record the baseline and a green run of the regression gate before any change, stopping when the gate is red.
+- `read-trail-first`: Read the trail before each attempt and retry nothing it already rejected.
+- `keep-or-undo-rule`: Keep a win past noise with the gate green or a demonstrated simplification that does not materially worsen the metric and holds correctness, logged as no speedup, and otherwise undo in full.
+- `attempt-snapshot-undo`: Snapshot the tree around an attempt, stop on a patch naming a path not meant to change, and undo only by reversing that attempt's own patch, proving the result first and verifying it after, any refusal, failure or mismatch being a stop.
+- `predicate-held-stop`: Never relax the predicate, never quit while a cheap untried hypothesis remains, and surface being stuck.
+- `plateau-pivot`: On several rejects in a row, change category, combine near-misses and reread the source before concluding.
+- `climb-closeout`: On every exit of a climb, bring an isolated climb back and remove its worktree or stop naming both, confirm the tree holds only kept attempts, name the kept patches and the harness, and run the trail's audit and review when one opened.
+
 #### investigation — `doc:.claude/skills/mvp-mode/playbooks/investigation.md`
 - `read-only-answer-gate`: End a question about the code at its answer, changing nothing but an explicitly requested reply artifact and naming any wanted change as the next request.
 - `read-only-closeout`: On every exit of a read-only run, confirm against the starting state, by a checksum for a path already dirty, that nothing changed but an explicitly requested reply artifact, and name the scratch files kept.
+
+#### perf-issue — `doc:.claude/skills/mvp-mode/playbooks/perf-issue.md`
+- `measurement-tied-fix-gate`: Tie every fix to a measurement, with the lead owning the number whoever writes the code.
+- `implement-against-sketch`: Build against the sketch as the contract, surfacing any departure and revising the sketch first when the code must diverge.
+- `paired-artifact-diff`: Keep the baseline's and the candidate's artifacts from the matching surface and diff them, treating a comparison on another surface or an inconclusive one as no pass.
+- `build-closeout`: On every exit of a build, remove temporary scaffolding, name what is unfinished in the tree and list the open decisions.
+- `measurement-in-commit-body`: Hand the measured number to the commit step for its body.
 
 #### refactoring — `doc:.claude/skills/mvp-mode/playbooks/refactoring.md`
 - `structure-only-gate`: Keep a refactoring to structure, splitting out any bug or missing feature as its own request instead of folding it in.
@@ -953,6 +1055,10 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `behaviour-equivalence-proof`: Prove behaviour unchanged on the real artifact, with an old-against-new output diff for a larger move.
 - `reader-load-keep-or-revert`: Keep a finished restructuring only if reader load dropped, and otherwise revert it.
 - `build-closeout`: On every exit of a build, remove temporary scaffolding, name what is unfinished in the tree and list the open decisions.
+
+#### runtime-forensics — `doc:.claude/skills/mvp-mode/playbooks/runtime-forensics.md`
+- `live-diagnosis-gate`: Capture from the live process rather than theorise from source and fix nothing, within the capture boundary of the skill's diagnosis branch, with a restart the last resort.
+- `live-forensics-closeout`: On every exit of a live diagnosis, leave the process as found, remove instrumentation by its tag and name the artifacts kept.
 
 #### trace-forensics — `doc:.claude/skills/mvp-mode/playbooks/trace-forensics.md`
 - `fixed-artifact-gate`: Treat a captured artifact as a fixed dataset: query it, leave it unchanged, and never re-run the scenario to get a different one.
@@ -1032,6 +1138,50 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 #### core · X · Continuity — skill:pstack/skills/principle-guard-the-context-window
 - `bulk-to-subagents`: Send bulk reading and large outputs to subagents and keep only their summaries in the main thread. — adopt → mvp-mode#delegate-independent-by-default
 - `phase-scope-caps`: Cap each phase's scope with file limits and turn budgets, counting the context cost of the mechanisms used. — defer
+
+#### core · X · Continuity — skill:pstack/skills/show-me-your-work
+- `single-tsv-decision-log`: Keep one authoritative decision log as a single TSV file with one single-line row per decision. — adopt → decision-trail#single-tsv-decision-log
+- `evidence-pointer-cell`: Make a row's evidence cell a resolvable pointer such as a commit, pull request, file and line or artifact path, never narrative. — adopt → decision-trail#evidence-pointer-cell
+- `trail-header-template`: Start a new log from a supplied file holding only the header row. — reject
+- `trail-six-columns`: Give every row the fixed columns ts in ISO8601, phase or workstream, the decision in one line, why, evidence, and result as an outcome or state. — adopt → decision-trail#trail-six-columns
+- `trail-sample-rows`: Show a sample log in the expected plain style. — reject
+- `plain-row-wording`: Write rows the way you would tell a colleague, in concrete words, spelling a guiding principle out in place of citing it as a tag. — adopt → decision-trail#plain-row-wording
+- `positional-row-helper`: Append rows through a script that takes the log path and exactly five positional cell values, printing usage and failing on any other count. — adopt → decision-trail#named-cell-row-helper
+- `hand-append-caveat`: Allow a row appended by hand, giving cells from generated or user-supplied text the helper's byte-level care. — reject
+- `decision-points-only`: Log decision points and checkpoints (a chosen fork, a finished unit with its verification, a pivot or revert with its cause, a surfaced blocker, a fixed gate), never each action or a self-evident step. — adopt → decision-trail#decision-points-only
+- `row-per-iteration`: Have a looping run write one row for each iteration. — adopt → decision-trail#row-per-iteration
+- `helper-aborts-on-failure`: Have the log helper abort on any command failure, unset variable or pipeline failure. — reject
+- `creates-log-parent`: Have the log helper create a missing parent directory. — adopt → decision-trail#creates-log-parent
+- `header-on-empty-file`: Have the log helper write the header row when the log is missing or empty. — adopt → decision-trail#locked-single-header
+- `append-mode-writes`: Write the header and rows only in append mode, so a false empty-file test costs a stray header and never the rows. — adopt → decision-trail#append-mode-writes
+- `automatic-utc-stamp`: Have the log helper stamp each row with the current UTC time so the caller supplies none. — adopt → decision-trail#automatic-utc-stamp
+- `cell-whitespace-strip`: Replace tabs, newlines and carriage returns in each cell with spaces. — adopt → decision-trail#cell-whitespace-strip
+- `formula-cell-quote`: Prefix a single quote to any cell starting with a character a spreadsheet parses as a formula, so hostile text cannot execute when the log is opened. — adopt → decision-trail#numeric-safe-formula-quote
+- `run-boundary`: Count one agent conversation with its later turns and summaries as one run, and a pickup, replacement agent or new chat as a new one. — adopt → decision-trail#run-boundary
+- `start-row-triggers`: Have a run adding to a log with rows write a `start` row first, and on returning read the log's tail and write a fresh one if another run's `start` has appeared. — adopt → decision-trail#start-row-triggers
+- `start-row-contents`: Have a `start` row name the timestamp range of the rows this run did not write and identify this run in its evidence, using the `start` phase for nothing else. — adopt → decision-trail#start-row-contents
+- `local-log-default`: Keep the log as an uncommitted working file at a fixed name in the work directory, or under a hidden audit folder by task slug when several efforts run at once. — adopt → decision-trail#trail-location-rule
+- `commit-on-reviewer-need`: Leave the log out of Git unless the work is large enough that a reviewer could not trust the outcome without it. — adopt → decision-trail#proposed-trail-commit
+- `append-only-supersede`: Never edit or delete a ledger record; correct or reverse one by appending a record that supersedes it. — adopt → decision-trail#append-only-supersede
+- `script-evidence-preference`: Favour evidence generated by committed scripts over hand-made one-off evidence. — adopt → decision-trail#script-evidence-preference
+- `end-of-run-audit`: Before handing back, check the log for truthfulness against what happened in the run. — adopt → decision-trail#end-of-run-audit
+- `transcript-path-audit`: Audit from this run's transcript in the active workspace's transcript directory, whose location the system prompt gives. — reject
+- `no-cross-project-transcript-search`: Never search across project transcript folders during an audit, because that exposes unrelated private conversations. — adopt → decision-trail#no-cross-project-transcript-search
+- `audit-own-stretches`: Limit an audit to this run's row stretches, each from one of its `start` rows or the log's first row to the next `start` row of another run. — adopt → decision-trail#audit-own-stretches
+- `row-maps-to-real-event`: Check that each audited row corresponds to a decision or action that actually occurred. — adopt → decision-trail#verified-record-row-walk
+- `evidence-resolves-check`: Check that each audited row's pointer resolves and supports what the row says. — adopt → decision-trail#evidence-resolves-check
+- `unlogged-fork-gap`: Treat a fork, pivot or abandoned path that shaped the work with no row as a gap, and add the row in the audit. — adopt → decision-trail#unlogged-fork-gap
+- `audit-supersedes-in-place-of-editing`: Have an audit change no row, even an invented one, and add a row superseding it with what really happened and a pointer that resolves. — adopt → decision-trail#audit-supersedes-in-place-of-editing
+- `foreign-row-on-own-evidence`: Supersede a row outside the audited stretches only when this run's own work shows it to be wrong. — adopt → decision-trail#foreign-row-on-own-evidence
+- `other-family-trail-review`: Before handing back, have a subagent from a different model family review the run, with no self-review in its place. — adopt → decision-trail#same-family-or-unreviewed
+- `trail-and-transcript-review`: Give the reviewer the audit trail and the run's transcript as its inputs. — adopt → decision-trail#evidence-pointer-review
+- `attention-scan-not-redo`: Have the trail's reviewer look for what is suboptimal or risky for the user's attention and not repeat the work. — adopt → decision-trail#attention-scan-not-redo
+- `job-fit-helper-effort`: Choose each helper's thinking depth and speed tier to suit its job. — reject
+- `trail-review-flags`: Have the trail's reviewer flag weak or absent evidence, checks skipped or claimed without proof, choices risky in hindsight, and gaps a casual read would miss. — adopt → decision-trail#trail-review-flags
+- `attention-section`: End every reply of a run with a trail in an Attention section, opening with a line naming the reviewer's model and then each flag with its rows or moments, where no flags is allowed and the model name is not optional. — adopt → decision-trail#attention-with-coverage
+- `trail-reading-method`: Read a trail from top to bottom, following the evidence pointers and spot-checking. — reject
+- `trail-rendering-tips`: Show the log as a table through the forge's TSV view or the `column` command. — reject
+- `single-trail-format-owner`: Have other skills needing a trail refer to this one by name and define no trail or columns of their own. — reject
 
 #### core · X · Coordination — skill:pstack/skills/principle-never-block-on-the-human
 - `reversible-work-proceeds`: Proceed without asking on reversible work, then present the result and its reasoning so the human can correct it afterwards, leaving product direction to the human. — reject
@@ -1287,6 +1437,50 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `throwaway-design-first`: Settle a design decision in a throwaway artifact before writing production code for it. — reject
 - `detail-finish`: Finish interaction details such as transitions, alignment, spacing, feedback and error states as part of the work, not as later polish. — adopt → principle-experience-first#detail-finish
 - `consumer-as-user`: Treat whoever consumes the work (end user, importing colleague, next maintainer) as its user, and explain impact from their side. — adopt → principle-experience-first#consumer-as-user
+
+#### engineering · Building · Diagnosis — skill:pstack/skills/benchmark-checklist
+- `run-evidence-answers`: Settle every vetting question with data from an actual run, never from reasoning about the code. — adopt → performance-optimization#run-evidence-answers
+- `confound-elimination`: List what else a number could be measuring (errors, skipped or cached work, code that never ran, an untuned side, noise, a negligible share) and rule each out with evidence. — adopt → principle-explain-the-number#confound-elimination
+- `ballpark-path`: For a rough figure the user asked for, let one run do while still checking errors and that the work happened, saying it is one run, and applying the other checks only if the run looks wrong. — adopt → performance-optimization#ballpark-path
+- `choice-never-ballpark`: Never let a measurement that chooses between options take the rough one-run path. — adopt → performance-optimization#choice-never-ballpark
+- `shipped-claim-first`: Before any run, write the exact result sentence you expect to publish, with its metric and dataset, and test the vetting questions against that sentence. — adopt → performance-optimization#shipped-claim-first
+- `script-reading-first`: Read the measuring script before a run and note what it times, what it counts and what it leaves out. — adopt → performance-optimization#script-reading-first
+- `machine-load-check`: Before measuring, check the load average and core count and find what is occupying a busy machine. — adopt → performance-optimization#machine-load-check
+- `interleave-unstoppable-load`: When competing load cannot be stopped, run the compared sides in turn so the noise hits both equally, and disclose that in the report. — adopt → performance-optimization#interleave-unstoppable-load
+- `named-limiter`: Explain a measured number by the resource or code path that bounds it, found from a profile or counters taken during the run and mapped to source, not from reading code. — adopt → principle-explain-the-number#named-limiter
+- `unreported-profile-run`: Profile and trace in a separate run whose numbers are never reported, because instrumentation distorts timing. — adopt → performance-optimization#unreported-profile-run
+- `per-process-cpu-read`: Inspect CPU use per process when hunting a limiter. — adopt → performance-optimization#per-process-cpu-read
+- `runtime-profiler-read`: Use a language or system profiler when hunting a limiter. — adopt → performance-optimization#runtime-profiler-read
+- `io-wait-read`: Inspect I/O wait when hunting a limiter. — adopt → performance-optimization#io-wait-read
+- `syscall-count-read`: Inspect system call counts when hunting a limiter. — adopt → performance-optimization#kernel-time-syscall-count
+- `load-generator-saturation`: Watch the load generator during a run, since a saturated generator means the result describes it and not the target. — adopt → performance-optimization#load-generator-saturation
+- `limiter-before-dismissal`: When a change leaves the number unmoved, find the limiter before concluding the change has no value. — adopt → performance-optimization#limiter-before-dismissal
+- `production-parity-sides`: Run every compared side as production runs it: release builds, flags and environment, batching and transactions, connection pools, cache temperature, and the same versions and data. — adopt → performance-optimization#production-parity-sides
+- `defaults-compare-configurations`: Treat a result with one side on defaults as a comparison of configurations and not of implementations. — adopt → performance-optimization#config-mismatch-comparison
+- `settings-limiter-untuned`: Treat a side whose limiter is a setting, such as per-row commits, a debug build or a missing index, as untuned. — adopt → performance-optimization#settings-limiter-untuned
+- `tuned-before-winner`: Tune an untuned side and measure again before naming a winner, and name none from a run whose side cannot be tuned. — adopt → performance-optimization#tuned-claim-gate
+- `no-narrowing-for-adoption`: When someone is choosing what to adopt, do not cure an untuned comparison by narrowing the claim to today's as-shipped settings. — adopt → performance-optimization#no-narrowing-for-adoption
+- `capacity-arithmetic`: Check throughput in bytes against disk and network capacity and operations per second times cost per operation against available cores, and read a result past a limit as having measured something else, for example a cache, a no-op or a defect. — adopt → performance-optimization#capacity-arithmetic
+- `share-bound-on-gain`: Bound a claimed gain by the fraction f of elapsed time the changed part takes: for 0 <= f < 1, elapsed-time reduction is at most f and the matching throughput speedup at most 1/(1-f), at f = 1 the model gives no finite speedup bound, and a reported percentage names which it is. — adopt → performance-optimization#share-bound-on-gain
+- `failure-count`: Count failures and non-success responses, adding the count when the measuring script has none, because fast rejections and slow timeouts both skew timing. — adopt → performance-optimization#failure-count
+- `correct-output-check`: Check that a measured run's outputs are correct and not merely present. — adopt → performance-optimization#correct-output-check
+- `five-run-floor`: Run each compared side at least five times. — adopt → performance-optimization#comparison-run-floor
+- `alternated-sides`: Alternate the compared sides run by run so warmup, lazy initialization, caches and drift favour neither. — adopt → performance-optimization#alternated-sides
+- `median-and-range-report`: Report the median and the range across a comparison's runs. — adopt → performance-optimization#median-and-range-report
+- `within-variation-no-difference`: Give a gap smaller than run-to-run variation the verdict no measurable difference. — adopt → performance-optimization#resolved-no-difference
+- `close-call-statistics`: When a comparison is close, test the gap with a rank-sum test or statistics the harness provides. — adopt → performance-optimization#close-call-statistics
+- `end-to-end-share`: Beside any micro result, measure the whole path a user waits on under realistic sizes and concurrency, and state the micro result as its share. — adopt → performance-optimization#end-to-end-share
+- `work-ran-check`: Prove the work happened inside the timed span and the code used its result, since lazy code, discarded results and timeouts can produce numbers for work that never happened. — adopt → performance-optimization#work-ran-check
+- `one-verdict-first`: Open a measurement report with one verdict: slower, faster, inconclusive or no measurable difference. — adopt → performance-optimization#one-verdict-first
+- `evidence-with-number`: Report a measured number together with its run count, spread and limiter. — adopt → principle-explain-the-number#evidence-with-number
+- `measurement-unit`: State every reported number with its unit. — adopt → performance-optimization#measurement-unit
+- `no-limiter-inconclusive`: Call a claimed difference inconclusive when its limiter cannot be named. — adopt → performance-optimization#no-limiter-inconclusive
+- `untuned-side-inconclusive`: Call a verdict inconclusive when a side ran untuned. — adopt → performance-optimization#tuned-claim-gate
+- `unchecked-run-inconclusive`: Call a verdict inconclusive when the error or work check could not be done. — adopt → performance-optimization#unchecked-run-inconclusive
+- `inconclusive-names-gap`: Have an inconclusive verdict state which check or condition caused it. — adopt → performance-optimization#inconclusive-names-gap
+- `one-number-pr-body`: Keep a pull request body to one primary number, with the supporting evidence linked from it. — defer
+- `vet-at-flow-gates`: In a performance flow, vet the baseline before planning from it, every later number, and a harness before it is frozen. — reject
+- `harness-prints-counts`: Make a frozen harness emit error and work counts, which hands each keep-or-revert decision those two checks. — adopt → performance-optimization#harness-prints-counts
 
 #### engineering · Building · Diagnosis — skill:pstack/skills/principle-attack-the-premise
 - `premise-test-gate`: After two or more fixes that rest on one premise fail the same gate, write that premise as one sentence and test it with an observation that would differ were it false, before any further fix that assumes it. — adopt → principle-attack-the-premise#premise-test-gate
@@ -2594,6 +2788,19 @@ Use existing deterministic tools and checks where they suffice, and build a reru
 
 ### core · Verification · Review
 
+#### `attention-scan-not-redo`
+Have the trail's reviewer look for what is suboptimal or risky for the user's attention and not repeat the work.
+- ours: `decision-trail`
+- `cursor_plugins:skill:pstack/skills/show-me-your-work` — adopt → decision-trail#attention-scan-not-redo
+
+#### `attention-section`
+End every reply of a run with a trail in an Attention section, opening with a line naming the reviewer's model and then each flag with its rows or moments, where no flags is allowed and the model name is not optional.
+- `cursor_plugins:skill:pstack/skills/show-me-your-work` — adopt → decision-trail#attention-with-coverage
+
+#### `attention-with-coverage`
+End a reply with Attention naming the reviewer or `not reviewed` with its reason, each flag with its rows or no flags, and, after an evidence-pointer review, transcript coverage and unlogged-fork detection as unavailable.
+- ours: `decision-trail`
+
 #### `distinct-axis-verdicts`
 Report each review axis's verdict separately so one axis passing never masks another failing.
 - ours: `review`
@@ -2602,6 +2809,10 @@ Report each review axis's verdict separately so one axis passing never masks ano
 #### `document-review`
 Check a spec or plan against repository context for internal inconsistency, missing constraints, unverifiable claims and scope bloat, editing only unambiguous wording when fixes were requested.
 - ours: `review`
+
+#### `evidence-pointer-review`
+Give a trail's critic the trail and the evidence each row points at, or the trail and a verified workspace-scoped record when one is named.
+- ours: `decision-trail`
 
 #### `finding-adjudication`
 Verify each incoming review finding against requirements, code and primary evidence before acting, and give each a visible disposition: fix a confirmed in-scope defect, answer an incorrect one with a retained ruling, record an out-of-scope follow-up.
@@ -2621,6 +2832,10 @@ Route an artifact or change with material risk or a broad blast radius through a
 Assess work critically without inflating the grade.
 - `doc:AGENTS.md`
 
+#### `other-family-trail-review`
+Before handing back, have a subagent from a different model family review the run, with no self-review in its place.
+- `cursor_plugins:skill:pstack/skills/show-me-your-work` — adopt → decision-trail#same-family-or-unreviewed
+
 #### `read-only-isolation`
 A read-only review preserves the checkout, index and refs, using permitted isolated facilities for any check that needs mutation.
 - ours: `review`
@@ -2638,6 +2853,10 @@ Allocate coding-standards enforcement to the review agent rather than the implem
 - `mattpocock_skills:skill:skills/engineering/retro` — defer
 - `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — defer
 
+#### `same-family-or-unreviewed`
+Have a critic from another model family review the trail before hand-back, one of the same family only with the owner's approval, and otherwise report it not reviewed, never reviewing your own run.
+- ours: `decision-trail`
+
 #### `separate-review-stage`
 Run review as a separate, low-context-pressure stage from implementation.
 - `mattpocock_skills:skill:skills/engineering/retro` — defer
@@ -2645,6 +2864,15 @@ Run review as a separate, low-context-pressure stage from implementation.
 #### `severity-and-verdict`
 Rate each finding by consequence and approve only with no open blocker or major, otherwise require revision, never counting preference alone as a finding.
 - ours: `review`
+
+#### `trail-and-transcript-review`
+Give the reviewer the audit trail and the run's transcript as its inputs.
+- `cursor_plugins:skill:pstack/skills/show-me-your-work` — adopt → decision-trail#evidence-pointer-review
+
+#### `trail-review-flags`
+Have the trail's reviewer flag weak or absent evidence, checks skipped or claimed without proof, choices risky in hindsight, and gaps a casual read would miss.
+- ours: `decision-trail`
+- `cursor_plugins:skill:pstack/skills/show-me-your-work` — adopt → decision-trail#trail-review-flags
 
 ### core · Verification · Validation
 
@@ -3575,9 +3803,29 @@ Carry one stable actor for the whole session, claiming on start and acting only 
 Agree the wiki's location with the user before the first write.
 - `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — defer
 
+#### `append-mode-writes`
+Write the header and rows only in append mode, so a false empty-file test costs a stray header and never the rows.
+- ours: `decision-trail`
+- `cursor_plugins:skill:pstack/skills/show-me-your-work` — adopt → decision-trail#append-mode-writes
+
+#### `audit-own-stretches`
+Limit an audit to this run's row stretches, each from one of its `start` rows or the log's first row to the next `start` row of another run.
+- ours: `decision-trail`
+- `cursor_plugins:skill:pstack/skills/show-me-your-work` — adopt → decision-trail#audit-own-stretches
+
+#### `audit-supersedes-in-place-of-editing`
+Have an audit change no row, even an invented one, and add a row superseding it with what really happened and a pointer that resolves.
+- ours: `decision-trail`
+- `cursor_plugins:skill:pstack/skills/show-me-your-work` — adopt → decision-trail#audit-supersedes-in-place-of-editing
+
 #### `audit-trail-proof-commit`
 Keep a proof artifact visible to the human, and commit it only when large or complex work needs an auditable trail.
 - `cursor_plugins:skill:pstack/skills/principle-prove-it-works` — adopt → build-a-lever#proposed-artifact-commit
+
+#### `automatic-utc-stamp`
+Have the log helper stamp each row with the current UTC time so the caller supplies none.
+- ours: `decision-trail`
+- `cursor_plugins:skill:pstack/skills/show-me-your-work` — adopt → decision-trail#automatic-utc-stamp
 
 #### `bead-type-taxonomy`
 Use only the six bead types (epic, feature, task, bug, spike, decision) and the single human label, never inventing others.
@@ -3591,6 +3839,15 @@ Make context-management choices only at the fuzzy boundary between two phases of
 Send bulk reading and large outputs to subagents and keep only their summaries in the main thread.
 - `cursor_plugins:skill:pstack/skills/principle-guard-the-context-window` — adopt → mvp-mode#delegate-independent-by-default
 
+#### `caller-trail-columns`
+Let a caller add declared columns after a trail's fixed ones, the same set on every call.
+- ours: `decision-trail`
+
+#### `cell-whitespace-strip`
+Replace tabs, newlines and carriage returns in each cell with spaces.
+- ours: `decision-trail`
+- `cursor_plugins:skill:pstack/skills/show-me-your-work` — adopt → decision-trail#cell-whitespace-strip
+
 #### `cite-not-copy-sources`
 Cite sources from wiki pages without copying or editing the sources.
 - `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — defer
@@ -3598,6 +3855,10 @@ Cite sources from wiki pages without copying or editing the sources.
 #### `clear-disposable-context`
 Clear the window outright when everything in the session is irrelevant to what comes next.
 - `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
+
+#### `commit-on-reviewer-need`
+Leave the log out of Git unless the work is large enough that a reviewer could not trust the outcome without it.
+- `cursor_plugins:skill:pstack/skills/show-me-your-work` — adopt → decision-trail#proposed-trail-commit
 
 #### `commit-pinned-claims`
 Pin every recorded claim about code to a repository and commit.
@@ -3611,9 +3872,19 @@ Treat compaction as the default fallback chosen only after the cheaper context m
 Pass compaction an explicit instruction so the summary keeps what the next phase needs.
 - `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
 
+#### `creates-log-parent`
+Have the log helper create a missing parent directory.
+- ours: `decision-trail`
+- `cursor_plugins:skill:pstack/skills/show-me-your-work` — adopt → decision-trail#creates-log-parent
+
 #### `dated-history-entries`
 Write the wiki as dated history rather than present-tense claims about code.
 - `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — defer
+
+#### `decision-points-only`
+Log decision points and checkpoints (a chosen fork, a finished unit with its verification, a pivot or revert with its cause, a surfaced blocker, a fixed gate), never each action or a self-evident step.
+- ours: `decision-trail`
+- `cursor_plugins:skill:pstack/skills/show-me-your-work` — adopt → decision-trail#decision-points-only
 
 #### `dolt-sync`
 Treat the versioned database as the source of truth and the exported jsonl as a review mirror, syncing copies only with authority.
@@ -3623,6 +3894,21 @@ Treat the versioned database as the source of truth and the exported jsonl as a 
 Track durable work in the project's issue tracker.
 - `doc:AGENTS.md`
 
+#### `end-of-run-audit`
+Before handing back, check the log for truthfulness against what happened in the run.
+- ours: `decision-trail`
+- `cursor_plugins:skill:pstack/skills/show-me-your-work` — adopt → decision-trail#end-of-run-audit
+
+#### `evidence-pointer-cell`
+Make a row's evidence cell a resolvable pointer such as a commit, pull request, file and line or artifact path, never narrative.
+- ours: `decision-trail`
+- `cursor_plugins:skill:pstack/skills/show-me-your-work` — adopt → decision-trail#evidence-pointer-cell
+
+#### `evidence-resolves-check`
+Check that each audited row's pointer resolves and supports what the row says.
+- ours: `decision-trail`
+- `cursor_plugins:skill:pstack/skills/show-me-your-work` — adopt → decision-trail#evidence-resolves-check
+
 #### `field-roles`
 Give each bead field its single job — description, design, acceptance, spec_id, notes, comments and close reason — and never overload one.
 - ours: `beads`
@@ -3631,9 +3917,22 @@ Give each bead field its single job — description, design, acceptance, spec_id
 File a reusable answer as a new wiki page.
 - `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — defer
 
+#### `foreign-row-on-own-evidence`
+Supersede a row outside the audited stretches only when this run's own work shows it to be wrong.
+- ours: `decision-trail`
+- `cursor_plugins:skill:pstack/skills/show-me-your-work` — adopt → decision-trail#foreign-row-on-own-evidence
+
+#### `formula-cell-quote`
+Prefix a single quote to any cell starting with a character a spreadsheet parses as a formula, so hostile text cannot execute when the log is opened.
+- `cursor_plugins:skill:pstack/skills/show-me-your-work` — adopt → decision-trail#numeric-safe-formula-quote
+
 #### `generated-mirror-read-only`
 Treat generated tracking mirrors as read-only.
 - `doc:AGENTS.md`
+
+#### `hand-append-caveat`
+Allow a row appended by hand, giving cells from generated or user-supplied text the helper's byte-level care.
+- `cursor_plugins:skill:pstack/skills/show-me-your-work` — reject
 
 #### `handoff-contents`
 Make a handoff carry the scope, decisions, source references, verification done and unresolved work.
@@ -3647,6 +3946,14 @@ Write a handoff document summarising the current conversation so a fresh agent c
 Write a portable handoff file only when the work must travel to another harness, directory, person, or a forked side task.
 - `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
 
+#### `header-on-empty-file`
+Have the log helper write the header row when the log is missing or empty.
+- `cursor_plugins:skill:pstack/skills/show-me-your-work` — adopt → decision-trail#locked-single-header
+
+#### `helper-aborts-on-failure`
+Have the log helper abort on any command failure, unset variable or pipeline failure.
+- `cursor_plugins:skill:pstack/skills/show-me-your-work` — reject
+
 #### `knowledge-in-files`
 Keep durable knowledge in files, never in the tracker's remember, memories or key-value stores.
 - ours: `beads`
@@ -3659,13 +3966,34 @@ Record verified patterns likely to recur in the shared learnings file.
 Reference existing artifacts by path or URL rather than copying their content into a handoff.
 - `mattpocock_skills:skill:skills/productivity/handoff` — defer
 
+#### `local-log-default`
+Keep the log as an uncommitted working file at a fixed name in the work directory, or under a hidden audit folder by task slug when several efforts run at once.
+- `cursor_plugins:skill:pstack/skills/show-me-your-work` — adopt → decision-trail#trail-location-rule
+
+#### `locked-single-header`
+Hold an exclusive lock across reading and appending, so simultaneous first writers make one header and rows never interleave.
+- ours: `decision-trail`
+
 #### `logs-behind-references`
 Keep large logs and histories behind references instead of loading them into context.
 - `doc:AGENTS.md`
 
+#### `named-cell-row-helper`
+Append rows through a helper that takes named cells and declared extra columns, and writes nothing when a cell is missing, unknown or undeclared.
+- ours: `decision-trail`
+
+#### `no-cross-project-transcript-search`
+Never search across project transcript folders during an audit, because that exposes unrelated private conversations.
+- ours: `decision-trail`
+- `cursor_plugins:skill:pstack/skills/show-me-your-work` — adopt → decision-trail#no-cross-project-transcript-search
+
 #### `noticed-problem-followup`
 Log a problem noticed in passing and fix it in the next round.
 - `cursor_plugins:skill:pstack/skills/principle-never-block-on-the-human` — reject
+
+#### `numeric-safe-formula-quote`
+Quote a cell starting with a character a spreadsheet parses as a formula, unless it is a plain signed number or percentage.
+- ours: `decision-trail`
 
 #### `optional-record-sections`
 Add optional sections to a record, such as status or consequences, only when they carry real information.
@@ -3694,6 +4022,15 @@ Shape a phase epic to the status-renderer contract — a bracketed phase-id titl
 Cap each phase's scope with file limits and turn budgets, counting the context cost of the mechanisms used.
 - `cursor_plugins:skill:pstack/skills/principle-guard-the-context-window` — defer
 
+#### `plain-row-wording`
+Write rows the way you would tell a colleague, in concrete words, spelling a guiding principle out in place of citing it as a tag.
+- ours: `decision-trail`
+- `cursor_plugins:skill:pstack/skills/show-me-your-work` — adopt → decision-trail#plain-row-wording
+
+#### `positional-row-helper`
+Append rows through a script that takes the log path and exactly five positional cell values, printing usage and failing on any other count.
+- `cursor_plugins:skill:pstack/skills/show-me-your-work` — adopt → decision-trail#named-cell-row-helper
+
 #### `primary-vs-secondary-source`
 Recognise that every context move but continuing replaces the live session (a primary source) with a lossy summary that restores facts but not reasoning.
 - `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
@@ -3701,6 +4038,10 @@ Recognise that every context move but continuing replaces the live session (a pr
 #### `proposed-artifact-commit`
 Keep a work tool or proof artifact in the scratch folder and propose committing it when the work will be rerun or audited.
 - ours: `build-a-lever`
+
+#### `proposed-trail-commit`
+Propose committing a trail only when a reviewer needs it to trust the outcome, and commit only with authority.
+- ours: `decision-trail`
 
 #### `resume-bead-and-handoff`
 When resuming work, recover the active bead and its handoff.
@@ -3710,9 +4051,23 @@ When resuming work, recover the active bead and its handoff.
 On pause or handoff, unclaim and append a resume line naming the approach to resume with and where the work stands.
 - ours: `beads`
 
+#### `row-maps-to-real-event`
+Check that each audited row corresponds to a decision or action that actually occurred.
+- `cursor_plugins:skill:pstack/skills/show-me-your-work` — adopt → decision-trail#verified-record-row-walk
+
+#### `row-per-iteration`
+Have a looping run write one row for each iteration.
+- ours: `decision-trail`
+- `cursor_plugins:skill:pstack/skills/show-me-your-work` — adopt → decision-trail#row-per-iteration
+
 #### `rule-out-continue-first`
 Rule out simply continuing in the current session, which costs and loses nothing, before any lossy context move.
 - `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
+
+#### `run-boundary`
+Count one agent conversation with its later turns and summaries as one run, and a pickup, replacement agent or new chat as a new one.
+- ours: `decision-trail`
+- `cursor_plugins:skill:pstack/skills/show-me-your-work` — adopt → decision-trail#run-boundary
 
 #### `scoped-reading`
 Search narrowly and read only the context the task needs, widening when dependencies or uncertainty call for it and never bulk-reading.
@@ -3721,6 +4076,11 @@ Search narrowly and read only the context the task needs, widening when dependen
 #### `scratch-artifact-location`
 Put temporary artifacts in the gitignored scratch folder.
 - `doc:AGENTS.md`
+
+#### `script-evidence-preference`
+Favour evidence generated by committed scripts over hand-made one-off evidence.
+- ours: `decision-trail`
+- `cursor_plugins:skill:pstack/skills/show-me-your-work` — adopt → decision-trail#script-evidence-preference
 
 #### `sequential-record-numbering`
 Number a new record one above the highest existing number in its folder.
@@ -3741,9 +4101,28 @@ At session start or after compaction, list in-progress beads and resume from eac
 Give each wiki page one subject and link it to related pages.
 - `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — defer
 
+#### `single-trail-format-owner`
+Have other skills needing a trail refer to this one by name and define no trail or columns of their own.
+- `cursor_plugins:skill:pstack/skills/show-me-your-work` — reject
+
+#### `single-tsv-decision-log`
+Keep one authoritative decision log as a single TSV file with one single-line row per decision.
+- ours: `decision-trail`
+- `cursor_plugins:skill:pstack/skills/show-me-your-work` — adopt → decision-trail#single-tsv-decision-log
+
 #### `smart-zone-budget`
 Treat the window in which the model still reasons sharply (~150k tokens) as a budget, compacting at the nearest phase boundary rather than pushing on degraded.
 - `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
+
+#### `start-row-contents`
+Have a `start` row name the timestamp range of the rows this run did not write and identify this run in its evidence, using the `start` phase for nothing else.
+- ours: `decision-trail`
+- `cursor_plugins:skill:pstack/skills/show-me-your-work` — adopt → decision-trail#start-row-contents
+
+#### `start-row-triggers`
+Have a run adding to a log with rows write a `start` row first, and on returning read the log's tail and write a fresh one if another run's `start` has appeared.
+- ours: `decision-trail`
+- `cursor_plugins:skill:pstack/skills/show-me-your-work` — adopt → decision-trail#start-row-triggers
 
 #### `status-model`
 Drive status through the model's own transitions — the custom review status, deferred as the whole backlog, and never a hand-set blocked.
@@ -3765,9 +4144,47 @@ Treat any passed arguments as the next session's focus and tailor the handoff to
 Save the handoff to the operating system's temporary directory rather than the workspace.
 - `mattpocock_skills:skill:skills/productivity/handoff` — defer
 
+#### `trail-header-template`
+Start a new log from a supplied file holding only the header row.
+- `cursor_plugins:skill:pstack/skills/show-me-your-work` — reject
+
+#### `trail-location-rule`
+Keep a trail at the caller's path, else at an ignored scratch path by slug, else in Git's own directory, and outside Git in the working folder, saying so in the reply.
+- ours: `decision-trail`
+
+#### `trail-reading-method`
+Read a trail from top to bottom, following the evidence pointers and spot-checking.
+- `cursor_plugins:skill:pstack/skills/show-me-your-work` — reject
+
+#### `trail-rendering-tips`
+Show the log as a table through the forge's TSV view or the `column` command.
+- `cursor_plugins:skill:pstack/skills/show-me-your-work` — reject
+
+#### `trail-sample-rows`
+Show a sample log in the expected plain style.
+- `cursor_plugins:skill:pstack/skills/show-me-your-work` — reject
+
+#### `trail-six-columns`
+Give every row the fixed columns ts in ISO8601, phase or workstream, the decision in one line, why, evidence, and result as an outcome or state.
+- ours: `decision-trail`
+- `cursor_plugins:skill:pstack/skills/show-me-your-work` — adopt → decision-trail#trail-six-columns
+
+#### `transcript-path-audit`
+Audit from this run's transcript in the active workspace's transcript directory, whose location the system prompt gives.
+- `cursor_plugins:skill:pstack/skills/show-me-your-work` — reject
+
 #### `unbroken-planning-window`
 Keep the stages that build on each other's reasoning in one unbroken context window until the planning artifact is produced, so each stage builds on the same thinking.
 - `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
+
+#### `unlogged-fork-gap`
+Treat a fork, pivot or abandoned path that shaped the work with no row as a gap, and add the row in the audit.
+- ours: `decision-trail`
+- `cursor_plugins:skill:pstack/skills/show-me-your-work` — adopt → decision-trail#unlogged-fork-gap
+
+#### `verified-record-row-walk`
+Check each audited row against a real event only in an event record the caller names, verified and scoped to this workspace.
+- ours: `decision-trail`
 
 #### `wait-as-edge`
 Record every wait as an explicit edge — a blocks dependency, a human task, or a gate — written in the needs direction so ready-work stays truthful.
@@ -3957,6 +4374,7 @@ Build each investigator prompt from a template, one source playbook, one shared 
 #### `job-fit-helper-effort`
 Choose each helper's thinking depth and speed tier to suit its job.
 - `cursor_plugins:skill:pstack/skills/how` — reject
+- `cursor_plugins:skill:pstack/skills/show-me-your-work` — reject
 - `cursor_plugins:skill:pstack/skills/why` — reject
 
 #### `layer-placement`
@@ -6280,6 +6698,11 @@ Update version headers, filenames and internal references and copy untouched cor
 
 ### engineering · Building · Diagnosis
 
+#### `alternated-sides`
+Alternate the compared sides run by run so warmup, lazy initialization, caches and drift favour neither.
+- ours: `performance-optimization`
+- `cursor_plugins:skill:pstack/skills/benchmark-checklist` — adopt → performance-optimization#alternated-sides
+
 #### `always-on-signal`
 After a fact took a deep investigation to find, propose the cheap always-on signal that would have shown it at first look.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/bug-fix.md`
@@ -6298,6 +6721,11 @@ Record each debugging attempt as hypothesis, change and result.
 - ours: `execution`
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/bug-fix.md`
 
+#### `ballpark-path`
+For a rough figure the user asked for, let one run do while still checking errors and that the work happened, saying it is one run, and applying the other checks only if the run looks wrong.
+- ours: `performance-optimization`
+- `cursor_plugins:skill:pstack/skills/benchmark-checklist` — adopt → performance-optimization#ballpark-path
+
 #### `baseline`
 Capture a baseline measurement before attempting a performance fix.
 - ours: `performance-optimization`
@@ -6311,10 +6739,41 @@ Keep a performance change only when its measured benefit justifies the complexit
 Before answering, remove the temporary instrumentation you added, unless the caller says its own closeout removes it; then leave it in place and list it.
 - ours: `systematic-debugging`
 
+#### `caller-measurable-outcome`
+Let a caller bring any named measurable outcome through the measure-and-compare steps, with resource-only advice conditional and inapplicable vetting questions marked not applicable with a reason.
+- ours: `performance-optimization`
+
+#### `caller-stop-condition`
+Treat a candidate order as what to try next and stop on the caller's stated condition, or with none when a candidate meets the target.
+- ours: `performance-optimization`
+
+#### `capacity-arithmetic`
+Check throughput in bytes against disk and network capacity and operations per second times cost per operation against available cores, and read a result past a limit as having measured something else, for example a cache, a no-op or a defect.
+- ours: `performance-optimization`
+- `cursor_plugins:skill:pstack/skills/benchmark-checklist` — adopt → performance-optimization#capacity-arithmetic
+
+#### `choice-never-ballpark`
+Never let a measurement that chooses between options take the rough one-run path.
+- ours: `performance-optimization`
+- `cursor_plugins:skill:pstack/skills/benchmark-checklist` — adopt → performance-optimization#choice-never-ballpark
+
+#### `close-call-statistics`
+When a comparison is close, test the gap with a rank-sum test or statistics the harness provides.
+- ours: `performance-optimization`
+- `cursor_plugins:skill:pstack/skills/benchmark-checklist` — adopt → performance-optimization#close-call-statistics
+
 #### `closeout`
 Before declaring done, remove temporary instrumentation and record the confirmed cause.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/bug-fix.md`
 - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt → doc:.claude/skills/mvp-mode/playbooks/bug-fix.md
+
+#### `comparison-run-floor`
+Run each side of a comparison at least five times unless a run's cost is stated as the reason, treating the floor as no proof of significance.
+- ours: `performance-optimization`
+
+#### `config-mismatch-comparison`
+Treat a result as a comparison of configurations only on a demonstrated mismatch with what production would use or an avoidable limit, never because a side runs on defaults as such.
+- ours: `performance-optimization`
 
 #### `confirmed-cause-fix`
 Fix a failure only for a cause its diagnosis confirmed.
@@ -6327,7 +6786,13 @@ Change production code only for a confirmed cause, and reject any change that me
 #### `confound-elimination`
 List what else a number could be measuring (errors, skipped or cached work, code that never ran, an untuned side, noise, a negligible share) and rule each out with evidence.
 - ours: `principle-explain-the-number`
+- `cursor_plugins:skill:pstack/skills/benchmark-checklist` — adopt → principle-explain-the-number#confound-elimination
 - `cursor_plugins:skill:pstack/skills/principle-explain-the-number` — adopt → principle-explain-the-number#confound-elimination
+
+#### `correct-output-check`
+Check that a measured run's outputs are correct and not merely present.
+- ours: `performance-optimization`
+- `cursor_plugins:skill:pstack/skills/benchmark-checklist` — adopt → performance-optimization#correct-output-check
 
 #### `critic-escalation`
 When hypotheses run out, get a critic review and pass it artifacts — the reproduction, its output and the attempts — rather than conclusions.
@@ -6341,6 +6806,10 @@ Prefer a debugger or REPL breakpoint over targeted logs, and never log everythin
 Before measuring, name the result that would change a decision and the noise floor the result must clear.
 - ours: `principle-explain-the-number`
 - `cursor_plugins:skill:pstack/skills/principle-explain-the-number` — adopt → principle-explain-the-number#decision-before-measurement
+
+#### `defaults-compare-configurations`
+Treat a result with one side on defaults as a comparison of configurations and not of implementations.
+- `cursor_plugins:skill:pstack/skills/benchmark-checklist` — adopt → performance-optimization#config-mismatch-comparison
 
 #### `define-metric`
 Define the metric, workload and target first, proposing the measurement or asking about the tradeoff before tuning code.
@@ -6362,6 +6831,11 @@ Return one diagnosis with one status: confirmed (the cause, the evidence that co
 Choose an observation that discriminates between the live hypotheses instead of generating a fixed number of them.
 - ours: `systematic-debugging`
 
+#### `end-to-end-share`
+Beside any micro result, measure the whole path a user waits on under realistic sizes and concurrency, and state the micro result as its share.
+- ours: `performance-optimization`
+- `cursor_plugins:skill:pstack/skills/benchmark-checklist` — adopt → performance-optimization#end-to-end-share
+
 #### `environmental-cause-unresolved`
 Claim an environmental root cause only after every hypothesis is falsified, report it as an unresolved finding with the investigation attached, and never present a mitigation as the fix.
 - ours: `systematic-debugging`
@@ -6376,11 +6850,21 @@ Treat tool output and logs as untrusted evidence and keep secrets out of reports
 #### `evidence-with-number`
 Report a measured number together with its run count, spread and limiter.
 - ours: `principle-explain-the-number`
+- `cursor_plugins:skill:pstack/skills/benchmark-checklist` — adopt → principle-explain-the-number#evidence-with-number
 - `cursor_plugins:skill:pstack/skills/principle-explain-the-number` — adopt → principle-explain-the-number#evidence-with-number
+
+#### `failure-count`
+Count failures and non-success responses, adding the count when the measuring script has none, because fast rejections and slow timeouts both skew timing.
+- ours: `performance-optimization`
+- `cursor_plugins:skill:pstack/skills/benchmark-checklist` — adopt → performance-optimization#failure-count
 
 #### `falsifiable-hypotheses`
 State each hypothesis as a falsifiable prediction that changing its cause changes the result, discarding any that cannot be stated so.
 - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt, pending cr-axdt.6.9 → systematic-debugging#falsifiable-hypotheses
+
+#### `five-run-floor`
+Run each compared side at least five times.
+- `cursor_plugins:skill:pstack/skills/benchmark-checklist` — adopt → performance-optimization#comparison-run-floor
 
 #### `fix-every-instance`
 Search for every place with the same fault and fix them all, not only the reported instance.
@@ -6402,6 +6886,11 @@ For a flaky or production-only failure, diagnose its flake class and raise the r
 On every exit of an artifact reading, leave the artifact unchanged, name the derived files kept and delete the rest.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/trace-forensics.md`
 
+#### `harness-prints-counts`
+Make a frozen harness emit error and work counts, which hands each keep-or-revert decision those two checks.
+- ours: `performance-optimization`
+- `cursor_plugins:skill:pstack/skills/benchmark-checklist` — adopt → performance-optimization#harness-prints-counts
+
 #### `hitl-loop-script`
 Drive a required human step through a structured human-in-the-loop script as the last-resort loop so it stays repeatable.
 - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — defer
@@ -6414,9 +6903,28 @@ Form explicit hypotheses about the cause before probing any of them.
 Rank the hypotheses and show the ranked list to the user before testing, without blocking if they are away.
 - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — defer
 
+#### `inconclusive-names-gap`
+Have an inconclusive verdict state which check or condition caused it.
+- ours: `performance-optimization`
+- `cursor_plugins:skill:pstack/skills/benchmark-checklist` — adopt → performance-optimization#inconclusive-names-gap
+
+#### `interleave-unstoppable-load`
+When competing load cannot be stopped, run the compared sides in turn so the noise hits both equally, and disclose that in the report.
+- ours: `performance-optimization`
+- `cursor_plugins:skill:pstack/skills/benchmark-checklist` — adopt → performance-optimization#interleave-unstoppable-load
+
+#### `io-wait-read`
+Inspect I/O wait when hunting a limiter.
+- ours: `performance-optimization`
+- `cursor_plugins:skill:pstack/skills/benchmark-checklist` — adopt → performance-optimization#io-wait-read
+
 #### `justified-phase-skip`
 Skip a phase of the diagnosis only with an explicit justification.
 - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — defer
+
+#### `kernel-time-syscall-count`
+Only when time is going to the kernel or I/O, count system calls in a separate run whose timing is never quoted.
+- ours: `performance-optimization`
 
 #### `legitimate-state-test`
 Before guarding where a symptom surfaced, decide whether the triggering state is legitimate: handle a legitimate state there, and trace an illegitimate one to what produced it.
@@ -6427,6 +6935,28 @@ Before guarding where a symptom surfaced, decide whether the triggering state is
 Compare a performance change against its baseline under the same conditions and run the applicable correctness checks.
 - ours: `performance-optimization`
 
+#### `limiter-before-dismissal`
+When a change leaves the number unmoved, find the limiter before concluding the change has no value.
+- ours: `performance-optimization`
+- `cursor_plugins:skill:pstack/skills/benchmark-checklist` — adopt → performance-optimization#limiter-before-dismissal
+
+#### `live-capture-consent-boundary`
+A live capture may sample read-only a process the user named or plainly means, anything injecting code or changing it needs the user's explicit yes, a process not named stays out, and a tool needing elevated permission is a stop with what is needed.
+- ours: `performance-optimization`
+
+#### `live-diagnosis-gate`
+Capture from the live process rather than theorise from source and fix nothing, within the capture boundary of the skill's diagnosis branch, with a restart the last resort.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/runtime-forensics.md`
+
+#### `live-forensics-closeout`
+On every exit of a live diagnosis, leave the process as found, remove instrumentation by its tag and name the artifacts kept.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/runtime-forensics.md`
+
+#### `load-generator-saturation`
+Watch the load generator during a run, since a saturated generator means the result describes it and not the target.
+- ours: `performance-optimization`
+- `cursor_plugins:skill:pstack/skills/benchmark-checklist` — adopt → performance-optimization#load-generator-saturation
+
 #### `localized-probing`
 Probe the suspected boundary or variable and repeat only while new evidence appears, using cross-layer tracing, working-versus-broken comparison or bisection to find the failing layer.
 - ours: `systematic-debugging`
@@ -6435,10 +6965,37 @@ Probe the suspected boundary or variable and repeat only while new evidence appe
 Locate the material cost with measurements, focused instrumentation or profiling, letting code inspection only suggest candidates.
 - ours: `performance-optimization`
 
+#### `located-cost-branch`
+When a caller wants a live capture or someone asks where a resource goes and no change is wanted, run only the measure-and-locate steps and deliver the artifact, its command, the reduced finding, its location or the gap, and located or hypothesis.
+- ours: `performance-optimization`
+
 #### `loop-construction`
 Build the reproduction in the form that fits the failure: a focused test, CLI fixture, captured trace or isolated scratch harness.
 - ours: `systematic-debugging`
 - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt → systematic-debugging#loop-construction
+
+#### `machine-load-check`
+Before measuring, check the load average and core count and find what is occupying a busy machine.
+- ours: `performance-optimization`
+- `cursor_plugins:skill:pstack/skills/benchmark-checklist` — adopt → performance-optimization#machine-load-check
+
+#### `measurement-tied-fix-gate`
+Tie every fix to a measurement, with the lead owning the number whoever writes the code.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/perf-issue.md`
+
+#### `measurement-unit`
+State every reported number with its unit.
+- ours: `performance-optimization`
+- `cursor_plugins:skill:pstack/skills/benchmark-checklist` — adopt → performance-optimization#measurement-unit
+
+#### `mechanism-named-hypothesis`
+Name how each candidate should move the metric, tied to the located cost.
+- ours: `performance-optimization`
+
+#### `median-and-range-report`
+Report the median and the range across a comparison's runs.
+- ours: `performance-optimization`
+- `cursor_plugins:skill:pstack/skills/benchmark-checklist` — adopt → performance-optimization#median-and-range-report
 
 #### `minimize-to-discriminate`
 Minimize a reproduction only as far as needed to distinguish the candidate causes.
@@ -6452,15 +7009,30 @@ When no correct seam exists to lock down the bug, treat that architectural absen
 #### `named-limiter`
 Explain a measured number by the resource or code path that bounds it, found from a profile or counters taken during the run and mapped to source, not from reading code.
 - ours: `principle-explain-the-number`
+- `cursor_plugins:skill:pstack/skills/benchmark-checklist` — adopt → principle-explain-the-number#named-limiter
 - `cursor_plugins:skill:pstack/skills/principle-explain-the-number` — adopt → principle-explain-the-number#named-limiter
 
 #### `narrow-by-artifact-shape`
 Narrow a capture by the query its shape calls for: the hot path through the call tree, the retainer chain to a root, or the stuck thread and its wait.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/trace-forensics.md`
 
+#### `no-ceiling-without-run`
+Claim no ceiling on a gain until a run has shown it.
+- ours: `performance-optimization`
+
 #### `no-fix-handback`
 Change no code and add no instrumentation while explaining a captured artifact, and hand back the diagnosis with any follow-up named as a new request.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/trace-forensics.md`
+
+#### `no-limiter-inconclusive`
+Call a claimed difference inconclusive when its limiter cannot be named.
+- ours: `performance-optimization`
+- `cursor_plugins:skill:pstack/skills/benchmark-checklist` — adopt → performance-optimization#no-limiter-inconclusive
+
+#### `no-narrowing-for-adoption`
+When someone is choosing what to adopt, do not cure an untuned comparison by narrowing the claim to today's as-shipped settings.
+- ours: `performance-optimization`
+- `cursor_plugins:skill:pstack/skills/benchmark-checklist` — adopt → performance-optimization#no-narrowing-for-adoption
 
 #### `noise-inconclusive`
 Treat a measured difference within noise as inconclusive rather than as a gain or a loss.
@@ -6479,9 +7051,22 @@ Skip the diagnosis only when a deterministic failing command, run as reported, s
 Change one attributable factor where practical, explaining the coupling for an inseparable set and preserving semantics, freshness, safety and accessibility.
 - ours: `performance-optimization`
 
+#### `one-number-pr-body`
+Keep a pull request body to one primary number, with the supporting evidence linked from it.
+- `cursor_plugins:skill:pstack/skills/benchmark-checklist` — defer
+
 #### `one-variable-at-a-time`
 Change exactly one variable per probe, each mapped to a specific prediction.
 - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt, pending cr-axdt.6.9 → systematic-debugging#one-variable-at-a-time
+
+#### `one-verdict-first`
+Open a measurement report with one verdict: slower, faster, inconclusive or no measurable difference.
+- ours: `performance-optimization`
+- `cursor_plugins:skill:pstack/skills/benchmark-checklist` — adopt → performance-optimization#one-verdict-first
+
+#### `ordered-cost-mantras`
+For a resource metric, try candidates in a fixed order, cheapest first, from dropping unused work through keeping a result, doing it less, deferring it, moving it off the waited-on path and running it concurrently to making the operation cheaper.
+- ours: `performance-optimization`
 
 #### `owning-fix`
 Fix only a confirmed cause at its owning layer, since a change that merely hides the symptom is not a fix.
@@ -6492,6 +7077,10 @@ Fix a bug at the layer that owns it rather than patching around it.
 - `cursor_plugins:skill:pstack/skills/principle-attack-the-premise` — adopt → doc:AGENTS.md
 - `cursor_plugins:skill:pstack/skills/principle-fix-root-causes` — adopt → doc:AGENTS.md
 
+#### `paired-artifact-diff`
+Keep the baseline's and the candidate's artifacts from the matching surface and diff them, treating a comparison on another surface or an inconclusive one as no pass.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/perf-issue.md`
+
 #### `paired-capture-confirmation`
 Confirm a finding by diffing a before and an after capture, and without a pair label it the strongest hypothesis the artifact supports.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/trace-forensics.md`
@@ -6499,6 +7088,11 @@ Confirm a finding by diffing a before and an after capture, and without a pair l
 #### `parseable-hitl-output`
 Have a human-in-the-loop script print its captured values as key=value lines the agent can parse.
 - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — defer
+
+#### `per-process-cpu-read`
+Inspect CPU use per process when hunting a limiter.
+- ours: `performance-optimization`
+- `cursor_plugins:skill:pstack/skills/benchmark-checklist` — adopt → performance-optimization#per-process-cpu-read
 
 #### `perf-bisection`
 Locate a performance regression by bisecting between known-good and known-bad states rather than by adding logs.
@@ -6527,6 +7121,11 @@ Keep useful reproducers and user artifacts when cleaning up after a fix.
 - ours: `systematic-debugging`
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/bug-fix.md`
 
+#### `production-parity-sides`
+Run every compared side as production runs it: release builds, flags and environment, batching and transactions, connection pools, cache temperature, and the same versions and data.
+- ours: `performance-optimization`
+- `cursor_plugins:skill:pstack/skills/benchmark-checklist` — adopt → performance-optimization#production-parity-sides
+
 #### `prove-the-red`
 When forcing the red by mutating code or a fixture, diff against a pristine copy to prove the mutation landed before trusting it.
 - ours: `test-driven-development`
@@ -6544,6 +7143,10 @@ For a material recurring risk add an economical guard — query counts, bounded 
 Take the baseline under representative data, cache state, concurrency and environment, repeated enough to estimate variability, with percentiles for tail-latency targets and the command and conditions recorded.
 - ours: `performance-optimization`
 
+#### `repro-before-climb`
+Name the workload dimensions and pick a case that reproduces the complaint; when none does, repair the case in at most two tries and otherwise stop with what was tried.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/hillclimb.md`
+
 #### `reproduce-and-minimize`
 Shrink the reproduction one element at a time until every remaining part is load-bearing — removing any one makes it pass.
 - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt → systematic-debugging#minimize-to-discriminate
@@ -6557,18 +7160,64 @@ Obtain a reproduction that shows the reported failure, not a nearby one, before 
 Seek a reproduction that shows the reported failure, not a nearby one, before diagnosing, but when none is obtainable confirm a cause by independent evidence such as traces instead.
 - ours: `systematic-debugging`
 
+#### `resolved-no-difference`
+Choose before running the margin that would matter to the decision, estimate an interval for the reported difference by a method fit for the statistic and how the runs were sampled, and call it faster or slower only when the whole interval lies beyond the margin on that side, no measurable difference only when the whole interval lies inside the margin, and inconclusive otherwise, never deciding from the raw run range.
+- ours: `performance-optimization`
+
 #### `revert-ineffective-experiments`
 Remove your own ineffective experimental edits, preserving all other work.
 - ours: `performance-optimization`
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/bug-fix.md`
 
+#### `run-evidence-answers`
+Settle every vetting question with data from an actual run, never from reasoning about the code.
+- ours: `performance-optimization`
+- `cursor_plugins:skill:pstack/skills/benchmark-checklist` — adopt → performance-optimization#run-evidence-answers
+
+#### `runtime-profiler-read`
+Use a language or system profiler when hunting a limiter.
+- ours: `performance-optimization`
+- `cursor_plugins:skill:pstack/skills/benchmark-checklist` — adopt → performance-optimization#runtime-profiler-read
+
 #### `scoped-instance-fix`
 Search for every instance of a confirmed fault, fix those inside the task's scope and report the rest.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/bug-fix.md`
 
+#### `script-reading-first`
+Read the measuring script before a run and note what it times, what it counts and what it leaves out.
+- ours: `performance-optimization`
+- `cursor_plugins:skill:pstack/skills/benchmark-checklist` — adopt → performance-optimization#script-reading-first
+
+#### `sensitivity-proof-then-freeze`
+Show that contrasting workloads separate as expected, vet the harness, then freeze it as one command that no longer changes.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/hillclimb.md`
+
+#### `settings-limiter-untuned`
+Treat a side whose limiter is a setting, such as per-row commits, a debug build or a missing index, as untuned.
+- ours: `performance-optimization`
+- `cursor_plugins:skill:pstack/skills/benchmark-checklist` — adopt → performance-optimization#settings-limiter-untuned
+
+#### `share-bound-on-gain`
+Bound a claimed gain by the fraction f of elapsed time the changed part takes: for 0 <= f < 1, elapsed-time reduction is at most f and the matching throughput speedup at most 1/(1-f), at f = 1 the model gives no finite speedup bound, and a reported percentage names which it is.
+- ours: `performance-optimization`
+- `cursor_plugins:skill:pstack/skills/benchmark-checklist` — adopt → performance-optimization#share-bound-on-gain
+
+#### `shipped-claim-first`
+Before any run, write the exact result sentence you expect to publish, with its metric and dataset, and test the vetting questions against that sentence.
+- ours: `performance-optimization`
+- `cursor_plugins:skill:pstack/skills/benchmark-checklist` — adopt → performance-optimization#shipped-claim-first
+
+#### `single-factor-brief`
+Let a delegate write one factor under a brief naming that factor, its mechanism and its owned paths, while the caller keeps the baseline and the comparison.
+- ours: `performance-optimization`
+
 #### `source-attribution-or-gap`
 Map a finding to a file, symbol and line through the artifact's own symbols, or state that the artifact does not carry them; an unmapped frame is not a diagnosis.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/trace-forensics.md`
+
+#### `syscall-count-read`
+Inspect system call counts when hunting a limiter.
+- `cursor_plugins:skill:pstack/skills/benchmark-checklist` — adopt → performance-optimization#kernel-time-syscall-count
 
 #### `tagged-debug-logs`
 Tag every debug log with a unique prefix so cleanup is a single search.
@@ -6579,25 +7228,74 @@ Tag every debug log with a unique prefix so cleanup is a single search.
 Treat the loop as a product and keep making it faster, sharper, and more deterministic, raising the reproduction rate for flaky bugs until it is debuggable.
 - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt → systematic-debugging#flake-reproduction
 
+#### `tuned-before-winner`
+Tune an untuned side and measure again before naming a winner, and name none from a run whose side cannot be tuned.
+- `cursor_plugins:skill:pstack/skills/benchmark-checklist` — adopt → performance-optimization#tuned-claim-gate
+
+#### `tuned-claim-gate`
+For a claim about the tuned implementation or an adoption choice, tune an untuned side and measure again before naming a winner, calling the verdict inconclusive if it cannot be tuned, while a documented comparison of deployments as they run stays a legitimate claim.
+- ours: `performance-optimization`
+
 #### `two-failure-stop`
 After two failed fixes, stop and bring the attempt log to whoever started the task before trying another.
 - ours: `execution`
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/bug-fix.md`
 
+#### `unchecked-run-inconclusive`
+Call a verdict inconclusive when the error or work check could not be done.
+- ours: `performance-optimization`
+- `cursor_plugins:skill:pstack/skills/benchmark-checklist` — adopt → performance-optimization#unchecked-run-inconclusive
+
 #### `unproven-without-reproduction`
 When no reproduction is obtainable, continue safe source analysis and qualify any resulting fix as unproven.
 - ours: `systematic-debugging`
+
+#### `unreported-profile-run`
+Profile and trace in a separate run whose numbers are never reported, because instrumentation distorts timing.
+- ours: `performance-optimization`
+- `cursor_plugins:skill:pstack/skills/benchmark-checklist` — adopt → performance-optimization#unreported-profile-run
+
+#### `untuned-side-inconclusive`
+Call a verdict inconclusive when a side ran untuned.
+- `cursor_plugins:skill:pstack/skills/benchmark-checklist` — adopt → performance-optimization#tuned-claim-gate
+
+#### `vet-at-flow-gates`
+In a performance flow, vet the baseline before planning from it, every later number, and a harness before it is frozen.
+- `cursor_plugins:skill:pstack/skills/benchmark-checklist` — reject
 
 #### `why-chain`
 Ask why at each step of a failure until the answer is a wrong decision in the code rather than a consequence of an earlier one.
 - ours: `systematic-debugging`
 - `cursor_plugins:skill:pstack/skills/principle-fix-root-causes` — adopt → systematic-debugging#why-chain
 
+#### `within-variation-no-difference`
+Give a gap smaller than run-to-run variation the verdict no measurable difference.
+- `cursor_plugins:skill:pstack/skills/benchmark-checklist` — adopt → performance-optimization#resolved-no-difference
+
+#### `work-ran-check`
+Prove the work happened inside the timed span and the code used its result, since lazy code, discarded results and timeouts can produce numbers for work that never happened.
+- ours: `performance-optimization`
+- `cursor_plugins:skill:pstack/skills/benchmark-checklist` — adopt → performance-optimization#work-ran-check
+
 ### engineering · Building · Implementation
 
 #### `append-only-supersede`
 Never edit or delete a ledger record; correct or reverse one by appending a record that supersedes it.
+- ours: `decision-trail`
 - `doc:.repo-context/coding-style.md`
+- `cursor_plugins:skill:pstack/skills/show-me-your-work` — adopt → decision-trail#append-only-supersede
+
+#### `attempt-isolation-gate`
+Before any baseline, name an artifact directory outside every worktree the climb removes, and run the whole climb in one detached worktree when a changed path holds someone else's edits or another writer may touch anywhere in the tree, its starting state replayed and verified.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/hillclimb.md`
+
+#### `attempt-snapshot-undo`
+Snapshot the tree around an attempt, stop on a patch naming a path not meant to change, and undo only by reversing that attempt's own patch, proving the result first and verifying it after, any refusal, failure or mismatch being a stop.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/hillclimb.md`
+
+#### `attended-only-gate`
+Start no unattended run: set no wake or schedule, go on only while the conversation does, and offer an attended run instead.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/hillclimb.md`
 
 #### `author-stages-over-template`
 Author one stage per step using the library helpers, keeping each stage to a single focused task.
@@ -6622,6 +7320,7 @@ Before code is written, state the paths, the data shape and the success criteria
 #### `build-closeout`
 On every exit of a build, remove temporary scaffolding, name what is unfinished in the tree and list the open decisions.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/feature.md`
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/perf-issue.md`
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/refactoring.md`
 
 #### `bundled-config-copy`
@@ -6635,6 +7334,10 @@ When fixing, inspect the affected callers and preserve their legitimate differen
 #### `ci-fallback-instruction`
 Without an umbrella check command, add the lint script alone and tell the user to put it in CI.
 - `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules` — out-of-scope
+
+#### `climb-closeout`
+On every exit of a climb, bring an isolated climb back and remove its worktree or stop naming both, confirm the tree holds only kept attempts, name the kept patches and the harness, and run the trail's audit and review when one opened.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/hillclimb.md`
 
 #### `closed-schema`
 Make closed input schemas reject unknown fields.
@@ -6708,6 +7411,10 @@ Accept scoped, planned breakage while filling in a sketch.
 Make data models immutable by default and mutable only when their lifecycle needs mutation.
 - `doc:.repo-context/coding-style.md`
 
+#### `gate-green-baseline`
+Record the baseline and a green run of the regression gate before any change, stopping when the gate is red.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/hillclimb.md`
+
 #### `generated-human-view`
 Give each ledger a Markdown human view generated from its records and marked as generated.
 - `doc:.repo-context/coding-style.md`
@@ -6724,6 +7431,7 @@ Generate an interactive script that walks a person through the setup steps only 
 Build against the sketch as the contract, surfacing any departure and revising the sketch first when the code must diverge.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/bug-fix.md`
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/feature.md`
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/perf-issue.md`
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/refactoring.md`
 - `cursor_plugins:skill:pstack/skills/architect` — adopt → doc:.claude/skills/mvp-mode/playbooks/feature.md
 
@@ -6738,6 +7446,10 @@ Give external I/O calls explicit timeouts.
 #### `jsonl-ledger-format`
 Write a ledger as UTF-8 JSON Lines with one record per physical line, never pretty-printed.
 - `doc:.repo-context/coding-style.md`
+
+#### `keep-or-undo-rule`
+Keep a win past noise with the gate green or a demonstrated simplification that does not materially worsen the metric and holds correctness, logged as no speedup, and otherwise undo in full.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/hillclimb.md`
 
 #### `leave-it-simpler`
 Leave each touched design slightly simpler and more capable, behind the same or a smaller surface, than it was found.
@@ -6762,6 +7474,10 @@ Keep pyproject.toml and uv.lock consistent with each other.
 #### `map-stage-journey`
 Write each stage's concrete interface path, asking the user or checking docs where the interface is unknown rather than inventing steps.
 - `mattpocock_skills:skill:skills/engineering/wizard` — defer
+
+#### `measurement-in-commit-body`
+Hand the measured number to the commit step for its body.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/perf-issue.md`
 
 #### `migration-state-delta`
 For a migration, identify the current state, the target state and the irreversible actions between them before writing stages.
@@ -6800,6 +7516,10 @@ Never put secrets in YAML files, Git or logs.
 Avoid cleanup unrelated to the requested work.
 - `doc:AGENTS.md`
 
+#### `one-change-one-measurement`
+Make one change, take one measurement, then keep or undo it, never stacking untested changes.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/hillclimb.md`
+
 #### `one-test-per-cycle`
 Alternate one test and its implementation at a time instead of writing all tests before any implementation.
 - ours: `test-driven-development`
@@ -6829,6 +7549,14 @@ Move structure in small steps that each keep the behaviour check green.
 Keep arbitrary framework objects out of serialized contracts.
 - `doc:.repo-context/coding-style.md`
 
+#### `plateau-pivot`
+On several rejects in a row, change category, combine near-misses and reread the source before concluding.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/hillclimb.md`
+
+#### `predicate-held-stop`
+Never relax the predicate, never quit while a cheap untried hypothesis remains, and surface being stuck.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/hillclimb.md`
+
 #### `preserve-config-format`
 Keep a component's existing configuration format, never introducing a new format or settings library just to get validation.
 - `doc:.repo-context/coding-style.md`
@@ -6851,6 +7579,10 @@ Keep enough before-and-after evidence to distinguish a demonstrated fix from an 
 #### `pydantic-models`
 Prefer Pydantic v2 models to dataclasses or untyped dicts for new structured domain data, configuration and external contracts, leaving ordinary collections as built-ins.
 - `doc:.repo-context/coding-style.md`
+
+#### `read-trail-first`
+Read the trail before each attempt and retry nothing it already rejected.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/hillclimb.md`
 
 #### `reader-load-keep-or-revert`
 Keep a finished restructuring only if reader load dropped, and otherwise revert it.
@@ -6937,6 +7669,10 @@ Commit the agreed sketch separately before implementing it.
 #### `stage-progress-counter`
 Show the person's progress as the current stage over the total.
 - `mattpocock_skills:skill:skills/engineering/wizard` — defer
+
+#### `stop-predicate-with-floor`
+Fix a stop predicate pairing a target with a floor on attempts, in the user's numbers or agreed.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/hillclimb.md`
 
 #### `strict-mypy`
 Type-check Python with strict mypy as the gate.
@@ -7717,14 +8453,14 @@ Traits listed by two or more of our active skills (`doc:AGENTS.md` and playbooks
 | Trait | Holders | Why |
 |---|---|---|
 | `attempt-log` | doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, execution | Each fixes a failure on its own path, the bug-fix playbook for a bug-fix request and execution inside a task it is running, often delegated, where it cannot start the playbook (R8); both log each fix attempt so a stop hands back usable evidence. |
-| `build-closeout` | doc:.claude/skills/mvp-mode/playbooks/feature.md, doc:.claude/skills/mvp-mode/playbooks/refactoring.md | Each playbook's closeout runs on its own exits and feeds its own reply, and these two have the same three duties; a skill of three duties would be ceremony (unit-kinds deviation log, St4 and B4). |
+| `build-closeout` | doc:.claude/skills/mvp-mode/playbooks/feature.md, doc:.claude/skills/mvp-mode/playbooks/perf-issue.md, doc:.claude/skills/mvp-mode/playbooks/refactoring.md | Each playbook's closeout runs on its own exits and feeds its own reply, and these three have the same three duties; a skill of three duties would be ceremony (unit-kinds deviation log, St4 and B4). |
 | `canonical-term-and-aliases` | domain-modeling, teach | Each keeps a glossary of its own (project language, the learner's workspace) in one entry format, with its own admission rules. |
 | `dependency-edges` | planning, wayfinder | Each builds its own tracker graph, planning for implementation stages and wayfinder for decision tickets, and lets readiness drive the work; edge semantics stay in beads. |
 | `domain-vocabulary` | i-have-adhd, teach | Each writes for its reader in the project's own terms, i-have-adhd in its re-pitches and teach in its lessons. |
 | `drift-scan` | harness-scan, harness-status | Both run the one drift command, scan for a single harness and status as a sweep of all of them; a pointer between them would add a hop to a one-line command. |
 | `finding-adjudication` | execution, review | Execution rules on findings inside its delivery loop and review owns the method; owner 2026-10-30: execution stays unchanged. |
 | `glossary-entry-template` | domain-modeling, teach | Each keeps a glossary of its own (project language, the learner's workspace) in one entry format, with its own admission rules. |
-| `implement-against-sketch` | doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/feature.md, doc:.claude/skills/mvp-mode/playbooks/refactoring.md | Owner ruling 5 keeps the sketch design-only, so each playbook's own build step writes the code and holds this rule; a skill for it would bring back the implement branch the ruling removed (unit-kinds deviation log, St4). |
+| `implement-against-sketch` | doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/feature.md, doc:.claude/skills/mvp-mode/playbooks/perf-issue.md, doc:.claude/skills/mvp-mode/playbooks/refactoring.md | Owner ruling 5 keeps the sketch design-only, so each playbook's own build step writes the code and holds this rule; a skill for it would bring back the implement branch the ruling removed (unit-kinds deviation log, St4). |
 | `independent-synthesis` | model-council, perspective-council | Two entrypoints with distinct triggers (named models with a judge, opposing lenses) each run a full council ending in a fresh synthesizer. |
 | `material-risk-review` | brainstorming, harness-evaluate | Each gates acceptance of its own output, a spec or a template adoption, on an independent critic; the critic itself belongs to review. |
 | `member-isolation` | model-council, perspective-council | Each council dispatches its own members in isolation. |

@@ -28,9 +28,15 @@ Apply when about to measure, or before trusting, reporting or acting on a measur
 - **cursor_plugins:skill:pstack/skills/principle-explain-the-number#confound-elimination** `pstack/skills/principle-explain-the-number/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
 - **cursor_plugins:skill:pstack/skills/principle-explain-the-number#evidence-with-number** `pstack/skills/principle-explain-the-number/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
 - **cursor_plugins:skill:pstack/skills/principle-explain-the-number#eval-result-scrutiny** `pstack/skills/principle-explain-the-number/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/benchmark-checklist#confound-elimination** `pstack/skills/benchmark-checklist/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/benchmark-checklist#named-limiter** `pstack/skills/benchmark-checklist/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/benchmark-checklist#evidence-with-number** `pstack/skills/benchmark-checklist/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-02` **adopt** (2026-11-02-batch-2:034): Owner ruling 2026-11-02: .claude/skills/principle-explain-the-number/SKILL.md:19 has a reported number carry its run count, its spread and its limiter. It name…
+- `2026-11-02` **adopt** (2026-11-02-batch-2:009): Owner ruling 2026-11-02: .claude/skills/principle-explain-the-number/SKILL.md:13-15 explains a number by the resource or code path that bounds it, found from a…
+- `2026-11-02` **adopt** (2026-11-02-batch-2:002): Owner ruling 2026-11-02: .claude/skills/principle-explain-the-number/SKILL.md:16-18 lists what else a number could be measuring (errors, skipped or cached work…
 - `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:156): Completes pending 2026-11-01-cursor_plugins-pstack-principles:037: the principles build (cr-r2pa.1.2) delivered eval-result-scrutiny in principle-explain-the-n…
 - `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:155): Completes pending 2026-11-01-cursor_plugins-pstack-principles:036: the principles build (cr-r2pa.1.2) delivered evidence-with-number in principle-explain-the-n…
 - `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:154): Completes pending 2026-11-01-cursor_plugins-pstack-principles:035: the principles build (cr-r2pa.1.2) delivered confound-elimination in principle-explain-the-n…
@@ -44,19 +50,22 @@ Apply when about to measure, or before trusting, reporting or acting on a measur
 <!-- /registry:generated history -->
 
 <!-- registry:generated reviews -->
-None yet.
+- [2026-11-01-upstream-cursor_plugins-4dd1d05-batch-2.md](../../reviews/2026-11-01-upstream-cursor_plugins-4dd1d05-batch-2.md)
 <!-- /registry:generated reviews -->
 
 <!-- registry:generated sources -->
 - `confound-elimination`:
+  - `cursor_plugins:skill:pstack/skills/benchmark-checklist#confound-elimination` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
   - `cursor_plugins:skill:pstack/skills/principle-explain-the-number#confound-elimination` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `decision-before-measurement`:
   - `cursor_plugins:skill:pstack/skills/principle-explain-the-number#decision-before-measurement` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `eval-result-scrutiny`:
   - `cursor_plugins:skill:pstack/skills/principle-explain-the-number#eval-result-scrutiny` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `evidence-with-number`:
+  - `cursor_plugins:skill:pstack/skills/benchmark-checklist#evidence-with-number` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
   - `cursor_plugins:skill:pstack/skills/principle-explain-the-number#evidence-with-number` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `named-limiter`:
+  - `cursor_plugins:skill:pstack/skills/benchmark-checklist#named-limiter` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
   - `cursor_plugins:skill:pstack/skills/principle-explain-the-number#named-limiter` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 <!-- /registry:generated sources -->
 
