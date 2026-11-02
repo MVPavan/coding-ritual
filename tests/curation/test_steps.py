@@ -543,3 +543,32 @@ def test_a_reference_ruling_cannot_forget_a_playbook(
     with pytest.raises(ValueError, match="reject on a playbook subject"):
         cli.cmd_record(cfg, _rec_ns(json=json.dumps(ruling)))
     _fails_with(cfg, capsys, f"{FIX_PATH}: no such playbook")
+
+
+def test_plain_when_cut_by_a_yaml_comment_is_refused() -> None:
+    head = "---\ntrigger: A defect to fix.\nsteps:\n  - id: fix#1\n"
+    action = "    actions: [{trait: act}]   # new\n---\n"
+    with pytest.raises(ValueError, match="quote it or write full step IDs"):
+        steps.parse_playbook(
+            "fix", "fix.md", f"{head}    when: from fix#3, #5\n{action}"
+        )
+    quoted = f'{head}    when: "from fix#3, #5"\n{action}'
+    assert (
+        steps.parse_playbook("fix", "fix.md", quoted).steps[0].when == "from fix#3, #5"
+    )
+    plain = f"{head}    when: from fix#3\n{action}"
+    assert steps.parse_playbook("fix", "fix.md", plain).steps[0].when == "from fix#3"
+
+
+@pytest.mark.parametrize("gap", [" ", "  ", "    ", "\t", " \t "])
+@pytest.mark.parametrize("key", ["when", '"when"', "'when'"])
+def test_when_guard_reads_past_any_spacing_and_key_spelling(gap: str, key: str) -> None:
+    head = "---\ntrigger: A defect to fix.\nsteps:\n  - id: fix#1\n"
+    action = "    actions: [{trait: act}]   # new\n---\n"
+    cut = f"{head}    {key}:{gap}from fix#3, #5\n{action}"
+    with pytest.raises(ValueError, match="quote it or write full step IDs"):
+        steps.parse_playbook("fix", "fix.md", cut)
+    if "\t" not in gap:
+        quoted = f'{head}    {key}:{gap}"from fix#3, #5"\n{action}'
+        parsed = steps.parse_playbook("fix", "fix.md", quoted)
+        assert parsed.steps[0].when == "from fix#3, #5"
