@@ -32,7 +32,8 @@ steps:
 # Feature
 
 For new behaviour to design and build, with no settled plan to execute. A plan or
-roadmap phase to run is `execution`, and work still to plan is `planning`.
+roadmap phase to run is `execution`. A build whose units or questions are unsettled
+goes to the multi-phase-plan playbook first, and settled work to plan stays `planning`.
 
 **The gate:** the lead settles the design and reviews the result, whoever writes the
 code. This playbook does not call `execution`, so a Feature build keeps no run

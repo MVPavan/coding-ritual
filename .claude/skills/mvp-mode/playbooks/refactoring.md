@@ -35,8 +35,9 @@ steps:
 
 For a focused structure change that must keep behaviour unchanged, with no settled
 plan to execute, including a focused redesign of internals. Changed behaviour is the
-feature playbook, a settled plan to run is `execution`, and staged work across many
-modules starts with `planning`.
+feature playbook, and a settled plan to run is `execution`. Staged work across many
+modules goes to the multi-phase-plan playbook first when its units or questions are
+unsettled, and settled staged work to plan stays `planning`.
 
 **The gate:** the structure changes and the behaviour does not. A bug or missing
 feature asked for in the same request is split out first: name it as the next request

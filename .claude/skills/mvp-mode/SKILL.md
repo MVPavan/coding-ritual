@@ -56,11 +56,12 @@ One line per playbook: `` - `playbooks/<name>.md`: <the request it fits> ``.
 
 - `playbooks/bug-fix.md`: a reported defect, failing check or flaky test to fix with proof.
 - `playbooks/eval.md`: an instruction or routing variant to try on fresh Claude Code sessions and judge from what they did, not a reference capability to weigh for adoption.
-- `playbooks/feature.md`: new behaviour to design and build, with no settled plan to execute.
+- `playbooks/feature.md`: new behaviour to design and build, with no settled plan to execute; a build whose units or questions are unsettled goes to multi-phase-plan first, and settled work to plan stays planning.
 - `playbooks/hillclimb.md`: sustained improvement of one measurable metric from one repeatable command against a stop predicate, attended only for now (it answers an unattended request too), with no settled plan to execute; one fix is perf-issue, a plan to run is execution, and a variant judged on fresh sessions is eval.
 - `playbooks/investigation.md`: a question about how this repository's code works, why it has its shape or which design to pick, answered from source and history; not a failure, a measurement or a captured artifact.
+- `playbooks/multi-phase-plan.md`: a request to produce a plan for several independently verifiable units, or work whose open questions must be settled before planning; a request to build is feature, and an existing roadmap phase, an approved spec to split or a settled plan keeps its route (planning, execution).
 - `playbooks/perf-issue.md`: a measured or reported slowness or resource cost to fix once against a target, with no settled plan; a failure or a regression whose cause is unknown is bug-fix, and repeated climbing of one metric is hillclimb.
-- `playbooks/refactoring.md`: a focused structure change that must keep behaviour unchanged, with no settled plan to execute, including a focused redesign of internals; changed behaviour is a feature, and staged work across many modules starts with planning.
+- `playbooks/refactoring.md`: a focused structure change that must keep behaviour unchanged, with no settled plan to execute, including a focused redesign of internals; changed behaviour is a feature; staged work across many modules goes to multi-phase-plan first when its units or questions are unsettled, and settled staged work to plan stays planning.
 - `playbooks/runtime-forensics.md`: a process running now (spinning, leaking, stuck) to diagnose from a live capture, with no fix wanted; an artifact captured earlier is trace-forensics.
 - `playbooks/trace-forensics.md`: an artifact captured earlier (trace, profile, heap dump, core) to explain, with no fix wanted and nothing new to measure.
 - `playbooks/worktree-cleanup.md`: stale Git worktrees to audit and prune.

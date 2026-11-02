@@ -100,7 +100,7 @@ ours:model-council:
   tree_hash: "ecd76ba1196f1260210e82483806f9d62a3c55cd6a28a8d8c603c254ccf8f828"
   traits: [member-resolution, runtime-capability-check, neutral-framing, member-isolation, report-preservation, independent-synthesis, consolidated-delivery, identity-recording, failed-member-recovery, no-silent-substitution]
 ours:mvp-mode:
-  tree_hash: "9a068fb1e60af3e163cceb8a359e86e1f9de4db904e4777ad1cd22c1ecda66d9"
+  tree_hash: "0a31b363659b3cb13196c9b96acdc73b996131cc850c13ff266c12e68d1c90f7"
   traits: [unit-kind-lines, playbook-pick, need-to-skill-routing, overlap-arbitration, layered-catalog, platform-skill-invocation, no-playbook-in-delegate, delegate-independent-by-default, no-onward-delegation, playbook-steps-as-todos, recorded-step-skip, whole-callee, playbook-exit, legacy-entrypoint-flagging, catalog-trust-boundary]
 ours:performance-optimization:
   tree_hash: "8e393535c7e06691afca39ef9df84040ce4752a29a8cc58610b8522ce951c4da"
@@ -111,8 +111,8 @@ ours:perspective-council:
   notes:
     independent-synthesis: "The synthesizer is a fresh chair who restores attribution after anonymized peer review and ends with a practical next step."
 ours:planning:
-  tree_hash: "a0e91f883ff0fbab9b5b608fb41c61f4c2c7d3c50bd887bf2745ea78ece26420"
-  traits: [route-by-scale, decompose-phases, vertical-slices, expand-contract, dependency-edges, beads-native-tracking, durable-plan-format, plan-evidence-bound, test-first-marking, no-placeholder-plan, plan-self-review, reviewer-rejectable-sizing, real-id-wiring, no-stale-code-snippets, ground-in-codebase, breakdown-approval-before-publish]
+  tree_hash: "58b779e5ffd8218aabc1622ad1a7ef43655e481b8aa4aac7568697ff3023ca44"
+  traits: [route-by-scale, decompose-phases, vertical-slices, expand-contract, dependency-edges, beads-native-tracking, durable-plan-format, plan-evidence-bound, test-first-marking, no-placeholder-plan, plan-self-review, reviewer-rejectable-sizing, real-id-wiring, no-stale-code-snippets, ground-in-codebase, breakdown-approval-before-publish, per-unit-evidence-boxes, named-execution-scope, plan-lint-last, prefactor-first, blast-radius-batches]
   notes:
     beads-native-tracking: "The roadmap anchor is the --spec-id and the governing spec is --design; the renderer derives the workstream from the anchor, so a plan path never goes in --design."
 ours:principle-attack-the-premise:
@@ -161,9 +161,12 @@ ours:prose-pass:
   tree_hash: "90d7746e4f4afcb9602adc2b3ce82f2e8ace7b1be25dabbd589fb0f9be7d0ef3"
   traits: [meaning-preserved-edit, confidence-language-kept, ing-phrase-cut, vague-attribution-cut, name-the-mechanism, filler-phrase-cut, chatbot-phrase-cut, sycophancy-cut, generic-conclusion-cut, tell-vocabulary-swap, plain-is-has, plain-word, synonym-cycling-cut, local-metaphor-noun-swap, not-just-but-cut, forced-triplet-cut, false-range-cut, hedge-stack-trim, dense-sentence-split, active-voice, adverb-cut, mannered-prose-cut, over-compression-fix, no-em-dash, mid-sentence-colon-cut, bold-restraint, inline-header-list-convert, sentence-case-headings, no-decorative-emoji, straight-quotes]
 ours:prototype:
-  tree_hash: "7f9f3520b582ebebf0d03910e325ec1cb073f93ffbbc545ed277ad4a6b6da58c"
-  traits: [named-question, pick-form, throwaway-marked, trivial-to-run, surface-state, scoped-data, persistence-when-needed, cheap-assertions, logic-pure-module, self-contained-html-demo, demo-states-question, readable-state-panel, demo-state-controls, resettable-demo-scenarios, ui-contextual-preview, variants-when-comparing, structural-variants, variant-switcher, ui-keyboard-safety, ui-accessibility, capture-outcome, separate-promotion, stubbed-mutations, production-hidden-switcher, competing-prototypes]
+  tree_hash: "4c270193b6a4eb08e957262ccd0725b252c33e5702ae7f3673065c355d68e7cb"
+  traits: [named-question, pick-form, throwaway-marked, trivial-to-run, surface-state, scoped-data, persistence-when-needed, cheap-assertions, logic-pure-module, self-contained-html-demo, demo-states-question, readable-state-panel, demo-state-controls, resettable-demo-scenarios, ui-contextual-preview, variants-when-comparing, structural-variants, variant-switcher, ui-keyboard-safety, ui-accessibility, capture-outcome, separate-promotion, stubbed-mutations, production-hidden-switcher, competing-prototypes, skip-polish, domain-vocabulary, handover-url-keys, always-available-free-play, resettable-guided-scenarios, existing-variant-styling-system, one-switcher-all-variants, variant-recommendation-tradeoffs, build-route-back, unobserved-surface-stated]
   notes:
+    skip-polish: "Delivers the row's ruled rewording, which keeps the error handling and safety checks needed to run the experiment and abstractions that help answer the question, where the definition allows neither; logged in unit-kinds under T5."
+    handover-url-keys: "Delivers the row's ruled rewording: a preview pointer, which a script need not have as a URL, and a key per variant; logged in unit-kinds under T5."
+    domain-vocabulary: "For what a prototype names: its states, actions and labels."
     named-question: "States the question and observable success before building."
     pick-form: "The smallest runnable form, including a script for algorithms."
     throwaway-marked: "Also reproducible."

@@ -10,9 +10,11 @@ state and transitions where appropriate; pure functions, reducers or a small
 stateful module are all valid. Surface the relevant state and invalid transitions.
 
 For HTML, include the question, a readable state panel, controls and only the
-guided scenarios needed to expose the uncertainty. Reset scenarios to known state.
-Use domain labels, keyboard-accessible controls and an offline artifact when
-sharing is the goal. For scripts, document the run command and expected signal.
+guided scenarios needed to expose the uncertainty. Reset each guided scenario to a
+known state and step it through the real controls. Keep free-play controls available
+beside guided scenarios so the user can drive state directly. Use domain labels,
+keyboard-accessible controls and an offline artifact when sharing is the goal. For
+scripts, document the run command and expected signal.
 
 Exercise a representative path and the counterexample the design might mishandle.
 Use assertions when they provide inexpensive evidence. Capture the answer and

@@ -1,7 +1,7 @@
 # Skill curation: handoff
 
 Updated 2026-11-02 (MVP stack phase 1 closed; phase 2 running on the playbook
-map, batch 2 done). Branch `mvp-stack` in the main worktree; `dws-workflow` is retired and
+map, batch 2 and pilot 2 done). Branch `mvp-stack` in the main worktree; `dws-workflow` is retired and
 deleted. Beads is the work-state authority; this file is the narrative.
 
 ## Start here (new session)
@@ -51,9 +51,10 @@ deleted. Beads is the work-state authority; this file is the narrative.
 | `862689d` | Seven Pocock retargets (`cr-r2pa.2.1`, round `2026-11-01-pocock-retarget`) |
 | after `862689d` | Batch 1 (`cr-r2pa.2.4`, round `2026-11-01-batch-1`), see below |
 | after `ba56f66` | Batch 2 (`cr-r2pa.2.5`, round `2026-11-02-batch-2`), see below |
+| after `d079219` | Pilot 2 (`cr-r2pa.2.8`, round `2026-11-02-pilot-2`), see below |
 
 `main` is at `eb36cc9`; later work is on `mvp-stack` until the owner asks to merge.
-`mvp-stack` is pushed through batch 2; commits after it are local until the owner
+`mvp-stack` is pushed through pilot 2; commits after it are local until the owner
 says to push.
 
 Decisions behind them: domains `core` and `engineering`; one primary
@@ -94,7 +95,15 @@ critic, owner rulings, ledger, build, Sol review, commit after the owner approve
   a real session: whether a model picks Perf issue over the skill, whether a span holds
   across a compaction, whether a critic per trail pays, whether a live capture works on a
   stuck process and whether a delegate keeps to one factor all wait on `cr-r2pa.2.12`.
-- Then pilots 2 and 3 (`.8`, `.9`), batches 3 and 4 (`.6`, `.7`), the remaining Pocock
+- `cr-r2pa.2.8`, done: pilot 2 (round `2026-11-02-pilot-2`). `prototype` gains one switcher for every variant, a recommendation with
+  tradeoffs and a conditional route back to Feature, and stays a skill. `planning` gains a
+  Skeleton branch with evidence boxes per unit and `scripts/check_plan.py`. Multi-phase plan
+  is live and calls `delegation`, `prototype`, `planning` and `prose-pass`, with no `land`:
+  the plan stays uncommitted. None of it has run on a real session: whether a model picks
+  the playbook over `planning` or Feature, whether a span holds across a compaction,
+  whether `execution` runs tick boxes and whether workers misread task text all wait on
+  `cr-r2pa.2.12`.
+- Then pilot 3 (`.9`), batches 3 and 4 (`.6`, `.7`), the remaining Pocock
   pass (`.10`).
 - `cr-r2pa.2.13`: analyse every skill of ours, Pocock and pstack; its scope is still to
   agree with the owner.

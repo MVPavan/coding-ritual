@@ -233,8 +233,11 @@ material moves to references. [data: H1 holds via standalone use]
 - T4. Reply formats stay in the playbook's text, untraited, until a second
   playbook shares one. [proposed: Q7]
 - T5. A match needs the whole mechanism: every unconditional requirement of
-  the definition holds. Otherwise it is a variant with `distinct_from`.
-  [data: round 3]
+  the definition holds. Otherwise it is a variant with `distinct_from`. A
+  completion may follow an already frozen, owner-approved rewording that departs
+  from the definition, when the holder's notes cite the exact sealed row and the
+  deviation is logged. [data: round 3; ruling: owner, 2026-11-02 (E4), added the
+  frozen rewording]
 - T6. Check existing definitions before adding a new one; prefer a variant.
   [existing]
 
@@ -289,6 +292,8 @@ material moves to references. [data: H1 holds via standalone use]
 | 2026-11-01 | `implement-against-sketch` (Feature, Refactoring, `bug-fix`) | St4 | The same own action sits in three playbooks on purpose: owner ruling 5 keeps it out of `codebase-design`, and a skill holding it would rebuild the implement branch the ruling removed, so each build step states it | Accepted, no skill. Perf issue is the fourth caller, with the same wording and form, so the condition did not fire: revisit if a later caller changes the wording or needs a different form |
 | 2026-11-01 | `build-closeout` (Feature, Refactoring) | St4, B4 | Each playbook's closeout stays with its own exits and reply contract, and a skill of three short duties would be ceremony | Accepted, no skill. Perf issue is the third, so the condition fired: stays, since a closeout belongs to its playbook's exits and reply (B7) and its text is three duties. Hillclimb and Runtime forensics take the variants `climb-closeout` and `live-forensics-closeout`, whose duties differ. Revisit when a fourth playbook takes this closeout |
 | 2026-11-02 | `decision-trail` | S7 | A critic per run is a costly opt-in, which S7 keeps manual, but only a model-invocable skill can be called through the platform (R6) and Hillclimb calls it. Owner ruling 9 accepted the cost | Accepted: a calling playbook invokes it automatically, and its description limits standalone use to an explicit request. Revisit if real sessions (`cr-r2pa.2.12`) show it invoked unasked |
+| 2026-11-02 | `skip-polish` on `prototype` | T5 | The definition allows no error handling beyond runnability and no abstractions. The sealed rewording keeps the error handling and safety checks needed to run safely, and abstractions that help answer the question. That rewording is frozen and a completion keeps the same trait and `into`, so the text follows the rewording; `traits/ours.yaml` notes it | Accepted for this row |
+| 2026-11-02 | `handover-url-keys` on `prototype` | T5 | The definition names a URL. The sealed rewording says a preview pointer, for a surface with no URL, and is frozen in the same way | Accepted for this row. It is the second deviation for this reason, so E4 fired: the owner ruled on 2026-11-02 and T5 now allows it, still logged |
 
 ## 6. Conflicts with what exists, to settle as we go
 

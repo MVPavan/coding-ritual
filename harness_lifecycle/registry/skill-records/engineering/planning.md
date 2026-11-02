@@ -10,9 +10,9 @@ status: active
 ---
 # planning
 
-Use when settled work needs a durable implementation plan, dependency graph, or workstream decomposition. Skip planning ceremonies for clear bounded tasks.
+Use when settled work needs a durable implementation plan, dependency graph, or workstream decomposition: an existing roadmap phase, an approved spec to split, or a plan in a form someone names. A request to produce a plan for several units, or work whose open questions must be settled first, is the multi-phase-plan playbook, which calls this. Skip planning ceremonies for clear bounded tasks.
 
-**Boundary:** Writes a durable implementation plan, dependency graph or workstream decomposition for settled work; what to remove before adding is principle-subtract-before-you-add, and migrating without shims is principle-migrate-without-shims.
+**Boundary:** Writes a durable implementation plan, dependency graph or workstream decomposition for settled work; what to remove before adding is principle-subtract-before-you-add, and migrating without shims is principle-migrate-without-shims. A plan in checked form names per-unit evidence and one `execution` scope; running it is `execution`.
 
 <!-- registry:generated traits -->
 - `route-by-scale`: Route between brainstorming, a brief local sequence, elaborate, decompose, or executing from a roadmap row according to the work's scale.
@@ -31,6 +31,11 @@ Use when settled work needs a durable implementation plan, dependency graph, or 
 - `no-stale-code-snippets`: Keep code snippets out of a durable spec or ticket because they go stale.
 - `ground-in-codebase`: Explore the current state of the code before writing, so the artifact targets what actually exists.
 - `breakdown-approval-before-publish`: Iterate on the ticket breakdown until the user approves it, publishing nothing before approval.
+- `per-unit-evidence-boxes`: In a plan in checked form, give each task a required Check box with a command and pass condition, and Live and Measure each as a box or a stated not-applicable reason, for a coordinator to tick only when the evidence exists.
+- `named-execution-scope`: Name in the plan which one execution scope runs it, task, phase or workstream, chosen by how the work is held, and leave how that scope runs to execution.
+- `plan-lint-last`: Finish a plan in checked form by running its structure lint, fixing every line, rerunning after any later edit until it exits 0, reporting the last output and that it proves structure only, and handing back a plan still failing after two rounds as not ready.
+- `prefactor-first`: Find prefactoring that makes the change easy and sequence it before the feature slices.
+- `blast-radius-batches`: Size migration batches by blast radius and keep the build green between them.
 <!-- /registry:generated traits -->
 
 <!-- registry:generated lineage -->
@@ -48,7 +53,6 @@ Use when settled work needs a durable implementation plan, dependency graph, or 
   - modified: absorb to-tickets as an OUTPUT MODE (plan file / tracker tickets with native blocking links / both) — the judge overruled the member who dropped this, because that member had itself called the loss 'the highest-value loss in this ledger'
   - modified: absorb to-tickets' wide-refactor expand-then-contract rule
 - **mattpocock_skills:skill:skills/engineering/to-tickets#ground-in-codebase** `skills/engineering/to-tickets/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
-- **mattpocock_skills:skill:skills/engineering/to-tickets#prefactor-first** `skills/engineering/to-tickets/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.6)
 - **mattpocock_skills:skill:skills/engineering/to-tickets#vertical-slices** `skills/engineering/to-tickets/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/engineering/to-tickets#dependency-edges** `skills/engineering/to-tickets/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/engineering/to-tickets#expand-contract** `skills/engineering/to-tickets/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
@@ -56,13 +60,18 @@ Use when settled work needs a durable implementation plan, dependency graph, or 
 - **mattpocock_skills:skill:skills/engineering/to-tickets#real-id-wiring** `skills/engineering/to-tickets/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/engineering/to-tickets#sub-issue-linkage** `skills/engineering/to-tickets/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/engineering/to-tickets#no-stale-code-snippets** `skills/engineering/to-tickets/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
-- **mattpocock_skills:skill:skills/engineering/to-tickets#blast-radius-batches** `skills/engineering/to-tickets/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.6)
 - **mattpocock_skills:skill:skills/engineering/to-tickets#brief-behavioural** `skills/engineering/to-tickets/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/engineering/to-tickets#breakdown-approval-before-publish** `skills/engineering/to-tickets/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/engineering/implement-spec#dependency-edges** `skills/engineering/implement-spec/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/engineering/to-tickets#prefactor-first** `skills/engineering/to-tickets/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/engineering/to-tickets#blast-radius-batches** `skills/engineering/to-tickets/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-02` **update** (2026-11-02-pilot-2:018): Final critic of pilot 2. The lint splits lines as execution's extractor does, normalizing CRLF only and splitting on LF, and any other line separator is a prob…
+- `2026-11-02` **adopt** (2026-11-02-pilot-2:011): Completes pending 2026-10-30-mattpocock_skills-5beb35b:116: blast-radius-batches is written at .claude/skills/planning/SKILL.md:83-84, read against its ruled r…
+- `2026-11-02` **adopt** (2026-11-02-pilot-2:010): Completes pending 2026-10-30-mattpocock_skills-5beb35b:102: prefactor-first is written at .claude/skills/planning/SKILL.md:81-82, read against its ruled reword…
+- `2026-11-02` **update** (2026-11-02-pilot-2:009): Pilot 2, ruling 14: a Skeleton branch that a calling playbook or an explicit request opts into, with evidence boxes per unit, one named execution scope and a s…
 - `2026-10-30` **adopt-merged** (2026-10-30-mattpocock_skills-5beb35b:573): Checkpoint at 5beb35b for the owner's trait rulings: 2 adopt, 12 defer.
 - `2026-10-30` **adopt-merged** (2026-10-30-mattpocock_skills-5beb35b:565): Checkpoint at 5beb35b for the owner's trait rulings: 13 adopt, 10 defer.
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:275): HELD: planning (.claude/skills/planning/SKILL.md:33): Encoding real blocking edges is planning's job (SKILL.md:33); execution consumes the ready frontier (exec…
@@ -71,7 +80,7 @@ Use when settled work needs a durable implementation plan, dependency graph, or 
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:119): Owner deferred the report's reject recommendation, to review the set later: Ours presents the phase list, stage counts, every edge with its reason and open que…
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:118): Ours deliberately pairs behavioural goals with known ownership paths (plan-format.md:27-28, SKILL.md:46-48).
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:117): Owner deferred the report's reject recommendation, to review the set later: We always track in Beads (AGENTS.md, Track durable work), so a tracker-less file-pe…
-- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:116): Ours orders expand-migrate-contract and names an integration boundary when green cannot hold (SKILL.md:66-68) but does not size the migrate batches; blast-radi…
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:116) *(superseded)*: Ours orders expand-migrate-contract and names an integration boundary when green cannot hold (SKILL.md:66-68) but does not size the migrate batches; blast-radi…
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:115): Owner deferred the report's reject recommendation, to review the set later: Opposite stance: ours sizes tasks by independent reviewability, an orthogonal crite…
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:114): Owner deferred the report's reject recommendation, to review the set later: Ours's source is an approved spec document read in full (SKILL.md:26); a rule to re…
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:112): Ours's plan approach is prose with no code blocks.
@@ -84,7 +93,7 @@ Use when settled work needs a durable implementation plan, dependency graph, or 
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:105): Ours uses expand, migrate, contract and names an integration boundary when tasks cannot stay green.
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:104): Ours wires only real edges and never chains listing order.
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:103): Ours prefers independently verifiable vertical slices.
-- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:102): Ours slices vertically and uses expand-migrate-contract (SKILL.md:66-68) but never looks for an enabling refactor first, which lowers the risk of every later s…
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:102) *(superseded)*: Ours slices vertically and uses expand-migrate-contract (SKILL.md:66-68) but never looks for an enabling refactor first, which lowers the risk of every later s…
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:101): Owner deferred the report's reject recommendation, to review the set later: ROUTED: AGENTS.md:93-94 routes domain terminology and ADRs, and AGENTS.md:26 surfac…
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:100): Owner deferred the report's reject recommendation, to review the set later: ROUTED: AGENTS.md:93-94 routes domain terminology and ADRs, and AGENTS.md:26 surfac…
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:099): Ours reads the relevant code and tests before elaborating and writes later plans against the code they will meet.
@@ -102,6 +111,8 @@ None yet.
 - `beads-native-tracking`:
   - `mattpocock_skills:skill:skills/engineering/to-tickets#publish-to-tracker` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
   - `mattpocock_skills:skill:skills/engineering/to-tickets#sub-issue-linkage` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `blast-radius-batches`:
+  - `mattpocock_skills:skill:skills/engineering/to-tickets#blast-radius-batches` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `breakdown-approval-before-publish`:
   - `mattpocock_skills:skill:skills/engineering/to-tickets#breakdown-approval-before-publish` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `dependency-edges`:
@@ -115,6 +126,8 @@ None yet.
   - `mattpocock_skills:skill:skills/engineering/to-tickets#no-stale-code-snippets` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `plan-evidence-bound`:
   - `mattpocock_skills:skill:skills/engineering/to-tickets#brief-behavioural` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `prefactor-first`:
+  - `mattpocock_skills:skill:skills/engineering/to-tickets#prefactor-first` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `real-id-wiring`:
   - `mattpocock_skills:skill:skills/engineering/to-tickets#real-id-wiring` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `vertical-slices`:

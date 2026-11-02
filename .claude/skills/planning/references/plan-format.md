@@ -1,7 +1,7 @@
 # Plan format
 
-Consulted from `planning` Elaborate mode. This is the one task template — do
-not invent variants elsewhere.
+Consulted from `planning` Elaborate mode. This is the one task template; the
+Skeleton branch extends it in `skeleton.md`. Do not invent variants elsewhere.
 
 ## Plan header
 

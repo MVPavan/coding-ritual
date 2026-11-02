@@ -718,6 +718,16 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `stubbed-mutations`: Point UI variants that need mutations at stubs rather than real backends.
 - `production-hidden-switcher`: Hide a prototype's variant switcher from production builds.
 - `competing-prototypes`: Before committing to an interaction or architecture with no precedent in the codebase, or to a product decision whose experience depends on feel, build two or three competing prototypes and compare them side by side.
+- `skip-polish`: Add no error handling beyond runnability and no abstractions, so the prototype only serves fast learning.
+- `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write.
+- `handover-url-keys`: Hand the user the prototype's URL and its variant keys when it is ready.
+- `always-available-free-play`: Keep free-play controls available beside any guided scenarios so the user can drive the state directly.
+- `resettable-guided-scenarios`: Give a demo guided scenarios that each reset to a known initial state and step through the real controls.
+- `existing-variant-styling-system`: Build UI variants with the project's existing styling system.
+- `one-switcher-all-variants`: Put every compared variant, UI or logic, behind one labelled switcher: a UI control, or a flag or argument for a script.
+- `variant-recommendation-tradeoffs`: Finish a comparison of built variants with their tradeoffs and one recommendation, leaving the decision with whoever owns it.
+- `build-route-back`: When a build of the chosen direction is wanted, route it through the router at top level, or report that route to the parent inside a delegated task, and start no playbook.
+- `unobserved-surface-stated`: Where no available tool can drive the surface, hand over the pointer, say it was not observed, and leave the outcome inconclusive until a person reports.
 
 #### engineering · Design · Decomposition — planning
 - `route-by-scale`: Route between brainstorming, a brief local sequence, elaborate, decompose, or executing from a roadmap row according to the work's scale.
@@ -736,6 +746,11 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `no-stale-code-snippets`: Keep code snippets out of a durable spec or ticket because they go stale.
 - `ground-in-codebase`: Explore the current state of the code before writing, so the artifact targets what actually exists.
 - `breakdown-approval-before-publish`: Iterate on the ticket breakdown until the user approves it, publishing nothing before approval.
+- `per-unit-evidence-boxes`: In a plan in checked form, give each task a required Check box with a command and pass condition, and Live and Measure each as a box or a stated not-applicable reason, for a coordinator to tick only when the evidence exists.
+- `named-execution-scope`: Name in the plan which one execution scope runs it, task, phase or workstream, chosen by how the work is held, and leave how that scope runs to execution.
+- `plan-lint-last`: Finish a plan in checked form by running its structure lint, fixing every line, rerunning after any later edit until it exits 0, reporting the last output and that it proves structure only, and handing back a plan still failing after two rounds as not ready.
+- `prefactor-first`: Find prefactoring that makes the change easy and sequence it before the feature slices.
+- `blast-radius-batches`: Size migration batches by blast radius and keep the build green between them.
 
 #### engineering · Design · Decomposition — principle-migrate-without-shims
 - `same-wave-legacy-removal`: When an internal API with no external dependants is replaced as part of a simplification, in a project that can absorb a coordinated breaking change, migrate every caller and delete the old API in the same change instead of keeping a compatibility layer.
@@ -1036,6 +1051,12 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 #### investigation — `doc:.claude/skills/mvp-mode/playbooks/investigation.md`
 - `read-only-answer-gate`: End a question about the code at its answer, changing nothing but an explicitly requested reply artifact and naming any wanted change as the next request.
 - `read-only-closeout`: On every exit of a read-only run, confirm against the starting state, by a checksum for a path already dirty, that nothing changed but an explicitly requested reply artifact, and name the scratch files kept.
+
+#### multi-phase-plan — `doc:.claude/skills/mvp-mode/playbooks/multi-phase-plan.md`
+- `plan-only-gate`: End a planning run at the plan: implement nothing, and write only the plan file, gitignored scratch and authorized tracker metadata with its export, leaving what was already dirty as found.
+- `small-change-plan-skip`: Skip the plan for a change of a file or two whose method is plain when no plan file was asked for, saying so and naming the change as the next request.
+- `settle-by-observation`: Sort each question that changes a plan: observe by running what a run can answer, decide and record a routine choice, and ask the owner a material one with options and a recommendation, writing the tasks that do not depend on it and marking those that do as blocked.
+- `plan-only-closeout`: On every exit of a planning run, confirm against the starting state, by a checksum for a path already dirty, that only the plan file, the tracker's export and ignored scratch differ, name anything else, and leave the plan uncommitted.
 
 #### perf-issue — `doc:.claude/skills/mvp-mode/playbooks/perf-issue.md`
 - `measurement-tied-fix-gate`: Tie every fix to a measurement, with the lead owning the number whoever writes the code.
@@ -1869,7 +1890,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `throwaway-marked`: Keep prototypes clearly marked as throwaway and separate from production. — adopt → prototype#throwaway-marked
 - `trivial-to-run`: Make the prototype trivial to run: one command, or a single HTML file the user opens directly. — adopt → prototype#trivial-to-run
 - `persistence-when-needed`: Bring persistence into a prototype only when the question needs it. — adopt → prototype#persistence-when-needed
-- `skip-polish`: Add no error handling beyond runnability and no abstractions, so the prototype only serves fast learning. — adopt, pending cr-axdt.6.7 → prototype#skip-polish
+- `skip-polish`: Add no error handling beyond runnability and no abstractions, so the prototype only serves fast learning. — adopt → prototype#skip-polish
 - `no-tests-ban`: Add no tests to a prototype; one that needs tests is no longer a prototype. — defer
 - `surface-state`: Surface the relevant state and the invalid transitions the design might mishandle. — adopt → prototype#surface-state
 - `capture-outcome`: Record the prototype's verdict and the question it settled, with a pointer to the preserved artifact. — adopt → prototype#capture-outcome
@@ -1880,14 +1901,14 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `ui-keyboard-safety`: Keep a prototype's keyboard shortcuts from intercepting input while an editable field is focused. — adopt → prototype#ui-keyboard-safety
 - `variant-switcher`: Provide a labelled control for switching between UI variants. — adopt → prototype#variant-switcher
 - `default-form-by-context`: When the prototype's question is ambiguous and the user is unreachable, choose its form from the surrounding code and state the assumption at the top. — defer
-- `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write. — adopt, pending cr-axdt.6.7 → prototype#domain-vocabulary
+- `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write. — adopt → prototype#domain-vocabulary
 - `scenario-coverage-triad`: Give a logic prototype guided scenarios covering the happy path, a tricky edge case and an attempted illegal action. — defer
 - `visual-restraint`: Keep visuals restrained, with muted colour and no decorative animation, so the content carries the attention. — defer
 - `keep-logic-discard-shell`: Keep only the pure logic module of a logic prototype and never ship its demo shell to production. — defer
 - `variant-plan-line`: Before building UI variants, write a one-line plan of variant count, switching method and route at the prototype's location. — defer
 - `fetch-above-switcher`: Keep existing data fetching above a single variant switcher so only the rendered subtree changes between variants. — defer
 - `production-hidden-switcher`: Hide a prototype's variant switcher from production builds. — adopt → prototype#production-hidden-switcher
-- `handover-url-keys`: Hand the user the prototype's URL and its variant keys when it is ready. — adopt, pending cr-axdt.6.7 → prototype#handover-url-keys
+- `handover-url-keys`: Hand the user the prototype's URL and its variant keys when it is ready. — adopt → prototype#handover-url-keys
 - `losing-variant-cleanup`: After a winner is chosen, remove the losing variants and the switcher from the main line. — defer
 - `no-shared-variant-layout`: Keep layout code unshared between UI variants so each can differ freely. — defer
 - `stubbed-mutations`: Point UI variants that need mutations at stubs rather than real backends. — adopt → prototype#stubbed-mutations
@@ -1896,18 +1917,18 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `portable-single-file-demo`: Package an interactive demo as one self-contained HTML file that opens directly, with no framework, bundler or server. — adopt → prototype#self-contained-html-demo
 - `dom-free-portable-logic`: Isolate a prototype's logic in a pure module that never touches the page, which calls into it while nothing reaches inside, so the module lifts into the real code unchanged. — adopt → prototype#logic-pure-module
 - `readable-state-panel`: Show a demo's current state in a readable panel. — adopt → prototype#readable-state-panel
-- `always-available-free-play`: Keep free-play controls available beside any guided scenarios so the user can drive the state directly. — adopt, pending cr-axdt.6.7 → prototype#always-available-free-play
-- `resettable-guided-scenarios`: Give a demo guided scenarios that each reset to a known initial state and step through the real controls. — adopt, pending cr-axdt.6.7 → prototype#resettable-guided-scenarios
+- `always-available-free-play`: Keep free-play controls available beside any guided scenarios so the user can drive the state directly. — adopt → prototype#always-available-free-play
+- `resettable-guided-scenarios`: Give a demo guided scenarios that each reset to a known initial state and step through the real controls. — adopt → prototype#resettable-guided-scenarios
 - `helpful-state-change-highlighting`: Highlight what just changed in a prototype's state display where that helps the reader. — defer
 - `variant-purpose-data-fidelity`: Hold every UI variant to the page's real purpose and data. — defer
-- `existing-variant-styling-system`: Build UI variants with the project's existing styling system. — adopt, pending cr-axdt.6.7 → prototype#existing-variant-styling-system
+- `existing-variant-styling-system`: Build UI variants with the project's existing styling system. — adopt → prototype#existing-variant-styling-system
 - `named-variant-components`: Export each UI variant as a clearly named component. — defer
 
 #### engineering · Design · Decomposition — skill:skills/engineering/to-tickets
 - `ground-in-codebase`: Explore the current state of the code before writing, so the artifact targets what actually exists. — adopt → planning#ground-in-codebase
 - `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write. — defer
 - `respect-area-adrs`: Honour the recorded architectural decisions that govern the area being changed. — defer
-- `prefactor-first`: Find prefactoring that makes the change easy and sequence it before the feature slices. — adopt, pending cr-axdt.6.6 → planning#prefactor-first
+- `prefactor-first`: Find prefactoring that makes the change easy and sequence it before the feature slices. — adopt → planning#prefactor-first
 - `vertical-slices`: Prefer independently verifiable vertical slices over horizontal layers. — adopt → planning#vertical-slices
 - `dependency-edges`: Encode real blocking edges in the tracker and let the ready frontier drive execution rather than listing order. — adopt → planning#dependency-edges
 - `expand-contract`: For a broad refactor use expand, migrate then contract with genuine dependencies, naming one integration boundary when intermediate tasks cannot stay green. — adopt → planning#expand-contract
@@ -1921,7 +1942,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `prototype-snippet`: Inline a prototype snippet in the spec only when it encodes a decision more precisely than prose can. — adopt → brainstorming#prototype-snippet
 - `read-full-source-issue`: Read the full body, comments and, for a pull request, the diff of any referenced spec, issue or pull request before working from it. — defer
 - `session-sized-tickets`: Size each ticket to fit one agent session's context window. — defer
-- `blast-radius-batches`: Size migration batches by blast radius and keep the build green between them. — adopt, pending cr-axdt.6.6 → planning#blast-radius-batches
+- `blast-radius-batches`: Size migration batches by blast radius and keep the build green between them. — adopt → planning#blast-radius-batches
 - `file-per-ticket`: Without a tracker, write one numbered file per ticket in dependency order, never one combined file. — defer
 - `brief-behavioural`: Describe what the system should do, not how to implement it, leaving implementation choices to the executing agent. — adopt → planning#plan-evidence-bound
 - `ticket-breakdown-preview`: Show the proposed ticket breakdown as a numbered list of title, blockers and delivered behaviour before publishing it. — defer
@@ -3473,10 +3494,11 @@ Split or trim any sentence the reader must reread to parse.
 #### `domain-vocabulary`
 Use the project's established domain vocabulary throughout what you write.
 - ours: `i-have-adhd`
+- ours: `prototype`
 - ours: `teach`
 - `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — adopt, pending cr-axdt.6.5 → improve-codebase-architecture#domain-vocabulary
 - `mattpocock_skills:skill:skills/engineering/pr` — defer
-- `mattpocock_skills:skill:skills/engineering/prototype` — adopt, pending cr-axdt.6.7 → prototype#domain-vocabulary
+- `mattpocock_skills:skill:skills/engineering/prototype` — adopt → prototype#domain-vocabulary
 - `mattpocock_skills:skill:skills/engineering/tdd` — defer
 - `mattpocock_skills:skill:skills/engineering/to-spec` — defer
 - `mattpocock_skills:skill:skills/engineering/to-tickets` — defer
@@ -5617,7 +5639,8 @@ Apply a worked list of decision kinds (architectural shape, integration patterns
 
 #### `always-available-free-play`
 Keep free-play controls available beside any guided scenarios so the user can drive the state directly.
-- `mattpocock_skills:skill:skills/engineering/prototype` — adopt, pending cr-axdt.6.7 → prototype#always-available-free-play
+- ours: `prototype`
+- `mattpocock_skills:skill:skills/engineering/prototype` — adopt → prototype#always-available-free-play
 
 #### `architecture-candidate-card`
 Give each architecture candidate a card of files, problem, solution, benefits and a recommendation-strength badge.
@@ -5644,6 +5667,10 @@ Name the structure the code lacks and accept a reshape only if it deletes branch
 Give semantically distinct values that share a primitive type their own types, validated once at creation and trusted afterwards.
 - ours: `principle-type-system-discipline`
 - `cursor_plugins:skill:pstack/skills/principle-type-system-discipline` — adopt → principle-type-system-discipline#branded-primitives
+
+#### `build-route-back`
+When a build of the chosen direction is wanted, route it through the router at top level, or report that route to the parent inside a delegated task, and start no playbook.
+- ours: `prototype`
 
 #### `call-chain-file-limit`
 Flatten the hierarchy when following the flow takes more than three files.
@@ -5813,7 +5840,8 @@ Enforce that code outside a package imports only that package's root entry point
 
 #### `existing-variant-styling-system`
 Build UI variants with the project's existing styling system.
-- `mattpocock_skills:skill:skills/engineering/prototype` — adopt, pending cr-axdt.6.7 → prototype#existing-variant-styling-system
+- ours: `prototype`
+- `mattpocock_skills:skill:skills/engineering/prototype` — adopt → prototype#existing-variant-styling-system
 
 #### `external-port-mock-adapter`
 Inject a third-party service as a port and use a mock adapter for it in tests.
@@ -5846,7 +5874,8 @@ Before sketching, build a working model of what the design touches and write its
 
 #### `handover-url-keys`
 Hand the user the prototype's URL and its variant keys when it is ready.
-- `mattpocock_skills:skill:skills/engineering/prototype` — adopt, pending cr-axdt.6.7 → prototype#handover-url-keys
+- ours: `prototype`
+- `mattpocock_skills:skill:skills/engineering/prototype` — adopt → prototype#handover-url-keys
 
 #### `helpful-state-change-highlighting`
 Highlight what just changed in a prototype's state display where that helps the reader.
@@ -5992,6 +6021,10 @@ Keep layout code unshared between UI variants so each can differ freely.
 Add no tests to a prototype; one that needs tests is no longer a prototype.
 - `mattpocock_skills:skill:skills/engineering/prototype` — defer
 
+#### `one-switcher-all-variants`
+Put every compared variant, UI or logic, behind one labelled switcher: a UI control, or a flag or argument for a script.
+- ours: `prototype`
+
 #### `one-way-per-task`
 Keep a single way to do a task, moving callers off the others and deleting them in the same change.
 - ours: `codebase-design`
@@ -6115,7 +6148,8 @@ Give a demo guided scenarios that each reset to a known state.
 
 #### `resettable-guided-scenarios`
 Give a demo guided scenarios that each reset to a known initial state and step through the real controls.
-- `mattpocock_skills:skill:skills/engineering/prototype` — adopt, pending cr-axdt.6.7 → prototype#resettable-guided-scenarios
+- ours: `prototype`
+- `mattpocock_skills:skill:skills/engineering/prototype` — adopt → prototype#resettable-guided-scenarios
 
 #### `respect-area-adrs`
 Honour the recorded architectural decisions that govern the area being changed.
@@ -6210,7 +6244,8 @@ Require two or more structurally different whole-shape candidates before synthes
 
 #### `skip-polish`
 Add no error handling beyond runnability and no abstractions, so the prototype only serves fast learning.
-- `mattpocock_skills:skill:skills/engineering/prototype` — adopt, pending cr-axdt.6.7 → prototype#skip-polish
+- ours: `prototype`
+- `mattpocock_skills:skill:skills/engineering/prototype` — adopt → prototype#skip-polish
 
 #### `small-interface-surface`
 Keep a module's interface surface small — fewer methods and simpler parameters — to reduce what callers and tests must learn.
@@ -6316,6 +6351,10 @@ Keep a prototype's keyboard shortcuts from intercepting input while an editable 
 For a UI prototype, generate several structurally different variants (default three, capped at five) on one route switchable by a search param.
 - `mattpocock_skills:skill:skills/engineering/prototype` — adopt → prototype#variants-when-comparing
 
+#### `unobserved-surface-stated`
+Where no available tool can drive the surface, hand over the pointer, say it was not observed, and leave the outcome inconclusive until a person reports.
+- ours: `prototype`
+
 #### `unreachable-internals`
 Make a module's internals unreachable, so that an import from outside fails the build.
 - ours: `codebase-design`
@@ -6333,6 +6372,10 @@ Before building UI variants, write a one-line plan of variant count, switching m
 #### `variant-purpose-data-fidelity`
 Hold every UI variant to the page's real purpose and data.
 - `mattpocock_skills:skill:skills/engineering/prototype` — defer
+
+#### `variant-recommendation-tradeoffs`
+Finish a comparison of built variants with their tradeoffs and one recommendation, leaving the decision with whoever owns it.
+- ours: `prototype`
 
 #### `variant-switcher`
 Provide a labelled control for switching between UI variants.
@@ -6356,7 +6399,8 @@ Seed epics and stages and render tracking natively in the tracker, keeping the r
 
 #### `blast-radius-batches`
 Size migration batches by blast radius and keep the build green between them.
-- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt, pending cr-axdt.6.6 → planning#blast-radius-batches
+- ours: `planning`
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → planning#blast-radius-batches
 
 #### `cut-before-polish`
 Reach the minimum version before investing in its quality.
@@ -6400,9 +6444,30 @@ Treat an authorized migration group as one verifiable unit: only its declared in
 Write a spec and split it into tickets only when the build spans several sessions, otherwise implement in the current window.
 - `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
 
+#### `named-execution-scope`
+Name in the plan which one execution scope runs it, task, phase or workstream, chosen by how the work is held, and leave how that scope runs to execution.
+- ours: `planning`
+
+#### `per-unit-evidence-boxes`
+In a plan in checked form, give each task a required Check box with a command and pass condition, and Live and Measure each as a box or a stated not-applicable reason, for a coordinator to tick only when the evidence exists.
+- ours: `planning`
+
+#### `plan-lint-last`
+Finish a plan in checked form by running its structure lint, fixing every line, rerunning after any later edit until it exits 0, reporting the last output and that it proves structure only, and handing back a plan still failing after two rounds as not ready.
+- ours: `planning`
+
+#### `plan-only-closeout`
+On every exit of a planning run, confirm against the starting state, by a checksum for a path already dirty, that only the plan file, the tracker's export and ignored scratch differ, name anything else, and leave the plan uncommitted.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/multi-phase-plan.md`
+
+#### `plan-only-gate`
+End a planning run at the plan: implement nothing, and write only the plan file, gitignored scratch and authorized tracker metadata with its export, leaving what was already dirty as found.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/multi-phase-plan.md`
+
 #### `prefactor-first`
 Find prefactoring that makes the change easy and sequence it before the feature slices.
-- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt, pending cr-axdt.6.6 → planning#prefactor-first
+- ours: `planning`
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → planning#prefactor-first
 
 #### `publish-to-tracker`
 Publish the finished artifact to the configured issue tracker.
@@ -6425,6 +6490,14 @@ When an internal API with no external dependants is replaced as part of a simpli
 #### `scaffold-first`
 Sequence first the work every later phase benefits from (CI, linting, test infrastructure, shared types) before features.
 - `cursor_plugins:skill:pstack/skills/principle-foundational-thinking` — defer
+
+#### `settle-by-observation`
+Sort each question that changes a plan: observe by running what a run can answer, decide and record a routine choice, and ask the owner a material one with options and a recommendation, writing the tasks that do not depend on it and marking those that do as blocked.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/multi-phase-plan.md`
+
+#### `small-change-plan-skip`
+Skip the plan for a change of a file or two whose method is plain when no plan file was asked for, saying so and naming the change as the next request.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/multi-phase-plan.md`
 
 #### `sub-issue-linkage`
 Make each ticket a child of its source issue and never close or modify that parent.
@@ -8456,7 +8529,7 @@ Traits listed by two or more of our active skills (`doc:AGENTS.md` and playbooks
 | `build-closeout` | doc:.claude/skills/mvp-mode/playbooks/feature.md, doc:.claude/skills/mvp-mode/playbooks/perf-issue.md, doc:.claude/skills/mvp-mode/playbooks/refactoring.md | Each playbook's closeout runs on its own exits and feeds its own reply, and these three have the same three duties; a skill of three duties would be ceremony (unit-kinds deviation log, St4 and B4). |
 | `canonical-term-and-aliases` | domain-modeling, teach | Each keeps a glossary of its own (project language, the learner's workspace) in one entry format, with its own admission rules. |
 | `dependency-edges` | planning, wayfinder | Each builds its own tracker graph, planning for implementation stages and wayfinder for decision tickets, and lets readiness drive the work; edge semantics stay in beads. |
-| `domain-vocabulary` | i-have-adhd, teach | Each writes for its reader in the project's own terms, i-have-adhd in its re-pitches and teach in its lessons. |
+| `domain-vocabulary` | i-have-adhd, prototype, teach | Each writes for its reader in the project's own terms: i-have-adhd in its re-pitches, teach in its lessons, and prototype in its states, actions and labels, so an answer transfers to the real code. |
 | `drift-scan` | harness-scan, harness-status | Both run the one drift command, scan for a single harness and status as a sweep of all of them; a pointer between them would add a hop to a one-line command. |
 | `finding-adjudication` | execution, review | Execution rules on findings inside its delivery loop and review owns the method; owner 2026-10-30: execution stays unchanged. |
 | `glossary-entry-template` | domain-modeling, teach | Each keeps a glossary of its own (project language, the learner's workspace) in one entry format, with its own admission rules. |
