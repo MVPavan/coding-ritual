@@ -17,7 +17,8 @@
     "2026-11-02-first-real-session.jsonl": "cde023c88b3bd0c3d791594c78bc7e29a81efdee63f41e6f53b9de992dc6cf84",
     "2026-11-02-model-comparison.jsonl": "71ed4e6c8a62a91abf9bce0bf6ba4cc2aa0486970003680027d5aa4907e76fa8",
     "2026-11-02-pilot-2.jsonl": "9c008573445df61c5fdd4fbd4c7ba12243f02d4970b8f8676bfaaa4384f66ffb",
-    "2026-11-02-pilot-3.jsonl": "18b4e28bf942b435af9f87d2e002b2dfb527b76f9deb277264be948bf611e9af"
+    "2026-11-02-pilot-3.jsonl": "18b4e28bf942b435af9f87d2e002b2dfb527b76f9deb277264be948bf611e9af",
+    "2026-11-02-run-budget.jsonl": "a06bfd7122f9440c9576e51b1873f74990c4c0e90e215721c65d31b6a7aca2b8"
   },
   "reports": {
     "harness_lifecycle/registry/reviews/2026-10-30-upstream-mattpocock_skills-5beb35b.yaml": "fb413772a75f116bd9baeaa06b6e414fe59978c654a951cb53345f17459d7597",

@@ -6,7 +6,7 @@
 #               --prompt <file> --model <model> --permission-mode <mode>
 #               --auth-env <NAME> [--auth-env <NAME>]...
 #               [--max-turns N] [--timeout seconds] [--path-prepend <dir>]
-#               [--effort <level>]
+#               [--effort <level>] [--max-budget <usd>]
 #
 # Inside, every run looks the same: the copy is writable at /home/user/project,
 # which is the working directory, under an empty home. /usr/ and the /etc/ files
@@ -89,7 +89,7 @@ trap 'stop_session; exit 130' INT
 trap 'stop_session; exit 143' TERM
 
 template='' runs='' logs='' id='' prompt='' model='' permission_mode=''
-max_turns=15 limit=900 path_prepend='' effort='' auth_envs=()
+max_turns=15 limit=900 path_prepend='' effort='' budget_args=() auth_envs=()
 while [ $# -gt 0 ]; do
   [ $# -ge 2 ] || die "$1 needs a value"
   case $1 in
@@ -105,6 +105,7 @@ while [ $# -gt 0 ]; do
     --timeout) limit=$2 ;;
     --path-prepend) path_prepend=$2 ;;
     --effort) effort=$2 ;;
+    --max-budget) budget_args=(--max-budget-usd "$2") ;;
     *) die "unknown option: $1" ;;
   esac
   shift 2
@@ -115,6 +116,10 @@ for pair in "--template:$template" "--runs:$runs" "--logs:$logs" "--id:$id" \
   [ -n "${pair#*:}" ] || die "${pair%%:*} is required"
 done
 [ "${#auth_envs[@]}" -gt 0 ] || die "--auth-env is required"
+if [ "${#budget_args[@]}" -gt 0 ]; then
+  [[ ${budget_args[1]} =~ ^(0*[1-9][0-9]*(\.[0-9]*)?|[0-9]*\.[0-9]*[1-9][0-9]*)$ ]] ||
+    die "--max-budget must be a positive number: ${budget_args[1]}"
+fi
 for name in "${auth_envs[@]}"; do
   printf '%s' "$name" | grep -Eq '^[A-Za-z_][A-Za-z0-9_]*$' || die "bad --auth-env name: $name"
   [ -n "${!name:-}" ] || die "--auth-env $name is unset or empty"
@@ -249,7 +254,7 @@ effort_args=()
 # Pipes, not files: the candidate's descriptors must not name a host path.
 session() {
   cat "$prompt" | in_box "${auth_envs[*]}" "${network[@]}" /usr/bin/bash -c "$start" bash -p \
-    --model "$model" "${effort_args[@]}" \
+    --model "$model" "${effort_args[@]}" "${budget_args[@]}" \
     --setting-sources project --strict-mcp-config \
     --permission-mode "$permission_mode" \
     --max-turns "$max_turns" \

@@ -55,8 +55,8 @@ deleted. Beads is the work-state authority; this file is the narrative.
 | after `2bc70a2` | Pilot 3 (`cr-r2pa.2.9`, round `2026-11-02-pilot-3`), see below |
 
 `main` is at `eb36cc9`; later work is on `mvp-stack` until the owner asks to merge.
-`mvp-stack` is pushed through pilot 3; commits after it are local until the owner
-says to push.
+`mvp-stack` is pushed through the first routing trials' runner change; commits after it
+are local until the owner says to push.
 
 Decisions behind them: domains `core` and `engineering`; one primary
 coordinate per skill (domain · stage · sub-stage); reviews are flat files
@@ -76,7 +76,10 @@ critic, owner rulings, ledger, build, Sol review, commit after the owner approve
   (round `2026-11-01-batch-0`). Owner rulings: a candidate's only network is a proxy to
   the Anthropic API, and `bypassPermissions` needs naming in that Eval's go-ahead. Eval
   has since run real sessions on three Claude models (`cr-r2pa.2.12`, 2026-11-02), and
-  `eval/run.sh` takes `--effort`.
+  `eval/run.sh` takes `--effort` and `--max-budget`.
+- `cr-r2pa.2.15`, in flight: routing trials ran 77 Claude sessions and 39 Sol sessions
+  (2026-11-03), so routing now has real evidence. No wording has changed: a judge check and
+  Claude at high effort come first, because model, effort and judges are not yet separated.
 - `cr-r2pa.2.1`, done: seven Pocock retargets recorded (round
   `2026-11-01-pocock-retarget`). `reproduction-first`, `regression-check` and `closeout`
   are delivered; `prove-the-red` and `missing-seam-finding` are pending for batch 1; the
