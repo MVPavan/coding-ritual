@@ -201,6 +201,15 @@ improve-codebase-architecture:
   aliases: []
   status: active
   boundary: null
+interrogate:
+  domain: core
+  stage: Verification
+  substage: Review
+  secondary: []
+  family: null
+  aliases: []
+  status: active
+  boundary: "Reports only what a run proved, where review judges by reading and reports every finding. grilling questions a person and runs nothing. prototype answers an open question before a choice, while this attacks a chosen change or design, and an adversary may build a throwaway probe without running that skill. systematic-debugging starts from a known failure and finds its cause, while this looks for failures and stops at the repro, and an unexplained finding goes back to the caller. model-council has members and a judge reach one answer or artifact, while this has no judge and no pick, and keeps every verified finding."
 land:
   domain: engineering
   stage: Delivery
@@ -227,7 +236,7 @@ model-council:
   family: null
   aliases: []
   status: active
-  boundary: "Runs an explicitly requested council of named models or agents with a judge; a council of perspectives or roles is perspective-council, and dispatching each member is delegation."
+  boundary: "Runs an explicitly requested council of named models or agents with a judge; a council of perspectives or roles is perspective-council, and dispatching each member is delegation; on request it also turns candidates into one artifact, which a build's playbook then uses."
 mvp-mode:
   domain: core
   stage: X
@@ -434,7 +443,7 @@ review:
   family: code-review
   aliases: [document-review, receiving-code-review]
   status: active
-  boundary: null
+  boundary: "An ordinary or critical look, judged by reading, reporting every finding; to break a change and keep only run-proven findings is interrogate."
 security:
   domain: engineering
   stage: Verification

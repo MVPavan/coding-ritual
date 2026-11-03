@@ -237,6 +237,35 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `sequential-record-numbering`: Number a new record one above the highest existing number in its folder.
 - `optional-record-sections`: Add optional sections to a record, such as status or consequences, only when they carry real information.
 
+#### core · Verification · Review — interrogate
+- `break-it-mandate`: Assign adversaries to try to break a change or design rather than assess it in general.
+- `run-proven-finding`: Let a finding stand only when a run executed in the review shows it, so a claim nobody ran is no finding.
+- `named-scope-first`: Use the scope the user names when one is given.
+- `intent-restated-first`: Restate the change's intent in your own words before sending out adversaries.
+- `intent-from-stated-sources`: Take a change's intent only from a stated source such as the request, a brief, a spec or a bead, never from the diff.
+- `ask-or-not-run-on-intent`: Ask when the intent is unclear and someone can answer, and report the review as not run when nobody can.
+- `own-output-location`: Give every candidate or adversary a separate output location, so they share no writable state.
+- `dropout-proceeds-noted`: Go on with the remaining candidates or adversaries when one produces nothing, and record the dropout.
+- `verified-snapshot-copy`: Give each adversary and each replay a disposable copy made from one pristine snapshot of the working state and checked against it, reporting not run when a copy cannot be made exact.
+- `adversaries-by-model-or-angle`: Run one adversary per available model on one instruction to break the work or, with a single model, several whose prompts each attack something different, giving every adversary the scope and the intent.
+- `run-against-real-code`: Require each finding to be demonstrated by executing something against the actual code, such as a failing test, a reproduction script or revealing command output.
+- `design-proof-by-probe`: For a design or plan, prove a finding by running a prototype or probing the current tree.
+- `repros-stay-in-copy`: Keep each adversary's reproduction material inside its own output location.
+- `finding-repro-report`: Require each finding to carry a title, the exact command, the printed output and the output the intent requires.
+- `no-findings-valid`: Accept a report with no findings as a valid result, and say so explicitly when none remain.
+- `coordinator-replays-finding`: Have the coordinator verify each finding by running its command again.
+- `reproduced-and-breaks-intent`: Keep a finding only if the output shows the failure and that failure breaks the stated intent.
+- `three-replay-outcomes`: Sort each replayed finding into reproduced, not reproduced (dropped and stated as unreproduced, not disproved) or unreplayable (listed with no severity).
+- `merge-by-root-cause`: Combine findings that share one root cause.
+- `union-of-verified-findings`: Keep every verified finding across adversaries rather than selecting one adversary's list.
+- `output-opens-with-intent`: Open the output with the intent restatement.
+- `output-finding-fields`: For each verified finding, report its command, its output and how it breaks the intent.
+- `adversary-attribution`: Name the adversaries that found each verified finding.
+- `dropped-finding-accounting`: Report for each adversary how many findings were dropped and why.
+- `checkout-change-check`: After each adversary returns, compare the shared checkout with the snapshot's state and report each changed path, without voiding the run, restoring anything or naming who changed it.
+- `unresolved-outranks-verdict`: Give no favourable verdict while an observed failure stays unreproduced or unreplayable.
+- `no-self-adversary`: Report not run rather than attack as an adversary work you wrote or a design you settled.
+
 #### core · Verification · Review — review
 - `independent-critic-verdict`: A reviewer who did not author the work gives evidence-backed findings and a verdict, approving only what was verified and listing the rest as unverified.
 - `severity-and-verdict`: Rate each finding by consequence and approve only with no open blocker or major, otherwise require revision, never counting preference alone as a finding.
@@ -253,6 +282,13 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `re-review-finding-tracking`: A re-review rules each prior finding addressed or not with located evidence, flags new breakage in the fix delta, and may rule a finding incorrect without demanding cosmetic edits.
 - `document-review`: Check a spec or plan against repository context for internal inconsistency, missing constraints, unverifiable claims and scope bloat, editing only unambiguous wording when fixes were requested.
 - `finding-adjudication`: Verify each incoming review finding against requirements, code and primary evidence before acting, and give each a visible disposition: fix a confirmed in-scope defect, answer an incorrect one with a retained ruling, record an out-of-scope follow-up.
+- `fixed-point-preflight`: Confirm the review ref resolves and the diff is non-empty before fanning out, failing fast rather than inside sub-agents.
+- `spec-source-discovery`: Find the originating spec in a fixed order — commit issue references, a user-supplied path, conventional spec directories — and ask only as a last resort.
+- `missing-spec-axis-skip`: When the user confirms no spec exists, skip the spec review axis and report that no spec was available.
+- `two-axis-review`: Review a diff along two separate axes — conformance to the repo's documented standards and faithfulness to the originating spec.
+- `standards-source-discovery`: Search the repo for every file documenting how code should be written, always including the conventional standards and contributing files.
+- `cited-standard-findings`: Cite the standard's file and rule for every violation and quote the hunk for every smell.
+- `spec-conformance-findings`: Report spec findings as missing or partial requirements, unrequested behaviour and wrongly implemented requirements, quoting the spec line for each.
 
 #### core · X · Communication — html-artifact
 - `self-contained-contract`: Produce one HTML file with inline CSS and JS, viewport metadata and no build step, working offline with no external fonts, trackers, fetches or runtime assets.
@@ -415,6 +451,37 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `identity-recording`: Record the actual model identities wherever the runtime provides evidence of them.
 - `failed-member-recovery`: Give a failed member bounded safe recovery before treating it as missing.
 - `no-silent-substitution`: Never backfill a missing member with your own answer or a silent substitute; report the gap and whether the synthesizer saw an incomplete set.
+- `artifact-named-up-front`: State exactly what artifact each candidate must produce before any candidate starts.
+- `task-rubric-criteria`: Write three to six concrete, gradeable success criteria specific to this task.
+- `rubric-withheld-from-candidates`: Keep the success criteria from the candidates, who see only the task.
+- `own-output-location`: Give every candidate or adversary a separate output location, so they share no writable state.
+- `rationale-names-rejected`: Have each candidate deliver, with its artifact, a short rationale naming the alternatives it weighed and what it rejected.
+- `dropout-proceeds-noted`: Go on with the remaining candidates or adversaries when one produces nothing, and record the dropout.
+- `read-only-judge`: Give the judge read-only access.
+- `judge-other-family-or-stated`: Take the judge from a model family other than the coordinator's, and say so when the user's choice shares that family or the coordinator cannot tell its own.
+- `rubric-given-to-judge`: Give the judge the success criteria to score against.
+- `path-labelled-candidates`: Show the judge each candidate under its path label.
+- `judge-criterion-scores`: Have the judge score each candidate on each criterion.
+- `judge-recommends-base`: Have the judge recommend a base and justify the recommendation.
+- `full-read-before-pick`: Read every candidate in full before choosing a base.
+- `picker-criterion-scores`: Score each candidate on each criterion instead of by overall impression.
+- `pick-compared-with-judge`: Compare your scored pick with the judge's, treating the same choice as confirmation.
+- `disagreement-rereads-rationales`: Treat a disagreement with the judge as a sign of bias or an unclear rubric, and read both rationales before deciding.
+- `base-chosen-for-extensibility`: Choose the base a later maintainer could extend most easily while keeping invariants intact.
+- `near-tie-smaller-surface`: Break a near-tie in favour of the cleaner boundary or the smaller interface.
+- `loser-graft-pass`: Go through each losing candidate once more for parts worth carrying over.
+- `sparse-grafts`: Expect only one or two grafts from a losing candidate, not the bulk of it.
+- `hand-folded-grafts`: Rewrite each graft into the base by hand, so the result keeps one coherent design rather than pasted fragments.
+- `converged-shape-no-graft`: When candidates reach one shape, record the agreement and ship that shape with no graft.
+- `divergence-reframes-once`: When candidates differ wildly, treat the frame as too loose, reframe and rerun at most once, then stop and report instead of blending them.
+- `graft-change-rerun`: After grafting, rerun the acceptance check of any previously checked behaviour the graft changed, reuse evidence for the rest and name what stays unchecked.
+- `verify-miss-returns-once`: Send a verification problem back once to reframing or to grafting, whichever caused it, then report any further miss rather than hiding it.
+- `single-synthesized-artifact`: End with one merged artifact rather than a set of alternatives.
+- `synthesis-decision-record`: Record the chosen base candidate with its reason, what was grafted from the rest and why each was rejected.
+- `note-judge-status`: Record in the synthesis note the judge's verdict or that the judge was skipped.
+- `note-convergence-dropouts`: Record any convergence or dropped candidates in the synthesis note.
+- `note-verification-result`: Record the verification result in the synthesis note.
+- `no-judge-no-pick`: With no judge reachable, count no completed council: stop, say so and return the candidates with no pick.
 
 #### core · X · Coordination — mvp-mode
 - `unit-kind-lines`: Define each unit kind in one line inside the router, so a copy shipped without the repository's rules still distinguishes them.
@@ -1026,6 +1093,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 
 #### feature — `doc:.claude/skills/mvp-mode/playbooks/feature.md`
 - `lead-owns-design`: The lead settles the design and reviews the result, whoever writes the code.
+- `contested-design-gate`: Start run-proven adversaries unasked only on a dispute raised by someone other than the lead, testable by a run and unsettled by evidence in hand, and let a dispute left open block landing.
 - `throughput-checkpoint`: Before building, write blocking steps, independent work, shared state and the smallest safe split as four todos, keeping a reason on any that does not apply.
 - `build-brief-shape`: Before code is written, state the paths, the data shape and the success criteria in the build brief.
 - `implement-against-sketch`: Build against the sketch as the contract, surfacing any departure and revising the sketch first when the code must diverge.
@@ -1133,6 +1201,40 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `outliving-tool-commit`: Commit a work tool when the work it does outlives the session. — adopt → build-a-lever#proposed-artifact-commit
 - `minimal-tool`: Build the smallest script that does or proves the job, never a framework. — adopt → build-a-lever#minimal-tool
 
+#### core · Verification · Review — skill:pstack/skills/interrogate
+- `break-it-mandate`: Assign adversaries to try to break a change or design rather than assess it in general. — adopt → interrogate#break-it-mandate
+- `run-proven-finding`: Let a finding stand only when a run executed in the review shows it, so a claim nobody ran is no finding. — adopt → interrogate#run-proven-finding
+- `inspection-only-authority`: Treat a review or analysis request as authority to inspect and report only, never to change the work. — adopt → doc:AGENTS.md
+- `named-scope-first`: Use the scope the user names when one is given. — adopt → interrogate#named-scope-first
+- `merge-base-through-tree-scope`: When no scope is named, review the branch from where it left the base branch up to and including the working tree. — defer
+- `intent-restated-first`: Restate the change's intent in your own words before sending out adversaries. — adopt → interrogate#intent-restated-first
+- `intent-from-request-commits-pr`: Derive the intent from the request, the commits and the pull request description. — adopt → interrogate#intent-from-stated-sources
+- `ask-when-intent-unclear`: Ask the user when the intent cannot be established. — adopt → interrogate#ask-or-not-run-on-intent
+- `role-model-config-line`: Read each spawned role's model from a named line of a shared configuration, falling back to a fixed default and leaving the field unset for an alias. — reject
+- `own-output-location`: Give every candidate or adversary a separate output location, so they share no writable state. — adopt → interrogate#own-output-location
+- `one-message-fan-out`: Launch every candidate or adversary in one message as background subagents. — reject
+- `dropout-proceeds-noted`: Go on with the remaining candidates or adversaries when one produces nothing, and record the dropout. — adopt → interrogate#dropout-proceeds-noted
+- `uncommitted-changes-seeded`: Seed every adversary workspace with the uncommitted work included in the review scope. — adopt → interrogate#verified-snapshot-copy
+- `general-purpose-adversary`: Spawn each adversary as the general-purpose subagent type. — reject
+- `adversary-fixed-brief`: Hand every adversary the scope, the intent and one unchanging instruction to break the work, replacing the usual task and rationale request. — adopt → interrogate#adversaries-by-model-or-angle
+- `run-against-real-code`: Require each finding to be demonstrated by executing something against the actual code, such as a failing test, a reproduction script or revealing command output. — adopt → interrogate#run-against-real-code
+- `design-proof-by-probe`: For a design or plan, prove a finding by running a prototype or probing the current tree. — adopt → interrogate#design-proof-by-probe
+- `repros-stay-in-copy`: Keep each adversary's reproduction material inside its own output location. — adopt → interrogate#repros-stay-in-copy
+- `finding-repro-report`: Require each finding to carry a title, the exact command, the printed output and the output the intent requires. — adopt → interrogate#finding-repro-report
+- `style-findings-excluded`: Leave style, naming and structure out of an adversary's findings. — reject
+- `future-change-risk-excluded`: Leave out hazards that matter only after a future change. — reject
+- `no-findings-valid`: Accept a report with no findings as a valid result, and say so explicitly when none remain. — adopt → interrogate#no-findings-valid
+- `coordinator-replays-finding`: Have the coordinator verify each finding by running its command again. — adopt → interrogate#coordinator-replays-finding
+- `reproduced-and-breaks-intent`: Keep a finding only if the output shows the failure and that failure breaks the stated intent. — adopt → interrogate#reproduced-and-breaks-intent
+- `drop-unverified-findings`: Remove every finding that fails the keep test. — adopt → interrogate#three-replay-outcomes
+- `merge-by-root-cause`: Combine findings that share one root cause. — adopt → interrogate#merge-by-root-cause
+- `no-judge-pick-or-graft`: Omit judging, base selection and grafting from a review by adversaries. — reject
+- `union-of-verified-findings`: Keep every verified finding across adversaries rather than selecting one adversary's list. — adopt → interrogate#union-of-verified-findings
+- `output-opens-with-intent`: Open the output with the intent restatement. — adopt → interrogate#output-opens-with-intent
+- `output-finding-fields`: For each verified finding, report its command, its output and how it breaks the intent. — adopt → interrogate#output-finding-fields
+- `adversary-attribution`: Name the adversaries that found each verified finding. — adopt → interrogate#adversary-attribution
+- `dropped-finding-accounting`: Report for each adversary how many findings were dropped and why. — adopt → interrogate#dropped-finding-accounting
+
 #### core · Verification · Validation — skill:pstack/skills/principle-prove-it-works
 - `direct-observation`: Verify a result by observing the real thing (run it, read the actual value, check liveness directly), never a proxy, a cached view or a self-report. — adopt → doc:AGENTS.md
 - `suspect-the-observation`: When a check fails unexpectedly, test the observation method before concluding the system is wrong. — adopt → systematic-debugging#suspect-the-observation
@@ -1224,6 +1326,57 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `trail-reading-method`: Read a trail from top to bottom, following the evidence pointers and spot-checking. — reject
 - `trail-rendering-tips`: Show the log as a table through the forge's TSV view or the `column` command. — reject
 - `single-trail-format-owner`: Have other skills needing a trail refer to this one by name and define no trail or columns of their own. — reject
+
+#### core · X · Coordination — skill:pstack/skills/arena
+- `phase-todos`: Open a task list with one item per phase before beginning. — reject
+- `same-prompt-contract`: Give every candidate the same prompt, which serves as the binding definition of the job. — reject
+- `artifact-named-up-front`: State exactly what artifact each candidate must produce before any candidate starts. — adopt → model-council#artifact-named-up-front
+- `task-rubric-criteria`: Write three to six concrete, gradeable success criteria specific to this task. — adopt → model-council#task-rubric-criteria
+- `rubric-withheld-from-candidates`: Keep the success criteria from the candidates, who see only the task. — adopt → model-council#rubric-withheld-from-candidates
+- `role-model-config-line`: Read each spawned role's model from a named line of a shared configuration, falling back to a fixed default and leaving the field unset for an alias. — reject
+- `rejected-model-swap`: When a spawn refuses a model, use the default and disclose the swap, then the nearest same-family model if the default is refused too. — reject
+- `model-family-prefix-map`: Sort models into families by name prefix. — reject
+- `unrunnable-seat-dropped`: Remove a seat no valid model can run, and disclose it. — reject
+- `seat-backfill-to-minimum`: When dropped seats leave too few runners, add runners up to a floor on a surviving model or the parent's, and disclose the choice. — reject
+- `extra-runners-per-direction`: Add candidates when the work must explore several design directions. — reject
+- `same-model-for-generation`: Use one model for every seat when output is limited by generation rather than judgment. — reject
+- `job-fit-helper-effort`: Choose each helper's thinking depth and speed tier to suit its job. — reject
+- `own-output-location`: Give every candidate or adversary a separate output location, so they share no writable state. — adopt → model-council#own-output-location
+- `worktree-or-temp-output`: Prefer a git worktree for each candidate's output, falling back to a per-candidate temporary directory. — reject
+- `one-message-fan-out`: Launch every candidate or adversary in one message as background subagents. — reject
+- `candidate-brief-fields`: Hand each candidate the task, the shared grounding's path and its own output path. — reject
+- `rationale-names-rejected`: Have each candidate deliver, with its artifact, a short rationale naming the alternatives it weighed and what it rejected. — adopt → model-council#rationale-names-rejected
+- `dropout-proceeds-noted`: Go on with the remaining candidates or adversaries when one produces nothing, and record the dropout. — adopt → model-council#dropout-proceeds-noted
+- `judge-after-candidates`: Start the judge only after every candidate has finished. — reject
+- `single-judge`: Use exactly one judge for a comparison of candidates. — reject
+- `read-only-judge`: Give the judge read-only access. — adopt → model-council#read-only-judge
+- `judge-outside-lead-family`: Never let the judge's model share a family with the coordinating agent's model. — adopt → model-council#judge-other-family-or-stated
+- `judge-pool-walk`: Choose the judge by trying a pool's entries outside the parent's family in order, skipping parent aliases, moving to a nearby slug or the next entry on refusal and falling back to a default pool. — reject
+- `judge-skip-pick-alone`: When no judge can run, skip it, pick the base alone and say so. — reject
+- `family-check-unrun-disclosed`: When the coordinator's own model is unknown, try the judge pool in order and disclose that the family check did not run. — adopt → model-council#judge-other-family-or-stated
+- `rubric-given-to-judge`: Give the judge the success criteria to score against. — adopt → model-council#rubric-given-to-judge
+- `path-labelled-candidates`: Show the judge each candidate under its path label. — adopt → model-council#path-labelled-candidates
+- `judge-criterion-scores`: Have the judge score each candidate on each criterion. — adopt → model-council#judge-criterion-scores
+- `judge-recommends-base`: Have the judge recommend a base and justify the recommendation. — adopt → model-council#judge-recommends-base
+- `judge-parallel-with-picker`: Run the judge while the picker reads, not before or after. — reject
+- `full-read-before-pick`: Read every candidate in full before choosing a base. — adopt → model-council#full-read-before-pick
+- `picker-criterion-scores`: Score each candidate on each criterion instead of by overall impression. — adopt → model-council#picker-criterion-scores
+- `pick-compared-with-judge`: Compare your scored pick with the judge's, treating the same choice as confirmation. — adopt → model-council#pick-compared-with-judge
+- `disagreement-rereads-rationales`: Treat a disagreement with the judge as a sign of bias or an unclear rubric, and read both rationales before deciding. — adopt → model-council#disagreement-rereads-rationales
+- `base-chosen-for-extensibility`: Choose the base a later maintainer could extend most easily while keeping invariants intact. — adopt → model-council#base-chosen-for-extensibility
+- `near-tie-smaller-surface`: Break a near-tie in favour of the cleaner boundary or the smaller interface. — adopt → model-council#near-tie-smaller-surface
+- `loser-graft-pass`: Go through each losing candidate once more for parts worth carrying over. — adopt → model-council#loser-graft-pass
+- `sparse-grafts`: Expect only one or two grafts from a losing candidate, not the bulk of it. — adopt → model-council#sparse-grafts
+- `hand-folded-grafts`: Rewrite each graft into the base by hand, so the result keeps one coherent design rather than pasted fragments. — adopt → model-council#hand-folded-grafts
+- `converged-shape-no-graft`: When candidates reach one shape, record the agreement and ship that shape with no graft. — adopt → model-council#converged-shape-no-graft
+- `divergence-reframes`: When candidates differ wildly, treat the frame as too loose, then reframe and rerun instead of blending them. — adopt → model-council#divergence-reframes-once
+- `synthesized-artifact-verified`: Verify the merged artifact to the same standard as any other output. — adopt → model-council#graft-change-rerun
+- `verify-miss-routes-back`: Send a verification problem back to reframing or to grafting, whichever caused it, and never hide it. — adopt → model-council#verify-miss-returns-once
+- `single-synthesized-artifact`: End with one merged artifact rather than a set of alternatives. — adopt → model-council#single-synthesized-artifact
+- `synthesis-decision-record`: Record the chosen base candidate with its reason, what was grafted from the rest and why each was rejected. — adopt → model-council#synthesis-decision-record
+- `note-judge-status`: Record in the synthesis note the judge's verdict or that the judge was skipped. — adopt → model-council#note-judge-status
+- `note-convergence-dropouts`: Record any convergence or dropped candidates in the synthesis note. — adopt → model-council#note-convergence-dropouts
+- `note-verification-result`: Record the verification result in the synthesis note. — adopt → model-council#note-verification-result
 
 #### core · X · Coordination — skill:pstack/skills/principle-never-block-on-the-human
 - `reversible-work-proceeds`: Proceed without asking on reversible work, then present the result and its reasoning so the human can correct it afterwards, leaving product direction to the human. — reject
@@ -2095,20 +2248,20 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `module-vocabulary`: Reason about design with a shared deep-module glossary: module, interface, depth, seam, adapter and locality. — adopt → codebase-design#module-vocabulary
 
 #### engineering · Verification · Review — skill:skills/engineering/code-review
-- `two-axis-review`: Review a diff along two separate axes — conformance to the repo's documented standards and faithfulness to the originating spec. — adopt, pending cr-axdt.6.8 → review#two-axis-review
+- `two-axis-review`: Review a diff along two separate axes — conformance to the repo's documented standards and faithfulness to the originating spec. — adopt → review#two-axis-review
 - `distinct-axis-verdicts`: Report each review axis's verdict separately so one axis passing never masks another failing. — adopt → review#distinct-axis-verdicts
 - `no-cross-axis-rerank`: Never merge or rerank findings across review axes or pick a single overall winner. — defer
 - `scope-establishment`: Fix the diff and the base it is measured from before reviewing. — adopt → review#scope-establishment
-- `fixed-point-preflight`: Confirm the review ref resolves and the diff is non-empty before fanning out, failing fast rather than inside sub-agents. — adopt, pending cr-axdt.6.8 → review#fixed-point-preflight
+- `fixed-point-preflight`: Confirm the review ref resolves and the diff is non-empty before fanning out, failing fast rather than inside sub-agents. — adopt → review#fixed-point-preflight
 - `three-dot-merge-base`: Compare against the merge-base using a three-dot git diff so unrelated upstream changes are excluded. — defer
-- `spec-source-discovery`: Find the originating spec in a fixed order — commit issue references, a user-supplied path, conventional spec directories — and ask only as a last resort. — adopt, pending cr-axdt.6.8 → review#spec-source-discovery
-- `standards-source-discovery`: Search the repo for every file documenting how code should be written, always including the conventional standards and contributing files. — adopt, pending cr-axdt.6.8 → review#standards-source-discovery
+- `spec-source-discovery`: Find the originating spec in a fixed order — commit issue references, a user-supplied path, conventional spec directories — and ask only as a last resort. — adopt → review#spec-source-discovery
+- `standards-source-discovery`: Search the repo for every file documenting how code should be written, always including the conventional standards and contributing files. — adopt → review#standards-source-discovery
 - `parallel-subagents`: Run the review axes as parallel foreground sub-agents so their contexts do not pollute each other. — defer
-- `missing-spec-axis-skip`: When the user confirms no spec exists, skip the spec review axis and report that no spec was available. — adopt, pending cr-axdt.6.8 → review#missing-spec-axis-skip
+- `missing-spec-axis-skip`: When the user confirms no spec exists, skip the spec review axis and report that no spec was available. — adopt → review#missing-spec-axis-skip
 - `skip-tool-enforced`: Skip any review finding that existing tooling already enforces. — adopt → review#actionable-defects-only
 - `self-contained-subagent-brief`: Paste into a subagent's brief any reference material it needs that it cannot otherwise reach. — defer
-- `cited-standard-findings`: Cite the standard's file and rule for every violation and quote the hunk for every smell. — adopt, pending cr-axdt.6.8 → review#cited-standard-findings
-- `spec-conformance-findings`: Report spec findings as missing or partial requirements, unrequested behaviour and wrongly implemented requirements, quoting the spec line for each. — adopt, pending cr-axdt.6.8 → review#spec-conformance-findings
+- `cited-standard-findings`: Cite the standard's file and rule for every violation and quote the hunk for every smell. — adopt → review#cited-standard-findings
+- `spec-conformance-findings`: Report spec findings as missing or partial requirements, unrequested behaviour and wrongly implemented requirements, quoting the spec line for each. — adopt → review#spec-conformance-findings
 - `capped-reviewer-report`: Cap each reviewer subagent's report at a fixed word budget. — defer
 - `per-axis-summary-line`: Close a multi-axis review with one line giving each axis's finding count and its worst issue. — defer
 - `code-smell-catalog`: Check changes against a fixed catalogue of named code smells, each with a description and a fix, whether or not the repository documents standards. — defer
@@ -2830,6 +2983,27 @@ Use existing deterministic tools and checks where they suffice, and build a reru
 
 ### core · Verification · Review
 
+#### `adversaries-by-model-or-angle`
+Run one adversary per available model on one instruction to break the work or, with a single model, several whose prompts each attack something different, giving every adversary the scope and the intent.
+- ours: `interrogate`
+
+#### `adversary-attribution`
+Name the adversaries that found each verified finding.
+- ours: `interrogate`
+- `cursor_plugins:skill:pstack/skills/interrogate` — adopt → interrogate#adversary-attribution
+
+#### `adversary-fixed-brief`
+Hand every adversary the scope, the intent and one unchanging instruction to break the work, replacing the usual task and rationale request.
+- `cursor_plugins:skill:pstack/skills/interrogate` — adopt → interrogate#adversaries-by-model-or-angle
+
+#### `ask-or-not-run-on-intent`
+Ask when the intent is unclear and someone can answer, and report the review as not run when nobody can.
+- ours: `interrogate`
+
+#### `ask-when-intent-unclear`
+Ask the user when the intent cannot be established.
+- `cursor_plugins:skill:pstack/skills/interrogate` — adopt → interrogate#ask-or-not-run-on-intent
+
 #### `attention-scan-not-redo`
 Have the trail's reviewer look for what is suboptimal or risky for the user's attention and not repeat the work.
 - ours: `decision-trail`
@@ -2843,6 +3017,25 @@ End every reply of a run with a trail in an Attention section, opening with a li
 End a reply with Attention naming the reviewer or `not reviewed` with its reason, each flag with its rows or no flags, and, after an evidence-pointer review, transcript coverage and unlogged-fork detection as unavailable.
 - ours: `decision-trail`
 
+#### `break-it-mandate`
+Assign adversaries to try to break a change or design rather than assess it in general.
+- ours: `interrogate`
+- `cursor_plugins:skill:pstack/skills/interrogate` — adopt → interrogate#break-it-mandate
+
+#### `checkout-change-check`
+After each adversary returns, compare the shared checkout with the snapshot's state and report each changed path, without voiding the run, restoring anything or naming who changed it.
+- ours: `interrogate`
+
+#### `coordinator-replays-finding`
+Have the coordinator verify each finding by running its command again.
+- ours: `interrogate`
+- `cursor_plugins:skill:pstack/skills/interrogate` — adopt → interrogate#coordinator-replays-finding
+
+#### `design-proof-by-probe`
+For a design or plan, prove a finding by running a prototype or probing the current tree.
+- ours: `interrogate`
+- `cursor_plugins:skill:pstack/skills/interrogate` — adopt → interrogate#design-proof-by-probe
+
 #### `distinct-axis-verdicts`
 Report each review axis's verdict separately so one axis passing never masks another failing.
 - ours: `review`
@@ -2851,6 +3044,22 @@ Report each review axis's verdict separately so one axis passing never masks ano
 #### `document-review`
 Check a spec or plan against repository context for internal inconsistency, missing constraints, unverifiable claims and scope bloat, editing only unambiguous wording when fixes were requested.
 - ours: `review`
+
+#### `drop-unverified-findings`
+Remove every finding that fails the keep test.
+- `cursor_plugins:skill:pstack/skills/interrogate` — adopt → interrogate#three-replay-outcomes
+
+#### `dropout-proceeds-noted`
+Go on with the remaining candidates or adversaries when one produces nothing, and record the dropout.
+- ours: `interrogate`
+- ours: `model-council`
+- `cursor_plugins:skill:pstack/skills/arena` — adopt → model-council#dropout-proceeds-noted
+- `cursor_plugins:skill:pstack/skills/interrogate` — adopt → interrogate#dropout-proceeds-noted
+
+#### `dropped-finding-accounting`
+Report for each adversary how many findings were dropped and why.
+- ours: `interrogate`
+- `cursor_plugins:skill:pstack/skills/interrogate` — adopt → interrogate#dropped-finding-accounting
 
 #### `evidence-pointer-review`
 Give a trail's critic the trail and the evidence each row points at, or the trail and a verified workspace-scoped record when one is named.
@@ -2861,26 +3070,111 @@ Verify each incoming review finding against requirements, code and primary evide
 - ours: `execution`
 - ours: `review`
 
+#### `finding-repro-report`
+Require each finding to carry a title, the exact command, the printed output and the output the intent requires.
+- ours: `interrogate`
+- `cursor_plugins:skill:pstack/skills/interrogate` — adopt → interrogate#finding-repro-report
+
+#### `future-change-risk-excluded`
+Leave out hazards that matter only after a future change.
+- `cursor_plugins:skill:pstack/skills/interrogate` — reject
+
+#### `general-purpose-adversary`
+Spawn each adversary as the general-purpose subagent type.
+- `cursor_plugins:skill:pstack/skills/interrogate` — reject
+
 #### `independent-critic-verdict`
 A reviewer who did not author the work gives evidence-backed findings and a verdict, approving only what was verified and listing the rest as unverified.
 - ours: `review`
+
+#### `intent-from-request-commits-pr`
+Derive the intent from the request, the commits and the pull request description.
+- `cursor_plugins:skill:pstack/skills/interrogate` — adopt → interrogate#intent-from-stated-sources
+
+#### `intent-from-stated-sources`
+Take a change's intent only from a stated source such as the request, a brief, a spec or a bead, never from the diff.
+- ours: `interrogate`
+
+#### `intent-restated-first`
+Restate the change's intent in your own words before sending out adversaries.
+- ours: `interrogate`
+- `cursor_plugins:skill:pstack/skills/interrogate` — adopt → interrogate#intent-restated-first
 
 #### `material-risk-review`
 Route an artifact or change with material risk or a broad blast radius through an independent critic review before it is accepted.
 - ours: `brainstorming`
 - ours: `harness-evaluate`
 
+#### `merge-base-through-tree-scope`
+When no scope is named, review the branch from where it left the base branch up to and including the working tree.
+- `cursor_plugins:skill:pstack/skills/interrogate` — defer
+
+#### `merge-by-root-cause`
+Combine findings that share one root cause.
+- ours: `interrogate`
+- `cursor_plugins:skill:pstack/skills/interrogate` — adopt → interrogate#merge-by-root-cause
+
+#### `named-scope-first`
+Use the scope the user names when one is given.
+- ours: `interrogate`
+- `cursor_plugins:skill:pstack/skills/interrogate` — adopt → interrogate#named-scope-first
+
+#### `no-findings-valid`
+Accept a report with no findings as a valid result, and say so explicitly when none remain.
+- ours: `interrogate`
+- `cursor_plugins:skill:pstack/skills/interrogate` — adopt → interrogate#no-findings-valid
+
 #### `no-grade-inflation`
 Assess work critically without inflating the grade.
 - `doc:AGENTS.md`
+
+#### `no-judge-pick-or-graft`
+Omit judging, base selection and grafting from a review by adversaries.
+- `cursor_plugins:skill:pstack/skills/interrogate` — reject
+
+#### `no-self-adversary`
+Report not run rather than attack as an adversary work you wrote or a design you settled.
+- ours: `interrogate`
+
+#### `one-message-fan-out`
+Launch every candidate or adversary in one message as background subagents.
+- `cursor_plugins:skill:pstack/skills/arena` — reject
+- `cursor_plugins:skill:pstack/skills/interrogate` — reject
 
 #### `other-family-trail-review`
 Before handing back, have a subagent from a different model family review the run, with no self-review in its place.
 - `cursor_plugins:skill:pstack/skills/show-me-your-work` — adopt → decision-trail#same-family-or-unreviewed
 
+#### `output-finding-fields`
+For each verified finding, report its command, its output and how it breaks the intent.
+- ours: `interrogate`
+- `cursor_plugins:skill:pstack/skills/interrogate` — adopt → interrogate#output-finding-fields
+
+#### `output-opens-with-intent`
+Open the output with the intent restatement.
+- ours: `interrogate`
+- `cursor_plugins:skill:pstack/skills/interrogate` — adopt → interrogate#output-opens-with-intent
+
+#### `own-output-location`
+Give every candidate or adversary a separate output location, so they share no writable state.
+- ours: `interrogate`
+- ours: `model-council`
+- `cursor_plugins:skill:pstack/skills/arena` — adopt → model-council#own-output-location
+- `cursor_plugins:skill:pstack/skills/interrogate` — adopt → interrogate#own-output-location
+
 #### `read-only-isolation`
 A read-only review preserves the checkout, index and refs, using permitted isolated facilities for any check that needs mutation.
 - ours: `review`
+
+#### `reproduced-and-breaks-intent`
+Keep a finding only if the output shows the failure and that failure breaks the stated intent.
+- ours: `interrogate`
+- `cursor_plugins:skill:pstack/skills/interrogate` — adopt → interrogate#reproduced-and-breaks-intent
+
+#### `repros-stay-in-copy`
+Keep each adversary's reproduction material inside its own output location.
+- ours: `interrogate`
+- `cursor_plugins:skill:pstack/skills/interrogate` — adopt → interrogate#repros-stay-in-copy
 
 #### `requirements-before-quality`
 Check missing, extra and misunderstood requirements before judging code quality.
@@ -2895,6 +3189,16 @@ Allocate coding-standards enforcement to the review agent rather than the implem
 - `mattpocock_skills:skill:skills/engineering/retro` — defer
 - `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — defer
 
+#### `run-against-real-code`
+Require each finding to be demonstrated by executing something against the actual code, such as a failing test, a reproduction script or revealing command output.
+- ours: `interrogate`
+- `cursor_plugins:skill:pstack/skills/interrogate` — adopt → interrogate#run-against-real-code
+
+#### `run-proven-finding`
+Let a finding stand only when a run executed in the review shows it, so a claim nobody ran is no finding.
+- ours: `interrogate`
+- `cursor_plugins:skill:pstack/skills/interrogate` — adopt → interrogate#run-proven-finding
+
 #### `same-family-or-unreviewed`
 Have a critic from another model family review the trail before hand-back, one of the same family only with the owner's approval, and otherwise report it not reviewed, never reviewing your own run.
 - ours: `decision-trail`
@@ -2907,6 +3211,14 @@ Run review as a separate, low-context-pressure stage from implementation.
 Rate each finding by consequence and approve only with no open blocker or major, otherwise require revision, never counting preference alone as a finding.
 - ours: `review`
 
+#### `style-findings-excluded`
+Leave style, naming and structure out of an adversary's findings.
+- `cursor_plugins:skill:pstack/skills/interrogate` — reject
+
+#### `three-replay-outcomes`
+Sort each replayed finding into reproduced, not reproduced (dropped and stated as unreproduced, not disproved) or unreplayable (listed with no severity).
+- ours: `interrogate`
+
 #### `trail-and-transcript-review`
 Give the reviewer the audit trail and the run's transcript as its inputs.
 - `cursor_plugins:skill:pstack/skills/show-me-your-work` — adopt → decision-trail#evidence-pointer-review
@@ -2915,6 +3227,23 @@ Give the reviewer the audit trail and the run's transcript as its inputs.
 Have the trail's reviewer flag weak or absent evidence, checks skipped or claimed without proof, choices risky in hindsight, and gaps a casual read would miss.
 - ours: `decision-trail`
 - `cursor_plugins:skill:pstack/skills/show-me-your-work` — adopt → decision-trail#trail-review-flags
+
+#### `uncommitted-changes-seeded`
+Seed every adversary workspace with the uncommitted work included in the review scope.
+- `cursor_plugins:skill:pstack/skills/interrogate` — adopt → interrogate#verified-snapshot-copy
+
+#### `union-of-verified-findings`
+Keep every verified finding across adversaries rather than selecting one adversary's list.
+- ours: `interrogate`
+- `cursor_plugins:skill:pstack/skills/interrogate` — adopt → interrogate#union-of-verified-findings
+
+#### `unresolved-outranks-verdict`
+Give no favourable verdict while an observed failure stays unreproduced or unreplayable.
+- ours: `interrogate`
+
+#### `verified-snapshot-copy`
+Give each adversary and each replay a disposable copy made from one pristine snapshot of the working state and checked against it, reporting not run when a copy cannot be made exact.
+- ours: `interrogate`
 
 ### core · Verification · Validation
 
@@ -4323,6 +4652,11 @@ Regenerate the workstream status, ideas and backlog boards from the tracker thro
 When peer review is included, anonymize responses before reviewers compare their reasoning and gaps.
 - ours: `perspective-council`
 
+#### `artifact-named-up-front`
+State exactly what artifact each candidate must produce before any candidate starts.
+- ours: `model-council`
+- `cursor_plugins:skill:pstack/skills/arena` — adopt → model-council#artifact-named-up-front
+
 #### `assigned-slice-depth`
 Give each searching helper one assigned slice to go deep on, telling it that peers cover the rest.
 - `cursor_plugins:skill:pstack/skills/how` — reject
@@ -4336,9 +4670,18 @@ Delegate reading legwork to a background agent so the caller keeps working while
 Run subagents in the background so the coordinator stays in live dialogue with the user.
 - `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — adopt, pending cr-axdt.6.3 → delegation#background-dispatch-for-dialogue
 
+#### `base-chosen-for-extensibility`
+Choose the base a later maintainer could extend most easily while keeping invariants intact.
+- ours: `model-council`
+- `cursor_plugins:skill:pstack/skills/arena` — adopt → model-council#base-chosen-for-extensibility
+
 #### `brief-only-read-only`
 Tell helpers to write nothing and change no external state even though their mode permits it.
 - `cursor_plugins:skill:pstack/skills/why` — reject
+
+#### `candidate-brief-fields`
+Hand each candidate the task, the shared grounding's path and its own output path.
+- `cursor_plugins:skill:pstack/skills/arena` — reject
 
 #### `capable-native-subagent`
 Use the harness's own subagent tool only when it can run the chosen model with its settings.
@@ -4361,6 +4704,11 @@ Deliver a concise consolidation with member-position summaries and paths to ever
 
 #### `context-modes`
 Resolve fresh context versus full context deliberately, treating last-N turns and pasted summaries as unsupported substitutes for a real fork.
+
+#### `converged-shape-no-graft`
+When candidates reach one shape, record the agreement and ship that shape with no graft.
+- ours: `model-council`
+- `cursor_plugins:skill:pstack/skills/arena` — adopt → model-council#converged-shape-no-graft
 
 #### `coordinator-delegates-all`
 Do all work in subagents so the coordinator's context stays free for coordination.
@@ -4391,6 +4739,19 @@ At top level, hand independent work to subagents and keep the main context for c
 
 #### `delegation-threshold`
 Delegate bounded independent work only when it materially improves speed, context use or review quality within budget, keeping small work local.
+
+#### `disagreement-rereads-rationales`
+Treat a disagreement with the judge as a sign of bias or an unclear rubric, and read both rationales before deciding.
+- ours: `model-council`
+- `cursor_plugins:skill:pstack/skills/arena` — adopt → model-council#disagreement-rereads-rationales
+
+#### `divergence-reframes`
+When candidates differ wildly, treat the frame as too loose, then reframe and rerun instead of blending them.
+- `cursor_plugins:skill:pstack/skills/arena` — adopt → model-council#divergence-reframes-once
+
+#### `divergence-reframes-once`
+When candidates differ wildly, treat the frame as too loose, reframe and rerun at most once, then stop and report instead of blending them.
+- ours: `model-council`
 
 #### `dual-track-thinking`
 Think on a tactical track for the current task and a strategic track for improving the environment for the next task.
@@ -4442,9 +4803,17 @@ Optionally run an exploration subagent that saves markdown notes outside the rep
 Have each explorer report a component inventory, an ordered step trace, the files it read, the boundaries and the non-obvious behaviour.
 - `cursor_plugins:skill:pstack/skills/how` — reject
 
+#### `extra-runners-per-direction`
+Add candidates when the work must explore several design directions.
+- `cursor_plugins:skill:pstack/skills/arena` — reject
+
 #### `failed-member-recovery`
 Give a failed member bounded safe recovery before treating it as missing.
 - ours: `model-council`
+
+#### `family-check-unrun-disclosed`
+When the coordinator's own model is unknown, try the judge pool in order and disclose that the family check did not run.
+- `cursor_plugins:skill:pstack/skills/arena` — adopt → model-council#judge-other-family-or-stated
 
 #### `fork-overrides`
 Never promise model, effort, tool or permission overrides on a fork, which inherits the parent's model, tools, prompt and history wholesale.
@@ -4453,6 +4822,20 @@ Never promise model, effort, tool or permission overrides on a fork, which inher
 Wait for every finding, then have one agent that did no searching weigh the raw findings and write the only answer.
 - `cursor_plugins:skill:pstack/skills/how` — reject
 - `cursor_plugins:skill:pstack/skills/why` — reject
+
+#### `full-read-before-pick`
+Read every candidate in full before choosing a base.
+- ours: `model-council`
+- `cursor_plugins:skill:pstack/skills/arena` — adopt → model-council#full-read-before-pick
+
+#### `graft-change-rerun`
+After grafting, rerun the acceptance check of any previously checked behaviour the graft changed, reuse evidence for the rest and name what stays unchecked.
+- ours: `model-council`
+
+#### `hand-folded-grafts`
+Rewrite each graft into the base by hand, so the result keeps one coherent design rather than pasted fragments.
+- ours: `model-council`
+- `cursor_plugins:skill:pstack/skills/arena` — adopt → model-council#hand-folded-grafts
 
 #### `identity-recording`
 Record the actual model identities wherever the runtime provides evidence of them.
@@ -4480,9 +4863,44 @@ Build each investigator prompt from a template, one source playbook, one shared 
 
 #### `job-fit-helper-effort`
 Choose each helper's thinking depth and speed tier to suit its job.
+- `cursor_plugins:skill:pstack/skills/arena` — reject
 - `cursor_plugins:skill:pstack/skills/how` — reject
 - `cursor_plugins:skill:pstack/skills/show-me-your-work` — reject
 - `cursor_plugins:skill:pstack/skills/why` — reject
+
+#### `judge-after-candidates`
+Start the judge only after every candidate has finished.
+- `cursor_plugins:skill:pstack/skills/arena` — reject
+
+#### `judge-criterion-scores`
+Have the judge score each candidate on each criterion.
+- ours: `model-council`
+- `cursor_plugins:skill:pstack/skills/arena` — adopt → model-council#judge-criterion-scores
+
+#### `judge-other-family-or-stated`
+Take the judge from a model family other than the coordinator's, and say so when the user's choice shares that family or the coordinator cannot tell its own.
+- ours: `model-council`
+
+#### `judge-outside-lead-family`
+Never let the judge's model share a family with the coordinating agent's model.
+- `cursor_plugins:skill:pstack/skills/arena` — adopt → model-council#judge-other-family-or-stated
+
+#### `judge-parallel-with-picker`
+Run the judge while the picker reads, not before or after.
+- `cursor_plugins:skill:pstack/skills/arena` — reject
+
+#### `judge-pool-walk`
+Choose the judge by trying a pool's entries outside the parent's family in order, skipping parent aliases, moving to a nearby slug or the next entry on refusal and falling back to a default pool.
+- `cursor_plugins:skill:pstack/skills/arena` — reject
+
+#### `judge-recommends-base`
+Have the judge recommend a base and justify the recommendation.
+- ours: `model-council`
+- `cursor_plugins:skill:pstack/skills/arena` — adopt → model-council#judge-recommends-base
+
+#### `judge-skip-pick-alone`
+When no judge can run, skip it, pick the base alone and say so.
+- `cursor_plugins:skill:pstack/skills/arena` — reject
 
 #### `layer-placement`
 Separate the invocation layer's small accepted field set from the definition layer, which alone carries effort, tools, permissions, memory, skills, MCP and full model IDs.
@@ -4499,6 +4917,11 @@ Flag thin aliases and retired workflows so their retired steps are not recommend
 Pass the writer's text on with only light edits for clarity or context, never a substantial rewrite.
 - `cursor_plugins:skill:pstack/skills/how` — reject
 
+#### `loser-graft-pass`
+Go through each losing candidate once more for parts worth carrying over.
+- ours: `model-council`
+- `cursor_plugins:skill:pstack/skills/arena` — adopt → model-council#loser-graft-pass
+
 #### `member-isolation`
 Give each member the shared brief in isolation so none sees another's response; sequential dispatch is allowed.
 - ours: `model-council`
@@ -4508,12 +4931,21 @@ Give each member the shared brief in isolation so none sees another's response; 
 Resolve the members and judge from the request's explicit selections, asking only for missing choices or unreachable members.
 - ours: `model-council`
 
+#### `model-family-prefix-map`
+Sort models into families by name prefix.
+- `cursor_plugins:skill:pstack/skills/arena` — reject
+
 #### `model-list-freshness`
 Refuse a generated model list when the vendor fetch behind it is missing or older than the allowed age, timing it by the vendor's fetch rather than by when the list was written.
 - ours: `delegation`
 
 #### `narrowest-contract`
 Default to the narrowest useful specialist contract, with clear bounded work needing no skill and the router treated as optional rather than a startup checklist.
+
+#### `near-tie-smaller-surface`
+Break a near-tie in favour of the cleaner boundary or the smaller interface.
+- ours: `model-council`
+- `cursor_plugins:skill:pstack/skills/arena` — adopt → model-council#near-tie-smaller-surface
 
 #### `need-to-skill-routing`
 Map a task need to the narrowest fitting skill or command, or to no skill at all.
@@ -4531,6 +4963,10 @@ Do not create a permanent definition file per model-effort-capability combinatio
 Do not also do work that has been delegated.
 - `doc:AGENTS.md`
 
+#### `no-judge-no-pick`
+With no judge reachable, count no completed council: stop, say so and return the candidates with no pick.
+- ours: `model-council`
+
 #### `no-onward-delegation`
 A delegated worker does not hand its work on to further agents unless its brief allows it.
 - ours: `delegation`
@@ -4546,6 +4982,21 @@ Never backfill a missing member with your own answer or a silent substitute; rep
 - ours: `model-council`
 - ours: `perspective-council`
 
+#### `note-convergence-dropouts`
+Record any convergence or dropped candidates in the synthesis note.
+- ours: `model-council`
+- `cursor_plugins:skill:pstack/skills/arena` — adopt → model-council#note-convergence-dropouts
+
+#### `note-judge-status`
+Record in the synthesis note the judge's verdict or that the judge was skipped.
+- ours: `model-council`
+- `cursor_plugins:skill:pstack/skills/arena` — adopt → model-council#note-judge-status
+
+#### `note-verification-result`
+Record the verification result in the synthesis note.
+- ours: `model-council`
+- `cursor_plugins:skill:pstack/skills/arena` — adopt → model-council#note-verification-result
+
 #### `opposing-lens-set`
 Draw advisors from a fixed set of opposing lenses, each contributing a defined kind of challenge.
 - ours: `perspective-council`
@@ -4558,9 +5009,25 @@ Name the single owner when two skills or commands appear to overlap.
 Take each role's vendor, model and settings from the owner's roster, let a model the owner names override it for one dispatch, and ask the owner when neither exists rather than choosing.
 - ours: `delegation`
 
+#### `path-labelled-candidates`
+Show the judge each candidate under its path label.
+- ours: `model-council`
+- `cursor_plugins:skill:pstack/skills/arena` — adopt → model-council#path-labelled-candidates
+
 #### `phase-todos`
 Open a task list with one item per phase before beginning.
 - `cursor_plugins:skill:pstack/skills/architect` — reject
+- `cursor_plugins:skill:pstack/skills/arena` — reject
+
+#### `pick-compared-with-judge`
+Compare your scored pick with the judge's, treating the same choice as confirmation.
+- ours: `model-council`
+- `cursor_plugins:skill:pstack/skills/arena` — adopt → model-council#pick-compared-with-judge
+
+#### `picker-criterion-scores`
+Score each candidate on each criterion instead of by overall impression.
+- ours: `model-council`
+- `cursor_plugins:skill:pstack/skills/arena` — adopt → model-council#picker-criterion-scores
 
 #### `platform-skill-invocation`
 Invoke a routed skill through the platform's skill mechanism, not by reading its file, so it survives compaction and its invocation settings apply; read router-only units by path.
@@ -4599,9 +5066,19 @@ Scale planning, research and review to the uncertainty and consequences of the w
 Defer the human checkpoint as far as it will go, doing maximal work first so the human is asked once, late, with everything prepared.
 - `mattpocock_skills:skill:skills/in-progress/loop-me` — defer
 
+#### `rationale-names-rejected`
+Have each candidate deliver, with its artifact, a short rationale naming the alternatives it weighed and what it rejected.
+- ours: `model-council`
+- `cursor_plugins:skill:pstack/skills/arena` — adopt → model-council#rationale-names-rejected
+
 #### `read-only-helper-spawn`
 Spawn every exploring helper with enforced read-only access.
 - `cursor_plugins:skill:pstack/skills/how` — reject
+
+#### `read-only-judge`
+Give the judge read-only access.
+- ours: `model-council`
+- `cursor_plugins:skill:pstack/skills/arena` — adopt → model-council#read-only-judge
 
 #### `read-skill-before-claiming`
 Read a skill's own instructions before describing what it does or recommending its step be skipped, treating router summaries as orientation only.
@@ -4613,6 +5090,7 @@ Keep a playbook step that will not run in the todo list, marked with its reason,
 
 #### `rejected-model-swap`
 When a spawn refuses a model, use the default and disclose the swap, then the nearest same-family model if the default is refused too.
+- `cursor_plugins:skill:pstack/skills/arena` — reject
 - `cursor_plugins:skill:pstack/skills/how` — reject
 - `cursor_plugins:skill:pstack/skills/why` — reject
 
@@ -4638,21 +5116,45 @@ Give each delegated role a fixed contract of access, duties and report shape, an
 #### `role-model-config-line`
 Read each spawned role's model from a named line of a shared configuration, falling back to a fixed default and leaving the field unset for an alias.
 - `cursor_plugins:skill:pstack/skills/architect` — reject
+- `cursor_plugins:skill:pstack/skills/arena` — reject
 - `cursor_plugins:skill:pstack/skills/how` — reject
+- `cursor_plugins:skill:pstack/skills/interrogate` — reject
 - `cursor_plugins:skill:pstack/skills/why` — reject
 
 #### `router-at-task-start`
 Invoke the router at the start of every task, so routing is loaded on any vendor and comes back after compaction.
 - `doc:AGENTS.md`
 
+#### `rubric-given-to-judge`
+Give the judge the success criteria to score against.
+- ours: `model-council`
+- `cursor_plugins:skill:pstack/skills/arena` — adopt → model-council#rubric-given-to-judge
+
+#### `rubric-withheld-from-candidates`
+Keep the success criteria from the candidates, who see only the task.
+- ours: `model-council`
+- `cursor_plugins:skill:pstack/skills/arena` — adopt → model-council#rubric-withheld-from-candidates
+
 #### `runtime-capability-check`
 Verify actual runtime dispatch interfaces before assuming cross-provider access from a model name or placing effort only in prose when a runtime control exists.
 - ours: `model-council`
+
+#### `same-model-for-generation`
+Use one model for every seat when output is limited by generation rather than judgment.
+- `cursor_plugins:skill:pstack/skills/arena` — reject
+
+#### `same-prompt-contract`
+Give every candidate the same prompt, which serves as the binding definition of the job.
+- `cursor_plugins:skill:pstack/skills/arena` — reject
 
 #### `script-over-fanout`
 When one deterministic pass can process every unit, run a script rather than fanning the units out to delegates.
 - `doc:AGENTS.md`
 - `cursor_plugins:skill:pstack/skills/principle-build-the-lever` — adopt → doc:AGENTS.md
+
+#### `seat-backfill-to-minimum`
+When dropped seats leave too few runners, add runners up to a floor on a surviving model or the parent's, and disclose the choice.
+- `cursor_plugins:skill:pstack/skills/arena` — reject
 
 #### `self-contained-subagent-brief`
 Paste into a subagent's brief any reference material it needs that it cannot otherwise reach.
@@ -4670,9 +5172,32 @@ When fanning work out, give every delegate one shared artifact with the recipe, 
 Act as the single accountable coordinator for a long-running goal within one session.
 - `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — defer
 
+#### `single-judge`
+Use exactly one judge for a comparison of candidates.
+- `cursor_plugins:skill:pstack/skills/arena` — reject
+
+#### `single-synthesized-artifact`
+End with one merged artifact rather than a set of alternatives.
+- ours: `model-council`
+- `cursor_plugins:skill:pstack/skills/arena` — adopt → model-council#single-synthesized-artifact
+
+#### `sparse-grafts`
+Expect only one or two grafts from a losing candidate, not the bulk of it.
+- ours: `model-council`
+- `cursor_plugins:skill:pstack/skills/arena` — adopt → model-council#sparse-grafts
+
 #### `suggest-schedules`
 Suggest recurring schedules that help reach the goal where the harness supports them.
 - `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — defer
+
+#### `synthesized-artifact-verified`
+Verify the merged artifact to the same standard as any other output.
+- `cursor_plugins:skill:pstack/skills/arena` — adopt → model-council#graft-change-rerun
+
+#### `task-rubric-criteria`
+Write three to six concrete, gradeable success criteria specific to this task.
+- ours: `model-council`
+- `cursor_plugins:skill:pstack/skills/arena` — adopt → model-council#task-rubric-criteria
 
 #### `three-reaches`
 Route a spawn through one of three paths — the Agent tool, an ephemeral inline definition, or an independent process — by where a capability must be fixed.
@@ -4684,6 +5209,10 @@ Save a council transcript only when it is requested.
 #### `unit-kind-lines`
 Define each unit kind in one line inside the router, so a copy shipped without the repository's rules still distinguishes them.
 - ours: `mvp-mode`
+
+#### `unrunnable-seat-dropped`
+Remove a seat no valid model can run, and disclose it.
+- `cursor_plugins:skill:pstack/skills/arena` — reject
 
 #### `validate-selection`
 Validate every selected spawn dimension deterministically before spawning, rejecting any value the catalog does not declare rather than substituting a nearby one.
@@ -4697,6 +5226,14 @@ Take the selectable models and efforts from each vendor's own source (its live c
 Dispatch through the chosen vendor's own tools and follow their rules, adding no process around a vendor's own orchestrator.
 - ours: `delegation`
 
+#### `verify-miss-returns-once`
+Send a verification problem back once to reframing or to grafting, whichever caused it, then report any further miss rather than hiding it.
+- ours: `model-council`
+
+#### `verify-miss-routes-back`
+Send a verification problem back to reframing or to grafting, whichever caused it, and never hide it.
+- `cursor_plugins:skill:pstack/skills/arena` — adopt → model-council#verify-miss-returns-once
+
 #### `whole-callee`
 Invoke each unit a playbook step calls whole, never skipping or overriding its core.
 - ours: `mvp-mode`
@@ -4708,6 +5245,10 @@ Keep doing independent work while a question waits for an answer.
 #### `worker-brief-contents`
 Give each worker a brief stating the outcome, owned paths, constraints, acceptance checks and pointers to relevant context.
 - `doc:AGENTS.md`
+
+#### `worktree-or-temp-output`
+Prefer a git worktree for each candidate's output, falling back to a per-candidate temporary directory.
+- `cursor_plugins:skill:pstack/skills/arena` — reject
 
 #### `writable-helper-mode`
 Spawn helpers in a writable mode because the read-only mode removes the tool access they need.
@@ -4754,6 +5295,7 @@ Treat a request to implement as authority to carry the work through verification
 #### `inspection-only-authority`
 Treat a review or analysis request as authority to inspect and report only, never to change the work.
 - `doc:AGENTS.md`
+- `cursor_plugins:skill:pstack/skills/interrogate` — adopt → doc:AGENTS.md
 
 #### `interview-not-authority`
 Treat conducting an interview or drafting a questionnaire as neither implementation authority nor permission to send it.
@@ -5816,6 +6358,10 @@ Before sharing state between actors, ask what a concurrent modification would do
 - `cursor_plugins:skill:pstack/skills/architect` — reject
 - `cursor_plugins:skill:pstack/skills/principle-foundational-thinking` — adopt → principle-separate-before-serializing-shared-state#concurrent-modification-test
 
+#### `contested-design-gate`
+Start run-proven adversaries unasked only on a dispute raised by someone other than the lead, testable by a run and unsettled by evidence in hand, and let a dispute left open block landing.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/feature.md`
+
 #### `convergent-operations`
 Design state-changing operations to converge on the same correct end state however often they run and wherever a previous run stopped.
 - ours: `principle-make-operations-idempotent`
@@ -6378,7 +6924,9 @@ Surface the relevant state and the invalid transitions the design might mishandl
 
 #### `synthesis-decision-record`
 Record the chosen base candidate with its reason, what was grafted from the rest and why each was rejected.
+- ours: `model-council`
 - `cursor_plugins:skill:pstack/skills/architect` — reject
+- `cursor_plugins:skill:pstack/skills/arena` — adopt → model-council#synthesis-decision-record
 
 #### `test-folder-isolation`
 Make a package's tests folder importable only from tests.
@@ -7946,7 +8494,8 @@ Cap each reviewer subagent's report at a fixed word budget.
 
 #### `cited-standard-findings`
 Cite the standard's file and rule for every violation and quote the hunk for every smell.
-- `mattpocock_skills:skill:skills/engineering/code-review` — adopt, pending cr-axdt.6.8 → review#cited-standard-findings
+- ours: `review`
+- `mattpocock_skills:skill:skills/engineering/code-review` — adopt → review#cited-standard-findings
 
 #### `code-smell-catalog`
 Check changes against a fixed catalogue of named code smells, each with a description and a fix, whether or not the repository documents standards.
@@ -7966,7 +8515,8 @@ Inspect the final diff and Git status before finishing.
 
 #### `fixed-point-preflight`
 Confirm the review ref resolves and the diff is non-empty before fanning out, failing fast rather than inside sub-agents.
-- `mattpocock_skills:skill:skills/engineering/code-review` — adopt, pending cr-axdt.6.8 → review#fixed-point-preflight
+- ours: `review`
+- `mattpocock_skills:skill:skills/engineering/code-review` — adopt → review#fixed-point-preflight
 
 #### `interruption-point-audit`
 Check a state-changing operation by asking what happens when it runs twice and when it stops at each point, and add reconciliation wherever the answer depends on leftovers.
@@ -7983,7 +8533,8 @@ A failing mechanical verification gate returns the work unreviewed as failed ver
 
 #### `missing-spec-axis-skip`
 When the user confirms no spec exists, skip the spec review axis and report that no spec was available.
-- `mattpocock_skills:skill:skills/engineering/code-review` — adopt, pending cr-axdt.6.8 → review#missing-spec-axis-skip
+- ours: `review`
+- `mattpocock_skills:skill:skills/engineering/code-review` — adopt → review#missing-spec-axis-skip
 
 #### `no-cross-axis-rerank`
 Never merge or rerank findings across review axes or pick a single overall winner.
@@ -8036,15 +8587,18 @@ Report a catalogue smell only as a labelled possible judgement call, never as a 
 
 #### `spec-conformance-findings`
 Report spec findings as missing or partial requirements, unrequested behaviour and wrongly implemented requirements, quoting the spec line for each.
-- `mattpocock_skills:skill:skills/engineering/code-review` — adopt, pending cr-axdt.6.8 → review#spec-conformance-findings
+- ours: `review`
+- `mattpocock_skills:skill:skills/engineering/code-review` — adopt → review#spec-conformance-findings
 
 #### `spec-source-discovery`
 Find the originating spec in a fixed order — commit issue references, a user-supplied path, conventional spec directories — and ask only as a last resort.
-- `mattpocock_skills:skill:skills/engineering/code-review` — adopt, pending cr-axdt.6.8 → review#spec-source-discovery
+- ours: `review`
+- `mattpocock_skills:skill:skills/engineering/code-review` — adopt → review#spec-source-discovery
 
 #### `standards-source-discovery`
 Search the repo for every file documenting how code should be written, always including the conventional standards and contributing files.
-- `mattpocock_skills:skill:skills/engineering/code-review` — adopt, pending cr-axdt.6.8 → review#standards-source-discovery
+- ours: `review`
+- `mattpocock_skills:skill:skills/engineering/code-review` — adopt → review#standards-source-discovery
 
 #### `static-trace-verification`
 Statically trace a script you must not run, checking every captured value lands where it was scoped and every secret name matches a CI reference.
@@ -8068,7 +8622,8 @@ Compare against the merge-base using a three-dot git diff so unrelated upstream 
 
 #### `two-axis-review`
 Review a diff along two separate axes — conformance to the repo's documented standards and faithfulness to the originating spec.
-- `mattpocock_skills:skill:skills/engineering/code-review` — adopt, pending cr-axdt.6.8 → review#two-axis-review
+- ours: `review`
+- `mattpocock_skills:skill:skills/engineering/code-review` — adopt → review#two-axis-review
 
 #### `verdict-contract`
 Dispatched reviewers and re-reviews emit a fixed verdict output of verdict, unverified requirements, located issues and actual checks with limitations.
@@ -8617,6 +9172,7 @@ Traits listed by two or more of our active skills (`doc:AGENTS.md` and playbooks
 | `dependency-edges` | planning, wayfinder | Each builds its own tracker graph, planning for implementation stages and wayfinder for decision tickets, and lets readiness drive the work; edge semantics stay in beads. |
 | `domain-vocabulary` | i-have-adhd, prototype, teach | Each writes for its reader in the project's own terms: i-have-adhd in its re-pitches, teach in its lessons, and prototype in its states, actions and labels, so an answer transfers to the real code. |
 | `drift-scan` | harness-scan, harness-status | Both run the one drift command, scan for a single harness and status as a sweep of all of them; a pointer between them would add a hop to a one-line command. |
+| `dropout-proceeds-noted` | interrogate, model-council | A failed member and a failed adversary are handled alike, going on and reporting it, but what is left when too few remain differs: no pick for one, not run for the other. |
 | `finding-adjudication` | execution, review | Execution rules on findings inside its delivery loop and review owns the method; owner 2026-10-30: execution stays unchanged. |
 | `glossary-entry-template` | domain-modeling, teach | Each keeps a glossary of its own (project language, the learner's workspace) in one entry format, with its own admission rules. |
 | `implement-against-sketch` | doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/feature.md, doc:.claude/skills/mvp-mode/playbooks/perf-issue.md, doc:.claude/skills/mvp-mode/playbooks/refactoring.md | Owner ruling 5 keeps the sketch design-only, so each playbook's own build step writes the code and holds this rule; a skill for it would bring back the implement branch the ruling removed (unit-kinds deviation log, St4). |
@@ -8628,6 +9184,7 @@ Traits listed by two or more of our active skills (`doc:AGENTS.md` and playbooks
 | `no-silent-substitution` | model-council, perspective-council | Either council can lose a member, and each must report the gap rather than fill it. |
 | `no-stale-code-snippets` | brainstorming, planning | Each owns a different durable artifact, a spec or a plan, and its own template must keep code out. |
 | `optional-record-sections` | domain-modeling, teach | Each keeps its own record folder (ADRs, learning records) in one minimal format. |
+| `own-output-location` | interrogate, model-council | Council members and adversaries each run independently on shared work, so each needs its own place to write; one is a branch of a council and the other a review, and neither calls the other. |
 | `pin-preserving-fetch` | harness-scan, harness-status | Both run the fetching drift command themselves, so each must state that a fetch never moves pins and that --no-fetch skips the network. |
 | `preserve-reproducers` | doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, systematic-debugging | Each cleans up after its own work: the diagnosis when called alone, the bug-fix playbook at its closeout on every exit. Both keep reproducers, so neither cleanup deletes the evidence the other relies on. |
 | `question-batching` | brainstorming, grilling | Brainstorming asks the owner questions inside its own exploration; grilling's rules live inside its interview loop, so pointing there would pull brainstorming into that loop. |

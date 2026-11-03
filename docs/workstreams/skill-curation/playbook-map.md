@@ -923,6 +923,8 @@ deviation is logged in `.repo-context/unit-kinds.md` §5.
 | 16 | **Deferred set**: the six deferrals and Opening a PR's PR sections, each with its `revisit_when` (§2) | Confirm | No PR, CI or UI coverage until a revisit condition holds | nothing now |
 | 17 | **Orchestrate**: defer the playbook and take its supervision rules as merge candidates for `delegation` (departs from report's second wave) | Yes | `delegation` grows by three rules; no program procedure outside the engine | nothing in the batches; phase-2 `delegation` work |
 
+2026-11-03: owner rulings narrow ruling 3 (`model-council` stays model-invocable and runs only on an explicit request), make `interrogate` its own skill, and settle Feature's step 2 and 6 bindings; see bead `cr-r2pa.2.6` and `.repo-context/unit-kinds.md` S7.
+
 ## Appendix: checks
 
 Run from the worktree with the data in `scratchpad/mvp-stack/playbook-map/`.

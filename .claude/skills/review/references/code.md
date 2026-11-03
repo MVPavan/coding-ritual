@@ -8,17 +8,23 @@ structured re-reviews also use `review-contract.md`.
 
 ## Establish scope and evidence
 
-Use the supplied diff/package and requirements. Infer an obvious supplied base
-or working-tree scope; ask only when the choice changes what should be reviewed.
-For uncommitted work, use `git diff <base> -- <owned paths>` and inspect in-scope
-untracked files separately. `BASE..HEAD` covers committed work only. Distinguish
-pre-existing edits using the task baseline; filenames alone do not establish ownership.
+Use the supplied diff/package and requirements. Infer an obvious supplied base or
+working-tree scope; ask only when the choice changes what should be reviewed. For
+uncommitted work, use `git diff <base> -- <owned paths>` and inspect in-scope untracked
+files separately. `BASE..HEAD` covers committed work only. Distinguish pre-existing edits
+using the task baseline; filenames alone do not establish ownership. Before dispatching
+reviewers, confirm the base resolves and the scoped diff is non-empty. The scope counts
+the supplied package, tracked changes and new files, not `git diff` alone. A base that
+does not resolve: report that and ask for it. Nothing in any of them: report no work to
+review and dispatch nothing.
 
-Read enough surrounding code and affected callers to evaluate concrete risks.
-Treat implementer reports and reviewer claims as evidence to verify, not authority.
-A package saves repeated reads but does not forbid necessary source inspection.
-If requirements are missing, ask whoever requested the review; without an answer,
-state that spec compliance is unverified. Never derive requirements from the diff.
+Read enough surrounding code and affected callers to evaluate concrete risks. Treat
+implementer reports and reviewer claims as evidence to verify, not authority. A package
+saves repeated reads but does not forbid necessary source inspection. If requirements are
+missing, look for the bead or spec the commits or branch reference before asking whoever
+requested the review; without either, state that spec compliance is unverified. Never
+derive requirements from the diff. If the user confirms no spec exists, skip the spec
+review axis and report that no spec was available.
 
 A failing mechanical gate from `.repo-context/verification.md` returns the work
 unreviewed as failed verification, unless the requester explicitly waives it.
@@ -30,15 +36,20 @@ facilities for checks that need mutations.
 
 ## Review
 
-Check missing, extra and misunderstood requirements before quality. Examine
-correctness, error handling, compatibility, data migration, ownership and relevant
-invariants. Judge tests by whether they detect meaningful failures with independent
-expectations; changes to tests are not inherently defects. Apply the security
-skill's relevant boundary controls for material security changes.
+Check missing, extra and misunderstood requirements, and departures from the repository's
+documented coding standards, before general quality. A dispatched spec reviewer keeps to
+requirements; standards go with quality. Review against the coding standards the
+repository documents (the files its agent instructions route to, or a CONTRIBUTING or
+standards file). If it documents none, say so. Examine correctness, error handling,
+compatibility, data migration, ownership and relevant invariants. Judge tests by whether
+they detect meaningful failures with independent expectations; changes to tests are not
+inherently defects. Apply the security skill's relevant boundary controls for material
+security changes.
 
-Report actionable defects introduced or exposed by the change, with file/line,
-trigger, consequence and evidence. Separate pre-existing issues and uncertainty.
-Leave formatting to configured tools; do not treat harmless warnings as defects.
+Report actionable defects introduced or exposed by the change, with file/line, trigger,
+consequence and evidence. Separate pre-existing issues and uncertainty. Leave formatting
+to configured tools; do not treat harmless warnings as defects. Cite the standard's file
+and rule for each standards finding.
 
 End with findings, actual checks, limits and a justified verdict. Explicitly say
 when no defects were found; do not invent praise or findings to fill a template.

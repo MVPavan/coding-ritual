@@ -48,18 +48,18 @@ Playbook traits: `candidate-blinding`, `judge-blinding`
 
 Trigger: New behaviour to design and build, with no settled plan to execute.
 
-Playbook traits: `lead-owns-design`
+Playbook traits: `lead-owns-design`, `contested-design-gate`
 
 | Step | When | Traits | Calls | Loads |
 |---|---|---|---|---|
 | `feature#1` | always |  | `skill:explain-code` |  |
-| `feature#2` | the change crosses a function boundary, or a delegate returned with several valid shapes |  | `skill:codebase-design` |  |
+| `feature#2` | the change crosses a function boundary, two shapes pass the two-shape test, or a person asked for a council |  | `skill:model-council` (when: a person asked for a council; its branch delivers the sketch); `skill:codebase-design` (when: no council was asked for; with two shapes it compares them by design-it-twice and recommends one) |  |
 | `feature#3` | always | `throughput-checkpoint` |  |  |
 | `feature#4` | always | `build-brief-shape`, `implement-against-sketch`, `shared-fix-ported` | `skill:delegation` (when: the router's delegation rule sends the code-writing to a subagent); `skill:review` (when: feature#2 ran) |  |
 | `feature#5` | feature#4 changed code | `matching-surface-verify` |  |  |
-| `feature#6` | the design is contested |  | `skill:review` |  |
+| `feature#6` | a dispute by the dispute test is open after feature#5 |  | `skill:interrogate` needs `run-proven-finding` (when: a verified finding against the design returns to feature#2 and one against the build to feature#4) |  |
 | `feature#7` | every exit | `build-closeout` |  |  |
-| `feature#8` | finished and verified, after feature#7 |  | `skill:land` |  |
+| `feature#8` | finished and verified with no open dispute, after feature#7 |  | `skill:land` |  |
 
 ## hillclimb
 
@@ -249,6 +249,6 @@ Traits and calls used by two or more playbooks. Repeating a step is fine; the sa
 | `skill:land` | bug-fix: `bug-fix#8`; feature: `feature#8`; hillclimb: `hillclimb#8`; perf-issue: `perf-issue#6`; refactoring: `refactoring#8` |
 | `skill:performance-optimization` | hillclimb: `hillclimb#1`; perf-issue: `perf-issue#1`; runtime-forensics: `runtime-forensics#1` |
 | `skill:prose-pass` | investigation: `investigation#2`; multi-phase-plan: `multi-phase-plan#5` |
-| `skill:review` | feature: `feature#4`, `feature#6`; perf-issue: `perf-issue#3` |
+| `skill:review` | feature: `feature#4`; perf-issue: `perf-issue#3` |
 | `skill:systematic-debugging` | bug-fix: `bug-fix#2`; runtime-forensics: `runtime-forensics#2` |
 | `skill:test-driven-development` | bug-fix: `bug-fix#3`; refactoring: `refactoring#1` |

@@ -37,6 +37,7 @@ Use at the start of every task to pick the playbook, principle or skill that fit
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-03` **update** (2026-11-03-batch-3:151): One router row for model-council's pick-and-graft branch, when a person asks (owner ruling 2). No row for interrogate: its description meets the request and no…
 - `2026-11-02` **update** (2026-11-02-pilot-3:006): Router line for playbooks/session-pickup.md, naming its nearest wrong routes.
 - `2026-11-02` **update** (2026-11-02-pilot-3:003): Router line for playbooks/pause-safely.md, naming its nearest wrong routes.
 - `2026-11-02` **update** (2026-11-02-pilot-2:014): Router Playbooks section gains multi-phase-plan and states the request boundary: a request to produce a plan goes there, a request to build is Feature, and an …

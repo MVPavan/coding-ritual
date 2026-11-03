@@ -18,7 +18,8 @@
     "2026-11-02-model-comparison.jsonl": "71ed4e6c8a62a91abf9bce0bf6ba4cc2aa0486970003680027d5aa4907e76fa8",
     "2026-11-02-pilot-2.jsonl": "9c008573445df61c5fdd4fbd4c7ba12243f02d4970b8f8676bfaaa4384f66ffb",
     "2026-11-02-pilot-3.jsonl": "18b4e28bf942b435af9f87d2e002b2dfb527b76f9deb277264be948bf611e9af",
-    "2026-11-02-run-budget.jsonl": "a06bfd7122f9440c9576e51b1873f74990c4c0e90e215721c65d31b6a7aca2b8"
+    "2026-11-02-run-budget.jsonl": "a06bfd7122f9440c9576e51b1873f74990c4c0e90e215721c65d31b6a7aca2b8",
+    "2026-11-03-batch-3.jsonl": "e86d4282c761b72e0ffed3168ba4717f514ce2b1e840061e77bf1e226acb7f8f"
   },
   "reports": {
     "harness_lifecycle/registry/reviews/2026-10-30-upstream-mattpocock_skills-5beb35b.yaml": "fb413772a75f116bd9baeaa06b6e414fe59978c654a951cb53345f17459d7597",
@@ -30,12 +31,15 @@
     "harness_lifecycle/registry/reviews/2026-11-01-upstream-cursor_plugins-pstack-principles-amend3.yaml": "bdbaf1654b93909a72b27ad70bb55f1ad77a20b6712b81890075f9aed45827a7",
     "harness_lifecycle/registry/reviews/2026-11-01-upstream-mattpocock_skills-5beb35b-reconsider.yaml": "18613a317dc752c4b61e9ab6da846b715ded5770b0bd42ff8e2b79831ee5b268",
     "harness_lifecycle/registry/reviews/2026-11-01-upstream-mattpocock_skills-5beb35b-retarget.yaml": "5c6f37dce6dd035b85d8809ed1e16ee5202f7e17e8068c3257612f6c95f41800",
-    "harness_lifecycle/registry/reviews/2026-11-02-upstream-cursor_plugins-4dd1d05-reconsider.yaml": "1f9a65d63405e6cc3f4f9deec6c47858aa5f2ab97d2db16b2fd23ef1043fca9e"
+    "harness_lifecycle/registry/reviews/2026-11-02-upstream-cursor_plugins-4dd1d05-reconsider.yaml": "1f9a65d63405e6cc3f4f9deec6c47858aa5f2ab97d2db16b2fd23ef1043fca9e",
+    "harness_lifecycle/registry/reviews/2026-11-03-upstream-cursor_plugins-4dd1d05-batch-3.yaml": "158180347b44cde3d5c70fb29dc9fe3f5067c8d3504d7b413d3101df3df596e8"
   },
   "analyses": {
     "cursor_plugins:skill:pstack/skills/architect@4dd1d05": "2f6b30fcea183d931ebb90718d90b26bed22bd0053ffc7322ede7757a9a18920",
+    "cursor_plugins:skill:pstack/skills/arena@4dd1d05": "b0eaf136d15a6f365932f7f828230f05fa113f327d473cdaae57a4cfbcfe56fd",
     "cursor_plugins:skill:pstack/skills/benchmark-checklist@4dd1d05": "45228662c0597a4acdca6966815239a1728c906a666f7883d5520ea7f2705230",
     "cursor_plugins:skill:pstack/skills/how@4dd1d05": "2247b97596d47c4b05d53f0bc93ba31b191041ac3f818de30b2bfa78ce52d8b7",
+    "cursor_plugins:skill:pstack/skills/interrogate@4dd1d05": "8c6d7cbb97eef0b1bdf11a7d6b6e6cc56140e8acaa97400a73ab1e14ecf2a0c6",
     "cursor_plugins:skill:pstack/skills/principle-attack-the-premise@4dd1d05": "03d11af4ad6191885ccc52be13403b76412a9faae542cc27c3c0f5339963b8e6",
     "cursor_plugins:skill:pstack/skills/principle-boundary-discipline@4dd1d05": "2a6553e804b60ef0ad7ef809acd2bd13daee0acdbc75d206b1d7e338cb7c69cc",
     "cursor_plugins:skill:pstack/skills/principle-build-the-lever@4dd1d05": "2f37772acbb6fa14611bdaec16f1c2de2e9ba7c6f2a8e69a459189294ac3e467",

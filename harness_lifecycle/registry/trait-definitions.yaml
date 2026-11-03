@@ -5698,3 +5698,317 @@ pickup-verdict:
 resumed-run-handover:
   definition: "Tell the run taking resumed work on how to list its steps: a proved step as a skip with evidence, an open call invoked again whole, a gate held as new, and that it owns the work's checkpoint file."
   placement: {domain: core, stage: X, substage: Continuity}
+# ---- pstack batch 3, 2026-11-03 (reviews/2026-11-03-upstream-cursor_plugins-4dd1d05-batch-3.yaml) ----
+same-prompt-contract:
+  definition: "Give every candidate the same prompt, which serves as the binding definition of the job."
+  placement: {domain: core, stage: X, substage: Coordination}
+  distinct_from: [neutral-framing, organic-prompt]
+  note: "neutral-framing also requires a brief with no preferred conclusion, and organic-prompt requires wording a user would type and silence about what is measured."
+artifact-named-up-front:
+  definition: "State exactly what artifact each candidate must produce before any candidate starts."
+  placement: {domain: core, stage: X, substage: Coordination}
+task-rubric-criteria:
+  definition: "Write three to six concrete, gradeable success criteria specific to this task."
+  placement: {domain: core, stage: X, substage: Coordination}
+rubric-withheld-from-candidates:
+  definition: "Keep the success criteria from the candidates, who see only the task."
+  placement: {domain: core, stage: X, substage: Coordination}
+  distinct_from: [judge-only-rubric]
+  note: "judge-only-rubric keeps the rubric from everyone but the judge; here whoever picks holds it too."
+model-family-prefix-map:
+  definition: "Sort models into families by name prefix."
+  placement: {domain: core, stage: X, substage: Coordination}
+unrunnable-seat-dropped:
+  definition: "Remove a seat no valid model can run, and disclose it."
+  placement: {domain: core, stage: X, substage: Coordination}
+seat-backfill-to-minimum:
+  definition: "When dropped seats leave too few runners, add runners up to a floor on a surviving model or the parent's, and disclose the choice."
+  placement: {domain: core, stage: X, substage: Coordination}
+  distinct_from: [no-silent-substitution]
+  note: "no-silent-substitution bars a stand-in for a member, while this one adds a disclosed one."
+extra-runners-per-direction:
+  definition: "Add candidates when the work must explore several design directions."
+  placement: {domain: core, stage: X, substage: Coordination}
+same-model-for-generation:
+  definition: "Use one model for every seat when output is limited by generation rather than judgment."
+  placement: {domain: core, stage: X, substage: Coordination}
+own-output-location:
+  definition: "Give every candidate or adversary a separate output location, so they share no writable state."
+  placement: {domain: core, stage: Verification, substage: Review}
+  distinct_from: [eliminate-shared-writes, member-isolation, worktree-per-implementer]
+  note: "eliminate-shared-writes also merges only where results are read, member-isolation hides answers rather than writes, and worktree-per-implementer fixes the kind of location and adds a branch."
+worktree-or-temp-output:
+  definition: "Prefer a git worktree for each candidate's output, falling back to a per-candidate temporary directory."
+  placement: {domain: core, stage: X, substage: Coordination}
+  distinct_from: [worktree-per-implementer]
+  note: "worktree-per-implementer requires a worktree and a branch, with no fallback."
+one-message-fan-out:
+  definition: "Launch every candidate or adversary in one message as background subagents."
+  placement: {domain: core, stage: Verification, substage: Review}
+candidate-brief-fields:
+  definition: "Hand each candidate the task, the shared grounding's path and its own output path."
+  placement: {domain: core, stage: X, substage: Coordination}
+  distinct_from: [worker-brief-contents]
+  note: "worker-brief-contents also requires owned paths, constraints and acceptance checks."
+rationale-names-rejected:
+  definition: "Have each candidate deliver, with its artifact, a short rationale naming the alternatives it weighed and what it rejected."
+  placement: {domain: core, stage: X, substage: Coordination}
+dropout-proceeds-noted:
+  definition: "Go on with the remaining candidates or adversaries when one produces nothing, and record the dropout."
+  placement: {domain: core, stage: Verification, substage: Review}
+  distinct_from: [failed-member-recovery, no-silent-substitution]
+  note: "failed-member-recovery tries again first and no-silent-substitution bars a stand-in; neither says the run goes on with those left."
+judge-after-candidates:
+  definition: "Start the judge only after every candidate has finished."
+  placement: {domain: core, stage: X, substage: Coordination}
+single-judge:
+  definition: "Use exactly one judge for a comparison of candidates."
+  placement: {domain: core, stage: X, substage: Coordination}
+  distinct_from: [one-judge-one-scale]
+  note: "one-judge-one-scale also scores both sets of a comparison in one pass."
+read-only-judge:
+  definition: "Give the judge read-only access."
+  placement: {domain: core, stage: X, substage: Coordination}
+  distinct_from: [enforced-read-only]
+  note: "enforced-read-only says how a read-only role is held to it on a vendor; this one says the judge is such a role."
+judge-outside-lead-family:
+  definition: "Never let the judge's model share a family with the coordinating agent's model."
+  placement: {domain: core, stage: X, substage: Coordination}
+  distinct_from: [cross-family-review]
+  note: "cross-family-review compares a reviewer with the author and allows an approved same-family review; this one compares the judge with the coordinator and has no exception."
+judge-pool-walk:
+  definition: "Choose the judge by trying a pool's entries outside the parent's family in order, skipping parent aliases, moving to a nearby slug or the next entry on refusal and falling back to a default pool."
+  placement: {domain: core, stage: X, substage: Coordination}
+judge-skip-pick-alone:
+  definition: "When no judge can run, skip it, pick the base alone and say so."
+  placement: {domain: core, stage: X, substage: Coordination}
+family-check-unrun-disclosed:
+  definition: "When the coordinator's own model is unknown, try the judge pool in order and disclose that the family check did not run."
+  placement: {domain: core, stage: X, substage: Coordination}
+rubric-given-to-judge:
+  definition: "Give the judge the success criteria to score against."
+  placement: {domain: core, stage: X, substage: Coordination}
+path-labelled-candidates:
+  definition: "Show the judge each candidate under its path label."
+  placement: {domain: core, stage: X, substage: Coordination}
+  distinct_from: [judge-blinding]
+  note: "judge-blinding also bars any model name or sign of the variant, which a path label does not promise."
+judge-criterion-scores:
+  definition: "Have the judge score each candidate on each criterion."
+  placement: {domain: core, stage: X, substage: Coordination}
+judge-recommends-base:
+  definition: "Have the judge recommend a base and justify the recommendation."
+  placement: {domain: core, stage: X, substage: Coordination}
+judge-parallel-with-picker:
+  definition: "Run the judge while the picker reads, not before or after."
+  placement: {domain: core, stage: X, substage: Coordination}
+full-read-before-pick:
+  definition: "Read every candidate in full before choosing a base."
+  placement: {domain: core, stage: X, substage: Coordination}
+  distinct_from: [read-every-output]
+  note: "read-every-output also compares with a judge and reports a disagreement; those are separate rows here."
+picker-criterion-scores:
+  definition: "Score each candidate on each criterion instead of by overall impression."
+  placement: {domain: core, stage: X, substage: Coordination}
+pick-compared-with-judge:
+  definition: "Compare your scored pick with the judge's, treating the same choice as confirmation."
+  placement: {domain: core, stage: X, substage: Coordination}
+disagreement-rereads-rationales:
+  definition: "Treat a disagreement with the judge as a sign of bias or an unclear rubric, and read both rationales before deciding."
+  placement: {domain: core, stage: X, substage: Coordination}
+  distinct_from: [read-every-output]
+  note: "read-every-output reports the disagreement; this one rereads both rationales and then decides."
+base-chosen-for-extensibility:
+  definition: "Choose the base a later maintainer could extend most easily while keeping invariants intact."
+  placement: {domain: core, stage: X, substage: Coordination}
+near-tie-smaller-surface:
+  definition: "Break a near-tie in favour of the cleaner boundary or the smaller interface."
+  placement: {domain: core, stage: X, substage: Coordination}
+loser-graft-pass:
+  definition: "Go through each losing candidate once more for parts worth carrying over."
+  placement: {domain: core, stage: X, substage: Coordination}
+sparse-grafts:
+  definition: "Expect only one or two grafts from a losing candidate, not the bulk of it."
+  placement: {domain: core, stage: X, substage: Coordination}
+hand-folded-grafts:
+  definition: "Rewrite each graft into the base by hand, so the result keeps one coherent design rather than pasted fragments."
+  placement: {domain: core, stage: X, substage: Coordination}
+converged-shape-no-graft:
+  definition: "When candidates reach one shape, record the agreement and ship that shape with no graft."
+  placement: {domain: core, stage: X, substage: Coordination}
+divergence-reframes:
+  definition: "When candidates differ wildly, treat the frame as too loose, then reframe and rerun instead of blending them."
+  placement: {domain: core, stage: X, substage: Coordination}
+synthesized-artifact-verified:
+  definition: "Verify the merged artifact to the same standard as any other output."
+  placement: {domain: core, stage: X, substage: Coordination}
+verify-miss-routes-back:
+  definition: "Send a verification problem back to reframing or to grafting, whichever caused it, and never hide it."
+  placement: {domain: core, stage: X, substage: Coordination}
+single-synthesized-artifact:
+  definition: "End with one merged artifact rather than a set of alternatives."
+  placement: {domain: core, stage: X, substage: Coordination}
+note-judge-status:
+  definition: "Record in the synthesis note the judge's verdict or that the judge was skipped."
+  placement: {domain: core, stage: X, substage: Coordination}
+note-convergence-dropouts:
+  definition: "Record any convergence or dropped candidates in the synthesis note."
+  placement: {domain: core, stage: X, substage: Coordination}
+note-verification-result:
+  definition: "Record the verification result in the synthesis note."
+  placement: {domain: core, stage: X, substage: Coordination}
+graft-change-rerun:
+  definition: "After grafting, rerun the acceptance check of any previously checked behaviour the graft changed, reuse evidence for the rest and name what stays unchecked."
+  placement: {domain: core, stage: X, substage: Coordination}
+  distinct_from: [synthesized-artifact-verified]
+  note: "synthesized-artifact-verified asks for a whole final verification to the usual standard; this one is triggered only by a change a graft made."
+judge-other-family-or-stated:
+  definition: "Take the judge from a model family other than the coordinator's, and say so when the user's choice shares that family or the coordinator cannot tell its own."
+  placement: {domain: core, stage: X, substage: Coordination}
+  distinct_from: [judge-outside-lead-family, family-check-unrun-disclosed, cross-family-review]
+  note: "judge-outside-lead-family has no exception, family-check-unrun-disclosed walks a pool, and cross-family-review compares with the author and asks the owner."
+divergence-reframes-once:
+  definition: "When candidates differ wildly, treat the frame as too loose, reframe and rerun at most once, then stop and report instead of blending them."
+  placement: {domain: core, stage: X, substage: Coordination}
+  distinct_from: [divergence-reframes]
+  note: "divergence-reframes sets no limit on reruns."
+verify-miss-returns-once:
+  definition: "Send a verification problem back once to reframing or to grafting, whichever caused it, then report any further miss rather than hiding it."
+  placement: {domain: core, stage: X, substage: Coordination}
+  distinct_from: [verify-miss-routes-back]
+  note: "verify-miss-routes-back sets no limit on returns."
+break-it-mandate:
+  definition: "Assign adversaries to try to break a change or design rather than assess it in general."
+  placement: {domain: core, stage: Verification, substage: Review}
+  distinct_from: [independent-critic-verdict, disconfirming-red-team]
+  note: "independent-critic-verdict gives a general evidence-backed verdict, and disconfirming-red-team argues against a research conclusion."
+run-proven-finding:
+  definition: "Let a finding stand only when a run executed in the review shows it, so a claim nobody ran is no finding."
+  placement: {domain: core, stage: Verification, substage: Review}
+named-scope-first:
+  definition: "Use the scope the user names when one is given."
+  placement: {domain: core, stage: Verification, substage: Review}
+  distinct_from: [scope-establishment]
+  note: "scope-establishment always fixes a diff and its base, while a named scope may be a design or a plan with neither."
+merge-base-through-tree-scope:
+  definition: "When no scope is named, review the branch from where it left the base branch up to and including the working tree."
+  placement: {domain: core, stage: Verification, substage: Review}
+  distinct_from: [three-dot-merge-base]
+  note: "three-dot-merge-base covers committed work only and excludes the working tree."
+intent-restated-first:
+  definition: "Restate the change's intent in your own words before sending out adversaries."
+  placement: {domain: core, stage: Verification, substage: Review}
+intent-from-request-commits-pr:
+  definition: "Derive the intent from the request, the commits and the pull request description."
+  placement: {domain: core, stage: Verification, substage: Review}
+ask-when-intent-unclear:
+  definition: "Ask the user when the intent cannot be established."
+  placement: {domain: core, stage: Verification, substage: Review}
+  distinct_from: [material-ambiguity-ask]
+  note: "material-ambiguity-ask is the general rule on routine detail; this one is a gate on starting the review."
+uncommitted-changes-seeded:
+  definition: "Seed every adversary workspace with the uncommitted work included in the review scope."
+  placement: {domain: core, stage: Verification, substage: Review}
+general-purpose-adversary:
+  definition: "Spawn each adversary as the general-purpose subagent type."
+  placement: {domain: core, stage: Verification, substage: Review}
+adversary-fixed-brief:
+  definition: "Hand every adversary the scope, the intent and one unchanging instruction to break the work, replacing the usual task and rationale request."
+  placement: {domain: core, stage: Verification, substage: Review}
+run-against-real-code:
+  definition: "Require each finding to be demonstrated by executing something against the actual code, such as a failing test, a reproduction script or revealing command output."
+  placement: {domain: core, stage: Verification, substage: Review}
+design-proof-by-probe:
+  definition: "For a design or plan, prove a finding by running a prototype or probing the current tree."
+  placement: {domain: core, stage: Verification, substage: Review}
+repros-stay-in-copy:
+  definition: "Keep each adversary's reproduction material inside its own output location."
+  placement: {domain: core, stage: Verification, substage: Review}
+  distinct_from: [read-only-isolation]
+  note: "read-only-isolation protects the checkout, index and refs; this one says where the adversary's own material goes."
+finding-repro-report:
+  definition: "Require each finding to carry a title, the exact command, the printed output and the output the intent requires."
+  placement: {domain: core, stage: Verification, substage: Review}
+style-findings-excluded:
+  definition: "Leave style, naming and structure out of an adversary's findings."
+  placement: {domain: core, stage: Verification, substage: Review}
+future-change-risk-excluded:
+  definition: "Leave out hazards that matter only after a future change."
+  placement: {domain: core, stage: Verification, substage: Review}
+no-findings-valid:
+  definition: "Accept a report with no findings as a valid result, and say so explicitly when none remain."
+  placement: {domain: core, stage: Verification, substage: Review}
+  distinct_from: [actionable-defects-only]
+  note: "actionable-defects-only is about what a reader's report holds; this one separates an attack that found nothing from one that never ran."
+coordinator-replays-finding:
+  definition: "Have the coordinator verify each finding by running its command again."
+  placement: {domain: core, stage: Verification, substage: Review}
+  distinct_from: [finding-adjudication, claim-verification]
+  note: "finding-adjudication may verify by reading, and claim-verification may record why a reproduction failed; this one always executes."
+reproduced-and-breaks-intent:
+  definition: "Keep a finding only if the output shows the failure and that failure breaks the stated intent."
+  placement: {domain: core, stage: Verification, substage: Review}
+drop-unverified-findings:
+  definition: "Remove every finding that fails the keep test."
+  placement: {domain: core, stage: Verification, substage: Review}
+merge-by-root-cause:
+  definition: "Combine findings that share one root cause."
+  placement: {domain: core, stage: Verification, substage: Review}
+no-judge-pick-or-graft:
+  definition: "Omit judging, base selection and grafting from a review by adversaries."
+  placement: {domain: core, stage: Verification, substage: Review}
+union-of-verified-findings:
+  definition: "Keep every verified finding across adversaries rather than selecting one adversary's list."
+  placement: {domain: core, stage: Verification, substage: Review}
+output-opens-with-intent:
+  definition: "Open the output with the intent restatement."
+  placement: {domain: core, stage: Verification, substage: Review}
+output-finding-fields:
+  definition: "For each verified finding, report its command, its output and how it breaks the intent."
+  placement: {domain: core, stage: Verification, substage: Review}
+adversary-attribution:
+  definition: "Name the adversaries that found each verified finding."
+  placement: {domain: core, stage: Verification, substage: Review}
+dropped-finding-accounting:
+  definition: "Report for each adversary how many findings were dropped and why."
+  placement: {domain: core, stage: Verification, substage: Review}
+adversaries-by-model-or-angle:
+  definition: "Run one adversary per available model on one instruction to break the work or, with a single model, several whose prompts each attack something different, giving every adversary the scope and the intent."
+  placement: {domain: core, stage: Verification, substage: Review}
+  distinct_from: [adversary-fixed-brief]
+  note: "adversary-fixed-brief hands every adversary one unchanging instruction and says nothing of how many run."
+intent-from-stated-sources:
+  definition: "Take a change's intent only from a stated source such as the request, a brief, a spec or a bead, never from the diff."
+  placement: {domain: core, stage: Verification, substage: Review}
+  distinct_from: [intent-from-request-commits-pr]
+  note: "intent-from-request-commits-pr reads commits and a pull request description."
+ask-or-not-run-on-intent:
+  definition: "Ask when the intent is unclear and someone can answer, and report the review as not run when nobody can."
+  placement: {domain: core, stage: Verification, substage: Review}
+  distinct_from: [ask-when-intent-unclear]
+  note: "ask-when-intent-unclear gives no exit when nobody can answer."
+verified-snapshot-copy:
+  definition: "Give each adversary and each replay a disposable copy made from one pristine snapshot of the working state and checked against it, reporting not run when a copy cannot be made exact."
+  placement: {domain: core, stage: Verification, substage: Review}
+  distinct_from: [uncommitted-changes-seeded, read-only-isolation]
+  note: "uncommitted-changes-seeded copies changes with no check or shared snapshot, and read-only-isolation only requires some isolated facility."
+three-replay-outcomes:
+  definition: "Sort each replayed finding into reproduced, not reproduced (dropped and stated as unreproduced, not disproved) or unreplayable (listed with no severity)."
+  placement: {domain: core, stage: Verification, substage: Review}
+  distinct_from: [drop-unverified-findings]
+  note: "drop-unverified-findings removes everything that was not confirmed, with no difference between unreproduced and unreplayable."
+checkout-change-check:
+  definition: "After each adversary returns, compare the shared checkout with the snapshot's state and report each changed path, without voiding the run, restoring anything or naming who changed it."
+  placement: {domain: core, stage: Verification, substage: Review}
+unresolved-outranks-verdict:
+  definition: "Give no favourable verdict while an observed failure stays unreproduced or unreplayable."
+  placement: {domain: core, stage: Verification, substage: Review}
+no-self-adversary:
+  definition: "Report not run rather than attack as an adversary work you wrote or a design you settled."
+  placement: {domain: core, stage: Verification, substage: Review}
+no-judge-no-pick:
+  definition: "With no judge reachable, count no completed council: stop, say so and return the candidates with no pick."
+  placement: {domain: core, stage: X, substage: Coordination}
+contested-design-gate:
+  definition: "Start run-proven adversaries unasked only on a dispute raised by someone other than the lead, testable by a run and unsettled by evidence in hand, and let a dispute left open block landing."
+  placement: {domain: engineering, stage: Design, substage: Architecture}

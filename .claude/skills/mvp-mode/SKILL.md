@@ -99,5 +99,6 @@ Only where a description alone would miss or collide.
 | Survey an area for architecture improvements | `/improve-codebase-architecture` |
 | Untriaged beads need decisions | `/triage`; routine tracking follows `AGENTS.md` |
 | A picture of the current topic, inline | `/show-me` when asked; an ordinary table needs nothing |
+| Several candidates of one artifact, then the best picked and grafted, when a person asks | `model-council`, pick-and-graft branch; two options to weigh is `codebase-design`, and two to try is `prototype` |
 | A rerunnable tool would materially cut repeated work (bulk or repeated edits, a migration) or supply proof a reviewer needs that no existing check gives | `build-a-lever` |
 | An interaction or architecture with no precedent in the codebase, or a product decision whose experience depends on feel | `prototype`, competing-variants branch |

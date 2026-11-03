@@ -1,7 +1,7 @@
 # Skill curation: handoff
 
-Updated 2026-11-02 (MVP stack phase 1 closed; phase 2 running on the playbook
-map, batch 2 and pilots 2 and 3 done). Branch `mvp-stack` in the main worktree; `dws-workflow` is retired and
+Updated 2026-11-03 (MVP stack phase 1 closed; phase 2 running on the playbook
+map, batches 2 and 3 and pilots 2 and 3 done). Branch `mvp-stack` in the main worktree; `dws-workflow` is retired and
 deleted. Beads is the work-state authority; this file is the narrative.
 
 ## Start here (new session)
@@ -53,6 +53,7 @@ deleted. Beads is the work-state authority; this file is the narrative.
 | after `ba56f66` | Batch 2 (`cr-r2pa.2.5`, round `2026-11-02-batch-2`), see below |
 | after `d079219` | Pilot 2 (`cr-r2pa.2.8`, round `2026-11-02-pilot-2`), see below |
 | after `2bc70a2` | Pilot 3 (`cr-r2pa.2.9`, round `2026-11-02-pilot-3`), see below |
+| after `76ae15e` | Batch 3 (`cr-r2pa.2.6`, round `2026-11-03-batch-3`), see below |
 
 `main` is at `eb36cc9`; later work is on `mvp-stack` until the owner asks to merge.
 `mvp-stack` is pushed through the first routing trials' runner change; commits after it
@@ -77,9 +78,17 @@ critic, owner rulings, ledger, build, Sol review, commit after the owner approve
   the Anthropic API, and `bypassPermissions` needs naming in that Eval's go-ahead. Eval
   has since run real sessions on three Claude models (`cr-r2pa.2.12`, 2026-11-02), and
   `eval/run.sh` takes `--effort` and `--max-budget`.
-- `cr-r2pa.2.15`, in flight: routing trials ran 77 Claude sessions and 39 Sol sessions
-  (2026-11-03), so routing now has real evidence. No wording has changed: a judge check and
-  Claude at high effort come first, because model, effort and judges are not yet separated.
+- `cr-r2pa.2.15`, done: routing trials ran 102 Claude sessions and 39 Sol sessions (2026-11-03);
+  results and parked changes are in `routing-trials-report.md`. Owner ruling: no existing wording
+  changes until the end-of-project revision pass (`cr-r2pa.3.4`). New units follow the report's
+  section 6 until then.
+- `cr-r2pa.2.6`, built: batch 3 (round `2026-11-03-batch-3`, pstack `arena` and `interrogate`). New
+  skill `interrogate`, where adversaries attack verified copies and only a finding a run proves
+  survives. `model-council` gains a pick-and-graft branch and runs only on an explicit request.
+  Feature's steps 2 and 6 are final: it starts `interrogate` unasked only on a real dispute, and
+  with two shapes and no council asked for it compares them and carries on. `review` gets the seven
+  Pocock rows (`cr-axdt.6.8`). S7 is amended by owner ruling, with a dated row. No real session has
+  run any of it.
 - `cr-r2pa.2.1`, done: seven Pocock retargets recorded (round
   `2026-11-01-pocock-retarget`). `reproduction-first`, `regression-check` and `closeout`
   are delivered; `prove-the-red` and `missing-seam-finding` are pending for batch 1; the

@@ -1,6 +1,6 @@
 ---
 name: model-council
-description: Use only for an explicitly requested council of named models or agents with a judge. Ordinary review and brainstorming do not need a council.
+description: Use only on an explicit request for a council of named models or agents with a judge, never by itself; a yes in words to one counts. It can also turn candidates into one artifact, picked and grafted. Usually one critic review is enough, and ordinary brainstorming needs no council; two options to weigh is `codebase-design`, and two to try is `prototype`.
 ---
 
 # Model Council
@@ -25,6 +25,9 @@ through the `delegation` skill.
    Majority agreement is not proof; the judge may favor a supported minority view.
 4. Deliver a concise consolidation, member-position summaries and paths to every
    full report. Include full text inline when requested, rather than discarding it.
+
+**One artifact.** When the requester wants one built artifact from the members, not an
+answer, follow `references/pick-and-graft.md` as well.
 
 Record actual model identities where the runtime provides evidence. A failed
 member gets bounded safe recovery; report any missing member and whether the

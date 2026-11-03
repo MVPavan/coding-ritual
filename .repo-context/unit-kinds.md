@@ -164,9 +164,11 @@ material moves to references. [data: H1 holds via standalone use]
   model can invoke only a model-invocable skill through the platform (R6);
   a router-only skill is read as a file and is lost at compaction. Router-only
   when solo use would skip a playbook gate that matters (measured, not
-  assumed: see the bypass trial below). Costly opt-ins (fan-out, councils)
-  stay manual-only. A skill a playbook wraps names that playbook as its
-  nearest case to skip (S5). [proposed; pstack disables 57 of 58 for
+  assumed: see the bypass trial below). A costly opt-in runs only on an explicit
+  request, never by itself. A playbook may start one only where a dated owner
+  ruling names its caller and condition. A council is never started that way. A
+  skill a playbook wraps names that playbook as its nearest case to skip (S5).
+  [proposed; pstack disables 57 of 58 for
   opt-in cost; our 24 invocable descriptions cost about 1k tokens]
 - S8. Bypass trial, with the first pilot playbook: run its request prompts
   with the wrapped skills invocable; if the model skips the playbook, make
@@ -296,6 +298,7 @@ material moves to references. [data: H1 holds via standalone use]
 | 2026-11-01 | `implement-against-sketch` (Feature, Refactoring, `bug-fix`) | St4 | The same own action sits in three playbooks on purpose: owner ruling 5 keeps it out of `codebase-design`, and a skill holding it would rebuild the implement branch the ruling removed, so each build step states it | Accepted, no skill. Perf issue is the fourth caller, with the same wording and form, so the condition did not fire: revisit if a later caller changes the wording or needs a different form |
 | 2026-11-01 | `build-closeout` (Feature, Refactoring) | St4, B4 | Each playbook's closeout stays with its own exits and reply contract, and a skill of three short duties would be ceremony | Accepted, no skill. Perf issue is the third, so the condition fired: stays, since a closeout belongs to its playbook's exits and reply (B7) and its text is three duties. Hillclimb and Runtime forensics take the variants `climb-closeout` and `live-forensics-closeout`, whose duties differ. Revisit when a fourth playbook takes this closeout |
 | 2026-11-02 | `decision-trail` | S7 | A critic per run is a costly opt-in, which S7 keeps manual, but only a model-invocable skill can be called through the platform (R6) and Hillclimb calls it. Owner ruling 9 accepted the cost | Accepted: a calling playbook invokes it automatically, and its description limits standalone use to an explicit request. Revisit if real sessions (`cr-r2pa.2.12`) show it invoked unasked |
+| 2026-11-03 | `interrogate` from Feature step 6 | S7 | Adversaries are a costly opt-in; Feature starts them without asking. Owner ruling: caller Feature step 6, condition the dispute test shipped in `feature.md` | Accepted. Revisit if real sessions show it fires on the lead's own doubt |
 | 2026-11-02 | `skip-polish` on `prototype` | T5 | The definition allows no error handling beyond runnability and no abstractions. The sealed rewording keeps the error handling and safety checks needed to run safely, and abstractions that help answer the question. That rewording is frozen and a completion keeps the same trait and `into`, so the text follows the rewording; `traits/ours.yaml` notes it | Accepted for this row |
 | 2026-11-02 | `handover-url-keys` on `prototype` | T5 | The definition names a URL. The sealed rewording says a preview pointer, for a surface with no URL, and is frozen in the same way | Accepted for this row. It is the second deviation for this reason, so E4 fired: the owner ruled on 2026-11-02 and T5 now allows it, still logged |
 | 2026-11-02 | `session-pickup`, `pause-safely`, `trace-forensics`, `worktree-cleanup` | §2 composite test | Remove each one's calls and its whole result survives from its own actions, so the test calls it a skill. The map and the owner named each a playbook, and a request reaches it directly. Bug fix's obvious-cause path, Refactoring with an existing pin and Feature's local build survive only on that branch, and their normal paths keep their calls, so they are no exception. `eval` loses its required independent judge and verdict, and `runtime-forensics`, `hillclimb`, `investigation`, `perf-issue` and `multi-phase-plan` lose their capture, method, answer, baseline or plan: each passes as a playbook | Accepted by the owner's ruling of 2026-11-02 (E4), for these four: the test stays as written and now says an exception is named here |

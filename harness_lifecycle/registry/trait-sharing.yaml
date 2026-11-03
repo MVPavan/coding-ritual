@@ -124,3 +124,11 @@ read-only-closeout:
   skills: ["doc:.claude/skills/mvp-mode/playbooks/investigation.md", "doc:.claude/skills/mvp-mode/playbooks/session-pickup.md"]
   why: "Each is a read-only run whose closeout belongs to its own exits and reply; logged under St4 in unit-kinds."
   reviewed: "2026-11-02"
+own-output-location:
+  skills: [interrogate, model-council]
+  why: "Council members and adversaries each run independently on shared work, so each needs its own place to write; one is a branch of a council and the other a review, and neither calls the other."
+  reviewed: "2026-11-03"
+dropout-proceeds-noted:
+  skills: [interrogate, model-council]
+  why: "A failed member and a failed adversary are handled alike, going on and reporting it, but what is left when too few remain differs: no pick for one, not run for the other."
+  reviewed: "2026-11-03"

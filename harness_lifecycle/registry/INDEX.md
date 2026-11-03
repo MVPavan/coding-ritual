@@ -18,7 +18,7 @@ Domain → stage → sub-stage. Each active skill under its primary home.
 - **Implementation**: build-a-lever
 
 ### Verification
-- **Review**: review
+- **Review**: interrogate, review
 
 ### Delivery
 - **Release**: harness-publish
@@ -66,6 +66,7 @@ Domain → stage → sub-stage. Each active skill under its primary home.
 Two or more active skills share one domain · sub-stage (README §2 rule 3):
 
 - core · Intake · Clarification: brainstorming, grilling
+- core · Verification · Review: interrogate, review
 - core · Improvement · Codification: authoring-for-agents, harness-evaluate, harness-scan, harness-skill-compare, harness-status, migrate-claude-to-codex
 - core · X · Communication: html-artifact, i-have-adhd, prose-pass, show-me
 - core · X · Continuity: beads, decision-trail

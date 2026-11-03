@@ -1,6 +1,6 @@
 ---
 name: review
-description: Use for a critic review of any artifact, a substantive review of code or of a spec or plan, or to verify and act on review findings. Skip routine final diff inspection; to interrogate the author instead, use grilling.
+description: Use for a critic review of any artifact, a substantive review of code or of a spec or plan, or to verify and act on review findings. Skip routine final diff inspection; to question the author instead, use grilling.
 ---
 
 # Review

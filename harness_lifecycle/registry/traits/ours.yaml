@@ -90,6 +90,9 @@ ours:improve-codebase-architecture:
   traits: [scope-by-evidence, friction-signals, candidate-comparison, optional-report, adr-conflict-callout, review-no-auto-followup, respect-area-adrs, top-candidate-recommendation]
   notes:
     scope-by-evidence: "Also weighs actual maintenance and test friction when choosing areas."
+ours:interrogate:
+  tree_hash: "72064dbfac785c4eb95f4b8307bb41ea2ae35d517276acccfb37448a59e4b934"
+  traits: [break-it-mandate, run-proven-finding, named-scope-first, intent-restated-first, intent-from-stated-sources, ask-or-not-run-on-intent, own-output-location, dropout-proceeds-noted, verified-snapshot-copy, adversaries-by-model-or-angle, run-against-real-code, design-proof-by-probe, repros-stay-in-copy, finding-repro-report, no-findings-valid, coordinator-replays-finding, reproduced-and-breaks-intent, three-replay-outcomes, merge-by-root-cause, union-of-verified-findings, output-opens-with-intent, output-finding-fields, adversary-attribution, dropped-finding-accounting, checkout-change-check, unresolved-outranks-verdict, no-self-adversary]
 ours:land:
   tree_hash: "b440a07e143375a487076626d00cae2de6ba79310b62035e24f6089a3ca9a1e1"
   traits: [verified-work-only, own-path-partition, conventional-commit-title, commit-body-adds, commit-plan-without-authority]
@@ -97,10 +100,10 @@ ours:migrate-claude-to-codex:
   tree_hash: "27734a27265888408eca426706a7ad173b0f62709667cda6de5fa77afb3597ca"
   traits: [dry-run-default, skill-symlinking, destination-protection, command-conversion, agent-conversion, hook-conversion, config-scaffold, shared-policy-untouched, structural-verify, non-destructive, test-before-reliance]
 ours:model-council:
-  tree_hash: "ecd76ba1196f1260210e82483806f9d62a3c55cd6a28a8d8c603c254ccf8f828"
-  traits: [member-resolution, runtime-capability-check, neutral-framing, member-isolation, report-preservation, independent-synthesis, consolidated-delivery, identity-recording, failed-member-recovery, no-silent-substitution]
+  tree_hash: "604be20a026528990ef9536cfbb643228189552f25f15eda46633ae3f4445f05"
+  traits: [member-resolution, runtime-capability-check, neutral-framing, member-isolation, report-preservation, independent-synthesis, consolidated-delivery, identity-recording, failed-member-recovery, no-silent-substitution, artifact-named-up-front, task-rubric-criteria, rubric-withheld-from-candidates, own-output-location, rationale-names-rejected, dropout-proceeds-noted, read-only-judge, judge-other-family-or-stated, rubric-given-to-judge, path-labelled-candidates, judge-criterion-scores, judge-recommends-base, full-read-before-pick, picker-criterion-scores, pick-compared-with-judge, disagreement-rereads-rationales, base-chosen-for-extensibility, near-tie-smaller-surface, loser-graft-pass, sparse-grafts, hand-folded-grafts, converged-shape-no-graft, divergence-reframes-once, graft-change-rerun, verify-miss-returns-once, single-synthesized-artifact, synthesis-decision-record, note-judge-status, note-convergence-dropouts, note-verification-result, no-judge-no-pick]
 ours:mvp-mode:
-  tree_hash: "071b58ade7e9b6bd6b87b6c1d003cce93afacd1fb5f55917fab729e75d86243f"
+  tree_hash: "8553e20fa66b1526f87000fb016dd2a37c39566205979db5f83c63875dcc8b6a"
   traits: [unit-kind-lines, playbook-pick, need-to-skill-routing, overlap-arbitration, layered-catalog, platform-skill-invocation, no-playbook-in-delegate, delegate-independent-by-default, no-onward-delegation, playbook-steps-as-todos, recorded-step-skip, whole-callee, playbook-exit, legacy-entrypoint-flagging, catalog-trust-boundary]
 ours:performance-optimization:
   tree_hash: "8e393535c7e06691afca39ef9df84040ce4752a29a8cc58610b8522ce951c4da"
@@ -184,8 +187,8 @@ ours:resolving-merge-conflicts:
   tree_hash: "18e9abe7213d906c177ab91e945bc1c0747776e3a875091dbff5bdc16b26e401"
   traits: [capture-conflict-set, trace-intent, resolve-preserve-both, resolve-over-abort, run-project-checks, explicit-staging, commit-authority-gate]
 ours:review:
-  tree_hash: "4ad44c9585f08263bb83c4816f49de31d31b8dc4ebfbf5ff4ae2c9b350badb74"
-  traits: [independent-critic-verdict, severity-and-verdict, scope-establishment, pre-existing-edit-separation, callers-and-evidence, mechanical-gate-precedence, requirements-before-quality, distinct-axis-verdicts, test-quality-judgment, actionable-defects-only, read-only-isolation, verdict-contract, re-review-finding-tracking, document-review, finding-adjudication]
+  tree_hash: "ec7ebcac5765fada6e7dd0d9fa41e56403ab5120b966435f91a8a46a15828761"
+  traits: [independent-critic-verdict, severity-and-verdict, scope-establishment, pre-existing-edit-separation, callers-and-evidence, mechanical-gate-precedence, requirements-before-quality, distinct-axis-verdicts, test-quality-judgment, actionable-defects-only, read-only-isolation, verdict-contract, re-review-finding-tracking, document-review, finding-adjudication, fixed-point-preflight, spec-source-discovery, missing-spec-axis-skip, two-axis-review, standards-source-discovery, cited-standard-findings, spec-conformance-findings]
   notes:
     severity-and-verdict: "A plan-mandated defect is still reported as major, labelled plan-mandated, for the user to decide."
 ours:security:

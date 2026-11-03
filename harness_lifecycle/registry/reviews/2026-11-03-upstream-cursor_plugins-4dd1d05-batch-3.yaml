@@ -1,0 +1,2405 @@
+harness: cursor_plugins
+from_sha: null
+to_sha: 4dd1d05
+supersedes: null
+analysis_critic:
+  by: gpt-6.1-sol high (critic-3a-r4)
+  date: '2026-11-03'
+  verdict: pass
+  last_critic: null
+comparison_critic:
+  by: gpt-6.1-sol high (critic-3a-r4)
+  date: '2026-11-03'
+  verdict: pass
+  last_critic: null
+themes: These rows serve two capabilities. model-council gains a branch that turns independent
+  candidates into one artifact, scored against criteria, picked and grafted, and delegation
+  keeps model choice and dispatch. A new skill, interrogate, sends adversaries to break a
+  change or design and keeps only a finding a run proves.
+skills:
+  skill:pstack/skills/arena:
+    upstream_tree_hash: 4339f9f17c38f57febb95a0c36ecb2d5404fb735ea47f65561d12ce17c4d1f77
+    accepted: null
+    compared_with: model-council
+    pairing:
+      overlap: {}
+      placement_match:
+      - delegation
+      - model-council
+      - mvp-mode
+      - perspective-council
+      suggested: delegation
+      purpose_match: model-council
+      purpose: Upstream runs several candidates at one task, picks a base and grafts the best
+        of the rest into one artifact. Ours runs independent members and a judge to reach
+        an answer; a branch that turns candidates into one artifact belongs there, since it
+        keeps the judge and the isolation.
+      flag: suggested differs
+      reason: 'Compared with model-council: the only unit of ours with independent members
+        and a judge, as playbook-map §3 row 17 records. Suggested delegation by the computed
+        signals only.'
+    analysis:
+      blind:
+      - 'phase-checklist-before-launch: Create a tracked to-do list with one item for each
+        of the six phases before starting any work. (SKILL.md:9)'
+      - 'identical-candidate-prompt: Give all candidates the same prompt, which acts as the
+        binding definition of the job. (SKILL.md:13)'
+      - 'explicit-artifact-statement: Say exactly what artifact each candidate must produce
+        before any candidate starts. (SKILL.md:15)'
+      - 'task-specific-rubric: Write three to six concrete, gradeable success criteria tailored
+        to this particular task. (SKILL.md:16)'
+      - 'rubric-withheld-from-candidates: Keep the rubric for selection and show candidates
+        only the task. (SKILL.md:16)'
+      - 'runner-list-from-configuration: Choose candidate models from a dedicated line in
+        a user-level model configuration rule. (SKILL.md:17)'
+      - 'default-runner-pair: When that rule or line is absent, run one candidate on `claude-opus-5-5-xhigh`
+        and one on `grok-4.7-xhigh-fast`. (SKILL.md:17)'
+      - 'parent-model-alias: Treat an `auto` or `inherit-parent` runner entry as the parent''s
+        model and leave the model field unset for that seat. (SKILL.md:17)'
+      - 'rejected-runner-family-default: When the spawning tool rejects a configured runner,
+        run that seat on its family''s default model and disclose the substitution. (SKILL.md:17)'
+      - 'model-family-prefix-map: Classify models into families by name prefix, with `claude-*`
+        as one family and `grok-*`, `cursor-grok-*` and `composer-*` as another. (SKILL.md:17)'
+      - 'composer-refusal-substitute: When a `composer-*` entry is refused, run that seat
+        on `grok-4.7-xhigh-fast`. (SKILL.md:17)'
+      - 'error-message-slug-recovery: When a family has no default or its default is rejected,
+        use the closest same-family model name offered by the error message. (SKILL.md:17)'
+      - 'unrunnable-seat-drop: When no valid same-family model name exists, remove the seat
+        and disclose that. (SKILL.md:17)'
+      - 'minimum-runner-backfill: When dropped seats leave fewer than two runners, add runners
+        up to two, or up to one when the configured line has a single entry. (SKILL.md:17)'
+      - 'backfill-model-choice: Run each added runner on a surviving runner''s model, or on
+        the parent''s model when none survive, and disclose the choice. (SKILL.md:17)'
+      - 'extra-runners-per-design-direction: Add more candidates when the arena must explore
+        several design directions. (SKILL.md:17)'
+      - 'repeated-model-for-generation-work: Use one model for every seat when output is limited
+        by generation rather than judgment. (SKILL.md:17)'
+      - 'per-subagent-effort-and-speed: Choose each subagent''s reasoning level and its fast
+        or standard speed according to the job. (SKILL.md:17)'
+      - 'isolated-candidate-output: Assign every candidate a separate output location so they
+        share no writable state. (SKILL.md:18)'
+      - 'worktree-first-output-location: Prefer a git worktree for each candidate, and fall
+        back to a per-candidate directory under a temporary arena path. (SKILL.md:18)'
+      - 'same-message-background-fan-out: Launch all candidates in one message as background
+        subagents. (SKILL.md:22)'
+      - 'candidate-brief-contents: Hand each candidate the task, the shared grounding''s path
+        and its own output path. (SKILL.md:22)'
+      - 'candidate-rationale-with-alternatives: Require each candidate to deliver a short
+        rationale naming the alternatives it weighed and what it rejected, alongside the artifact.
+        (SKILL.md:22)'
+      - 'candidate-dropout-tolerance: Continue with the remaining candidates when one produces
+        nothing, and record the dropout. (SKILL.md:24)'
+      - 'judge-after-candidates-finish: Start the cross-judge only once all candidates have
+        completed. (SKILL.md:28)'
+      - 'judge-pool-from-configuration: Choose the judge''s model from a dedicated pool line
+        in the user-level model configuration rule. (SKILL.md:28)'
+      - 'default-judge-pool: When that rule or line is absent, choose the judge from `claude-opus-5-5-xhigh`
+        and `grok-4.7-xhigh-fast`. (SKILL.md:28)'
+      - 'single-readonly-judge: Spawn exactly one judge subagent, and give it read-only access.
+        (SKILL.md:28)'
+      - 'judge-outside-parent-family: Never let the judge''s model belong to the same family
+        as the parent''s model. (SKILL.md:28)'
+      - 'judge-pool-order-trial: Try only other-family pool entries, in the order the pool
+        lists them. (SKILL.md:28)'
+      - 'parent-alias-never-judges: Exclude `auto` and `inherit-parent` pool entries from
+        judging, because they resolve to the parent''s model. (SKILL.md:28)'
+      - 'default-pool-judge-by-parent: With the default pool, a Claude parent gets `grok-4.7-xhigh-fast`,
+        and any other parent tries `claude-opus-5-5-xhigh` first. (SKILL.md:28)'
+      - 'rejected-judge-slug-recovery: When a judge entry is rejected, use the same model
+        at the nearest level or speed named in the error, or move to the next entry when none
+        is offered. (SKILL.md:28)'
+      - 'judge-default-pool-fallback: When no configured other-family entry runs, try the
+        default pool''s other-family entries in the same way. (SKILL.md:28)'
+      - 'judge-skip-with-disclosure: When no judge can run, skip the judge, pick the base
+        alone and say so. (SKILL.md:28)'
+      - 'unknown-parent-judge-handling: When the parent''s model is unknown, try the pool''s
+        real model names in order and disclose that the family check did not run. (SKILL.md:28)'
+      - 'judge-sees-path-labelled-candidates: Give the judge the rubric and the candidates
+        identified only by path label. (SKILL.md:28)'
+      - 'judge-per-criterion-scoring: Require the judge to score each candidate on each rubric
+        criterion. (SKILL.md:28)'
+      - 'judge-base-recommendation: Require the judge to recommend a base and justify that
+        recommendation. (SKILL.md:28)'
+      - 'judge-parallel-with-picker: Run the judge at the same time as the picker''s own reading
+        rather than before or after it. (SKILL.md:28)'
+      - 'full-read-before-pick: Read every candidate completely before choosing a base. (SKILL.md:32)'
+      - 'picker-per-criterion-scoring: Score each candidate against each rubric criterion
+        instead of relying on overall impression. (SKILL.md:32)'
+      - 'compare-pick-with-judge: Compare the picker''s result with the judge''s when a judge
+        ran, and treat a shared choice as confirmation. (SKILL.md:32)'
+      - 'disagreement-signals-bias-or-ambiguity: Treat a picker-judge disagreement as evidence
+        of bias or an unclear rubric, and read both rationales before deciding. (SKILL.md:32)'
+      - 'base-chosen-for-extensibility: Select the base that a later maintainer could extend
+        most easily while keeping invariants intact. (SKILL.md:34)'
+      - 'tie-break-boundary-and-api: Break a near-tie in favor of the cleaner boundary or
+        the smaller API. (SKILL.md:34)'
+      - 'loser-review-pass: Go through each losing candidate one further time looking for
+        parts worth porting. (SKILL.md:38)'
+      - 'sparse-graft-expectation: Expect only one or two grafts from a losing candidate,
+        not the bulk of it. (SKILL.md:38)'
+      - 'hand-integrated-grafts: Rewrite each graft into the base by hand so the result keeps
+        one coherent design rather than pasted fragments. (SKILL.md:38)'
+      - 'convergence-ships-without-graft: When candidates arrive at one shape, record the
+        agreement and ship that shape with no grafting. (SKILL.md:40)'
+      - 'divergence-triggers-reframe: When candidates differ wildly, treat the framing as
+        under-specified, then reframe and rerun instead of blending them. (SKILL.md:40)'
+      - 'verify-synthesized-artifact: Verify the merged result to the same standard as any
+        other output. (SKILL.md:44)'
+      - 'verification-failure-reframe-route: When verification finds a problem caused by bad
+        framing, reframe and rerun the arena. (SKILL.md:44)'
+      - 'verification-failure-graft-route: When verification finds a problem some candidate
+        had caught, return to grafting for the missed part. (SKILL.md:44)'
+      - 'no-papering-over-failures: Forbid hiding a verification problem instead of routing
+        it back to an earlier phase. (SKILL.md:44)'
+      - 'single-synthesized-output: End with one merged artifact rather than a set of alternatives.
+        (SKILL.md:48)'
+      - 'synthesis-note-base-reason: Attach a short note naming the chosen base and why it
+        was chosen. (SKILL.md:48)'
+      - 'synthesis-note-judge-status: Record in the note the judge''s verdict or the fact
+        that the judge was skipped. (SKILL.md:48)'
+      - 'graft-provenance-record: List each graft in the note with the candidate it came from.
+        (SKILL.md:48)'
+      - 'rejection-record: Record in the note what was rejected and the reason. (SKILL.md:48)'
+      - 'convergence-and-dropout-record: Record in the note any convergence or candidate dropouts.
+        (SKILL.md:48)'
+      - 'verification-result-record: Record the verification result in the note. (SKILL.md:48)'
+      mapping:
+      - line: 1
+        to:
+        - phase-todos
+        mark: match
+      - line: 2
+        to:
+        - same-prompt-contract
+        mark: new
+      - line: 3
+        to:
+        - artifact-named-up-front
+        mark: new
+      - line: 4
+        to:
+        - task-rubric-criteria
+        mark: new
+      - line: 5
+        to:
+        - rubric-withheld-from-candidates
+        mark: new
+      - line: 6
+        to:
+        - role-model-config-line
+        mark: match
+      - line: 7
+        to:
+        - role-model-config-line
+        mark: match
+      - line: 8
+        to:
+        - role-model-config-line
+        mark: match
+      - line: 9
+        to:
+        - rejected-model-swap
+        mark: match
+      - line: 10
+        to:
+        - model-family-prefix-map
+        mark: new
+      - line: 11
+        to:
+        - rejected-model-swap
+        mark: match
+      - line: 12
+        to:
+        - rejected-model-swap
+        mark: match
+      - line: 13
+        to:
+        - unrunnable-seat-dropped
+        mark: new
+      - line: 14
+        to:
+        - seat-backfill-to-minimum
+        mark: new
+      - line: 15
+        to:
+        - seat-backfill-to-minimum
+        mark: new
+      - line: 16
+        to:
+        - extra-runners-per-direction
+        mark: new
+      - line: 17
+        to:
+        - same-model-for-generation
+        mark: new
+      - line: 18
+        to:
+        - job-fit-helper-effort
+        mark: match
+      - line: 19
+        to:
+        - own-output-location
+        mark: new
+      - line: 20
+        to:
+        - worktree-or-temp-output
+        mark: new
+      - line: 21
+        to:
+        - one-message-fan-out
+        mark: new
+      - line: 22
+        to:
+        - candidate-brief-fields
+        mark: new
+      - line: 23
+        to:
+        - rationale-names-rejected
+        mark: new
+      - line: 24
+        to:
+        - dropout-proceeds-noted
+        mark: new
+      - line: 25
+        to:
+        - judge-after-candidates
+        mark: new
+      - line: 26
+        to:
+        - role-model-config-line
+        mark: match
+      - line: 27
+        to:
+        - role-model-config-line
+        mark: match
+      - line: 28
+        to:
+        - read-only-judge
+        - single-judge
+        mark: split
+      - line: 29
+        to:
+        - judge-outside-lead-family
+        mark: new
+      - line: 30
+        to:
+        - judge-pool-walk
+        mark: new
+      - line: 31
+        to:
+        - judge-pool-walk
+        mark: new
+      - line: 32
+        to:
+        - judge-pool-walk
+        mark: new
+      - line: 33
+        to:
+        - judge-pool-walk
+        mark: new
+      - line: 34
+        to:
+        - judge-pool-walk
+        mark: new
+      - line: 35
+        to:
+        - judge-skip-pick-alone
+        mark: new
+      - line: 36
+        to:
+        - family-check-unrun-disclosed
+        mark: new
+      - line: 37
+        to:
+        - path-labelled-candidates
+        - rubric-given-to-judge
+        mark: split
+      - line: 38
+        to:
+        - judge-criterion-scores
+        mark: new
+      - line: 39
+        to:
+        - judge-recommends-base
+        mark: new
+      - line: 40
+        to:
+        - judge-parallel-with-picker
+        mark: new
+      - line: 41
+        to:
+        - full-read-before-pick
+        mark: new
+      - line: 42
+        to:
+        - picker-criterion-scores
+        mark: new
+      - line: 43
+        to:
+        - pick-compared-with-judge
+        mark: new
+      - line: 44
+        to:
+        - disagreement-rereads-rationales
+        mark: new
+      - line: 45
+        to:
+        - base-chosen-for-extensibility
+        mark: new
+      - line: 46
+        to:
+        - near-tie-smaller-surface
+        mark: new
+      - line: 47
+        to:
+        - loser-graft-pass
+        mark: new
+      - line: 48
+        to:
+        - sparse-grafts
+        mark: new
+      - line: 49
+        to:
+        - hand-folded-grafts
+        mark: new
+      - line: 50
+        to:
+        - converged-shape-no-graft
+        mark: new
+      - line: 51
+        to:
+        - divergence-reframes
+        mark: new
+      - line: 52
+        to:
+        - synthesized-artifact-verified
+        mark: new
+      - line: 53
+        to:
+        - verify-miss-routes-back
+        mark: new
+      - line: 54
+        to:
+        - verify-miss-routes-back
+        mark: new
+      - line: 55
+        to:
+        - verify-miss-routes-back
+        mark: new
+      - line: 56
+        to:
+        - single-synthesized-artifact
+        mark: new
+      - line: 57
+        to:
+        - synthesis-decision-record
+        mark: match
+      - line: 58
+        to:
+        - note-judge-status
+        mark: new
+      - line: 59
+        to:
+        - synthesis-decision-record
+        mark: match
+      - line: 60
+        to:
+        - synthesis-decision-record
+        mark: match
+      - line: 61
+        to:
+        - note-convergence-dropouts
+        mark: new
+      - line: 62
+        to:
+        - note-verification-result
+        mark: new
+    traits:
+      phase-todos:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Steps own order, as already ruled on this trait (`2026-11-01-batch-1:119`).
+      same-prompt-contract:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Core step 1 already gives every member one common brief (.claude/skills/model-council/SKILL.md:18-19,
+          `neutral-framing`); calling that brief a contract adds no behaviour.
+      artifact-named-up-front:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: model-council
+        modification: null
+        rewording: Name the artifact every member will produce.
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-01
+          override: null
+        reason: 'Lands in model-council, references/pick-and-graft.md. Upstream: SKILL.md:15.'
+      task-rubric-criteria:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: model-council
+        modification: null
+        rewording: Write three to six gradeable criteria for this task.
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-01
+          override: null
+        reason: 'Lands in model-council, references/pick-and-graft.md. Upstream: SKILL.md:16.'
+      rubric-withheld-from-candidates:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: model-council
+        modification: null
+        rewording: Members see only the task, never the criteria.
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-01
+          override: null
+        reason: 'Lands in model-council, references/pick-and-graft.md. Upstream: SKILL.md:16.'
+      role-model-config-line:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: delegation holds it; a call is not a trait (T3). Model choice goes through
+          the delegation skill and its roster, never a line in a unit (playbook-map §7.1 item
+          5, `owner-roster`).
+      rejected-model-swap:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: delegation holds it; a call is not a trait (T3). Delegation asks the owner
+          when no entry exists (`owner-roster`) and a value off the vendor's list stops the
+          dispatch (.claude/skills/delegation/SKILL.md:40-42), so a family swap is what it
+          forbids.
+      model-family-prefix-map:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: delegation holds it; a call is not a trait (T3). Delegation compares families
+          at dispatch (.claude/skills/delegation/SKILL.md:33-35); a prefix table in a skill
+          names vendors' models and ages with them.
+      unrunnable-seat-dropped:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: delegation holds it; a call is not a trait (T3). A value off the vendor's
+          list stops the dispatch (.claude/skills/delegation/SKILL.md:40-42), core asks about
+          an unreachable member (.claude/skills/model-council/SKILL.md:11-12) and reports
+          one still missing (.claude/skills/model-council/SKILL.md:29-31).
+      seat-backfill-to-minimum:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Members are the user's to choose and a missing one is never backfilled (.claude/skills/model-council/SKILL.md:11-12,
+          :31). With fewer than two candidates left the branch makes no pick and says so (`dropout-proceeds-noted`).
+      extra-runners-per-direction:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: The user picks the members (.claude/skills/model-council/SKILL.md:11, `member-resolution`),
+          so the count is theirs and a person can name more.
+      same-model-for-generation:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: The user picks the members (.claude/skills/model-council/SKILL.md:11, `member-resolution`),
+          so naming one model several times is already theirs to do.
+      job-fit-helper-effort:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: AGENTS.md "use configured models and reasoning effort" holds (`configured-model-use`),
+          as already ruled on this trait (`2026-11-02-batch-2:079`).
+      own-output-location:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: model-council
+        modification: null
+        rewording: Each member writes only to its own location (`principle-separate-before-serializing-shared-state`).
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-01
+          override: null
+        reason: 'Lands in model-council, references/pick-and-graft.md. Upstream: SKILL.md:18.'
+      worktree-or-temp-output:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Core saves under the supplied run directory or a scratch path (.claude/skills/model-council/SKILL.md:21-22),
+          which serves one location per member; the kind of location adds no behaviour.
+      one-message-fan-out:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: delegation holds it; a call is not a trait (T3). Dispatch is delegation's
+          (.claude/skills/delegation/SKILL.md:37-46), and core makes parallelism optional
+          (.claude/skills/model-council/SKILL.md:20).
+      candidate-brief-fields:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Core step 1's brief already carries the question, source pointers and constraints
+          (.claude/skills/model-council/SKILL.md:18-19), and `own-output-location` supplies
+          the path.
+      rationale-names-rejected:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: model-council
+        modification: null
+        rewording: Each member returns its artifact and a short rationale saying what it weighed
+          and turned down.
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-01
+          override: null
+        reason: 'Lands in model-council, references/pick-and-graft.md. Upstream: SKILL.md:22.'
+      dropout-proceeds-noted:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: model-council
+        modification: null
+        rewording: 'A member produces nothing: go on and report it. Fewer than two left: no
+          pick, and say so.'
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-01
+          - S-08
+          override: null
+        reason: 'Lands in model-council, references/pick-and-graft.md. Upstream: SKILL.md:24.'
+      judge-after-candidates:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Core step 3 gives the judge all the reports (.claude/skills/model-council/SKILL.md:23),
+          which cannot happen earlier.
+      single-judge:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Core already has one selected judge (.claude/skills/model-council/SKILL.md:8-9,
+          :23), so a separate line adds nothing.
+      read-only-judge:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: model-council
+        modification: null
+        rewording: The judge gets core step 3 and read-only access.
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-01
+          override: null
+        reason: 'Lands in model-council, references/pick-and-graft.md. Upstream: SKILL.md:28.'
+      judge-outside-lead-family:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: model-council
+        modification: Into `judge-other-family-or-stated`. The user still chooses the judge
+          (`member-resolution`), so a same-family choice is stated rather than refused.
+        rewording: The judge comes from a family other than the coordinator's; if the user's
+          choice does not, say so.
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-01
+          override: null
+        reason: 'Lands in model-council, references/pick-and-graft.md, into `judge-other-family-or-stated`.
+          Upstream: SKILL.md:28.'
+      judge-pool-walk:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: delegation holds it; a call is not a trait (T3). Model choice goes through
+          the delegation skill and its roster, never a line in a unit (playbook-map §7.1 item
+          5, `owner-roster`).
+      judge-skip-pick-alone:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'The judge is council core (.claude/skills/model-council/SKILL.md:23-25):
+          with none reachable after core''s ask there is no completed council, so the branch
+          stops and returns the candidates with no pick.'
+      family-check-unrun-disclosed:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: model-council
+        modification: Into `judge-other-family-or-stated`. No pool to walk, since the roster
+          or the user names the judge; only the disclosure stays.
+        rewording: If you cannot tell your own model, say the family check did not run.
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-01
+          override: null
+        reason: 'Lands in model-council, references/pick-and-graft.md, into `judge-other-family-or-stated`.
+          Upstream: SKILL.md:28.'
+      rubric-given-to-judge:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: model-council
+        modification: null
+        rewording: The judge receives the criteria.
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-01
+          override: null
+        reason: 'Lands in model-council, references/pick-and-graft.md. Upstream: SKILL.md:28.'
+      path-labelled-candidates:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: model-council
+        modification: null
+        rewording: Give the judge every full attributed report, identified by its candidate
+          path, as core step 3 requires.
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-01
+          override: null
+        reason: 'Lands in model-council, references/pick-and-graft.md. Upstream: SKILL.md:28.'
+      judge-criterion-scores:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: model-council
+        modification: null
+        rewording: The judge scores every candidate on every criterion.
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-01
+          override: null
+        reason: 'Lands in model-council, references/pick-and-graft.md. Upstream: SKILL.md:28.'
+      judge-recommends-base:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: model-council
+        modification: null
+        rewording: The judge recommends a base and says why.
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-01
+          override: null
+        reason: 'Lands in model-council, references/pick-and-graft.md. Upstream: SKILL.md:28.'
+      judge-parallel-with-picker:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Independence comes from the coordinator scoring before it reads the judge
+          (`pick-compared-with-judge`); the timing adds nothing to that, and core makes parallelism
+          optional (.claude/skills/model-council/SKILL.md:20).
+      full-read-before-pick:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: model-council
+        modification: null
+        rewording: The coordinator reads every candidate whole.
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-01
+          override: null
+        reason: 'Lands in model-council, references/pick-and-graft.md. Upstream: SKILL.md:32.'
+      picker-criterion-scores:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: model-council
+        modification: null
+        rewording: It scores each one per criterion, not on overall feel.
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-01
+          override: null
+        reason: 'Lands in model-council, references/pick-and-graft.md. Upstream: SKILL.md:32.'
+      pick-compared-with-judge:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: model-council
+        modification: null
+        rewording: Only then compare with the judge; the same base confirms the pick.
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-01
+          override: null
+        reason: 'Lands in model-council, references/pick-and-graft.md. Upstream: SKILL.md:32.'
+      disagreement-rereads-rationales:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: model-council
+        modification: null
+        rewording: 'A different base means bias or a loose rubric: reread both rationales,
+          then decide.'
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-01
+          override: null
+        reason: 'Lands in model-council, references/pick-and-graft.md. Upstream: SKILL.md:32.'
+      base-chosen-for-extensibility:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: model-council
+        modification: null
+        rewording: The base is whichever a later maintainer extends most easily while invariants
+          hold.
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-01
+          override: null
+        reason: 'Lands in model-council, references/pick-and-graft.md. Upstream: SKILL.md:34.'
+      near-tie-smaller-surface:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: model-council
+        modification: null
+        rewording: A near-tie goes to the cleaner boundary or the smaller interface.
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-01
+          override: null
+        reason: 'Lands in model-council, references/pick-and-graft.md. Upstream: SKILL.md:34.'
+      loser-graft-pass:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: model-council
+        modification: null
+        rewording: Go through each loser once more for what is worth carrying over.
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-01
+          override: null
+        reason: 'Lands in model-council, references/pick-and-graft.md. Upstream: SKILL.md:38.'
+      sparse-grafts:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: model-council
+        modification: null
+        rewording: Expect one or two things from each, not most of it.
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-01
+          override: null
+        reason: 'Lands in model-council, references/pick-and-graft.md. Upstream: SKILL.md:38.'
+      hand-folded-grafts:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: model-council
+        modification: null
+        rewording: Rewrite each by hand into one coherent result (`principle-redesign-from-first-principles`).
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-01
+          override: null
+        reason: 'Lands in model-council, references/pick-and-graft.md. Upstream: SKILL.md:38.'
+      converged-shape-no-graft:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: model-council
+        modification: null
+        rewording: 'Same shape everywhere: say so and graft nothing.'
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-01
+          override: null
+        reason: 'Lands in model-council, references/pick-and-graft.md. Upstream: SKILL.md:40.'
+      divergence-reframes:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: model-council
+        modification: Into `divergence-reframes-once`. One rerun at most, then stop and report,
+          because each rerun is another full set of paid runs.
+        rewording: 'Wild divergence: the frame was too loose, so reframe and rerun once, then
+          stop and report.'
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-01
+          - S-08
+          override: null
+        reason: 'Lands in model-council, references/pick-and-graft.md, into `divergence-reframes-once`.
+          Upstream: SKILL.md:40.'
+      synthesized-artifact-verified:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: model-council
+        modification: 'Into `graft-change-rerun`. Narrowed from a generic final pass, which
+          C-12 and O-05 advise against: only behaviour a graft changed is rerun, and anything
+          else unchecked is named.'
+        rewording: If grafts change a previously checked behaviour, rerun its acceptance check;
+          reuse evidence for unchanged parts and name what stays unchecked.
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-01
+          - C-12
+          - O-05
+          override: null
+        reason: 'Lands in model-council, references/pick-and-graft.md, into `graft-change-rerun`.
+          Upstream: SKILL.md:44.'
+      verify-miss-routes-back:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: model-council
+        modification: Into `verify-miss-returns-once`. One return at most, then report, as
+          with a rerun on divergence.
+        rewording: A miss returns once to frame or graft, whichever was wrong; a second miss
+          is reported.
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-01
+          - S-08
+          override: null
+        reason: 'Lands in model-council, references/pick-and-graft.md, into `verify-miss-returns-once`.
+          Upstream: SKILL.md:44.'
+      single-synthesized-artifact:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: model-council
+        modification: null
+        rewording: Deliver core step 4 plus the one artifact, left in its own location for
+          the caller to move.
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-06
+          override: null
+        reason: 'Lands in model-council, references/pick-and-graft.md. Upstream: SKILL.md:48.'
+      synthesis-decision-record:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: model-council
+        modification: null
+        rewording: 'Add a note: the base and why, each graft with its source, what was rejected
+          and why.'
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-06
+          override: null
+        reason: 'Lands in model-council, references/pick-and-graft.md. Upstream: SKILL.md:48.'
+      note-judge-status:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: model-council
+        modification: null
+        rewording: The note gives the judge's verdict.
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-06
+          override: null
+        reason: 'Lands in model-council, references/pick-and-graft.md. Upstream: SKILL.md:48.'
+      note-convergence-dropouts:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: model-council
+        modification: null
+        rewording: The note says where the members converged and who dropped out.
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-06
+          override: null
+        reason: 'Lands in model-council, references/pick-and-graft.md. Upstream: SKILL.md:48.'
+      note-verification-result:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: model-council
+        modification: null
+        rewording: The note gives the verification result.
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-06
+          override: null
+        reason: 'Lands in model-council, references/pick-and-graft.md. Upstream: SKILL.md:48.'
+  skill:pstack/skills/interrogate:
+    upstream_tree_hash: 45b67702b12e70485937b5efb0f1217d198ee2bbc8393b70877a3fb496102bdd
+    accepted: null
+    compared_with: none
+    pairing:
+      overlap:
+        doc:AGENTS.md: 1
+      placement_match:
+      - review
+      suggested: review
+      purpose_match: none
+      purpose: Upstream sends adversaries to break a change or design and keeps only findings
+        a run proves. Ours has no unit for this until interrogate is built; review judges
+        by reading and reports every finding.
+      flag: suggested differs
+      reason: 'Compared with none: interrogate, the row target, does not exist yet, and --with
+        takes only an existing skill. Suggested review by the computed signals only.'
+    analysis:
+      blind:
+      - 'adversarial-break-mandate: Assign adversaries to attempt to break a change or design
+        rather than to assess it in general. (SKILL.md:9)'
+      - 'run-proof-survival-gate: Let a finding stand only when an executed run demonstrates
+        it. (SKILL.md:9)'
+      - 'report-only-no-fixes: Limit the result to reporting findings, with no fixes applied.
+        (SKILL.md:9)'
+      - 'user-named-scope: Use the scope the user names when one is given. (SKILL.md:13)'
+      - 'default-branch-diff-scope: Without a named scope, cover the branch''s diff from its
+        merge base with the base branch up to and including the working tree. (SKILL.md:13)'
+      - 'intent-restatement: Restate the change''s intent in the agent''s own words before
+        fanning out. (SKILL.md:13)'
+      - 'intent-evidence-sources: Derive that intent from the user''s message, the commits
+        and the pull request description. (SKILL.md:13)'
+      - 'ask-when-intent-unclear: Ask the user when the intent cannot be established. (SKILL.md:13)'
+      - 'reviewer-list-from-configuration: Choose adversary models from a dedicated reviewer
+        line in the user-level model configuration rule, using the sibling skill''s runner-selection
+        and fallback steps. (SKILL.md:17)'
+      - 'isolated-adversary-worktrees: Give each adversary its own output location through
+        the sibling skill''s worktree-first step. (SKILL.md:17)'
+      - 'same-message-background-adversaries: Launch all adversaries in one message as background
+        subagents through the sibling skill''s fan-out step. (SKILL.md:17)'
+      - 'adversary-dropout-tolerance: Continue when an adversary produces nothing and record
+        the dropout, through the sibling skill''s fan-out step. (SKILL.md:17)'
+      - 'uncommitted-changes-seeded: Copy the scope''s uncommitted changes into each adversary''s
+        worktree. (SKILL.md:17)'
+      - 'general-purpose-adversary-type: Spawn each adversary as the general-purpose subagent
+        type. (SKILL.md:17)'
+      - 'adversary-brief-contents: Give each adversary the scope, the intent and one fixed
+        brief in place of a task and rationale request. (SKILL.md:17)'
+      - 'proof-against-real-code: Require each finding to be shown by a run against the actual
+        code, such as a failing test, a reproduction script or revealing command output. (SKILL.md:19)'
+      - 'design-review-by-prototype-or-probe: For a design or plan, prove findings by running
+        a prototype or probing the current tree. (SKILL.md:19)'
+      - 'repros-confined-to-own-worktree: Keep reproduction material inside the adversary''s
+        own worktree. (SKILL.md:19)'
+      - 'finding-report-template: Require each finding to carry a title, the exact command,
+        the printed output and the output the intent demands. (SKILL.md:19)'
+      - 'exclude-unrun-claims: Omit anything the adversary did not actually run. (SKILL.md:19)'
+      - 'exclude-style-and-speculative-risk: Exclude style, naming, structure and hazards
+        that only matter after a future change. (SKILL.md:19)'
+      - 'empty-result-permitted: Accept a report with no findings as a legitimate outcome.
+        (SKILL.md:19)'
+      - 'coordinator-reruns-commands: Have the coordinator verify each finding by executing
+        its command again. (SKILL.md:23)'
+      - 'two-part-keep-test: Retain a finding only if the output shows the failure and that
+        failure violates the intent. (SKILL.md:23)'
+      - 'drop-unverified-findings: Remove every finding that fails the keep test. (SKILL.md:23)'
+      - 'root-cause-merge: Combine findings that share one root cause. (SKILL.md:23)'
+      - 'no-judge-pick-or-graft: Omit cross-judging, base selection and grafting from this
+        flow. (SKILL.md:25)'
+      - 'union-of-verified-findings: Keep all verified findings across adversaries rather
+        than selecting one adversary''s list. (SKILL.md:25)'
+      - 'output-intent-section: Open the output with the intent restatement. (SKILL.md:29)'
+      - 'output-finding-fields: For each verified finding, report its command, its output
+        and how it violates the intent. (SKILL.md:30)'
+      - 'adversary-attribution: Name the adversaries that found each verified finding. (SKILL.md:30)'
+      - 'explicit-no-findings-statement: State explicitly that there are no verified findings
+        when none remain. (SKILL.md:30)'
+      - 'dropped-finding-accounting: Report per adversary how many findings were dropped and
+        why. (SKILL.md:31)'
+      mapping:
+      - line: 1
+        to:
+        - break-it-mandate
+        mark: new
+      - line: 2
+        to:
+        - run-proven-finding
+        mark: new
+      - line: 3
+        to:
+        - inspection-only-authority
+        mark: match
+      - line: 4
+        to:
+        - named-scope-first
+        mark: new
+      - line: 5
+        to:
+        - merge-base-through-tree-scope
+        mark: new
+      - line: 6
+        to:
+        - intent-restated-first
+        mark: new
+      - line: 7
+        to:
+        - intent-from-request-commits-pr
+        mark: new
+      - line: 8
+        to:
+        - ask-when-intent-unclear
+        mark: new
+      - line: 9
+        to:
+        - role-model-config-line
+        mark: match
+      - line: 10
+        to:
+        - own-output-location
+        mark: new
+      - line: 11
+        to:
+        - one-message-fan-out
+        mark: new
+      - line: 12
+        to:
+        - dropout-proceeds-noted
+        mark: new
+      - line: 13
+        to:
+        - uncommitted-changes-seeded
+        mark: new
+      - line: 14
+        to:
+        - general-purpose-adversary
+        mark: new
+      - line: 15
+        to:
+        - adversary-fixed-brief
+        mark: new
+      - line: 16
+        to:
+        - run-against-real-code
+        mark: new
+      - line: 17
+        to:
+        - design-proof-by-probe
+        mark: new
+      - line: 18
+        to:
+        - repros-stay-in-copy
+        mark: new
+      - line: 19
+        to:
+        - finding-repro-report
+        mark: new
+      - line: 20
+        to:
+        - run-proven-finding
+        mark: new
+      - line: 21
+        to:
+        - style-findings-excluded
+        - future-change-risk-excluded
+        mark: split
+      - line: 22
+        to:
+        - no-findings-valid
+        mark: new
+      - line: 23
+        to:
+        - coordinator-replays-finding
+        mark: new
+      - line: 24
+        to:
+        - reproduced-and-breaks-intent
+        mark: new
+      - line: 25
+        to:
+        - drop-unverified-findings
+        mark: new
+      - line: 26
+        to:
+        - merge-by-root-cause
+        mark: new
+      - line: 27
+        to:
+        - no-judge-pick-or-graft
+        mark: new
+      - line: 28
+        to:
+        - union-of-verified-findings
+        mark: new
+      - line: 29
+        to:
+        - output-opens-with-intent
+        mark: new
+      - line: 30
+        to:
+        - output-finding-fields
+        mark: new
+      - line: 31
+        to:
+        - adversary-attribution
+        mark: new
+      - line: 32
+        to:
+        - no-findings-valid
+        mark: new
+      - line: 33
+        to:
+        - dropped-finding-accounting
+        mark: new
+    traits:
+      break-it-mandate:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: interrogate
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-01
+          - U-07
+          override: null
+        reason: 'Lands in interrogate, SKILL.md. Upstream: SKILL.md:9.'
+      run-proven-finding:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: interrogate
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-01
+          - C-11
+          override: null
+        reason: 'Lands in interrogate, SKILL.md. Upstream: SKILL.md:9, 19.'
+      inspection-only-authority:
+        scope: new
+        change: []
+        fact: present
+        provider: doc:AGENTS.md
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - AGENTS.md:7-8
+        recommendation: adopt
+        delivery: delivered
+        target: doc:AGENTS.md
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-03
+          override: null
+        reason: AGENTS.md:7-8 makes a review request authority to inspect and report only,
+          which is all this mechanism asks.
+      named-scope-first:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: interrogate
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-01
+          override: null
+        reason: 'Lands in interrogate, SKILL.md. Upstream: SKILL.md:13.'
+      merge-base-through-tree-scope:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Owner review of the deferred-rejects list, harness_lifecycle/registry/reviews/2026-10-30-upstream-mattpocock_skills-5beb35b-deferred-rejects.md
+        policy: null
+        guide: null
+        reason: The same question as `three-dot-merge-base`, already deferred for the owner's
+          review of that list (`2026-10-30-mattpocock_skills-5beb35b:251`). Until then the
+          scope is what the request names, or an obvious base or the working tree (`named-scope-first`).
+      intent-restated-first:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: interrogate
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-01
+          override: null
+        reason: 'Lands in interrogate, SKILL.md. Upstream: SKILL.md:13.'
+      intent-from-request-commits-pr:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: interrogate
+        modification: Into `intent-from-stated-sources`. A request, brief, spec or bead, because
+          we have no pull request flow and a diff shows what changed, not what was meant.
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-01
+          override: null
+        reason: 'Lands in interrogate, SKILL.md, into `intent-from-stated-sources`. Upstream:
+          SKILL.md:13.'
+      ask-when-intent-unclear:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: interrogate
+        modification: Into `ask-or-not-run-on-intent`. Gives the exit for a run with nobody
+          to ask.
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-02
+          - S-08
+          override: null
+        reason: 'Lands in interrogate, SKILL.md, into `ask-or-not-run-on-intent`. Upstream:
+          SKILL.md:13.'
+      role-model-config-line:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: delegation holds it; a call is not a trait (T3). Model choice goes through
+          the delegation skill and its roster, never a line in a unit (playbook-map §7.1 item
+          5, `owner-roster`). An adversary takes a named model or a roster entry, and a missing
+          or same-family one goes to the owner (.claude/skills/delegation/SKILL.md:28-35).
+      own-output-location:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: interrogate
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-01
+          override: null
+        reason: 'Lands in interrogate, SKILL.md. Upstream: SKILL.md:17.'
+      one-message-fan-out:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: delegation holds it; a call is not a trait (T3). Dispatch is delegation's
+          (.claude/skills/delegation/SKILL.md:37-46); the skill says what to ask of it and
+          how it may run is the vendor's.
+      dropout-proceeds-noted:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: interrogate
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-01
+          - S-08
+          override: null
+        reason: 'Lands in interrogate, SKILL.md. Upstream: SKILL.md:17.'
+      uncommitted-changes-seeded:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: interrogate
+        modification: 'Into `verified-snapshot-copy`. A checked clone from one pristine snapshot,
+          made by a shipped script, not a worktree with changes copied in: every run and replay
+          then sees the same bytes, and a refusal is a stated not-run.'
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-01
+          - S-08
+          override: null
+        reason: 'Lands in interrogate, SKILL.md and scripts/make-copy.sh, into `verified-snapshot-copy`.
+          Upstream: SKILL.md:17.'
+      general-purpose-adversary:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: delegation holds it; a call is not a trait (T3). An adversary takes the critic
+          role's contract and roster entry (.claude/skills/delegation/SKILL.md:13-20), with
+          one brief clause naming its copy.
+      adversary-fixed-brief:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: interrogate
+        modification: 'Into `adversaries-by-model-or-angle`. Owner ruling 2026-11-03: one
+          adversary per available model on the one instruction; with one model, several prompts
+          that each attack something different.'
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-01
+          - S-08
+          override: null
+        reason: 'Lands in interrogate, SKILL.md, into `adversaries-by-model-or-angle`. Upstream:
+          SKILL.md:17, 19.'
+      run-against-real-code:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: interrogate
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-01
+          - S-08
+          override: null
+        reason: 'Lands in interrogate, SKILL.md. Upstream: SKILL.md:19.'
+      design-proof-by-probe:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: interrogate
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-01
+          - S-08
+          override: null
+        reason: 'Lands in interrogate, SKILL.md. Upstream: SKILL.md:19.'
+      repros-stay-in-copy:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: interrogate
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-01
+          override: null
+        reason: 'Lands in interrogate, SKILL.md. Upstream: SKILL.md:19.'
+      finding-repro-report:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: interrogate
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-01
+          override: null
+        reason: 'Lands in interrogate, SKILL.md. Upstream: SKILL.md:19.'
+      style-findings-excluded:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: A finding must already show a run and break the current stated intent (`reproduced-and-breaks-intent`),
+          which a matter of style or naming does not, and such a claim goes in Dropped with
+          its reason (`run-proven-finding`).
+      future-change-risk-excluded:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: A finding must already show a run and break the current stated intent (`reproduced-and-breaks-intent`),
+          so a separate blanket ban is unnecessary, and a claim that fails that test is accounted
+          for in Dropped (`run-proven-finding`).
+      no-findings-valid:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: interrogate
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-06
+          - C-11
+          override: null
+        reason: 'Lands in interrogate, SKILL.md. Upstream: SKILL.md:19, 30.'
+      coordinator-replays-finding:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: interrogate
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-01
+          override: null
+        reason: 'Lands in interrogate, SKILL.md. Upstream: SKILL.md:23.'
+      reproduced-and-breaks-intent:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: interrogate
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-01
+          override: null
+        reason: 'Lands in interrogate, SKILL.md. Upstream: SKILL.md:23.'
+      drop-unverified-findings:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: interrogate
+        modification: Into `three-replay-outcomes`. Unreproduced is not disproved, and a claim
+          that cannot be replayed is listed; both can leave an objection open.
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-01
+          - S-08
+          override: null
+        reason: 'Lands in interrogate, SKILL.md, into `three-replay-outcomes`. Upstream: SKILL.md:23.'
+      merge-by-root-cause:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: interrogate
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-06
+          override: null
+        reason: 'Lands in interrogate, SKILL.md. Upstream: SKILL.md:23.'
+      no-judge-pick-or-graft:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: This skill runs no council, so there is nothing to omit; `union-of-verified-findings`
+          states the rule that matters.
+      union-of-verified-findings:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: interrogate
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-01
+          override: null
+        reason: 'Lands in interrogate, SKILL.md. Upstream: SKILL.md:25.'
+      output-opens-with-intent:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: interrogate
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-06
+          override: null
+        reason: 'Lands in interrogate, SKILL.md. Upstream: SKILL.md:29.'
+      output-finding-fields:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: interrogate
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-06
+          override: null
+        reason: 'Lands in interrogate, SKILL.md. Upstream: SKILL.md:30.'
+      adversary-attribution:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: interrogate
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-06
+          override: null
+        reason: 'Lands in interrogate, SKILL.md. Upstream: SKILL.md:30.'
+      dropped-finding-accounting:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: interrogate
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-06
+          override: null
+        reason: 'Lands in interrogate, SKILL.md. Upstream: SKILL.md:31.'

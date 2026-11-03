@@ -304,3 +304,24 @@
       traits: [single-tsv-decision-log, evidence-pointer-cell, trail-header-template, trail-six-columns, trail-sample-rows, plain-row-wording, positional-row-helper, hand-append-caveat, decision-points-only, row-per-iteration, helper-aborts-on-failure, creates-log-parent, header-on-empty-file, append-mode-writes, automatic-utc-stamp, cell-whitespace-strip, formula-cell-quote, run-boundary, start-row-triggers, start-row-contents, local-log-default, commit-on-reviewer-need, append-only-supersede, script-evidence-preference, end-of-run-audit, transcript-path-audit, no-cross-project-transcript-search, audit-own-stretches, row-maps-to-real-event, evidence-resolves-check, unlogged-fork-gap, audit-supersedes-in-place-of-editing, foreign-row-on-own-evidence, other-family-trail-review, trail-and-transcript-review, attention-scan-not-redo, job-fit-helper-effort, trail-review-flags, attention-section, trail-reading-method, trail-rendering-tips, single-trail-format-owner]
       added: {}
       changed: {}
+# Batch 3: arena, interrogate at 4dd1d05, proposed.
+"cursor_plugins:skill:pstack/skills/arena":
+  accepted: "4dd1d05"
+  proposed: null
+  analyses:
+    "4dd1d05":
+      tree_hash: "4339f9f17c38f57febb95a0c36ecb2d5404fb735ea47f65561d12ce17c4d1f77"
+      placement: {domain: core, stage: X, substage: Coordination}
+      traits: [phase-todos, same-prompt-contract, artifact-named-up-front, task-rubric-criteria, rubric-withheld-from-candidates, role-model-config-line, rejected-model-swap, model-family-prefix-map, unrunnable-seat-dropped, seat-backfill-to-minimum, extra-runners-per-direction, same-model-for-generation, job-fit-helper-effort, own-output-location, worktree-or-temp-output, one-message-fan-out, candidate-brief-fields, rationale-names-rejected, dropout-proceeds-noted, judge-after-candidates, single-judge, read-only-judge, judge-outside-lead-family, judge-pool-walk, judge-skip-pick-alone, family-check-unrun-disclosed, rubric-given-to-judge, path-labelled-candidates, judge-criterion-scores, judge-recommends-base, judge-parallel-with-picker, full-read-before-pick, picker-criterion-scores, pick-compared-with-judge, disagreement-rereads-rationales, base-chosen-for-extensibility, near-tie-smaller-surface, loser-graft-pass, sparse-grafts, hand-folded-grafts, converged-shape-no-graft, divergence-reframes, synthesized-artifact-verified, verify-miss-routes-back, single-synthesized-artifact, synthesis-decision-record, note-judge-status, note-convergence-dropouts, note-verification-result]
+      added: {}
+      changed: {}
+"cursor_plugins:skill:pstack/skills/interrogate":
+  accepted: "4dd1d05"
+  proposed: null
+  analyses:
+    "4dd1d05":
+      tree_hash: "45b67702b12e70485937b5efb0f1217d198ee2bbc8393b70877a3fb496102bdd"
+      placement: {domain: core, stage: Verification, substage: Review}
+      traits: [break-it-mandate, run-proven-finding, inspection-only-authority, named-scope-first, merge-base-through-tree-scope, intent-restated-first, intent-from-request-commits-pr, ask-when-intent-unclear, role-model-config-line, own-output-location, one-message-fan-out, dropout-proceeds-noted, uncommitted-changes-seeded, general-purpose-adversary, adversary-fixed-brief, run-against-real-code, design-proof-by-probe, repros-stay-in-copy, finding-repro-report, style-findings-excluded, future-change-risk-excluded, no-findings-valid, coordinator-replays-finding, reproduced-and-breaks-intent, drop-unverified-findings, merge-by-root-cause, no-judge-pick-or-graft, union-of-verified-findings, output-opens-with-intent, output-finding-fields, adversary-attribution, dropped-finding-accounting]
+      added: {}
+      changed: {}
