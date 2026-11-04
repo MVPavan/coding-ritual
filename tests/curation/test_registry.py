@@ -763,6 +763,20 @@ def test_check_rejects_supersession_cycle(
     _fails_with(cfg, capsys, "cyclic")
 
 
+def test_check_rejects_a_supersedes_edge_pointing_forward(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    cfg = _baseline(tmp_path)
+    _write_round(
+        cfg,
+        "2026-10-14-r",
+        _ours_event("2026-10-14-r:1", "add", "planning", supersedes=["2026-10-14-r:2"]),
+        _ours_event("2026-10-14-r:2", "add", "planning"),
+    )
+    cli.cmd_build(cfg, _ns())
+    _fails_with(cfg, capsys, "which comes later in ledger order")
+
+
 def test_check_rejects_cycle_on_non_first_edge(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
@@ -884,6 +898,106 @@ def test_seal_refuses_to_reseal_changed_round(tmp_path: Path) -> None:
     path.write_text(path.read_text() + " \n", encoding="utf-8")
     with pytest.raises(SystemExit, match="refusing to re-seal"):
         ledger.seal(cfg, "2026-10-14-r")
+
+
+def _two_sealed_against_filename_order(cfg: object) -> None:
+    """z is sealed before a, so recording order is not filename order."""
+    ledger.seal(cfg, "2026-10-14-r")
+    for round_id in ("2026-10-15-z", "2026-10-15-a"):
+        event = _ours_event(f"{round_id}:1", "add", "planning")
+        _write_round(cfg, round_id, event)
+        ledger.seal(cfg, round_id)
+    assert cli.cmd_build(cfg, _ns()) == 0
+
+
+def test_seal_appends_recording_order_and_the_loader_reads_it(tmp_path: Path) -> None:
+    cfg = _baseline(tmp_path)
+    _two_sealed_against_filename_order(cfg)
+    order = ["2026-10-14-r.jsonl", "2026-10-15-z.jsonl", "2026-10-15-a.jsonl"]
+    ledger.seal(cfg, "2026-10-15-z")  # already sealed: not listed twice
+    ledger.seal_report_digest(cfg, "reviews/x.yaml", "digest")  # keeps the list
+    manifest = json.loads(cfg.manifest_path.read_text())  # type: ignore[attr-defined]
+    assert manifest["round_order"] == order
+    _write_round(cfg, "2026-10-13-open", _ours_event("2026-10-13-open:1", "add", "x"))
+    names = [p.name for p in loaders._round_files(cfg)]  # type: ignore[arg-type]
+    assert names == [*order, "2026-10-13-open.jsonl"]
+    current = ledger.effective_by_subject(loaders.load_ledger(cfg)[1])
+    assert current["ours:planning"].id == "2026-10-15-a:1"
+    record = cfg.skill_records_dir / "engineering" / "planning.md"  # type: ignore[attr-defined]
+    text = record.read_text()
+    assert text.index("(2026-10-15-a:1)") < text.index(
+        "(2026-10-15-z:1)"
+    )  # newest first
+
+
+@pytest.mark.parametrize(
+    ("order", "needle"),
+    [
+        (
+            ["2026-10-15-z.jsonl", "2026-10-15-a.jsonl"],
+            "2026-10-14-r.jsonl: not listed",
+        ),
+        (
+            ["2026-10-14-r.jsonl", "2026-10-15-z.jsonl", "2026-10-15-a.jsonl"] * 2,
+            "2026-10-14-r.jsonl: listed more than once",
+        ),
+        (
+            [
+                "2026-10-14-r.jsonl",
+                "2026-10-15-z.jsonl",
+                "2026-10-15-a.jsonl",
+                "2026-10-16-gone.jsonl",
+            ],
+            "2026-10-16-gone.jsonl: listed but not sealed",
+        ),
+        ("2026-10-14-r.jsonl", "round_order must be a list"),
+        (None, "round_order must be a list"),
+    ],
+    ids=["missing", "duplicate", "unsealed", "string", "null"],
+)
+def test_check_refuses_a_bad_round_order(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], order: object, needle: str
+) -> None:
+    cfg = _baseline(tmp_path)
+    _two_sealed_against_filename_order(cfg)
+    path = cfg.manifest_path  # type: ignore[attr-defined]
+    manifest = json.loads(path.read_text())
+    manifest["round_order"] = order
+    path.write_text(json.dumps(manifest))
+    _fails_with(cfg, capsys, needle)
+
+
+@pytest.mark.parametrize(
+    "order",
+    [None, ["2026-10-14-r.jsonl", "2026-10-15-z.jsonl"]],
+    ids=["absent", "missing-a-sealed-round"],
+)
+def test_bad_round_order_refuses_record_build_and_seal(
+    tmp_path: Path, order: object
+) -> None:
+    cfg = _baseline(tmp_path)
+    _two_sealed_against_filename_order(cfg)
+    path = cfg.manifest_path  # type: ignore[attr-defined]
+    manifest = json.loads(path.read_text())
+    if order is None:
+        del manifest["round_order"]
+    else:
+        manifest["round_order"] = order
+    path.write_text(json.dumps(manifest))
+    _write_round(cfg, "2026-10-16-o", _ours_event("2026-10-16-o:1", "add", "x"))
+    tree = cfg.ledger_dir.parent  # type: ignore[attr-defined]
+    before = {p: p.read_bytes() for p in tree.rglob("*") if p.is_file()}
+
+    payload = json.dumps(_ours_event("2026-10-16-o:2", "add", "planning"))
+    for call in (
+        lambda: cli.cmd_record(cfg, _rec_ns(json=payload)),
+        lambda: cli.cmd_build(cfg, _ns()),
+        lambda: ledger.seal(cfg, "2026-10-16-o"),
+    ):
+        with pytest.raises(SystemExit, match="repair round_order"):
+            call()
+
+    assert {p: p.read_bytes() for p in tree.rglob("*") if p.is_file()} == before
 
 
 def test_more_than_one_open_round(

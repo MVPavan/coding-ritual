@@ -35,10 +35,11 @@ def check_immutable(cfg: RegistryConfig) -> list[str]:
 
 
 def _check_supersession(events: list[Event], seen: set[str]) -> list[str]:
-    """Targets exist, belong to the same subject, superseded at most once, and
-    chains are acyclic within a subject."""
+    """Targets exist, come earlier in ledger order, belong to the same subject,
+    are superseded at most once, and chains are acyclic within a subject."""
     errors: list[str] = []
     by_id = {e.id: e for e in events}
+    position = {e.id: i for i, e in enumerate(events)}
     superseded_by: dict[str, str] = {}
     for event in events:
         for target in event.supersedes:
@@ -47,6 +48,10 @@ def _check_supersession(events: list[Event], seen: set[str]) -> list[str]:
                 continue
             if target == event.id:
                 errors.append(f"{event.id}: supersedes itself")
+            elif position[target] > position[event.id]:
+                errors.append(
+                    f"{event.id}: supersedes {target}, which comes later in ledger order"
+                )
             tgt = by_id[target]
             if tgt.subject != event.subject:
                 errors.append(

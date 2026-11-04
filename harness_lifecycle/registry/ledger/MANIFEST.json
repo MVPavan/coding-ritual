@@ -1,5 +1,5 @@
 {
-  "_comment": "sha256 of every sealed round file and report, and of every analysis a sealed round cites. registry.py check fails if one is modified or deleted. Never edit by hand.",
+  "_comment": "sha256 of every sealed round file and report, and of every analysis a sealed round cites; in round_order, the sealed rounds in recording order. registry.py check fails if one is modified or deleted. Never edit by hand.",
   "rounds": {
     "2026-10-14-migration.jsonl": "8cc852e274b32cd9067fbabcd82a651f291b3822e588b95775f2316390061914",
     "2026-10-14-owner-review.jsonl": "b49225eb122224094942b2e7e4f779686186a4eb0eb1ede9521e2f86dc181958",
@@ -23,6 +23,29 @@
     "2026-11-04-batch-4.jsonl": "a7226af7657b4352a5d1c21a91e0178fcef7a51605179a75de9abfb0d69ae5ac",
     "2026-11-04-pocock-pass.jsonl": "d6fc561c84c7e8b5545cb77aa5f091e0c4b23a640d36536dbaa8908118d358e8"
   },
+  "round_order": [
+    "2026-10-14-migration.jsonl",
+    "2026-10-14-owner-review.jsonl",
+    "2026-10-30-delegation.jsonl",
+    "2026-10-30-mattpocock_skills-5beb35b.jsonl",
+    "2026-10-31-mvp-mode.jsonl",
+    "2026-11-01-cursor_plugins-pstack-principles.jsonl",
+    "2026-11-01-principles-fixes.jsonl",
+    "2026-11-01-playbook-ledger.jsonl",
+    "2026-11-01-pstack-playbooks.jsonl",
+    "2026-11-01-batch-0.jsonl",
+    "2026-11-01-pocock-retarget.jsonl",
+    "2026-11-01-batch-1.jsonl",
+    "2026-11-02-batch-2.jsonl",
+    "2026-11-02-pilot-2.jsonl",
+    "2026-11-02-pilot-3.jsonl",
+    "2026-11-02-first-real-session.jsonl",
+    "2026-11-02-model-comparison.jsonl",
+    "2026-11-02-run-budget.jsonl",
+    "2026-11-03-batch-3.jsonl",
+    "2026-11-04-batch-4.jsonl",
+    "2026-11-04-pocock-pass.jsonl"
+  ],
   "reports": {
     "harness_lifecycle/registry/reviews/2026-10-30-upstream-mattpocock_skills-5beb35b.yaml": "fb413772a75f116bd9baeaa06b6e414fe59978c654a951cb53345f17459d7597",
     "harness_lifecycle/registry/reviews/2026-10-31-upstream-cursor_plugins-pstack-principles.yaml": "04474c59bea34d1b3e23c2d2be492ff389a54855ce34d0436063f6522ba6627b",

@@ -23,7 +23,7 @@ registry/
 ├── trait-policy.yaml              # standing stances on traits (§4a)
 ├── ledger/
 │   ├── <yyyy-mm-dd>-<slug>.jsonl  # one file per round (§5)
-│   └── MANIFEST.json              # sha256 of sealed rounds, sealed reports and cited analyses
+│   └── MANIFEST.json              # sha256 of sealed rounds, sealed reports and cited analyses; recording order of the rounds
 ├── reviews/                       # evidence behind rulings (§5a)
 ├── skill-records/<domain>/<skill>.md   # generated: one per skill (§3)
 ├── references/<harness>.md        # generated: their capabilities, stage and our ruling (§4)
@@ -425,6 +425,15 @@ wording edit outside these fields is no change.
 The ledger follows `.repo-context/coding-style.md` §Ledgers: JSON Lines, one
 file per round, append only, sealed when complete.
 
+**Ledger order is recording order.** `round_order` in `MANIFEST.json` lists the
+sealed rounds in the order they were sealed, and every reader takes events in
+that order, then any open round. A round's filename says nothing about order, so
+two rounds on one date need no particular slugs. `round seal` appends to the
+list; `check` fails unless it names exactly the sealed rounds, each once, and
+fails on an event that supersedes a later one. It cannot see a swap of two rounds
+with no such edge between them, so never edit the list by hand. `record`, `build`
+and `round seal` refuse to run on a list that fails the names test.
+
 **First line of every round file: the round header.**
 
 ```json
@@ -697,13 +706,13 @@ is a thin entry for the `curation` package at the repo root
 | `gap <harness> [--kind K] [--beads]` | Lists capabilities never ruled on, those ruled on whose upstream content changed since (§5b, with the `git diff` command and the traits or adaptation already ruled), and those removed upstream. Capabilities we already have under the same logical ID or normalized name, but never ruled on, are listed separately as `present, unruled`. `--beads` prints `bd create` lines for review; it never runs them |
 | `status <harness> [--skill X] [--traits]` | Each upstream skill's stage, and per trait its stage, ruling and provision (§5c); trait-policy entries whose guide rules changed |
 | `ours` | Catalogs our capabilities: root `.claude/` and `.codex/` plus every `mvp-harness/plugins/*`, excluding each plugin's `template/` copy |
-| `round open <slug>` / `round seal <round_id>` | Starts a round file with its header; seals it into `MANIFEST.json`, with the hashes of the analyses it cites |
+| `round open <slug>` / `round seal <round_id>` | Starts a round file with its header; seals it into `MANIFEST.json`, appending it to `round_order`, with the hashes of the analyses it cites |
 | `report draft <harness> --skill <id> --with <skill\|none> [--report P] [--reconsider T …] [--refresh]` | Creates or extends a draft report with computed facts and pairing; `--refresh` recomputes them and keeps the judged fields |
 | `report seal <path>` | Freezes a report once both critic fields are `pass` or `accepted` (§5c) and every in-scope trait has its row and evidence |
 | `record … [--supersedes <id>] [--whole-skill <kind>]` | Appends one validated event to the open round (§5b); fills `source`, lifecycle inheritance, `policy_basis` and a playbook's `target_tree_hash` |
 | `steps diff <playbook> [<base>] [<head>]` | Lists a playbook's per-step changes between two git revisions; `base` defaults to `HEAD`, `head` to the working tree (§4b) |
 | `build` | Regenerates `INDEX.md`, `TRAITS.md`, `STEPS.md`, `references/*.md`, every skill record and every report's `.md` |
-| `check` | Validates the ledger (schema, unique IDs, `supersedes`, sealed rounds and reports unchanged, trait rules of §5b), `skills.yaml` and the records, the trait files (§4a), the playbooks and their ledger hashes (§4b), sharing and policy, the reports, and that generated files are current. Warnings (retired traits still listed, unjustified shared traits, `avoid` traits we still list, changed guide rules) do not fail it |
+| `check` | Validates the ledger (schema, unique IDs, `supersedes`, sealed rounds and reports unchanged, `round_order`, trait rules of §5b), `skills.yaml` and the records, the trait files (§4a), the playbooks and their ledger hashes (§4b), sharing and policy, the reports, and that generated files are current. Warnings (retired traits still listed, unjustified shared traits, `avoid` traits we still list, changed guide rules) do not fail it |
 
 ## 7. Changing skills
 

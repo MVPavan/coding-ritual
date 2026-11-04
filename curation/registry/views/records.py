@@ -116,10 +116,8 @@ def _history_block(skill: str, events: list[Event], dead: set[str]) -> str:
     rows = [e for e in events if e.skill == skill or e.subject == f"ours:{skill}"]
     if not rows:
         return "No ledger history recorded."
-    # Newest first, by date then id — a real chronological order, not file order.
-    ordered = sorted(rows, key=lambda e: (e.date, e.id), reverse=True)
     lines: list[str] = []
-    for event in ordered:
+    for event in reversed(rows):  # newest first: `events` is in recording order
         mark = " *(superseded)*" if event.id in dead else ""
         lines.append(
             f"- `{event.date}` **{event.kind}** ({event.id}){mark}: {_one_line(event.why, 160)}"

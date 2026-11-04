@@ -54,24 +54,24 @@ Use for risky behavior changes, regression proof, legacy characterization, or su
 - **mattpocock_skills:skill:skills/engineering/tdd#system-boundary-mocks-only** `skills/engineering/tdd/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/engineering/diagnosing-bugs#seam-selection** `skills/engineering/diagnosing-bugs/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/engineering/implement-spec#red-green** `skills/engineering/implement-spec/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **cursor_plugins:skill:pstack/skills/principle-test-behavior-not-implementation#meaningful-behaviour-assertion** `pstack/skills/principle-test-behavior-not-implementation/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/principle-test-behavior-not-implementation#independent-expectation** `pstack/skills/principle-test-behavior-not-implementation/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
 - **mattpocock_skills:skill:skills/engineering/tdd#per-seam-note** `skills/engineering/tdd/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/engineering/tdd#one-test-per-cycle** `skills/engineering/tdd/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/engineering/tdd#behaviour-test-names** `skills/engineering/tdd/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/engineering/diagnosing-bugs#prove-the-red** `skills/engineering/diagnosing-bugs/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
-- **cursor_plugins:skill:pstack/skills/principle-test-behavior-not-implementation#meaningful-behaviour-assertion** `pstack/skills/principle-test-behavior-not-implementation/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
-- **cursor_plugins:skill:pstack/skills/principle-test-behavior-not-implementation#independent-expectation** `pstack/skills/principle-test-behavior-not-implementation/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
-- `2026-11-01` **adopt** (2026-11-01-pocock-retarget:006) *(superseded)*: Owner ruling 2026-11-01: the regression check left the diagnosis; confirming the red is test-driven-development's technique (S3, B3).
-- `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:128): Checkpoint at 4dd1d05 for the owner's trait rulings: 8 adopt.
-- `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:122): Lands as covered. Ours derives expected values from requirements, never from the code under test.
-- `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:120): Lands as covered. writing-good-tests asserts results, state or boundary interactions, not choreography.
 - `2026-11-01` **adopt** (2026-11-01-batch-1:202): Completes pending 2026-11-01-pocock-retarget:006: prove-the-red is written at .claude/skills/test-driven-development/SKILL.md:34-35, read against its definitio…
 - `2026-11-01` **adopt** (2026-11-01-batch-1:201): Completes pending 2026-10-30-mattpocock_skills-5beb35b:214: behaviour-test-names is written at .claude/skills/test-driven-development/references/writing-good-t…
 - `2026-11-01` **adopt** (2026-11-01-batch-1:200): Completes pending 2026-10-30-mattpocock_skills-5beb35b:203: one-test-per-cycle is written at .claude/skills/test-driven-development/SKILL.md:29-31, read agains…
 - `2026-11-01` **adopt** (2026-11-01-batch-1:199): Completes pending 2026-10-30-mattpocock_skills-5beb35b:201: per-seam-note is written at .claude/skills/test-driven-development/SKILL.md:25, read against its de…
 - `2026-11-01` **update** (2026-11-01-batch-1:197): Delivers four ruled traits with their sealed rewordings: a per-seam note, one behaviour per cycle, the pristine-copy diff guard on a forced red, and test names…
+- `2026-11-01` **adopt** (2026-11-01-pocock-retarget:006) *(superseded)*: Owner ruling 2026-11-01: the regression check left the diagnosis; confirming the red is test-driven-development's technique (S3, B3).
+- `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:128): Checkpoint at 4dd1d05 for the owner's trait rulings: 8 adopt.
+- `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:122): Lands as covered. Ours derives expected values from requirements, never from the code under test.
+- `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:120): Lands as covered. writing-good-tests asserts results, state or boundary interactions, not choreography.
 - `2026-10-30` **adopt-merged** (2026-10-30-mattpocock_skills-5beb35b:569): Checkpoint at 5beb35b for the owner's trait rulings: 10 adopt, 9 defer.
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:282): POINTER: execution SKILL.md:40-41 sends each task to test-first or characterization (test-driven-development's modes) when risk calls for it, rather than alway…
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:239): HELD: test-driven-development (.claude/skills/test-driven-development/SKILL.md:20-24): Choosing the test boundary is test-driven-development's rule (SKILL.md:2…

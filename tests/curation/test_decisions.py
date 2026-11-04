@@ -348,8 +348,8 @@ def test_completion(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
 def test_completion_in_round_sorting_before_its_pending_passes_check(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    """Filename order is not chronology within a date, so a completion from a
-    `reword` row is judged against the pending event it supersedes."""
+    """Recording order, not filename order: a completion from a `reword` row is
+    judged against the pending event it supersedes."""
 
     def reword(data: dict) -> None:
         _judge(data)
@@ -392,6 +392,30 @@ def test_completion_in_round_sorting_before_its_pending_passes_check(
     )
     _write_round(cfg, completing_round, done, trait_level=True, date="2026-10-21")
     _lists(cfg, "traits: [red-green, seams]", "traits: [red-green, seams, mocks]")
+    _ok(cfg, capsys)
+
+
+def test_first_time_pending_completed_in_a_round_sorting_before_it(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """cr-an42: on one date round z sorts after round a, but z was sealed first, so
+    its pending adopt with no `supersedes` precedes the completion in a."""
+    cfg = _cfg(tmp_path)
+    ledger.seal(cfg, "2026-10-14-r")
+    key = _seal(cfg, _draft(cfg))
+    _write_round(
+        cfg, ROUND, *_first_round(key)[:-1], trait_level=True, date="2026-10-20"
+    )
+    _point(cfg, SHA, None)
+    ledger.seal(cfg, ROUND)
+    pending = _ev("2026-10-21-z:1", "adopt", "novel", skill="tdd", report=key)
+    pending["pending"] = "cr-1"
+    _write_round(cfg, "2026-10-21-z", pending, trait_level=True, date="2026-10-21")
+    ledger.seal(cfg, "2026-10-21-z")
+    done = _ev("2026-10-21-a:1", "adopt", "novel", skill="tdd", report=key)
+    done["supersedes"] = [pending["id"]]
+    _write_round(cfg, "2026-10-21-a", done, trait_level=True, date="2026-10-21")
+    _lists(cfg, "traits: [red-green, seams]", "traits: [red-green, seams, novel]")
     _ok(cfg, capsys)
 
 
@@ -461,11 +485,13 @@ def _two_pending_and_completion(
 
 
 @pytest.mark.parametrize("order", [(0, 1), (1, 0)], ids=["first-last", "last-first"])
-def test_two_unrelated_later_predecessors_are_refused_in_either_order(
+def test_completion_of_an_older_pending_is_refused_in_either_order(
     tmp_path: Path, capsys: pytest.CaptureFixture[str], order: tuple[int, int]
 ) -> None:
+    """The effective event is the retargeted pending, which the first's target does
+    not complete, so this is a new delivered adopt from a `reword` row."""
     cfg = _two_pending_and_completion(tmp_path, order, chained=False)
-    _fails(cfg, capsys, "2026-10-21-a:1: supersedes several later events")
+    _fails(cfg, capsys, "2026-10-21-a:1: a new delivered adopt from a `reword` row")
 
 
 @pytest.mark.parametrize("order", [(0, 1), (1, 0)], ids=["first-last", "last-first"])

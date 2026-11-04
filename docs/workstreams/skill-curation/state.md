@@ -57,10 +57,11 @@ deleted. Beads is the work-state authority; this file is the narrative.
 | `fe75e0d` | Catalog diff and `gap` report bundled-file changes (`cr-r2pa.2.11`) |
 | `9a07dc0` | Batch 4 (`cr-r2pa.2.7`, round `2026-11-04-batch-4`), see below |
 | `2fbc414` | Pocock pass (`cr-r2pa.2.10`, round `2026-11-04-pocock-pass`), see below |
-| after `2fbc414` | `gap` and `record` read a sparse reference whole (`cr-r2pa.2.17`) |
+| `b9a4d57` | `gap` and `record` read a sparse reference whole (`cr-r2pa.2.17`) |
+| after `b9a4d57` | The ledger reads in recording order, not filename order (`cr-an42`) |
 
 `main` is at `eb36cc9`; later work is on `mvp-stack` until the owner asks to merge.
-`mvp-stack` is pushed through `2fbc414`; commits after it are local until the owner says to push.
+`mvp-stack` is pushed through `b9a4d57`; commits after it are local until the owner says to push.
 
 Decisions behind them: domains `core` and `engineering`; one primary
 coordinate per skill (domain · stage · sub-stage); reviews are flat files
@@ -146,9 +147,13 @@ critic, owner rulings, ledger, build, Sol review, commit after the owner approve
   fact stays an ordinary question; the two sharing reasons are accepted. 13 traits follow their
   rewording under T5, logged in `unit-kinds.md`. No description or invocation flag changed. Status
   `PARTIAL`: no real session has run any of it.
-- `cr-r2pa.2.17`, done: `gap` and `record`'s source autofill read a sparse reference from a full
+- `cr-r2pa.2.17`, done (`b9a4d57`): `gap` and `record`'s source autofill read a sparse reference from a full
   export of its HEAD, as `scan.py catalog` does. `gap cursor_plugins` now sees all 352 capabilities,
   and its not-reviewed list went from 30 to 281: the real gap, for `cr-r2pa.2.13` to scope.
+- `cr-an42`, done: `round_order` in `MANIFEST.json` lists the sealed rounds in recording order and
+  every reader follows it, so a round's slug no longer decides which ruling wins. `record`, `build`
+  and `round seal` refuse a bad list. Merging two branches that each seal a round needs a person to
+  choose the order: `check` cannot always tell which is right.
 - `cr-r2pa.2.13`: analyse every skill of ours, Pocock and pstack; its scope is still to
   agree with the owner.
 - `cr-r2pa.3.3`: at the end of the project, show the owner everything deferred or

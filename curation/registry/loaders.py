@@ -229,10 +229,31 @@ def skill_description(cfg: RegistryConfig, skill: str) -> str:
     return " ".join(desc.split()) if isinstance(desc, str) else ""
 
 
+def read_manifest(cfg: RegistryConfig) -> dict[str, Any]:
+    """`MANIFEST.json` as stored; absent means empty."""
+    if not cfg.manifest_path.is_file():
+        return {}
+    data: dict[str, Any] = json.loads(cfg.manifest_path.read_text(encoding="utf-8"))
+    return data
+
+
 def _round_files(cfg: RegistryConfig) -> list[Path]:
+    """Ledger order: sealed rounds in the manifest's `round_order`, which is
+    recording order, then any open round by filename. A round the list does not
+    name sorts with the open ones; `check` refuses such a list, and `record`,
+    `build` and `round seal` refuse to run on it."""
     if not cfg.ledger_dir.is_dir():
         return []
-    return sorted(p for p in cfg.ledger_dir.glob("*.jsonl"))
+    present = {p.name: p for p in cfg.ledger_dir.glob("*.jsonl")}
+    order = read_manifest(cfg).get("round_order")
+    listed = dict.fromkeys(
+        name
+        for name in (order if isinstance(order, list) else [])
+        if isinstance(name, str) and name in present
+    )
+    return [present[n] for n in listed] + [
+        present[n] for n in sorted(present) if n not in listed
+    ]
 
 
 def load_ledger(

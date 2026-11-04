@@ -83,7 +83,9 @@ from curation.registry.ledger import (
     manifest_reports,
     open_round,
     open_rounds,
+    require_round_order,
     round_header_by_id,
+    round_order_errors,
     seal,
 )
 from curation.registry.loaders import (
@@ -331,6 +333,7 @@ def cmd_round(cfg: RegistryConfig, args: argparse.Namespace) -> int:
 
 
 def cmd_record(cfg: RegistryConfig, args: argparse.Namespace) -> int:
+    require_round_order(cfg)
     path = open_round(cfg)
     if path is None:
         raise SystemExit("no open round — run `round open <slug>` first")
@@ -375,6 +378,7 @@ def _json_arg(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def cmd_build(cfg: RegistryConfig, args: argparse.Namespace) -> int:
+    require_round_order(cfg)
     outputs = build_outputs(cfg)
     cfg.references_dir.mkdir(parents=True, exist_ok=True)
     for path, content in outputs.items():
@@ -407,6 +411,7 @@ def cmd_check(cfg: RegistryConfig, args: argparse.Namespace) -> int:
             "more than one open round: " + ", ".join(p.name for p in open_now)
         )
     errors += check_immutable(cfg)
+    errors += round_order_errors(cfg)
 
     skills, skill_errors = load_skills(cfg)
     errors += skill_errors
