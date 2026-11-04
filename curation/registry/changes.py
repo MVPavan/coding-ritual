@@ -12,14 +12,19 @@ from curation.registry.models import ChangeInfo, Event, RoundHeader
 from curation.scan.models import Capability
 
 
-def _diff_folder(cap: Capability) -> str:
-    """The submodule-relative path to diff for a capability — a skill's whole
-    folder, or a single-file capability's path."""
+def _diff_paths(cap: Capability) -> list[str]:
+    """The submodule-relative paths to diff for a capability — a skill's whole
+    folder, a playbook's file and reference folder (whether or not the folder
+    exists at the pin, since it may have existed at the baseline), or a
+    single-file capability's path."""
+    path = Path(cap.canonical_path)
     if cap.kind.value == "skill":
-        parent = str(Path(cap.canonical_path).parent)
+        parent = str(path.parent)
         if parent and parent != ".":
-            return f"{parent}/"
-    return cap.canonical_path
+            return [f"{parent}/"]
+    if cap.kind.value == "playbook":
+        return [cap.canonical_path, f"{path.with_suffix('')}/"]
+    return [cap.canonical_path]
 
 
 GIT_TIMEOUT = 15
@@ -46,9 +51,9 @@ def _commit_exists(submodule: Path, sha: str) -> bool:
 
 
 def _git_diff_changed(
-    submodule: Path, base: str, pin: str | None, folder: str
+    submodule: Path, base: str, pin: str | None, paths: list[str]
 ) -> bool | None:
-    """True/False whether `folder` differs between `base` and `pin` (HEAD when
+    """True/False whether `paths` differ between `base` and `pin` (HEAD when
     `pin` is None); None when the diff cannot be run (e.g. commit absent)."""
     if not submodule.is_dir() or not _commit_exists(submodule, base):
         return None
@@ -57,7 +62,7 @@ def _git_diff_changed(
     args = ["diff", "--quiet", base]
     if pin:
         args.append(pin)
-    args += ["--", folder]
+    args += ["--", *paths]
     code = _git_returncode(submodule, *args)
     if code == 0:
         return False
@@ -77,7 +82,7 @@ def _change_info(
     src = event.source
     repo = ref.repo
     submodule = cfg.repo_root / "reference_harnesses" / repo
-    folder = _diff_folder(cap)
+    paths = _diff_paths(cap)
     pin = ref.source_commit
     base_sha = src.sha if src else None
     round_pin = header.pins.get(repo) if header else None
@@ -91,7 +96,7 @@ def _change_info(
         argv = ["git", "-C", f"reference_harnesses/{repo}", "diff", display_base]
         if pin:
             argv.append(pin)
-        argv += ["--", folder]
+        argv += ["--", *paths]
         diff_cmd = shlex.join(argv)
         if not base_sha and round_pin:
             label = "baseline inferred from round pin"
@@ -103,11 +108,11 @@ def _change_info(
     if src and src.tree_hash and cap.tree_hash:
         changed = "yes" if src.tree_hash != cap.tree_hash else "no"
     elif base_sha:
-        res = _git_diff_changed(submodule, base_sha, pin, folder)
+        res = _git_diff_changed(submodule, base_sha, pin, paths)
         if res is not None:
             changed = "yes" if res else "no"
     elif round_pin:
-        res = _git_diff_changed(submodule, round_pin, pin, folder)
+        res = _git_diff_changed(submodule, round_pin, pin, paths)
         if res is not None:
             changed = "yes" if res else "no"
     return ChangeInfo(changed=changed, diff_cmd=diff_cmd, label=label)

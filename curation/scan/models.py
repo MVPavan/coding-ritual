@@ -73,13 +73,13 @@ class Capability:
         raw_tree = data.get("tree_hash")
         if raw_tree:
             tree_hash = str(raw_tree)
-        elif kind is not Kind.SKILL:
-            # For non-skills the tree hash *is* the content hash (§4), so a legacy
-            # catalog without the field can safely reconstruct it.
+        elif kind not in (Kind.SKILL, Kind.PLAYBOOK):
+            # For single-file kinds the tree hash *is* the content hash (§4), so a
+            # legacy catalog without the field can safely reconstruct it.
             tree_hash = content_hash
         else:
-            # A legacy skill catalog has no real folder hash; leave it unknown
-            # rather than fabricating one from SKILL.md alone (review #12).
+            # A legacy skill or playbook catalog has no real folder hash; leave it
+            # unknown rather than fabricating one from the main file (review #12).
             tree_hash = ""
         return Capability(
             kind=kind,

@@ -602,6 +602,16 @@ are in §5c.
    "baseline inferred from round pin";
 4. otherwise: "baseline unknown, review".
 
+**Limit.** Every rule above reads the canonical copy only. A change to just a
+mirror copy (`.cursor/skills/…` beside `skills/…`), its body or its bundled files,
+is not reported: a ruling stores the canonical copy's hashes, and sealed events
+cannot gain a hash over the mirrors. `scan.py diff` and `drift` show a mirror's
+body edit as minor and its bundled files not at all. Of 195 capability rulings on
+2026-11-03, one has a mirror, a `reject`
+(`The-Claude-Protocol:skill:skills/create-beads-orchestration`). Revisit when an
+adopt or adopt-merged ruling is made on a mirrored capability, or a harness ships
+mirrors that differ from its canonical copy in a way a ruling depends on.
+
 ## 5a. Reviews
 
 A review is the evidence behind one or more rulings, in `reviews/`:

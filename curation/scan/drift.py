@@ -22,6 +22,11 @@ def _change_ratio(old_text: str, new_text: str) -> tuple[int, float]:
     return changed, changed / denom
 
 
+def _tree_changed(old: Capability, new: Capability) -> bool:
+    """Whether the folder hash moved. A legacy catalog has none: unknown, no change."""
+    return bool(old.tree_hash and new.tree_hash and old.tree_hash != new.tree_hash)
+
+
 def classify_change(
     old: Capability,
     new: Capability,
@@ -30,14 +35,17 @@ def classify_change(
 ) -> tuple[Material, str]:
     """Decide whether a modified capability is a material or cosmetic change.
 
-    Signature changes (name/description/tools/MCP surface) are always material.
-    Body-only changes are measured precisely when both trees are on disk (drift);
+    Signature changes (name/description/tools/MCP surface) are always material,
+    and so is a change only to a skill's or playbook's bundled files: nothing sizes
+    it, and hiding a real edit is the worse error. Body-only changes are measured precisely when both trees are on disk (drift);
     from catalogs alone we cannot size the change, so we surface it as material
     rather than risk hiding a real edit.
     """
     if old.signature_hash != new.signature_hash:
         return Material.MATERIAL, "frontmatter/surface changed"
     if old.content_hash == new.content_hash:
+        if _tree_changed(old, new):
+            return Material.MATERIAL, "folder bytes changed (normalized main file unchanged)"
         if set(old.variant_hashes) != set(new.variant_hashes):
             return Material.MINOR, "mirror-only change (canonical unchanged)"
         return Material.MINOR, "paths changed only"
@@ -91,6 +99,7 @@ def diff_catalogs(
             old_cap.content_hash == new_cap.content_hash
             and old_cap.signature_hash == new_cap.signature_hash
             and set(old_cap.variant_hashes) == set(new_cap.variant_hashes)
+            and not _tree_changed(old_cap, new_cap)
         ):
             continue
         level, reason = classify_change(old_cap, new_cap, old_root, new_root)
