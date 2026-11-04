@@ -31,15 +31,22 @@ Use when handing work to another agent or model (an explorer, implementer, revie
 - `codex-direct`: Call the Codex CLI directly rather than through the retired adapter plugin.
 - `closed-stdin`: Close standard input when running an agent CLI non-interactively so it cannot wait for input with no timeout.
 - `result-error-check`: Judge an agent CLI run by its structured result's error flag, never by its exit code alone.
+- `background-dispatch-for-dialogue`: Run subagents in the background so the coordinator stays in live dialogue with the user.
+- `brief-names-done-evidence`: A brief names what will show the work is finished, and a unit with nothing to name is scoped further or raised with the owner before dispatch.
+- `read-worker-output`: Open the diff or artifact a worker produced and hold it to the evidence its brief named, instead of relying on its summary.
+- `stalled-worker-by-output`: Stop or replace a worker that stalls or loops, judging it by what it has produced rather than its status text.
+- `retry-by-cause`: Retry a failed worker according to why it failed, with a narrower unit, the same brief or another model, and after two retries drop the unit and plan around it.
 <!-- /registry:generated traits -->
 
 <!-- registry:generated lineage -->
-- **mattpocock_skills:skill:skills/in-progress/chief-of-staff#background-dispatch-for-dialogue** `skills/in-progress/chief-of-staff/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.3)
+- **mattpocock_skills:skill:skills/in-progress/chief-of-staff#background-dispatch-for-dialogue** `skills/in-progress/chief-of-staff/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-04` **update** (2026-11-04-pocock-pass:038): Owner ruling 17 (playbook map 2.17, 7.2): Orchestrate stays deferred and delegation grows by three rules from its Supervision section. A brief names what will …
+- `2026-11-04` **adopt** (2026-11-04-pocock-pass:009): Completes pending 2026-10-30-mattpocock_skills-5beb35b:421: background-dispatch-for-dialogue is written at .claude/skills/delegation/SKILL.md:49-51, in the sea…
 - `2026-10-30` **adopt-merged** (2026-10-30-mattpocock_skills-5beb35b:580): Checkpoint at 5beb35b for the owner's trait rulings: 1 adopt, 23 defer.
-- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:421): AGENTS.md has the lead continue independent work while waiting (AGENTS.md:9-10) but delegation never says to dispatch in the background; CF-09 asks for exactly…
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:421) *(superseded)*: AGENTS.md has the lead continue independent work while waiting (AGENTS.md:9-10) but delegation never says to dispatch in the background; CF-09 asks for exactly…
 - `2026-10-30` **add** (2026-10-30-delegation:001): Owner 2026-10-30: one vendor-neutral skill for every handoff to another agent or model; roles in roles/, vendors in vendors/ (T3, Codex CLI, Claude CLI).
 <!-- /registry:generated history -->
 
@@ -48,7 +55,8 @@ None yet.
 <!-- /registry:generated reviews -->
 
 <!-- registry:generated sources -->
-No adopted traits recorded.
+- `background-dispatch-for-dialogue`:
+  - `mattpocock_skills:skill:skills/in-progress/chief-of-staff#background-dispatch-for-dialogue` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 <!-- /registry:generated sources -->
 
 <!-- registry:generated declined -->

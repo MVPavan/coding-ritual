@@ -10,8 +10,11 @@ that interaction. A request for written critique does not itself request an inte
 
 Map material decisions and their prerequisites. Ask a manageable batch of
 independent questions whose prerequisites are settled; defer dependent questions
-until their answers can use the earlier decisions. Include a recommendation and
-its assumptions where useful, allowing the user to disagree.
+until their answers can use the earlier decisions. Wait for the answers to the
+current round before asking the next round. Include a recommendation and its
+assumptions where useful, allowing the user to disagree. Word each question so a
+plain yes accepts the recommendation. A question after a fact, with no
+recommendation to offer, stays an ordinary question.
 
 Look up available facts yourself. Ordinary local or documentation lookups stay
 inline; delegate only bounded work that benefits from it. Decisions requiring a
@@ -24,7 +27,8 @@ and remaining uncertainty; carry authorization forward for any next step already
 requested, without treating the interview itself as implementation authority.
 
 If the necessary respondent is absent, prepare a questionnaire for their role and
-knowledge gap. Ask the present user only for missing recipient context and desired
+knowledge gap: cover every needed decision or fact with at least one single-idea
+question, most important first. Ask the present user only for missing recipient context and desired
 outcome; do not force two exchanges when these were supplied. Drafting a
 questionnaire does not authorize sending it.
 

@@ -42,11 +42,26 @@ same family, ask the owner to approve that explicitly before dispatching.
    a nearby one.
 3. Brief: the role contract, outcome, owned paths or read-only, constraints,
    acceptance checks, context pointers and report format. Writers in a shared
-   checkout preserve others' edits.
-4. Dispatch through the vendor.
-5. Collect: record the model and settings the vendor reports actually ran, mark
+   checkout preserve others' edits. Name what will show the work is finished: a
+   command with its expected output, an artifact to inspect, or a report citing
+   its sources. A unit with nothing to name is not scoped yet: narrow it or ask
+   the owner, and dispatch nothing until then.
+4. Dispatch through the vendor. Dispatch in the background when the runtime
+   allows, and keep working or talking with the user while the worker runs;
+   collect every result.
+5. A worker that stalls or loops gets stopped or replaced by the vendor's own
+   means, under that vendor's rules on waiting. Decide from what it has produced
+   so far, whatever its status text says. Retry according to why it failed: on
+   a narrower unit after a context limit, on an unchanged brief after a lost
+   connection, on another model after a tool error, and on a narrower unit when
+   you cannot tell why. That other model comes from the roster or the owner under
+   the rules above, so a reviewer or critic still comes from a different family.
+   Two retries spent: drop the unit, plan the rest around it and report the drop.
+6. Collect: record the model and settings the vendor reports actually ran, mark
    any it does not report as requested-but-unverified, and verify consequential
-   claims against primary evidence before relying on them.
+   claims against primary evidence before relying on them. Open what the worker
+   changed or produced, its diff or artifact, instead of relying on its summary,
+   and hold it to the evidence the brief named.
 
 If your harness has its own subagent tool that can run the roster's model with
 its settings, you may use it instead; it needs no vendor file.

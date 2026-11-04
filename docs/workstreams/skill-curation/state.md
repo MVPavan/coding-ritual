@@ -1,7 +1,7 @@
 # Skill curation: handoff
 
-Updated 2026-11-03 (MVP stack phase 1 closed; phase 2 running on the playbook
-map, batches 2 and 3 and pilots 2 and 3 done). Branch `mvp-stack` in the main worktree; `dws-workflow` is retired and
+Updated 2026-11-04 (MVP stack phase 1 closed; phase 2 running on the playbook
+map, batches 2 to 4, pilots 2 and 3 and the Pocock pass done). Branch `mvp-stack` in the main worktree; `dws-workflow` is retired and
 deleted. Beads is the work-state authority; this file is the narrative.
 
 ## Start here (new session)
@@ -55,10 +55,11 @@ deleted. Beads is the work-state authority; this file is the narrative.
 | after `2bc70a2` | Pilot 3 (`cr-r2pa.2.9`, round `2026-11-02-pilot-3`), see below |
 | `8b9f890` | Batch 3 (`cr-r2pa.2.6`, round `2026-11-03-batch-3`), see below |
 | `fe75e0d` | Catalog diff and `gap` report bundled-file changes (`cr-r2pa.2.11`) |
-| after `fe75e0d` | Batch 4 (`cr-r2pa.2.7`, round `2026-11-04-batch-4`), see below |
+| `9a07dc0` | Batch 4 (`cr-r2pa.2.7`, round `2026-11-04-batch-4`), see below |
+| after `9a07dc0` | Pocock pass (`cr-r2pa.2.10`, round `2026-11-04-pocock-pass`), see below |
 
 `main` is at `eb36cc9`; later work is on `mvp-stack` until the owner asks to merge.
-`mvp-stack` is pushed through `fe75e0d`; commits after it are local until the owner says to push.
+`mvp-stack` is pushed through `9a07dc0`; commits after it are local until the owner says to push.
 
 Decisions behind them: domains `core` and `engineering`; one primary
 coordinate per skill (domain · stage · sub-stage); reviews are flat files
@@ -90,7 +91,7 @@ critic, owner rulings, ledger, build, Sol review, commit after the owner approve
   with two shapes and no council asked for it compares them and carries on. `review` gets the seven
   Pocock rows (`cr-axdt.6.8`). S7 is amended by owner ruling, with a dated row. No real session has
   run any of it.
-- `cr-r2pa.2.7`, built: batch 4 (round `2026-11-04-batch-4`). The owner ruled all six questions as
+- `cr-r2pa.2.7`, done (`9a07dc0`): batch 4 (round `2026-11-04-batch-4`). The owner ruled all six questions as
   recommended on 2026-11-04, amending ruling 12: waiting on a command needs no `wake`. New skill
   `wake`: a card holding a run's limits, attempts, closed state and checkpoint, plus one closing
   timer at the deadline, set only for a stated unattended run. New playbook Autonomous run, by a
@@ -136,16 +137,20 @@ critic, owner rulings, ledger, build, Sol review, commit after the owner approve
   commit without the owner's own words. Two E4 proposals go to the owner at the commit request. None of it has run on a
   real session: whether a model picks either playbook, opens artifacts before a skip, keeps open calls whole on a
   resumed run or cleans up its file all wait on `cr-r2pa.2.12`.
-- Then the remaining Pocock pass (`.10`) and `gap`'s sparse-checkout reading (`.17`).
+- `cr-r2pa.2.10`, done: the Pocock pass (round `2026-11-04-pocock-pass`). 37 of the 38 pending
+  adoptions are delivered into eight skills in their sealed wording, and `delegation` gains ruling
+  17's three supervision rules. `triage`'s new close also goes in the Beads table. Owner rulings of
+  2026-11-04: `human-facing-description` is deferred to `cr-r2pa.3.4`, which rules on a carve-out
+  from S5 for manual skills; `grilling` keeps its frozen sentence and adds that a question after a
+  fact stays an ordinary question; the two sharing reasons are accepted. 13 traits follow their
+  rewording under T5, logged in `unit-kinds.md`. No description or invocation flag changed. Status
+  `PARTIAL`: no real session has run any of it.
+- Then `gap`'s sparse-checkout reading (`.17`).
 - `cr-r2pa.2.13`: analyse every skill of ours, Pocock and pstack; its scope is still to
   agree with the owner.
 - `cr-r2pa.3.3`: at the end of the project, show the owner everything deferred or
   rejected, from the ledger's `defer` events, the deferred beads and each
   `deliberately_dropped` with its `revisit_when`, to revise and adapt.
-
-The Pocock pending adoptions are tracked in `cr-axdt.6` (13 tasks, one per target
-skill) and join the batch that touches the same skill; each completes its adopts
-with `record --supersedes`.
 
 ## Uncommitted work (as of this handoff)
 

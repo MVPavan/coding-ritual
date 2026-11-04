@@ -237,11 +237,12 @@ There are no intake labels. Triage reads the bead and decides one of:
 
 | Outcome | Action |
 |---|---|
-| Agent can do it | acceptance criteria present (add them if missing), a parent epic or feature, status open |
+| Agent can do it | acceptance criteria present and independently checkable (add them if missing), a parent epic or feature, status open |
 | The owner must do it | label `human` |
 | Questions for the owner | a separate `human` task holding the questions, which the bead depends on |
 | Real, not now | `bd defer` (with `--until` for a real date) |
 | An idea worth exploring later | a deferred spike |
+| Already built | `bd close --reason "already built: <where it lives>"`, not as wontfix |
 | Not doing it | `bd close --reason "wontfix: <why>"` |
 | Duplicate | `bd duplicate <id> --of <canonical>` |
 

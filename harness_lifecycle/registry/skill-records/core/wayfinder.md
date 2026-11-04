@@ -34,6 +34,10 @@ Map and resolve material decision dependencies across a multi-session effort.
 - `prototype-ticket-asset`: Resolve a prototype ticket by building a rough artifact and linking it from the ticket as an asset.
 - `fog-hygiene`: Keep decided, ticketed and out-of-scope items out of the map's section of not-yet-specified questions.
 - `low-res-map-load`: When working a map, load only its low-resolution body and open related tickets only on demand.
+- `breadth-first-charting`: Chart by questioning breadth-first across the whole space to surface the open decisions and first steps before going deep on any. (Delivers sealed row 2026-10-30-mattpocock_skills-5beb35b:149: surfaces the open decisions before resolving any, where the definition charts by questioning and surfaces first steps too; T5.)
+- `invalidated-ticket-reconciliation`: Update or delete the other tickets that a recorded decision invalidated. (Delivers sealed row 2026-10-30-mattpocock_skills-5beb35b:156: update or close, never delete, where the definition allows deleting; T5.)
+- `prerequisite-task-human-checklist`: Do prerequisite task work alone where possible, otherwise hand the human a precise checklist.
+- `prerequisite-task-result-facts`: Record on a prerequisite task the resulting facts later tickets depend on, such as URLs or where credentials live.
 <!-- /registry:generated traits -->
 
 <!-- registry:generated lineage -->
@@ -58,23 +62,27 @@ Map and resolve material decision dependencies across a multi-session effort.
 - **mattpocock_skills:skill:skills/engineering/wayfinder#record-resolution** `skills/engineering/wayfinder/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/engineering/wayfinder#prototype-ticket-asset** `skills/engineering/wayfinder/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/engineering/wayfinder#fog-hygiene** `skills/engineering/wayfinder/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
-- **mattpocock_skills:skill:skills/engineering/wayfinder#breadth-first-charting** `skills/engineering/wayfinder/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.13)
 - **mattpocock_skills:skill:skills/engineering/wayfinder#low-res-map-load** `skills/engineering/wayfinder/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
-- **mattpocock_skills:skill:skills/engineering/wayfinder#prerequisite-task-human-checklist** `skills/engineering/wayfinder/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.13)
-- **mattpocock_skills:skill:skills/engineering/wayfinder#prerequisite-task-result-facts** `skills/engineering/wayfinder/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.13)
-- **mattpocock_skills:skill:skills/engineering/wayfinder#invalidated-ticket-reconciliation** `skills/engineering/wayfinder/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.13)
+- **mattpocock_skills:skill:skills/engineering/wayfinder#breadth-first-charting** `skills/engineering/wayfinder/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/engineering/wayfinder#invalidated-ticket-reconciliation** `skills/engineering/wayfinder/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/engineering/wayfinder#prerequisite-task-human-checklist** `skills/engineering/wayfinder/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/engineering/wayfinder#prerequisite-task-result-facts** `skills/engineering/wayfinder/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-04` **adopt** (2026-11-04-pocock-pass:037): Completes pending 2026-10-30-mattpocock_skills-5beb35b:155: prerequisite-task-result-facts is written at .claude/skills/wayfinder/SKILL.md:31-33, in the sealed…
+- `2026-11-04` **adopt** (2026-11-04-pocock-pass:036): Completes pending 2026-10-30-mattpocock_skills-5beb35b:154: prerequisite-task-human-checklist is written at .claude/skills/wayfinder/SKILL.md:30-31, in the sea…
+- `2026-11-04` **adopt** (2026-11-04-pocock-pass:035): Completes pending 2026-10-30-mattpocock_skills-5beb35b:156: invalidated-ticket-reconciliation is written at .claude/skills/wayfinder/SKILL.md:51-52, in the sea…
+- `2026-11-04` **adopt** (2026-11-04-pocock-pass:034): Completes pending 2026-10-30-mattpocock_skills-5beb35b:149: breadth-first-charting is written at .claude/skills/wayfinder/SKILL.md:42-44, in the sealed rewordi…
 - `2026-10-30` **adopt-merged** (2026-10-30-mattpocock_skills-5beb35b:566): Checkpoint at 5beb35b for the owner's trait rulings: 24 adopt, 11 defer.
-- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:156): Ours updates invalidated dependencies (SKILL.md:46) but not the tickets themselves; closing rather than deleting keeps the Beads history the brief requires.
-- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:155): Ours records each answer (SKILL.md:44) but not the operational facts a task produces for later tickets; the clause on secrets keeps it within AGENTS.md's secre…
-- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:154): Ours does authorized prerequisite work (SKILL.md:30) but says nothing for work only the human can do; a precise checklist keeps the wait short.
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:156) *(superseded)*: Ours updates invalidated dependencies (SKILL.md:46) but not the tickets themselves; closing rather than deleting keeps the Beads history the brief requires.
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:155) *(superseded)*: Ours records each answer (SKILL.md:44) but not the operational facts a task produces for later tickets; the clause on secrets keeps it within AGENTS.md's secre…
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:154) *(superseded)*: Ours does authorized prerequisite work (SKILL.md:30) but says nothing for work only the human can do; a precise checklist keeps the wait short.
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:153): Owner deferred the report's reject recommendation, to review the set later: AGENTS.md already keeps large logs and histories behind references; a wayfinder-spe…
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:152): Ours keeps the map low-resolution and loads ticket detail as needed.
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:151): Owner deferred the report's reject recommendation, to review the set later: Ours continues into ready tickets while useful and authorized (SKILL.md:49); forcin…
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:150): Owner deferred the report's reject recommendation, to review the set later: The initial map follows from the five sections and the charting rules (SKILL.md:16-…
-- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:149): Ours settles the destination and tickets sharp questions (SKILL.md:39-41) but sets no order; breadth first keeps an early deep dive from hiding the dependencie…
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:149) *(superseded)*: Ours settles the destination and tickets sharp questions (SKILL.md:39-41) but sets no order; breadth first keeps an early deep dive from hiding the dependencie…
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:148): Owner deferred the report's reject recommendation, to review the set later: Ours already closes an out-of-scope ticket with an explicit exclusion reason (SKILL…
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:147): Ours leaves only not-yet-expressible questions in Not yet specified.
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:146): Owner deferred the report's reject recommendation, to review the set later: Ours runs a live interview only when one is requested (SKILL.md:29); defaulting to …
@@ -115,6 +123,8 @@ Map and resolve material decision dependencies across a multi-session effort.
 <!-- registry:generated sources -->
 - `bounded-decision-ticket`:
   - `mattpocock_skills:skill:skills/engineering/wayfinder#bounded-decision-ticket` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `breadth-first-charting`:
+  - `mattpocock_skills:skill:skills/engineering/wayfinder#breadth-first-charting` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `claim-before-work`:
   - `mattpocock_skills:skill:skills/engineering/wayfinder#claim-before-work` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `decision-map-epic`:
@@ -127,6 +137,8 @@ Map and resolve material decision dependencies across a multi-session effort.
   - `mattpocock_skills:skill:skills/engineering/wayfinder#fog-hygiene` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `human-decision-gate`:
   - `mattpocock_skills:skill:skills/engineering/wayfinder#live-human-resolution` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `invalidated-ticket-reconciliation`:
+  - `mattpocock_skills:skill:skills/engineering/wayfinder#invalidated-ticket-reconciliation` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `label-free-typing`:
   - `mattpocock_skills:skill:skills/engineering/wayfinder#no-triage-labels` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `low-res-map-load`:
@@ -139,6 +151,10 @@ Map and resolve material decision dependencies across a multi-session effort.
   - `mattpocock_skills:skill:skills/engineering/wayfinder#out-of-scope-close` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `plan-not-do`:
   - `mattpocock_skills:skill:skills/engineering/wayfinder#plan-not-do` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `prerequisite-task-human-checklist`:
+  - `mattpocock_skills:skill:skills/engineering/wayfinder#prerequisite-task-human-checklist` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `prerequisite-task-result-facts`:
+  - `mattpocock_skills:skill:skills/engineering/wayfinder#prerequisite-task-result-facts` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `prototype-ticket-asset`:
   - `mattpocock_skills:skill:skills/engineering/wayfinder#prototype-ticket-asset` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `question-graduation`:

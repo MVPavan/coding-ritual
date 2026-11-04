@@ -9,12 +9,15 @@ depends on the harness and invocation metadata.
 
 Keep common steps inline. Move substantial branch-specific material behind a
 conditional pointer. Avoid chains of mandatory reads and duplicate policy owners.
+Keep a concept's definition, rules and caveats together under one heading, so
+reading one part brings the rest.
 Manual entrypoints trade automatic discovery cost for a name the user remembers;
 retain useful aliases as thin pointers rather than independent workflows.
 
 ## Precision and discretion
 
-Use observable conditions, explicit outputs and checkable completion criteria.
+Use observable conditions, explicit outputs and checkable completion criteria that
+state how much the work must cover ("every caller checked").
 State authority boundaries where a workflow could otherwise expand the task.
 Match prescription to fragility: exact commands for deterministic contracts,
 principles for choices that depend on context. Permit genuine exceptions with
@@ -27,7 +30,8 @@ universally superior. Validate wording against the behavior at issue.
 ## Pruning
 
 Keep what changes decisions: repository conventions, non-obvious failure modes,
-required interfaces and operational invariants. Link to authoritative commands
+required interfaces and operational invariants; drop lines that went stale when
+the behaviour or facts they describe changed. Link to authoritative commands
 and configuration instead of copying volatile facts. Remove redundant steps,
 unsupported psychological claims and invented numerical thresholds. Familiar
 terms can compress an explanation; coined labels need definitions and maintenance.

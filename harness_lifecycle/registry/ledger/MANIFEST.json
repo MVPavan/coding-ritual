@@ -20,7 +20,8 @@
     "2026-11-02-pilot-3.jsonl": "18b4e28bf942b435af9f87d2e002b2dfb527b76f9deb277264be948bf611e9af",
     "2026-11-02-run-budget.jsonl": "a06bfd7122f9440c9576e51b1873f74990c4c0e90e215721c65d31b6a7aca2b8",
     "2026-11-03-batch-3.jsonl": "e86d4282c761b72e0ffed3168ba4717f514ce2b1e840061e77bf1e226acb7f8f",
-    "2026-11-04-batch-4.jsonl": "a7226af7657b4352a5d1c21a91e0178fcef7a51605179a75de9abfb0d69ae5ac"
+    "2026-11-04-batch-4.jsonl": "a7226af7657b4352a5d1c21a91e0178fcef7a51605179a75de9abfb0d69ae5ac",
+    "2026-11-04-pocock-pass.jsonl": "d6fc561c84c7e8b5545cb77aa5f091e0c4b23a640d36536dbaa8908118d358e8"
   },
   "reports": {
     "harness_lifecycle/registry/reviews/2026-10-30-upstream-mattpocock_skills-5beb35b.yaml": "fb413772a75f116bd9baeaa06b6e414fe59978c654a951cb53345f17459d7597",

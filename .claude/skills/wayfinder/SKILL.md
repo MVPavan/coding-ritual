@@ -27,7 +27,10 @@ coherence and dependencies, not an assumed context-window size.
 - Research establishes missing facts; direct lookups are fine, delegation optional.
 - Prototype raises fidelity for a decision; use the prototype skill when useful.
 - Grilling involves a live participant when an interview is requested.
-- Task performs authorized prerequisite work that unblocks a decision.
+- Task performs authorized prerequisite work that unblocks a decision. When a
+  prerequisite task needs the human, hand them a precise checklist. Record on a
+  prerequisite task the facts later tickets depend on, such as URLs or where
+  credentials live, never the secrets.
 
 Do not substitute the agent's answer for a required human decision. Documentation
 and memory follow task authority; domain-modeling is optional, not automatic.
@@ -36,14 +39,17 @@ do not silently create a competing Markdown tracker.
 
 ## Chart and resolve
 
-Settle the destination from supplied context and material questions. Create sharp
+Settle the destination from supplied context and material questions. Chart
+breadth-first: surface the open decisions across the whole effort before resolving
+any. Create sharp
 questions as tickets even if blocked; leave only questions not yet expressible in
 Not yet specified. Create IDs before wiring genuine dependencies.
 
 Choose the requested ticket or a ready unclaimed child; claim it before working.
 Load detail as needed. Record the answer and supporting artifacts, close with
 evidence, and append its resolution pointer to the map. Graduate newly expressible
-questions into tickets and update invalidated dependencies without deleting history.
+questions into tickets and update invalidated dependencies. Update or close the
+tickets a recorded decision invalidated, without deleting history.
 Out-of-scope tickets close with an explicit exclusion reason, not a claim of delivery.
 
 Continue through additional authorized ready tickets while useful; there is no

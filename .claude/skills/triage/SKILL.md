@@ -30,10 +30,13 @@ request did not establish a scope.
 ## Triage one bead
 
 1. **Gather.** `bd show <id>` including notes. Do not re-ask anything a prior
-   `Established:` note already records.
+   `Established:` note already records. Before working from a referenced spec,
+   issue or pull request, read its full body and comments and, for a pull request,
+   its diff.
 2. **Redundancy check.** Search the codebase for an existing implementation by
    domain concept, not the bead's wording — and report where you looked.
-   If it already exists, that is a wontfix close (step 6).
+   If it already exists, close it with `bd close <id> --reason "already built: <where it lives>"`, not as wontfix.
+   Step 5's authority and the `--actor` rule apply to that close.
 3. **Prior-rejection check.** `bd search "<terms>"` (closed beads included)
    for earlier `wontfix:` closes that resemble this. Surface any match before
    proceeding.
@@ -48,7 +51,7 @@ request did not establish a scope.
    | Outcome | Commands |
    |---|---|
    | Agent-executable | verify the gate below, add acceptance if missing (`bd update <id> --acceptance …`), give it a parent (`bd update <id> --parent <epic-or-feature>`), and `bd undefer <id>` if deferred |
-   | Owner's work | `bd label add <id> human` |
+   | Owner's work | `bd label add <id> human`, and `bd note <id>` with why an agent cannot do it |
    | Questions for the owner | a `human` task holding the questions, which the bead needs: `bd create -t task "Questions: <title>" -d "<questions>" -l human --actor …`, then `bd dep add <id> <questions-id>` |
    | Real, not now | `bd defer <id>` (`--until <date>` for a real date) |
    | Idea for later | `bd update <id> -t spike`, then `bd defer <id>` |
@@ -60,9 +63,9 @@ request did not establish a scope.
 
 ## Agent-executable gate
 
-All three must hold: acceptance criteria populated, the description states
-current and desired behaviour, and out-of-scope is noted where the request is
-ambiguous.
+All three must hold: acceptance criteria populated and independently checkable,
+the description states current and desired behaviour, and out-of-scope is noted
+where the request is ambiguous.
 
 ## Rules
 

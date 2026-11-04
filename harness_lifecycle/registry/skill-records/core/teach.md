@@ -49,25 +49,25 @@ Teach a concept, walk through a session, or conduct an explicitly requested ongo
 - `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write.
 - `sequential-record-numbering`: Number a new record one above the highest existing number in its folder.
 - `optional-record-sections`: Add optional sections to a record, such as status or consequences, only when they carry real information.
+- `knowledge-skills-wisdom-frame`: Frame learning as knowledge from trusted sources, skills from interactive lessons and wisdom from communities. (Delivers sealed row 2026-10-30-mattpocock_skills-5beb35b:495: wisdom from learners and practitioners, where the definition says communities; T5.)
+- `mission-shift-handling`: When the mission shifts or goes stale, confirm with the learner, revise the mission and add a learning record. (Delivers sealed row 2026-10-30-mattpocock_skills-5beb35b:503: confirm only an inferred, materially ambiguous shift; the learning record is LEARNING-RECORD-FORMAT.md's own trigger; T5.)
+- `spacing`: Space practice over time to build long-term retention.
+- `storage-strength`: Favour long-term retention over in-the-moment fluency, which can give an illusory sense of mastery.
+- `vary-answer-position`: Vary which position holds the correct answer across questions so order gives nothing away.
 <!-- /registry:generated traits -->
 
 <!-- registry:generated lineage -->
 - **mattpocock_skills:skill:skills/productivity/teach#teaching-workspace** `skills/productivity/teach/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/productivity/teach#mission-grounding** `skills/productivity/teach/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/productivity/teach#proximal-next-lesson** `skills/productivity/teach/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
-- **mattpocock_skills:skill:skills/productivity/teach#storage-strength** `skills/productivity/teach/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.10)
 - **mattpocock_skills:skill:skills/productivity/teach#retrieval-practice** `skills/productivity/teach/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
-- **mattpocock_skills:skill:skills/productivity/teach#spacing** `skills/productivity/teach/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.10)
 - **mattpocock_skills:skill:skills/productivity/teach#lesson-format** `skills/productivity/teach/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/productivity/teach#reusable-assets** `skills/productivity/teach/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/productivity/teach#glossary-admission-on-use** `skills/productivity/teach/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/productivity/teach#learning-records** `skills/productivity/teach/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
-- **mattpocock_skills:skill:skills/productivity/teach#vary-answer-position** `skills/productivity/teach/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.10)
 - **mattpocock_skills:skill:skills/productivity/teach#sourced-explanations** `skills/productivity/teach/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
-- **mattpocock_skills:skill:skills/productivity/teach#knowledge-skills-wisdom-frame** `skills/productivity/teach/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.10)
 - **mattpocock_skills:skill:skills/productivity/teach#cross-linked-lessons** `skills/productivity/teach/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/productivity/teach#mission-interview-first** `skills/productivity/teach/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
-- **mattpocock_skills:skill:skills/productivity/teach#mission-shift-handling** `skills/productivity/teach/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.10)
 - **mattpocock_skills:skill:skills/productivity/teach#community-opt-out** `skills/productivity/teach/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/productivity/teach#learning-record-criteria** `skills/productivity/teach/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/productivity/teach#field-term-resolution** `skills/productivity/teach/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
@@ -88,9 +88,19 @@ Teach a concept, walk through a session, or conduct an explicitly requested ongo
 - **mattpocock_skills:skill:skills/productivity/teach#domain-vocabulary** `skills/productivity/teach/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/productivity/teach#sequential-record-numbering** `skills/productivity/teach/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/productivity/teach#optional-record-sections** `skills/productivity/teach/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/productivity/teach#knowledge-skills-wisdom-frame** `skills/productivity/teach/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/productivity/teach#mission-shift-handling** `skills/productivity/teach/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/productivity/teach#spacing** `skills/productivity/teach/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/productivity/teach#storage-strength** `skills/productivity/teach/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/productivity/teach#vary-answer-position** `skills/productivity/teach/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-04` **adopt** (2026-11-04-pocock-pass:029): Completes pending 2026-10-30-mattpocock_skills-5beb35b:489: vary-answer-position is written at .claude/skills/teach/SKILL.md:22-24, in the sealed rewording's o…
+- `2026-11-04` **adopt** (2026-11-04-pocock-pass:028): Completes pending 2026-10-30-mattpocock_skills-5beb35b:479: storage-strength is written at .claude/skills/teach/SKILL.md:35-37, in the sealed rewording's own w…
+- `2026-11-04` **adopt** (2026-11-04-pocock-pass:027): Completes pending 2026-10-30-mattpocock_skills-5beb35b:481: spacing is written at .claude/skills/teach/SKILL.md:35-37, in the sealed rewording's own words.
+- `2026-11-04` **adopt** (2026-11-04-pocock-pass:026): Completes pending 2026-10-30-mattpocock_skills-5beb35b:503: mission-shift-handling is written at .claude/skills/teach/MISSION-FORMAT.md:30, in the sealed rewor…
+- `2026-11-04` **adopt** (2026-11-04-pocock-pass:025): Completes pending 2026-10-30-mattpocock_skills-5beb35b:495: knowledge-skills-wisdom-frame is written at .claude/skills/teach/SKILL.md:33-35, in the sealed rewo…
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:591): Owner 2026-10-30 approved the list fix: ours:teach now lists the trait with an approved trait-sharing entry.
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:590): Owner 2026-10-30 approved the list fix: ours:teach now lists the trait with an approved trait-sharing entry.
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:589): Owner 2026-10-30 approved the list fix: ours:teach now lists the trait with an approved trait-sharing entry.
@@ -117,7 +127,7 @@ Teach a concept, walk through a session, or conduct an explicitly requested ongo
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:507): Ours records a learner's community opt-out so later sessions stop proposing them.
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:506): Owner deferred the report's reject recommendation, to review the set later: Ours uses a small exercise or prediction question when useful (.claude/skills/teach…
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:504): Owner deferred the report's reject recommendation, to review the set later: Ours scopes each lesson to one observable objective (.claude/skills/teach/SKILL.md:…
-- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:503): Ours already updates the mission when the user's goal moves (.claude/skills/teach/MISSION-FORMAT.md:30), with the user's authority carried by AGENTS.md:7-12; t…
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:503) *(superseded)*: Ours already updates the mission when the user's goal moves (.claude/skills/teach/MISSION-FORMAT.md:30), with the user's authority carried by AGENTS.md:7-12; t…
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:502): Ours interviews the learner before writing a mission they cannot articulate.
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:501): Owner deferred the report's reject recommendation, to review the set later: Ours invites a focused question after an explanation (.claude/skills/teach/SKILL.md…
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:500): Owner deferred the report's reject recommendation, to review the set later: Ours cites the sources behind material claims (.claude/skills/teach/SKILL.md:24-25)…
@@ -125,13 +135,13 @@ Teach a concept, walk through a session, or conduct an explicitly requested ongo
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:498): Owner deferred the report's reject recommendation, to review the set later: HTML lessons are optional in ours and go through html-artifact (.claude/skills/teac…
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:497): Owner deferred the report's reject recommendation, to review the set later: HTML lessons are optional in ours and html-artifact owns their presentation when us…
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:496): Owner deferred the report's reject recommendation, to review the set later: Ours checks unfamiliar or changing facts against sources when they arise (.claude/s…
-- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:495): Ours has no course philosophy, so the resources grouping points to one that does not exist (.claude/skills/teach/RESOURCES-FORMAT.md:29); this line delivers th…
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:495) *(superseded)*: Ours has no course philosophy, so the resources grouping points to one that does not exist (.claude/skills/teach/RESOURCES-FORMAT.md:29); this line delivers th…
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:494): Owner deferred the report's reject recommendation, to review the set later: Ours gives feedback after each response (.claude/skills/teach/SKILL.md:21-22), alre…
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:493): Ours checks unfamiliar or changing facts and cites material external claims; a course draws explanations from its resources file.
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:492): Owner deferred the report's reject recommendation, to review the set later: Opposite stance: ours records persistent preferences or memory only on explicit req…
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:491): Owner deferred the report's reject recommendation, to review the set later: A course in ours keeps its glossary and resources file as reference (.claude/skills…
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:490): Owner deferred the report's reject recommendation, to review the set later: Ours answers from checked, cited sources (.claude/skills/teach/SKILL.md:24-25) and …
-- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:489): Ours bans giveaways in general but never names position; naming it is a concrete, cheap guard.
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:489) *(superseded)*: Ours bans giveaways in general but never names position; naming it is a concrete, cheap guard.
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:488): Owner deferred the report's reject recommendation, to review the set later: Opposite stance: ours keeps options plausible without matching exact character coun…
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:487): Ours's learning records are ADR-like and steer what to teach next.
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:486): Ours adds a term only once the learner can use it correctly.
@@ -139,9 +149,9 @@ Teach a concept, walk through a session, or conduct an explicitly requested ongo
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:484): Ours reuses existing assets.
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:483): Owner deferred the report's reject recommendation, to review the set later: Opposite stance: ours makes HTML lessons optional, through html-artifact when the f…
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:482): Ours keeps each lesson focused on one observable learning objective.
-- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:481): Carried by the same course-section line as storage-strength.
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:481) *(superseded)*: Carried by the same course-section line as storage-strength.
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:480): Ours uses retrieval questions and small exercises, with feedback after the learner responds.
-- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:479): Ours has retrieval questions (.claude/skills/teach/SKILL.md:16-17, .claude/skills/teach/SKILL.md:21-22) but never states the retention goal a multi-session cou…
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:479) *(superseded)*: Ours has retrieval questions (.claude/skills/teach/SKILL.md:16-17, .claude/skills/teach/SKILL.md:21-22) but never states the retention goal a multi-session cou…
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:478): Deliberate: a course is optional in ours (.claude/skills/teach/SKILL.md:10-11, .claude/skills/teach/SKILL.md:18), so level comes from the conversation first.
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:477): Ours's mission file captures the real reason for learning and every teaching decision traces back to it.
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:476): Owner deferred the report's reject recommendation, to review the set later: Opposite stance: ours uses a supplied, authorized location and never assumes the re…
@@ -175,6 +185,8 @@ Teach a concept, walk through a session, or conduct an explicitly requested ongo
   - `mattpocock_skills:skill:skills/productivity/teach#high-trust-resource-filter` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `in-place-definition-revision`:
   - `mattpocock_skills:skill:skills/productivity/teach#in-place-definition-revision` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `knowledge-skills-wisdom-frame`:
+  - `mattpocock_skills:skill:skills/productivity/teach#knowledge-skills-wisdom-frame` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `learning-record-criteria`:
   - `mattpocock_skills:skill:skills/productivity/teach#learning-record-criteria` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `learning-record-supersession`:
@@ -195,6 +207,8 @@ Teach a concept, walk through a session, or conduct an explicitly requested ongo
   - `mattpocock_skills:skill:skills/productivity/teach#mission-grounding` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `mission-interview-first`:
   - `mattpocock_skills:skill:skills/productivity/teach#mission-interview-first` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `mission-shift-handling`:
+  - `mattpocock_skills:skill:skills/productivity/teach#mission-shift-handling` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `one-mission-per-workspace`:
   - `mattpocock_skills:skill:skills/productivity/teach#one-mission-per-workspace` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `one-screen-mission`:
@@ -213,10 +227,16 @@ Teach a concept, walk through a session, or conduct an explicitly requested ongo
   - `mattpocock_skills:skill:skills/productivity/teach#sequential-record-numbering` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `sourced-explanations`:
   - `mattpocock_skills:skill:skills/productivity/teach#sourced-explanations` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `spacing`:
+  - `mattpocock_skills:skill:skills/productivity/teach#spacing` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `storage-strength`:
+  - `mattpocock_skills:skill:skills/productivity/teach#storage-strength` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `teaching-workspace`:
   - `mattpocock_skills:skill:skills/productivity/teach#teaching-workspace` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `tight-concept-definitions`:
   - `mattpocock_skills:skill:skills/productivity/teach#tight-concept-definitions` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `vary-answer-position`:
+  - `mattpocock_skills:skill:skills/productivity/teach#vary-answer-position` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 <!-- /registry:generated sources -->
 
 <!-- registry:generated declined -->

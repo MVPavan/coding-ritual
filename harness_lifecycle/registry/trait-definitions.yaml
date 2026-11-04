@@ -6101,3 +6101,21 @@ timer-close-cancels:
 woken-run-limits:
   definition: "While a card is open: no push, publish, merge, message or history rewrite, no deleting what this run did not create, no costly opt-in the request does not name, and a missing answer takes the unit's no-answer exit without skipping its core."
   placement: {domain: core, stage: X, substage: Continuity}
+brief-names-done-evidence:
+  definition: "A brief names what will show the work is finished, and a unit with nothing to name is scoped further or raised with the owner before dispatch."
+  placement: {domain: core, stage: X, substage: Coordination}
+  distinct_from: [worker-brief-contents]
+  note: "worker-brief-contents lists what a brief holds, including acceptance checks; this makes naming the proof a condition of dispatching at all."
+read-worker-output:
+  definition: "Open the diff or artifact a worker produced and hold it to the evidence its brief named, instead of relying on its summary."
+  placement: {domain: core, stage: X, substage: Coordination}
+  distinct_from: [primary-evidence-check]
+  note: "primary-evidence-check covers any consequential claim from any source; this fixes what the coordinator opens when a worker returns."
+stalled-worker-by-output:
+  definition: "Stop or replace a worker that stalls or loops, judging it by what it has produced rather than its status text."
+  placement: {domain: core, stage: X, substage: Coordination}
+retry-by-cause:
+  definition: "Retry a failed worker according to why it failed, with a narrower unit, the same brief or another model, and after two retries drop the unit and plan around it."
+  placement: {domain: core, stage: X, substage: Coordination}
+  distinct_from: [safe-retry-only, bounded-retries]
+  note: "Those govern repeating an operation or an I/O call; this chooses what changes on a worker's retry and when to give the unit up."

@@ -20,7 +20,8 @@ or session walkthrough does not imply a course or persistent learning workspace.
 Infer level from the conversation, then adjust from the learner's responses.
 Separate what happened from why it was chosen. Use a small exercise or prediction
 question when useful; give feedback after the learner responds. Quiz options
-should be plausible and avoid answer giveaways, not match exact character counts.
+should be plausible, vary the correct answer's position, and avoid answer giveaways,
+not match exact character counts.
 Respect requested pace and stopping points. Check unfamiliar or changing facts
 against appropriate sources; cite material external claims.
 
@@ -29,7 +30,11 @@ against appropriate sources; cite material external claims.
 When course artifacts are authorized, use the supplied location and create files
 lazily. `MISSION-FORMAT.md`, `RESOURCES-FORMAT.md`, `LEARNING-RECORD-FORMAT.md` and
 `GLOSSARY-FORMAT.md` define the corresponding documents. Keep lessons focused on
-an observable learning objective and link useful prior material.
+an observable learning objective and link useful prior material. For a course,
+ground knowledge in trusted sources, develop skills through relevant interactive
+lessons, and draw wisdom from interaction with learners and practitioners. In a
+course, build long-term retention rather than in-the-moment fluency: use retrieval
+practice and space it across sessions.
 
 HTML lessons are optional; use html-artifact for a standalone interactive lesson
 when that format helps. Reuse existing assets, but do not invent a component

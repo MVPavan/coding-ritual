@@ -3,14 +3,17 @@
 # tree_hash is the skill folder's (or the file's) hash when the list was written.
 
 ours:authoring-for-agents:
-  tree_hash: "f2a2dc05b50f5dad928e3f2d6f14f4a9812ed4a4b68eb9ad0fc428019f71ba00"
-  traits: [surface-choice, activation-boundary, inline-vs-disclose, outputs-and-authority, one-effective-instruction, context-pointers, two-loads, completion-criteria-clarity, precision-and-discretion, single-source-of-truth, environment-as-cache, decision-relevance-pruning, no-op-deletion, unsupported-claim-removal, skill-packaging, invocation-mode, invocation-sidecar-sync, compatibility-alias, verification, mechanical-vs-judgement, extend-existing-docs-first, check-pointer-not-restatement, judgement-lesson-failure-example]
+  tree_hash: "0257d580584793b96993504406cbab0b4b6bc44575c278e915da67e7f28a61d8"
+  traits: [surface-choice, activation-boundary, inline-vs-disclose, outputs-and-authority, one-effective-instruction, context-pointers, two-loads, completion-criteria-clarity, precision-and-discretion, single-source-of-truth, environment-as-cache, decision-relevance-pruning, no-op-deletion, unsupported-claim-removal, skill-packaging, invocation-mode, invocation-sidecar-sync, compatibility-alias, verification, mechanical-vs-judgement, extend-existing-docs-first, check-pointer-not-restatement, judgement-lesson-failure-example, build-check-over-rule, co-location, completion-criteria-demand, one-trigger-per-branch, pointer-identity-trim, relevance-check, sharpen-before-inline, split-by-invocation]
   notes:
+    split-by-invocation: "Delivers sealed row 2026-10-30-mattpocock_skills-5beb35b:539: a distinct trigger, where the definition says a distinct leading word; T5."
+    relevance-check: "Delivers sealed row 2026-10-30-mattpocock_skills-5beb35b:545: drops lines gone stale, where the definition checks every line; T5."
+    build-check-over-rule: "Delivers sealed row 2026-10-30-mattpocock_skills-5beb35b:463: propose a new check before a prose rule and build it where authorized, where the definition defaults to building; T5."
     context-pointers: "Also distinguishes the nearest competing workflow."
     two-loads: "Judges savings by the full read path rather than entrypoint length."
     inline-vs-disclose: "An unconditional read saves no context."
 ours:beads:
-  tree_hash: "6124495a033cbfbfaac732bf714d96a718887a8b3d6686b0baecf97d7bacda57"
+  tree_hash: "14f92a47bc0da4f6e75c85db2df5fb58a6a2269bd16534ef7a3eaffdf99b5634"
   traits: [bead-type-taxonomy, field-roles, wait-as-edge, actor-identity, resume-line, session-close, session-recovery, knowledge-in-files, beads-setup, workstream-render, status-model, triage-routing, durable-unit-scope, review-as-task, phase-epic-contract, destructive-command-guard, repeated-procedures, dolt-sync]
 ours:brainstorming:
   tree_hash: "aa6edeb67bdededb1783e9228a957c82bbcca84ad47a408209ba1ae329572d15"
@@ -37,8 +40,8 @@ ours:decision-trail:
   tree_hash: "59a06d52dee4578dc93ddc23e834d1c61cffbde047d2713f759aa82dd9d9843e"
   traits: [single-tsv-decision-log, evidence-pointer-cell, trail-six-columns, caller-trail-columns, plain-row-wording, named-cell-row-helper, decision-points-only, row-per-iteration, creates-log-parent, locked-single-header, append-mode-writes, automatic-utc-stamp, cell-whitespace-strip, numeric-safe-formula-quote, run-boundary, start-row-triggers, start-row-contents, trail-location-rule, proposed-trail-commit, append-only-supersede, end-of-run-audit, no-cross-project-transcript-search, audit-own-stretches, verified-record-row-walk, evidence-resolves-check, unlogged-fork-gap, audit-supersedes-in-place-of-editing, foreign-row-on-own-evidence, same-family-or-unreviewed, evidence-pointer-review, attention-scan-not-redo, trail-review-flags, attention-with-coverage, script-evidence-preference]
 ours:delegation:
-  tree_hash: "1d6ca7a30dc5d51b72e422f92d6fd1124f3752c4b7ad50dc3a439c90b922577f"
-  traits: [role-contracts, no-onward-delegation, preserve-role-prompt, owner-roster, cross-family-review, vendor-model-list, model-list-freshness, validate-selection, vendor-owned-dispatch, capable-native-subagent, effective-run-record, enforced-read-only, session-resume-followup, codex-direct, closed-stdin, result-error-check]
+  tree_hash: "a450d153309f83b4cb3ceb1096d1de8b7f4610c75a8fbe47fda8a6954b3b3c8b"
+  traits: [role-contracts, no-onward-delegation, preserve-role-prompt, owner-roster, cross-family-review, vendor-model-list, model-list-freshness, validate-selection, vendor-owned-dispatch, capable-native-subagent, effective-run-record, enforced-read-only, session-resume-followup, codex-direct, closed-stdin, result-error-check, background-dispatch-for-dialogue, brief-names-done-evidence, read-worker-output, stalled-worker-by-output, retry-by-cause]
   notes:
     validate-selection: "Against each vendor's own list; a model or setting it does not list stops the dispatch."
 ours:design-evolve:
@@ -57,9 +60,10 @@ ours:explain-code:
   tree_hash: "076d67bfa7e11ec8f8f14abb1b058cea20b129ff95b2513ae311e59ec5c5b5ba"
   traits: [read-only-explanation, immaterial-ambiguity-reading, angles-when-wide, reconcile-by-reading, explanation-sections, cited-flow-walkthrough, recommendation-with-tradeoffs, gather-without-concluding, code-anchor-first, named-record-first, target-derived-search-terms, local-evidence-sources, pickaxe-history-search, full-record-reading, record-lineage-walk, recency-bias-check, embedded-hypothesis-check, confidence-tiers, adjacent-citation-gate, code-not-intent-evidence, no-retrofitted-rationale, consistency-is-not-intent, absence-is-not-evidence, contradiction-shown, competing-hypotheses-section, searched-and-unknown, unreachable-data-is-gap, sources-consulted-line, constraints-before-change]
 ours:grilling:
-  tree_hash: "37396e4d3159cf9a2e2fba287d589eee1c73be6595d3184d4b6c64937b8571ad"
-  traits: [map-decisions, question-batching, recommended-answer, self-serve-facts, settled-stop, absent-respondent, grill-the-send, gap-targeted-questions, interview-not-authority, optional-docs, decision-summary]
+  tree_hash: "3f9df72abc79355fead616ca0db983426b1d0f532537e8e95bfdd6e568288907"
+  traits: [map-decisions, question-batching, recommended-answer, self-serve-facts, settled-stop, absent-respondent, grill-the-send, gap-targeted-questions, interview-not-authority, optional-docs, decision-summary, answer-before-next-round, yes-accepts-recommendation, importance-ordered-questions, needed-item-coverage, single-idea-questions]
   notes:
+    yes-accepts-recommendation: "Delivers sealed row 2026-10-30-mattpocock_skills-5beb35b:076 whole, for a question offering a recommendation; a question after a fact stays an ordinary question; T5."
     recommended-answer: "Labels the recommendation's assumptions."
     self-serve-facts: "Ordinary lookups stay inline; only bounded work is delegated."
 ours:harness-evaluate:
@@ -86,9 +90,10 @@ ours:i-have-adhd:
   tree_hash: "1326dc518c2716afde4fdb750fdaf96db279a236ad9d05011c21feaaa21ae32f"
   traits: [next-action-first, numbered-steps, single-next-action, tangent-suppression, state-restatement, concrete-time-estimates, visible-progress, matter-of-fact-errors, capped-lists, no-preamble, explain-on-request, debug-spiral-reset, repitch-trigger, controlled-language, domain-vocabulary, pre-send-check]
 ours:improve-codebase-architecture:
-  tree_hash: "c6310b69ad963db1c3c6a045588a04a926f71274ef90ccecc2956f7bed3ec162"
-  traits: [scope-by-evidence, friction-signals, candidate-comparison, optional-report, adr-conflict-callout, review-no-auto-followup, respect-area-adrs, top-candidate-recommendation]
+  tree_hash: "616472db7e4fff6ae7d259fa5e7dc4c7cd3c05222a2a33072db1f18b3bae0042"
+  traits: [scope-by-evidence, friction-signals, candidate-comparison, optional-report, adr-conflict-callout, review-no-auto-followup, respect-area-adrs, top-candidate-recommendation, concrete-benefit-claims, domain-vocabulary, read-domain-docs-first, rejection-decision-record]
   notes:
+    domain-vocabulary: "On improve-codebase-architecture, delivers sealed row 2026-10-30-mattpocock_skills-5beb35b:027: each candidate and its friction, where the definition says everything written; T5."
     scope-by-evidence: "Also weighs actual maintenance and test friction when choosing areas."
 ours:interrogate:
   tree_hash: "72064dbfac785c4eb95f4b8307bb41ea2ae35d517276acccfb37448a59e4b934"
@@ -200,14 +205,18 @@ ours:show-me:
   notes:
     minimal-visual-selection: "One form, occasionally two, never a gallery, with a sentence or two of prose each."
 ours:systematic-debugging:
-  tree_hash: "0c71a29067d767b33627e6433fd52f6ddb4e99180dfcc47e464507b4fb453611"
-  traits: [reproduction-preferred, unproven-without-reproduction, loop-construction, minimize-to-discriminate, flake-reproduction, environmental-cause-unresolved, hypotheses, discriminating-observation, localized-probing, critic-escalation, diagnosis-only, diagnosis-status, caller-deferrable-cleanup, preserve-reproducers, tagged-debug-logs, suspect-the-observation, why-chain, legitimate-state-test, persisted-state-suspect]
+  tree_hash: "bcf5932b3632e38e8ab7edbbf7f852210f6047458fde6d898b8f848af444c071"
+  traits: [reproduction-preferred, unproven-without-reproduction, loop-construction, minimize-to-discriminate, flake-reproduction, environmental-cause-unresolved, hypotheses, discriminating-observation, localized-probing, critic-escalation, diagnosis-only, diagnosis-status, caller-deferrable-cleanup, preserve-reproducers, tagged-debug-logs, suspect-the-observation, why-chain, legitimate-state-test, persisted-state-suspect, baseline, credential-env-indirection, falsifiable-hypotheses, one-variable-at-a-time, placeholder-sensitive-data-redaction]
   notes:
+    one-variable-at-a-time: "Delivers sealed row 2026-10-30-mattpocock_skills-5beb35b:222: one change per probe, with the prediction carried by the hypothesis rather than mapped per probe; T5."
+    falsifiable-hypotheses: "Delivers sealed row 2026-10-30-mattpocock_skills-5beb35b:238: each hypothesis states what would confirm or refute it, with no discard step and no prediction about changing the cause; T5."
     reproduction-preferred: "Reuses an existing failing test or command first, otherwise builds the smallest useful reproduction."
 ours:teach:
-  tree_hash: "1f2505143055a6f9564899c6f31dffbf2e5da29ebab87b3bd080cab6e8fd31e8"
-  traits: [learning-shape, level-adaptation, what-vs-why, teaching-workspace, authorized-course-location, mission-grounding, glossary-entry-template, canonical-term-and-aliases, tight-concept-definitions, glossary-self-vocabulary, glossary-admission-on-use, learning-records, learning-resource-register, high-trust-resource-filter, resource-gap-register, prune-invalid-resources, lesson-format, reusable-assets, quiz-answer-hygiene, retrieval-practice, scope-discipline, sourced-explanations, mission-interview-first, community-opt-out, learning-record-criteria, field-term-resolution, in-place-definition-revision, mission-document-template, one-mission-per-workspace, one-screen-mission, minimal-learning-record-template, learning-record-supersession, cross-linked-lessons, domain-vocabulary, sequential-record-numbering, optional-record-sections]
+  tree_hash: "c1b1783a4834fc39e6355c77255b31818d1e4fd348ea081775260bc43af2c286"
+  traits: [learning-shape, level-adaptation, what-vs-why, teaching-workspace, authorized-course-location, mission-grounding, glossary-entry-template, canonical-term-and-aliases, tight-concept-definitions, glossary-self-vocabulary, glossary-admission-on-use, learning-records, learning-resource-register, high-trust-resource-filter, resource-gap-register, prune-invalid-resources, lesson-format, reusable-assets, quiz-answer-hygiene, retrieval-practice, scope-discipline, sourced-explanations, mission-interview-first, community-opt-out, learning-record-criteria, field-term-resolution, in-place-definition-revision, mission-document-template, one-mission-per-workspace, one-screen-mission, minimal-learning-record-template, learning-record-supersession, cross-linked-lessons, domain-vocabulary, sequential-record-numbering, optional-record-sections, knowledge-skills-wisdom-frame, mission-shift-handling, spacing, storage-strength, vary-answer-position]
   notes:
+    mission-shift-handling: "Delivers sealed row 2026-10-30-mattpocock_skills-5beb35b:503: confirm only an inferred, materially ambiguous shift; the learning record is LEARNING-RECORD-FORMAT.md's own trigger; T5."
+    knowledge-skills-wisdom-frame: "Delivers sealed row 2026-10-30-mattpocock_skills-5beb35b:495: wisdom from learners and practitioners, where the definition says communities; T5."
     lesson-format: "Rendered HTML is optional."
     retrieval-practice: "Small exercises or prediction questions, with feedback only after the learner responds."
     reusable-assets: "Never invents a component library for a single lesson."
@@ -222,16 +231,20 @@ ours:test-driven-development:
     no-implementation-coupling: "Asserts exact source text only when that text is the contract."
     mock-boundaries: "Fakes and partial mocks are valid at any boundary that preserves the contract."
 ours:triage:
-  tree_hash: "81c7a28d3ccc55807748de8b8a382c1c724e65c2f239b16ac0d3c50468cdcc23"
-  traits: [attention-buckets, triage-decision, established-notes, triage-resume-notes, redundancy-check, prior-rejection-check, claim-verification, agent-ready-gate, pick-from-summary, durable-rejection-reasons]
+  tree_hash: "3e6dc7d1be687f106a87b6ffe8c46deb0fdfa5d2a9776caf02eba25e25415ddf"
+  traits: [attention-buckets, triage-decision, established-notes, triage-resume-notes, redundancy-check, prior-rejection-check, claim-verification, agent-ready-gate, pick-from-summary, durable-rejection-reasons, already-built-close, brief-acceptance-criteria, read-full-source-issue, ready-for-human-rationale]
   notes:
+    brief-acceptance-criteria: "Delivers sealed row 2026-10-30-mattpocock_skills-5beb35b:304: independently checkable acceptance on the agent-ready gate, where the definition requires it of every brief, a separate writing rule; T5."
+    ready-for-human-rationale: "Delivers sealed row 2026-10-30-mattpocock_skills-5beb35b:306: a label and a note with the reason, with no separate brief structure; T5."
     attention-buckets: "Four buckets (untriaged, ideas, waiting on the owner, missing acceptance) with counts and one-line summaries."
     claim-verification: "An unreproduced bug gets questions for the owner, never an automatic close."
     prior-rejection-check: "Searches closed beads for earlier wontfix closes."
 ours:wayfinder:
-  tree_hash: "33e6eb6616f590f0b79efd9c3bd84005cf6d32867ed2693e9dbf7e258f1c9f90"
-  traits: [decision-map-epic, plan-not-do, dependency-edges, map-as-index, map-body-sections, reference-by-name, bounded-decision-ticket, coherence-sized-tickets, label-free-typing, ticket-type-set, claim-before-work, destination-first, question-graduation, real-id-wiring, record-resolution, out-of-scope-close, human-decision-gate, multi-ticket-sessions, prototype-ticket-asset, fog-hygiene, low-res-map-load]
+  tree_hash: "fd2850c727777c10faff3f885ce1b6943d5ed12dea1a4ceb6ff460fb18dc3e9c"
+  traits: [decision-map-epic, plan-not-do, dependency-edges, map-as-index, map-body-sections, reference-by-name, bounded-decision-ticket, coherence-sized-tickets, label-free-typing, ticket-type-set, claim-before-work, destination-first, question-graduation, real-id-wiring, record-resolution, out-of-scope-close, human-decision-gate, multi-ticket-sessions, prototype-ticket-asset, fog-hygiene, low-res-map-load, breadth-first-charting, invalidated-ticket-reconciliation, prerequisite-task-human-checklist, prerequisite-task-result-facts]
   notes:
+    breadth-first-charting: "Delivers sealed row 2026-10-30-mattpocock_skills-5beb35b:149: surfaces the open decisions before resolving any, where the definition charts by questioning and surfaces first steps too; T5."
+    invalidated-ticket-reconciliation: "Delivers sealed row 2026-10-30-mattpocock_skills-5beb35b:156: update or close, never delete, where the definition allows deleting; T5."
     bounded-decision-ticket: "With a resolution criterion."
     ticket-type-set: "Task work must be authorized."
     decision-map-epic: "A Beads epic whose title starts with Map:."

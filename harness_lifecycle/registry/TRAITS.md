@@ -49,6 +49,10 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `prototype-ticket-asset`: Resolve a prototype ticket by building a rough artifact and linking it from the ticket as an asset.
 - `fog-hygiene`: Keep decided, ticketed and out-of-scope items out of the map's section of not-yet-specified questions.
 - `low-res-map-load`: When working a map, load only its low-resolution body and open related tickets only on demand.
+- `breadth-first-charting`: Chart by questioning breadth-first across the whole space to surface the open decisions and first steps before going deep on any.
+- `invalidated-ticket-reconciliation`: Update or delete the other tickets that a recorded decision invalidated.
+- `prerequisite-task-human-checklist`: Do prerequisite task work alone where possible, otherwise hand the human a precise checklist.
+- `prerequisite-task-result-facts`: Record on a prerequisite task the resulting facts later tickets depend on, such as URLs or where credentials live.
 
 #### core · Discovery · Research — research
 - `decision-framing`: State the decision, scope, constraints and material unknowns, and choose sources by what would change the answer.
@@ -90,6 +94,14 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `extend-existing-docs-first`: Prefer extending existing pointed-to documents before writing new ones.
 - `check-pointer-not-restatement`: Once a check enforces a rule, replace the instruction that restated it with a pointer to the check.
 - `judgement-lesson-failure-example`: When a recurring lesson needs judgement and cannot be checked, revise the instruction it implicates and add one example of the failure, rather than repeating or emphasising the rule.
+- `build-check-over-rule`: Default to building a deterministic check over writing a prose rule for any mechanical finding.
+- `co-location`: Keep a concept's definition, rules and caveats under one heading so reading one part brings its neighbours.
+- `completion-criteria-demand`: Phrase the criterion to demand thorough work, driving the legwork latent in its wording.
+- `one-trigger-per-branch`: Give each trigger branch of a pointer one trigger, collapsing synonyms.
+- `pointer-identity-trim`: Cut from a pointer any identity the target's own body already carries.
+- `relevance-check`: Check every line still bears on the document's task, pruning stale or irrelevant ones.
+- `sharpen-before-inline`: Fix a weakly reached must-have target by sharpening its pointer's wording first, inlining it only if that fails.
+- `split-by-invocation`: Split off a model-invoked skill only when a distinct leading word should trigger it or another skill must reach it.
 
 #### core · Improvement · Codification — harness-evaluate
 - `read-first`: Before judging a candidate, read its canonical source, the relevant prior ledger decision and the closest local implementation, keeping reference repositories as read-only evidence.
@@ -186,6 +198,11 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `interview-not-authority`: Treat conducting an interview or drafting a questionnaire as neither implementation authority nor permission to send it.
 - `optional-docs`: When requested, record settled domain terms and qualifying architectural decisions through domain-modeling, not as an automatic by-product of the interview.
 - `decision-summary`: Produce the durable decision log in a fixed template — context, a decision table with rationale and implications, open items, a dependency map and a risk register.
+- `answer-before-next-round`: Wait for the respondent's answers to a round before asking the next one.
+- `yes-accepts-recommendation`: Word each question so that a yes accepts your recommended answer.
+- `importance-ordered-questions`: Order a questionnaire's questions most important first.
+- `needed-item-coverage`: Finish a questionnaire only when every needed decision or fact is covered by at least one question.
+- `single-idea-questions`: Make each question a single idea, never a compound one.
 
 #### core · Intake · Triage — triage
 - `attention-buckets`: Present the items needing triage attention as named buckets, oldest first.
@@ -198,6 +215,10 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `agent-ready-gate`: Make a bead agent-executable only when acceptance criteria, current and desired behaviour, and out-of-scope notes all hold.
 - `pick-from-summary`: Show the count and a one-line summary of each waiting item and let the maintainer pick which to triage.
 - `durable-rejection-reasons`: Reject only for durable reasons of scope, technical constraint or strategy, treating a temporary reason as a deferral.
+- `already-built-close`: Close a request that is already implemented by pointing to where it lives, recording no rejection.
+- `brief-acceptance-criteria`: Give every brief concrete, independently testable acceptance criteria.
+- `read-full-source-issue`: Read the full body, comments and, for a pull request, the diff of any referenced spec, issue or pull request before working from it.
+- `ready-for-human-rationale`: When an item is ready for a human rather than an agent, use the same brief structure but record why it cannot be delegated.
 
 #### core · U · Tutoring — teach
 - `learning-shape`: Choose one of a single concept explanation, a session walkthrough, or an explicitly requested ongoing course.
@@ -236,6 +257,11 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write.
 - `sequential-record-numbering`: Number a new record one above the highest existing number in its folder.
 - `optional-record-sections`: Add optional sections to a record, such as status or consequences, only when they carry real information.
+- `knowledge-skills-wisdom-frame`: Frame learning as knowledge from trusted sources, skills from interactive lessons and wisdom from communities.
+- `mission-shift-handling`: When the mission shifts or goes stale, confirm with the learner, revise the mission and add a learning record.
+- `spacing`: Space practice over time to build long-term retention.
+- `storage-strength`: Favour long-term retention over in-the-moment fluency, which can give an illusory sense of mastery.
+- `vary-answer-position`: Vary which position holds the correct answer across questions so order gives nothing away.
 
 #### core · Verification · Review — interrogate
 - `break-it-mandate`: Assign adversaries to try to break a change or design rather than assess it in general.
@@ -448,6 +474,11 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `codex-direct`: Call the Codex CLI directly rather than through the retired adapter plugin.
 - `closed-stdin`: Close standard input when running an agent CLI non-interactively so it cannot wait for input with no timeout.
 - `result-error-check`: Judge an agent CLI run by its structured result's error flag, never by its exit code alone.
+- `background-dispatch-for-dialogue`: Run subagents in the background so the coordinator stays in live dialogue with the user.
+- `brief-names-done-evidence`: A brief names what will show the work is finished, and a unit with nothing to name is scoped further or raised with the owner before dispatch.
+- `read-worker-output`: Open the diff or artifact a worker produced and hold it to the evidence its brief named, instead of relying on its summary.
+- `stalled-worker-by-output`: Stop or replace a worker that stalls or loops, judging it by what it has produced rather than its status text.
+- `retry-by-cause`: Retry a failed worker according to why it failed, with a narrower unit, the same brief or another model, and after two retries drop the unit and plan around it.
 
 #### core · X · Coordination — model-council
 - `member-resolution`: Resolve the members and judge from the request's explicit selections, asking only for missing choices or unreachable members.
@@ -609,6 +640,11 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `why-chain`: Ask why at each step of a failure until the answer is a wrong decision in the code rather than a consequence of an earlier one.
 - `legitimate-state-test`: Before guarding where a symptom surfaced, decide whether the triggering state is legitimate: handle a legitimate state there, and trace an illegitimate one to what produced it.
 - `persisted-state-suspect`: When a failure appears only after a restart, suspect persisted state (configuration, caches, lock files, serialized state) first.
+- `baseline`: Capture a baseline measurement before attempting a performance fix.
+- `credential-env-indirection`: Build commands on environment variables so credentials stay in the environment and never appear in shown text.
+- `falsifiable-hypotheses`: State each hypothesis as a falsifiable prediction that changing its cause changes the result, discarding any that cannot be stated so.
+- `one-variable-at-a-time`: Change exactly one variable per probe, each mapped to a specific prediction.
+- `placeholder-sensitive-data-redaction`: Replace secrets and personal data with placeholders in anything shown or saved.
 
 #### engineering · Building · Implementation — principle-sequence-verifiable-units
 - `baseline-check-before-change`: Before the first change of multi-step work, run its checks on the starting base and record the results, so later failures are classed as pre-existing or as regressions.
@@ -903,6 +939,10 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `review-no-auto-followup`: Do not automatically enter a grilling loop, interview, alternative-design exercise or domain-document update after delivering the review; each happens only when requested or already authorized.
 - `respect-area-adrs`: Honour the recorded architectural decisions that govern the area being changed.
 - `top-candidate-recommendation`: End a candidate survey with a single top recommendation.
+- `concrete-benefit-claims`: Phrase a candidate's benefits in the design vocabulary rather than generic claims such as easier to maintain.
+- `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write.
+- `read-domain-docs-first`: Read the domain glossary and the decision records near the code before exploring it.
+- `rejection-decision-record`: When the user rejects an improvement candidate for a durable reason, offer a decision record so later reviews do not suggest it again, skipping ephemeral or self-evident reasons.
 
 #### engineering · Verification · Review — security
 - `scope-threat`: Name the changed entrypoints, assets, identities and consequences, tracing untrusted input to consequential sinks including model outputs used as commands, paths, queries or markup.
@@ -1790,14 +1830,14 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `grilling-default-type`: Make a live interview the default ticket type. — defer
 - `fog-hygiene`: Keep decided, ticketed and out-of-scope items out of the map's section of not-yet-specified questions. — adopt → wayfinder#fog-hygiene
 - `out-of-scope-final`: Never graduate an out-of-scope item back into the map; it returns only as a fresh effort if the destination changes. — defer
-- `breadth-first-charting`: Chart by questioning breadth-first across the whole space to surface the open decisions and first steps before going deep on any. — adopt, pending cr-axdt.6.13 → wayfinder#breadth-first-charting
+- `breadth-first-charting`: Chart by questioning breadth-first across the whole space to surface the open decisions and first steps before going deep on any. — adopt → wayfinder#breadth-first-charting
 - `map-initial-state`: Create a new map with destination and notes filled, decisions empty and the unspecified questions sketched. — defer
 - `chart-only-session`: End the charting session without resolving any ticket. — defer
 - `low-res-map-load`: When working a map, load only its low-resolution body and open related tickets only on demand. — adopt → wayfinder#low-res-map-load
 - `ticket-asset-pointers`: Link assets created while resolving a ticket from the tracker rather than pasting them into it. — defer
-- `prerequisite-task-human-checklist`: Do prerequisite task work alone where possible, otherwise hand the human a precise checklist. — adopt, pending cr-axdt.6.13 → wayfinder#prerequisite-task-human-checklist
-- `prerequisite-task-result-facts`: Record on a prerequisite task the resulting facts later tickets depend on, such as URLs or where credentials live. — adopt, pending cr-axdt.6.13 → wayfinder#prerequisite-task-result-facts
-- `invalidated-ticket-reconciliation`: Update or delete the other tickets that a recorded decision invalidated. — adopt, pending cr-axdt.6.13 → wayfinder#invalidated-ticket-reconciliation
+- `prerequisite-task-human-checklist`: Do prerequisite task work alone where possible, otherwise hand the human a precise checklist. — adopt → wayfinder#prerequisite-task-human-checklist
+- `prerequisite-task-result-facts`: Record on a prerequisite task the resulting facts later tickets depend on, such as URLs or where credentials live. — adopt → wayfinder#prerequisite-task-result-facts
+- `invalidated-ticket-reconciliation`: Update or delete the other tickets that a recorded decision invalidated. — adopt → wayfinder#invalidated-ticket-reconciliation
 
 #### core · Discovery · Research — skill:skills/engineering/research
 - `background-agent`: Delegate reading legwork to a background agent so the caller keeps working while it investigates. — adopt → research#sizeable-delegation
@@ -1819,7 +1859,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `push-right`: Defer the human checkpoint as far as it will go, doing maximal work first so the human is asked once, late, with everything prepared. — defer
 - `decision-summary-brief`: Present a checkpoint as a tight, decision-ready summary of what was produced and why with a link, never the raw output. — defer
 - `spec-files-only-output`: Run a stateful interview whose only output is the specification files. — defer
-- `answer-before-next-round`: Wait for the respondent's answers to a round before asking the next one. — adopt, pending cr-axdt.6.4 → grilling#answer-before-next-round
+- `answer-before-next-round`: Wait for the respondent's answers to a round before asking the next one. — adopt → grilling#answer-before-next-round
 - `recommended-answer`: Attach a recommended answer to each question, letting the respondent disagree. — adopt → grilling#recommended-answer
 - `live-spec-edits`: Create, edit and delete specification files as the interview resolves each point. — defer
 - `prefer-event-triggers`: Prefer an event trigger to a schedule, as usually the more efficient of the two. — defer
@@ -1829,12 +1869,12 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `map-decisions`: Map the material decisions and their prerequisites before questioning. — adopt → grilling#map-decisions
 - `question-batching`: Batch independent questions whose prerequisites are settled and defer each dependent question until its prerequisites are answered. — adopt → grilling#question-batching
 - `recommended-answer`: Attach a recommended answer to each question, letting the respondent disagree. — adopt → grilling#recommended-answer
-- `yes-accepts-recommendation`: Word each question so that a yes accepts your recommended answer. — adopt, pending cr-axdt.6.4 → grilling#yes-accepts-recommendation
+- `yes-accepts-recommendation`: Word each question so that a yes accepts your recommended answer. — adopt → grilling#yes-accepts-recommendation
 - `round-format`: Lay out each round in a fixed question-and-recommendation markdown format, one block per question. — defer
 - `self-serve-facts`: Look up available facts yourself rather than asking, leaving only the decisions to the live participant. — adopt → grilling#self-serve-facts
 - `exhaustive-completion`: End the session only when the frontier is empty and every branch of the tree has been visited, with nothing silently assumed. — defer
 - `reconfirm-before-action`: Do not act until the user confirms a shared understanding has been reached. — defer
-- `answer-before-next-round`: Wait for the respondent's answers to a round before asking the next one. — adopt, pending cr-axdt.6.4 → grilling#answer-before-next-round
+- `answer-before-next-round`: Wait for the respondent's answers to a round before asking the next one. — adopt → grilling#answer-before-next-round
 - `non-blocking-lookup`: Run a fact lookup without blocking the interview, holding back only the questions downstream of it. — defer
 
 #### core · Intake · Clarification — skill:skills/productivity/to-questionnaire
@@ -1843,39 +1883,39 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `gap-targeted-questions`: Aim a questionnaire's questions at the gap between what the recipient knows and what the sender needs. — adopt → grilling#gap-targeted-questions
 - `questionnaire-artifact`: Write the questionnaire to a slug-named markdown file in the current directory and report its path. — defer
 - `absent-respondent`: When the needed respondent is absent, prepare a questionnaire for them instead of interviewing the present user about the subject. — adopt → grilling#absent-respondent
-- `needed-item-coverage`: Finish a questionnaire only when every needed decision or fact is covered by at least one question. — adopt, pending cr-axdt.6.4 → grilling#needed-item-coverage
+- `needed-item-coverage`: Finish a questionnaire only when every needed decision or fact is covered by at least one question. — adopt → grilling#needed-item-coverage
 - `selective-why-lines`: Add a one-line reason a question matters only where it could be misread or invite a throwaway answer. — defer
-- `importance-ordered-questions`: Order a questionnaire's questions most important first. — adopt, pending cr-axdt.6.4 → grilling#importance-ordered-questions
+- `importance-ordered-questions`: Order a questionnaire's questions most important first. — adopt → grilling#importance-ordered-questions
 - `questionnaire-document-template`: Fill a questionnaire template of purpose, a from-to-use line, a context section, how to answer, themed question sections with answer stubs, and a closing catch-all. — defer
 - `questionnaire-response-expectations`: Tell the respondent the deadline and the rough effort answering will take. — defer
 - `partial-uncertain-answers-welcome`: Invite partial and don't-know answers, asking the respondent to flag uncertainty rather than skip the question. — defer
-- `single-idea-questions`: Make each question a single idea, never a compound one. — adopt, pending cr-axdt.6.4 → grilling#single-idea-questions
+- `single-idea-questions`: Make each question a single idea, never a compound one. — adopt → grilling#single-idea-questions
 
 #### core · Improvement · Codification — skill:skills/productivity/writing-for-agents
 - `context-pointers`: Write a pointer that names the material and the condition for reaching it, front-loading the trigger. — adopt → authoring-for-agents#context-pointers
 - `two-loads`: Weigh always-loaded context cost on the agent against cognitive load on the human. — adopt → authoring-for-agents#two-loads
 - `inline-vs-disclose`: Inline what every branch needs and disclose branch-specific material behind a conditional pointer. — adopt → authoring-for-agents#inline-vs-disclose
-- `co-location`: Keep a concept's definition, rules and caveats under one heading so reading one part brings its neighbours. — adopt, pending cr-axdt.6.1 → authoring-for-agents#co-location
+- `co-location`: Keep a concept's definition, rules and caveats under one heading so reading one part brings its neighbours. — adopt → authoring-for-agents#co-location
 - `completion-criteria-clarity`: End each step on an observable, checkable done-or-not-done criterion that resists premature completion. — adopt → authoring-for-agents#completion-criteria-clarity
-- `completion-criteria-demand`: Phrase the criterion to demand thorough work, driving the legwork latent in its wording. — adopt, pending cr-axdt.6.1 → authoring-for-agents#completion-criteria-demand
-- `split-by-invocation`: Split off a model-invoked skill only when a distinct leading word should trigger it or another skill must reach it. — adopt, pending cr-axdt.6.1 → authoring-for-agents#split-by-invocation
+- `completion-criteria-demand`: Phrase the criterion to demand thorough work, driving the legwork latent in its wording. — adopt → authoring-for-agents#completion-criteria-demand
+- `split-by-invocation`: Split off a model-invoked skill only when a distinct leading word should trigger it or another skill must reach it. — adopt → authoring-for-agents#split-by-invocation
 - `sequence-isolation`: Split a run of steps so later post-completion steps stay out of view, driving more legwork on the step in front. — defer
 - `leading-words`: Anchor behaviour in a compact pretrained concept repeated as a token, reaching for an existing word before coining one. — defer
 - `negation-avoidance`: Steer by the positive target because negation makes the forbidden behaviour more available, keeping prohibitions a last-resort guardrail. — defer
 - `single-source-of-truth`: Keep each meaning in one authoritative place so changing it is a one-place edit. — adopt → authoring-for-agents#single-source-of-truth
 - `environment-as-cache`: Point to authoritative commands and lookups instead of copying volatile facts the agent can find itself. — adopt → authoring-for-agents#environment-as-cache
-- `relevance-check`: Check every line still bears on the document's task, pruning stale or irrelevant ones. — adopt, pending cr-axdt.6.1 → authoring-for-agents#relevance-check
+- `relevance-check`: Check every line still bears on the document's task, pruning stale or irrelevant ones. — adopt → authoring-for-agents#relevance-check
 - `no-op-deletion`: Delete instructions the model already follows by default. — adopt → authoring-for-agents#no-op-deletion
 - `invocation-mode`: Choose model-invoked or user-invoked activation, setting the disable-model-invocation flag for manual workflows. — adopt → authoring-for-agents#invocation-mode
 - `shared-reference-home`: Put reference several skills need in one model-invoked, all-reference skill they can each invoke. — defer
 - `router-skills`: When user-invoked skills multiply, add a user-invoked router skill that names the others and when to reach each, hinting rather than firing them. — defer
-- `sharpen-before-inline`: Fix a weakly reached must-have target by sharpening its pointer's wording first, inlining it only if that fails. — adopt, pending cr-axdt.6.1 → authoring-for-agents#sharpen-before-inline
-- `one-trigger-per-branch`: Give each trigger branch of a pointer one trigger, collapsing synonyms. — adopt, pending cr-axdt.6.1 → authoring-for-agents#one-trigger-per-branch
-- `pointer-identity-trim`: Cut from a pointer any identity the target's own body already carries. — adopt, pending cr-axdt.6.1 → authoring-for-agents#pointer-identity-trim
+- `sharpen-before-inline`: Fix a weakly reached must-have target by sharpening its pointer's wording first, inlining it only if that fails. — adopt → authoring-for-agents#sharpen-before-inline
+- `one-trigger-per-branch`: Give each trigger branch of a pointer one trigger, collapsing synonyms. — adopt → authoring-for-agents#one-trigger-per-branch
+- `pointer-identity-trim`: Cut from a pointer any identity the target's own body already carries. — adopt → authoring-for-agents#pointer-identity-trim
 - `criterion-before-isolation`: Sharpen a vague completion criterion before considering hiding the later steps. — defer
 - `triad-collapse`: Hunt restated triads and long gestures and collapse each into a single leading word. — defer
 - `model-facing-description`: Write a model-invoked skill's description as a model-facing pointer listing its trigger branches. — adopt → authoring-for-agents#activation-boundary
-- `human-facing-description`: Write a user-invoked skill's description as a one-line human summary with triggers stripped. — adopt, pending cr-axdt.6.1 → authoring-for-agents#human-facing-description
+- `human-facing-description`: Write a user-invoked skill's description as a one-line human summary with triggers stripped. — defer
 - `external-shared-reference`: Put reference shared by user-invoked skills in a plain external file rather than a skill. — adopt → authoring-for-agents#surface-choice
 - `observed-rushing-context-isolation`: Hide post-completion steps only after sharpening the completion criterion has failed and rushing is observed, and only across a real context boundary such as a handoff or subagent. — defer
 - `empirical-instruction-default-check`: Settle whether an instruction changes behaviour from the model's default by running the document, not by debate. — adopt → authoring-for-agents#verification
@@ -1899,7 +1939,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `dual-track-thinking`: Think on a tactical track for the current task and a strategic track for improving the environment for the next task. — defer
 - `suggest-schedules`: Suggest recurring schedules that help reach the goal where the harness supports them. — defer
 - `coordinator-delegates-all`: Do all work in subagents so the coordinator's context stays free for coordination. — defer
-- `background-dispatch-for-dialogue`: Run subagents in the background so the coordinator stays in live dialogue with the user. — adopt, pending cr-axdt.6.3 → delegation#background-dispatch-for-dialogue
+- `background-dispatch-for-dialogue`: Run subagents in the background so the coordinator stays in live dialogue with the user. — adopt → delegation#background-dispatch-for-dialogue
 - `pointer-only-subagent-briefs`: Keep subagent communication sparse by passing pointers to the spec, tickets, notes and commits rather than copying their content. — defer
 - `persistent-wiki-memory`: Keep durable memory in an interlinked markdown wiki that outlives the session. — defer
 - `agreed-wiki-location`: Agree the wiki's location with the user before the first write. — defer
@@ -1926,9 +1966,9 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `workspace-from-run-dir`: Resolve workspace paths from the directory the skill was run in, resolving only the format-template links from the skill folder. — defer
 - `mission-grounding`: A mission document capturing the concrete real-world reason for learning that anchors every teaching choice. — adopt → teach#mission-grounding
 - `proximal-next-lesson`: When the learner names no target, choose the next lesson from the learning records and mission so it challenges them just enough. — adopt → teach#level-adaptation
-- `storage-strength`: Favour long-term retention over in-the-moment fluency, which can give an illusory sense of mastery. — adopt, pending cr-axdt.6.10 → teach#storage-strength
+- `storage-strength`: Favour long-term retention over in-the-moment fluency, which can give an illusory sense of mastery. — adopt → teach#storage-strength
 - `retrieval-practice`: Have the learner retrieve answers from memory through exercises or questions. — adopt → teach#retrieval-practice
-- `spacing`: Space practice over time to build long-term retention. — adopt, pending cr-axdt.6.10 → teach#spacing
+- `spacing`: Space practice over time to build long-term retention. — adopt → teach#spacing
 - `lesson-format`: Make each lesson short and self-contained, teaching one tightly scoped objective tied to the learner's goal. — adopt → teach#lesson-format
 - `html-lessons`: Deliver every lesson as one self-contained HTML file. — defer
 - `reusable-assets`: Reuse existing lesson assets before creating new ones. — adopt → teach#reusable-assets
@@ -1936,13 +1976,13 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `glossary-admission-on-use`: Add a term to the learner's glossary only once the learner can use it correctly. — adopt → teach#glossary-admission-on-use
 - `learning-records`: ADR-like records of lessons and established prior knowledge that steer what to teach next. — adopt → teach#learning-records
 - `quiz-equal-length`: Make every quiz answer the same number of words, and characters where possible, so formatting gives nothing away. — defer
-- `vary-answer-position`: Vary which position holds the correct answer across questions so order gives nothing away. — adopt, pending cr-axdt.6.10 → teach#vary-answer-position
+- `vary-answer-position`: Vary which position holds the correct answer across questions so order gives nothing away. — adopt → teach#vary-answer-position
 - `wisdom-community-referral`: For questions needing real-world wisdom, attempt an answer but ultimately refer the learner to a high-reputation community. — defer
 - `reference-sheets`: Build durable quick-reference documents that outlive the lessons that spawned them. — defer
 - `preference-notes`: Record the learner's stated teaching preferences in a notes file to steer future lessons. — defer
 - `sourced-explanations`: Draw explanations from trusted, cited sources and check unfamiliar or changing facts rather than relying on unverified recall. — adopt → teach#sourced-explanations
 - `tight-feedback-loop`: Teach skills through an interactive feedback loop that is as tight and immediate, ideally automatic, as possible. — defer
-- `knowledge-skills-wisdom-frame`: Frame learning as knowledge from trusted sources, skills from interactive lessons and wisdom from communities. — adopt, pending cr-axdt.6.10 → teach#knowledge-skills-wisdom-frame
+- `knowledge-skills-wisdom-frame`: Frame learning as knowledge from trusted sources, skills from interactive lessons and wisdom from communities. — adopt → teach#knowledge-skills-wisdom-frame
 - `resource-gathering-priority`: Prioritise finding high-quality resources until the resources file is well populated. — defer
 - `polished-lesson-typography`: Make lessons visually polished with clean typography so they serve later review. — defer
 - `open-artifact-for-user`: Open a generated artifact for the user with the platform's opener and give its path. — defer
@@ -1950,7 +1990,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `lesson-primary-source`: Recommend one top primary source with each lesson. — defer
 - `follow-up-prompt`: Remind the learner in each lesson to ask follow-up questions. — defer
 - `mission-interview-first`: When the learning mission is unclear or empty, ask the learner why they want to learn before teaching. — adopt → teach#mission-interview-first
-- `mission-shift-handling`: When the mission shifts or goes stale, confirm with the learner, revise the mission and add a learning record. — adopt, pending cr-axdt.6.10 → teach#mission-shift-handling
+- `mission-shift-handling`: When the mission shifts or goes stale, confirm with the learner, revise the mission and add a learning record. — adopt → teach#mission-shift-handling
 - `just-enough-knowledge`: Include only the knowledge a lesson's target skill needs, teaching it first and then practising. — defer
 - `difficulty-by-kind`: Minimise difficulty when conveying knowledge but make retrieval effortful when building skills. — defer
 - `skill-practice-forms`: Teach skills through quizzes, in-browser tasks or guided real-world step lists. — defer
@@ -1994,18 +2034,18 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `agent-brief-contract`: Treat the posted agent brief as the authoritative contract the downstream agent works from, over the original body and discussion. — adopt → triage#agent-ready-gate
 - `no-stale-file-paths`: Keep concrete file paths out of a durable spec, ticket or brief, describing interfaces and behaviour that survive code drift. — defer
 - `brief-behavioural`: Describe what the system should do, not how to implement it, leaving implementation choices to the executing agent. — adopt → triage#agent-ready-gate
-- `brief-acceptance-criteria`: Give every brief concrete, independently testable acceptance criteria. — adopt, pending cr-axdt.6.12 → triage#brief-acceptance-criteria
+- `brief-acceptance-criteria`: Give every brief concrete, independently testable acceptance criteria. — adopt → triage#brief-acceptance-criteria
 - `brief-scope-boundaries`: State explicitly what is out of scope so the agent does not gold-plate. — adopt → triage#agent-ready-gate
-- `ready-for-human-rationale`: When an item is ready for a human rather than an agent, use the same brief structure but record why it cannot be delegated. — adopt, pending cr-axdt.6.12 → triage#ready-for-human-rationale
+- `ready-for-human-rationale`: When an item is ready for a human rather than an agent, use the same brief structure but record why it cannot be delegated. — adopt → triage#ready-for-human-rationale
 - `pr-as-issue`: Treat an external pull request as an issue with attached code, running it through the same roles and state machine. — out-of-scope
 - `external-pr-discovery-filter`: In discovery, surface only external-author pull requests, while still triaging any explicitly named one. — out-of-scope
 - `triage-resume-notes`: Resume triage from the notes of earlier passes, never re-asking a question already answered. — adopt → triage#triage-resume-notes
 - `label-name-mapping`: Map the canonical triage role names onto the repository's actual label strings. — defer
 - `natural-language-commands`: Interpret the maintainer's natural-language triage requests into the matching triage actions. — defer
 - `pick-from-summary`: Show the count and a one-line summary of each waiting item and let the maintainer pick which to triage. — adopt → triage#pick-from-summary
-- `read-full-source-issue`: Read the full body, comments and, for a pull request, the diff of any referenced spec, issue or pull request before working from it. — adopt, pending cr-axdt.6.12 → triage#read-full-source-issue
+- `read-full-source-issue`: Read the full body, comments and, for a pull request, the diff of any referenced spec, issue or pull request before working from it. — adopt → triage#read-full-source-issue
 - `agent-brief-comment`: Post an agent brief as a comment on an item when it becomes ready for an agent. — defer
-- `already-built-close`: Close a request that is already implemented by pointing to where it lives, recording no rejection. — adopt, pending cr-axdt.6.12 → triage#already-built-close
+- `already-built-close`: Close a request that is already implemented by pointing to where it lives, recording no rejection. — adopt → triage#already-built-close
 - `polite-bug-rejection`: Close a rejected bug report with a polite explanation of why. — out-of-scope
 - `direct-move-shortcut`: On a direct instruction to move an item's state, confirm the actions and apply them without an interview. — defer
 - `brief-offer-on-shortcut`: When moving an item to agent-ready without an interview, ask whether to write its agent brief. — defer
@@ -2071,24 +2111,24 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `friction-signals`: Surface architectural friction that current code actually supports rather than speculative smells. — adopt → improve-codebase-architecture#friction-signals
 - `deletion-test`: Question a layer that only forwards and keep one whose removal would spread complexity across callers. — adopt → codebase-design#deletion-test
 - `diagram-patterns`: Draw before/after architecture visuals from a catalogue of patterns (dependency graph, hand-built boxes, cross-section, mass diagram, call-graph collapse) rather than one generic style. — defer
-- `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write. — adopt, pending cr-axdt.6.5 → improve-codebase-architecture#domain-vocabulary
+- `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write. — adopt → improve-codebase-architecture#domain-vocabulary
 - `vocabulary-ban`: Use the design vocabulary exactly and never substitute looser words like component, service, API, or boundary. — defer
 - `adr-conflict-callout`: When a candidate conflicts with a decision record, explain the new evidence that might justify revisiting it. — adopt → improve-codebase-architecture#adr-conflict-callout
 - `no-interfaces-yet`: Keep the survey free of proposed interfaces and instead ask the user which candidate to explore. — defer
 - `module-vocabulary`: Reason about design with a shared deep-module glossary: module, interface, depth, seam, adapter and locality. — adopt → codebase-design#module-vocabulary
 - `respect-area-adrs`: Honour the recorded architectural decisions that govern the area being changed. — adopt → improve-codebase-architecture#respect-area-adrs
-- `read-domain-docs-first`: Read the domain glossary and the decision records near the code before exploring it. — adopt, pending cr-axdt.6.5 → improve-codebase-architecture#read-domain-docs-first
+- `read-domain-docs-first`: Read the domain glossary and the decision records near the code before exploring it. — adopt → improve-codebase-architecture#read-domain-docs-first
 - `delegated-codebase-walk`: Delegate the codebase walk to a subagent that explores organically for friction. — defer
 - `open-artifact-for-user`: Open a generated artifact for the user with the platform's opener and give its path. — defer
 - `cdn-only-scripts`: Load only CDN-hosted styling and diagram libraries as scripts, keeping the document otherwise static. — defer
 - `dependency-categories`: Classify a module's dependencies as in-process, locally substitutable, owned remote or true external to choose how it is tested across its seam. — adopt → codebase-design#dependency-categories
 - `document-during-interview`: Pair a clarifying interview with live documentation so the glossary and decision records are produced as the interview settles each question. — defer
-- `rejection-decision-record`: When the user rejects an improvement candidate for a durable reason, offer a decision record so later reviews do not suggest it again, skipping ephemeral or self-evident reasons. — adopt, pending cr-axdt.6.5 → improve-codebase-architecture#rejection-decision-record
+- `rejection-decision-record`: When the user rejects an improvement candidate for a durable reason, offer a decision record so later reviews do not suggest it again, skipping ephemeral or self-evident reasons. — adopt → improve-codebase-architecture#rejection-decision-record
 - `report-header-legend`: Open a visual report with a header of repository name, date and a visual legend, and no intro paragraph. — defer
 - `terse-card-prose`: Hold each report card to a one-sentence problem and solution and wins bullets of six words or fewer. — defer
 - `redraw-not-explain`: Redraw a diagram that needs a paragraph to be understood rather than explaining it. — defer
 - `visual-restraint`: Keep visuals restrained, with muted colour and no decorative animation, so the content carries the attention. — defer
-- `concrete-benefit-claims`: Phrase a candidate's benefits in the design vocabulary rather than generic claims such as easier to maintain. — adopt, pending cr-axdt.6.5 → improve-codebase-architecture#concrete-benefit-claims
+- `concrete-benefit-claims`: Phrase a candidate's benefits in the design vocabulary rather than generic claims such as easier to maintain. — adopt → improve-codebase-architecture#concrete-benefit-claims
 - `compress-to-bullets`: Strip hedging, turn sentences into bullets and cut bullets wherever possible. — defer
 - `html-architecture-report`: Write an architecture survey as a standalone HTML report in a file under the system's temporary directory, so nothing lands in the repository. — adopt → improve-codebase-architecture#optional-report
 - `candidate-before-after-visual`: Give every architecture candidate a before-and-after diagram of its structural change. — defer
@@ -2209,9 +2249,9 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `phase1-completion-criterion`: Forbid any hypothesis until one named command, already run once, is proven red-capable, deterministic, fast, and agent-runnable. — defer
 - `fixed-hypothesis-count`: Generate three to five hypotheses before testing any, to avoid anchoring on the first idea. — defer
 - `hypothesis-ranking-presentation`: Rank the hypotheses and show the ranked list to the user before testing, without blocking if they are away. — defer
-- `one-variable-at-a-time`: Change exactly one variable per probe, each mapped to a specific prediction. — adopt, pending cr-axdt.6.9 → systematic-debugging#one-variable-at-a-time
+- `one-variable-at-a-time`: Change exactly one variable per probe, each mapped to a specific prediction. — adopt → systematic-debugging#one-variable-at-a-time
 - `tagged-debug-logs`: Tag every debug log with a unique prefix so cleanup is a single search. — adopt → systematic-debugging#tagged-debug-logs
-- `baseline`: Capture a baseline measurement before attempting a performance fix. — adopt, pending cr-axdt.6.9 → systematic-debugging#baseline
+- `baseline`: Capture a baseline measurement before attempting a performance fix. — adopt → systematic-debugging#baseline
 - `perf-bisection`: Locate a performance regression by bisecting between known-good and known-bad states rather than by adding logs. — adopt → systematic-debugging#localized-probing
 - `debugger-first`: Prefer a debugger or REPL breakpoint over targeted logs, and never log everything and grep. — defer
 - `prove-the-red`: When forcing the red by mutating code or a fixture, diff against a pristine copy to prove the mutation landed before trusting it. — adopt → test-driven-development#prove-the-red
@@ -2225,12 +2265,12 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `read-domain-docs-first`: Read the domain glossary and the decision records near the code before exploring it. — defer
 - `signal-lines-only`: Quote only the signal-carrying lines from captured artifacts that may hold credentials. — defer
 - `ask-when-redaction-blinds`: Ask the user for help when redacted output is too thin to diagnose from. — defer
-- `falsifiable-hypotheses`: State each hypothesis as a falsifiable prediction that changing its cause changes the result, discarding any that cannot be stated so. — adopt, pending cr-axdt.6.9 → systematic-debugging#falsifiable-hypotheses
+- `falsifiable-hypotheses`: State each hypothesis as a falsifiable prediction that changing its cause changes the result, discarding any that cannot be stated so. — adopt → systematic-debugging#falsifiable-hypotheses
 - `seam-selection`: Choose the test boundary that exercises the real contract without reaching inside. — adopt → test-driven-development#seam-selection
 - `parseable-hitl-output`: Have a human-in-the-loop script print its captured values as key=value lines the agent can parse. — defer
 - `hitl-no-credential-capture`: Capture only observations through a human-in-the-loop script, leaving sign-in to the person as a plain step since captured values are echoed. — defer
-- `placeholder-sensitive-data-redaction`: Replace secrets and personal data with placeholders in anything shown or saved. — adopt, pending cr-axdt.6.9 → systematic-debugging#placeholder-sensitive-data-redaction
-- `credential-env-indirection`: Build commands on environment variables so credentials stay in the environment and never appear in shown text. — adopt, pending cr-axdt.6.9 → systematic-debugging#credential-env-indirection
+- `placeholder-sensitive-data-redaction`: Replace secrets and personal data with placeholders in anything shown or saved. — adopt → systematic-debugging#placeholder-sensitive-data-redaction
+- `credential-env-indirection`: Build commands on environment variables so credentials stay in the environment and never appear in shown text. — adopt → systematic-debugging#credential-env-indirection
 - `loop-construction`: Build the reproduction in the form that fits the failure: a focused test, CLI fixture, captured trace or isolated scratch harness. — adopt → systematic-debugging#loop-construction
 - `preferred-reproduction-order`: Try reproduction techniques roughly in a preference order, starting from a failing test and leaving a human-driven script for last. — adopt → systematic-debugging#loop-construction
 
@@ -2322,7 +2362,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 #### engineering · Improvement · Retrospective — skill:skills/engineering/retro
 - `environment-retro-categories`: Review a session for improvements to the agent's environment across fixed categories (navigation, automated checks, coding standards, steering files, tool economy, no-ops, information access). — defer
 - `mechanical-vs-judgement`: Classify each finding as mechanical (a fixed syntactic pattern suiting a deterministic check) or judgement (cross-file consistency suiting a standards doc). — adopt → authoring-for-agents#mechanical-vs-judgement
-- `build-check-over-rule`: Default to building a deterministic check over writing a prose rule for any mechanical finding. — adopt, pending cr-axdt.6.1 → authoring-for-agents#build-check-over-rule
+- `build-check-over-rule`: Default to building a deterministic check over writing a prose rule for any mechanical finding. — adopt → authoring-for-agents#build-check-over-rule
 - `read-existing-check-first`: Read the repo's own lint and check commands before proposing one, treating an unwired or broken check, or the absence of any guardrail, as itself the finding. — defer
 - `read-session-sources`: Read the primary sources (session logs) for the session under review, defaulting to the current one. — defer
 - `severity-ordered-proposals`: Present improvement candidates to the user in order of severity. — defer
@@ -2386,7 +2426,8 @@ Make each ticket one bounded question whose answer is a decision.
 
 #### `breadth-first-charting`
 Chart by questioning breadth-first across the whole space to surface the open decisions and first steps before going deep on any.
-- `mattpocock_skills:skill:skills/engineering/wayfinder` — adopt, pending cr-axdt.6.13 → wayfinder#breadth-first-charting
+- ours: `wayfinder`
+- `mattpocock_skills:skill:skills/engineering/wayfinder` — adopt → wayfinder#breadth-first-charting
 
 #### `chart-only-session`
 End the charting session without resolving any ticket.
@@ -2430,7 +2471,8 @@ Stop at a required human decision and prepare concrete options before requesting
 
 #### `invalidated-ticket-reconciliation`
 Update or delete the other tickets that a recorded decision invalidated.
-- `mattpocock_skills:skill:skills/engineering/wayfinder` — adopt, pending cr-axdt.6.13 → wayfinder#invalidated-ticket-reconciliation
+- ours: `wayfinder`
+- `mattpocock_skills:skill:skills/engineering/wayfinder` — adopt → wayfinder#invalidated-ticket-reconciliation
 
 #### `label-free-typing`
 Express each ticket's kind through the tracker's native item type and a title prefix, creating no labels.
@@ -2495,11 +2537,13 @@ Keep the map to planning: each ticket resolves a decision rather than executing 
 
 #### `prerequisite-task-human-checklist`
 Do prerequisite task work alone where possible, otherwise hand the human a precise checklist.
-- `mattpocock_skills:skill:skills/engineering/wayfinder` — adopt, pending cr-axdt.6.13 → wayfinder#prerequisite-task-human-checklist
+- ours: `wayfinder`
+- `mattpocock_skills:skill:skills/engineering/wayfinder` — adopt → wayfinder#prerequisite-task-human-checklist
 
 #### `prerequisite-task-result-facts`
 Record on a prerequisite task the resulting facts later tickets depend on, such as URLs or where credentials live.
-- `mattpocock_skills:skill:skills/engineering/wayfinder` — adopt, pending cr-axdt.6.13 → wayfinder#prerequisite-task-result-facts
+- ours: `wayfinder`
+- `mattpocock_skills:skill:skills/engineering/wayfinder` — adopt → wayfinder#prerequisite-task-result-facts
 
 #### `prototype-ticket-asset`
 Resolve a prototype ticket by building a rough artifact and linking it from the ticket as an asset.
@@ -2634,8 +2678,9 @@ When the needed respondent is absent, prepare a questionnaire for them instead o
 
 #### `answer-before-next-round`
 Wait for the respondent's answers to a round before asking the next one.
-- `mattpocock_skills:skill:skills/in-progress/loop-me` — adopt, pending cr-axdt.6.4 → grilling#answer-before-next-round
-- `mattpocock_skills:skill:skills/productivity/grilling` — adopt, pending cr-axdt.6.4 → grilling#answer-before-next-round
+- ours: `grilling`
+- `mattpocock_skills:skill:skills/in-progress/loop-me` — adopt → grilling#answer-before-next-round
+- `mattpocock_skills:skill:skills/productivity/grilling` — adopt → grilling#answer-before-next-round
 
 #### `approval-interpretation`
 Treat a clear acceptance of a concrete proposal or an explicit delegation of routine choices as usable authority, and silence as not approval.
@@ -2678,7 +2723,8 @@ Ask the present user only about the send (who it goes to and what they need back
 
 #### `importance-ordered-questions`
 Order a questionnaire's questions most important first.
-- `mattpocock_skills:skill:skills/productivity/to-questionnaire` — adopt, pending cr-axdt.6.4 → grilling#importance-ordered-questions
+- ours: `grilling`
+- `mattpocock_skills:skill:skills/productivity/to-questionnaire` — adopt → grilling#importance-ordered-questions
 
 #### `interview-mode-by-workspace`
 Choose the stateful, document-writing interview when a working directory exists and the stateless one when it does not.
@@ -2703,7 +2749,8 @@ Decide routine details yourself and ask only when an ambiguity materially affect
 
 #### `needed-item-coverage`
 Finish a questionnaire only when every needed decision or fact is covered by at least one question.
-- `mattpocock_skills:skill:skills/productivity/to-questionnaire` — adopt, pending cr-axdt.6.4 → grilling#needed-item-coverage
+- ours: `grilling`
+- `mattpocock_skills:skill:skills/productivity/to-questionnaire` — adopt → grilling#needed-item-coverage
 
 #### `non-blocking-lookup`
 Run a fact lookup without blocking the interview, holding back only the questions downstream of it.
@@ -2779,7 +2826,8 @@ Recompute the unresolved choices after each answer and stop once the needed ones
 
 #### `single-idea-questions`
 Make each question a single idea, never a compound one.
-- `mattpocock_skills:skill:skills/productivity/to-questionnaire` — adopt, pending cr-axdt.6.4 → grilling#single-idea-questions
+- ours: `grilling`
+- `mattpocock_skills:skill:skills/productivity/to-questionnaire` — adopt → grilling#single-idea-questions
 
 #### `structured-divergence`
 Generate only enough distinct options to expose the tradeoff, compare them on value, feasibility, cost and reversibility, test the assumption most likely to reverse the choice first, and keep rejected options with their reasons.
@@ -2800,7 +2848,8 @@ Capture the user's world, tools, channels and terminology in a notes file, inter
 
 #### `yes-accepts-recommendation`
 Word each question so that a yes accepts your recommended answer.
-- `mattpocock_skills:skill:skills/productivity/grilling` — adopt, pending cr-axdt.6.4 → grilling#yes-accepts-recommendation
+- ours: `grilling`
+- `mattpocock_skills:skill:skills/productivity/grilling` — adopt → grilling#yes-accepts-recommendation
 
 ### core · Intake · Triage
 
@@ -3404,7 +3453,8 @@ Once a check enforces a rule, replace the instruction that restated it with a po
 
 #### `co-location`
 Keep a concept's definition, rules and caveats under one heading so reading one part brings its neighbours.
-- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — adopt, pending cr-axdt.6.1 → authoring-for-agents#co-location
+- ours: `authoring-for-agents`
+- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — adopt → authoring-for-agents#co-location
 
 #### `command-conversion`
 Convert source commands into target skill scaffolds, reporting any name collision with an existing skill.
@@ -3421,7 +3471,8 @@ End each step on an observable, checkable done-or-not-done criterion that resist
 
 #### `completion-criteria-demand`
 Phrase the criterion to demand thorough work, driving the legwork latent in its wording.
-- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — adopt, pending cr-axdt.6.1 → authoring-for-agents#completion-criteria-demand
+- ours: `authoring-for-agents`
+- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — adopt → authoring-for-agents#completion-criteria-demand
 
 #### `config-scaffold`
 Write a target runtime config file and a migration-notes document as scaffolds.
@@ -3485,7 +3536,7 @@ Copy hooks and rewrite hook registrations into the target format, flagging that 
 
 #### `human-facing-description`
 Write a user-invoked skill's description as a one-line human summary with triggers stripped.
-- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — adopt, pending cr-axdt.6.1 → authoring-for-agents#human-facing-description
+- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — defer
 
 #### `inline-vs-disclose`
 Inline what every branch needs and disclose branch-specific material behind a conditional pointer.
@@ -3544,7 +3595,8 @@ Prefer one effective instruction over repeated prohibitions or ritual steps, tre
 
 #### `one-trigger-per-branch`
 Give each trigger branch of a pointer one trigger, collapsing synonyms.
-- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — adopt, pending cr-axdt.6.1 → authoring-for-agents#one-trigger-per-branch
+- ours: `authoring-for-agents`
+- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — adopt → authoring-for-agents#one-trigger-per-branch
 
 #### `outputs-and-authority`
 State outputs, material invariants, authority boundaries and stop conditions explicitly.
@@ -3556,7 +3608,8 @@ Keep conditional references as plain paths, never automatic imports.
 
 #### `pointer-identity-trim`
 Cut from a pointer any identity the target's own body already carries.
-- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — adopt, pending cr-axdt.6.1 → authoring-for-agents#pointer-identity-trim
+- ours: `authoring-for-agents`
+- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — adopt → authoring-for-agents#pointer-identity-trim
 
 #### `precision-and-discretion`
 Match prescription to fragility: exact recipes for deterministic operations, judgment for context-dependent choices.
@@ -3573,7 +3626,8 @@ When a correction or instruction recurs, encode it as a lint, flag, runtime chec
 
 #### `relevance-check`
 Check every line still bears on the document's task, pruning stale or irrelevant ones.
-- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — adopt, pending cr-axdt.6.1 → authoring-for-agents#relevance-check
+- ours: `authoring-for-agents`
+- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — adopt → authoring-for-agents#relevance-check
 
 #### `review-time-standards-file`
 Treat the coding-standards file as review-time material and split it behind pointers once it passes about a thousand lines.
@@ -3597,7 +3651,8 @@ Put reference several skills need in one model-invoked, all-reference skill they
 
 #### `sharpen-before-inline`
 Fix a weakly reached must-have target by sharpening its pointer's wording first, inlining it only if that fails.
-- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — adopt, pending cr-axdt.6.1 → authoring-for-agents#sharpen-before-inline
+- ours: `authoring-for-agents`
+- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — adopt → authoring-for-agents#sharpen-before-inline
 
 #### `single-source-of-truth`
 Keep each meaning in one authoritative place so changing it is a one-place edit.
@@ -3629,7 +3684,8 @@ Keep the always-loaded agent instruction file sparse, mostly navigation pointers
 
 #### `split-by-invocation`
 Split off a model-invoked skill only when a distinct leading word should trigger it or another skill must reach it.
-- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — adopt, pending cr-axdt.6.1 → authoring-for-agents#split-by-invocation
+- ours: `authoring-for-agents`
+- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — adopt → authoring-for-agents#split-by-invocation
 
 #### `structural-fix-only`
 Once a rule is enforced by structure, delete the instruction that restated it.
@@ -3884,9 +3940,10 @@ Split or trim any sentence the reader must reread to parse.
 #### `domain-vocabulary`
 Use the project's established domain vocabulary throughout what you write.
 - ours: `i-have-adhd`
+- ours: `improve-codebase-architecture`
 - ours: `prototype`
 - ours: `teach`
-- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — adopt, pending cr-axdt.6.5 → improve-codebase-architecture#domain-vocabulary
+- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — adopt → improve-codebase-architecture#domain-vocabulary
 - `mattpocock_skills:skill:skills/engineering/pr` — defer
 - `mattpocock_skills:skill:skills/engineering/prototype` — adopt → prototype#domain-vocabulary
 - `mattpocock_skills:skill:skills/engineering/tdd` — defer
@@ -4736,12 +4793,17 @@ Delegate reading legwork to a background agent so the caller keeps working while
 
 #### `background-dispatch-for-dialogue`
 Run subagents in the background so the coordinator stays in live dialogue with the user.
-- `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — adopt, pending cr-axdt.6.3 → delegation#background-dispatch-for-dialogue
+- ours: `delegation`
+- `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — adopt → delegation#background-dispatch-for-dialogue
 
 #### `base-chosen-for-extensibility`
 Choose the base a later maintainer could extend most easily while keeping invariants intact.
 - ours: `model-council`
 - `cursor_plugins:skill:pstack/skills/arena` — adopt → model-council#base-chosen-for-extensibility
+
+#### `brief-names-done-evidence`
+A brief names what will show the work is finished, and a unit with nothing to name is scoped further or raised with the owner before dispatch.
+- ours: `delegation`
 
 #### `brief-only-read-only`
 Tell helpers to write nothing and change no external state even though their mode permits it.
@@ -5152,6 +5214,10 @@ Give the judge read-only access.
 Read a skill's own instructions before describing what it does or recommending its step be skipped, treating router summaries as orientation only.
 - `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
 
+#### `read-worker-output`
+Open the diff or artifact a worker produced and hold it to the evidence its brief named, instead of relying on its summary.
+- ours: `delegation`
+
 #### `recorded-step-skip`
 Keep a playbook step that will not run in the todo list, marked with its reason, instead of dropping it.
 - ours: `mvp-mode`
@@ -5172,6 +5238,10 @@ Save every member's full attributed report under the run directory rather than d
 
 #### `report-resolution`
 Report which values were selected from the catalog, accepted by the active surface, inherited, or rejected and unavailable.
+
+#### `retry-by-cause`
+Retry a failed worker according to why it failed, with a narrower unit, the same brief or another model, and after two retries drop the unit and plan around it.
+- ours: `delegation`
 
 #### `reversible-work-proceeds`
 Proceed without asking on reversible work, then present the result and its reasoning so the human can correct it afterwards, leaving product direction to the human.
@@ -5253,6 +5323,10 @@ End with one merged artifact rather than a set of alternatives.
 Expect only one or two grafts from a losing candidate, not the bulk of it.
 - ours: `model-council`
 - `cursor_plugins:skill:pstack/skills/arena` — adopt → model-council#sparse-grafts
+
+#### `stalled-worker-by-output`
+Stop or replace a worker that stalls or loops, judging it by what it has produced rather than its status text.
+- ours: `delegation`
 
 #### `suggest-schedules`
 Suggest recurring schedules that help reach the goal where the harness supports them.
@@ -5342,7 +5416,8 @@ Require authorization before publishing, deploying, sending messages, taking des
 
 #### `credential-env-indirection`
 Build commands on environment variables so credentials stay in the environment and never appear in shown text.
-- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt, pending cr-axdt.6.9 → systematic-debugging#credential-env-indirection
+- ours: `systematic-debugging`
+- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt → systematic-debugging#credential-env-indirection
 
 #### `destructive-command-guard`
 Never run the tracker's deleting commands, reclaiming space with a non-destructive compact instead.
@@ -5391,7 +5466,8 @@ Never bypass permissions, hooks, sandboxes or required gates.
 
 #### `placeholder-sensitive-data-redaction`
 Replace secrets and personal data with placeholders in anything shown or saved.
-- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt, pending cr-axdt.6.9 → systematic-debugging#placeholder-sensitive-data-redaction
+- ours: `systematic-debugging`
+- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt → systematic-debugging#placeholder-sensitive-data-redaction
 - `mattpocock_skills:skill:skills/productivity/handoff` — defer
 
 #### `redact-secrets` *(retired)*
@@ -5492,7 +5568,8 @@ Include only the knowledge a lesson's target skill needs, teaching it first and 
 
 #### `knowledge-skills-wisdom-frame`
 Frame learning as knowledge from trusted sources, skills from interactive lessons and wisdom from communities.
-- `mattpocock_skills:skill:skills/productivity/teach` — adopt, pending cr-axdt.6.10 → teach#knowledge-skills-wisdom-frame
+- ours: `teach`
+- `mattpocock_skills:skill:skills/productivity/teach` — adopt → teach#knowledge-skills-wisdom-frame
 
 #### `learning-record-criteria`
 Write a learning record only for demonstrated understanding, disclosed prior knowledge, a corrected misconception or a mission shift, never for coverage, glossary duplicates or activity logs.
@@ -5553,7 +5630,8 @@ When the learning mission is unclear or empty, ask the learner why they want to 
 
 #### `mission-shift-handling`
 When the mission shifts or goes stale, confirm with the learner, revise the mission and add a learning record.
-- `mattpocock_skills:skill:skills/productivity/teach` — adopt, pending cr-axdt.6.10 → teach#mission-shift-handling
+- ours: `teach`
+- `mattpocock_skills:skill:skills/productivity/teach` — adopt → teach#mission-shift-handling
 
 #### `one-mission-per-workspace`
 Keep exactly one mission per learning workspace.
@@ -5639,11 +5717,13 @@ Draw explanations from trusted, cited sources and check unfamiliar or changing f
 
 #### `spacing`
 Space practice over time to build long-term retention.
-- `mattpocock_skills:skill:skills/productivity/teach` — adopt, pending cr-axdt.6.10 → teach#spacing
+- ours: `teach`
+- `mattpocock_skills:skill:skills/productivity/teach` — adopt → teach#spacing
 
 #### `storage-strength`
 Favour long-term retention over in-the-moment fluency, which can give an illusory sense of mastery.
-- `mattpocock_skills:skill:skills/productivity/teach` — adopt, pending cr-axdt.6.10 → teach#storage-strength
+- ours: `teach`
+- `mattpocock_skills:skill:skills/productivity/teach` — adopt → teach#storage-strength
 
 #### `teaching-workspace`
 Keep a multi-session course's state (mission, resources, learning records, glossary and lessons) as files in one course workspace.
@@ -5660,7 +5740,8 @@ Vary the balance between knowledge teaching and skills practice with the topic.
 
 #### `vary-answer-position`
 Vary which position holds the correct answer across questions so order gives nothing away.
-- `mattpocock_skills:skill:skills/productivity/teach` — adopt, pending cr-axdt.6.10 → teach#vary-answer-position
+- ours: `teach`
+- `mattpocock_skills:skill:skills/productivity/teach` — adopt → teach#vary-answer-position
 
 #### `what-vs-why`
 Separate what happened from why it was chosen when explaining.
@@ -6205,7 +6286,8 @@ For a pull request, make the agent brief describe what remains to be done to the
 
 #### `already-built-close`
 Close a request that is already implemented by pointing to where it lives, recording no rejection.
-- `mattpocock_skills:skill:skills/engineering/triage` — adopt, pending cr-axdt.6.12 → triage#already-built-close
+- ours: `triage`
+- `mattpocock_skills:skill:skills/engineering/triage` — adopt → triage#already-built-close
 
 #### `brief-offer-on-shortcut`
 When moving an item to agent-ready without an interview, ask whether to write its agent brief.
@@ -6258,8 +6340,9 @@ Treat an external pull request as an issue with attached code, running it throug
 
 #### `read-full-source-issue`
 Read the full body, comments and, for a pull request, the diff of any referenced spec, issue or pull request before working from it.
+- ours: `triage`
 - `mattpocock_skills:skill:skills/engineering/to-tickets` — defer
-- `mattpocock_skills:skill:skills/engineering/triage` — adopt, pending cr-axdt.6.12 → triage#read-full-source-issue
+- `mattpocock_skills:skill:skills/engineering/triage` — adopt → triage#read-full-source-issue
 
 #### `ready-for-agent-label`
 Tag the published work with the ready-for-agent triage label so it needs no further triage.
@@ -6268,7 +6351,8 @@ Tag the published work with the ready-for-agent triage label so it needs no furt
 
 #### `ready-for-human-rationale`
 When an item is ready for a human rather than an agent, use the same brief structure but record why it cannot be delegated.
-- `mattpocock_skills:skill:skills/engineering/triage` — adopt, pending cr-axdt.6.12 → triage#ready-for-human-rationale
+- ours: `triage`
+- `mattpocock_skills:skill:skills/engineering/triage` — adopt → triage#ready-for-human-rationale
 
 #### `recommend-then-wait`
 Recommend a category and state with reasoning and a short codebase summary, then wait for the maintainer's direction before acting.
@@ -6418,7 +6502,8 @@ Before committing to an interaction or architecture with no precedent in the cod
 
 #### `concrete-benefit-claims`
 Phrase a candidate's benefits in the design vocabulary rather than generic claims such as easier to maintain.
-- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — adopt, pending cr-axdt.6.5 → improve-codebase-architecture#concrete-benefit-claims
+- ours: `improve-codebase-architecture`
+- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — adopt → improve-codebase-architecture#concrete-benefit-claims
 
 #### `concurrent-modification-test`
 Before sharing state between actors, ask what a concurrent modification would do, and isolate the state unless the answer is nothing.
@@ -6836,7 +6921,8 @@ Derive each step from the observed current state compared with the goal, applyin
 
 #### `rejection-decision-record`
 When the user rejects an improvement candidate for a durable reason, offer a decision record so later reviews do not suggest it again, skipping ephemeral or self-evident reasons.
-- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — adopt, pending cr-axdt.6.5 → improve-codebase-architecture#rejection-decision-record
+- ours: `improve-codebase-architecture`
+- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — adopt → improve-codebase-architecture#rejection-decision-record
 
 #### `repeat-and-crash-question`
 Ask what happens when a state change runs twice or crashes halfway, and make the transition idempotent where applicable.
@@ -7304,8 +7390,9 @@ Maintain a root context map listing contexts, their locations and relationships,
 
 #### `read-domain-docs-first`
 Read the domain glossary and the decision records near the code before exploring it.
+- ours: `improve-codebase-architecture`
 - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — defer
-- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — adopt, pending cr-axdt.6.5 → improve-codebase-architecture#read-domain-docs-first
+- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — adopt → improve-codebase-architecture#read-domain-docs-first
 
 #### `sharpen-fuzzy`
 Propose one precise canonical term for a vague or overloaded one.
@@ -7327,7 +7414,8 @@ Write a resolved term into the glossary as soon as it is resolved rather than ba
 
 #### `brief-acceptance-criteria`
 Give every brief concrete, independently testable acceptance criteria.
-- `mattpocock_skills:skill:skills/engineering/triage` — adopt, pending cr-axdt.6.12 → triage#brief-acceptance-criteria
+- ours: `triage`
+- `mattpocock_skills:skill:skills/engineering/triage` — adopt → triage#brief-acceptance-criteria
 
 #### `brief-scope-boundaries`
 State explicitly what is out of scope so the agent does not gold-plate.
@@ -7504,7 +7592,8 @@ For a rough figure the user asked for, let one run do while still checking error
 #### `baseline`
 Capture a baseline measurement before attempting a performance fix.
 - ours: `performance-optimization`
-- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt, pending cr-axdt.6.9 → systematic-debugging#baseline
+- ours: `systematic-debugging`
+- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt → systematic-debugging#baseline
 
 #### `benefit-justifies-complexity`
 Keep a performance change only when its measured benefit justifies the complexity it adds.
@@ -7635,7 +7724,8 @@ Count failures and non-success responses, adding the count when the measuring sc
 
 #### `falsifiable-hypotheses`
 State each hypothesis as a falsifiable prediction that changing its cause changes the result, discarding any that cannot be stated so.
-- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt, pending cr-axdt.6.9 → systematic-debugging#falsifiable-hypotheses
+- ours: `systematic-debugging`
+- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt → systematic-debugging#falsifiable-hypotheses
 
 #### `five-run-floor`
 Run each compared side at least five times.
@@ -7832,7 +7922,8 @@ Keep a pull request body to one primary number, with the supporting evidence lin
 
 #### `one-variable-at-a-time`
 Change exactly one variable per probe, each mapped to a specific prediction.
-- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt, pending cr-axdt.6.9 → systematic-debugging#one-variable-at-a-time
+- ours: `systematic-debugging`
+- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt → systematic-debugging#one-variable-at-a-time
 
 #### `one-verdict-first`
 Open a measurement report with one verdict: slower, faster, inconclusive or no measurable difference.
@@ -9153,7 +9244,8 @@ Have each implementer confirm its worktree is based on the integration branch an
 
 #### `build-check-over-rule`
 Default to building a deterministic check over writing a prose rule for any mechanical finding.
-- `mattpocock_skills:skill:skills/engineering/retro` — adopt, pending cr-axdt.6.1 → authoring-for-agents#build-check-over-rule
+- ours: `authoring-for-agents`
+- `mattpocock_skills:skill:skills/engineering/retro` — adopt → authoring-for-agents#build-check-over-rule
 
 #### `document-boundary-readme`
 Document the boundary convention in a README beside the packages it governs.
@@ -9324,11 +9416,12 @@ Traits listed by two or more of our active skills (`doc:AGENTS.md` and playbooks
 | Trait | Holders | Why |
 |---|---|---|
 | `attempt-log` | doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, execution | Each fixes a failure on its own path, the bug-fix playbook for a bug-fix request and execution inside a task it is running, often delegated, where it cannot start the playbook (R8); both log each fix attempt so a stop hands back usable evidence. |
+| `baseline` | performance-optimization, systematic-debugging | Each measures before a fix: performance-optimization for a resource target, systematic-debugging when the failure diagnosed is a performance regression, which it hands to the fixer. |
 | `bounded-background-wait` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md | The same one sentence on waiting sits at each step that waits, with its own stopped exit; no skill is called for it. |
 | `build-closeout` | doc:.claude/skills/mvp-mode/playbooks/feature.md, doc:.claude/skills/mvp-mode/playbooks/perf-issue.md, doc:.claude/skills/mvp-mode/playbooks/refactoring.md | Each playbook's closeout runs on its own exits and feeds its own reply, and these three have the same three duties; a skill of three duties would be ceremony (unit-kinds deviation log, St4 and B4). |
 | `canonical-term-and-aliases` | domain-modeling, teach | Each keeps a glossary of its own (project language, the learner's workspace) in one entry format, with its own admission rules. |
 | `dependency-edges` | planning, wayfinder | Each builds its own tracker graph, planning for implementation stages and wayfinder for decision tickets, and lets readiness drive the work; edge semantics stay in beads. |
-| `domain-vocabulary` | i-have-adhd, prototype, teach | Each writes for its reader in the project's own terms: i-have-adhd in its re-pitches, teach in its lessons, and prototype in its states, actions and labels, so an answer transfers to the real code. |
+| `domain-vocabulary` | i-have-adhd, improve-codebase-architecture, prototype, teach | Each writes for its reader in the project's own terms: i-have-adhd in its re-pitches, teach in its lessons, prototype in its states, actions and labels, so an answer transfers to the real code, and improve-codebase-architecture in its candidates and their friction. |
 | `drift-scan` | harness-scan, harness-status | Both run the one drift command, scan for a single harness and status as a sweep of all of them; a pointer between them would add a hop to a one-line command. |
 | `dropout-proceeds-noted` | interrogate, model-council | A failed member and a failed adversary are handled alike, going on and reporting it, but what is left when too few remain differs: no pick for one, not run for the other. |
 | `finding-adjudication` | execution, review | Execution rules on findings inside its delivery loop and review owns the method; owner 2026-10-30: execution stays unchanged. |

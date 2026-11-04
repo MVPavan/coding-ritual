@@ -34,6 +34,11 @@ Use to find the cause of a failure when it is unclear, after a fix did not hold,
 - `why-chain`: Ask why at each step of a failure until the answer is a wrong decision in the code rather than a consequence of an earlier one.
 - `legitimate-state-test`: Before guarding where a symptom surfaced, decide whether the triggering state is legitimate: handle a legitimate state there, and trace an illegitimate one to what produced it.
 - `persisted-state-suspect`: When a failure appears only after a restart, suspect persisted state (configuration, caches, lock files, serialized state) first.
+- `baseline`: Capture a baseline measurement before attempting a performance fix.
+- `credential-env-indirection`: Build commands on environment variables so credentials stay in the environment and never appear in shown text.
+- `falsifiable-hypotheses`: State each hypothesis as a falsifiable prediction that changing its cause changes the result, discarding any that cannot be stated so. (Delivers sealed row 2026-10-30-mattpocock_skills-5beb35b:238: each hypothesis states what would confirm or refute it, with no discard step and no prediction about changing the cause; T5.)
+- `one-variable-at-a-time`: Change exactly one variable per probe, each mapped to a specific prediction. (Delivers sealed row 2026-10-30-mattpocock_skills-5beb35b:222: one change per probe, with the prediction carried by the hypothesis rather than mapped per probe; T5.)
+- `placeholder-sensitive-data-redaction`: Replace secrets and personal data with placeholders in anything shown or saved.
 <!-- /registry:generated traits -->
 
 <!-- registry:generated lineage -->
@@ -41,17 +46,12 @@ Use to find the cause of a failure when it is unclear, after a fix did not hold,
 - **superpowers:skill:skills/systematic-debugging** `skills/systematic-debugging/SKILL.md` @ 44c9b2d
 - **mattpocock_skills:skill:skills/engineering/diagnosing-bugs#tighten-loop** `skills/engineering/diagnosing-bugs/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/engineering/diagnosing-bugs#reproduce-and-minimize** `skills/engineering/diagnosing-bugs/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
-- **mattpocock_skills:skill:skills/engineering/diagnosing-bugs#one-variable-at-a-time** `skills/engineering/diagnosing-bugs/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.9)
 - **mattpocock_skills:skill:skills/engineering/diagnosing-bugs#tagged-debug-logs** `skills/engineering/diagnosing-bugs/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
-- **mattpocock_skills:skill:skills/engineering/diagnosing-bugs#baseline** `skills/engineering/diagnosing-bugs/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.9)
 - **mattpocock_skills:skill:skills/engineering/diagnosing-bugs#perf-bisection** `skills/engineering/diagnosing-bugs/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/engineering/diagnosing-bugs#prove-the-red** `skills/engineering/diagnosing-bugs/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.9)
 - **mattpocock_skills:skill:skills/engineering/diagnosing-bugs#regression-check** `skills/engineering/diagnosing-bugs/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/engineering/diagnosing-bugs#missing-seam-finding** `skills/engineering/diagnosing-bugs/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.9)
 - **mattpocock_skills:skill:skills/engineering/diagnosing-bugs#closeout** `skills/engineering/diagnosing-bugs/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
-- **mattpocock_skills:skill:skills/engineering/diagnosing-bugs#falsifiable-hypotheses** `skills/engineering/diagnosing-bugs/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.9)
-- **mattpocock_skills:skill:skills/engineering/diagnosing-bugs#placeholder-sensitive-data-redaction** `skills/engineering/diagnosing-bugs/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.9)
-- **mattpocock_skills:skill:skills/engineering/diagnosing-bugs#credential-env-indirection** `skills/engineering/diagnosing-bugs/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.9)
 - **mattpocock_skills:skill:skills/engineering/diagnosing-bugs#loop-construction** `skills/engineering/diagnosing-bugs/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/engineering/diagnosing-bugs#preferred-reproduction-order** `skills/engineering/diagnosing-bugs/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **cursor_plugins:skill:pstack/skills/principle-fix-root-causes#owning-layer-fix** `pstack/skills/principle-fix-root-causes/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
@@ -60,9 +60,19 @@ Use to find the cause of a failure when it is unclear, after a fix did not hold,
 - **cursor_plugins:skill:pstack/skills/principle-fix-root-causes#persisted-state-suspect** `pstack/skills/principle-fix-root-causes/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
 - **cursor_plugins:skill:pstack/skills/principle-prove-it-works#suspect-the-observation** `pstack/skills/principle-prove-it-works/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
 - **mattpocock_skills:skill:skills/engineering/diagnosing-bugs#reproduction-first** `skills/engineering/diagnosing-bugs/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/engineering/diagnosing-bugs#baseline** `skills/engineering/diagnosing-bugs/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/engineering/diagnosing-bugs#credential-env-indirection** `skills/engineering/diagnosing-bugs/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/engineering/diagnosing-bugs#falsifiable-hypotheses** `skills/engineering/diagnosing-bugs/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/engineering/diagnosing-bugs#one-variable-at-a-time** `skills/engineering/diagnosing-bugs/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/engineering/diagnosing-bugs#placeholder-sensitive-data-redaction** `skills/engineering/diagnosing-bugs/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-04` **adopt** (2026-11-04-pocock-pass:024): Completes pending 2026-10-30-mattpocock_skills-5beb35b:242: placeholder-sensitive-data-redaction is written at .claude/skills/systematic-debugging/SKILL.md:21-…
+- `2026-11-04` **adopt** (2026-11-04-pocock-pass:023): Completes pending 2026-10-30-mattpocock_skills-5beb35b:222: one-variable-at-a-time is written at .claude/skills/systematic-debugging/SKILL.md:29-31, in the sea…
+- `2026-11-04` **adopt** (2026-11-04-pocock-pass:022): Completes pending 2026-10-30-mattpocock_skills-5beb35b:238: falsifiable-hypotheses is written at .claude/skills/systematic-debugging/SKILL.md:24-26, in the sea…
+- `2026-11-04` **adopt** (2026-11-04-pocock-pass:021): Completes pending 2026-10-30-mattpocock_skills-5beb35b:243: credential-env-indirection is written at .claude/skills/systematic-debugging/SKILL.md:21-23, in the…
+- `2026-11-04` **adopt** (2026-11-04-pocock-pass:020): Completes pending 2026-10-30-mattpocock_skills-5beb35b:224: baseline is written at .claude/skills/systematic-debugging/SKILL.md:48-49, in the sealed rewording'…
 - `2026-11-01` **update** (2026-11-01-principles-fixes:001): The restart heuristic (persisted-state-suspect, delivered by 2026-11-01-cursor_plugins-pstack-principles:217) moves from references/localization.md into the sk…
 - `2026-11-01` **adopt** (2026-11-01-pocock-retarget:001): Owner ruling 2026-11-01: withdrawn because our form is conditional; the adoption survives as the variant reproduction-preferred (T5).
 - `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:218): Completes pending 2026-11-01-cursor_plugins-pstack-principles:098: the principles build (cr-r2pa.1.2) delivered suspect-the-observation in systematic-debugging…
@@ -85,9 +95,9 @@ Use to find the cause of a failure when it is unclear, after a fix did not hold,
 - `2026-10-30` **adopt-merged** (2026-10-30-mattpocock_skills-5beb35b:570): Checkpoint at 5beb35b for the owner's trait rulings: 17 adopt, 13 defer.
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:245): Same mechanism, looser and deliberate: SKILL.md:14-17 lists candidate forms by fit rather than order, which suits the failure at hand (S-03).
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:244): Ours builds the reproduction as a focused test, CLI fixture, captured trace or scratch harness to fit the failure.
-- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:243): Ours keeps secrets out of reports (SKILL.md:51) but never says how to keep credentials out of commands it shows; environment-variable indirection closes that, …
-- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:242): Ours keeps secrets out of reports (SKILL.md:51) but leaves out personal data, saved artifacts and the masking technique; placeholders for secrets and personal …
-- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:238): Ours labels hypotheses (SKILL.md:19-20) but does not require each to name what would confirm or refute it, which is what makes the discriminating observation c…
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:243) *(superseded)*: Ours keeps secrets out of reports (SKILL.md:51) but never says how to keep credentials out of commands it shows; environment-variable indirection closes that, …
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:242) *(superseded)*: Ours keeps secrets out of reports (SKILL.md:51) but leaves out personal data, saved artifacts and the masking technique; placeholders for secrets and personal …
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:238) *(superseded)*: Ours labels hypotheses (SKILL.md:19-20) but does not require each to name what would confirm or refute it, which is what makes the discriminating observation c…
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:237): Owner deferred the report's reject recommendation, to review the set later: Ours already requests missing evidence when it cannot diagnose (SKILL.md:35-36), an…
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:235): Owner deferred the report's reject recommendation, to review the set later: ROUTED: AGENTS.md:93-94 routes domain terminology and ADRs, and AGENTS.md:26 surfac…
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:234): Owner deferred the report's reject recommendation, to review the set later: Ours states the observable condition for skipping the extended investigation (an ob…
@@ -99,9 +109,9 @@ Use to find the cause of a failure when it is unclear, after a fix did not hold,
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:227) *(superseded)*: Ours shows failure before the fix (SKILL.md:29-30) but has no guard against a forced red that never took effect; one sentence closes a real false-proof failure…
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:226): Owner deferred the report's reject recommendation, to review the set later: An absolute tool preference fixes a context-dependent routine choice (U-01, S-08); …
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:225): Same mechanism, looser and deliberate (SKILL.md:38-40); bisection stays available in localization.md:71-85.
-- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:224): Ours asks for comparable timing evidence for a performance regression (SKILL.md:38) without saying the baseline is taken before the fix; one clause makes the o…
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:224) *(superseded)*: Ours asks for comparable timing evidence for a performance regression (SKILL.md:38) without saying the baseline is taken before the fix; one clause makes the o…
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:223): Ours tags every instrumentation line with a unique prefix and finds it again with one grep.
-- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:222): Ours probes the suspected boundary or variable (SKILL.md:21) but never limits a probe to one change, so a probe that moves two things cannot attribute the resu…
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:222) *(superseded)*: Ours probes the suspected boundary or variable (SKILL.md:21) but never limits a probe to one change, so a probe that moves two things cannot attribute the resu…
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:221): Owner deferred the report's reject recommendation, to review the set later: Ours keeps no ranked hypothesis list to show (SKILL.md:19-20), and a mid-investigat…
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:220): Owner deferred the report's reject recommendation, to review the set later: Opposite stance: ours chooses a discriminating observation instead of generating a …
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:219): Owner deferred the report's reject recommendation, to review the set later: Opposite stance: ours deliberately continues safe source analysis or instrumentatio…
@@ -119,8 +129,14 @@ Use to find the cause of a failure when it is unclear, after a fix did not hold,
 <!-- /registry:generated reviews -->
 
 <!-- registry:generated sources -->
+- `baseline`:
+  - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs#baseline` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `closeout`:
   - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs#closeout` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2; withdrawn 2026-10-31)
+- `credential-env-indirection`:
+  - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs#credential-env-indirection` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `falsifiable-hypotheses`:
+  - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs#falsifiable-hypotheses` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `flake-reproduction`:
   - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs#tighten-loop` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `legitimate-state-test`:
@@ -132,10 +148,14 @@ Use to find the cause of a failure when it is unclear, after a fix did not hold,
   - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs#preferred-reproduction-order` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `minimize-to-discriminate`:
   - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs#reproduce-and-minimize` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `one-variable-at-a-time`:
+  - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs#one-variable-at-a-time` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `owning-layer-fix`:
   - `cursor_plugins:skill:pstack/skills/principle-fix-root-causes#owning-layer-fix` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe; withdrawn 2026-11-01)
 - `persisted-state-suspect`:
   - `cursor_plugins:skill:pstack/skills/principle-fix-root-causes#persisted-state-suspect` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `placeholder-sensitive-data-redaction`:
+  - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs#placeholder-sensitive-data-redaction` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `regression-check`:
   - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs#regression-check` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2; withdrawn 2026-10-31)
 - `reproduction-preferred`:

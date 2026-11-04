@@ -17,19 +17,22 @@ fact the agent cannot infer reliably. Remove generic advice that adds no behavio
 | Repeated specialist workflow | Skill |
 | Explicit human entrypoint | Manual skill or thin alias |
 | Substantial material used by one branch | Conditional reference |
-| Deterministic enforcement | Existing hook, check, or script where authorized |
+| Deterministic enforcement | A hook, check or script: propose a new one before writing a prose rule, and build it where authorized |
 
 Once a check enforces a rule, replace any instruction that restated the rule
 with a pointer to the check.
 
-Search for an existing owner before adding another. Keep shared semantics
+Search for an existing owner before adding another. Split a workflow into its own
+model-invoked skill only when it has a distinct trigger or another skill must
+reach it; each description costs discovery context. Keep shared semantics
 provider-neutral; runtime configuration owns models, effort, permissions and
 integration mechanics. Preserve scope restrictions on which files may change.
 
 ## Write
 
 - Put the activation boundary first: positive cases and the nearest misleading
-  case to skip. A description should select the skill, not duplicate its steps.
+  case to skip. A description should select the skill, not duplicate its steps or restate what
+  its body says it is.
 - Inline the common contract; link substantial optional material at the branch
   that needs it. Moving text behind an unconditional read does not save context.
 - State outputs, material invariants, authority boundaries and stop conditions.
@@ -50,7 +53,9 @@ trials to behavioral risk; methods are in `references/testing-docs.md`.
 Structural checks establish packaging, not model behavior. Report unavailable
 behavioral checks as a limit; do not manufacture evidence or bypass runtime
 restrictions to run them. Revise the smallest instruction implicated by a failed
-case, then recheck that case and its affected neighbors. When a lesson recurs
+case, then recheck that case and its affected neighbors. When a needed target is
+reached unreliably, sharpen its pointer's wording first; inline it only if a
+recheck still misses it. When a lesson recurs
 but needs judgement, so no check can decide it, revise the instruction it
 implicates and add one example of the failure; do not repeat or emphasise the
 rule.

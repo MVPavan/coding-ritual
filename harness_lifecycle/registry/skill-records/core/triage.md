@@ -23,6 +23,10 @@ Evaluate untriaged beads and decide each one — agent-ready under a parent, own
 - `agent-ready-gate`: Make a bead agent-executable only when acceptance criteria, current and desired behaviour, and out-of-scope notes all hold.
 - `pick-from-summary`: Show the count and a one-line summary of each waiting item and let the maintainer pick which to triage.
 - `durable-rejection-reasons`: Reject only for durable reasons of scope, technical constraint or strategy, treating a temporary reason as a deferral.
+- `already-built-close`: Close a request that is already implemented by pointing to where it lives, recording no rejection.
+- `brief-acceptance-criteria`: Give every brief concrete, independently testable acceptance criteria. (Delivers sealed row 2026-10-30-mattpocock_skills-5beb35b:304: independently checkable acceptance on the agent-ready gate, where the definition requires it of every brief, a separate writing rule; T5.)
+- `read-full-source-issue`: Read the full body, comments and, for a pull request, the diff of any referenced spec, issue or pull request before working from it.
+- `ready-for-human-rationale`: When an item is ready for a human rather than an agent, use the same brief structure but record why it cannot be delegated. (Delivers sealed row 2026-10-30-mattpocock_skills-5beb35b:306: a label and a note with the reason, with no separate brief structure; T5.)
 <!-- /registry:generated traits -->
 
 <!-- registry:generated lineage -->
@@ -33,17 +37,21 @@ Evaluate untriaged beads and decide each one — agent-ready under a parent, own
 - **mattpocock_skills:skill:skills/engineering/triage#prior-rejection-check** `skills/engineering/triage/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/engineering/triage#agent-brief-contract** `skills/engineering/triage/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/engineering/triage#brief-behavioural** `skills/engineering/triage/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
-- **mattpocock_skills:skill:skills/engineering/triage#brief-acceptance-criteria** `skills/engineering/triage/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.12)
 - **mattpocock_skills:skill:skills/engineering/triage#brief-scope-boundaries** `skills/engineering/triage/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
-- **mattpocock_skills:skill:skills/engineering/triage#ready-for-human-rationale** `skills/engineering/triage/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.12)
 - **mattpocock_skills:skill:skills/engineering/triage#triage-resume-notes** `skills/engineering/triage/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/engineering/triage#pick-from-summary** `skills/engineering/triage/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
-- **mattpocock_skills:skill:skills/engineering/triage#read-full-source-issue** `skills/engineering/triage/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.12)
-- **mattpocock_skills:skill:skills/engineering/triage#already-built-close** `skills/engineering/triage/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.12)
 - **mattpocock_skills:skill:skills/engineering/triage#durable-rejection-reasons** `skills/engineering/triage/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/engineering/triage#already-built-close** `skills/engineering/triage/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/engineering/triage#brief-acceptance-criteria** `skills/engineering/triage/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/engineering/triage#read-full-source-issue** `skills/engineering/triage/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/engineering/triage#ready-for-human-rationale** `skills/engineering/triage/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-04` **adopt** (2026-11-04-pocock-pass:033): Completes pending 2026-10-30-mattpocock_skills-5beb35b:306: ready-for-human-rationale is written at .claude/skills/triage/SKILL.md:54, in the sealed rewording'…
+- `2026-11-04` **adopt** (2026-11-04-pocock-pass:032): Completes pending 2026-10-30-mattpocock_skills-5beb35b:313: read-full-source-issue is written at .claude/skills/triage/SKILL.md:33-35, in the sealed rewording'…
+- `2026-11-04` **adopt** (2026-11-04-pocock-pass:031): Completes pending 2026-10-30-mattpocock_skills-5beb35b:304: brief-acceptance-criteria is written at .claude/skills/triage/SKILL.md:66-68, in the sealed rewordi…
+- `2026-11-04` **adopt** (2026-11-04-pocock-pass:030): Completes pending 2026-10-30-mattpocock_skills-5beb35b:315: already-built-close is written at .claude/skills/triage/SKILL.md:38, in the sealed rewording's own …
 - `2026-10-30` **adopt-merged** (2026-10-30-mattpocock_skills-5beb35b:574): Checkpoint at 5beb35b for the owner's trait rulings: 15 adopt, 20 defer, 5 out-of-scope.
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:327): Owner deferred the report's reject recommendation, to review the set later: Ours keeps no rejection store: a wontfix close reason is the record and prior-rejec…
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:326): Owner deferred the report's reject recommendation, to review the set later: Ours keeps no rejection store: a wontfix close reason is the record and prior-rejec…
@@ -55,16 +63,16 @@ Evaluate untriaged beads and decide each one — agent-ready under a parent, own
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:320): Owner deferred the report's reject recommendation, to review the set later: Opposite stance: the bead's description and acceptance fields are the template, che…
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:318): Owner deferred the report's reject recommendation, to review the set later: Ours writes no separate agent brief (agent-brief-comment is rejected), so there is …
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:317): Owner deferred the report's reject recommendation, to review the set later: Ours applies an authorized decision directly (SKILL.md:42-44) but deliberately neve…
-- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:315): Ours closes an already-implemented request as wontfix (SKILL.md:36), which the prior-rejection search (SKILL.md:37-39) then matches as a rejection; a distinct …
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:315) *(superseded)*: Ours closes an already-implemented request as wontfix (SKILL.md:36), which the prior-rejection search (SKILL.md:37-39) then matches as a rejection; a distinct …
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:314): Owner deferred the report's reject recommendation, to review the set later: Opposite stance: ours puts the contract in the bead's own fields (SKILL.md:50, 61-6…
-- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:313): Ours reads the current bead and its notes (triage/SKILL.md:32-33) but not the full body and comments of a referenced spec, issue or pull request, nor a referen…
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:313) *(superseded)*: Ours reads the current bead and its notes (triage/SKILL.md:32-33) but not the full body and comments of a referenced spec, issue or pull request, nor a referen…
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:312): Ours shows counts and one-line summaries and asks for a selection when the request set no scope.
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:311): Owner deferred the report's reject recommendation, to review the set later: Interpreting a natural-language request is default model behaviour; stating it adds…
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:310): Owner deferred the report's reject recommendation, to review the set later: Opposite stance: ours deliberately has no intake labels or states; a bead's parent,…
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:309): Ours reads prior Established notes and never re-asks what they record.
-- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:306): Ours labels owner's work human (SKILL.md:51) but never records why it cannot be delegated; a one-line note lets a later pass re-check that reason.
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:306) *(superseded)*: Ours labels owner's work human (SKILL.md:51) but never records why it cannot be delegated; a one-line note lets a later pass re-check that reason.
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:305): Same mechanism, deliberately conditional (SKILL.md:64-65), avoiding boilerplate on clear beads (writing-principles, Pruning).
-- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:304): Ours's gate only requires acceptance criteria to be populated (SKILL.md:63); requiring them to be checkable is what makes autonomous claiming safe, and the loo…
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:304) *(superseded)*: Ours's gate only requires acceptance criteria to be populated (SKILL.md:63); requiring them to be checkable is what makes autonomous claiming safe, and the loo…
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:303): Same mechanism, looser and deliberate: the gate (SKILL.md:63-64) checks behaviour is stated without policing extra detail.
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:302): Owner deferred the report's reject recommendation, to review the set later: Ours keeps agent-ready beads to the gate's three fields (SKILL.md:63-65) and lets b…
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:301): Same purpose, deliberate (SKILL.md:61-65, 69-70): one record avoids a brief drifting from the bead.
@@ -93,8 +101,12 @@ None yet.
   - `mattpocock_skills:skill:skills/engineering/triage#agent-brief-contract` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
   - `mattpocock_skills:skill:skills/engineering/triage#brief-behavioural` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
   - `mattpocock_skills:skill:skills/engineering/triage#brief-scope-boundaries` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `already-built-close`:
+  - `mattpocock_skills:skill:skills/engineering/triage#already-built-close` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `attention-buckets`:
   - `mattpocock_skills:skill:skills/engineering/triage#attention-buckets` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `brief-acceptance-criteria`:
+  - `mattpocock_skills:skill:skills/engineering/triage#brief-acceptance-criteria` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `claim-verification`:
   - `mattpocock_skills:skill:skills/engineering/triage#claim-verification` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `durable-rejection-reasons`:
@@ -105,6 +117,10 @@ None yet.
   - `mattpocock_skills:skill:skills/engineering/triage#pick-from-summary` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `prior-rejection-check`:
   - `mattpocock_skills:skill:skills/engineering/triage#prior-rejection-check` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `read-full-source-issue`:
+  - `mattpocock_skills:skill:skills/engineering/triage#read-full-source-issue` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `ready-for-human-rationale`:
+  - `mattpocock_skills:skill:skills/engineering/triage#ready-for-human-rationale` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `redundancy-check`:
   - `mattpocock_skills:skill:skills/engineering/triage#redundancy-check` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `triage-resume-notes`:

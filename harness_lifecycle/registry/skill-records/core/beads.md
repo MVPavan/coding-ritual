@@ -40,6 +40,7 @@ Use for Beads (bd) work beyond the core rules injected at session start - creati
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-04` **update** (2026-11-04-pocock-pass:039): triage points at this table for its outcomes and ready gate, and the pass gave triage an already-built close and independently checkable acceptance (completion…
 - `2026-08-14` **adopt** (2026-10-14-migration:147): Adopted-in-part: session close now records method with state (beads.md Session Close step 5 — which skills/approach the next session resumes with). Supersedes …
 <!-- /registry:generated history -->
 

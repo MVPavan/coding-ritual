@@ -77,9 +77,13 @@ finding-adjudication:
   why: "Execution rules on findings inside its delivery loop and review owns the method; owner 2026-10-30: execution stays unchanged."
   reviewed: "2026-10-30"
 domain-vocabulary:
-  skills: [i-have-adhd, prototype, teach]
-  why: "Each writes for its reader in the project's own terms: i-have-adhd in its re-pitches, teach in its lessons, and prototype in its states, actions and labels, so an answer transfers to the real code."
-  reviewed: "2026-11-02"
+  skills: [i-have-adhd, improve-codebase-architecture, prototype, teach]
+  why: "Each writes for its reader in the project's own terms: i-have-adhd in its re-pitches, teach in its lessons, prototype in its states, actions and labels, so an answer transfers to the real code, and improve-codebase-architecture in its candidates and their friction."
+  reviewed: "2026-11-04"
+baseline:
+  skills: [performance-optimization, systematic-debugging]
+  why: "Each measures before a fix: performance-optimization for a resource target, systematic-debugging when the failure diagnosed is a performance regression, which it hands to the fixer."
+  reviewed: "2026-11-04"
 sequential-record-numbering:
   skills: [domain-modeling, teach]
   why: "Each keeps its own record folder (ADRs, learning records) in one minimal format."

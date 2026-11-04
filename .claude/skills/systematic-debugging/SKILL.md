@@ -18,12 +18,16 @@ instrumentation. Fixing belongs to the caller, usually the bug-fix playbook.
    Confirm it shows the reported failure, not a nearby one. When a check
    fails unexpectedly, test the way it observes (the check, its fixture, the
    probe, the environment it reads) before concluding the system is wrong.
-   If fixes were already tried, take their attempt log as evidence.
-2. Form provisional hypotheses from code and evidence. Label them as hypotheses;
-   choose a discriminating observation instead of generating a fixed count.
+   If fixes were already tried, take their attempt log as evidence. Replace
+   secrets and personal data with placeholders in anything shown or saved; build
+   commands on environment variables so credentials never appear in shown text.
+2. Form provisional hypotheses from code and evidence, each stating what result
+   would confirm or refute it. Choose a discriminating observation instead of
+   generating a fixed count.
    A failure that appears only after a restart points first at persisted
    state: configuration files, caches, lock files, serialized state.
-3. Probe the suspected boundary or variable, update the explanation, then repeat
+3. Probe the suspected boundary or variable, changing one thing per probe, update
+   the explanation, then repeat
    only while new evidence is produced. Tag every temporary probe with one
    unique prefix so cleanup is a single search. For cross-layer tracing or
    bisection, consult `references/localization.md`. Keep asking why at each
@@ -41,7 +45,9 @@ For flakes or production-only failures, use `references/non-reproducible-bugs.md
 for order-dependent tests, the bundled `scripts/find-polluter.sh` may help. If no
 reproduction is available, continue safe source analysis or instrumentation.
 
-A performance regression needs comparable timing evidence. A resource target
+A performance regression needs a baseline measurement before the fix and a
+comparable one after it. Take the baseline here, and name the rerun in the diagnosis
+for whoever makes the fix. A resource target
 without a known regression belongs to performance-optimization; do not require a
 failed bisect before switching when evidence already supports that distinction.
 
