@@ -4,11 +4,13 @@ from __future__ import annotations
 
 import io
 import subprocess
+import sys
 import tarfile
+import tempfile
 from difflib import SequenceMatcher
 from pathlib import Path
 
-from curation.scan.catalog import normalize, read_text
+from curation.scan.catalog import normalize, read_text, scan_repo
 from curation.scan.models import Capability, Catalog, CatalogDiff, Kind, Material
 
 
@@ -45,7 +47,10 @@ def classify_change(
         return Material.MATERIAL, "frontmatter/surface changed"
     if old.content_hash == new.content_hash:
         if _tree_changed(old, new):
-            return Material.MATERIAL, "folder bytes changed (normalized main file unchanged)"
+            return (
+                Material.MATERIAL,
+                "folder bytes changed (normalized main file unchanged)",
+            )
         if set(old.variant_hashes) != set(new.variant_hashes):
             return Material.MINOR, "mirror-only change (canonical unchanged)"
         return Material.MINOR, "paths changed only"
@@ -191,3 +196,25 @@ def archive_ref(submodule: Path, ref: str, dest: Path) -> None:
             tar.extractall(dest, filter="data")
         except TypeError:
             tar.extractall(dest)
+
+
+def _is_sparse_checkout(root: Path) -> bool:
+    try:
+        return _git(root, "config", "--type=bool", "core.sparseCheckout") == "true"
+    except subprocess.CalledProcessError:  # unset
+        return False
+
+
+def scan_checkout(root: Path, repo: str, commit: str | None) -> Catalog:
+    """Scan `root`, or a full export of its HEAD when it is a sparse checkout: a
+    scan of the partial tree would look complete and still carry the right commit.
+    """
+    if commit is None or not _is_sparse_checkout(root):
+        return scan_repo(root, repo, source="working-tree", source_commit=commit)
+    print(
+        f"sparse checkout: scanning a full export of HEAD {commit[:10]}",
+        file=sys.stderr,
+    )
+    with tempfile.TemporaryDirectory(prefix="harness-catalog-") as tmp:
+        archive_ref(root, commit, Path(tmp))
+        return scan_repo(Path(tmp), repo, source="working-tree", source_commit=commit)

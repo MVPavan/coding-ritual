@@ -11,7 +11,7 @@ from curation.registry.ledger import _is_trait_subject
 from curation.registry.loaders import _catalog_files
 from curation.registry.models import Event
 from curation.scan.catalog import _is_test_script, scan_repo
-from curation.scan.drift import pinned_commit
+from curation.scan.drift import pinned_commit, scan_checkout
 from curation.scan.models import Capability, Catalog
 
 
@@ -163,7 +163,7 @@ def _scan_dir(root: Path) -> Any:
             commit = pinned_commit(root)
         except Exception:  # noqa: BLE001 - best-effort commit stamp, no network
             commit = None
-    return scan_repo(root, root.name, source="working-tree", source_commit=commit)
+    return scan_checkout(root, root.name, commit)
 
 
 _CAP_KINDS = frozenset(

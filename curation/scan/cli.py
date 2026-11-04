@@ -42,28 +42,10 @@ from curation.scan.drift import (
     diff_catalogs,
     pinned_commit,
     render_diff,
+    scan_checkout,
     upstream_ref,
 )
 from curation.scan.models import Catalog
-
-
-def _is_sparse_checkout(root: Path) -> bool:
-    try:
-        return _git(root, "config", "--type=bool", "core.sparseCheckout") == "true"
-    except subprocess.CalledProcessError:  # unset
-        return False
-
-
-def _scan_checkout(root: Path, repo: str, commit: str | None) -> Catalog:
-    """Scan `root`, or a full export of its HEAD when it is a sparse checkout: a
-    scan of the partial tree would look complete and still carry the right commit.
-    """
-    if commit is None or not _is_sparse_checkout(root):
-        return scan_repo(root, repo, source="working-tree", source_commit=commit)
-    print(f"sparse checkout: scanning a full export of HEAD {commit[:10]}")
-    with tempfile.TemporaryDirectory(prefix="harness-catalog-") as tmp:
-        archive_ref(root, commit, Path(tmp))
-        return scan_repo(Path(tmp), repo, source="working-tree", source_commit=commit)
 
 
 def cmd_catalog(args: argparse.Namespace) -> int:
@@ -77,7 +59,7 @@ def cmd_catalog(args: argparse.Namespace) -> int:
             commit = pinned_commit(root)
         except subprocess.CalledProcessError:
             commit = None
-    catalog = _scan_checkout(root, repo, commit)
+    catalog = scan_checkout(root, repo, commit)
     if args.out:
         Path(args.out).parent.mkdir(parents=True, exist_ok=True)
         Path(args.out).write_text(

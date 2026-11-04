@@ -56,10 +56,11 @@ deleted. Beads is the work-state authority; this file is the narrative.
 | `8b9f890` | Batch 3 (`cr-r2pa.2.6`, round `2026-11-03-batch-3`), see below |
 | `fe75e0d` | Catalog diff and `gap` report bundled-file changes (`cr-r2pa.2.11`) |
 | `9a07dc0` | Batch 4 (`cr-r2pa.2.7`, round `2026-11-04-batch-4`), see below |
-| after `9a07dc0` | Pocock pass (`cr-r2pa.2.10`, round `2026-11-04-pocock-pass`), see below |
+| `2fbc414` | Pocock pass (`cr-r2pa.2.10`, round `2026-11-04-pocock-pass`), see below |
+| after `2fbc414` | `gap` and `record` read a sparse reference whole (`cr-r2pa.2.17`) |
 
 `main` is at `eb36cc9`; later work is on `mvp-stack` until the owner asks to merge.
-`mvp-stack` is pushed through `9a07dc0`; commits after it are local until the owner says to push.
+`mvp-stack` is pushed through `2fbc414`; commits after it are local until the owner says to push.
 
 Decisions behind them: domains `core` and `engineering`; one primary
 coordinate per skill (domain · stage · sub-stage); reviews are flat files
@@ -137,7 +138,7 @@ critic, owner rulings, ledger, build, Sol review, commit after the owner approve
   commit without the owner's own words. Two E4 proposals go to the owner at the commit request. None of it has run on a
   real session: whether a model picks either playbook, opens artifacts before a skip, keeps open calls whole on a
   resumed run or cleans up its file all wait on `cr-r2pa.2.12`.
-- `cr-r2pa.2.10`, done: the Pocock pass (round `2026-11-04-pocock-pass`). 37 of the 38 pending
+- `cr-r2pa.2.10`, done (`2fbc414`): the Pocock pass (round `2026-11-04-pocock-pass`). 37 of the 38 pending
   adoptions are delivered into eight skills in their sealed wording, and `delegation` gains ruling
   17's three supervision rules. `triage`'s new close also goes in the Beads table. Owner rulings of
   2026-11-04: `human-facing-description` is deferred to `cr-r2pa.3.4`, which rules on a carve-out
@@ -145,7 +146,9 @@ critic, owner rulings, ledger, build, Sol review, commit after the owner approve
   fact stays an ordinary question; the two sharing reasons are accepted. 13 traits follow their
   rewording under T5, logged in `unit-kinds.md`. No description or invocation flag changed. Status
   `PARTIAL`: no real session has run any of it.
-- Then `gap`'s sparse-checkout reading (`.17`).
+- `cr-r2pa.2.17`, done: `gap` and `record`'s source autofill read a sparse reference from a full
+  export of its HEAD, as `scan.py catalog` does. `gap cursor_plugins` now sees all 352 capabilities,
+  and its not-reviewed list went from 30 to 281: the real gap, for `cr-r2pa.2.13` to scope.
 - `cr-r2pa.2.13`: analyse every skill of ours, Pocock and pstack; its scope is still to
   agree with the owner.
 - `cr-r2pa.3.3`: at the end of the project, show the owner everything deferred or

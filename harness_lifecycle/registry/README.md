@@ -135,9 +135,10 @@ its `content_hash` covers the file, its `tree_hash` the file and its
 `playbooks/<name>/` folder. Our own playbooks are not cataloged: they are ledger
 subjects (§4b).
 
-`scan.py catalog` scans a sparse reference checkout from a full `git archive`
-export of its HEAD, not its working tree. A scan of the partial tree would look
-complete and carry the right commit, so it could replace the baseline unnoticed.
+`scan.py catalog`, `registry.py gap` and `record`'s source autofill read a sparse
+reference checkout from a full `git archive` export of its HEAD, not its working
+tree. A scan of the partial tree would look complete and carry the right commit,
+so it could replace the baseline unnoticed or hide capabilities from a gap.
 
 Status is the effective ruling, or `present, unruled` (we have a same-named
 capability but never ruled), or `not reviewed`. Stage is the skill's stage

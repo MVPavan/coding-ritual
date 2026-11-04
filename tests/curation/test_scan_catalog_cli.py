@@ -1,14 +1,19 @@
-"""`scan.py catalog` on a sparse checkout scans a full export of its HEAD, since a
-scan of the partial tree would look complete and carry the right commit."""
+"""`scan.py catalog` and the registry's `gap` and `record` read a sparse checkout
+from a full export of its HEAD, since a scan of the partial tree would look
+complete and carry the right commit."""
 
 from __future__ import annotations
 
 import json
 import subprocess
 from pathlib import Path
+from types import SimpleNamespace
+from typing import cast
 
 import pytest
 
+from curation.registry.catalogs import _autofill_source, resolve_reference
+from curation.registry.config import RegistryConfig
 from curation.scan.cli import main
 
 
@@ -59,7 +64,7 @@ def test_sparse_checkout_is_cataloged_whole(
 
     assert _ids(catalog) == {"skill:kept/skills/kept", "skill:other/skills/other"}
     assert (catalog["source"], catalog["source_commit"]) == ("working-tree", commit)
-    assert f"full export of HEAD {commit[:10]}" in capsys.readouterr().out
+    assert f"full export of HEAD {commit[:10]}" in capsys.readouterr().err
 
 
 def test_other_checkout_scans_its_working_tree(
@@ -77,4 +82,23 @@ def test_other_checkout_scans_its_working_tree(
 
     assert "skill:new/skills/new" in _ids(catalog)
     assert (catalog["source"], catalog["source_commit"]) == ("working-tree", commit)
-    assert "sparse" not in capsys.readouterr().out
+    assert "sparse" not in capsys.readouterr().err
+
+
+def test_registry_reads_a_sparse_reference_whole(tmp_path: Path) -> None:
+    repo = tmp_path / "reference_harnesses" / "h"
+    repo.mkdir(parents=True)
+    commit = _repo(repo)
+    _git(repo, "sparse-checkout", "set", "kept")
+    assert not (repo / "other").exists()
+    cfg = cast(RegistryConfig, SimpleNamespace(repo_root=tmp_path))
+
+    ref = resolve_reference(cfg, "h")
+
+    assert set(ref.by_logical_id()) == {
+        "skill:kept/skills/kept",
+        "skill:other/skills/other",
+    }
+    source = _autofill_source(cfg, "h", "skill:other/skills/other")
+    assert source is not None
+    assert (source["path"], source["sha"]) == ("other/skills/other/SKILL.md", commit)
