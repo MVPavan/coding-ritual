@@ -17,7 +17,7 @@ workflows as steps.
 
 ## Model-invocable skills
 
-`authoring-for-agents`, `beads`, `brainstorming`, `build-a-lever`, `codebase-design`, `decision-trail`, `delegation`, `design-evolve`, `domain-modeling`, `execution`, `explain-code`, `grilling`, `harness-evaluate`, `harness-skill-compare`, `html-artifact`, `interrogate`, `land`, `model-council`, `mvp-mode`, `performance-optimization`, `perspective-council`, `planning`, `prose-pass`, `prototype`, `research`, `resolving-merge-conflicts`, `review`, `security`, `systematic-debugging`, `test-driven-development`
+`authoring-for-agents`, `beads`, `brainstorming`, `build-a-lever`, `codebase-design`, `decision-trail`, `delegation`, `design-evolve`, `domain-modeling`, `execution`, `explain-code`, `grilling`, `harness-evaluate`, `harness-skill-compare`, `html-artifact`, `interrogate`, `land`, `model-council`, `mvp-mode`, `performance-optimization`, `perspective-council`, `planning`, `prose-pass`, `prototype`, `research`, `resolving-merge-conflicts`, `review`, `security`, `systematic-debugging`, `test-driven-development`, `wake`
 
 ## Slash-only workflows
 

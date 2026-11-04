@@ -4,18 +4,36 @@
 
 Every playbook's steps, read from the step lists in each playbook's frontmatter (`.repo-context/unit-kinds.md` St2). Traits are a step's own actions (T3); calls name the units it invokes; loads name the references it reads, by repository path (St1).
 
+## autonomous-run
+
+`.claude/skills/mvp-mode/playbooks/autonomous-run.md`
+
+Trigger: A request to keep working without further prompting until a stated, checkable condition holds, with no settled plan to execute.
+
+Playbook traits: `stated-unattended-gate`
+
+| Step | When | Traits | Calls | Loads |
+|---|---|---|---|---|
+| `autonomous-run#1` | always | `exit-predicate-first`, `run-limits-first` |  |  |
+| `autonomous-run#2` | autonomous-run#1 fixed a checkable predicate | `unattended-isolation`, `worktree-environment-proof` | `skill:decision-trail` (when: extra columns seq, predicate, branch, head, tree; the first row is the baseline, before any edit; this one whole call stays open through autonomous-run#6) |  |
+| `autonomous-run#3` | the trail holds its baseline row, and the request is stated unattended or names a limit |  | `skill:wake` (when: one whole call, opened once, stays open through autonomous-run#6) |  |
+| `autonomous-run#4` | once per iteration, entered from autonomous-run#2, autonomous-run#3 or autonomous-run#5 | `read-trail-first`, `unexplained-change-stop`, `bounded-background-wait`, `smallest-evidenced-change`, `revert-ineffective-experiments`, `row-then-checkpoint`, `discovery-scope-split` | `skill:delegation` (when: an attended run and the router's delegation rule sends the iteration to a subagent; told not to stage) |  |
+| `autonomous-run#5` | after each iteration; in this order, predicate met, a limit hit, or a dead end goes to autonomous-run#6, and anything else returns to autonomous-run#4 | `limit-bounded-hold`, `category-pivot` |  |  |
+| `autonomous-run#6` | every exit, including a closing return from the timer | `autonomous-closing-settle`, `autonomous-closeout` |  |  |
+| `autonomous-run#7` | an attended Met exit with this run's changes in the working tree, after autonomous-run#6 |  | `skill:land` |  |
+
 ## bug-fix
 
 `.claude/skills/mvp-mode/playbooks/bug-fix.md`
 
 Trigger: A reported defect, failing check or flaky test to diagnose and fix with proof.
 
-Playbook traits: `confirmed-cause-gate`
+Playbook traits: `confirmed-cause-gate`, `stated-unattended-gate`, `unattended-not-started`
 
 | Step | When | Traits | Calls | Loads |
 |---|---|---|---|---|
 | `bug-fix#1` | a deterministic failing command, run as reported, shows the failure and its output points at the cause; never a flaky failure, nor a cause found by reading code or rerunning in a loop | `obvious-cause-skip` |  |  |
-| `bug-fix#2` | bug-fix#1 did not skip it |  | `skill:explain-code` (when: the failing subsystem is unfamiliar or the failure may be a regression); `skill:systematic-debugging` |  |
+| `bug-fix#2` | bug-fix#1 did not skip it | `long-hunt-test`, `bounded-background-wait` | `skill:explain-code` (when: the failing subsystem is unfamiliar or the failure may be a regression); `skill:systematic-debugging` |  |
 | `bug-fix#3` | the cause is confirmed | `existing-check-as-proof`, `report-missing-proof`, `missing-seam-finding`, `scoped-instance-fix`, `implement-against-sketch` | `skill:codebase-design` (when: the fix crosses a function boundary); `skill:test-driven-development` (when: step 1's failing check does not already fail for the reported reason and a durable regression check is feasible) | `.claude/skills/mvp-mode/playbooks/bug-fix/timing-flakes.md` (when: the cause is a timing flake) |
 | `bug-fix#4` | bug-fix#3 changed code | `rerun-original-repro` |  |  |
 | `bug-fix#5` | around bug-fix#3 and bug-fix#4 | `attempt-log`, `revert-ineffective-experiments`, `two-failure-stop` |  |  |
@@ -65,20 +83,20 @@ Playbook traits: `lead-owns-design`, `contested-design-gate`
 
 `.claude/skills/mvp-mode/playbooks/hillclimb.md`
 
-Trigger: Sustained, attended improvement of one measurable metric against a stop predicate, with no settled plan to execute.
+Trigger: Sustained improvement of one measurable metric against a stop predicate, attended or stated unattended, with no settled plan to execute.
 
-Playbook traits: `attended-only-gate`, `one-change-one-measurement`
+Playbook traits: `stated-unattended-gate`, `one-change-one-measurement`
 
 | Step | When | Traits | Calls | Loads |
 |---|---|---|---|---|
-| `hillclimb#1` | always | `repro-before-climb`, `stop-predicate-with-floor` | `skill:explain-code`; `skill:performance-optimization` (when: this one whole call stays open through hillclimb#5; the predicate is its stop condition) |  |
-| `hillclimb#2` | hillclimb#1 fixed the metric and predicate | `attempt-isolation-gate`, `sensitivity-proof-then-freeze`, `gate-green-baseline` | `skill:build-a-lever` (when: no existing command emits the metric) | `.claude/skills/mvp-mode/playbooks/hillclimb/attempt.py` |
-| `hillclimb#3` | the harness is frozen |  | `skill:decision-trail` (when: extra columns before, after, delta, tests; this one whole call stays open through hillclimb#7) |  |
-| `hillclimb#4` | once per attempt, entered from hillclimb#3, hillclimb#5 or hillclimb#6 | `read-trail-first`, `keep-or-undo-rule`, `attempt-snapshot-undo` | `skill:delegation` (when: the router's delegation rule sends the attempt to a subagent; one factor per brief; told not to stage) |  |
-| `hillclimb#5` | after each attempt; predicate met, or no cheap untried idea left, goes to hillclimb#7; several rejects in a row go to hillclimb#6; anything else returns to hillclimb#4 | `predicate-held-stop` |  |  |
+| `hillclimb#1` | always | `repro-before-climb`, `stop-predicate-with-floor`, `unattended-target-from-request`, `run-limits-first` | `skill:explain-code`; `skill:performance-optimization` (when: this one whole call stays open through hillclimb#5; the predicate is its stop condition) |  |
+| `hillclimb#2` | hillclimb#1 fixed the metric and predicate | `attempt-isolation-gate`, `climb-checkpoint`, `worktree-environment-proof`, `bounded-background-wait`, `sensitivity-proof-then-freeze`, `gate-green-baseline` | `skill:wake` (when: the request is stated unattended or names a limit; this one whole call stays open through hillclimb#7); `skill:build-a-lever` (when: no existing command emits the metric) | `.claude/skills/mvp-mode/playbooks/hillclimb/attempt.py`; `.claude/skills/mvp-mode/playbooks/hillclimb/unattended.md` (when: the run is stated unattended) |
+| `hillclimb#3` | the harness is frozen |  | `skill:decision-trail` (when: extra columns seq, before, after, delta, tests, tree, index, value; this one whole call stays open through hillclimb#7) |  |
+| `hillclimb#4` | once per attempt, entered from hillclimb#3, hillclimb#5 or hillclimb#6 | `read-trail-first`, `bounded-background-wait`, `row-then-checkpoint`, `keep-or-undo-rule`, `attempt-snapshot-undo` | `skill:delegation` (when: an attended climb and the router's delegation rule sends the attempt to a subagent; one factor per brief; told not to stage) |  |
+| `hillclimb#5` | after each attempt; in this order, predicate met, a limit hit, or no cheap untried idea left goes to hillclimb#7; several rejects in a row go to hillclimb#6; anything else returns to hillclimb#4 | `predicate-held-stop`, `limit-bounded-hold` |  |  |
 | `hillclimb#6` | hillclimb#5 found several rejects in a row with the predicate unmet; returns to hillclimb#4 | `plateau-pivot` |  |  |
-| `hillclimb#7` | every exit | `climb-closeout` |  |  |
-| `hillclimb#8` | finished with one or more attempts kept and in the working tree, after hillclimb#7 |  | `skill:land` |  |
+| `hillclimb#7` | every exit, including a closing return from the timer | `climb-closeout`, `climb-closing-settle`, `unattended-climb-closeout` |  | `.claude/skills/mvp-mode/playbooks/hillclimb/unattended.md` (when: the run is stated unattended) |
+| `hillclimb#8` | an attended climb finished with one or more attempts kept and in the working tree, after hillclimb#7 |  | `skill:land` |  |
 
 ## investigation
 
@@ -235,20 +253,30 @@ Traits and calls used by two or more playbooks. Repeating a step is fine; the sa
 
 | Item | Playbooks |
 |---|---|
+| `bounded-background-wait` | autonomous-run: `autonomous-run#4`; bug-fix: `bug-fix#2`; hillclimb: `hillclimb#2`, `hillclimb#4` |
 | `build-closeout` | feature: `feature#7`; perf-issue: `perf-issue#5`; refactoring: `refactoring#7` |
 | `implement-against-sketch` | bug-fix: `bug-fix#3`; feature: `feature#4`; perf-issue: `perf-issue#3`; refactoring: `refactoring#4` |
+| `limit-bounded-hold` | autonomous-run: `autonomous-run#5`; hillclimb: `hillclimb#5` |
 | `read-only-closeout` | investigation: `investigation#3`; session-pickup: `session-pickup#5` |
+| `read-trail-first` | autonomous-run: `autonomous-run#4`; hillclimb: `hillclimb#4` |
+| `revert-ineffective-experiments` | autonomous-run: `autonomous-run#4`; bug-fix: `bug-fix#5` |
+| `row-then-checkpoint` | autonomous-run: `autonomous-run#4`; hillclimb: `hillclimb#4` |
+| `run-limits-first` | autonomous-run: `autonomous-run#1`; hillclimb: `hillclimb#1` |
+| `stated-unattended-gate` | autonomous-run: `playbook`; bug-fix: `playbook`; hillclimb: `playbook` |
+| `worktree-environment-proof` | autonomous-run: `autonomous-run#2`; hillclimb: `hillclimb#2` |
 
 ### Calls
 
 | Item | Playbooks |
 |---|---|
 | `skill:codebase-design` | bug-fix: `bug-fix#3`; feature: `feature#2`; perf-issue: `perf-issue#3`; refactoring: `refactoring#3` |
-| `skill:delegation` | eval: `eval#5`; feature: `feature#4`; hillclimb: `hillclimb#4`; multi-phase-plan: `multi-phase-plan#2`; perf-issue: `perf-issue#3`, `perf-issue#4`; refactoring: `refactoring#4`; runtime-forensics: `runtime-forensics#1`; session-pickup: `session-pickup#1`; trace-forensics: `trace-forensics#1` |
+| `skill:decision-trail` | autonomous-run: `autonomous-run#2`; hillclimb: `hillclimb#3` |
+| `skill:delegation` | autonomous-run: `autonomous-run#4`; eval: `eval#5`; feature: `feature#4`; hillclimb: `hillclimb#4`; multi-phase-plan: `multi-phase-plan#2`; perf-issue: `perf-issue#3`, `perf-issue#4`; refactoring: `refactoring#4`; runtime-forensics: `runtime-forensics#1`; session-pickup: `session-pickup#1`; trace-forensics: `trace-forensics#1` |
 | `skill:explain-code` | bug-fix: `bug-fix#2`; feature: `feature#1`; hillclimb: `hillclimb#1`; investigation: `investigation#1`; perf-issue: `perf-issue#2`; refactoring: `refactoring#1` |
-| `skill:land` | bug-fix: `bug-fix#8`; feature: `feature#8`; hillclimb: `hillclimb#8`; perf-issue: `perf-issue#6`; refactoring: `refactoring#8` |
+| `skill:land` | autonomous-run: `autonomous-run#7`; bug-fix: `bug-fix#8`; feature: `feature#8`; hillclimb: `hillclimb#8`; perf-issue: `perf-issue#6`; refactoring: `refactoring#8` |
 | `skill:performance-optimization` | hillclimb: `hillclimb#1`; perf-issue: `perf-issue#1`; runtime-forensics: `runtime-forensics#1` |
 | `skill:prose-pass` | investigation: `investigation#2`; multi-phase-plan: `multi-phase-plan#5` |
 | `skill:review` | feature: `feature#4`; perf-issue: `perf-issue#3` |
 | `skill:systematic-debugging` | bug-fix: `bug-fix#2`; runtime-forensics: `runtime-forensics#2` |
 | `skill:test-driven-development` | bug-fix: `bug-fix#3`; refactoring: `refactoring#1` |
+| `skill:wake` | autonomous-run: `autonomous-run#3`; hillclimb: `hillclimb#2` |

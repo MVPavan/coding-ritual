@@ -53,11 +53,12 @@ deleted. Beads is the work-state authority; this file is the narrative.
 | after `ba56f66` | Batch 2 (`cr-r2pa.2.5`, round `2026-11-02-batch-2`), see below |
 | after `d079219` | Pilot 2 (`cr-r2pa.2.8`, round `2026-11-02-pilot-2`), see below |
 | after `2bc70a2` | Pilot 3 (`cr-r2pa.2.9`, round `2026-11-02-pilot-3`), see below |
-| after `76ae15e` | Batch 3 (`cr-r2pa.2.6`, round `2026-11-03-batch-3`), see below |
+| `8b9f890` | Batch 3 (`cr-r2pa.2.6`, round `2026-11-03-batch-3`), see below |
+| `fe75e0d` | Catalog diff and `gap` report bundled-file changes (`cr-r2pa.2.11`) |
+| after `fe75e0d` | Batch 4 (`cr-r2pa.2.7`, round `2026-11-04-batch-4`), see below |
 
 `main` is at `eb36cc9`; later work is on `mvp-stack` until the owner asks to merge.
-`mvp-stack` is pushed through the first routing trials' runner change; commits after it
-are local until the owner says to push.
+`mvp-stack` is pushed through `fe75e0d`; commits after it are local until the owner says to push.
 
 Decisions behind them: domains `core` and `engineering`; one primary
 coordinate per skill (domain · stage · sub-stage); reviews are flat files
@@ -82,13 +83,24 @@ critic, owner rulings, ledger, build, Sol review, commit after the owner approve
   results and parked changes are in `routing-trials-report.md`. Owner ruling: no existing wording
   changes until the end-of-project revision pass (`cr-r2pa.3.4`). New units follow the report's
   section 6 until then.
-- `cr-r2pa.2.6`, built: batch 3 (round `2026-11-03-batch-3`, pstack `arena` and `interrogate`). New
+- `cr-r2pa.2.6`, done (`8b9f890`): batch 3 (round `2026-11-03-batch-3`, pstack `arena` and `interrogate`). New
   skill `interrogate`, where adversaries attack verified copies and only a finding a run proves
   survives. `model-council` gains a pick-and-graft branch and runs only on an explicit request.
   Feature's steps 2 and 6 are final: it starts `interrogate` unasked only on a real dispute, and
   with two shapes and no council asked for it compares them and carries on. `review` gets the seven
   Pocock rows (`cr-axdt.6.8`). S7 is amended by owner ruling, with a dated row. No real session has
   run any of it.
+- `cr-r2pa.2.7`, built: batch 4 (round `2026-11-04-batch-4`). The owner ruled all six questions as
+  recommended on 2026-11-04, amending ruling 12: waiting on a command needs no `wake`. New skill
+  `wake`: a card holding a run's limits, attempts, closed state and checkpoint, plus one closing
+  timer at the deadline, set only for a stated unattended run. New playbook Autonomous run, by a
+  fifth named composite-test exception. Hillclimb gains an unattended path, in
+  `hillclimb/unattended.md`: isolated, local, nothing committed, the work left aside as a patch and
+  a folder. Bug fix gains a long-hunt test and answers Not started to unattended words for now.
+  Coordinator's choice, not a ruling: an attended run naming only attempts takes 4 hours. Hours and
+  attempts limit starting work, not running work or money. Status `PARTIAL`: no real session has run
+  any of it, so timer delivery, what it survives, whether a model follows the steps, whether
+  Autonomous run gets picked and what a night costs are all unproved.
 - `cr-r2pa.2.1`, done: seven Pocock retargets recorded (round
   `2026-11-01-pocock-retarget`). `reproduction-first`, `regression-check` and `closeout`
   are delivered; `prove-the-red` and `missing-seam-finding` are pending for batch 1; the
@@ -105,7 +117,7 @@ critic, owner rulings, ledger, build, Sol review, commit after the owner approve
   The owner ruled its upstream rows as recommended, as one set, keeping
   `script-evidence-preference`. Hillclimb's loop commits nothing and lands once at the
   end; S2 now lets a calling playbook opt into a branch's deliverable. Parallel attempts
-  are dropped, and unattended climbs wait on batch 4 (`cr-r2pa.2.7`). None of it has run on
+  are dropped; batch 4 (`cr-r2pa.2.7`) added unattended climbs. None of it has run on
   a real session: whether a model picks Perf issue over the skill, whether a span holds
   across a compaction, whether a critic per trail pays, whether a live capture works on a
   stuck process and whether a delegate keeps to one factor all wait on `cr-r2pa.2.12`.
@@ -124,8 +136,7 @@ critic, owner rulings, ledger, build, Sol review, commit after the owner approve
   commit without the owner's own words. Two E4 proposals go to the owner at the commit request. None of it has run on a
   real session: whether a model picks either playbook, opens artifacts before a skip, keeps open calls whole on a
   resumed run or cleans up its file all wait on `cr-r2pa.2.12`.
-- Then batches 3 and 4 (`.6`, `.7`), the remaining Pocock
-  pass (`.10`).
+- Then the remaining Pocock pass (`.10`) and `gap`'s sparse-checkout reading (`.17`).
 - `cr-r2pa.2.13`: analyse every skill of ours, Pocock and pstack; its scope is still to
   agree with the owner.
 - `cr-r2pa.3.3`: at the end of the project, show the owner everything deferred or

@@ -925,6 +925,8 @@ deviation is logged in `.repo-context/unit-kinds.md` §5.
 
 2026-11-03: owner rulings narrow ruling 3 (`model-council` stays model-invocable and runs only on an explicit request), make `interrogate` its own skill, and settle Feature's step 2 and 6 bindings; see bead `cr-r2pa.2.6` and `.repo-context/unit-kinds.md` S7.
 
+2026-11-04: the owner's answer amends ruling 12. `wake` is a closing timer only; its callers are a stated unattended Autonomous run and Hillclimb; a request's unattended words count as the explicit request for that timer (dated S7 row, `.repo-context/unit-kinds.md`). Waiting on a command needs no `wake`, so Bug fix does not call it. Why: an event is what the platform already does; a heartbeat needs re-arming unverified on T3, spends unwatched turns and answers a problem nothing here has measured; and a shared return protocol failed review twice, in Bug fix most of all, where a confirmed cause is a gate and not an end. The ruling's point stands: playbooks name the outcome, not a tool. This map keeps its history, so these lines are stale: 52, 662 and 833 ("waits on the ruling", three callers); 849 (Bug fix's `wake`); 851 and 858 (blockers: `wake` is built); 257 and 474 (the watcher subagent is dropped); 892 now means `AGENTS.md:47-48`, and 893 `AGENTS.md:68-70`.
+
 ## Appendix: checks
 
 Run from the worktree with the data in `scratchpad/mvp-stack/playbook-map/`.

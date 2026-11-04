@@ -1,12 +1,13 @@
 ---
 trigger: A reported defect, failing check or flaky test to diagnose and fix with proof.
-traits: [confirmed-cause-gate]   # new; variant of owning-fix without the owning layer, which AGENTS.md holds
+traits: [confirmed-cause-gate, stated-unattended-gate, unattended-not-started]   # the first new; variant of owning-fix without the owning layer, which AGENTS.md holds
 steps:
   - id: bug-fix#1
     when: a deterministic failing command, run as reported, shows the failure and its output points at the cause; never a flaky failure, nor a cause found by reading code or rerunning in a loop
     actions: [{trait: obvious-cause-skip}]   # new
   - id: bug-fix#2
     when: bug-fix#1 did not skip it
+    actions: [{trait: long-hunt-test}, {trait: bounded-background-wait}]
     calls: [{to: "skill:explain-code", when: the failing subsystem is unfamiliar or the failure may be a regression}, {to: "skill:systematic-debugging"}]
   - id: bug-fix#3
     when: the cause is confirmed
@@ -41,6 +42,9 @@ fixed. A question about a failure's cause with no fix wanted is a call to
 that merely hides the symptom (a retry, a longer timeout, a skipped test) is
 not a fix.
 
+A run is unattended only when the request's own words say so: overnight, while I'm away, off to bed, unattended, come back by yourself, or the like. Otherwise it is attended, whatever its length.
+A stated unattended request does not start: reply Not started, unattended.
+
 1. **Obvious cause.** When a deterministic failing command, run as
    reported, shows the failure and its output points at the cause, that
    cause is confirmed: skip step 2 and go to step 3. A flaky or intermittent
@@ -52,6 +56,8 @@ not a fix.
    diagnosis goes on to step 3. On **provisional** or **unresolved**, change no
    production code and go to step 7. A mitigation for an unresolved cause ships
    only on the user's decision, never as the fix.
+   A hunt is long only when its next evidence cannot arrive within one foreground command: the reproduction or capture runs longer than one may, or fires on its own schedule. A stubborn hunt with something to run now is not long: keep running.
+   Waiting on a command: run it in the background with a finite lifetime and take the platform's completion notice, or wait in the foreground. If the runtime gives neither for what must be waited on, take the stopped-waiting exit.
 3. **Fix with proof.** When the fix crosses a function boundary, first invoke
    `codebase-design` for a sketch, then build against that sketch as the contract:
    surface any departure, and revise the sketch first when the code must diverge.
@@ -96,12 +102,16 @@ not a fix.
   the original scenario unavailable: the cause, the change, the proof
   available, which scenario could not be verified and why, and the evidence
   still needed to call it fixed.
-- **Stopped at step 2, provisional:** the reproduction if there is one, the
-  analysis, the remaining hypotheses, the evidence requested, any proposed
-  fix labelled unproven, and that no production code changed.
+- **Stopped at step 2, provisional, which is also the stopped-waiting exit:** the reproduction if
+  there is one, the analysis, the remaining hypotheses, the evidence requested, any proposed
+  fix labelled unproven, that no production code changed, and what is outstanding, where its
+  evidence will appear, and that nothing will resume by itself.
 - **Stopped at step 2, unresolved:** the finding with its investigation, and
   any mitigation as an option for the user, not applied.
 - **Stopped at step 5:** the attempt log, the current explanation and what
   is needed to continue.
+- **Not started, unattended:** why, an offer of an attended run, and an offer of an Autonomous run
+  asked for by name, if the person can state a checkable condition such as the test passing 50 times
+  in a row; that route has no confirmed-cause gate.
 
 Every reply also says what the closeout removed and what it kept.

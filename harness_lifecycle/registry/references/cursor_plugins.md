@@ -161,14 +161,14 @@ Catalog: `4dd1d05818d19792e7cd6e818f1667f95f7e1dbe`, 352 capabilities.
 | `playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/visual-parity` | not reviewed | not reviewed |  |  |  |  |
 | `playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/worktree-cleanup` | not reviewed | not reviewed |  |  |  |  |
 | `playbook:pstack/skills/poteto-mode/playbooks/authoring-a-skill` | adopt-merged | decided | doc:harness_lifecycle/playbook.md |  | 2026-11-01-pstack-playbooks | no |
-| `playbook:pstack/skills/poteto-mode/playbooks/autonomous-run` | defer | decided |  |  | 2026-11-01-pstack-playbooks | no |
+| `playbook:pstack/skills/poteto-mode/playbooks/autonomous-run` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md |  | 2026-11-04-batch-4 | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/autopilot-full` | defer | decided |  |  | 2026-11-01-pstack-playbooks | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/autopilot-stack` | defer | decided |  |  | 2026-11-01-pstack-playbooks | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/babysit` | defer | decided |  |  | 2026-11-01-pstack-playbooks | no |
-| `playbook:pstack/skills/poteto-mode/playbooks/bug-fix` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/bug-fix.md |  | 2026-11-01-pstack-playbooks | no |
+| `playbook:pstack/skills/poteto-mode/playbooks/bug-fix` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/bug-fix.md |  | 2026-11-04-batch-4 | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/eval` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/eval.md |  | 2026-11-01-batch-0 | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/feature` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/feature.md |  | 2026-11-03-batch-3 | no |
-| `playbook:pstack/skills/poteto-mode/playbooks/hillclimb` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/hillclimb.md |  | 2026-11-02-batch-2 | no |
+| `playbook:pstack/skills/poteto-mode/playbooks/hillclimb` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/hillclimb.md |  | 2026-11-04-batch-4 | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/investigation` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/investigation.md |  | 2026-11-01-batch-1 | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/multi-phase-plan` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/multi-phase-plan.md |  | 2026-11-02-pilot-2 | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/opening-a-pr` | adopt-merged | decided | land |  | 2026-11-01-batch-1 | no |

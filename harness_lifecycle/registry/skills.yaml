@@ -516,3 +516,12 @@ wayfinder:
   aliases: []
   status: active
   boundary: null
+wake:
+  domain: core
+  stage: X
+  substage: Continuity
+  secondary: []
+  family: handoff
+  aliases: []
+  status: active
+  boundary: "Holds a run's bounds and its one closing timer; what a return does is its caller's, a run's log is `decision-trail`, and a run the engine owns uses the engine's monitor."

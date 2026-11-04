@@ -54,10 +54,11 @@ only; `AGENTS.md` holds policy and wins if the two disagree.
 
 One line per playbook: `` - `playbooks/<name>.md`: <the request it fits> ``.
 
+- `playbooks/autonomous-run.md`: a request to keep working by yourself until a stated, checkable condition holds ("keep going until no call site uses the old API"); one metric from one command is hillclimb, a failing check or reported defect is bug-fix, a plan or roadmap to run is execution, and "stop for today" is pause-safely.
 - `playbooks/bug-fix.md`: a reported defect, failing check or flaky test to fix with proof.
 - `playbooks/eval.md`: an instruction or routing variant to try on fresh Claude Code sessions and judge from what they did, not a reference capability to weigh for adoption.
 - `playbooks/feature.md`: new behaviour to design and build, with no settled plan to execute; a build whose units or questions are unsettled goes to multi-phase-plan first, and settled work to plan stays planning.
-- `playbooks/hillclimb.md`: sustained improvement of one measurable metric from one repeatable command against a stop predicate, attended only for now (it answers an unattended request too), with no settled plan to execute; one fix is perf-issue, a plan to run is execution, and a variant judged on fresh sessions is eval.
+- `playbooks/hillclimb.md`: sustained improvement of one measurable metric from one repeatable command against a stop predicate, attended, or unattended when the request says so (overnight, while away), with no settled plan to execute; one fix is perf-issue, a plan to run is execution, and a variant judged on fresh sessions is eval.
 - `playbooks/investigation.md`: a question about how this repository's code works, why it has its shape or which design to pick, answered from source and history; not a failure, a measurement or a captured artifact.
 - `playbooks/multi-phase-plan.md`: a request to produce a plan for several independently verifiable units, or work whose open questions must be settled before planning; a request to build is feature, and an existing roadmap phase, an approved spec to split or a settled plan keeps its route (planning, execution).
 - `playbooks/pause-safely.md`: an explicit request to stop now so a later session can resume ("stop for today", "save this for later"); "keep going" is no pause, finished work to commit is land, and an idea to keep is a deferred bead.

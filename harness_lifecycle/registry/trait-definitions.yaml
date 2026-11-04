@@ -6012,3 +6012,92 @@ no-judge-no-pick:
 contested-design-gate:
   definition: "Start run-proven adversaries unasked only on a dispute raised by someone other than the lead, testable by a run and unsettled by evidence in hand, and let a dispute left open block landing."
   placement: {domain: engineering, stage: Design, substage: Architecture}
+stated-unattended-gate:
+  definition: "Treat a run as unattended only when the request's own words say so; otherwise it is attended, whatever its length."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+run-limits-first:
+  definition: "Fix a deadline and an attempt limit before the first change when the request names a limit or is stated unattended, from its words or the stated defaults."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+exit-predicate-first:
+  definition: "State the exit condition as a command and the result it must give before the first change; with none, ask when attended and do not start when stated unattended."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+smallest-evidenced-change:
+  definition: "Each iteration makes the smallest change the evidence justifies and checks the predicate on it."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+discovery-scope-split:
+  definition: "Fix a discovery only when the predicate cannot be met without it or the request names it; record the rest as a linked bead or in the reply, unfixed, granting no standing scope."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+unexplained-change-stop:
+  definition: "Store branch, HEAD and a tree id taken with a temporary index in each row, and stop touching nothing when the state before an iteration differs from the last row."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+autonomous-closing-settle:
+  definition: "A closing return reconciles the checkpoint with its row, names a half iteration and any running command, leaves them out of the result, and takes the result from the checkpoint."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+autonomous-closeout:
+  definition: "On every exit close the card and timer, write the patch from the base tree to the checkpoint's tree and keep the folder when stated unattended, run the trail's audit and review, and name what changed, what was discarded, each deferred discovery and what still runs."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+climb-closing-settle:
+  definition: "A closing return starts no attempt: a card with a stopped marker is touched no further, otherwise it reconciles the checkpoint with its row, undoes an incomplete attempt through the helper even past the deadline, undoes nothing while a command runs, and only then judges the checkpoint's tree and value."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+climb-checkpoint:
+  definition: "Keep a recipe file in the artifact directory and merge each phase's required fields, the command in hand and any terminal stop into the card, so a process knowing only the card and run id can continue or close the climb."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+unattended-isolation:
+  definition: "A stated unattended run works in one detached worktree with an artifact directory outside it, local commands and no delegated writer, and writes nothing to the main tree."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+worktree-environment-proof:
+  definition: "At setup establish the command's environment without the parent's source and prove the command responds to a small real change in the worktree, with the tree proved back; otherwise do not start."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+bounded-background-wait:
+  definition: "Wait on a command in the background with a finite lifetime and its completion notice, or in the foreground; with neither available take the stopped-waiting exit."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+long-hunt-test:
+  definition: "Call a hunt long only when its next evidence cannot arrive within one foreground command; a stubborn hunt with something to run now keeps running."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+row-then-checkpoint:
+  definition: "Finish keep or discard and prove the state first, then append the row, then write the checkpoint naming it; a row past the checkpoint is an incomplete attempt."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+unattended-not-started:
+  definition: "A stated unattended request does not start: say why, offer an attended run, and offer a route with a checkable condition, naming the gate that route lacks."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+unattended-climb-closeout:
+  definition: "On every exit of a stated unattended climb, write nothing to the main tree: keep the worktree, write the patch from the first tree to the checkpoint's tree, and name both."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+  distinct_from: [climb-closeout]
+  note: "climb-closeout brings an isolated climb back and removes its worktree; this leaves the work aside."
+limit-bounded-hold:
+  definition: "Never relax the predicate; a limit stops new work even with an idea left, and the reply names that idea."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+  distinct_from: [predicate-held-stop]
+  note: "predicate-held-stop never quits while a cheap hypothesis remains; here a limit ends starting work first."
+category-pivot:
+  definition: "A plateau is not a stop: change category and reread the source; a dead end is three iterations with no movement after that, and no further approach statable in one sentence."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+  distinct_from: [plateau-pivot]
+  note: "plateau-pivot triggers on several rejects in a climb; this one also gives a test for a dead end."
+unattended-target-from-request:
+  definition: "An unattended climb takes its target from the request, none meaning not started, and a stated default floor, named in the reply."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+  distinct_from: [stop-predicate-with-floor]
+  note: "stop-predicate-with-floor may agree its numbers with a person; nobody can here."
+run-card-limits:
+  definition: "Hold a run's deadline, attempts, closed state and checkpoint in a card at a fresh path under a unique run id, refusing without them."
+  placement: {domain: core, stage: X, substage: Continuity}
+one-consuming-admit:
+  definition: "Count work once, by the caller, immediately before the unit; every other query changes nothing, and only exit 0 authorises work."
+  placement: {domain: core, stage: X, substage: Continuity}
+one-closing-timer:
+  definition: "Set at most one one-shot timer, at or after the deadline and only for a stated unattended run, and record the time the surface says it fires."
+  placement: {domain: core, stage: X, substage: Continuity}
+timer-positive-evidence:
+  definition: "Report a timer set only on the surface's named evidence; a listed tool alone is not evidence and uncertain means unavailable."
+  placement: {domain: core, stage: X, substage: Continuity}
+timer-identity-check:
+  definition: "On a timer fire ask the card only whether this run is open; a closed or other run does nothing, and everything else is the caller's closing step."
+  placement: {domain: core, stage: X, substage: Continuity}
+timer-close-cancels:
+  definition: "Close the card and cancel the timer on every exit, naming a cancel that failed."
+  placement: {domain: core, stage: X, substage: Continuity}
+woken-run-limits:
+  definition: "While a card is open: no push, publish, merge, message or history rewrite, no deleting what this run did not create, no costly opt-in the request does not name, and a missing answer takes the unit's no-answer exit without skipping its core."
+  placement: {domain: core, stage: X, substage: Continuity}

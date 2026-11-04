@@ -93,7 +93,7 @@ preserve-reproducers:
   why: "Each cleans up after its own work: the diagnosis when called alone, the bug-fix playbook at its closeout on every exit. Both keep reproducers, so neither cleanup deletes the evidence the other relies on."
   reviewed: "2026-10-31"
 revert-ineffective-experiments:
-  skills: [doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, performance-optimization]
+  skills: [doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, performance-optimization]
   why: "Each runs its own loop of attempts, fix attempts in the bug-fix playbook and optimization experiments in performance-optimization, and removes its own failed edits before the next attempt."
   reviewed: "2026-10-31"
 attempt-log:
@@ -132,3 +132,31 @@ dropout-proceeds-noted:
   skills: [interrogate, model-council]
   why: "A failed member and a failed adversary are handled alike, going on and reporting it, but what is left when too few remain differs: no pick for one, not run for the other."
   reviewed: "2026-11-03"
+limit-bounded-hold:
+  skills: [doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md]
+  why: "Each long loop stops starting at its own limit with an idea left; the rule is one short sentence, and a skill for it would be ceremony."
+  reviewed: "2026-11-04"
+read-trail-first:
+  skills: [doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md]
+  why: "Each looping playbook reads its own trail before choosing the next change; each trail has its own columns and rows."
+  reviewed: "2026-11-04"
+row-then-checkpoint:
+  skills: [doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md]
+  why: "Each loop writes its own row and checkpoint in this order, around its own keep-or-discard step, so a closing return can trust them."
+  reviewed: "2026-11-04"
+run-limits-first:
+  skills: [doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md]
+  why: "Each long loop fixes its own limits before its first change, from the same stated defaults, and gives them to `wake`."
+  reviewed: "2026-11-04"
+stated-unattended-gate:
+  skills: [doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md]
+  why: "The same one sentence tells each of these playbooks whether a run is away; each then takes its own branch or exit."
+  reviewed: "2026-11-04"
+worktree-environment-proof:
+  skills: [doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md]
+  why: "Each stated unattended loop proves its own command responds in its own worktree before starting; the check runs at each one's setup."
+  reviewed: "2026-11-04"
+bounded-background-wait:
+  skills: [doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md]
+  why: "The same one sentence on waiting sits at each step that waits, with its own stopped exit; no skill is called for it."
+  reviewed: "2026-11-04"
