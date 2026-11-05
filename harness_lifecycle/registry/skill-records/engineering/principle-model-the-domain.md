@@ -10,7 +10,7 @@ status: active
 ---
 # principle-model-the-domain
 
-Apply when writing stateful logic, a growing if/else chain, or a shape assumption repeated across files.
+writing stateful logic, a growing if/else chain, or a shape assumption repeated across files.
 
 **Boundary:** Chooses data structures and module boundaries around domain knowledge before logic; domain terms and ADRs are domain-modeling, and interface depth is codebase-design.
 
@@ -33,6 +33,7 @@ Apply when writing stateful logic, a growing if/else chain, or a shape assumptio
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-05` **update** (2026-11-05-principle-move:009): Owner ruling of 2026-11-05: moved from a skill folder to a file read by path; frontmatter and sidecar removed; the rule text is unchanged; the situation now li…
 - `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:176): Completes pending 2026-11-01-cursor_plugins-pstack-principles:087: the principles build (cr-r2pa.1.2) delivered no-forced-abstraction in principle-model-the-do…
 - `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:175): Completes pending 2026-11-01-cursor_plugins-pstack-principles:050: the principles build (cr-r2pa.1.2) delivered structural-dry in principle-model-the-domain, c…
 - `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:174): Completes pending 2026-11-01-cursor_plugins-pstack-principles:056: the principles build (cr-r2pa.1.2) delivered coherent-increment in principle-model-the-domai…

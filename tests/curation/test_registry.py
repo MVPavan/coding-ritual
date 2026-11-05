@@ -20,6 +20,7 @@ import yaml
 
 from curation.registry import catalogs, cli, config, ledger, loaders, models, vocab
 from curation.registry import traits as trait_facts
+from curation.registry.checks import playbooks as playbook_checks
 from curation.registry.checks import records as record_checks
 from curation.registry.views import records as record_views
 from curation.scan import catalog as scan
@@ -243,6 +244,36 @@ def test_ours_catalogs_our_skills(tmp_path: Path) -> None:
     cfg = _make_cfg(tmp_path)
     _write_skill(cfg, "planning")
     assert "skill:skills/planning" in catalogs.build_ours(cfg).by_logical_id()
+
+
+def test_principle_is_a_routed_file_not_a_skill_folder(tmp_path: Path) -> None:
+    cfg = _make_cfg(tmp_path)
+    name = "principle-example"
+    _write_record(cfg, name, "engineering", "Design", "Architecture")
+    entries = loaders.load_records(cfg)
+    coverage = record_checks._check_skill_coverage
+
+    missing = "skills.yaml: principle-example: no file"
+    assert any(missing in e for e in coverage(cfg, entries))
+
+    cfg.principles_dir.mkdir(parents=True)  # type: ignore[attr-defined]
+    file = cfg.principles_dir / "example.md"  # type: ignore[attr-defined]
+    file.write_text("# Example\n", encoding="utf-8")
+    cfg.router_path.write_text(  # type: ignore[attr-defined]
+        "<!--\n- `principles/example.md`: a commented-out situation.\n-->\n"
+        "## Principles\n\n- `principles/example.md`: the example situation holds.\n",
+        encoding="utf-8",
+    )
+    assert not any(name in e for e in coverage(cfg, entries))
+    assert any(name in e for e in coverage(cfg, {}))  # a file with no entry
+    assert loaders.skill_description(cfg, name) == "the example situation holds."
+    assert playbook_checks._call_errors(cfg, "w", f"skill:{name}", {}) == []
+
+    ours = catalogs.build_ours(cfg)
+    assert f"skill:skills/{name}" in ours.by_logical_id()
+    before = trait_facts._our_tree_hashes(ours)[name]
+    file.write_text("# Edited\n", encoding="utf-8")
+    assert trait_facts._our_tree_hashes(catalogs.build_ours(cfg))[name] != before
 
 
 def test_build_ours_excludes_plugin_template(tmp_path: Path) -> None:

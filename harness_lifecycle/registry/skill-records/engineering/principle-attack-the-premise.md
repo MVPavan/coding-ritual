@@ -10,7 +10,7 @@ status: active
 ---
 # principle-attack-the-premise
 
-Apply when two or more fixes resting on one belief have failed the same gate (a test, a review, an eval).
+two or more fixes resting on one belief have failed the same gate (test, review, eval).
 
 **Boundary:** A gate applied once fixes resting on one belief keep failing: name and test that belief; finding a failure's cause is systematic-debugging, and the fix loop is the bug-fix playbook.
 
@@ -23,6 +23,7 @@ Apply when two or more fixes resting on one belief have failed the same gate (a 
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-05` **update** (2026-11-05-principle-move:002): Owner ruling of 2026-11-05: moved from a skill folder to a file read by path; frontmatter and sidecar removed; the rule text is unchanged; the situation now li…
 - `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:140): Completes pending 2026-11-01-cursor_plugins-pstack-principles:001: the principles build (cr-r2pa.1.2) delivered premise-test-gate in principle-attack-the-premi…
 - `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:001) *(superseded)*: Lands as a principle unit. Ours stops after two failed fixes and hands back the attempt log (bug-fix playbook step 5), and AGENTS.md says only to change approa…
 <!-- /registry:generated history -->

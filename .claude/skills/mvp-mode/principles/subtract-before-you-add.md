@@ -1,9 +1,3 @@
----
-name: principle-subtract-before-you-add
-description: Apply when sequencing an addition, refactor or rewrite.
-disable-model-invocation: true
----
-
 # Subtract before you add
 
 Build on the simplest base the change allows.

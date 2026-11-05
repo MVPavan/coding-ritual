@@ -260,7 +260,7 @@ def render_record(
     definitions: dict[str, TraitDefinition],
 ) -> str:
     """The whole record (stages-design §Skills file): frontmatter from
-    `skills.yaml`, the title, the `SKILL.md` description, the boundary when set,
+    `skills.yaml`, the title, the description (`skill_description`), the boundary when set,
     then every generated block."""
     live = live_events(events)
     current = effective_by_subject(live)

@@ -1,9 +1,3 @@
----
-name: principle-separate-before-serializing-shared-state
-description: Apply when concurrent actors (processes, agents, workers) in code or tooling you are designing might write the same file, branch, key or object.
-disable-model-invocation: true
----
-
 # Separate before serializing shared state
 
 Remove the shared write before coordinating it. This lens is for code and

@@ -32,7 +32,7 @@ registry/
 └── INDEX.md                       # generated: domain → stage → sub-stage
 ```
 
-The skills themselves stay in `.claude/skills/`, the only source. Records are
+The skills and principles themselves stay in `.claude/skills/`, the only source. Records are
 generated from `skills.yaml` and each skill's description; they never copy
 the skill body.
 
@@ -87,7 +87,11 @@ onto coordinates as follows:
 ## 3. Skills file and skill records
 
 `skills.yaml` has one entry per real skill folder in `.claude/skills/`
-(aliases and legacy stubs get none, rule 5):
+(aliases and legacy stubs get none, rule 5), and one per principle. A principle
+is the file `.claude/skills/mvp-mode/principles/<name>.md`, not a folder; its
+entry, its ledger subject and its `traits/ours.yaml` key keep the name
+`principle-<name>`, and its tree hash covers that one file. The `mvp-mode`
+folder's hash covers it too, so editing a principle stales both. An entry:
 
 ```yaml
 planning:                       # the .claude/skills/<name> folder
@@ -102,8 +106,9 @@ planning:                       # the .claude/skills/<name> folder
 ```
 
 `build` writes each `skill-records/<domain>/<skill>.md` whole: the frontmatter
-from `skills.yaml`, the title, the description from the skill's `SKILL.md`,
-the boundary, then these generated blocks:
+from `skills.yaml`, the title, the description from the skill's `SKILL.md` (for
+a principle, its situation from the router line), the boundary, then these
+generated blocks:
 
 | Block | Holds |
 |---|---|
@@ -114,9 +119,10 @@ the boundary, then these generated blocks:
 | `sources` | per trait, the upstream traits adopted into it; withdrawn, retired and replaced-upstream adoptions stay, labelled |
 | `declined` | upstream traits considered for this skill and rejected or deferred, with why |
 
-Never edit a record. Change `skills.yaml` or the skill's `SKILL.md`, then
-`build`. `check` fails on a skill folder without an entry, an entry without a
-folder, or a record that differs from what `build` writes. What the skill
+Never edit a record. Change `skills.yaml`, the skill's `SKILL.md` or the
+principle's router line, then `build`. `check` fails on a skill folder or
+principle file without an entry, an entry without one, or a record that differs
+from what `build` writes. What the skill
 does, trait by trait, lives in `traits/ours.yaml` (§4a).
 
 ## 4. Reference pages
@@ -211,7 +217,7 @@ mattpocock_skills:skill:skills/engineering/tdd:
 | Field | Where | Meaning |
 |---|---|---|
 | key | both | `ours:<skill>`, `doc:AGENTS.md`, `doc:.repo-context/<file>`, or the catalog id `<repo>:<logical_id>`. A playbook is a holder too (§4b), but never a key here |
-| `tree_hash` | ours entries, each analysis | sha256 over the folder's files that git does not ignore (one file for `doc:`); for ours, `check` fails when it is stale |
+| `tree_hash` | ours entries, each analysis | sha256 over the folder's files that git does not ignore (one file for `doc:` or a principle); for ours, `check` fails when it is stale |
 | `accepted`, `proposed` | upstream | analysis shas; at least one set; they differ. Only the pointers move |
 | `analyses` | upstream | one immutable trait list per sha |
 | `placement` | analysis | where the upstream skill sits (ours: `skills.yaml`) |

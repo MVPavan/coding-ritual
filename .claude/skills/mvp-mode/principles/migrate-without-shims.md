@@ -1,9 +1,3 @@
----
-name: principle-migrate-without-shims
-description: Apply when replacing an internal API that no external user depends on, as part of a simplification in a project that can absorb a coordinated break; or when running a planned rewrite or migration with declared phase boundaries.
-disable-model-invocation: true
----
-
 # Migrate without shims
 
 Converge on the target design instead of carrying compatibility code toward it.

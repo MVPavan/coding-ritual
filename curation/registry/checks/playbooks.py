@@ -9,6 +9,7 @@ from curation.registry.checks.records import _target_exists
 from curation.registry.checks.traits import doc_holder_kind
 from curation.registry.config import RegistryConfig
 from curation.registry.ledger import effective_by_subject, live_events
+from curation.registry.loaders import unit_file
 from curation.registry.models import Event, TraitDefinition
 from curation.registry.steps import (
     CALL_KINDS,
@@ -37,7 +38,7 @@ def _call_errors(
         kinds = ", ".join(f"{k}:<name>" for k in CALL_KINDS)
         return [f"{where}: call {to!r} is not {kinds}; a reference is a load"]
     if kind == "skill":
-        if "/" in name or not (cfg.skills_dir / name / "SKILL.md").is_file():
+        if "/" in name or not unit_file(cfg, name).is_file():
             return [f"{where}: call {to!r}: no skill folder {name!r}"]
     elif name not in playbooks:
         return [f"{where}: call {to!r}: no playbook {name!r}"]
@@ -51,8 +52,8 @@ def playbook_errors(
 ) -> list[str]:
     """Each step's ID is `<playbook>#<position>`; every trait (the playbook's,
     each action's and each call's `needs`) is defined and listed once per
-    list; every call resolves (`skill:<name>` to a skill folder,
-    `playbook:<name>` to a playbook); every load is a file under the
+    list; every call resolves (`skill:<name>` to a skill folder or principle
+    file, `playbook:<name>` to a playbook); every load is a file under the
     playbook's own `playbooks/<name>/` folder, so a reference has one owner
     (F1, F3; a second consumer promotes it, F2)."""
     errors: list[str] = []

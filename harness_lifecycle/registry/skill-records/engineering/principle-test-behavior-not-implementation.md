@@ -10,7 +10,7 @@ status: active
 ---
 # principle-test-behavior-not-implementation
 
-Apply when writing, changing or keeping any test.
+writing, changing or keeping any test.
 
 **Boundary:** Judges what a test asserts and whether it earns its place; the test-first cycle is test-driven-development.
 
@@ -36,6 +36,7 @@ Apply when writing, changing or keeping any test.
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-05` **update** (2026-11-05-principle-move:014): Owner ruling of 2026-11-05: moved from a skill folder to a file read by path; frontmatter and sidecar removed; the rule text is unchanged; the situation now li…
 - `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:200): Completes pending 2026-11-01-cursor_plugins-pstack-principles:124: the principles build (cr-r2pa.1.2) delivered implementation-test-deletion in principle-test-…
 - `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:199): Completes pending 2026-11-01-cursor_plugins-pstack-principles:072: the principles build (cr-r2pa.1.2) delivered implementation-test-deletion in principle-test-…
 - `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:198): Completes pending 2026-11-01-cursor_plugins-pstack-principles:051: the principles build (cr-r2pa.1.2) delivered behaviour-and-edge-case-tests in principle-test…

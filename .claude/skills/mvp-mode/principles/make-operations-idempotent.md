@@ -1,9 +1,3 @@
----
-name: principle-make-operations-idempotent
-description: Apply when designing a command, lifecycle step or loop that may crash, restart or retry.
-disable-model-invocation: true
----
-
 # Make operations idempotent
 
 Any run may be a rerun, and any run may stop partway.

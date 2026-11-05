@@ -10,7 +10,7 @@ status: active
 ---
 # principle-make-operations-idempotent
 
-Apply when designing a command, lifecycle step or loop that may crash, restart or retry.
+designing a command, lifecycle step or loop that may crash, restart or retry.
 
 **Boundary:** Makes state-changing operations safe to rerun and to stop partway; concurrent writers are principle-separate-before-serializing-shared-state.
 
@@ -29,6 +29,7 @@ Apply when designing a command, lifecycle step or loop that may crash, restart o
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-05` **update** (2026-11-05-principle-move:006): Owner ruling of 2026-11-05: moved from a skill folder to a file read by path; frontmatter and sidecar removed; the rule text is unchanged; the situation now li…
 - `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:160): Completes pending 2026-11-01-cursor_plugins-pstack-principles:069: the principles build (cr-r2pa.1.2) delivered interruption-point-audit in principle-make-oper…
 - `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:159): Completes pending 2026-11-01-cursor_plugins-pstack-principles:068: the principles build (cr-r2pa.1.2) delivered judgeable-leftovers in principle-make-operation…
 - `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:158): Completes pending 2026-11-01-cursor_plugins-pstack-principles:067: the principles build (cr-r2pa.1.2) delivered reconcile-from-state in principle-make-operatio…

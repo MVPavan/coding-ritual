@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -21,7 +22,7 @@ from curation.registry.models import (
     TraitDefinition,
     UpstreamTraitEntry,
 )
-from curation.registry.vocab import _SLUG_RE, _TRAIT_ID_RE
+from curation.registry.vocab import _SLUG_RE, _TRAIT_ID_RE, PRINCIPLE_PREFIX
 
 
 class _StrictYamlLoader(yaml.SafeLoader):
@@ -209,10 +210,48 @@ def load_trait_sharing(
     return _load_trait_keyed(cfg.trait_sharing_path, SharingEntry)
 
 
+def principle_names(cfg: RegistryConfig) -> set[str]:
+    """Each principle's unit name, from the files in `principles_dir`."""
+    return {f"{PRINCIPLE_PREFIX}{p.stem}" for p in cfg.principles_dir.glob("*.md")}
+
+
+def unit_file(cfg: RegistryConfig, name: str) -> Path:
+    """The file that defines a `skills.yaml` entry: a principle's own file, or a
+    skill's `SKILL.md`."""
+    if name.startswith(PRINCIPLE_PREFIX):
+        return cfg.principles_dir / f"{name.removeprefix(PRINCIPLE_PREFIX)}.md"
+    return cfg.skills_dir / name / "SKILL.md"
+
+
+def _principle_situation(cfg: RegistryConfig, name: str) -> str:
+    """A principle's situation: its line in the router's live `## Principles`
+    section, the only copy (unit-kinds P1). Comments and fenced examples route
+    nothing, as in the catalog check. Empty when the router has none."""
+    if not cfg.router_path.is_file():
+        return ""
+    stem = re.escape(name.removeprefix(PRINCIPLE_PREFIX))
+    entry = re.compile(rf"- `principles/{stem}\.md`:\s*(.+)")
+    text = re.sub(
+        r"<!--.*?-->", "", cfg.router_path.read_text(encoding="utf-8"), flags=re.DOTALL
+    )
+    in_section = in_fence = False
+    for line in text.splitlines():
+        if line.lstrip().startswith(("```", "~~~")):
+            in_fence = not in_fence
+        elif not in_fence and line.startswith("## "):
+            in_section = line[3:].strip() == "Principles"
+        elif not in_fence and in_section and (found := entry.fullmatch(line.rstrip())):
+            return " ".join(found.group(1).split())
+    return ""
+
+
 def skill_description(cfg: RegistryConfig, skill: str) -> str:
-    """The `description` from `.claude/skills/<skill>/SKILL.md` frontmatter,
-    whitespace-collapsed; empty when absent or unreadable."""
-    path = cfg.skills_dir / skill / "SKILL.md"
+    """A skill's `description` from its `SKILL.md` frontmatter, or a principle's
+    situation from the router, whitespace-collapsed; empty when absent or
+    unreadable."""
+    if skill.startswith(PRINCIPLE_PREFIX):
+        return _principle_situation(cfg, skill)
+    path = unit_file(cfg, skill)
     if not path.is_file():
         return ""
     text = path.read_text(encoding="utf-8")

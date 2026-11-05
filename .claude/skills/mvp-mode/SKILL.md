@@ -30,8 +30,9 @@ only; `AGENTS.md` holds policy and wins if the two disagree.
 - Invoke a model-invocable skill through the platform's skill mechanism, never
   by reading its file, so it survives compaction and its settings apply.
   Manual (slash-only) skills are the user's to start: suggest them.
-- Read a playbook at `playbooks/<name>.md` in this folder, and a principle at
-  `../principle-<name>/SKILL.md`.
+- Read a playbook at `playbooks/<name>.md` and a principle at
+  `principles/<name>.md`, both in this folder. A unit citing `principle-<name>`
+  means `principles/<name>.md`.
 - At top level, delegate by default: hand independent work to a subagent and
   keep your own context for coordination, integration and verification. Work
   locally only when that has a clear advantage: a handful of tool calls, a
@@ -71,22 +72,22 @@ One line per playbook: `` - `playbooks/<name>.md`: <the request it fits> ``.
 
 ## Principles
 
-One line per principle: `` - `principle-<name>`: <the situation it applies in> ``.
+One line per principle: `` - `principles/<name>.md`: <the situation it applies in> ``.
 
-- `principle-attack-the-premise`: two or more fixes resting on one belief have failed the same gate (test, review, eval).
-- `principle-boundary-discipline`: wiring validation, error handling or a framework adapter.
-- `principle-experience-first`: a product, UX or feature-scope tradeoff.
-- `principle-explain-the-number`: before measuring, or before trusting, reporting or acting on a measured number (performance or eval).
-- `principle-make-operations-idempotent`: designing a command, lifecycle step or loop that may crash, restart or retry.
-- `principle-migrate-without-shims`: replacing an internal API no external user depends on, as part of a simplification in a project that can absorb a coordinated break; or running a planned rewrite or migration with declared phase boundaries.
-- `principle-minimize-reader-load`: reviewing or shaping code that is hard to trace.
-- `principle-model-the-domain`: writing stateful logic, a growing if/else chain, or a shape assumption repeated across files.
-- `principle-redesign-from-first-principles`: integrating a new requirement into an existing design.
-- `principle-separate-before-serializing-shared-state`: concurrent actors (processes, agents, workers) in code or tooling being designed might write the same file, branch, key or object.
-- `principle-sequence-verifiable-units`: multi-step work (a sweep, a migration, a run of similar edits) or stacking commits.
-- `principle-subtract-before-you-add`: sequencing an addition, refactor or rewrite.
-- `principle-test-behavior-not-implementation`: writing, changing or keeping any test.
-- `principle-type-system-discipline`: designing types or a function signature in a typed language.
+- `principles/attack-the-premise.md`: two or more fixes resting on one belief have failed the same gate (test, review, eval).
+- `principles/boundary-discipline.md`: wiring validation, error handling or a framework adapter.
+- `principles/experience-first.md`: a product, UX or feature-scope tradeoff.
+- `principles/explain-the-number.md`: before measuring, or before trusting, reporting or acting on a measured number (performance or eval).
+- `principles/make-operations-idempotent.md`: designing a command, lifecycle step or loop that may crash, restart or retry.
+- `principles/migrate-without-shims.md`: replacing an internal API no external user depends on, as part of a simplification in a project that can absorb a coordinated break; or running a planned rewrite or migration with declared phase boundaries.
+- `principles/minimize-reader-load.md`: reviewing or shaping code that is hard to trace.
+- `principles/model-the-domain.md`: writing stateful logic, a growing if/else chain, or a shape assumption repeated across files.
+- `principles/redesign-from-first-principles.md`: integrating a new requirement into an existing design.
+- `principles/separate-before-serializing-shared-state.md`: concurrent actors (processes, agents, workers) in code or tooling being designed might write the same file, branch, key or object.
+- `principles/sequence-verifiable-units.md`: multi-step work (a sweep, a migration, a run of similar edits) or stacking commits.
+- `principles/subtract-before-you-add.md`: sequencing an addition, refactor or rewrite.
+- `principles/test-behavior-not-implementation.md`: writing, changing or keeping any test.
+- `principles/type-system-discipline.md`: designing types or a function signature in a typed language.
 
 ## Skills by situation
 

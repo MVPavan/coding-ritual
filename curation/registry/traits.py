@@ -72,7 +72,8 @@ def _upstream_traits(
 
 
 def _our_tree_hashes(ours: Any) -> dict[str, str]:
-    """Current tree hash of each of our skills, keyed by bare skill name."""
+    """Current tree hash of each of our skills and principles, keyed by bare
+    name."""
     out: dict[str, str] = {}
     for cap in ours.capabilities:
         if cap.kind.value == "skill":

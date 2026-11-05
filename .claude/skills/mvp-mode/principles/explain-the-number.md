@@ -1,9 +1,3 @@
----
-name: principle-explain-the-number
-description: Apply when about to measure, or before trusting, reporting or acting on a measured number (performance or eval).
-disable-model-invocation: true
----
-
 # Explain the number
 
 A number is evidence only once you know what produced it.

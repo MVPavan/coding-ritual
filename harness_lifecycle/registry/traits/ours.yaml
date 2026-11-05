@@ -108,7 +108,7 @@ ours:model-council:
   tree_hash: "604be20a026528990ef9536cfbb643228189552f25f15eda46633ae3f4445f05"
   traits: [member-resolution, runtime-capability-check, neutral-framing, member-isolation, report-preservation, independent-synthesis, consolidated-delivery, identity-recording, failed-member-recovery, no-silent-substitution, artifact-named-up-front, task-rubric-criteria, rubric-withheld-from-candidates, own-output-location, rationale-names-rejected, dropout-proceeds-noted, read-only-judge, judge-other-family-or-stated, rubric-given-to-judge, path-labelled-candidates, judge-criterion-scores, judge-recommends-base, full-read-before-pick, picker-criterion-scores, pick-compared-with-judge, disagreement-rereads-rationales, base-chosen-for-extensibility, near-tie-smaller-surface, loser-graft-pass, sparse-grafts, hand-folded-grafts, converged-shape-no-graft, divergence-reframes-once, graft-change-rerun, verify-miss-returns-once, single-synthesized-artifact, synthesis-decision-record, note-judge-status, note-convergence-dropouts, note-verification-result, no-judge-no-pick]
 ours:mvp-mode:
-  tree_hash: "79114a7d915b86e073c8f26ce8304fcddc01bae170a7c1ee7aaf194fd64c6445"
+  tree_hash: "e670bcc4d6400e29c4368a68059edbd0c3ee64dd6d726434d00549750c2861cd"
   traits: [unit-kind-lines, playbook-pick, need-to-skill-routing, overlap-arbitration, layered-catalog, platform-skill-invocation, no-playbook-in-delegate, delegate-independent-by-default, no-onward-delegation, playbook-steps-as-todos, recorded-step-skip, whole-callee, playbook-exit, legacy-entrypoint-flagging, catalog-trust-boundary]
 ours:performance-optimization:
   tree_hash: "8e393535c7e06691afca39ef9df84040ce4752a29a8cc58610b8522ce951c4da"
@@ -124,46 +124,46 @@ ours:planning:
   notes:
     beads-native-tracking: "The roadmap anchor is the --spec-id and the governing spec is --design; the renderer derives the workstream from the anchor, so a plan path never goes in --design."
 ours:principle-attack-the-premise:
-  tree_hash: "23dad7b3049554ee3b7bbcd4d00cde35fe69d7ce62ac645d92dc2617f65d95a9"
+  tree_hash: "cf7cabf2ae6d4008f40654e817c4b2eb8a251800d10361a6cf0fe0caba8b554f"
   traits: [premise-test-gate]
 ours:principle-boundary-discipline:
-  tree_hash: "087f968cd9cd980815a6b2c2497e3240146e80a3e3e20a8ae02dada140a49b4a"
+  tree_hash: "11234214aaf9e5a5e98d33029ca4e8283a9b0617bd8aac4506187a0aff13d646"
   traits: [boundary-validation, parse-at-boundary, scoped-internal-trust, domain-not-wire-types, pure-core-thin-shell]
 ours:principle-experience-first:
-  tree_hash: "627e3c20bff63439b8d69d302da75e9c50de25f87ed7d34b1b5b593249a5c446"
+  tree_hash: "8bcd8c87f4d1ec3b7c060b5dbff5c26f9b74902c920b58dd04da736dd0e6768a"
   traits: [consumer-as-user, experience-over-convenience, justified-surface, polish-over-breadth, detail-finish]
 ours:principle-explain-the-number:
-  tree_hash: "07bbeb5383c481037b95d6e00c274f14146b59d052ed93a202415ded8a8bb4b3"
+  tree_hash: "7d3893755da862380252c8bb0fb7a851c55a63a11dc3c7d1710e9f9a5946e8c8"
   traits: [decision-before-measurement, named-limiter, confound-elimination, evidence-with-number, eval-result-scrutiny]
 ours:principle-make-operations-idempotent:
-  tree_hash: "90ca6825ff82f1330aa3b811b838fc563a6f9c510296d876def9327ec8cbe0fd"
+  tree_hash: "e1be56db6fcd5af7eb5aa9dc566cdecbd9e8b1c48bdb33e2993d5bc98462e914"
   traits: [convergent-operations, reconcile-from-state, judgeable-leftovers, interruption-point-audit]
 ours:principle-migrate-without-shims:
-  tree_hash: "12059e2cf8ee850626c20dfe256e283dc585a8470e7b43c041c1d29f32fa38ac"
+  tree_hash: "776d7327c0f2bda321f241cb00a50f0f72d4b3d1ee3dcdda8a62c0b90902160e"
   traits: [same-wave-legacy-removal, migration-group-unit, touched-area-checks, full-verification-at-completion]
 ours:principle-minimize-reader-load:
-  tree_hash: "b42af7a5325c81283587a7ff742ea0752c837f1f2b6e2e160ab8bb181dd8bbff"
+  tree_hash: "46c4eec3d2e9df8fbb2f6db755714141875a031bc00813548ecbded1459c569c"
   traits: [reader-load-axes, reader-load-net-test, collapse-thin-layers, narrowest-state-scope, derive-over-sync, invariant-at-boundary]
 ours:principle-model-the-domain:
-  tree_hash: "c40080ed10744926e91fa1759cef36ded032a834d342b62b3556ea72ee3370bf"
+  tree_hash: "eb302789e283b998f1ffb8e27f6fcdf8501f2069783d633dcc5482241768d960"
   traits: [data-shape-first, structure-over-conditionals, knowledge-not-phase-modules, coherent-increment, structural-dry, no-forced-abstraction]
 ours:principle-redesign-from-first-principles:
-  tree_hash: "0bc47c770d2916e8f4a2a2f1e902389a250dd43938e948033c9568f12654fa9f"
+  tree_hash: "5d7e6bf8bb83964ee2491ddd8f4898d2d89761f57973b1627201e84b69413ede"
   traits: [proposed-foundational-redesign, whole-design-incremental-delivery, full-propagation]
 ours:principle-separate-before-serializing-shared-state:
-  tree_hash: "a38d74e18d2c8a9e8ab95d36db1327736aacc08505ccab19e783df046dd5f39b"
+  tree_hash: "ba25adb2431b8645c62cd2c6ead36d64db5551ba1afb2d535fa7ce203e3edb00"
   traits: [concurrent-modification-test, eliminate-shared-writes, structural-serialization]
 ours:principle-sequence-verifiable-units:
-  tree_hash: "30e0e72e54e31f3fa2018e46938ce7a5b575896c447f0b0e1b95905c1d3272a7"
+  tree_hash: "58cb5fd6a9b4d8c35769e9a34239a28f6f97f02fc9ef2f8387eeed4e83fc9ab6"
   traits: [baseline-check-before-change, verified-unit-sequence, small-single-purpose-commits, argument-order-commits]
 ours:principle-subtract-before-you-add:
-  tree_hash: "f73cc3161aa8075ecc4982af7d6f43a787f5a92633e19bf1e33eeedaa2b084dd"
+  tree_hash: "76cd8d8c91d71be284e0570ffd72b4b747cd88b1fef6fd518c744fee37f7d1d8"
   traits: [touched-scope-subtraction, deletion-bias, stub-deletion, single-source-of-truth, cut-before-polish]
 ours:principle-test-behavior-not-implementation:
-  tree_hash: "b1e38762b300a2e2c28a33985cdd2b08a0e860c647409bbadfe18901628deb7a"
+  tree_hash: "ff743653e28de3db321e4aba9f2a2909ce759b4add64e5cb4fe1f49286291e79"
   traits: [two-edit-test-judgement, public-interface-testing, contract-exact-assertion, absence-positive-control, hollow-test-forms, behaviour-and-edge-case-tests, implementation-test-deletion]
 ours:principle-type-system-discipline:
-  tree_hash: "72d56597a8a5054376fccfa557058551770c704e90ed2f4521b6fb9b579a0aae"
+  tree_hash: "31c1fb89f74f17e466a8557eadc20b9dde2efece0bd3d1098dc27b21fdfb71de"
   traits: [unrepresentable-invalid-states, exhaustive-variant-handling, branded-primitives, schema-derived-types]
 ours:prose-pass:
   tree_hash: "90d7746e4f4afcb9602adc2b3ce82f2e8ace7b1be25dabbd589fb0f9be7d0ef3"

@@ -34,8 +34,8 @@ project documents are not units.
 - **`AGENTS.md`:** policy that applies whichever unit runs.
 - **Router (`mvp-mode`):** the always-loaded index from a situation to the
   playbook or principle to load. No policy, no procedure, no technique.
-- **Principle:** a lens for a named situation ("Apply when …"): unordered
-  rules, no steps, no output.
+- **Principle:** a lens for a named situation: unordered rules, no steps, no
+  output. A file the router maps a situation to, not a skill (P7).
 - **Skill:** one job with its own entry point and one deliverable (an
   answer, an artifact, a change or state), whose steps are that job's
   technique.
@@ -131,19 +131,20 @@ material moves to references. [data: H1 holds via standalone use]
 
 ### Principles
 
-- P1. The description opens "Apply when <situation>". [data: 24 of 24 pstack]
+- P1. The situation opens the router line, its only copy; the file has no
+  description and no frontmatter. [ruling: owner, 2026-11-05]
 - P2. Unordered rules: no numbered procedure, no output, no calls. Needing
   any of these makes it a skill or a playbook step. [data: 20 of 24 strict]
 - P3. About 35 lines at most. More means it carries technique. [data: all
   pstack principles are 34 lines or fewer]
 - P4. Never restates `AGENTS.md` (A2, A3).
-- P5. Named `principle-<rule>`. Skill names must be lowercase letters,
-  digits and hyphens, so capitals cannot mark them. [proposed; pstack
-  convention]
+- P5. The file is `principles/<name>.md` in `mvp-mode`, cited as
+  `principle-<name>`, which stays the unit's name in citations, the registry and
+  the ledger. [ruling: owner, 2026-11-05]
 - P6. Other units cite a principle by name instead of restating it.
-- P7. Router-only (`disable-model-invocation: true`): the router maps
-  situations to principles; a delegate gets one by name in its brief.
-  [proposed; pstack does the same]
+- P7. Not skills: they live in `mvp-mode/principles/` and are read by path. The
+  router maps situations to them; a delegate gets one by path in its brief.
+  [ruling: owner, 2026-11-05]
 
 ### Skills
 
@@ -326,7 +327,8 @@ material moves to references. [data: H1 holds via standalone use]
    revision 4). The publish script still hardcodes `skill-router`;
    retargeting it is phase 3.
 6. **The registry tracked skills only.** Settled (owner ruling 2026-11-01):
-   principles are skill folders, and a playbook holds traits, has a step index
-   and is its own ledger subject (registry README §4b).
+   a principle holds traits as a `skills.yaml` entry, with its file in
+   `mvp-mode/principles/` (P7, ruling 2026-11-05), and a playbook holds traits,
+   has a step index and is its own ledger subject (registry README §4b).
 7. **"Strip procedure from skills"** becomes "move order and gates across
    units out of skills" (S3, B4): a skill keeps its own technique.

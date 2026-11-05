@@ -1,9 +1,3 @@
----
-name: principle-boundary-discipline
-description: Apply when wiring validation, error handling or a framework adapter.
-disable-model-invocation: true
----
-
 # Boundary discipline
 
 Check data where it enters the system and trust it after that.

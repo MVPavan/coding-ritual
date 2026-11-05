@@ -10,7 +10,7 @@ status: active
 ---
 # principle-sequence-verifiable-units
 
-Apply when doing multi-step work (a sweep, a migration, a run of similar edits) or stacking commits.
+multi-step work (a sweep, a migration, a run of similar edits) or stacking commits.
 
 **Boundary:** Orders multi-step work into checked units and commits; test-first proof of one change is test-driven-development, and a declared migration group is principle-migrate-without-shims.
 
@@ -29,6 +29,7 @@ Apply when doing multi-step work (a sweep, a migration, a run of similar edits) 
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-05` **update** (2026-11-05-principle-move:012): Owner ruling of 2026-11-05: moved from a skill folder to a file read by path; frontmatter and sidecar removed; the rule text is unchanged; the situation now li…
 - `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:186): Completes pending 2026-11-01-cursor_plugins-pstack-principles:111: the principles build (cr-r2pa.1.2) delivered argument-order-commits in principle-sequence-ve…
 - `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:185): Completes pending 2026-11-01-cursor_plugins-pstack-principles:055: the principles build (cr-r2pa.1.2) delivered small-single-purpose-commits in principle-seque…
 - `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:184): Completes pending 2026-11-01-cursor_plugins-pstack-principles:109: the principles build (cr-r2pa.1.2) delivered verified-unit-sequence in principle-sequence-ve…

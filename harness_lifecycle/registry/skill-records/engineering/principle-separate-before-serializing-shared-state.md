@@ -10,7 +10,7 @@ status: active
 ---
 # principle-separate-before-serializing-shared-state
 
-Apply when concurrent actors (processes, agents, workers) in code or tooling you are designing might write the same file, branch, key or object.
+concurrent actors (processes, agents, workers) in code or tooling being designed might write the same file, branch, key or object.
 
 **Boundary:** Removes or structurally serializes shared writes in code and tooling being designed; how agent work is divided is delegation and AGENTS.md.
 
@@ -27,6 +27,7 @@ Apply when concurrent actors (processes, agents, workers) in code or tooling you
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-05` **update** (2026-11-05-principle-move:011): Owner ruling of 2026-11-05: moved from a skill folder to a file read by path; frontmatter and sidecar removed; the rule text is unchanged; the situation now li…
 - `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:182): Completes pending 2026-11-01-cursor_plugins-pstack-principles:107: the principles build (cr-r2pa.1.2) delivered structural-serialization in principle-separate-…
 - `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:181): Completes pending 2026-11-01-cursor_plugins-pstack-principles:106: the principles build (cr-r2pa.1.2) delivered eliminate-shared-writes in principle-separate-b…
 - `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:180): Completes pending 2026-11-01-cursor_plugins-pstack-principles:052: the principles build (cr-r2pa.1.2) delivered concurrent-modification-test in principle-separ…

@@ -10,7 +10,7 @@ status: active
 ---
 # principle-migrate-without-shims
 
-Apply when replacing an internal API that no external user depends on, as part of a simplification in a project that can absorb a coordinated break; or when running a planned rewrite or migration with declared phase boundaries.
+replacing an internal API no external user depends on, as part of a simplification in a project that can absorb a coordinated break; or running a planned rewrite or migration with declared phase boundaries.
 
 **Boundary:** Replaces an internal API or runs a declared migration without compatibility layers; ordinary unit sequencing is principle-sequence-verifiable-units, and the plan itself is planning.
 
@@ -29,6 +29,7 @@ Apply when replacing an internal API that no external user depends on, as part o
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-05` **update** (2026-11-05-principle-move:007): Owner ruling of 2026-11-05: moved from a skill folder to a file read by path; frontmatter and sidecar removed; the rule text is unchanged; the situation now li…
 - `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:164): Completes pending 2026-11-01-cursor_plugins-pstack-principles:095: the principles build (cr-r2pa.1.2) delivered full-verification-at-completion in principle-mi…
 - `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:163): Completes pending 2026-11-01-cursor_plugins-pstack-principles:094: the principles build (cr-r2pa.1.2) delivered touched-area-checks in principle-migrate-withou…
 - `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:162): Completes pending 2026-11-01-cursor_plugins-pstack-principles:093: the principles build (cr-r2pa.1.2) delivered migration-group-unit in principle-migrate-witho…

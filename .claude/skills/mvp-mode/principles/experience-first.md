@@ -1,9 +1,3 @@
----
-name: principle-experience-first
-description: Apply when weighing a product, UX or feature-scope tradeoff.
-disable-model-invocation: true
----
-
 # Experience first
 
 The work is judged by the people who consume it.

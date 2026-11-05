@@ -1,9 +1,3 @@
----
-name: principle-type-system-discipline
-description: Apply when designing types or a function signature in a typed language.
-disable-model-invocation: true
----
-
 # Type-system discipline
 
 Let the checker carry the rules the code would otherwise test at runtime.

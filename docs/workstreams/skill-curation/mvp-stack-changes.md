@@ -128,9 +128,10 @@ Four edits; behaviour change after each.
 
 ### Principles (14 new units)
 
-Each is `.claude/skills/principle-<name>/SKILL.md` with
-`disable-model-invocation: true` and a Codex sidecar that disallows implicit
-invocation: reached only through the router (P7), invocable by slash name.
+Each is `.claude/skills/mvp-mode/principles/<name>.md` with no frontmatter,
+cited as `principle-<name>`: reached only through the router and read by path,
+not a skill and with no slash name (P7, owner ruling 2026-11-05). The file lists
+below predate that move.
 
 | Principle | Situation (router line) | Core line |
 |---|---|---|

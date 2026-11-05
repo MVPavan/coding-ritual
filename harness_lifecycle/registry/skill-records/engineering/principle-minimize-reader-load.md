@@ -10,7 +10,7 @@ status: active
 ---
 # principle-minimize-reader-load
 
-Apply when reviewing or shaping code that is hard to trace.
+reviewing or shaping code that is hard to trace.
 
 **Boundary:** Judges code by the layers and state a reader must trace; module interface decisions are codebase-design.
 
@@ -33,6 +33,7 @@ Apply when reviewing or shaping code that is hard to trace.
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-05` **update** (2026-11-05-principle-move:008): Owner ruling of 2026-11-05: moved from a skill folder to a file read by path; frontmatter and sidecar removed; the rule text is unchanged; the situation now li…
 - `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:170): Completes pending 2026-11-01-cursor_plugins-pstack-principles:081: the principles build (cr-r2pa.1.2) delivered invariant-at-boundary in principle-minimize-rea…
 - `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:169): Completes pending 2026-11-01-cursor_plugins-pstack-principles:080: the principles build (cr-r2pa.1.2) delivered derive-over-sync in principle-minimize-reader-l…
 - `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:168): Completes pending 2026-11-01-cursor_plugins-pstack-principles:079: the principles build (cr-r2pa.1.2) delivered narrowest-state-scope in principle-minimize-rea…

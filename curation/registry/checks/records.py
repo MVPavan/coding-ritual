@@ -13,7 +13,7 @@ from curation.registry.ledger import (
     is_pending_adopt,
     resolve_skill,
 )
-from curation.registry.loaders import record_paths
+from curation.registry.loaders import principle_names, record_paths, unit_file
 from curation.registry.models import Event, Frontmatter, SkillEntry
 from curation.registry.views.records import (
     DECLINED_CLOSE,
@@ -29,7 +29,7 @@ from curation.registry.views.records import (
     TRAITS_CLOSE,
     TRAITS_OPEN,
 )
-from curation.registry.vocab import IN_PROGRESS_DIR, STUB_SKILLS
+from curation.registry.vocab import IN_PROGRESS_DIR, PRINCIPLE_PREFIX, STUB_SKILLS
 
 # Non-skill target kinds a `kind:name` adoption target may name.
 NONSKILL_KINDS = frozenset({"agent", "command", "hook", "rule", "mcp", "plugin"})
@@ -172,10 +172,11 @@ def _check_block_pairing(cfg: RegistryConfig) -> list[str]:
 def _check_skill_coverage(
     cfg: RegistryConfig, records: dict[str, Frontmatter]
 ) -> list[str]:
-    """One `skills.yaml` entry per real skill folder: a folder with no entry
-    (and not an alias, stub or in-progress) fails, and so does an entry with no
-    folder (README §3 rule 5, check item 7). No skills folder at all fails
-    every entry."""
+    """One `skills.yaml` entry per real skill folder or principle file: a folder
+    or file with no entry (and not an alias, stub or in-progress) fails, and so
+    does an entry with neither (README §3 rule 5, check item 7). A principle's
+    entry needs its file; a `principle-*` folder does not count. No skills
+    folder at all fails every entry."""
     aliases = {alias for fm in records.values() for alias in fm.aliases}
     errors: list[str] = []
     folders = (
@@ -183,7 +184,8 @@ def _check_skill_coverage(
         if cfg.skills_dir.is_dir()
         else set()
     )
-    for name in sorted(folders):
+    principles = principle_names(cfg)
+    for name in sorted(folders | principles):
         if (
             name == IN_PROGRESS_DIR
             or name in records
@@ -195,8 +197,13 @@ def _check_skill_coverage(
             f".claude/skills/{name}: no skills.yaml entry, and not an alias, stub "
             f"or in-progress"
         )
-    for name in sorted(set(records) - folders):
-        errors.append(f"skills.yaml: {name}: no .claude/skills/{name} folder")
+    skill_folders = {n for n in folders if not n.startswith(PRINCIPLE_PREFIX)}
+    for name in sorted(set(records) - skill_folders - principles):
+        if name.startswith(PRINCIPLE_PREFIX):
+            rel = unit_file(cfg, name).relative_to(cfg.repo_root)
+            errors.append(f"skills.yaml: {name}: no file {rel}")
+        else:
+            errors.append(f"skills.yaml: {name}: no .claude/skills/{name} folder")
     return errors
 
 

@@ -10,7 +10,7 @@ status: active
 ---
 # principle-redesign-from-first-principles
 
-Apply when integrating a new requirement into an existing design.
+integrating a new requirement into an existing design.
 
 **Boundary:** Reworks an existing design around a new requirement as if it had been founding; revising design documents is design-evolve.
 
@@ -27,6 +27,7 @@ Apply when integrating a new requirement into an existing design.
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-05` **update** (2026-11-05-principle-move:010): Owner ruling of 2026-11-05: moved from a skill folder to a file read by path; frontmatter and sidecar removed; the rule text is unchanged; the situation now li…
 - `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:179): Completes pending 2026-11-01-cursor_plugins-pstack-principles:103: the principles build (cr-r2pa.1.2) delivered full-propagation in principle-redesign-from-fir…
 - `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:178): Completes pending 2026-11-01-cursor_plugins-pstack-principles:104: the principles build (cr-r2pa.1.2) delivered whole-design-incremental-delivery in principle-…
 - `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:177): Completes pending 2026-11-01-cursor_plugins-pstack-principles:102: the principles build (cr-r2pa.1.2) delivered proposed-foundational-redesign in principle-red…

@@ -1,9 +1,3 @@
----
-name: principle-attack-the-premise
-description: Apply when two or more fixes resting on one belief have failed the same gate (a test, a review, an eval).
-disable-model-invocation: true
----
-
 # Attack the premise
 
 Fixes that keep failing at one gate usually share a wrong belief; another

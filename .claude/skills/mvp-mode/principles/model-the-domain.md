@@ -1,9 +1,3 @@
----
-name: principle-model-the-domain
-description: Apply when writing stateful logic, a growing if/else chain, or a shape assumption repeated across files.
-disable-model-invocation: true
----
-
 # Model the domain
 
 Choose the structure before the logic; the right structure removes logic.

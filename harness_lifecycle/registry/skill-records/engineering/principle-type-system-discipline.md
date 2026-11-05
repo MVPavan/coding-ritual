@@ -10,7 +10,7 @@ status: active
 ---
 # principle-type-system-discipline
 
-Apply when designing types or a function signature in a typed language.
+designing types or a function signature in a typed language.
 
 **Boundary:** Moves rules into the type checker in a typed language; where raw input becomes typed values is principle-boundary-discipline.
 
@@ -29,6 +29,7 @@ Apply when designing types or a function signature in a typed language.
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-05` **update** (2026-11-05-principle-move:015): Owner ruling of 2026-11-05: moved from a skill folder to a file read by path; frontmatter and sidecar removed; the rule text is unchanged; the situation now li…
 - `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:204): Completes pending 2026-11-01-cursor_plugins-pstack-principles:133: the principles build (cr-r2pa.1.2) delivered schema-derived-types in principle-type-system-d…
 - `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:203): Completes pending 2026-11-01-cursor_plugins-pstack-principles:131: the principles build (cr-r2pa.1.2) delivered branded-primitives in principle-type-system-dis…
 - `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:202): Completes pending 2026-11-01-cursor_plugins-pstack-principles:130: the principles build (cr-r2pa.1.2) delivered exhaustive-variant-handling in principle-type-s…

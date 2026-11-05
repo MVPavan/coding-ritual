@@ -1,9 +1,3 @@
----
-name: principle-test-behavior-not-implementation
-description: Apply when writing, changing or keeping any test.
-disable-model-invocation: true
----
-
 # Test behavior, not implementation
 
 A test earns its place by catching broken behaviour and nothing else.

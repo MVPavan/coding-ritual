@@ -10,7 +10,7 @@ status: active
 ---
 # principle-explain-the-number
 
-Apply when about to measure, or before trusting, reporting or acting on a measured number (performance or eval).
+before measuring, or before trusting, reporting or acting on a measured number (performance or eval).
 
 **Boundary:** Decides when a measured number counts as evidence; running the optimisation loop is performance-optimization.
 
@@ -34,6 +34,7 @@ Apply when about to measure, or before trusting, reporting or acting on a measur
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-05` **update** (2026-11-05-principle-move:005): Owner ruling of 2026-11-05: moved from a skill folder to a file read by path; frontmatter and sidecar removed; the rule text is unchanged; the situation now li…
 - `2026-11-02` **adopt** (2026-11-02-batch-2:034): Owner ruling 2026-11-02: .claude/skills/principle-explain-the-number/SKILL.md:19 has a reported number carry its run count, its spread and its limiter. It name…
 - `2026-11-02` **adopt** (2026-11-02-batch-2:009): Owner ruling 2026-11-02: .claude/skills/principle-explain-the-number/SKILL.md:13-15 explains a number by the resource or code path that bounds it, found from a…
 - `2026-11-02` **adopt** (2026-11-02-batch-2:002): Owner ruling 2026-11-02: .claude/skills/principle-explain-the-number/SKILL.md:16-18 lists what else a number could be measuring (errors, skipped or cached work…

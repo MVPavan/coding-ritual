@@ -1,9 +1,3 @@
----
-name: principle-minimize-reader-load
-description: Apply when reviewing or shaping code that is hard to trace.
-disable-model-invocation: true
----
-
 # Minimize reader load
 
 Code is as maintainable as it is cheap to follow.

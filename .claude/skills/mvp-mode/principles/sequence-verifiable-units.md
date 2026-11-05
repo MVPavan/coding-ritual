@@ -1,9 +1,3 @@
----
-name: principle-sequence-verifiable-units
-description: Apply when doing multi-step work (a sweep, a migration, a run of similar edits) or stacking commits.
-disable-model-invocation: true
----
-
 # Sequence verifiable units
 
 Every step ends somewhere a check can confirm.

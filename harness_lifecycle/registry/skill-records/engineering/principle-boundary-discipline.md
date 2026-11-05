@@ -10,7 +10,7 @@ status: active
 ---
 # principle-boundary-discipline
 
-Apply when wiring validation, error handling or a framework adapter.
+wiring validation, error handling or a framework adapter.
 
 **Boundary:** Where data is checked and trusted (boundary validation, parsing, internal trust, public types, pure core); interface shape and depth are codebase-design, and type-level rules are principle-type-system-discipline.
 
@@ -32,6 +32,7 @@ Apply when wiring validation, error handling or a framework adapter.
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-05` **update** (2026-11-05-principle-move:003): Owner ruling of 2026-11-05: moved from a skill folder to a file read by path; frontmatter and sidecar removed; the rule text is unchanged; the situation now li…
 - `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:146): Completes pending 2026-11-01-cursor_plugins-pstack-principles:009: the principles build (cr-r2pa.1.2) delivered pure-core-thin-shell in principle-boundary-disc…
 - `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:145): Completes pending 2026-11-01-cursor_plugins-pstack-principles:006: the principles build (cr-r2pa.1.2) delivered domain-not-wire-types in principle-boundary-dis…
 - `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:144): Completes pending 2026-11-01-cursor_plugins-pstack-principles:005: the principles build (cr-r2pa.1.2) delivered scoped-internal-trust in principle-boundary-dis…
