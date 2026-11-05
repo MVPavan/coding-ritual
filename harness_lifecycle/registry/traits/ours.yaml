@@ -40,7 +40,7 @@ ours:decision-trail:
   tree_hash: "59a06d52dee4578dc93ddc23e834d1c61cffbde047d2713f759aa82dd9d9843e"
   traits: [single-tsv-decision-log, evidence-pointer-cell, trail-six-columns, caller-trail-columns, plain-row-wording, named-cell-row-helper, decision-points-only, row-per-iteration, creates-log-parent, locked-single-header, append-mode-writes, automatic-utc-stamp, cell-whitespace-strip, numeric-safe-formula-quote, run-boundary, start-row-triggers, start-row-contents, trail-location-rule, proposed-trail-commit, append-only-supersede, end-of-run-audit, no-cross-project-transcript-search, audit-own-stretches, verified-record-row-walk, evidence-resolves-check, unlogged-fork-gap, audit-supersedes-in-place-of-editing, foreign-row-on-own-evidence, same-family-or-unreviewed, evidence-pointer-review, attention-scan-not-redo, trail-review-flags, attention-with-coverage, script-evidence-preference]
 ours:delegation:
-  tree_hash: "a450d153309f83b4cb3ceb1096d1de8b7f4610c75a8fbe47fda8a6954b3b3c8b"
+  tree_hash: "4d516b4156610c1d01be60a50eb885b9335f8c1b80903a11010e3c59b63cd9eb"
   traits: [role-contracts, no-onward-delegation, preserve-role-prompt, owner-roster, cross-family-review, vendor-model-list, model-list-freshness, validate-selection, vendor-owned-dispatch, capable-native-subagent, effective-run-record, enforced-read-only, session-resume-followup, codex-direct, closed-stdin, result-error-check, background-dispatch-for-dialogue, brief-names-done-evidence, read-worker-output, stalled-worker-by-output, retry-by-cause]
   notes:
     validate-selection: "Against each vendor's own list; a model or setting it does not list stops the dispatch."

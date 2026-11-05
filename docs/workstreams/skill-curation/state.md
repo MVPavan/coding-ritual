@@ -59,10 +59,12 @@ deleted. Beads is the work-state authority; this file is the narrative.
 | `2fbc414` | Pocock pass (`cr-r2pa.2.10`, round `2026-11-04-pocock-pass`), see below |
 | `b9a4d57` | `gap` and `record` read a sparse reference whole (`cr-r2pa.2.17`) |
 | `815df70` | The ledger reads in recording order, not filename order (`cr-an42`) |
-| after `815df70` | Principles stop being skills: the 14 move to `mvp-mode/principles/` (owner ruling 2026-11-05, round `2026-11-05-principle-move`) |
+| `cee1ab3` | Principles stop being skills: the 14 move to `mvp-mode/principles/` (owner ruling 2026-11-05, round `2026-11-05-principle-move`) |
+| `5a58e2e` | Two principle edits from the prompting-guide review (round `2026-11-05-principle-edits`) |
+| after `5a58e2e` | `delegation`'s brief names the principles that apply (round `2026-11-05-delegation-principles`) |
 
 `main` is at `eb36cc9`; later work is on `mvp-stack` until the owner asks to merge.
-`mvp-stack` is pushed through the principle move; later commits are local until the owner says to push.
+`mvp-stack` is pushed through `delegation`'s principle line; later commits are local until the owner says to push.
 
 Decisions behind them: domains `core` and `engineering`; one primary
 coordinate per skill (domain · stage · sub-stage); reviews are flat files
@@ -159,9 +161,14 @@ critic, owner rulings, ledger, build, Sol review, commit after the owner approve
   analysis of pstack's unanalysed and Pocock's whole-ruled skills in small batches; a recorded reason
   for our thin shortcuts. Batch P1 is drafted, uncommitted and unsealed, waiting on owner decisions.
 - Principles against the prompting guides: proposal in
-  `scratchpad/mvp-stack/12b/principles-vs-guides.md` (gitignored), critic `critic-12c.md`. Keep 7,
-  small edit 2, keep until tested 5, cut none. Waiting on the owner. Editing a principle stales both
-  its own hash and `mvp-mode`'s, because `mvp-mode`'s folder hash covers `principles/`.
+  `scratchpad/mvp-stack/12b/principles-vs-guides.md` (gitignored), critic `critic-12c.md`. Ruled:
+  keep 7, small edit 2 (done), keep until tested 5, cut none. A search of past sessions
+  (`13/transcript-findings.md`) found principles rarely read even where they applied, so `delegation`
+  now names them in briefs; check that on real runs. Editing a principle stales both its own hash and
+  `mvp-mode`'s, because `mvp-mode`'s folder hash covers `principles/`.
+- Owner rulings of 2026-11-05 on merges, splits, renames and new units:
+  `scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md`. P1's report is revised to them and awaits a
+  Sol re-check, then the owner's own rulings on P1.
 - `cr-r2pa.3.3`: at the end of the project, show the owner everything deferred or
   rejected, from the ledger's `defer` events, the deferred beads and each
   `deliberately_dropped` with its `revisit_when`, to revise and adapt.

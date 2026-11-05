@@ -41,7 +41,9 @@ same family, ask the owner to approve that explicitly before dispatching.
    says. A value not on the list stops the dispatch: report it, never substitute
    a nearby one.
 3. Brief: the role contract, outcome, owned paths or read-only, constraints,
-   acceptance checks, context pointers and report format. Writers in a shared
+   acceptance checks, context pointers and report format. Name the path of each
+   principle whose situation holds for the work (`mvp-mode`'s Principles list);
+   a reviewer or critic gets those the change falls under. Writers in a shared
    checkout preserve others' edits. Name what will show the work is finished: a
    command with its expected output, an artifact to inspect, or a report citing
    its sources. A unit with nothing to name is not scoped yet: narrow it or ask
