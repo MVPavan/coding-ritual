@@ -143,7 +143,7 @@ below predate that move.
 | `principle-migrate-without-shims` | replacing an internal API with no external users, or a planned migration with phase boundaries | Converge on the target design instead of carrying compatibility code. |
 | `principle-minimize-reader-load` | reviewing or shaping code that is hard to trace | Judge maintainability by the layers and state a reader must hold, not line counts. |
 | `principle-model-the-domain` | stateful logic, a growing if/else chain, or a repeated shape assumption | Choose the structure before the logic; the right structure removes logic. |
-| `principle-redesign-from-first-principles` | integrating a new requirement into an existing design | Design as if the requirement had been there from the start. |
+| `principle-redesign-from-first-principles` | integrating a new requirement the existing design visibly cannot hold | Design as if the requirement had been there from the start. |
 | `principle-separate-before-serializing-shared-state` | concurrent actors in designed code or tooling may write the same file, branch, key or object | Remove the shared write before coordinating it (code and tooling only). |
 | `principle-sequence-verifiable-units` | multi-step work or stacking commits | Every step ends somewhere a check can confirm; record baseline results first. |
 | `principle-subtract-before-you-add` | sequencing an addition, refactor or rewrite | Remove the dead code the change touches before adding; report other removals. |

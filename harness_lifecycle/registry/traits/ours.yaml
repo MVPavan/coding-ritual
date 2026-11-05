@@ -108,7 +108,7 @@ ours:model-council:
   tree_hash: "604be20a026528990ef9536cfbb643228189552f25f15eda46633ae3f4445f05"
   traits: [member-resolution, runtime-capability-check, neutral-framing, member-isolation, report-preservation, independent-synthesis, consolidated-delivery, identity-recording, failed-member-recovery, no-silent-substitution, artifact-named-up-front, task-rubric-criteria, rubric-withheld-from-candidates, own-output-location, rationale-names-rejected, dropout-proceeds-noted, read-only-judge, judge-other-family-or-stated, rubric-given-to-judge, path-labelled-candidates, judge-criterion-scores, judge-recommends-base, full-read-before-pick, picker-criterion-scores, pick-compared-with-judge, disagreement-rereads-rationales, base-chosen-for-extensibility, near-tie-smaller-surface, loser-graft-pass, sparse-grafts, hand-folded-grafts, converged-shape-no-graft, divergence-reframes-once, graft-change-rerun, verify-miss-returns-once, single-synthesized-artifact, synthesis-decision-record, note-judge-status, note-convergence-dropouts, note-verification-result, no-judge-no-pick]
 ours:mvp-mode:
-  tree_hash: "e670bcc4d6400e29c4368a68059edbd0c3ee64dd6d726434d00549750c2861cd"
+  tree_hash: "87928c16b3e8ff7ccb85be5161b00eb4724b79683045e409f65dd3c46c3977ac"
   traits: [unit-kind-lines, playbook-pick, need-to-skill-routing, overlap-arbitration, layered-catalog, platform-skill-invocation, no-playbook-in-delegate, delegate-independent-by-default, no-onward-delegation, playbook-steps-as-todos, recorded-step-skip, whole-callee, playbook-exit, legacy-entrypoint-flagging, catalog-trust-boundary]
 ours:performance-optimization:
   tree_hash: "8e393535c7e06691afca39ef9df84040ce4752a29a8cc58610b8522ce951c4da"
@@ -154,7 +154,7 @@ ours:principle-separate-before-serializing-shared-state:
   tree_hash: "ba25adb2431b8645c62cd2c6ead36d64db5551ba1afb2d535fa7ce203e3edb00"
   traits: [concurrent-modification-test, eliminate-shared-writes, structural-serialization]
 ours:principle-sequence-verifiable-units:
-  tree_hash: "58cb5fd6a9b4d8c35769e9a34239a28f6f97f02fc9ef2f8387eeed4e83fc9ab6"
+  tree_hash: "abdc6084155053c668c4a1f325313d08ff80b9cc771693ed373c81ae61f59d56"
   traits: [baseline-check-before-change, verified-unit-sequence, small-single-purpose-commits, argument-order-commits]
 ours:principle-subtract-before-you-add:
   tree_hash: "76cd8d8c91d71be284e0570ffd72b4b747cd88b1fef6fd518c744fee37f7d1d8"

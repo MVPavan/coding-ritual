@@ -82,7 +82,7 @@ One line per principle: `` - `principles/<name>.md`: <the situation it applies i
 - `principles/migrate-without-shims.md`: replacing an internal API no external user depends on, as part of a simplification in a project that can absorb a coordinated break; or running a planned rewrite or migration with declared phase boundaries.
 - `principles/minimize-reader-load.md`: reviewing or shaping code that is hard to trace.
 - `principles/model-the-domain.md`: writing stateful logic, a growing if/else chain, or a shape assumption repeated across files.
-- `principles/redesign-from-first-principles.md`: integrating a new requirement into an existing design.
+- `principles/redesign-from-first-principles.md`: integrating a new requirement the existing design visibly cannot hold.
 - `principles/separate-before-serializing-shared-state.md`: concurrent actors (processes, agents, workers) in code or tooling being designed might write the same file, branch, key or object.
 - `principles/sequence-verifiable-units.md`: multi-step work (a sweep, a migration, a run of similar edits) or stacking commits.
 - `principles/subtract-before-you-add.md`: sequencing an addition, refactor or rewrite.
