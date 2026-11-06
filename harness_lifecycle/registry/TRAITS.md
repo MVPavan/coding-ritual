@@ -1272,6 +1272,18 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 
 ### cursor_plugins
 
+#### core · Intake · Clarification — skill:pstack/skills/in-your-own-words
+- `goal-and-problem-restatement`: Say in your own wording what you believe the user is aiming for and which problem they are trying to solve. — adopt, pending cr-r2pa.2.18 → in-your-own-words#goal-and-problem-restatement
+
+#### core · Intake · Clarification — skill:pstack/skills/sharpen
+- `depth-not-scope-rewrite`: Treat improving a task as making it deeper, and refuse to make it merely larger. — adopt, pending cr-r2pa.2.18 → sharpen#depth-not-scope-rewrite
+- `diagnose-then-rewrite-prompt`: Answer a fixed set of diagnostic questions first, then rewrite the prompt to ask for exactly what they revealed. — adopt, pending cr-r2pa.2.18 → sharpen#diagnose-then-rewrite-prompt
+- `expert-gap-question`: Say what a leading practitioner would do here that the request leaves out. — adopt, pending cr-r2pa.2.18 → sharpen#expert-gap-question
+- `rawest-source-question`: Name the least processed material a practitioner would begin from in place of the summarized input. — adopt, pending cr-r2pa.2.18 → sharpen#rawest-source-question
+- `expert-methods-question`: Name the concrete techniques and instruments a practitioner would apply. — adopt, pending cr-r2pa.2.18 → sharpen#expert-methods-question
+- `outside-correctness-signal`: Name something outside both the agent and the user that would show the result is correct. — adopt, pending cr-r2pa.2.18 → sharpen#outside-correctness-signal
+- `owner-choices-left-open`: Keep decisions that belong to the user unresolved when rewriting their request. — adopt, pending cr-r2pa.2.18 → sharpen#owner-choices-left-open
+
 #### core · Building · Implementation — skill:pstack/skills/principle-build-the-lever
 - `tool-over-hand-work`: For non-trivial edits, analyses or checks, write a rerunnable tool that does or proves the work, so a reviewer reruns it instead of trusting a hand-made result. — adopt → doc:AGENTS.md
 - `hand-first-recipe`: Do the first unit by hand, then build the tool and show it reproduces the hand result before running it on the rest. — adopt → build-a-lever#hand-first-recipe
@@ -1280,6 +1292,30 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `shared-delegate-contract`: When fanning work out, give every delegate one shared artifact with the recipe, the verification contract and the fences, kept outside their write scope. — defer
 - `outliving-tool-commit`: Commit a work tool when the work it does outlives the session. — adopt → build-a-lever#proposed-artifact-commit
 - `minimal-tool`: Build the smallest script that does or proves the job, never a framework. — adopt → build-a-lever#minimal-tool
+
+#### core · Verification · Review — skill:pstack/skills/blast-radius
+- `breakage-beyond-callers`: Spend the effort on breakage text search cannot reveal, not on listing callers. — adopt, pending cr-r2pa.2.18 → review#breakage-beyond-callers
+- `safety-fact-proved-by-run`: Treat a convincing writeup as worthless by itself, and prove the fact a change's safety rests on by running real code and including what happened. — adopt, pending cr-r2pa.2.18 → review#safety-fact-proved-by-run
+- `evidence-ladder`: Grade each safety-bearing fact as asserted, cited to a line, failure walked through, executed in a script or test, or reproduced in the running product. — adopt, pending cr-r2pa.2.18 → review#evidence-ladder
+- `ladder-as-far-as-cheap`: Take each fact as far up the evidence ladder as is cheap and state where it stopped. — adopt, pending cr-r2pa.2.18 → review#ladder-as-far-as-cheap
+- `small-real-library-script`: Normally reach the executed level with one short script that imports the library shipped with the product and calls exactly the function at issue. — adopt, pending cr-r2pa.2.18 → review#small-real-library-script
+- `failing-loud-proof`: Make a proof script or test fail noisily if the claim is wrong. — adopt, pending cr-r2pa.2.18 → review#failing-loud-proof
+- `whole-change-including-unstated`: Go through the diff, the symbols added, changed and deleted, and the behaviour change the diff does not spell out. — adopt, pending cr-r2pa.2.18 → review#whole-change-including-unstated
+- `change-history-pull`: Retrieve the related pull request and commits while reading a change. — adopt, pending cr-r2pa.2.18 → review#change-history-pull
+- `single-safety-fact-search`: Find the one fact that makes a change safe and clears most risky cases, and spend the time there, not on a long list of possibilities. — adopt, pending cr-r2pa.2.18 → review#single-safety-fact-search
+- `dependency-source-and-pin`: Read the called library's source and confirm its pinned version and whether it is locally patched. — adopt, pending cr-r2pa.2.18 → review#dependency-source-and-pin
+- `timing-and-lifecycle-analysis`: Work out when things execute, including deferred callbacks, teardown and framework differences. — adopt, pending cr-r2pa.2.18 → review#timing-and-lifecycle-analysis
+- `non-symbol-coupling-trace`: Follow links symbol search misses: returned data shapes, database columns, wire formats, another language reading the same bytes, feature flags and code several hops away. — adopt, pending cr-r2pa.2.18 → review#non-symbol-coupling-trace
+- `likelihood-and-cost-per-risk`: Give each risk an honest probability and an honest cost. — adopt, pending cr-r2pa.2.18 → review#likelihood-and-cost-per-risk
+- `confirmed-and-cleared-split`: Keep confirmed risks apart from those checked and cleared, saying why each cleared one is fine. — adopt, pending cr-r2pa.2.18 → review#confirmed-and-cleared-split
+- `empty-search-is-finding`: Count a search that returned nothing as a result to report, not as work to discard. — adopt, pending cr-r2pa.2.18 → review#empty-search-is-finding
+- `no-fabrication`: Never fabricate citations, data or examples. — adopt → doc:AGENTS.md
+- `multi-model-question-on-wide-change`: For a big or wide change, put the same question to more than one model and merge the answers. — reject
+- `handback-what-it-does`: Say what changed, including the non-obvious part. — adopt, pending cr-r2pa.2.18 → review#handback-what-it-does
+- `handback-safety-fact-with-grade`: State the safety fact, its ladder level and its proof, or mark it unproven. — adopt, pending cr-r2pa.2.18 → review#handback-safety-fact-with-grade
+- `handback-risk-fields`: For each risk give how it breaks, the actual file and line, likelihood and severity, how to check it, and the proof for those that matter. — adopt, pending cr-r2pa.2.18 → review#handback-risk-fields
+- `handback-pre-merge-check`: Give the cheapest test or reproduction able to expose the actual bug, along with any script written. — adopt, pending cr-r2pa.2.18 → review#handback-pre-merge-check
+- `secret-containment`: Keep secrets and private data out of any destination not authorized to hold them. — adopt → doc:AGENTS.md
 
 #### core · Verification · Review — skill:pstack/skills/interrogate
 - `break-it-mandate`: Assign adversaries to try to break a change or design rather than assess it in general. — adopt → interrogate#break-it-mandate
@@ -1315,16 +1351,84 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `adversary-attribution`: Name the adversaries that found each verified finding. — adopt → interrogate#adversary-attribution
 - `dropped-finding-accounting`: Report for each adversary how many findings were dropped and why. — adopt → interrogate#dropped-finding-accounting
 
+#### core · Verification · Review — skill:pstack/skills/no-comments
+- `merge-base-through-tree-scope`: When no scope is named, review the branch from where it left the base branch up to and including the working tree. — adopt, pending cr-r2pa.2.18 → no-comments#merge-base-through-tree-scope
+- `named-scope-first`: Use the scope the user names when one is given. — adopt, pending cr-r2pa.2.18 → no-comments#named-scope-first
+- `comment-critic-role`: Spawn a fixed subagent role to audit comments and pass it the scope. — reject
+- `defer-to-fresh-critic`: Give weight to a critic's fresh perspective over the caller's own attachment. — reject
+- `role-rules-not-restated`: Do not repeat a spawned role's rules in the request that spawns it. — reject
+- `job-fit-helper-effort`: Choose each helper's thinking depth and speed tier to suit its job. — reject
+- `read-worker-output`: Open the diff or artifact a worker produced and hold it to the evidence its brief named, instead of relying on its summary. — reject
+- `critic-out-of-bounds-refused`: Refuse a critic's edits to application code and any of its work outside the given scope. — adopt, pending cr-r2pa.2.18 → no-comments#comment-pass-stays-in-bounds
+- `comment-exception-gate`: Refuse deleting a comment a stated exception protects, and bring one back only with that exact exception and proof within scope. — adopt, pending cr-r2pa.2.18 → principle-no-comments#exact-proof-settles-a-protected-keep
+- `misstated-kill-reason-refused`: Refuse a report whose reason for a mandatory comment deletion is wrong. — reject
+- `kept-code-not-guilty`: Refuse flags that treat intentionally retained code as being at fault. — adopt, pending cr-r2pa.2.18 → no-comments#kept-code-not-guilty
+- `reshape-flags-stay-open`: Keep flags asking to restructure surprising first-party code open, without bringing their comments back. — adopt, pending cr-r2pa.2.18 → no-comments#reshape-flags-open-apart-from-comment
+- `comment-keep-needs-proof`: Let a comment survive only with proof it concerns something the team cannot alter. — adopt, pending cr-r2pa.2.18 → principle-no-comments#unsure-comment-kept-and-flagged
+- `missed-suppression-audit`: Check the scope for lint and type-checker suppression comments the critic overlooked. — adopt, pending cr-r2pa.2.18 → no-comments#suppressions-in-comment-sweep
+- `safety-suppressions-removed`: Treat suppressions bearing on correctness or safety as findings that must be removed. — adopt, pending cr-r2pa.2.18 → principle-no-comments#safety-suppressions-removed
+- `thin-importance-comment-check`: Before accepting a thinly justified decision on a comment marked important, investigate its symbol's behaviour and history. — adopt, pending cr-r2pa.2.18 → no-comments#thin-importance-comment-check
+- `ambiguous-comment-deleted`: Leave an ambiguous deletion deleted, and delete a kept comment that is refuted or stays ambiguous. — adopt, pending cr-r2pa.2.18 → principle-no-comments#unsure-comment-kept-and-flagged
+- `one-named-rerun-then-fail`: After rejecting a report, revert it and rerun the critic once with the failure named, and fail the run if the second report is rejected too. — reject
+- `trivial-flag-direct-fix`: Resolve simple accepted flags at once through edits such as removing an unused path or parameter, or calling the genuine interface. — adopt, pending cr-r2pa.2.18 → no-comments#trivial-flag-direct-fix
+- `one-sketch-for-accepted-set`: When a fix needs a design, run one design pass over all accepted flags and nearby code, stopping at the sketch and leaving implementation to a later step. — reject
+- `smallest-in-scope-root-cause-fix`: Implement the smallest in-scope fix for the underlying cause, and when the cause lies beyond scope land that fix and list the rest as open. — reject
+- `named-workarounds-removed`: Eliminate every workaround the findings name. — adopt, pending cr-r2pa.2.18 → no-comments#named-workarounds-removed
+- `principles-never-widen-scope`: Treat guiding principles as intent only, never permission to expand the boundary or fix other instances. — reject
+- `no-symptom-guards`: Never add a guard that merely masks a symptom. — reject
+- `constraint-comment-class`: Treat comments that forbid removal, forbid rewording or require consulting someone as a distinct class. — adopt, pending cr-r2pa.2.18 → principle-no-comments#constraint-comment-class
+- `unchangeable-constraint-kept`: Leave kept comments that concern things outside the team's control. — adopt, pending cr-r2pa.2.18 → principle-no-comments#unchangeable-constraint-kept
+- `cheapest-enforcement-offer`: For other constraint comments, propose the least costly enforcement available in scope, whether a type, runtime check, test or CI lint. — adopt, pending cr-r2pa.2.18 → no-comments#cheapest-enforcement-offer
+- `encoding-approval-gate`: Apply an encoding only with approval, through the route the caller names or given by the caller in advance. — adopt, pending cr-r2pa.2.18 → no-comments#encoding-approval-gate
+- `encode-then-delete`: When an encoding is approved, add the enforcement and then remove the comment. — adopt, pending cr-r2pa.2.18 → no-comments#encode-then-delete
+- `unencoded-constraint-reported`: Without approval, delete the comment, report the constraint as open and sketch any out-of-scope work. — adopt, pending cr-r2pa.2.18 → no-comments#unencoded-constraint-kept-and-reported
+- `comment-audit-report`: Report the counts of comments deleted and restored, reruns, the sketch, fixes, encodings offered and done, constraints left unenforced and open items. — adopt, pending cr-r2pa.2.18 → no-comments#comment-sweep-report
+
 #### core · Verification · Validation — skill:pstack/skills/principle-prove-it-works
 - `direct-observation`: Verify a result by observing the real thing (run it, read the actual value, check liveness directly), never a proxy, a cached view or a self-report. — adopt → doc:AGENTS.md
 - `suspect-the-observation`: When a check fails unexpectedly, test the observation method before concluding the system is wrong. — adopt → systematic-debugging#suspect-the-observation
 - `scripted-proof`: Prefer a deterministic, rerunnable script as the proof of a result, and keep its output for a reviewer. — adopt → doc:AGENTS.md
 - `audit-trail-proof-commit`: Keep a proof artifact visible to the human, and commit it only when large or complex work needs an auditable trail. — adopt → build-a-lever#proposed-artifact-commit
 
+#### core · Improvement · Codification — skill:pstack/skills/correct
+- `recurring-lesson-to-check`: When a correction or instruction recurs, encode it as a lint, flag, runtime check or script instead of adding more instruction text. — adopt → doc:AGENTS.md
+- `next-agent-test`: Prefer a design where an edit that looks right from one file is right everywhere, assuming the next editor sees only the files it opened and copies the nearest example. — reject
+- `mine-and-group-mistakes`: Collect mistakes from recent history, reverts, review remarks, instruction files and workaround comments, and cluster them into classes. — defer
+- `two-occurrence-threshold`: Count a class of mistake only after it has happened at least twice. — defer
+- `fix-at-highest-level`: Try fixes for a repeated mistake in order of architecture, types, lint or CI, tests and finally docs, stopping at the highest level that works. — adopt, pending cr-r2pa.2.18 → authoring-for-agents#fix-at-highest-level
+- `split-ownership-flag`: Give each piece of state one owner, so that others read it or ask the owner to change it, with no second writer and no copy. — reject
+- `one-way-per-task`: Keep a single way to do a task, moving callers off the others and deleting them in the same change. — reject
+- `unreachable-internals`: Make a module's internals unreachable, so that an import from outside fails the build. — reject
+- `derived-or-checked-lists`: Derive duplicate lists from one, or make the build fail when lists that cannot be derived disagree. — reject
+- `delete-copyable-old-ways`: Remove outdated approaches and dead code an agent might imitate. — reject
+- `unrepresentable-invalid-states`: Shape types so the checker rejects impossible states, defining special cases out of existence instead of handling them. — reject
+- `check-error-names-replacement`: Where wrong code can still compile, add a check whose message points at the specific file, type or function to use. — adopt, pending cr-r2pa.2.18 → authoring-for-agents#check-error-names-replacement
+- `ratchet-on-common-patterns`: When a pattern is already widespread, fail only on changes that add more of it. — adopt, pending cr-r2pa.2.18 → authoring-for-agents#ratchet-on-common-patterns
+- `green-on-break-test-fixed`: Repair or remove a test that stays green when its behaviour breaks. — adopt, pending cr-r2pa.2.18 → principle-test-behavior-not-implementation#green-on-break-test-fixed
+- `implementation-test-deletion`: When internals change, rewrite or delete tests that only protect the old implementation, asserting the current contract instead. — reject
+- `build-check-over-rule`: Default to building a deterministic check over writing a prose rule for any mechanical finding. — adopt → authoring-for-agents#build-check-over-rule
+- `most-frequent-classes-first`: Fix the classes of mistake that occur most often in this pass. — defer
+- `small-single-purpose-commits`: Keep each commit small and about one thing. — reject
+- `check-proved-on-real-mistake`: Show each new check failing against a mistake that actually occurred. — adopt, pending cr-r2pa.2.18 → authoring-for-agents#check-proved-on-real-mistake
+- `same-command-local-and-ci`: Run the identical command on a developer machine and in CI. — defer
+- `inline-exception-with-reason`: Record an exception to a check on the offending line along with its justification. — defer
+- `expiring-exceptions`: Give every exception to a check an expiry date. — defer
+- `human-approved-exceptions`: Require a person's approval for each exception to a check. — defer
+- `rule-to-enforcer-table`: Maintain in the agent instruction file a table pairing each rule with what enforces it. — reject
+- `correction-adds-rule`: On each operator correction, fix the mistake and also add the rule. — reject
+- `unenforced-repeat-escalation`: If a corrected rule already existed without enforcement, count it as a repeat and solve it at the top workable level within that change. — reject
+- `structural-fix-only`: Once a rule is enforced by structure, delete the instruction that restated it. — adopt → authoring-for-agents#check-pointer-not-restatement
+- `class-evidence-level-report`: Report for every class of mistake the supporting evidence, the chosen level and why no higher level worked. — defer
+
 #### core · Improvement · Codification — skill:pstack/skills/principle-encode-lessons-in-structure
 - `recurring-lesson-to-check`: When a correction or instruction recurs, encode it as a lint, flag, runtime check or script instead of adding more instruction text. — adopt → doc:AGENTS.md
 - `judgement-lesson-example`: When a recurring lesson needs judgement and cannot be checked, make its instruction more prominent and pair it with an example of the failure. — adopt → authoring-for-agents#judgement-lesson-failure-example
 - `structural-fix-only`: Once a rule is enforced by structure, delete the instruction that restated it. — adopt → authoring-for-agents#check-pointer-not-restatement
+
+#### core · X · Communication — skill:pstack/skills/bro
+- `repitch-trigger`: When a message did not land, stop and re-pitch it rather than adding more. — adopt → i-have-adhd#repitch-trigger
+- `controlled-language`: Re-pitch in controlled simplified language with short sentences and common words. — adopt → i-have-adhd#controlled-language
+- `jargon-free-restatement`: Drop technical jargon from a restatement, wording it as one person would speak to another. — adopt, pending cr-r2pa.2.18 → i-have-adhd#repitch-explains-project-terms
 
 #### core · X · Communication — skill:pstack/skills/unslop
 - `meaning-and-tone-preserved`: Keep the original sense of a text and fit its intended tone when editing it. — adopt → prose-pass#meaning-preserved-edit
@@ -1362,6 +1466,45 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 #### core · X · Continuity — skill:pstack/skills/principle-guard-the-context-window
 - `bulk-to-subagents`: Send bulk reading and large outputs to subagents and keep only their summaries in the main thread. — adopt → mvp-mode#delegate-independent-by-default
 - `phase-scope-caps`: Cap each phase's scope with file limits and turn budgets, counting the context cost of the mechanisms used. — defer
+
+#### core · X · Continuity — skill:pstack/skills/recall
+- `current-state-capsule-goal`: Rebuild recent working context into a compact statement of the present position and what comes next. — adopt, pending cr-r2pa.2.18 → recall#current-state-capsule-goal
+- `scoped-reading`: Search narrowly and read only the context the task needs, widening when dependencies or uncertainty call for it and never bulk-reading. — adopt → doc:AGENTS.md
+- `two-record-context-model`: Treat context as living in both the agent's own chat history and a shared record of tracker, chat, docs, source control and error reports. — adopt, pending cr-r2pa.2.18 → recall#two-record-context-model
+- `transcript-location-convention`: Locate past chats in a per-workspace folder of line-per-message files named from the workspace path. — out-of-scope
+- `recall-routes-away`: First rule out resuming one known chat, making a durable skill from habits and writing a human-facing work summary, since those are other tasks. — adopt, pending cr-r2pa.2.18 → recall#recall-routes-away
+- `skip-mining-with-supplied-state`: If the user already gave paths, branch and the change, use that and do no mining. — adopt, pending cr-r2pa.2.18 → recall#skip-mining-with-supplied-state
+- `lock-scope-before-search`: Fix the time window, topic and workspace before any searching, and say the locked scope to the user. — adopt, pending cr-r2pa.2.18 → recall#lock-scope-before-search
+- `seven-day-default-window`: Treat recent as a real range with a default of seven days. — adopt, pending cr-r2pa.2.18 → recall#seven-day-default-window
+- `active-workspace-only-default`: Default to the current workspace and read another project's chats only when asked. — adopt, pending cr-r2pa.2.18 → recall#active-workspace-only-default
+- `no-silent-narrowing`: Never quietly reduce a request for everything into a recent subset. — adopt, pending cr-r2pa.2.18 → recall#no-silent-narrowing
+- `cheap-model-fan-out`: Spawn concurrent subagents on a fast, inexpensive model, each covering a slice of the chat history. — reject
+- `order-by-real-mtime`: Sort candidates by actual modification time, never by identifier name. — adopt, pending cr-r2pa.2.18 → recall#order-by-real-mtime
+- `grep-then-read-matching-regions`: Search for the topic first, then open only chats that match and only the parts of them that bear on it. — adopt, pending cr-r2pa.2.18 → recall#grep-then-read-matching-regions
+- `exclude-current-and-noise-chats`: Leave out the current chat along with subagent, evaluation and test chats. — adopt, pending cr-r2pa.2.18 → recall#exclude-current-and-noise-chats
+- `uniform-per-chat-schema`: Require from each subagent one block per chat recording topic, goal, decisions, unresolved threads, difficulties, corrections and produced artifacts. — adopt, pending cr-r2pa.2.18 → recall#uniform-per-chat-schema
+- `finding-cited-by-source-kind`: Cite chat findings by chat identifier and shared-record findings by pull request, ticket, permalink or error-tracker issue. — adopt, pending cr-r2pa.2.18 → recall#finding-cited-by-source-kind
+- `direct-search-for-small-corpus`: With one or two chats, search directly without fanning out. — adopt, pending cr-r2pa.2.18 → recall#direct-search-for-small-corpus
+- `bulk-to-subagents`: Send bulk reading and large outputs to subagents and keep only their summaries in the main thread. — reject
+- `job-fit-helper-effort`: Choose each helper's thinking depth and speed tier to suit its job. — reject
+- `default-shared-record-sweep`: Search the shared record by default when a feature, file, subsystem, area or bug is named, omitting it only for activity recall with no named target. — adopt, pending cr-r2pa.2.18 → recall#default-shared-record-sweep
+- `one-investigator-per-source`: Hand a shared-record sweep to existing per-source investigators, one for each source. — adopt, pending cr-r2pa.2.18 → recall#one-helper-per-sizeable-source
+- `retarget-investigator-question`: Change the investigators' question from design rationale to current state, failed attempts and ongoing user reports. — adopt, pending cr-r2pa.2.18 → recall#retarget-investigator-question
+- `sweep-parallel-to-mining`: Run the shared-record sweep at the same time as chat-history mining. — reject
+- `empty-search-is-finding`: Count a search that returned nothing as a result to report, not as work to discard. — adopt, pending cr-r2pa.2.18 → recall#empty-search-is-finding
+- `unreachable-data-is-gap`: Report data you could not reach, through a missing tool, denied access, retention or deletion, as a coverage gap and never as a null result. — reject
+- `primary-evidence-check`: Check consequential claims from summaries, memory and agent reports against primary evidence before relying on them. — adopt → doc:AGENTS.md
+- `full-transcript-for-agent-behaviour`: When the answer depends on what an agent actually did, read the complete transcript and not a trimmed local copy. — adopt, pending cr-r2pa.2.18 → recall#full-transcript-for-agent-behaviour
+- `brief-grouped-by-thread`: Organize a recall brief by thread and stay on the named topic. — adopt, pending cr-r2pa.2.18 → recall#brief-grouped-by-thread
+- `brief-section-order`: Present capsule, thread status, problems and next move in that order, with further detail below or cut. — adopt, pending cr-r2pa.2.18 → recall#brief-section-order
+- `capped-capsule-section`: Hold the opening capsule to five bullets at most. — adopt, pending cr-r2pa.2.18 → recall#capped-capsule-section
+- `status-tagged-thread-lines`: Give each thread one line with exactly one tag from merged, open pull request, in flight, verified uncommitted, reverted or planned. — adopt, pending cr-r2pa.2.18 → recall#status-tagged-thread-lines-with-abandoned
+- `capped-recurring-problems`: List at most five recurring problems, including persistent user symptoms and reverted fixes, so the next try starts from the last failure. — adopt, pending cr-r2pa.2.18 → recall#capped-recurring-problems
+- `single-next-move`: End with the one most useful concrete next action. — adopt, pending cr-r2pa.2.18 → recall#single-next-move
+- `adjacent-excluded-unless-blocking`: Leave out a neighbouring feature or ticket unless it blocks this one. — adopt, pending cr-r2pa.2.18 → recall#adjacent-excluded-unless-blocking
+- `cut-detail-before-threads`: When a recall brief passes a screen, remove detail ahead of removing threads. — adopt, pending cr-r2pa.2.18 → recall#cut-detail-before-threads
+- `secret-containment`: Keep secrets and private data out of any destination not authorized to hold them. — adopt → doc:AGENTS.md
+- `reply-is-the-deliverable`: Return the deliverable itself as the reply, never an account of what was done to produce it. — adopt, pending cr-r2pa.2.18 → recall#reply-is-the-deliverable
 
 #### core · X · Continuity — skill:pstack/skills/show-me-your-work
 - `single-tsv-decision-log`: Keep one authoritative decision log as a single TSV file with one single-line row per decision. — adopt → decision-trail#single-tsv-decision-log
@@ -1458,10 +1601,91 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `note-convergence-dropouts`: Record any convergence or dropped candidates in the synthesis note. — adopt → model-council#note-convergence-dropouts
 - `note-verification-result`: Record the verification result in the synthesis note. — adopt → model-council#note-verification-result
 
+#### core · X · Coordination — skill:pstack/skills/figure-it-out
+- `design-workflow-before-code`: When no existing playbook fits, produce a phased workflow as the first deliverable, ahead of any code. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `phase-todos`: Open a task list with one item per phase before beginning. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `principles-first-todo`: Make reading a principles section the first item on the todo list. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `framing-before-run`: Do the grounding before starting, and do not begin a run until its framing can be stated. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `falsifiable-done-predicate`: Define done as a claim that can be shown false. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `quantified-scope-with-blockers`: State scope in rough units and effort along with the blockers grounding turned up. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `rigor-biased-high-by-reversibility`: Pick a rigor level biased high, raised for one-way doors and wide impact and lowered for reversible low-stakes steps. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `rigor-means-gates-and-artifacts`: Define rigor as concrete gates and artifacts, not extra effort. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `framing-and-tradeoffs-shown`: Show the human the framing and its tradeoffs ahead of a long run. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `reversible-work-proceeds`: Proceed without asking on reversible work, then present the result and its reasoning so the human can correct it afterwards, leaving product direction to the human. — reject
+- `single-checkpoint-on-long-run`: Give a multi-hour run one checkpoint with the human. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `independently-landable-units`: Split the work into atomic units that can each land independently. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `riskiest-unknown-first`: Order the units so the largest unknown is tackled first. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `scaffold-first`: Sequence first the work every later phase benefits from (CI, linting, test infrastructure, shared types) before features. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `harness-with-pre-change-baseline`: Build the verification harness first and capture a baseline before changing anything, so results read as old against new. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `design-contest-on-one-way-doors`: For design choices that cannot be undone, run a design skill that pits alternatives against each other, and skip that for mechanical work or a settled design. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `fan-out-across-seams-only`: Decide what runs in parallel, parallelizing only where the work has seams and not over-fanning. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `worktree-or-branch-per-worker`: Give each parallel worker its own worktree or branch. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `job-fit-helper-effort`: Choose each helper's thinking depth and speed tier to suit its job. — reject
+- `written-phase-list-for-review`: Write down the designed phases as the thing the human reviews. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `designed-steps-as-todos`: Insert the designed steps as concrete todo items between the loop and audit entries. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `rolling-log-rows`: Add a trail row as each step lands, not all at the end. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `hypothesis-per-unit`: Treat each unit as an experiment with a stated hypothesis. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `smallest-evidenced-change`: Each iteration makes the smallest change the evidence justifies and checks the predicate on it. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `keep-or-revert-on-predicate`: Keep a change that moved things forward and revert one that did not. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `verified-unit-sequence`: Split multi-step work into small units that each end in a checked state, and start the next only when the current one passes. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `direct-observation`: Verify a result by observing the real thing (run it, read the actual value, check liveness directly), never a proxy, a cached view or a self-report. — adopt → doc:AGENTS.md
+- `too-easy-pass-suspicion`: When something passes too easily, question the observation method before crediting the system. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `judge-paired-with-delegation`: Pair delegated work with a judge. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `reset-and-harden-on-gate-gaming`: When a worker games the gate, reset it and strengthen the contract. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `fix-wrong-gate-separately`: When the gate itself is wrong, correct it in its own change and do not route around it. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `three-value-verdict`: Report results as verified, not verified or inconclusive, with inconclusive never counting as a pass. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `no-hidden-negatives`: Do not conceal negative results. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `commit-on-reviewer-need`: Leave the log out of Git unless the work is large enough that a reviewer could not trust the outcome without it. — adopt → decision-trail#proposed-trail-commit
+- `whole-result-on-real-product`: Check the finished whole against the opening predicate on the real product, beyond the harness. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `recurring-lesson-to-check`: When a correction or instruction recurs, encode it as a lint, flag, runtime check or script instead of adding more instruction text. — adopt → doc:AGENTS.md
+- `designed-run-reply-fields`: Reply with the designed playbook, rigor level and reason, trail path, what is verified against the predicate and what is open. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+
 #### core · X · Coordination — skill:pstack/skills/principle-never-block-on-the-human
 - `reversible-work-proceeds`: Proceed without asking on reversible work, then present the result and its reasoning so the human can correct it afterwards, leaving product direction to the human. — reject
 - `noticed-problem-followup`: Log a problem noticed in passing and fix it in the next round. — reject
 - `irreversible-only-confirmation`: Ask for confirmation only before irreversible actions such as force-pushing, deleting production data or sending external messages. — reject
+
+#### core · U · Tutoring — skill:pstack/skills/teach
+- `inspection-only-authority`: Treat a review or analysis request as authority to inspect and report only, never to change the work. — adopt → doc:AGENTS.md
+- `what-how-why-account`: Cover what a thing is, how it operates and why it has that design. — adopt, pending cr-r2pa.2.18 → teach#what-how-why-account
+- `single-blended-account`: Merge the findings of separate investigations into one continuous explanation, never separate reports. — adopt, pending cr-r2pa.2.18 → teach#single-blended-account
+- `lead-with-what-matters`: Open an explanation on its central point and on what matters most to this reader. — adopt, pending cr-r2pa.2.18 → teach#lead-with-what-matters
+- `confidence-language-kept`: Keep the tier words and hedges that mark uncertainty when editing a finished answer. — adopt, pending cr-r2pa.2.18 → teach#confidence-language-kept
+- `pick-few-takeaways`: Choose a small number of things the person should come away understanding before explaining anything. — adopt, pending cr-r2pa.2.18 → teach#pick-few-takeaways
+- `learner-context-from-conversation`: Work out why the person is asking and what they already know from the conversation, not by questioning them. — adopt, pending cr-r2pa.2.18 → teach#learner-context-from-conversation
+- `depth-where-asked`: Omit what the person evidently already knows and spend the depth on the area they asked about. — adopt, pending cr-r2pa.2.18 → teach#depth-where-asked
+- `orient-then-use-investigation`: Read a body of work only far enough to get oriented, and take the digging from a dedicated investigation rather than redoing it. — adopt, pending cr-r2pa.2.18 → teach#orient-then-use-investigation
+- `parallel-investigations-combined`: Run the how and why investigations at the same time and merge what they return. — reject
+- `investigation-sized-to-question`: Run both investigations for a subsystem and possibly only one for a small change. — reject
+- `narrow-rationale-search`: Keep a slow rationale search narrow by default through the question it is given, so it records what it skipped, widening only when the reasoning is the point. — reject
+- `plain-definition-first`: Begin by naming the thing and defining it in general terms, using its common name if one exists. — adopt, pending cr-r2pa.2.18 → teach#plain-definition-first
+- `general-tied-to-local-case`: After the general definition, connect it to how this codebase uses the idea. — adopt, pending cr-r2pa.2.18 → teach#general-tied-to-local-case
+- `build-up-order`: Proceed from definition to mechanism, then deeper reasons, then edge cases. — adopt, pending cr-r2pa.2.18 → teach#build-up-order
+- `problem-and-mechanism-per-part`: For each part, explain the problem it addresses and how it actually operates. — adopt, pending cr-r2pa.2.18 → teach#problem-and-mechanism-per-part
+- `walkthrough-of-user-action`: When it helps the idea land, trace what happens step by step as someone performs the action. — adopt, pending cr-r2pa.2.18 → teach#walkthrough-of-user-action
+- `no-symbol-inventory`: Do not substitute a list of functions and constants for an explanation. — adopt, pending cr-r2pa.2.18 → teach#no-symbol-inventory
+- `no-labels-or-step-words`: Print no stock labels announcing the key idea, and never echo a skill's step wording as headers or phrases. — adopt, pending cr-r2pa.2.18 → teach#no-labels-or-step-words
+- `smallest-complete-answer-first`: Give a complete answer of one or two sentences first, then stop, adding layers only when asked and never delivering an unbroken block. — adopt, pending cr-r2pa.2.18 → teach#requested-depth-first-answer
+- `offer-depth-follow-lead`: Invite the person to go deeper or change topic, and let them steer. — adopt, pending cr-r2pa.2.18 → teach#offer-depth-follow-lead
+- `no-quizzes`: Do not test the person or ask them to repeat the idea back. — reject
+- `no-teaching-theatre`: Do not announce pauses, sentences to master, or that a part is hard or important; state it, and actually stop when a pause is wanted. — adopt, pending cr-r2pa.2.18 → teach#no-teaching-theatre
+- `one-shot-delivery-mode`: When the caller asks for full delivery, give the whole explanation in one reply and place any offer of more depth at the end. — defer
+- `show-the-real-artifact`: Bring up the actual diff, source or debugger when that conveys the point most quickly. — adopt, pending cr-r2pa.2.18 → teach#show-the-real-artifact
+- `figure-when-faster`: Add a figure when a picture would land faster than prose, and omit one for a single simple point. — adopt, pending cr-r2pa.2.18 → teach#figure-when-faster
+- `incremental-diagram-series`: For three or more moving parts, draw a sequence in which each figure repeats the last and adds exactly one part, and never rely on one complete figure, of whatever kind. — adopt, pending cr-r2pa.2.18 → teach#incremental-diagram-series
+- `figure-kind-by-idea`: Choose the figure type by the nature of the idea, using a labelled diagram where the labels carry the meaning. — reject
+- `complementary-figures`: Use more than one kind of figure when each shows something the other cannot. — defer
+- `generated-image-for-spatial-ideas`: For spatial ideas, actually generate a marker-on-whiteboard image with an image tool, with few short labels, instead of describing the picture. — reject
+- `plain-colleague-voice`: Write in plain spoken English as if to a coworker, removing filler and hedging while keeping the piece that makes the idea click. — adopt, pending cr-r2pa.2.18 → teach#plain-colleague-voice
+- `mechanism-not-metaphor`: State the actual mechanism, never a metaphor, framing or preview of what comes next. — reject
+- `density-exemplar`: Supply a worked sample sentence pair that fixes the wanted information density. — reject
+- `sentence-case-prose`: Use normal sentence capitalization in prose. — reject
+- `no-em-dash`: Use no em dashes, ending the sentence or using a comma or parentheses to separate a thought. — reject
+- `comma-budget`: Favour periods, allow at most two commas per sentence, and break a sentence up when clauses accumulate. — reject
+- `synonym-cycling-cut`: Keep one term for one referent instead of rotating through synonyms. — reject
+- `no-mirror-or-tidy-closer`: Avoid symmetrical constructions and neat concluding lines. — reject
+- `reply-is-the-deliverable`: Return the deliverable itself as the reply, never an account of what was done to produce it. — adopt, pending cr-r2pa.2.18 → teach#reply-is-the-deliverable
+- `threads-to-chase`: Include the lines of inquiry worth pursuing further. — adopt, pending cr-r2pa.2.18 → teach#threads-to-chase
 
 #### engineering · Discovery · Research — skill:pstack/skills/how
 - `stated-scope-reading`: State your reading of an ambiguous target and proceed, so the user can redirect afterward. — adopt → explain-code#immaterial-ambiguity-reading
@@ -1790,6 +2014,61 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `clean-baseline-first`: Start from a clean, current base so each check measures against the real baseline. — adopt → principle-sequence-verifiable-units#baseline-check-before-change
 - `argument-order-commits`: Order commits so the history proves the work (failing test before fix, removal before reshape, baseline before treatment, scaffold before feature), each commit standing alone. — adopt → principle-sequence-verifiable-units#argument-order-commits
 
+#### engineering · Building · Implementation — skill:pstack/skills/typescript-best-practices
+- `literal-discriminant-unions`: Represent variants as a union tagged by a literal field so contradictory states cannot be written. — defer
+- `no-optional-field-bags`: Do not model variant state with booleans plus optional fields. — defer
+- `one-discriminant-name`: Settle on a single tag field name and use it consistently. — defer
+- `branded-primitives`: Give semantically distinct values that share a primitive type their own types, validated once at creation and trusted afterwards. — adopt → principle-type-system-discipline#branded-primitives
+- `reuse-existing-brand-shape`: Follow the established brand property shape and invent no other convention. — defer
+- `brand-only-through-verifying-guard`: Obtain a brand only from a type guard that truly checks the value, never from a cast. — defer
+- `unrepresentable-invalid-states`: Shape types so the checker rejects impossible states, defining special cases out of existence instead of handling them. — adopt → principle-type-system-discipline#unrepresentable-invalid-states
+- `nonempty-variadic-tuple`: Express a non-empty list as a tuple of one element plus a rest element. — defer
+- `single-narrowing-guard`: Where an ordinary array arrives, narrow it once with a guard so the fact travels in the type. — defer
+- `even-length-as-pairs`: Express an even-length list as an array of two-element tuples. — defer
+- `range-as-start-plus-duration`: Express a time range as a start and a duration in place of two endpoints. — defer
+- `brand-only-on-confusion-risk`: Leave a number unbranded unless a raw number could actually be passed in its place. — adopt, pending cr-r2pa.2.18 → principle-type-system-discipline#brand-only-on-confusion-risk
+- `readings-over-representation`: Expose other views of the data through helpers or derivations on top of the chosen representation. — defer
+- `simplest-total-type`: Keep a loose type while every operation on it is defined for all inputs, tightening it only where it forces an assertion, a cast or an impossible-case throw. — adopt, pending cr-r2pa.2.18 → principle-type-system-discipline#simplest-total-type
+- `weaken-result-alternative`: Return a possibly absent result as the other way of making a signature total. — adopt, pending cr-r2pa.2.18 → principle-type-system-discipline#weaken-result-alternative
+- `external-data-is-unknown`: Type all outside data as unknown and never as any. — defer
+- `narrow-before-use`: Narrow unknown values before accessing them so the compiler checks the access. — defer
+- `external-source-enumeration`: Count remote payloads, parsed text, posted messages, process messages, file contents, environment variables and database results as external. — defer
+- `check-for-schema-library-first`: Before hand-writing a field-by-field guard, find out which runtime schema library the repository uses and which schemas already exist. — defer
+- `one-schema-validates-and-types`: Let one schema own validation and infer the static type from it, never keeping a schema, a parallel type and a guard that can disagree. — adopt, pending cr-r2pa.2.18 → principle-type-system-discipline#one-schema-validates-and-types
+- `safe-parse-for-expected-failure`: Use the non-throwing parse variant when failure is an ordinary branch. — defer
+- `repo-schema-helper-equivalent`: Use the matching inference helper when the repository has a different schema library. — defer
+- `no-new-schema-dependency-for-one-guard`: Do not add a schema dependency for the sake of a single guard. — defer
+- `no-unverified-casts`: Disallow type assertions except after validation has established the claim. — defer
+- `no-partial-property-guard`: Reject a guard that checks only some fields while claiming the full type. — defer
+- `validator-annotated-with-type`: When the type is written first, annotate the validator with it so the compiler rejects a validator proving less. — defer
+- `diagnose-cast-before-removing`: When removing a cast, first find out why inference falls short. — defer
+- `cast-fix-add-discriminant`: When a cast hides a missing discriminant, add one and move to a tagged union. — defer
+- `cast-fix-narrow-source`: When a cast hides an overly broad source type, narrow that type. — defer
+- `cast-fix-parse-boundary`: When a cast sits at an untyped boundary, parse with the schema responsible for that shape, adding one only where none exists. — defer
+- `cast-fix-brand-or-satisfies`: When a type truly cannot be expressed, use a brand or a checking operator in place of a cast. — defer
+- `narrowing-preference-order`: Prefer discriminant checks, then property-presence checks, then runtime type checks, then a user-defined guard, with a cast last and only after validation. — defer
+- `guards-must-verify`: Require a type guard to really prove what it asserts, treating a false guard as worse than a cast. — adopt, pending cr-r2pa.2.18 → principle-type-system-discipline#guards-must-verify
+- `guard-naming-convention`: Name guards with an is or has prefix. — defer
+- `discriminant-over-guard`: Use discriminant narrowing instead of a guard when it is available. — defer
+- `exhaustive-variant-handling`: Handle every variant of a closed type so the checker reports a variant left unhandled. — adopt → principle-type-system-discipline#exhaustive-variant-handling
+- `exhaustiveness-arm-by-switch-kind`: Return the never value in value-producing switches and discard it in statement switches. — defer
+- `satisfies-over-cast`: Check a value against a type with an operator that keeps its literal types, in place of a cast. — defer
+- `parse-at-boundary`: Turn raw external input into typed domain values with a parse function at the boundary where it enters. — reject
+- `loose-record-stops-at-parse`: Allow a string-keyed unknown record, under any alias, to exist only up to the parse. — defer
+- `trust-internal-types`: Inside the system, trust data that a boundary already validated into types and propagate errors instead of re-checking it in every layer. — reject
+- `wire-parse-ignores-unknown-fields`: Parse wire formats with unknown fields ignored so forward-compatible changes do not break old clients. — defer
+- `persisted-json-versioned`: Store persisted JSON as a versioned blob. — defer
+- `persisted-json-guarded-parse`: Surround the parse of persisted JSON with an error handler. — defer
+- `schema-derived-types`: Derive types from the authoritative schema that owns a shape instead of hand-writing a parallel type. — adopt → principle-type-system-discipline#schema-derived-types
+- `type-utilities-before-new-interface`: Try the language's type utilities before declaring a new interface. — defer
+- `object-arguments`: Pass a single object in place of positional arguments so order is irrelevant and calls read clearly. — defer
+- `hot-path-positional-exception`: Skip object arguments on per-frame rendering, tokenizers, parsers and other tight loops where allocation matters. — defer
+- `no-mocking-what-can-run`: Mock only what cannot run locally, and avoid mocks for anything that can. — reject
+- `real-test-primitives-with-leak-checks`: Prefer the framework's real test primitives along with leak and disposable checks. — defer
+- `verify-ui-in-running-build`: Confirm interface behaviour in an actual running build. — defer
+- `diagnostics-traceable-from-id`: Emit diagnostics through a structured logger carrying enough detail to trace a problem starting from an id. — defer
+- `no-console-log-in-shipped-code`: Forbid console logging in code that ships. — defer
+
 #### engineering · Verification · Testing — skill:pstack/skills/principle-test-behavior-not-implementation
 - `meaningful-behaviour-assertion`: Assert meaningful results, state or boundary interactions at a stable boundary rather than internal call choreography. — adopt → test-driven-development#meaningful-behaviour-assertion
 - `two-edit-test-judgement`: Judge every test by two imagined edits: breaking the behaviour must fail it, and restructuring the internals must not. — adopt → principle-test-behavior-not-implementation#two-edit-test-judgement
@@ -1799,6 +2078,23 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `public-interface-testing`: Exercise behaviour in tests through public interfaces. — adopt → principle-test-behavior-not-implementation#public-interface-testing
 - `contract-exact-assertion`: Assert exactly what the contract promises, no less and no more, letting the contract decide whether a call, an absence, a payload or an error type is behaviour. — adopt → principle-test-behavior-not-implementation#contract-exact-assertion
 - `absence-positive-control`: Pair an assertion that something did not happen with a positive case showing the same test would see it happen. — adopt → principle-test-behavior-not-implementation#absence-positive-control
+
+#### engineering · Verification · Testing — skill:pstack/skills/tdd
+- `red-green`: Make one test fail before implementing the change that makes it pass. — adopt → test-driven-development#red-green
+- `test-skipped-when-impractical`: Add no new test when it would demand wide harness setup, fragile mocks, slow full-stack infrastructure, production-only state, unclear reproduction or heavy unrelated fixtures, and never build a test path from nothing just to follow the workflow. — adopt, pending cr-r2pa.2.18 → test-driven-development#optional-regression-test-skip
+- `bug-understanding-checklist`: Identify intended behaviour, current behaviour, the affected path and the smallest observable reproduction. — reject
+- `closest-existing-test-kind`: Prefer the kind of test already used for that codepath. — adopt, pending cr-r2pa.2.18 → test-driven-development#closest-existing-test-kind
+- `no-implementation-coupling`: Avoid tests coupled to the implementation's internal structure, so they survive behaviour-preserving refactors. — adopt → test-driven-development#no-implementation-coupling
+- `failure-for-the-right-reason`: Run a new test before fixing and, if it passes or fails for another reason, correct the test or reproduction first. — adopt, pending cr-r2pa.2.18 → test-driven-development#failure-for-the-right-reason
+- `contract-preserving-fix`: Make the smallest production change that gives the intended behaviour and preserves neighbouring contracts. — reject
+- `closest-executable-fallback`: When a failing test is impractical, substitute a targeted script, reproduction command, browser automation, snapshot diff, log assertion or narrow integration check. — adopt, pending cr-r2pa.2.18 → test-driven-development#closest-executable-fallback
+- `no-test-over-bad-test`: Prefer adding nothing to a test that mostly exercises mocks, encodes internals, depends on timing or global state, needs costly infrastructure for a minor fix, or would be discarded right after. — adopt, pending cr-r2pa.2.18 → test-driven-development#no-test-over-bad-test
+- `no-tests-bent-or-weakened`: Do not change tests to agree with wrong behaviour, and keep existing assertions as strong unless expected behaviour truly changed for a clear reason. — adopt, pending cr-r2pa.2.18 → test-driven-development#no-tests-bent-or-weakened
+- `focused-regression-test`: Write the smallest test focused on this bug, without broad fixture changes or added unrelated coverage. — adopt, pending cr-r2pa.2.18 → test-driven-development#focused-regression-test
+- `flaky-test-names-its-signal`: For a flaky bug, remove nondeterminism from the test as far as possible and document which signal it pins. — adopt, pending cr-r2pa.2.18 → test-driven-development#flaky-test-names-its-signal
+- `focused-first-then-siblings`: When a bug reveals a wider failure class, land the focused regression first and only then consider related coverage. — adopt, pending cr-r2pa.2.18 → test-driven-development#focused-first-then-siblings
+- `before-after-proof-report`: Name the check that failed before the fix with its failure, and the passing run after the fix with any nearby validation. — adopt, pending cr-r2pa.2.18 → test-driven-development#before-after-proof-report
+- `missing-red-explained`: If a failure before the fix could not be shown, say why and describe the substitute check. — adopt, pending cr-r2pa.2.18 → test-driven-development#missing-red-explained
 
 ### mattpocock_skills
 
@@ -2628,6 +2924,7 @@ Apply one to three comparison frameworks to sharpen a choice rather than to deco
 #### `primary-evidence-check`
 Check consequential claims from summaries, memory and agent reports against primary evidence before relying on them.
 - `doc:AGENTS.md`
+- `cursor_plugins:skill:pstack/skills/recall` — adopt → doc:AGENTS.md
 
 #### `primary-source-only-research`
 Research only from primary sources such as official docs, source code and specs, never from a secondary write-up of them.
@@ -2694,6 +2991,14 @@ Establish the outcome, intended user, success criteria, constraints and exclusio
 Produce the durable decision log in a fixed template — context, a decision table with rationale and implications, open items, a dependency map and a risk register.
 - ours: `grilling`
 
+#### `depth-not-scope-rewrite`
+Treat improving a task as making it deeper, and refuse to make it merely larger.
+- `cursor_plugins:skill:pstack/skills/sharpen` — adopt, pending cr-r2pa.2.18 → sharpen#depth-not-scope-rewrite
+
+#### `diagnose-then-rewrite-prompt`
+Answer a fixed set of diagnostic questions first, then rewrite the prompt to ask for exactly what they revealed.
+- `cursor_plugins:skill:pstack/skills/sharpen` — adopt, pending cr-r2pa.2.18 → sharpen#diagnose-then-rewrite-prompt
+
 #### `document-during-interview`
 Pair a clarifying interview with live documentation so the glossary and decision records are produced as the interview settles each question.
 - `mattpocock_skills:skill:skills/engineering/grill-with-docs` — adopt → grilling#optional-docs
@@ -2707,6 +3012,14 @@ Fill a fixed questionnaire template, ordered most-important-first, of purpose, f
 End the session only when the frontier is empty and every branch of the tree has been visited, with nothing silently assumed.
 - `mattpocock_skills:skill:skills/productivity/grilling` — defer
 
+#### `expert-gap-question`
+Say what a leading practitioner would do here that the request leaves out.
+- `cursor_plugins:skill:pstack/skills/sharpen` — adopt, pending cr-r2pa.2.18 → sharpen#expert-gap-question
+
+#### `expert-methods-question`
+Name the concrete techniques and instruments a practitioner would apply.
+- `cursor_plugins:skill:pstack/skills/sharpen` — adopt, pending cr-r2pa.2.18 → sharpen#expert-methods-question
+
 #### `exploration-lenses`
 Apply ideation lenses such as SCAMPER or Jobs-to-Be-Done selectively to unlock options, never as a mandatory quota or sequence.
 - ours: `brainstorming`
@@ -2715,6 +3028,10 @@ Apply ideation lenses such as SCAMPER or Jobs-to-Be-Done selectively to unlock o
 Aim a questionnaire's questions at the gap between what the recipient knows and what the sender needs.
 - ours: `grilling`
 - `mattpocock_skills:skill:skills/productivity/to-questionnaire` — adopt → grilling#gap-targeted-questions
+
+#### `goal-and-problem-restatement`
+Say in your own wording what you believe the user is aiming for and which problem they are trying to solve.
+- `cursor_plugins:skill:pstack/skills/in-your-own-words` — adopt, pending cr-r2pa.2.18 → in-your-own-words#goal-and-problem-restatement
 
 #### `grill-the-send`
 Ask the present user only about the send (who it goes to and what they need back), never about the subject the recipient knows.
@@ -2764,6 +3081,14 @@ Translate vague goals such as scalable or simple into observable outcomes only w
 Present materially different options with their tradeoffs when alternatives remain.
 - ours: `brainstorming`
 
+#### `outside-correctness-signal`
+Name something outside both the agent and the user that would show the result is correct.
+- `cursor_plugins:skill:pstack/skills/sharpen` — adopt, pending cr-r2pa.2.18 → sharpen#outside-correctness-signal
+
+#### `owner-choices-left-open`
+Keep decisions that belong to the user unresolved when rewriting their request.
+- `cursor_plugins:skill:pstack/skills/sharpen` — adopt, pending cr-r2pa.2.18 → sharpen#owner-choices-left-open
+
 #### `partial-uncertain-answers-welcome`
 Invite partial and don't-know answers, asking the respondent to flag uncertainty rather than skip the question.
 - `mattpocock_skills:skill:skills/productivity/to-questionnaire` — defer
@@ -2785,6 +3110,10 @@ Fill a questionnaire template of purpose, a from-to-use line, a context section,
 #### `questionnaire-response-expectations`
 Tell the respondent the deadline and the rough effort answering will take.
 - `mattpocock_skills:skill:skills/productivity/to-questionnaire` — defer
+
+#### `rawest-source-question`
+Name the least processed material a practitioner would begin from in place of the summarized input.
+- `cursor_plugins:skill:pstack/skills/sharpen` — adopt, pending cr-r2pa.2.18 → sharpen#rawest-source-question
 
 #### `recommended-answer`
 Attach a recommended answer to each question, letting the respondent disagree.
@@ -3111,14 +3440,56 @@ Assign adversaries to try to break a change or design rather than assess it in g
 - ours: `interrogate`
 - `cursor_plugins:skill:pstack/skills/interrogate` — adopt → interrogate#break-it-mandate
 
+#### `breakage-beyond-callers`
+Spend the effort on breakage text search cannot reveal, not on listing callers.
+- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt, pending cr-r2pa.2.18 → review#breakage-beyond-callers
+
+#### `change-history-pull`
+Retrieve the related pull request and commits while reading a change.
+- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt, pending cr-r2pa.2.18 → review#change-history-pull
+
+#### `cheapest-enforcement-offer`
+For other constraint comments, propose the least costly enforcement available in scope, whether a type, runtime check, test or CI lint.
+- `cursor_plugins:skill:pstack/skills/no-comments` — adopt, pending cr-r2pa.2.18 → no-comments#cheapest-enforcement-offer
+
 #### `checkout-change-check`
 After each adversary returns, compare the shared checkout with the snapshot's state and report each changed path, without voiding the run, restoring anything or naming who changed it.
 - ours: `interrogate`
+
+#### `comment-audit-report`
+Report the counts of comments deleted and restored, reruns, the sketch, fixes, encodings offered and done, constraints left unenforced and open items.
+- `cursor_plugins:skill:pstack/skills/no-comments` — adopt, pending cr-r2pa.2.18 → no-comments#comment-sweep-report
+
+#### `comment-critic-role`
+Spawn a fixed subagent role to audit comments and pass it the scope.
+- `cursor_plugins:skill:pstack/skills/no-comments` — reject
+
+#### `comment-pass-stays-in-bounds`
+During a comment pass, change only comments, and only inside the given scope.
+
+#### `comment-sweep-report`
+Report the comments deleted, those restored on proof, those kept and flagged, the fixes, the enforcements offered and done, the constraints left unenforced and the open items.
+
+#### `confirmed-and-cleared-split`
+Keep confirmed risks apart from those checked and cleared, saying why each cleared one is fine.
+- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt, pending cr-r2pa.2.18 → review#confirmed-and-cleared-split
 
 #### `coordinator-replays-finding`
 Have the coordinator verify each finding by running its command again.
 - ours: `interrogate`
 - `cursor_plugins:skill:pstack/skills/interrogate` — adopt → interrogate#coordinator-replays-finding
+
+#### `critic-out-of-bounds-refused`
+Refuse a critic's edits to application code and any of its work outside the given scope.
+- `cursor_plugins:skill:pstack/skills/no-comments` — adopt, pending cr-r2pa.2.18 → no-comments#comment-pass-stays-in-bounds
+
+#### `defer-to-fresh-critic`
+Give weight to a critic's fresh perspective over the caller's own attachment.
+- `cursor_plugins:skill:pstack/skills/no-comments` — reject
+
+#### `dependency-source-and-pin`
+Read the called library's source and confirm its pinned version and whether it is locally patched.
+- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt, pending cr-r2pa.2.18 → review#dependency-source-and-pin
 
 #### `design-proof-by-probe`
 For a design or plan, prove a finding by running a prototype or probing the current tree.
@@ -3150,9 +3521,30 @@ Report for each adversary how many findings were dropped and why.
 - ours: `interrogate`
 - `cursor_plugins:skill:pstack/skills/interrogate` — adopt → interrogate#dropped-finding-accounting
 
+#### `empty-search-is-finding`
+Count a search that returned nothing as a result to report, not as work to discard.
+- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt, pending cr-r2pa.2.18 → review#empty-search-is-finding
+- `cursor_plugins:skill:pstack/skills/recall` — adopt, pending cr-r2pa.2.18 → recall#empty-search-is-finding
+
+#### `encode-then-delete`
+When an encoding is approved, add the enforcement and then remove the comment.
+- `cursor_plugins:skill:pstack/skills/no-comments` — adopt, pending cr-r2pa.2.18 → no-comments#encode-then-delete
+
+#### `encoding-approval-gate`
+Apply an encoding only with approval, through the route the caller names or given by the caller in advance.
+- `cursor_plugins:skill:pstack/skills/no-comments` — adopt, pending cr-r2pa.2.18 → no-comments#encoding-approval-gate
+
+#### `evidence-ladder`
+Grade each safety-bearing fact as asserted, cited to a line, failure walked through, executed in a script or test, or reproduced in the running product.
+- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt, pending cr-r2pa.2.18 → review#evidence-ladder
+
 #### `evidence-pointer-review`
 Give a trail's critic the trail and the evidence each row points at, or the trail and a verified workspace-scoped record when one is named.
 - ours: `decision-trail`
+
+#### `failing-loud-proof`
+Make a proof script or test fail noisily if the claim is wrong.
+- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt, pending cr-r2pa.2.18 → review#failing-loud-proof
 
 #### `finding-adjudication`
 Verify each incoming review finding against requirements, code and primary evidence before acting, and give each a visible disposition: fix a confirmed in-scope defect, answer an incorrect one with a retained ruling, record an out-of-scope follow-up.
@@ -3172,6 +3564,22 @@ Leave out hazards that matter only after a future change.
 Spawn each adversary as the general-purpose subagent type.
 - `cursor_plugins:skill:pstack/skills/interrogate` — reject
 
+#### `handback-pre-merge-check`
+Give the cheapest test or reproduction able to expose the actual bug, along with any script written.
+- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt, pending cr-r2pa.2.18 → review#handback-pre-merge-check
+
+#### `handback-risk-fields`
+For each risk give how it breaks, the actual file and line, likelihood and severity, how to check it, and the proof for those that matter.
+- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt, pending cr-r2pa.2.18 → review#handback-risk-fields
+
+#### `handback-safety-fact-with-grade`
+State the safety fact, its ladder level and its proof, or mark it unproven.
+- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt, pending cr-r2pa.2.18 → review#handback-safety-fact-with-grade
+
+#### `handback-what-it-does`
+Say what changed, including the non-obvious part.
+- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt, pending cr-r2pa.2.18 → review#handback-what-it-does
+
 #### `independent-critic-verdict`
 A reviewer who did not author the work gives evidence-backed findings and a verdict, approving only what was verified and listing the rest as unverified.
 - ours: `review`
@@ -3189,6 +3597,18 @@ Restate the change's intent in your own words before sending out adversaries.
 - ours: `interrogate`
 - `cursor_plugins:skill:pstack/skills/interrogate` — adopt → interrogate#intent-restated-first
 
+#### `kept-code-not-guilty`
+Refuse flags that treat intentionally retained code as being at fault.
+- `cursor_plugins:skill:pstack/skills/no-comments` — adopt, pending cr-r2pa.2.18 → no-comments#kept-code-not-guilty
+
+#### `ladder-as-far-as-cheap`
+Take each fact as far up the evidence ladder as is cheap and state where it stopped.
+- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt, pending cr-r2pa.2.18 → review#ladder-as-far-as-cheap
+
+#### `likelihood-and-cost-per-risk`
+Give each risk an honest probability and an honest cost.
+- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt, pending cr-r2pa.2.18 → review#likelihood-and-cost-per-risk
+
 #### `material-risk-review`
 Route an artifact or change with material risk or a broad blast radius through an independent critic review before it is accepted.
 - ours: `brainstorming`
@@ -3197,16 +3617,34 @@ Route an artifact or change with material risk or a broad blast radius through a
 #### `merge-base-through-tree-scope`
 When no scope is named, review the branch from where it left the base branch up to and including the working tree.
 - `cursor_plugins:skill:pstack/skills/interrogate` — defer
+- `cursor_plugins:skill:pstack/skills/no-comments` — adopt, pending cr-r2pa.2.18 → no-comments#merge-base-through-tree-scope
 
 #### `merge-by-root-cause`
 Combine findings that share one root cause.
 - ours: `interrogate`
 - `cursor_plugins:skill:pstack/skills/interrogate` — adopt → interrogate#merge-by-root-cause
 
+#### `missed-suppression-audit`
+Check the scope for lint and type-checker suppression comments the critic overlooked.
+- `cursor_plugins:skill:pstack/skills/no-comments` — adopt, pending cr-r2pa.2.18 → no-comments#suppressions-in-comment-sweep
+
+#### `misstated-kill-reason-refused`
+Refuse a report whose reason for a mandatory comment deletion is wrong.
+- `cursor_plugins:skill:pstack/skills/no-comments` — reject
+
+#### `multi-model-question-on-wide-change`
+For a big or wide change, put the same question to more than one model and merge the answers.
+- `cursor_plugins:skill:pstack/skills/blast-radius` — reject
+
 #### `named-scope-first`
 Use the scope the user names when one is given.
 - ours: `interrogate`
 - `cursor_plugins:skill:pstack/skills/interrogate` — adopt → interrogate#named-scope-first
+- `cursor_plugins:skill:pstack/skills/no-comments` — adopt, pending cr-r2pa.2.18 → no-comments#named-scope-first
+
+#### `named-workarounds-removed`
+Eliminate every workaround the findings name.
+- `cursor_plugins:skill:pstack/skills/no-comments` — adopt, pending cr-r2pa.2.18 → no-comments#named-workarounds-removed
 
 #### `no-findings-valid`
 Accept a report with no findings as a valid result, and say so explicitly when none remain.
@@ -3217,6 +3655,10 @@ Accept a report with no findings as a valid result, and say so explicitly when n
 Assess work critically without inflating the grade.
 - `doc:AGENTS.md`
 
+#### `no-hidden-negatives`
+Do not conceal negative results.
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+
 #### `no-judge-pick-or-graft`
 Omit judging, base selection and grafting from a review by adversaries.
 - `cursor_plugins:skill:pstack/skills/interrogate` — reject
@@ -3225,10 +3667,26 @@ Omit judging, base selection and grafting from a review by adversaries.
 Report not run rather than attack as an adversary work you wrote or a design you settled.
 - ours: `interrogate`
 
+#### `no-symptom-guards`
+Never add a guard that merely masks a symptom.
+- `cursor_plugins:skill:pstack/skills/no-comments` — reject
+
+#### `non-symbol-coupling-trace`
+Follow links symbol search misses: returned data shapes, database columns, wire formats, another language reading the same bytes, feature flags and code several hops away.
+- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt, pending cr-r2pa.2.18 → review#non-symbol-coupling-trace
+
 #### `one-message-fan-out`
 Launch every candidate or adversary in one message as background subagents.
 - `cursor_plugins:skill:pstack/skills/arena` — reject
 - `cursor_plugins:skill:pstack/skills/interrogate` — reject
+
+#### `one-named-rerun-then-fail`
+After rejecting a report, revert it and rerun the critic once with the failure named, and fail the run if the second report is rejected too.
+- `cursor_plugins:skill:pstack/skills/no-comments` — reject
+
+#### `one-sketch-for-accepted-set`
+When a fix needs a design, run one design pass over all accepted flags and nearby code, stopping at the sketch and leaving implementation to a later step.
+- `cursor_plugins:skill:pstack/skills/no-comments` — reject
 
 #### `other-family-trail-review`
 Before handing back, have a subagent from a different model family review the run, with no self-review in its place.
@@ -3269,6 +3727,13 @@ Keep each adversary's reproduction material inside its own output location.
 Check missing, extra and misunderstood requirements before judging code quality.
 - ours: `review`
 
+#### `reshape-flags-open-apart-from-comment`
+Keep flags asking to restructure surprising first-party code open, whether their comments stay, go or come back.
+
+#### `reshape-flags-stay-open`
+Keep flags asking to restructure surprising first-party code open, without bringing their comments back.
+- `cursor_plugins:skill:pstack/skills/no-comments` — adopt, pending cr-r2pa.2.18 → no-comments#reshape-flags-open-apart-from-comment
+
 #### `review-as-task`
 Represent a review as its own task by an actor other than the author, which the reviewed bead depends on and sits in review status until it passes.
 - ours: `beads`
@@ -3288,6 +3753,10 @@ Let a finding stand only when a run executed in the review shows it, so a claim 
 - ours: `interrogate`
 - `cursor_plugins:skill:pstack/skills/interrogate` — adopt → interrogate#run-proven-finding
 
+#### `safety-fact-proved-by-run`
+Treat a convincing writeup as worthless by itself, and prove the fact a change's safety rests on by running real code and including what happened.
+- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt, pending cr-r2pa.2.18 → review#safety-fact-proved-by-run
+
 #### `same-family-or-unreviewed`
 Have a critic from another model family review the trail before hand-back, one of the same family only with the owner's approval, and otherwise report it not reviewed, never reviewing your own run.
 - ours: `decision-trail`
@@ -3300,13 +3769,44 @@ Run review as a separate, low-context-pressure stage from implementation.
 Rate each finding by consequence and approve only with no open blocker or major, otherwise require revision, never counting preference alone as a finding.
 - ours: `review`
 
+#### `single-safety-fact-search`
+Find the one fact that makes a change safe and clears most risky cases, and spend the time there, not on a long list of possibilities.
+- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt, pending cr-r2pa.2.18 → review#single-safety-fact-search
+
+#### `small-real-library-script`
+Normally reach the executed level with one short script that imports the library shipped with the product and calls exactly the function at issue.
+- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt, pending cr-r2pa.2.18 → review#small-real-library-script
+
+#### `smallest-in-scope-root-cause-fix`
+Implement the smallest in-scope fix for the underlying cause, and when the cause lies beyond scope land that fix and list the rest as open.
+- `cursor_plugins:skill:pstack/skills/no-comments` — reject
+
 #### `style-findings-excluded`
 Leave style, naming and structure out of an adversary's findings.
 - `cursor_plugins:skill:pstack/skills/interrogate` — reject
 
+#### `suppressions-in-comment-sweep`
+Include lint and type-checker suppression comments in a comment sweep.
+
+#### `thin-importance-comment-check`
+Before accepting a thinly justified decision on a comment marked important, investigate its symbol's behaviour and history.
+- `cursor_plugins:skill:pstack/skills/no-comments` — adopt, pending cr-r2pa.2.18 → no-comments#thin-importance-comment-check
+
 #### `three-replay-outcomes`
 Sort each replayed finding into reproduced, not reproduced (dropped and stated as unreproduced, not disproved) or unreplayable (listed with no severity).
 - ours: `interrogate`
+
+#### `three-value-verdict`
+Report results as verified, not verified or inconclusive, with inconclusive never counting as a pass.
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+
+#### `timing-and-lifecycle-analysis`
+Work out when things execute, including deferred callbacks, teardown and framework differences.
+- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt, pending cr-r2pa.2.18 → review#timing-and-lifecycle-analysis
+
+#### `too-easy-pass-suspicion`
+When something passes too easily, question the observation method before crediting the system.
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
 
 #### `trail-and-transcript-review`
 Give the reviewer the audit trail and the run's transcript as its inputs.
@@ -3317,9 +3817,20 @@ Have the trail's reviewer flag weak or absent evidence, checks skipped or claime
 - ours: `decision-trail`
 - `cursor_plugins:skill:pstack/skills/show-me-your-work` — adopt → decision-trail#trail-review-flags
 
+#### `trivial-flag-direct-fix`
+Resolve simple accepted flags at once through edits such as removing an unused path or parameter, or calling the genuine interface.
+- `cursor_plugins:skill:pstack/skills/no-comments` — adopt, pending cr-r2pa.2.18 → no-comments#trivial-flag-direct-fix
+
 #### `uncommitted-changes-seeded`
 Seed every adversary workspace with the uncommitted work included in the review scope.
 - `cursor_plugins:skill:pstack/skills/interrogate` — adopt → interrogate#verified-snapshot-copy
+
+#### `unencoded-constraint-kept-and-reported`
+Without an approved enforcement, keep a constraint comment, report the constraint as open and sketch any out-of-scope work.
+
+#### `unencoded-constraint-reported`
+Without approval, delete the comment, report the constraint as open and sketch any out-of-scope work.
+- `cursor_plugins:skill:pstack/skills/no-comments` — adopt, pending cr-r2pa.2.18 → no-comments#unencoded-constraint-kept-and-reported
 
 #### `union-of-verified-findings`
 Keep every verified finding across adversaries rather than selecting one adversary's list.
@@ -3334,11 +3845,20 @@ Give no favourable verdict while an observed failure stays unreproduced or unrep
 Give each adversary and each replay a disposable copy made from one pristine snapshot of the working state and checked against it, reporting not run when a copy cannot be made exact.
 - ours: `interrogate`
 
+#### `whole-change-including-unstated`
+Go through the diff, the symbols added, changed and deleted, and the behaviour change the diff does not spell out.
+- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt, pending cr-r2pa.2.18 → review#whole-change-including-unstated
+
+#### `whole-result-on-real-product`
+Check the finished whole against the opening predicate on the real product, beyond the harness.
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+
 ### core · Verification · Validation
 
 #### `direct-observation`
 Verify a result by observing the real thing (run it, read the actual value, check liveness directly), never a proxy, a cached view or a self-report.
 - `doc:AGENTS.md`
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt → doc:AGENTS.md
 - `cursor_plugins:skill:pstack/skills/principle-prove-it-works` — adopt → doc:AGENTS.md
 
 #### `scripted-proof`
@@ -3447,9 +3967,21 @@ Let the gap command print tracker-create lines to review by hand, never auto-run
 Install the tracker, adopt it in a project, and join from a new clone with bootstrap rather than a re-init.
 - ours: `beads`
 
+#### `check-error-names-replacement`
+Where wrong code can still compile, add a check whose message points at the specific file, type or function to use.
+- `cursor_plugins:skill:pstack/skills/correct` — adopt, pending cr-r2pa.2.18 → authoring-for-agents#check-error-names-replacement
+
 #### `check-pointer-not-restatement`
 Once a check enforces a rule, replace the instruction that restated it with a pointer to the check.
 - ours: `authoring-for-agents`
+
+#### `check-proved-on-real-mistake`
+Show each new check failing against a mistake that actually occurred.
+- `cursor_plugins:skill:pstack/skills/correct` — adopt, pending cr-r2pa.2.18 → authoring-for-agents#check-proved-on-real-mistake
+
+#### `class-evidence-level-report`
+Report for every class of mistake the supporting evidence, the chosen level and why no higher level worked.
+- `cursor_plugins:skill:pstack/skills/correct` — defer
 
 #### `co-location`
 Keep a concept's definition, rules and caveats under one heading so reading one part brings its neighbours.
@@ -3487,6 +4019,10 @@ Write a pointer that names the material and the condition for reaching it, front
 - ours: `authoring-for-agents`
 - `mattpocock_skills:skill:skills/productivity/writing-for-agents` — adopt → authoring-for-agents#context-pointers
 
+#### `correction-adds-rule`
+On each operator correction, fix the mistake and also add the rule.
+- `cursor_plugins:skill:pstack/skills/correct` — reject
+
 #### `correctness-enforcing-lint`
 Add lint rules that force correct code so agents cannot drift from it.
 - `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — defer
@@ -3499,6 +4035,10 @@ Sharpen a vague completion criterion before considering hiding the later steps.
 Keep only content that changes the agent's decisions, such as conventions, non-obvious failure modes, required interfaces and invariants.
 - ours: `authoring-for-agents`
 - `cursor_plugins:skill:pstack/skills/principle-subtract-before-you-add` — reject
+
+#### `delete-copyable-old-ways`
+Remove outdated approaches and dead code an agent might imitate.
+- `cursor_plugins:skill:pstack/skills/correct` — reject
 
 #### `destination-protection`
 Never overwrite an existing skill destination even under force, which applies only to generated scaffolds.
@@ -3521,6 +4061,10 @@ Point to authoritative commands and lookups instead of copying volatile facts th
 - ours: `authoring-for-agents`
 - `mattpocock_skills:skill:skills/productivity/writing-for-agents` — adopt → authoring-for-agents#environment-as-cache
 
+#### `expiring-exceptions`
+Give every exception to a check an expiry date.
+- `cursor_plugins:skill:pstack/skills/correct` — defer
+
 #### `extend-existing-docs-first`
 Prefer extending existing pointed-to documents before writing new ones.
 - ours: `authoring-for-agents`
@@ -3530,13 +4074,25 @@ Prefer extending existing pointed-to documents before writing new ones.
 Put reference shared by user-invoked skills in a plain external file rather than a skill.
 - `mattpocock_skills:skill:skills/productivity/writing-for-agents` — adopt → authoring-for-agents#surface-choice
 
+#### `fix-at-highest-level`
+Try fixes for a repeated mistake in order of architecture, types, lint or CI, tests and finally docs, stopping at the highest level that works.
+- `cursor_plugins:skill:pstack/skills/correct` — adopt, pending cr-r2pa.2.18 → authoring-for-agents#fix-at-highest-level
+
 #### `hook-conversion`
 Copy hooks and rewrite hook registrations into the target format, flagging that fixtures must validate before enforcement is trusted.
 - ours: `migrate-claude-to-codex`
 
+#### `human-approved-exceptions`
+Require a person's approval for each exception to a check.
+- `cursor_plugins:skill:pstack/skills/correct` — defer
+
 #### `human-facing-description`
 Write a user-invoked skill's description as a one-line human summary with triggers stripped.
 - `mattpocock_skills:skill:skills/productivity/writing-for-agents` — defer
+
+#### `inline-exception-with-reason`
+Record an exception to a check on the offending line along with its justification.
+- `cursor_plugins:skill:pstack/skills/correct` — defer
 
 #### `inline-vs-disclose`
 Inline what every branch needs and disclose branch-specific material behind a conditional pointer.
@@ -3564,9 +4120,17 @@ When a recurring lesson needs judgement and cannot be checked, revise the instru
 Anchor behaviour in a compact pretrained concept repeated as a token, reaching for an existing word before coining one.
 - `mattpocock_skills:skill:skills/productivity/writing-for-agents` — defer
 
+#### `mine-and-group-mistakes`
+Collect mistakes from recent history, reverts, review remarks, instruction files and workaround comments, and cluster them into classes.
+- `cursor_plugins:skill:pstack/skills/correct` — defer
+
 #### `model-facing-description`
 Write a model-invoked skill's description as a model-facing pointer listing its trigger branches.
 - `mattpocock_skills:skill:skills/productivity/writing-for-agents` — adopt → authoring-for-agents#activation-boundary
+
+#### `most-frequent-classes-first`
+Fix the classes of mistake that occur most often in this pass.
+- `cursor_plugins:skill:pstack/skills/correct` — defer
 
 #### `negation-avoidance`
 Steer by the positive target because negation makes the forbidden behaviour more available, keeping prohibitions a last-resort guardrail.
@@ -3615,6 +4179,10 @@ Cut from a pointer any identity the target's own body already carries.
 Match prescription to fragility: exact recipes for deterministic operations, judgment for context-dependent choices.
 - ours: `authoring-for-agents`
 
+#### `ratchet-on-common-patterns`
+When a pattern is already widespread, fail only on changes that add more of it.
+- `cursor_plugins:skill:pstack/skills/correct` — adopt, pending cr-r2pa.2.18 → authoring-for-agents#ratchet-on-common-patterns
+
 #### `record-command`
 Append a curation decision with the registry record command carrying its kind, subject, reason and evidence.
 - ours: `harness-evaluate`
@@ -3622,6 +4190,8 @@ Append a curation decision with the registry record command carrying its kind, s
 #### `recurring-lesson-to-check`
 When a correction or instruction recurs, encode it as a lint, flag, runtime check or script instead of adding more instruction text.
 - `doc:AGENTS.md`
+- `cursor_plugins:skill:pstack/skills/correct` — adopt → doc:AGENTS.md
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt → doc:AGENTS.md
 - `cursor_plugins:skill:pstack/skills/principle-encode-lessons-in-structure` — adopt → doc:AGENTS.md
 
 #### `relevance-check`
@@ -3636,6 +4206,14 @@ Treat the coding-standards file as review-time material and split it behind poin
 #### `router-skills`
 When user-invoked skills multiply, add a user-invoked router skill that names the others and when to reach each, hinting rather than firing them.
 - `mattpocock_skills:skill:skills/productivity/writing-for-agents` — defer
+
+#### `rule-to-enforcer-table`
+Maintain in the agent instruction file a table pairing each rule with what enforces it.
+- `cursor_plugins:skill:pstack/skills/correct` — reject
+
+#### `same-command-local-and-ci`
+Run the identical command on a developer machine and in CI.
+- `cursor_plugins:skill:pstack/skills/correct` — defer
 
 #### `sequence-isolation`
 Split a run of steps so later post-completion steps stay out of view, driving more legwork on the step in front.
@@ -3689,6 +4267,7 @@ Split off a model-invoked skill only when a distinct leading word should trigger
 
 #### `structural-fix-only`
 Once a rule is enforced by structure, delete the instruction that restated it.
+- `cursor_plugins:skill:pstack/skills/correct` — adopt → authoring-for-agents#check-pointer-not-restatement
 - `cursor_plugins:skill:pstack/skills/principle-encode-lessons-in-structure` — adopt → authoring-for-agents#check-pointer-not-restatement
 
 #### `structural-verify`
@@ -3720,6 +4299,14 @@ Hunt restated triads and long gestures and collapse each into a single leading w
 Weigh always-loaded context cost on the agent against cognitive load on the human.
 - ours: `authoring-for-agents`
 - `mattpocock_skills:skill:skills/productivity/writing-for-agents` — adopt → authoring-for-agents#two-loads
+
+#### `two-occurrence-threshold`
+Count a class of mistake only after it has happened at least twice.
+- `cursor_plugins:skill:pstack/skills/correct` — defer
+
+#### `unenforced-repeat-escalation`
+If a corrected rule already existed without enforcement, count it as a repeat and solve it at the top workable level within that change.
+- `cursor_plugins:skill:pstack/skills/correct` — reject
 
 #### `unsupported-claim-removal`
 Remove unsupported claims and invented thresholds from instructions.
@@ -3903,6 +4490,10 @@ Remove assistant pleasantries, offers of further help and excited discovery line
 - ours: `prose-pass`
 - `cursor_plugins:skill:pstack/skills/unslop` — adopt → prose-pass#chatbot-phrase-cut
 
+#### `comma-budget`
+Favour periods, allow at most two commas per sentence, and break a sentence up when clauses accumulate.
+- `cursor_plugins:skill:pstack/skills/teach` — reject
+
 #### `component-vocabulary`
 Lay content out from a small set of components — KPI tiles, numbered section headers, copy-button code blocks, severity tags, native collapsibles and inline SVG — shaped to the content rather than translating markdown one-to-one.
 - ours: `html-artifact`
@@ -3918,11 +4509,13 @@ Give estimates in concrete units as agent execution plus review time rather than
 #### `confidence-language-kept`
 Keep the tier words and hedges that mark uncertainty when editing a finished answer.
 - ours: `prose-pass`
+- `cursor_plugins:skill:pstack/skills/teach` — adopt, pending cr-r2pa.2.18 → teach#confidence-language-kept
 - `cursor_plugins:skill:pstack/skills/why` — adopt → prose-pass#confidence-language-kept
 
 #### `controlled-language`
 Re-pitch in controlled simplified language with short sentences and common words.
 - ours: `i-have-adhd`
+- `cursor_plugins:skill:pstack/skills/bro` — adopt → i-have-adhd#controlled-language
 
 #### `decision-summary-brief`
 Present a checkpoint as a tight, decision-ready summary of what was produced and why with a link, never the raw output.
@@ -4016,6 +4609,10 @@ Turn bullets whose bold label merely restates the line into prose, keeping a per
 - ours: `prose-pass`
 - `cursor_plugins:skill:pstack/skills/unslop` — adopt → prose-pass#inline-header-list-convert
 
+#### `jargon-free-restatement`
+Drop technical jargon from a restatement, wording it as one person would speak to another.
+- `cursor_plugins:skill:pstack/skills/bro` — adopt, pending cr-r2pa.2.18 → i-have-adhd#repitch-explains-project-terms
+
 #### `limitation-with-revisit`
 Document material limitations together with the conditions under which to revisit them.
 - `doc:AGENTS.md`
@@ -4040,6 +4637,10 @@ Keep the original sense of a text and fit its intended tone when editing it.
 #### `meaning-preserved-edit`
 Change wording only, never facts, citations or code.
 - ours: `prose-pass`
+
+#### `mechanism-not-metaphor`
+State the actual mechanism, never a metaphor, framing or preview of what comes next.
+- `cursor_plugins:skill:pstack/skills/teach` — reject
 
 #### `medium-appropriate-form`
 Prefer text forms over Mermaid in a terminal and a table over any diagram for a flat list or comparison.
@@ -4076,10 +4677,16 @@ Remove ornamental emoji from headings and bullets.
 #### `no-em-dash`
 Use no em dashes, ending the sentence or using a comma or parentheses to separate a thought.
 - ours: `prose-pass`
+- `cursor_plugins:skill:pstack/skills/teach` — reject
 
 #### `no-fabrication`
 Never fabricate citations, data or examples.
 - `doc:AGENTS.md`
+- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt → doc:AGENTS.md
+
+#### `no-mirror-or-tidy-closer`
+Avoid symmetrical constructions and neat concluding lines.
+- `cursor_plugins:skill:pstack/skills/teach` — reject
 
 #### `no-preamble`
 Open with the answer and stop when it is done, with no preamble, recap or closing pleasantry.
@@ -4152,10 +4759,19 @@ Use real names from the actual code, never invented placeholders.
 Redraw a diagram that needs a paragraph to be understood rather than explaining it.
 - `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — defer
 
+#### `repitch-explains-project-terms`
+Drop technical jargon from a re-pitch, keeping a project term only with a plain explanation of it.
+
 #### `repitch-trigger`
 When a message did not land, stop and re-pitch it rather than adding more.
 - ours: `i-have-adhd`
+- `cursor_plugins:skill:pstack/skills/bro` — adopt → i-have-adhd#repitch-trigger
 - `mattpocock_skills:skill:skills/productivity/wait-what` — adopt → i-have-adhd#repitch-trigger
+
+#### `reply-is-the-deliverable`
+Return the deliverable itself as the reply, never an account of what was done to produce it.
+- `cursor_plugins:skill:pstack/skills/recall` — adopt, pending cr-r2pa.2.18 → recall#reply-is-the-deliverable
+- `cursor_plugins:skill:pstack/skills/teach` — adopt, pending cr-r2pa.2.18 → teach#reply-is-the-deliverable
 
 #### `report-header-legend`
 Open a visual report with a header of repository name, date and a visual legend, and no intro paragraph.
@@ -4169,6 +4785,10 @@ Produce one HTML file with inline CSS and JS, viewport metadata and no build ste
 Write headings in sentence case.
 - ours: `prose-pass`
 - `cursor_plugins:skill:pstack/skills/unslop` — adopt → prose-pass#sentence-case-headings
+
+#### `sentence-case-prose`
+Use normal sentence capitalization in prose.
+- `cursor_plugins:skill:pstack/skills/teach` — reject
 
 #### `single-next-action`
 Close with exactly one concrete next action the reader can do in under two minutes.
@@ -4219,6 +4839,7 @@ Remove praise and agreement openers and answer directly.
 #### `synonym-cycling-cut`
 Keep one term for one referent instead of rotating through synonyms.
 - ours: `prose-pass`
+- `cursor_plugins:skill:pstack/skills/teach` — reject
 - `cursor_plugins:skill:pstack/skills/unslop` — adopt → prose-pass#synonym-cycling-cut
 
 #### `tangent-suppression`
@@ -4264,9 +4885,17 @@ Keep visuals restrained, with muted colour and no decorative animation, so the c
 
 ### core · X · Continuity
 
+#### `active-workspace-only-default`
+Default to the current workspace and read another project's chats only when asked.
+- `cursor_plugins:skill:pstack/skills/recall` — adopt, pending cr-r2pa.2.18 → recall#active-workspace-only-default
+
 #### `actor-identity`
 Carry one stable actor for the whole session, claiming on start and acting only on your own claims.
 - ours: `beads`
+
+#### `adjacent-excluded-unless-blocking`
+Leave out a neighbouring feature or ticket unless it blocks this one.
+- `cursor_plugins:skill:pstack/skills/recall` — adopt, pending cr-r2pa.2.18 → recall#adjacent-excluded-unless-blocking
 
 #### `agreed-wiki-location`
 Agree the wiki's location with the user before the first write.
@@ -4308,13 +4937,30 @@ Use only the six bead types (epic, feature, task, bug, spike, decision) and the 
 Make context-management choices only at the fuzzy boundary between two phases of work, never mid-phase where they lose the thread.
 - `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
 
+#### `brief-grouped-by-thread`
+Organize a recall brief by thread and stay on the named topic.
+- `cursor_plugins:skill:pstack/skills/recall` — adopt, pending cr-r2pa.2.18 → recall#brief-grouped-by-thread
+
+#### `brief-section-order`
+Present capsule, thread status, problems and next move in that order, with further detail below or cut.
+- `cursor_plugins:skill:pstack/skills/recall` — adopt, pending cr-r2pa.2.18 → recall#brief-section-order
+
 #### `bulk-to-subagents`
 Send bulk reading and large outputs to subagents and keep only their summaries in the main thread.
 - `cursor_plugins:skill:pstack/skills/principle-guard-the-context-window` — adopt → mvp-mode#delegate-independent-by-default
+- `cursor_plugins:skill:pstack/skills/recall` — reject
 
 #### `caller-trail-columns`
 Let a caller add declared columns after a trail's fixed ones, the same set on every call.
 - ours: `decision-trail`
+
+#### `capped-capsule-section`
+Hold the opening capsule to five bullets at most.
+- `cursor_plugins:skill:pstack/skills/recall` — adopt, pending cr-r2pa.2.18 → recall#capped-capsule-section
+
+#### `capped-recurring-problems`
+List at most five recurring problems, including persistent user symptoms and reverted fixes, so the next try starts from the last failure.
+- `cursor_plugins:skill:pstack/skills/recall` — adopt, pending cr-r2pa.2.18 → recall#capped-recurring-problems
 
 #### `cell-whitespace-strip`
 Replace tabs, newlines and carriage returns in each cell with spaces.
@@ -4335,6 +4981,7 @@ Clear the window outright when everything in the session is irrelevant to what c
 
 #### `commit-on-reviewer-need`
 Leave the log out of Git unless the work is large enough that a reviewer could not trust the outcome without it.
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt → decision-trail#proposed-trail-commit
 - `cursor_plugins:skill:pstack/skills/show-me-your-work` — adopt → decision-trail#proposed-trail-commit
 
 #### `commit-pinned-claims`
@@ -4354,6 +5001,14 @@ Have the log helper create a missing parent directory.
 - ours: `decision-trail`
 - `cursor_plugins:skill:pstack/skills/show-me-your-work` — adopt → decision-trail#creates-log-parent
 
+#### `current-state-capsule-goal`
+Rebuild recent working context into a compact statement of the present position and what comes next.
+- `cursor_plugins:skill:pstack/skills/recall` — adopt, pending cr-r2pa.2.18 → recall#current-state-capsule-goal
+
+#### `cut-detail-before-threads`
+When a recall brief passes a screen, remove detail ahead of removing threads.
+- `cursor_plugins:skill:pstack/skills/recall` — adopt, pending cr-r2pa.2.18 → recall#cut-detail-before-threads
+
 #### `dated-history-entries`
 Write the wiki as dated history rather than present-tense claims about code.
 - `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — defer
@@ -4362,6 +5017,14 @@ Write the wiki as dated history rather than present-tense claims about code.
 Log decision points and checkpoints (a chosen fork, a finished unit with its verification, a pivot or revert with its cause, a surfaced blocker, a fixed gate), never each action or a self-evident step.
 - ours: `decision-trail`
 - `cursor_plugins:skill:pstack/skills/show-me-your-work` — adopt → decision-trail#decision-points-only
+
+#### `default-shared-record-sweep`
+Search the shared record by default when a feature, file, subsystem, area or bug is named, omitting it only for activity recall with no named target.
+- `cursor_plugins:skill:pstack/skills/recall` — adopt, pending cr-r2pa.2.18 → recall#default-shared-record-sweep
+
+#### `direct-search-for-small-corpus`
+With one or two chats, search directly without fanning out.
+- `cursor_plugins:skill:pstack/skills/recall` — adopt, pending cr-r2pa.2.18 → recall#direct-search-for-small-corpus
 
 #### `dolt-sync`
 Treat the versioned database as the source of truth and the exported jsonl as a review mirror, syncing copies only with authority.
@@ -4386,6 +5049,10 @@ Check that each audited row's pointer resolves and supports what the row says.
 - ours: `decision-trail`
 - `cursor_plugins:skill:pstack/skills/show-me-your-work` — adopt → decision-trail#evidence-resolves-check
 
+#### `exclude-current-and-noise-chats`
+Leave out the current chat along with subagent, evaluation and test chats.
+- `cursor_plugins:skill:pstack/skills/recall` — adopt, pending cr-r2pa.2.18 → recall#exclude-current-and-noise-chats
+
 #### `explicit-pause-only`
 Pause only on an explicit request to stop so a later session can resume, never on a request to keep going or on compaction alone.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/pause-safely.md`
@@ -4397,6 +5064,10 @@ Give each bead field its single job — description, design, acceptance, spec_id
 #### `file-answers-as-pages`
 File a reusable answer as a new wiki page.
 - `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — defer
+
+#### `finding-cited-by-source-kind`
+Cite chat findings by chat identifier and shared-record findings by pull request, ticket, permalink or error-tracker issue.
+- `cursor_plugins:skill:pstack/skills/recall` — adopt, pending cr-r2pa.2.18 → recall#finding-cited-by-source-kind
 
 #### `foreign-row-on-own-evidence`
 Supersede a row outside the audited stretches only when this run's own work shows it to be wrong.
@@ -4411,9 +5082,17 @@ Prefix a single quote to any cell starting with a character a spreadsheet parses
 When a stop has frozen the tree, write only the checkpoint file outside it, leaving tracker writes and export pending and saying so with the reason.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/pause-safely.md`
 
+#### `full-transcript-for-agent-behaviour`
+When the answer depends on what an agent actually did, read the complete transcript and not a trimmed local copy.
+- `cursor_plugins:skill:pstack/skills/recall` — adopt, pending cr-r2pa.2.18 → recall#full-transcript-for-agent-behaviour
+
 #### `generated-mirror-read-only`
 Treat generated tracking mirrors as read-only.
 - `doc:AGENTS.md`
+
+#### `grep-then-read-matching-regions`
+Search for the topic first, then open only chats that match and only the parts of them that bear on it.
+- `cursor_plugins:skill:pstack/skills/recall` — adopt, pending cr-r2pa.2.18 → recall#grep-then-read-matching-regions
 
 #### `hand-append-caveat`
 Allow a row appended by hand, giving cells from generated or user-supplied text the helper's byte-level care.
@@ -4459,6 +5138,10 @@ Keep the log as an uncommitted working file at a fixed name in the work director
 Find a prior run's trail from what the request names, a tracker search covering paused work, resume files, then what they point at and Git, taking a search hit only when something ties it to this work, never searching across projects, and reconciling the selected work's tracker trail with its resume file, newest first, naming any conflict.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/session-pickup.md`
 
+#### `lock-scope-before-search`
+Fix the time window, topic and workspace before any searching, and say the locked scope to the user.
+- `cursor_plugins:skill:pstack/skills/recall` — adopt, pending cr-r2pa.2.18 → recall#lock-scope-before-search
+
 #### `locked-single-header`
 Hold an exclusive lock across reading and appending, so simultaneous first writers make one header and rows never interleave.
 - ours: `decision-trail`
@@ -4480,6 +5163,10 @@ Never search across project transcript folders during an audit, because that exp
 Take no irreversible action in order to pause (push, pull request, merge, amend, rewrite, destroyed work) and gain no authority from being asked to pause.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/pause-safely.md`
 
+#### `no-silent-narrowing`
+Never quietly reduce a request for everything into a recent subset.
+- `cursor_plugins:skill:pstack/skills/recall` — adopt, pending cr-r2pa.2.18 → recall#no-silent-narrowing
+
 #### `noticed-problem-followup`
 Log a problem noticed in passing and fix it in the next round.
 - `cursor_plugins:skill:pstack/skills/principle-never-block-on-the-human` — reject
@@ -4496,12 +5183,20 @@ Set at most one one-shot timer, at or after the deadline and only for a stated u
 Count work once, by the caller, immediately before the unit; every other query changes nothing, and only exit 0 authorises work.
 - ours: `wake`
 
+#### `one-investigator-per-source`
+Hand a shared-record sweep to existing per-source investigators, one for each source.
+- `cursor_plugins:skill:pstack/skills/recall` — adopt, pending cr-r2pa.2.18 → recall#one-helper-per-sizeable-source
+
 #### `optional-record-sections`
 Add optional sections to a record, such as status or consequences, only when they carry real information.
 - ours: `domain-modeling`
 - ours: `teach`
 - `mattpocock_skills:skill:skills/engineering/domain-modeling` — adopt → domain-modeling#optional-record-sections
 - `mattpocock_skills:skill:skills/productivity/teach` — adopt → teach#optional-record-sections
+
+#### `order-by-real-mtime`
+Sort candidates by actual modification time, never by identifier name.
+- `cursor_plugins:skill:pstack/skills/recall` — adopt, pending cr-r2pa.2.18 → recall#order-by-real-mtime
 
 #### `ordered-context-decision-tree`
 Walk the context moves at a phase boundary as an ordered decision tree in which the first yes wins.
@@ -4556,6 +5251,10 @@ Keep a work tool or proof artifact in the scratch folder and propose committing 
 Propose committing a trail only when a reviewer needs it to trust the outcome, and commit only with authority.
 - ours: `decision-trail`
 
+#### `recall-routes-away`
+First rule out resuming one known chat, making a durable skill from habits and writing a human-facing work summary, since those are other tasks.
+- `cursor_plugins:skill:pstack/skills/recall` — adopt, pending cr-r2pa.2.18 → recall#recall-routes-away
+
 #### `resume-bead-and-handoff`
 When resuming work, recover the active bead and its handoff.
 - `doc:AGENTS.md`
@@ -4575,6 +5274,14 @@ Compare what was planned with what exists, name the first thing left, and list a
 #### `resumed-run-handover`
 Tell the run taking resumed work on how to list its steps: a proved step as a skip with evidence, an open call invoked again whole, a gate held as new, and that it owns the work's checkpoint file.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/session-pickup.md`
+
+#### `retarget-investigator-question`
+Change the investigators' question from design rationale to current state, failed attempts and ongoing user reports.
+- `cursor_plugins:skill:pstack/skills/recall` — adopt, pending cr-r2pa.2.18 → recall#retarget-investigator-question
+
+#### `rolling-log-rows`
+Add a trail row as each step lands, not all at the end.
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
 
 #### `row-maps-to-real-event`
 Check that each audited row corresponds to a decision or action that actually occurred.
@@ -4609,6 +5316,7 @@ Finish or back out of the atomic step, begin nothing else, cancel or wait for th
 #### `scoped-reading`
 Search narrowly and read only the context the task needs, widening when dependencies or uncertainty call for it and never bulk-reading.
 - `doc:AGENTS.md`
+- `cursor_plugins:skill:pstack/skills/recall` — adopt → doc:AGENTS.md
 
 #### `scratch-artifact-location`
 Put temporary artifacts in the gitignored scratch folder.
@@ -4634,6 +5342,14 @@ Close a session by closing finished beads with evidence, unclaiming the rest wit
 At session start or after compaction, list in-progress beads and resume from each one's last note.
 - ours: `beads`
 
+#### `seven-day-default-window`
+Treat recent as a real range with a default of seven days.
+- `cursor_plugins:skill:pstack/skills/recall` — adopt, pending cr-r2pa.2.18 → recall#seven-day-default-window
+
+#### `single-next-move`
+End with the one most useful concrete next action.
+- `cursor_plugins:skill:pstack/skills/recall` — adopt, pending cr-r2pa.2.18 → recall#single-next-move
+
 #### `single-subject-pages`
 Give each wiki page one subject and link it to related pages.
 - `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — defer
@@ -4646,6 +5362,10 @@ Have other skills needing a trail refer to this one by name and define no trail 
 Keep one authoritative decision log as a single TSV file with one single-line row per decision.
 - ours: `decision-trail`
 - `cursor_plugins:skill:pstack/skills/show-me-your-work` — adopt → decision-trail#single-tsv-decision-log
+
+#### `skip-mining-with-supplied-state`
+If the user already gave paths, branch and the change, use that and do no mining.
+- `cursor_plugins:skill:pstack/skills/recall` — adopt, pending cr-r2pa.2.18 → recall#skip-mining-with-supplied-state
 
 #### `skip-needs-proof`
 Count a step a note calls finished as done only after opening its supporting artifact and confirming it supports the claim and applies to the current contents; otherwise redo the step or stop.
@@ -4669,6 +5389,13 @@ Have a run adding to a log with rows write a `start` row first, and on returning
 Drive status through the model's own transitions — the custom review status, deferred as the whole backlog, and never a hand-set blocked.
 - ours: `beads`
 
+#### `status-tagged-thread-lines`
+Give each thread one line with exactly one tag from merged, open pull request, in flight, verified uncommitted, reverted or planned.
+- `cursor_plugins:skill:pstack/skills/recall` — adopt, pending cr-r2pa.2.18 → recall#status-tagged-thread-lines-with-abandoned
+
+#### `status-tagged-thread-lines-with-abandoned`
+Give each thread one line with one tag from merged, open pull request, in flight, verified uncommitted, reverted, abandoned or planned, describing any other state in plain words.
+
 #### `suggested-skills`
 Name in the handoff which skills the next agent should reach for.
 - `mattpocock_skills:skill:skills/productivity/handoff` — defer
@@ -4676,6 +5403,10 @@ Name in the handoff which skills the next agent should reach for.
 #### `supersede-wiki-claims`
 Supersede a changed wiki claim with a new dated entry instead of rewriting the old one.
 - `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — defer
+
+#### `sweep-parallel-to-mining`
+Run the shared-record sweep at the same time as chat-history mining.
+- `cursor_plugins:skill:pstack/skills/recall` — reject
 
 #### `tailor-to-next-focus`
 Treat any passed arguments as the next session's focus and tailor the handoff to it.
@@ -4722,13 +5453,25 @@ Give every row the fixed columns ts in ISO8601, phase or workstream, the decisio
 - ours: `decision-trail`
 - `cursor_plugins:skill:pstack/skills/show-me-your-work` — adopt → decision-trail#trail-six-columns
 
+#### `transcript-location-convention`
+Locate past chats in a per-workspace folder of line-per-message files named from the workspace path.
+- `cursor_plugins:skill:pstack/skills/recall` — out-of-scope
+
 #### `transcript-path-audit`
 Audit from this run's transcript in the active workspace's transcript directory, whose location the system prompt gives.
 - `cursor_plugins:skill:pstack/skills/show-me-your-work` — reject
 
+#### `two-record-context-model`
+Treat context as living in both the agent's own chat history and a shared record of tracker, chat, docs, source control and error reports.
+- `cursor_plugins:skill:pstack/skills/recall` — adopt, pending cr-r2pa.2.18 → recall#two-record-context-model
+
 #### `unbroken-planning-window`
 Keep the stages that build on each other's reasoning in one unbroken context window until the planning artifact is produced, so each stage builds on the same thinking.
 - `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
+
+#### `uniform-per-chat-schema`
+Require from each subagent one block per chat recording topic, goal, decisions, unresolved threads, difficulties, corrections and produced artifacts.
+- `cursor_plugins:skill:pstack/skills/recall` — adopt, pending cr-r2pa.2.18 → recall#uniform-per-chat-schema
 
 #### `unlogged-fork-gap`
 Treat a fork, pivot or abandoned path that shaped the work with no row as a gap, and add the row in the audit.
@@ -4773,6 +5516,9 @@ Regenerate the workstream status, ideas and backlog boards from the tracker thro
 
 ### core · X · Coordination
 
+#### `alternatives-compared-on-one-way-doors`
+For a design choice that cannot be undone, compare materially different alternatives, skipping mechanical work or a settled design, and start a council only on a person's request.
+
 #### `anonymized-peer-review`
 When peer review is included, anonymize responses before reviewers compare their reasoning and gaps.
 - ours: `perspective-council`
@@ -4801,6 +5547,9 @@ Choose the base a later maintainer could extend most easily while keeping invari
 - ours: `model-council`
 - `cursor_plugins:skill:pstack/skills/arena` — adopt → model-council#base-chosen-for-extensibility
 
+#### `bounded-gate-gaming-retry`
+Refuse a pass won by weakening a check, undo only attributable edits within authority, and retry on a hardened brief inside the existing retry limit.
+
 #### `brief-names-done-evidence`
 A brief names what will show the work is finished, and a unit with nothing to name is scoped further or raised with the owner before dispatch.
 - ours: `delegation`
@@ -4823,6 +5572,10 @@ Read every selectable model, effort, capability and skill value from the single 
 #### `catalog-trust-boundary`
 Treat the generated skill catalog as canonical but not proof, verifying actual runtime discovery before relying on availability.
 - ours: `mvp-mode`
+
+#### `cheap-model-fan-out`
+Spawn concurrent subagents on a fast, inexpensive model, each covering a slice of the chat history.
+- `cursor_plugins:skill:pstack/skills/recall` — reject
 
 #### `configured-model-use`
 Use the configured models and reasoning effort rather than choosing your own.
@@ -4869,6 +5622,22 @@ At top level, hand independent work to subagents and keep the main context for c
 
 #### `delegation-threshold`
 Delegate bounded independent work only when it materially improves speed, context use or review quality within budget, keeping small work local.
+
+#### `design-contest-on-one-way-doors`
+For design choices that cannot be undone, run a design skill that pits alternatives against each other, and skip that for mechanical work or a settled design.
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+
+#### `design-workflow-before-code`
+When no existing playbook fits, produce a phased workflow as the first deliverable, ahead of any code.
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+
+#### `designed-run-reply-fields`
+Reply with the designed playbook, rigor level and reason, trail path, what is verified against the predicate and what is open.
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+
+#### `designed-steps-as-todos`
+Insert the designed steps as concrete todo items between the loop and audit entries.
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
 
 #### `disagreement-rereads-rationales`
 Treat a disagreement with the judge as a sign of bias or an unclear rubric, and read both rationales before deciding.
@@ -4941,12 +5710,32 @@ Add candidates when the work must explore several design directions.
 Give a failed member bounded safe recovery before treating it as missing.
 - ours: `model-council`
 
+#### `falsifiable-done-predicate`
+Define done as a claim that can be shown false.
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+
 #### `family-check-unrun-disclosed`
 When the coordinator's own model is unknown, try the judge pool in order and disclose that the family check did not run.
 - `cursor_plugins:skill:pstack/skills/arena` — adopt → model-council#judge-other-family-or-stated
 
+#### `fan-out-across-seams-only`
+Decide what runs in parallel, parallelizing only where the work has seams and not over-fanning.
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+
+#### `fix-wrong-gate-separately`
+When the gate itself is wrong, correct it in its own change and do not route around it.
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+
 #### `fork-overrides`
 Never promise model, effort, tool or permission overrides on a fork, which inherits the parent's model, tools, prompt and history wholesale.
+
+#### `framing-and-tradeoffs-shown`
+Show the human the framing and its tradeoffs ahead of a long run.
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+
+#### `framing-before-run`
+Do the grounding before starting, and do not begin a run until its framing can be stated.
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
 
 #### `fresh-synthesizer`
 Wait for every finding, then have one agent that did no searching weigh the raw findings and write the only answer.
@@ -4966,6 +5755,10 @@ After grafting, rerun the acceptance check of any previously checked behaviour t
 Rewrite each graft into the base by hand, so the result keeps one coherent design rather than pasted fragments.
 - ours: `model-council`
 - `cursor_plugins:skill:pstack/skills/arena` — adopt → model-council#hand-folded-grafts
+
+#### `hypothesis-per-unit`
+Treat each unit as an experiment with a stated hypothesis.
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
 
 #### `identity-recording`
 Record the actual model identities wherever the runtime provides evidence of them.
@@ -4994,7 +5787,10 @@ Build each investigator prompt from a template, one source playbook, one shared 
 #### `job-fit-helper-effort`
 Choose each helper's thinking depth and speed tier to suit its job.
 - `cursor_plugins:skill:pstack/skills/arena` — reject
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — reject
 - `cursor_plugins:skill:pstack/skills/how` — reject
+- `cursor_plugins:skill:pstack/skills/no-comments` — reject
+- `cursor_plugins:skill:pstack/skills/recall` — reject
 - `cursor_plugins:skill:pstack/skills/show-me-your-work` — reject
 - `cursor_plugins:skill:pstack/skills/why` — reject
 
@@ -5015,6 +5811,10 @@ Take the judge from a model family other than the coordinator's, and say so when
 Never let the judge's model share a family with the coordinating agent's model.
 - `cursor_plugins:skill:pstack/skills/arena` — adopt → model-council#judge-other-family-or-stated
 
+#### `judge-paired-with-delegation`
+Pair delegated work with a judge.
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+
 #### `judge-parallel-with-picker`
 Run the judge while the picker reads, not before or after.
 - `cursor_plugins:skill:pstack/skills/arena` — reject
@@ -5031,6 +5831,10 @@ Have the judge recommend a base and justify the recommendation.
 #### `judge-skip-pick-alone`
 When no judge can run, skip it, pick the base alone and say so.
 - `cursor_plugins:skill:pstack/skills/arena` — reject
+
+#### `keep-or-revert-on-predicate`
+Keep a change that moved things forward and revert one that did not.
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
 
 #### `layer-placement`
 Separate the invocation layer's small accepted field set from the definition layer, which alone carries effort, tools, permissions, memory, skills, MCP and full model IDs.
@@ -5127,6 +5931,12 @@ Record the verification result in the synthesis note.
 - ours: `model-council`
 - `cursor_plugins:skill:pstack/skills/arena` — adopt → model-council#note-verification-result
 
+#### `one-checkpoint-unless-told-not-to`
+Stop once on a run estimated at over an hour to check with the person, unless the request says to run without stopping.
+
+#### `one-helper-per-sizeable-source`
+Give a shared-record source its own helper only when its investigation is sizeable and independent, and read small sources directly.
+
 #### `opposing-lens-set`
 Draw advisors from a fixed set of opposing lenses, each contributing a defined kind of challenge.
 - ours: `perspective-council`
@@ -5148,6 +5958,7 @@ Show the judge each candidate under its path label.
 Open a task list with one item per phase before beginning.
 - `cursor_plugins:skill:pstack/skills/architect` — reject
 - `cursor_plugins:skill:pstack/skills/arena` — reject
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
 
 #### `pick-compared-with-judge`
 Compare your scored pick with the judge's, treating the same choice as confirmation.
@@ -5188,6 +5999,14 @@ Preserve changes in the working tree that others made or that are unrelated to t
 Keep role behaviour in one role prompt independent of the runtime metadata applied around it at invocation.
 - ours: `delegation`
 
+#### `principles-first-todo`
+Make reading a principles section the first item on the todo list.
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+
+#### `principles-never-widen-scope`
+Treat guiding principles as intent only, never permission to expand the boundary or fix other instances.
+- `cursor_plugins:skill:pstack/skills/no-comments` — reject
+
 #### `proportional-effort`
 Scale planning, research and review to the uncertainty and consequences of the work.
 - `doc:AGENTS.md`
@@ -5217,6 +6036,7 @@ Read a skill's own instructions before describing what it does or recommending i
 #### `read-worker-output`
 Open the diff or artifact a worker produced and hold it to the evidence its brief named, instead of relying on its summary.
 - ours: `delegation`
+- `cursor_plugins:skill:pstack/skills/no-comments` — reject
 
 #### `recorded-step-skip`
 Keep a playbook step that will not run in the todo list, marked with its reason, instead of dropping it.
@@ -5239,13 +6059,22 @@ Save every member's full attributed report under the run directory rather than d
 #### `report-resolution`
 Report which values were selected from the catalog, accepted by the active surface, inherited, or rejected and unavailable.
 
+#### `reset-and-harden-on-gate-gaming`
+When a worker games the gate, reset it and strengthen the contract.
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+
 #### `retry-by-cause`
 Retry a failed worker according to why it failed, with a narrower unit, the same brief or another model, and after two retries drop the unit and plan around it.
 - ours: `delegation`
 
 #### `reversible-work-proceeds`
 Proceed without asking on reversible work, then present the result and its reasoning so the human can correct it afterwards, leaving product direction to the human.
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — reject
 - `cursor_plugins:skill:pstack/skills/principle-never-block-on-the-human` — reject
+
+#### `rigor-biased-high-by-reversibility`
+Pick a rigor level biased high, raised for one-way doors and wide impact and lowered for reversible low-stakes steps.
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
 
 #### `role-contracts`
 Give each delegated role a fixed contract of access, duties and report shape, and carry it inside the brief because the worker may not load the delegating instructions.
@@ -5258,6 +6087,10 @@ Read each spawned role's model from a named line of a shared configuration, fall
 - `cursor_plugins:skill:pstack/skills/how` — reject
 - `cursor_plugins:skill:pstack/skills/interrogate` — reject
 - `cursor_plugins:skill:pstack/skills/why` — reject
+
+#### `role-rules-not-restated`
+Do not repeat a spawned role's rules in the request that spawns it.
+- `cursor_plugins:skill:pstack/skills/no-comments` — reject
 
 #### `router-at-task-start`
 Invoke the router at the start of every task, so routing is loaded on any vendor and comes back after compaction.
@@ -5305,6 +6138,10 @@ Send a follow-up to a worker by resuming its own session rather than starting a 
 #### `shared-delegate-contract`
 When fanning work out, give every delegate one shared artifact with the recipe, the verification contract and the fences, kept outside their write scope.
 - `cursor_plugins:skill:pstack/skills/principle-build-the-lever` — defer
+
+#### `single-checkpoint-on-long-run`
+Give a multi-hour run one checkpoint with the human.
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
 
 #### `single-coordinator-session`
 Act as the single accountable coordinator for a long-running goal within one session.
@@ -5388,6 +6225,10 @@ Keep doing independent work while a question waits for an answer.
 Give each worker a brief stating the outcome, owned paths, constraints, acceptance checks and pointers to relevant context.
 - `doc:AGENTS.md`
 
+#### `worktree-or-branch-per-worker`
+Give each parallel worker its own worktree or branch.
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+
 #### `worktree-or-temp-output`
 Prefer a git worktree for each candidate's output, falling back to a per-candidate temporary directory.
 - `cursor_plugins:skill:pstack/skills/arena` — reject
@@ -5439,6 +6280,7 @@ Treat a request to implement as authority to carry the work through verification
 Treat a review or analysis request as authority to inspect and report only, never to change the work.
 - `doc:AGENTS.md`
 - `cursor_plugins:skill:pstack/skills/interrogate` — adopt → doc:AGENTS.md
+- `cursor_plugins:skill:pstack/skills/teach` — adopt → doc:AGENTS.md
 
 #### `interview-not-authority`
 Treat conducting an interview or drafting a questionnaire as neither implementation authority nor permission to send it.
@@ -5480,6 +6322,8 @@ Retry an operation only when repeating it is safe.
 #### `secret-containment`
 Keep secrets and private data out of any destination not authorized to hold them.
 - `doc:AGENTS.md`
+- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt → doc:AGENTS.md
+- `cursor_plugins:skill:pstack/skills/recall` — adopt → doc:AGENTS.md
 
 #### `signal-lines-only`
 Quote only the signal-carrying lines from captured artifacts that may hold credentials.
@@ -5517,15 +6361,31 @@ Treat every teaching request as a stateful multi-session course kept in the work
 Open a course workspace only for an explicitly requested ongoing course, in an authorized supplied location, creating its files lazily.
 - ours: `teach`
 
+#### `build-up-order`
+Proceed from definition to mechanism, then deeper reasons, then edge cases.
+- `cursor_plugins:skill:pstack/skills/teach` — adopt, pending cr-r2pa.2.18 → teach#build-up-order
+
 #### `community-opt-out`
 Respect the learner's choice not to join communities and record it.
 - ours: `teach`
 - `mattpocock_skills:skill:skills/productivity/teach` — adopt → teach#community-opt-out
 
+#### `complementary-figures`
+Use more than one kind of figure when each shows something the other cannot.
+- `cursor_plugins:skill:pstack/skills/teach` — defer
+
 #### `cross-linked-lessons`
 Cross-link lessons to other lessons and reference documents.
 - ours: `teach`
 - `mattpocock_skills:skill:skills/productivity/teach` — adopt → teach#cross-linked-lessons
+
+#### `density-exemplar`
+Supply a worked sample sentence pair that fixes the wanted information density.
+- `cursor_plugins:skill:pstack/skills/teach` — reject
+
+#### `depth-where-asked`
+Omit what the person evidently already knows and spend the depth on the area they asked about.
+- `cursor_plugins:skill:pstack/skills/teach` — adopt, pending cr-r2pa.2.18 → teach#depth-where-asked
 
 #### `difficulty-by-kind`
 Minimise difficulty when conveying knowledge but make retrieval effortful when building skills.
@@ -5536,9 +6396,25 @@ Record in the glossary how loosely used field terms are resolved in this workspa
 - ours: `teach`
 - `mattpocock_skills:skill:skills/productivity/teach` — adopt → teach#field-term-resolution
 
+#### `figure-kind-by-idea`
+Choose the figure type by the nature of the idea, using a labelled diagram where the labels carry the meaning.
+- `cursor_plugins:skill:pstack/skills/teach` — reject
+
+#### `figure-when-faster`
+Add a figure when a picture would land faster than prose, and omit one for a single simple point.
+- `cursor_plugins:skill:pstack/skills/teach` — adopt, pending cr-r2pa.2.18 → teach#figure-when-faster
+
 #### `follow-up-prompt`
 Remind the learner in each lesson to ask follow-up questions.
 - `mattpocock_skills:skill:skills/productivity/teach` — defer
+
+#### `general-tied-to-local-case`
+After the general definition, connect it to how this codebase uses the idea.
+- `cursor_plugins:skill:pstack/skills/teach` — adopt, pending cr-r2pa.2.18 → teach#general-tied-to-local-case
+
+#### `generated-image-for-spatial-ideas`
+For spatial ideas, actually generate a marker-on-whiteboard image with an image tool, with few short labels, instead of describing the picture.
+- `cursor_plugins:skill:pstack/skills/teach` — reject
 
 #### `glossary-admission-on-use`
 Add a term to the learner's glossary only once the learner can use it correctly.
@@ -5559,8 +6435,16 @@ Revise glossary definitions in place as understanding deepens.
 - ours: `teach`
 - `mattpocock_skills:skill:skills/productivity/teach` — adopt → teach#in-place-definition-revision
 
+#### `incremental-diagram-series`
+For three or more moving parts, draw a sequence in which each figure repeats the last and adds exactly one part, and never rely on one complete figure, of whatever kind.
+- `cursor_plugins:skill:pstack/skills/teach` — adopt, pending cr-r2pa.2.18 → teach#incremental-diagram-series
+
 #### `interleaving`
 Interleave different but related topics in practice.
+
+#### `investigation-sized-to-question`
+Run both investigations for a subsystem and possibly only one for a small change.
+- `cursor_plugins:skill:pstack/skills/teach` — reject
 
 #### `just-enough-knowledge`
 Include only the knowledge a lesson's target skill needs, teaching it first and then practising.
@@ -5570,6 +6454,14 @@ Include only the knowledge a lesson's target skill needs, teaching it first and 
 Frame learning as knowledge from trusted sources, skills from interactive lessons and wisdom from communities.
 - ours: `teach`
 - `mattpocock_skills:skill:skills/productivity/teach` — adopt → teach#knowledge-skills-wisdom-frame
+
+#### `lead-with-what-matters`
+Open an explanation on its central point and on what matters most to this reader.
+- `cursor_plugins:skill:pstack/skills/teach` — adopt, pending cr-r2pa.2.18 → teach#lead-with-what-matters
+
+#### `learner-context-from-conversation`
+Work out why the person is asking and what they already know from the conversation, not by questioning them.
+- `cursor_plugins:skill:pstack/skills/teach` — adopt, pending cr-r2pa.2.18 → teach#learner-context-from-conversation
 
 #### `learning-record-criteria`
 Write a learning record only for demonstrated understanding, disclosed prior knowledge, a corrected misconception or a mission shift, never for coverage, glossary duplicates or activity logs.
@@ -5633,6 +6525,30 @@ When the mission shifts or goes stale, confirm with the learner, revise the miss
 - ours: `teach`
 - `mattpocock_skills:skill:skills/productivity/teach` — adopt → teach#mission-shift-handling
 
+#### `narrow-rationale-search`
+Keep a slow rationale search narrow by default through the question it is given, so it records what it skipped, widening only when the reasoning is the point.
+- `cursor_plugins:skill:pstack/skills/teach` — reject
+
+#### `no-labels-or-step-words`
+Print no stock labels announcing the key idea, and never echo a skill's step wording as headers or phrases.
+- `cursor_plugins:skill:pstack/skills/teach` — adopt, pending cr-r2pa.2.18 → teach#no-labels-or-step-words
+
+#### `no-quizzes`
+Do not test the person or ask them to repeat the idea back.
+- `cursor_plugins:skill:pstack/skills/teach` — reject
+
+#### `no-symbol-inventory`
+Do not substitute a list of functions and constants for an explanation.
+- `cursor_plugins:skill:pstack/skills/teach` — adopt, pending cr-r2pa.2.18 → teach#no-symbol-inventory
+
+#### `no-teaching-theatre`
+Do not announce pauses, sentences to master, or that a part is hard or important; state it, and actually stop when a pause is wanted.
+- `cursor_plugins:skill:pstack/skills/teach` — adopt, pending cr-r2pa.2.18 → teach#no-teaching-theatre
+
+#### `offer-depth-follow-lead`
+Invite the person to go deeper or change topic, and let them steer.
+- `cursor_plugins:skill:pstack/skills/teach` — adopt, pending cr-r2pa.2.18 → teach#offer-depth-follow-lead
+
 #### `one-mission-per-workspace`
 Keep exactly one mission per learning workspace.
 - ours: `teach`
@@ -5643,6 +6559,30 @@ Keep the mission document within one screen.
 - ours: `teach`
 - `mattpocock_skills:skill:skills/productivity/teach` — adopt → teach#one-screen-mission
 
+#### `one-shot-delivery-mode`
+When the caller asks for full delivery, give the whole explanation in one reply and place any offer of more depth at the end.
+- `cursor_plugins:skill:pstack/skills/teach` — defer
+
+#### `orient-then-use-investigation`
+Read a body of work only far enough to get oriented, and take the digging from a dedicated investigation rather than redoing it.
+- `cursor_plugins:skill:pstack/skills/teach` — adopt, pending cr-r2pa.2.18 → teach#orient-then-use-investigation
+
+#### `parallel-investigations-combined`
+Run the how and why investigations at the same time and merge what they return.
+- `cursor_plugins:skill:pstack/skills/teach` — reject
+
+#### `pick-few-takeaways`
+Choose a small number of things the person should come away understanding before explaining anything.
+- `cursor_plugins:skill:pstack/skills/teach` — adopt, pending cr-r2pa.2.18 → teach#pick-few-takeaways
+
+#### `plain-colleague-voice`
+Write in plain spoken English as if to a coworker, removing filler and hedging while keeping the piece that makes the idea click.
+- `cursor_plugins:skill:pstack/skills/teach` — adopt, pending cr-r2pa.2.18 → teach#plain-colleague-voice
+
+#### `plain-definition-first`
+Begin by naming the thing and defining it in general terms, using its common name if one exists.
+- `cursor_plugins:skill:pstack/skills/teach` — adopt, pending cr-r2pa.2.18 → teach#plain-definition-first
+
 #### `polished-lesson-typography`
 Make lessons visually polished with clean typography so they serve later review.
 - `mattpocock_skills:skill:skills/productivity/teach` — defer
@@ -5650,6 +6590,10 @@ Make lessons visually polished with clean typography so they serve later review.
 #### `preference-notes`
 Record the learner's stated teaching preferences in a notes file to steer future lessons.
 - `mattpocock_skills:skill:skills/productivity/teach` — defer
+
+#### `problem-and-mechanism-per-part`
+For each part, explain the problem it addresses and how it actually operates.
+- `cursor_plugins:skill:pstack/skills/teach` — adopt, pending cr-r2pa.2.18 → teach#problem-and-mechanism-per-part
 
 #### `proximal-next-lesson`
 When the learner names no target, choose the next lesson from the learning records and mission so it challenges them just enough.
@@ -5671,6 +6615,9 @@ Make every quiz answer the same number of words, and characters where possible, 
 #### `reference-sheets`
 Build durable quick-reference documents that outlive the lessons that spawned them.
 - `mattpocock_skills:skill:skills/productivity/teach` — defer
+
+#### `requested-depth-first-answer`
+In conversation, give a short complete answer first and stop, and give a requested walkthrough, lesson or full account whole in one reply.
 
 #### `resource-gap-register`
 List the areas the learning goal needs but no good resource covers in a gaps section of the resources file.
@@ -5702,6 +6649,14 @@ Record progress only within course scope and never treat the repository root as 
 Write each new reusable lesson piece as a shared component and link to it, never inlining code a later lesson would duplicate.
 - `mattpocock_skills:skill:skills/productivity/teach` — defer
 
+#### `show-the-real-artifact`
+Bring up the actual diff, source or debugger when that conveys the point most quickly.
+- `cursor_plugins:skill:pstack/skills/teach` — adopt, pending cr-r2pa.2.18 → teach#show-the-real-artifact
+
+#### `single-blended-account`
+Merge the findings of separate investigations into one continuous explanation, never separate reports.
+- `cursor_plugins:skill:pstack/skills/teach` — adopt, pending cr-r2pa.2.18 → teach#single-blended-account
+
 #### `skill-practice-forms`
 Teach skills through quizzes, in-browser tasks or guided real-world step lists.
 - `mattpocock_skills:skill:skills/productivity/teach` — defer
@@ -5709,6 +6664,10 @@ Teach skills through quizzes, in-browser tasks or guided real-world step lists.
 #### `skills-only-interleaving`
 Interleave related topics only when practising skills, not when conveying knowledge.
 - `mattpocock_skills:skill:skills/productivity/teach` — defer
+
+#### `smallest-complete-answer-first`
+Give a complete answer of one or two sentences first, then stop, adding layers only when asked and never delivering an unbroken block.
+- `cursor_plugins:skill:pstack/skills/teach` — adopt, pending cr-r2pa.2.18 → teach#requested-depth-first-answer
 
 #### `sourced-explanations`
 Draw explanations from trusted, cited sources and check unfamiliar or changing facts rather than relying on unverified recall.
@@ -5730,6 +6689,10 @@ Keep a multi-session course's state (mission, resources, learning records, gloss
 - ours: `teach`
 - `mattpocock_skills:skill:skills/productivity/teach` — adopt → teach#teaching-workspace
 
+#### `threads-to-chase`
+Include the lines of inquiry worth pursuing further.
+- `cursor_plugins:skill:pstack/skills/teach` — adopt, pending cr-r2pa.2.18 → teach#threads-to-chase
+
 #### `tight-feedback-loop`
 Teach skills through an interactive feedback loop that is as tight and immediate, ideally automatic, as possible.
 - `mattpocock_skills:skill:skills/productivity/teach` — defer
@@ -5742,6 +6705,14 @@ Vary the balance between knowledge teaching and skills practice with the topic.
 Vary which position holds the correct answer across questions so order gives nothing away.
 - ours: `teach`
 - `mattpocock_skills:skill:skills/productivity/teach` — adopt → teach#vary-answer-position
+
+#### `walkthrough-of-user-action`
+When it helps the idea land, trace what happens step by step as someone performs the action.
+- `cursor_plugins:skill:pstack/skills/teach` — adopt, pending cr-r2pa.2.18 → teach#walkthrough-of-user-action
+
+#### `what-how-why-account`
+Cover what a thing is, how it operates and why it has that design.
+- `cursor_plugins:skill:pstack/skills/teach` — adopt, pending cr-r2pa.2.18 → teach#what-how-why-account
 
 #### `what-vs-why`
 Separate what happened from why it was chosen when explaining.
@@ -6233,6 +7204,7 @@ Query a warehouse's deduplicated typed models, dropping to raw events only where
 #### `unreachable-data-is-gap`
 Report data you could not reach, through a missing tool, denied access, retention or deletion, as a coverage gap and never as a null result.
 - ours: `explain-code`
+- `cursor_plugins:skill:pstack/skills/recall` — reject
 - `cursor_plugins:skill:pstack/skills/why` — adopt → explain-code#unreachable-data-is-gap
 
 #### `verify-before-report`
@@ -6447,6 +7419,7 @@ Name the structure the code lacks and accept a reshape only if it deletes branch
 Give semantically distinct values that share a primitive type their own types, validated once at creation and trusted afterwards.
 - ours: `principle-type-system-discipline`
 - `cursor_plugins:skill:pstack/skills/principle-type-system-discipline` — adopt → principle-type-system-discipline#branded-primitives
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — adopt → principle-type-system-discipline#branded-primitives
 
 #### `build-route-back`
 When a build of the chosen direction is wanted, route it through the router at top level, or report that route to the parent inside a delegated task, and start no playbook.
@@ -6572,6 +7545,7 @@ Present alternative designs one at a time, then compare them on depth, locality 
 Derive duplicate lists from one, or make the build fail when lists that cannot be derived disagree.
 - ours: `codebase-design`
 - `cursor_plugins:skill:pstack/skills/architect` — adopt → codebase-design#derived-or-checked-lists
+- `cursor_plugins:skill:pstack/skills/correct` — reject
 
 #### `design-axes-comparison`
 Compare alternative designs on depth, locality, seam placement, error behaviour and testability.
@@ -6776,6 +7750,7 @@ Export each UI variant as a clearly named component.
 Prefer a design where an edit that looks right from one file is right everywhere, assuming the next editor sees only the files it opened and copies the nearest example.
 - ours: `codebase-design`
 - `cursor_plugins:skill:pstack/skills/architect` — adopt → codebase-design#next-agent-test
+- `cursor_plugins:skill:pstack/skills/correct` — reject
 
 #### `next-step-sentence`
 State in one sentence what gets built first from the sketch.
@@ -6814,6 +7789,7 @@ Put every compared variant, UI or logic, behind one labelled switcher: a UI cont
 Keep a single way to do a task, moving callers off the others and deleting them in the same change.
 - ours: `codebase-design`
 - `cursor_plugins:skill:pstack/skills/architect` — adopt → codebase-design#one-way-per-task
+- `cursor_plugins:skill:pstack/skills/correct` — reject
 
 #### `ownership-change-rationale`
 When a design changes who owns what or how layers divide, also investigate why the existing shape exists so that its reason becomes a constraint.
@@ -6832,6 +7808,7 @@ Turn raw external input into typed domain values with a parse function at the bo
 - ours: `principle-boundary-discipline`
 - `cursor_plugins:skill:pstack/skills/principle-boundary-discipline` — adopt → principle-boundary-discipline#parse-at-boundary
 - `cursor_plugins:skill:pstack/skills/principle-type-system-discipline` — adopt → principle-boundary-discipline#parse-at-boundary
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — reject
 
 #### `pass-through-flag`
 Remove a method that forwards the same arguments with the same shape, unless it adds policy, adaptation or a distinct abstraction.
@@ -6964,6 +7941,7 @@ Give a logic prototype guided scenarios covering the happy path, a tricky edge c
 Derive types from the authoritative schema that owns a shape instead of hand-writing a parallel type.
 - ours: `principle-type-system-discipline`
 - `cursor_plugins:skill:pstack/skills/principle-type-system-discipline` — adopt → principle-type-system-discipline#schema-derived-types
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — adopt → principle-type-system-discipline#schema-derived-types
 
 #### `scope-threat`
 Name the changed entrypoints, assets, identities and consequences, tracing untrusted input to consequential sinks including model outputs used as commands, paths, queries or markup.
@@ -7041,6 +8019,7 @@ Keep a module's interface surface small — fewer methods and simpler parameters
 Give each piece of state one owner, so that others read it or ask the owner to change it, with no second writer and no copy.
 - ours: `codebase-design`
 - `cursor_plugins:skill:pstack/skills/architect` — adopt → codebase-design#split-ownership-flag
+- `cursor_plugins:skill:pstack/skills/correct` — reject
 
 #### `state-question-up-front`
 Write the question the prototype answers visibly at the top of the prototype before building, so it can be checked later.
@@ -7113,6 +8092,7 @@ Make the prototype trivial to run: one command, or a single HTML file the user o
 Inside the system, trust data that a boundary already validated into types and propagate errors instead of re-checking it in every layer.
 - `cursor_plugins:skill:pstack/skills/architect` — reject
 - `cursor_plugins:skill:pstack/skills/principle-boundary-discipline` — adopt → principle-boundary-discipline#scoped-internal-trust
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — reject
 
 #### `two-adapters-rule`
 Introduce a seam only when behaviour actually varies across it — one adapter is a hypothetical seam, two is a real one.
@@ -7147,11 +8127,14 @@ Where no available tool can drive the surface, hand over the pointer, say it was
 Make a module's internals unreachable, so that an import from outside fails the build.
 - ours: `codebase-design`
 - `cursor_plugins:skill:pstack/skills/architect` — adopt → codebase-design#unreachable-internals
+- `cursor_plugins:skill:pstack/skills/correct` — reject
 
 #### `unrepresentable-invalid-states`
 Shape types so the checker rejects impossible states, defining special cases out of existence instead of handling them.
 - ours: `principle-type-system-discipline`
+- `cursor_plugins:skill:pstack/skills/correct` — reject
 - `cursor_plugins:skill:pstack/skills/principle-type-system-discipline` — adopt → principle-type-system-discipline#unrepresentable-invalid-states
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — adopt → principle-type-system-discipline#unrepresentable-invalid-states
 
 #### `variant-plan-line`
 Before building UI variants, write a one-line plan of variant count, switching method and route at the prototype's location.
@@ -7224,6 +8207,17 @@ For a broad refactor use expand, migrate then contract with genuine dependencies
 Without a tracker, write one numbered file per ticket in dependency order, never one combined file.
 - `mattpocock_skills:skill:skills/engineering/to-tickets` — defer
 
+#### `harness-with-pre-change-baseline`
+Build the verification harness first and capture a baseline before changing anything, so results read as old against new.
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+
+#### `independently-landable-units`
+Split the work into atomic units that can each land independently.
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+
+#### `landable-units-or-named-group`
+Split the work into units that can each land alone, or into a declared group where intermediate states cannot stay green.
+
 #### `migration-group-unit`
 Treat an authorized migration group as one verifiable unit: only its declared interior breakage is allowed, and its boundary checks must pass before dependent work proceeds.
 - ours: `principle-migrate-without-shims`
@@ -7262,9 +8256,21 @@ Publish the finished artifact to the configured issue tracker.
 - `mattpocock_skills:skill:skills/engineering/to-spec` — defer
 - `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → planning#beads-native-tracking
 
+#### `quantified-scope-with-blockers`
+State scope in rough units and effort along with the blockers grounding turned up.
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+
 #### `reviewer-rejectable-sizing`
 Size each task so a reviewer could accept or reject it independently of its neighbour, folding setup, scaffolding and docs into the deliverable they serve.
 - ours: `planning`
+
+#### `rigor-means-gates-and-artifacts`
+Define rigor as concrete gates and artifacts, not extra effort.
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+
+#### `riskiest-unknown-first`
+Order the units so the largest unknown is tackled first.
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
 
 #### `route-by-scale`
 Route between brainstorming, a brief local sequence, elaborate, decompose, or executing from a roadmap row according to the work's scale.
@@ -7277,6 +8283,7 @@ When an internal API with no external dependants is replaced as part of a simpli
 
 #### `scaffold-first`
 Sequence first the work every later phase benefits from (CI, linting, test infrastructure, shared types) before features.
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
 - `cursor_plugins:skill:pstack/skills/principle-foundational-thinking` — defer
 
 #### `settle-by-observation`
@@ -7313,6 +8320,10 @@ Prefer independently verifiable vertical slices over horizontal layers.
 Think a redesign through as a whole before starting, then deliver it in increments rather than in one drop.
 - ours: `principle-redesign-from-first-principles`
 - `cursor_plugins:skill:pstack/skills/principle-redesign-from-first-principles` — adopt → principle-redesign-from-first-principles#whole-design-incremental-delivery
+
+#### `written-phase-list-for-review`
+Write down the designed phases as the thing the human reviews.
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
 
 ### engineering · Design · Grounding
 
@@ -8146,6 +9157,10 @@ Prove the work happened inside the timed span and the code used its result, sinc
 
 ### engineering · Building · Implementation
 
+#### `ambiguous-comment-deleted`
+Leave an ambiguous deletion deleted, and delete a kept comment that is refuted or stays ambiguous.
+- `cursor_plugins:skill:pstack/skills/no-comments` — adopt, pending cr-r2pa.2.18 → principle-no-comments#unsure-comment-kept-and-flagged
+
 #### `append-only-supersede`
 Never edit or delete a ledger record; correct or reverse one by appending a record that supersedes it.
 - ours: `decision-trail`
@@ -8193,6 +9208,14 @@ Bound the concurrency of parallel async calls.
 Bound the retries of external I/O calls.
 - `doc:.repo-context/coding-style.md`
 
+#### `brand-only-on-confusion-risk`
+Leave a number unbranded unless a raw number could actually be passed in its place.
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — adopt, pending cr-r2pa.2.18 → principle-type-system-discipline#brand-only-on-confusion-risk
+
+#### `brand-only-through-verifying-guard`
+Obtain a brand only from a type guard that truly checks the value, never from a cast.
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+
 #### `build-brief-shape`
 Before code is written, state the paths, the data shape and the success criteria in the build brief.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/feature.md`
@@ -8211,9 +9234,29 @@ Copy the bundled boundary-lint config and edit only its packages-root constant.
 When fixing, inspect the affected callers and preserve their legitimate differences.
 - `doc:AGENTS.md`
 
+#### `cast-fix-add-discriminant`
+When a cast hides a missing discriminant, add one and move to a tagged union.
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+
+#### `cast-fix-brand-or-satisfies`
+When a type truly cannot be expressed, use a brand or a checking operator in place of a cast.
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+
+#### `cast-fix-narrow-source`
+When a cast hides an overly broad source type, narrow that type.
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+
+#### `cast-fix-parse-boundary`
+When a cast sits at an untyped boundary, parse with the schema responsible for that shape, adding one only where none exists.
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+
 #### `category-pivot`
 A plateau is not a stop: change category and reread the source; a dead end is three iterations with no movement after that, and no further approach statable in one sentence.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md`
+
+#### `check-for-schema-library-first`
+Before hand-writing a field-by-field guard, find out which runtime schema library the repository uses and which schemas already exist.
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
 
 #### `ci-fallback-instruction`
 Without an umbrella check command, add the lint script alone and tell the user to put it in CI.
@@ -8235,6 +9278,14 @@ A closing return starts no attempt: a card with a stopped marker is touched no f
 Make closed input schemas reject unknown fields.
 - `doc:.repo-context/coding-style.md`
 
+#### `comment-exception-gate`
+Refuse deleting a comment a stated exception protects, and bring one back only with that exact exception and proof within scope.
+- `cursor_plugins:skill:pstack/skills/no-comments` — adopt, pending cr-r2pa.2.18 → principle-no-comments#exact-proof-settles-a-protected-keep
+
+#### `comment-keep-needs-proof`
+Let a comment survive only with proof it concerns something the team cannot alter.
+- `cursor_plugins:skill:pstack/skills/no-comments` — adopt, pending cr-r2pa.2.18 → principle-no-comments#unsure-comment-kept-and-flagged
+
 #### `commonjs-config`
 Use a CommonJS extension for the boundary config so it loads in ES-module repositories.
 - `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules` — out-of-scope
@@ -8242,6 +9293,10 @@ Use a CommonJS extension for the boundary config so it loads in ES-module reposi
 #### `config-injection`
 Inject configuration at construction and keep environment-variable reads out of business logic.
 - `doc:.repo-context/coding-style.md`
+
+#### `constraint-comment-class`
+Treat comments that forbid removal, forbid rewording or require consulting someone as a distinct class.
+- `cursor_plugins:skill:pstack/skills/no-comments` — adopt, pending cr-r2pa.2.18 → principle-no-comments#constraint-comment-class
 
 #### `cross-platform-url-open`
 Open URLs on every platform including WSL, telling the person to visit manually when no opener works.
@@ -8274,9 +9329,21 @@ Finish interaction details such as transitions, alignment, spacing, feedback and
 - ours: `principle-experience-first`
 - `cursor_plugins:skill:pstack/skills/principle-experience-first` — adopt → principle-experience-first#detail-finish
 
+#### `diagnose-cast-before-removing`
+When removing a cast, first find out why inference falls short.
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+
+#### `diagnostics-traceable-from-id`
+Emit diagnostics through a structured logger carrying enough detail to trace a problem starting from an id.
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+
 #### `discovery-scope-split`
 Fix a discovery only when the predicate cannot be met without it or the request names it; record the rest as a linked bead or in the reply, unfixed, granting no standing scope.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md`
+
+#### `discriminant-over-guard`
+Use discriminant narrowing instead of a guard when it is available.
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
 
 #### `enforce-in-code`
 Enforce access, tenant isolation, validation, safe sink handling and resource limits in code, since external documents, logs and model output cannot grant permissions and prompt secrecy is no control.
@@ -8290,10 +9357,22 @@ Build the wizard for one run and delete it when done, committing it only when a 
 Set every module-boundary lint rule to error severity.
 - `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules` — out-of-scope
 
+#### `even-length-as-pairs`
+Express an even-length list as an array of two-element tuples.
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+
+#### `exact-proof-settles-a-protected-keep`
+Refuse deleting a comment a stated exception protects, and count a comment as a settled protected keep only with that exact exception and proof within scope, proof a provisional keep of a doubtful comment does not need.
+
 #### `exhaustive-variant-handling`
 Handle every variant of a closed type so the checker reports a variant left unhandled.
 - ours: `principle-type-system-discipline`
 - `cursor_plugins:skill:pstack/skills/principle-type-system-discipline` — adopt → principle-type-system-discipline#exhaustive-variant-handling
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — adopt → principle-type-system-discipline#exhaustive-variant-handling
+
+#### `exhaustiveness-arm-by-switch-kind`
+Return the never value in value-producing switches and discard it in statement switches.
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
 
 #### `exit-predicate-first`
 State the exit condition as a command and the result it must give before the first change; with none, ask when attended and do not start when stated unattended.
@@ -8302,6 +9381,14 @@ State the exit condition as a command and the result it must give before the fir
 #### `explicit-signatures`
 Write explicit type signatures for functions.
 - `doc:.repo-context/coding-style.md`
+
+#### `external-data-is-unknown`
+Type all outside data as unknown and never as any.
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+
+#### `external-source-enumeration`
+Count remote payloads, parsed text, posted messages, process messages, file contents, environment variables and database results as external.
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
 
 #### `fill-in-breakage`
 Accept scoped, planned breakage while filling in a sketch.
@@ -8322,6 +9409,18 @@ Give each ledger a Markdown human view generated from its records and marked as 
 #### `group-backreference-rules`
 Keep the boundary config's group back-references rather than flattening them into per-package rules.
 - `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules` — out-of-scope
+
+#### `guard-naming-convention`
+Name guards with an is or has prefix.
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+
+#### `guards-must-verify`
+Require a type guard to really prove what it asserts, treating a false guard as worse than a cast.
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — adopt, pending cr-r2pa.2.18 → principle-type-system-discipline#guards-must-verify
+
+#### `hot-path-positional-exception`
+Skip object arguments on per-frame rendering, tokenizers, parsers and other tight loops where allocation matters.
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
 
 #### `human-step-wizard`
 Generate an interactive script that walks a person through the setup steps only they can perform.
@@ -8372,9 +9471,17 @@ Never relax the predicate; a limit stops new work even with an idea left, and th
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md`
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/hillclimb.md`
 
+#### `literal-discriminant-unions`
+Represent variants as a union tagged by a literal field so contradictory states cannot be written.
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+
 #### `long-hunt-test`
 Call a hunt long only when its next evidence cannot arrive within one foreground command; a stubborn hunt with something to run now keeps running.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/bug-fix.md`
+
+#### `loose-record-stops-at-parse`
+Allow a string-keyed unknown record, under any alias, to exist only up to the parse.
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
 
 #### `manifest-lock-consistency`
 Keep pyproject.toml and uv.lock consistent with each other.
@@ -8396,10 +9503,18 @@ For a migration, identify the current state, the target state and the irreversib
 Choose test-first, characterization, or test-quality-only by the task rather than defaulting to one workflow.
 - ours: `test-driven-development`
 
+#### `narrow-before-use`
+Narrow unknown values before accessing them so the compiler checks the access.
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+
 #### `narrowest-state-scope`
 Give state the narrowest scope that works: locals over fields over module state over globals.
 - ours: `principle-minimize-reader-load`
 - `cursor_plugins:skill:pstack/skills/principle-minimize-reader-load` — adopt → principle-minimize-reader-load#narrowest-state-scope
+
+#### `narrowing-preference-order`
+Prefer discriminant checks, then property-presence checks, then runtime type checks, then a user-defined guard, with a cast last and only after validation.
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
 
 #### `no-bare-except`
 Avoid bare except clauses.
@@ -8409,6 +9524,10 @@ Avoid bare except clauses.
 Keep blocking I/O out of async code, moving it to a thread when needed.
 - `doc:.repo-context/coding-style.md`
 
+#### `no-console-log-in-shipped-code`
+Forbid console logging in code that ships.
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+
 #### `no-dynamic-execution`
 Never evaluate, execute or unsafely deserialize untrusted input.
 - `doc:.repo-context/coding-style.md`
@@ -8416,6 +9535,18 @@ Never evaluate, execute or unsafely deserialize untrusted input.
 #### `no-incidental-model-migration`
 Apply the model-library preference to new models only, never rewriting existing models to it incidentally.
 - `doc:.repo-context/coding-style.md`
+
+#### `no-new-schema-dependency-for-one-guard`
+Do not add a schema dependency for the sake of a single guard.
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+
+#### `no-optional-field-bags`
+Do not model variant state with booleans plus optional fields.
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+
+#### `no-partial-property-guard`
+Reject a guard that checks only some fields while claiming the full type.
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
 
 #### `no-secrets-in-yaml-git-logs`
 Never put secrets in YAML files, Git or logs.
@@ -8425,9 +9556,29 @@ Never put secrets in YAML files, Git or logs.
 Avoid cleanup unrelated to the requested work.
 - `doc:AGENTS.md`
 
+#### `no-unverified-casts`
+Disallow type assertions except after validation has established the claim.
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+
+#### `nonempty-variadic-tuple`
+Express a non-empty list as a tuple of one element plus a rest element.
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+
+#### `object-arguments`
+Pass a single object in place of positional arguments so order is irrelevant and calls read clearly.
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+
 #### `one-change-one-measurement`
 Make one change, take one measurement, then keep or undo it, never stacking untested changes.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/hillclimb.md`
+
+#### `one-discriminant-name`
+Settle on a single tag field name and use it consistently.
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+
+#### `one-schema-validates-and-types`
+Let one schema own validation and infer the static type from it, never keeping a schema, a parallel type and a guard that can disagree.
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — adopt, pending cr-r2pa.2.18 → principle-type-system-discipline#one-schema-validates-and-types
 
 #### `one-test-per-cycle`
 Alternate one test and its implementation at a time instead of writing all tests before any implementation.
@@ -8449,6 +9600,14 @@ Give mutable collection fields per-instance default factories rather than shared
 #### `per-round-ledger-files`
 Keep one ledger file per round, named by date and slug in the ledger directory.
 - `doc:.repo-context/coding-style.md`
+
+#### `persisted-json-guarded-parse`
+Surround the parse of persisted JSON with an error handler.
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+
+#### `persisted-json-versioned`
+Store persisted JSON as a versioned blob.
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
 
 #### `pin-green-moves`
 Move structure in small steps that each keep the behaviour check green.
@@ -8489,6 +9648,10 @@ Keep enough before-and-after evidence to distinguish a demonstrated fix from an 
 Prefer Pydantic v2 models to dataclasses or untyped dicts for new structured domain data, configuration and external contracts, leaving ordinary collections as built-ins.
 - `doc:.repo-context/coding-style.md`
 
+#### `range-as-start-plus-duration`
+Express a time range as a start and a duration in place of two endpoints.
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+
 #### `read-trail-first`
 Read the trail before each attempt and retry nothing it already rejected.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md`
@@ -8498,9 +9661,14 @@ Read the trail before each attempt and retry nothing it already rejected.
 Keep a finished restructuring only if reader load dropped, and otherwise revert it.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/refactoring.md`
 
+#### `readings-over-representation`
+Expose other views of the data through helpers or derivations on top of the chosen representation.
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+
 #### `red-green`
 Make one test fail before implementing the change that makes it pass.
 - ours: `test-driven-development`
+- `cursor_plugins:skill:pstack/skills/tdd` — adopt → test-driven-development#red-green
 - `mattpocock_skills:skill:skills/engineering/implement-spec` — adopt → test-driven-development#red-green
 - `mattpocock_skills:skill:skills/engineering/tdd` — adopt → test-driven-development#red-green
 
@@ -8516,6 +9684,10 @@ Refactor only after the red-green cycles end, never inside them.
 Read every rename against the real files, strings and prose included.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/refactoring.md`
 
+#### `repo-schema-helper-equivalent`
+Use the matching inference helper when the repository has a different schema library.
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+
 #### `report-missing-proof`
 When no regression check is feasible for a confirmed cause, make the fix anyway and report that its proof is missing.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/bug-fix.md`
@@ -8523,6 +9695,10 @@ When no regression check is feasible for a confirmed cause, make the fix anyway 
 #### `resumable-defaults`
 Offer each value already captured as the default on a re-run so the script can be resumed.
 - `mattpocock_skills:skill:skills/engineering/wizard` — defer
+
+#### `reuse-existing-brand-shape`
+Follow the established brand property shape and invent no other convention.
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
 
 #### `reuse-existing-first`
 Prefer existing code, standard-library or platform features and installed dependencies before writing new code.
@@ -8558,6 +9734,18 @@ Fix a deadline and an attempt limit before the first change when the request nam
 Handle the environment file safely: create it private, keep an existing file's mode, write through a symlink, quote values safely, and re-ask rather than decode a stored value that cannot be read back safely.
 - `mattpocock_skills:skill:skills/engineering/wizard` — defer
 
+#### `safe-parse-for-expected-failure`
+Use the non-throwing parse variant when failure is an ordinary branch.
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+
+#### `safety-suppressions-removed`
+Treat suppressions bearing on correctness or safety as findings that must be removed.
+- `cursor_plugins:skill:pstack/skills/no-comments` — adopt, pending cr-r2pa.2.18 → principle-no-comments#safety-suppressions-removed
+
+#### `satisfies-over-cast`
+Check a value against a type with an operator that keeps its literal types, in place of a cast.
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+
 #### `scaffold-example`
 Commit an example package with an entry point delegating to an internal file and a test through the entry point, as a copy-me template.
 - `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules` — out-of-scope
@@ -8582,6 +9770,14 @@ Seal a finished round's ledger file so the validator fails if it changes.
 Port a fix to shared code to every consumer and verify each one.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/feature.md`
 
+#### `simplest-total-type`
+Keep a loose type while every operation on it is defined for all inputs, tightening it only where it forces an assertion, a cast or an impossible-case throw.
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — adopt, pending cr-r2pa.2.18 → principle-type-system-discipline#simplest-total-type
+
+#### `single-narrowing-guard`
+Where an ordinary array arrives, narrow it once with a guard so the fact travels in the type.
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+
 #### `sketch-commit-first`
 Commit the agreed sketch separately before implementing it.
 - `cursor_plugins:skill:pstack/skills/architect` — reject
@@ -8589,6 +9785,7 @@ Commit the agreed sketch separately before implementing it.
 #### `smallest-evidenced-change`
 Each iteration makes the smallest change the evidence justifies and checks the predicate on it.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md`
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
 
 #### `stage-progress-counter`
 Show the person's progress as the current stage over the total.
@@ -8652,6 +9849,10 @@ Before building, write blocking steps, independent work, shared state and the sm
 Work build tickets one per fresh context window, clearing between them and taking blockers first.
 - `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
 
+#### `type-utilities-before-new-interface`
+Try the language's type utilities before declaring a new interface.
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+
 #### `unattended-climb-closeout`
 On every exit of a stated unattended climb, write nothing to the main tree: keep the worktree, write the patch from the first tree to the checkpoint's tree, and name both.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/hillclimb.md`
@@ -8668,9 +9869,16 @@ A stated unattended request does not start: say why, offer an attended run, and 
 An unattended climb takes its target from the request, none meaning not started, and a stated default floor, named in the reply.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/hillclimb.md`
 
+#### `unchangeable-constraint-kept`
+Leave kept comments that concern things outside the team's control.
+- `cursor_plugins:skill:pstack/skills/no-comments` — adopt, pending cr-r2pa.2.18 → principle-no-comments#unchangeable-constraint-kept
+
 #### `unexplained-change-stop`
 Store branch, HEAD and a tree id taken with a temporary index in each row, and stop touching nothing when the state before an iteration differs from the last row.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md`
+
+#### `unsure-comment-kept-and-flagged`
+When unsure whether a comment should go, keep it, bringing it back if already deleted, and flag it for a person.
 
 #### `untrusted-input-validation`
 Validate user-controlled paths and shell arguments before use.
@@ -8688,6 +9896,10 @@ Run Python tools and scripts through uv run.
 Build and update the Python environment with uv sync.
 - `doc:.repo-context/coding-style.md`
 
+#### `validator-annotated-with-type`
+When the type is written first, annotate the validator with it so the compiler rejects a validator proving less.
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+
 #### `value-provenance-gate`
 Finish scoping only when every captured value's source, destination and secrecy are known.
 - `mattpocock_skills:skill:skills/engineering/wizard` — defer
@@ -8695,7 +9907,16 @@ Finish scoping only when every captured value's source, destination and secrecy 
 #### `verified-unit-sequence`
 Split multi-step work into small units that each end in a checked state, and start the next only when the current one passes.
 - ours: `principle-sequence-verifiable-units`
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
 - `cursor_plugins:skill:pstack/skills/principle-sequence-verifiable-units` — adopt → principle-sequence-verifiable-units#verified-unit-sequence
+
+#### `weaken-result-alternative`
+Return a possibly absent result as the other way of making a signature total.
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — adopt, pending cr-r2pa.2.18 → principle-type-system-discipline#weaken-result-alternative
+
+#### `wire-parse-ignores-unknown-fields`
+Parse wire formats with unknown fields ignored so forward-compatible changes do not break old clients.
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
 
 #### `wire-umbrella-check`
 Add a boundary-lint script and fold it into the repo's umbrella check command alongside typecheck.
@@ -8896,6 +10117,10 @@ Run the applicable checks from the repository's verification file before claimin
 Before the first change of multi-step work, run its checks on the starting base and record the results, so later failures are classed as pre-existing or as regressions.
 - ours: `principle-sequence-verifiable-units`
 
+#### `before-after-proof-report`
+Name the check that failed before the fix with its failure, and the passing run after the fix with any nearby validation.
+- `cursor_plugins:skill:pstack/skills/tdd` — adopt, pending cr-r2pa.2.18 → test-driven-development#before-after-proof-report
+
 #### `behaviour-and-edge-case-tests`
 Judge tests by the behaviours and edge cases they exercise, not by line coverage.
 - ours: `principle-test-behavior-not-implementation`
@@ -8914,10 +10139,26 @@ Name each test for the behaviour that exists, not how it is achieved.
 Before accepting substantive tests, name the specific wrong branch, missing validation or side effect they catch, confirming by a safe mutation trial rather than mental inspection when worth its cost.
 - ours: `test-driven-development`
 
+#### `bug-understanding-checklist`
+Identify intended behaviour, current behaviour, the affected path and the smallest observable reproduction.
+- `cursor_plugins:skill:pstack/skills/tdd` — reject
+
+#### `closest-executable-fallback`
+When a failing test is impractical, substitute a targeted script, reproduction command, browser automation, snapshot diff, log assertion or narrow integration check.
+- `cursor_plugins:skill:pstack/skills/tdd` — adopt, pending cr-r2pa.2.18 → test-driven-development#closest-executable-fallback
+
+#### `closest-existing-test-kind`
+Prefer the kind of test already used for that codepath.
+- `cursor_plugins:skill:pstack/skills/tdd` — adopt, pending cr-r2pa.2.18 → test-driven-development#closest-existing-test-kind
+
 #### `contract-exact-assertion`
 Assert exactly what the contract promises, no less and no more, letting the contract decide whether a call, an absence, a payload or an error type is behaviour.
 - ours: `principle-test-behavior-not-implementation`
 - `cursor_plugins:skill:pstack/skills/principle-test-behavior-not-implementation` — adopt → principle-test-behavior-not-implementation#contract-exact-assertion
+
+#### `contract-preserving-fix`
+Make the smallest production change that gives the intended behaviour and preserves neighbouring contracts.
+- `cursor_plugins:skill:pstack/skills/tdd` — reject
 
 #### `deterministic-state`
 Prefer deterministic inputs and isolated state, controlling time, randomness and shared state that cause nondeterminism.
@@ -8931,10 +10172,30 @@ Test the material abuse path and legitimate use, verify authorization per resour
 When the failing check that showed the bug already fails for the reported reason, use it as the regression check and show it passing after the fix.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/bug-fix.md`
 
+#### `failure-for-the-right-reason`
+Run a new test before fixing and, if it passes or fails for another reason, correct the test or reproduction first.
+- `cursor_plugins:skill:pstack/skills/tdd` — adopt, pending cr-r2pa.2.18 → test-driven-development#failure-for-the-right-reason
+
+#### `flaky-test-names-its-signal`
+For a flaky bug, remove nondeterminism from the test as far as possible and document which signal it pins.
+- `cursor_plugins:skill:pstack/skills/tdd` — adopt, pending cr-r2pa.2.18 → test-driven-development#flaky-test-names-its-signal
+
+#### `focused-first-then-siblings`
+When a bug reveals a wider failure class, land the focused regression first and only then consider related coverage.
+- `cursor_plugins:skill:pstack/skills/tdd` — adopt, pending cr-r2pa.2.18 → test-driven-development#focused-first-then-siblings
+
+#### `focused-regression-test`
+Write the smallest test focused on this bug, without broad fixture changes or added unrelated coverage.
+- `cursor_plugins:skill:pstack/skills/tdd` — adopt, pending cr-r2pa.2.18 → test-driven-development#focused-regression-test
+
 #### `full-verification-at-completion`
 At the end of a planned migration or rewrite, run full static and runtime verification, not only the checks the last change touched.
 - ours: `principle-migrate-without-shims`
 - `cursor_plugins:skill:pstack/skills/principle-outcome-oriented-execution` — adopt → principle-migrate-without-shims#full-verification-at-completion
+
+#### `green-on-break-test-fixed`
+Repair or remove a test that stays green when its behaviour breaks.
+- `cursor_plugins:skill:pstack/skills/correct` — adopt, pending cr-r2pa.2.18 → principle-test-behavior-not-implementation#green-on-break-test-fixed
 
 #### `hollow-test-forms`
 Check a test for the usual hollow forms: an assertion looser than the contract, a restated constant the code never reads, or an assertion on data the test built itself.
@@ -8944,6 +10205,7 @@ Check a test for the usual hollow forms: an assertion looser than the contract, 
 #### `implementation-test-deletion`
 When internals change, rewrite or delete tests that only protect the old implementation, asserting the current contract instead.
 - ours: `principle-test-behavior-not-implementation`
+- `cursor_plugins:skill:pstack/skills/correct` — reject
 - `cursor_plugins:skill:pstack/skills/principle-migrate-callers-then-delete-legacy-apis` — adopt → principle-test-behavior-not-implementation#implementation-test-deletion
 - `cursor_plugins:skill:pstack/skills/principle-test-behavior-not-implementation` — adopt → principle-test-behavior-not-implementation#implementation-test-deletion
 
@@ -8963,6 +10225,10 @@ Assert meaningful results, state or boundary interactions at a stable boundary r
 - `cursor_plugins:skill:pstack/skills/principle-test-behavior-not-implementation` — adopt → test-driven-development#meaningful-behaviour-assertion
 - `mattpocock_skills:skill:skills/engineering/tdd` — adopt → test-driven-development#meaningful-behaviour-assertion
 
+#### `missing-red-explained`
+If a failure before the fix could not be shown, say why and describe the substitute check.
+- `cursor_plugins:skill:pstack/skills/tdd` — adopt, pending cr-r2pa.2.18 → test-driven-development#missing-red-explained
+
 #### `mock-boundaries`
 Use test doubles only at boundaries, never in place of the behaviour under test.
 - ours: `test-driven-development`
@@ -8970,11 +10236,27 @@ Use test doubles only at boundaries, never in place of the behaviour under test.
 #### `no-implementation-coupling`
 Avoid tests coupled to the implementation's internal structure, so they survive behaviour-preserving refactors.
 - ours: `test-driven-development`
+- `cursor_plugins:skill:pstack/skills/tdd` — adopt → test-driven-development#no-implementation-coupling
 - `mattpocock_skills:skill:skills/engineering/tdd` — adopt → test-driven-development#no-implementation-coupling
+
+#### `no-mocking-what-can-run`
+Mock only what cannot run locally, and avoid mocks for anything that can.
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — reject
+
+#### `no-test-over-bad-test`
+Prefer adding nothing to a test that mostly exercises mocks, encodes internals, depends on timing or global state, needs costly infrastructure for a minor fix, or would be discarded right after.
+- `cursor_plugins:skill:pstack/skills/tdd` — adopt, pending cr-r2pa.2.18 → test-driven-development#no-test-over-bad-test
+
+#### `no-tests-bent-or-weakened`
+Do not change tests to agree with wrong behaviour, and keep existing assertions as strong unless expected behaviour truly changed for a clear reason.
+- `cursor_plugins:skill:pstack/skills/tdd` — adopt, pending cr-r2pa.2.18 → test-driven-development#no-tests-bent-or-weakened
 
 #### `one-assertion-per-test`
 Keep one logical assertion per test.
 - `mattpocock_skills:skill:skills/engineering/tdd` — defer
+
+#### `optional-regression-test-skip`
+Skip only an optional regression test whose cost outweighs its risk, keeping required proof and project gates and reporting any proof that could not be obtained.
 
 #### `original-failure-check`
 Make a check for a bug one that detects the original failure.
@@ -8989,6 +10271,10 @@ Exercise behaviour in tests through public interfaces.
 - ours: `principle-test-behavior-not-implementation`
 - `doc:.repo-context/coding-style.md`
 - `cursor_plugins:skill:pstack/skills/principle-test-behavior-not-implementation` — adopt → principle-test-behavior-not-implementation#public-interface-testing
+
+#### `real-test-primitives-with-leak-checks`
+Prefer the framework's real test primitives along with leak and disposable checks.
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
 
 #### `regression-check`
 Turn the failure into a durable regression check when feasible, showing failure before the fix and success after, then rerun the original scenario.
@@ -9043,6 +10329,10 @@ Prefer a test database to mocking the database.
 Prefer parametrized tests to repeated test bodies.
 - `doc:.repo-context/coding-style.md`
 
+#### `test-skipped-when-impractical`
+Add no new test when it would demand wide harness setup, fragile mocks, slow full-stack infrastructure, production-only state, unclear reproduction or heavy unrelated fixtures, and never build a test path from nothing just to follow the workflow.
+- `cursor_plugins:skill:pstack/skills/tdd` — adopt, pending cr-r2pa.2.18 → test-driven-development#optional-regression-test-skip
+
 #### `touched-area-checks`
 During a migration, keep fast high-signal checks running on the areas being changed.
 - ours: `principle-migrate-without-shims`
@@ -9052,6 +10342,10 @@ During a migration, keep fast high-signal checks running on the areas being chan
 Judge every test by two imagined edits: breaking the behaviour must fail it, and restructuring the internals must not.
 - ours: `principle-test-behavior-not-implementation`
 - `cursor_plugins:skill:pstack/skills/principle-test-behavior-not-implementation` — adopt → principle-test-behavior-not-implementation#two-edit-test-judgement
+
+#### `verify-ui-in-running-build`
+Confirm interface behaviour in an actual running build.
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
 
 ### engineering · Verification · Validation
 
@@ -9218,6 +10512,7 @@ Land every ticket of a multi-ticket build on one integration branch.
 #### `small-single-purpose-commits`
 Keep each commit small and about one thing.
 - ours: `principle-sequence-verifiable-units`
+- `cursor_plugins:skill:pstack/skills/correct` — reject
 - `cursor_plugins:skill:pstack/skills/principle-foundational-thinking` — adopt → principle-sequence-verifiable-units#small-single-purpose-commits
 
 #### `trace-intent`
@@ -9245,6 +10540,7 @@ Have each implementer confirm its worktree is based on the integration branch an
 #### `build-check-over-rule`
 Default to building a deterministic check over writing a prose rule for any mechanical finding.
 - ours: `authoring-for-agents`
+- `cursor_plugins:skill:pstack/skills/correct` — adopt → authoring-for-agents#build-check-over-rule
 - `mattpocock_skills:skill:skills/engineering/retro` — adopt → authoring-for-agents#build-check-over-rule
 
 #### `document-boundary-readme`

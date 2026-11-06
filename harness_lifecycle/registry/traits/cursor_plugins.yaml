@@ -325,3 +325,114 @@
       traits: [break-it-mandate, run-proven-finding, inspection-only-authority, named-scope-first, merge-base-through-tree-scope, intent-restated-first, intent-from-request-commits-pr, ask-when-intent-unclear, role-model-config-line, own-output-location, one-message-fan-out, dropout-proceeds-noted, uncommitted-changes-seeded, general-purpose-adversary, adversary-fixed-brief, run-against-real-code, design-proof-by-probe, repros-stay-in-copy, finding-repro-report, style-findings-excluded, future-change-risk-excluded, no-findings-valid, coordinator-replays-finding, reproduced-and-breaks-intent, drop-unverified-findings, merge-by-root-cause, no-judge-pick-or-graft, union-of-verified-findings, output-opens-with-intent, output-finding-fields, adversary-attribution, dropped-finding-accounting]
       added: {}
       changed: {}
+# Batch P1: eleven skills at 4dd1d05, proposed.
+"cursor_plugins:skill:pstack/skills/bro":
+  accepted: "4dd1d05"
+  proposed: null
+  analyses:
+    "4dd1d05":
+      tree_hash: "f20a76d629ff552e85205507bcab051cc33667943f2c5bb5879b0475f26c7429"
+      placement: {domain: core, stage: X, substage: Communication}
+      traits: [repitch-trigger, controlled-language, jargon-free-restatement]
+      added: {}
+      changed: {}
+"cursor_plugins:skill:pstack/skills/in-your-own-words":
+  accepted: "4dd1d05"
+  proposed: null
+  analyses:
+    "4dd1d05":
+      tree_hash: "eaacabc9a2c7a1a674334a4e01e5900a6f7a764d405237ce17d4e4200cf528be"
+      placement: {domain: core, stage: Intake, substage: Clarification}
+      traits: [goal-and-problem-restatement]
+      added: {}
+      changed: {}
+"cursor_plugins:skill:pstack/skills/sharpen":
+  accepted: "4dd1d05"
+  proposed: null
+  analyses:
+    "4dd1d05":
+      tree_hash: "c119c01bcec1578cd29dd4a77df24da0530fd9224198dedacc36ddb2152c1663"
+      placement: {domain: core, stage: Intake, substage: Clarification}
+      traits: [depth-not-scope-rewrite, diagnose-then-rewrite-prompt, expert-gap-question, rawest-source-question, expert-methods-question, outside-correctness-signal, owner-choices-left-open]
+      added: {}
+      changed: {}
+"cursor_plugins:skill:pstack/skills/teach":
+  accepted: "4dd1d05"
+  proposed: null
+  analyses:
+    "4dd1d05":
+      tree_hash: "c5390d21db37db654adb05ac21f150561ab70fb64f419f13a6821579726e8c0c"
+      placement: {domain: core, stage: U, substage: Tutoring}
+      traits: [inspection-only-authority, what-how-why-account, single-blended-account, lead-with-what-matters, confidence-language-kept, pick-few-takeaways, learner-context-from-conversation, depth-where-asked, orient-then-use-investigation, parallel-investigations-combined, investigation-sized-to-question, narrow-rationale-search, plain-definition-first, general-tied-to-local-case, build-up-order, problem-and-mechanism-per-part, walkthrough-of-user-action, no-symbol-inventory, no-labels-or-step-words, smallest-complete-answer-first, offer-depth-follow-lead, no-quizzes, no-teaching-theatre, one-shot-delivery-mode, show-the-real-artifact, figure-when-faster, incremental-diagram-series, figure-kind-by-idea, complementary-figures, generated-image-for-spatial-ideas, plain-colleague-voice, mechanism-not-metaphor, density-exemplar, sentence-case-prose, no-em-dash, comma-budget, synonym-cycling-cut, no-mirror-or-tidy-closer, reply-is-the-deliverable, threads-to-chase]
+      added: {}
+      changed: {}
+"cursor_plugins:skill:pstack/skills/no-comments":
+  accepted: "4dd1d05"
+  proposed: null
+  analyses:
+    "4dd1d05":
+      tree_hash: "c6ebd67b8bef1885ff6052a1f6c740d3e8fb92a0d5137db1f1480eb95dcb3049"
+      placement: {domain: core, stage: Verification, substage: Review}
+      traits: [merge-base-through-tree-scope, named-scope-first, comment-critic-role, defer-to-fresh-critic, role-rules-not-restated, job-fit-helper-effort, read-worker-output, critic-out-of-bounds-refused, comment-exception-gate, misstated-kill-reason-refused, kept-code-not-guilty, reshape-flags-stay-open, comment-keep-needs-proof, missed-suppression-audit, safety-suppressions-removed, thin-importance-comment-check, ambiguous-comment-deleted, one-named-rerun-then-fail, trivial-flag-direct-fix, one-sketch-for-accepted-set, smallest-in-scope-root-cause-fix, named-workarounds-removed, principles-never-widen-scope, no-symptom-guards, constraint-comment-class, unchangeable-constraint-kept, cheapest-enforcement-offer, encoding-approval-gate, encode-then-delete, unencoded-constraint-reported, comment-audit-report]
+      added: {}
+      changed: {}
+"cursor_plugins:skill:pstack/skills/typescript-best-practices":
+  accepted: "4dd1d05"
+  proposed: null
+  analyses:
+    "4dd1d05":
+      tree_hash: "fb35e49d1b6a48fa42d81fff0e4e9834b8f98e0ebcf188203680f1f4265df690"
+      placement: {domain: engineering, stage: Building, substage: Implementation}
+      traits: [literal-discriminant-unions, no-optional-field-bags, one-discriminant-name, branded-primitives, reuse-existing-brand-shape, brand-only-through-verifying-guard, unrepresentable-invalid-states, nonempty-variadic-tuple, single-narrowing-guard, even-length-as-pairs, range-as-start-plus-duration, brand-only-on-confusion-risk, readings-over-representation, simplest-total-type, weaken-result-alternative, external-data-is-unknown, narrow-before-use, external-source-enumeration, check-for-schema-library-first, one-schema-validates-and-types, safe-parse-for-expected-failure, repo-schema-helper-equivalent, no-new-schema-dependency-for-one-guard, no-unverified-casts, no-partial-property-guard, validator-annotated-with-type, diagnose-cast-before-removing, cast-fix-add-discriminant, cast-fix-narrow-source, cast-fix-parse-boundary, cast-fix-brand-or-satisfies, narrowing-preference-order, guards-must-verify, guard-naming-convention, discriminant-over-guard, exhaustive-variant-handling, exhaustiveness-arm-by-switch-kind, satisfies-over-cast, parse-at-boundary, loose-record-stops-at-parse, trust-internal-types, wire-parse-ignores-unknown-fields, persisted-json-versioned, persisted-json-guarded-parse, schema-derived-types, type-utilities-before-new-interface, object-arguments, hot-path-positional-exception, no-mocking-what-can-run, real-test-primitives-with-leak-checks, verify-ui-in-running-build, diagnostics-traceable-from-id, no-console-log-in-shipped-code]
+      added: {}
+      changed: {}
+"cursor_plugins:skill:pstack/skills/correct":
+  accepted: "4dd1d05"
+  proposed: null
+  analyses:
+    "4dd1d05":
+      tree_hash: "63f55b279f1298d3cabe91999063920cdc2a2f16a671cb8fbd87ddecc7fde216"
+      placement: {domain: core, stage: Improvement, substage: Codification}
+      traits: [recurring-lesson-to-check, next-agent-test, mine-and-group-mistakes, two-occurrence-threshold, fix-at-highest-level, split-ownership-flag, one-way-per-task, unreachable-internals, derived-or-checked-lists, delete-copyable-old-ways, unrepresentable-invalid-states, check-error-names-replacement, ratchet-on-common-patterns, green-on-break-test-fixed, implementation-test-deletion, build-check-over-rule, most-frequent-classes-first, small-single-purpose-commits, check-proved-on-real-mistake, same-command-local-and-ci, inline-exception-with-reason, expiring-exceptions, human-approved-exceptions, rule-to-enforcer-table, correction-adds-rule, unenforced-repeat-escalation, structural-fix-only, class-evidence-level-report]
+      added: {}
+      changed: {}
+"cursor_plugins:skill:pstack/skills/recall":
+  accepted: "4dd1d05"
+  proposed: null
+  analyses:
+    "4dd1d05":
+      tree_hash: "8e6788a97b3cf8081d43f88834c00143883b1bc51aaa1c1add20c7a21a3ee97e"
+      placement: {domain: core, stage: X, substage: Continuity}
+      traits: [current-state-capsule-goal, scoped-reading, two-record-context-model, transcript-location-convention, recall-routes-away, skip-mining-with-supplied-state, lock-scope-before-search, seven-day-default-window, active-workspace-only-default, no-silent-narrowing, cheap-model-fan-out, order-by-real-mtime, grep-then-read-matching-regions, exclude-current-and-noise-chats, uniform-per-chat-schema, finding-cited-by-source-kind, direct-search-for-small-corpus, bulk-to-subagents, job-fit-helper-effort, default-shared-record-sweep, one-investigator-per-source, retarget-investigator-question, sweep-parallel-to-mining, empty-search-is-finding, unreachable-data-is-gap, primary-evidence-check, full-transcript-for-agent-behaviour, brief-grouped-by-thread, brief-section-order, capped-capsule-section, status-tagged-thread-lines, capped-recurring-problems, single-next-move, adjacent-excluded-unless-blocking, cut-detail-before-threads, secret-containment, reply-is-the-deliverable]
+      added: {}
+      changed: {}
+"cursor_plugins:skill:pstack/skills/tdd":
+  accepted: "4dd1d05"
+  proposed: null
+  analyses:
+    "4dd1d05":
+      tree_hash: "c88ebf09cd7df89476eca9afb62748d73ca00346cfb044852c0bbb4066e78e27"
+      placement: {domain: engineering, stage: Verification, substage: Testing}
+      traits: [red-green, test-skipped-when-impractical, bug-understanding-checklist, closest-existing-test-kind, no-implementation-coupling, failure-for-the-right-reason, contract-preserving-fix, closest-executable-fallback, no-test-over-bad-test, no-tests-bent-or-weakened, focused-regression-test, flaky-test-names-its-signal, focused-first-then-siblings, before-after-proof-report, missing-red-explained]
+      added: {}
+      changed: {}
+"cursor_plugins:skill:pstack/skills/figure-it-out":
+  accepted: "4dd1d05"
+  proposed: null
+  analyses:
+    "4dd1d05":
+      tree_hash: "a668ab58a7469897210f09599e1a1dbd0ef55f60927c212be622ccf2eb3a14e7"
+      placement: {domain: core, stage: X, substage: Coordination}
+      traits: [design-workflow-before-code, phase-todos, principles-first-todo, framing-before-run, falsifiable-done-predicate, quantified-scope-with-blockers, rigor-biased-high-by-reversibility, rigor-means-gates-and-artifacts, framing-and-tradeoffs-shown, reversible-work-proceeds, single-checkpoint-on-long-run, independently-landable-units, riskiest-unknown-first, scaffold-first, harness-with-pre-change-baseline, design-contest-on-one-way-doors, fan-out-across-seams-only, worktree-or-branch-per-worker, job-fit-helper-effort, written-phase-list-for-review, designed-steps-as-todos, rolling-log-rows, hypothesis-per-unit, smallest-evidenced-change, keep-or-revert-on-predicate, verified-unit-sequence, direct-observation, too-easy-pass-suspicion, judge-paired-with-delegation, reset-and-harden-on-gate-gaming, fix-wrong-gate-separately, three-value-verdict, no-hidden-negatives, commit-on-reviewer-need, whole-result-on-real-product, recurring-lesson-to-check, designed-run-reply-fields]
+      added: {}
+      changed: {}
+"cursor_plugins:skill:pstack/skills/blast-radius":
+  accepted: "4dd1d05"
+  proposed: null
+  analyses:
+    "4dd1d05":
+      tree_hash: "83927611fb04217ba6855e2bf40f9401de4819031f18f331426e72312e2aa562"
+      placement: {domain: core, stage: Verification, substage: Review}
+      traits: [breakage-beyond-callers, safety-fact-proved-by-run, evidence-ladder, ladder-as-far-as-cheap, small-real-library-script, failing-loud-proof, whole-change-including-unstated, change-history-pull, single-safety-fact-search, dependency-source-and-pin, timing-and-lifecycle-analysis, non-symbol-coupling-trace, likelihood-and-cost-per-risk, confirmed-and-cleared-split, empty-search-is-finding, no-fabrication, multi-model-question-on-wide-change, handback-what-it-does, handback-safety-fact-with-grade, handback-risk-fields, handback-pre-merge-check, secret-containment]
+      added: {}
+      changed: {}

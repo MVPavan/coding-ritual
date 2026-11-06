@@ -24,6 +24,8 @@ from curation.registry.models import (
 )
 from curation.registry.vocab import _SLUG_RE, _TRAIT_ID_RE, PRINCIPLE_PREFIX
 
+_FENCE_OPEN = re.compile(r"^ {0,3}(`{3,}(?=[^`]*$)|~{3,})")
+
 
 class _StrictYamlLoader(yaml.SafeLoader):
     """`yaml.safe_load` that errors on a duplicate mapping key (§3): PyYAML keeps
@@ -223,6 +225,27 @@ def unit_file(cfg: RegistryConfig, name: str) -> Path:
     return cfg.skills_dir / name / "SKILL.md"
 
 
+def _unfenced_lines(text: str) -> list[str]:
+    """`text`'s lines outside fenced code blocks: a fence closes only on a line
+    of its own character, at least as long, as in the catalog's `routed_text`."""
+    kept: list[str] = []
+    fence = ""
+    for line in text.splitlines():
+        if fence:
+            stripped = line.strip()
+            if (
+                len(line) - len(line.lstrip(" ")) <= 3
+                and stripped.startswith(fence)
+                and not stripped.strip(fence[0])
+            ):
+                fence = ""
+        elif opened := _FENCE_OPEN.match(line):
+            fence = opened.group(1)
+        else:
+            kept.append(line)
+    return kept
+
+
 def _principle_situation(cfg: RegistryConfig, name: str) -> str:
     """A principle's situation: its line in the router's live `## Principles`
     section, the only copy (unit-kinds P1). Comments and fenced examples route
@@ -234,13 +257,11 @@ def _principle_situation(cfg: RegistryConfig, name: str) -> str:
     text = re.sub(
         r"<!--.*?-->", "", cfg.router_path.read_text(encoding="utf-8"), flags=re.DOTALL
     )
-    in_section = in_fence = False
-    for line in text.splitlines():
-        if line.lstrip().startswith(("```", "~~~")):
-            in_fence = not in_fence
-        elif not in_fence and line.startswith("## "):
+    in_section = False
+    for line in _unfenced_lines(text):
+        if line.startswith("## "):
             in_section = line[3:].strip() == "Principles"
-        elif not in_fence and in_section and (found := entry.fullmatch(line.rstrip())):
+        elif in_section and (found := entry.fullmatch(line.rstrip())):
             return " ".join(found.group(1).split())
     return ""
 

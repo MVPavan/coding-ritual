@@ -20,7 +20,6 @@ import yaml
 
 from curation.registry import catalogs, cli, config, ledger, loaders, models, vocab
 from curation.registry import traits as trait_facts
-from curation.registry.checks import playbooks as playbook_checks
 from curation.registry.checks import records as record_checks
 from curation.registry.views import records as record_views
 from curation.scan import catalog as scan
@@ -246,34 +245,76 @@ def test_ours_catalogs_our_skills(tmp_path: Path) -> None:
     assert "skill:skills/planning" in catalogs.build_ours(cfg).by_logical_id()
 
 
-def test_principle_is_a_routed_file_not_a_skill_folder(tmp_path: Path) -> None:
-    cfg = _make_cfg(tmp_path)
+def test_principle_is_a_routed_file_not_a_skill_folder(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    cfg = _baseline(tmp_path)
     name = "principle-example"
     _write_record(cfg, name, "engineering", "Design", "Architecture")
-    entries = loaders.load_records(cfg)
-    coverage = record_checks._check_skill_coverage
+    playbook = cfg.playbooks_dir / "route.md"  # type: ignore[attr-defined]
+    playbook.parent.mkdir(parents=True)
+    playbook.write_text(
+        "---\ntrigger: Route it.\nsteps:\n  - id: route#1\n    when: always\n"
+        f'    calls: [{{to: "skill:{name}"}}]\n---\n# Route\n',
+        encoding="utf-8",
+    )
 
-    missing = "skills.yaml: principle-example: no file"
-    assert any(missing in e for e in coverage(cfg, entries))
+    def check_output() -> str:
+        cli.cmd_check(cfg, _ns())
+        return capsys.readouterr().err
 
-    cfg.principles_dir.mkdir(parents=True)  # type: ignore[attr-defined]
+    no_file = f"skills.yaml: {name}: no file"
+    unresolved = f"call 'skill:{name}'"
+    output = check_output()
+    assert no_file in output
+    assert unresolved in output
+
+    cfg.principles_dir.mkdir()  # type: ignore[attr-defined]
     file = cfg.principles_dir / "example.md"  # type: ignore[attr-defined]
     file.write_text("# Example\n", encoding="utf-8")
     cfg.router_path.write_text(  # type: ignore[attr-defined]
-        "<!--\n- `principles/example.md`: a commented-out situation.\n-->\n"
         "## Principles\n\n- `principles/example.md`: the example situation holds.\n",
         encoding="utf-8",
     )
-    assert not any(name in e for e in coverage(cfg, entries))
-    assert any(name in e for e in coverage(cfg, {}))  # a file with no entry
+    output = check_output()
+    assert no_file not in output
+    assert unresolved not in output
     assert loaders.skill_description(cfg, name) == "the example situation holds."
-    assert playbook_checks._call_errors(cfg, "w", f"skill:{name}", {}) == []
 
-    ours = catalogs.build_ours(cfg)
-    assert f"skill:skills/{name}" in ours.by_logical_id()
-    before = trait_facts._our_tree_hashes(ours)[name]
+    # A principle file with no entry.
+    (cfg.principles_dir / "unlisted.md").write_text("# Unlisted\n", encoding="utf-8")  # type: ignore[attr-defined]
+    assert "principle-unlisted: no skills.yaml entry" in check_output()
+
+    def tree_hash() -> str:
+        item = catalogs.build_ours(cfg).by_logical_id()[f"skill:skills/{name}"]
+        return item.tree_hash  # type: ignore[no-any-return]
+
+    before = tree_hash()
     file.write_text("# Edited\n", encoding="utf-8")
-    assert trait_facts._our_tree_hashes(catalogs.build_ours(cfg))[name] != before
+    assert tree_hash() != before
+
+
+LIVE_LINE = "- `principles/example.md`: live situation.\n"
+EXAMPLE_LINE = "- `principles/example.md`: example only.\n"
+
+
+@pytest.mark.parametrize(
+    "example",
+    [
+        f"<!--\n{EXAMPLE_LINE}-->\n",
+        f"```\n{EXAMPLE_LINE}```\n",
+        f"````markdown\n```\n{EXAMPLE_LINE}````\n",
+        f"~~~~\n~~~\n{EXAMPLE_LINE}~~~~\n",
+    ],
+    ids=["comment", "fence", "backticks-inside-longer", "tildes-inside-longer"],
+)
+def test_principle_situation_skips_examples(tmp_path: Path, example: str) -> None:
+    cfg = _make_cfg(tmp_path)
+    cfg.router_path.parent.mkdir(parents=True)  # type: ignore[attr-defined]
+    cfg.router_path.write_text(  # type: ignore[attr-defined]
+        f"## Principles\n\n{example}{LIVE_LINE}", encoding="utf-8"
+    )
+    assert loaders.skill_description(cfg, "principle-example") == "live situation."
 
 
 def test_build_ours_excludes_plugin_template(tmp_path: Path) -> None:

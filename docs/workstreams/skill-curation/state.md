@@ -61,7 +61,8 @@ deleted. Beads is the work-state authority; this file is the narrative.
 | `815df70` | The ledger reads in recording order, not filename order (`cr-an42`) |
 | `cee1ab3` | Principles stop being skills: the 14 move to `mvp-mode/principles/` (owner ruling 2026-11-05, round `2026-11-05-principle-move`) |
 | `5a58e2e` | Two principle edits from the prompting-guide review (round `2026-11-05-principle-edits`) |
-| after `5a58e2e` | `delegation`'s brief names the principles that apply (round `2026-11-05-delegation-principles`) |
+| `9fe4027` | `delegation`'s brief names the principles that apply (round `2026-11-05-delegation-principles`) |
+| after `9fe4027` | Batch P1 ruled and recorded (`cr-r2pa.2.13`, round `2026-11-06-batch-p1`), with the principle-file fixes to `loaders.py`, see below |
 
 `main` is at `eb36cc9`; later work is on `mvp-stack` until the owner asks to merge.
 `mvp-stack` is pushed through `delegation`'s principle line; later commits are local until the owner says to push.
@@ -159,7 +160,11 @@ critic, owner rulings, ledger, build, Sol review, commit after the owner approve
   choose the order: `check` cannot always tell which is right.
 - `cr-r2pa.2.13`: analyse every skill of ours, Pocock and pstack, scope agreed: full trait-level
   analysis of pstack's unanalysed and Pocock's whole-ruled skills in small batches; a recorded reason
-  for our thin shortcuts. Batch P1 is drafted, uncommitted and unsealed, waiting on owner decisions.
+  for our thin shortcuts. Batch P1 (eleven pstack skills, 274 rows) is ruled and recorded (round
+  `2026-11-06-batch-p1`): the owner accepted it as recommended on 2026-11-06 and made `recall` a new
+  skill. 153 adopts are pending on `cr-r2pa.2.18`, which builds them; rows into a new unit carry no
+  frozen wording, so each new body's critic maps every row to `file:line`. `principle-no-comments`
+  waits for the keep-list in pstack's `agents/comment-sicko.md`. Nothing of P1 is built yet.
 - Principles against the prompting guides: proposal in
   `scratchpad/mvp-stack/12b/principles-vs-guides.md` (gitignored), critic `critic-12c.md`. Ruled:
   keep 7, small edit 2 (done), keep until tested 5, cut none. A search of past sessions
@@ -167,8 +172,8 @@ critic, owner rulings, ledger, build, Sol review, commit after the owner approve
   now names them in briefs; check that on real runs. Editing a principle stales both its own hash and
   `mvp-mode`'s, because `mvp-mode`'s folder hash covers `principles/`.
 - Owner rulings of 2026-11-05 on merges, splits, renames and new units:
-  `scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md`. P1's report is revised to them and awaits a
-  Sol re-check, then the owner's own rulings on P1.
+  `scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md`; P1's ruling is section G there. The renames,
+  splits, two restored principles and the move of `suspect-the-observation` are their own batch, still to do.
 - `cr-r2pa.3.3`: at the end of the project, show the owner everything deferred or
   rejected, from the ledger's `defer` events, the deferred beads and each
   `deliberately_dropped` with its `revisit_when`, to revise and adapt.
@@ -178,7 +183,6 @@ critic, owner rulings, ledger, build, Sol review, commit after the owner approve
 | Path | State |
 |---|---|
 | `harness_lifecycle/registry/reviews/2026-10-22-upstream-mattpocock_skills-1.3.1-47.md` | superseded idea-level draft; delete or archive at the owner's word |
-| `harness_lifecycle/registry/{TRAITS.md,references/cursor_plugins.md,trait-definitions.yaml,traits/cursor_plugins.yaml}`, `reviews/2026-11-04-upstream-cursor_plugins-4dd1d05-batch-p1.{yaml,md}` | batch P1 draft, unsealed; awaits owner decisions |
 | `.beads/issues.jsonl`, `.claude/agents/*`, `tools/T3/*` | not this workstream; leave alone |
 
 ## Next, in order

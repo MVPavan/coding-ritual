@@ -33,9 +33,11 @@ writing, changing or keeping any test.
 - **cursor_plugins:skill:pstack/skills/principle-foundational-thinking#behaviour-and-edge-case-tests** `pstack/skills/principle-foundational-thinking/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
 - **cursor_plugins:skill:pstack/skills/principle-migrate-callers-then-delete-legacy-apis#implementation-test-deletion** `pstack/skills/principle-migrate-callers-then-delete-legacy-apis/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
 - **cursor_plugins:skill:pstack/skills/principle-test-behavior-not-implementation#implementation-test-deletion** `pstack/skills/principle-test-behavior-not-implementation/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/correct#green-on-break-test-fixed** `pstack/skills/correct/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe (pending cr-r2pa.2.18)
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-06` **adopt** (2026-11-06-batch-p1:155): Owner ruling 2026-11-06: Prevents: A test that cannot fail kept because its judgement was never acted on, so it gives false confidence. Lands in principle-test…
 - `2026-11-05` **update** (2026-11-05-principle-move:014): Owner ruling of 2026-11-05: moved from a skill folder to a file read by path; frontmatter and sidecar removed; the rule text is unchanged; the situation now li…
 - `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:200): Completes pending 2026-11-01-cursor_plugins-pstack-principles:124: the principles build (cr-r2pa.1.2) delivered implementation-test-deletion in principle-test-…
 - `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:199): Completes pending 2026-11-01-cursor_plugins-pstack-principles:072: the principles build (cr-r2pa.1.2) delivered implementation-test-deletion in principle-test-…
@@ -56,7 +58,7 @@ writing, changing or keeping any test.
 <!-- /registry:generated history -->
 
 <!-- registry:generated reviews -->
-None yet.
+- [2026-11-04-upstream-cursor_plugins-4dd1d05-batch-p1.md](../../reviews/2026-11-04-upstream-cursor_plugins-4dd1d05-batch-p1.md)
 <!-- /registry:generated reviews -->
 
 <!-- registry:generated sources -->

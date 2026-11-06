@@ -85,9 +85,11 @@ Use when a calling playbook names it, or when asked for a reviewable trail of a 
 - **cursor_plugins:skill:pstack/skills/show-me-your-work#trail-review-flags** `pstack/skills/show-me-your-work/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
 - **cursor_plugins:skill:pstack/skills/show-me-your-work#attention-section** `pstack/skills/show-me-your-work/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
 - **cursor_plugins:skill:pstack/skills/show-me-your-work#script-evidence-preference** `pstack/skills/show-me-your-work/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/figure-it-out#commit-on-reviewer-need** `pstack/skills/figure-it-out/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-06` **adopt** (2026-11-06-batch-p1:258): Owner ruling 2026-11-06: `decision-trail`, which the Trail step calls, already holds its modified form: it proposes a commit and commits only with authority, a…
 - `2026-11-02` **adopt** (2026-11-02-batch-2:158): Completes pending 2026-11-02-batch-2:085: script-evidence-preference is written at .claude/skills/decision-trail/SKILL.md:26-27, read against its definition (T…
 - `2026-11-02` **adopt** (2026-11-02-batch-2:157): Completes pending 2026-11-02-batch-2:081: attention-with-coverage is written at .claude/skills/decision-trail/SKILL.md:67-73, read against its definition (T5).
 - `2026-11-02` **adopt** (2026-11-02-batch-2:156): Completes pending 2026-11-02-batch-2:080: trail-review-flags is written at .claude/skills/decision-trail/SKILL.md:59-60, read against its definition (T5).
@@ -159,6 +161,7 @@ Use when a calling playbook names it, or when asked for a reviewable trail of a 
 <!-- /registry:generated history -->
 
 <!-- registry:generated reviews -->
+- [2026-11-04-upstream-cursor_plugins-4dd1d05-batch-p1.md](../../reviews/2026-11-04-upstream-cursor_plugins-4dd1d05-batch-p1.md)
 - [2026-11-02-upstream-cursor_plugins-4dd1d05-reconsider.md](../../reviews/2026-11-02-upstream-cursor_plugins-4dd1d05-reconsider.md)
 - [2026-11-01-upstream-cursor_plugins-4dd1d05-batch-2.md](../../reviews/2026-11-01-upstream-cursor_plugins-4dd1d05-batch-2.md)
 <!-- /registry:generated reviews -->
@@ -205,6 +208,7 @@ Use when a calling playbook names it, or when asked for a reviewable trail of a 
 - `plain-row-wording`:
   - `cursor_plugins:skill:pstack/skills/show-me-your-work#plain-row-wording` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `proposed-trail-commit`:
+  - `cursor_plugins:skill:pstack/skills/figure-it-out#commit-on-reviewer-need` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
   - `cursor_plugins:skill:pstack/skills/show-me-your-work#commit-on-reviewer-need` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `row-per-iteration`:
   - `cursor_plugins:skill:pstack/skills/show-me-your-work#row-per-iteration` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)

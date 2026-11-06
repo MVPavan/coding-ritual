@@ -80,9 +80,22 @@ Use when creating or changing agent instructions or their activation behavior. S
 - **mattpocock_skills:skill:skills/productivity/writing-for-agents#relevance-check** `skills/productivity/writing-for-agents/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/productivity/writing-for-agents#sharpen-before-inline** `skills/productivity/writing-for-agents/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/productivity/writing-for-agents#split-by-invocation** `skills/productivity/writing-for-agents/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **cursor_plugins:skill:pstack/skills/correct#fix-at-highest-level** `pstack/skills/correct/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe (pending cr-r2pa.2.18)
+- **cursor_plugins:skill:pstack/skills/correct#check-error-names-replacement** `pstack/skills/correct/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe (pending cr-r2pa.2.18)
+- **cursor_plugins:skill:pstack/skills/correct#ratchet-on-common-patterns** `pstack/skills/correct/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe (pending cr-r2pa.2.18)
+- **cursor_plugins:skill:pstack/skills/correct#build-check-over-rule** `pstack/skills/correct/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/correct#check-proved-on-real-mistake** `pstack/skills/correct/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe (pending cr-r2pa.2.18)
+- **cursor_plugins:skill:pstack/skills/correct#structural-fix-only** `pstack/skills/correct/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-06` **adopt-merged** (2026-11-06-batch-p1:170): Checkpoint at 4dd1d05 for the owner's trait rulings: 8 adopt, 8 defer, 12 reject.
+- `2026-11-06` **adopt** (2026-11-06-batch-p1:168): Owner ruling 2026-11-06: Ours replaces the restating instruction with a pointer, so a reader learns the check exists (`2026-11-01-cursor_plugins-pstack-princip…
+- `2026-11-06` **adopt** (2026-11-06-batch-p1:160): Owner ruling 2026-11-06: Prevents: A new check that passes because it could never fail, and so catches nothing. Lands in authoring-for-agents, SKILL.md, Choose…
+- `2026-11-06` **adopt** (2026-11-06-batch-p1:157): Owner ruling 2026-11-06: The surface table proposes a hook, check or script before a prose rule.
+- `2026-11-06` **adopt** (2026-11-06-batch-p1:154): Owner ruling 2026-11-06: Prevents: A useful check that never lands because the code already breaks it in many places. Lands in authoring-for-agents, SKILL.md, …
+- `2026-11-06` **adopt** (2026-11-06-batch-p1:153): Owner ruling 2026-11-06: Prevents: A check an agent silences or works around because its error does not say what to do. Lands in authoring-for-agents, SKILL.md…
+- `2026-11-06` **adopt** (2026-11-06-batch-p1:146): Owner ruling 2026-11-06: Prevents: A lint or a note added for a mistake that a type or a structural change would have made impossible. Lands in authoring-for-a…
 - `2026-11-04` **defer** (2026-11-04-pocock-pass:040): Owner ruling 2026-11-04: cancels the pending adoption and defers it to the end-of-project revision pass (cr-r2pa.3.4), which owns description wording. The trai…
 - `2026-11-04` **adopt** (2026-11-04-pocock-pass:008): Completes pending 2026-10-30-mattpocock_skills-5beb35b:539: split-by-invocation is written at .claude/skills/authoring-for-agents/SKILL.md:25-27, in the sealed…
 - `2026-11-04` **adopt** (2026-11-04-pocock-pass:007): Completes pending 2026-10-30-mattpocock_skills-5beb35b:550: sharpen-before-inline is written at .claude/skills/authoring-for-agents/SKILL.md:56-58, in the seal…
@@ -135,15 +148,17 @@ Use when creating or changing agent instructions or their activation behavior. S
 <!-- /registry:generated history -->
 
 <!-- registry:generated reviews -->
-None yet.
+- [2026-11-04-upstream-cursor_plugins-4dd1d05-batch-p1.md](../../reviews/2026-11-04-upstream-cursor_plugins-4dd1d05-batch-p1.md)
 <!-- /registry:generated reviews -->
 
 <!-- registry:generated sources -->
 - `activation-boundary`:
   - `mattpocock_skills:skill:skills/productivity/writing-for-agents#model-facing-description` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `build-check-over-rule`:
+  - `cursor_plugins:skill:pstack/skills/correct#build-check-over-rule` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
   - `mattpocock_skills:skill:skills/engineering/retro#build-check-over-rule` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `check-pointer-not-restatement`:
+  - `cursor_plugins:skill:pstack/skills/correct#structural-fix-only` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
   - `cursor_plugins:skill:pstack/skills/principle-encode-lessons-in-structure#structural-fix-only` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `co-location`:
   - `mattpocock_skills:skill:skills/productivity/writing-for-agents#co-location` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
