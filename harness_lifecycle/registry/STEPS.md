@@ -109,7 +109,7 @@ Playbook traits: `read-only-answer-gate`
 | Step | When | Traits | Calls | Loads |
 |---|---|---|---|---|
 | `investigation#1` | always |  | `skill:explain-code` |  |
-| `investigation#2` | an answer was drafted |  | `skill:prose-pass` |  |
+| `investigation#2` | an answer was drafted |  | `skill:unslop` |  |
 | `investigation#3` | every exit | `read-only-closeout` |  |  |
 
 ## multi-phase-plan
@@ -126,7 +126,7 @@ Playbook traits: `plan-only-gate`
 | `multi-phase-plan#2` | multi-phase-plan#1 did not skip |  | `skill:delegation` (when: the router's delegation rule sends the exploring to a subagent, in its explorer role) |  |
 | `multi-phase-plan#3` | exploring left a question whose answer changes the plan | `settle-by-observation` | `skill:prototype` (when: a run can observe the answer) |  |
 | `multi-phase-plan#4` | multi-phase-plan#1 did not skip and no open question holds up every task |  | `skill:planning` (when: its Skeleton branch; this one whole call stays open through multi-phase-plan#5) |  |
-| `multi-phase-plan#5` | multi-phase-plan#4 wrote a plan file |  | `skill:prose-pass` (when: on the sections a person reads, leaving task fields as they are) |  |
+| `multi-phase-plan#5` | multi-phase-plan#4 wrote a plan file |  | `skill:unslop` (when: on the sections a person reads, leaving task fields as they are) |  |
 | `multi-phase-plan#6` | every exit | `plan-only-closeout` |  |  |
 
 ## pause-safely
@@ -275,8 +275,8 @@ Traits and calls used by two or more playbooks. Repeating a step is fine; the sa
 | `skill:explain-code` | bug-fix: `bug-fix#2`; feature: `feature#1`; hillclimb: `hillclimb#1`; investigation: `investigation#1`; perf-issue: `perf-issue#2`; refactoring: `refactoring#1` |
 | `skill:land` | autonomous-run: `autonomous-run#7`; bug-fix: `bug-fix#8`; feature: `feature#8`; hillclimb: `hillclimb#8`; perf-issue: `perf-issue#6`; refactoring: `refactoring#8` |
 | `skill:performance-optimization` | hillclimb: `hillclimb#1`; perf-issue: `perf-issue#1`; runtime-forensics: `runtime-forensics#1` |
-| `skill:prose-pass` | investigation: `investigation#2`; multi-phase-plan: `multi-phase-plan#5` |
 | `skill:review` | feature: `feature#4`; perf-issue: `perf-issue#3` |
 | `skill:systematic-debugging` | bug-fix: `bug-fix#2`; runtime-forensics: `runtime-forensics#2` |
 | `skill:tdd` | bug-fix: `bug-fix#3`; refactoring: `refactoring#1` |
+| `skill:unslop` | investigation: `investigation#2`; multi-phase-plan: `multi-phase-plan#5` |
 | `skill:wake` | autonomous-run: `autonomous-run#3`; hillclimb: `hillclimb#2` |

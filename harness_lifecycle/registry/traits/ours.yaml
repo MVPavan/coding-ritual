@@ -108,7 +108,7 @@ ours:model-council:
   tree_hash: "604be20a026528990ef9536cfbb643228189552f25f15eda46633ae3f4445f05"
   traits: [member-resolution, runtime-capability-check, neutral-framing, member-isolation, report-preservation, independent-synthesis, consolidated-delivery, identity-recording, failed-member-recovery, no-silent-substitution, artifact-named-up-front, task-rubric-criteria, rubric-withheld-from-candidates, own-output-location, rationale-names-rejected, dropout-proceeds-noted, read-only-judge, judge-other-family-or-stated, rubric-given-to-judge, path-labelled-candidates, judge-criterion-scores, judge-recommends-base, full-read-before-pick, picker-criterion-scores, pick-compared-with-judge, disagreement-rereads-rationales, base-chosen-for-extensibility, near-tie-smaller-surface, loser-graft-pass, sparse-grafts, hand-folded-grafts, converged-shape-no-graft, divergence-reframes-once, graft-change-rerun, verify-miss-returns-once, single-synthesized-artifact, synthesis-decision-record, note-judge-status, note-convergence-dropouts, note-verification-result, no-judge-no-pick]
 ours:mvp-mode:
-  tree_hash: "ff9741313e770f9234d8f9a2a8241fb3d8261550af7ab1a951b98918688316a5"
+  tree_hash: "10a0d30f0caef3539502de0815446e12c950384ab0a317a94ceb01d5defa48e1"
   traits: [unit-kind-lines, playbook-pick, need-to-skill-routing, overlap-arbitration, layered-catalog, platform-skill-invocation, no-playbook-in-delegate, delegate-independent-by-default, no-onward-delegation, playbook-steps-as-todos, recorded-step-skip, whole-callee, playbook-exit, legacy-entrypoint-flagging, catalog-trust-boundary]
 ours:performance-optimization:
   tree_hash: "8e393535c7e06691afca39ef9df84040ce4752a29a8cc58610b8522ce951c4da"
@@ -165,8 +165,8 @@ ours:principle-test-behavior-not-implementation:
 ours:principle-type-system-discipline:
   tree_hash: "31c1fb89f74f17e466a8557eadc20b9dde2efece0bd3d1098dc27b21fdfb71de"
   traits: [unrepresentable-invalid-states, exhaustive-variant-handling, branded-primitives, schema-derived-types]
-ours:prose-pass:
-  tree_hash: "90d7746e4f4afcb9602adc2b3ce82f2e8ace7b1be25dabbd589fb0f9be7d0ef3"
+ours:unslop:
+  tree_hash: "679b179bfd1c9b2f0d76c21d256b76d6925a19cb948dbee7a08c8c3129ba72ef"
   traits: [meaning-preserved-edit, confidence-language-kept, ing-phrase-cut, vague-attribution-cut, name-the-mechanism, filler-phrase-cut, chatbot-phrase-cut, sycophancy-cut, generic-conclusion-cut, tell-vocabulary-swap, plain-is-has, plain-word, synonym-cycling-cut, local-metaphor-noun-swap, not-just-but-cut, forced-triplet-cut, false-range-cut, hedge-stack-trim, dense-sentence-split, active-voice, adverb-cut, mannered-prose-cut, over-compression-fix, no-em-dash, mid-sentence-colon-cut, bold-restraint, inline-header-list-convert, sentence-case-headings, no-decorative-emoji, straight-quotes]
 ours:prototype:
   tree_hash: "4c270193b6a4eb08e957262ccd0725b252c33e5702ae7f3673065c355d68e7cb"

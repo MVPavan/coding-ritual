@@ -7,7 +7,7 @@ steps:
     calls: [{to: "skill:explain-code"}]
   - id: investigation#2
     when: an answer was drafted
-    calls: [{to: "skill:prose-pass"}]
+    calls: [{to: "skill:unslop"}]
   - id: investigation#3
     when: every exit
     actions: [{trait: read-only-closeout}]   # new
@@ -30,7 +30,7 @@ a checksum of each path already dirty.
 1. **Explain.** Invoke `explain-code`. Its history branch takes a question about
    motivation or a regression, and its decision branch a choice between
    alternatives. When the question's premise is wrong, say so in the answer.
-2. **Edit the answer.** When an answer was drafted, invoke `prose-pass` on it.
+2. **Edit the answer.** When an answer was drafted, invoke `unslop` on it.
    Citations, tradeoffs tables, confidence tiers and the sources line all stay.
 3. **Close out**, on every exit. Compare `git status --short` with the start: only a
    reply you were explicitly asked to save may differ. For a path already dirty at the

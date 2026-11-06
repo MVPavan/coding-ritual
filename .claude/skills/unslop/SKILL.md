@@ -1,9 +1,9 @@
 ---
-name: prose-pass
+name: unslop
 description: Use to edit a reply or document a person will read, removing patterns that make it read as machine-written. Skip agent-facing text, which authoring-for-agents owns, and code, commands and quotations.
 ---
 
-# Prose pass
+# Unslop
 
 Edit text a person will read so it says plainly what it means. The deliverable is
 the edited text, with the same meaning. Read the draft once for what it claims, apply

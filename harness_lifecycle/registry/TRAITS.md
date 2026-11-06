@@ -351,7 +351,16 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write.
 - `pre-send-check`: Before sending, delete announcements, closers, sidebars and empty hedges.
 
-#### core · X · Communication — prose-pass
+#### core · X · Communication — show-me
+- `minimal-visual-selection`: Use the fewest and smallest visuals that make the point, never a gallery.
+- `visual-form-catalog`: Offer a set of inline visual forms — pseudocode, call, component and file trees, Mermaid and whole-block — each with its own shape rules.
+- `structural-diff`: Show a change as a diff against the structure the reader already holds rather than against raw source.
+- `visual-placement`: Place each visual immediately after the sentence it supports and include only the detail the current question needs.
+- `real-code-names`: Use real names from the actual code, never invented placeholders.
+- `medium-appropriate-form`: Prefer text forms over Mermaid in a terminal and a table over any diagram for a flat list or comparison.
+- `html-handoff`: Escalate to the dedicated HTML-artifact skill only under its full gate, and never emit rendered HTML directly.
+
+#### core · X · Communication — unslop
 - `meaning-preserved-edit`: Change wording only, never facts, citations or code.
 - `confidence-language-kept`: Keep the tier words and hedges that mark uncertainty when editing a finished answer.
 - `ing-phrase-cut`: Delete tacked-on present-participle phrases that claim significance, or back them with real sources.
@@ -382,15 +391,6 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `sentence-case-headings`: Write headings in sentence case.
 - `no-decorative-emoji`: Remove ornamental emoji from headings and bullets.
 - `straight-quotes`: Replace typographic quotation marks with straight ones.
-
-#### core · X · Communication — show-me
-- `minimal-visual-selection`: Use the fewest and smallest visuals that make the point, never a gallery.
-- `visual-form-catalog`: Offer a set of inline visual forms — pseudocode, call, component and file trees, Mermaid and whole-block — each with its own shape rules.
-- `structural-diff`: Show a change as a diff against the structure the reader already holds rather than against raw source.
-- `visual-placement`: Place each visual immediately after the sentence it supports and include only the detail the current question needs.
-- `real-code-names`: Use real names from the actual code, never invented placeholders.
-- `medium-appropriate-form`: Prefer text forms over Mermaid in a terminal and a table over any diagram for a flat list or comparison.
-- `html-handoff`: Escalate to the dedicated HTML-artifact skill only under its full gate, and never emit rendered HTML directly.
 
 #### core · X · Continuity — beads
 - `bead-type-taxonomy`: Use only the six bead types (epic, feature, task, bug, spike, decision) and the single human label, never inventing others.
@@ -1431,36 +1431,36 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `jargon-free-restatement`: Drop technical jargon from a restatement, wording it as one person would speak to another. — adopt, pending cr-r2pa.2.18 → i-have-adhd#repitch-explains-project-terms
 
 #### core · X · Communication — skill:pstack/skills/unslop
-- `meaning-and-tone-preserved`: Keep the original sense of a text and fit its intended tone when editing it. — adopt → prose-pass#meaning-preserved-edit
-- `ing-phrase-cut`: Delete tacked-on present-participle phrases that claim significance, or back them with real sources. — adopt → prose-pass#ing-phrase-cut
-- `vague-attribution-cut`: Name the source of any claim credited to unnamed groups, or delete the claim. — adopt → prose-pass#vague-attribution-cut
-- `tell-vocabulary-swap`: Replace a fixed list of overused elevated words with plain ones. — adopt → prose-pass#tell-vocabulary-swap
-- `plain-is-has`: Use is or has in place of grand verbs standing in for them. — adopt → prose-pass#plain-is-has
-- `not-just-but-cut`: Replace the construction that denies one thing to promote another with a direct statement of the point. — adopt → prose-pass#not-just-but-cut
-- `forced-triplet-cut`: List as many items as naturally exist, never forcing a group of three. — adopt → prose-pass#forced-triplet-cut
-- `synonym-cycling-cut`: Keep one term for one referent instead of rotating through synonyms. — adopt → prose-pass#synonym-cycling-cut
-- `false-range-cut`: Replace a from-to construction that has no real scale with a direct list. — adopt → prose-pass#false-range-cut
-- `em-dash-ban`: Ban em dashes and their substitutes, including parentheses, en dashes and hyphens as dashes, leaving only periods and commas to separate thoughts. — adopt → prose-pass#no-em-dash
-- `mid-sentence-colon-cut`: Keep colons for lists and examples, rewriting mid-sentence uses and the comparison framing around them. — adopt → prose-pass#mid-sentence-colon-cut
-- `bold-restraint`: Do not bold every proper noun or acronym. — adopt → prose-pass#bold-restraint
-- `inline-header-list-convert`: Turn bullets whose bold label merely restates the line into prose, keeping a period-ended label followed by new detail. — adopt → prose-pass#inline-header-list-convert
-- `sentence-case-headings`: Write headings in sentence case. — adopt → prose-pass#sentence-case-headings
-- `no-decorative-emoji`: Remove ornamental emoji from headings and bullets. — adopt → prose-pass#no-decorative-emoji
-- `straight-quotes`: Replace typographic quotation marks with straight ones. — adopt → prose-pass#straight-quotes
-- `chatbot-phrase-cut`: Remove assistant pleasantries, offers of further help and excited discovery lines. — adopt → prose-pass#chatbot-phrase-cut
-- `sycophancy-cut`: Remove praise and agreement openers and answer directly. — adopt → prose-pass#sycophancy-cut
-- `filler-phrase-cut`: Shorten wordy stock phrases and delete empty announcements of importance. — adopt → prose-pass#filler-phrase-cut
-- `hedge-stack-trim`: Reduce piled-up qualifiers to a single modal. — adopt → prose-pass#hedge-stack-trim
-- `generic-conclusion-cut`: Replace optimistic sign-offs with specific plans or facts. — adopt → prose-pass#generic-conclusion-cut
-- `metaphor-noun-swap`: Replace a listed set of pseudo-technical figurative nouns with their concrete equivalents. — adopt → prose-pass#local-metaphor-noun-swap
-- `name-the-mechanism`: Rewrite a sentence that conveys an impression so that it states a mechanism or number, cutting it if it cannot become an instruction, fact or figure. — adopt → prose-pass#name-the-mechanism
+- `meaning-and-tone-preserved`: Keep the original sense of a text and fit its intended tone when editing it. — adopt → unslop#meaning-preserved-edit
+- `ing-phrase-cut`: Delete tacked-on present-participle phrases that claim significance, or back them with real sources. — adopt → unslop#ing-phrase-cut
+- `vague-attribution-cut`: Name the source of any claim credited to unnamed groups, or delete the claim. — adopt → unslop#vague-attribution-cut
+- `tell-vocabulary-swap`: Replace a fixed list of overused elevated words with plain ones. — adopt → unslop#tell-vocabulary-swap
+- `plain-is-has`: Use is or has in place of grand verbs standing in for them. — adopt → unslop#plain-is-has
+- `not-just-but-cut`: Replace the construction that denies one thing to promote another with a direct statement of the point. — adopt → unslop#not-just-but-cut
+- `forced-triplet-cut`: List as many items as naturally exist, never forcing a group of three. — adopt → unslop#forced-triplet-cut
+- `synonym-cycling-cut`: Keep one term for one referent instead of rotating through synonyms. — adopt → unslop#synonym-cycling-cut
+- `false-range-cut`: Replace a from-to construction that has no real scale with a direct list. — adopt → unslop#false-range-cut
+- `em-dash-ban`: Ban em dashes and their substitutes, including parentheses, en dashes and hyphens as dashes, leaving only periods and commas to separate thoughts. — adopt → unslop#no-em-dash
+- `mid-sentence-colon-cut`: Keep colons for lists and examples, rewriting mid-sentence uses and the comparison framing around them. — adopt → unslop#mid-sentence-colon-cut
+- `bold-restraint`: Do not bold every proper noun or acronym. — adopt → unslop#bold-restraint
+- `inline-header-list-convert`: Turn bullets whose bold label merely restates the line into prose, keeping a period-ended label followed by new detail. — adopt → unslop#inline-header-list-convert
+- `sentence-case-headings`: Write headings in sentence case. — adopt → unslop#sentence-case-headings
+- `no-decorative-emoji`: Remove ornamental emoji from headings and bullets. — adopt → unslop#no-decorative-emoji
+- `straight-quotes`: Replace typographic quotation marks with straight ones. — adopt → unslop#straight-quotes
+- `chatbot-phrase-cut`: Remove assistant pleasantries, offers of further help and excited discovery lines. — adopt → unslop#chatbot-phrase-cut
+- `sycophancy-cut`: Remove praise and agreement openers and answer directly. — adopt → unslop#sycophancy-cut
+- `filler-phrase-cut`: Shorten wordy stock phrases and delete empty announcements of importance. — adopt → unslop#filler-phrase-cut
+- `hedge-stack-trim`: Reduce piled-up qualifiers to a single modal. — adopt → unslop#hedge-stack-trim
+- `generic-conclusion-cut`: Replace optimistic sign-offs with specific plans or facts. — adopt → unslop#generic-conclusion-cut
+- `metaphor-noun-swap`: Replace a listed set of pseudo-technical figurative nouns with their concrete equivalents. — adopt → unslop#local-metaphor-noun-swap
+- `name-the-mechanism`: Rewrite a sentence that conveys an impression so that it states a mechanism or number, cutting it if it cannot become an instruction, fact or figure. — adopt → unslop#name-the-mechanism
 - `portable-sentence-cut`: Cut a sentence that would fit another project's docs unchanged. — reject
-- `dense-sentence-split`: Split or trim any sentence the reader must reread to parse. — adopt → prose-pass#dense-sentence-split
-- `active-voice`: Name the actor in place of a passive, keeping passive only when the actor is unknown or does not matter. — adopt → prose-pass#active-voice
-- `adverb-cut`: Cut an adverb, using a stronger verb or the measured figure in its place. — adopt → prose-pass#adverb-cut
-- `plain-word`: Use the common word over a fancier synonym. — adopt → prose-pass#plain-word
-- `mannered-prose-cut`: Replace aphorisms, rhetorical fragments, personified code, figurative verbs and stock framing with literal phrasing. — adopt → prose-pass#mannered-prose-cut
-- `over-compression-fix`: Restore articles, verbs and whole sentences, and spell out arrows, symbols and abbreviations. — adopt → prose-pass#over-compression-fix
+- `dense-sentence-split`: Split or trim any sentence the reader must reread to parse. — adopt → unslop#dense-sentence-split
+- `active-voice`: Name the actor in place of a passive, keeping passive only when the actor is unknown or does not matter. — adopt → unslop#active-voice
+- `adverb-cut`: Cut an adverb, using a stronger verb or the measured figure in its place. — adopt → unslop#adverb-cut
+- `plain-word`: Use the common word over a fancier synonym. — adopt → unslop#plain-word
+- `mannered-prose-cut`: Replace aphorisms, rhetorical fragments, personified code, figurative verbs and stock framing with literal phrasing. — adopt → unslop#mannered-prose-cut
+- `over-compression-fix`: Restore articles, verbs and whole sentences, and spell out arrows, symbols and abbreviations. — adopt → unslop#over-compression-fix
 - `stable-rule-numbers`: Keep rule numbers as permanent identifiers that other documents can cite, leaving a deleted rule's number unused. — reject
 
 #### core · X · Continuity — skill:pstack/skills/principle-guard-the-context-window
@@ -1735,7 +1735,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `fresh-synthesizer`: Wait for every finding, then have one agent that did no searching weigh the raw findings and write the only answer. — reject
 - `framework-first-reading`: Have the writer read the whole confidence framework before writing. — reject
 - `gather-without-concluding`: Collect the evidence in full before concluding, forming no answer and picking no side while gathering. — adopt → explain-code#gather-without-concluding
-- `confidence-language-kept`: Keep the tier words and hedges that mark uncertainty when editing a finished answer. — adopt → prose-pass#confidence-language-kept
+- `confidence-language-kept`: Keep the tier words and hedges that mark uncertainty when editing a finished answer. — adopt → unslop#confidence-language-kept
 - `constraints-before-change`: When a change follows, turn the findings into preserve, change, avoid and risk lists. — adopt → explain-code#constraints-before-change
 - `recency-bias-check`: Trace past the latest commit, which is not authoritative, to the earlier decisions behind the current shape. — adopt → explain-code#recency-bias-check
 - `confidence-tiers`: Place each claim in one tier by its evidence, Direct when an author's written words state the reason, Supported when several indirect items converge, Inferred when a reasonable reading has no explicit support, and Speculative when other explanations fit equally well, phrasing the first two confidently with citations, Inferred with hedges and its reasoning chain, and Speculative as a guess. — adopt → explain-code#confidence-tiers
@@ -4460,18 +4460,18 @@ Put factual accuracy ahead of agreement, pointing out errors and unchecked assum
 
 #### `active-voice`
 Name the actor in place of a passive, keeping passive only when the actor is unknown or does not matter.
-- ours: `prose-pass`
-- `cursor_plugins:skill:pstack/skills/unslop` — adopt → prose-pass#active-voice
+- ours: `unslop`
+- `cursor_plugins:skill:pstack/skills/unslop` — adopt → unslop#active-voice
 
 #### `adverb-cut`
 Cut an adverb, using a stronger verb or the measured figure in its place.
-- ours: `prose-pass`
-- `cursor_plugins:skill:pstack/skills/unslop` — adopt → prose-pass#adverb-cut
+- ours: `unslop`
+- `cursor_plugins:skill:pstack/skills/unslop` — adopt → unslop#adverb-cut
 
 #### `bold-restraint`
 Do not bold every proper noun or acronym.
-- ours: `prose-pass`
-- `cursor_plugins:skill:pstack/skills/unslop` — adopt → prose-pass#bold-restraint
+- ours: `unslop`
+- `cursor_plugins:skill:pstack/skills/unslop` — adopt → unslop#bold-restraint
 
 #### `capped-lists`
 Cap a list at five items, ranking them or splitting into now and later.
@@ -4487,8 +4487,8 @@ Distinguish certain knowledge from inference and speculation, and say when unsur
 
 #### `chatbot-phrase-cut`
 Remove assistant pleasantries, offers of further help and excited discovery lines.
-- ours: `prose-pass`
-- `cursor_plugins:skill:pstack/skills/unslop` — adopt → prose-pass#chatbot-phrase-cut
+- ours: `unslop`
+- `cursor_plugins:skill:pstack/skills/unslop` — adopt → unslop#chatbot-phrase-cut
 
 #### `comma-budget`
 Favour periods, allow at most two commas per sentence, and break a sentence up when clauses accumulate.
@@ -4508,9 +4508,9 @@ Give estimates in concrete units as agent execution plus review time rather than
 
 #### `confidence-language-kept`
 Keep the tier words and hedges that mark uncertainty when editing a finished answer.
-- ours: `prose-pass`
+- ours: `unslop`
 - `cursor_plugins:skill:pstack/skills/teach` — adopt, pending cr-r2pa.2.18 → teach#confidence-language-kept
-- `cursor_plugins:skill:pstack/skills/why` — adopt → prose-pass#confidence-language-kept
+- `cursor_plugins:skill:pstack/skills/why` — adopt → unslop#confidence-language-kept
 
 #### `controlled-language`
 Re-pitch in controlled simplified language with short sentences and common words.
@@ -4527,8 +4527,8 @@ Deliver a link rather than pasted source and verify content fidelity, local link
 
 #### `dense-sentence-split`
 Split or trim any sentence the reader must reread to parse.
-- ours: `prose-pass`
-- `cursor_plugins:skill:pstack/skills/unslop` — adopt → prose-pass#dense-sentence-split
+- ours: `unslop`
+- `cursor_plugins:skill:pstack/skills/unslop` — adopt → unslop#dense-sentence-split
 
 #### `domain-vocabulary`
 Use the project's established domain vocabulary throughout what you write.
@@ -4548,7 +4548,7 @@ Use the project's established domain vocabulary throughout what you write.
 
 #### `em-dash-ban`
 Ban em dashes and their substitutes, including parentheses, en dashes and hyphens as dashes, leaving only periods and commas to separate thoughts.
-- `cursor_plugins:skill:pstack/skills/unslop` — adopt → prose-pass#no-em-dash
+- `cursor_plugins:skill:pstack/skills/unslop` — adopt → unslop#no-em-dash
 
 #### `explain-on-request`
 When the user asks to explain or walk through, run as long as the topic needs while keeping the brevity discipline.
@@ -4556,28 +4556,28 @@ When the user asks to explain or walk through, run as long as the topic needs wh
 
 #### `false-range-cut`
 Replace a from-to construction that has no real scale with a direct list.
-- ours: `prose-pass`
-- `cursor_plugins:skill:pstack/skills/unslop` — adopt → prose-pass#false-range-cut
+- ours: `unslop`
+- `cursor_plugins:skill:pstack/skills/unslop` — adopt → unslop#false-range-cut
 
 #### `filler-phrase-cut`
 Shorten wordy stock phrases and delete empty announcements of importance.
-- ours: `prose-pass`
-- `cursor_plugins:skill:pstack/skills/unslop` — adopt → prose-pass#filler-phrase-cut
+- ours: `unslop`
+- `cursor_plugins:skill:pstack/skills/unslop` — adopt → unslop#filler-phrase-cut
 
 #### `forced-triplet-cut`
 List as many items as naturally exist, never forcing a group of three.
-- ours: `prose-pass`
-- `cursor_plugins:skill:pstack/skills/unslop` — adopt → prose-pass#forced-triplet-cut
+- ours: `unslop`
+- `cursor_plugins:skill:pstack/skills/unslop` — adopt → unslop#forced-triplet-cut
 
 #### `generic-conclusion-cut`
 Replace optimistic sign-offs with specific plans or facts.
-- ours: `prose-pass`
-- `cursor_plugins:skill:pstack/skills/unslop` — adopt → prose-pass#generic-conclusion-cut
+- ours: `unslop`
+- `cursor_plugins:skill:pstack/skills/unslop` — adopt → unslop#generic-conclusion-cut
 
 #### `hedge-stack-trim`
 Reduce piled-up qualifiers to a single modal.
-- ours: `prose-pass`
-- `cursor_plugins:skill:pstack/skills/unslop` — adopt → prose-pass#hedge-stack-trim
+- ours: `unslop`
+- `cursor_plugins:skill:pstack/skills/unslop` — adopt → unslop#hedge-stack-trim
 
 #### `honest-content`
 Show only sourced data and explicitly label assumptions and illustrative values.
@@ -4597,8 +4597,8 @@ On explicit request only, produce one self-contained offline HTML mockup under t
 
 #### `ing-phrase-cut`
 Delete tacked-on present-participle phrases that claim significance, or back them with real sources.
-- ours: `prose-pass`
-- `cursor_plugins:skill:pstack/skills/unslop` — adopt → prose-pass#ing-phrase-cut
+- ours: `unslop`
+- `cursor_plugins:skill:pstack/skills/unslop` — adopt → unslop#ing-phrase-cut
 
 #### `inline-diagrams`
 Draw a structure, flow, sequence or state question as a small inline Mermaid block, using prose for requirements and trade-offs.
@@ -4606,8 +4606,8 @@ Draw a structure, flow, sequence or state question as a small inline Mermaid blo
 
 #### `inline-header-list-convert`
 Turn bullets whose bold label merely restates the line into prose, keeping a period-ended label followed by new detail.
-- ours: `prose-pass`
-- `cursor_plugins:skill:pstack/skills/unslop` — adopt → prose-pass#inline-header-list-convert
+- ours: `unslop`
+- `cursor_plugins:skill:pstack/skills/unslop` — adopt → unslop#inline-header-list-convert
 
 #### `jargon-free-restatement`
 Drop technical jargon from a restatement, wording it as one person would speak to another.
@@ -4619,12 +4619,12 @@ Document material limitations together with the conditions under which to revisi
 
 #### `local-metaphor-noun-swap`
 Replace figurative pseudo-technical nouns with concrete words, keeping those that name real things in this repository.
-- ours: `prose-pass`
+- ours: `unslop`
 
 #### `mannered-prose-cut`
 Replace aphorisms, rhetorical fragments, personified code, figurative verbs and stock framing with literal phrasing.
-- ours: `prose-pass`
-- `cursor_plugins:skill:pstack/skills/unslop` — adopt → prose-pass#mannered-prose-cut
+- ours: `unslop`
+- `cursor_plugins:skill:pstack/skills/unslop` — adopt → unslop#mannered-prose-cut
 
 #### `matter-of-fact-errors`
 State an error's cause and fix plainly with no alarm language.
@@ -4632,11 +4632,11 @@ State an error's cause and fix plainly with no alarm language.
 
 #### `meaning-and-tone-preserved`
 Keep the original sense of a text and fit its intended tone when editing it.
-- `cursor_plugins:skill:pstack/skills/unslop` — adopt → prose-pass#meaning-preserved-edit
+- `cursor_plugins:skill:pstack/skills/unslop` — adopt → unslop#meaning-preserved-edit
 
 #### `meaning-preserved-edit`
 Change wording only, never facts, citations or code.
-- ours: `prose-pass`
+- ours: `unslop`
 
 #### `mechanism-not-metaphor`
 State the actual mechanism, never a metaphor, framing or preview of what comes next.
@@ -4648,12 +4648,12 @@ Prefer text forms over Mermaid in a terminal and a table over any diagram for a 
 
 #### `metaphor-noun-swap`
 Replace a listed set of pseudo-technical figurative nouns with their concrete equivalents.
-- `cursor_plugins:skill:pstack/skills/unslop` — adopt → prose-pass#local-metaphor-noun-swap
+- `cursor_plugins:skill:pstack/skills/unslop` — adopt → unslop#local-metaphor-noun-swap
 
 #### `mid-sentence-colon-cut`
 Keep colons for lists and examples, rewriting mid-sentence uses and the comparison framing around them.
-- ours: `prose-pass`
-- `cursor_plugins:skill:pstack/skills/unslop` — adopt → prose-pass#mid-sentence-colon-cut
+- ours: `unslop`
+- `cursor_plugins:skill:pstack/skills/unslop` — adopt → unslop#mid-sentence-colon-cut
 
 #### `minimal-visual-selection`
 Use the fewest and smallest visuals that make the point, never a gallery.
@@ -4662,8 +4662,8 @@ Use the fewest and smallest visuals that make the point, never a gallery.
 
 #### `name-the-mechanism`
 Rewrite a sentence that conveys an impression so that it states a mechanism or number, cutting it if it cannot become an instruction, fact or figure.
-- ours: `prose-pass`
-- `cursor_plugins:skill:pstack/skills/unslop` — adopt → prose-pass#name-the-mechanism
+- ours: `unslop`
+- `cursor_plugins:skill:pstack/skills/unslop` — adopt → unslop#name-the-mechanism
 
 #### `next-action-first`
 Lead with the next concrete action — a command, path or snippet — before any prose.
@@ -4671,12 +4671,12 @@ Lead with the next concrete action — a command, path or snippet — before any
 
 #### `no-decorative-emoji`
 Remove ornamental emoji from headings and bullets.
-- ours: `prose-pass`
-- `cursor_plugins:skill:pstack/skills/unslop` — adopt → prose-pass#no-decorative-emoji
+- ours: `unslop`
+- `cursor_plugins:skill:pstack/skills/unslop` — adopt → unslop#no-decorative-emoji
 
 #### `no-em-dash`
 Use no em dashes, ending the sentence or using a comma or parentheses to separate a thought.
-- ours: `prose-pass`
+- ours: `unslop`
 - `cursor_plugins:skill:pstack/skills/teach` — reject
 
 #### `no-fabrication`
@@ -4695,8 +4695,8 @@ Open with the answer and stop when it is done, with no preamble, recap or closin
 
 #### `not-just-but-cut`
 Replace the construction that denies one thing to promote another with a direct statement of the point.
-- ours: `prose-pass`
-- `cursor_plugins:skill:pstack/skills/unslop` — adopt → prose-pass#not-just-but-cut
+- ours: `unslop`
+- `cursor_plugins:skill:pstack/skills/unslop` — adopt → unslop#not-just-but-cut
 
 #### `numbered-steps`
 Render multi-step work as a numbered list with one bounded action per step.
@@ -4709,18 +4709,18 @@ Open a generated artifact for the user with the platform's opener and give its p
 
 #### `over-compression-fix`
 Restore articles, verbs and whole sentences, and spell out arrows, symbols and abbreviations.
-- ours: `prose-pass`
-- `cursor_plugins:skill:pstack/skills/unslop` — adopt → prose-pass#over-compression-fix
+- ours: `unslop`
+- `cursor_plugins:skill:pstack/skills/unslop` — adopt → unslop#over-compression-fix
 
 #### `plain-is-has`
 Use is or has in place of grand verbs standing in for them.
-- ours: `prose-pass`
-- `cursor_plugins:skill:pstack/skills/unslop` — adopt → prose-pass#plain-is-has
+- ours: `unslop`
+- `cursor_plugins:skill:pstack/skills/unslop` — adopt → unslop#plain-is-has
 
 #### `plain-word`
 Use the common word over a fancier synonym.
-- ours: `prose-pass`
-- `cursor_plugins:skill:pstack/skills/unslop` — adopt → prose-pass#plain-word
+- ours: `unslop`
+- `cursor_plugins:skill:pstack/skills/unslop` — adopt → unslop#plain-word
 
 #### `portable-sentence-cut`
 Cut a sentence that would fit another project's docs unchanged.
@@ -4783,8 +4783,8 @@ Produce one HTML file with inline CSS and JS, viewport metadata and no build ste
 
 #### `sentence-case-headings`
 Write headings in sentence case.
-- ours: `prose-pass`
-- `cursor_plugins:skill:pstack/skills/unslop` — adopt → prose-pass#sentence-case-headings
+- ours: `unslop`
+- `cursor_plugins:skill:pstack/skills/unslop` — adopt → unslop#sentence-case-headings
 
 #### `sentence-case-prose`
 Use normal sentence capitalization in prose.
@@ -4811,8 +4811,8 @@ Restate the current progress state every turn so the reader need not hold it in 
 
 #### `straight-quotes`
 Replace typographic quotation marks with straight ones.
-- ours: `prose-pass`
-- `cursor_plugins:skill:pstack/skills/unslop` — adopt → prose-pass#straight-quotes
+- ours: `unslop`
+- `cursor_plugins:skill:pstack/skills/unslop` — adopt → unslop#straight-quotes
 
 #### `structural-diff`
 Show a change as a diff against the structure the reader already holds rather than against raw source.
@@ -4833,14 +4833,14 @@ Draw inline SVG figures with a viewBox for scaling, currentColor ink, orthogonal
 
 #### `sycophancy-cut`
 Remove praise and agreement openers and answer directly.
-- ours: `prose-pass`
-- `cursor_plugins:skill:pstack/skills/unslop` — adopt → prose-pass#sycophancy-cut
+- ours: `unslop`
+- `cursor_plugins:skill:pstack/skills/unslop` — adopt → unslop#sycophancy-cut
 
 #### `synonym-cycling-cut`
 Keep one term for one referent instead of rotating through synonyms.
-- ours: `prose-pass`
+- ours: `unslop`
 - `cursor_plugins:skill:pstack/skills/teach` — reject
-- `cursor_plugins:skill:pstack/skills/unslop` — adopt → prose-pass#synonym-cycling-cut
+- `cursor_plugins:skill:pstack/skills/unslop` — adopt → unslop#synonym-cycling-cut
 
 #### `tangent-suppression`
 Finish the current issue first, then offer any other concern as a separate question.
@@ -4848,8 +4848,8 @@ Finish the current issue first, then offer any other concern as a separate quest
 
 #### `tell-vocabulary-swap`
 Replace a fixed list of overused elevated words with plain ones.
-- ours: `prose-pass`
-- `cursor_plugins:skill:pstack/skills/unslop` — adopt → prose-pass#tell-vocabulary-swap
+- ours: `unslop`
+- `cursor_plugins:skill:pstack/skills/unslop` — adopt → unslop#tell-vocabulary-swap
 
 #### `terse-card-prose`
 Hold each report card to a one-sentence problem and solution and wins bullets of six words or fewer.
@@ -4861,8 +4861,8 @@ Derive the artifact's styling from the project's own tokens when they exist, oth
 
 #### `vague-attribution-cut`
 Name the source of any claim credited to unnamed groups, or delete the claim.
-- ours: `prose-pass`
-- `cursor_plugins:skill:pstack/skills/unslop` — adopt → prose-pass#vague-attribution-cut
+- ours: `unslop`
+- `cursor_plugins:skill:pstack/skills/unslop` — adopt → unslop#vague-attribution-cut
 
 #### `visible-progress`
 Show completed work in concrete, runnable terms instead of burying it in a recap.

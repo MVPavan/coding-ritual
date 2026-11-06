@@ -17,7 +17,7 @@ steps:
     calls: [{to: "skill:planning", when: "its Skeleton branch; this one whole call stays open through multi-phase-plan#5"}]
   - id: multi-phase-plan#5
     when: multi-phase-plan#4 wrote a plan file
-    calls: [{to: "skill:prose-pass", when: "on the sections a person reads, leaving task fields as they are"}]
+    calls: [{to: "skill:unslop", when: "on the sections a person reads, leaving task fields as they are"}]
   - id: multi-phase-plan#6
     when: every exit
     actions: [{trait: plan-only-closeout}]   # new
@@ -54,7 +54,7 @@ each path already dirty.
 4. **Write.** Invoke `planning`, its Skeleton branch; this one whole call stays open
    through step 5. `principle-sequence-verifiable-units` applies: one task, one change
    with its own evidence.
-5. **Edit for readers.** When step 4 wrote a plan file, invoke `prose-pass` on the
+5. **Edit for readers.** When step 4 wrote a plan file, invoke `unslop` on the
    sections a person reads: the header's narrative, `## Open questions` and the
    appendices. Its brief says to leave task fields as they are. The Skeleton branch's
    lint then reruns.

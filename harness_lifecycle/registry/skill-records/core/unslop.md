@@ -1,5 +1,5 @@
 ---
-skill: prose-pass
+skill: unslop
 domain: core
 stage: X
 substage: Communication
@@ -8,7 +8,7 @@ family:
 aliases: []
 status: active
 ---
-# prose-pass
+# unslop
 
 Use to edit a reply or document a person will read, removing patterns that make it read as machine-written. Skip agent-facing text, which authoring-for-agents owns, and code, commands and quotations.
 
@@ -81,6 +81,7 @@ Use to edit a reply or document a person will read, removing patterns that make 
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-06` **rename** (2026-11-06-renames:005): Owner ruling D of 2026-11-05 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 14a U1. The skill prose-pass is renamed unslop; its body is unchanged …
 - `2026-11-01` **adopt** (2026-11-01-batch-1:233): Completes pending 2026-11-01-batch-1:188: over-compression-fix is written at .claude/skills/prose-pass/SKILL.md:49, read against its definition (T5).
 - `2026-11-01` **adopt** (2026-11-01-batch-1:232): Completes pending 2026-11-01-batch-1:187: mannered-prose-cut is written at .claude/skills/prose-pass/SKILL.md:48, read against its definition (T5).
 - `2026-11-01` **adopt** (2026-11-01-batch-1:231): Completes pending 2026-11-01-batch-1:186: plain-word is written at .claude/skills/prose-pass/SKILL.md:35, read against its definition (T5).

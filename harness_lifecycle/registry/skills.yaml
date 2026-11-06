@@ -399,7 +399,7 @@ principle-type-system-discipline:
   aliases: []
   status: active
   boundary: "Moves rules into the type checker in a typed language; where raw input becomes typed values is principle-boundary-discipline."
-prose-pass:
+unslop:
   domain: core
   stage: X
   substage: Communication
