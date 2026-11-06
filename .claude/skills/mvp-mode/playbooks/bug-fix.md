@@ -12,7 +12,7 @@ steps:
   - id: bug-fix#3
     when: the cause is confirmed
     actions: [{trait: existing-check-as-proof}, {trait: report-missing-proof}, {trait: missing-seam-finding}, {trait: scoped-instance-fix}, {trait: implement-against-sketch}]   # the first when step 1's failing check already fails for the reported reason; the second and third only when no regression check is feasible, and the third only when no seam can hold one; the fourth always; the fifth when the fix was sketched
-    calls: [{to: "skill:codebase-design", when: the fix crosses a function boundary}, {to: "skill:test-driven-development", when: step 1's failing check does not already fail for the reported reason and a durable regression check is feasible}]
+    calls: [{to: "skill:codebase-design", when: the fix crosses a function boundary}, {to: "skill:tdd", when: step 1's failing check does not already fail for the reported reason and a durable regression check is feasible}]
     loads: [{path: bug-fix/timing-flakes.md, when: the cause is a timing flake}]
   - id: bug-fix#4
     when: bug-fix#3 changed code
@@ -64,7 +64,7 @@ A stated unattended request does not start: reply Not started, unattended.
    When the failing check from step 1 already fails for
    the reported reason, it is the regression check: fix the cause and show
    it passing. Otherwise, when a durable regression check is feasible,
-   invoke the `test-driven-development` skill in test-first mode rather than
+   invoke the `tdd` skill in test-first mode rather than
    running the cycle by hand: the check fails for the reported reason before
    the fix and passes after it. Otherwise fix the confirmed cause and report
    the missing proof; when no seam can hold a regression check, record the

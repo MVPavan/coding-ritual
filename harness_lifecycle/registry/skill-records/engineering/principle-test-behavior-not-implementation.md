@@ -12,7 +12,7 @@ status: active
 
 writing, changing or keeping any test.
 
-**Boundary:** Judges what a test asserts and whether it earns its place; the test-first cycle is test-driven-development.
+**Boundary:** Judges what a test asserts and whether it earns its place; the test-first cycle is tdd.
 
 <!-- registry:generated traits -->
 - `two-edit-test-judgement`: Judge every test by two imagined edits: breaking the behaviour must fail it, and restructuring the internals must not.

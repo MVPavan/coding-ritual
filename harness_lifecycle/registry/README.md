@@ -191,7 +191,7 @@ appears in one file only.
 
 ```yaml
 # traits/ours.yaml
-ours:test-driven-development:
+ours:tdd:
   tree_hash: "efbff4…"
   traits: [mode-selection, good-test, independent-expectations, seam-selection]
 doc:AGENTS.md:
@@ -329,7 +329,7 @@ steps:                                  # excerpt: one of seven
     when: the cause is confirmed        # the whole step's condition
     actions: [{trait: report-missing-proof}]
     calls:
-      - {to: "skill:test-driven-development", when: a regression check is feasible}
+      - {to: "skill:tdd", when: a regression check is feasible}
     loads: [{path: bug-fix/timing-flakes.md, when: the cause is a timing flake}]
 ---
 ```

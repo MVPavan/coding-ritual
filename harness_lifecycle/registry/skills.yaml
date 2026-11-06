@@ -38,7 +38,7 @@ build-a-lever:
   family: null
   aliases: []
   status: active
-  boundary: "Builds and proves a rerunnable tool (script, codemod, generator or check) that does or proves real work; a throwaway experiment answering a design question is prototype, and test-first proof of a behaviour change is test-driven-development."
+  boundary: "Builds and proves a rerunnable tool (script, codemod, generator or check) that does or proves real work; a throwaway experiment answering a design question is prototype, and test-first proof of a behaviour change is tdd."
 check-invariants:
   domain: engineering
   stage: Verification
@@ -371,7 +371,7 @@ principle-sequence-verifiable-units:
   family: null
   aliases: []
   status: active
-  boundary: "Orders multi-step work into checked units and commits; test-first proof of one change is test-driven-development, and a declared migration group is principle-migrate-without-shims."
+  boundary: "Orders multi-step work into checked units and commits; test-first proof of one change is tdd, and a declared migration group is principle-migrate-without-shims."
 principle-subtract-before-you-add:
   domain: engineering
   stage: Design
@@ -389,7 +389,7 @@ principle-test-behavior-not-implementation:
   family: null
   aliases: []
   status: active
-  boundary: "Judges what a test asserts and whether it earns its place; the test-first cycle is test-driven-development."
+  boundary: "Judges what a test asserts and whether it earns its place; the test-first cycle is tdd."
 principle-type-system-discipline:
   domain: engineering
   stage: Design
@@ -489,7 +489,7 @@ teach:
   aliases: [teach-session]
   status: active
   boundary: null
-test-driven-development:
+tdd:
   domain: engineering
   stage: Building
   substage: Implementation

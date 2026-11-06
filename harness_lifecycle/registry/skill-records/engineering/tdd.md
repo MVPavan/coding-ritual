@@ -1,5 +1,5 @@
 ---
-skill: test-driven-development
+skill: tdd
 domain: engineering
 stage: Building
 substage: Implementation
@@ -8,7 +8,7 @@ family: tdd
 aliases: []
 status: active
 ---
-# test-driven-development
+# tdd
 
 Use for risky behavior changes, regression proof, legacy characterization, or substantive test design. Trivial test renames do not require a test-first workflow.
 
@@ -76,6 +76,7 @@ Use for risky behavior changes, regression proof, legacy characterization, or su
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-06` **rename** (2026-11-06-renames:001): Owner ruling D of 2026-11-05 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 14a U1. The skill test-driven-development is renamed tdd; its body is …
 - `2026-11-06` **adopt-merged** (2026-11-06-batch-p1:224): Checkpoint at 4dd1d05 for the owner's trait rulings: 13 adopt, 2 reject.
 - `2026-11-06` **adopt** (2026-11-06-batch-p1:223): Owner ruling 2026-11-06: Prevents: A demonstrated fix and an assumed one reported in the same words. Lands in test-driven-development, SKILL.md, Test-first. Up…
 - `2026-11-06` **adopt** (2026-11-06-batch-p1:222): Owner ruling 2026-11-06: Prevents: A report saying only that the tests pass, with no sign the test ever failed. Lands in test-driven-development, SKILL.md, Tes…

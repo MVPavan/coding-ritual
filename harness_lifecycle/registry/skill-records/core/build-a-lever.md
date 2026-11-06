@@ -12,7 +12,7 @@ status: active
 
 No description.
 
-**Boundary:** Builds and proves a rerunnable tool (script, codemod, generator or check) that does or proves real work; a throwaway experiment answering a design question is prototype, and test-first proof of a behaviour change is test-driven-development.
+**Boundary:** Builds and proves a rerunnable tool (script, codemod, generator or check) that does or proves real work; a throwaway experiment answering a design question is prototype, and test-first proof of a behaviour change is tdd.
 
 <!-- registry:generated traits -->
 - `hand-first-recipe`: Do the first unit by hand, then build the tool and show it reproduces the hand result before running it on the rest.

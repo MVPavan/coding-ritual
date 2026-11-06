@@ -5,7 +5,7 @@ steps:
   - id: refactoring#1
     when: always
     actions: [{trait: behaviour-pin-gate}]   # new
-    calls: [{to: "skill:explain-code"}, {to: "skill:test-driven-development", when: no existing check pins the behaviour}]
+    calls: [{to: "skill:explain-code"}, {to: "skill:tdd", when: no existing check pins the behaviour}]
   - id: refactoring#2
     when: always
     actions: [{trait: branch-deleting-reshape}]   # new
@@ -48,7 +48,7 @@ the moves depend on it.
 1. **Pin.** Invoke `explain-code` on the affected subsystem to learn its contract.
    Then capture the current behaviour in a check before any structure moves: a type
    check or a lint does not count. When no existing check pins it, invoke
-   `test-driven-development` in characterization mode. When no pin can be made, stop
+   `tdd` in characterization mode. When no pin can be made, stop
    and go to step 7.
 2. **Name what is missing.** By `principle-model-the-domain`, name the structure the
    code lacks. A reshape counts only if branches or invalid states disappear; drop

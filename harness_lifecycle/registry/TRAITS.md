@@ -652,7 +652,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `small-single-purpose-commits`: Keep each commit small and about one thing.
 - `argument-order-commits`: Order commits so the history proves the work (failing test before fix, removal before reshape, baseline before treatment, scaffold before feature), each commit standing alone.
 
-#### engineering · Building · Implementation — test-driven-development
+#### engineering · Building · Implementation — tdd
 - `mode-selection`: Choose test-first, characterization, or test-quality-only by the task rather than defaulting to one workflow.
 - `seam-selection`: Choose the test boundary that exercises the real contract without reaching inside.
 - `plan-seams-no-approval`: Take test seams from the plan without separate approval, surfacing a missing seam only when it materially changes scope or the obtainable evidence.
@@ -2070,9 +2070,9 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `no-console-log-in-shipped-code`: Forbid console logging in code that ships. — defer
 
 #### engineering · Verification · Testing — skill:pstack/skills/principle-test-behavior-not-implementation
-- `meaningful-behaviour-assertion`: Assert meaningful results, state or boundary interactions at a stable boundary rather than internal call choreography. — adopt → test-driven-development#meaningful-behaviour-assertion
+- `meaningful-behaviour-assertion`: Assert meaningful results, state or boundary interactions at a stable boundary rather than internal call choreography. — adopt → tdd#meaningful-behaviour-assertion
 - `two-edit-test-judgement`: Judge every test by two imagined edits: breaking the behaviour must fail it, and restructuring the internals must not. — adopt → principle-test-behavior-not-implementation#two-edit-test-judgement
-- `independent-expectation`: Derive expected values from an independent source such as a spec, worked example or trusted fixture, never computing both sides with the implementation under test. — adopt → test-driven-development#independent-expectation
+- `independent-expectation`: Derive expected values from an independent source such as a spec, worked example or trusted fixture, never computing both sides with the implementation under test. — adopt → tdd#independent-expectation
 - `hollow-test-forms`: Check a test for the usual hollow forms: an assertion looser than the contract, a restated constant the code never reads, or an assertion on data the test built itself. — adopt → principle-test-behavior-not-implementation#hollow-test-forms
 - `implementation-test-deletion`: When internals change, rewrite or delete tests that only protect the old implementation, asserting the current contract instead. — adopt → principle-test-behavior-not-implementation#implementation-test-deletion
 - `public-interface-testing`: Exercise behaviour in tests through public interfaces. — adopt → principle-test-behavior-not-implementation#public-interface-testing
@@ -2080,21 +2080,21 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `absence-positive-control`: Pair an assertion that something did not happen with a positive case showing the same test would see it happen. — adopt → principle-test-behavior-not-implementation#absence-positive-control
 
 #### engineering · Verification · Testing — skill:pstack/skills/tdd
-- `red-green`: Make one test fail before implementing the change that makes it pass. — adopt → test-driven-development#red-green
-- `test-skipped-when-impractical`: Add no new test when it would demand wide harness setup, fragile mocks, slow full-stack infrastructure, production-only state, unclear reproduction or heavy unrelated fixtures, and never build a test path from nothing just to follow the workflow. — adopt, pending cr-r2pa.2.18 → test-driven-development#optional-regression-test-skip
+- `red-green`: Make one test fail before implementing the change that makes it pass. — adopt → tdd#red-green
+- `test-skipped-when-impractical`: Add no new test when it would demand wide harness setup, fragile mocks, slow full-stack infrastructure, production-only state, unclear reproduction or heavy unrelated fixtures, and never build a test path from nothing just to follow the workflow. — adopt, pending cr-r2pa.2.18 → tdd#optional-regression-test-skip
 - `bug-understanding-checklist`: Identify intended behaviour, current behaviour, the affected path and the smallest observable reproduction. — reject
-- `closest-existing-test-kind`: Prefer the kind of test already used for that codepath. — adopt, pending cr-r2pa.2.18 → test-driven-development#closest-existing-test-kind
-- `no-implementation-coupling`: Avoid tests coupled to the implementation's internal structure, so they survive behaviour-preserving refactors. — adopt → test-driven-development#no-implementation-coupling
-- `failure-for-the-right-reason`: Run a new test before fixing and, if it passes or fails for another reason, correct the test or reproduction first. — adopt, pending cr-r2pa.2.18 → test-driven-development#failure-for-the-right-reason
+- `closest-existing-test-kind`: Prefer the kind of test already used for that codepath. — adopt, pending cr-r2pa.2.18 → tdd#closest-existing-test-kind
+- `no-implementation-coupling`: Avoid tests coupled to the implementation's internal structure, so they survive behaviour-preserving refactors. — adopt → tdd#no-implementation-coupling
+- `failure-for-the-right-reason`: Run a new test before fixing and, if it passes or fails for another reason, correct the test or reproduction first. — adopt, pending cr-r2pa.2.18 → tdd#failure-for-the-right-reason
 - `contract-preserving-fix`: Make the smallest production change that gives the intended behaviour and preserves neighbouring contracts. — reject
-- `closest-executable-fallback`: When a failing test is impractical, substitute a targeted script, reproduction command, browser automation, snapshot diff, log assertion or narrow integration check. — adopt, pending cr-r2pa.2.18 → test-driven-development#closest-executable-fallback
-- `no-test-over-bad-test`: Prefer adding nothing to a test that mostly exercises mocks, encodes internals, depends on timing or global state, needs costly infrastructure for a minor fix, or would be discarded right after. — adopt, pending cr-r2pa.2.18 → test-driven-development#no-test-over-bad-test
-- `no-tests-bent-or-weakened`: Do not change tests to agree with wrong behaviour, and keep existing assertions as strong unless expected behaviour truly changed for a clear reason. — adopt, pending cr-r2pa.2.18 → test-driven-development#no-tests-bent-or-weakened
-- `focused-regression-test`: Write the smallest test focused on this bug, without broad fixture changes or added unrelated coverage. — adopt, pending cr-r2pa.2.18 → test-driven-development#focused-regression-test
-- `flaky-test-names-its-signal`: For a flaky bug, remove nondeterminism from the test as far as possible and document which signal it pins. — adopt, pending cr-r2pa.2.18 → test-driven-development#flaky-test-names-its-signal
-- `focused-first-then-siblings`: When a bug reveals a wider failure class, land the focused regression first and only then consider related coverage. — adopt, pending cr-r2pa.2.18 → test-driven-development#focused-first-then-siblings
-- `before-after-proof-report`: Name the check that failed before the fix with its failure, and the passing run after the fix with any nearby validation. — adopt, pending cr-r2pa.2.18 → test-driven-development#before-after-proof-report
-- `missing-red-explained`: If a failure before the fix could not be shown, say why and describe the substitute check. — adopt, pending cr-r2pa.2.18 → test-driven-development#missing-red-explained
+- `closest-executable-fallback`: When a failing test is impractical, substitute a targeted script, reproduction command, browser automation, snapshot diff, log assertion or narrow integration check. — adopt, pending cr-r2pa.2.18 → tdd#closest-executable-fallback
+- `no-test-over-bad-test`: Prefer adding nothing to a test that mostly exercises mocks, encodes internals, depends on timing or global state, needs costly infrastructure for a minor fix, or would be discarded right after. — adopt, pending cr-r2pa.2.18 → tdd#no-test-over-bad-test
+- `no-tests-bent-or-weakened`: Do not change tests to agree with wrong behaviour, and keep existing assertions as strong unless expected behaviour truly changed for a clear reason. — adopt, pending cr-r2pa.2.18 → tdd#no-tests-bent-or-weakened
+- `focused-regression-test`: Write the smallest test focused on this bug, without broad fixture changes or added unrelated coverage. — adopt, pending cr-r2pa.2.18 → tdd#focused-regression-test
+- `flaky-test-names-its-signal`: For a flaky bug, remove nondeterminism from the test as far as possible and document which signal it pins. — adopt, pending cr-r2pa.2.18 → tdd#flaky-test-names-its-signal
+- `focused-first-then-siblings`: When a bug reveals a wider failure class, land the focused regression first and only then consider related coverage. — adopt, pending cr-r2pa.2.18 → tdd#focused-first-then-siblings
+- `before-after-proof-report`: Name the check that failed before the fix with its failure, and the passing run after the fix with any nearby validation. — adopt, pending cr-r2pa.2.18 → tdd#before-after-proof-report
+- `missing-red-explained`: If a failure before the fix could not be shown, say why and describe the substitute check. — adopt, pending cr-r2pa.2.18 → tdd#missing-red-explained
 
 ### mattpocock_skills
 
@@ -2500,16 +2500,16 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `breakdown-approval-before-publish`: Iterate on the ticket breakdown until the user approves it, publishing nothing before approval. — adopt → planning#breakdown-approval-before-publish
 
 #### engineering · Design · Specification — skill:skills/engineering/tdd
-- `meaningful-behaviour-assertion`: Assert meaningful results, state or boundary interactions at a stable boundary rather than internal call choreography. — adopt → test-driven-development#meaningful-behaviour-assertion
-- `no-implementation-coupling`: Avoid tests coupled to the implementation's internal structure, so they survive behaviour-preserving refactors. — adopt → test-driven-development#no-implementation-coupling
+- `meaningful-behaviour-assertion`: Assert meaningful results, state or boundary interactions at a stable boundary rather than internal call choreography. — adopt → tdd#meaningful-behaviour-assertion
+- `no-implementation-coupling`: Avoid tests coupled to the implementation's internal structure, so they survive behaviour-preserving refactors. — adopt → tdd#no-implementation-coupling
 - `public-only-seams`: Test only at public boundaries, never against internals. — defer
 - `seam-preconfirmation`: Write down the seams under test and confirm them with the user before writing any test. — defer
-- `per-seam-note`: Give each proposed seam a one-line note on what it catches and what it misses. — adopt → test-driven-development#per-seam-note
-- `independent-expectation`: Derive expected values from an independent source such as a spec, worked example or trusted fixture, never computing both sides with the implementation under test. — adopt → test-driven-development#independent-expectation
-- `one-test-per-cycle`: Alternate one test and its implementation at a time instead of writing all tests before any implementation. — adopt → test-driven-development#one-test-per-cycle
-- `red-green`: Make one test fail before implementing the change that makes it pass. — adopt → test-driven-development#red-green
+- `per-seam-note`: Give each proposed seam a one-line note on what it catches and what it misses. — adopt → tdd#per-seam-note
+- `independent-expectation`: Derive expected values from an independent source such as a spec, worked example or trusted fixture, never computing both sides with the implementation under test. — adopt → tdd#independent-expectation
+- `one-test-per-cycle`: Alternate one test and its implementation at a time instead of writing all tests before any implementation. — adopt → tdd#one-test-per-cycle
+- `red-green`: Make one test fail before implementing the change that makes it pass. — adopt → tdd#red-green
 - `refactor-outside-loop`: Refactor only after the red-green cycles end, never inside them. — defer
-- `system-boundary-mocks-only`: Use test doubles only at system boundaries such as external services, time and the file system, never for modules you own. — adopt → test-driven-development#mock-boundaries
+- `system-boundary-mocks-only`: Use test doubles only at system boundaries such as external services, time and the file system, never for modules you own. — adopt → tdd#mock-boundaries
 - `inject-dependencies`: Pass a module's external dependencies in as arguments rather than constructing them inside it, so callers and tests can substitute them. — adopt → codebase-design#inject-dependencies
 - `sdk-interfaces`: Prefer specific per-operation interface functions over one generic fetcher so each mock returns a single shape. — defer
 - `rules-during-cycle`: Consult the testing rules before and during every red-green cycle rather than after it. — defer
@@ -2517,7 +2517,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `respect-area-adrs`: Honour the recorded architectural decisions that govern the area being changed. — defer
 - `module-vocabulary`: Reason about design with a shared deep-module glossary: module, interface, depth, seam, adapter and locality. — adopt → codebase-design#module-vocabulary
 - `one-assertion-per-test`: Keep one logical assertion per test. — defer
-- `behaviour-test-names`: Name each test for the behaviour that exists, not how it is achieved. — adopt → test-driven-development#behaviour-test-names
+- `behaviour-test-names`: Name each test for the behaviour that exists, not how it is achieved. — adopt → tdd#behaviour-test-names
 - `test-database-over-mock`: Prefer a test database to mocking the database. — defer
 
 #### engineering · Design · Specification — skill:skills/engineering/to-spec
@@ -2550,7 +2550,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `baseline`: Capture a baseline measurement before attempting a performance fix. — adopt → systematic-debugging#baseline
 - `perf-bisection`: Locate a performance regression by bisecting between known-good and known-bad states rather than by adding logs. — adopt → systematic-debugging#localized-probing
 - `debugger-first`: Prefer a debugger or REPL breakpoint over targeted logs, and never log everything and grep. — defer
-- `prove-the-red`: When forcing the red by mutating code or a fixture, diff against a pristine copy to prove the mutation landed before trusting it. — adopt → test-driven-development#prove-the-red
+- `prove-the-red`: When forcing the red by mutating code or a fixture, diff against a pristine copy to prove the mutation landed before trusting it. — adopt → tdd#prove-the-red
 - `regression-check`: Turn the failure into a durable regression check when feasible, showing failure before the fix and success after, then rerun the original scenario. — adopt → doc:.claude/skills/mvp-mode/playbooks/bug-fix.md
 - `missing-seam-finding`: When no correct seam exists to lock down the bug, treat that architectural absence as itself the finding and flag it. — adopt → doc:.claude/skills/mvp-mode/playbooks/bug-fix.md
 - `closeout`: Before declaring done, remove temporary instrumentation and record the confirmed cause. — adopt → doc:.claude/skills/mvp-mode/playbooks/bug-fix.md
@@ -2562,7 +2562,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `signal-lines-only`: Quote only the signal-carrying lines from captured artifacts that may hold credentials. — defer
 - `ask-when-redaction-blinds`: Ask the user for help when redacted output is too thin to diagnose from. — defer
 - `falsifiable-hypotheses`: State each hypothesis as a falsifiable prediction that changing its cause changes the result, discarding any that cannot be stated so. — adopt → systematic-debugging#falsifiable-hypotheses
-- `seam-selection`: Choose the test boundary that exercises the real contract without reaching inside. — adopt → test-driven-development#seam-selection
+- `seam-selection`: Choose the test boundary that exercises the real contract without reaching inside. — adopt → tdd#seam-selection
 - `parseable-hitl-output`: Have a human-in-the-loop script print its captured values as key=value lines the agent can parse. — defer
 - `hitl-no-credential-capture`: Capture only observations through a human-in-the-loop script, leaving sign-in to the person as a plain step since captured values are echoed. — defer
 - `placeholder-sensitive-data-redaction`: Replace secrets and personal data with placeholders in anything shown or saved. — adopt → systematic-debugging#placeholder-sensitive-data-redaction
@@ -2704,7 +2704,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `draft-closing-pr`: After the first merge, open a draft pull request marked as closing the spec and tickets when the tracker closes work through pull requests or the user asks. — defer
 - `worktree-per-implementer`: Give each implementer subagent its own worktree and branch. — defer
 - `worktree-base-check`: Have each implementer confirm its worktree is based on the integration branch and reset onto it if not. — defer
-- `red-green`: Make one test fail before implementing the change that makes it pass. — adopt → test-driven-development#red-green
+- `red-green`: Make one test fail before implementing the change that makes it pass. — adopt → tdd#red-green
 - `pre-report-tip-merge`: Have each implementer merge the integration branch's tip into its own branch before reporting done. — defer
 - `dedicated-merger-agent`: Merge completed work into the integration branch through a dedicated merger subagent. — defer
 - `final-branch-review`: Once all tickets have landed, review the integration branch a single time and fix all findings through a single implementer. — defer
@@ -8495,8 +8495,8 @@ Reject plan placeholders such as TBD, vague error-handling notes, unnamed test b
 
 #### `per-seam-note`
 Give each proposed seam a one-line note on what it catches and what it misses.
-- ours: `test-driven-development`
-- `mattpocock_skills:skill:skills/engineering/tdd` — adopt → test-driven-development#per-seam-note
+- ours: `tdd`
+- `mattpocock_skills:skill:skills/engineering/tdd` — adopt → tdd#per-seam-note
 
 #### `plan-evidence-bound`
 List known files but do not invent exact symbols or freeze a file map without evidence, leaving implementers to discover internals within their ownership.
@@ -8504,7 +8504,7 @@ List known files but do not invent exact symbols or freeze a file map without ev
 
 #### `plan-seams-no-approval`
 Take test seams from the plan without separate approval, surfacing a missing seam only when it materially changes scope or the obtainable evidence.
-- ours: `test-driven-development`
+- ours: `tdd`
 
 #### `plan-self-review`
 Self-review the finished plan for spec-requirement coverage, consistent names and types across tasks, and a gap-naming pass that turns unnamed seams, migrations, rollout and cleanup into tasks or explicit exclusions.
@@ -8544,8 +8544,8 @@ Write down the seams under test and confirm them with the user before writing an
 
 #### `seam-selection`
 Choose the test boundary that exercises the real contract without reaching inside.
-- ours: `test-driven-development`
-- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt → test-driven-development#seam-selection
+- ours: `tdd`
+- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt → tdd#seam-selection
 
 #### `start-from-source`
 Begin each target from its complete source and preserve exact identifiers, numbers, error behaviour and invariants unless explicitly superseded.
@@ -9005,8 +9005,8 @@ Run every compared side as production runs it: release builds, flags and environ
 
 #### `prove-the-red`
 When forcing the red by mutating code or a fixture, diff against a pristine copy to prove the mutation landed before trusting it.
-- ours: `test-driven-development`
-- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt → test-driven-development#prove-the-red
+- ours: `tdd`
+- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt → tdd#prove-the-red
 
 #### `queryable-dump-first`
 Before reading a captured artifact, dump it to a form that can be queried, one row per sample, frame or node, kept apart from the artifact.
@@ -9501,7 +9501,7 @@ For a migration, identify the current state, the target state and the irreversib
 
 #### `mode-selection`
 Choose test-first, characterization, or test-quality-only by the task rather than defaulting to one workflow.
-- ours: `test-driven-development`
+- ours: `tdd`
 
 #### `narrow-before-use`
 Narrow unknown values before accessing them so the compiler checks the access.
@@ -9582,8 +9582,8 @@ Let one schema own validation and infer the static type from it, never keeping a
 
 #### `one-test-per-cycle`
 Alternate one test and its implementation at a time instead of writing all tests before any implementation.
-- ours: `test-driven-development`
-- `mattpocock_skills:skill:skills/engineering/tdd` — adopt → test-driven-development#one-test-per-cycle
+- ours: `tdd`
+- `mattpocock_skills:skill:skills/engineering/tdd` — adopt → tdd#one-test-per-cycle
 
 #### `open-url-before-ask`
 Open the relevant page before asking the person for a value found there.
@@ -9642,7 +9642,7 @@ Create the environment file with private permissions and quote its values safely
 
 #### `proof-discipline`
 Keep enough before-and-after evidence to distinguish a demonstrated fix from an inference and never destroy edits to recreate RED.
-- ours: `test-driven-development`
+- ours: `tdd`
 
 #### `pydantic-models`
 Prefer Pydantic v2 models to dataclasses or untyped dicts for new structured domain data, configuration and external contracts, leaving ordinary collections as built-ins.
@@ -9667,14 +9667,14 @@ Expose other views of the data through helpers or derivations on top of the chos
 
 #### `red-green`
 Make one test fail before implementing the change that makes it pass.
-- ours: `test-driven-development`
-- `cursor_plugins:skill:pstack/skills/tdd` — adopt → test-driven-development#red-green
-- `mattpocock_skills:skill:skills/engineering/implement-spec` — adopt → test-driven-development#red-green
-- `mattpocock_skills:skill:skills/engineering/tdd` — adopt → test-driven-development#red-green
+- ours: `tdd`
+- `cursor_plugins:skill:pstack/skills/tdd` — adopt → tdd#red-green
+- `mattpocock_skills:skill:skills/engineering/implement-spec` — adopt → tdd#red-green
+- `mattpocock_skills:skill:skills/engineering/tdd` — adopt → tdd#red-green
 
 #### `refactor-after-green`
 Refactor after each passing test, preserving behaviour and rerunning the affected checks.
-- ours: `test-driven-development`
+- ours: `tdd`
 
 #### `refactor-outside-loop`
 Refactor only after the red-green cycles end, never inside them.
@@ -10119,7 +10119,7 @@ Before the first change of multi-step work, run its checks on the starting base 
 
 #### `before-after-proof-report`
 Name the check that failed before the fix with its failure, and the passing run after the fix with any nearby validation.
-- `cursor_plugins:skill:pstack/skills/tdd` — adopt, pending cr-r2pa.2.18 → test-driven-development#before-after-proof-report
+- `cursor_plugins:skill:pstack/skills/tdd` — adopt, pending cr-r2pa.2.18 → tdd#before-after-proof-report
 
 #### `behaviour-and-edge-case-tests`
 Judge tests by the behaviours and edge cases they exercise, not by line coverage.
@@ -10132,12 +10132,12 @@ Prove behaviour unchanged on the real artifact, with an old-against-new output d
 
 #### `behaviour-test-names`
 Name each test for the behaviour that exists, not how it is achieved.
-- ours: `test-driven-development`
-- `mattpocock_skills:skill:skills/engineering/tdd` — adopt → test-driven-development#behaviour-test-names
+- ours: `tdd`
+- `mattpocock_skills:skill:skills/engineering/tdd` — adopt → tdd#behaviour-test-names
 
 #### `break-naming-validation`
 Before accepting substantive tests, name the specific wrong branch, missing validation or side effect they catch, confirming by a safe mutation trial rather than mental inspection when worth its cost.
-- ours: `test-driven-development`
+- ours: `tdd`
 
 #### `bug-understanding-checklist`
 Identify intended behaviour, current behaviour, the affected path and the smallest observable reproduction.
@@ -10145,11 +10145,11 @@ Identify intended behaviour, current behaviour, the affected path and the smalle
 
 #### `closest-executable-fallback`
 When a failing test is impractical, substitute a targeted script, reproduction command, browser automation, snapshot diff, log assertion or narrow integration check.
-- `cursor_plugins:skill:pstack/skills/tdd` — adopt, pending cr-r2pa.2.18 → test-driven-development#closest-executable-fallback
+- `cursor_plugins:skill:pstack/skills/tdd` — adopt, pending cr-r2pa.2.18 → tdd#closest-executable-fallback
 
 #### `closest-existing-test-kind`
 Prefer the kind of test already used for that codepath.
-- `cursor_plugins:skill:pstack/skills/tdd` — adopt, pending cr-r2pa.2.18 → test-driven-development#closest-existing-test-kind
+- `cursor_plugins:skill:pstack/skills/tdd` — adopt, pending cr-r2pa.2.18 → tdd#closest-existing-test-kind
 
 #### `contract-exact-assertion`
 Assert exactly what the contract promises, no less and no more, letting the contract decide whether a call, an absence, a payload or an error type is behaviour.
@@ -10162,7 +10162,7 @@ Make the smallest production change that gives the intended behaviour and preser
 
 #### `deterministic-state`
 Prefer deterministic inputs and isolated state, controlling time, randomness and shared state that cause nondeterminism.
-- ours: `test-driven-development`
+- ours: `tdd`
 
 #### `evidence-tests`
 Test the material abuse path and legitimate use, verify authorization per resource rather than merely login, and check leakage, retries and failure behaviour.
@@ -10174,19 +10174,19 @@ When the failing check that showed the bug already fails for the reported reason
 
 #### `failure-for-the-right-reason`
 Run a new test before fixing and, if it passes or fails for another reason, correct the test or reproduction first.
-- `cursor_plugins:skill:pstack/skills/tdd` — adopt, pending cr-r2pa.2.18 → test-driven-development#failure-for-the-right-reason
+- `cursor_plugins:skill:pstack/skills/tdd` — adopt, pending cr-r2pa.2.18 → tdd#failure-for-the-right-reason
 
 #### `flaky-test-names-its-signal`
 For a flaky bug, remove nondeterminism from the test as far as possible and document which signal it pins.
-- `cursor_plugins:skill:pstack/skills/tdd` — adopt, pending cr-r2pa.2.18 → test-driven-development#flaky-test-names-its-signal
+- `cursor_plugins:skill:pstack/skills/tdd` — adopt, pending cr-r2pa.2.18 → tdd#flaky-test-names-its-signal
 
 #### `focused-first-then-siblings`
 When a bug reveals a wider failure class, land the focused regression first and only then consider related coverage.
-- `cursor_plugins:skill:pstack/skills/tdd` — adopt, pending cr-r2pa.2.18 → test-driven-development#focused-first-then-siblings
+- `cursor_plugins:skill:pstack/skills/tdd` — adopt, pending cr-r2pa.2.18 → tdd#focused-first-then-siblings
 
 #### `focused-regression-test`
 Write the smallest test focused on this bug, without broad fixture changes or added unrelated coverage.
-- `cursor_plugins:skill:pstack/skills/tdd` — adopt, pending cr-r2pa.2.18 → test-driven-development#focused-regression-test
+- `cursor_plugins:skill:pstack/skills/tdd` — adopt, pending cr-r2pa.2.18 → tdd#focused-regression-test
 
 #### `full-verification-at-completion`
 At the end of a planned migration or rewrite, run full static and runtime verification, not only the checks the last change touched.
@@ -10211,9 +10211,9 @@ When internals change, rewrite or delete tests that only protect the old impleme
 
 #### `independent-expectation`
 Derive expected values from an independent source such as a spec, worked example or trusted fixture, never computing both sides with the implementation under test.
-- ours: `test-driven-development`
-- `cursor_plugins:skill:pstack/skills/principle-test-behavior-not-implementation` — adopt → test-driven-development#independent-expectation
-- `mattpocock_skills:skill:skills/engineering/tdd` — adopt → test-driven-development#independent-expectation
+- ours: `tdd`
+- `cursor_plugins:skill:pstack/skills/principle-test-behavior-not-implementation` — adopt → tdd#independent-expectation
+- `mattpocock_skills:skill:skills/engineering/tdd` — adopt → tdd#independent-expectation
 
 #### `matching-surface-verify`
 Verify a change on the surface where it will be used, treating an inconclusive result or a pass on another surface as no pass.
@@ -10221,23 +10221,23 @@ Verify a change on the surface where it will be used, treating an inconclusive r
 
 #### `meaningful-behaviour-assertion`
 Assert meaningful results, state or boundary interactions at a stable boundary rather than internal call choreography.
-- ours: `test-driven-development`
-- `cursor_plugins:skill:pstack/skills/principle-test-behavior-not-implementation` — adopt → test-driven-development#meaningful-behaviour-assertion
-- `mattpocock_skills:skill:skills/engineering/tdd` — adopt → test-driven-development#meaningful-behaviour-assertion
+- ours: `tdd`
+- `cursor_plugins:skill:pstack/skills/principle-test-behavior-not-implementation` — adopt → tdd#meaningful-behaviour-assertion
+- `mattpocock_skills:skill:skills/engineering/tdd` — adopt → tdd#meaningful-behaviour-assertion
 
 #### `missing-red-explained`
 If a failure before the fix could not be shown, say why and describe the substitute check.
-- `cursor_plugins:skill:pstack/skills/tdd` — adopt, pending cr-r2pa.2.18 → test-driven-development#missing-red-explained
+- `cursor_plugins:skill:pstack/skills/tdd` — adopt, pending cr-r2pa.2.18 → tdd#missing-red-explained
 
 #### `mock-boundaries`
 Use test doubles only at boundaries, never in place of the behaviour under test.
-- ours: `test-driven-development`
+- ours: `tdd`
 
 #### `no-implementation-coupling`
 Avoid tests coupled to the implementation's internal structure, so they survive behaviour-preserving refactors.
-- ours: `test-driven-development`
-- `cursor_plugins:skill:pstack/skills/tdd` — adopt → test-driven-development#no-implementation-coupling
-- `mattpocock_skills:skill:skills/engineering/tdd` — adopt → test-driven-development#no-implementation-coupling
+- ours: `tdd`
+- `cursor_plugins:skill:pstack/skills/tdd` — adopt → tdd#no-implementation-coupling
+- `mattpocock_skills:skill:skills/engineering/tdd` — adopt → tdd#no-implementation-coupling
 
 #### `no-mocking-what-can-run`
 Mock only what cannot run locally, and avoid mocks for anything that can.
@@ -10245,11 +10245,11 @@ Mock only what cannot run locally, and avoid mocks for anything that can.
 
 #### `no-test-over-bad-test`
 Prefer adding nothing to a test that mostly exercises mocks, encodes internals, depends on timing or global state, needs costly infrastructure for a minor fix, or would be discarded right after.
-- `cursor_plugins:skill:pstack/skills/tdd` — adopt, pending cr-r2pa.2.18 → test-driven-development#no-test-over-bad-test
+- `cursor_plugins:skill:pstack/skills/tdd` — adopt, pending cr-r2pa.2.18 → tdd#no-test-over-bad-test
 
 #### `no-tests-bent-or-weakened`
 Do not change tests to agree with wrong behaviour, and keep existing assertions as strong unless expected behaviour truly changed for a clear reason.
-- `cursor_plugins:skill:pstack/skills/tdd` — adopt, pending cr-r2pa.2.18 → test-driven-development#no-tests-bent-or-weakened
+- `cursor_plugins:skill:pstack/skills/tdd` — adopt, pending cr-r2pa.2.18 → tdd#no-tests-bent-or-weakened
 
 #### `one-assertion-per-test`
 Keep one logical assertion per test.
@@ -10319,7 +10319,7 @@ Syntax-check the script and make it executable, then tell the user how to run it
 #### `system-boundary-mocks-only`
 Use test doubles only at system boundaries such as external services, time and the file system, never for modules you own.
 - `doc:.repo-context/coding-style.md`
-- `mattpocock_skills:skill:skills/engineering/tdd` — adopt → test-driven-development#mock-boundaries
+- `mattpocock_skills:skill:skills/engineering/tdd` — adopt → tdd#mock-boundaries
 
 #### `test-database-over-mock`
 Prefer a test database to mocking the database.
@@ -10331,7 +10331,7 @@ Prefer parametrized tests to repeated test bodies.
 
 #### `test-skipped-when-impractical`
 Add no new test when it would demand wide harness setup, fragile mocks, slow full-stack infrastructure, production-only state, unclear reproduction or heavy unrelated fixtures, and never build a test path from nothing just to follow the workflow.
-- `cursor_plugins:skill:pstack/skills/tdd` — adopt, pending cr-r2pa.2.18 → test-driven-development#optional-regression-test-skip
+- `cursor_plugins:skill:pstack/skills/tdd` — adopt, pending cr-r2pa.2.18 → tdd#optional-regression-test-skip
 
 #### `touched-area-checks`
 During a migration, keep fast high-signal checks running on the areas being changed.

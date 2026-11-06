@@ -12,7 +12,7 @@ status: active
 
 multi-step work (a sweep, a migration, a run of similar edits) or stacking commits.
 
-**Boundary:** Orders multi-step work into checked units and commits; test-first proof of one change is test-driven-development, and a declared migration group is principle-migrate-without-shims.
+**Boundary:** Orders multi-step work into checked units and commits; test-first proof of one change is tdd, and a declared migration group is principle-migrate-without-shims.
 
 <!-- registry:generated traits -->
 - `baseline-check-before-change`: Before the first change of multi-step work, run its checks on the starting base and record the results, so later failures are classed as pre-existing or as regressions.

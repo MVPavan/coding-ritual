@@ -34,7 +34,7 @@ Playbook traits: `confirmed-cause-gate`, `stated-unattended-gate`, `unattended-n
 |---|---|---|---|---|
 | `bug-fix#1` | a deterministic failing command, run as reported, shows the failure and its output points at the cause; never a flaky failure, nor a cause found by reading code or rerunning in a loop | `obvious-cause-skip` |  |  |
 | `bug-fix#2` | bug-fix#1 did not skip it | `long-hunt-test`, `bounded-background-wait` | `skill:explain-code` (when: the failing subsystem is unfamiliar or the failure may be a regression); `skill:systematic-debugging` |  |
-| `bug-fix#3` | the cause is confirmed | `existing-check-as-proof`, `report-missing-proof`, `missing-seam-finding`, `scoped-instance-fix`, `implement-against-sketch` | `skill:codebase-design` (when: the fix crosses a function boundary); `skill:test-driven-development` (when: step 1's failing check does not already fail for the reported reason and a durable regression check is feasible) | `.claude/skills/mvp-mode/playbooks/bug-fix/timing-flakes.md` (when: the cause is a timing flake) |
+| `bug-fix#3` | the cause is confirmed | `existing-check-as-proof`, `report-missing-proof`, `missing-seam-finding`, `scoped-instance-fix`, `implement-against-sketch` | `skill:codebase-design` (when: the fix crosses a function boundary); `skill:tdd` (when: step 1's failing check does not already fail for the reported reason and a durable regression check is feasible) | `.claude/skills/mvp-mode/playbooks/bug-fix/timing-flakes.md` (when: the cause is a timing flake) |
 | `bug-fix#4` | bug-fix#3 changed code | `rerun-original-repro` |  |  |
 | `bug-fix#5` | around bug-fix#3 and bug-fix#4 | `attempt-log`, `revert-ineffective-experiments`, `two-failure-stop` |  |  |
 | `bug-fix#6` | the confirmed defect reveals another boundary problem | `defense-in-depth-hardening` |  | `.claude/skills/mvp-mode/playbooks/bug-fix/hardening.md` |
@@ -172,7 +172,7 @@ Playbook traits: `structure-only-gate`
 
 | Step | When | Traits | Calls | Loads |
 |---|---|---|---|---|
-| `refactoring#1` | always | `behaviour-pin-gate` | `skill:explain-code`; `skill:test-driven-development` (when: no existing check pins the behaviour) |  |
+| `refactoring#1` | always | `behaviour-pin-gate` | `skill:explain-code`; `skill:tdd` (when: no existing check pins the behaviour) |  |
 | `refactoring#2` | always | `branch-deleting-reshape` |  |  |
 | `refactoring#3` | always | `named-target-shape` | `skill:codebase-design` (when: the target crosses a function boundary) |  |
 | `refactoring#4` | the pin holds | `pin-green-moves`, `rename-spot-check`, `implement-against-sketch` | `skill:delegation` (when: the edits are mechanical) |  |
@@ -278,5 +278,5 @@ Traits and calls used by two or more playbooks. Repeating a step is fine; the sa
 | `skill:prose-pass` | investigation: `investigation#2`; multi-phase-plan: `multi-phase-plan#5` |
 | `skill:review` | feature: `feature#4`; perf-issue: `perf-issue#3` |
 | `skill:systematic-debugging` | bug-fix: `bug-fix#2`; runtime-forensics: `runtime-forensics#2` |
-| `skill:test-driven-development` | bug-fix: `bug-fix#3`; refactoring: `refactoring#1` |
+| `skill:tdd` | bug-fix: `bug-fix#3`; refactoring: `refactoring#1` |
 | `skill:wake` | autonomous-run: `autonomous-run#3`; hillclimb: `hillclimb#2` |
