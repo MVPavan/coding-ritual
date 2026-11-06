@@ -29,7 +29,7 @@ Catalog: `aeac41d4d005999432bb7312f7ff06383a91d59d`, 44 capabilities.
 | `skill:skills/browser-testing-with-devtools` | reject | decided (whole skill) |  | 2026-10-14-migration | no |
 | `skill:skills/ci-cd-and-automation` | defer | decided (whole skill) |  | 2026-10-14-migration | no |
 | `skill:skills/code-review-and-quality` | adopt-merged | not analysed | review | 2026-10-14-migration | yes |
-| `skill:skills/code-simplification` | adopt | not analysed | execution | 2026-10-14-migration | no |
+| `skill:skills/code-simplification` | adopt | not analysed | implement | 2026-10-14-migration | no |
 | `skill:skills/constraint-driven-development` | not reviewed | not analysed |  |  |  |
 | `skill:skills/context-engineering` | defer | decided (whole skill) |  | 2026-10-14-owner-review | no |
 | `skill:skills/debugging-and-error-recovery` | adopt | not analysed | systematic-debugging | 2026-10-14-migration | yes |
@@ -48,5 +48,5 @@ Catalog: `aeac41d4d005999432bb7312f7ff06383a91d59d`, 44 capabilities.
 | `skill:skills/shipping-and-launch` | defer | decided (whole skill) |  | 2026-10-14-migration | yes |
 | `skill:skills/source-driven-development` | adopt | not analysed | research | 2026-10-14-migration | yes |
 | `skill:skills/spec-driven-development` | adopt-merged | not analysed | brainstorming | 2026-10-14-migration | yes |
-| `skill:skills/test-driven-development` | adopt | not analysed | test-driven-development | 2026-10-14-migration | yes |
+| `skill:skills/test-driven-development` | adopt | not analysed | tdd | 2026-10-14-migration | yes |
 | `skill:skills/using-agent-skills` | reject | decided (whole skill) |  | 2026-10-14-migration | yes |

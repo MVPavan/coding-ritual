@@ -7,7 +7,12 @@ from typing import Any
 from curation.registry.catalogs import _removed_upstream, classify_capability
 from curation.registry.changes import _change_info
 from curation.registry.config import RegistryConfig
-from curation.registry.ledger import _adopt_target, _round_of, effective_traits_for
+from curation.registry.ledger import (
+    _adopt_target,
+    _round_of,
+    effective_traits_for,
+    resolve_skill,
+)
 from curation.registry.models import Event, RoundHeader, UpstreamTraitEntry
 from curation.registry.status import capability_state
 
@@ -25,6 +30,15 @@ def _traits_cell(
         if ruling is not None:
             counts[ruling.kind] = counts.get(ruling.kind, 0) + 1
     return " · ".join(f"{n} {kind}" for kind, n in sorted(counts.items())) or "—"
+
+
+def _ruled_into(event: Event, forward: dict[str, str]) -> str:
+    """A capability ruling's destination: a whole-skill adoption names the
+    skill that survives our renames and merges; anything else is verbatim."""
+    skill = event.skill or ""
+    if event.kind in {"adopt", "adopt-merged"} and skill and ":" not in skill:
+        return resolve_skill(skill, forward)
+    return skill
 
 
 def _reference_destinations(
@@ -46,7 +60,7 @@ def _reference_destinations(
             dests.append(label)
     if dests:
         return ", ".join(dests)
-    return event.skill or ""
+    return _ruled_into(event, forward)
 
 
 def render_reference(
@@ -100,7 +114,7 @@ def render_reference(
             cap, catalog.repo, current, our_ids, normalized
         )
         subject = f"{catalog.repo}:{cap.logical_id}"
-        into = event.skill or "" if event else ""
+        into = _ruled_into(event, forward) if event else ""
         ruled = _round_of(event) if event else ""
         # The changed column shares gap's §4 baseline cascade for every repo so
         # the two never disagree (review #9); the Ideas column stays opt-in.

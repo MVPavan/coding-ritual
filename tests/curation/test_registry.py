@@ -2422,6 +2422,43 @@ def test_reference_page_traits_column(tmp_path: Path) -> None:
     assert "1 adopt" in page
 
 
+@pytest.mark.parametrize("with_traits", [False, True])
+def test_reference_page_names_the_renamed_skill(
+    tmp_path: Path, with_traits: bool
+) -> None:
+    """A whole-skill adoption into a skill we later renamed shows the survivor
+    under Into ours, whether or not the reference has trait analysis."""
+    cfg = _trait_cfg(tmp_path) if with_traits else _make_cfg(tmp_path)
+    _write_skill(cfg, "slicing")
+    _write_record(cfg, "slicing", "engineering", "Design", "Decomposition")
+    caps = [_cap("skill", "x", "skill:skills/x", "h")]
+    if with_traits:
+        caps.append(_cap("skill", "tdd", LOGICAL, "hcur"))
+    _catalog(cfg, "refrepo", caps)
+    _write_round(
+        cfg,
+        "2026-10-14-migration",
+        _ours_event("2026-10-14-migration:1", "add", "planning"),
+        _ref_event(
+            "2026-10-14-migration:2",
+            "adopt",
+            "refrepo",
+            "skill:skills/x",
+            skill="planning",
+        ),
+        {
+            **_ours_event("2026-10-14-migration:3", "rename", "planning"),
+            "skill": "slicing",
+            "why": "renamed planning to slicing",
+        },
+    )
+    assert cli.cmd_build(cfg, _ns()) == 0
+    page = (cfg.references_dir / "refrepo.md").read_text(encoding="utf-8")  # type: ignore[attr-defined]
+    row = next(line for line in page.splitlines() if "`skill:skills/x`" in line)
+    assert row.split(" | ")[3] == "slicing"
+    assert ("Traits" in page) is with_traits
+
+
 def test_build_refuses_invalid_trait_files(tmp_path: Path) -> None:
     """review r1 #10: a trait file that fails to load stops build before writing."""
     cfg = _trait_cfg(tmp_path)
