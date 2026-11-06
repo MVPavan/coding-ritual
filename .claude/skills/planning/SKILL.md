@@ -49,7 +49,7 @@ to discover internal details within that ownership. Do not invent exact symbols
 or freeze a file map without evidence.
 
 Every phase plan task names an existing `Stage: <epic>.N`; every stage has covering
-tasks. Preserve this mapping because execution uses it to close stages. Mark
+tasks. Preserve this mapping because `implement` uses it to close stages. Mark
 risky changes test-first or characterization-first as appropriate.
 
 Check requirement coverage, compatibility, unresolved decisions, integration

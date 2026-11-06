@@ -37,7 +37,7 @@ steps:
 
 For sustained improvement of one measurable metric from one repeatable command against
 a stop predicate, attended or stated unattended, with no settled plan. One fix is the
-perf-issue playbook, a plan to run is `execution`, and a variant judged on fresh sessions is
+perf-issue playbook, a plan to run is `implement`, and a variant judged on fresh sessions is
 the eval playbook.
 
 **The gates:** A run is unattended only when the request's own words say so: overnight, while I'm away, off to bed, unattended, come back by yourself, or the like. Otherwise it is attended, whatever its length. One change, one measurement, then keep or undo: never stack untested changes. The loop commits nothing, with or without commit authority.

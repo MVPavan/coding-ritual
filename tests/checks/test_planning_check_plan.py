@@ -1,4 +1,4 @@
-"""The skeleton plan lint, and that what it accepts survives execution's extractor."""
+"""The skeleton plan lint, and that what it accepts survives implement's extractor."""
 
 import subprocess
 import sys
@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 SCRIPT = Path(__file__).parents[2] / ".claude/skills/planning/scripts/check_plan.py"
-BRIEF = Path(__file__).parents[2] / ".claude/skills/execution/scripts/task-brief.sh"
+BRIEF = Path(__file__).parents[2] / ".claude/skills/implement/scripts/task-brief.sh"
 HEAD = """# Move the store
 **Origin:** docs/plans/x.md
 **Goal:** Move the store.
@@ -15,7 +15,7 @@ HEAD = """# Move the store
 **Constraints:** Python 3.12.
 """
 HOW = """## How to run this
-Run with: execution, task scope.
+Run with: implement, task scope.
 Authority: owner's word.
 The coordinator ticks a box only when its evidence exists.
 """
@@ -59,7 +59,7 @@ VALUES = {
 SEPARATORS = [
     c for c in map(chr, range(0x10000)) if c != "\n" and len(f"a{c}b".splitlines()) == 2
 ]
-PHASE = "execution, phase scope."
+PHASE = "implement, phase scope."
 NOTES = "#### Implementation notes\n"
 FAULTS = [
     ("Approach: Add the table.", "TBD", "placeholder"),
@@ -81,8 +81,8 @@ FAULTS = [
     ("Blocked by: Q1", "Blocked by: Q9", "no open question"),
     ("Blocked by: Q1", "Blocked by: none", "no open question"),
     ("Blocked by: Q1\n", "", "holds no task"),
-    ("execution, task scope.", PHASE + "\nRun with: " + PHASE, "one line"),
-    ("execution, task scope.", "execution, everything.", "one line"),
+    ("implement, task scope.", PHASE + "\nRun with: " + PHASE, "one line"),
+    ("implement, task scope.", "implement, everything.", "one line"),
     ("Authority: owner's word.", "Authority:", "Authority"),
     ("The coordinator ticks", "Someone ticks", "lacks the sentence"),
     ("Dependencies: None\n", "Dependencies: None\n" + NOTES, "heading inside"),
@@ -144,8 +144,14 @@ def test_one_fault_is_named(tmp_path, old, new, message):
     assert code == 1 and message in output
 
 
+def test_old_runner_name_is_rejected(tmp_path):
+    text = GOOD.replace("implement, task scope.", "execution, task scope.")
+    code, output = lint(write(tmp_path, text))
+    assert code == 1 and "needs one line: Run with: implement, <scope> scope." in output
+
+
 def test_phase_scope_needs_a_stage(tmp_path):
-    text = GOOD.replace("execution, task scope.", PHASE)
+    text = GOOD.replace("implement, task scope.", PHASE)
     assert lint(write(tmp_path, text))[0] == 0
     code, output = lint(write(tmp_path, text.replace("Stage: cr-1.1\n", "")))
     assert code == 1 and "needs Stage" in output

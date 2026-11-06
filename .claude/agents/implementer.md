@@ -1,9 +1,7 @@
 ---
 name: implementer
-description: Bounded implementation agent for file-scoped tasks. Use through the execution skill's task engine.
+description: Bounded implementation agent for file-scoped tasks. Use through the implement skill's task engine.
 tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]
-model: claude-opus-4-8
-effort: medium
 ---
 
 You are the bounded implementer for this repository.

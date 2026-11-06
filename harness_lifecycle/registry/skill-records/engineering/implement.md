@@ -1,5 +1,5 @@
 ---
-skill: execution
+skill: implement
 domain: engineering
 stage: X
 substage: Coordination
@@ -8,7 +8,7 @@ family: plan-execution
 aliases: [phase-execution, run-phases]
 status: active
 ---
-# execution
+# implement
 
 Use to execute tracked multi-step work, a standalone plan, or a roadmap phase. Clear bounded implementation can proceed directly under AGENTS.md.
 
@@ -43,6 +43,7 @@ Use to execute tracked multi-step work, a standalone plan, or a roadmap phase. C
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-06` **rename** (2026-11-06-renames:011): Owner ruling D of 2026-11-05 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 14a U1. The skill execution is renamed implement; its body is unchange…
 - `2026-10-31` **update** (2026-10-31-mvp-mode:007): Restates 2026-10-31-mvp-mode:004 with durable evidence (critic K2) and its trait inventory (critic K1). Bug-fix pilot: systematic-debugging no longer fixes, so…
 - `2026-10-31` **update** (2026-10-31-mvp-mode:004) *(superseded)*: Bug-fix pilot: systematic-debugging no longer fixes, so execution's task loop calls it for the diagnosis and carries the fix gates on its own path (fix only a …
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:287): Owner deferred the report's reject recommendation, to review the set later: Depends on per-implementer worktrees, rejected in worktree-per-implementer.

@@ -14,7 +14,7 @@ ambiguous records before execution. Preserve all pre-existing edits.
 
 1. Read roadmap order and Beads status/dependencies. Select the first eligible
    unfinished phase; never cross an unmet prerequisite.
-2. Execute it through the execution skill's phase loop and close gate. Unattended
+2. Execute it through the implement skill's phase loop and close gate. Unattended
    authority covers routine plan elaboration within the agreed roadmap, not new
    behavior, changed safety boundaries or scope expansion.
 3. After the stage gate and phase exit pass, regenerate tracking and refresh the

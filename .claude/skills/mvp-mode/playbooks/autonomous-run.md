@@ -31,7 +31,7 @@ steps:
 
 For a request to keep working by yourself until a stated, checkable condition holds, with no
 settled plan. One metric from one command is the hillclimb playbook. A reported defect or failing
-test is bug-fix, even overnight. A plan or roadmap is `execution` or `run-phases`, new behaviour is
+test is bug-fix, even overnight. A plan or roadmap is `implement` or `run-phases`, new behaviour is
 feature, a focused redesign is refactoring, "stop for today" is pause-safely. A person's next
 message wins.
 

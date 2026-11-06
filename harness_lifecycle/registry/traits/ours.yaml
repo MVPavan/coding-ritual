@@ -16,7 +16,7 @@ ours:beads:
   tree_hash: "14f92a47bc0da4f6e75c85db2df5fb58a6a2269bd16534ef7a3eaffdf99b5634"
   traits: [bead-type-taxonomy, field-roles, wait-as-edge, actor-identity, resume-line, session-close, session-recovery, knowledge-in-files, beads-setup, workstream-render, status-model, triage-routing, durable-unit-scope, review-as-task, phase-epic-contract, destructive-command-guard, repeated-procedures, dolt-sync]
 ours:brainstorming:
-  tree_hash: "aa6edeb67bdededb1783e9228a957c82bbcca84ad47a408209ba1ae329572d15"
+  tree_hash: "92eb2c9c1458948a66d07ab39e161afbbd50e6c72537c6fd3fc12a9f8dc2b492"
   traits: [match-interaction-to-ambiguity, synthesize-settled, scoped-context-read, reuse-before-new, decision-frame, options-with-tradeoffs, spec-template, spec-criteria-and-questions, none-keeps-heading, testing-seam-decision, no-stale-file-paths, no-stale-code-snippets, prototype-snippet, spec-approval-gate, material-risk-review, question-batching, recommended-answer, settled-stop, self-serve-facts, approval-interpretation, observable-outcomes, structured-divergence, exploration-lenses, inline-diagrams, visuals-into-spec, html-mockup-on-request, user-perspective-framing, implementation-decisions-scope, testing-decisions-contents]
   notes:
     recommended-answer: "Labels the recommendation's assumptions."
@@ -53,8 +53,8 @@ ours:domain-modeling:
   notes:
     glossary-entry-template: "Lays the file out as a title and a one-or-two-sentence description, then each term in bold followed by its definition and an Avoid line."
     tight-concept-definitions: "One or two sentences at most."
-ours:execution:
-  tree_hash: "ecfeff130c461140b3f5bc78a58fa640fd4f8398a6c993eb744e3179907f4f86"
+ours:implement:
+  tree_hash: "4f7fe425a43afff8cb46ad53a83998d42e67415bef4d45a62ab2626835424754"
   traits: [scope-selector, risk-sized-review, task-loop, finding-adjudication, phase-loop, close-gate, workstream-mode, child-workflows, context-recovery, stop-on-failure, bounded-fix-loop, scope-base-review-package, delegated-report-recovery, confirmed-cause-fix, regression-proof-and-rerun, attempt-log, two-failure-stop]
 ours:explain-code:
   tree_hash: "076d67bfa7e11ec8f8f14abb1b058cea20b129ff95b2513ae311e59ec5c5b5ba"
@@ -108,7 +108,7 @@ ours:model-council:
   tree_hash: "604be20a026528990ef9536cfbb643228189552f25f15eda46633ae3f4445f05"
   traits: [member-resolution, runtime-capability-check, neutral-framing, member-isolation, report-preservation, independent-synthesis, consolidated-delivery, identity-recording, failed-member-recovery, no-silent-substitution, artifact-named-up-front, task-rubric-criteria, rubric-withheld-from-candidates, own-output-location, rationale-names-rejected, dropout-proceeds-noted, read-only-judge, judge-other-family-or-stated, rubric-given-to-judge, path-labelled-candidates, judge-criterion-scores, judge-recommends-base, full-read-before-pick, picker-criterion-scores, pick-compared-with-judge, disagreement-rereads-rationales, base-chosen-for-extensibility, near-tie-smaller-surface, loser-graft-pass, sparse-grafts, hand-folded-grafts, converged-shape-no-graft, divergence-reframes-once, graft-change-rerun, verify-miss-returns-once, single-synthesized-artifact, synthesis-decision-record, note-judge-status, note-convergence-dropouts, note-verification-result, no-judge-no-pick]
 ours:mvp-mode:
-  tree_hash: "d0a814fbc1568144872570b4d427e138a1a5a853ee3bd2c44f8ea4e15583fa26"
+  tree_hash: "2df7017affbfff0e86319c92f4c270e46832cd61c2c7e1e9e63e7fd5cf8a052a"
   traits: [unit-kind-lines, playbook-pick, need-to-skill-routing, overlap-arbitration, layered-catalog, platform-skill-invocation, no-playbook-in-delegate, delegate-independent-by-default, no-onward-delegation, playbook-steps-as-todos, recorded-step-skip, whole-callee, playbook-exit, legacy-entrypoint-flagging, catalog-trust-boundary]
 ours:performance-optimization:
   tree_hash: "8e393535c7e06691afca39ef9df84040ce4752a29a8cc58610b8522ce951c4da"
@@ -119,7 +119,7 @@ ours:perspective-council:
   notes:
     independent-synthesis: "The synthesizer is a fresh chair who restores attribution after anonymized peer review and ends with a practical next step."
 ours:planning:
-  tree_hash: "58b779e5ffd8218aabc1622ad1a7ef43655e481b8aa4aac7568697ff3023ca44"
+  tree_hash: "134bc2e73a53947fde76ee8e0df83a90119ec4845dde6c8939e45b69ee536d8e"
   traits: [route-by-scale, decompose-phases, vertical-slices, expand-contract, dependency-edges, beads-native-tracking, durable-plan-format, plan-evidence-bound, test-first-marking, no-placeholder-plan, plan-self-review, reviewer-rejectable-sizing, real-id-wiring, no-stale-code-snippets, ground-in-codebase, breakdown-approval-before-publish, per-unit-evidence-boxes, named-execution-scope, plan-lint-last, prefactor-first, blast-radius-batches]
   notes:
     beads-native-tracking: "The roadmap anchor is the --spec-id and the governing spec is --design; the renderer derives the workstream from the anchor, so a plan path never goes in --design."
@@ -240,7 +240,7 @@ ours:triage:
     claim-verification: "An unreproduced bug gets questions for the owner, never an automatic close."
     prior-rejection-check: "Searches closed beads for earlier wontfix closes."
 ours:wayfinder:
-  tree_hash: "fd2850c727777c10faff3f885ce1b6943d5ed12dea1a4ceb6ff460fb18dc3e9c"
+  tree_hash: "762e9913dd407d092606371f0399b9481c9b83c6f7e69697c76fe06e4aa8308a"
   traits: [decision-map-epic, plan-not-do, dependency-edges, map-as-index, map-body-sections, reference-by-name, bounded-decision-ticket, coherence-sized-tickets, label-free-typing, ticket-type-set, claim-before-work, destination-first, question-graduation, real-id-wiring, record-resolution, out-of-scope-close, human-decision-gate, multi-ticket-sessions, prototype-ticket-asset, fog-hygiene, low-res-map-load, breadth-first-charting, invalidated-ticket-reconciliation, prerequisite-task-human-checklist, prerequisite-task-result-facts]
   notes:
     breadth-first-charting: "Delivers sealed row 2026-10-30-mattpocock_skills-5beb35b:149: surfaces the open decisions before resolving any, where the definition charts by questioning and surfaces first steps too; T5."
@@ -251,7 +251,7 @@ ours:wayfinder:
     real-id-wiring: "Creates the items first, then wires them."
     record-resolution: "Updates invalidated dependencies without deleting history."
 doc:AGENTS.md:
-  tree_hash: "53ebf00159cb916205b3c1421919931329918ba539c150a6dff5b5911844300c"
+  tree_hash: "e0e618097edef95cf0194948bba10a77d847b8753400cbd17d88ee8a4f276f7f"
   traits: [smallest-sufficient-change, implementation-authority-carry, inspection-only-authority, material-ambiguity-ask, work-while-waiting, consequential-action-authorization, approval-persistence, accuracy-over-agreement, no-grade-inflation, certainty-labelling, no-fabrication, scoped-reading, logs-behind-references, untrusted-content-no-authority, primary-evidence-check, volatile-fact-verification, decision-conflict-surfacing, handoff-contents, learnings-capture, memory-on-request, reuse-existing-first, present-requirement-only, no-unrelated-cleanup, owning-layer-fix, caller-impact-check, limitation-with-revisit, proportional-effort, explicit-workflow-adherence, configured-model-use, independence-batching, no-evidence-pivot, no-onward-delegation, worker-brief-contents, preserve-others-edits, no-duplicate-delegated-work, coordinator-ownership, applicable-checks-before-done, risk-proportional-tests, original-failure-check, rerun-on-change-only, final-diff-inspection, final-report-contents, secret-containment, simplification-preserves-safeguards, safe-retry-only, no-guard-bypass, explicit-path-staging, destructive-git-guard, commit-push-authority, merge-base-selection, merged-result-verification, unmerged-work-protection, repo-relative-committed-paths, scratch-artifact-location, read-only-references, minimal-borrowing, plugin-subset-invariant, resume-bead-and-handoff, generated-mirror-read-only, plain-path-references, durable-work-tracking, router-at-task-start, recurring-lesson-to-check, tool-when-it-pays, script-over-fanout, direct-observation]
 doc:.repo-context/coding-style.md:
   tree_hash: "69c61c0c79bafd364f463e9a7e38bf023d39bc10223490f94d72523f29cd0868"

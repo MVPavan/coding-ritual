@@ -12,7 +12,7 @@ status: active
 
 Use when settled work needs a durable implementation plan, dependency graph, or workstream decomposition: an existing roadmap phase, an approved spec to split, or a plan in a form someone names. A request to produce a plan for several units, or work whose open questions must be settled first, is the multi-phase-plan playbook, which calls this. Skip planning ceremonies for clear bounded tasks.
 
-**Boundary:** Writes a durable implementation plan, dependency graph or workstream decomposition for settled work; what to remove before adding is principle-subtract-before-you-add, and migrating without shims is principle-migrate-without-shims. A plan in checked form names per-unit evidence and one `execution` scope; running it is `execution`.
+**Boundary:** Writes a durable implementation plan, dependency graph or workstream decomposition for settled work; what to remove before adding is principle-subtract-before-you-add, and migrating without shims is principle-migrate-without-shims. A plan in checked form names per-unit evidence and one `implement` scope; running it is `implement`.
 
 <!-- registry:generated traits -->
 - `route-by-scale`: Route between brainstorming, a brief local sequence, elaborate, decompose, or executing from a roadmap row according to the work's scale.
@@ -68,6 +68,7 @@ Use when settled work needs a durable implementation plan, dependency graph, or 
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-06` **update** (2026-11-06-renames:013): Owner ruling D of 2026-11-05 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 14a U1. The Run with: contract names implement: skeleton.md's template…
 - `2026-11-02` **update** (2026-11-02-pilot-2:018): Final critic of pilot 2. The lint splits lines as execution's extractor does, normalizing CRLF only and splitting on LF, and any other line separator is a prob…
 - `2026-11-02` **adopt** (2026-11-02-pilot-2:011): Completes pending 2026-10-30-mattpocock_skills-5beb35b:116: blast-radius-batches is written at .claude/skills/planning/SKILL.md:83-84, read against its ruled r…
 - `2026-11-02` **adopt** (2026-11-02-pilot-2:010): Completes pending 2026-10-30-mattpocock_skills-5beb35b:102: prefactor-first is written at .claude/skills/planning/SKILL.md:81-82, read against its ruled reword…

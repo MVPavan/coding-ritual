@@ -49,5 +49,5 @@ before approval. Review consistency, scope and verifiability; a spec with
 material risk gets a critic review (review skill) before approval. Report an unresolved direction as a blocker to whoever started
 the brainstorm.
 
-This skill's output is decisions or a spec. Continue into planning/execution when
+This skill's output is decisions or a spec. Continue into `planning` or `implement` when
 already authorized; a brainstorming-only request does not authorize code changes.

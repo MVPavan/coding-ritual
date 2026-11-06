@@ -101,7 +101,7 @@ work, also recover the active Bead and handoff.
 - Handing work to another agent or model: the `delegation` skill.
 - Domain/repo terminology: `.repo-context/CONTEXT.md`. Architecture/contracts: relevant `docs/adr/`
   and `.repo-context/invariants.md`.
-- Phase/workstream execution: `execution` skill and relevant
+- Phase/workstream execution: `implement` skill and relevant
   `docs/workstreams/<name>/roadmap.md`. Generated tracking mirrors are read-only.
 - Other project references: follow the task-specific triggers in
   `.repo-context/docs-index.md`; verification is routed above.

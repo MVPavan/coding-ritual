@@ -8,7 +8,7 @@ disable-model-invocation: true
 
 Map a multi-session effort whose material decisions are not yet settled. This is
 a decision graph, not an implementation backlog unless execution was explicitly
-included. If the route is already clear, use ordinary planning or execution.
+included. If the route is already clear, use `planning` or `implement`.
 
 ## Map and tickets
 

@@ -32,11 +32,11 @@ steps:
 # Feature
 
 For new behaviour to design and build, with no settled plan to execute. A plan or
-roadmap phase to run is `execution`. A build whose units or questions are unsettled
+roadmap phase to run is `implement`. A build whose units or questions are unsettled
 goes to the multi-phase-plan playbook first, and settled work to plan stays `planning`.
 
 **The gate:** the lead settles the design and reviews the result, whoever writes the
-code. This playbook does not call `execution`, so a Feature build keeps no run
+code. This playbook does not call `implement`, so a Feature build keeps no run
 ledger. A council runs only when a person asks; this playbook never starts one. Each
 step runs whatever the change's size; a step whose condition is false stays
 `skip: <reason>`.

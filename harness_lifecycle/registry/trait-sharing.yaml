@@ -73,8 +73,8 @@ settled-stop:
   why: "As question-batching: each skill stops its own questioning when its decisions are settled."
   reviewed: "2026-10-30"
 finding-adjudication:
-  skills: [execution, review]
-  why: "Execution rules on findings inside its delivery loop and review owns the method; owner 2026-10-30: execution stays unchanged."
+  skills: [implement, review]
+  why: "Implement rules on findings inside its delivery loop and review owns the method; owner 2026-10-30: implement (then named execution) stays unchanged."
   reviewed: "2026-10-30"
 domain-vocabulary:
   skills: [brief-me, improve-codebase-architecture, prototype, teach]
@@ -101,12 +101,12 @@ revert-ineffective-experiments:
   why: "Each runs its own loop of attempts, fix attempts in the bug-fix playbook and optimization experiments in performance-optimization, and removes its own failed edits before the next attempt."
   reviewed: "2026-10-31"
 attempt-log:
-  skills: [doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, execution]
-  why: "Each fixes a failure on its own path, the bug-fix playbook for a bug-fix request and execution inside a task it is running, often delegated, where it cannot start the playbook (R8); both log each fix attempt so a stop hands back usable evidence."
+  skills: [doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, implement]
+  why: "Each fixes a failure on its own path, the bug-fix playbook for a bug-fix request and implement inside a task it is running, often delegated, where it cannot start the playbook (R8); both log each fix attempt so a stop hands back usable evidence."
   reviewed: "2026-10-31"
 two-failure-stop:
-  skills: [doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, execution]
-  why: "Each fixes a failure on its own path, the bug-fix playbook for a bug-fix request and execution inside a task it is running, often delegated, where it cannot start the playbook (R8); both stop after two failed fixes and return the attempt log, the playbook to the user and execution to the task owner."
+  skills: [doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, implement]
+  why: "Each fixes a failure on its own path, the bug-fix playbook for a bug-fix request and implement inside a task it is running, often delegated, where it cannot start the playbook (R8); both stop after two failed fixes and return the attempt log, the playbook to the user and implement to the task owner."
   reviewed: "2026-10-31"
 single-source-of-truth:
   skills: [authoring-for-agents, principle-subtract-before-you-add]

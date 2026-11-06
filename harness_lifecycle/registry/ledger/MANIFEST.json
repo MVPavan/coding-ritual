@@ -25,7 +25,8 @@
     "2026-11-05-delegation-principles.jsonl": "fd9ed76ad503bc7cf32e070dc516c1148f6ccf8cd625662256cb2799921252d8",
     "2026-11-05-principle-edits.jsonl": "ea248f69c4fe0b545a08620bfbfe359dfeafeeba4430688108d6e366491ca709",
     "2026-11-05-principle-move.jsonl": "12918e6e67db55419bd77342e93a86b7c0de80b404d56d28668b0daedc674dfe",
-    "2026-11-06-batch-p1.jsonl": "b67d29c21c51b3c22d67a0aad70a74e6804a0f50ae30d84844194f14e7851ca3"
+    "2026-11-06-batch-p1.jsonl": "b67d29c21c51b3c22d67a0aad70a74e6804a0f50ae30d84844194f14e7851ca3",
+    "2026-11-06-renames.jsonl": "811c08a10a1f74e365457a10bbd61151c5e6bdb50e2cae006629b6ab6281da75"
   },
   "round_order": [
     "2026-10-14-migration.jsonl",
@@ -52,7 +53,8 @@
     "2026-11-05-principle-move.jsonl",
     "2026-11-05-principle-edits.jsonl",
     "2026-11-05-delegation-principles.jsonl",
-    "2026-11-06-batch-p1.jsonl"
+    "2026-11-06-batch-p1.jsonl",
+    "2026-11-06-renames.jsonl"
   ],
   "reports": {
     "harness_lifecycle/registry/reviews/2026-10-30-upstream-mattpocock_skills-5beb35b.yaml": "fb413772a75f116bd9baeaa06b6e414fe59978c654a951cb53345f17459d7597",

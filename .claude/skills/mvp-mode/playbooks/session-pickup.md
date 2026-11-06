@@ -24,7 +24,7 @@ steps:
 
 For resuming work a prior session or agent left, when this conversation does not already
 hold its state. A "continue" in a conversation that holds it just goes on, and compaction
-alone starts nothing. A settled plan to run is `execution`, which does its own recovery.
+alone starts nothing. A settled plan to run is `implement`, which does its own recovery.
 
 **The gate:** the run ends at the resume point and changes nothing, tracker included, so the
 next run claims the work. Reuse what was done without redoing it, but rely on no consequential

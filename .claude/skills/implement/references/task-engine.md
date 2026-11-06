@@ -8,7 +8,7 @@ more efficient and ownership is clear.
 ## Workspace and ledger
 
 Keep briefs, reports, review packages and snapshots under
-`scratchpad/execution/<slug>/`. Beads owns task status; `progress.md` records
+`scratchpad/implement/<slug>/`. Beads owns task status; `progress.md` records
 review rounds, evidence, snapshot labels and finding dispositions.
 
 Its first line identifies plan, task/epic and `SCOPE_BASE` revision. Record the
@@ -27,7 +27,7 @@ scripts/review-package.sh full <SCOPE_BASE> <workspace> <label> <owned paths…>
 scripts/review-package.sh fix <SCOPE_BASE> <previous-label> <workspace> <label> <owned paths…>
 ```
 
-These script paths are relative to the execution skill directory. A full package
+These script paths are relative to the implement skill directory. A full package
 contains status, tracked diff and untracked content; the fix package compares
 against the saved snapshot. Pass both kinds the same scope. A baseline-dirty
 file may contain unrelated changes even inside owned paths: provide the starting

@@ -12,7 +12,7 @@ status: active
 
 Use when a calling playbook names it, or when asked for a reviewable trail of a long run someone will check after stepping away: an append-only TSV of decisions with evidence pointers, closed by an audit and an independent critic. A metric climb is the hillclimb playbook, which calls this. Skip a resume note, a bead note or a short attempt record.
 
-**Boundary:** Keeps one run's decisions as an append-only log, audits it and gets it independently reviewed; work state is beads, a plan's run is execution, a compact attempt record is performance-optimization, and reviewing other artifacts is review.
+**Boundary:** Keeps one run's decisions as an append-only log, audits it and gets it independently reviewed; work state is beads, a plan's run is implement, a compact attempt record is performance-optimization, and reviewing other artifacts is review.
 
 <!-- registry:generated traits -->
 - `single-tsv-decision-log`: Keep one authoritative decision log as a single TSV file with one single-line row per decision.

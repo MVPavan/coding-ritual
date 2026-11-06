@@ -2,7 +2,7 @@
 
 Consulted from `planning`'s Skeleton branch. It extends `plan-format.md`: fields keep
 their meaning there, and its right-sizing test, placeholder list and self-review
-apply. `Evidence:` replaces `Verification:`. How a scope runs is `execution`'s.
+apply. `Evidence:` replaces `Verification:`. How a scope runs is `implement`'s.
 
 ## A plan in the form that passes the check
 
@@ -16,7 +16,7 @@ apply. `Evidence:` replaces `Verification:`. How a scope runs is `execution`'s.
 
 ## How to run this
 
-Run with: execution, task scope.
+Run with: implement, task scope.
 Authority: planning only, so implementation starts on the owner's word.
 The coordinator ticks a box only when its evidence exists.
 
@@ -54,7 +54,7 @@ roadmap phase names it, and then every task carries `Stage:`; workstream only on
 explicit request to run every remaining phase.
 
 **Tasks.** Each field once, its label starting a line, and no heading inside a task:
-`execution`'s brief extractor ends a task at any heading. Number tasks from 1.
+`implement`'s brief extractor ends a task at any heading. Number tasks from 1.
 `Dependencies:` holds `None` or task numbers. A task a question holds carries
 `Blocked by: Q<n>`, and every open question holds a task.
 

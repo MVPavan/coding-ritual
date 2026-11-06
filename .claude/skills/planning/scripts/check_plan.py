@@ -4,7 +4,7 @@
 Usage: check_plan.py <plan.md>
 Exit 0: holds. 1: problems, each `<path>:<line>: <problem>`. 2: cannot read.
 3: no `## How to run this`: not a skeleton plan, nothing checked, not a pass.
-Fences and headings are read as execution's task-brief.sh reads them.
+Fences and headings are read as implement's task-brief.sh reads them.
 """
 
 import graphlib
@@ -29,7 +29,7 @@ PLACEHOLDER = re.compile(
     r"|write tests for the above|similar to task \d)"
 )
 STRAY = re.compile("[\r\v\f\x1c\x1d\x1e\x85\u2028\u2029]")
-RUN = re.compile(r"Run with: execution, (task|phase|workstream) scope\.")
+RUN = re.compile(r"Run with: implement, (task|phase|workstream) scope\.")
 TICK = "The coordinator ticks a box only when its evidence exists."
 ORDER = ["How to run this", "Tasks", "Open questions", "Appendix A", "Appendix B"]
 HEADER = ["Origin", "Goal", "Out of scope", "Constraints"]
@@ -165,7 +165,7 @@ def check(lines):
     runs = [text for _, text in how if text.startswith("Run with:")]
     scope = RUN.fullmatch(runs[0].rstrip()) if len(runs) == 1 else None
     if not scope:
-        say(start, "needs one line: Run with: execution, <scope> scope.")
+        say(start, "needs one line: Run with: implement, <scope> scope.")
     if not any(re.match(r"Authority:\s*\S", text) for _, text in how):
         say(start, "needs a non-empty Authority: line")
     if TICK not in " ".join(text for _, text in how):

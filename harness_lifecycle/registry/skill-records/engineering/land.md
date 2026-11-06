@@ -12,7 +12,7 @@ status: active
 
 Use when verified work should become commits: split, order and title them, and commit only with authority. Skip pushing, merging and pull requests, and a merge already in conflict.
 
-**Boundary:** Turns verified changes into titled, ordered commits or a commit plan, only on finished work; a tree already in conflict is resolving-merge-conflicts, plugin releases are harness-publish, running the work is execution, and commit size and order come from principle-sequence-verifiable-units.
+**Boundary:** Turns verified changes into titled, ordered commits or a commit plan, only on finished work; a tree already in conflict is resolving-merge-conflicts, plugin releases are harness-publish, running the work is implement, and commit size and order come from principle-sequence-verifiable-units.
 
 <!-- registry:generated traits -->
 - `verified-work-only`: Refuse to land work not verified on its final form, rechecking behaviour if a closeout changed executable content, and report the gap.

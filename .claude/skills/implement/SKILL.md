@@ -1,9 +1,9 @@
 ---
-name: execution
+name: implement
 description: Use to execute tracked multi-step work, a standalone plan, or a roadmap phase. Clear bounded implementation can proceed directly under AGENTS.md.
 ---
 
-# Execution
+# Implement
 
 Execute authorized work through acceptance, verification and recovery. Beads owns
 durable task state; a plan document is not a prerequisite for a clear task.
@@ -29,7 +29,7 @@ both. Use configured models/effort; if dispatch is unavailable, continue useful
 local work and state any required review that remains unperformed.
 
 For delegated units or multi-round review, read `references/task-engine.md`.
-Workspace: `scratchpad/execution/<slug>/`, with a slug that distinguishes full
+Workspace: `scratchpad/implement/<slug>/`, with a slug that distinguishes full
 plan/workstream paths. Capture the starting revision and dirty-file baseline;
 pre-existing edits are not automatically part of the task.
 

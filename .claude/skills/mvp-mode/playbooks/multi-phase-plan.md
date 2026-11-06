@@ -28,7 +28,7 @@ steps:
 For a request to produce a plan for several independently verifiable units, or work
 whose open questions must be settled before planning. A request to build is the feature
 playbook, which sends unsettled work here first. An existing roadmap phase, an approved
-spec to split or a settled plan keeps its route: `planning` or `execution`.
+spec to split or a settled plan keeps its route: `planning` or `implement`.
 
 **The gate:** the run ends at the plan and implements nothing. It writes only the plan
 file, gitignored scratch, and authorized tracker metadata with its export, leaving what
@@ -71,7 +71,7 @@ each path already dirty.
   unproven; the lint's last output and that it proves structure only. Execution starts
   on the owner's word.
 - **Written, implementation already authorized:** the same, ending "continuing under
-  `execution`, <scope>"; then pick it with no second question.
+  `implement`, <scope>"; then pick it with no second question.
 - **Written, blocked:** the same, with each `Q<n>`, its options and recommendation, the
   tasks that wait and the reply needed.
 - **Not written, every task waits:** the question and what was settled so far, with

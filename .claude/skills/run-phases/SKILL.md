@@ -1,13 +1,13 @@
 ---
 name: run-phases
-description: Run every remaining phase of a workstream unattended. Thin entry point for the execution skill's workstream scope.
+description: Run every remaining phase of a workstream unattended. Thin entry point for the implement skill's workstream scope.
 disable-model-invocation: true
 ---
 
 # Run All Remaining Phases
 
-Invoke the **execution skill** in **workstream scope**
-(the execution skill → scope selector row 1, then
+Invoke the **implement skill** in **workstream scope**
+(the implement skill → scope selector row 1, then
 `references/workstream-mode.md`).
 
 This invocation **is** the explicit user opt-in that workstream mode's

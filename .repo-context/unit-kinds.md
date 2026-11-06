@@ -90,7 +90,7 @@ material moves to references. [data: H1 holds via standalone use]
   is demoted to a principle. [proposed]
 - A4. Routing to units moves to the router when it lands; `AGENTS.md` keeps
   one line pointing at it, plus its document pointers. [proposed; today
-  "When needed" routes to `delegation` and `execution`]
+  "When needed" routes to `delegation` and `implement`]
 
 ### Router (`mvp-mode`)
 
@@ -283,7 +283,7 @@ material moves to references. [data: H1 holds via standalone use]
 - Mixed roles (10): `beads`, `brainstorming`, `codebase-design`,
   `codebase-research`, `domain-modeling`, `performance-optimization`,
   `planning`, `security`, `systematic-debugging`, `wayfinder`.
-- Playbook-like (2): `execution`, `harness-publish`.
+- Playbook-like (2): `implement`, `harness-publish`.
 - Principle-like (1): `brief-me`.
 - To retire (1): `skill-router` (R1).
 
