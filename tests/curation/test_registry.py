@@ -466,6 +466,120 @@ def test_reviews_block_renders_both_citation_forms_and_empty(tmp_path: Path) -> 
     assert "None yet." in foo.split(record_views.REVIEWS_OPEN)[1]
 
 
+def test_renamed_skill_record_keeps_lineage_history_and_reviews(
+    tmp_path: Path,
+) -> None:
+    """A rename moves a record's lineage, history and reviews to the survivor;
+    an unrelated skill's record gains none of them."""
+    cfg = _make_cfg(tmp_path)
+    for name in ("slicing", "foo"):
+        _write_skill(cfg, name)
+    _write_record(cfg, "slicing", "engineering", "Design", "Decomposition")
+    _write_record(cfg, "foo", "engineering", "Building", "Diagnosis")
+    _write_round(
+        cfg,
+        "2026-10-14-r",
+        _ours_event(
+            "2026-10-14-r:1",
+            "add",
+            "planning",
+            evidence=[
+                "harness_lifecycle/registry/reviews/2026-10-14-upstream-x-1.0.md"
+            ],
+        ),
+        _ref_event(
+            "2026-10-14-r:2", "adopt", "refrepo", "skill:skills/x", skill="planning"
+        ),
+        {
+            **_ours_event("2026-10-14-r:3", "rename", "planning"),
+            "skill": "slicing",
+            "why": "renamed planning to slicing",
+        },
+        _ours_event("2026-10-14-r:4", "add", "foo"),
+    )
+    assert cli.cmd_build(cfg, _ns()) == 0
+
+    def blocks(skill: str) -> tuple[str, str, str]:
+        text = (
+            cfg.skill_records_dir / "engineering" / f"{skill}.md"  # type: ignore[attr-defined]
+        ).read_text()
+
+        def block(open_tag: str, close_tag: str) -> str:
+            return text.split(open_tag)[1].split(close_tag)[0]
+
+        return (
+            block(record_views.LINEAGE_OPEN, record_views.LINEAGE_CLOSE),
+            block(record_views.HISTORY_OPEN, record_views.HISTORY_CLOSE),
+            block(record_views.REVIEWS_OPEN, record_views.REVIEWS_CLOSE),
+        )
+
+    lineage, history, reviews = blocks("slicing")
+    assert "**refrepo:skill:skills/x**" in lineage
+    for eid in ("2026-10-14-r:1", "2026-10-14-r:2", "2026-10-14-r:3"):
+        assert f"({eid})" in history
+    assert "2026-10-14-r:4" not in history
+    assert "2026-10-14-upstream-x-1.0.md" in reviews
+
+    foo_lineage, foo_history, foo_reviews = blocks("foo")
+    assert "No adopted lineage recorded." in foo_lineage
+    assert "(2026-10-14-r:4)" in foo_history
+    assert "2026-10-14-r:1" not in foo_history
+    assert "None yet." in foo_reviews
+
+
+def test_reusing_a_renamed_name_is_refused(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Adding a name a live rename forwards would leak the new skill's events
+    into the survivor's record, so `record` and `check` refuse it; once the
+    rename is superseded, the name is free again."""
+    cfg = _make_cfg(tmp_path)
+    _write_skill(cfg, "slicing")
+    _write_record(cfg, "slicing", "engineering", "Design", "Decomposition")
+    retiring = [
+        _ours_event("2026-10-14-r:1", "add", "planning"),
+        _ref_event(
+            "2026-10-14-r:2", "adopt", "refrepo", "skill:skills/x", skill="planning"
+        ),
+        {
+            **_ours_event("2026-10-14-r:3", "rename", "planning"),
+            "skill": "slicing",
+            "why": "renamed planning to slicing",
+        },
+    ]
+    readd = _ours_event("2026-10-14-r:4", "add", "planning")
+    _write_round(cfg, "2026-10-14-r", *retiring, readd)
+    with pytest.raises(SystemExit, match="retired by rename 2026-10-14-r:3"):
+        cli.cmd_build(cfg, _ns())
+    _fails_with(
+        cfg,
+        capsys,
+        "2026-10-14-r:4: add reintroduces 'planning', retired by rename 2026-10-14-r:3",
+    )
+
+    # `record` refuses the same add before writing it.
+    path = _write_round(cfg, "2026-10-14-r", *retiring)
+    before = path.read_text()
+    with pytest.raises(SystemExit, match="retired by rename 2026-10-14-r:3"):
+        cli.cmd_record(
+            cfg, _rec_ns(kind="add", subject="ours:planning", why="w", skill="planning")
+        )
+    assert path.read_text() == before
+
+    # A superseded rename retires nothing.
+    undo = {
+        **_ours_event("2026-10-14-r:4", "update", "planning"),
+        "supersedes": ["2026-10-14-r:3"],
+    }
+    _write_round(cfg, "2026-10-14-r", *retiring, undo)
+    assert (
+        cli.cmd_record(
+            cfg, _rec_ns(kind="add", subject="ours:planning", why="w", skill="planning")
+        )
+        == 0
+    )
+
+
 def test_record_autofills_reference_source(tmp_path: Path) -> None:
     cfg = _make_cfg(tmp_path)
     _catalog(cfg, "refrepo", [_cap("skill", "foo", "skill:skills/foo", "hcur")])

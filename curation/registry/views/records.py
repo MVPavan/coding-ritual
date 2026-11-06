@@ -64,14 +64,27 @@ _REVIEW_RE = re.compile(r"reviews/(\d{4}-\d{2}-\d{2}-[a-z]+-[A-Za-z0-9._-]+?\.md
 _COMPARISON_RE = re.compile(r"skill-comparisons/([A-Za-z0-9._-]+)")
 
 
-def _lineage_block(skill: str, events: list[Event]) -> str:
+def _names(skill: str, name: str | None, forward: dict[str, str]) -> bool:
+    """Whether `name` is `skill` itself or an earlier name `rename`/`merge`
+    carried into it, so a renamed record keeps its lineage and history."""
+    return name is not None and (name == skill or resolve_skill(name, forward) == skill)
+
+
+def _concerns(skill: str, event: Event, forward: dict[str, str]) -> bool:
+    """Whether the event belongs in `skill`'s history: it targets the skill
+    or is about it, under any name the skill has had."""
+    ours = event.subject[len("ours:") :] if event.subject.startswith("ours:") else None
+    return _names(skill, event.skill, forward) or _names(skill, ours, forward)
+
+
+def _lineage_block(skill: str, events: list[Event], forward: dict[str, str]) -> str:
     """Adopted lineage: one entry per adopted trait (the last delivered adopt,
     else the pending one, labelled), and a capability checkpoint only when no
     trait adopt into this skill stands for it (review r1 #12)."""
     adopts = [
         e
         for e in events
-        if e.skill == skill
+        if _names(skill, e.skill, forward)
         and e.kind in {"adopt", "adopt-merged"}
         and e.source is not None
     ]
@@ -112,8 +125,10 @@ def _lineage_block(skill: str, events: list[Event]) -> str:
     return "\n".join(lines)
 
 
-def _history_block(skill: str, events: list[Event], dead: set[str]) -> str:
-    rows = [e for e in events if e.skill == skill or e.subject == f"ours:{skill}"]
+def _history_block(
+    skill: str, events: list[Event], dead: set[str], forward: dict[str, str]
+) -> str:
+    rows = [e for e in events if _concerns(skill, e, forward)]
     if not rows:
         return "No ledger history recorded."
     lines: list[str] = []
@@ -125,11 +140,11 @@ def _history_block(skill: str, events: list[Event], dead: set[str]) -> str:
     return "\n".join(lines)
 
 
-def _reviews_block(skill: str, events: list[Event]) -> str:
+def _reviews_block(skill: str, events: list[Event], forward: dict[str, str]) -> str:
     """Every review cited by the same events the history block lists. Registry
     reviews first (newest file name first), then archived comparisons
     (alphabetical). Deduplicated; empty renders a single sentinel line."""
-    rows = [e for e in events if e.skill == skill or e.subject == f"ours:{skill}"]
+    rows = [e for e in events if _concerns(skill, e, forward)]
     review_files: set[str] = set()
     comparisons: set[str] = set()
     for event in rows:
@@ -272,9 +287,9 @@ def render_record(
             _traits_record_block(skill, ours_traits, definitions),
             TRAITS_CLOSE,
         ),
-        (LINEAGE_OPEN, _lineage_block(skill, events), LINEAGE_CLOSE),
-        (HISTORY_OPEN, _history_block(skill, events, dead), HISTORY_CLOSE),
-        (REVIEWS_OPEN, _reviews_block(skill, events), REVIEWS_CLOSE),
+        (LINEAGE_OPEN, _lineage_block(skill, events, forward), LINEAGE_CLOSE),
+        (HISTORY_OPEN, _history_block(skill, events, dead, forward), HISTORY_CLOSE),
+        (REVIEWS_OPEN, _reviews_block(skill, events, forward), REVIEWS_CLOSE),
         (
             SOURCES_OPEN,
             _sources_block(

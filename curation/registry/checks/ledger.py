@@ -10,6 +10,7 @@ from curation.registry.ledger import (
     _manifest_rounds,
     _round_of,
     _sha256,
+    live_events,
     resolve_skill,
     superseded_ids,
     tracks_adoption,
@@ -194,5 +195,26 @@ def _check_adopt_merged_adaptation(
         ):
             errors.append(
                 f"{event.id}: adopt-merged needs `adaptation` outside a trait-level round"
+            )
+    return errors
+
+
+def reuse_errors(events: list[Event]) -> list[str]:
+    """An `add` may not reintroduce a name an earlier live `rename`/`merge`
+    forwards: lifecycle resolution is one timeless name map, so the new skill's
+    events would land in the survivor's record. A superseded lifecycle event
+    retires nothing."""
+    errors: list[str] = []
+    retiring: dict[str, Event] = {}
+    for event in live_events(events):
+        if not event.subject.startswith("ours:"):
+            continue
+        name = event.subject[len("ours:") :]
+        if event.kind in {"rename", "merge"} and event.skill:
+            retiring.setdefault(name, event)
+        elif event.kind == "add" and name in retiring:
+            by = retiring[name]
+            errors.append(
+                f"{event.id}: add reintroduces {name!r}, retired by {by.kind} {by.id}"
             )
     return errors

@@ -14,6 +14,7 @@ from curation.registry.checks.decisions import (
     decision_errors,
     defer_errors,
 )
+from curation.registry.checks.ledger import reuse_errors
 from curation.registry.checks.traits import doc_holder_kind
 from curation.registry.config import RegistryConfig
 from curation.registry.ledger import (
@@ -94,7 +95,9 @@ def _single(cfg: RegistryConfig, data: dict[str, Any], events: list[Event]) -> E
         if pending is None and data.get("kind") == "defer":
             _copy_revisit_when(data, subject, ctx)
     event = Event.model_validate(data)
-    late = defer_errors(cfg, [event])
+    late = defer_errors(cfg, [event]) + [
+        e for e in reuse_errors([*events, event]) if e.startswith(f"{event.id}:")
+    ]
     if late:
         raise SystemExit("refused:\n" + "\n".join(late))
     if ctx is None:
