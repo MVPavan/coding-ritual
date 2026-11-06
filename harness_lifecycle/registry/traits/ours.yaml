@@ -86,8 +86,8 @@ ours:harness-status:
 ours:html-artifact:
   tree_hash: "1c4c952e6555f09f0e4f54275d42feb19856c315ba0b0e52251ac86493d2eee9"
   traits: [self-contained-contract, accessibility-contract, progressive-enhancement, honest-content, preset-report, preset-dashboard, preset-explainer, preset-editor, tokens-first-style, component-vocabulary, svg-figure-grammar, svg-complexity-budget, svg-accessibility, honest-data-encoding, deliver-verify]
-ours:i-have-adhd:
-  tree_hash: "1326dc518c2716afde4fdb750fdaf96db279a236ad9d05011c21feaaa21ae32f"
+ours:brief-me:
+  tree_hash: "c1828c731c6fea668dc19ced0cb14e54c478d81daba8d5e758cefb74b76ccef5"
   traits: [next-action-first, numbered-steps, single-next-action, tangent-suppression, state-restatement, concrete-time-estimates, visible-progress, matter-of-fact-errors, capped-lists, no-preamble, explain-on-request, debug-spiral-reset, repitch-trigger, controlled-language, domain-vocabulary, pre-send-check]
 ours:improve-codebase-architecture:
   tree_hash: "616472db7e4fff6ae7d259fa5e7dc4c7cd3c05222a2a33072db1f18b3bae0042"
@@ -108,7 +108,7 @@ ours:model-council:
   tree_hash: "604be20a026528990ef9536cfbb643228189552f25f15eda46633ae3f4445f05"
   traits: [member-resolution, runtime-capability-check, neutral-framing, member-isolation, report-preservation, independent-synthesis, consolidated-delivery, identity-recording, failed-member-recovery, no-silent-substitution, artifact-named-up-front, task-rubric-criteria, rubric-withheld-from-candidates, own-output-location, rationale-names-rejected, dropout-proceeds-noted, read-only-judge, judge-other-family-or-stated, rubric-given-to-judge, path-labelled-candidates, judge-criterion-scores, judge-recommends-base, full-read-before-pick, picker-criterion-scores, pick-compared-with-judge, disagreement-rereads-rationales, base-chosen-for-extensibility, near-tie-smaller-surface, loser-graft-pass, sparse-grafts, hand-folded-grafts, converged-shape-no-graft, divergence-reframes-once, graft-change-rerun, verify-miss-returns-once, single-synthesized-artifact, synthesis-decision-record, note-judge-status, note-convergence-dropouts, note-verification-result, no-judge-no-pick]
 ours:mvp-mode:
-  tree_hash: "10a0d30f0caef3539502de0815446e12c950384ab0a317a94ceb01d5defa48e1"
+  tree_hash: "d0a814fbc1568144872570b4d427e138a1a5a853ee3bd2c44f8ea4e15583fa26"
   traits: [unit-kind-lines, playbook-pick, need-to-skill-routing, overlap-arbitration, layered-catalog, platform-skill-invocation, no-playbook-in-delegate, delegate-independent-by-default, no-onward-delegation, playbook-steps-as-todos, recorded-step-skip, whole-callee, playbook-exit, legacy-entrypoint-flagging, catalog-trust-boundary]
 ours:performance-optimization:
   tree_hash: "8e393535c7e06691afca39ef9df84040ce4752a29a8cc58610b8522ce951c4da"

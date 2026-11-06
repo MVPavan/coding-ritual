@@ -1,5 +1,5 @@
 ---
-skill: i-have-adhd
+skill: brief-me
 domain: core
 stage: X
 substage: Communication
@@ -8,9 +8,9 @@ family: conversational-repair
 aliases: []
 status: active
 ---
-# i-have-adhd
+# brief-me
 
-Use when the user invokes /i-have-adhd.
+Use when the user invokes /brief-me.
 
 **Boundary:** Shapes every reply for an ADHD reader once invoked (next action first, small concrete steps); it produces no document or diagram (html-artifact, show-me).
 
@@ -43,6 +43,7 @@ Use when the user invokes /i-have-adhd.
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-06` **rename** (2026-11-06-renames:009): Owner ruling D of 2026-11-05 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 14a U1. The skill i-have-adhd is renamed brief-me; its body is unchang…
 - `2026-11-06` **adopt** (2026-11-06-batch-p1:004): Checkpoint at 4dd1d05 for the owner's trait rulings: 3 adopt.
 - `2026-11-06` **adopt** (2026-11-06-batch-p1:003): Owner ruling 2026-11-06: Prevents: A re-pitch still carrying terms the reader cannot follow, so it fails a second time. Lands in i-have-adhd, SKILL.md, When to…
 - `2026-11-06` **adopt** (2026-11-06-batch-p1:002): Owner ruling 2026-11-06: The same line asks for short sentences and common words, and for a simpler answer rather than a longer one.

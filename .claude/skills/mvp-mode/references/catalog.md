@@ -25,6 +25,7 @@ Principles are not skills, so they are not listed here; the router lists them.
 
 | Surface | Use |
 |---|---|
+| `/brief-me` | Use when the user invokes /brief-me. |
 | `/check-invariants` | Run mechanically checkable invariants from the project overlay and report pass or fail. |
 | `/codebase-research` | Graduated research on an external codebase — survey its capabilities, map its architecture, or trace one mechanism — into durable reports under docs/research/codebases/. |
 | `/cost-estimate` | Legacy entrypoint; the uncalibrated code-volume and commit-based estimation method is retired. |
@@ -34,7 +35,6 @@ Principles are not skills, so they are not listed here; the router lists them.
 | `/harness-publish` | Publish this repo's harness into the mvp-plugin (the mvp-harness submodule) — copy the shippable skills and agents, run the provider-neutrality and leak audits, regenerate the shipped router and Codex sidecars, rebuild the residue template, validate both manifests, bump the version. |
 | `/harness-scan` | Scan a reference harness for material upstream drift and missing capabilities. |
 | `/harness-status` | Quick upstream-drift status across all reference_harnesses submodules — what changed since our pinned commits. |
-| `/i-have-adhd` | Use when the user invokes /i-have-adhd. |
 | `/idea-refine` | Explore a raw idea through brainstorming using the legacy idea-refine entrypoint. |
 | `/improve-codebase-architecture` | Find evidence-backed architecture improvements within a named area or requested codebase survey. |
 | `/migrate-claude-to-codex` | Adapt Claude harness assets for Codex while preserving shared AGENTS.md policy and canonical skills. |

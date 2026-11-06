@@ -12,7 +12,7 @@ status: active
 
 Use to edit a reply or document a person will read, removing patterns that make it read as machine-written. Skip agent-facing text, which authoring-for-agents owns, and code, commands and quotations.
 
-**Boundary:** Edits a reply or document a person will read, keeping its meaning; agent-facing text is authoring-for-agents, a standalone rendered page is html-artifact, shaping replies for an ADHD reader is i-have-adhd, and folding decisions into design documents is design-evolve.
+**Boundary:** Edits a reply or document a person will read, keeping its meaning; agent-facing text is authoring-for-agents, a standalone rendered page is html-artifact, shaping replies for an ADHD reader is brief-me, and folding decisions into design documents is design-evolve.
 
 <!-- registry:generated traits -->
 - `meaning-preserved-edit`: Change wording only, never facts, citations or code.

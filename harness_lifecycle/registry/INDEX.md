@@ -27,7 +27,7 @@ Domain → stage → sub-stage. Each active skill under its primary home.
 - **Codification**: authoring-for-agents, harness-evaluate, harness-scan, harness-skill-compare, harness-status, migrate-claude-to-codex
 
 ### X
-- **Communication**: html-artifact, i-have-adhd, show-me, unslop
+- **Communication**: brief-me, html-artifact, show-me, unslop
 - **Continuity**: beads, decision-trail, wake
 - **Coordination**: delegation, model-council, mvp-mode, perspective-council
 
@@ -68,7 +68,7 @@ Two or more active skills share one domain · sub-stage (README §2 rule 3):
 - core · Intake · Clarification: brainstorming, grilling
 - core · Verification · Review: interrogate, review
 - core · Improvement · Codification: authoring-for-agents, harness-evaluate, harness-scan, harness-skill-compare, harness-status, migrate-claude-to-codex
-- core · X · Communication: html-artifact, i-have-adhd, show-me, unslop
+- core · X · Communication: brief-me, html-artifact, show-me, unslop
 - core · X · Continuity: beads, decision-trail, wake
 - core · X · Coordination: delegation, model-council, mvp-mode, perspective-council
 - engineering · Discovery · Research: codebase-research, explain-code

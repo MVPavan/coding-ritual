@@ -182,8 +182,8 @@ html-artifact:
   family: visual-explanation
   aliases: []
   status: active
-  boundary: "Produces a standalone rendered HTML document; an inline sketch in the conversation is show-me, and shaping replies for an ADHD reader is i-have-adhd."
-i-have-adhd:
+  boundary: "Produces a standalone rendered HTML document; an inline sketch in the conversation is show-me, and shaping replies for an ADHD reader is brief-me."
+brief-me:
   domain: core
   stage: X
   substage: Communication
@@ -407,7 +407,7 @@ unslop:
   family: null
   aliases: []
   status: active
-  boundary: "Edits a reply or document a person will read, keeping its meaning; agent-facing text is authoring-for-agents, a standalone rendered page is html-artifact, shaping replies for an ADHD reader is i-have-adhd, and folding decisions into design documents is design-evolve."
+  boundary: "Edits a reply or document a person will read, keeping its meaning; agent-facing text is authoring-for-agents, a standalone rendered page is html-artifact, shaping replies for an ADHD reader is brief-me, and folding decisions into design documents is design-evolve."
 prototype:
   domain: engineering
   stage: Design

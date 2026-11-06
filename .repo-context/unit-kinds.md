@@ -284,7 +284,7 @@ material moves to references. [data: H1 holds via standalone use]
   `codebase-research`, `domain-modeling`, `performance-optimization`,
   `planning`, `security`, `systematic-debugging`, `wayfinder`.
 - Playbook-like (2): `execution`, `harness-publish`.
-- Principle-like (1): `i-have-adhd`.
+- Principle-like (1): `brief-me`.
 - To retire (1): `skill-router` (R1).
 
 ### Deviation log

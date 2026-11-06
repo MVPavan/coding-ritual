@@ -316,24 +316,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `cited-standard-findings`: Cite the standard's file and rule for every violation and quote the hunk for every smell.
 - `spec-conformance-findings`: Report spec findings as missing or partial requirements, unrequested behaviour and wrongly implemented requirements, quoting the spec line for each.
 
-#### core · X · Communication — html-artifact
-- `self-contained-contract`: Produce one HTML file with inline CSS and JS, viewport metadata and no build step, working offline with no external fonts, trackers, fetches or runtime assets.
-- `accessibility-contract`: Use semantic markup, keyboard access and adequate contrast, adapt to narrow screens, honour reduced motion, and provide print styles.
-- `progressive-enhancement`: Ensure the explanation, data and limitations exist before scripts run and survive with JavaScript disabled.
-- `honest-content`: Show only sourced data and explicitly label assumptions and illustrative values.
-- `preset-report`: Shape a skim-by-section report — orientation KPIs, numbered sections with a per-type order, and a source footer.
-- `preset-dashboard`: Shape a chart-first document where prose only captions inline-SVG charts, with a drill-down data table.
-- `preset-explainer`: Shape a concept walkthrough — a TL;DR box, question-headed sections, a glossary and tabbed samples.
-- `preset-editor`: Shape an interactive throwaway editor built around a mandatory paste-ready export, with no backend or persisted storage.
-- `tokens-first-style`: Derive the artifact's styling from the project's own tokens when they exist, otherwise apply the default neutral aesthetic, never inventing look-alike tokens.
-- `component-vocabulary`: Lay content out from a small set of components — KPI tiles, numbered section headers, copy-button code blocks, severity tags, native collapsibles and inline SVG — shaped to the content rather than translating markdown one-to-one.
-- `svg-figure-grammar`: Draw inline SVG figures with a viewBox for scaling, currentColor ink, orthogonal masked connectors, a defined paint order and a bottom legend, keeping real text and rounded coordinates.
-- `svg-complexity-budget`: Hold each figure to at most nine nodes, twelve arrows and two accents, splitting into overview-plus-detail rather than shrinking, and omit a figure a sentence can carry.
-- `svg-accessibility`: Give each inline SVG a role, figure-prefixed title and description IDs, carry meaning in both shape and colour, and mark direction on every edge.
-- `honest-data-encoding`: Never clip, truncate, impute or move a mark to make a chart legible; disclose the domain drawn and name any exemption.
-- `deliver-verify`: Deliver a link rather than pasted source and verify content fidelity, local links, key interactions, responsive and print behaviour and JS-disabled readability, reporting checks that could not run.
-
-#### core · X · Communication — i-have-adhd
+#### core · X · Communication — brief-me
 - `next-action-first`: Lead with the next concrete action — a command, path or snippet — before any prose.
 - `numbered-steps`: Render multi-step work as a numbered list with one bounded action per step.
 - `single-next-action`: Close with exactly one concrete next action the reader can do in under two minutes.
@@ -350,6 +333,23 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `controlled-language`: Re-pitch in controlled simplified language with short sentences and common words.
 - `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write.
 - `pre-send-check`: Before sending, delete announcements, closers, sidebars and empty hedges.
+
+#### core · X · Communication — html-artifact
+- `self-contained-contract`: Produce one HTML file with inline CSS and JS, viewport metadata and no build step, working offline with no external fonts, trackers, fetches or runtime assets.
+- `accessibility-contract`: Use semantic markup, keyboard access and adequate contrast, adapt to narrow screens, honour reduced motion, and provide print styles.
+- `progressive-enhancement`: Ensure the explanation, data and limitations exist before scripts run and survive with JavaScript disabled.
+- `honest-content`: Show only sourced data and explicitly label assumptions and illustrative values.
+- `preset-report`: Shape a skim-by-section report — orientation KPIs, numbered sections with a per-type order, and a source footer.
+- `preset-dashboard`: Shape a chart-first document where prose only captions inline-SVG charts, with a drill-down data table.
+- `preset-explainer`: Shape a concept walkthrough — a TL;DR box, question-headed sections, a glossary and tabbed samples.
+- `preset-editor`: Shape an interactive throwaway editor built around a mandatory paste-ready export, with no backend or persisted storage.
+- `tokens-first-style`: Derive the artifact's styling from the project's own tokens when they exist, otherwise apply the default neutral aesthetic, never inventing look-alike tokens.
+- `component-vocabulary`: Lay content out from a small set of components — KPI tiles, numbered section headers, copy-button code blocks, severity tags, native collapsibles and inline SVG — shaped to the content rather than translating markdown one-to-one.
+- `svg-figure-grammar`: Draw inline SVG figures with a viewBox for scaling, currentColor ink, orthogonal masked connectors, a defined paint order and a bottom legend, keeping real text and rounded coordinates.
+- `svg-complexity-budget`: Hold each figure to at most nine nodes, twelve arrows and two accents, splitting into overview-plus-detail rather than shrinking, and omit a figure a sentence can carry.
+- `svg-accessibility`: Give each inline SVG a role, figure-prefixed title and description IDs, carry meaning in both shape and colour, and mark direction on every edge.
+- `honest-data-encoding`: Never clip, truncate, impute or move a mark to make a chart legible; disclose the domain drawn and name any exemption.
+- `deliver-verify`: Deliver a link rather than pasted source and verify content fidelity, local links, key interactions, responsive and print behaviour and JS-disabled readability, reporting checks that could not run.
 
 #### core · X · Communication — show-me
 - `minimal-visual-selection`: Use the fewest and smallest visuals that make the point, never a gallery.
@@ -1426,9 +1426,9 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `structural-fix-only`: Once a rule is enforced by structure, delete the instruction that restated it. — adopt → authoring-for-agents#check-pointer-not-restatement
 
 #### core · X · Communication — skill:pstack/skills/bro
-- `repitch-trigger`: When a message did not land, stop and re-pitch it rather than adding more. — adopt → i-have-adhd#repitch-trigger
-- `controlled-language`: Re-pitch in controlled simplified language with short sentences and common words. — adopt → i-have-adhd#controlled-language
-- `jargon-free-restatement`: Drop technical jargon from a restatement, wording it as one person would speak to another. — adopt, pending cr-r2pa.2.18 → i-have-adhd#repitch-explains-project-terms
+- `repitch-trigger`: When a message did not land, stop and re-pitch it rather than adding more. — adopt → brief-me#repitch-trigger
+- `controlled-language`: Re-pitch in controlled simplified language with short sentences and common words. — adopt → brief-me#controlled-language
+- `jargon-free-restatement`: Drop technical jargon from a restatement, wording it as one person would speak to another. — adopt, pending cr-r2pa.2.18 → brief-me#repitch-explains-project-terms
 
 #### core · X · Communication — skill:pstack/skills/unslop
 - `meaning-and-tone-preserved`: Keep the original sense of a text and fit its intended tone when editing it. — adopt → unslop#meaning-preserved-edit
@@ -2217,10 +2217,10 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `empirical-instruction-default-check`: Settle whether an instruction changes behaviour from the model's default by running the document, not by debate. — adopt → authoring-for-agents#verification
 
 #### core · X · Communication — skill:skills/productivity/wait-what
-- `repitch-trigger`: When a message did not land, stop and re-pitch it rather than adding more. — adopt → i-have-adhd#repitch-trigger
-- `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write. — adopt → i-have-adhd#domain-vocabulary
+- `repitch-trigger`: When a message did not land, stop and re-pitch it rather than adding more. — adopt → brief-me#repitch-trigger
+- `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write. — adopt → brief-me#domain-vocabulary
 - `context-map-lookup`: Follow the context map to the right context's glossary when the repository has several. — defer
-- `standard-controlled-language`: Re-pitch in ASD-STE100 Simplified Technical English. — adopt → i-have-adhd#controlled-language
+- `standard-controlled-language`: Re-pitch in ASD-STE100 Simplified Technical English. — adopt → brief-me#controlled-language
 
 #### core · X · Continuity — skill:skills/productivity/handoff
 - `handoff-doc`: Write a handoff document summarising the current conversation so a fresh agent can continue the work. — defer
@@ -3363,7 +3363,7 @@ Describe a workflow with a shared vocabulary of Trigger, an event or schedule, a
 
 #### `debug-spiral-reset`
 After repeated failed fix turns, stop iterating on code, name the assumption that may be wrong, and ask one diagnostic question.
-- ours: `i-have-adhd`
+- ours: `brief-me`
 
 #### `no-evidence-pivot`
 Change approach when repeated attempts produce no new evidence.
@@ -4475,7 +4475,7 @@ Do not bold every proper noun or acronym.
 
 #### `capped-lists`
 Cap a list at five items, ranking them or splitting into now and later.
-- ours: `i-have-adhd`
+- ours: `brief-me`
 
 #### `cdn-only-scripts`
 Load only CDN-hosted styling and diagram libraries as scripts, keeping the document otherwise static.
@@ -4504,7 +4504,7 @@ Strip hedging, turn sentences into bullets and cut bullets wherever possible.
 
 #### `concrete-time-estimates`
 Give estimates in concrete units as agent execution plus review time rather than human workdays.
-- ours: `i-have-adhd`
+- ours: `brief-me`
 
 #### `confidence-language-kept`
 Keep the tier words and hedges that mark uncertainty when editing a finished answer.
@@ -4514,8 +4514,8 @@ Keep the tier words and hedges that mark uncertainty when editing a finished ans
 
 #### `controlled-language`
 Re-pitch in controlled simplified language with short sentences and common words.
-- ours: `i-have-adhd`
-- `cursor_plugins:skill:pstack/skills/bro` — adopt → i-have-adhd#controlled-language
+- ours: `brief-me`
+- `cursor_plugins:skill:pstack/skills/bro` — adopt → brief-me#controlled-language
 
 #### `decision-summary-brief`
 Present a checkpoint as a tight, decision-ready summary of what was produced and why with a link, never the raw output.
@@ -4532,7 +4532,7 @@ Split or trim any sentence the reader must reread to parse.
 
 #### `domain-vocabulary`
 Use the project's established domain vocabulary throughout what you write.
-- ours: `i-have-adhd`
+- ours: `brief-me`
 - ours: `improve-codebase-architecture`
 - ours: `prototype`
 - ours: `teach`
@@ -4544,7 +4544,7 @@ Use the project's established domain vocabulary throughout what you write.
 - `mattpocock_skills:skill:skills/engineering/to-tickets` — defer
 - `mattpocock_skills:skill:skills/engineering/triage` — defer
 - `mattpocock_skills:skill:skills/productivity/teach` — adopt → teach#domain-vocabulary
-- `mattpocock_skills:skill:skills/productivity/wait-what` — adopt → i-have-adhd#domain-vocabulary
+- `mattpocock_skills:skill:skills/productivity/wait-what` — adopt → brief-me#domain-vocabulary
 
 #### `em-dash-ban`
 Ban em dashes and their substitutes, including parentheses, en dashes and hyphens as dashes, leaving only periods and commas to separate thoughts.
@@ -4552,7 +4552,7 @@ Ban em dashes and their substitutes, including parentheses, en dashes and hyphen
 
 #### `explain-on-request`
 When the user asks to explain or walk through, run as long as the topic needs while keeping the brevity discipline.
-- ours: `i-have-adhd`
+- ours: `brief-me`
 
 #### `false-range-cut`
 Replace a from-to construction that has no real scale with a direct list.
@@ -4611,7 +4611,7 @@ Turn bullets whose bold label merely restates the line into prose, keeping a per
 
 #### `jargon-free-restatement`
 Drop technical jargon from a restatement, wording it as one person would speak to another.
-- `cursor_plugins:skill:pstack/skills/bro` — adopt, pending cr-r2pa.2.18 → i-have-adhd#repitch-explains-project-terms
+- `cursor_plugins:skill:pstack/skills/bro` — adopt, pending cr-r2pa.2.18 → brief-me#repitch-explains-project-terms
 
 #### `limitation-with-revisit`
 Document material limitations together with the conditions under which to revisit them.
@@ -4628,7 +4628,7 @@ Replace aphorisms, rhetorical fragments, personified code, figurative verbs and 
 
 #### `matter-of-fact-errors`
 State an error's cause and fix plainly with no alarm language.
-- ours: `i-have-adhd`
+- ours: `brief-me`
 
 #### `meaning-and-tone-preserved`
 Keep the original sense of a text and fit its intended tone when editing it.
@@ -4667,7 +4667,7 @@ Rewrite a sentence that conveys an impression so that it states a mechanism or n
 
 #### `next-action-first`
 Lead with the next concrete action — a command, path or snippet — before any prose.
-- ours: `i-have-adhd`
+- ours: `brief-me`
 
 #### `no-decorative-emoji`
 Remove ornamental emoji from headings and bullets.
@@ -4690,7 +4690,7 @@ Avoid symmetrical constructions and neat concluding lines.
 
 #### `no-preamble`
 Open with the answer and stop when it is done, with no preamble, recap or closing pleasantry.
-- ours: `i-have-adhd`
+- ours: `brief-me`
 - `mattpocock_skills:skill:skills/engineering/pr` — defer
 
 #### `not-just-but-cut`
@@ -4700,7 +4700,7 @@ Replace the construction that denies one thing to promote another with a direct 
 
 #### `numbered-steps`
 Render multi-step work as a numbered list with one bounded action per step.
-- ours: `i-have-adhd`
+- ours: `brief-me`
 
 #### `open-artifact-for-user`
 Open a generated artifact for the user with the platform's opener and give its path.
@@ -4728,7 +4728,7 @@ Cut a sentence that would fit another project's docs unchanged.
 
 #### `pre-send-check`
 Before sending, delete announcements, closers, sidebars and empty hedges.
-- ours: `i-have-adhd`
+- ours: `brief-me`
 
 #### `preset-dashboard`
 Shape a chart-first document where prose only captions inline-SVG charts, with a drill-down data table.
@@ -4764,9 +4764,9 @@ Drop technical jargon from a re-pitch, keeping a project term only with a plain 
 
 #### `repitch-trigger`
 When a message did not land, stop and re-pitch it rather than adding more.
-- ours: `i-have-adhd`
-- `cursor_plugins:skill:pstack/skills/bro` — adopt → i-have-adhd#repitch-trigger
-- `mattpocock_skills:skill:skills/productivity/wait-what` — adopt → i-have-adhd#repitch-trigger
+- ours: `brief-me`
+- `cursor_plugins:skill:pstack/skills/bro` — adopt → brief-me#repitch-trigger
+- `mattpocock_skills:skill:skills/productivity/wait-what` — adopt → brief-me#repitch-trigger
 
 #### `reply-is-the-deliverable`
 Return the deliverable itself as the reply, never an account of what was done to produce it.
@@ -4792,7 +4792,7 @@ Use normal sentence capitalization in prose.
 
 #### `single-next-action`
 Close with exactly one concrete next action the reader can do in under two minutes.
-- ours: `i-have-adhd`
+- ours: `brief-me`
 
 #### `smallest-view` *(retired)*
 Pick the smallest view that makes the point, placing each visual next to the brief prose it supports.
@@ -4803,11 +4803,11 @@ Keep rule numbers as permanent identifiers that other documents can cite, leavin
 
 #### `standard-controlled-language`
 Re-pitch in ASD-STE100 Simplified Technical English.
-- `mattpocock_skills:skill:skills/productivity/wait-what` — adopt → i-have-adhd#controlled-language
+- `mattpocock_skills:skill:skills/productivity/wait-what` — adopt → brief-me#controlled-language
 
 #### `state-restatement`
 Restate the current progress state every turn so the reader need not hold it in memory.
-- ours: `i-have-adhd`
+- ours: `brief-me`
 
 #### `straight-quotes`
 Replace typographic quotation marks with straight ones.
@@ -4844,7 +4844,7 @@ Keep one term for one referent instead of rotating through synonyms.
 
 #### `tangent-suppression`
 Finish the current issue first, then offer any other concern as a separate question.
-- ours: `i-have-adhd`
+- ours: `brief-me`
 
 #### `tell-vocabulary-swap`
 Replace a fixed list of overused elevated words with plain ones.
@@ -4866,7 +4866,7 @@ Name the source of any claim credited to unnamed groups, or delete the claim.
 
 #### `visible-progress`
 Show completed work in concrete, runnable terms instead of burying it in a recap.
-- ours: `i-have-adhd`
+- ours: `brief-me`
 
 #### `visual-form-catalog`
 Offer a set of inline visual forms — pseudocode, call, component and file trees, Mermaid and whole-block — each with its own shape rules.
@@ -10717,7 +10717,7 @@ Traits listed by two or more of our active skills (`doc:AGENTS.md` and playbooks
 | `build-closeout` | doc:.claude/skills/mvp-mode/playbooks/feature.md, doc:.claude/skills/mvp-mode/playbooks/perf-issue.md, doc:.claude/skills/mvp-mode/playbooks/refactoring.md | Each playbook's closeout runs on its own exits and feeds its own reply, and these three have the same three duties; a skill of three duties would be ceremony (unit-kinds deviation log, St4 and B4). |
 | `canonical-term-and-aliases` | domain-modeling, teach | Each keeps a glossary of its own (project language, the learner's workspace) in one entry format, with its own admission rules. |
 | `dependency-edges` | planning, wayfinder | Each builds its own tracker graph, planning for implementation stages and wayfinder for decision tickets, and lets readiness drive the work; edge semantics stay in beads. |
-| `domain-vocabulary` | i-have-adhd, improve-codebase-architecture, prototype, teach | Each writes for its reader in the project's own terms: i-have-adhd in its re-pitches, teach in its lessons, prototype in its states, actions and labels, so an answer transfers to the real code, and improve-codebase-architecture in its candidates and their friction. |
+| `domain-vocabulary` | brief-me, improve-codebase-architecture, prototype, teach | Each writes for its reader in the project's own terms: brief-me in its re-pitches, teach in its lessons, prototype in its states, actions and labels, so an answer transfers to the real code, and improve-codebase-architecture in its candidates and their friction. |
 | `drift-scan` | harness-scan, harness-status | Both run the one drift command, scan for a single harness and status as a sweep of all of them; a pointer between them would add a hop to a one-line command. |
 | `dropout-proceeds-noted` | interrogate, model-council | A failed member and a failed adversary are handled alike, going on and reporting it, but what is left when too few remain differs: no pick for one, not run for the other. |
 | `finding-adjudication` | execution, review | Execution rules on findings inside its delivery loop and review owns the method; owner 2026-10-30: execution stays unchanged. |

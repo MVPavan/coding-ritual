@@ -1,10 +1,10 @@
 ---
-name: i-have-adhd
-description: Use when the user invokes /i-have-adhd.
+name: brief-me
+description: Use when the user invokes /brief-me.
 disable-model-invocation: true
 ---
 
-# i-have-adhd
+# brief-me
 
 The reader has ADHD. Output is not just brief. It is shaped so an ADHD brain can act on it.
 
