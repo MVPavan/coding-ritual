@@ -46,3 +46,45 @@
 [submodule "reference_harnesses/cursor_plugins"]
 	path = reference_harnesses/cursor_plugins
 	url = https://github.com/cursor/plugins.git
+[submodule "reference_harnesses/tstack"]
+	path = reference_harnesses/tstack
+	url = https://github.com/t3dotgg/tstack.git
+[submodule "reference_harnesses/dori-superagent"]
+	path = reference_harnesses/dori-superagent
+	url = https://github.com/sisyphuslabs/dori-superagent.git
+[submodule "reference_harnesses/kun/firstmate"]
+	path = reference_harnesses/kun/firstmate
+	url = https://github.com/kunchenguid/firstmate.git
+[submodule "reference_harnesses/kun/no-mistakes"]
+	path = reference_harnesses/kun/no-mistakes
+	url = https://github.com/kunchenguid/no-mistakes.git
+[submodule "reference_harnesses/kun/backpass"]
+	path = reference_harnesses/kun/backpass
+	url = https://github.com/kunchenguid/backpass.git
+[submodule "reference_harnesses/kun/gnhf"]
+	path = reference_harnesses/kun/gnhf
+	url = https://github.com/kunchenguid/gnhf.git
+[submodule "reference_harnesses/kun/axi"]
+	path = reference_harnesses/kun/axi
+	url = https://github.com/kunchenguid/axi.git
+[submodule "reference_harnesses/kun/kun"]
+	path = reference_harnesses/kun/kun
+	url = https://github.com/kunchenguid/kun.git
+[submodule "reference_harnesses/kun/vision"]
+	path = reference_harnesses/kun/vision
+	url = https://github.com/kunchenguid/vision.git
+[submodule "reference_harnesses/kun/grok-ship"]
+	path = reference_harnesses/kun/grok-ship
+	url = https://github.com/kunchenguid/grok-ship.git
+[submodule "reference_harnesses/kun/tasks-axi"]
+	path = reference_harnesses/kun/tasks-axi
+	url = https://github.com/kunchenguid/tasks-axi.git
+[submodule "reference_harnesses/kun/quota-axi"]
+	path = reference_harnesses/kun/quota-axi
+	url = https://github.com/kunchenguid/quota-axi.git
+[submodule "reference_harnesses/kun/treehouse"]
+	path = reference_harnesses/kun/treehouse
+	url = https://github.com/kunchenguid/treehouse.git
+[submodule "reference_harnesses/kun/compact-adviser"]
+	path = reference_harnesses/kun/compact-adviser
+	url = https://github.com/kunchenguid/compact-adviser.git
