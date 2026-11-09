@@ -26,7 +26,8 @@
     "2026-11-05-principle-edits.jsonl": "ea248f69c4fe0b545a08620bfbfe359dfeafeeba4430688108d6e366491ca709",
     "2026-11-05-principle-move.jsonl": "12918e6e67db55419bd77342e93a86b7c0de80b404d56d28668b0daedc674dfe",
     "2026-11-06-batch-p1.jsonl": "b67d29c21c51b3c22d67a0aad70a74e6804a0f50ae30d84844194f14e7851ca3",
-    "2026-11-06-renames.jsonl": "811c08a10a1f74e365457a10bbd61151c5e6bdb50e2cae006629b6ab6281da75"
+    "2026-11-06-renames.jsonl": "811c08a10a1f74e365457a10bbd61151c5e6bdb50e2cae006629b6ab6281da75",
+    "2026-11-09-pocock-4ae2317.jsonl": "bd4e4fcfe8f6f47eeae073fbd249308e12ce9a6598e5026d802a5577ac28c890"
   },
   "round_order": [
     "2026-10-14-migration.jsonl",
@@ -54,7 +55,8 @@
     "2026-11-05-principle-edits.jsonl",
     "2026-11-05-delegation-principles.jsonl",
     "2026-11-06-batch-p1.jsonl",
-    "2026-11-06-renames.jsonl"
+    "2026-11-06-renames.jsonl",
+    "2026-11-09-pocock-4ae2317.jsonl"
   ],
   "reports": {
     "harness_lifecycle/registry/reviews/2026-10-30-upstream-mattpocock_skills-5beb35b.yaml": "fb413772a75f116bd9baeaa06b6e414fe59978c654a951cb53345f17459d7597",
@@ -68,7 +70,8 @@
     "harness_lifecycle/registry/reviews/2026-11-01-upstream-mattpocock_skills-5beb35b-retarget.yaml": "5c6f37dce6dd035b85d8809ed1e16ee5202f7e17e8068c3257612f6c95f41800",
     "harness_lifecycle/registry/reviews/2026-11-02-upstream-cursor_plugins-4dd1d05-reconsider.yaml": "1f9a65d63405e6cc3f4f9deec6c47858aa5f2ab97d2db16b2fd23ef1043fca9e",
     "harness_lifecycle/registry/reviews/2026-11-03-upstream-cursor_plugins-4dd1d05-batch-3.yaml": "158180347b44cde3d5c70fb29dc9fe3f5067c8d3504d7b413d3101df3df596e8",
-    "harness_lifecycle/registry/reviews/2026-11-04-upstream-cursor_plugins-4dd1d05-batch-p1.yaml": "6a81f83dd01b1f2498661d8e0dec6321589eb2373b66ffaa27114555791b62c3"
+    "harness_lifecycle/registry/reviews/2026-11-04-upstream-cursor_plugins-4dd1d05-batch-p1.yaml": "6a81f83dd01b1f2498661d8e0dec6321589eb2373b66ffaa27114555791b62c3",
+    "harness_lifecycle/registry/reviews/2026-11-06-upstream-mattpocock_skills-4ae2317.yaml": "0b7c237dbfb98522d6291eb391f3af70a1c401d9445e0052b7732a144da74211"
   },
   "analyses": {
     "cursor_plugins:skill:pstack/skills/architect@4dd1d05": "2f6b30fcea183d931ebb90718d90b26bed22bd0053ffc7322ede7757a9a18920",
@@ -115,26 +118,36 @@
     "cursor_plugins:skill:pstack/skills/unslop@4dd1d05": "f81653419e306628c1e0e3fa8bad11eae59dac96680ce9337fee939fd3ffb631",
     "cursor_plugins:skill:pstack/skills/why@4dd1d05": "227c7d897de582d6a13886864c14284c5eefb10adce12abe12e24f8aebdc00b5",
     "mattpocock_skills:skill:skills/engineering/ask-matt@5beb35b": "7c26278eeb19e4a6c08a40a33ab804f1d66f7f8ce2209126ebcea2c7d56d51a6",
+    "mattpocock_skills:skill:skills/engineering/code-review@4ae2317": "d7e4ca279442817f11a848f71f82a40172be04bae0f4c186c2a09ea543f42575",
     "mattpocock_skills:skill:skills/engineering/code-review@5beb35b": "2c50292854d3cd414fb64e68099072c2a468165b6e1fbfbc65fad6e6704871bc",
+    "mattpocock_skills:skill:skills/engineering/codebase-design@4ae2317": "63cec8d47b4501736c86bc0f166b4d26f91b7ff71635855241096b1eb59fffc2",
     "mattpocock_skills:skill:skills/engineering/codebase-design@5beb35b": "ad501db52a6ff597cad8ee1d65d141da59e2f6b36ac896f190ee99490c93270f",
     "mattpocock_skills:skill:skills/engineering/diagnosing-bugs@5beb35b": "f49adda0520afddbb8c2988bc2cf6b7cabce8a654bdae750af5c7785263ec578",
     "mattpocock_skills:skill:skills/engineering/domain-modeling@5beb35b": "990f99c8b806f80414f2a7bfc98e907016960f529b73dac38a9462f425f0feba",
     "mattpocock_skills:skill:skills/engineering/grill-with-docs@5beb35b": "9cecb0ee7aa752da1b00c23888ad07f484e6b954e45c7c0f9bffa89633fee18d",
+    "mattpocock_skills:skill:skills/engineering/implement-spec@4ae2317": "6d19bfc1562f4a217f434afdce04d6c6b46d96675b177c1af03cd19e5c60bfa5",
     "mattpocock_skills:skill:skills/engineering/implement-spec@5beb35b": "e3bff95652f2ec94ebf139b391a3fdfdc2acdfc41ac99f2d330fb9862cfe7292",
+    "mattpocock_skills:skill:skills/engineering/improve-codebase-architecture@4ae2317": "2a8488773afcfc14faf2fc224a28fd5f56e6fc4fc3b2fb4eaac33b1cc83c3b04",
     "mattpocock_skills:skill:skills/engineering/improve-codebase-architecture@5beb35b": "97fb2f6066b96bbcbba2825a9af69cb75aebea13d6b98b2d4fd8385ba41e4422",
     "mattpocock_skills:skill:skills/engineering/pr@5beb35b": "eba8091c36b58787b4719164d7175a14de32d2c49c7622baa8e251d5ed5de40f",
     "mattpocock_skills:skill:skills/engineering/prototype@5beb35b": "9152975168d680a3af012afd8b78041d6ba69e504d126c0e171f423f5eac7285",
+    "mattpocock_skills:skill:skills/engineering/research@4ae2317": "2483ceb3c69233105bb1c4047d85abf77c02a7f4bed03b3daff2d6e85563cba8",
     "mattpocock_skills:skill:skills/engineering/research@5beb35b": "fb3ae9e0cd7d274caae38ab6e154f90ea78e53566498121a83085de54449dfa8",
     "mattpocock_skills:skill:skills/engineering/retro@5beb35b": "01dd05bf1b9a07eeac3980f0faa2950b197605c669508d19f9f50c5342e8a55e",
+    "mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills@4ae2317": "d0dcd13a81d3a69a65a367ccfcd5d4e7365f2626e7f03dfd4d307fb6c921d159",
     "mattpocock_skills:skill:skills/engineering/tdd@5beb35b": "bad4407ef55e68adf083e6b73900345603c47eb45ef4a8efdcb9d7745746043a",
     "mattpocock_skills:skill:skills/engineering/to-spec@5beb35b": "59cde85984545313387fd9b40e256502fd0c9fc311232ca2a0848b538c8d485f",
     "mattpocock_skills:skill:skills/engineering/to-tickets@5beb35b": "cf68a2e3cd145f9481429171ae5f4c1867b5ddf7dc8b8991758ff936bb3c1973",
     "mattpocock_skills:skill:skills/engineering/triage@5beb35b": "b9a99693d9ec6b7d4a7c0f544678ef350906de7458392081d93759d3a0f7bf8c",
+    "mattpocock_skills:skill:skills/engineering/wayfinder@4ae2317": "6ae18c64556786dc85758b1ca5a50a5a5dfce750755e898ddbe29ca6e7ba034f",
     "mattpocock_skills:skill:skills/engineering/wayfinder@5beb35b": "916ab980ea81d49cbf6694f732b39567e140c6f2fce470fe1dddf109dd99dd4e",
     "mattpocock_skills:skill:skills/engineering/wizard@5beb35b": "406dd982bbd5fd83c3ba928cf5e470c35c8915ad52830f9e4d0a7add6bceb6a5",
+    "mattpocock_skills:skill:skills/in-progress/chief-of-staff@4ae2317": "5c70adce37128b6747021071115a23f064c162d9ef207776afe7852d27105459",
     "mattpocock_skills:skill:skills/in-progress/chief-of-staff@5beb35b": "33ded1c27487e8ab7e955b46bfa91549625b15f520da183fc4bd23136e92987e",
     "mattpocock_skills:skill:skills/in-progress/loop-me@5beb35b": "c1c902368e0e8cf601bf35ce7eed5f16a870b3a37a776d4bae7645808753fa3c",
     "mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules@5beb35b": "ad79c68f726ceb7fa739b9de1cb7313d1003097f56d10ae34ec2020e0121efed",
+    "mattpocock_skills:skill:skills/in-progress/software-factory@4ae2317": "b647f43639c51f36b604c3129938a2e940c153ad902c875d18af374716708703",
+    "mattpocock_skills:skill:skills/productivity/grilling@4ae2317": "f52d1a7c9a719da7fe95c490e985220c472f49882b6281121fe3e65eb428d347",
     "mattpocock_skills:skill:skills/productivity/grilling@5beb35b": "fba6b8323aa95eded3894b4a8a59c00c1c2a248152e3f3d2eb14a41560ac8640",
     "mattpocock_skills:skill:skills/productivity/handoff@5beb35b": "48687c4696d627a4b4bad23d3752ffab36ecf84a05621e337006d32837c0c84b",
     "mattpocock_skills:skill:skills/productivity/teach@5beb35b": "475081e06470630d85533d2d92273fd734955e1527b3918712db86478a5e2bfd",

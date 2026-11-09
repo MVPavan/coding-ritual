@@ -13,7 +13,7 @@
       added: {read-skill-before-claiming: "5beb35b"}
       changed: {}
 "mattpocock_skills:skill:skills/engineering/code-review":
-  accepted: "5beb35b"
+  accepted: "4ae2317"
   proposed: null
   analyses:
     "5beb35b":
@@ -26,8 +26,19 @@
         scope-establishment: "Captured once from a user-supplied fixed point and shared with the sub-agents."
         code-smell-catalog: "Twelve named smells, each stated as what it is and how to fix it."
         capped-reviewer-report: "400 words per reviewer report."
+    "4ae2317":
+      tree_hash: "ce86b40a3d1648a0018b712f0c70704e6c2316b2a9b9e915ab116916a31273dc"
+      placement: {domain: engineering, stage: Verification, substage: Review}
+      traits: [two-axis-review, distinct-axis-verdicts, no-cross-axis-rerank, scope-establishment, fixed-point-preflight, three-dot-merge-base, spec-source-discovery, standards-source-discovery, parallel-subagents, missing-spec-axis-skip, skip-tool-enforced, self-contained-subagent-brief, cited-standard-findings, spec-conformance-findings, capped-reviewer-report, per-axis-summary-line, code-smell-catalog, repo-standards-over-smells, smells-as-heuristics, fresh-context-subagent]
+      added: {fresh-context-subagent: "4ae2317"}
+      changed: {}
+      removed: {}
+      notes:
+        scope-establishment: "Captured once from a user-supplied fixed point and shared with the sub-agents."
+        code-smell-catalog: "Twelve named smells, each stated as what it is and how to fix it."
+        capped-reviewer-report: "400 words per reviewer report."
 "mattpocock_skills:skill:skills/engineering/codebase-design":
-  accepted: "5beb35b"
+  accepted: "4ae2317"
   proposed: null
   analyses:
     "5beb35b":
@@ -35,6 +46,16 @@
       placement: {domain: engineering, stage: Design, substage: Architecture}
       traits: [module-vocabulary, vocabulary-ban, interface-is-everything, depth-as-leverage, deletion-test, interface-is-test-surface, two-adapters-rule, internal-seams, inject-dependencies, return-not-mutate, small-interface-surface, dependency-categories, replace-dont-layer, local-stand-in-testing, port-with-memory-adapter, external-port-mock-adapter, problem-space-framing, design-brief-vocabulary, design-proposal-contents, parallel-interface-generation, depth-locality-seam-comparison, interface-design-recommendation]
       changed: {}
+      notes:
+        dependency-categories: "In-process dependencies are always deepenable by merging the modules."
+        parallel-interface-generation: "Three or more designers, each briefed with a constraint such as minimal, flexible, common-caller-optimised or ports-and-adapters."
+    "4ae2317":
+      tree_hash: "d40f025dc1b0f2020663260f38f2bcb8d6ed3523afb11e5fda624b01238677e8"
+      placement: {domain: engineering, stage: Design, substage: Architecture}
+      traits: [module-vocabulary, vocabulary-ban, interface-is-everything, depth-as-leverage, deletion-test, interface-is-test-surface, two-adapters-rule, internal-seams, inject-dependencies, return-not-mutate, small-interface-surface, dependency-categories, replace-dont-layer, local-stand-in-testing, port-with-memory-adapter, external-port-mock-adapter, problem-space-framing, design-brief-vocabulary, design-proposal-contents, parallel-interface-generation, depth-locality-seam-comparison, interface-design-recommendation, fresh-context-subagent]
+      added: {fresh-context-subagent: "4ae2317"}
+      changed: {}
+      removed: {}
       notes:
         dependency-categories: "In-process dependencies are always deepenable by merging the modules."
         parallel-interface-generation: "Three or more designers, each briefed with a constraint such as minimal, flexible, common-caller-optimised or ports-and-adapters."
@@ -74,15 +95,22 @@
       traits: [document-during-interview]
       changed: {}
 "mattpocock_skills:skill:skills/engineering/implement-spec":
-  accepted: "5beb35b"
+  accepted: "4ae2317"
   proposed: null
   analyses:
     "5beb35b":
       tree_hash: "3aa684ea42bfe136e4c6c63f7349214b2bb974c2e949f3532a11df796e0f1146"
       placement: {domain: engineering, stage: X, substage: Coordination}
       traits: [single-integration-branch, dependency-edges, pointer-only-subagent-briefs, parallel-frontier-implementers, exploration-notes-subagent, draft-closing-pr, worktree-per-implementer, worktree-base-check, red-green, pre-report-tip-merge, dedicated-merger-agent, final-branch-review, delivery-closeout, worktree-cleanup]
+    "4ae2317":
+      tree_hash: "c3474ef320861d793e8b30d41fbdd2cb0ceaa1081bb5c81b7f26c455eb776573"
+      placement: {domain: engineering, stage: X, substage: Coordination}
+      traits: [single-integration-branch, dependency-edges, pointer-only-subagent-briefs, parallel-frontier-implementers, exploration-notes-subagent, draft-closing-pr, worktree-per-implementer, worktree-base-check, red-green, pre-report-tip-merge, dedicated-merger-agent, final-branch-review, delivery-closeout, worktree-cleanup, fresh-context-subagent, no-reused-implementer]
+      added: {fresh-context-subagent: "4ae2317", no-reused-implementer: "4ae2317"}
+      changed: {}
+      removed: {}
 "mattpocock_skills:skill:skills/engineering/improve-codebase-architecture":
-  accepted: "5beb35b"
+  accepted: "4ae2317"
   proposed: null
   analyses:
     "5beb35b":
@@ -90,6 +118,19 @@
       placement: {domain: engineering, stage: Design, substage: Architecture}
       traits: [scope-by-evidence, friction-signals, deletion-test, diagram-patterns, domain-vocabulary, vocabulary-ban, adr-conflict-callout, no-interfaces-yet, module-vocabulary, respect-area-adrs, read-domain-docs-first, delegated-codebase-walk, open-artifact-for-user, cdn-only-scripts, dependency-categories, document-during-interview, rejection-decision-record, report-header-legend, terse-card-prose, redraw-not-explain, visual-restraint, concrete-benefit-claims, compress-to-bullets, html-architecture-report, candidate-before-after-visual, architecture-candidate-card, candidate-dependency-tag, top-candidate-recommendation, candidate-constraint-interview]
       changed: {}
+      notes:
+        deletion-test: "Applied as a scanning signal: a module whose deletion would concentrate complexity is marked a deepening candidate."
+        friction-signals: "Names the signals: concept-bouncing across small modules, shallow modules, testability-only extractions, seam leakage and hard-to-test areas."
+        visual-restraint: "Diagrams about 320px tall with schematic uppercase labels."
+        html-architecture-report: "Names the file with a timestamp so each run gets a fresh one."
+        top-candidate-recommendation: "The recommendation links to its candidate's card."
+    "4ae2317":
+      tree_hash: "f0820b18426a7d9a6c823a890988ba0ac70bf0fd596d30d7ef07c88558728c23"
+      placement: {domain: engineering, stage: Design, substage: Architecture}
+      traits: [scope-by-evidence, friction-signals, deletion-test, diagram-patterns, domain-vocabulary, vocabulary-ban, adr-conflict-callout, no-interfaces-yet, module-vocabulary, respect-area-adrs, read-domain-docs-first, delegated-codebase-walk, open-artifact-for-user, cdn-only-scripts, dependency-categories, document-during-interview, rejection-decision-record, report-header-legend, terse-card-prose, redraw-not-explain, visual-restraint, concrete-benefit-claims, compress-to-bullets, html-architecture-report, candidate-before-after-visual, architecture-candidate-card, candidate-dependency-tag, top-candidate-recommendation, candidate-constraint-interview, fresh-context-subagent]
+      added: {fresh-context-subagent: "4ae2317"}
+      changed: {}
+      removed: {}
       notes:
         deletion-test: "Applied as a scanning signal: a module whose deletion would concentrate complexity is marked a deepening candidate."
         friction-signals: "Names the signals: concept-bouncing across small modules, shallow modules, testability-only extractions, seam leakage and hard-to-test areas."
@@ -119,7 +160,7 @@
         throwaway-marked: "Placed next to the module or page it prototypes for."
         persistence-when-needed: "State lives in memory by default; a needed database is a clearly named scratch store."
 "mattpocock_skills:skill:skills/engineering/research":
-  accepted: "5beb35b"
+  accepted: "4ae2317"
   proposed: null
   analyses:
     "5beb35b":
@@ -127,6 +168,13 @@
       placement: {domain: core, stage: Discovery, substage: Research}
       traits: [background-agent, cited-artifact, findings-file, primary-source-only-research, claim-source-tracing]
       changed: {}
+    "4ae2317":
+      tree_hash: "7662666af51f8b1672ed7d88360d4b82656da21bb7b11c49e956eeb3036b85d5"
+      placement: {domain: core, stage: Discovery, substage: Research}
+      traits: [background-agent, cited-artifact, findings-file, primary-source-only-research, claim-source-tracing, fresh-context-subagent]
+      added: {fresh-context-subagent: "4ae2317"}
+      changed: {}
+      removed: {}
 "mattpocock_skills:skill:skills/engineering/retro":
   accepted: "5beb35b"
   proposed: null
@@ -188,7 +236,7 @@
         prior-rejection-check: "Reads the out-of-scope knowledge base."
         concept-keyed-rejection-store: "Files under a repository out-of-scope directory."
 "mattpocock_skills:skill:skills/engineering/wayfinder":
-  accepted: "5beb35b"
+  accepted: "4ae2317"
   proposed: null
   analyses:
     "5beb35b":
@@ -197,6 +245,18 @@
       traits: [decision-map-epic, plan-not-do, reference-by-name, map-as-index, map-body-sections, bounded-decision-ticket, session-sized-tickets, claim-before-work, dependency-edges, ticket-type-set, live-human-resolution, question-graduation, out-of-scope-close, one-ticket-per-session, research-subagent-branch, real-id-wiring, no-triage-labels, research-branch-pr-policy, type-directed-resolution, destination-first, no-map-without-fog, record-resolution, local-tracker-default, prototype-ticket-asset, grilling-default-type, fog-hygiene, out-of-scope-final, breadth-first-charting, map-initial-state, chart-only-session, low-res-map-load, ticket-asset-pointers, prerequisite-task-human-checklist, prerequisite-task-result-facts, invalidated-ticket-reconciliation]
       added: {real-id-wiring: "5beb35b", no-triage-labels: "5beb35b", research-branch-pr-policy: "5beb35b", type-directed-resolution: "5beb35b"}
       changed: {}
+      notes:
+        plan-not-do: "The effort's notes may override it."
+        ticket-type-set: "Each kind is marked human-in-the-loop or agent-alone."
+        real-id-wiring: "Creates the items first, then wires them in a second pass."
+        claim-before-work: "Other sessions may be editing the tracker concurrently; claiming is the only control, with no locking or conflict resolution."
+    "4ae2317":
+      tree_hash: "bd82983c105881f6cb0c15e5d029c0d5fca756939b69eebe94e49003069a276f"
+      placement: {domain: core, stage: Discovery, substage: Charting}
+      traits: [decision-map-epic, plan-not-do, reference-by-name, map-as-index, map-body-sections, bounded-decision-ticket, session-sized-tickets, claim-before-work, dependency-edges, ticket-type-set, live-human-resolution, question-graduation, out-of-scope-close, one-ticket-per-session, research-subagent-branch, real-id-wiring, no-triage-labels, research-branch-pr-policy, type-directed-resolution, destination-first, no-map-without-fog, record-resolution, local-tracker-default, prototype-ticket-asset, grilling-default-type, fog-hygiene, out-of-scope-final, breadth-first-charting, map-initial-state, chart-only-session, low-res-map-load, ticket-asset-pointers, prerequisite-task-human-checklist, prerequisite-task-result-facts, invalidated-ticket-reconciliation, fresh-context-subagent]
+      added: {fresh-context-subagent: "4ae2317"}
+      changed: {}
+      removed: {}
       notes:
         plan-not-do: "The effort's notes may override it."
         ticket-type-set: "Each kind is marked human-in-the-loop or agent-alone."
@@ -212,13 +272,20 @@
       traits: [template-library, scope-the-procedure, map-stage-journey, author-stages-over-template, ephemeral-by-default, syntax-check-handoff, static-trace-verification, human-step-wizard, migration-state-delta, value-provenance-gate, open-url-before-ask, hidden-secret-entry, minimal-ci-secrets, irreversible-confirmation, stage-progress-counter, cross-platform-url-open, resumable-defaults, ci-secrets-via-cli, wizard-closing-summary, terminal-capability-detection, scoped-env-value-upsert, safe-env-file-handling, robust-value-prompting]
       changed: {}
 "mattpocock_skills:skill:skills/in-progress/chief-of-staff":
-  accepted: "5beb35b"
+  accepted: "4ae2317"
   proposed: null
   analyses:
     "5beb35b":
       tree_hash: "41c724a82562eda3d5715078198ed5afbea8cb4e6e4b69934a85d1100ad32ad6"
       placement: {domain: core, stage: X, substage: Coordination}
       traits: [single-coordinator-session, dual-track-thinking, suggest-schedules, coordinator-delegates-all, background-dispatch-for-dialogue, pointer-only-subagent-briefs, persistent-wiki-memory, agreed-wiki-location, wiki-index, single-subject-pages, cite-not-copy-sources, wiki-propagation, wiki-consult-first, file-answers-as-pages, wiki-lint, dated-history-entries, commit-pinned-claims, supersede-wiki-claims, environment-improvement-lens, agent-data-access, no-workarounds-rule, constrained-agent-interfaces, correctness-enforcing-lint, reviewer-owns-standards]
+    "4ae2317":
+      tree_hash: "dc3348d0f641956ea78dafa037aea745154c516a286ed4156b0c2ec0cbcf581b"
+      placement: {domain: core, stage: X, substage: Coordination}
+      traits: [single-coordinator-session, dual-track-thinking, suggest-schedules, coordinator-delegates-all, background-dispatch-for-dialogue, pointer-only-subagent-briefs, persistent-wiki-memory, agreed-wiki-location, wiki-index, single-subject-pages, cite-not-copy-sources, wiki-propagation, wiki-consult-first, file-answers-as-pages, wiki-lint, dated-history-entries, commit-pinned-claims, supersede-wiki-claims, environment-improvement-lens, agent-data-access, no-workarounds-rule, constrained-agent-interfaces, correctness-enforcing-lint, reviewer-owns-standards, fresh-context-subagent, shared-wiki-first, host-wiki-conventions-win, sibling-skill-by-relative-path, sampled-session-retros, failures-first-retro-sample, retro-without-approval, spec-tickets-implement-pipeline]
+      added: {fresh-context-subagent: "4ae2317", shared-wiki-first: "4ae2317", host-wiki-conventions-win: "4ae2317", sibling-skill-by-relative-path: "4ae2317", sampled-session-retros: "4ae2317", failures-first-retro-sample: "4ae2317", retro-without-approval: "4ae2317", spec-tickets-implement-pipeline: "4ae2317"}
+      changed: {agreed-wiki-location: "4ae2317"}
+      removed: {}
 "mattpocock_skills:skill:skills/in-progress/loop-me":
   accepted: "5beb35b"
   proposed: null
@@ -238,7 +305,7 @@
       traits: [entry-point-only-imports, intra-package-freedom, tests-through-entry-points, no-cycles, public-surface-is-root-files, discourage-barrels, prove-the-rules-bite, document-boundary-readme, link-convention-from-agents-file, preserve-existing-config, wire-umbrella-check, scaffold-example, detect-package-conventions, flat-packages, two-folder-package-layout, test-folder-isolation, error-severity-rules, layering-stub, install-boundary-linter, bundled-config-copy, ci-fallback-instruction, group-backreference-rules, commonjs-config, cruiser-resolution-config, preserve-typeconfig-and-aliases, module-vocabulary]
       changed: {}
 "mattpocock_skills:skill:skills/productivity/grilling":
-  accepted: "5beb35b"
+  accepted: "4ae2317"
   proposed: null
   analyses:
     "5beb35b":
@@ -247,6 +314,16 @@
       traits: [map-decisions, question-batching, recommended-answer, yes-accepts-recommendation, round-format, self-serve-facts, exhaustive-completion, reconfirm-before-action, answer-before-next-round, non-blocking-lookup]
       added: {yes-accepts-recommendation: "5beb35b", round-format: "5beb35b"}
       changed: {}
+      notes:
+        recommended-answer: "Numbers each question."
+        self-serve-facts: "Looks facts up through a subagent."
+    "4ae2317":
+      tree_hash: "485451958784497cd4c4dbea13cb5bbb579da58fac0d0e45f3bcb310fab68ac7"
+      placement: {domain: core, stage: Intake, substage: Clarification}
+      traits: [map-decisions, question-batching, recommended-answer, yes-accepts-recommendation, round-format, self-serve-facts, exhaustive-completion, reconfirm-before-action, answer-before-next-round, non-blocking-lookup, fresh-context-subagent]
+      added: {fresh-context-subagent: "4ae2317"}
+      changed: {}
+      removed: {}
       notes:
         recommended-answer: "Numbers each question."
         self-serve-facts: "Looks facts up through a subagent."
@@ -306,3 +383,30 @@
       notes:
         inline-vs-disclose: "Ranks material on a ladder of in-file step, in-file reference and disclosed reference."
         invocation-mode: "Pays permanent context load only for the discoverability the agent needs."
+# Pocock 4ae2317: first analyses, proposed.
+"mattpocock_skills:skill:skills/in-progress/software-factory":
+  accepted: "4ae2317"
+  proposed: null
+  analyses:
+    "4ae2317":
+      tree_hash: "484bc782e7b51e9bfa69f2a24f3ae0ee11870bb562cd8ad368222bc3eae63748"
+      placement: {domain: engineering, stage: Design, substage: Architecture}
+      traits: [closed-term-set, avoided-term-correction, define-task-once, three-trigger-classes, opaque-run-unit, run-chaining-channels, run-ends-instead-of-waiting, disposable-runner, memory-only-in-services, tracker-as-human-interface, ticket-source-slot, orchestrator-run-states, deliberate-none-observability, observability-reaches-runs-via-tickets, service-slots-and-tasks, git-host-slot, start-from-user-problem, deterministic-gates-every-run, cold-automated-review-run, human-reads-before-merge, review-catches-become-checks, one-trigger-at-a-time, throttled-trigger-ramp, capped-run-loops, reference-design-comparison, dated-survey-as-orientation, buy-services-build-tasks, question-task-trigger, question-task-effects, question-task-successor, question-human-reentry, question-duplicate-runs, question-source-dedupe, design-done-all-answered, every-slot-named, problem-indexed-task-catalogue, grow-by-chaining, explore-triage-task, ticket-implementer-task, automated-review-task, rework-fixes-only-findings, rework-push-rereviewed, spec-decompose-task, self-chaining-implementer, exception-list-ratchet, daily-ratchet-task, one-ratchet-change-a-day, prelabelled-feedback-tickets, monitor-ticket-lifecycle, failed-run-fix-task, no-chain-from-failed-fix, factory-changes-need-human-review, nightly-architecture-scan-task, factory-retro-task, factory-retro-throttle, primary-source-preference, fastest-changing-facts-first, volatile-fact-verification, vendor-claim-testing, type-traits-over-survey-figures, ask-which-slots-a-product-fills, tracker-type-criteria, build-own-tracker-last, api-filing-for-outsiders, tracker-routing-by-type, stream-progress-into-ticket, repo-tickets-as-run-memory, tracker-slot-questions, app-identity-for-chained-runs, late-context-on-pull-request, ack-webhook-then-start-run, batched-webhook-workaround, git-host-type-criteria, host-operating-costs, vendor-agents-decision, bot-check-vote-human-review-vote, ask-vendor-for-unpublished-limits, pilot-on-mirror-with-fallback, per-run-scoped-tokens, git-host-slot-questions, check-plan-includes-gates, bot-identity-rate-budget, orchestrator-joins-event-streams, runner-type-criteria, runner-per-task, per-ticket-concurrency-lock, disposability-by-runner-type, run-timeout-backstop, cache-only-persistence, runner-slot-questions, runner-network-and-secrets-question, observability-type-criteria, self-host-to-keep-transcripts, gateway-plus-tracing, observability-data-hooks, otel-as-common-transport, per-run-tracing-budget, nest-run-in-caller-trace, observability-slot-questions]
+      added: {}
+      changed: {}
+      removed: {}
+      notes:
+        volatile-fact-verification: "Each product type lists the fast-changing facts to verify, and each survey's gotchas are confirmed before use."
+"mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills":
+  accepted: "4ae2317"
+  proposed: null
+  analyses:
+    "4ae2317":
+      tree_hash: "9659e7025d4cf1c0a0b40ddff32ed4b8debb87a4b20d7a52ff89c506a638df69"
+      placement: {domain: core, stage: Improvement, substage: Codification}
+      traits: [tracker-config-doc, triage-label-config, domain-docs-config, draft-confirm-then-write, inspect-repo-before-configuring, offer-legacy-file-rename, findings-summary-before-questions, one-question-at-a-time, recommended-answer, yes-accepts-recommendation, explainer-only-on-real-branch, skip-settled-questions, tracker-choice-from-remote, pr-intake-flag-default-off, unraised-default-flag, tracker-reachability-gate, default-labels-one-question, repo-shape-domain-layout, scoped-decision-records, edit-existing-instruction-file, update-block-in-place, preserve-others-edits, instruction-file-pointer-block, create-missing-labels, seed-template-docs, setup-completion-report, tracker-verb-mapping, infer-repo-from-remote, comment-before-close, child-ticket-linking-fallbacks, dependency-edges, decision-map-epic, three-section-map-body, claim-before-work, map-order-frontier-pick, assignee-marks-claim, claim-is-first-write, record-resolution, own-repo-filing-guard, pr-as-issue, split-pr-read-steps, external-author-pr-filter, bare-number-resolution, local-markdown-tracker-layout, label-name-mapping, read-domain-docs-first, context-map-lookup, silent-when-domain-docs-absent, lazy-glossary-and-adr, domain-vocabulary, avoid-ruled-out-synonyms, missing-term-as-signal, decision-conflict-surfacing, adr-conflict-callout]
+      added: {}
+      changed: {}
+      removed: {}
+      notes:
+        dependency-edges: "Native blocking links are canonical, with a Blocked-by body line where they are missing; a ticket is ready when every blocker is closed."

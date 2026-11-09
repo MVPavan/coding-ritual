@@ -38,7 +38,8 @@ Use when a decision needs multiple sources gathered and weighed. Answer a single
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
-- `2026-10-30` **adopt-merged** (2026-10-30-mattpocock_skills-5beb35b:575): Checkpoint at 5beb35b for the owner's trait rulings: 4 adopt, 1 defer.
+- `2026-11-09` **adopt-merged** (2026-11-09-pocock-4ae2317:166): Checkpoint at 4ae2317 for the owner's trait rulings: 1 adopt.
+- `2026-10-30` **adopt-merged** (2026-10-30-mattpocock_skills-5beb35b:575) *(superseded)*: Checkpoint at 5beb35b for the owner's trait rulings: 4 adopt, 1 defer.
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:332): Owner deferred the report's reject recommendation, to review the set later: Ours deliberately requires primary sources for high-stakes and changing claims only…
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:331): Same mechanism, looser and deliberate: secondary evidence is weak alone but useful for practice (source-selection.md:19-20).
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:330): Same mechanism, looser and deliberate (SKILL.md:21-23): a single fact needs no file (SKILL.md:9-10).
@@ -50,6 +51,7 @@ Use when a decision needs multiple sources gathered and weighed. Answer a single
 <!-- /registry:generated history -->
 
 <!-- registry:generated reviews -->
+- [2026-11-06-upstream-mattpocock_skills-4ae2317.md](../../reviews/2026-11-06-upstream-mattpocock_skills-4ae2317.md)
 - [skill-comparisons/research-workflow](../../../archive/skill-comparisons/research-workflow/)
 <!-- /registry:generated reviews -->
 

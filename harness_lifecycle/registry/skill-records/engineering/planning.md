@@ -68,12 +68,13 @@ Use when settled work needs a durable implementation plan, dependency graph, or 
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-09` **adopt-merged** (2026-11-09-pocock-4ae2317:162): Checkpoint at 4ae2317 for the owner's trait rulings: 2 adopt.
 - `2026-11-06` **update** (2026-11-06-renames:013): Owner ruling D of 2026-11-05 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 14a U1. The Run with: contract names implement: skeleton.md's template…
 - `2026-11-02` **update** (2026-11-02-pilot-2:018): Final critic of pilot 2. The lint splits lines as execution's extractor does, normalizing CRLF only and splitting on LF, and any other line separator is a prob…
 - `2026-11-02` **adopt** (2026-11-02-pilot-2:011): Completes pending 2026-10-30-mattpocock_skills-5beb35b:116: blast-radius-batches is written at .claude/skills/planning/SKILL.md:83-84, read against its ruled r…
 - `2026-11-02` **adopt** (2026-11-02-pilot-2:010): Completes pending 2026-10-30-mattpocock_skills-5beb35b:102: prefactor-first is written at .claude/skills/planning/SKILL.md:81-82, read against its ruled reword…
 - `2026-11-02` **update** (2026-11-02-pilot-2:009): Pilot 2, ruling 14: a Skeleton branch that a calling playbook or an explicit request opts into, with evidence boxes per unit, one named execution scope and a s…
-- `2026-10-30` **adopt-merged** (2026-10-30-mattpocock_skills-5beb35b:573): Checkpoint at 5beb35b for the owner's trait rulings: 2 adopt, 12 defer.
+- `2026-10-30` **adopt-merged** (2026-10-30-mattpocock_skills-5beb35b:573) *(superseded)*: Checkpoint at 5beb35b for the owner's trait rulings: 2 adopt, 12 defer.
 - `2026-10-30` **adopt-merged** (2026-10-30-mattpocock_skills-5beb35b:565): Checkpoint at 5beb35b for the owner's trait rulings: 13 adopt, 10 defer.
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:275): HELD: planning (.claude/skills/planning/SKILL.md:33): Encoding real blocking edges is planning's job (SKILL.md:33); execution consumes the ready frontier (exec…
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:121): Ours writes no Beads before the matching approval of the presented structure.
@@ -105,7 +106,7 @@ Use when settled work needs a durable implementation plan, dependency graph, or 
 <!-- /registry:generated history -->
 
 <!-- registry:generated reviews -->
-None yet.
+- [2026-11-06-upstream-mattpocock_skills-4ae2317.md](../../reviews/2026-11-06-upstream-mattpocock_skills-4ae2317.md)
 <!-- /registry:generated reviews -->
 
 <!-- registry:generated sources -->

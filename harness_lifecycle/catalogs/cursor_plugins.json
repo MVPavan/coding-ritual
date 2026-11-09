@@ -2,8 +2,8 @@
   "schema": "harness-capability-catalog/v1",
   "repo": "cursor_plugins",
   "source": "working-tree",
-  "source_commit": "4dd1d05818d19792e7cd6e818f1667f95f7e1dbe",
-  "physical_scanned": 1303,
+  "source_commit": "2776ddd2355d6d6c8747d3964600f28daf62f049",
+  "physical_scanned": 1315,
   "excluded": 752,
   "counts": {
     "agent": {
@@ -15,8 +15,8 @@
       "logical": 8
     },
     "mcp": {
-      "physical": 104,
-      "logical": 104
+      "physical": 106,
+      "logical": 106
     },
     "playbook": {
       "physical": 49,
@@ -1459,6 +1459,25 @@
     },
     {
       "kind": "mcp",
+      "name": "lark-base",
+      "category": "",
+      "logical_id": "mcp:third_party/lark-base/mcp.json#lark-base",
+      "canonical_path": "third_party/lark-base/mcp.json#lark-base",
+      "paths": [
+        "third_party/lark-base/mcp.json#lark-base"
+      ],
+      "description": "https://api.cursor.com/rest-mcp/lark-base/mcp",
+      "content_hash": "263fb5ffde8023d302a5850cd9d7e417c353f735",
+      "signature_hash": "a607ff50481a825c6c785f952ca76e249ae37bf0",
+      "variant_hashes": [
+        "263fb5ffde8023d302a5850cd9d7e417c353f735"
+      ],
+      "line_count": 8,
+      "assets": [],
+      "tree_hash": "263fb5ffde8023d302a5850cd9d7e417c353f735"
+    },
+    {
+      "kind": "mcp",
       "name": "lark",
       "category": "",
       "logical_id": "mcp:third_party/lark/mcp.json#lark",
@@ -2181,6 +2200,25 @@
     },
     {
       "kind": "mcp",
+      "name": "tesla",
+      "category": "",
+      "logical_id": "mcp:third_party/tesla/mcp.json#tesla",
+      "canonical_path": "third_party/tesla/mcp.json#tesla",
+      "paths": [
+        "third_party/tesla/mcp.json#tesla"
+      ],
+      "description": "https://api.cursor.com/rest-mcp/tesla/mcp",
+      "content_hash": "176364a260cc2e935c3faeb238c72ddb1bcaee86",
+      "signature_hash": "f4eefdc62cee731a0f8736bfda06b2fb2c9df59c",
+      "variant_hashes": [
+        "176364a260cc2e935c3faeb238c72ddb1bcaee86"
+      ],
+      "line_count": 4,
+      "assets": [],
+      "tree_hash": "176364a260cc2e935c3faeb238c72ddb1bcaee86"
+    },
+    {
+      "kind": "mcp",
       "name": "tiktok-for-business",
       "category": "",
       "logical_id": "mcp:third_party/tiktok-for-business/mcp.json#tiktok-for-business",
@@ -2417,14 +2455,14 @@
         "third_party/x/mcp.json#x"
       ],
       "description": "https://api.x.com/mcp",
-      "content_hash": "d84000d15917b59669a755e7395bf5ba39e739c3",
-      "signature_hash": "17bd5575e23d111e6e99ad36b5084f549be93e9b",
+      "content_hash": "fca744adcae4c37c8bbc65fdf6b618887e1c6dd0",
+      "signature_hash": "3f4bc9a5c7bb82c6cffde9764ec8540244fa1f4b",
       "variant_hashes": [
-        "d84000d15917b59669a755e7395bf5ba39e739c3"
+        "fca744adcae4c37c8bbc65fdf6b618887e1c6dd0"
       ],
-      "line_count": 31,
+      "line_count": 32,
       "assets": [],
-      "tree_hash": "d84000d15917b59669a755e7395bf5ba39e739c3"
+      "tree_hash": "fca744adcae4c37c8bbc65fdf6b618887e1c6dd0"
     },
     {
       "kind": "mcp",
@@ -6955,15 +6993,15 @@
       "paths": [
         "third_party/tailscale/skills/tailscale-setup/SKILL.md"
       ],
-      "description": "Connect Grok Bot to Tailscale on a company tailnet (a team admin enables it at cursor.com; each member authenticates their own device and an admin limits it with custom:grokbot postures) or a personal tailnet (one-click Connect when the member owns or administers the tailnet, otherwise a tag:grokbot device). Several tailnets can be connected at once. Use when the user asks to set up, troubleshoot, change the default tailnet, or disconnect Grok Bot's Tailscale connection.",
-      "content_hash": "a851be76649d5f1fa4e3beb68cb8c5c58cd532e7",
-      "signature_hash": "cef1ff87787173f2cd6fb5f89bb472987cc7d442",
+      "description": "Connect Grok Bot to Tailscale on a company tailnet (a team admin enables it at cursor.com; each member authenticates their own device and an admin limits it with custom:grokbot postures) or a personal tailnet (one-click Connect when the member owns or administers the tailnet). Several tailnets can be connected at once. Use when the user asks to set up, troubleshoot, change the default tailnet, or disconnect Grok Bot's Tailscale connection.",
+      "content_hash": "aa3d64bf67371b87029f6e2a027e1fd06d252675",
+      "signature_hash": "a945c7f485287daa54f59a8940a1812476161328",
       "variant_hashes": [
-        "a851be76649d5f1fa4e3beb68cb8c5c58cd532e7"
+        "aa3d64bf67371b87029f6e2a027e1fd06d252675"
       ],
-      "line_count": 96,
+      "line_count": 81,
       "assets": [],
-      "tree_hash": "355524947c1549994685d86354f16eef93e3fd3903463ec92194e18461603990"
+      "tree_hash": "fb1ad425b5439a11a75f884b47a490f5cf0d0dc00c79a19e46f2fbc78c53fd5c"
     },
     {
       "kind": "skill",
@@ -6994,14 +7032,14 @@
         "third_party/x/skills/x-api-mcp-guide/SKILL.md"
       ],
       "description": ">-",
-      "content_hash": "a77246beb891c09f8af9013b1798db41cb16f544",
-      "signature_hash": "58e78064c7590bf7d04d086d8405b3b4721de5a5",
+      "content_hash": "ac776e19f49a3ebb561a5b23cfb57462d1af29d9",
+      "signature_hash": "efc397f76946b4dae90242a205d605706691275b",
       "variant_hashes": [
-        "a77246beb891c09f8af9013b1798db41cb16f544"
+        "ac776e19f49a3ebb561a5b23cfb57462d1af29d9"
       ],
-      "line_count": 349,
+      "line_count": 202,
       "assets": [],
-      "tree_hash": "e88ee903270339e841a10279ed76893ce9028777d9e63dfb05c4744689c7adab"
+      "tree_hash": "38c2b4b1bf4ca1707695b763bd7190506bfd6f22d42a704bf596bcff5df9a823"
     }
   ]
 }

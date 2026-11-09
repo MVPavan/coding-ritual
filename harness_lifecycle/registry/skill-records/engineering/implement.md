@@ -40,9 +40,11 @@ Use to execute tracked multi-step work, a standalone plan, or a roadmap phase. C
   - merged from: executing-plans
   - modified: absorb executing-plans as a degraded inline mode for when subagents are unavailable
 - **agent-skills:skill:skills/code-simplification** `skills/code-simplification/SKILL.md` @ 7676817
+- **mattpocock_skills:skill:skills/engineering/implement-spec#no-reused-implementer** `skills/engineering/implement-spec/SKILL.md` @ 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d (pending cr-r2pa.2.19)
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-09` **adopt** (2026-11-09-pocock-4ae2317:161): Owner ruling 2026-11-09: Prevents: A worker carrying one ticket's assumptions into the next ticket or into the review fixes, where nobody briefed them. Lands i…
 - `2026-11-06` **rename** (2026-11-06-renames:011): Owner ruling D of 2026-11-05 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 14a U1. The skill execution is renamed implement; its body is unchange…
 - `2026-10-31` **update** (2026-10-31-mvp-mode:007): Restates 2026-10-31-mvp-mode:004 with durable evidence (critic K2) and its trait inventory (critic K1). Bug-fix pilot: systematic-debugging no longer fixes, so…
 - `2026-10-31` **update** (2026-10-31-mvp-mode:004) *(superseded)*: Bug-fix pilot: systematic-debugging no longer fixes, so execution's task loop calls it for the diagnosis and carries the fix gates on its own path (fix only a …
@@ -64,6 +66,7 @@ Use to execute tracked multi-step work, a standalone plan, or a roadmap phase. C
 <!-- /registry:generated history -->
 
 <!-- registry:generated reviews -->
+- [2026-11-06-upstream-mattpocock_skills-4ae2317.md](../../reviews/2026-11-06-upstream-mattpocock_skills-4ae2317.md)
 - [skill-comparisons/plan-execution-engines](../../../archive/skill-comparisons/plan-execution-engines/)
 <!-- /registry:generated reviews -->
 

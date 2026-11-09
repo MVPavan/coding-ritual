@@ -87,6 +87,7 @@ Use for substantive module-interface, encapsulation or testability decisions, or
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-09` **adopt-merged** (2026-11-09-pocock-4ae2317:159): Checkpoint at 4ae2317 for the owner's trait rulings: 1 adopt.
 - `2026-11-01` **adopt** (2026-11-01-batch-1:280): Completes pending 2026-11-01-batch-1:144: sketch-rationale is written at .claude/skills/codebase-design/SKETCH.md:46-48, read against its definition (T5).
 - `2026-11-01` **adopt** (2026-11-01-batch-1:279): Completes pending 2026-11-01-batch-1:126: next-agent-test is written at .claude/skills/codebase-design/SKETCH.md:41-42, read against its definition (T5).
 - `2026-11-01` **adopt** (2026-11-01-batch-1:278): Completes pending 2026-11-01-batch-1:135: derived-or-checked-lists is written at .claude/skills/codebase-design/SKETCH.md:37, read against its definition (T5).
@@ -130,7 +131,7 @@ Use for substantive module-interface, encapsulation or testability decisions, or
 - `2026-11-01` **defer** (2026-11-01-cursor_plugins-pstack-principles:053): Lands as a skill or playbook trait. A sequencing rule for planning, not a lens. The pending prefactor-first adoption covers most of it.
 - `2026-11-01` **defer** (2026-11-01-cursor_plugins-pstack-principles:007): Lands as a principle unit. Sound but abstract; without an example it adds little a reader can apply, and codebase-design's depth vocabulary is its natural home.
 - `2026-10-30` **adopt-merged** (2026-10-30-mattpocock_skills-5beb35b:577): Checkpoint at 5beb35b for the owner's trait rulings: 1 adopt, 2 defer, 23 out-of-scope.
-- `2026-10-30` **adopt-merged** (2026-10-30-mattpocock_skills-5beb35b:560): Checkpoint at 5beb35b for the owner's trait rulings: 13 adopt, 9 defer.
+- `2026-10-30` **adopt-merged** (2026-10-30-mattpocock_skills-5beb35b:560) *(superseded)*: Checkpoint at 5beb35b for the owner's trait rulings: 13 adopt, 9 defer.
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:381): HELD: codebase-design: its trigger fires on module-interface and testability decisions (codebase-design/SKILL.md:3), the ones this setup encodes.
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:212): HELD: codebase-design: its trigger fires on testability decisions (codebase-design/SKILL.md:3), which a test-first change makes.
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:207): HELD: codebase-design (.claude/skills/codebase-design/SKILL.md:35): Passing dependencies in is a module-design rule our codebase-design states (SKILL.md:35: pr…
@@ -164,7 +165,7 @@ Use for substantive module-interface, encapsulation or testability decisions, or
 <!-- /registry:generated history -->
 
 <!-- registry:generated reviews -->
-None yet.
+- [2026-11-06-upstream-mattpocock_skills-4ae2317.md](../../reviews/2026-11-06-upstream-mattpocock_skills-4ae2317.md)
 <!-- /registry:generated reviews -->
 
 <!-- registry:generated sources -->

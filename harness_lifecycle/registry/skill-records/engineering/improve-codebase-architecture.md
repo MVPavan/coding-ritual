@@ -42,11 +42,12 @@ Find evidence-backed architecture improvements within a named area or requested 
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-09` **adopt-merged** (2026-11-09-pocock-4ae2317:164): Checkpoint at 4ae2317 for the owner's trait rulings: 1 adopt.
 - `2026-11-04` **adopt** (2026-11-04-pocock-pass:019): Completes pending 2026-10-30-mattpocock_skills-5beb35b:039: rejection-decision-record is written at .claude/skills/improve-codebase-architecture/SKILL.md:30-32…
 - `2026-11-04` **adopt** (2026-11-04-pocock-pass:018): Completes pending 2026-10-30-mattpocock_skills-5beb35b:033: read-domain-docs-first is written at .claude/skills/improve-codebase-architecture/SKILL.md:13, in t…
 - `2026-11-04` **adopt** (2026-11-04-pocock-pass:017): Completes pending 2026-10-30-mattpocock_skills-5beb35b:027: domain-vocabulary is written at .claude/skills/improve-codebase-architecture/SKILL.md:20, in the se…
 - `2026-11-04` **adopt** (2026-11-04-pocock-pass:016): Completes pending 2026-10-30-mattpocock_skills-5beb35b:044: concrete-benefit-claims is written at .claude/skills/improve-codebase-architecture/SKILL.md:20-22, …
-- `2026-10-30` **adopt-merged** (2026-10-30-mattpocock_skills-5beb35b:561): Checkpoint at 5beb35b for the owner's trait rulings: 14 adopt, 15 defer.
+- `2026-10-30` **adopt-merged** (2026-10-30-mattpocock_skills-5beb35b:561) *(superseded)*: Checkpoint at 5beb35b for the owner's trait rulings: 14 adopt, 15 defer.
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:051): Owner deferred the report's reject recommendation, to review the set later: Opposite stance: ours stops after the review and does not enter an interview automa…
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:050): Ours ends with the strongest supported recommendation.
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:049): Owner deferred the report's reject recommendation, to review the set later: A per-candidate category label is card formatting; the classification itself is han…
@@ -78,7 +79,7 @@ Find evidence-backed architecture improvements within a named area or requested 
 <!-- /registry:generated history -->
 
 <!-- registry:generated reviews -->
-None yet.
+- [2026-11-06-upstream-mattpocock_skills-4ae2317.md](../../reviews/2026-11-06-upstream-mattpocock_skills-4ae2317.md)
 <!-- /registry:generated reviews -->
 
 <!-- registry:generated sources -->

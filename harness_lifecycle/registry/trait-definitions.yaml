@@ -7053,3 +7053,512 @@ handback-risk-fields:
 handback-pre-merge-check:
   definition: "Give the cheapest test or reproduction able to expose the actual bug, along with any script written."
   placement: {domain: core, stage: Verification, substage: Review}
+# ---- Pocock 4ae2317, 2026-11-06 (reviews/2026-11-06-upstream-mattpocock_skills-4ae2317.yaml) ----
+closed-term-set:
+  definition: "Discuss and sketch a design only in a fixed set of defined terms."
+  placement: {domain: core, stage: X, substage: Communication}
+  distinct_from: [domain-vocabulary, vocabulary-ban]
+  note: "domain-vocabulary uses the project's terms where they exist; vocabulary-ban bars named loose words in module design."
+avoided-term-correction:
+  definition: "When the user says a word the vocabulary lists as avoided, answer with the defined term instead."
+  placement: {domain: core, stage: X, substage: Communication}
+  distinct_from: [canonical-term-and-aliases]
+  note: "canonical-term-and-aliases records the avoided words in a glossary; this corrects them in conversation."
+define-task-once:
+  definition: "Define each kind of automated work once as a task that runs many times against a ticket, a pull request or the whole codebase."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+three-trigger-classes:
+  definition: "Start every run from one of three event classes: a tracker or git host change, an orchestrator clock, or another run."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+opaque-run-unit:
+  definition: "Treat a single task execution on one runner, from start event to finish, as an opaque unit."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+run-chaining-channels:
+  definition: "Let a run start later runs only directly, through orchestrator logic, or by changing the tracker or git host."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+run-ends-instead-of-waiting:
+  definition: "End a run rather than pausing for a person, so the person's later tracker or git host change starts a new run."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+disposable-runner:
+  definition: "Run each task on a machine that keeps nothing past the run, even when the machine itself lives on."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+  distinct_from: [unattended-isolation]
+  note: "unattended-isolation is one detached worktree for a local unattended run, not a disposable machine."
+memory-only-in-services:
+  definition: "Let a run learn about earlier runs only from the tracker, the git host and the orchestrator."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+tracker-as-human-interface:
+  definition: "Make the ticket tracker the one place where people schedule work, talk to agents and cause runs."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+ticket-source-slot:
+  definition: "Model each outside producer of tickets, such as a feedback button or a monitor, as its own ticket source."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+orchestrator-run-states:
+  definition: "Give one component the job of taking triggers, starting runs and recording each run as queued, in flight or finished."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+deliberate-none-observability:
+  definition: "Allow an explicit choice of no observability product, for that slot alone, when the runner or orchestrator already shows enough."
+  placement: {domain: core, stage: Operations, substage: Monitoring}
+observability-reaches-runs-via-tickets:
+  definition: "Keep observability data out of a run's decisions until something files it into the tracker or git host, such as a monitor acting as a ticket source."
+  placement: {domain: core, stage: Operations, substage: Monitoring}
+service-slots-and-tasks:
+  definition: "Split a design into service slots and the tasks that push work through them, letting one product fill several slots and one server host several services."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+git-host-slot:
+  definition: "Give branches, pull requests and reviews to one service slot of their own, the git host."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+start-from-user-problem:
+  definition: "Begin a design from the user's concrete problem rather than from the system to be built."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+  distinct_from: [problem-space-framing]
+  note: "problem-space-framing frames an interface design's problem; this picks which automation to build first."
+deterministic-gates-every-run:
+  definition: "Make every automated run pass the project's deterministic gates, such as types, lint and tests, before its result moves on."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+  distinct_from: [applicable-checks-before-done]
+  note: "applicable-checks-before-done runs the verification file's checks before claiming done; this gates each automated run."
+cold-automated-review-run:
+  definition: "Have a separate run read the diff without the author's context, against the codebase's standards and the originating ticket."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+  distinct_from: [independent-critic-verdict, separate-review-stage]
+  note: "independent-critic-verdict needs only a non-author reviewer, and separate-review-stage a stage apart from implementation; this reads the diff cold against standards and the ticket."
+human-reads-before-merge:
+  definition: "Have a person read each change an automated run produced before it merges."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+review-catches-become-checks:
+  definition: "Turn what human review catches into new automated checks and sharper automated review."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+  distinct_from: [recurring-lesson-to-check]
+  note: "recurring-lesson-to-check encodes a correction once it recurs; this converts every human review catch."
+one-trigger-at-a-time:
+  definition: "Add automated triggers one at a time rather than several together."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+throttled-trigger-ramp:
+  definition: "Run a new trigger throttled, with a person reviewing every change it makes, and widen the throttle only as the checks earn trust."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+capped-run-loops:
+  definition: "Stop any loop of runs after a few tries and hand it to a person, labelled as waiting for one."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+  distinct_from: [two-failure-stop, retry-by-cause]
+  note: "two-failure-stop ends a debugging attempt and retry-by-cause retries one worker; this caps a chain of automated runs."
+reference-design-comparison:
+  definition: "Compare whole candidate designs side by side, slot by slot, against a few reference designs."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+dated-survey-as-orientation:
+  definition: "Use a dated product survey only for orientation, and research what is on offer now yourself."
+  placement: {domain: engineering, stage: Discovery, substage: Research}
+  distinct_from: [plan-date-staleness]
+  note: "plan-date-staleness compares a plan's date with what shipped; this treats a vendor survey as a starting point only."
+buy-services-build-tasks:
+  definition: "Buy the generic services, preferring an off-the-shelf tracker, and build the tasks that carry the design."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+question-task-trigger:
+  definition: "Answer, for each automated task, what starts it."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+question-task-effects:
+  definition: "Answer, for each automated task, what it does and which services it reads and writes."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+question-task-successor:
+  definition: "Answer, for each automated task, what it starts next."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+question-human-reentry:
+  definition: "Answer, for each automated task, where a person comes back in."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+question-duplicate-runs:
+  definition: "Answer, for each automated task, what keeps two of its runs from doing one piece of work."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+  distinct_from: [concurrent-modification-test]
+  note: "concurrent-modification-test asks about shared state before sharing it; this asks what keeps two runs off one piece of work."
+question-source-dedupe:
+  definition: "Answer, for each ticket source, what keeps it from filing one problem as two tickets."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+design-done-all-answered:
+  definition: "Count a design unfinished until every task and ticket source answers every question."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+every-slot-named:
+  definition: "Count a design unfinished until every service slot names a product."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+problem-indexed-task-catalogue:
+  definition: "Keep example tasks indexed by the problem each solves, each naming its trigger, its work and what it starts next."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+grow-by-chaining:
+  definition: "Start with one catalogued task and grow the system by chaining the next one onto it."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+explore-triage-task:
+  definition: "On a new or labelled ticket, check it against the codebase, sort it as an easy call, a person's call or not a bug, send only easy calls on, and label the rest as waiting for a person."
+  placement: {domain: engineering, stage: Intake, substage: Triage}
+ticket-implementer-task:
+  definition: "On a ticket labelled ready, build it until the automated checks pass, open a draft pull request and start a review run."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+automated-review-task:
+  definition: "On a pull request opened without a review or labelled for one, review it, send a failure to rework, and leave a pass waiting for a person to review and merge."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+rework-fixes-only-findings:
+  definition: "Have a rework run fix only what the automated review named."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+rework-push-rereviewed:
+  definition: "Send each rework push back to automated review."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+spec-decompose-task:
+  definition: "Split a labelled spec ticket into smaller tickets that each record what they depend on, then start an implementer run."
+  placement: {domain: engineering, stage: Design, substage: Decomposition}
+  distinct_from: [dependency-edges]
+  note: "dependency-edges encodes blocking edges and works the ready frontier; this is the automated split that produces the tickets."
+self-chaining-implementer:
+  definition: "Have the implementer pick the next ticket with no open dependency and restart itself until none remain."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+exception-list-ratchet:
+  definition: "Enforce a stricter check on the files that pass it and hold the failing ones on an exception list."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+  distinct_from: [ratchet-on-common-patterns]
+  note: "ratchet-on-common-patterns fails only changes that add more of a pattern; this lists the failing files by name."
+daily-ratchet-task:
+  definition: "On a daily clock, take one file off the exception list, fix it until the check passes and open a pull request that starts an automated review run, ending when the list is empty."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+one-ratchet-change-a-day:
+  definition: "Limit a migration ratchet to one small pull request a day so human review stays cheap."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+prelabelled-feedback-tickets:
+  definition: "File each in-app report as a ticket already labelled for the triage run."
+  placement: {domain: engineering, stage: Intake, substage: Triage}
+monitor-ticket-lifecycle:
+  definition: "Have a monitor file one ticket per problem, comment on it when the problem recurs, and reopen it if the problem outlives the fix."
+  placement: {domain: core, stage: Operations, substage: Monitoring}
+failed-run-fix-task:
+  definition: "File a failed run's log as a ticket and, when the failure is fixable, attempt a fix as a pull request sent to review."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+no-chain-from-failed-fix:
+  definition: "Start nothing when a run that was fixing a failed run fails itself."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+factory-changes-need-human-review:
+  definition: "Require a person's review for every change to the automation's own instructions or setup."
+  placement: {domain: core, stage: X, substage: Governance}
+nightly-architecture-scan-task:
+  definition: "On a nightly clock, scan recent changes for refactoring candidates, file them as one ticket and start nothing until a person picks one."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+factory-retro-task:
+  definition: "After a merge, read the pull request, its ticket, reviews and run logs and propose changes to the automation's instructions as a pull request that starts an automated review run."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+factory-retro-throttle:
+  definition: "Run the merge retrospective on only one merged pull request in ten."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+  distinct_from: [sampled-session-retros]
+  note: "sampled-session-retros samples delegated sessions for review; this throttles a retrospective run by merges."
+fastest-changing-facts-first:
+  definition: "When refreshing a dated survey, recheck its fastest-changing facts first, such as prices, beta status, limits and end-of-life dates."
+  placement: {domain: engineering, stage: Discovery, substage: Research}
+  distinct_from: [volatile-fact-verification]
+  note: "volatile-fact-verification verifies changing facts; this orders the recheck by how fast each fact changes."
+type-traits-over-survey-figures:
+  definition: "Trust the slowly changing traits of a product type over any figure a survey quotes."
+  placement: {domain: engineering, stage: Discovery, substage: Research}
+ask-which-slots-a-product-fills:
+  definition: "Ask which other slots a product covers, counting partial coverage, such as a native agent or headless git storage filling only part of one."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+tracker-type-criteria:
+  definition: "Choose the tracker type by the stated situations for each, moving off tickets kept in the repository once other people file them."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+build-own-tracker-last:
+  definition: "Build a tracker only when it is the product or nothing on offer fits, counting each deciding feature as code to maintain and weighing a database with webhooks first."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+api-filing-for-outsiders:
+  definition: "Let people without an account on the git host file tickets through the tracker's API, for instance from a feedback button."
+  placement: {domain: engineering, stage: Intake, substage: Triage}
+  distinct_from: [prelabelled-feedback-tickets]
+  note: "prelabelled-feedback-tickets labels in-app reports for the triage run; this opens filing to people with no host account."
+tracker-routing-by-type:
+  definition: "Route runs by what the tracker type offers: labels on a git-host tracker, status moves on an agent-native one, invented properties in a general work tool, and file diffs after a push for repository tickets."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+stream-progress-into-ticket:
+  definition: "Let a run stream its progress into the ticket it works on."
+  placement: {domain: core, stage: X, substage: Communication}
+repo-tickets-as-run-memory:
+  definition: "Keep tickets in the repository as working notes for a run, alongside a proper tracker."
+  placement: {domain: core, stage: X, substage: Continuity}
+tracker-slot-questions:
+  definition: "Decide the tracker by a fixed question list, checked against each type's examples: events and their speed, routing fields, comment threads, bot identity and seat cost, native agents, outside filing and hosting."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+app-identity-for-chained-runs:
+  definition: "Make writes that must start the next run under an identity whose writes emit that event, wherever the host's default run identity suppresses it for some event kinds."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+  note: "The source's case is one CI platform, whose built-in run token starts no further runs except explicit dispatch events; the rule holds wherever a default identity suppresses the next event."
+late-context-on-pull-request:
+  definition: "Put later context on the pull request when a native agent reads its ticket only at assignment."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+ack-webhook-then-start-run:
+  definition: "Acknowledge an incoming webhook at once and start the run afterwards."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+batched-webhook-workaround:
+  definition: "Trigger on property changes, or choose another tracker type, when batched webhooks would delay runs."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+git-host-type-criteria:
+  definition: "Choose the git host type by the stated situations for each, sizing a self-hosted one to the team."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+host-operating-costs:
+  definition: "Count the upgrades, backups and uptime a self-hosted git host adds for each slot it fills, and the extra glue a host whose review model departs from branches and pull requests needs."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+vendor-agents-decision:
+  definition: "Decide whether a platform's own agents compete with your runs or become one of your tasks."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+bot-check-vote-human-review-vote:
+  definition: "Where a host votes on patch sets, have a bot account vote the check label and a person vote the review label."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+ask-vendor-for-unpublished-limits:
+  definition: "Ask the vendor directly when a product's gates and rate limits are not published."
+  placement: {domain: engineering, stage: Discovery, substage: Research}
+pilot-on-mirror-with-fallback:
+  definition: "Try a new host on a mirror of one repository while the existing host stays as the fallback."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+per-run-scoped-tokens:
+  definition: "Mint short-lived, single-repository tokens for each run."
+  placement: {domain: core, stage: X, substage: Governance}
+git-host-slot-questions:
+  definition: "Decide the git host by a fixed question list: signed webhook events, bot or app identity, required checks and whether a bot can bypass them, and the shared API budget."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+check-plan-includes-gates:
+  definition: "Check that the chosen plan actually includes the gates the design relies on."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+bot-identity-rate-budget:
+  definition: "Choose the bot's identity type with its rate budget in mind, since limits apply per identity."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+orchestrator-joins-event-streams:
+  definition: "Have the orchestrator join git host and tracker events itself when they come from separate products."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+runner-type-criteria:
+  definition: "Classify runners by who owns the agent loop and the machine and choose the type by the stated situations for each, comparing run length caps, concurrency and billing for model waits."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+runner-per-task:
+  definition: "Choose the runner per task, so review and implementation runs may run on different kinds."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+per-ticket-concurrency-lock:
+  definition: "Use a concurrency group keyed on the ticket so two runs never work the same ticket."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+disposability-by-runner-type:
+  definition: "Make each runner disposable by the means its type offers: a microVM made and killed per run, an ephemeral CI runner, a removed container or a destroyed machine."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+run-timeout-backstop:
+  definition: "Put a timeout on every run machine as a backstop, set from the orchestrator's deadline where the machines are owned."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+cache-only-persistence:
+  definition: "Let anything kept on a runner between runs be only a cache the next run can do without."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+runner-slot-questions:
+  definition: "Decide the runner by a fixed question list: how the orchestrator starts a run, timeouts and concurrency against the longest run and busiest burst, the billing unit with whether model-wait time is billed and model tokens included, and how disposability is achieved."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+runner-network-and-secrets-question:
+  definition: "Ask what network a run can reach, how its secrets arrive and who else can read them."
+  placement: {domain: core, stage: X, substage: Governance}
+observability-type-criteria:
+  definition: "Choose the observability type by what the person needs to see, a log, an agent trace or a trace joined to the wider system, and move off none when search, cost rollups or retention demand it."
+  placement: {domain: core, stage: Operations, substage: Monitoring}
+self-host-to-keep-transcripts:
+  definition: "Self-host an open-source tracing product when run transcripts must stay in-house."
+  placement: {domain: core, stage: Operations, substage: Monitoring}
+gateway-plus-tracing:
+  definition: "Pair a logging proxy for model calls with a tracing or monitoring product so tool calls are captured too."
+  placement: {domain: core, stage: Operations, substage: Monitoring}
+observability-data-hooks:
+  definition: "Name, with the observability product, the hook that carries run data to it: the harness's own export, a platform push, a tracing call, a stop hook or a logging proxy."
+  placement: {domain: core, stage: Operations, substage: Monitoring}
+otel-as-common-transport:
+  definition: "Treat OpenTelemetry as the common transport for run telemetry and expect agent span names to drift."
+  placement: {domain: core, stage: Operations, substage: Monitoring}
+per-run-tracing-budget:
+  definition: "Budget tracing per run rather than per request, estimating one span per tool call times runs a day, and weigh that volume against the bill."
+  placement: {domain: core, stage: Operations, substage: Monitoring}
+nest-run-in-caller-trace:
+  definition: "Propagate trace context so each run appears inside the trace of whatever called it."
+  placement: {domain: core, stage: Operations, substage: Monitoring}
+observability-slot-questions:
+  definition: "Decide the observability product by a fixed question list: the shared export path, whether tool calls come through as spans, whether capturing prompts and tool output must be switched on, self-hosting terms, and retention against how far back the person looks."
+  placement: {domain: core, stage: Operations, substage: Monitoring}
+tracker-config-doc:
+  definition: "Record where the repository's tickets live and how to reach them in one file other skills read."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+triage-label-config:
+  definition: "Record the repository's label strings for the triage roles in one file, written only when the triage skill is installed."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+domain-docs-config:
+  definition: "Record where the glossary and decision records live and how to read them in one file other skills read."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+  distinct_from: [declared-glossary-location]
+  note: "declared-glossary-location reads a location the project instructions already declare; this writes that declaration."
+draft-confirm-then-write:
+  definition: "Explore, then present drafts of every file to be written, let the user edit them, and write only after confirmation."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+  distinct_from: [dry-run-default]
+  note: "dry-run-default previews planned changes until an apply flag; this has the user edit each draft before writing."
+inspect-repo-before-configuring:
+  definition: "Read what the repository already has, such as remotes, instruction files, glossaries, decision records, earlier output, installed skills and workspace signals, before assuming anything."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+  distinct_from: [detect-package-conventions]
+  note: "detect-package-conventions detects a package manager before configuring packages; this surveys the whole repository's setup."
+offer-legacy-file-rename:
+  definition: "Offer to move a file found under a legacy name to its current name and update the references to it."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+findings-summary-before-questions:
+  definition: "Summarise what exists and what is missing before asking the user anything."
+  placement: {domain: core, stage: Intake, substage: Clarification}
+one-question-at-a-time:
+  definition: "Take the questions in a fixed order and get one answer before asking the next."
+  placement: {domain: core, stage: Intake, substage: Clarification}
+  distinct_from: [question-batching]
+  note: "question-batching asks every question whose prerequisites are settled in one round."
+explainer-only-on-real-branch:
+  definition: "Explain a question in one line only when its choice genuinely branches."
+  placement: {domain: core, stage: Intake, substage: Clarification}
+skip-settled-questions:
+  definition: "Skip a question that what you already found has settled, such as one about a skill that is not installed."
+  placement: {domain: core, stage: Intake, substage: Clarification}
+  distinct_from: [self-serve-facts]
+  note: "self-serve-facts looks a fact up instead of asking; this drops a question exploration has already answered."
+tracker-choice-from-remote:
+  definition: "Propose the tracker the git remote points at, else offer a short menu, recording any other tracker's workflow in the user's own words."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+pr-intake-flag-default-off:
+  definition: "Ship a flag that treats outside pull requests as requests in the triage queue, defaulted off."
+  placement: {domain: engineering, stage: Intake, substage: Triage}
+unraised-default-flag:
+  definition: "Leave a default-off option unmentioned, for the user to switch on in the file later."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+tracker-reachability-gate:
+  definition: "Before going on, wire up the chosen host's remote and treat the host's command line printing the project as done, stopping with what is missing when it cannot."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+default-labels-one-question:
+  definition: "Ask one yes-or-no question about keeping label strings equal to the role names, collecting overrides only on no."
+  placement: {domain: engineering, stage: Intake, substage: Triage}
+repo-shape-domain-layout:
+  definition: "Lay out domain docs as one root glossary and decision folder unless the repository shows several contexts, then use a root map with per-context glossaries after confirming."
+  placement: {domain: engineering, stage: Design, substage: Grounding}
+  distinct_from: [multi-context-map]
+  note: "multi-context-map keeps a root map of contexts; this picks the layout from the repository's shape at setup."
+edit-existing-instruction-file:
+  definition: "Edit the root instruction file the repository already has, taking `CLAUDE.md` before `AGENTS.md` when both exist, asking which to create when there is none and never creating the other."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+update-block-in-place:
+  definition: "Update an existing generated section in place rather than appending a duplicate."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+instruction-file-pointer-block:
+  definition: "Add to the instruction file one short section per configured area, each a one-line summary and a pointer to its document."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+  distinct_from: [link-convention-from-agents-file]
+  note: "link-convention-from-agents-file adds one pointer to one rule's document; this writes a block of them for the configured areas."
+create-missing-labels:
+  definition: "Create each configured label the hosted tracker lacks."
+  placement: {domain: engineering, stage: Intake, substage: Triage}
+seed-template-docs:
+  definition: "Write each configuration document from a seed template chosen by the tracker and the installed skills."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+setup-completion-report:
+  definition: "Report which skills now read the written files and that editing them directly needs no rerun."
+  placement: {domain: core, stage: X, substage: Communication}
+tracker-verb-mapping:
+  definition: "Map the generic tracker actions, such as publish, fetch, comment, label and close, to one tracker's concrete commands."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+infer-repo-from-remote:
+  definition: "Infer the target repository from the git remote rather than asking."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+comment-before-close:
+  definition: "Post the explanation as its own comment before closing, because a comment attached to the close can be lost."
+  placement: {domain: engineering, stage: Intake, substage: Triage}
+child-ticket-linking-fallbacks:
+  definition: "Link a child ticket by the tracker's native parent link, falling back to an older link form and then a part-of line in its body, with a type label."
+  placement: {domain: engineering, stage: Design, substage: Decomposition}
+  distinct_from: [sub-issue-linkage]
+  note: "sub-issue-linkage makes each ticket a child of its source and never edits the parent; this is the fallback chain for making the link."
+three-section-map-body:
+  definition: "Structure the map body as Notes, Decisions so far and Fog."
+  placement: {domain: core, stage: Discovery, substage: Charting}
+  distinct_from: [map-body-sections]
+  note: "map-body-sections has five sections, adding a destination and an out-of-scope section and naming the open part Not yet specified."
+map-order-frontier-pick:
+  definition: "Take the first ready, unclaimed child in the map's own order."
+  placement: {domain: core, stage: Discovery, substage: Charting}
+  distinct_from: [claim-before-work]
+  note: "claim-before-work takes the requested or any ready unclaimed child; this fixes which one by the map's order."
+assignee-marks-claim:
+  definition: "Mark a claimed ticket by assigning it to the developer driving the session."
+  placement: {domain: core, stage: Discovery, substage: Charting}
+claim-is-first-write:
+  definition: "Make the claim the session's first write, before any other change to the tracker or the map."
+  placement: {domain: core, stage: Discovery, substage: Charting}
+  distinct_from: [claim-before-work]
+  note: "claim-before-work claims before working on the ticket; this also puts the claim ahead of every other write, such as a map edit."
+own-repo-filing-guard:
+  definition: "File tickets only into the user's own repository, confirming with the user before a session's first ticket when the target is not theirs."
+  placement: {domain: core, stage: X, substage: Governance}
+split-pr-read-steps:
+  definition: "Read a pull request's body, comments and diff as separate steps, because one combined command can omit the body."
+  placement: {domain: engineering, stage: Intake, substage: Triage}
+  distinct_from: [read-full-source-issue]
+  note: "read-full-source-issue requires reading all of it; this is the command-line workaround for doing so."
+external-author-pr-filter:
+  definition: "List pull requests for triage by leaving out authors who are owners, members or collaborators."
+  placement: {domain: engineering, stage: Intake, substage: Triage}
+  distinct_from: [external-pr-discovery-filter]
+  note: "external-pr-discovery-filter also triages any pull request named explicitly; this only filters the listing."
+bare-number-resolution:
+  definition: "Resolve a bare ticket number by how the host numbers issues and pull requests, trying the pull request first where they share one sequence."
+  placement: {domain: engineering, stage: Intake, substage: Triage}
+local-markdown-tracker-layout:
+  definition: "Without a hosted tracker, keep one directory per feature holding its spec and one numbered file per ticket, with a status line near the top and comments appended at the bottom."
+  placement: {domain: engineering, stage: Design, substage: Decomposition}
+  distinct_from: [file-per-ticket]
+  note: "file-per-ticket writes numbered ticket files in dependency order; this is a whole markdown tracker with status and comments."
+silent-when-domain-docs-absent:
+  definition: "Proceed without comment when domain docs are missing, neither flagging the gap nor suggesting they be created."
+  placement: {domain: engineering, stage: Design, substage: Grounding}
+  distinct_from: [lazy-glossary-and-adr]
+  note: "lazy-glossary-and-adr governs when the files get created; this governs what to say about their absence."
+avoid-ruled-out-synonyms:
+  definition: "Avoid in your output any synonym the glossary explicitly rules out."
+  placement: {domain: core, stage: X, substage: Communication}
+  distinct_from: [canonical-term-and-aliases]
+  note: "canonical-term-and-aliases records the ruled-out words in the glossary; this obeys them when writing."
+missing-term-as-signal:
+  definition: "Treat a concept missing from the glossary either as invented language to reconsider or as a real gap to note."
+  placement: {domain: engineering, stage: Design, substage: Grounding}
+  distinct_from: [challenge-glossary]
+  note: "challenge-glossary questions a term the user uses against the glossary; this weighs a term the glossary lacks."
+fresh-context-subagent:
+  definition: "Start every subagent in a fresh context window rather than as a copy of the caller's conversation."
+  placement: {domain: core, stage: X, substage: Coordination}
+  distinct_from: [context-modes, session-resume-followup]
+  note: "context-modes weighs fresh against full context case by case, and session-resume-followup resumes a worker's own session for a follow-up; this makes a fresh window the rule for every new subagent."
+no-reused-implementer:
+  definition: "Give each ticket, and the closing round of review fixes, a newly started implementer rather than one that already finished other work."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+  distinct_from: [ticket-per-fresh-context, session-resume-followup]
+  note: "ticket-per-fresh-context clears one session between tickets and takes blockers first; session-resume-followup resumes a worker for a follow-up on its own unit, which this leaves alone."
+shared-wiki-first:
+  definition: "Look for a wiki that the user or other agents keep already, and write into it before starting a separate one."
+  placement: {domain: core, stage: X, substage: Continuity}
+  distinct_from: [agreed-wiki-location]
+  note: "agreed-wiki-location settles where a new wiki goes; this reuses one that exists."
+host-wiki-conventions-win:
+  definition: "Follow a shared wiki's own conventions wherever they differ from your default page rules."
+  placement: {domain: core, stage: X, substage: Continuity}
+sibling-skill-by-relative-path:
+  definition: "Run another skill's procedure by reading its instruction file at a path relative to the current skill and following it."
+  placement: {domain: core, stage: X, substage: Coordination}
+  distinct_from: [platform-skill-invocation]
+  note: "platform-skill-invocation invokes a skill through the platform's skill mechanism and forbids reading its file."
+sampled-session-retros:
+  definition: "Retro a sample of about one in five delegated sessions, nested dispatches included, rather than every one."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+  distinct_from: [retro-in-reviewed-session]
+  note: "retro-in-reviewed-session retros the one session it runs in or points at; this samples many delegated ones."
+failures-first-retro-sample:
+  definition: "Fill a retro sample with the sessions where something went wrong before any others."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+retro-without-approval:
+  definition: "Decide which retro candidates are worth pursuing and pursue them, in place of presenting them for approval."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+  distinct_from: [severity-ordered-proposals]
+  note: "severity-ordered-proposals presents candidates to the user; this replaces that step with the agent's own choice."
+spec-tickets-implement-pipeline:
+  definition: "Send large work through a spec, then tickets, then publishing both to the tracker, then implementing them."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+  distinct_from: [staged-delivery-flow]
+  note: "staged-delivery-flow is a longer fixed order with an interview, a prototype, review and a retrospective."

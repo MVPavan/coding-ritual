@@ -52,6 +52,7 @@ Use when the user explicitly requests a grilling interview to resolve or challen
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-09` **adopt-merged** (2026-11-09-pocock-4ae2317:180): Checkpoint at 4ae2317 for the owner's trait rulings: 1 adopt.
 - `2026-11-04` **adopt** (2026-11-04-pocock-pass:015): Completes pending 2026-10-30-mattpocock_skills-5beb35b:393: single-idea-questions is written at .claude/skills/grilling/SKILL.md:29-31, in the sealed rewording…
 - `2026-11-04` **adopt** (2026-11-04-pocock-pass:014): Completes pending 2026-10-30-mattpocock_skills-5beb35b:387: needed-item-coverage is written at .claude/skills/grilling/SKILL.md:29-31, in the sealed rewording'…
 - `2026-11-04` **adopt** (2026-11-04-pocock-pass:013): Completes pending 2026-10-30-mattpocock_skills-5beb35b:389: importance-ordered-questions is written at .claude/skills/grilling/SKILL.md:29-31, in the sealed re…
@@ -61,7 +62,7 @@ Use when the user explicitly requests a grilling interview to resolve or challen
 - `2026-10-30` **adopt-merged** (2026-10-30-mattpocock_skills-5beb35b:581): Checkpoint at 5beb35b for the owner's trait rulings: 3 adopt, 11 defer.
 - `2026-10-30` **adopt-merged** (2026-10-30-mattpocock_skills-5beb35b:578): Checkpoint at 5beb35b for the owner's trait rulings: 6 adopt, 6 defer.
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:568): Checkpoint at 5beb35b for the owner's trait rulings: 1 adopt.
-- `2026-10-30` **adopt-merged** (2026-10-30-mattpocock_skills-5beb35b:563): Checkpoint at 5beb35b for the owner's trait rulings: 6 adopt, 4 defer.
+- `2026-10-30` **adopt-merged** (2026-10-30-mattpocock_skills-5beb35b:563) *(superseded)*: Checkpoint at 5beb35b for the owner's trait rulings: 6 adopt, 4 defer.
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:452): Owner deferred the report's reject recommendation, to review the set later: Opposite stance: ours documents only when requested, never as an automatic by-produ…
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:451): Ours includes a recommendation and its assumptions, letting the user disagree.
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:450) *(superseded)*: Ours defers dependent questions and recomputes after each answer (grilling/SKILL.md:11-13, 20), but never waits for all answers to a round before asking anothe…
@@ -90,6 +91,7 @@ Use when the user explicitly requests a grilling interview to resolve or challen
 <!-- /registry:generated history -->
 
 <!-- registry:generated reviews -->
+- [2026-11-06-upstream-mattpocock_skills-4ae2317.md](../../reviews/2026-11-06-upstream-mattpocock_skills-4ae2317.md)
 - [skill-comparisons/interaction-utilities](../../../archive/skill-comparisons/interaction-utilities/)
 <!-- /registry:generated reviews -->
 

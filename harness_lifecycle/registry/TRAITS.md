@@ -2134,6 +2134,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `prerequisite-task-human-checklist`: Do prerequisite task work alone where possible, otherwise hand the human a precise checklist. — adopt → wayfinder#prerequisite-task-human-checklist
 - `prerequisite-task-result-facts`: Record on a prerequisite task the resulting facts later tickets depend on, such as URLs or where credentials live. — adopt → wayfinder#prerequisite-task-result-facts
 - `invalidated-ticket-reconciliation`: Update or delete the other tickets that a recorded decision invalidated. — adopt → wayfinder#invalidated-ticket-reconciliation
+- `fresh-context-subagent`: Start every subagent in a fresh context window rather than as a copy of the caller's conversation. — adopt, pending cr-r2pa.2.19 → delegation#fresh-context-subagent
 
 #### core · Discovery · Research — skill:skills/engineering/research
 - `background-agent`: Delegate reading legwork to a background agent so the caller keeps working while it investigates. — adopt → research#sizeable-delegation
@@ -2141,6 +2142,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `findings-file`: Always write the findings to one Markdown file saved where the repository keeps such notes. — adopt → research#scaled-report
 - `primary-source-only-research`: Research only from primary sources such as official docs, source code and specs, never from a secondary write-up of them. — adopt → research#primary-source-preference
 - `claim-source-tracing`: Follow every claim back to the primary source that owns it. — defer
+- `fresh-context-subagent`: Start every subagent in a fresh context window rather than as a copy of the caller's conversation. — adopt, pending cr-r2pa.2.19 → delegation#fresh-context-subagent
 
 #### core · Intake · Clarification — skill:skills/engineering/grill-with-docs
 - `document-during-interview`: Pair a clarifying interview with live documentation so the glossary and decision records are produced as the interview settles each question. — adopt → grilling#optional-docs
@@ -2172,6 +2174,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `reconfirm-before-action`: Do not act until the user confirms a shared understanding has been reached. — defer
 - `answer-before-next-round`: Wait for the respondent's answers to a round before asking the next one. — adopt → grilling#answer-before-next-round
 - `non-blocking-lookup`: Run a fact lookup without blocking the interview, holding back only the questions downstream of it. — defer
+- `fresh-context-subagent`: Start every subagent in a fresh context window rather than as a copy of the caller's conversation. — adopt, pending cr-r2pa.2.19 → delegation#fresh-context-subagent
 
 #### core · Intake · Clarification — skill:skills/productivity/to-questionnaire
 - `grill-the-send`: Ask the present user only about the send (who it goes to and what they need back), never about the subject the recipient knows. — adopt → grilling#grill-the-send
@@ -2186,6 +2189,62 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `questionnaire-response-expectations`: Tell the respondent the deadline and the rough effort answering will take. — defer
 - `partial-uncertain-answers-welcome`: Invite partial and don't-know answers, asking the respondent to flag uncertainty rather than skip the question. — defer
 - `single-idea-questions`: Make each question a single idea, never a compound one. — adopt → grilling#single-idea-questions
+
+#### core · Improvement · Codification — skill:skills/engineering/setup-matt-pocock-skills
+- `tracker-config-doc`: Record where the repository's tickets live and how to reach them in one file other skills read. — reject
+- `triage-label-config`: Record the repository's label strings for the triage roles in one file, written only when the triage skill is installed. — reject
+- `domain-docs-config`: Record where the glossary and decision records live and how to read them in one file other skills read. — reject
+- `draft-confirm-then-write`: Explore, then present drafts of every file to be written, let the user edit them, and write only after confirmation. — reject
+- `inspect-repo-before-configuring`: Read what the repository already has, such as remotes, instruction files, glossaries, decision records, earlier output, installed skills and workspace signals, before assuming anything. — reject
+- `offer-legacy-file-rename`: Offer to move a file found under a legacy name to its current name and update the references to it. — reject
+- `findings-summary-before-questions`: Summarise what exists and what is missing before asking the user anything. — reject
+- `one-question-at-a-time`: Take the questions in a fixed order and get one answer before asking the next. — reject
+- `recommended-answer`: Attach a recommended answer to each question, letting the respondent disagree. — reject
+- `yes-accepts-recommendation`: Word each question so that a yes accepts your recommended answer. — reject
+- `explainer-only-on-real-branch`: Explain a question in one line only when its choice genuinely branches. — reject
+- `skip-settled-questions`: Skip a question that what you already found has settled, such as one about a skill that is not installed. — reject
+- `tracker-choice-from-remote`: Propose the tracker the git remote points at, else offer a short menu, recording any other tracker's workflow in the user's own words. — reject
+- `pr-intake-flag-default-off`: Ship a flag that treats outside pull requests as requests in the triage queue, defaulted off. — reject
+- `unraised-default-flag`: Leave a default-off option unmentioned, for the user to switch on in the file later. — reject
+- `tracker-reachability-gate`: Before going on, wire up the chosen host's remote and treat the host's command line printing the project as done, stopping with what is missing when it cannot. — reject
+- `default-labels-one-question`: Ask one yes-or-no question about keeping label strings equal to the role names, collecting overrides only on no. — reject
+- `repo-shape-domain-layout`: Lay out domain docs as one root glossary and decision folder unless the repository shows several contexts, then use a root map with per-context glossaries after confirming. — reject
+- `scoped-decision-records`: Keep system-wide decision records at the repository root and context-specific ones inside each context. — adopt → domain-modeling#scoped-decision-records
+- `edit-existing-instruction-file`: Edit the root instruction file the repository already has, taking `CLAUDE.md` before `AGENTS.md` when both exist, asking which to create when there is none and never creating the other. — defer
+- `update-block-in-place`: Update an existing generated section in place rather than appending a duplicate. — defer
+- `preserve-others-edits`: Preserve changes in the working tree that others made or that are unrelated to the task. — adopt → doc:AGENTS.md
+- `instruction-file-pointer-block`: Add to the instruction file one short section per configured area, each a one-line summary and a pointer to its document. — reject
+- `create-missing-labels`: Create each configured label the hosted tracker lacks. — reject
+- `seed-template-docs`: Write each configuration document from a seed template chosen by the tracker and the installed skills. — reject
+- `setup-completion-report`: Report which skills now read the written files and that editing them directly needs no rerun. — reject
+- `tracker-verb-mapping`: Map the generic tracker actions, such as publish, fetch, comment, label and close, to one tracker's concrete commands. — reject
+- `infer-repo-from-remote`: Infer the target repository from the git remote rather than asking. — reject
+- `comment-before-close`: Post the explanation as its own comment before closing, because a comment attached to the close can be lost. — reject
+- `child-ticket-linking-fallbacks`: Link a child ticket by the tracker's native parent link, falling back to an older link form and then a part-of line in its body, with a type label. — reject
+- `dependency-edges`: Encode real blocking edges in the tracker and let the ready frontier drive execution rather than listing order. — reject
+- `decision-map-epic`: Chart a large effort as one map item on the tracker whose children are decision tickets. — reject
+- `three-section-map-body`: Structure the map body as Notes, Decisions so far and Fog. — reject
+- `claim-before-work`: Choose the requested or a ready unclaimed child and claim it before working on it. — reject
+- `map-order-frontier-pick`: Take the first ready, unclaimed child in the map's own order. — reject
+- `assignee-marks-claim`: Mark a claimed ticket by assigning it to the developer driving the session. — reject
+- `claim-is-first-write`: Make the claim the session's first write, before any other change to the tracker or the map. — defer
+- `record-resolution`: On resolving a ticket, record the answer on it, close it, and add a pointer to the map's decisions so far. — reject
+- `own-repo-filing-guard`: File tickets only into the user's own repository, confirming with the user before a session's first ticket when the target is not theirs. — reject
+- `pr-as-issue`: Treat an external pull request as an issue with attached code, running it through the same roles and state machine. — reject
+- `split-pr-read-steps`: Read a pull request's body, comments and diff as separate steps, because one combined command can omit the body. — defer
+- `external-author-pr-filter`: List pull requests for triage by leaving out authors who are owners, members or collaborators. — reject
+- `bare-number-resolution`: Resolve a bare ticket number by how the host numbers issues and pull requests, trying the pull request first where they share one sequence. — reject
+- `local-markdown-tracker-layout`: Without a hosted tracker, keep one directory per feature holding its spec and one numbered file per ticket, with a status line near the top and comments appended at the bottom. — reject
+- `label-name-mapping`: Map the canonical triage role names onto the repository's actual label strings. — reject
+- `read-domain-docs-first`: Read the domain glossary and the decision records near the code before exploring it. — reject
+- `context-map-lookup`: Follow the context map to the right context's glossary when the repository has several. — adopt → domain-modeling#context-map-lookup
+- `silent-when-domain-docs-absent`: Proceed without comment when domain docs are missing, neither flagging the gap nor suggesting they be created. — reject
+- `lazy-glossary-and-adr`: Create glossary and decision-record files lazily, only when there is something concrete to write. — adopt → domain-modeling#lazy-glossary-and-adr
+- `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write. — reject
+- `avoid-ruled-out-synonyms`: Avoid in your output any synonym the glossary explicitly rules out. — defer
+- `missing-term-as-signal`: Treat a concept missing from the glossary either as invented language to reconsider or as a real gap to note. — defer
+- `decision-conflict-surfacing`: Raise any conflict between the work and a recorded architectural decision. — adopt → doc:AGENTS.md
+- `adr-conflict-callout`: When a candidate conflicts with a decision record, explain the new evidence that might justify revisiting it. — reject
 
 #### core · Improvement · Codification — skill:skills/productivity/writing-for-agents
 - `context-pointers`: Write a pointer that names the material and the condition for reaching it, front-loading the trigger. — adopt → authoring-for-agents#context-pointers
@@ -2255,6 +2314,14 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `constrained-agent-interfaces`: Give agents tightly constrained APIs and functions so the easy path is the correct one. — defer
 - `correctness-enforcing-lint`: Add lint rules that force correct code so agents cannot drift from it. — defer
 - `reviewer-owns-standards`: Allocate coding-standards enforcement to the review agent rather than the implementation agent. — defer
+- `fresh-context-subagent`: Start every subagent in a fresh context window rather than as a copy of the caller's conversation. — adopt, pending cr-r2pa.2.19 → delegation#fresh-context-subagent
+- `shared-wiki-first`: Look for a wiki that the user or other agents keep already, and write into it before starting a separate one. — defer
+- `host-wiki-conventions-win`: Follow a shared wiki's own conventions wherever they differ from your default page rules. — defer
+- `sibling-skill-by-relative-path`: Run another skill's procedure by reading its instruction file at a path relative to the current skill and following it. — reject
+- `sampled-session-retros`: Retro a sample of about one in five delegated sessions, nested dispatches included, rather than every one. — adopt, pending cr-r2pa.2.19 → reflect#sampled-session-retros
+- `failures-first-retro-sample`: Fill a retro sample with the sessions where something went wrong before any others. — adopt, pending cr-r2pa.2.19 → reflect#failures-first-retro-sample
+- `retro-without-approval`: Decide which retro candidates are worth pursuing and pursue them, in place of presenting them for approval. — reject
+- `spec-tickets-implement-pipeline`: Send large work through a spec, then tickets, then publishing both to the tracker, then implementing them. — defer
 
 #### core · U · Tutoring — skill:skills/productivity/teach
 - `teaching-workspace`: Keep a multi-session course's state (mission, resources, learning records, glossary and lessons) as files in one course workspace. — adopt → teach#teaching-workspace
@@ -2378,6 +2445,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `parallel-interface-generation`: Generate several radically different interfaces through parallel designers, each working under a different constraint brief. — adopt → codebase-design#design-it-twice
 - `depth-locality-seam-comparison`: Present alternative designs one at a time, then compare them on depth, locality and seam placement. — adopt → codebase-design#design-axes-comparison
 - `interface-design-recommendation`: Finish a comparison of interface designs with an opinionated recommendation. — adopt → codebase-design#interface-design-recommendation
+- `fresh-context-subagent`: Start every subagent in a fresh context window rather than as a copy of the caller's conversation. — adopt, pending cr-r2pa.2.19 → delegation#fresh-context-subagent
 
 #### engineering · Design · Architecture — skill:skills/engineering/domain-modeling
 - `active-discipline`: Actively build the model by challenging terms, inventing scenarios and writing it down, as distinct from merely reading the glossary. — adopt → domain-modeling#active-discipline
@@ -2432,6 +2500,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `candidate-dependency-tag`: Tag each architecture candidate with the dependency category of what it touches. — defer
 - `top-candidate-recommendation`: End a candidate survey with a single top recommendation. — adopt → improve-codebase-architecture#top-candidate-recommendation
 - `candidate-constraint-interview`: Once the user picks an architecture candidate, interview them on its constraints, dependencies, module shape, hidden internals and the tests that survive. — defer
+- `fresh-context-subagent`: Start every subagent in a fresh context window rather than as a copy of the caller's conversation. — adopt, pending cr-r2pa.2.19 → delegation#fresh-context-subagent
 
 #### engineering · Design · Architecture — skill:skills/engineering/prototype
 - `named-question`: Build a throwaway artifact to answer one named design question. — adopt → prototype#named-question
@@ -2473,6 +2542,107 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `variant-purpose-data-fidelity`: Hold every UI variant to the page's real purpose and data. — defer
 - `existing-variant-styling-system`: Build UI variants with the project's existing styling system. — adopt → prototype#existing-variant-styling-system
 - `named-variant-components`: Export each UI variant as a clearly named component. — defer
+
+#### engineering · Design · Architecture — skill:skills/in-progress/software-factory
+- `closed-term-set`: Discuss and sketch a design only in a fixed set of defined terms. — defer
+- `avoided-term-correction`: When the user says a word the vocabulary lists as avoided, answer with the defined term instead. — defer
+- `define-task-once`: Define each kind of automated work once as a task that runs many times against a ticket, a pull request or the whole codebase. — defer
+- `three-trigger-classes`: Start every run from one of three event classes: a tracker or git host change, an orchestrator clock, or another run. — defer
+- `opaque-run-unit`: Treat a single task execution on one runner, from start event to finish, as an opaque unit. — defer
+- `run-chaining-channels`: Let a run start later runs only directly, through orchestrator logic, or by changing the tracker or git host. — defer
+- `run-ends-instead-of-waiting`: End a run rather than pausing for a person, so the person's later tracker or git host change starts a new run. — defer
+- `disposable-runner`: Run each task on a machine that keeps nothing past the run, even when the machine itself lives on. — defer
+- `memory-only-in-services`: Let a run learn about earlier runs only from the tracker, the git host and the orchestrator. — defer
+- `tracker-as-human-interface`: Make the ticket tracker the one place where people schedule work, talk to agents and cause runs. — defer
+- `ticket-source-slot`: Model each outside producer of tickets, such as a feedback button or a monitor, as its own ticket source. — defer
+- `orchestrator-run-states`: Give one component the job of taking triggers, starting runs and recording each run as queued, in flight or finished. — defer
+- `deliberate-none-observability`: Allow an explicit choice of no observability product, for that slot alone, when the runner or orchestrator already shows enough. — defer
+- `observability-reaches-runs-via-tickets`: Keep observability data out of a run's decisions until something files it into the tracker or git host, such as a monitor acting as a ticket source. — defer
+- `service-slots-and-tasks`: Split a design into service slots and the tasks that push work through them, letting one product fill several slots and one server host several services. — defer
+- `git-host-slot`: Give branches, pull requests and reviews to one service slot of their own, the git host. — defer
+- `start-from-user-problem`: Begin a design from the user's concrete problem rather than from the system to be built. — defer
+- `deterministic-gates-every-run`: Make every automated run pass the project's deterministic gates, such as types, lint and tests, before its result moves on. — adopt, pending cr-r2pa.2.19 → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
+- `cold-automated-review-run`: Have a separate run read the diff without the author's context, against the codebase's standards and the originating ticket. — adopt, pending cr-r2pa.2.19 → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
+- `human-reads-before-merge`: Have a person read each change an automated run produced before it merges. — adopt, pending cr-r2pa.2.19 → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
+- `review-catches-become-checks`: Turn what human review catches into new automated checks and sharper automated review. — defer
+- `one-trigger-at-a-time`: Add automated triggers one at a time rather than several together. — defer
+- `throttled-trigger-ramp`: Run a new trigger throttled, with a person reviewing every change it makes, and widen the throttle only as the checks earn trust. — defer
+- `capped-run-loops`: Stop any loop of runs after a few tries and hand it to a person, labelled as waiting for one. — defer
+- `reference-design-comparison`: Compare whole candidate designs side by side, slot by slot, against a few reference designs. — defer
+- `dated-survey-as-orientation`: Use a dated product survey only for orientation, and research what is on offer now yourself. — defer
+- `buy-services-build-tasks`: Buy the generic services, preferring an off-the-shelf tracker, and build the tasks that carry the design. — defer
+- `question-task-trigger`: Answer, for each automated task, what starts it. — adopt, pending cr-r2pa.2.19 → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
+- `question-task-effects`: Answer, for each automated task, what it does and which services it reads and writes. — adopt, pending cr-r2pa.2.19 → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
+- `question-task-successor`: Answer, for each automated task, what it starts next. — adopt, pending cr-r2pa.2.19 → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
+- `question-human-reentry`: Answer, for each automated task, where a person comes back in. — adopt, pending cr-r2pa.2.19 → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
+- `question-duplicate-runs`: Answer, for each automated task, what keeps two of its runs from doing one piece of work. — adopt, pending cr-r2pa.2.19 → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
+- `question-source-dedupe`: Answer, for each ticket source, what keeps it from filing one problem as two tickets. — adopt, pending cr-r2pa.2.19 → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
+- `design-done-all-answered`: Count a design unfinished until every task and ticket source answers every question. — adopt, pending cr-r2pa.2.19 → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
+- `every-slot-named`: Count a design unfinished until every service slot names a product. — defer
+- `problem-indexed-task-catalogue`: Keep example tasks indexed by the problem each solves, each naming its trigger, its work and what it starts next. — defer
+- `grow-by-chaining`: Start with one catalogued task and grow the system by chaining the next one onto it. — defer
+- `explore-triage-task`: On a new or labelled ticket, check it against the codebase, sort it as an easy call, a person's call or not a bug, send only easy calls on, and label the rest as waiting for a person. — defer
+- `ticket-implementer-task`: On a ticket labelled ready, build it until the automated checks pass, open a draft pull request and start a review run. — defer
+- `automated-review-task`: On a pull request opened without a review or labelled for one, review it, send a failure to rework, and leave a pass waiting for a person to review and merge. — defer
+- `rework-fixes-only-findings`: Have a rework run fix only what the automated review named. — defer
+- `rework-push-rereviewed`: Send each rework push back to automated review. — defer
+- `spec-decompose-task`: Split a labelled spec ticket into smaller tickets that each record what they depend on, then start an implementer run. — defer
+- `self-chaining-implementer`: Have the implementer pick the next ticket with no open dependency and restart itself until none remain. — defer
+- `exception-list-ratchet`: Enforce a stricter check on the files that pass it and hold the failing ones on an exception list. — defer
+- `daily-ratchet-task`: On a daily clock, take one file off the exception list, fix it until the check passes and open a pull request that starts an automated review run, ending when the list is empty. — defer
+- `one-ratchet-change-a-day`: Limit a migration ratchet to one small pull request a day so human review stays cheap. — defer
+- `prelabelled-feedback-tickets`: File each in-app report as a ticket already labelled for the triage run. — defer
+- `monitor-ticket-lifecycle`: Have a monitor file one ticket per problem, comment on it when the problem recurs, and reopen it if the problem outlives the fix. — defer
+- `failed-run-fix-task`: File a failed run's log as a ticket and, when the failure is fixable, attempt a fix as a pull request sent to review. — defer
+- `no-chain-from-failed-fix`: Start nothing when a run that was fixing a failed run fails itself. — defer
+- `factory-changes-need-human-review`: Require a person's review for every change to the automation's own instructions or setup. — defer
+- `nightly-architecture-scan-task`: On a nightly clock, scan recent changes for refactoring candidates, file them as one ticket and start nothing until a person picks one. — defer
+- `factory-retro-task`: After a merge, read the pull request, its ticket, reviews and run logs and propose changes to the automation's instructions as a pull request that starts an automated review run. — defer
+- `factory-retro-throttle`: Run the merge retrospective on only one merged pull request in ten. — defer
+- `primary-source-preference`: Prefer primary sources such as official docs, source code and specs over secondary write-ups. — defer
+- `fastest-changing-facts-first`: When refreshing a dated survey, recheck its fastest-changing facts first, such as prices, beta status, limits and end-of-life dates. — defer
+- `volatile-fact-verification`: Verify fast-changing tool or provider facts and unfamiliar APIs against official docs or the implementation. — adopt → doc:AGENTS.md
+- `vendor-claim-testing`: Test vendor claims with independent observation, distinguishing reported experience from proof. — defer
+- `type-traits-over-survey-figures`: Trust the slowly changing traits of a product type over any figure a survey quotes. — defer
+- `ask-which-slots-a-product-fills`: Ask which other slots a product covers, counting partial coverage, such as a native agent or headless git storage filling only part of one. — defer
+- `tracker-type-criteria`: Choose the tracker type by the stated situations for each, moving off tickets kept in the repository once other people file them. — defer
+- `build-own-tracker-last`: Build a tracker only when it is the product or nothing on offer fits, counting each deciding feature as code to maintain and weighing a database with webhooks first. — defer
+- `api-filing-for-outsiders`: Let people without an account on the git host file tickets through the tracker's API, for instance from a feedback button. — defer
+- `tracker-routing-by-type`: Route runs by what the tracker type offers: labels on a git-host tracker, status moves on an agent-native one, invented properties in a general work tool, and file diffs after a push for repository tickets. — defer
+- `stream-progress-into-ticket`: Let a run stream its progress into the ticket it works on. — defer
+- `repo-tickets-as-run-memory`: Keep tickets in the repository as working notes for a run, alongside a proper tracker. — defer
+- `tracker-slot-questions`: Decide the tracker by a fixed question list, checked against each type's examples: events and their speed, routing fields, comment threads, bot identity and seat cost, native agents, outside filing and hosting. — defer
+- `app-identity-for-chained-runs`: Make writes that must start the next run under an identity whose writes emit that event, wherever the host's default run identity suppresses it for some event kinds. — defer
+- `late-context-on-pull-request`: Put later context on the pull request when a native agent reads its ticket only at assignment. — defer
+- `ack-webhook-then-start-run`: Acknowledge an incoming webhook at once and start the run afterwards. — defer
+- `batched-webhook-workaround`: Trigger on property changes, or choose another tracker type, when batched webhooks would delay runs. — defer
+- `git-host-type-criteria`: Choose the git host type by the stated situations for each, sizing a self-hosted one to the team. — defer
+- `host-operating-costs`: Count the upgrades, backups and uptime a self-hosted git host adds for each slot it fills, and the extra glue a host whose review model departs from branches and pull requests needs. — defer
+- `vendor-agents-decision`: Decide whether a platform's own agents compete with your runs or become one of your tasks. — defer
+- `bot-check-vote-human-review-vote`: Where a host votes on patch sets, have a bot account vote the check label and a person vote the review label. — defer
+- `ask-vendor-for-unpublished-limits`: Ask the vendor directly when a product's gates and rate limits are not published. — defer
+- `pilot-on-mirror-with-fallback`: Try a new host on a mirror of one repository while the existing host stays as the fallback. — defer
+- `per-run-scoped-tokens`: Mint short-lived, single-repository tokens for each run. — defer
+- `git-host-slot-questions`: Decide the git host by a fixed question list: signed webhook events, bot or app identity, required checks and whether a bot can bypass them, and the shared API budget. — defer
+- `check-plan-includes-gates`: Check that the chosen plan actually includes the gates the design relies on. — defer
+- `bot-identity-rate-budget`: Choose the bot's identity type with its rate budget in mind, since limits apply per identity. — defer
+- `orchestrator-joins-event-streams`: Have the orchestrator join git host and tracker events itself when they come from separate products. — defer
+- `runner-type-criteria`: Classify runners by who owns the agent loop and the machine and choose the type by the stated situations for each, comparing run length caps, concurrency and billing for model waits. — defer
+- `runner-per-task`: Choose the runner per task, so review and implementation runs may run on different kinds. — defer
+- `per-ticket-concurrency-lock`: Use a concurrency group keyed on the ticket so two runs never work the same ticket. — defer
+- `disposability-by-runner-type`: Make each runner disposable by the means its type offers: a microVM made and killed per run, an ephemeral CI runner, a removed container or a destroyed machine. — defer
+- `run-timeout-backstop`: Put a timeout on every run machine as a backstop, set from the orchestrator's deadline where the machines are owned. — defer
+- `cache-only-persistence`: Let anything kept on a runner between runs be only a cache the next run can do without. — defer
+- `runner-slot-questions`: Decide the runner by a fixed question list: how the orchestrator starts a run, timeouts and concurrency against the longest run and busiest burst, the billing unit with whether model-wait time is billed and model tokens included, and how disposability is achieved. — defer
+- `runner-network-and-secrets-question`: Ask what network a run can reach, how its secrets arrive and who else can read them. — defer
+- `observability-type-criteria`: Choose the observability type by what the person needs to see, a log, an agent trace or a trace joined to the wider system, and move off none when search, cost rollups or retention demand it. — defer
+- `self-host-to-keep-transcripts`: Self-host an open-source tracing product when run transcripts must stay in-house. — defer
+- `gateway-plus-tracing`: Pair a logging proxy for model calls with a tracing or monitoring product so tool calls are captured too. — defer
+- `observability-data-hooks`: Name, with the observability product, the hook that carries run data to it: the harness's own export, a platform push, a tracing call, a stop hook or a logging proxy. — defer
+- `otel-as-common-transport`: Treat OpenTelemetry as the common transport for run telemetry and expect agent span names to drift. — defer
+- `per-run-tracing-budget`: Budget tracing per run rather than per request, estimating one span per tool call times runs a day, and weigh that volume against the bill. — defer
+- `nest-run-in-caller-trace`: Propagate trace context so each run appears inside the trace of whatever called it. — defer
+- `observability-slot-questions`: Decide the observability product by a fixed question list: the shared export path, whether tool calls come through as spans, whether capturing prompts and tool output must be switched on, self-hosting terms, and retention against how far back the person looks. — defer
 
 #### engineering · Design · Decomposition — skill:skills/engineering/to-tickets
 - `ground-in-codebase`: Explore the current state of the code before writing, so the artifact targets what actually exists. — adopt → planning#ground-in-codebase
@@ -2643,6 +2813,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `code-smell-catalog`: Check changes against a fixed catalogue of named code smells, each with a description and a fix, whether or not the repository documents standards. — defer
 - `repo-standards-over-smells`: Let a documented repository standard override and suppress a conflicting catalogue smell. — defer
 - `smells-as-heuristics`: Report a catalogue smell only as a labelled possible judgement call, never as a hard violation. — defer
+- `fresh-context-subagent`: Start every subagent in a fresh context window rather than as a copy of the caller's conversation. — adopt, pending cr-r2pa.2.19 → delegation#fresh-context-subagent
 
 #### engineering · Delivery · Integration — skill:skills/engineering/pr
 - `pr-body-template`: Fill a fixed PR-body skeleton with Summary, Evidence, and Merge Danger sections. — defer
@@ -2710,10 +2881,16 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `final-branch-review`: Once all tickets have landed, review the integration branch a single time and fix all findings through a single implementer. — defer
 - `delivery-closeout`: Finish a multi-ticket build by marking the draft pull request ready or closing the tickets, and report the branch. — defer
 - `worktree-cleanup`: Remove every implementer worktree when the build ends. — defer
+- `fresh-context-subagent`: Start every subagent in a fresh context window rather than as a copy of the caller's conversation. — adopt, pending cr-r2pa.2.19 → delegation#fresh-context-subagent
+- `no-reused-implementer`: Give each ticket, and the closing round of review fixes, a newly started implementer rather than one that already finished other work. — adopt, pending cr-r2pa.2.19 → implement#no-reused-implementer
 
 ## By trait
 
 ### core · Discovery · Charting
+
+#### `assignee-marks-claim`
+Mark a claimed ticket by assigning it to the developer driving the session.
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
 
 #### `bounded-decision-ticket`
 Make each ticket one bounded question whose answer is a decision.
@@ -2732,7 +2909,12 @@ End the charting session without resolving any ticket.
 #### `claim-before-work`
 Choose the requested or a ready unclaimed child and claim it before working on it.
 - ours: `wayfinder`
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
 - `mattpocock_skills:skill:skills/engineering/wayfinder` — adopt → wayfinder#claim-before-work
+
+#### `claim-is-first-write`
+Make the claim the session's first write, before any other change to the tracker or the map.
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — defer
 
 #### `coherence-sized-tickets`
 Size decision tickets by decision coherence and dependencies, not an assumed context-window size.
@@ -2741,6 +2923,7 @@ Size decision tickets by decision coherence and dependencies, not an assumed con
 #### `decision-map-epic`
 Chart a large effort as one map item on the tracker whose children are decision tickets.
 - ours: `wayfinder`
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
 - `mattpocock_skills:skill:skills/engineering/wayfinder` — adopt → wayfinder#decision-map-epic
 
 #### `decision-map-for-large-efforts`
@@ -2800,6 +2983,10 @@ Structure the map body as Destination, Notes, Decisions so far, Not yet specifie
 #### `map-initial-state`
 Create a new map with destination and notes filled, decisions empty and the unspecified questions sketched.
 - `mattpocock_skills:skill:skills/engineering/wayfinder` — defer
+
+#### `map-order-frontier-pick`
+Take the first ready, unclaimed child in the map's own order.
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
 
 #### `multi-ticket-sessions`
 Continue through additional authorized ready tickets with no one-ticket-per-session limit, parallel work needing disjoint ownership.
@@ -2861,6 +3048,7 @@ Wire cross-references and dependencies with real identifiers, never placeholders
 #### `record-resolution`
 On resolving a ticket, record the answer on it, close it, and add a pointer to the map's decisions so far.
 - ours: `wayfinder`
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
 - `mattpocock_skills:skill:skills/engineering/wayfinder` — adopt → wayfinder#record-resolution
 
 #### `reference-by-name`
@@ -2872,6 +3060,10 @@ Reference tickets by name with identifiers and links so the map reads without op
 Size each ticket to fit one agent session's context window.
 - `mattpocock_skills:skill:skills/engineering/to-tickets` — defer
 - `mattpocock_skills:skill:skills/engineering/wayfinder` — defer
+
+#### `three-section-map-body`
+Structure the map body as Notes, Decisions so far and Fog.
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
 
 #### `ticket-asset-pointers`
 Link assets created while resolving a ticket from the tracker rather than pasting them into it.
@@ -2933,6 +3125,7 @@ Research only from primary sources such as official docs, source code and specs,
 #### `primary-source-preference`
 Prefer primary sources such as official docs, source code and specs over secondary write-ups.
 - ours: `research`
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
 
 #### `research-playbooks`
 Follow a research sequence matched to the question's domain, pulling from a second only when it truly spans domains.
@@ -2961,10 +3154,12 @@ For a complex question, organize evidence with a claim table and a pattern scan 
 #### `vendor-claim-testing`
 Test vendor claims with independent observation, distinguishing reported experience from proof.
 - ours: `research`
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
 
 #### `volatile-fact-verification`
 Verify fast-changing tool or provider facts and unfamiliar APIs against official docs or the implementation.
 - `doc:AGENTS.md`
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — adopt → doc:AGENTS.md
 
 ### core · Intake · Clarification
 
@@ -3020,9 +3215,17 @@ Say what a leading practitioner would do here that the request leaves out.
 Name the concrete techniques and instruments a practitioner would apply.
 - `cursor_plugins:skill:pstack/skills/sharpen` — adopt, pending cr-r2pa.2.18 → sharpen#expert-methods-question
 
+#### `explainer-only-on-real-branch`
+Explain a question in one line only when its choice genuinely branches.
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
+
 #### `exploration-lenses`
 Apply ideation lenses such as SCAMPER or Jobs-to-Be-Done selectively to unlock options, never as a mandatory quota or sequence.
 - ours: `brainstorming`
+
+#### `findings-summary-before-questions`
+Summarise what exists and what is missing before asking the user anything.
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
 
 #### `gap-targeted-questions`
 Aim a questionnaire's questions at the gap between what the recipient knows and what the sender needs.
@@ -3077,6 +3280,10 @@ Run a fact lookup without blocking the interview, holding back only the question
 Translate vague goals such as scalable or simple into observable outcomes only when the distinction affects the design.
 - ours: `brainstorming`
 
+#### `one-question-at-a-time`
+Take the questions in a fixed order and get one answer before asking the next.
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
+
 #### `options-with-tradeoffs`
 Present materially different options with their tradeoffs when alternatives remain.
 - ours: `brainstorming`
@@ -3119,6 +3326,7 @@ Name the least processed material a practitioner would begin from in place of th
 Attach a recommended answer to each question, letting the respondent disagree.
 - ours: `brainstorming`
 - ours: `grilling`
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
 - `mattpocock_skills:skill:skills/in-progress/loop-me` — adopt → grilling#recommended-answer
 - `mattpocock_skills:skill:skills/productivity/grilling` — adopt → grilling#recommended-answer
 
@@ -3158,6 +3366,10 @@ Make each question a single idea, never a compound one.
 - ours: `grilling`
 - `mattpocock_skills:skill:skills/productivity/to-questionnaire` — adopt → grilling#single-idea-questions
 
+#### `skip-settled-questions`
+Skip a question that what you already found has settled, such as one about a skill that is not installed.
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
+
 #### `structured-divergence`
 Generate only enough distinct options to expose the tradeoff, compare them on value, feasibility, cost and reversibility, test the assumption most likely to reverse the choice first, and keep rejected options with their reasons.
 - ours: `brainstorming`
@@ -3178,6 +3390,7 @@ Capture the user's world, tools, channels and terminology in a notes file, inter
 #### `yes-accepts-recommendation`
 Word each question so that a yes accepts your recommended answer.
 - ours: `grilling`
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
 - `mattpocock_skills:skill:skills/productivity/grilling` — adopt → grilling#yes-accepts-recommendation
 
 ### core · Intake · Triage
@@ -3236,6 +3449,7 @@ Route each triaged item to one outcome expressed in the tracker's native fields 
 #### `decision-conflict-surfacing`
 Raise any conflict between the work and a recorded architectural decision.
 - `doc:AGENTS.md`
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — adopt → doc:AGENTS.md
 
 #### `optional-docs`
 When requested, record settled domain terms and qualifying architectural decisions through domain-modeling, not as an automatic by-product of the interview.
@@ -3924,9 +4138,49 @@ Verify the plugin-owned template, installer, updater and doctor use the shared r
 Keep status output to the table plus a one-line recommendation, never dumping full diffs.
 - ours: `harness-status`
 
+#### `deliberate-none-observability`
+Allow an explicit choice of no observability product, for that slot alone, when the runner or orchestrator already shows enough.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
+#### `gateway-plus-tracing`
+Pair a logging proxy for model calls with a tracing or monitoring product so tool calls are captured too.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
+#### `monitor-ticket-lifecycle`
+Have a monitor file one ticket per problem, comment on it when the problem recurs, and reopen it if the problem outlives the fix.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
+#### `nest-run-in-caller-trace`
+Propagate trace context so each run appears inside the trace of whatever called it.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
+#### `observability-data-hooks`
+Name, with the observability product, the hook that carries run data to it: the harness's own export, a platform push, a tracing call, a stop hook or a logging proxy.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
+#### `observability-reaches-runs-via-tickets`
+Keep observability data out of a run's decisions until something files it into the tracker or git host, such as a monitor acting as a ticket source.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
+#### `observability-slot-questions`
+Decide the observability product by a fixed question list: the shared export path, whether tool calls come through as spans, whether capturing prompts and tool output must be switched on, self-hosting terms, and retention against how far back the person looks.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
+#### `observability-type-criteria`
+Choose the observability type by what the person needs to see, a log, an agent trace or a trace joined to the wider system, and move off none when search, cost rollups or retention demand it.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
 #### `offline-continue`
 On a failed fetch, note it and continue with the remaining repos.
 - ours: `harness-status`
+
+#### `otel-as-common-transport`
+Treat OpenTelemetry as the common transport for run telemetry and expect agent span names to drift.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
+#### `per-run-tracing-budget`
+Budget tracing per run rather than per request, estimating one span per tool call times runs a day, and weigh that volume against the bill.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
 
 #### `pin-preserving-fetch`
 Fetching upstream refs updates only the local cache and never moves pinned submodule commits, with a no-fetch option to skip the network when offline.
@@ -3936,6 +4190,10 @@ Fetching upstream refs updates only the local cache and never moves pinned submo
 #### `scan-candidates`
 Flag the repos with material changes as candidates for a deeper scan.
 - ours: `harness-status`
+
+#### `self-host-to-keep-transcripts`
+Self-host an open-source tracing product when run transcripts must stay in-house.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
 
 #### `summary-table`
 Summarise the result as a table of repo, added, removed, material-changed and minor.
@@ -4031,6 +4289,10 @@ Add lint rules that force correct code so agents cannot drift from it.
 Sharpen a vague completion criterion before considering hiding the later steps.
 - `mattpocock_skills:skill:skills/productivity/writing-for-agents` — defer
 
+#### `daily-ratchet-task`
+On a daily clock, take one file off the exception list, fix it until the check passes and open a pull request that starts an automated review run, ending when the list is empty.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
 #### `decision-relevance-pruning`
 Keep only content that changes the agent's decisions, such as conventions, non-obvious failure modes, required interfaces and invariants.
 - ours: `authoring-for-agents`
@@ -4044,6 +4306,14 @@ Remove outdated approaches and dead code an agent might imitate.
 Never overwrite an existing skill destination even under force, which applies only to generated scaffolds.
 - ours: `migrate-claude-to-codex`
 
+#### `domain-docs-config`
+Record where the glossary and decision records live and how to read them in one file other skills read.
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
+
+#### `draft-confirm-then-write`
+Explore, then present drafts of every file to be written, let the user edit them, and write only after confirmation.
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
+
 #### `dry-run-default`
 Preview all planned changes by default and write only under an explicit apply flag.
 - ours: `migrate-claude-to-codex`
@@ -4051,6 +4321,10 @@ Preview all planned changes by default and write only under an explicit apply fl
 #### `edit-canonical-source`
 Make an authorized adoption edit the one canonical source, placing shared policy in the shared files without duplicating it across provider directories.
 - ours: `harness-evaluate`
+
+#### `edit-existing-instruction-file`
+Edit the root instruction file the repository already has, taking `CLAUDE.md` before `AGENTS.md` when both exist, asking which to create when there is none and never creating the other.
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — defer
 
 #### `empirical-instruction-default-check`
 Settle whether an instruction changes behaviour from the model's default by running the document, not by debate.
@@ -4060,6 +4334,10 @@ Settle whether an instruction changes behaviour from the model's default by runn
 Point to authoritative commands and lookups instead of copying volatile facts the agent can find itself.
 - ours: `authoring-for-agents`
 - `mattpocock_skills:skill:skills/productivity/writing-for-agents` — adopt → authoring-for-agents#environment-as-cache
+
+#### `exception-list-ratchet`
+Enforce a stricter check on the files that pass it and hold the failing ones on an exception list.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
 
 #### `expiring-exceptions`
 Give every exception to a check an expiry date.
@@ -4090,6 +4368,10 @@ Require a person's approval for each exception to a check.
 Write a user-invoked skill's description as a one-line human summary with triggers stripped.
 - `mattpocock_skills:skill:skills/productivity/writing-for-agents` — defer
 
+#### `infer-repo-from-remote`
+Infer the target repository from the git remote rather than asking.
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
+
 #### `inline-exception-with-reason`
 Record an exception to a check on the offending line along with its justification.
 - `cursor_plugins:skill:pstack/skills/correct` — defer
@@ -4098,6 +4380,14 @@ Record an exception to a check on the offending line along with its justificatio
 Inline what every branch needs and disclose branch-specific material behind a conditional pointer.
 - ours: `authoring-for-agents`
 - `mattpocock_skills:skill:skills/productivity/writing-for-agents` — adopt → authoring-for-agents#inline-vs-disclose
+
+#### `inspect-repo-before-configuring`
+Read what the repository already has, such as remotes, instruction files, glossaries, decision records, earlier output, installed skills and workspace signals, before assuming anything.
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
+
+#### `instruction-file-pointer-block`
+Add to the instruction file one short section per configured area, each a one-line summary and a pointer to its document.
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
 
 #### `invocation-mode`
 Choose model-invoked or user-invoked activation, setting the disable-model-invocation flag for manual workflows.
@@ -4153,9 +4443,17 @@ Never delete, stage or commit the source assets.
 Hide post-completion steps only after sharpening the completion criterion has failed and rushing is observed, and only across a real context boundary such as a handoff or subagent.
 - `mattpocock_skills:skill:skills/productivity/writing-for-agents` — defer
 
+#### `offer-legacy-file-rename`
+Offer to move a file found under a legacy name to its current name and update the references to it.
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
+
 #### `one-effective-instruction`
 Prefer one effective instruction over repeated prohibitions or ritual steps, treating wording techniques as hypotheses rather than laws.
 - ours: `authoring-for-agents`
+
+#### `one-ratchet-change-a-day`
+Limit a migration ratchet to one small pull request a day so human review stays cheap.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
 
 #### `one-trigger-per-branch`
 Give each trigger branch of a pointer one trigger, collapsing synonyms.
@@ -4199,6 +4497,10 @@ Check every line still bears on the document's task, pruning stale or irrelevant
 - ours: `authoring-for-agents`
 - `mattpocock_skills:skill:skills/productivity/writing-for-agents` — adopt → authoring-for-agents#relevance-check
 
+#### `review-catches-become-checks`
+Turn what human review catches into new automated checks and sharper automated review.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
 #### `review-time-standards-file`
 Treat the coding-standards file as review-time material and split it behind pointers once it passes about a thousand lines.
 - `mattpocock_skills:skill:skills/engineering/retro` — defer
@@ -4214,6 +4516,10 @@ Maintain in the agent instruction file a table pairing each rule with what enfor
 #### `same-command-local-and-ci`
 Run the identical command on a developer machine and in CI.
 - `cursor_plugins:skill:pstack/skills/correct` — defer
+
+#### `seed-template-docs`
+Write each configuration document from a seed template chosen by the tracker and the installed skills.
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
 
 #### `sequence-isolation`
 Split a run of steps so later post-completion steps stay out of view, driving more legwork on the step in front.
@@ -4291,9 +4597,29 @@ For template adoption, verify the initialized template tools, run the sync and t
 Run the migrator's own tests and trial it in a disposable target before relying on changed behavior.
 - ours: `migrate-claude-to-codex`
 
+#### `tracker-choice-from-remote`
+Propose the tracker the git remote points at, else offer a short menu, recording any other tracker's workflow in the user's own words.
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
+
+#### `tracker-config-doc`
+Record where the repository's tickets live and how to reach them in one file other skills read.
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
+
+#### `tracker-reachability-gate`
+Before going on, wire up the chosen host's remote and treat the host's command line printing the project as done, stopping with what is missing when it cannot.
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
+
+#### `tracker-verb-mapping`
+Map the generic tracker actions, such as publish, fetch, comment, label and close, to one tracker's concrete commands.
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
+
 #### `triad-collapse`
 Hunt restated triads and long gestures and collapse each into a single leading word.
 - `mattpocock_skills:skill:skills/productivity/writing-for-agents` — defer
+
+#### `triage-label-config`
+Record the repository's label strings for the triage roles in one file, written only when the triage skill is installed.
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
 
 #### `two-loads`
 Weigh always-loaded context cost on the agent against cognitive load on the human.
@@ -4308,9 +4634,17 @@ Count a class of mistake only after it has happened at least twice.
 If a corrected rule already existed without enforcement, count it as a repeat and solve it at the top workable level within that change.
 - `cursor_plugins:skill:pstack/skills/correct` — reject
 
+#### `unraised-default-flag`
+Leave a default-off option unmentioned, for the user to switch on in the file later.
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
+
 #### `unsupported-claim-removal`
 Remove unsupported claims and invented thresholds from instructions.
 - ours: `authoring-for-agents`
+
+#### `update-block-in-place`
+Update an existing generated section in place rather than appending a duplicate.
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — defer
 
 #### `upstream-review-on-pin-move`
 When the submodule pointer moves, write the upstream review in the same change and regenerate the catalog at the new pin.
@@ -4468,6 +4802,14 @@ Cut an adverb, using a stronger verb or the measured figure in its place.
 - ours: `unslop`
 - `cursor_plugins:skill:pstack/skills/unslop` — adopt → unslop#adverb-cut
 
+#### `avoid-ruled-out-synonyms`
+Avoid in your output any synonym the glossary explicitly rules out.
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — defer
+
+#### `avoided-term-correction`
+When the user says a word the vocabulary lists as avoided, answer with the defined term instead.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
 #### `bold-restraint`
 Do not bold every proper noun or acronym.
 - ours: `unslop`
@@ -4489,6 +4831,10 @@ Distinguish certain knowledge from inference and speculation, and say when unsur
 Remove assistant pleasantries, offers of further help and excited discovery lines.
 - ours: `unslop`
 - `cursor_plugins:skill:pstack/skills/unslop` — adopt → unslop#chatbot-phrase-cut
+
+#### `closed-term-set`
+Discuss and sketch a design only in a fixed set of defined terms.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
 
 #### `comma-budget`
 Favour periods, allow at most two commas per sentence, and break a sentence up when clauses accumulate.
@@ -4539,6 +4885,7 @@ Use the project's established domain vocabulary throughout what you write.
 - `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — adopt → improve-codebase-architecture#domain-vocabulary
 - `mattpocock_skills:skill:skills/engineering/pr` — defer
 - `mattpocock_skills:skill:skills/engineering/prototype` — adopt → prototype#domain-vocabulary
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
 - `mattpocock_skills:skill:skills/engineering/tdd` — defer
 - `mattpocock_skills:skill:skills/engineering/to-spec` — defer
 - `mattpocock_skills:skill:skills/engineering/to-tickets` — defer
@@ -4790,6 +5137,10 @@ Write headings in sentence case.
 Use normal sentence capitalization in prose.
 - `cursor_plugins:skill:pstack/skills/teach` — reject
 
+#### `setup-completion-report`
+Report which skills now read the written files and that editing them directly needs no rerun.
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
+
 #### `single-next-action`
 Close with exactly one concrete next action the reader can do in under two minutes.
 - ours: `brief-me`
@@ -4813,6 +5164,10 @@ Restate the current progress state every turn so the reader need not hold it in 
 Replace typographic quotation marks with straight ones.
 - ours: `unslop`
 - `cursor_plugins:skill:pstack/skills/unslop` — adopt → unslop#straight-quotes
+
+#### `stream-progress-into-ticket`
+Let a run stream its progress into the ticket it works on.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
 
 #### `structural-diff`
 Show a change as a diff against the structure the reader already holds rather than against raw source.
@@ -5118,6 +5473,10 @@ Have the log helper write the header row when the log is missing or empty.
 Have the log helper abort on any command failure, unset variable or pipeline failure.
 - `cursor_plugins:skill:pstack/skills/show-me-your-work` — reject
 
+#### `host-wiki-conventions-win`
+Follow a shared wiki's own conventions wherever they differ from your default page rules.
+- `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — defer
+
 #### `knowledge-in-files`
 Keep durable knowledge in files, never in the tracker's remember, memories or key-value stores.
 - ours: `beads`
@@ -5255,6 +5614,10 @@ Propose committing a trail only when a reviewer needs it to trust the outcome, a
 First rule out resuming one known chat, making a durable skill from habits and writing a human-facing work summary, since those are other tasks.
 - `cursor_plugins:skill:pstack/skills/recall` — adopt, pending cr-r2pa.2.18 → recall#recall-routes-away
 
+#### `repo-tickets-as-run-memory`
+Keep tickets in the repository as working notes for a run, alongside a proper tracker.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
 #### `resume-bead-and-handoff`
 When resuming work, recover the active bead and its handoff.
 - `doc:AGENTS.md`
@@ -5345,6 +5708,10 @@ At session start or after compaction, list in-progress beads and resume from eac
 #### `seven-day-default-window`
 Treat recent as a real range with a default of seven days.
 - `cursor_plugins:skill:pstack/skills/recall` — adopt, pending cr-r2pa.2.18 → recall#seven-day-default-window
+
+#### `shared-wiki-first`
+Look for a wiki that the user or other agents keep already, and write into it before starting a separate one.
+- `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — defer
 
 #### `single-next-move`
 End with the one most useful concrete next action.
@@ -5737,6 +6104,17 @@ Show the human the framing and its tradeoffs ahead of a long run.
 Do the grounding before starting, and do not begin a run until its framing can be stated.
 - `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
 
+#### `fresh-context-subagent`
+Start every subagent in a fresh context window rather than as a copy of the caller's conversation.
+- `mattpocock_skills:skill:skills/engineering/code-review` — adopt, pending cr-r2pa.2.19 → delegation#fresh-context-subagent
+- `mattpocock_skills:skill:skills/engineering/codebase-design` — adopt, pending cr-r2pa.2.19 → delegation#fresh-context-subagent
+- `mattpocock_skills:skill:skills/engineering/implement-spec` — adopt, pending cr-r2pa.2.19 → delegation#fresh-context-subagent
+- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — adopt, pending cr-r2pa.2.19 → delegation#fresh-context-subagent
+- `mattpocock_skills:skill:skills/engineering/research` — adopt, pending cr-r2pa.2.19 → delegation#fresh-context-subagent
+- `mattpocock_skills:skill:skills/engineering/wayfinder` — adopt, pending cr-r2pa.2.19 → delegation#fresh-context-subagent
+- `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — adopt, pending cr-r2pa.2.19 → delegation#fresh-context-subagent
+- `mattpocock_skills:skill:skills/productivity/grilling` — adopt, pending cr-r2pa.2.19 → delegation#fresh-context-subagent
+
 #### `fresh-synthesizer`
 Wait for every finding, then have one agent that did no searching weigh the raw findings and write the only answer.
 - `cursor_plugins:skill:pstack/skills/how` — reject
@@ -5994,6 +6372,7 @@ Keep subagent communication sparse by passing pointers to the spec, tickets, not
 #### `preserve-others-edits`
 Preserve changes in the working tree that others made or that are unrelated to the task.
 - `doc:AGENTS.md`
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — adopt → doc:AGENTS.md
 
 #### `preserve-role-prompt`
 Keep role behaviour in one role prompt independent of the runtime metadata applied around it at invocation.
@@ -6139,6 +6518,10 @@ Send a follow-up to a worker by resuming its own session rather than starting a 
 When fanning work out, give every delegate one shared artifact with the recipe, the verification contract and the fences, kept outside their write scope.
 - `cursor_plugins:skill:pstack/skills/principle-build-the-lever` — defer
 
+#### `sibling-skill-by-relative-path`
+Run another skill's procedure by reading its instruction file at a path relative to the current skill and following it.
+- `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — reject
+
 #### `single-checkpoint-on-long-run`
 Give a multi-hour run one checkpoint with the human.
 - `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
@@ -6264,6 +6647,10 @@ Build commands on environment variables so credentials stay in the environment a
 Never run the tracker's deleting commands, reclaiming space with a non-destructive compact instead.
 - ours: `beads`
 
+#### `factory-changes-need-human-review`
+Require a person's review for every change to the automation's own instructions or setup.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
 #### `hidden-secret-entry`
 Read every secret with hidden input.
 - `mattpocock_skills:skill:skills/engineering/wizard` — defer
@@ -6306,6 +6693,14 @@ Push to CI secrets only the values CI actually needs.
 Never bypass permissions, hooks, sandboxes or required gates.
 - `doc:AGENTS.md`
 
+#### `own-repo-filing-guard`
+File tickets only into the user's own repository, confirming with the user before a session's first ticket when the target is not theirs.
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
+
+#### `per-run-scoped-tokens`
+Mint short-lived, single-repository tokens for each run.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
 #### `placeholder-sensitive-data-redaction`
 Replace secrets and personal data with placeholders in anything shown or saved.
 - ours: `systematic-debugging`
@@ -6314,6 +6709,10 @@ Replace secrets and personal data with placeholders in anything shown or saved.
 
 #### `redact-secrets` *(retired)*
 Redact secrets and personal data as placeholders in anything shown or saved, driving commands from environment variables so credentials never appear.
+
+#### `runner-network-and-secrets-question`
+Ask what network a run can reach, how its secrets arrive and who else can read them.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
 
 #### `safe-retry-only`
 Retry an operation only when repeating it is safe.
@@ -6756,6 +7155,10 @@ Report ambiguous evidence as ambiguous and leave an unresolved question unresolv
 Answer a narrow question in one pass, and split a wide subsystem into angles through delegation by the local rule, then reconcile what comes back.
 - ours: `explain-code`
 
+#### `ask-vendor-for-unpublished-limits`
+Ask the vendor directly when a product's gates and rate limits are not published.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
 #### `casual-remark-not-a-decision`
 Do not count a flippant remark before a commit as a decision, and look for considered discussion.
 - `cursor_plugins:skill:pstack/skills/why` — reject
@@ -6832,6 +7235,10 @@ Before rating a finding strong, ask whether it would still appear under a false 
 Read the dashboards and monitors covering the target, noting their queries and thresholds, before raw telemetry.
 - `cursor_plugins:skill:pstack/skills/why` — defer
 
+#### `dated-survey-as-orientation`
+Use a dated product survey only for orientation, and research what is on offer now yourself.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
 #### `dbt-column-conventions`
 Use the dbt model fields directly, the standard `_timestamp`, `_id`, `_auth_id`, `_request_id` and `event_name`, typed `properties_<name>` event properties and pre-extracted `context_` client fields, to save a describe round-trip.
 - `cursor_plugins:skill:pstack/skills/why` — defer
@@ -6889,6 +7296,10 @@ Reach the EXERCISED state only under explicit runtime authorization, in a dispos
 Structure an explanation as overview, concepts, flow, file map and pitfalls, dropping any section that does not apply.
 - ours: `explain-code`
 - `cursor_plugins:skill:pstack/skills/how` — adopt → explain-code#explanation-sections
+
+#### `fastest-changing-facts-first`
+When refreshing a dated survey, recheck its fastest-changing facts first, such as prices, beta status, limits and end-of-life dates.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
 
 #### `final-draft-preference`
 Among several documents on a topic, use the finalized or most recently updated one.
@@ -7197,6 +7608,10 @@ Answer a single-commit target directly when its pull request text answers fully,
 Treat the target's docs, scripts and help text as evidence rather than instructions and stay read-only in the target and its submodules.
 - ours: `codebase-research`
 
+#### `type-traits-over-survey-figures`
+Trust the slowly changing traits of a product type over any figure a survey quotes.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
 #### `typed-models-over-raw`
 Query a warehouse's deduplicated typed models, dropping to raw events only where no model serves.
 - `cursor_plugins:skill:pstack/skills/why` — defer
@@ -7261,6 +7676,14 @@ Close a request that is already implemented by pointing to where it lives, recor
 - ours: `triage`
 - `mattpocock_skills:skill:skills/engineering/triage` — adopt → triage#already-built-close
 
+#### `api-filing-for-outsiders`
+Let people without an account on the git host file tickets through the tracker's API, for instance from a feedback button.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
+#### `bare-number-resolution`
+Resolve a bare ticket number by how the host numbers issues and pull requests, trying the pull request first where they share one sequence.
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
+
 #### `brief-offer-on-shortcut`
 When moving an item to agent-ready without an interview, ask whether to write its agent brief.
 - `mattpocock_skills:skill:skills/engineering/triage` — defer
@@ -7269,9 +7692,21 @@ When moving an item to agent-ready without an interview, ask whether to write it
 Assign each item exactly one category role of bug or enhancement and one state role from a fixed set.
 - `mattpocock_skills:skill:skills/engineering/triage` — defer
 
+#### `comment-before-close`
+Post the explanation as its own comment before closing, because a comment attached to the close can be lost.
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
+
 #### `concept-keyed-rejection-store`
 Keep rejected requests in a store of one file per concept, not per request, so later requests can be deduplicated against it.
 - `mattpocock_skills:skill:skills/engineering/triage` — defer
+
+#### `create-missing-labels`
+Create each configured label the hosted tracker lacks.
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
+
+#### `default-labels-one-question`
+Ask one yes-or-no question about keeping label strings equal to the role names, collecting overrides only on no.
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
 
 #### `direct-move-shortcut`
 On a direct instruction to move an item's state, confirm the actions and apply them without an interview.
@@ -7282,12 +7717,21 @@ Reject only for durable reasons of scope, technical constraint or strategy, trea
 - ours: `triage`
 - `mattpocock_skills:skill:skills/engineering/triage` — adopt → triage#durable-rejection-reasons
 
+#### `explore-triage-task`
+On a new or labelled ticket, check it against the codebase, sort it as an easy call, a person's call or not a bug, send only easy calls on, and label the rest as waiting for a person.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
+#### `external-author-pr-filter`
+List pull requests for triage by leaving out authors who are owners, members or collaborators.
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
+
 #### `external-pr-discovery-filter`
 In discovery, surface only external-author pull requests, while still triaging any explicitly named one.
 - `mattpocock_skills:skill:skills/engineering/triage` — out-of-scope
 
 #### `label-name-mapping`
 Map the canonical triage role names onto the repository's actual label strings.
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
 - `mattpocock_skills:skill:skills/engineering/triage` — defer
 
 #### `natural-language-commands`
@@ -7308,7 +7752,16 @@ Close a rejected bug report with a polite explanation of why.
 
 #### `pr-as-issue`
 Treat an external pull request as an issue with attached code, running it through the same roles and state machine.
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
 - `mattpocock_skills:skill:skills/engineering/triage` — out-of-scope
+
+#### `pr-intake-flag-default-off`
+Ship a flag that treats outside pull requests as requests in the triage queue, defaulted off.
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
+
+#### `prelabelled-feedback-tickets`
+File each in-app report as a ticket already labelled for the triage run.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
 
 #### `read-full-source-issue`
 Read the full body, comments and, for a pull request, the diff of any referenced spec, issue or pull request before working from it.
@@ -7349,6 +7802,10 @@ Write each rejection record as a short readable design note with the decision, a
 #### `rejection-reversal`
 Reverse a rejection by deleting its record without reopening the old requests.
 - `mattpocock_skills:skill:skills/engineering/triage` — defer
+
+#### `split-pr-read-steps`
+Read a pull request's body, comments and diff as separate steps, because one combined command can omit the body.
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — defer
 
 #### `state-transitions`
 Move items along defined state transitions, flagging unusual moves and letting the maintainer override at any time.
@@ -7398,12 +7855,20 @@ Keep free-play controls available beside any guided scenarios so the user can dr
 Give each architecture candidate a card of files, problem, solution, benefits and a recommendation-strength badge.
 - `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — adopt → improve-codebase-architecture#candidate-comparison
 
+#### `ask-which-slots-a-product-fills`
+Ask which other slots a product covers, counting partial coverage, such as a native agent or headless git storage filling only part of one.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
 #### `auto-fold-and-branch` *(retired)*
 Fold the validated decision into real code and commit the prototype to a throwaway branch out of main with a context pointer on the issue.
 
 #### `automatic-decision-integration`
 Fold a prototype's validated decision into the real code as part of finishing the prototype.
 - `mattpocock_skills:skill:skills/engineering/prototype` — defer
+
+#### `bot-identity-rate-budget`
+Choose the bot's identity type with its rate budget in mind, since limits apply per identity.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
 
 #### `boundary-validation`
 Concentrate validation, narrowing and error handling where data crosses a system boundary such as CLI arguments, configuration, the network or an external API.
@@ -7421,9 +7886,17 @@ Give semantically distinct values that share a primitive type their own types, v
 - `cursor_plugins:skill:pstack/skills/principle-type-system-discipline` — adopt → principle-type-system-discipline#branded-primitives
 - `cursor_plugins:skill:pstack/skills/typescript-best-practices` — adopt → principle-type-system-discipline#branded-primitives
 
+#### `build-own-tracker-last`
+Build a tracker only when it is the product or nothing on offer fits, counting each deciding feature as code to maintain and weighing a database with webhooks first.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
 #### `build-route-back`
 When a build of the chosen direction is wanted, route it through the router at top level, or report that route to the parent inside a delegated task, and start no playbook.
 - ours: `prototype`
+
+#### `buy-services-build-tasks`
+Buy the generic services, preferring an off-the-shelf tracker, and build the tasks that carry the design.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
 
 #### `call-chain-file-limit`
 Flatten the hierarchy when following the flow takes more than three files.
@@ -7454,6 +7927,10 @@ Record the prototype's verdict and the question it settled, with a pointer to th
 #### `cheap-assertions`
 Use a small assertion as the cheapest proof where it helps, since a prototype implies neither a full test suite nor a ban on checks.
 - ours: `prototype`
+
+#### `check-plan-includes-gates`
+Check that the chosen plan actually includes the gates the design relies on.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
 
 #### `coherent-increment`
 Make each increment land or deepen one coherent abstraction instead of spreading a new capability across callers as special-case coordination.
@@ -7597,6 +8074,10 @@ Before coordinating concurrent writers, give each its own write target (file, ke
 Enforce that code outside a package imports only that package's root entry points, never its subfolders.
 - `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules` — out-of-scope
 
+#### `every-slot-named`
+Count a design unfinished until every service slot names a product.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
 #### `existing-variant-styling-system`
 Build UI variants with the project's existing styling system.
 - ours: `prototype`
@@ -7623,6 +8104,18 @@ Carry a design change through every reference to it (types, documents, examples,
 - ours: `principle-redesign-from-first-principles`
 - `cursor_plugins:skill:pstack/skills/principle-redesign-from-first-principles` — adopt → principle-redesign-from-first-principles#full-propagation
 
+#### `git-host-slot`
+Give branches, pull requests and reviews to one service slot of their own, the git host.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
+#### `git-host-slot-questions`
+Decide the git host by a fixed question list: signed webhook events, bot or app identity, required checks and whether a bot can bypass them, and the shared API budget.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
+#### `git-host-type-criteria`
+Choose the git host type by the stated situations for each, sizing a self-hosted one to the team.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
 #### `grilling-loop` *(retired)*
 Once the user picks a candidate, drive a grilling session on it and let the domain-model side effects (new terms, offered records, alternative-interface exploration) happen inline as decisions crystallise.
 
@@ -7630,6 +8123,10 @@ Once the user picks a candidate, drive a grilling session on it and let the doma
 Before sketching, build a working model of what the design touches and write its architectural explanation, since naming a file is not grounding, skipping this only for true greenfield work.
 - ours: `codebase-design`
 - `cursor_plugins:skill:pstack/skills/architect` — adopt → codebase-design#grounded-sketch
+
+#### `grow-by-chaining`
+Start with one catalogued task and grow the system by chaining the next one onto it.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
 
 #### `handover-url-keys`
 Hand the user the prototype's URL and its variant keys when it is ready.
@@ -7643,6 +8140,10 @@ Highlight what just changed in a prototype's state display where that helps the 
 #### `host-in-existing-page`
 Host UI variants inside an existing page with its real data and layout, using a new throwaway route only when no page can host them.
 - `mattpocock_skills:skill:skills/engineering/prototype` — defer
+
+#### `host-operating-costs`
+Count the upgrades, backups and uptime a self-hosted git host adds for each slot it fills, and the extra glue a host whose review model departs from branches and pull requests needs.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
 
 #### `inject-dependencies`
 Pass a module's external dependencies in as arguments rather than constructing them inside it, so callers and tests can substitute them.
@@ -7756,6 +8257,10 @@ Prefer a design where an edit that looks right from one file is right everywhere
 State in one sentence what gets built first from the sketch.
 - `cursor_plugins:skill:pstack/skills/architect` — reject
 
+#### `nightly-architecture-scan-task`
+On a nightly clock, scan recent changes for refactoring candidates, file them as one ticket and start nothing until a person picks one.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
 #### `no-cycles`
 Forbid dependency cycles.
 - `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules` — out-of-scope
@@ -7842,6 +8347,10 @@ Add an abstraction, dependency or feature only for a present requirement, never 
 - `doc:AGENTS.md`
 - `cursor_plugins:skill:pstack/skills/principle-subtract-before-you-add` — adopt → doc:AGENTS.md
 
+#### `problem-indexed-task-catalogue`
+Keep example tasks indexed by the problem each solves, each naming its trigger, its work and what it starts next.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
 #### `problem-space-framing`
 Before exploring alternative designs, show the user the constraints, dependency categories and an illustrative sketch, then continue without waiting.
 - `mattpocock_skills:skill:skills/engineering/codebase-design` — defer
@@ -7896,6 +8405,10 @@ Derive each step from the observed current state compared with the goal, applyin
 - ours: `principle-make-operations-idempotent`
 - `cursor_plugins:skill:pstack/skills/principle-make-operations-idempotent` — adopt → principle-make-operations-idempotent#reconcile-from-state
 
+#### `reference-design-comparison`
+Compare whole candidate designs side by side, slot by slot, against a few reference designs.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
 #### `rejection-decision-record`
 When the user rejects an improvement candidate for a durable reason, offer a decision record so later reviews do not suggest it again, skipping ephemeral or self-evident reasons.
 - ours: `improve-codebase-architecture`
@@ -7933,6 +8446,14 @@ Design functions to return results rather than cause side effects, so behaviour 
 Rewrite prototype code to production standards when folding the winning decision in, never promoting the throwaway code directly.
 - `mattpocock_skills:skill:skills/engineering/prototype` — defer
 
+#### `runner-slot-questions`
+Decide the runner by a fixed question list: how the orchestrator starts a run, timeouts and concurrency against the longest run and busiest burst, the billing unit with whether model-wait time is billed and model tokens included, and how disposability is achieved.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
+#### `runner-type-criteria`
+Classify runners by who owns the agent loop and the machine and choose the type by the stated situations for each, comparing run length caps, concurrency and billing for model waits.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
 #### `scenario-coverage-triad`
 Give a logic prototype guided scenarios covering the happy path, a tricky edge case and an attempted illegal action.
 - `mattpocock_skills:skill:skills/engineering/prototype` — defer
@@ -7955,6 +8476,7 @@ Use synthetic or appropriately scoped data, bringing in external calls and real 
 Keep system-wide decision records at the repository root and context-specific ones inside each context.
 - ours: `domain-modeling`
 - `mattpocock_skills:skill:skills/engineering/domain-modeling` — adopt → domain-modeling#scoped-decision-records
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — adopt → domain-modeling#scoped-decision-records
 
 #### `scoped-internal-trust`
 Inside the system, trust data a boundary already validated and propagate errors, adding a check at an inner layer only on a failure path a defect has proven.
@@ -7979,6 +8501,10 @@ Offer an interactive demo as one self-contained HTML file that works offline.
 #### `separate-promotion`
 Treat promoting a prototype's decision or code into production as separate work with its own scope and checks.
 - ours: `prototype`
+
+#### `service-slots-and-tasks`
+Split a design into service slots and the tasks that push work through them, letting one product fill several slots and one server host several services.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
 
 #### `shallow-module-signs`
 Treat callers coordinating several methods for one operation, options exposing internal stages, and an interface that does not spare learning the implementation as signs of a shallow module.
@@ -8020,6 +8546,10 @@ Give each piece of state one owner, so that others read it or ask the owner to c
 - ours: `codebase-design`
 - `cursor_plugins:skill:pstack/skills/architect` — adopt → codebase-design#split-ownership-flag
 - `cursor_plugins:skill:pstack/skills/correct` — reject
+
+#### `start-from-user-problem`
+Begin a design from the user's concrete problem rather than from the system to be built.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
 
 #### `state-question-up-front`
 Write the question the prototype answers visibly at the top of the prototype before building, so it can be checked later.
@@ -8082,6 +8612,14 @@ Keep prototypes clearly marked as throwaway and separate from production.
 End a candidate survey with a single top recommendation.
 - ours: `improve-codebase-architecture`
 - `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — adopt → improve-codebase-architecture#top-candidate-recommendation
+
+#### `tracker-slot-questions`
+Decide the tracker by a fixed question list, checked against each type's examples: events and their speed, routing fields, comment threads, bot identity and seat cost, native agents, outside filing and hosting.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
+#### `tracker-type-criteria`
+Choose the tracker type by the stated situations for each, moving off tickets kept in the repository once other people file them.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
 
 #### `trivial-to-run`
 Make the prototype trivial to run: one command, or a single HTML file the user opens directly.
@@ -8157,6 +8695,10 @@ Provide a labelled control for switching between UI variants.
 Build UI variants only when comparing alternatives is the question the prototype answers.
 - ours: `prototype`
 
+#### `vendor-agents-decision`
+Decide whether a platform's own agents compete with your runs or become one of your tasks.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
 #### `vocabulary-ban`
 Use the design vocabulary exactly and never substitute looser words like component, service, API, or boundary.
 - `mattpocock_skills:skill:skills/engineering/codebase-design` — defer
@@ -8172,6 +8714,10 @@ Seed epics and stages and render tracking natively in the tracker, keeping the r
 Size migration batches by blast radius and keep the build green between them.
 - ours: `planning`
 - `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → planning#blast-radius-batches
+
+#### `child-ticket-linking-fallbacks`
+Link a child ticket by the tracker's native parent link, falling back to an older link form and then a part-of line in its body, with a type label.
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
 
 #### `cut-before-polish`
 Reach the minimum version before investing in its quality.
@@ -8191,6 +8737,7 @@ Encode real blocking edges in the tracker and let the ready frontier drive execu
 - ours: `planning`
 - ours: `wayfinder`
 - `mattpocock_skills:skill:skills/engineering/implement-spec` — adopt → planning#dependency-edges
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
 - `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → planning#dependency-edges
 - `mattpocock_skills:skill:skills/engineering/wayfinder` — adopt → wayfinder#dependency-edges
 
@@ -8217,6 +8764,10 @@ Split the work into atomic units that can each land independently.
 
 #### `landable-units-or-named-group`
 Split the work into units that can each land alone, or into a declared group where intermediate states cannot stay green.
+
+#### `local-markdown-tracker-layout`
+Without a hosted tracker, keep one directory per feature holding its spec and one numbered file per ticket, with a status line near the top and comments appended at the bottom.
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
 
 #### `migration-group-unit`
 Treat an authorized migration group as one verifiable unit: only its declared interior breakage is allowed, and its boundary checks must pass before dependent work proceeds.
@@ -8294,6 +8845,10 @@ Sort each question that changes a plan: observe by running what a run can answer
 Skip the plan for a change of a file or two whose method is plain when no plan file was asked for, saying so and naming the change as the next request.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/multi-phase-plan.md`
 
+#### `spec-decompose-task`
+Split a labelled spec ticket into smaller tickets that each record what they depend on, then start an implementer run.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
 #### `sub-issue-linkage`
 Make each ticket a child of its source issue and never close or modify that parent.
 - `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → planning#beads-native-tracking
@@ -8355,6 +8910,7 @@ Keep a root context map listing each context with its location and purpose and t
 Follow the context map to the right context's glossary when the repository has several.
 - ours: `domain-modeling`
 - `mattpocock_skills:skill:skills/engineering/domain-modeling` — adopt → domain-modeling#context-map-lookup
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — adopt → domain-modeling#context-map-lookup
 - `mattpocock_skills:skill:skills/productivity/wait-what` — defer
 
 #### `context-specific-terms`
@@ -8395,6 +8951,11 @@ Explore the current state of the code before writing, so the artifact targets wh
 Create glossary and decision-record files lazily, only when there is something concrete to write.
 - ours: `domain-modeling`
 - `mattpocock_skills:skill:skills/engineering/domain-modeling` — adopt → domain-modeling#lazy-glossary-and-adr
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — adopt → domain-modeling#lazy-glossary-and-adr
+
+#### `missing-term-as-signal`
+Treat a concept missing from the glossary either as invented language to reconsider or as a real gap to note.
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — defer
 
 #### `multi-context-map` *(retired)*
 Maintain a root context map listing contexts, their locations and relationships, inferring which context a topic belongs to or asking.
@@ -8404,12 +8965,21 @@ Read the domain glossary and the decision records near the code before exploring
 - ours: `improve-codebase-architecture`
 - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — defer
 - `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — adopt → improve-codebase-architecture#read-domain-docs-first
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
+
+#### `repo-shape-domain-layout`
+Lay out domain docs as one root glossary and decision folder unless the repository shows several contexts, then use a root map with per-context glossaries after confirming.
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
 
 #### `sharpen-fuzzy`
 Propose one precise canonical term for a vague or overloaded one.
 - ours: `domain-modeling`
 - `mattpocock_skills:skill:skills/engineering/domain-modeling` — adopt → domain-modeling#sharpen-fuzzy
 - `mattpocock_skills:skill:skills/in-progress/loop-me` — adopt → domain-modeling#sharpen-fuzzy
+
+#### `silent-when-domain-docs-absent`
+Proceed without comment when domain docs are missing, neither flagging the gap nor suggesting they be created.
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
 
 #### `topic-context-resolution`
 Infer which context the current topic belongs to, asking when it is unclear.
@@ -9941,6 +10511,14 @@ At setup establish the command's environment without the parent's source and pro
 Report only actionable defects with trigger, consequence and evidence, defer formatting to configured tools, and state plainly when none are found rather than inventing findings.
 - ours: `review`
 
+#### `automated-review-task`
+On a pull request opened without a review or labelled for one, review it, send a failure to rework, and leave a pass waiting for a person to review and merge.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
+#### `bot-check-vote-human-review-vote`
+Where a host votes on patch sets, have a bot account vote the check label and a person vote the review label.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
 #### `boundary-controls-ref`
 Supply per-surface control methods — authorization distinct from authentication, SSRF allowlisting with DNS-rebinding residual, upload constraints, dependency triage, supply-chain install boundary, and rotate-first secret handling.
 - ours: `security`
@@ -9970,9 +10548,17 @@ Cite the standard's file and rule for every violation and quote the hunk for eve
 Check changes against a fixed catalogue of named code smells, each with a description and a fix, whether or not the repository documents standards.
 - `mattpocock_skills:skill:skills/engineering/code-review` — defer
 
+#### `cold-automated-review-run`
+Have a separate run read the diff without the author's context, against the codebase's standards and the originating ticket.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — adopt, pending cr-r2pa.2.19 → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
+
 #### `dependency-triage`
 Triage dependency advisories by reachability and impact rather than count, recording material exceptions with a revisit condition.
 - ours: `security`
+
+#### `deterministic-gates-every-run`
+Make every automated run pass the project's deterministic gates, such as types, lint and tests, before its result moves on.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — adopt, pending cr-r2pa.2.19 → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
 
 #### `final-branch-review`
 Once all tickets have landed, review the integration branch a single time and fix all findings through a single implementer.
@@ -9986,6 +10572,10 @@ Inspect the final diff and Git status before finishing.
 Confirm the review ref resolves and the diff is non-empty before fanning out, failing fast rather than inside sub-agents.
 - ours: `review`
 - `mattpocock_skills:skill:skills/engineering/code-review` — adopt → review#fixed-point-preflight
+
+#### `human-reads-before-merge`
+Have a person read each change an automated run produced before it merges.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — adopt, pending cr-r2pa.2.19 → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
 
 #### `interruption-point-audit`
 Check a state-changing operation by asking what happens when it runs twice and when it stops at each point, and add reconciliation wherever the answer depends on leftovers.
@@ -10033,6 +10623,14 @@ Judge maintainability by the layers a reader must trace and the state they must 
 #### `repo-standards-over-smells`
 Let a documented repository standard override and suppress a conflicting catalogue smell.
 - `mattpocock_skills:skill:skills/engineering/code-review` — defer
+
+#### `rework-fixes-only-findings`
+Have a rework run fix only what the automated review named.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
+#### `rework-push-rereviewed`
+Send each rework push back to automated review.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
 
 #### `scope-base-review-package`
 Review uncommitted working-tree and untracked changes against a recorded base revision by passing the authorized owned-path list, never attributing a baseline-dirty file's whole diff to the task.
@@ -10468,6 +11066,10 @@ Verify the merged result after merging.
 Assign only the task's changed paths to commits, leaving and naming every other change in the tree.
 - ours: `land`
 
+#### `pilot-on-mirror-with-fallback`
+Try a new host on a mirror of one repository while the existing host stays as the fallback.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
 #### `pinned-set-cross-check`
 Cross-check every cleanup candidate against the owner's list of pinned or in-use worktrees, holding a recently active one to ask.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/worktree-cleanup.md`
@@ -10566,6 +11168,7 @@ Read the repo's own lint and check commands before proposing one, treating an un
 When a candidate conflicts with a decision record, explain the new evidence that might justify revisiting it.
 - ours: `improve-codebase-architecture`
 - `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — adopt → improve-codebase-architecture#adr-conflict-callout
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
 
 #### `candidate-comparison`
 Give each candidate its files, friction, direction, benefit, migration cost, evidence and confidence, then present a concise comparison and the strongest supported recommendation.
@@ -10595,6 +11198,18 @@ Scope the audit to a named module or pain point, otherwise to the hot spots in r
 Review a session for improvements to the agent's environment across fixed categories (navigation, automated checks, coding standards, steering files, tool economy, no-ops, information access).
 - `mattpocock_skills:skill:skills/engineering/retro` — defer
 
+#### `factory-retro-task`
+After a merge, read the pull request, its ticket, reviews and run logs and propose changes to the automation's instructions as a pull request that starts an automated review run.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
+#### `factory-retro-throttle`
+Run the merge retrospective on only one merged pull request in ten.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
+#### `failures-first-retro-sample`
+Fill a retro sample with the sessions where something went wrong before any others.
+- `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — adopt, pending cr-r2pa.2.19 → reflect#failures-first-retro-sample
+
 #### `load-writing-guide-first`
 Load the agent-writing guidance before writing any improvement suggestion.
 - `mattpocock_skills:skill:skills/engineering/retro` — defer
@@ -10610,6 +11225,14 @@ Read the primary sources (session logs) for the session under review, defaulting
 #### `retro-in-reviewed-session`
 Run a retrospective inside the session it reviews before clearing, or point it at that session's log afterwards.
 - `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
+
+#### `retro-without-approval`
+Decide which retro candidates are worth pursuing and pursue them, in place of presenting them for approval.
+- `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — reject
+
+#### `sampled-session-retros`
+Retro a sample of about one in five delegated sessions, nested dispatches included, rather than every one.
+- `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — adopt, pending cr-r2pa.2.19 → reflect#sampled-session-retros
 
 #### `severity-ordered-proposals`
 Present improvement candidates to the user in order of severity.
@@ -10640,6 +11263,26 @@ Stay in context while useful and, before compacting or handing off, persist scop
 
 ### engineering · X · Coordination
 
+#### `ack-webhook-then-start-run`
+Acknowledge an incoming webhook at once and start the run afterwards.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
+#### `app-identity-for-chained-runs`
+Make writes that must start the next run under an identity whose writes emit that event, wherever the host's default run identity suppresses it for some event kinds.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
+#### `batched-webhook-workaround`
+Trigger on property changes, or choose another tracker type, when batched webhooks would delay runs.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
+#### `cache-only-persistence`
+Let anything kept on a runner between runs be only a cache the next run can do without.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
+#### `capped-run-loops`
+Stop any loop of runs after a few tries and hand it to a person, labelled as waiting for one.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
 #### `child-workflows`
 Run independent graphs as admitted child workflows where collection is evidence and landing goes through the contractor, not automatic result binding.
 - ours: `implement`
@@ -10648,26 +11291,130 @@ Run independent graphs as admitted child workflows where collection is evidence 
 Close a phase only when it has at least one stage, every stage is closed, and its roadmap exit criterion has run with evidence recorded.
 - ours: `implement`
 
+#### `define-task-once`
+Define each kind of automated work once as a task that runs many times against a ticket, a pull request or the whole codebase.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
 #### `delegated-report-recovery`
 Interpret each delegated worker's status (done, done-with-concerns, needs-context, blocked) and recover by supplying context, splitting, debugging or replanning, since bare repetition is not recovery.
 - ours: `implement`
+
+#### `design-done-all-answered`
+Count a design unfinished until every task and ticket source answers every question.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — adopt, pending cr-r2pa.2.19 → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
+
+#### `disposability-by-runner-type`
+Make each runner disposable by the means its type offers: a microVM made and killed per run, an ephemeral CI runner, a removed container or a destroyed machine.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
+#### `disposable-runner`
+Run each task on a machine that keeps nothing past the run, even when the machine itself lives on.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
+#### `failed-run-fix-task`
+File a failed run's log as a ticket and, when the failure is fixable, attempt a fix as a pull request sent to review.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
+#### `late-context-on-pull-request`
+Put later context on the pull request when a native agent reads its ticket only at assignment.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
+#### `memory-only-in-services`
+Let a run learn about earlier runs only from the tracker, the git host and the orchestrator.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
+#### `no-chain-from-failed-fix`
+Start nothing when a run that was fixing a failed run fails itself.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
+#### `no-reused-implementer`
+Give each ticket, and the closing round of review fixes, a newly started implementer rather than one that already finished other work.
+- `mattpocock_skills:skill:skills/engineering/implement-spec` — adopt, pending cr-r2pa.2.19 → implement#no-reused-implementer
+
+#### `one-trigger-at-a-time`
+Add automated triggers one at a time rather than several together.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
+#### `opaque-run-unit`
+Treat a single task execution on one runner, from start event to finish, as an opaque unit.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
+#### `orchestrator-joins-event-streams`
+Have the orchestrator join git host and tracker events itself when they come from separate products.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
+#### `orchestrator-run-states`
+Give one component the job of taking triggers, starting runs and recording each run as queued, in flight or finished.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
 
 #### `parallel-frontier-implementers`
 Run implementer subagents concurrently over the ready frontier of a ticket graph, dispatching new ones whenever a merge opens more tickets.
 - `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
 - `mattpocock_skills:skill:skills/engineering/implement-spec` — defer
 
+#### `per-ticket-concurrency-lock`
+Use a concurrency group keyed on the ticket so two runs never work the same ticket.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
 #### `phase-loop`
 Resolve the roadmap phase's single epic, drive ready stages through the contractor that owns execution to closure, and refresh tracking between stages.
 - ours: `implement`
+
+#### `question-duplicate-runs`
+Answer, for each automated task, what keeps two of its runs from doing one piece of work.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — adopt, pending cr-r2pa.2.19 → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
+
+#### `question-human-reentry`
+Answer, for each automated task, where a person comes back in.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — adopt, pending cr-r2pa.2.19 → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
+
+#### `question-source-dedupe`
+Answer, for each ticket source, what keeps it from filing one problem as two tickets.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — adopt, pending cr-r2pa.2.19 → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
+
+#### `question-task-effects`
+Answer, for each automated task, what it does and which services it reads and writes.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — adopt, pending cr-r2pa.2.19 → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
+
+#### `question-task-successor`
+Answer, for each automated task, what it starts next.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — adopt, pending cr-r2pa.2.19 → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
+
+#### `question-task-trigger`
+Answer, for each automated task, what starts it.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — adopt, pending cr-r2pa.2.19 → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
 
 #### `risk-sized-review`
 Size work small, standard or deep and match inline work, delegation and independent review to that size.
 - ours: `implement`
 
+#### `run-chaining-channels`
+Let a run start later runs only directly, through orchestrator logic, or by changing the tracker or git host.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
+#### `run-ends-instead-of-waiting`
+End a run rather than pausing for a person, so the person's later tracker or git host change starts a new run.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
+#### `run-timeout-backstop`
+Put a timeout on every run machine as a backstop, set from the orchestrator's deadline where the machines are owned.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
+#### `runner-per-task`
+Choose the runner per task, so review and implementation runs may run on different kinds.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
 #### `scope-selector`
 Pick task, phase or workstream scope from the request and route unresolved material scope back to planning or brainstorming.
 - ours: `implement`
+
+#### `self-chaining-implementer`
+Have the implementer pick the next ticket with no open dependency and restart itself until none remain.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
+#### `spec-tickets-implement-pipeline`
+Send large work through a spec, then tickets, then publishing both to the tracker, then implementing them.
+- `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — defer
 
 #### `staged-delivery-flow`
 Order the work as interview, optional prototype, spec, tickets, implementation, review and retrospective.
@@ -10676,6 +11423,30 @@ Order the work as interview, optional prototype, spec, tickets, implementation, 
 #### `stop-on-failure`
 Let a failed gate, exit criterion or material blocker stop advancement and diagnose instead of re-dispatching without new evidence.
 - ours: `implement`
+
+#### `three-trigger-classes`
+Start every run from one of three event classes: a tracker or git host change, an orchestrator clock, or another run.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
+#### `throttled-trigger-ramp`
+Run a new trigger throttled, with a person reviewing every change it makes, and widen the throttle only as the checks earn trust.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
+#### `ticket-implementer-task`
+On a ticket labelled ready, build it until the automated checks pass, open a draft pull request and start a review run.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
+#### `ticket-source-slot`
+Model each outside producer of tickets, such as a feedback button or a monitor, as its own ticket source.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
+#### `tracker-as-human-interface`
+Make the ticket tracker the one place where people schedule work, talk to agents and cause runs.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
+#### `tracker-routing-by-type`
+Route runs by what the tracker type offers: labels on a git-host tracker, status moves on an agent-native one, invented properties in a general work tool, and file diffs after a push for repository tickets.
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
 
 #### `workstream-mode`
 Run remaining phases in order only on explicit opt-in, with per-phase tracking refresh and commits only when the invocation covers them.

@@ -62,10 +62,15 @@ deleted. Beads is the work-state authority; this file is the narrative.
 | `cee1ab3` | Principles stop being skills: the 14 move to `mvp-mode/principles/` (owner ruling 2026-11-05, round `2026-11-05-principle-move`) |
 | `5a58e2e` | Two principle edits from the prompting-guide review (round `2026-11-05-principle-edits`) |
 | `9fe4027` | `delegation`'s brief names the principles that apply (round `2026-11-05-delegation-principles`) |
-| after `9fe4027` | Batch P1 ruled and recorded (`cr-r2pa.2.13`, round `2026-11-06-batch-p1`), with the principle-file fixes to `loaders.py`, see below |
+| `cd76d3f` | Batch P1 ruled and recorded (`cr-r2pa.2.13`, round `2026-11-06-batch-p1`), with the principle-file fixes to `loaders.py`, see below |
+| `97f597e` | A skill's record keeps its history after a rename; `add` refuses a retired name |
+| `6763f83` to `12df2d8` | Renames to `tdd`, `unslop`, `brief-me`, `implement` (round `2026-11-06-renames`) |
+| `8870acb` | Reference pages name the renamed skill |
+| `4c9ba8c` | Fourteen read-only references added for later study (`tstack`, `dori-superagent`, `reference_harnesses/kun/`), epic `cr-56rw` |
+| after `4c9ba8c` | Both pins moved and the Pocock update ruled and recorded (`cr-r2pa.2.13`, round `2026-11-09-pocock-4ae2317`), see below |
 
 `main` is at `eb36cc9`; later work is on `mvp-stack` until the owner asks to merge.
-`mvp-stack` is pushed through `delegation`'s principle line; later commits are local until the owner says to push.
+`mvp-stack` is pushed through the Pocock update; later commits are local until the owner says to push.
 
 Decisions behind them: domains `core` and `engineering`; one primary
 coordinate per skill (domain · stage · sub-stage); reviews are flat files
@@ -165,6 +170,12 @@ critic, owner rulings, ledger, build, Sol review, commit after the owner approve
   skill. 153 adopts are pending on `cr-r2pa.2.18`, which builds them; rows into a new unit carry no
   frozen wording, so each new body's critic maps every row to `file:line`. `principle-no-comments`
   waits for the keep-list in pstack's `agents/comment-sicko.md`. Nothing of P1 is built yet.
+  The Pocock update `5beb35b` to `4ae2317` (170 rows: 21 pending adopts, 6 already held, 98 defers,
+  45 rejects) is ruled as recommended on 2026-11-09 and recorded (round `2026-11-09-pocock-4ae2317`).
+  `cursor_plugins` moved to `2776ddd` with no report: only `third_party/` changed. The 21 are pending
+  on `cr-r2pa.2.19`; `software-factory` stays on the owner's hold, and its whole-system comparison
+  with `firstmate` and `dori-superagent` is `cr-56rw.15`. The report's critic fields are `accepted`:
+  Sol's last round (`critic-15d`) asked for two fixes, which the coordinator made and read.
 - Principles against the prompting guides: proposal in
   `scratchpad/mvp-stack/12b/principles-vs-guides.md` (gitignored), critic `critic-12c.md`. Ruled:
   keep 7, small edit 2 (done), keep until tested 5, cut none. A search of past sessions

@@ -70,12 +70,13 @@ Map and resolve material decision dependencies across a multi-session effort.
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-09` **adopt-merged** (2026-11-09-pocock-4ae2317:168): Checkpoint at 4ae2317 for the owner's trait rulings: 1 adopt.
 - `2026-11-06` **update** (2026-11-06-renames:015): Owner ruling D of 2026-11-05 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 14a U1. A clear route goes to the units planning or implement, now nam…
 - `2026-11-04` **adopt** (2026-11-04-pocock-pass:037): Completes pending 2026-10-30-mattpocock_skills-5beb35b:155: prerequisite-task-result-facts is written at .claude/skills/wayfinder/SKILL.md:31-33, in the sealed…
 - `2026-11-04` **adopt** (2026-11-04-pocock-pass:036): Completes pending 2026-10-30-mattpocock_skills-5beb35b:154: prerequisite-task-human-checklist is written at .claude/skills/wayfinder/SKILL.md:30-31, in the sea…
 - `2026-11-04` **adopt** (2026-11-04-pocock-pass:035): Completes pending 2026-10-30-mattpocock_skills-5beb35b:156: invalidated-ticket-reconciliation is written at .claude/skills/wayfinder/SKILL.md:51-52, in the sea…
 - `2026-11-04` **adopt** (2026-11-04-pocock-pass:034): Completes pending 2026-10-30-mattpocock_skills-5beb35b:149: breadth-first-charting is written at .claude/skills/wayfinder/SKILL.md:42-44, in the sealed rewordi…
-- `2026-10-30` **adopt-merged** (2026-10-30-mattpocock_skills-5beb35b:566): Checkpoint at 5beb35b for the owner's trait rulings: 24 adopt, 11 defer.
+- `2026-10-30` **adopt-merged** (2026-10-30-mattpocock_skills-5beb35b:566) *(superseded)*: Checkpoint at 5beb35b for the owner's trait rulings: 24 adopt, 11 defer.
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:156) *(superseded)*: Ours updates invalidated dependencies (SKILL.md:46) but not the tickets themselves; closing rather than deleting keeps the Beads history the brief requires.
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:155) *(superseded)*: Ours records each answer (SKILL.md:44) but not the operational facts a task produces for later tickets; the clause on secrets keeps it within AGENTS.md's secre…
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:154) *(superseded)*: Ours does authorized prerequisite work (SKILL.md:30) but says nothing for work only the human can do; a precise checklist keeps the wait short.
@@ -118,6 +119,7 @@ Map and resolve material decision dependencies across a multi-session effort.
 <!-- /registry:generated history -->
 
 <!-- registry:generated reviews -->
+- [2026-11-06-upstream-mattpocock_skills-4ae2317.md](../../reviews/2026-11-06-upstream-mattpocock_skills-4ae2317.md)
 - [skill-comparisons/interaction-utilities](../../../archive/skill-comparisons/interaction-utilities/)
 <!-- /registry:generated reviews -->
 
