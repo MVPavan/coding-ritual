@@ -272,7 +272,7 @@ planning:
   family: plan-authoring
   aliases: []
   status: active
-  boundary: "Writes a durable implementation plan, dependency graph or workstream decomposition for settled work; what to remove before adding is principle-subtract-before-you-add, and migrating without shims is principle-migrate-without-shims. A plan in checked form names per-unit evidence and one `implement` scope; running it is `implement`."
+  boundary: "Writes a durable implementation plan for settled work; splitting an approved spec into tracked phases and stages is to-tickets, what to remove before adding is principle-subtract-before-you-add, and migrating without shims is principle-migrate-without-shims. A plan in checked form names per-unit evidence and one `implement` scope; running it is `implement`."
 principle-attack-the-premise:
   domain: engineering
   stage: Building
@@ -506,7 +506,16 @@ to-spec:
   family: spec-authoring
   aliases: []
   status: active
-  boundary: "Writes decisions already settled into a durable spec and gates its approval; exploring or comparing choices still open is brainstorming, and splitting an approved spec into tracked work is planning."
+  boundary: "Writes decisions already settled into a durable spec and gates its approval; exploring or comparing choices still open is brainstorming, and splitting an approved spec into tracked work is to-tickets."
+to-tickets:
+  domain: engineering
+  stage: Design
+  substage: Decomposition
+  secondary: []
+  family: plan-authoring
+  aliases: []
+  status: active
+  boundary: "Splits an approved spec into tracked phases and stages with acceptance and real dependency edges, seeded in Beads after approval; writing the implementation plan for settled work is planning, and writing the spec itself is to-spec."
 triage:
   domain: core
   stage: Intake

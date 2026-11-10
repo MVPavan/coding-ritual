@@ -27,8 +27,8 @@ steps:
 
 For a request to produce a plan for several independently verifiable units, or work
 whose open questions must be settled before planning. A request to build is the feature
-playbook, which sends unsettled work here first. An existing roadmap phase, an approved
-spec to split or a settled plan keeps its route: `planning` or `implement`.
+playbook, which sends unsettled work here first. An existing roadmap phase or a settled
+plan keeps its route, `planning` or `implement`; an approved spec to split is `to-tickets`.
 
 **The gate:** the run ends at the plan and implements nothing. It writes only the plan
 file, gitignored scratch, and authorized tracker metadata with its export, leaving what

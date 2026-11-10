@@ -44,7 +44,7 @@ Domain → stage → sub-stage. Each active skill under its primary home.
 
 ### Design
 - **Architecture**: codebase-design, design-evolve, domain-modeling, principle-boundary-discipline, principle-make-operations-idempotent, principle-minimize-reader-load, principle-model-the-domain, principle-redesign-from-first-principles, principle-separate-before-serializing-shared-state, principle-type-system-discipline, prototype
-- **Decomposition**: planning, principle-migrate-without-shims, principle-subtract-before-you-add
+- **Decomposition**: planning, principle-migrate-without-shims, principle-subtract-before-you-add, to-tickets
 - **Specification**: principle-experience-first
 
 ### Building
@@ -76,7 +76,7 @@ Two or more active skills share one domain · sub-stage (README §2 rule 3):
 - core · X · Coordination: delegation, model-council, mvp-mode, perspective-council
 - engineering · Discovery · Research: codebase-research, explain-code
 - engineering · Design · Architecture: codebase-design, design-evolve, domain-modeling, principle-boundary-discipline, principle-make-operations-idempotent, principle-minimize-reader-load, principle-model-the-domain, principle-redesign-from-first-principles, principle-separate-before-serializing-shared-state, principle-type-system-discipline, prototype
-- engineering · Design · Decomposition: planning, principle-migrate-without-shims, principle-subtract-before-you-add
+- engineering · Design · Decomposition: planning, principle-migrate-without-shims, principle-subtract-before-you-add, to-tickets
 - engineering · Building · Diagnosis: performance-optimization, principle-attack-the-premise, principle-explain-the-number, systematic-debugging
 - engineering · Building · Implementation: principle-sequence-verifiable-units, tdd
 - engineering · Verification · Testing: check-invariants, principle-test-behavior-not-implementation

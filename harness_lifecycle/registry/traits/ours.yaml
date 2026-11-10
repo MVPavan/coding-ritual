@@ -108,7 +108,7 @@ ours:model-council:
   tree_hash: "604be20a026528990ef9536cfbb643228189552f25f15eda46633ae3f4445f05"
   traits: [member-resolution, runtime-capability-check, neutral-framing, member-isolation, report-preservation, independent-synthesis, consolidated-delivery, identity-recording, failed-member-recovery, no-silent-substitution, artifact-named-up-front, task-rubric-criteria, rubric-withheld-from-candidates, own-output-location, rationale-names-rejected, dropout-proceeds-noted, read-only-judge, judge-other-family-or-stated, rubric-given-to-judge, path-labelled-candidates, judge-criterion-scores, judge-recommends-base, full-read-before-pick, picker-criterion-scores, pick-compared-with-judge, disagreement-rereads-rationales, base-chosen-for-extensibility, near-tie-smaller-surface, loser-graft-pass, sparse-grafts, hand-folded-grafts, converged-shape-no-graft, divergence-reframes-once, graft-change-rerun, verify-miss-returns-once, single-synthesized-artifact, synthesis-decision-record, note-judge-status, note-convergence-dropouts, note-verification-result, no-judge-no-pick]
 ours:mvp-mode:
-  tree_hash: "964346b166fc31919cb8704f58fb66e7d778056e5822319f005cfc9f61b83b63"
+  tree_hash: "50d291ba3cf46064ff71ce0067a2d94b8bd648cc4116e5bd914e85f410850245"
   traits: [unit-kind-lines, playbook-pick, need-to-skill-routing, overlap-arbitration, layered-catalog, platform-skill-invocation, no-playbook-in-delegate, delegate-independent-by-default, no-onward-delegation, playbook-steps-as-todos, recorded-step-skip, whole-callee, playbook-exit, legacy-entrypoint-flagging, catalog-trust-boundary]
 ours:performance-optimization:
   tree_hash: "8e393535c7e06691afca39ef9df84040ce4752a29a8cc58610b8522ce951c4da"
@@ -119,10 +119,8 @@ ours:perspective-council:
   notes:
     independent-synthesis: "The synthesizer is a fresh chair who restores attribution after anonymized peer review and ends with a practical next step."
 ours:planning:
-  tree_hash: "134bc2e73a53947fde76ee8e0df83a90119ec4845dde6c8939e45b69ee536d8e"
-  traits: [route-by-scale, decompose-phases, vertical-slices, expand-contract, dependency-edges, beads-native-tracking, durable-plan-format, plan-evidence-bound, test-first-marking, no-placeholder-plan, plan-self-review, reviewer-rejectable-sizing, real-id-wiring, no-stale-code-snippets, ground-in-codebase, breakdown-approval-before-publish, per-unit-evidence-boxes, named-execution-scope, plan-lint-last, prefactor-first, blast-radius-batches]
-  notes:
-    beads-native-tracking: "The roadmap anchor is the --spec-id and the governing spec is --design; the renderer derives the workstream from the anchor, so a plan path never goes in --design."
+  tree_hash: "54cefd2bb29945cf1033a9e9b404c86dca818d969927622392a7ef536fd485cd"
+  traits: [route-by-scale, durable-plan-format, plan-evidence-bound, test-first-marking, no-placeholder-plan, plan-self-review, reviewer-rejectable-sizing, no-stale-code-snippets, ground-in-codebase, per-unit-evidence-boxes, named-execution-scope, plan-lint-last, vertical-slices, prefactor-first, expand-contract, blast-radius-batches]
 ours:principle-attack-the-premise:
   tree_hash: "cf7cabf2ae6d4008f40654e817c4b2eb8a251800d10361a6cf0fe0caba8b554f"
   traits: [premise-test-gate]
@@ -231,8 +229,13 @@ ours:tdd:
     no-implementation-coupling: "Asserts exact source text only when that text is the contract."
     mock-boundaries: "Fakes and partial mocks are valid at any boundary that preserves the contract."
 ours:to-spec:
-  tree_hash: "22daf75b5bb34a7ff79fa8bfa53b54d618224d58be6fc702c1d4d0ffacbbc7ee"
+  tree_hash: "45244f27501e4c14c424a080e3fa46a18c5e30ba94503a11ec6e79345ce844b9"
   traits: [synthesize-settled, spec-template, spec-criteria-and-questions, none-keeps-heading, testing-seam-decision, no-stale-file-paths, no-stale-code-snippets, prototype-snippet, spec-approval-gate, material-risk-review, user-perspective-framing, implementation-decisions-scope, testing-decisions-contents]
+ours:to-tickets:
+  tree_hash: "5f90b277f8d716e07f0da669935f5677b6dd097fab6226bc20c7e330b2a72b04"
+  traits: [decompose-phases, vertical-slices, expand-contract, dependency-edges, beads-native-tracking, real-id-wiring, breakdown-approval-before-publish, prefactor-first, blast-radius-batches]
+  notes:
+    beads-native-tracking: "The roadmap anchor is the --spec-id and the governing spec is --design; the renderer derives the workstream from the anchor, so a plan path never goes in --design."
 ours:triage:
   tree_hash: "3e6dc7d1be687f106a87b6ffe8c46deb0fdfa5d2a9776caf02eba25e25415ddf"
   traits: [attention-buckets, triage-decision, established-notes, triage-resume-notes, redundancy-check, prior-rejection-check, claim-verification, agent-ready-gate, pick-from-summary, durable-rejection-reasons, already-built-close, brief-acceptance-criteria, read-full-source-issue, ready-for-human-rationale]

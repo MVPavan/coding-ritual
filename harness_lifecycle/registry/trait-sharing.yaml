@@ -5,13 +5,29 @@
 # fails. Rules: docs/workstreams/skill-curation/stages-design.md §Shared traits.
 # Entries are justified by the owner (bead cr-talb).
 dependency-edges:
-  skills: [planning, wayfinder]
-  why: "Each builds its own tracker graph, planning for implementation stages and wayfinder for decision tickets, and lets readiness drive the work; edge semantics stay in beads."
+  skills: [to-tickets, wayfinder]
+  why: "Each builds its own tracker graph, to-tickets for implementation stages and wayfinder for decision tickets, and lets readiness drive the work; edge semantics stay in beads."
   reviewed: "2026-10-30"
 real-id-wiring:
-  skills: [planning, wayfinder]
+  skills: [to-tickets, wayfinder]
   why: "Both create beads and then wire edges between the IDs they just created, each inside its own seeding procedure."
   reviewed: "2026-10-30"
+vertical-slices:
+  skills: [planning, to-tickets]
+  why: "Same rule, applied by planning to a plan's tasks and by to-tickets to tracked stages; each entry point writes its own units."
+  reviewed: "2026-11-10"
+prefactor-first:
+  skills: [planning, to-tickets]
+  why: "Same rule, applied by planning to a plan's tasks and by to-tickets to tracked stages; each entry point writes its own units."
+  reviewed: "2026-11-10"
+expand-contract:
+  skills: [planning, to-tickets]
+  why: "Same rule, applied by planning to a plan's tasks and by to-tickets to tracked stages; each entry point writes its own units."
+  reviewed: "2026-11-10"
+blast-radius-batches:
+  skills: [planning, to-tickets]
+  why: "Same rule, applied by planning to a plan's tasks and by to-tickets to tracked stages; each entry point writes its own units."
+  reviewed: "2026-11-10"
 drift-scan:
   skills: [harness-scan, harness-status]
   why: "Both run the one drift command, scan for a single harness and status as a sweep of all of them; a pointer between them would add a hop to a one-line command."

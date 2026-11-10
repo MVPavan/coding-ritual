@@ -12,7 +12,7 @@ status: active
 
 Use when decisions already settled should be written up as a durable spec for planning or another session. Skip choices still open or being compared, which are brainstorming.
 
-**Boundary:** Writes decisions already settled into a durable spec and gates its approval; exploring or comparing choices still open is brainstorming, and splitting an approved spec into tracked work is planning.
+**Boundary:** Writes decisions already settled into a durable spec and gates its approval; exploring or comparing choices still open is brainstorming, and splitting an approved spec into tracked work is to-tickets.
 
 <!-- registry:generated traits -->
 - `synthesize-settled`: When the decisions are already settled, synthesize them into a spec without reopening the discussion.
@@ -45,6 +45,8 @@ Use when decisions already settled should be written up as a durable spec for pl
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-10` **update** (2026-11-10-renames-splits:101): Critic-18b F3. references/spec-template.md's consumer line names the epic fields as to-tickets and planning set them: a workstream's phase epics carry the spec…
+- `2026-11-10` **update** (2026-11-10-renames-splits:097): Owner ruling C of 2026-11-05 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 14a U4 (plan section 5.1, R8). references/spec-template.md's consumer …
 - `2026-11-10` **update** (2026-11-10-renames-splits:084): critic-17b F1: to-spec/SKILL.md:15 reads what the spec must describe, not what distinguishes the live choices, so it does not deliver scoped-context-read and c…
 - `2026-11-10` **adopt** (2026-11-10-renames-splits:081): Completes pending 2026-11-10-renames-splits:018: prototype-snippet is delivered at .claude/skills/to-spec/references/spec-template.md:60, moved unchanged with …
 - `2026-11-10` **adopt** (2026-11-10-renames-splits:080): Completes pending 2026-11-10-renames-splits:010: testing-decisions-contents is delivered at .claude/skills/to-spec/references/spec-template.md:79-81, moved unc…

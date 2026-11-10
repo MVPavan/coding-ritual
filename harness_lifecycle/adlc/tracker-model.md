@@ -7,7 +7,7 @@ of the model; `document-model.md` is the document half.
 
 It is design guidance from the 2026-10-07 to 2026-10-14 discussions. Only the
 `review` status (§3) is in the `beads` skill today. The rest waits until the
-skills (`beads` `usage.md` §7 and `prime.md`, `planning` `decompose.md`, and
+skills (`beads` `usage.md` §7 and `prime.md`, `to-tickets` `decompose.md`, and
 the status renderer) are updated together; §8 lists what that needs.
 
 ## 1. Two layers
@@ -244,7 +244,7 @@ The model becomes policy only when these change together:
 
 1. `beads` `usage.md` §7 (rules 1–8 replace the phase-epic text) and one
    `prime.md` line for rule 1.
-2. `planning` `references/decompose.md`: a pointer to `usage.md` §7, not a
+2. `to-tickets` `references/decompose.md`: a pointer to `usage.md` §7, not a
    copy.
 3. `bd-render-tracking.sh`: group by `spec_id` and show features, instead of
    reading `[<phase-id>]` epic titles.

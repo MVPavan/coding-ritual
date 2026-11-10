@@ -10,31 +10,26 @@ status: active
 ---
 # planning
 
-Use when settled work needs a durable implementation plan, dependency graph, or workstream decomposition: an existing roadmap phase, an approved spec to split, or a plan in a form someone names. A request to produce a plan for several units, or work whose open questions must be settled first, is the multi-phase-plan playbook, which calls this. Skip planning ceremonies for clear bounded tasks.
+Use when settled work needs a durable implementation plan: an existing roadmap phase or a plan in a form someone names. Splitting an approved spec into tracked phases and stages is to-tickets; a request to produce a plan for several units, or work whose open questions must be settled first, is the multi-phase-plan playbook, which calls this. Skip planning ceremonies for clear bounded tasks.
 
-**Boundary:** Writes a durable implementation plan, dependency graph or workstream decomposition for settled work; what to remove before adding is principle-subtract-before-you-add, and migrating without shims is principle-migrate-without-shims. A plan in checked form names per-unit evidence and one `implement` scope; running it is `implement`.
+**Boundary:** Writes a durable implementation plan for settled work; splitting an approved spec into tracked phases and stages is to-tickets, what to remove before adding is principle-subtract-before-you-add, and migrating without shims is principle-migrate-without-shims. A plan in checked form names per-unit evidence and one `implement` scope; running it is `implement`.
 
 <!-- registry:generated traits -->
 - `route-by-scale`: Route between brainstorming, a brief local sequence, elaborate, decompose, or executing from a roadmap row according to the work's scale.
-- `decompose-phases`: Split an approved spec into demoable phases with checkable exits and flat stages that each carry acceptance.
-- `vertical-slices`: Prefer independently verifiable vertical slices over horizontal layers.
-- `expand-contract`: For a broad refactor use expand, migrate then contract with genuine dependencies, naming one integration boundary when intermediate tasks cannot stay green.
-- `dependency-edges`: Encode real blocking edges in the tracker and let the ready frontier drive execution rather than listing order.
-- `beads-native-tracking`: Seed epics and stages and render tracking natively in the tracker, keeping the roadmap anchor on the epics and the stage mapping that execution closes against, and writing nothing before its matching approval. (The roadmap anchor is the --spec-id and the governing spec is --design; the renderer derives the workstream from the anchor, so a plan path never goes in --design.)
 - `durable-plan-format`: Produce a durable plan with ownership boundaries, interfaces, verification, dependencies and known files, saved to the plans path and approval-gated.
 - `plan-evidence-bound`: List known files but do not invent exact symbols or freeze a file map without evidence, leaving implementers to discover internals within their ownership.
 - `test-first-marking`: Mark risky changes test-first or characterization-first in the plan.
 - `no-placeholder-plan`: Reject plan placeholders such as TBD, vague error-handling notes, unnamed test behaviours, same-as-another-task references and unresolved cross-task contracts, naming concrete acceptance instead.
 - `plan-self-review`: Self-review the finished plan for spec-requirement coverage, consistent names and types across tasks, and a gap-naming pass that turns unnamed seams, migrations, rollout and cleanup into tasks or explicit exclusions.
 - `reviewer-rejectable-sizing`: Size each task so a reviewer could accept or reject it independently of its neighbour, folding setup, scaffolding and docs into the deliverable they serve.
-- `real-id-wiring`: Wire cross-references and dependencies with real identifiers, never placeholders.
 - `no-stale-code-snippets`: Keep code snippets out of a durable spec or ticket because they go stale.
 - `ground-in-codebase`: Explore the current state of the code before writing, so the artifact targets what actually exists.
-- `breakdown-approval-before-publish`: Iterate on the ticket breakdown until the user approves it, publishing nothing before approval.
 - `per-unit-evidence-boxes`: In a plan in checked form, give each task a required Check box with a command and pass condition, and Live and Measure each as a box or a stated not-applicable reason, for a coordinator to tick only when the evidence exists.
 - `named-execution-scope`: Name in the plan which one execution scope runs it, task, phase or workstream, chosen by how the work is held, and leave how that scope runs to execution.
 - `plan-lint-last`: Finish a plan in checked form by running its structure lint, fixing every line, rerunning after any later edit until it exits 0, reporting the last output and that it proves structure only, and handing back a plan still failing after two rounds as not ready.
+- `vertical-slices`: Prefer independently verifiable vertical slices over horizontal layers.
 - `prefactor-first`: Find prefactoring that makes the change easy and sequence it before the feature slices.
+- `expand-contract`: For a broad refactor use expand, migrate then contract with genuine dependencies, naming one integration boundary when intermediate tasks cannot stay green.
 - `blast-radius-batches`: Size migration batches by blast radius and keep the build green between them.
 <!-- /registry:generated traits -->
 
@@ -68,6 +63,9 @@ Use when settled work needs a durable implementation plan, dependency graph, or 
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-10` **update** (2026-11-10-renames-splits:100): Critic-18b correction of the U4 split (coordinator rulings F1, F2). Elaborate keeps its approval gate: no Beads write, the task or its plan: note, before the p…
+- `2026-11-10` **update** (2026-11-10-renames-splits:087) *(superseded)*: Owner ruling C of 2026-11-05 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 14a U4. Route sends an approved spec needing phase/stage decomposition…
+- `2026-11-10` **split** (2026-11-10-renames-splits:086): Owner ruling C of 2026-11-05 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 14a U4. Its Decompose and Slicing sections become to-tickets; referenc…
 - `2026-11-09` **adopt-merged** (2026-11-09-pocock-4ae2317:162) *(superseded)*: Checkpoint at 4ae2317 for the owner's trait rulings: 2 adopt.
 - `2026-11-06` **update** (2026-11-06-renames:013): Owner ruling D of 2026-11-05 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 14a U1. The Run with: contract names implement: skeleton.md's template…
 - `2026-11-02` **update** (2026-11-02-pilot-2:018): Final critic of pilot 2. The lint splits lines as execution's extractor does, normalizing CRLF only and splitting on LF, and any other line separator is a prob…
@@ -111,15 +109,15 @@ Use when settled work needs a durable implementation plan, dependency graph, or 
 
 <!-- registry:generated sources -->
 - `beads-native-tracking`:
-  - `mattpocock_skills:skill:skills/engineering/to-tickets#publish-to-tracker` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
-  - `mattpocock_skills:skill:skills/engineering/to-tickets#sub-issue-linkage` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+  - `mattpocock_skills:skill:skills/engineering/to-tickets#publish-to-tracker` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2; withdrawn 2026-11-10)
+  - `mattpocock_skills:skill:skills/engineering/to-tickets#sub-issue-linkage` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2; withdrawn 2026-11-10)
 - `blast-radius-batches`:
   - `mattpocock_skills:skill:skills/engineering/to-tickets#blast-radius-batches` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `breakdown-approval-before-publish`:
-  - `mattpocock_skills:skill:skills/engineering/to-tickets#breakdown-approval-before-publish` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+  - `mattpocock_skills:skill:skills/engineering/to-tickets#breakdown-approval-before-publish` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2; withdrawn 2026-11-10)
 - `dependency-edges`:
-  - `mattpocock_skills:skill:skills/engineering/implement-spec#dependency-edges` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
-  - `mattpocock_skills:skill:skills/engineering/to-tickets#dependency-edges` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+  - `mattpocock_skills:skill:skills/engineering/implement-spec#dependency-edges` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2; withdrawn 2026-11-10)
+  - `mattpocock_skills:skill:skills/engineering/to-tickets#dependency-edges` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2; withdrawn 2026-11-10)
 - `expand-contract`:
   - `mattpocock_skills:skill:skills/engineering/to-tickets#expand-contract` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `ground-in-codebase`:
@@ -131,7 +129,7 @@ Use when settled work needs a durable implementation plan, dependency graph, or 
 - `prefactor-first`:
   - `mattpocock_skills:skill:skills/engineering/to-tickets#prefactor-first` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `real-id-wiring`:
-  - `mattpocock_skills:skill:skills/engineering/to-tickets#real-id-wiring` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+  - `mattpocock_skills:skill:skills/engineering/to-tickets#real-id-wiring` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2; withdrawn 2026-11-10)
 - `vertical-slices`:
   - `mattpocock_skills:skill:skills/engineering/to-tickets#vertical-slices` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 <!-- /registry:generated sources -->

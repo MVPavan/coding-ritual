@@ -280,9 +280,9 @@ material moves to references. [data: H1 holds via standalone use]
 
 ### Known deviations (from the study)
 
-- Mixed roles (9): `beads`, `codebase-design`,
+- Mixed roles (8): `beads`, `codebase-design`,
   `codebase-research`, `domain-modeling`, `performance-optimization`,
-  `planning`, `security`, `systematic-debugging`, `wayfinder`.
+  `security`, `systematic-debugging`, `wayfinder`.
 - Playbook-like (2): `implement`, `harness-publish`.
 - Principle-like (1): `brief-me`.
 - To retire (1): `skill-router` (R1).
