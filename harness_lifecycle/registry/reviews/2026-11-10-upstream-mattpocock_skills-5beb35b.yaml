@@ -1,0 +1,93 @@
+harness: mattpocock_skills
+from_sha: null
+to_sha: 5beb35b
+supersedes:
+- harness_lifecycle/registry/reviews/2026-11-09-upstream-mattpocock_skills-5beb35b.yaml
+analysis_critic:
+  by: claude-opus-5-5 coordinator (critic-17b F1 fix)
+  date: '2026-11-10'
+  verdict: accepted
+  last_critic:
+    by: gpt-6.1-sol high (critic-17b)
+    date: '2026-11-10'
+    verdict: fail
+comparison_critic:
+  by: claude-opus-5-5 coordinator (critic-17b F1 fix)
+  date: '2026-11-10'
+  verdict: accepted
+  last_critic:
+    by: gpt-6.1-sol high (critic-17b)
+    date: '2026-11-10'
+    verdict: fail
+themes: 'One row correcting the U2 partition for to-spec#ground-in-codebase. critic-17b F1:
+  to-spec/SKILL.md:15 reads what the spec must describe, not what distinguishes the live choices,
+  so it does not deliver scoped-context-read and completion 2026-11-10-renames-splits:072
+  was wrong. Relocating this trait was a partition error in U2 (as to-tickets#ground-in-codebase,
+  which stayed in planning with no row); corrected under the 2026-11-06 ruling I4 (relocations
+  as a set), with no owner ruling of its own. brainstorming still delivers it as scoped-context-read
+  at .claude/skills/brainstorming/SKILL.md:22-23.'
+skills:
+  skill:skills/engineering/to-spec:
+    upstream_tree_hash: eb934b5eda9523c7853a2741544bd4721ee1bea471f5a04f8397827f67bdbdda
+    accepted: 5beb35b
+    compared_with: brainstorming
+    pairing:
+      overlap:
+        brainstorming: 1
+        brief-me: 1
+        codebase-design: 1
+        doc:AGENTS.md: 1
+        improve-codebase-architecture: 3
+        planning: 4
+        principle-experience-first: 1
+        prototype: 1
+        tdd: 1
+        teach: 1
+        to-spec: 9
+        unslop: 1
+      placement_match:
+      - principle-experience-first
+      suggested: to-spec
+      purpose_match: brainstorming
+      purpose: Writes a settled decision up as a spec; this row compares only the reading
+        it grounds that in with brainstorming, which delivers it.
+      flag: suggested differs
+      reason: Compared with brainstorming, which delivers this trait; suggested to-spec by
+        the computed signals only.
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      ground-in-codebase:
+        scope: reconsider
+        change: []
+        fact: variant
+        provider: brainstorming
+        candidates:
+        - scoped-context-read
+        via: scoped-context-read
+        also_in:
+          improve-codebase-architecture: variant
+          planning: present
+        ours:
+        - .claude/skills/brainstorming/SKILL.md:22-23
+        recommendation: adopt
+        delivery: delivered
+        target: brainstorming
+        modification: Ours reads the existing code, docs and constraints needed to distinguish
+          the live choices, not a general exploration.
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-01
+          override: null
+        reason: 'critic-17b F1: to-spec/SKILL.md:15 reads what the spec must describe, not
+          what distinguishes the live choices, so it does not deliver scoped-context-read
+          and completion 2026-11-10-renames-splits:072 was wrong. Relocating this trait was
+          a partition error in U2 (as to-tickets#ground-in-codebase, which stayed in planning
+          with no row); corrected under the 2026-11-06 ruling I4 (relocations as a set), with
+          no owner ruling of its own. The original delivered adopt 2026-10-30-mattpocock_skills-5beb35b:084
+          stands as recorded.'

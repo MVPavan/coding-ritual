@@ -25,11 +25,11 @@ brainstorming:
   domain: core
   stage: Intake
   substage: Clarification
-  secondary: [Specification]
+  secondary: []
   family: spec-authoring
   aliases: [idea-refine]
   status: active
-  boundary: "Explores and compares options when scope or behaviour is open; an explicitly requested interview that challenges the owner's own plan is grilling."
+  boundary: "Explores and compares options when scope or behaviour is open and ends at decisions; writing settled decisions up as a durable spec is to-spec, and an explicitly requested interview that challenges the owner's own plan is grilling."
 build-a-lever:
   domain: core
   stage: Building
@@ -299,7 +299,7 @@ principle-experience-first:
   family: null
   aliases: []
   status: active
-  boundary: "Weighs product, UX and scope tradeoffs from the consumer's side; writing the spec is brainstorming, and comparing variants by feel is prototype."
+  boundary: "Weighs product, UX and scope tradeoffs from the consumer's side; writing the spec is to-spec, and comparing variants by feel is prototype."
 principle-explain-the-number:
   domain: engineering
   stage: Building
@@ -498,6 +498,15 @@ tdd:
   aliases: []
   status: active
   boundary: "Runs the test-first cycle for risky behaviour changes, regression proof and characterization; ordering multi-step work and commits into checked units is principle-sequence-verifiable-units."
+to-spec:
+  domain: core
+  stage: Design
+  substage: Specification
+  secondary: []
+  family: spec-authoring
+  aliases: []
+  status: active
+  boundary: "Writes decisions already settled into a durable spec and gates its approval; exploring or comparing choices still open is brainstorming, and splitting an approved spec into tracked work is planning."
 triage:
   domain: core
   stage: Intake

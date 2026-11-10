@@ -12,7 +12,7 @@ status: active
 
 a product, UX or feature-scope tradeoff.
 
-**Boundary:** Weighs product, UX and scope tradeoffs from the consumer's side; writing the spec is brainstorming, and comparing variants by feel is prototype.
+**Boundary:** Weighs product, UX and scope tradeoffs from the consumer's side; writing the spec is to-spec, and comparing variants by feel is prototype.
 
 <!-- registry:generated traits -->
 - `consumer-as-user`: Treat whoever consumes the work (end user, importing colleague, next maintainer) as its user, and explain impact from their side.

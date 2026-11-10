@@ -27,6 +27,21 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `failure-table`: Map each publish-script failure line to its cause and fix.
 - `never-edit-build-output`: Never hand-edit the shipped plugin's skills or agents, which are build output; edit plugin-owned skills and scripts in the plugin itself.
 
+#### core · Design · Specification — to-spec
+- `synthesize-settled`: When the decisions are already settled, synthesize them into a spec without reopening the discussion.
+- `spec-template`: Capture the spec in a fixed skeleton: problem, solution, user stories, implementation decisions, testing decisions, out of scope and further notes.
+- `spec-criteria-and-questions`: Add success-criteria and open-questions sections to the spec skeleton.
+- `none-keeps-heading`: Keep every spec heading, writing None in an empty section so its absence reads as a decision.
+- `testing-seam-decision`: Record in the spec which seam the feature is tested at, preferring an existing and the highest useful seam and the fewest seams.
+- `no-stale-file-paths`: Keep concrete file paths out of a durable spec, ticket or brief, describing interfaces and behaviour that survive code drift.
+- `no-stale-code-snippets`: Keep code snippets out of a durable spec or ticket because they go stale.
+- `prototype-snippet`: Inline a prototype snippet in the spec only when it encodes a decision more precisely than prose can.
+- `spec-approval-gate`: Keep a spec in draft until explicit authorization names its direction and scope, with any blocking question resolved or moved to out-of-scope first.
+- `material-risk-review`: Route an artifact or change with material risk or a broad blast radius through an independent critic review before it is accepted.
+- `user-perspective-framing`: Write a spec's problem and solution from the user's perspective.
+- `implementation-decisions-scope`: List a spec's implementation decisions across modules, interfaces, clarifications, architecture, schema, contracts and interactions.
+- `testing-decisions-contents`: Record a spec's testing decisions as what makes a good test, which modules are tested and the prior-art tests to follow.
+
 #### core · Discovery · Charting — wayfinder
 - `decision-map-epic`: Chart a large effort as one map item on the tracker whose children are decision tickets.
 - `plan-not-do`: Keep the map to planning: each ticket resolves a decision rather than executing a build slice.
@@ -157,20 +172,10 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 
 #### core · Intake · Clarification — brainstorming
 - `match-interaction-to-ambiguity`: Match the interaction depth to the ambiguity — return to the task, ask one focused question, or run a structured exploration — rather than over- or under-investigating.
-- `synthesize-settled`: When the decisions are already settled, synthesize them into a spec without reopening the discussion.
 - `scoped-context-read`: Read only the existing code, authoritative docs and constraints needed to distinguish the live choices.
 - `reuse-before-new`: Name the closest existing solution before proposing a new one.
 - `decision-frame`: Establish the outcome, intended user, success criteria, constraints and exclusions before committing to an approach.
 - `options-with-tradeoffs`: Present materially different options with their tradeoffs when alternatives remain.
-- `spec-template`: Capture the spec in a fixed skeleton: problem, solution, user stories, implementation decisions, testing decisions, out of scope and further notes.
-- `spec-criteria-and-questions`: Add success-criteria and open-questions sections to the spec skeleton.
-- `none-keeps-heading`: Keep every spec heading, writing None in an empty section so its absence reads as a decision.
-- `testing-seam-decision`: Record in the spec which seam the feature is tested at, preferring an existing and the highest useful seam and the fewest seams.
-- `no-stale-file-paths`: Keep concrete file paths out of a durable spec, ticket or brief, describing interfaces and behaviour that survive code drift.
-- `no-stale-code-snippets`: Keep code snippets out of a durable spec or ticket because they go stale.
-- `prototype-snippet`: Inline a prototype snippet in the spec only when it encodes a decision more precisely than prose can.
-- `spec-approval-gate`: Keep a spec in draft until explicit authorization names its direction and scope, with any blocking question resolved or moved to out-of-scope first.
-- `material-risk-review`: Route an artifact or change with material risk or a broad blast radius through an independent critic review before it is accepted.
 - `question-batching`: Batch independent questions whose prerequisites are settled and defer each dependent question until its prerequisites are answered.
 - `recommended-answer`: Attach a recommended answer to each question, letting the respondent disagree.
 - `settled-stop`: Recompute the unresolved choices after each answer and stop once the needed ones are settled, deferred or blocked, without exhausting every branch.
@@ -182,9 +187,6 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `inline-diagrams`: Draw a structure, flow, sequence or state question as a small inline Mermaid block, using prose for requirements and trade-offs.
 - `visuals-into-spec`: Re-express an approved diagram inside the durable spec as a Mermaid block, or record what a mockup showed and decided, rather than linking disposable scratch files.
 - `html-mockup-on-request`: On explicit request only, produce one self-contained offline HTML mockup under the scratch directory for what a diagram cannot carry.
-- `user-perspective-framing`: Write a spec's problem and solution from the user's perspective.
-- `implementation-decisions-scope`: List a spec's implementation decisions across modules, interfaces, clarifications, architecture, schema, contracts and interactions.
-- `testing-decisions-contents`: Record a spec's testing decisions as what makes a good test, which modules are tested and the prior-art tests to follow.
 
 #### core · Intake · Clarification — grilling
 - `map-decisions`: Map the material decisions and their prerequisites before questioning.
@@ -2659,7 +2661,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `ticket-template`: Fill a fixed ticket template of behavioural what-to-build, blocked-by, and checkable acceptance criteria. — defer
 - `no-stale-file-paths`: Keep concrete file paths out of a durable spec, ticket or brief, describing interfaces and behaviour that survive code drift. — defer
 - `no-stale-code-snippets`: Keep code snippets out of a durable spec or ticket because they go stale. — adopt → planning#no-stale-code-snippets
-- `prototype-snippet`: Inline a prototype snippet in the spec only when it encodes a decision more precisely than prose can. — adopt, pending cr-r2pa.2.20 → to-spec#prototype-snippet
+- `prototype-snippet`: Inline a prototype snippet in the spec only when it encodes a decision more precisely than prose can. — adopt → to-spec#prototype-snippet
 - `read-full-source-issue`: Read the full body, comments and, for a pull request, the diff of any referenced spec, issue or pull request before working from it. — defer
 - `session-sized-tickets`: Size each ticket to fit one agent session's context window. — defer
 - `blast-radius-batches`: Size migration batches by blast radius and keep the build green between them. — adopt, pending cr-r2pa.2.20 → to-tickets#blast-radius-batches
@@ -2691,22 +2693,22 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `test-database-over-mock`: Prefer a test database to mocking the database. — defer
 
 #### engineering · Design · Specification — skill:skills/engineering/to-spec
-- `synthesize-settled`: When the decisions are already settled, synthesize them into a spec without reopening the discussion. — adopt, pending cr-r2pa.2.20 → to-spec#synthesize-settled
-- `ground-in-codebase`: Explore the current state of the code before writing, so the artifact targets what actually exists. — adopt, pending cr-r2pa.2.20 → to-spec#scoped-context-read
+- `synthesize-settled`: When the decisions are already settled, synthesize them into a spec without reopening the discussion. — adopt → to-spec#synthesize-settled
+- `ground-in-codebase`: Explore the current state of the code before writing, so the artifact targets what actually exists. — adopt → brainstorming#scoped-context-read
 - `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write. — defer
 - `respect-area-adrs`: Honour the recorded architectural decisions that govern the area being changed. — defer
-- `testing-seam-decision`: Record in the spec which seam the feature is tested at, preferring an existing and the highest useful seam and the fewest seams. — adopt, pending cr-r2pa.2.20 → to-spec#testing-seam-decision
+- `testing-seam-decision`: Record in the spec which seam the feature is tested at, preferring an existing and the highest useful seam and the fewest seams. — adopt → to-spec#testing-seam-decision
 - `seam-preconfirmation`: Write down the seams under test and confirm them with the user before writing any test. — defer
-- `spec-template`: Capture the spec in a fixed skeleton: problem, solution, user stories, implementation decisions, testing decisions, out of scope and further notes. — adopt, pending cr-r2pa.2.20 → to-spec#spec-template
-- `no-stale-file-paths`: Keep concrete file paths out of a durable spec, ticket or brief, describing interfaces and behaviour that survive code drift. — adopt, pending cr-r2pa.2.20 → to-spec#no-stale-file-paths
-- `no-stale-code-snippets`: Keep code snippets out of a durable spec or ticket because they go stale. — adopt, pending cr-r2pa.2.20 → to-spec#no-stale-code-snippets
-- `prototype-snippet`: Inline a prototype snippet in the spec only when it encodes a decision more precisely than prose can. — adopt, pending cr-r2pa.2.20 → to-spec#prototype-snippet
+- `spec-template`: Capture the spec in a fixed skeleton: problem, solution, user stories, implementation decisions, testing decisions, out of scope and further notes. — adopt → to-spec#spec-template
+- `no-stale-file-paths`: Keep concrete file paths out of a durable spec, ticket or brief, describing interfaces and behaviour that survive code drift. — adopt → to-spec#no-stale-file-paths
+- `no-stale-code-snippets`: Keep code snippets out of a durable spec or ticket because they go stale. — adopt → to-spec#no-stale-code-snippets
+- `prototype-snippet`: Inline a prototype snippet in the spec only when it encodes a decision more precisely than prose can. — adopt → to-spec#prototype-snippet
 - `publish-to-tracker`: Publish the finished artifact to the configured issue tracker. — defer
 - `ready-for-agent-label`: Tag the published work with the ready-for-agent triage label so it needs no further triage. — defer
-- `user-perspective-framing`: Write a spec's problem and solution from the user's perspective. — adopt, pending cr-r2pa.2.20 → to-spec#user-perspective-framing
+- `user-perspective-framing`: Write a spec's problem and solution from the user's perspective. — adopt → to-spec#user-perspective-framing
 - `exhaustive-user-stories`: Write a long, exhaustive numbered list of actor-feature-benefit user stories. — defer
-- `implementation-decisions-scope`: List a spec's implementation decisions across modules, interfaces, clarifications, architecture, schema, contracts and interactions. — adopt, pending cr-r2pa.2.20 → to-spec#implementation-decisions-scope
-- `testing-decisions-contents`: Record a spec's testing decisions as what makes a good test, which modules are tested and the prior-art tests to follow. — adopt, pending cr-r2pa.2.20 → to-spec#testing-decisions-contents
+- `implementation-decisions-scope`: List a spec's implementation decisions across modules, interfaces, clarifications, architecture, schema, contracts and interactions. — adopt → to-spec#implementation-decisions-scope
+- `testing-decisions-contents`: Record a spec's testing decisions as what makes a good test, which modules are tested and the prior-art tests to follow. — adopt → to-spec#testing-decisions-contents
 
 #### engineering · Building · Diagnosis — skill:skills/engineering/diagnosing-bugs
 - `reproduction-first`: Obtain a reproduction that shows the reported failure, not a nearby one, before diagnosing it. — adopt → systematic-debugging#reproduction-preferred
@@ -3376,8 +3378,8 @@ Generate only enough distinct options to expose the tradeoff, compare them on va
 
 #### `synthesize-settled`
 When the decisions are already settled, synthesize them into a spec without reopening the discussion.
-- ours: `brainstorming`
-- `mattpocock_skills:skill:skills/engineering/to-spec` — adopt, pending cr-r2pa.2.20 → to-spec#synthesize-settled
+- ours: `to-spec`
+- `mattpocock_skills:skill:skills/engineering/to-spec` — adopt → to-spec#synthesize-settled
 
 #### `two-exchange-interview`
 Run the interview as two bounded exchanges, the recipient and what the user needs back.
@@ -3520,21 +3522,21 @@ Impose no structure such as AI, a checkpoint or a schedule on a workflow unless 
 
 #### `no-stale-code-snippets`
 Keep code snippets out of a durable spec or ticket because they go stale.
-- ours: `brainstorming`
 - ours: `planning`
-- `mattpocock_skills:skill:skills/engineering/to-spec` — adopt, pending cr-r2pa.2.20 → to-spec#no-stale-code-snippets
+- ours: `to-spec`
+- `mattpocock_skills:skill:skills/engineering/to-spec` — adopt → to-spec#no-stale-code-snippets
 - `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → planning#no-stale-code-snippets
 
 #### `no-stale-file-paths`
 Keep concrete file paths out of a durable spec, ticket or brief, describing interfaces and behaviour that survive code drift.
-- ours: `brainstorming`
-- `mattpocock_skills:skill:skills/engineering/to-spec` — adopt, pending cr-r2pa.2.20 → to-spec#no-stale-file-paths
+- ours: `to-spec`
+- `mattpocock_skills:skill:skills/engineering/to-spec` — adopt → to-spec#no-stale-file-paths
 - `mattpocock_skills:skill:skills/engineering/to-tickets` — defer
 - `mattpocock_skills:skill:skills/engineering/triage` — defer
 
 #### `none-keeps-heading`
 Keep every spec heading, writing None in an empty section so its absence reads as a decision.
-- ours: `brainstorming`
+- ours: `to-spec`
 
 #### `prefer-event-triggers`
 Prefer an event trigger to a schedule, as usually the more efficient of the two.
@@ -3542,11 +3544,11 @@ Prefer an event trigger to a schedule, as usually the more efficient of the two.
 
 #### `spec-approval-gate`
 Keep a spec in draft until explicit authorization names its direction and scope, with any blocking question resolved or moved to out-of-scope first.
-- ours: `brainstorming`
+- ours: `to-spec`
 
 #### `spec-criteria-and-questions`
 Add success-criteria and open-questions sections to the spec skeleton.
-- ours: `brainstorming`
+- ours: `to-spec`
 
 #### `spec-done-when-buildable`
 Treat a spec as done only when an implementer could build it without asking a single question.
@@ -3558,8 +3560,8 @@ Run a stateful interview whose only output is the specification files.
 
 #### `spec-template`
 Capture the spec in a fixed skeleton: problem, solution, user stories, implementation decisions, testing decisions, out of scope and further notes.
-- ours: `brainstorming`
-- `mattpocock_skills:skill:skills/engineering/to-spec` — adopt, pending cr-r2pa.2.20 → to-spec#spec-template
+- ours: `to-spec`
+- `mattpocock_skills:skill:skills/engineering/to-spec` — adopt → to-spec#spec-template
 
 #### `visuals-into-spec`
 Re-express an approved diagram inside the durable spec as a Mermaid block, or record what a mockup showed and decided, rather than linking disposable scratch files.
@@ -3825,8 +3827,8 @@ Give each risk an honest probability and an honest cost.
 
 #### `material-risk-review`
 Route an artifact or change with material risk or a broad blast radius through an independent critic review before it is accepted.
-- ours: `brainstorming`
 - ours: `harness-evaluate`
+- ours: `to-spec`
 
 #### `merge-base-through-tree-scope`
 When no scope is named, review the branch from where it left the base branch up to and including the working tree.
@@ -8943,7 +8945,7 @@ Keep the glossary free of implementation details and never treat it as a spec or
 #### `ground-in-codebase`
 Explore the current state of the code before writing, so the artifact targets what actually exists.
 - ours: `planning`
-- `mattpocock_skills:skill:skills/engineering/to-spec` — adopt, pending cr-r2pa.2.20 → to-spec#scoped-context-read
+- `mattpocock_skills:skill:skills/engineering/to-spec` — adopt → brainstorming#scoped-context-read
 - `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → planning#ground-in-codebase
 - `mattpocock_skills:skill:skills/engineering/triage` — defer
 
@@ -9034,8 +9036,8 @@ When implementation convenience conflicts with the consumer's experience, choose
 
 #### `implementation-decisions-scope`
 List a spec's implementation decisions across modules, interfaces, clarifications, architecture, schema, contracts and interactions.
-- ours: `brainstorming`
-- `mattpocock_skills:skill:skills/engineering/to-spec` — adopt, pending cr-r2pa.2.20 → to-spec#implementation-decisions-scope
+- ours: `to-spec`
+- `mattpocock_skills:skill:skills/engineering/to-spec` — adopt → to-spec#implementation-decisions-scope
 
 #### `integration-not-redesign`
 Integrate only authorized decisions into the next version and never treat integration as licence to redesign.
@@ -9091,9 +9093,9 @@ Preserve heading hierarchy, invariant identifiers, table meanings and link targe
 
 #### `prototype-snippet`
 Inline a prototype snippet in the spec only when it encodes a decision more precisely than prose can.
-- ours: `brainstorming`
-- `mattpocock_skills:skill:skills/engineering/to-spec` — adopt, pending cr-r2pa.2.20 → to-spec#prototype-snippet
-- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt, pending cr-r2pa.2.20 → to-spec#prototype-snippet
+- ours: `to-spec`
+- `mattpocock_skills:skill:skills/engineering/to-spec` — adopt → to-spec#prototype-snippet
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → to-spec#prototype-snippet
 
 #### `public-only-seams`
 Test only at public boundaries, never against internals.
@@ -9123,18 +9125,18 @@ Begin each target from its complete source and preserve exact identifiers, numbe
 
 #### `testing-decisions-contents`
 Record a spec's testing decisions as what makes a good test, which modules are tested and the prior-art tests to follow.
-- ours: `brainstorming`
-- `mattpocock_skills:skill:skills/engineering/to-spec` — adopt, pending cr-r2pa.2.20 → to-spec#testing-decisions-contents
+- ours: `to-spec`
+- `mattpocock_skills:skill:skills/engineering/to-spec` — adopt → to-spec#testing-decisions-contents
 
 #### `testing-seam-decision`
 Record in the spec which seam the feature is tested at, preferring an existing and the highest useful seam and the fewest seams.
-- ours: `brainstorming`
-- `mattpocock_skills:skill:skills/engineering/to-spec` — adopt, pending cr-r2pa.2.20 → to-spec#testing-seam-decision
+- ours: `to-spec`
+- `mattpocock_skills:skill:skills/engineering/to-spec` — adopt → to-spec#testing-seam-decision
 
 #### `user-perspective-framing`
 Write a spec's problem and solution from the user's perspective.
-- ours: `brainstorming`
-- `mattpocock_skills:skill:skills/engineering/to-spec` — adopt, pending cr-r2pa.2.20 → to-spec#user-perspective-framing
+- ours: `to-spec`
+- `mattpocock_skills:skill:skills/engineering/to-spec` — adopt → to-spec#user-perspective-framing
 
 #### `version-rekey`
 Update version headers, filenames and internal references and copy untouched core files so the target stands alone with prior versions only in provenance.
@@ -11502,12 +11504,12 @@ Traits listed by two or more of our active skills (`doc:AGENTS.md` and playbooks
 | `implement-against-sketch` | doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/feature.md, doc:.claude/skills/mvp-mode/playbooks/perf-issue.md, doc:.claude/skills/mvp-mode/playbooks/refactoring.md | Owner ruling 5 keeps the sketch design-only, so each playbook's own build step writes the code and holds this rule; a skill for it would bring back the implement branch the ruling removed (unit-kinds deviation log, St4). |
 | `independent-synthesis` | model-council, perspective-council | Two entrypoints with distinct triggers (named models with a judge, opposing lenses) each run a full council ending in a fresh synthesizer. |
 | `limit-bounded-hold` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md | Each long loop stops starting at its own limit with an idea left; the rule is one short sentence, and a skill for it would be ceremony. |
-| `material-risk-review` | brainstorming, harness-evaluate | Each gates acceptance of its own output, a spec or a template adoption, on an independent critic; the critic itself belongs to review. |
+| `material-risk-review` | harness-evaluate, to-spec | Each gates acceptance of its own output, a spec or a template adoption, on an independent critic; the critic itself belongs to review. |
 | `member-isolation` | model-council, perspective-council | Each council dispatches its own members in isolation. |
 | `neutral-framing` | model-council, perspective-council | Each council frames its own neutral brief. |
 | `no-onward-delegation` | delegation, doc:AGENTS.md, mvp-mode | AGENTS.md holds it as policy every agent loads, so a delegate stops fanning out even when its brief was written by hand; the delegation skill writes it into each role block of the briefs it produces, so a delegate on a vendor or project without our AGENTS.md still receives it; the mvp-mode router states it beside its delegate-independent-by-default rule for plugin users who skip the optional AGENTS.md, so a router that tells them to delegate also tells their delegates not to fan out. |
 | `no-silent-substitution` | model-council, perspective-council | Either council can lose a member, and each must report the gap rather than fill it. |
-| `no-stale-code-snippets` | brainstorming, planning | Each owns a different durable artifact, a spec or a plan, and its own template must keep code out. |
+| `no-stale-code-snippets` | planning, to-spec | Each owns a different durable artifact, a spec or a plan, and its own template must keep code out. |
 | `optional-record-sections` | domain-modeling, teach | Each keeps its own record folder (ADRs, learning records) in one minimal format. |
 | `own-output-location` | interrogate, model-council | Council members and adversaries each run independently on shared work, so each needs its own place to write; one is a branch of a council and the other a review, and neither calls the other. |
 | `pin-preserving-fetch` | harness-scan, harness-status | Both run the fetching drift command themselves, so each must state that a fetch never moves pins and that --no-fetch skips the network. |

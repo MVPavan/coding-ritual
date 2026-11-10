@@ -16,8 +16,8 @@ ours:beads:
   tree_hash: "14f92a47bc0da4f6e75c85db2df5fb58a6a2269bd16534ef7a3eaffdf99b5634"
   traits: [bead-type-taxonomy, field-roles, wait-as-edge, actor-identity, resume-line, session-close, session-recovery, knowledge-in-files, beads-setup, workstream-render, status-model, triage-routing, durable-unit-scope, review-as-task, phase-epic-contract, destructive-command-guard, repeated-procedures, dolt-sync]
 ours:brainstorming:
-  tree_hash: "92eb2c9c1458948a66d07ab39e161afbbd50e6c72537c6fd3fc12a9f8dc2b492"
-  traits: [match-interaction-to-ambiguity, synthesize-settled, scoped-context-read, reuse-before-new, decision-frame, options-with-tradeoffs, spec-template, spec-criteria-and-questions, none-keeps-heading, testing-seam-decision, no-stale-file-paths, no-stale-code-snippets, prototype-snippet, spec-approval-gate, material-risk-review, question-batching, recommended-answer, settled-stop, self-serve-facts, approval-interpretation, observable-outcomes, structured-divergence, exploration-lenses, inline-diagrams, visuals-into-spec, html-mockup-on-request, user-perspective-framing, implementation-decisions-scope, testing-decisions-contents]
+  tree_hash: "6838a0835a41433634b671199534b9d15201b334daa5de5b0b3783f507f49c24"
+  traits: [match-interaction-to-ambiguity, scoped-context-read, reuse-before-new, decision-frame, options-with-tradeoffs, question-batching, recommended-answer, settled-stop, self-serve-facts, approval-interpretation, observable-outcomes, structured-divergence, exploration-lenses, inline-diagrams, visuals-into-spec, html-mockup-on-request]
   notes:
     recommended-answer: "Labels the recommendation's assumptions."
 ours:build-a-lever:
@@ -108,7 +108,7 @@ ours:model-council:
   tree_hash: "604be20a026528990ef9536cfbb643228189552f25f15eda46633ae3f4445f05"
   traits: [member-resolution, runtime-capability-check, neutral-framing, member-isolation, report-preservation, independent-synthesis, consolidated-delivery, identity-recording, failed-member-recovery, no-silent-substitution, artifact-named-up-front, task-rubric-criteria, rubric-withheld-from-candidates, own-output-location, rationale-names-rejected, dropout-proceeds-noted, read-only-judge, judge-other-family-or-stated, rubric-given-to-judge, path-labelled-candidates, judge-criterion-scores, judge-recommends-base, full-read-before-pick, picker-criterion-scores, pick-compared-with-judge, disagreement-rereads-rationales, base-chosen-for-extensibility, near-tie-smaller-surface, loser-graft-pass, sparse-grafts, hand-folded-grafts, converged-shape-no-graft, divergence-reframes-once, graft-change-rerun, verify-miss-returns-once, single-synthesized-artifact, synthesis-decision-record, note-judge-status, note-convergence-dropouts, note-verification-result, no-judge-no-pick]
 ours:mvp-mode:
-  tree_hash: "2df7017affbfff0e86319c92f4c270e46832cd61c2c7e1e9e63e7fd5cf8a052a"
+  tree_hash: "964346b166fc31919cb8704f58fb66e7d778056e5822319f005cfc9f61b83b63"
   traits: [unit-kind-lines, playbook-pick, need-to-skill-routing, overlap-arbitration, layered-catalog, platform-skill-invocation, no-playbook-in-delegate, delegate-independent-by-default, no-onward-delegation, playbook-steps-as-todos, recorded-step-skip, whole-callee, playbook-exit, legacy-entrypoint-flagging, catalog-trust-boundary]
 ours:performance-optimization:
   tree_hash: "8e393535c7e06691afca39ef9df84040ce4752a29a8cc58610b8522ce951c4da"
@@ -230,6 +230,9 @@ ours:tdd:
     red-green: "Confirms the intended failure, not a setup error, then implements the owning fix and reruns the proving check."
     no-implementation-coupling: "Asserts exact source text only when that text is the contract."
     mock-boundaries: "Fakes and partial mocks are valid at any boundary that preserves the contract."
+ours:to-spec:
+  tree_hash: "22daf75b5bb34a7ff79fa8bfa53b54d618224d58be6fc702c1d4d0ffacbbc7ee"
+  traits: [synthesize-settled, spec-template, spec-criteria-and-questions, none-keeps-heading, testing-seam-decision, no-stale-file-paths, no-stale-code-snippets, prototype-snippet, spec-approval-gate, material-risk-review, user-perspective-framing, implementation-decisions-scope, testing-decisions-contents]
 ours:triage:
   tree_hash: "3e6dc7d1be687f106a87b6ffe8c46deb0fdfa5d2a9776caf02eba25e25415ddf"
   traits: [attention-buckets, triage-decision, established-notes, triage-resume-notes, redundancy-check, prior-rejection-check, claim-verification, agent-ready-gate, pick-from-summary, durable-rejection-reasons, already-built-close, brief-acceptance-criteria, read-full-source-issue, ready-for-human-rationale]

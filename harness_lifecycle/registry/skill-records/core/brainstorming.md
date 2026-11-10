@@ -3,33 +3,23 @@ skill: brainstorming
 domain: core
 stage: Intake
 substage: Clarification
-secondary: [Specification]
+secondary: []
 family: spec-authoring
 aliases: [idea-refine]
 status: active
 ---
 # brainstorming
 
-Use when material scope or behavior decisions need exploration, or the user requests brainstorming. Handle a single routine ambiguity directly.
+Use when material scope or behavior decisions are still open and need exploring, or the user requests brainstorming. Skip writing settled decisions up as a spec, which is to-spec; handle a single routine ambiguity directly.
 
-**Boundary:** Explores and compares options when scope or behaviour is open; an explicitly requested interview that challenges the owner's own plan is grilling.
+**Boundary:** Explores and compares options when scope or behaviour is open and ends at decisions; writing settled decisions up as a durable spec is to-spec, and an explicitly requested interview that challenges the owner's own plan is grilling.
 
 <!-- registry:generated traits -->
 - `match-interaction-to-ambiguity`: Match the interaction depth to the ambiguity — return to the task, ask one focused question, or run a structured exploration — rather than over- or under-investigating.
-- `synthesize-settled`: When the decisions are already settled, synthesize them into a spec without reopening the discussion.
 - `scoped-context-read`: Read only the existing code, authoritative docs and constraints needed to distinguish the live choices.
 - `reuse-before-new`: Name the closest existing solution before proposing a new one.
 - `decision-frame`: Establish the outcome, intended user, success criteria, constraints and exclusions before committing to an approach.
 - `options-with-tradeoffs`: Present materially different options with their tradeoffs when alternatives remain.
-- `spec-template`: Capture the spec in a fixed skeleton: problem, solution, user stories, implementation decisions, testing decisions, out of scope and further notes.
-- `spec-criteria-and-questions`: Add success-criteria and open-questions sections to the spec skeleton.
-- `none-keeps-heading`: Keep every spec heading, writing None in an empty section so its absence reads as a decision.
-- `testing-seam-decision`: Record in the spec which seam the feature is tested at, preferring an existing and the highest useful seam and the fewest seams.
-- `no-stale-file-paths`: Keep concrete file paths out of a durable spec, ticket or brief, describing interfaces and behaviour that survive code drift.
-- `no-stale-code-snippets`: Keep code snippets out of a durable spec or ticket because they go stale.
-- `prototype-snippet`: Inline a prototype snippet in the spec only when it encodes a decision more precisely than prose can.
-- `spec-approval-gate`: Keep a spec in draft until explicit authorization names its direction and scope, with any blocking question resolved or moved to out-of-scope first.
-- `material-risk-review`: Route an artifact or change with material risk or a broad blast radius through an independent critic review before it is accepted.
 - `question-batching`: Batch independent questions whose prerequisites are settled and defer each dependent question until its prerequisites are answered.
 - `recommended-answer`: Attach a recommended answer to each question, letting the respondent disagree. (Labels the recommendation's assumptions.)
 - `settled-stop`: Recompute the unresolved choices after each answer and stop once the needed ones are settled, deferred or blocked, without exhausting every branch.
@@ -41,9 +31,6 @@ Use when material scope or behavior decisions need exploration, or the user requ
 - `inline-diagrams`: Draw a structure, flow, sequence or state question as a small inline Mermaid block, using prose for requirements and trade-offs.
 - `visuals-into-spec`: Re-express an approved diagram inside the durable spec as a Mermaid block, or record what a mockup showed and decided, rather than linking disposable scratch files.
 - `html-mockup-on-request`: On explicit request only, produce one self-contained offline HTML mockup under the scratch directory for what a diagram cannot carry.
-- `user-perspective-framing`: Write a spec's problem and solution from the user's perspective.
-- `implementation-decisions-scope`: List a spec's implementation decisions across modules, interfaces, clarifications, architecture, schema, contracts and interactions.
-- `testing-decisions-contents`: Record a spec's testing decisions as what makes a good test, which modules are tested and the prior-art tests to follow.
 <!-- /registry:generated traits -->
 
 <!-- registry:generated lineage -->
@@ -62,7 +49,6 @@ Use when material scope or behavior decisions need exploration, or the user requ
   - dropped: brainstorming's ~1,400-line visual-companion server bundle — heavy dependency, and prototype already covers the need
 - **superpowers:skill:skills/brainstorming** `skills/brainstorming/SKILL.md`
 - **mattpocock_skills:skill:skills/engineering/to-spec#synthesize-settled** `skills/engineering/to-spec/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
-- **mattpocock_skills:skill:skills/engineering/to-spec#ground-in-codebase** `skills/engineering/to-spec/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/engineering/to-spec#testing-seam-decision** `skills/engineering/to-spec/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/engineering/to-spec#spec-template** `skills/engineering/to-spec/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/engineering/to-spec#no-stale-file-paths** `skills/engineering/to-spec/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
@@ -72,9 +58,13 @@ Use when material scope or behavior decisions need exploration, or the user requ
 - **mattpocock_skills:skill:skills/engineering/to-spec#implementation-decisions-scope** `skills/engineering/to-spec/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/engineering/to-spec#testing-decisions-contents** `skills/engineering/to-spec/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/engineering/to-tickets#prototype-snippet** `skills/engineering/to-tickets/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/engineering/to-spec#ground-in-codebase** `skills/engineering/to-spec/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-10` **adopt** (2026-11-10-renames-splits:083): critic-17b F1: to-spec/SKILL.md:15 reads what the spec must describe, not what distinguishes the live choices, so it does not deliver scoped-context-read and c…
+- `2026-11-10` **update** (2026-11-10-renames-splits:070): Owner ruling C of 2026-11-05 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 14a U3. It ends at decisions and hands a durable spec to to-spec; its …
+- `2026-11-10` **split** (2026-11-10-renames-splits:069): Owner ruling C of 2026-11-05 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 14a U3. Its 'Record and hand off' spec section becomes to-spec; refere…
 - `2026-11-06` **update** (2026-11-06-renames:014): Owner ruling D of 2026-11-05 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 14a U1. Its hand-off line names the units it continues into, planning …
 - `2026-11-01` **reject** (2026-11-01-cursor_plugins-pstack-principles:028): Lands as a skill or playbook trait. Not held: the prototype skill builds a throwaway artifact when a named question calls for one (named-question), which is op…
 - `2026-10-30` **adopt-merged** (2026-10-30-mattpocock_skills-5beb35b:564) *(superseded)*: Checkpoint at 5beb35b for the owner's trait rulings: 10 adopt, 6 defer.
@@ -108,26 +98,26 @@ None yet.
 
 <!-- registry:generated sources -->
 - `implementation-decisions-scope`:
-  - `mattpocock_skills:skill:skills/engineering/to-spec#implementation-decisions-scope` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+  - `mattpocock_skills:skill:skills/engineering/to-spec#implementation-decisions-scope` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2; withdrawn 2026-11-10)
 - `no-stale-code-snippets`:
-  - `mattpocock_skills:skill:skills/engineering/to-spec#no-stale-code-snippets` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+  - `mattpocock_skills:skill:skills/engineering/to-spec#no-stale-code-snippets` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2; withdrawn 2026-11-10)
 - `no-stale-file-paths`:
-  - `mattpocock_skills:skill:skills/engineering/to-spec#no-stale-file-paths` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+  - `mattpocock_skills:skill:skills/engineering/to-spec#no-stale-file-paths` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2; withdrawn 2026-11-10)
 - `prototype-snippet`:
-  - `mattpocock_skills:skill:skills/engineering/to-spec#prototype-snippet` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
-  - `mattpocock_skills:skill:skills/engineering/to-tickets#prototype-snippet` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+  - `mattpocock_skills:skill:skills/engineering/to-spec#prototype-snippet` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2; withdrawn 2026-11-10)
+  - `mattpocock_skills:skill:skills/engineering/to-tickets#prototype-snippet` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2; withdrawn 2026-11-10)
 - `scoped-context-read`:
   - `mattpocock_skills:skill:skills/engineering/to-spec#ground-in-codebase` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `spec-template`:
-  - `mattpocock_skills:skill:skills/engineering/to-spec#spec-template` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+  - `mattpocock_skills:skill:skills/engineering/to-spec#spec-template` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2; withdrawn 2026-11-10)
 - `synthesize-settled`:
-  - `mattpocock_skills:skill:skills/engineering/to-spec#synthesize-settled` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+  - `mattpocock_skills:skill:skills/engineering/to-spec#synthesize-settled` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2; withdrawn 2026-11-10)
 - `testing-decisions-contents`:
-  - `mattpocock_skills:skill:skills/engineering/to-spec#testing-decisions-contents` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+  - `mattpocock_skills:skill:skills/engineering/to-spec#testing-decisions-contents` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2; withdrawn 2026-11-10)
 - `testing-seam-decision`:
-  - `mattpocock_skills:skill:skills/engineering/to-spec#testing-seam-decision` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+  - `mattpocock_skills:skill:skills/engineering/to-spec#testing-seam-decision` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2; withdrawn 2026-11-10)
 - `user-perspective-framing`:
-  - `mattpocock_skills:skill:skills/engineering/to-spec#user-perspective-framing` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+  - `mattpocock_skills:skill:skills/engineering/to-spec#user-perspective-framing` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2; withdrawn 2026-11-10)
 <!-- /registry:generated sources -->
 
 <!-- registry:generated declined -->

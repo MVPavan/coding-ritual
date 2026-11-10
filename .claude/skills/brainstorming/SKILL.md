@@ -1,6 +1,6 @@
 ---
 name: brainstorming
-description: Use when material scope or behavior decisions need exploration, or the user requests brainstorming. Handle a single routine ambiguity directly.
+description: Use when material scope or behavior decisions are still open and need exploring, or the user requests brainstorming. Skip writing settled decisions up as a spec, which is to-spec; handle a single routine ambiguity directly.
 ---
 
 # Brainstorming
@@ -16,7 +16,8 @@ Resolve material scope or behavior decisions before committing to an approach.
   divergence would help.
 - Requested interview: use the grilling skill. A written critique is a review,
   not automatic permission to interview or edit documents.
-- Decisions already settled: synthesize them without reopening the discussion.
+- Decisions already settled: do not reopen them; a durable spec of them is
+  `to-spec`.
 
 Read only the relevant existing code, authoritative docs and constraints needed
 to distinguish the live choices. Name the closest existing solution before
@@ -34,20 +35,12 @@ For interview technique or an explanation that benefits from a picture, consult
 Stop exploring when a direction and its acceptance criteria are sufficient for
 the next authorized step. Do not invent more questions or variants to fill a quota.
 
-## Record and hand off
+## Hand off
 
-An in-chat decision is enough for bounded work unless a durable artifact was
-requested. For a spec that planning or another session will consume, use
-`references/spec-template.md`; default path is `docs/specs/YYYY-MM-DD-<topic>.md`.
-Record sources, assumptions and excluded alternatives as needed for handoff.
+An in-chat decision is enough for bounded work. When a durable spec is wanted
+for planning or another session, hand the decisions to `to-spec`. Report a
+direction still unresolved as a blocker to whoever started the brainstorm.
 
-A new unresolved spec is `Status: draft`. Mark it `Status: approved` only when
-actual authorization covers its direction and scope, recording that evidence.
-Approval names the chosen direction; re-ask vague assent as a choice between two
-concrete options. A blocking question must be resolved or explicitly excluded
-before approval. Review consistency, scope and verifiability; a spec with
-material risk gets a critic review (review skill) before approval. Report an unresolved direction as a blocker to whoever started
-the brainstorm.
-
-This skill's output is decisions or a spec. Continue into `planning` or `implement` when
-already authorized; a brainstorming-only request does not authorize code changes.
+This skill's output is decisions. Continue into `to-spec`, `planning` or
+`implement` when already authorized; a brainstorming-only request does not
+authorize code changes.

@@ -49,11 +49,11 @@ no-silent-substitution:
   why: "Either council can lose a member, and each must report the gap rather than fill it."
   reviewed: "2026-10-30"
 material-risk-review:
-  skills: [brainstorming, harness-evaluate]
+  skills: [harness-evaluate, to-spec]
   why: "Each gates acceptance of its own output, a spec or a template adoption, on an independent critic; the critic itself belongs to review."
   reviewed: "2026-10-30"
 no-stale-code-snippets:
-  skills: [brainstorming, planning]
+  skills: [planning, to-spec]
   why: "Each owns a different durable artifact, a spec or a plan, and its own template must keep code out."
   reviewed: "2026-10-30"
 question-batching:

@@ -69,9 +69,10 @@ deleted. Beads is the work-state authority; this file is the narrative.
 | `4c9ba8c` | Fourteen read-only references added for later study (`tstack`, `dori-superagent`, `reference_harnesses/kun/`), epic `cr-56rw` |
 | after `4c9ba8c` | Both pins moved and the Pocock update ruled and recorded (`cr-r2pa.2.13`, round `2026-11-09-pocock-4ae2317`), see below |
 | after `e8feec8` | Renames and splits, unit U2: three reports ruled and recorded as pending (`cr-r2pa.2.20`, round `2026-11-10-renames-splits`, open), see below |
+| after `b4740e4` | U3: `to-spec` split out of `brainstorming` (same round), see below |
 
 `main` is at `eb36cc9`; later work is on `mvp-stack` until the owner asks to merge.
-`mvp-stack` is pushed through U2 of the renames; later commits are local until the owner says to push.
+`mvp-stack` is pushed through U2 of the renames (`b4740e4`); later commits are local until the owner says to push.
 
 Decisions behind them: domains `core` and `engineering`; one primary
 coordinate per skill (domain · stage · sub-stage); reviews are flat files
@@ -194,7 +195,11 @@ critic, owner rulings, ledger, build, Sol review, commit after the owner approve
   adopts on `cr-r2pa.2.20`, 22 defers, 5 rejects, and four new checkpoints (`to-spec`, `to-tickets`,
   `implement`, `how`). The owner ruled the 28 `why` source rows as recommended on 2026-11-10: adopt
   `pr-discussion-pull`, keep 22 deferred, reject 5. Event sources sit at each report's `to_sha`;
-  relocations keep the prior adopt's `into`. Next is U3, `to-spec` out of `brainstorming`.
+  relocations keep the prior adopt's `into`. U3 is built: `to-spec` writes and approves specs with
+  the moved template, and `brainstorming` ends at decisions (Sol `critic-17b`, `critic-17d`). U2 had
+  wrongly moved `to-spec#ground-in-codebase`, whose `scoped-context-read` stays delivered in
+  `brainstorming`; a one-row report (`reviews/2026-11-10-upstream-mattpocock_skills-5beb35b.yaml`)
+  records it there and `to-spec` withdraws it. Next is U4, `to-tickets` out of `planning`.
 - `cr-r2pa.3.3`: at the end of the project, show the owner everything deferred or
   rejected, from the ledger's `defer` events, the deferred beads and each
   `deliberately_dropped` with its `revisit_when`, to revise and adapt.

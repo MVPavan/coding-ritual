@@ -280,7 +280,7 @@ material moves to references. [data: H1 holds via standalone use]
 
 ### Known deviations (from the study)
 
-- Mixed roles (10): `beads`, `brainstorming`, `codebase-design`,
+- Mixed roles (9): `beads`, `codebase-design`,
   `codebase-research`, `domain-modeling`, `performance-optimization`,
   `planning`, `security`, `systematic-debugging`, `wayfinder`.
 - Playbook-like (2): `implement`, `harness-publish`.

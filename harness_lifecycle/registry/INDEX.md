@@ -14,6 +14,9 @@ Domain → stage → sub-stage. Each active skill under its primary home.
 - **Clarification**: brainstorming, grilling
 - **Triage**: triage
 
+### Design
+- **Specification**: to-spec
+
 ### Building
 - **Implementation**: build-a-lever
 
