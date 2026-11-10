@@ -1,6 +1,6 @@
 ---
 name: research
-description: Use when a decision needs multiple sources gathered and weighed. Answer a single factual lookup directly from an appropriate source.
+description: Use when a decision needs multiple outside sources gathered and weighed. Answer a single factual lookup directly from an appropriate source; why this project chose something, from its own record, is why.
 ---
 
 # Research

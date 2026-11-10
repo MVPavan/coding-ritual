@@ -33,7 +33,7 @@ Playbook traits: `confirmed-cause-gate`, `stated-unattended-gate`, `unattended-n
 | Step | When | Traits | Calls | Loads |
 |---|---|---|---|---|
 | `bug-fix#1` | a deterministic failing command, run as reported, shows the failure and its output points at the cause; never a flaky failure, nor a cause found by reading code or rerunning in a loop | `obvious-cause-skip` |  |  |
-| `bug-fix#2` | bug-fix#1 did not skip it | `long-hunt-test`, `bounded-background-wait` | `skill:explain-code` (when: the failing subsystem is unfamiliar or the failure may be a regression); `skill:systematic-debugging` |  |
+| `bug-fix#2` | bug-fix#1 did not skip it | `long-hunt-test`, `bounded-background-wait` | `skill:how` (when: the failing subsystem is unfamiliar); `skill:why` (when: the failure may be a regression); `skill:systematic-debugging` |  |
 | `bug-fix#3` | the cause is confirmed | `existing-check-as-proof`, `report-missing-proof`, `missing-seam-finding`, `scoped-instance-fix`, `implement-against-sketch` | `skill:codebase-design` (when: the fix crosses a function boundary); `skill:tdd` (when: step 1's failing check does not already fail for the reported reason and a durable regression check is feasible) | `.claude/skills/mvp-mode/playbooks/bug-fix/timing-flakes.md` (when: the cause is a timing flake) |
 | `bug-fix#4` | bug-fix#3 changed code | `rerun-original-repro` |  |  |
 | `bug-fix#5` | around bug-fix#3 and bug-fix#4 | `attempt-log`, `revert-ineffective-experiments`, `two-failure-stop` |  |  |
@@ -70,7 +70,7 @@ Playbook traits: `lead-owns-design`, `contested-design-gate`
 
 | Step | When | Traits | Calls | Loads |
 |---|---|---|---|---|
-| `feature#1` | always |  | `skill:explain-code` |  |
+| `feature#1` | always |  | `skill:how` |  |
 | `feature#2` | the change crosses a function boundary, two shapes pass the two-shape test, or a person asked for a council |  | `skill:model-council` (when: a person asked for a council; its branch delivers the sketch); `skill:codebase-design` (when: no council was asked for; with two shapes it compares them by design-it-twice and recommends one) |  |
 | `feature#3` | always | `throughput-checkpoint` |  |  |
 | `feature#4` | always | `build-brief-shape`, `implement-against-sketch`, `shared-fix-ported` | `skill:delegation` (when: the router's delegation rule sends the code-writing to a subagent); `skill:review` (when: feature#2 ran) |  |
@@ -89,7 +89,7 @@ Playbook traits: `stated-unattended-gate`, `one-change-one-measurement`
 
 | Step | When | Traits | Calls | Loads |
 |---|---|---|---|---|
-| `hillclimb#1` | always | `repro-before-climb`, `stop-predicate-with-floor`, `unattended-target-from-request`, `run-limits-first` | `skill:explain-code`; `skill:performance-optimization` (when: this one whole call stays open through hillclimb#5; the predicate is its stop condition) |  |
+| `hillclimb#1` | always | `repro-before-climb`, `stop-predicate-with-floor`, `unattended-target-from-request`, `run-limits-first` | `skill:how`; `skill:performance-optimization` (when: this one whole call stays open through hillclimb#5; the predicate is its stop condition) |  |
 | `hillclimb#2` | hillclimb#1 fixed the metric and predicate | `attempt-isolation-gate`, `climb-checkpoint`, `worktree-environment-proof`, `bounded-background-wait`, `sensitivity-proof-then-freeze`, `gate-green-baseline` | `skill:wake` (when: the request is stated unattended or names a limit; this one whole call stays open through hillclimb#7); `skill:build-a-lever` (when: no existing command emits the metric) | `.claude/skills/mvp-mode/playbooks/hillclimb/attempt.py`; `.claude/skills/mvp-mode/playbooks/hillclimb/unattended.md` (when: the run is stated unattended) |
 | `hillclimb#3` | the harness is frozen |  | `skill:decision-trail` (when: extra columns seq, before, after, delta, tests, tree, index, value; this one whole call stays open through hillclimb#7) |  |
 | `hillclimb#4` | once per attempt, entered from hillclimb#3, hillclimb#5 or hillclimb#6 | `read-trail-first`, `bounded-background-wait`, `row-then-checkpoint`, `keep-or-undo-rule`, `attempt-snapshot-undo` | `skill:delegation` (when: an attended climb and the router's delegation rule sends the attempt to a subagent; one factor per brief; told not to stage) |  |
@@ -102,13 +102,13 @@ Playbook traits: `stated-unattended-gate`, `one-change-one-measurement`
 
 `.claude/skills/mvp-mode/playbooks/investigation.md`
 
-Trigger: A question about how this repository's code works, why it has its shape, or which design to pick.
+Trigger: A question about how anything in this project works, why it is the way it is, what was decided about it, or which design to pick.
 
 Playbook traits: `read-only-answer-gate`
 
 | Step | When | Traits | Calls | Loads |
 |---|---|---|---|---|
-| `investigation#1` | always |  | `skill:explain-code` |  |
+| `investigation#1` | always |  | `skill:how` (when: the question asks how something works or which option fits); `skill:why` (when: the question asks why something is the way it is, what was decided about it, what motivated it or which change brought a regression) |  |
 | `investigation#2` | an answer was drafted |  | `skill:unslop` |  |
 | `investigation#3` | every exit | `read-only-closeout` |  |  |
 
@@ -156,7 +156,7 @@ Playbook traits: `measurement-tied-fix-gate`
 | Step | When | Traits | Calls | Loads |
 |---|---|---|---|---|
 | `perf-issue#1` | always |  | `skill:performance-optimization` (when: this one whole call stays open through perf-issue#4; its steps 1-3 and vetting run here) |  |
-| `perf-issue#2` | the vetted baseline misses the target |  | `skill:explain-code` (when: the located cost's code is unfamiliar) |  |
+| `perf-issue#2` | the vetted baseline misses the target |  | `skill:how` (when: the located cost's code is unfamiliar) |  |
 | `perf-issue#3` | the vetted baseline misses the target; this is the skill's step 4, one candidate at a time | `implement-against-sketch` | `skill:codebase-design` (when: the change crosses a function boundary); `skill:delegation` (when: the router's delegation rule sends the code-writing to a subagent; one brief per factor); `skill:review` (when: a sketch ran) |  |
 | `perf-issue#4` | perf-issue#3 attempted a change to code, configuration or runtime settings; this is the skill's step 5, and a candidate that misses returns to perf-issue#3 | `paired-artifact-diff` | `skill:delegation` (when: parsing the artifacts would flood this session's context) |  |
 | `perf-issue#5` | every exit | `build-closeout` |  |  |
@@ -172,7 +172,7 @@ Playbook traits: `structure-only-gate`
 
 | Step | When | Traits | Calls | Loads |
 |---|---|---|---|---|
-| `refactoring#1` | always | `behaviour-pin-gate` | `skill:explain-code`; `skill:tdd` (when: no existing check pins the behaviour) |  |
+| `refactoring#1` | always | `behaviour-pin-gate` | `skill:how`; `skill:tdd` (when: no existing check pins the behaviour) |  |
 | `refactoring#2` | always | `branch-deleting-reshape` |  |  |
 | `refactoring#3` | always | `named-target-shape` | `skill:codebase-design` (when: the target crosses a function boundary) |  |
 | `refactoring#4` | the pin holds | `pin-green-moves`, `rename-spot-check`, `implement-against-sketch` | `skill:delegation` (when: the edits are mechanical) |  |
@@ -272,7 +272,7 @@ Traits and calls used by two or more playbooks. Repeating a step is fine; the sa
 | `skill:codebase-design` | bug-fix: `bug-fix#3`; feature: `feature#2`; perf-issue: `perf-issue#3`; refactoring: `refactoring#3` |
 | `skill:decision-trail` | autonomous-run: `autonomous-run#2`; hillclimb: `hillclimb#3` |
 | `skill:delegation` | autonomous-run: `autonomous-run#4`; eval: `eval#5`; feature: `feature#4`; hillclimb: `hillclimb#4`; multi-phase-plan: `multi-phase-plan#2`; perf-issue: `perf-issue#3`, `perf-issue#4`; refactoring: `refactoring#4`; runtime-forensics: `runtime-forensics#1`; session-pickup: `session-pickup#1`; trace-forensics: `trace-forensics#1` |
-| `skill:explain-code` | bug-fix: `bug-fix#2`; feature: `feature#1`; hillclimb: `hillclimb#1`; investigation: `investigation#1`; perf-issue: `perf-issue#2`; refactoring: `refactoring#1` |
+| `skill:how` | bug-fix: `bug-fix#2`; feature: `feature#1`; hillclimb: `hillclimb#1`; investigation: `investigation#1`; perf-issue: `perf-issue#2`; refactoring: `refactoring#1` |
 | `skill:land` | autonomous-run: `autonomous-run#7`; bug-fix: `bug-fix#8`; feature: `feature#8`; hillclimb: `hillclimb#8`; perf-issue: `perf-issue#6`; refactoring: `refactoring#8` |
 | `skill:performance-optimization` | hillclimb: `hillclimb#1`; perf-issue: `perf-issue#1`; runtime-forensics: `runtime-forensics#1` |
 | `skill:review` | feature: `feature#4`; perf-issue: `perf-issue#3` |
@@ -280,3 +280,4 @@ Traits and calls used by two or more playbooks. Repeating a step is fine; the sa
 | `skill:tdd` | bug-fix: `bug-fix#3`; refactoring: `refactoring#1` |
 | `skill:unslop` | investigation: `investigation#2`; multi-phase-plan: `multi-phase-plan#5` |
 | `skill:wake` | autonomous-run: `autonomous-run#3`; hillclimb: `hillclimb#2` |
+| `skill:why` | bug-fix: `bug-fix#2`; investigation: `investigation#1` |

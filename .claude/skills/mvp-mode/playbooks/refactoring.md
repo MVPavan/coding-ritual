@@ -5,7 +5,7 @@ steps:
   - id: refactoring#1
     when: always
     actions: [{trait: behaviour-pin-gate}]   # new
-    calls: [{to: "skill:explain-code"}, {to: "skill:tdd", when: no existing check pins the behaviour}]
+    calls: [{to: "skill:how"}, {to: "skill:tdd", when: no existing check pins the behaviour}]
   - id: refactoring#2
     when: always
     actions: [{trait: branch-deleting-reshape}]   # new
@@ -45,7 +45,7 @@ through the router and stop. One found on the way stays out of this change: name
 the same way, then finish against the pin with the defect left as it is, or stop when
 the moves depend on it.
 
-1. **Pin.** Invoke `explain-code` on the affected subsystem to learn its contract.
+1. **Pin.** Invoke `how` on the affected subsystem to learn its contract.
    Then capture the current behaviour in a check before any structure moves: a type
    check or a lint does not count. When no existing check pins it, invoke
    `tdd` in characterization mode. When no pin can be made, stop

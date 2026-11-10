@@ -5,7 +5,7 @@ steps:
   - id: hillclimb#1
     when: always
     actions: [{trait: repro-before-climb}, {trait: stop-predicate-with-floor}, {trait: unattended-target-from-request}, {trait: run-limits-first}]   # stop-predicate-with-floor attended, unattended-target-from-request stated unattended, limits when the request names one or it is unattended
-    calls: [{to: "skill:explain-code"}, {to: "skill:performance-optimization", when: this one whole call stays open through hillclimb#5; the predicate is its stop condition}]
+    calls: [{to: "skill:how"}, {to: "skill:performance-optimization", when: this one whole call stays open through hillclimb#5; the predicate is its stop condition}]
   - id: hillclimb#2
     when: hillclimb#1 fixed the metric and predicate
     actions: [{trait: attempt-isolation-gate}, {trait: climb-checkpoint}, {trait: worktree-environment-proof}, {trait: bounded-background-wait}, {trait: sensitivity-proof-then-freeze}, {trait: gate-green-baseline}]   # climb-checkpoint and worktree-environment-proof only when stated unattended; gate-green-baseline a variant of baseline-check-before-change
@@ -63,7 +63,7 @@ recovery: touch nothing, and reply Stopped, undo unavailable or an unmeant path,
 With no card yet there is no marker, and on a Not started exit, closeout's steps needing a card,
 checkpoint or artifact directory are skipped, not failed.
 
-1. **Ground.** Invoke `explain-code` on the target. Name the workload dimensions that can
+1. **Ground.** Invoke `how` on the target. Name the workload dimensions that can
    move the result and pick a case that reproduces the complaint. When none does, repair
    the case here, at most two tries, then stop with what was tried. Invoke
    `performance-optimization`; this one whole call stays open through step 5, its steps

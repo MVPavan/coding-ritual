@@ -1,6 +1,6 @@
 ---
 name: codebase-design
-description: Use for substantive module-interface, encapsulation or testability decisions, or to sketch types, signatures and module shape before code that crosses a function boundary. Skip ordinary code explanations (explain-code) and cosmetic refactors.
+description: Use for substantive module-interface, encapsulation or testability decisions, or to sketch types, signatures and module shape before code that crosses a function boundary. Skip ordinary explanations of how code works (how) and cosmetic refactors.
 ---
 
 # Codebase Design

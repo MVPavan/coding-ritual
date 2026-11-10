@@ -72,9 +72,10 @@ deleted. Beads is the work-state authority; this file is the narrative.
 | after `b4740e4` | U3: `to-spec` split out of `brainstorming` (same round), see below |
 | after `3ab290f` | U4: `to-tickets` split out of `planning` (same round), see below |
 | after `e43371b` | U5: the spec branch of `implement` (same round), see below |
+| after `560788a` | U6: `how` and `why` out of `explain-code` (same round), see below |
 
 `main` is at `eb36cc9`; later work is on `mvp-stack` until the owner asks to merge.
-`mvp-stack` is pushed through U4 of the renames (`e43371b`); later commits are local until the owner says to push.
+`mvp-stack` is pushed through U5 of the renames (`560788a`); later commits are local until the owner says to push.
 
 Decisions behind them: domains `core` and `engineering`; one primary
 coordinate per skill (domain · stage · sub-stage); reviews are flat files
@@ -213,7 +214,12 @@ critic, owner rulings, ledger, build, Sol review, commit after the owner approve
   `critic-19f`). Its pre-report merge brings the base's tip into the integration branch, a different
   mechanism from upstream's `pre-report-tip-merge`, so a one-row report
   (`reviews/2026-11-10-upstream-mattpocock_skills-4ae2317.yaml`) adopts it into the new trait
-  `pre-report-base-merge`. Next is U6, `how` and `why` out of `explain-code`.
+  `pre-report-base-merge`. U6 is built: `explain-code` is renamed `why` (the history method,
+  answering why something in the project is the way it is or what was decided about it, from
+  the project's own record) and `how` is new (how something works now, and which option fits);
+  `why` loads `references/pull-requests.md` only when a traced commit links a pull request
+  (ruling K). Six playbooks and the router re-pointed (Sol `critic-21b`, `critic-21c`). Next is
+  U7, then U8, then U8r (ruling M: the `planning`/`to-tickets` cleanup R1-R4), then U9.
 - `cr-r2pa.3.3`: at the end of the project, show the owner everything deferred or
   rejected, from the ledger's `defer` events, the deferred beads and each
   `deliberately_dropped` with its `revisit_when`, to revise and adapt.

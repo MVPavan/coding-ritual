@@ -907,7 +907,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `artifact-contracts`: Follow a fixed required-section set and order per artifact type, stating an empty section rather than dropping it.
 - `verify-before-report`: Before reporting, confirm the registry matches disk, every row carries its flags and state, every source-traced claim cites file and line, and the target is untouched.
 
-#### engineering · Discovery · Research — explain-code
+#### engineering · Discovery · Research — how
 - `read-only-explanation`: Change nothing while explaining, not even temporary instrumentation.
 - `immaterial-ambiguity-reading`: State the reading taken of a target whose ambiguity would not materially change the answer, and proceed.
 - `angles-when-wide`: Answer a narrow question in one pass, and split a wide subsystem into angles through delegation by the local rule, then reconcile what comes back.
@@ -915,6 +915,10 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `explanation-sections`: Structure an explanation as overview, concepts, flow, file map and pitfalls, dropping any section that does not apply.
 - `cited-flow-walkthrough`: Walk the flow in prose from trigger to result, naming the files and functions at each step.
 - `recommendation-with-tradeoffs`: For a choice between alternatives, recommend one and show the tradeoffs in a table.
+
+#### engineering · Discovery · Research — why
+- `read-only-explanation`: Change nothing while explaining, not even temporary instrumentation.
+- `immaterial-ambiguity-reading`: State the reading taken of a target whose ambiguity would not materially change the answer, and proceed.
 - `gather-without-concluding`: Collect the evidence in full before concluding, forming no answer and picking no side while gathering.
 - `code-anchor-first`: Before searching, fix the files, lines, symbols and last commits with blame and rename-following log.
 - `named-record-first`: Fetch the records a seed commit names, with their comments, before searching by keyword.
@@ -937,6 +941,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `unreachable-data-is-gap`: Report data you could not reach, through a missing tool, denied access, retention or deletion, as a coverage gap and never as a null result.
 - `sources-consulted-line`: List each source searched, empty or skipped, with the reason.
 - `constraints-before-change`: When a change follows, turn the findings into preserve, change, avoid and risk lists.
+- `pr-discussion-pull`: For each substantive commit, read the pull request body, linked issues, comments and reviews.
 
 #### engineering · Operations · Maintenance — improve-codebase-architecture
 - `scope-by-evidence`: Scope the audit to a named module or pain point, otherwise to the hot spots in recent change history.
@@ -1702,12 +1707,12 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `threads-to-chase`: Include the lines of inquiry worth pursuing further. — adopt, pending cr-r2pa.2.18 → teach#threads-to-chase
 
 #### engineering · Discovery · Research — skill:pstack/skills/how
-- `stated-scope-reading`: State your reading of an ambiguous target and proceed, so the user can redirect afterward. — adopt, pending cr-r2pa.2.20 → how#immaterial-ambiguity-reading
-- `size-gated-explorers`: Answer a narrow question in one pass and split a wide one into angles for separate explorers, merging their findings into one account. — adopt, pending cr-r2pa.2.20 → how#angles-when-wide
+- `stated-scope-reading`: State your reading of an ambiguous target and proceed, so the user can redirect afterward. — adopt → how#immaterial-ambiguity-reading
+- `size-gated-explorers`: Answer a narrow question in one pass and split a wide one into angles for separate explorers, merging their findings into one account. — adopt → how#angles-when-wide
 - `doubt-takes-simple-path`: Resolve an uncertain size call to the cheaper one-pass path. — reject
-- `explanation-sections`: Structure an explanation as overview, concepts, flow, file map and pitfalls, dropping any section that does not apply. — adopt, pending cr-r2pa.2.20 → how#explanation-sections
-- `cited-flow-walkthrough`: Walk the flow in prose from trigger to result, naming the files and functions at each step. — adopt, pending cr-r2pa.2.20 → how#cited-flow-walkthrough
-- `reconcile-by-reading`: Settle conflicting findings by reading the code itself. — adopt, pending cr-r2pa.2.20 → how#reconcile-by-reading
+- `explanation-sections`: Structure an explanation as overview, concepts, flow, file map and pitfalls, dropping any section that does not apply. — adopt → how#explanation-sections
+- `cited-flow-walkthrough`: Walk the flow in prose from trigger to result, naming the files and functions at each step. — adopt → how#cited-flow-walkthrough
+- `reconcile-by-reading`: Settle conflicting findings by reading the code itself. — adopt → how#reconcile-by-reading
 - `fresh-synthesizer`: Wait for every finding, then have one agent that did no searching weigh the raw findings and write the only answer. — reject
 - `light-edit-delivery`: Pass the writer's text on with only light edits for clarity or context, never a substantial rewrite. — reject
 - `targeted-gap-check`: Let the writer read the code to confirm a detail or fill a gap without redoing the exploration. — reject
@@ -1724,53 +1729,53 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `job-fit-helper-effort`: Choose each helper's thinking depth and speed tier to suit its job. — reject
 
 #### engineering · Discovery · Research — skill:pstack/skills/why
-- `stated-scope-reading`: State your reading of an ambiguous target and proceed, so the user can redirect afterward. — adopt → explain-code#immaterial-ambiguity-reading
+- `stated-scope-reading`: State your reading of an ambiguous target and proceed, so the user can redirect afterward. — adopt → why#immaterial-ambiguity-reading
 - `role-model-config-line`: Read each spawned role's model from a named line of a shared configuration, falling back to a fixed default and leaving the field unset for an alias. — reject
 - `rejected-model-swap`: When a spawn refuses a model, use the default and disclose the swap, then the nearest same-family model if the default is refused too. — reject
 - `job-fit-helper-effort`: Choose each helper's thinking depth and speed tier to suit its job. — reject
 - `writable-helper-mode`: Spawn helpers in a writable mode because the read-only mode removes the tool access they need. — reject
 - `brief-only-read-only`: Tell helpers to write nothing and change no external state even though their mode permits it. — reject
 - `question-typing`: Name the target and classify the question as rationale, tradeoff, edge case, external constraint, dead code or history sweep. — reject
-- `code-anchor-first`: Before searching, fix the files, lines, symbols and last commits with blame and rename-following log. — adopt → explain-code#code-anchor-first
-- `pr-discussion-pull`: For each substantive commit, read the pull request body, linked issues, comments and reviews. — adopt, pending cr-r2pa.2.20 → why#pr-discussion-pull
+- `code-anchor-first`: Before searching, fix the files, lines, symbols and last commits with blame and rename-following log. — adopt → why#code-anchor-first
+- `pr-discussion-pull`: For each substantive commit, read the pull request body, linked issues, comments and reviews. — adopt → why#pr-discussion-pull
 - `investigator-brief-assembly`: Build each investigator prompt from a template, one source playbook, one shared code anchor and the original question. — reject
 - `full-coverage-search`: Run the search of every available source by default, even an unpromising one, aiming for a complete coverage map. — reject
-- `sources-consulted-line`: List each source searched, empty or skipped, with the reason. — adopt → explain-code#sources-consulted-line
+- `sources-consulted-line`: List each source searched, empty or skipped, with the reason. — adopt → why#sources-consulted-line
 - `evidence-source-discovery`: Enumerate the enabled tools and assign each to one of seven evidence categories by its primary evidence. — reject
-- `evidence-category-fanout`: Run one investigator per evidence source, all in parallel, with source control always included. — adopt → explain-code#local-evidence-sources
-- `repo-evidence-inventory`: Look through commits, pull request threads, inline markers, decision records, changelogs, ticket ids, tests and co-changed files for a repository's history. — adopt → explain-code#local-evidence-sources
-- `pickaxe-history-search`: Search history for commits whose diffs add, remove or match a string or pattern. — adopt → explain-code#pickaxe-history-search
+- `evidence-category-fanout`: Run one investigator per evidence source, all in parallel, with source control always included. — adopt → why#local-evidence-sources
+- `repo-evidence-inventory`: Look through commits, pull request threads, inline markers, decision records, changelogs, ticket ids, tests and co-changed files for a repository's history. — adopt → why#local-evidence-sources
+- `pickaxe-history-search`: Search history for commits whose diffs add, remove or match a string or pattern. — adopt → why#pickaxe-history-search
 - `source-control-trust-ranking`: Rate repository history as the most trustworthy source because it ties directly to the code. — reject
 - `incident-source-playbook`: When the target looks defensive, add a search of incident records, incident-labelled tickets and incident channels around the date it was added. — defer
-- `incident-commit-signals`: Read commit messages about incidents, added guards or a revert followed by re-application as strong signals of motive. — adopt → explain-code#local-evidence-sources
+- `incident-commit-signals`: Read commit messages about incidents, added guards or a revert followed by re-application as strong signals of motive. — adopt → why#local-evidence-sources
 - `category-strength-map`: State which shape of motivation each evidence category reveals and when it is strongest. — reject
 - `provable-irrelevance-bar`: Skip a source for irrelevance only on proof, since probable irrelevance does not qualify. — reject
 - `trivial-target-inline-exception`: Answer a single-commit target directly when its pull request text answers fully, after confirming every other search would be redundant. — reject
 - `fresh-synthesizer`: Wait for every finding, then have one agent that did no searching weigh the raw findings and write the only answer. — reject
 - `framework-first-reading`: Have the writer read the whole confidence framework before writing. — reject
-- `gather-without-concluding`: Collect the evidence in full before concluding, forming no answer and picking no side while gathering. — adopt → explain-code#gather-without-concluding
+- `gather-without-concluding`: Collect the evidence in full before concluding, forming no answer and picking no side while gathering. — adopt → why#gather-without-concluding
 - `confidence-language-kept`: Keep the tier words and hedges that mark uncertainty when editing a finished answer. — adopt → unslop#confidence-language-kept
-- `constraints-before-change`: When a change follows, turn the findings into preserve, change, avoid and risk lists. — adopt → explain-code#constraints-before-change
-- `recency-bias-check`: Trace past the latest commit, which is not authoritative, to the earlier decisions behind the current shape. — adopt → explain-code#recency-bias-check
-- `confidence-tiers`: Place each claim in one tier by its evidence, Direct when an author's written words state the reason, Supported when several indirect items converge, Inferred when a reasonable reading has no explicit support, and Speculative when other explanations fit equally well, phrasing the first two confidently with citations, Inferred with hedges and its reasoning chain, and Speculative as a guess. — adopt → explain-code#confidence-tiers
-- `adjacent-citation-gate`: Use words asserting cause, intent, achieved effect or a group decision only on Direct or Supported claims, with a specific citation beside them. — adopt → explain-code#adjacent-citation-gate
+- `constraints-before-change`: When a change follows, turn the findings into preserve, change, avoid and risk lists. — adopt → why#constraints-before-change
+- `recency-bias-check`: Trace past the latest commit, which is not authoritative, to the earlier decisions behind the current shape. — adopt → why#recency-bias-check
+- `confidence-tiers`: Place each claim in one tier by its evidence, Direct when an author's written words state the reason, Supported when several indirect items converge, Inferred when a reasonable reading has no explicit support, and Speculative when other explanations fit equally well, phrasing the first two confidently with citations, Inferred with hedges and its reasoning chain, and Speculative as a guess. — adopt → why#confidence-tiers
+- `adjacent-citation-gate`: Use words asserting cause, intent, achieved effect or a group decision only on Direct or Supported claims, with a specific citation beside them. — adopt → why#adjacent-citation-gate
 - `tier-tagged-sections`: Lay out an answer with one section per evidence class and an explicit tier tag on each bullet, omitting an empty section. — reject
-- `searched-and-unknown`: Report an unknown with exactly what was searched, where and with which terms. — adopt → explain-code#searched-and-unknown
+- `searched-and-unknown`: Report an unknown with exactly what was searched, where and with which terms. — adopt → why#searched-and-unknown
 - `epistemic-wording-bans`: Ban words that imply self-evidence or triviality and statements of personal belief. — reject
-- `no-retrofitted-rationale`: Do not impose a tidy justification on messy history or presume the author chose correctly and reason backward. — adopt → explain-code#no-retrofitted-rationale
-- `consistency-is-not-intent`: Do not read a repeated pattern as a deliberate choice, since it may be copying. — adopt → explain-code#consistency-is-not-intent
-- `absence-is-not-evidence`: Do not read a lack of mention as proof that something was not a concern. — adopt → explain-code#absence-is-not-evidence
-- `embedded-hypothesis-check`: Treat a guess inside the question as one candidate to test independently, then confirm or refute it with citations. — adopt → explain-code#embedded-hypothesis-check
-- `contradiction-shown`: Show conflicting sources side by side with citations, leaving the call to the user. — adopt → explain-code#contradiction-shown
+- `no-retrofitted-rationale`: Do not impose a tidy justification on messy history or presume the author chose correctly and reason backward. — adopt → why#no-retrofitted-rationale
+- `consistency-is-not-intent`: Do not read a repeated pattern as a deliberate choice, since it may be copying. — adopt → why#consistency-is-not-intent
+- `absence-is-not-evidence`: Do not read a lack of mention as proof that something was not a concern. — adopt → why#absence-is-not-evidence
+- `embedded-hypothesis-check`: Treat a guess inside the question as one candidate to test independently, then confirm or refute it with citations. — adopt → why#embedded-hypothesis-check
+- `contradiction-shown`: Show conflicting sources side by side with citations, leaving the call to the user. — adopt → why#contradiction-shown
 - `human-followup-pointer`: Name who could answer a gap and could not be asked, or say the question can be dropped. — reject
 - `pre-delivery-claim-audit`: Before delivery, check each claim for a citation or demote it, and check that its phrasing matches its tier. — reject
-- `code-not-intent-evidence`: Never cite code or a diff as proof of its author's intent. — adopt → explain-code#code-not-intent-evidence
+- `code-not-intent-evidence`: Never cite code or a diff as proof of its author's intent. — adopt → why#code-not-intent-evidence
 - `empty-gaps-suspicion`: Treat an answer that mentions no gaps as a warning sign. — reject
 - `assigned-slice-depth`: Give each searching helper one assigned slice to go deep on, telling it that peers cover the rest. — reject
 - `exact-quote-evidence`: Prefer a precise quotation with a location checkable in seconds to a paragraph of paraphrase. — reject
 - `wide-then-narrow-search`: Begin a search with a broad sweep and focus on specific items only afterward. — reject
-- `read-whole-item`: Open each item found in full, thread or history included, because a preview or a lone message can mislead. — adopt → explain-code#full-record-reading
-- `unreachable-data-is-gap`: Report data you could not reach, through a missing tool, denied access, retention or deletion, as a coverage gap and never as a null result. — adopt → explain-code#unreachable-data-is-gap
+- `read-whole-item`: Open each item found in full, thread or history included, because a preview or a lone message can mislead. — adopt → why#full-record-reading
+- `unreachable-data-is-gap`: Report data you could not reach, through a missing tool, denied access, retention or deletion, as a coverage gap and never as a null result. — adopt → why#unreachable-data-is-gap
 - `stop-on-auth-failure`: When a source's tool cannot authenticate, stop and report the source as unsearchable, inventing no findings. — reject
 - `correlation-needs-neighbor-check`: Treat a before-and-after shift as suggestive only until other changes landing in the same window are inspected. — reject
 - `interest-is-not-cause`: Treat a metric, a logged event or a chart as showing interest only, pairing it with a commit or pull request citation before claiming cause. — reject
@@ -1784,7 +1789,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `neighbor-evidence-substitution`: Do not offer evidence about a neighbouring feature as though it answers the question asked. — reject
 - `evidence-record-template`: Have each investigator report its source, then direct items with location, author, date and relevance, and indirect items with inference chain and alternative readings. — reject
 - `history-answer-frame`: Open a history answer by restating the question and orienting a cold reader to the code, and close it with confidence rated by sub-claim. — reject
-- `competing-hypotheses-section`: When the record fits several stories, give each its evidence for and against, with no forced winner. — adopt → explain-code#competing-hypotheses-section
+- `competing-hypotheses-section`: When the record fits several stories, give each its evidence for and against, with no forced winner. — adopt → why#competing-hypotheses-section
 - `one-reference-per-shared-source`: Give an item cited more than once a single authoritative reference. — reject
 - `warehouse-evidence-inventory`: Look for warehouse evidence in product events, usage and billing events, experiment data, system tables and pipeline lineage. — defer
 - `typed-models-over-raw`: Query a warehouse's deduplicated typed models, dropping to raw events only where no model serves. — defer
@@ -1805,10 +1810,10 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `telemetry-motive-signals`: Read a dashboard by the target's author, an incident naming the code and a pre-change log pattern the guard would prevent as telemetry evidence of motive. — defer
 - `telemetry-finding-record`: Record each telemetry item with its type, name, identifier, owner, dates, the condition or query that bears on the question and the strength of the connection. — defer
 - `ticket-search-procedure`: Search an external ticket tracker's issues, comments, status updates, project documents, labels and milestones for business motive. — defer
-- `named-record-first`: Fetch the records a seed commit names, with their comments, before searching by keyword. — adopt → explain-code#named-record-first
-- `target-derived-search-terms`: Build search terms from the target's feature name or business term, symbols, author, error strings and path, trying several wordings. — adopt → explain-code#target-derived-search-terms
+- `named-record-first`: Fetch the records a seed commit names, with their comments, before searching by keyword. — adopt → why#named-record-first
+- `target-derived-search-terms`: Build search terms from the target's feature name or business term, symbols, author, error strings and path, trying several wordings. — adopt → why#target-derived-search-terms
 - `ship-window-bound`: Bound a search of a large source to a window around the date the target shipped. — reject
-- `record-lineage-walk`: From a record, follow its parent and duplicate links to the item that carries the motive. — adopt → explain-code#record-lineage-walk
+- `record-lineage-walk`: From a record, follow its parent and duplicate links to the item that carries the motive. — adopt → why#record-lineage-walk
 - `ticket-motive-signals`: Read a stated business problem, a decision comment, an initiative-named parent, an attached spec and motive-bearing labels as tracker evidence of motive. — reject
 - `record-finding-fields`: Record each evidence record with its identity, the exact motive quote and its location, its author, its dates and its linked records. — reject
 - `ticket-external-metadata`: Record a ticket's labels, project and link with its finding. — reject
@@ -6061,7 +6066,7 @@ Require each role to give evidence and calibrated uncertainty rather than forced
 
 #### `evidence-category-fanout`
 Run one investigator per evidence source, all in parallel, with source control always included.
-- `cursor_plugins:skill:pstack/skills/why` — adopt → explain-code#local-evidence-sources
+- `cursor_plugins:skill:pstack/skills/why` — adopt → why#local-evidence-sources
 
 #### `evidence-record-template`
 Have each investigator report its source, then direct items with location, author, date and relevance, and indirect items with inference chain and alternative readings.
@@ -7153,13 +7158,13 @@ Keep a single index file as the artifact registry, updated in the same run that 
 
 #### `absence-is-not-evidence`
 Do not read a lack of mention as proof that something was not a concern.
-- ours: `explain-code`
-- `cursor_plugins:skill:pstack/skills/why` — adopt → explain-code#absence-is-not-evidence
+- ours: `why`
+- `cursor_plugins:skill:pstack/skills/why` — adopt → why#absence-is-not-evidence
 
 #### `adjacent-citation-gate`
 Use words asserting cause, intent, achieved effect or a group decision only on Direct or Supported claims, with a specific citation beside them.
-- ours: `explain-code`
-- `cursor_plugins:skill:pstack/skills/why` — adopt → explain-code#adjacent-citation-gate
+- ours: `why`
+- `cursor_plugins:skill:pstack/skills/why` — adopt → why#adjacent-citation-gate
 
 #### `ambiguity-left-open`
 Report ambiguous evidence as ambiguous and leave an unresolved question unresolved over a confident fill-in.
@@ -7167,7 +7172,7 @@ Report ambiguous evidence as ambiguous and leave an unresolved question unresolv
 
 #### `angles-when-wide`
 Answer a narrow question in one pass, and split a wide subsystem into angles through delegation by the local rule, then reconcile what comes back.
-- ours: `explain-code`
+- ours: `how`
 
 #### `ask-vendor-for-unpublished-limits`
 Ask the vendor directly when a product's gates and rate limits are not published.
@@ -7187,8 +7192,8 @@ Search team chat for deliberation by the author's messages around the merge date
 
 #### `cited-flow-walkthrough`
 Walk the flow in prose from trigger to result, naming the files and functions at each step.
-- ours: `explain-code`
-- `cursor_plugins:skill:pstack/skills/how` — adopt, pending cr-r2pa.2.20 → how#cited-flow-walkthrough
+- ours: `how`
+- `cursor_plugins:skill:pstack/skills/how` — adopt → how#cited-flow-walkthrough
 
 #### `claim-honesty`
 Mark interpretation as INFERENCE, cite file and line for every source-traced claim, and for a closed target name the strongest available artifact and its limits.
@@ -7196,18 +7201,18 @@ Mark interpretation as INFERENCE, cite file and line for every source-traced cla
 
 #### `code-anchor-first`
 Before searching, fix the files, lines, symbols and last commits with blame and rename-following log.
-- ours: `explain-code`
-- `cursor_plugins:skill:pstack/skills/why` — adopt → explain-code#code-anchor-first
+- ours: `why`
+- `cursor_plugins:skill:pstack/skills/why` — adopt → why#code-anchor-first
 
 #### `code-not-intent-evidence`
 Never cite code or a diff as proof of its author's intent.
-- ours: `explain-code`
-- `cursor_plugins:skill:pstack/skills/why` — adopt → explain-code#code-not-intent-evidence
+- ours: `why`
+- `cursor_plugins:skill:pstack/skills/why` — adopt → why#code-not-intent-evidence
 
 #### `competing-hypotheses-section`
 When the record fits several stories, give each its evidence for and against, with no forced winner.
-- ours: `explain-code`
-- `cursor_plugins:skill:pstack/skills/why` — adopt → explain-code#competing-hypotheses-section
+- ours: `why`
+- `cursor_plugins:skill:pstack/skills/why` — adopt → why#competing-hypotheses-section
 
 #### `complexity-cause-stated`
 When something is hard, give the reason for the difficulty and do not merely describe it.
@@ -7215,13 +7220,13 @@ When something is hard, give the reason for the difficulty and do not merely des
 
 #### `confidence-tiers`
 Place each claim in one tier by its evidence, Direct when an author's written words state the reason, Supported when several indirect items converge, Inferred when a reasonable reading has no explicit support, and Speculative when other explanations fit equally well, phrasing the first two confidently with citations, Inferred with hedges and its reasoning chain, and Speculative as a guess.
-- ours: `explain-code`
-- `cursor_plugins:skill:pstack/skills/why` — adopt → explain-code#confidence-tiers
+- ours: `why`
+- `cursor_plugins:skill:pstack/skills/why` — adopt → why#confidence-tiers
 
 #### `consistency-is-not-intent`
 Do not read a repeated pattern as a deliberate choice, since it may be copying.
-- ours: `explain-code`
-- `cursor_plugins:skill:pstack/skills/why` — adopt → explain-code#consistency-is-not-intent
+- ours: `why`
+- `cursor_plugins:skill:pstack/skills/why` — adopt → why#consistency-is-not-intent
 
 #### `constant-origin-signal`
 Treat a recorded distribution or monitor threshold that matches a constant in the code as evidence of where the number came from.
@@ -7229,13 +7234,13 @@ Treat a recorded distribution or monitor threshold that matches a constant in th
 
 #### `constraints-before-change`
 When a change follows, turn the findings into preserve, change, avoid and risk lists.
-- ours: `explain-code`
-- `cursor_plugins:skill:pstack/skills/why` — adopt → explain-code#constraints-before-change
+- ours: `why`
+- `cursor_plugins:skill:pstack/skills/why` — adopt → why#constraints-before-change
 
 #### `contradiction-shown`
 Show conflicting sources side by side with citations, leaving the call to the user.
-- ours: `explain-code`
-- `cursor_plugins:skill:pstack/skills/why` — adopt → explain-code#contradiction-shown
+- ours: `why`
+- `cursor_plugins:skill:pstack/skills/why` — adopt → why#contradiction-shown
 
 #### `correlation-needs-neighbor-check`
 Treat a before-and-after shift as suggestive only until other changes landing in the same window are inspected.
@@ -7275,8 +7280,8 @@ Resolve an uncertain size call to the cheaper one-pass path.
 
 #### `embedded-hypothesis-check`
 Treat a guess inside the question as one candidate to test independently, then confirm or refute it with citations.
-- ours: `explain-code`
-- `cursor_plugins:skill:pstack/skills/why` — adopt → explain-code#embedded-hypothesis-check
+- ours: `why`
+- `cursor_plugins:skill:pstack/skills/why` — adopt → why#embedded-hypothesis-check
 
 #### `empty-gaps-suspicion`
 Treat an answer that mentions no gaps as a warning sign.
@@ -7308,8 +7313,8 @@ Reach the EXERCISED state only under explicit runtime authorization, in a dispos
 
 #### `explanation-sections`
 Structure an explanation as overview, concepts, flow, file map and pitfalls, dropping any section that does not apply.
-- ours: `explain-code`
-- `cursor_plugins:skill:pstack/skills/how` — adopt, pending cr-r2pa.2.20 → how#explanation-sections
+- ours: `how`
+- `cursor_plugins:skill:pstack/skills/how` — adopt → how#explanation-sections
 
 #### `fastest-changing-facts-first`
 When refreshing a dated survey, recheck its fastest-changing facts first, such as prices, beta status, limits and end-of-life dates.
@@ -7333,12 +7338,12 @@ Run the search of every available source by default, even an unpromising one, ai
 
 #### `full-record-reading`
 Read the complete commit message and diff, and the decision or bead discussion, behind any anchor or excerpt before relying on it.
-- ours: `explain-code`
+- ours: `why`
 
 #### `gather-without-concluding`
 Collect the evidence in full before concluding, forming no answer and picking no side while gathering.
-- ours: `explain-code`
-- `cursor_plugins:skill:pstack/skills/why` — adopt → explain-code#gather-without-concluding
+- ours: `why`
+- `cursor_plugins:skill:pstack/skills/why` — adopt → why#gather-without-concluding
 
 #### `generated-analysis-is-inference`
 Use a tool's generated root-cause analysis as inference only, with the actual events and traces as the primary evidence.
@@ -7354,11 +7359,12 @@ Name who could answer a gap and could not be asked, or say the question can be d
 
 #### `immaterial-ambiguity-reading`
 State the reading taken of a target whose ambiguity would not materially change the answer, and proceed.
-- ours: `explain-code`
+- ours: `how`
+- ours: `why`
 
 #### `incident-commit-signals`
 Read commit messages about incidents, added guards or a revert followed by re-application as strong signals of motive.
-- `cursor_plugins:skill:pstack/skills/why` — adopt → explain-code#local-evidence-sources
+- `cursor_plugins:skill:pstack/skills/why` — adopt → why#local-evidence-sources
 
 #### `incident-source-playbook`
 When the target looks defensive, add a search of incident records, incident-labelled tickets and incident channels around the date it was added.
@@ -7381,12 +7387,12 @@ Treat L1 and L2 as nested levels of one study while a deep dive is a standalone 
 
 #### `local-evidence-sources`
 Search commit messages, Beads, decision records, docs, inline markers, changelogs, tests and co-changed files for motivation, adding another source only if it is available.
-- ours: `explain-code`
+- ours: `why`
 
 #### `named-record-first`
 Fetch the records a seed commit names, with their comments, before searching by keyword.
-- ours: `explain-code`
-- `cursor_plugins:skill:pstack/skills/why` — adopt → explain-code#named-record-first
+- ours: `why`
+- `cursor_plugins:skill:pstack/skills/why` — adopt → why#named-record-first
 
 #### `narrow-log-lookups`
 Narrow log searches by service, tag, text and a window around the change, aggregating in place of dumping raw logs.
@@ -7398,8 +7404,8 @@ Do not offer evidence about a neighbouring feature as though it answers the ques
 
 #### `no-retrofitted-rationale`
 Do not impose a tidy justification on messy history or presume the author chose correctly and reason backward.
-- ours: `explain-code`
-- `cursor_plugins:skill:pstack/skills/why` — adopt → explain-code#no-retrofitted-rationale
+- ours: `why`
+- `cursor_plugins:skill:pstack/skills/why` — adopt → why#no-retrofitted-rationale
 
 #### `onboarding-altitude`
 Pitch an explanation so an experienced engineer new to the area gains a working mental model, short of line-by-line commentary.
@@ -7427,8 +7433,8 @@ Find the services that own the target, and their dependencies, before searching 
 
 #### `pickaxe-history-search`
 Search history for commits whose diffs add, remove or match a string or pattern.
-- ours: `explain-code`
-- `cursor_plugins:skill:pstack/skills/why` — adopt → explain-code#pickaxe-history-search
+- ours: `why`
+- `cursor_plugins:skill:pstack/skills/why` — adopt → why#pickaxe-history-search
 
 #### `plan-date-staleness`
 Compare a ticket's or spec's date with what shipped, since plans predate the implementation and go stale.
@@ -7440,7 +7446,8 @@ Poll a long-running query's handle for its result in place of running it again.
 
 #### `pr-discussion-pull`
 For each substantive commit, read the pull request body, linked issues, comments and reviews.
-- `cursor_plugins:skill:pstack/skills/why` — adopt, pending cr-r2pa.2.20 → why#pr-discussion-pull
+- ours: `why`
+- `cursor_plugins:skill:pstack/skills/why` — adopt → why#pr-discussion-pull
 
 #### `pre-delivery-claim-audit`
 Before delivery, check each claim for a citation or demote it, and check that its phrasing matches its tier.
@@ -7473,25 +7480,26 @@ On every exit of a read-only run, confirm against the starting state, by a check
 
 #### `read-only-explanation`
 Change nothing while explaining, not even temporary instrumentation.
-- ours: `explain-code`
+- ours: `how`
+- ours: `why`
 
 #### `read-whole-item`
 Open each item found in full, thread or history included, because a preview or a lone message can mislead.
-- `cursor_plugins:skill:pstack/skills/why` — adopt → explain-code#full-record-reading
+- `cursor_plugins:skill:pstack/skills/why` — adopt → why#full-record-reading
 
 #### `recency-bias-check`
 Trace past the latest commit, which is not authoritative, to the earlier decisions behind the current shape.
-- ours: `explain-code`
-- `cursor_plugins:skill:pstack/skills/why` — adopt → explain-code#recency-bias-check
+- ours: `why`
+- `cursor_plugins:skill:pstack/skills/why` — adopt → why#recency-bias-check
 
 #### `recommendation-with-tradeoffs`
 For a choice between alternatives, recommend one and show the tradeoffs in a table.
-- ours: `explain-code`
+- ours: `how`
 
 #### `reconcile-by-reading`
 Settle conflicting findings by reading the code itself.
-- ours: `explain-code`
-- `cursor_plugins:skill:pstack/skills/how` — adopt, pending cr-r2pa.2.20 → how#reconcile-by-reading
+- ours: `how`
+- `cursor_plugins:skill:pstack/skills/how` — adopt → how#reconcile-by-reading
 
 #### `record-finding-fields`
 Record each evidence record with its identity, the exact motive quote and its location, its author, its dates and its linked records.
@@ -7499,8 +7507,8 @@ Record each evidence record with its identity, the exact motive quote and its lo
 
 #### `record-lineage-walk`
 From a record, follow its parent and duplicate links to the item that carries the motive.
-- ours: `explain-code`
-- `cursor_plugins:skill:pstack/skills/why` — adopt → explain-code#record-lineage-walk
+- ours: `why`
+- `cursor_plugins:skill:pstack/skills/why` — adopt → why#record-lineage-walk
 
 #### `refresh-lag-fallback`
 For events newer than a model's last refresh, query the raw table and deduplicate by id.
@@ -7508,7 +7516,7 @@ For events newer than a model's last refresh, query the raw table and deduplicat
 
 #### `repo-evidence-inventory`
 Look through commits, pull request threads, inline markers, decision records, changelogs, ticket ids, tests and co-changed files for a repository's history.
-- `cursor_plugins:skill:pstack/skills/why` — adopt → explain-code#local-evidence-sources
+- `cursor_plugins:skill:pstack/skills/why` — adopt → why#local-evidence-sources
 
 #### `research-branch-pr-policy`
 Push the research branch but open no pull request from it, and never merge it.
@@ -7528,8 +7536,8 @@ Map the invocation to the highest explicitly authorized scope, never exceed it, 
 
 #### `searched-and-unknown`
 Report an unknown with exactly what was searched, where and with which terms.
-- ours: `explain-code`
-- `cursor_plugins:skill:pstack/skills/why` — adopt → explain-code#searched-and-unknown
+- ours: `why`
+- `cursor_plugins:skill:pstack/skills/why` — adopt → why#searched-and-unknown
 
 #### `ship-window-bound`
 Bound a search of a large source to a window around the date the target shipped.
@@ -7537,7 +7545,7 @@ Bound a search of a large source to a window around the date the target shipped.
 
 #### `size-gated-explorers`
 Answer a narrow question in one pass and split a wide one into angles for separate explorers, merging their findings into one account.
-- `cursor_plugins:skill:pstack/skills/how` — adopt, pending cr-r2pa.2.20 → how#angles-when-wide
+- `cursor_plugins:skill:pstack/skills/how` — adopt → how#angles-when-wide
 
 #### `snapshot-header`
 Stamp every artifact with the studied commit, worktree cleanliness and date, mark a dirty tree provisional, sweep rows written at an older sha as stale, and refresh a stale lower level before building a higher one.
@@ -7549,8 +7557,8 @@ Rate repository history as the most trustworthy source because it ties directly 
 
 #### `sources-consulted-line`
 List each source searched, empty or skipped, with the reason.
-- ours: `explain-code`
-- `cursor_plugins:skill:pstack/skills/why` — adopt → explain-code#sources-consulted-line
+- ours: `why`
+- `cursor_plugins:skill:pstack/skills/why` — adopt → why#sources-consulted-line
 
 #### `span-and-trace-inspection`
 Use span statistics and specific traces for questions about timeouts, retries, slow paths and cross-service behaviour.
@@ -7558,8 +7566,8 @@ Use span statistics and specific traces for questions about timeouts, retries, s
 
 #### `stated-scope-reading`
 State your reading of an ambiguous target and proceed, so the user can redirect afterward.
-- `cursor_plugins:skill:pstack/skills/how` — adopt, pending cr-r2pa.2.20 → how#immaterial-ambiguity-reading
-- `cursor_plugins:skill:pstack/skills/why` — adopt → explain-code#immaterial-ambiguity-reading
+- `cursor_plugins:skill:pstack/skills/how` — adopt → how#immaterial-ambiguity-reading
+- `cursor_plugins:skill:pstack/skills/why` — adopt → why#immaterial-ambiguity-reading
 
 #### `stop-on-auth-failure`
 When a source's tool cannot authenticate, stop and report the source as unsearchable, inventing no findings.
@@ -7567,8 +7575,8 @@ When a source's tool cannot authenticate, stop and report the source as unsearch
 
 #### `target-derived-search-terms`
 Build search terms from the target's feature name or business term, symbols, author, error strings and path, trying several wordings.
-- ours: `explain-code`
-- `cursor_plugins:skill:pstack/skills/why` — adopt → explain-code#target-derived-search-terms
+- ours: `why`
+- `cursor_plugins:skill:pstack/skills/why` — adopt → why#target-derived-search-terms
 
 #### `targeted-gap-check`
 Let the writer read the code to confirm a detail or fill a gap without redoing the exploration.
@@ -7632,9 +7640,9 @@ Query a warehouse's deduplicated typed models, dropping to raw events only where
 
 #### `unreachable-data-is-gap`
 Report data you could not reach, through a missing tool, denied access, retention or deletion, as a coverage gap and never as a null result.
-- ours: `explain-code`
+- ours: `why`
 - `cursor_plugins:skill:pstack/skills/recall` — reject
-- `cursor_plugins:skill:pstack/skills/why` — adopt → explain-code#unreachable-data-is-gap
+- `cursor_plugins:skill:pstack/skills/why` — adopt → why#unreachable-data-is-gap
 
 #### `verify-before-report`
 Before reporting, confirm the registry matches disk, every row carries its flags and state, every source-traced claim cites file and line, and the target is untouched.
@@ -11528,6 +11536,7 @@ Traits listed by two or more of our active skills (`doc:AGENTS.md` and playbooks
 | `expand-contract` | planning, to-tickets | Same rule, applied by planning to a plan's tasks and by to-tickets to tracked stages; each entry point writes its own units. |
 | `finding-adjudication` | implement, review | Implement rules on findings inside its delivery loop and review owns the method; owner 2026-10-30: implement (then named execution) stays unchanged. |
 | `glossary-entry-template` | domain-modeling, teach | Each keeps a glossary of its own (project language, the learner's workspace) in one entry format, with its own admission rules. |
+| `immaterial-ambiguity-reading` | how, why | Both take an ambiguous target and state the reading taken when the readings would not change the answer; adopted for both upstream how and why (2026-11-01-batch-1:237, :238), kept in each half of the split. |
 | `implement-against-sketch` | doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/feature.md, doc:.claude/skills/mvp-mode/playbooks/perf-issue.md, doc:.claude/skills/mvp-mode/playbooks/refactoring.md | Owner ruling 5 keeps the sketch design-only, so each playbook's own build step writes the code and holds this rule; a skill for it would bring back the implement branch the ruling removed (unit-kinds deviation log, St4). |
 | `independent-synthesis` | model-council, perspective-council | Two entrypoints with distinct triggers (named models with a judge, opposing lenses) each run a full council ending in a fresh synthesizer. |
 | `limit-bounded-hold` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md | Each long loop stops starting at its own limit with an idea left; the rule is one short sentence, and a skill for it would be ceremony. |
@@ -11544,6 +11553,7 @@ Traits listed by two or more of our active skills (`doc:AGENTS.md` and playbooks
 | `preserve-reproducers` | doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, systematic-debugging | Each cleans up after its own work: the diagnosis when called alone, the bug-fix playbook at its closeout on every exit. Both keep reproducers, so neither cleanup deletes the evidence the other relies on. |
 | `question-batching` | brainstorming, grilling | Brainstorming asks the owner questions inside its own exploration; grilling's rules live inside its interview loop, so pointing there would pull brainstorming into that loop. |
 | `read-only-closeout` | doc:.claude/skills/mvp-mode/playbooks/investigation.md, doc:.claude/skills/mvp-mode/playbooks/session-pickup.md | Each is a read-only run whose closeout belongs to its own exits and reply; logged under St4 in unit-kinds. |
+| `read-only-explanation` | how, why | Both answer a question about this project and change nothing while answering; one read-only rule, kept in each half of the split. |
 | `read-trail-first` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md | Each looping playbook reads its own trail before choosing the next change; each trail has its own columns and rows. |
 | `real-id-wiring` | to-tickets, wayfinder | Both create beads and then wire edges between the IDs they just created, each inside its own seeding procedure. |
 | `recommended-answer` | brainstorming, grilling | As question-batching: a short rule each skill applies inside its own flow. |

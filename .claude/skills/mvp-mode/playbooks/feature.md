@@ -4,7 +4,7 @@ traits: [lead-owns-design, contested-design-gate]   # new
 steps:
   - id: feature#1
     when: always
-    calls: [{to: "skill:explain-code"}]
+    calls: [{to: "skill:how"}]
   - id: feature#2
     when: the change crosses a function boundary, two shapes pass the two-shape test, or a person asked for a council
     calls: [{to: "skill:model-council", when: "a person asked for a council; its branch delivers the sketch"}, {to: "skill:codebase-design", when: "no council was asked for; with two shapes it compares them by design-it-twice and recommends one"}]
@@ -55,7 +55,7 @@ and evidence in hand does not settle it. The lead's own doubt never fires it: th
 resolves that itself and says so. The reply quotes the objection and who raised it. Being
 small waives nothing.
 
-1. **Explain.** Invoke `explain-code` on the affected subsystem.
+1. **Explain.** Invoke `how` on the affected subsystem.
 2. **Design.** A person's request for a council comes first, whatever the shapes: its rows
    below decide. With none, one clear shape across a function boundary: invoke
    `codebase-design` for a sketch, with no comparison. Anything else: this table decides.

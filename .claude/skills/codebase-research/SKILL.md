@@ -1,6 +1,6 @@
 ---
 name: codebase-research
-description: Graduated research on an external codebase — survey its capabilities, map its architecture, or trace one mechanism — into durable reports under docs/research/codebases/. Descriptive rather than a refactor proposal; improvement proposals use improve-codebase-architecture, and explaining this repository's own code is explain-code.
+description: Graduated research on an external codebase — survey its capabilities, map its architecture, or trace one mechanism — into durable reports under docs/research/codebases/. Descriptive rather than a refactor proposal; improvement proposals use improve-codebase-architecture, explaining how this repository's own code works is how, and why it has its shape is why.
 disable-model-invocation: true
 ---
 

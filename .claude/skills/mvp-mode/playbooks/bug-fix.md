@@ -8,7 +8,7 @@ steps:
   - id: bug-fix#2
     when: bug-fix#1 did not skip it
     actions: [{trait: long-hunt-test}, {trait: bounded-background-wait}]
-    calls: [{to: "skill:explain-code", when: the failing subsystem is unfamiliar or the failure may be a regression}, {to: "skill:systematic-debugging"}]
+    calls: [{to: "skill:how", when: the failing subsystem is unfamiliar}, {to: "skill:why", when: the failure may be a regression}, {to: "skill:systematic-debugging"}]
   - id: bug-fix#3
     when: the cause is confirmed
     actions: [{trait: existing-check-as-proof}, {trait: report-missing-proof}, {trait: missing-seam-finding}, {trait: scoped-instance-fix}, {trait: implement-against-sketch}]   # the first when step 1's failing check already fails for the reported reason; the second and third only when no regression check is feasible, and the third only when no seam can hold one; the fourth always; the fifth when the fix was sketched
@@ -50,8 +50,8 @@ A stated unattended request does not start: reply Not started, unattended.
    cause is confirmed: skip step 2 and go to step 3. A flaky or intermittent
    failure never qualifies, and neither does a cause found by reading code
    or rerunning in a loop.
-2. **Diagnose.** When the failing subsystem is unfamiliar or the failure may be a
-   regression, first invoke `explain-code`. Invoke `systematic-debugging` and tell it
+2. **Diagnose.** When the failing subsystem is unfamiliar, first invoke `how`; when
+   the failure may be a regression, first invoke `why`. Invoke `systematic-debugging` and tell it
    this playbook's closeout removes its instrumentation. Only a **confirmed**
    diagnosis goes on to step 3. On **provisional** or **unresolved**, change no
    production code and go to step 7. A mitigation for an unresolved cause ships

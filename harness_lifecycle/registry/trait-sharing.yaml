@@ -180,3 +180,11 @@ bounded-background-wait:
   skills: [doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md]
   why: "The same one sentence on waiting sits at each step that waits, with its own stopped exit; no skill is called for it."
   reviewed: "2026-11-04"
+read-only-explanation:
+  skills: [how, why]
+  why: "Both answer a question about this project and change nothing while answering; one read-only rule, kept in each half of the split."
+  reviewed: "2026-11-10"
+immaterial-ambiguity-reading:
+  skills: [how, why]
+  why: "Both take an ambiguous target and state the reading taken when the readings would not change the answer; adopted for both upstream how and why (2026-11-01-batch-1:237, :238), kept in each half of the split."
+  reviewed: "2026-11-10"

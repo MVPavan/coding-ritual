@@ -7,7 +7,7 @@ steps:
     calls: [{to: "skill:performance-optimization", when: this one whole call stays open through perf-issue#4; its steps 1-3 and vetting run here}]
   - id: perf-issue#2
     when: the vetted baseline misses the target
-    calls: [{to: "skill:explain-code", when: the located cost's code is unfamiliar}]
+    calls: [{to: "skill:how", when: the located cost's code is unfamiliar}]
   - id: perf-issue#3
     when: the vetted baseline misses the target; this is the skill's step 4, one candidate at a time
     actions: [{trait: implement-against-sketch}]   # when perf-issue#3 sketched
@@ -37,7 +37,7 @@ the code. A change with no comparison behind it is not a fix.
 1. **Baseline.** Invoke `performance-optimization`. This one whole call stays open
    through step 4, so nothing of its core is skipped; its steps 1-3 and its vetting run
    here. When the target is already met or the claim does not reproduce, go to step 5.
-2. **Understand.** When the located cost's code is unfamiliar, invoke `explain-code`.
+2. **Understand.** When the located cost's code is unfamiliar, invoke `how`.
 3. **Change.** This is the skill's step 4: one candidate at a time, in its order, until
    its stop condition holds, which with no caller's condition is its default.
    `principle-sequence-verifiable-units` applies. When the change crosses a function

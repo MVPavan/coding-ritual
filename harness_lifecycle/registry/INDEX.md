@@ -40,7 +40,7 @@ Domain → stage → sub-stage. Each active skill under its primary home.
 ## engineering
 
 ### Discovery
-- **Research**: codebase-research, explain-code
+- **Research**: codebase-research, how, why
 
 ### Design
 - **Architecture**: codebase-design, design-evolve, domain-modeling, principle-boundary-discipline, principle-make-operations-idempotent, principle-minimize-reader-load, principle-model-the-domain, principle-redesign-from-first-principles, principle-separate-before-serializing-shared-state, principle-type-system-discipline, prototype
@@ -74,7 +74,7 @@ Two or more active skills share one domain · sub-stage (README §2 rule 3):
 - core · X · Communication: brief-me, html-artifact, show-me, unslop
 - core · X · Continuity: beads, decision-trail, wake
 - core · X · Coordination: delegation, model-council, mvp-mode, perspective-council
-- engineering · Discovery · Research: codebase-research, explain-code
+- engineering · Discovery · Research: codebase-research, how, why
 - engineering · Design · Architecture: codebase-design, design-evolve, domain-modeling, principle-boundary-discipline, principle-make-operations-idempotent, principle-minimize-reader-load, principle-model-the-domain, principle-redesign-from-first-principles, principle-separate-before-serializing-shared-state, principle-type-system-discipline, prototype
 - engineering · Design · Decomposition: planning, principle-migrate-without-shims, principle-subtract-before-you-add, to-tickets
 - engineering · Building · Diagnosis: performance-optimization, principle-attack-the-premise, principle-explain-the-number, systematic-debugging

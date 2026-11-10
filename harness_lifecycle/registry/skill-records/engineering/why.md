@@ -1,5 +1,5 @@
 ---
-skill: explain-code
+skill: why
 domain: engineering
 stage: Discovery
 substage: Research
@@ -8,20 +8,15 @@ family:
 aliases: []
 status: active
 ---
-# explain-code
+# why
 
-Use to explain how this repository's code works, why it has its shape, or which option fits, with citations: before changing it, at a playbook step's call, or inside a delegated task. At top level, a question that should end in that answer is the investigation playbook; a single lookup needs neither; an external codebase is codebase-research.
+Use to answer why something in this project is the way it is (code, a document, a decision, config, a tracker record): what was decided about it, what motivated it, or which change brought a regression and for what reason, from the project's own record, cited at the strength the evidence has. How it works now is how; evidence from outside the project is research; a failure whose cause is unknown is systematic-debugging. At top level, a question that should end in that answer is the investigation playbook.
 
-**Boundary:** One cited, read-only answer about this repository's code: how it works, why it has its shape, or which option fits. A report on an external codebase is codebase-research, a saved answer about this repository's code is the investigation playbook, outside sources are research, an unexplained failure is systematic-debugging, open scope is brainstorming, and a wanted change goes back through the router.
+**Boundary:** One cited, read-only answer about why something in this project is the way it is, or what was decided about it, from the project's own record (git, Beads, decision records, docs). How it works now is how, evidence from outside the project is research, past agent sessions are recall once it exists, an unexplained failure is systematic-debugging, and a saved answer is the investigation playbook.
 
 <!-- registry:generated traits -->
 - `read-only-explanation`: Change nothing while explaining, not even temporary instrumentation.
 - `immaterial-ambiguity-reading`: State the reading taken of a target whose ambiguity would not materially change the answer, and proceed.
-- `angles-when-wide`: Answer a narrow question in one pass, and split a wide subsystem into angles through delegation by the local rule, then reconcile what comes back.
-- `reconcile-by-reading`: Settle conflicting findings by reading the code itself.
-- `explanation-sections`: Structure an explanation as overview, concepts, flow, file map and pitfalls, dropping any section that does not apply.
-- `cited-flow-walkthrough`: Walk the flow in prose from trigger to result, naming the files and functions at each step.
-- `recommendation-with-tradeoffs`: For a choice between alternatives, recommend one and show the tradeoffs in a table.
 - `gather-without-concluding`: Collect the evidence in full before concluding, forming no answer and picking no side while gathering.
 - `code-anchor-first`: Before searching, fix the files, lines, symbols and last commits with blame and rename-following log.
 - `named-record-first`: Fetch the records a seed commit names, with their comments, before searching by keyword.
@@ -44,6 +39,7 @@ Use to explain how this repository's code works, why it has its shape, or which 
 - `unreachable-data-is-gap`: Report data you could not reach, through a missing tool, denied access, retention or deletion, as a coverage gap and never as a null result.
 - `sources-consulted-line`: List each source searched, empty or skipped, with the reason.
 - `constraints-before-change`: When a change follows, turn the findings into preserve, change, avoid and risk lists.
+- `pr-discussion-pull`: For each substantive commit, read the pull request body, linked issues, comments and reviews.
 <!-- /registry:generated traits -->
 
 <!-- registry:generated lineage -->
@@ -77,9 +73,16 @@ Use to explain how this repository's code works, why it has its shape, or which 
 - **cursor_plugins:skill:pstack/skills/why#unreachable-data-is-gap** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
 - **cursor_plugins:skill:pstack/skills/why#sources-consulted-line** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
 - **cursor_plugins:skill:pstack/skills/why#constraints-before-change** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/why#pr-discussion-pull** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-10` **update** (2026-11-10-renames-splits:131): Coordinator fix for critic-21b F1 (scratchpad/mvp-stack/critic-21b.md): a question about what was decided in this project has a present route (why) while recal…
+- `2026-11-10` **adopt** (2026-11-10-renames-splits:120): Completes pending 2026-11-10-renames-splits:032: pr-discussion-pull is written at .claude/skills/why/SKILL.md:38-39, .claude/skills/why/references/pull-request…
+- `2026-11-10` **update** (2026-11-10-renames-splits:114): Owner rulings C of 2026-11-05, I1 and I4 of 2026-11-06 and K of 2026-11-10 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 14a U6. Body is the hist…
+- `2026-11-10` **split** (2026-11-10-renames-splits:113): Owner rulings C of 2026-11-05, I1 and I4 of 2026-11-06 and K of 2026-11-10 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 14a U6. explain-code's c…
+- `2026-11-10` **rename** (2026-11-10-renames-splits:111): Owner rulings C of 2026-11-05, I1 and I4 of 2026-11-06 and K of 2026-11-10 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 14a U6. The skill explai…
+- `2026-11-10` **adopt** (2026-11-10-renames-splits:032) *(superseded)*: Owner ruling 2026-11-10 on the why sheet, as recommended: Prevents: a why answer stopping at the commit message when a linked pull request's review holds the r…
 - `2026-11-01` **adopt** (2026-11-01-batch-1:266): Completes pending 2026-11-01-batch-1:047: constraints-before-change is written at .claude/skills/explain-code/references/history.md:66-67, read against its def…
 - `2026-11-01` **adopt** (2026-11-01-batch-1:265): Completes pending 2026-11-01-batch-1:032: sources-consulted-line is written at .claude/skills/explain-code/references/history.md:65, read against its definitio…
 - `2026-11-01` **adopt** (2026-11-01-batch-1:264): Completes pending 2026-11-01-batch-1:067: unreachable-data-is-gap is written at .claude/skills/explain-code/references/history.md:63-64, read against its defin…
@@ -146,7 +149,7 @@ Use to explain how this repository's code works, why it has its shape, or which 
 <!-- /registry:generated history -->
 
 <!-- registry:generated reviews -->
-None yet.
+- [2026-11-09-upstream-cursor_plugins-4dd1d05.md](../../reviews/2026-11-09-upstream-cursor_plugins-4dd1d05.md)
 <!-- /registry:generated reviews -->
 
 <!-- registry:generated sources -->
@@ -155,9 +158,9 @@ None yet.
 - `adjacent-citation-gate`:
   - `cursor_plugins:skill:pstack/skills/why#adjacent-citation-gate` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `angles-when-wide`:
-  - `cursor_plugins:skill:pstack/skills/how#size-gated-explorers` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+  - `cursor_plugins:skill:pstack/skills/how#size-gated-explorers` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe; withdrawn 2026-11-10)
 - `cited-flow-walkthrough`:
-  - `cursor_plugins:skill:pstack/skills/how#cited-flow-walkthrough` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+  - `cursor_plugins:skill:pstack/skills/how#cited-flow-walkthrough` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe; withdrawn 2026-11-10)
 - `code-anchor-first`:
   - `cursor_plugins:skill:pstack/skills/why#code-anchor-first` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `code-not-intent-evidence`:
@@ -175,7 +178,7 @@ None yet.
 - `embedded-hypothesis-check`:
   - `cursor_plugins:skill:pstack/skills/why#embedded-hypothesis-check` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `explanation-sections`:
-  - `cursor_plugins:skill:pstack/skills/how#explanation-sections` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+  - `cursor_plugins:skill:pstack/skills/how#explanation-sections` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe; withdrawn 2026-11-10)
 - `full-record-reading`:
   - `cursor_plugins:skill:pstack/skills/why#read-whole-item` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `gather-without-concluding`:
@@ -193,10 +196,12 @@ None yet.
   - `cursor_plugins:skill:pstack/skills/why#no-retrofitted-rationale` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `pickaxe-history-search`:
   - `cursor_plugins:skill:pstack/skills/why#pickaxe-history-search` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `pr-discussion-pull`:
+  - `cursor_plugins:skill:pstack/skills/why#pr-discussion-pull` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `recency-bias-check`:
   - `cursor_plugins:skill:pstack/skills/why#recency-bias-check` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `reconcile-by-reading`:
-  - `cursor_plugins:skill:pstack/skills/how#reconcile-by-reading` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+  - `cursor_plugins:skill:pstack/skills/how#reconcile-by-reading` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe; withdrawn 2026-11-10)
 - `record-lineage-walk`:
   - `cursor_plugins:skill:pstack/skills/why#record-lineage-walk` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `searched-and-unknown`:

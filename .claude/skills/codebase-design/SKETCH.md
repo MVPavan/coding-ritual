@@ -10,11 +10,10 @@ no body gets real logic here, and what happens to the sketch next is the caller'
 
 Before sketching, get a working model of each system the design touches and write
 out its architectural explanation, since naming a file is not grounding; skip this
-only when no surrounding system exists. `explain-code` can produce that explanation.
+only when no surrounding system exists. `how` can produce that explanation.
 
 If the design moves ownership or redraws layers, find out why the current shape
-exists and carry that reason as a constraint. `explain-code`'s history branch answers
-that question.
+exists and carry that reason as a constraint. `why` answers that question.
 
 ## Sketch it
 

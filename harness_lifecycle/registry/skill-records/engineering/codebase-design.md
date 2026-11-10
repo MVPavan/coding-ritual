@@ -10,7 +10,7 @@ status: active
 ---
 # codebase-design
 
-Use for substantive module-interface, encapsulation or testability decisions, or to sketch types, signatures and module shape before code that crosses a function boundary. Skip ordinary code explanations (explain-code) and cosmetic refactors.
+Use for substantive module-interface, encapsulation or testability decisions, or to sketch types, signatures and module shape before code that crosses a function boundary. Skip ordinary explanations of how code works (how) and cosmetic refactors.
 
 **Boundary:** Decides module interfaces, encapsulation and testability in code; domain terms and ADRs are domain-modeling, revising design documents is design-evolve, and runnable experiments are prototype.
 
@@ -87,6 +87,7 @@ Use for substantive module-interface, encapsulation or testability decisions, or
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-10` **update** (2026-11-10-renames-splits:128): Owner rulings C of 2026-11-05, I1 and I4 of 2026-11-06 and K of 2026-11-10 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 14a U6. Description skip…
 - `2026-11-09` **adopt-merged** (2026-11-09-pocock-4ae2317:159): Checkpoint at 4ae2317 for the owner's trait rulings: 1 adopt.
 - `2026-11-01` **adopt** (2026-11-01-batch-1:280): Completes pending 2026-11-01-batch-1:144: sketch-rationale is written at .claude/skills/codebase-design/SKETCH.md:46-48, read against its definition (T5).
 - `2026-11-01` **adopt** (2026-11-01-batch-1:279): Completes pending 2026-11-01-batch-1:126: next-agent-test is written at .claude/skills/codebase-design/SKETCH.md:41-42, read against its definition (T5).

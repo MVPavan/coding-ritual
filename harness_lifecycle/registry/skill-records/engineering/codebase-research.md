@@ -10,9 +10,9 @@ status: active
 ---
 # codebase-research
 
-Graduated research on an external codebase — survey its capabilities, map its architecture, or trace one mechanism — into durable reports under docs/research/codebases/. Descriptive rather than a refactor proposal; improvement proposals use improve-codebase-architecture, and explaining this repository's own code is explain-code.
+Graduated research on an external codebase — survey its capabilities, map its architecture, or trace one mechanism — into durable reports under docs/research/codebases/. Descriptive rather than a refactor proposal; improvement proposals use improve-codebase-architecture, explaining how this repository's own code works is how, and why it has its shape is why.
 
-**Boundary:** Durable, manually invoked reports on an external codebase; explaining this repository's own code is explain-code, outside sources for a decision are research, and improvement proposals are improve-codebase-architecture.
+**Boundary:** Durable, manually invoked reports on an external codebase; how this repository's own code works is how and why it has its shape is why, outside sources for a decision are research, and improvement proposals are improve-codebase-architecture.
 
 <!-- registry:generated traits -->
 - `three-modes`: Offer three research modes — an L1 capability survey, an L2 architecture map, and a deep dive on one named question — all landing under a per-target research directory.
@@ -35,6 +35,7 @@ No adopted lineage recorded.
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-10` **update** (2026-11-10-renames-splits:129): Owner rulings C of 2026-11-05, I1 and I4 of 2026-11-06 and K of 2026-11-10 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 14a U6. Description: how…
 - `2026-11-01` **update** (2026-11-01-batch-1:235): Plan N8 and ruling 4: this skill is for external codebases only. The description drops its local-code claim and the workflow drops the branch answering bounded…
 <!-- /registry:generated history -->
 

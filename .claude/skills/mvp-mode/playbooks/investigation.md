@@ -1,10 +1,10 @@
 ---
-trigger: A question about how this repository's code works, why it has its shape, or which design to pick.
-traits: [read-only-answer-gate]   # new; variant of no-fix-handback, for a question about code
+trigger: A question about how anything in this project works, why it is the way it is, what was decided about it, or which design to pick.
+traits: [read-only-answer-gate]   # new; variant of no-fix-handback, for a question about this project
 steps:
   - id: investigation#1
     when: always
-    calls: [{to: "skill:explain-code"}]
+    calls: [{to: "skill:how", when: the question asks how something works or which option fits}, {to: "skill:why", when: "the question asks why something is the way it is, what was decided about it, what motivated it or which change brought a regression"}]
   - id: investigation#2
     when: an answer was drafted
     calls: [{to: "skill:unslop"}]
@@ -15,8 +15,9 @@ steps:
 
 # Investigation
 
-For a question about how this repository's code works, why it has its shape or
-which design to pick, answered from source and history. A failure's cause is
+For a question about how anything in this project works (code, documents,
+decisions, configuration, tracker records), why it is the way it is, or which design
+to pick, answered from its source and history. A failure's cause is
 `systematic-debugging` or the bug-fix playbook, a number to measure is
 `performance-optimization`, and a captured artifact is the trace-forensics
 playbook. An external codebase is `/codebase-research`.
@@ -27,9 +28,10 @@ write is a saved copy of the reply, when asked to keep it: at the path named, or
 a gitignored scratch path when none is. Before step 1, note `git status --short` and
 a checksum of each path already dirty.
 
-1. **Explain.** Invoke `explain-code`. Its history branch takes a question about
-   motivation or a regression, and its decision branch a choice between
-   alternatives. When the question's premise is wrong, say so in the answer.
+1. **Explain.** Invoke `how` for how something works, and its decision branch for a
+   choice between alternatives. Invoke `why` for a question about a past decision, motivation or a
+   regression; a question that asks both runs `how`, then `why`. When the
+   question's premise is wrong, say so in the answer.
 2. **Edit the answer.** When an answer was drafted, invoke `unslop` on it.
    Citations, tradeoffs tables, confidence tiers and the sources line all stay.
 3. **Close out**, on every exit. Compare `git status --short` with the start: only a

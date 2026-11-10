@@ -10,7 +10,7 @@ status: active
 ---
 # research
 
-Use when a decision needs multiple sources gathered and weighed. Answer a single factual lookup directly from an appropriate source.
+Use when a decision needs multiple outside sources gathered and weighed. Answer a single factual lookup directly from an appropriate source; why this project chose something, from its own record, is why.
 
 <!-- registry:generated traits -->
 - `decision-framing`: State the decision, scope, constraints and material unknowns, and choose sources by what would change the answer.
@@ -38,6 +38,7 @@ Use when a decision needs multiple sources gathered and weighed. Answer a single
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-10` **update** (2026-11-10-renames-splits:130): Owner rulings C of 2026-11-05, I1 and I4 of 2026-11-06 and K of 2026-11-10 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 14a U6. Description boun…
 - `2026-11-09` **adopt-merged** (2026-11-09-pocock-4ae2317:166): Checkpoint at 4ae2317 for the owner's trait rulings: 1 adopt.
 - `2026-10-30` **adopt-merged** (2026-10-30-mattpocock_skills-5beb35b:575) *(superseded)*: Checkpoint at 5beb35b for the owner's trait rulings: 4 adopt, 1 defer.
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:332): Owner deferred the report's reject recommendation, to review the set later: Ours deliberately requires primary sources for high-stakes and changing claims only…

@@ -1,23 +1,44 @@
-# History branch of explain-code
+---
+name: why
+description: "Use to answer why something in this project is the way it is (code, a document, a decision, config, a tracker record): what was decided about it, what motivated it, or which change brought a regression and for what reason, from the project's own record, cited at the strength the evidence has. How it works now is how; evidence from outside the project is research; a failure whose cause is unknown is systematic-debugging. At top level, a question that should end in that answer is the investigation playbook."
+---
 
-Load only when the question is about motivation or a regression. Code shows what a
-program does; the reason lives in what people wrote about it, and that record is
-partial. Report it at the strength it has.
+# Why
+
+The deliverable is one cited answer about why something in this project has its
+shape: its code, documents, decisions, configuration or tracker records. A question
+about what was decided, when the outcome itself is wanted, is answered the same way.
+Code and files show what the project does; the reason lives in what people wrote about it,
+and that record is partial. Report it at the strength it has.
+
+Change nothing: no edit, no commit, not even a temporary print or probe. A delegate
+you use works under the same limit. If a change is wanted, name it as the next
+request and do not start it.
+
+If a target is ambiguous but each reading would give much the same answer, state
+the reading you took and carry on.
+
+This skill reads the project's own record. Evidence from outside the project
+(vendor documentation, papers, other codebases) is `research`'s. Past agent
+sessions are `recall`'s, once that skill exists; until then, a past decision is
+answered from the project's own record here, and sessions are listed in the
+sources line as not searched.
 
 ## Gather
 
 Collect everything below before you settle on an answer: form no conclusion and
 pick no side while gathering.
 
-1. **Anchor.** Before any search, fix the files, lines, symbols and last commits
-   with `git blame -L` and a rename-following `git log --follow`.
+1. **Anchor.** Before any search, fix the target's files, lines, symbols and last
+   commits with `git blame -L` and a rename-following `git log --follow`.
 2. **Records named there.** Fetch what those commits name (a bead, an ADR), with
    its comments, before you search by keyword.
 3. **Search terms.** Build them from the target's feature or business term, its
    symbols, its author, its error strings and its path. Try several wordings.
 4. **Sources.** Search for motivation in commit messages (always), Beads, decision
    records, docs, inline markers, changelogs, tests and co-changed files. Add another
-   source only if it is available.
+   source only if it is available. When a commit you trace links a pull request,
+   read `references/pull-requests.md` and follow it.
 5. **Strings in history.** Find commits whose diffs add, remove or match a string or
    pattern with `git log -S` and `git log -G`.
 6. **Whole records.** Before relying on an anchor or an excerpt, read the complete

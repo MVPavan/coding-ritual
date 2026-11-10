@@ -65,7 +65,7 @@ codebase-research:
   family: null
   aliases: []
   status: active
-  boundary: "Durable, manually invoked reports on an external codebase; explaining this repository's own code is explain-code, outside sources for a decision are research, and improvement proposals are improve-codebase-architecture."
+  boundary: "Durable, manually invoked reports on an external codebase; how this repository's own code works is how and why it has its shape is why, outside sources for a decision are research, and improvement proposals are improve-codebase-architecture."
 decision-trail:
   domain: core
   stage: X
@@ -111,7 +111,7 @@ implement:
   aliases: [phase-execution, run-phases]
   status: active
   boundary: null
-explain-code:
+how:
   domain: engineering
   stage: Discovery
   substage: Research
@@ -119,7 +119,16 @@ explain-code:
   family: null
   aliases: []
   status: active
-  boundary: "One cited, read-only answer about this repository's code: how it works, why it has its shape, or which option fits. A report on an external codebase is codebase-research, a saved answer about this repository's code is the investigation playbook, outside sources are research, an unexplained failure is systematic-debugging, open scope is brainstorming, and a wanted change goes back through the router."
+  boundary: "One cited, read-only answer about how something in this project works now, or which option fits once scope is settled. Why it has its shape is why, a report on an external codebase is codebase-research, a saved answer is the investigation playbook, outside sources are research, an unexplained failure is systematic-debugging, open scope is brainstorming, and a wanted change goes back through the router."
+why:
+  domain: engineering
+  stage: Discovery
+  substage: Research
+  secondary: []
+  family: null
+  aliases: []
+  status: active
+  boundary: "One cited, read-only answer about why something in this project is the way it is, or what was decided about it, from the project's own record (git, Beads, decision records, docs). How it works now is how, evidence from outside the project is research, past agent sessions are recall once it exists, an unexplained failure is systematic-debugging, and a saved answer is the investigation playbook."
 grilling:
   domain: core
   stage: Intake
