@@ -3212,6 +3212,11 @@ worktree-base-check:
 pre-report-tip-merge:
   definition: "Have each implementer merge the integration branch's tip into its own branch before reporting done."
   placement: {domain: engineering, stage: Delivery, substage: Integration}
+pre-report-base-merge:
+  definition: "Before reporting done, merge the base branch's tip into the integration branch and rerun the checks; without commit authority, report that merge as due."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+  distinct_from: [pre-report-tip-merge]
+  note: "pre-report-tip-merge brings the integration branch's tip into each implementer's own branch; this brings the base's tip into the one integration branch the work runs on, with no implementer branch."
 dedicated-merger-agent:
   definition: "Merge completed work into the integration branch through a dedicated merger subagent."
   placement: {domain: engineering, stage: Delivery, substage: Integration}

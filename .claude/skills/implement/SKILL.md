@@ -1,6 +1,6 @@
 ---
 name: implement
-description: Use to execute tracked multi-step work, a standalone plan, or a roadmap phase. Clear bounded implementation can proceed directly under AGENTS.md.
+description: Use to execute tracked multi-step work, a standalone plan, a roadmap phase, or a spec whose tickets are already in Beads with blocking edges. Skip writing tickets for a spec, which is to-tickets; clear bounded implementation can proceed directly under AGENTS.md.
 ---
 
 # Implement
@@ -13,8 +13,9 @@ durable task state; a plan document is not a prerequisite for a clear task.
 | Request | Scope |
 |---|---|
 | Explicit run-all-remaining-phases request or `/run-phases` | Workstream; read `references/workstream-mode.md` |
+| Implement a spec as a whole, its tickets in Beads with blocking edges | Spec; read `references/spec-run.md`. An explicit workstream request, a named phase or a bounded task keeps its own scope. A spec seeded as a workstream (epics anchored on a roadmap) runs under the Workstream or Phase scope: say which request is due and ask nothing else. A spec whose tickets are one epic with stages and edges runs here if its work is significant, else as Task in the current checkout |
 | Execute a named roadmap phase | Phase |
-| Task, standalone plan, or single-phase epic | Task |
+| Task, standalone plan, or single-phase epic | Task, in the current checkout with no worktree |
 | Clear bounded implementation without a plan | Task; use the request and acceptance as the packet |
 | Material scope/behavior unresolved | Resolve that gap through planning or brainstorming |
 

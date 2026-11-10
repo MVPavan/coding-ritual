@@ -999,6 +999,12 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `regression-proof-and-rerun`: Prove a fix with a regression check when one is feasible, then rerun the original failing scenario.
 - `attempt-log`: Record each debugging attempt as hypothesis, change and result.
 - `two-failure-stop`: After two failed fixes, stop and bring the attempt log to whoever started the task before trying another.
+- `dependency-edges`: Encode real blocking edges in the tracker and let the ready frontier drive execution rather than listing order.
+- `single-integration-branch`: Land every ticket of a multi-ticket build on one integration branch.
+- `worktree-per-significant-change`: Use a worktree only for a significant change: a spec's work usually is one and runs in one worktree on the integration branch, small tickets inside it get none of their own, and implementers never run in parallel.
+- `worktree-base-verify`: Confirm a worktree's base before work starts in it and, on a mismatch, preserve the work, stop and report, resetting onto the base only when reset authority is explicit.
+- `worktree-cleanup`: Remove every implementer worktree when the build ends.
+- `pre-report-base-merge`: Before reporting done, merge the base branch's tip into the integration branch and rerun the checks; without commit authority, report that merge as due.
 
 ### Docs
 
@@ -2875,20 +2881,20 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `ordered-context-decision-tree`: Walk the context moves at a phase boundary as an ordered decision tree in which the first yes wins. — defer
 
 #### engineering · X · Coordination — skill:skills/engineering/implement-spec
-- `single-integration-branch`: Land every ticket of a multi-ticket build on one integration branch. — adopt, pending cr-r2pa.2.20 → implement#single-integration-branch
-- `dependency-edges`: Encode real blocking edges in the tracker and let the ready frontier drive execution rather than listing order. — adopt, pending cr-r2pa.2.20 → implement#dependency-edges
+- `single-integration-branch`: Land every ticket of a multi-ticket build on one integration branch. — adopt → implement#single-integration-branch
+- `dependency-edges`: Encode real blocking edges in the tracker and let the ready frontier drive execution rather than listing order. — adopt → implement#dependency-edges
 - `pointer-only-subagent-briefs`: Keep subagent communication sparse by passing pointers to the spec, tickets, notes and commits rather than copying their content. — defer
 - `parallel-frontier-implementers`: Run implementer subagents concurrently over the ready frontier of a ticket graph, dispatching new ones whenever a merge opens more tickets. — defer
 - `exploration-notes-subagent`: Optionally run an exploration subagent that saves markdown notes outside the repository for later subagents to read. — defer
 - `draft-closing-pr`: After the first merge, open a draft pull request marked as closing the spec and tickets when the tracker closes work through pull requests or the user asks. — defer
-- `worktree-per-implementer`: Give each implementer subagent its own worktree and branch. — adopt, pending cr-r2pa.2.20 → implement#worktree-per-significant-change
-- `worktree-base-check`: Have each implementer confirm its worktree is based on the integration branch and reset onto it if not. — adopt, pending cr-r2pa.2.20 → implement#worktree-base-verify
+- `worktree-per-implementer`: Give each implementer subagent its own worktree and branch. — adopt → implement#worktree-per-significant-change
+- `worktree-base-check`: Have each implementer confirm its worktree is based on the integration branch and reset onto it if not. — adopt → implement#worktree-base-verify
 - `red-green`: Make one test fail before implementing the change that makes it pass. — adopt → tdd#red-green
-- `pre-report-tip-merge`: Have each implementer merge the integration branch's tip into its own branch before reporting done. — adopt, pending cr-r2pa.2.20 → implement#pre-report-tip-merge
+- `pre-report-tip-merge`: Have each implementer merge the integration branch's tip into its own branch before reporting done. — adopt → implement#pre-report-base-merge
 - `dedicated-merger-agent`: Merge completed work into the integration branch through a dedicated merger subagent. — defer
 - `final-branch-review`: Once all tickets have landed, review the integration branch a single time and fix all findings through a single implementer. — defer
 - `delivery-closeout`: Finish a multi-ticket build by marking the draft pull request ready or closing the tickets, and report the branch. — defer
-- `worktree-cleanup`: Remove every implementer worktree when the build ends. — adopt, pending cr-r2pa.2.20 → implement#worktree-cleanup
+- `worktree-cleanup`: Remove every implementer worktree when the build ends. — adopt → implement#worktree-cleanup
 - `fresh-context-subagent`: Start every subagent in a fresh context window rather than as a copy of the caller's conversation. — adopt, pending cr-r2pa.2.19 → delegation#fresh-context-subagent
 - `no-reused-implementer`: Give each ticket, and the closing round of review fixes, a newly started implementer rather than one that already finished other work. — adopt, pending cr-r2pa.2.19 → implement#no-reused-implementer
 
@@ -8743,9 +8749,10 @@ Split an approved spec into demoable phases with checkable exits and flat stages
 
 #### `dependency-edges`
 Encode real blocking edges in the tracker and let the ready frontier drive execution rather than listing order.
+- ours: `implement`
 - ours: `to-tickets`
 - ours: `wayfinder`
-- `mattpocock_skills:skill:skills/engineering/implement-spec` — adopt, pending cr-r2pa.2.20 → implement#dependency-edges
+- `mattpocock_skills:skill:skills/engineering/implement-spec` — adopt → implement#dependency-edges
 - `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
 - `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → to-tickets#dependency-edges
 - `mattpocock_skills:skill:skills/engineering/wayfinder` — adopt → wayfinder#dependency-edges
@@ -11090,9 +11097,13 @@ Cross-check every cleanup candidate against the owner's list of pinned or in-use
 Fill a fixed PR-body skeleton with Summary, Evidence, and Merge Danger sections.
 - `mattpocock_skills:skill:skills/engineering/pr` — defer
 
+#### `pre-report-base-merge`
+Before reporting done, merge the base branch's tip into the integration branch and rerun the checks; without commit authority, report that merge as due.
+- ours: `implement`
+
 #### `pre-report-tip-merge`
 Have each implementer merge the integration branch's tip into its own branch before reporting done.
-- `mattpocock_skills:skill:skills/engineering/implement-spec` — adopt, pending cr-r2pa.2.20 → implement#pre-report-tip-merge
+- `mattpocock_skills:skill:skills/engineering/implement-spec` — adopt → implement#pre-report-base-merge
 
 #### `prune-on-approval-gate`
 Remove a worktree only after the owner approves that exact worktree, even when it is clean and merged.
@@ -11120,8 +11131,9 @@ Discover and run the project's automated checks and fix what the merge broke.
 
 #### `single-integration-branch`
 Land every ticket of a multi-ticket build on one integration branch.
+- ours: `implement`
 - `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
-- `mattpocock_skills:skill:skills/engineering/implement-spec` — adopt, pending cr-r2pa.2.20 → implement#single-integration-branch
+- `mattpocock_skills:skill:skills/engineering/implement-spec` — adopt → implement#single-integration-branch
 
 #### `small-single-purpose-commits`
 Keep each commit small and about one thing.
@@ -11147,10 +11159,11 @@ Refuse to land work not verified on its final form, rechecking behaviour if a cl
 
 #### `worktree-base-check`
 Have each implementer confirm its worktree is based on the integration branch and reset onto it if not.
-- `mattpocock_skills:skill:skills/engineering/implement-spec` — adopt, pending cr-r2pa.2.20 → implement#worktree-base-verify
+- `mattpocock_skills:skill:skills/engineering/implement-spec` — adopt → implement#worktree-base-verify
 
 #### `worktree-base-verify`
 Confirm a worktree's base before work starts in it and, on a mismatch, preserve the work, stop and report, resetting onto the base only when reset authority is explicit.
+- ours: `implement`
 
 ### engineering · Improvement · Codification
 
@@ -11469,14 +11482,16 @@ Run remaining phases in order only on explicit opt-in, with per-phase tracking r
 
 #### `worktree-cleanup`
 Remove every implementer worktree when the build ends.
-- `mattpocock_skills:skill:skills/engineering/implement-spec` — adopt, pending cr-r2pa.2.20 → implement#worktree-cleanup
+- ours: `implement`
+- `mattpocock_skills:skill:skills/engineering/implement-spec` — adopt → implement#worktree-cleanup
 
 #### `worktree-per-implementer`
 Give each implementer subagent its own worktree and branch.
-- `mattpocock_skills:skill:skills/engineering/implement-spec` — adopt, pending cr-r2pa.2.20 → implement#worktree-per-significant-change
+- `mattpocock_skills:skill:skills/engineering/implement-spec` — adopt → implement#worktree-per-significant-change
 
 #### `worktree-per-significant-change`
 Use a worktree only for a significant change: a spec's work usually is one and runs in one worktree on the integration branch, small tickets inside it get none of their own, and implementers never run in parallel.
+- ours: `implement`
 
 ### engineering · X · Governance
 
@@ -11506,7 +11521,7 @@ Traits listed by two or more of our active skills (`doc:AGENTS.md` and playbooks
 | `bounded-background-wait` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md | The same one sentence on waiting sits at each step that waits, with its own stopped exit; no skill is called for it. |
 | `build-closeout` | doc:.claude/skills/mvp-mode/playbooks/feature.md, doc:.claude/skills/mvp-mode/playbooks/perf-issue.md, doc:.claude/skills/mvp-mode/playbooks/refactoring.md | Each playbook's closeout runs on its own exits and feeds its own reply, and these three have the same three duties; a skill of three duties would be ceremony (unit-kinds deviation log, St4 and B4). |
 | `canonical-term-and-aliases` | domain-modeling, teach | Each keeps a glossary of its own (project language, the learner's workspace) in one entry format, with its own admission rules. |
-| `dependency-edges` | to-tickets, wayfinder | Each builds its own tracker graph, to-tickets for implementation stages and wayfinder for decision tickets, and lets readiness drive the work; edge semantics stay in beads. |
+| `dependency-edges` | implement, to-tickets, wayfinder | Each lets the tracker graph's readiness drive the work: to-tickets encodes implementation stages and wayfinder decision tickets, and implement's spec scope runs a spec's tickets from the ready frontier, adding a blocking edge it finds missing; edge semantics stay in beads. |
 | `domain-vocabulary` | brief-me, improve-codebase-architecture, prototype, teach | Each writes for its reader in the project's own terms: brief-me in its re-pitches, teach in its lessons, prototype in its states, actions and labels, so an answer transfers to the real code, and improve-codebase-architecture in its candidates and their friction. |
 | `drift-scan` | harness-scan, harness-status | Both run the one drift command, scan for a single harness and status as a sweep of all of them; a pointer between them would add a hop to a one-line command. |
 | `dropout-proceeds-noted` | interrogate, model-council | A failed member and a failed adversary are handled alike, going on and reporting it, but what is left when too few remain differs: no pick for one, not run for the other. |

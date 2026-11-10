@@ -10,7 +10,7 @@ status: active
 ---
 # implement
 
-Use to execute tracked multi-step work, a standalone plan, or a roadmap phase. Clear bounded implementation can proceed directly under AGENTS.md.
+Use to execute tracked multi-step work, a standalone plan, a roadmap phase, or a spec whose tickets are already in Beads with blocking edges. Skip writing tickets for a spec, which is to-tickets; clear bounded implementation can proceed directly under AGENTS.md.
 
 <!-- registry:generated traits -->
 - `scope-selector`: Pick task, phase or workstream scope from the request and route unresolved material scope back to planning or brainstorming.
@@ -30,6 +30,12 @@ Use to execute tracked multi-step work, a standalone plan, or a roadmap phase. C
 - `regression-proof-and-rerun`: Prove a fix with a regression check when one is feasible, then rerun the original failing scenario.
 - `attempt-log`: Record each debugging attempt as hypothesis, change and result.
 - `two-failure-stop`: After two failed fixes, stop and bring the attempt log to whoever started the task before trying another.
+- `dependency-edges`: Encode real blocking edges in the tracker and let the ready frontier drive execution rather than listing order.
+- `single-integration-branch`: Land every ticket of a multi-ticket build on one integration branch.
+- `worktree-per-significant-change`: Use a worktree only for a significant change: a spec's work usually is one and runs in one worktree on the integration branch, small tickets inside it get none of their own, and implementers never run in parallel.
+- `worktree-base-verify`: Confirm a worktree's base before work starts in it and, on a mismatch, preserve the work, stop and report, resetting onto the base only when reset authority is explicit.
+- `worktree-cleanup`: Remove every implementer worktree when the build ends.
+- `pre-report-base-merge`: Before reporting done, merge the base branch's tip into the integration branch and rerun the checks; without commit authority, report that merge as due.
 <!-- /registry:generated traits -->
 
 <!-- registry:generated lineage -->
@@ -41,22 +47,31 @@ Use to execute tracked multi-step work, a standalone plan, or a roadmap phase. C
   - modified: absorb executing-plans as a degraded inline mode for when subagents are unavailable
 - **agent-skills:skill:skills/code-simplification** `skills/code-simplification/SKILL.md` @ 7676817
 - **mattpocock_skills:skill:skills/engineering/implement-spec#no-reused-implementer** `skills/engineering/implement-spec/SKILL.md` @ 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d (pending cr-r2pa.2.19)
-- **mattpocock_skills:skill:skills/engineering/implement-spec#single-integration-branch** `skills/engineering/implement-spec/SKILL.md` @ 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d (pending cr-r2pa.2.20)
-- **mattpocock_skills:skill:skills/engineering/implement-spec#dependency-edges** `skills/engineering/implement-spec/SKILL.md` @ 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d (pending cr-r2pa.2.20)
-- **mattpocock_skills:skill:skills/engineering/implement-spec#worktree-per-implementer** `skills/engineering/implement-spec/SKILL.md` @ 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d (pending cr-r2pa.2.20)
-- **mattpocock_skills:skill:skills/engineering/implement-spec#worktree-base-check** `skills/engineering/implement-spec/SKILL.md` @ 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d (pending cr-r2pa.2.20)
-- **mattpocock_skills:skill:skills/engineering/implement-spec#pre-report-tip-merge** `skills/engineering/implement-spec/SKILL.md` @ 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d (pending cr-r2pa.2.20)
-- **mattpocock_skills:skill:skills/engineering/implement-spec#worktree-cleanup** `skills/engineering/implement-spec/SKILL.md` @ 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d (pending cr-r2pa.2.20)
+- **mattpocock_skills:skill:skills/engineering/implement-spec#single-integration-branch** `skills/engineering/implement-spec/SKILL.md` @ 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d
+- **mattpocock_skills:skill:skills/engineering/implement-spec#dependency-edges** `skills/engineering/implement-spec/SKILL.md` @ 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d
+- **mattpocock_skills:skill:skills/engineering/implement-spec#worktree-per-implementer** `skills/engineering/implement-spec/SKILL.md` @ 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d
+- **mattpocock_skills:skill:skills/engineering/implement-spec#worktree-base-check** `skills/engineering/implement-spec/SKILL.md` @ 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d
+- **mattpocock_skills:skill:skills/engineering/implement-spec#worktree-cleanup** `skills/engineering/implement-spec/SKILL.md` @ 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d
+- **mattpocock_skills:skill:skills/engineering/implement-spec#pre-report-tip-merge** `skills/engineering/implement-spec/SKILL.md` @ 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-10` **adopt** (2026-11-10-renames-splits:110): critic-19d F2: spec-run.md step 8 merges the base's tip into the one integration branch, not the integration branch's tip into each implementer's branch, so it…
+- `2026-11-10` **update** (2026-11-10-renames-splits:109): Critic-19d fix. F1: cleanup removes the spec worktree only with authority already held, else keeps it and reports its path and that cleanup is due. F3: a works…
+- `2026-11-10` **adopt** (2026-11-10-renames-splits:108): Completes pending 2026-11-10-renames-splits:026: worktree-cleanup is written at .claude/skills/implement/references/spec-run.md:50-54, read against its ruled r…
+- `2026-11-10` **adopt** (2026-11-10-renames-splits:107) *(superseded)*: Completes pending 2026-11-10-renames-splits:025: pre-report-tip-merge is written at .claude/skills/implement/references/spec-run.md:42-44, read against its rul…
+- `2026-11-10` **adopt** (2026-11-10-renames-splits:106): Completes pending 2026-11-10-renames-splits:024: worktree-base-verify is written at .claude/skills/implement/references/spec-run.md:20-24, read against its rul…
+- `2026-11-10` **adopt** (2026-11-10-renames-splits:105): Completes pending 2026-11-10-renames-splits:023: worktree-per-significant-change is written at .claude/skills/implement/references/spec-run.md:15-19, .claude/s…
+- `2026-11-10` **adopt** (2026-11-10-renames-splits:104): Completes pending 2026-11-10-renames-splits:022: dependency-edges is delivered at .claude/skills/implement/references/spec-run.md:9-12, .claude/skills/implemen…
+- `2026-11-10` **adopt** (2026-11-10-renames-splits:103): Completes pending 2026-11-10-renames-splits:021: single-integration-branch is delivered at .claude/skills/implement/references/spec-run.md:13-14, in implement'…
+- `2026-11-10` **update** (2026-11-10-renames-splits:102): Owner rulings D of 2026-11-05 and I3 of 2026-11-06 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 14a U5. New spec scope for a spec whose tickets …
 - `2026-11-10` **adopt-merged** (2026-11-10-renames-splits:066): Checkpoint at 4ae2317 after the renames-splits rulings: 9 adopt, 7 defer; adopts now land in implement.
-- `2026-11-10` **adopt** (2026-11-10-renames-splits:026): Owner rulings 2026-11-05 and 2026-11-06 (C, D, I): Prevents: finished worktrees piling up, and removal of a worktree whose work exists nowhere else. Upstream r…
-- `2026-11-10` **adopt** (2026-11-10-renames-splits:025): Owner rulings 2026-11-05 and 2026-11-06 (C, D, I): Prevents: work reported done that no longer applies to the tip it must land on. A merge is a commit, so unde…
-- `2026-11-10` **adopt** (2026-11-10-renames-splits:024): Owner rulings 2026-11-05 and 2026-11-06 (C, D, I): Prevents: work done on the wrong base, and the worse failure of a reset discarding work that was already in …
-- `2026-11-10` **adopt** (2026-11-10-renames-splits:023): Owner rulings 2026-11-05 and 2026-11-06 (C, D, I): Prevents: a spec running in the shared checkout beside other people's edits, and the opposite failure of one…
-- `2026-11-10` **adopt** (2026-11-10-renames-splits:022): Owner rulings 2026-11-05 and 2026-11-06 (C, D, I): Relocation: owner ruling 2026-11-05 §D makes `implement-spec` a branch of `implement`, and this is the ticke…
-- `2026-11-10` **adopt** (2026-11-10-renames-splits:021): Owner rulings 2026-11-05 and 2026-11-06 (C, D, I): Prevents: a spec's tickets ending on separate branches that nobody has integrated, so the spec is never whol…
+- `2026-11-10` **adopt** (2026-11-10-renames-splits:026) *(superseded)*: Owner rulings 2026-11-05 and 2026-11-06 (C, D, I): Prevents: finished worktrees piling up, and removal of a worktree whose work exists nowhere else. Upstream r…
+- `2026-11-10` **adopt** (2026-11-10-renames-splits:025) *(superseded)*: Owner rulings 2026-11-05 and 2026-11-06 (C, D, I): Prevents: work reported done that no longer applies to the tip it must land on. A merge is a commit, so unde…
+- `2026-11-10` **adopt** (2026-11-10-renames-splits:024) *(superseded)*: Owner rulings 2026-11-05 and 2026-11-06 (C, D, I): Prevents: work done on the wrong base, and the worse failure of a reset discarding work that was already in …
+- `2026-11-10` **adopt** (2026-11-10-renames-splits:023) *(superseded)*: Owner rulings 2026-11-05 and 2026-11-06 (C, D, I): Prevents: a spec running in the shared checkout beside other people's edits, and the opposite failure of one…
+- `2026-11-10` **adopt** (2026-11-10-renames-splits:022) *(superseded)*: Owner rulings 2026-11-05 and 2026-11-06 (C, D, I): Relocation: owner ruling 2026-11-05 §D makes `implement-spec` a branch of `implement`, and this is the ticke…
+- `2026-11-10` **adopt** (2026-11-10-renames-splits:021) *(superseded)*: Owner rulings 2026-11-05 and 2026-11-06 (C, D, I): Prevents: a spec's tickets ending on separate branches that nobody has integrated, so the spec is never whol…
 - `2026-11-09` **adopt** (2026-11-09-pocock-4ae2317:161): Owner ruling 2026-11-09: Prevents: A worker carrying one ticket's assumptions into the next ticket or into the review fixes, where nobody briefed them. Lands i…
 - `2026-11-06` **rename** (2026-11-06-renames:011): Owner ruling D of 2026-11-05 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 14a U1. The skill execution is renamed implement; its body is unchange…
 - `2026-10-31` **update** (2026-10-31-mvp-mode:007): Restates 2026-10-31-mvp-mode:004 with durable evidence (critic K2) and its trait inventory (critic K1). Bug-fix pilot: systematic-debugging no longer fixes, so…
@@ -85,7 +100,18 @@ Use to execute tracked multi-step work, a standalone plan, or a roadmap phase. C
 <!-- /registry:generated reviews -->
 
 <!-- registry:generated sources -->
-No adopted traits recorded.
+- `dependency-edges`:
+  - `mattpocock_skills:skill:skills/engineering/implement-spec#dependency-edges` (adopted at 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d)
+- `pre-report-base-merge`:
+  - `mattpocock_skills:skill:skills/engineering/implement-spec#pre-report-tip-merge` (adopted at 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d)
+- `single-integration-branch`:
+  - `mattpocock_skills:skill:skills/engineering/implement-spec#single-integration-branch` (adopted at 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d)
+- `worktree-base-verify`:
+  - `mattpocock_skills:skill:skills/engineering/implement-spec#worktree-base-check` (adopted at 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d)
+- `worktree-cleanup`:
+  - `mattpocock_skills:skill:skills/engineering/implement-spec#worktree-cleanup` (adopted at 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d)
+- `worktree-per-significant-change`:
+  - `mattpocock_skills:skill:skills/engineering/implement-spec#worktree-per-implementer` (adopted at 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d)
 <!-- /registry:generated sources -->
 
 <!-- registry:generated declined -->

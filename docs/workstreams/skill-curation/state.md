@@ -71,9 +71,10 @@ deleted. Beads is the work-state authority; this file is the narrative.
 | after `e8feec8` | Renames and splits, unit U2: three reports ruled and recorded as pending (`cr-r2pa.2.20`, round `2026-11-10-renames-splits`, open), see below |
 | after `b4740e4` | U3: `to-spec` split out of `brainstorming` (same round), see below |
 | after `3ab290f` | U4: `to-tickets` split out of `planning` (same round), see below |
+| after `e43371b` | U5: the spec branch of `implement` (same round), see below |
 
 `main` is at `eb36cc9`; later work is on `mvp-stack` until the owner asks to merge.
-`mvp-stack` is pushed through U3 of the renames (`3ab290f`); later commits are local until the owner says to push.
+`mvp-stack` is pushed through U4 of the renames (`e43371b`); later commits are local until the owner says to push.
 
 Decisions behind them: domains `core` and `engineering`; one primary
 coordinate per skill (domain · stage · sub-stage); reviews are flat files
@@ -205,7 +206,14 @@ critic, owner rulings, ledger, build, Sol review, commit after the owner approve
   and its own slicing rules for a plan's tasks, so `vertical-slices`, `prefactor-first`,
   `expand-contract` and `blast-radius-batches` are shared by both (Sol `critic-18b`, `critic-18d`).
   `reviewer-rejectable-sizing` stays in `planning` (its text is in `plan-format.md`), and
-  `dependency-edges` gains `implement` in U5. Next is U5, the `implement-spec` branch of `implement`.
+  `dependency-edges` gains `implement` in U5. U5 is built: `implement` runs a whole spec whose
+  tickets are one epic with edges (`references/spec-run.md`) in one worktree on one integration branch,
+  one ticket at a time; the base check stops with the work intact; commits, merges, resets and
+  worktree removal each need authority; a run record makes a stopped run resumable (Sol `critic-19d`,
+  `critic-19f`). Its pre-report merge brings the base's tip into the integration branch, a different
+  mechanism from upstream's `pre-report-tip-merge`, so a one-row report
+  (`reviews/2026-11-10-upstream-mattpocock_skills-4ae2317.yaml`) adopts it into the new trait
+  `pre-report-base-merge`. Next is U6, `how` and `why` out of `explain-code`.
 - `cr-r2pa.3.3`: at the end of the project, show the owner everything deferred or
   rejected, from the ledger's `defer` events, the deferred beads and each
   `deliberately_dropped` with its `revisit_when`, to revise and adapt.

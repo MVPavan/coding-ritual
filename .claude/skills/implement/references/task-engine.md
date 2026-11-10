@@ -41,7 +41,8 @@ Extract a plan task with `scripts/task-brief.sh <plan> <N> <workspace>`, or writ
 its brief directly when planless. Include goal, acceptance, owned/forbidden paths,
 relevant source sections, invariants, dependencies, checks and commit authority.
 Dispatch through the `delegation` skill. Tell each worker it shares the checkout
-and must preserve others' edits.
+and must preserve others' edits. Spec scope only: the spec's worktree replaces
+the shared checkout (`spec-run.md`).
 
 Require a report path and a short status:
 

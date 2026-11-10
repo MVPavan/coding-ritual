@@ -54,8 +54,8 @@ ours:domain-modeling:
     glossary-entry-template: "Lays the file out as a title and a one-or-two-sentence description, then each term in bold followed by its definition and an Avoid line."
     tight-concept-definitions: "One or two sentences at most."
 ours:implement:
-  tree_hash: "4f7fe425a43afff8cb46ad53a83998d42e67415bef4d45a62ab2626835424754"
-  traits: [scope-selector, risk-sized-review, task-loop, finding-adjudication, phase-loop, close-gate, workstream-mode, child-workflows, context-recovery, stop-on-failure, bounded-fix-loop, scope-base-review-package, delegated-report-recovery, confirmed-cause-fix, regression-proof-and-rerun, attempt-log, two-failure-stop]
+  tree_hash: "228ec647b053a22acb5868479fe7ea59a3da097bfc86ca4e110c06ce7b763687"
+  traits: [scope-selector, risk-sized-review, task-loop, finding-adjudication, phase-loop, close-gate, workstream-mode, child-workflows, context-recovery, stop-on-failure, bounded-fix-loop, scope-base-review-package, delegated-report-recovery, confirmed-cause-fix, regression-proof-and-rerun, attempt-log, two-failure-stop, dependency-edges, single-integration-branch, worktree-per-significant-change, worktree-base-verify, worktree-cleanup, pre-report-base-merge]
 ours:explain-code:
   tree_hash: "076d67bfa7e11ec8f8f14abb1b058cea20b129ff95b2513ae311e59ec5c5b5ba"
   traits: [read-only-explanation, immaterial-ambiguity-reading, angles-when-wide, reconcile-by-reading, explanation-sections, cited-flow-walkthrough, recommendation-with-tradeoffs, gather-without-concluding, code-anchor-first, named-record-first, target-derived-search-terms, local-evidence-sources, pickaxe-history-search, full-record-reading, record-lineage-walk, recency-bias-check, embedded-hypothesis-check, confidence-tiers, adjacent-citation-gate, code-not-intent-evidence, no-retrofitted-rationale, consistency-is-not-intent, absence-is-not-evidence, contradiction-shown, competing-hypotheses-section, searched-and-unknown, unreachable-data-is-gap, sources-consulted-line, constraints-before-change]
