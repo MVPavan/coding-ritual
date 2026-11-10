@@ -300,6 +300,15 @@ principle-boundary-discipline:
   aliases: []
   status: active
   boundary: "Where data is checked and trusted (boundary validation, parsing, internal trust, public types, pure core); interface shape and depth are codebase-design, and type-level rules are principle-type-system-discipline."
+principle-exhaust-the-design-space:
+  domain: engineering
+  stage: Design
+  substage: Architecture
+  secondary: []
+  family: null
+  aliases: []
+  status: active
+  boundary: "Lays out materially different ways to meet a decision with no precedent in this project, of any kind, and chooses with reasons; building running variants to compare by feel is prototype, and comparing interface designs for a consequential choice is codebase-design."
 principle-experience-first:
   domain: engineering
   stage: Design
@@ -318,6 +327,15 @@ principle-explain-the-number:
   aliases: []
   status: active
   boundary: "Decides when a measured number counts as evidence; running the optimisation loop is performance-optimization."
+principle-fix-root-causes:
+  domain: engineering
+  stage: Building
+  substage: Diagnosis
+  secondary: []
+  family: null
+  aliases: []
+  status: active
+  boundary: "Says where a failure's cause lies (the why-chain, the legitimate-state test, persisted state after a restart); the diagnosis procedure is systematic-debugging and fixing a reported bug end to end is the bug-fix playbook."
 principle-make-operations-idempotent:
   domain: engineering
   stage: Design

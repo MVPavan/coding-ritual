@@ -76,8 +76,10 @@ One line per principle: `` - `principles/<name>.md`: <the situation it applies i
 
 - `principles/attack-the-premise.md`: two or more fixes resting on one belief have failed the same gate (test, review, eval).
 - `principles/boundary-discipline.md`: wiring validation, error handling or a framework adapter.
+- `principles/exhaust-the-design-space.md`: a decision with no precedent in this project, of any kind.
 - `principles/experience-first.md`: a product, UX or feature-scope tradeoff.
 - `principles/explain-the-number.md`: before measuring, or before trusting, reporting or acting on a measured number (performance or eval).
+- `principles/fix-root-causes.md`: diagnosing or fixing a failure.
 - `principles/make-operations-idempotent.md`: designing a command, lifecycle step or loop that may crash, restart or retry.
 - `principles/migrate-without-shims.md`: replacing an internal API no external user depends on, as part of a simplification in a project that can absorb a coordinated break; or running a planned rewrite or migration with declared phase boundaries.
 - `principles/minimize-reader-load.md`: reviewing or shaping code that is hard to trace.

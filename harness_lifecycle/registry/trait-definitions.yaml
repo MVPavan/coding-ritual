@@ -7578,3 +7578,9 @@ worktree-base-verify:
   placement: {domain: engineering, stage: Delivery, substage: Integration}
   distinct_from: [worktree-base-check]
   note: "worktree-base-check resets onto the integration branch whenever the base is wrong; this stops with the work intact unless a reset was explicitly authorized."
+# ---- renames and splits U7, 2026-11-10 (ours: principle-exhaust-the-design-space, ruling B1, plan 14a R7) ----
+novel-decision-design-space:
+  definition: "Before settling a decision with no precedent in the project, of any kind, lay out the materially different ways to meet it (not variations of one), say what each costs and gives up, and choose with stated reasons; no artifact is required, and running variants are built only when prototype's condition holds."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+  distinct_from: [options-with-tradeoffs, design-it-twice, competing-prototypes]
+  note: "options-with-tradeoffs presents options to the user while alternatives remain open, with no trigger and no choice; design-it-twice optionally compares interface designs for a consequential choice; competing-prototypes builds running prototypes for an unprecedented interaction or architecture or a feel-dependent decision. This one is a required judgment on any unprecedented decision, made in reasoning, ending in a choice."

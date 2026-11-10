@@ -247,10 +247,10 @@ Catalog: `2776ddd2355d6d6c8747d3964600f28daf62f049`, 354 capabilities.
 | `skill:harness/pstack/claude-code/skills/principle-boundary-discipline` | present, unruled | not analysed |  |  |  |  |
 | `skill:harness/pstack/claude-code/skills/principle-build-the-lever` | not reviewed | not analysed |  |  |  |  |
 | `skill:harness/pstack/claude-code/skills/principle-encode-lessons-in-structure` | not reviewed | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/principle-exhaust-the-design-space` | not reviewed | not analysed |  |  |  |  |
+| `skill:harness/pstack/claude-code/skills/principle-exhaust-the-design-space` | present, unruled | not analysed |  |  |  |  |
 | `skill:harness/pstack/claude-code/skills/principle-experience-first` | present, unruled | not analysed |  |  |  |  |
 | `skill:harness/pstack/claude-code/skills/principle-explain-the-number` | present, unruled | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/principle-fix-root-causes` | not reviewed | not analysed |  |  |  |  |
+| `skill:harness/pstack/claude-code/skills/principle-fix-root-causes` | present, unruled | not analysed |  |  |  |  |
 | `skill:harness/pstack/claude-code/skills/principle-foundational-thinking` | not reviewed | not analysed |  |  |  |  |
 | `skill:harness/pstack/claude-code/skills/principle-guard-the-context-window` | not reviewed | not analysed |  |  |  |  |
 | `skill:harness/pstack/claude-code/skills/principle-laziness-protocol` | not reviewed | not analysed |  |  |  |  |

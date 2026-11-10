@@ -21,23 +21,18 @@ instrumentation. Fixing belongs to the caller, usually the bug-fix playbook.
    If fixes were already tried, take their attempt log as evidence. Replace
    secrets and personal data with placeholders in anything shown or saved; build
    commands on environment variables so credentials never appear in shown text.
-2. Form provisional hypotheses from code and evidence, each stating what result
-   would confirm or refute it. Choose a discriminating observation instead of
-   generating a fixed count.
-   A failure that appears only after a restart points first at persisted
-   state: configuration files, caches, lock files, serialized state.
+2. Read `principle-fix-root-causes` (`mvp-mode/principles/fix-root-causes.md`)
+   and apply it through steps 2-4. Form provisional hypotheses from code and
+   evidence, each stating what result would confirm or refute it. Choose a
+   discriminating observation instead of generating a fixed count.
 3. Probe the suspected boundary or variable, changing one thing per probe, update
    the explanation, then repeat
    only while new evidence is produced. Tag every temporary probe with one
    unique prefix so cleanup is a single search. For cross-layer tracing or
-   bisection, consult `references/localization.md`. Keep asking why at each
-   link until the answer is a wrong decision in the code, not a consequence
-   of an earlier one.
-4. Before naming the place a symptom surfaced as the cause, decide whether
-   the state that triggered it is legitimate. If the system may be in that
-   state, the code that broke on it is the cause and handling the state there
-   is the fix; if not, a guard there would hide the fault, so trace the state
-   to what produced it.
+   bisection, consult `references/localization.md`. Follow the causal chain
+   as `principle-fix-root-causes` says.
+4. Before naming the place a symptom surfaced as the cause, test it against
+   `principle-fix-root-causes`.
 5. Decide the status (below). A cause is confirmed by the reproduction or, when
    none is obtainable, by independent evidence such as traces.
 

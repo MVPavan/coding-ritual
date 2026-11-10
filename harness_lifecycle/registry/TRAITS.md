@@ -622,6 +622,11 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `evidence-with-number`: Report a measured number together with its run count, spread and limiter.
 - `eval-result-scrutiny`: Before trusting an eval result, check that every run did the task, that the gap holds across trials and models, and that the scenario matters.
 
+#### engineering · Building · Diagnosis — principle-fix-root-causes
+- `why-chain`: Ask why at each step of a failure until the answer is a wrong decision in the code rather than a consequence of an earlier one.
+- `legitimate-state-test`: Before guarding where a symptom surfaced, decide whether the triggering state is legitimate: handle a legitimate state there, and trace an illegitimate one to what produced it.
+- `persisted-state-suspect`: When a failure appears only after a restart, suspect persisted state (configuration, caches, lock files, serialized state) first.
+
 #### engineering · Building · Diagnosis — systematic-debugging
 - `reproduction-preferred`: Seek a reproduction that shows the reported failure, not a nearby one, before diagnosing, but when none is obtainable confirm a cause by independent evidence such as traces instead.
 - `unproven-without-reproduction`: When no reproduction is obtainable, continue safe source analysis and qualify any resulting fix as unproven.
@@ -639,9 +644,6 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `preserve-reproducers`: Keep useful reproducers and user artifacts when cleaning up after a fix.
 - `tagged-debug-logs`: Tag every debug log with a unique prefix so cleanup is a single search.
 - `suspect-the-observation`: When a check fails unexpectedly, test the observation method before concluding the system is wrong.
-- `why-chain`: Ask why at each step of a failure until the answer is a wrong decision in the code rather than a consequence of an earlier one.
-- `legitimate-state-test`: Before guarding where a symptom surfaced, decide whether the triggering state is legitimate: handle a legitimate state there, and trace an illegitimate one to what produced it.
-- `persisted-state-suspect`: When a failure appears only after a restart, suspect persisted state (configuration, caches, lock files, serialized state) first.
 - `baseline`: Capture a baseline measurement before attempting a performance fix.
 - `credential-env-indirection`: Build commands on environment variables so credentials stay in the environment and never appear in shown text.
 - `falsifiable-hypotheses`: State each hypothesis as a falsifiable prediction that changing its cause changes the result, discarding any that cannot be stated so.
@@ -767,6 +769,9 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `scoped-internal-trust`: Inside the system, trust data a boundary already validated and propagate errors, adding a check at an inner layer only on a failure path a defect has proven.
 - `domain-not-wire-types`: Expose domain concepts across a public surface, never the transport, storage or framework types behind it.
 - `pure-core-thin-shell`: Keep business logic in pure functions free of framework dependencies, leaving a thin mechanical shell that calls them.
+
+#### engineering · Design · Architecture — principle-exhaust-the-design-space
+- `novel-decision-design-space`: Before settling a decision with no precedent in the project, of any kind, lay out the materially different ways to meet it (not variations of one), say what each costs and gives up, and choose with stated reasons; no artifact is required, and running variants are built only when prototype's condition holds.
 
 #### engineering · Design · Architecture — principle-make-operations-idempotent
 - `convergent-operations`: Design state-changing operations to converge on the same correct end state however often they run and wherever a previous run stopped.
@@ -2015,10 +2020,10 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 #### engineering · Building · Diagnosis — skill:pstack/skills/principle-fix-root-causes
 - `owning-layer-fix`: Fix a bug at the layer that owns it rather than patching around it. — adopt → doc:AGENTS.md
 - `reproduction-first`: Obtain a reproduction that shows the reported failure, not a nearby one, before diagnosing it. — reject
-- `why-chain`: Ask why at each step of a failure until the answer is a wrong decision in the code rather than a consequence of an earlier one. — adopt, pending cr-r2pa.2.20 → principle-fix-root-causes#why-chain
+- `why-chain`: Ask why at each step of a failure until the answer is a wrong decision in the code rather than a consequence of an earlier one. — adopt → principle-fix-root-causes#why-chain
 - `observe-not-guess`: When stuck, add instrumentation and read the actual error and state instead of reasoning from guesses. — reject
-- `legitimate-state-test`: Before guarding where a symptom surfaced, decide whether the triggering state is legitimate: handle a legitimate state there, and trace an illegitimate one to what produced it. — adopt, pending cr-r2pa.2.20 → principle-fix-root-causes#legitimate-state-test
-- `persisted-state-suspect`: When a failure appears only after a restart, suspect persisted state (configuration, caches, lock files, serialized state) first. — adopt, pending cr-r2pa.2.20 → principle-fix-root-causes#persisted-state-suspect
+- `legitimate-state-test`: Before guarding where a symptom surfaced, decide whether the triggering state is legitimate: handle a legitimate state there, and trace an illegitimate one to what produced it. — adopt → principle-fix-root-causes#legitimate-state-test
+- `persisted-state-suspect`: When a failure appears only after a restart, suspect persisted state (configuration, caches, lock files, serialized state) first. — adopt → principle-fix-root-causes#persisted-state-suspect
 - `fix-every-instance`: Search for every place with the same fault and fix them all, not only the reported instance. — adopt → doc:.claude/skills/mvp-mode/playbooks/bug-fix.md
 - `workaround-comment-smell`: Treat a workaround that needs a long justifying comment as a sign the code is wrong, and fix the code instead. — defer
 - `always-on-signal`: After a fact took a deep investigation to find, propose the cheap always-on signal that would have shown it at first look. — adopt → doc:.claude/skills/mvp-mode/playbooks/bug-fix.md
@@ -8308,6 +8313,10 @@ Keep layout code unshared between UI variants so each can differ freely.
 Add no tests to a prototype; one that needs tests is no longer a prototype.
 - `mattpocock_skills:skill:skills/engineering/prototype` — defer
 
+#### `novel-decision-design-space`
+Before settling a decision with no precedent in the project, of any kind, lay out the materially different ways to meet it (not variations of one), say what each costs and gives up, and choose with stated reasons; no artifact is required, and running variants are built only when prototype's condition holds.
+- ours: `principle-exhaust-the-design-space`
+
 #### `one-switcher-all-variants`
 Put every compared variant, UI or logic, behind one labelled switcher: a UI control, or a flag or argument for a script.
 - ours: `prototype`
@@ -9401,8 +9410,8 @@ Only when time is going to the kernel or I/O, count system calls in a separate r
 
 #### `legitimate-state-test`
 Before guarding where a symptom surfaced, decide whether the triggering state is legitimate: handle a legitimate state there, and trace an illegitimate one to what produced it.
-- ours: `systematic-debugging`
-- `cursor_plugins:skill:pstack/skills/principle-fix-root-causes` — adopt, pending cr-r2pa.2.20 → principle-fix-root-causes#legitimate-state-test
+- ours: `principle-fix-root-causes`
+- `cursor_plugins:skill:pstack/skills/principle-fix-root-causes` — adopt → principle-fix-root-causes#legitimate-state-test
 
 #### `like-for-like-comparison`
 Compare a performance change against its baseline under the same conditions and run the applicable correctness checks.
@@ -9574,8 +9583,8 @@ Locate a performance regression by bisecting between known-good and known-bad st
 
 #### `persisted-state-suspect`
 When a failure appears only after a restart, suspect persisted state (configuration, caches, lock files, serialized state) first.
-- ours: `systematic-debugging`
-- `cursor_plugins:skill:pstack/skills/principle-fix-root-causes` — adopt, pending cr-r2pa.2.20 → principle-fix-root-causes#persisted-state-suspect
+- ours: `principle-fix-root-causes`
+- `cursor_plugins:skill:pstack/skills/principle-fix-root-causes` — adopt → principle-fix-root-causes#persisted-state-suspect
 
 #### `phase1-completion-criterion`
 Forbid any hypothesis until one named command, already run once, is proven red-capable, deterministic, fast, and agent-runnable.
@@ -9740,8 +9749,8 @@ In a performance flow, vet the baseline before planning from it, every later num
 
 #### `why-chain`
 Ask why at each step of a failure until the answer is a wrong decision in the code rather than a consequence of an earlier one.
-- ours: `systematic-debugging`
-- `cursor_plugins:skill:pstack/skills/principle-fix-root-causes` — adopt, pending cr-r2pa.2.20 → principle-fix-root-causes#why-chain
+- ours: `principle-fix-root-causes`
+- `cursor_plugins:skill:pstack/skills/principle-fix-root-causes` — adopt → principle-fix-root-causes#why-chain
 
 #### `within-variation-no-difference`
 Give a gap smaller than run-to-run variation the verdict no measurable difference.

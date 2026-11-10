@@ -111,7 +111,7 @@ ours:model-council:
   tree_hash: "604be20a026528990ef9536cfbb643228189552f25f15eda46633ae3f4445f05"
   traits: [member-resolution, runtime-capability-check, neutral-framing, member-isolation, report-preservation, independent-synthesis, consolidated-delivery, identity-recording, failed-member-recovery, no-silent-substitution, artifact-named-up-front, task-rubric-criteria, rubric-withheld-from-candidates, own-output-location, rationale-names-rejected, dropout-proceeds-noted, read-only-judge, judge-other-family-or-stated, rubric-given-to-judge, path-labelled-candidates, judge-criterion-scores, judge-recommends-base, full-read-before-pick, picker-criterion-scores, pick-compared-with-judge, disagreement-rereads-rationales, base-chosen-for-extensibility, near-tie-smaller-surface, loser-graft-pass, sparse-grafts, hand-folded-grafts, converged-shape-no-graft, divergence-reframes-once, graft-change-rerun, verify-miss-returns-once, single-synthesized-artifact, synthesis-decision-record, note-judge-status, note-convergence-dropouts, note-verification-result, no-judge-no-pick]
 ours:mvp-mode:
-  tree_hash: "a969ad955301f4f095a954ad29697e4accfd136bb48dd5f8d845b364df20bab5"
+  tree_hash: "41aeced348f58809513c0ffeb3c383bab21bb1f2d773217a04781bdf52b0243d"
   traits: [unit-kind-lines, playbook-pick, need-to-skill-routing, overlap-arbitration, layered-catalog, platform-skill-invocation, no-playbook-in-delegate, delegate-independent-by-default, no-onward-delegation, playbook-steps-as-todos, recorded-step-skip, whole-callee, playbook-exit, legacy-entrypoint-flagging, catalog-trust-boundary]
 ours:performance-optimization:
   tree_hash: "8e393535c7e06691afca39ef9df84040ce4752a29a8cc58610b8522ce951c4da"
@@ -130,12 +130,18 @@ ours:principle-attack-the-premise:
 ours:principle-boundary-discipline:
   tree_hash: "11234214aaf9e5a5e98d33029ca4e8283a9b0617bd8aac4506187a0aff13d646"
   traits: [boundary-validation, parse-at-boundary, scoped-internal-trust, domain-not-wire-types, pure-core-thin-shell]
+ours:principle-exhaust-the-design-space:
+  tree_hash: "8b3bdf5cb5c64611b5448e4487eef12a2aa8cdf6b990348af3b7e9d48a505fd5"
+  traits: [novel-decision-design-space]
 ours:principle-experience-first:
   tree_hash: "8bcd8c87f4d1ec3b7c060b5dbff5c26f9b74902c920b58dd04da736dd0e6768a"
   traits: [consumer-as-user, experience-over-convenience, justified-surface, polish-over-breadth, detail-finish]
 ours:principle-explain-the-number:
   tree_hash: "7d3893755da862380252c8bb0fb7a851c55a63a11dc3c7d1710e9f9a5946e8c8"
   traits: [decision-before-measurement, named-limiter, confound-elimination, evidence-with-number, eval-result-scrutiny]
+ours:principle-fix-root-causes:
+  tree_hash: "f8bdf73ad7d5e348f178d6e3f8a9683ec98a7407ca6f660d00ecaefb6da7d280"
+  traits: [why-chain, legitimate-state-test, persisted-state-suspect]
 ours:principle-make-operations-idempotent:
   tree_hash: "e1be56db6fcd5af7eb5aa9dc566cdecbd9e8b1c48bdb33e2993d5bc98462e914"
   traits: [convergent-operations, reconcile-from-state, judgeable-leftovers, interruption-point-audit]
@@ -206,8 +212,8 @@ ours:show-me:
   notes:
     minimal-visual-selection: "One form, occasionally two, never a gallery, with a sentence or two of prose each."
 ours:systematic-debugging:
-  tree_hash: "bcf5932b3632e38e8ab7edbbf7f852210f6047458fde6d898b8f848af444c071"
-  traits: [reproduction-preferred, unproven-without-reproduction, loop-construction, minimize-to-discriminate, flake-reproduction, environmental-cause-unresolved, hypotheses, discriminating-observation, localized-probing, critic-escalation, diagnosis-only, diagnosis-status, caller-deferrable-cleanup, preserve-reproducers, tagged-debug-logs, suspect-the-observation, why-chain, legitimate-state-test, persisted-state-suspect, baseline, credential-env-indirection, falsifiable-hypotheses, one-variable-at-a-time, placeholder-sensitive-data-redaction]
+  tree_hash: "b34df82cfaf4889fbf66d6ef2455402360ac74e748e54a83d75b1f46410e76fa"
+  traits: [reproduction-preferred, unproven-without-reproduction, loop-construction, minimize-to-discriminate, flake-reproduction, environmental-cause-unresolved, hypotheses, discriminating-observation, localized-probing, critic-escalation, diagnosis-only, diagnosis-status, caller-deferrable-cleanup, preserve-reproducers, tagged-debug-logs, suspect-the-observation, baseline, credential-env-indirection, falsifiable-hypotheses, one-variable-at-a-time, placeholder-sensitive-data-redaction]
   notes:
     one-variable-at-a-time: "Delivers sealed row 2026-10-30-mattpocock_skills-5beb35b:222: one change per probe, with the prediction carried by the hypothesis rather than mapped per probe; T5."
     falsifiable-hypotheses: "Delivers sealed row 2026-10-30-mattpocock_skills-5beb35b:238: each hypothesis states what would confirm or refute it, with no discard step and no prediction about changing the cause; T5."

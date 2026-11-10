@@ -31,9 +31,6 @@ Use to find the cause of a failure when it is unclear, after a fix did not hold,
 - `preserve-reproducers`: Keep useful reproducers and user artifacts when cleaning up after a fix.
 - `tagged-debug-logs`: Tag every debug log with a unique prefix so cleanup is a single search.
 - `suspect-the-observation`: When a check fails unexpectedly, test the observation method before concluding the system is wrong.
-- `why-chain`: Ask why at each step of a failure until the answer is a wrong decision in the code rather than a consequence of an earlier one.
-- `legitimate-state-test`: Before guarding where a symptom surfaced, decide whether the triggering state is legitimate: handle a legitimate state there, and trace an illegitimate one to what produced it.
-- `persisted-state-suspect`: When a failure appears only after a restart, suspect persisted state (configuration, caches, lock files, serialized state) first.
 - `baseline`: Capture a baseline measurement before attempting a performance fix.
 - `credential-env-indirection`: Build commands on environment variables so credentials stay in the environment and never appear in shown text.
 - `falsifiable-hypotheses`: State each hypothesis as a falsifiable prediction that changing its cause changes the result, discarding any that cannot be stated so. (Delivers sealed row 2026-10-30-mattpocock_skills-5beb35b:238: each hypothesis states what would confirm or refute it, with no discard step and no prediction about changing the cause; T5.)
@@ -68,6 +65,7 @@ Use to find the cause of a failure when it is unclear, after a fix did not hold,
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-10` **update** (2026-11-10-renames-splits:139): Owner rulings A and B of 2026-11-05 and I2 of 2026-11-06 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 14a U7. Steps 2-4 keep what to do and tell…
 - `2026-11-04` **adopt** (2026-11-04-pocock-pass:024): Completes pending 2026-10-30-mattpocock_skills-5beb35b:242: placeholder-sensitive-data-redaction is written at .claude/skills/systematic-debugging/SKILL.md:21-…
 - `2026-11-04` **adopt** (2026-11-04-pocock-pass:023): Completes pending 2026-10-30-mattpocock_skills-5beb35b:222: one-variable-at-a-time is written at .claude/skills/systematic-debugging/SKILL.md:29-31, in the sea…
 - `2026-11-04` **adopt** (2026-11-04-pocock-pass:022): Completes pending 2026-10-30-mattpocock_skills-5beb35b:238: falsifiable-hypotheses is written at .claude/skills/systematic-debugging/SKILL.md:24-26, in the sea…
@@ -140,7 +138,7 @@ Use to find the cause of a failure when it is unclear, after a fix did not hold,
 - `flake-reproduction`:
   - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs#tighten-loop` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `legitimate-state-test`:
-  - `cursor_plugins:skill:pstack/skills/principle-fix-root-causes#legitimate-state-test` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+  - `cursor_plugins:skill:pstack/skills/principle-fix-root-causes#legitimate-state-test` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe; withdrawn 2026-11-10)
 - `localized-probing`:
   - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs#perf-bisection` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `loop-construction`:
@@ -153,7 +151,7 @@ Use to find the cause of a failure when it is unclear, after a fix did not hold,
 - `owning-layer-fix`:
   - `cursor_plugins:skill:pstack/skills/principle-fix-root-causes#owning-layer-fix` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe; withdrawn 2026-11-01)
 - `persisted-state-suspect`:
-  - `cursor_plugins:skill:pstack/skills/principle-fix-root-causes#persisted-state-suspect` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+  - `cursor_plugins:skill:pstack/skills/principle-fix-root-causes#persisted-state-suspect` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe; withdrawn 2026-11-10)
 - `placeholder-sensitive-data-redaction`:
   - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs#placeholder-sensitive-data-redaction` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `regression-check`:
@@ -165,7 +163,7 @@ Use to find the cause of a failure when it is unclear, after a fix did not hold,
 - `tagged-debug-logs`:
   - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs#tagged-debug-logs` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `why-chain`:
-  - `cursor_plugins:skill:pstack/skills/principle-fix-root-causes#why-chain` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+  - `cursor_plugins:skill:pstack/skills/principle-fix-root-causes#why-chain` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe; withdrawn 2026-11-10)
 <!-- /registry:generated sources -->
 
 <!-- registry:generated declined -->

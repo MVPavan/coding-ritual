@@ -43,12 +43,12 @@ Domain → stage → sub-stage. Each active skill under its primary home.
 - **Research**: codebase-research, how, why
 
 ### Design
-- **Architecture**: codebase-design, design-evolve, domain-modeling, principle-boundary-discipline, principle-make-operations-idempotent, principle-minimize-reader-load, principle-model-the-domain, principle-redesign-from-first-principles, principle-separate-before-serializing-shared-state, principle-type-system-discipline, prototype
+- **Architecture**: codebase-design, design-evolve, domain-modeling, principle-boundary-discipline, principle-exhaust-the-design-space, principle-make-operations-idempotent, principle-minimize-reader-load, principle-model-the-domain, principle-redesign-from-first-principles, principle-separate-before-serializing-shared-state, principle-type-system-discipline, prototype
 - **Decomposition**: planning, principle-migrate-without-shims, principle-subtract-before-you-add, to-tickets
 - **Specification**: principle-experience-first
 
 ### Building
-- **Diagnosis**: performance-optimization, principle-attack-the-premise, principle-explain-the-number, systematic-debugging
+- **Diagnosis**: performance-optimization, principle-attack-the-premise, principle-explain-the-number, principle-fix-root-causes, systematic-debugging
 - **Implementation**: principle-sequence-verifiable-units, tdd
 
 ### Verification
@@ -75,9 +75,9 @@ Two or more active skills share one domain · sub-stage (README §2 rule 3):
 - core · X · Continuity: beads, decision-trail, wake
 - core · X · Coordination: delegation, model-council, mvp-mode, perspective-council
 - engineering · Discovery · Research: codebase-research, how, why
-- engineering · Design · Architecture: codebase-design, design-evolve, domain-modeling, principle-boundary-discipline, principle-make-operations-idempotent, principle-minimize-reader-load, principle-model-the-domain, principle-redesign-from-first-principles, principle-separate-before-serializing-shared-state, principle-type-system-discipline, prototype
+- engineering · Design · Architecture: codebase-design, design-evolve, domain-modeling, principle-boundary-discipline, principle-exhaust-the-design-space, principle-make-operations-idempotent, principle-minimize-reader-load, principle-model-the-domain, principle-redesign-from-first-principles, principle-separate-before-serializing-shared-state, principle-type-system-discipline, prototype
 - engineering · Design · Decomposition: planning, principle-migrate-without-shims, principle-subtract-before-you-add, to-tickets
-- engineering · Building · Diagnosis: performance-optimization, principle-attack-the-premise, principle-explain-the-number, systematic-debugging
+- engineering · Building · Diagnosis: performance-optimization, principle-attack-the-premise, principle-explain-the-number, principle-fix-root-causes, systematic-debugging
 - engineering · Building · Implementation: principle-sequence-verifiable-units, tdd
 - engineering · Verification · Testing: check-invariants, principle-test-behavior-not-implementation
 - engineering · Delivery · Integration: land, resolving-merge-conflicts

@@ -73,6 +73,7 @@ deleted. Beads is the work-state authority; this file is the narrative.
 | after `3ab290f` | U4: `to-tickets` split out of `planning` (same round), see below |
 | after `e43371b` | U5: the spec branch of `implement` (same round), see below |
 | after `560788a` | U6: `how` and `why` out of `explain-code` (same round), see below |
+| after `161be48` | U7: two principles restored (same round), see below |
 
 `main` is at `eb36cc9`; later work is on `mvp-stack` until the owner asks to merge.
 `mvp-stack` is pushed through U5 of the renames (`560788a`); later commits are local until the owner says to push.
@@ -218,8 +219,12 @@ critic, owner rulings, ledger, build, Sol review, commit after the owner approve
   answering why something in the project is the way it is or what was decided about it, from
   the project's own record) and `how` is new (how something works now, and which option fits);
   `why` loads `references/pull-requests.md` only when a traced commit links a pull request
-  (ruling K). Six playbooks and the router re-pointed (Sol `critic-21b`, `critic-21c`). Next is
-  U7, then U8, then U8r (ruling M: the `planning`/`to-tickets` cleanup R1-R4), then U9.
+  (ruling K). Six playbooks and the router re-pointed (Sol `critic-21b`, `critic-21c`). U7 is
+  built: `principle-fix-root-causes` holds the three rules moved out of `systematic-debugging`,
+  which now points to it (ruling I2); `principle-exhaust-the-design-space` covers decisions with
+  no precedent of any kind, with the new trait `novel-decision-design-space`, and leaves runnable
+  variants to `prototype` (Sol `critic-22b`). Next is U8, then U8r (ruling M: the
+  `planning`/`to-tickets` cleanup R1-R4), then U9.
 - `cr-r2pa.3.3`: at the end of the project, show the owner everything deferred or
   rejected, from the ledger's `defer` events, the deferred beads and each
   `deliberately_dropped` with its `revisit_when`, to revise and adapt.
