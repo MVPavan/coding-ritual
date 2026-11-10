@@ -56,6 +56,8 @@ Deliver correct work with the smallest necessary change, done right the first ti
 - Run applicable checks from `.repo-context/verification.md`. Add tests according
   to behavioral risk, using existing tooling; bug checks must detect the original
   failure. Repeat or broaden checks only for changes, failures, or unresolved risk.
+  When a check fails unexpectedly, test the way it observes (the check, its
+  fixture, the probe, the environment it reads) before concluding the system is wrong.
 - Verify results by observing the real artifact, never a proxy, a cached view,
   or a self-report. Inspect the final diff and Git status. Report outcomes,
   actual checks, and limitations; distinguish pre-existing failures from regressions.

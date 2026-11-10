@@ -74,6 +74,7 @@ deleted. Beads is the work-state authority; this file is the narrative.
 | after `e43371b` | U5: the spec branch of `implement` (same round), see below |
 | after `560788a` | U6: `how` and `why` out of `explain-code` (same round), see below |
 | after `161be48` | U7: two principles restored (same round), see below |
+| after `fb84021` | U8: `suspect-the-observation` moved to `AGENTS.md` (same round), see below |
 
 `main` is at `eb36cc9`; later work is on `mvp-stack` until the owner asks to merge.
 `mvp-stack` is pushed through U5 of the renames (`560788a`); later commits are local until the owner says to push.
@@ -223,8 +224,10 @@ critic, owner rulings, ledger, build, Sol review, commit after the owner approve
   built: `principle-fix-root-causes` holds the three rules moved out of `systematic-debugging`,
   which now points to it (ruling I2); `principle-exhaust-the-design-space` covers decisions with
   no precedent of any kind, with the new trait `novel-decision-design-space`, and leaves runnable
-  variants to `prototype` (Sol `critic-22b`). Next is U8, then U8r (ruling M: the
-  `planning`/`to-tickets` cleanup R1-R4), then U9.
+  variants to `prototype` (Sol `critic-22b`). U8 is built: the suspect-the-observation rule is
+  one sentence in `AGENTS.md` §Verification, no longer in `systematic-debugging`; the round has no
+  pending row left (Sol `critic-23b`). Next is U8r (ruling M: the `planning`/`to-tickets` cleanup
+  R1-R4), then U9.
 - `cr-r2pa.3.3`: at the end of the project, show the owner everything deferred or
   rejected, from the ledger's `defer` events, the deferred beads and each
   `deliberately_dropped` with its `revisit_when`, to revise and adapt.

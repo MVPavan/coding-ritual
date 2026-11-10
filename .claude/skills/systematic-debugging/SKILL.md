@@ -15,9 +15,7 @@ instrumentation. Fixing belongs to the caller, usually the bug-fix playbook.
    failing test or command; otherwise build the smallest useful reproduction.
    Candidate methods include a focused test, CLI fixture, captured trace or
    isolated scratch harness. Minimize only enough to distinguish live causes.
-   Confirm it shows the reported failure, not a nearby one. When a check
-   fails unexpectedly, test the way it observes (the check, its fixture, the
-   probe, the environment it reads) before concluding the system is wrong.
+   Confirm it shows the reported failure, not a nearby one.
    If fixes were already tried, take their attempt log as evidence. Replace
    secrets and personal data with placeholders in anything shown or saved; build
    commands on environment variables so credentials never appear in shown text.

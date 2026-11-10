@@ -643,7 +643,6 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `caller-deferrable-cleanup`: Before answering, remove the temporary instrumentation you added, unless the caller says its own closeout removes it; then leave it in place and list it.
 - `preserve-reproducers`: Keep useful reproducers and user artifacts when cleaning up after a fix.
 - `tagged-debug-logs`: Tag every debug log with a unique prefix so cleanup is a single search.
-- `suspect-the-observation`: When a check fails unexpectedly, test the observation method before concluding the system is wrong.
 - `baseline`: Capture a baseline measurement before attempting a performance fix.
 - `credential-env-indirection`: Build commands on environment variables so credentials stay in the environment and never appear in shown text.
 - `falsifiable-hypotheses`: State each hypothesis as a falsifiable prediction that changing its cause changes the result, discarding any that cannot be stated so.
@@ -1130,6 +1129,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `tool-when-it-pays`: Use existing deterministic tools and checks where they suffice, and build a rerunnable tool only when it materially reduces repeated work or supplies proof a reviewer needs, keeping its output.
 - `script-over-fanout`: When one deterministic pass can process every unit, run a script rather than fanning the units out to delegates.
 - `direct-observation`: Verify a result by observing the real thing (run it, read the actual value, check liveness directly), never a proxy, a cached view or a self-report.
+- `suspect-the-observation`: When a check fails unexpectedly, test the observation method before concluding the system is wrong.
 
 ### Playbooks
 
@@ -1410,7 +1410,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 
 #### core · Verification · Validation — skill:pstack/skills/principle-prove-it-works
 - `direct-observation`: Verify a result by observing the real thing (run it, read the actual value, check liveness directly), never a proxy, a cached view or a self-report. — adopt → doc:AGENTS.md
-- `suspect-the-observation`: When a check fails unexpectedly, test the observation method before concluding the system is wrong. — adopt, pending cr-r2pa.2.20 → doc:AGENTS.md
+- `suspect-the-observation`: When a check fails unexpectedly, test the observation method before concluding the system is wrong. — adopt → doc:AGENTS.md
 - `scripted-proof`: Prefer a deterministic, rerunnable script as the proof of a result, and keep its output for a reviewer. — adopt → doc:AGENTS.md
 - `audit-trail-proof-commit`: Keep a proof artifact visible to the human, and commit it only when large or complex work needs an auditable trail. — adopt → build-a-lever#proposed-artifact-commit
 
@@ -4105,8 +4105,8 @@ Prefer a deterministic, rerunnable script as the proof of a result, and keep its
 
 #### `suspect-the-observation`
 When a check fails unexpectedly, test the observation method before concluding the system is wrong.
-- ours: `systematic-debugging`
-- `cursor_plugins:skill:pstack/skills/principle-prove-it-works` — adopt, pending cr-r2pa.2.20 → doc:AGENTS.md
+- `doc:AGENTS.md`
+- `cursor_plugins:skill:pstack/skills/principle-prove-it-works` — adopt → doc:AGENTS.md
 
 ### core · Delivery · Integration
 

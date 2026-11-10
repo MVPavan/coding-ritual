@@ -30,7 +30,6 @@ Use to find the cause of a failure when it is unclear, after a fix did not hold,
 - `caller-deferrable-cleanup`: Before answering, remove the temporary instrumentation you added, unless the caller says its own closeout removes it; then leave it in place and list it.
 - `preserve-reproducers`: Keep useful reproducers and user artifacts when cleaning up after a fix.
 - `tagged-debug-logs`: Tag every debug log with a unique prefix so cleanup is a single search.
-- `suspect-the-observation`: When a check fails unexpectedly, test the observation method before concluding the system is wrong.
 - `baseline`: Capture a baseline measurement before attempting a performance fix.
 - `credential-env-indirection`: Build commands on environment variables so credentials stay in the environment and never appear in shown text.
 - `falsifiable-hypotheses`: State each hypothesis as a falsifiable prediction that changing its cause changes the result, discarding any that cannot be stated so. (Delivers sealed row 2026-10-30-mattpocock_skills-5beb35b:238: each hypothesis states what would confirm or refute it, with no discard step and no prediction about changing the cause; T5.)
@@ -65,6 +64,7 @@ Use to find the cause of a failure when it is unclear, after a fix did not hold,
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-10` **update** (2026-11-10-renames-splits:143): Owner ruling 2026-11-05 §B.3 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 14a U8. Step 1 no longer says to test the way a check observes before …
 - `2026-11-10` **update** (2026-11-10-renames-splits:139): Owner rulings A and B of 2026-11-05 and I2 of 2026-11-06 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 14a U7. Steps 2-4 keep what to do and tell…
 - `2026-11-04` **adopt** (2026-11-04-pocock-pass:024): Completes pending 2026-10-30-mattpocock_skills-5beb35b:242: placeholder-sensitive-data-redaction is written at .claude/skills/systematic-debugging/SKILL.md:21-…
 - `2026-11-04` **adopt** (2026-11-04-pocock-pass:023): Completes pending 2026-10-30-mattpocock_skills-5beb35b:222: one-variable-at-a-time is written at .claude/skills/systematic-debugging/SKILL.md:29-31, in the sea…
@@ -159,7 +159,7 @@ Use to find the cause of a failure when it is unclear, after a fix did not hold,
 - `reproduction-preferred`:
   - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs#reproduction-first` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `suspect-the-observation`:
-  - `cursor_plugins:skill:pstack/skills/principle-prove-it-works#suspect-the-observation` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+  - `cursor_plugins:skill:pstack/skills/principle-prove-it-works#suspect-the-observation` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe; withdrawn 2026-11-10)
 - `tagged-debug-logs`:
   - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs#tagged-debug-logs` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `why-chain`:
