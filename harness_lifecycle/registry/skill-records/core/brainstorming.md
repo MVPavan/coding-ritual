@@ -77,7 +77,7 @@ Use when material scope or behavior decisions need exploration, or the user requ
 <!-- registry:generated history -->
 - `2026-11-06` **update** (2026-11-06-renames:014): Owner ruling D of 2026-11-05 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 14a U1. Its hand-off line names the units it continues into, planning …
 - `2026-11-01` **reject** (2026-11-01-cursor_plugins-pstack-principles:028): Lands as a skill or playbook trait. Not held: the prototype skill builds a throwaway artifact when a named question calls for one (named-question), which is op…
-- `2026-10-30` **adopt-merged** (2026-10-30-mattpocock_skills-5beb35b:564): Checkpoint at 5beb35b for the owner's trait rulings: 10 adopt, 6 defer.
+- `2026-10-30` **adopt-merged** (2026-10-30-mattpocock_skills-5beb35b:564) *(superseded)*: Checkpoint at 5beb35b for the owner's trait rulings: 10 adopt, 6 defer.
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:113): HELD: brainstorming: the definition puts the snippet in the spec, which brainstorming writes and planning consumes; plans stay prose (plan-format.md:43).
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:098): Ours records what makes a good test, the level tested and prior art.
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:097): Ours lists modules and interfaces, architecture, schema, API contracts and clarifications.

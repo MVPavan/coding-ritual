@@ -71,7 +71,10 @@
     "harness_lifecycle/registry/reviews/2026-11-02-upstream-cursor_plugins-4dd1d05-reconsider.yaml": "1f9a65d63405e6cc3f4f9deec6c47858aa5f2ab97d2db16b2fd23ef1043fca9e",
     "harness_lifecycle/registry/reviews/2026-11-03-upstream-cursor_plugins-4dd1d05-batch-3.yaml": "158180347b44cde3d5c70fb29dc9fe3f5067c8d3504d7b413d3101df3df596e8",
     "harness_lifecycle/registry/reviews/2026-11-04-upstream-cursor_plugins-4dd1d05-batch-p1.yaml": "6a81f83dd01b1f2498661d8e0dec6321589eb2373b66ffaa27114555791b62c3",
-    "harness_lifecycle/registry/reviews/2026-11-06-upstream-mattpocock_skills-4ae2317.yaml": "0b7c237dbfb98522d6291eb391f3af70a1c401d9445e0052b7732a144da74211"
+    "harness_lifecycle/registry/reviews/2026-11-06-upstream-mattpocock_skills-4ae2317.yaml": "0b7c237dbfb98522d6291eb391f3af70a1c401d9445e0052b7732a144da74211",
+    "harness_lifecycle/registry/reviews/2026-11-09-upstream-cursor_plugins-4dd1d05.yaml": "665ed6a34680726c00a8a81c65763c3e70e6ecac33c7fd777af1ee92920a019c",
+    "harness_lifecycle/registry/reviews/2026-11-09-upstream-mattpocock_skills-4ae2317.yaml": "3d590510d194e49e36d4dd0db37b869b1fa17ed3d66e5e0437818a5ca3550699",
+    "harness_lifecycle/registry/reviews/2026-11-09-upstream-mattpocock_skills-5beb35b.yaml": "deba5f64596fdcf9c4d03c953f585ead35faeb62b710c2b0285025201a0b89db"
   },
   "analyses": {
     "cursor_plugins:skill:pstack/skills/architect@4dd1d05": "2f6b30fcea183d931ebb90718d90b26bed22bd0053ffc7322ede7757a9a18920",

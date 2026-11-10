@@ -7562,3 +7562,14 @@ spec-tickets-implement-pipeline:
   placement: {domain: engineering, stage: X, substage: Coordination}
   distinct_from: [staged-delivery-flow]
   note: "staged-delivery-flow is a longer fixed order with an interview, a prototype, review and a retrospective."
+# ---- renames and splits U2, 2026-11-09 (reviews/2026-11-09-upstream-mattpocock_skills-4ae2317.yaml) ----
+worktree-per-significant-change:
+  definition: "Use a worktree only for a significant change: a spec's work usually is one and runs in one worktree on the integration branch, small tickets inside it get none of their own, and implementers never run in parallel."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+  distinct_from: [worktree-per-implementer]
+  note: "worktree-per-implementer gives every implementer its own worktree and branch; this gives a worktree only to a significant change and none to a small ticket."
+worktree-base-verify:
+  definition: "Confirm a worktree's base before work starts in it and, on a mismatch, preserve the work, stop and report, resetting onto the base only when reset authority is explicit."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+  distinct_from: [worktree-base-check]
+  note: "worktree-base-check resets onto the integration branch whenever the base is wrong; this stops with the work intact unless a reset was explicitly authorized."

@@ -68,9 +68,10 @@ deleted. Beads is the work-state authority; this file is the narrative.
 | `8870acb` | Reference pages name the renamed skill |
 | `4c9ba8c` | Fourteen read-only references added for later study (`tstack`, `dori-superagent`, `reference_harnesses/kun/`), epic `cr-56rw` |
 | after `4c9ba8c` | Both pins moved and the Pocock update ruled and recorded (`cr-r2pa.2.13`, round `2026-11-09-pocock-4ae2317`), see below |
+| after `e8feec8` | Renames and splits, unit U2: three reports ruled and recorded as pending (`cr-r2pa.2.20`, round `2026-11-10-renames-splits`, open), see below |
 
 `main` is at `eb36cc9`; later work is on `mvp-stack` until the owner asks to merge.
-`mvp-stack` is pushed through the Pocock update; later commits are local until the owner says to push.
+`mvp-stack` is pushed through U2 of the renames; later commits are local until the owner says to push.
 
 Decisions behind them: domains `core` and `engineering`; one primary
 coordinate per skill (domain · stage · sub-stage); reviews are flat files
@@ -184,7 +185,16 @@ critic, owner rulings, ledger, build, Sol review, commit after the owner approve
   `mvp-mode`'s, because `mvp-mode`'s folder hash covers `principles/`.
 - Owner rulings of 2026-11-05 on merges, splits, renames and new units:
   `scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md`; P1's ruling is section G there. The renames,
-  splits, two restored principles and the move of `suspect-the-observation` are their own batch, still to do.
+  splits, two restored principles and the move of `suspect-the-observation` are their own batch,
+  `cr-r2pa.2.20`, on plan `scratchpad/mvp-stack/14a/plan.md` (units U0 to U9). U0 and U1 are done.
+  U2 is recorded (round `2026-11-10-renames-splits`, which stays open until U9 seals it): three
+  sealed reports, one per analysis sha, because a report holds one `to_sha` (Pocock `4ae2317` for
+  `implement-spec`, Pocock `5beb35b` for `to-spec` and `to-tickets`, pstack `4dd1d05` for `how`,
+  `why`, `fix-root-causes` and `prove-it-works`). Sol passed them (`critic-16b`). 63 rows: 36 pending
+  adopts on `cr-r2pa.2.20`, 22 defers, 5 rejects, and four new checkpoints (`to-spec`, `to-tickets`,
+  `implement`, `how`). The owner ruled the 28 `why` source rows as recommended on 2026-11-10: adopt
+  `pr-discussion-pull`, keep 22 deferred, reject 5. Event sources sit at each report's `to_sha`;
+  relocations keep the prior adopt's `into`. Next is U3, `to-spec` out of `brainstorming`.
 - `cr-r2pa.3.3`: at the end of the project, show the owner everything deferred or
   rejected, from the ledger's `defer` events, the deferred beads and each
   `deliberately_dropped` with its `revisit_when`, to revise and adapt.

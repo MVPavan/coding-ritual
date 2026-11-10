@@ -1386,7 +1386,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 
 #### core · Verification · Validation — skill:pstack/skills/principle-prove-it-works
 - `direct-observation`: Verify a result by observing the real thing (run it, read the actual value, check liveness directly), never a proxy, a cached view or a self-report. — adopt → doc:AGENTS.md
-- `suspect-the-observation`: When a check fails unexpectedly, test the observation method before concluding the system is wrong. — adopt → systematic-debugging#suspect-the-observation
+- `suspect-the-observation`: When a check fails unexpectedly, test the observation method before concluding the system is wrong. — adopt, pending cr-r2pa.2.20 → doc:AGENTS.md
 - `scripted-proof`: Prefer a deterministic, rerunnable script as the proof of a result, and keep its output for a reviewer. — adopt → doc:AGENTS.md
 - `audit-trail-proof-commit`: Keep a proof artifact visible to the human, and commit it only when large or complex work needs an auditable trail. — adopt → build-a-lever#proposed-artifact-commit
 
@@ -1688,12 +1688,12 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `threads-to-chase`: Include the lines of inquiry worth pursuing further. — adopt, pending cr-r2pa.2.18 → teach#threads-to-chase
 
 #### engineering · Discovery · Research — skill:pstack/skills/how
-- `stated-scope-reading`: State your reading of an ambiguous target and proceed, so the user can redirect afterward. — adopt → explain-code#immaterial-ambiguity-reading
-- `size-gated-explorers`: Answer a narrow question in one pass and split a wide one into angles for separate explorers, merging their findings into one account. — adopt → explain-code#angles-when-wide
+- `stated-scope-reading`: State your reading of an ambiguous target and proceed, so the user can redirect afterward. — adopt, pending cr-r2pa.2.20 → how#immaterial-ambiguity-reading
+- `size-gated-explorers`: Answer a narrow question in one pass and split a wide one into angles for separate explorers, merging their findings into one account. — adopt, pending cr-r2pa.2.20 → how#angles-when-wide
 - `doubt-takes-simple-path`: Resolve an uncertain size call to the cheaper one-pass path. — reject
-- `explanation-sections`: Structure an explanation as overview, concepts, flow, file map and pitfalls, dropping any section that does not apply. — adopt → explain-code#explanation-sections
-- `cited-flow-walkthrough`: Walk the flow in prose from trigger to result, naming the files and functions at each step. — adopt → explain-code#cited-flow-walkthrough
-- `reconcile-by-reading`: Settle conflicting findings by reading the code itself. — adopt → explain-code#reconcile-by-reading
+- `explanation-sections`: Structure an explanation as overview, concepts, flow, file map and pitfalls, dropping any section that does not apply. — adopt, pending cr-r2pa.2.20 → how#explanation-sections
+- `cited-flow-walkthrough`: Walk the flow in prose from trigger to result, naming the files and functions at each step. — adopt, pending cr-r2pa.2.20 → how#cited-flow-walkthrough
+- `reconcile-by-reading`: Settle conflicting findings by reading the code itself. — adopt, pending cr-r2pa.2.20 → how#reconcile-by-reading
 - `fresh-synthesizer`: Wait for every finding, then have one agent that did no searching weigh the raw findings and write the only answer. — reject
 - `light-edit-delivery`: Pass the writer's text on with only light edits for clarity or context, never a substantial rewrite. — reject
 - `targeted-gap-check`: Let the writer read the code to confirm a detail or fill a gap without redoing the exploration. — reject
@@ -1718,7 +1718,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `brief-only-read-only`: Tell helpers to write nothing and change no external state even though their mode permits it. — reject
 - `question-typing`: Name the target and classify the question as rationale, tradeoff, edge case, external constraint, dead code or history sweep. — reject
 - `code-anchor-first`: Before searching, fix the files, lines, symbols and last commits with blame and rename-following log. — adopt → explain-code#code-anchor-first
-- `pr-discussion-pull`: For each substantive commit, read the pull request body, linked issues, comments and reviews. — defer
+- `pr-discussion-pull`: For each substantive commit, read the pull request body, linked issues, comments and reviews. — adopt, pending cr-r2pa.2.20 → why#pr-discussion-pull
 - `investigator-brief-assembly`: Build each investigator prompt from a template, one source playbook, one shared code anchor and the original question. — reject
 - `full-coverage-search`: Run the search of every available source by default, even an unpromising one, aiming for a complete coverage map. — reject
 - `sources-consulted-line`: List each source searched, empty or skipped, with the reason. — adopt → explain-code#sources-consulted-line
@@ -1774,8 +1774,8 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `one-reference-per-shared-source`: Give an item cited more than once a single authoritative reference. — reject
 - `warehouse-evidence-inventory`: Look for warehouse evidence in product events, usage and billing events, experiment data, system tables and pipeline lineage. — defer
 - `typed-models-over-raw`: Query a warehouse's deduplicated typed models, dropping to raw events only where no model serves. — defer
-- `dbt-column-conventions`: Use the dbt model fields directly, the standard `_timestamp`, `_id`, `_auth_id`, `_request_id` and `event_name`, typed `properties_<name>` event properties and pre-extracted `context_` client fields, to save a describe round-trip. — defer
-- `poll-running-query`: Poll a long-running query's handle for its result in place of running it again. — defer
+- `dbt-column-conventions`: Use the dbt model fields directly, the standard `_timestamp`, `_id`, `_auth_id`, `_request_id` and `event_name`, typed `properties_<name>` event properties and pre-extracted `context_` client fields, to save a describe round-trip. — reject
+- `poll-running-query`: Poll a long-running query's handle for its result in place of running it again. — reject
 - `probe-schema-before-query`: Confirm table and column names with listing and describe statements before querying a warehouse, and never report from an unverified table. — defer
 - `schema-drift-check`: Check that a field existed when the target was written, since older data may lack it or hold it only in raw form. — defer
 - `refresh-lag-fallback`: For events newer than a model's last refresh, query the raw table and deduplicate by id. — defer
@@ -1797,13 +1797,13 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `record-lineage-walk`: From a record, follow its parent and duplicate links to the item that carries the motive. — adopt → explain-code#record-lineage-walk
 - `ticket-motive-signals`: Read a stated business problem, a decision comment, an initiative-named parent, an attached spec and motive-bearing labels as tracker evidence of motive. — reject
 - `record-finding-fields`: Record each evidence record with its identity, the exact motive quote and its location, its author, its dates and its linked records. — reject
-- `ticket-external-metadata`: Record a ticket's labels, project and link with its finding. — defer
+- `ticket-external-metadata`: Record a ticket's labels, project and link with its finding. — reject
 - `document-store-search-procedure`: Search a document store's requirement docs, specs, decision records, meeting notes, postmortems and runbooks with broad keywords for unlinked pages, following backlinks, child pages, meeting-note databases and authors' personal spaces. — defer
 - `final-draft-preference`: Among several documents on a topic, use the finalized or most recently updated one. — reject
 - `document-motive-signals`: Read a matching problem section, rejected approaches, a postmortem naming the fix, dated decision notes and a filled decision record as evidence of motive. — reject
-- `document-external-metadata`: Record a document's URL and its final or draft status with its finding. — defer
+- `document-external-metadata`: Record a document's URL and its final or draft status with its finding. — reject
 - `error-trace-relevance`: Open a full error event to see whether its trace crosses the target and its tags and breadcrumbs match the guarded condition. — defer
-- `orient-org-and-project`: When an error tracker's organization and project are unknown, look them up before searching. — defer
+- `orient-org-and-project`: When an error tracker's organization and project are unknown, look them up before searching. — reject
 - `error-finding-record`: Record each error issue with its id, title, project, seen timestamps, event count with sampling, releases, a verbatim trace excerpt, ship-date correlation, link and author notes. — defer
 - `chat-search-procedure`: Search team chat for deliberation by the author's messages around the merge date and by the pull request's link. — defer
 - `inspect-chat-tool-schema-first`: Check which chat tool exists, its schema and whether it needs authentication before searching it. — reject
@@ -1996,10 +1996,10 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 #### engineering · Building · Diagnosis — skill:pstack/skills/principle-fix-root-causes
 - `owning-layer-fix`: Fix a bug at the layer that owns it rather than patching around it. — adopt → doc:AGENTS.md
 - `reproduction-first`: Obtain a reproduction that shows the reported failure, not a nearby one, before diagnosing it. — reject
-- `why-chain`: Ask why at each step of a failure until the answer is a wrong decision in the code rather than a consequence of an earlier one. — adopt → systematic-debugging#why-chain
+- `why-chain`: Ask why at each step of a failure until the answer is a wrong decision in the code rather than a consequence of an earlier one. — adopt, pending cr-r2pa.2.20 → principle-fix-root-causes#why-chain
 - `observe-not-guess`: When stuck, add instrumentation and read the actual error and state instead of reasoning from guesses. — reject
-- `legitimate-state-test`: Before guarding where a symptom surfaced, decide whether the triggering state is legitimate: handle a legitimate state there, and trace an illegitimate one to what produced it. — adopt → systematic-debugging#legitimate-state-test
-- `persisted-state-suspect`: When a failure appears only after a restart, suspect persisted state (configuration, caches, lock files, serialized state) first. — adopt → systematic-debugging#persisted-state-suspect
+- `legitimate-state-test`: Before guarding where a symptom surfaced, decide whether the triggering state is legitimate: handle a legitimate state there, and trace an illegitimate one to what produced it. — adopt, pending cr-r2pa.2.20 → principle-fix-root-causes#legitimate-state-test
+- `persisted-state-suspect`: When a failure appears only after a restart, suspect persisted state (configuration, caches, lock files, serialized state) first. — adopt, pending cr-r2pa.2.20 → principle-fix-root-causes#persisted-state-suspect
 - `fix-every-instance`: Search for every place with the same fault and fix them all, not only the reported instance. — adopt → doc:.claude/skills/mvp-mode/playbooks/bug-fix.md
 - `workaround-comment-smell`: Treat a workaround that needs a long justifying comment as a sign the code is wrong, and fix the code instead. — defer
 - `always-on-signal`: After a fact took a deep investigation to find, propose the cheap always-on signal that would have shown it at first look. — adopt → doc:.claude/skills/mvp-mode/playbooks/bug-fix.md
@@ -2648,26 +2648,26 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `ground-in-codebase`: Explore the current state of the code before writing, so the artifact targets what actually exists. — adopt → planning#ground-in-codebase
 - `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write. — defer
 - `respect-area-adrs`: Honour the recorded architectural decisions that govern the area being changed. — defer
-- `prefactor-first`: Find prefactoring that makes the change easy and sequence it before the feature slices. — adopt → planning#prefactor-first
-- `vertical-slices`: Prefer independently verifiable vertical slices over horizontal layers. — adopt → planning#vertical-slices
-- `dependency-edges`: Encode real blocking edges in the tracker and let the ready frontier drive execution rather than listing order. — adopt → planning#dependency-edges
-- `expand-contract`: For a broad refactor use expand, migrate then contract with genuine dependencies, naming one integration boundary when intermediate tasks cannot stay green. — adopt → planning#expand-contract
-- `publish-to-tracker`: Publish the finished artifact to the configured issue tracker. — adopt → planning#beads-native-tracking
-- `real-id-wiring`: Wire cross-references and dependencies with real identifiers, never placeholders. — adopt → planning#real-id-wiring
-- `sub-issue-linkage`: Make each ticket a child of its source issue and never close or modify that parent. — adopt → planning#beads-native-tracking
+- `prefactor-first`: Find prefactoring that makes the change easy and sequence it before the feature slices. — adopt, pending cr-r2pa.2.20 → to-tickets#prefactor-first
+- `vertical-slices`: Prefer independently verifiable vertical slices over horizontal layers. — adopt, pending cr-r2pa.2.20 → to-tickets#vertical-slices
+- `dependency-edges`: Encode real blocking edges in the tracker and let the ready frontier drive execution rather than listing order. — adopt, pending cr-r2pa.2.20 → to-tickets#dependency-edges
+- `expand-contract`: For a broad refactor use expand, migrate then contract with genuine dependencies, naming one integration boundary when intermediate tasks cannot stay green. — adopt, pending cr-r2pa.2.20 → to-tickets#expand-contract
+- `publish-to-tracker`: Publish the finished artifact to the configured issue tracker. — adopt, pending cr-r2pa.2.20 → to-tickets#beads-native-tracking
+- `real-id-wiring`: Wire cross-references and dependencies with real identifiers, never placeholders. — adopt, pending cr-r2pa.2.20 → to-tickets#real-id-wiring
+- `sub-issue-linkage`: Make each ticket a child of its source issue and never close or modify that parent. — adopt, pending cr-r2pa.2.20 → to-tickets#beads-native-tracking
 - `ready-for-agent-label`: Tag the published work with the ready-for-agent triage label so it needs no further triage. — defer
 - `ticket-template`: Fill a fixed ticket template of behavioural what-to-build, blocked-by, and checkable acceptance criteria. — defer
 - `no-stale-file-paths`: Keep concrete file paths out of a durable spec, ticket or brief, describing interfaces and behaviour that survive code drift. — defer
 - `no-stale-code-snippets`: Keep code snippets out of a durable spec or ticket because they go stale. — adopt → planning#no-stale-code-snippets
-- `prototype-snippet`: Inline a prototype snippet in the spec only when it encodes a decision more precisely than prose can. — adopt → brainstorming#prototype-snippet
+- `prototype-snippet`: Inline a prototype snippet in the spec only when it encodes a decision more precisely than prose can. — adopt, pending cr-r2pa.2.20 → to-spec#prototype-snippet
 - `read-full-source-issue`: Read the full body, comments and, for a pull request, the diff of any referenced spec, issue or pull request before working from it. — defer
 - `session-sized-tickets`: Size each ticket to fit one agent session's context window. — defer
-- `blast-radius-batches`: Size migration batches by blast radius and keep the build green between them. — adopt → planning#blast-radius-batches
+- `blast-radius-batches`: Size migration batches by blast radius and keep the build green between them. — adopt, pending cr-r2pa.2.20 → to-tickets#blast-radius-batches
 - `file-per-ticket`: Without a tracker, write one numbered file per ticket in dependency order, never one combined file. — defer
 - `brief-behavioural`: Describe what the system should do, not how to implement it, leaving implementation choices to the executing agent. — adopt → planning#plan-evidence-bound
 - `ticket-breakdown-preview`: Show the proposed ticket breakdown as a numbered list of title, blockers and delivered behaviour before publishing it. — defer
 - `ticket-breakdown-feedback`: Ask the user about the breakdown's granularity, its blocking edges, and tickets to merge or split. — defer
-- `breakdown-approval-before-publish`: Iterate on the ticket breakdown until the user approves it, publishing nothing before approval. — adopt → planning#breakdown-approval-before-publish
+- `breakdown-approval-before-publish`: Iterate on the ticket breakdown until the user approves it, publishing nothing before approval. — adopt, pending cr-r2pa.2.20 → to-tickets#breakdown-approval-before-publish
 
 #### engineering · Design · Specification — skill:skills/engineering/tdd
 - `meaningful-behaviour-assertion`: Assert meaningful results, state or boundary interactions at a stable boundary rather than internal call choreography. — adopt → tdd#meaningful-behaviour-assertion
@@ -2691,22 +2691,22 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `test-database-over-mock`: Prefer a test database to mocking the database. — defer
 
 #### engineering · Design · Specification — skill:skills/engineering/to-spec
-- `synthesize-settled`: When the decisions are already settled, synthesize them into a spec without reopening the discussion. — adopt → brainstorming#synthesize-settled
-- `ground-in-codebase`: Explore the current state of the code before writing, so the artifact targets what actually exists. — adopt → brainstorming#scoped-context-read
+- `synthesize-settled`: When the decisions are already settled, synthesize them into a spec without reopening the discussion. — adopt, pending cr-r2pa.2.20 → to-spec#synthesize-settled
+- `ground-in-codebase`: Explore the current state of the code before writing, so the artifact targets what actually exists. — adopt, pending cr-r2pa.2.20 → to-spec#scoped-context-read
 - `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write. — defer
 - `respect-area-adrs`: Honour the recorded architectural decisions that govern the area being changed. — defer
-- `testing-seam-decision`: Record in the spec which seam the feature is tested at, preferring an existing and the highest useful seam and the fewest seams. — adopt → brainstorming#testing-seam-decision
+- `testing-seam-decision`: Record in the spec which seam the feature is tested at, preferring an existing and the highest useful seam and the fewest seams. — adopt, pending cr-r2pa.2.20 → to-spec#testing-seam-decision
 - `seam-preconfirmation`: Write down the seams under test and confirm them with the user before writing any test. — defer
-- `spec-template`: Capture the spec in a fixed skeleton: problem, solution, user stories, implementation decisions, testing decisions, out of scope and further notes. — adopt → brainstorming#spec-template
-- `no-stale-file-paths`: Keep concrete file paths out of a durable spec, ticket or brief, describing interfaces and behaviour that survive code drift. — adopt → brainstorming#no-stale-file-paths
-- `no-stale-code-snippets`: Keep code snippets out of a durable spec or ticket because they go stale. — adopt → brainstorming#no-stale-code-snippets
-- `prototype-snippet`: Inline a prototype snippet in the spec only when it encodes a decision more precisely than prose can. — adopt → brainstorming#prototype-snippet
+- `spec-template`: Capture the spec in a fixed skeleton: problem, solution, user stories, implementation decisions, testing decisions, out of scope and further notes. — adopt, pending cr-r2pa.2.20 → to-spec#spec-template
+- `no-stale-file-paths`: Keep concrete file paths out of a durable spec, ticket or brief, describing interfaces and behaviour that survive code drift. — adopt, pending cr-r2pa.2.20 → to-spec#no-stale-file-paths
+- `no-stale-code-snippets`: Keep code snippets out of a durable spec or ticket because they go stale. — adopt, pending cr-r2pa.2.20 → to-spec#no-stale-code-snippets
+- `prototype-snippet`: Inline a prototype snippet in the spec only when it encodes a decision more precisely than prose can. — adopt, pending cr-r2pa.2.20 → to-spec#prototype-snippet
 - `publish-to-tracker`: Publish the finished artifact to the configured issue tracker. — defer
 - `ready-for-agent-label`: Tag the published work with the ready-for-agent triage label so it needs no further triage. — defer
-- `user-perspective-framing`: Write a spec's problem and solution from the user's perspective. — adopt → brainstorming#user-perspective-framing
+- `user-perspective-framing`: Write a spec's problem and solution from the user's perspective. — adopt, pending cr-r2pa.2.20 → to-spec#user-perspective-framing
 - `exhaustive-user-stories`: Write a long, exhaustive numbered list of actor-feature-benefit user stories. — defer
-- `implementation-decisions-scope`: List a spec's implementation decisions across modules, interfaces, clarifications, architecture, schema, contracts and interactions. — adopt → brainstorming#implementation-decisions-scope
-- `testing-decisions-contents`: Record a spec's testing decisions as what makes a good test, which modules are tested and the prior-art tests to follow. — adopt → brainstorming#testing-decisions-contents
+- `implementation-decisions-scope`: List a spec's implementation decisions across modules, interfaces, clarifications, architecture, schema, contracts and interactions. — adopt, pending cr-r2pa.2.20 → to-spec#implementation-decisions-scope
+- `testing-decisions-contents`: Record a spec's testing decisions as what makes a good test, which modules are tested and the prior-art tests to follow. — adopt, pending cr-r2pa.2.20 → to-spec#testing-decisions-contents
 
 #### engineering · Building · Diagnosis — skill:skills/engineering/diagnosing-bugs
 - `reproduction-first`: Obtain a reproduction that shows the reported failure, not a nearby one, before diagnosing it. — adopt → systematic-debugging#reproduction-preferred
@@ -2867,20 +2867,20 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `ordered-context-decision-tree`: Walk the context moves at a phase boundary as an ordered decision tree in which the first yes wins. — defer
 
 #### engineering · X · Coordination — skill:skills/engineering/implement-spec
-- `single-integration-branch`: Land every ticket of a multi-ticket build on one integration branch. — defer
-- `dependency-edges`: Encode real blocking edges in the tracker and let the ready frontier drive execution rather than listing order. — adopt → planning#dependency-edges
+- `single-integration-branch`: Land every ticket of a multi-ticket build on one integration branch. — adopt, pending cr-r2pa.2.20 → implement#single-integration-branch
+- `dependency-edges`: Encode real blocking edges in the tracker and let the ready frontier drive execution rather than listing order. — adopt, pending cr-r2pa.2.20 → implement#dependency-edges
 - `pointer-only-subagent-briefs`: Keep subagent communication sparse by passing pointers to the spec, tickets, notes and commits rather than copying their content. — defer
 - `parallel-frontier-implementers`: Run implementer subagents concurrently over the ready frontier of a ticket graph, dispatching new ones whenever a merge opens more tickets. — defer
 - `exploration-notes-subagent`: Optionally run an exploration subagent that saves markdown notes outside the repository for later subagents to read. — defer
 - `draft-closing-pr`: After the first merge, open a draft pull request marked as closing the spec and tickets when the tracker closes work through pull requests or the user asks. — defer
-- `worktree-per-implementer`: Give each implementer subagent its own worktree and branch. — defer
-- `worktree-base-check`: Have each implementer confirm its worktree is based on the integration branch and reset onto it if not. — defer
+- `worktree-per-implementer`: Give each implementer subagent its own worktree and branch. — adopt, pending cr-r2pa.2.20 → implement#worktree-per-significant-change
+- `worktree-base-check`: Have each implementer confirm its worktree is based on the integration branch and reset onto it if not. — adopt, pending cr-r2pa.2.20 → implement#worktree-base-verify
 - `red-green`: Make one test fail before implementing the change that makes it pass. — adopt → tdd#red-green
-- `pre-report-tip-merge`: Have each implementer merge the integration branch's tip into its own branch before reporting done. — defer
+- `pre-report-tip-merge`: Have each implementer merge the integration branch's tip into its own branch before reporting done. — adopt, pending cr-r2pa.2.20 → implement#pre-report-tip-merge
 - `dedicated-merger-agent`: Merge completed work into the integration branch through a dedicated merger subagent. — defer
 - `final-branch-review`: Once all tickets have landed, review the integration branch a single time and fix all findings through a single implementer. — defer
 - `delivery-closeout`: Finish a multi-ticket build by marking the draft pull request ready or closing the tickets, and report the branch. — defer
-- `worktree-cleanup`: Remove every implementer worktree when the build ends. — defer
+- `worktree-cleanup`: Remove every implementer worktree when the build ends. — adopt, pending cr-r2pa.2.20 → implement#worktree-cleanup
 - `fresh-context-subagent`: Start every subagent in a fresh context window rather than as a copy of the caller's conversation. — adopt, pending cr-r2pa.2.19 → delegation#fresh-context-subagent
 - `no-reused-implementer`: Give each ticket, and the closing round of review fixes, a newly started implementer rather than one that already finished other work. — adopt, pending cr-r2pa.2.19 → implement#no-reused-implementer
 
@@ -3042,7 +3042,7 @@ Ticket a question once it is sharp enough to state, even while blocked, and hold
 Wire cross-references and dependencies with real identifiers, never placeholders.
 - ours: `planning`
 - ours: `wayfinder`
-- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → planning#real-id-wiring
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt, pending cr-r2pa.2.20 → to-tickets#real-id-wiring
 - `mattpocock_skills:skill:skills/engineering/wayfinder` — adopt → wayfinder#real-id-wiring
 
 #### `record-resolution`
@@ -3377,7 +3377,7 @@ Generate only enough distinct options to expose the tradeoff, compare them on va
 #### `synthesize-settled`
 When the decisions are already settled, synthesize them into a spec without reopening the discussion.
 - ours: `brainstorming`
-- `mattpocock_skills:skill:skills/engineering/to-spec` — adopt → brainstorming#synthesize-settled
+- `mattpocock_skills:skill:skills/engineering/to-spec` — adopt, pending cr-r2pa.2.20 → to-spec#synthesize-settled
 
 #### `two-exchange-interview`
 Run the interview as two bounded exchanges, the recipient and what the user needs back.
@@ -3460,7 +3460,7 @@ When requested, record settled domain terms and qualifying architectural decisio
 #### `breakdown-approval-before-publish`
 Iterate on the ticket breakdown until the user approves it, publishing nothing before approval.
 - ours: `planning`
-- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → planning#breakdown-approval-before-publish
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt, pending cr-r2pa.2.20 → to-tickets#breakdown-approval-before-publish
 
 #### `quiz-the-user` *(retired)*
 Present the breakdown as a numbered list of title, blocked-by and what it delivers, and iterate on granularity, edges and splits until the user approves.
@@ -3522,13 +3522,13 @@ Impose no structure such as AI, a checkpoint or a schedule on a workflow unless 
 Keep code snippets out of a durable spec or ticket because they go stale.
 - ours: `brainstorming`
 - ours: `planning`
-- `mattpocock_skills:skill:skills/engineering/to-spec` — adopt → brainstorming#no-stale-code-snippets
+- `mattpocock_skills:skill:skills/engineering/to-spec` — adopt, pending cr-r2pa.2.20 → to-spec#no-stale-code-snippets
 - `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → planning#no-stale-code-snippets
 
 #### `no-stale-file-paths`
 Keep concrete file paths out of a durable spec, ticket or brief, describing interfaces and behaviour that survive code drift.
 - ours: `brainstorming`
-- `mattpocock_skills:skill:skills/engineering/to-spec` — adopt → brainstorming#no-stale-file-paths
+- `mattpocock_skills:skill:skills/engineering/to-spec` — adopt, pending cr-r2pa.2.20 → to-spec#no-stale-file-paths
 - `mattpocock_skills:skill:skills/engineering/to-tickets` — defer
 - `mattpocock_skills:skill:skills/engineering/triage` — defer
 
@@ -3559,7 +3559,7 @@ Run a stateful interview whose only output is the specification files.
 #### `spec-template`
 Capture the spec in a fixed skeleton: problem, solution, user stories, implementation decisions, testing decisions, out of scope and further notes.
 - ours: `brainstorming`
-- `mattpocock_skills:skill:skills/engineering/to-spec` — adopt → brainstorming#spec-template
+- `mattpocock_skills:skill:skills/engineering/to-spec` — adopt, pending cr-r2pa.2.20 → to-spec#spec-template
 
 #### `visuals-into-spec`
 Re-express an approved diagram inside the durable spec as a Mermaid block, or record what a mockup showed and decided, rather than linking disposable scratch files.
@@ -4082,7 +4082,7 @@ Prefer a deterministic, rerunnable script as the proof of a result, and keep its
 #### `suspect-the-observation`
 When a check fails unexpectedly, test the observation method before concluding the system is wrong.
 - ours: `systematic-debugging`
-- `cursor_plugins:skill:pstack/skills/principle-prove-it-works` — adopt → systematic-debugging#suspect-the-observation
+- `cursor_plugins:skill:pstack/skills/principle-prove-it-works` — adopt, pending cr-r2pa.2.20 → doc:AGENTS.md
 
 ### core · Delivery · Integration
 
@@ -7174,7 +7174,7 @@ Search team chat for deliberation by the author's messages around the merge date
 #### `cited-flow-walkthrough`
 Walk the flow in prose from trigger to result, naming the files and functions at each step.
 - ours: `explain-code`
-- `cursor_plugins:skill:pstack/skills/how` — adopt → explain-code#cited-flow-walkthrough
+- `cursor_plugins:skill:pstack/skills/how` — adopt, pending cr-r2pa.2.20 → how#cited-flow-walkthrough
 
 #### `claim-honesty`
 Mark interpretation as INFERENCE, cite file and line for every source-traced claim, and for a closed target name the strongest available artifact and its limits.
@@ -7241,11 +7241,11 @@ Use a dated product survey only for orientation, and research what is on offer n
 
 #### `dbt-column-conventions`
 Use the dbt model fields directly, the standard `_timestamp`, `_id`, `_auth_id`, `_request_id` and `event_name`, typed `properties_<name>` event properties and pre-extracted `context_` client fields, to save a describe round-trip.
-- `cursor_plugins:skill:pstack/skills/why` — defer
+- `cursor_plugins:skill:pstack/skills/why` — reject
 
 #### `document-external-metadata`
 Record a document's URL and its final or draft status with its finding.
-- `cursor_plugins:skill:pstack/skills/why` — defer
+- `cursor_plugins:skill:pstack/skills/why` — reject
 
 #### `document-motive-signals`
 Read a matching problem section, rejected approaches, a postmortem naming the fix, dated decision notes and a filled decision record as evidence of motive.
@@ -7295,7 +7295,7 @@ Reach the EXERCISED state only under explicit runtime authorization, in a dispos
 #### `explanation-sections`
 Structure an explanation as overview, concepts, flow, file map and pitfalls, dropping any section that does not apply.
 - ours: `explain-code`
-- `cursor_plugins:skill:pstack/skills/how` — adopt → explain-code#explanation-sections
+- `cursor_plugins:skill:pstack/skills/how` — adopt, pending cr-r2pa.2.20 → how#explanation-sections
 
 #### `fastest-changing-facts-first`
 When refreshing a dated survey, recheck its fastest-changing facts first, such as prices, beta status, limits and end-of-life dates.
@@ -7401,7 +7401,7 @@ Carry every gap and open question from the search into the final explanation.
 
 #### `orient-org-and-project`
 When an error tracker's organization and project are unknown, look them up before searching.
-- `cursor_plugins:skill:pstack/skills/why` — defer
+- `cursor_plugins:skill:pstack/skills/why` — reject
 
 #### `oversell-finding`
 Report a documented-and-PRESENT but never-WIRED capability as an explicit finding, since that gap is how docs oversell.
@@ -7422,11 +7422,11 @@ Compare a ticket's or spec's date with what shipped, since plans predate the imp
 
 #### `poll-running-query`
 Poll a long-running query's handle for its result in place of running it again.
-- `cursor_plugins:skill:pstack/skills/why` — defer
+- `cursor_plugins:skill:pstack/skills/why` — reject
 
 #### `pr-discussion-pull`
 For each substantive commit, read the pull request body, linked issues, comments and reviews.
-- `cursor_plugins:skill:pstack/skills/why` — defer
+- `cursor_plugins:skill:pstack/skills/why` — adopt, pending cr-r2pa.2.20 → why#pr-discussion-pull
 
 #### `pre-delivery-claim-audit`
 Before delivery, check each claim for a citation or demote it, and check that its phrasing matches its tier.
@@ -7477,7 +7477,7 @@ For a choice between alternatives, recommend one and show the tradeoffs in a tab
 #### `reconcile-by-reading`
 Settle conflicting findings by reading the code itself.
 - ours: `explain-code`
-- `cursor_plugins:skill:pstack/skills/how` — adopt → explain-code#reconcile-by-reading
+- `cursor_plugins:skill:pstack/skills/how` — adopt, pending cr-r2pa.2.20 → how#reconcile-by-reading
 
 #### `record-finding-fields`
 Record each evidence record with its identity, the exact motive quote and its location, its author, its dates and its linked records.
@@ -7523,7 +7523,7 @@ Bound a search of a large source to a window around the date the target shipped.
 
 #### `size-gated-explorers`
 Answer a narrow question in one pass and split a wide one into angles for separate explorers, merging their findings into one account.
-- `cursor_plugins:skill:pstack/skills/how` — adopt → explain-code#angles-when-wide
+- `cursor_plugins:skill:pstack/skills/how` — adopt, pending cr-r2pa.2.20 → how#angles-when-wide
 
 #### `snapshot-header`
 Stamp every artifact with the studied commit, worktree cleanliness and date, mark a dirty tree provisional, sweep rows written at an older sha as stale, and refresh a stale lower level before building a higher one.
@@ -7544,7 +7544,7 @@ Use span statistics and specific traces for questions about timeouts, retries, s
 
 #### `stated-scope-reading`
 State your reading of an ambiguous target and proceed, so the user can redirect afterward.
-- `cursor_plugins:skill:pstack/skills/how` — adopt → explain-code#immaterial-ambiguity-reading
+- `cursor_plugins:skill:pstack/skills/how` — adopt, pending cr-r2pa.2.20 → how#immaterial-ambiguity-reading
 - `cursor_plugins:skill:pstack/skills/why` — adopt → explain-code#immaterial-ambiguity-reading
 
 #### `stop-on-auth-failure`
@@ -7582,7 +7582,7 @@ Offer three research modes — an L1 capability survey, an L2 architecture map, 
 
 #### `ticket-external-metadata`
 Record a ticket's labels, project and link with its finding.
-- `cursor_plugins:skill:pstack/skills/why` — defer
+- `cursor_plugins:skill:pstack/skills/why` — reject
 
 #### `ticket-motive-signals`
 Read a stated business problem, a decision comment, an initiative-named parent, an attached spec and motive-bearing labels as tracker evidence of motive.
@@ -8713,7 +8713,7 @@ Seed epics and stages and render tracking natively in the tracker, keeping the r
 #### `blast-radius-batches`
 Size migration batches by blast radius and keep the build green between them.
 - ours: `planning`
-- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → planning#blast-radius-batches
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt, pending cr-r2pa.2.20 → to-tickets#blast-radius-batches
 
 #### `child-ticket-linking-fallbacks`
 Link a child ticket by the tracker's native parent link, falling back to an older link form and then a part-of line in its body, with a type label.
@@ -8736,9 +8736,9 @@ Split an approved spec into demoable phases with checkable exits and flat stages
 Encode real blocking edges in the tracker and let the ready frontier drive execution rather than listing order.
 - ours: `planning`
 - ours: `wayfinder`
-- `mattpocock_skills:skill:skills/engineering/implement-spec` — adopt → planning#dependency-edges
+- `mattpocock_skills:skill:skills/engineering/implement-spec` — adopt, pending cr-r2pa.2.20 → implement#dependency-edges
 - `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
-- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → planning#dependency-edges
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt, pending cr-r2pa.2.20 → to-tickets#dependency-edges
 - `mattpocock_skills:skill:skills/engineering/wayfinder` — adopt → wayfinder#dependency-edges
 
 #### `durable-plan-format`
@@ -8748,7 +8748,7 @@ Produce a durable plan with ownership boundaries, interfaces, verification, depe
 #### `expand-contract`
 For a broad refactor use expand, migrate then contract with genuine dependencies, naming one integration boundary when intermediate tasks cannot stay green.
 - ours: `planning`
-- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → planning#expand-contract
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt, pending cr-r2pa.2.20 → to-tickets#expand-contract
 
 #### `file-per-ticket`
 Without a tracker, write one numbered file per ticket in dependency order, never one combined file.
@@ -8800,12 +8800,12 @@ End a planning run at the plan: implement nothing, and write only the plan file,
 #### `prefactor-first`
 Find prefactoring that makes the change easy and sequence it before the feature slices.
 - ours: `planning`
-- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → planning#prefactor-first
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt, pending cr-r2pa.2.20 → to-tickets#prefactor-first
 
 #### `publish-to-tracker`
 Publish the finished artifact to the configured issue tracker.
 - `mattpocock_skills:skill:skills/engineering/to-spec` — defer
-- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → planning#beads-native-tracking
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt, pending cr-r2pa.2.20 → to-tickets#beads-native-tracking
 
 #### `quantified-scope-with-blockers`
 State scope in rough units and effort along with the blockers grounding turned up.
@@ -8851,7 +8851,7 @@ Split a labelled spec ticket into smaller tickets that each record what they dep
 
 #### `sub-issue-linkage`
 Make each ticket a child of its source issue and never close or modify that parent.
-- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → planning#beads-native-tracking
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt, pending cr-r2pa.2.20 → to-tickets#beads-native-tracking
 
 #### `subtraction-first`
 Before adding to a system, remove the complexity in its way (such as dead code, redundant validators and stub references), then build on the simpler base.
@@ -8869,7 +8869,7 @@ Before adding, remove the dead code, redundant validators and stubs that the cha
 #### `vertical-slices`
 Prefer independently verifiable vertical slices over horizontal layers.
 - ours: `planning`
-- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → planning#vertical-slices
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt, pending cr-r2pa.2.20 → to-tickets#vertical-slices
 
 #### `whole-design-incremental-delivery`
 Think a redesign through as a whole before starting, then deliver it in increments rather than in one drop.
@@ -8943,7 +8943,7 @@ Keep the glossary free of implementation details and never treat it as a spec or
 #### `ground-in-codebase`
 Explore the current state of the code before writing, so the artifact targets what actually exists.
 - ours: `planning`
-- `mattpocock_skills:skill:skills/engineering/to-spec` — adopt → brainstorming#scoped-context-read
+- `mattpocock_skills:skill:skills/engineering/to-spec` — adopt, pending cr-r2pa.2.20 → to-spec#scoped-context-read
 - `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → planning#ground-in-codebase
 - `mattpocock_skills:skill:skills/engineering/triage` — defer
 
@@ -9035,7 +9035,7 @@ When implementation convenience conflicts with the consumer's experience, choose
 #### `implementation-decisions-scope`
 List a spec's implementation decisions across modules, interfaces, clarifications, architecture, schema, contracts and interactions.
 - ours: `brainstorming`
-- `mattpocock_skills:skill:skills/engineering/to-spec` — adopt → brainstorming#implementation-decisions-scope
+- `mattpocock_skills:skill:skills/engineering/to-spec` — adopt, pending cr-r2pa.2.20 → to-spec#implementation-decisions-scope
 
 #### `integration-not-redesign`
 Integrate only authorized decisions into the next version and never treat integration as licence to redesign.
@@ -9092,8 +9092,8 @@ Preserve heading hierarchy, invariant identifiers, table meanings and link targe
 #### `prototype-snippet`
 Inline a prototype snippet in the spec only when it encodes a decision more precisely than prose can.
 - ours: `brainstorming`
-- `mattpocock_skills:skill:skills/engineering/to-spec` — adopt → brainstorming#prototype-snippet
-- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → brainstorming#prototype-snippet
+- `mattpocock_skills:skill:skills/engineering/to-spec` — adopt, pending cr-r2pa.2.20 → to-spec#prototype-snippet
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt, pending cr-r2pa.2.20 → to-spec#prototype-snippet
 
 #### `public-only-seams`
 Test only at public boundaries, never against internals.
@@ -9124,17 +9124,17 @@ Begin each target from its complete source and preserve exact identifiers, numbe
 #### `testing-decisions-contents`
 Record a spec's testing decisions as what makes a good test, which modules are tested and the prior-art tests to follow.
 - ours: `brainstorming`
-- `mattpocock_skills:skill:skills/engineering/to-spec` — adopt → brainstorming#testing-decisions-contents
+- `mattpocock_skills:skill:skills/engineering/to-spec` — adopt, pending cr-r2pa.2.20 → to-spec#testing-decisions-contents
 
 #### `testing-seam-decision`
 Record in the spec which seam the feature is tested at, preferring an existing and the highest useful seam and the fewest seams.
 - ours: `brainstorming`
-- `mattpocock_skills:skill:skills/engineering/to-spec` — adopt → brainstorming#testing-seam-decision
+- `mattpocock_skills:skill:skills/engineering/to-spec` — adopt, pending cr-r2pa.2.20 → to-spec#testing-seam-decision
 
 #### `user-perspective-framing`
 Write a spec's problem and solution from the user's perspective.
 - ours: `brainstorming`
-- `mattpocock_skills:skill:skills/engineering/to-spec` — adopt → brainstorming#user-perspective-framing
+- `mattpocock_skills:skill:skills/engineering/to-spec` — adopt, pending cr-r2pa.2.20 → to-spec#user-perspective-framing
 
 #### `version-rekey`
 Update version headers, filenames and internal references and copy untouched core files so the target stands alone with prior versions only in provenance.
@@ -9375,7 +9375,7 @@ Only when time is going to the kernel or I/O, count system calls in a separate r
 #### `legitimate-state-test`
 Before guarding where a symptom surfaced, decide whether the triggering state is legitimate: handle a legitimate state there, and trace an illegitimate one to what produced it.
 - ours: `systematic-debugging`
-- `cursor_plugins:skill:pstack/skills/principle-fix-root-causes` — adopt → systematic-debugging#legitimate-state-test
+- `cursor_plugins:skill:pstack/skills/principle-fix-root-causes` — adopt, pending cr-r2pa.2.20 → principle-fix-root-causes#legitimate-state-test
 
 #### `like-for-like-comparison`
 Compare a performance change against its baseline under the same conditions and run the applicable correctness checks.
@@ -9548,7 +9548,7 @@ Locate a performance regression by bisecting between known-good and known-bad st
 #### `persisted-state-suspect`
 When a failure appears only after a restart, suspect persisted state (configuration, caches, lock files, serialized state) first.
 - ours: `systematic-debugging`
-- `cursor_plugins:skill:pstack/skills/principle-fix-root-causes` — adopt → systematic-debugging#persisted-state-suspect
+- `cursor_plugins:skill:pstack/skills/principle-fix-root-causes` — adopt, pending cr-r2pa.2.20 → principle-fix-root-causes#persisted-state-suspect
 
 #### `phase1-completion-criterion`
 Forbid any hypothesis until one named command, already run once, is proven red-capable, deterministic, fast, and agent-runnable.
@@ -9714,7 +9714,7 @@ In a performance flow, vet the baseline before planning from it, every later num
 #### `why-chain`
 Ask why at each step of a failure until the answer is a wrong decision in the code rather than a consequence of an earlier one.
 - ours: `systematic-debugging`
-- `cursor_plugins:skill:pstack/skills/principle-fix-root-causes` — adopt → systematic-debugging#why-chain
+- `cursor_plugins:skill:pstack/skills/principle-fix-root-causes` — adopt, pending cr-r2pa.2.20 → principle-fix-root-causes#why-chain
 
 #### `within-variation-no-difference`
 Give a gap smaller than run-to-run variation the verdict no measurable difference.
@@ -11080,7 +11080,7 @@ Fill a fixed PR-body skeleton with Summary, Evidence, and Merge Danger sections.
 
 #### `pre-report-tip-merge`
 Have each implementer merge the integration branch's tip into its own branch before reporting done.
-- `mattpocock_skills:skill:skills/engineering/implement-spec` — defer
+- `mattpocock_skills:skill:skills/engineering/implement-spec` — adopt, pending cr-r2pa.2.20 → implement#pre-report-tip-merge
 
 #### `prune-on-approval-gate`
 Remove a worktree only after the owner approves that exact worktree, even when it is clean and merged.
@@ -11109,7 +11109,7 @@ Discover and run the project's automated checks and fix what the merge broke.
 #### `single-integration-branch`
 Land every ticket of a multi-ticket build on one integration branch.
 - `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
-- `mattpocock_skills:skill:skills/engineering/implement-spec` — defer
+- `mattpocock_skills:skill:skills/engineering/implement-spec` — adopt, pending cr-r2pa.2.20 → implement#single-integration-branch
 
 #### `small-single-purpose-commits`
 Keep each commit small and about one thing.
@@ -11135,7 +11135,10 @@ Refuse to land work not verified on its final form, rechecking behaviour if a cl
 
 #### `worktree-base-check`
 Have each implementer confirm its worktree is based on the integration branch and reset onto it if not.
-- `mattpocock_skills:skill:skills/engineering/implement-spec` — defer
+- `mattpocock_skills:skill:skills/engineering/implement-spec` — adopt, pending cr-r2pa.2.20 → implement#worktree-base-verify
+
+#### `worktree-base-verify`
+Confirm a worktree's base before work starts in it and, on a mismatch, preserve the work, stop and report, resetting onto the base only when reset authority is explicit.
 
 ### engineering · Improvement · Codification
 
@@ -11454,11 +11457,14 @@ Run remaining phases in order only on explicit opt-in, with per-phase tracking r
 
 #### `worktree-cleanup`
 Remove every implementer worktree when the build ends.
-- `mattpocock_skills:skill:skills/engineering/implement-spec` — defer
+- `mattpocock_skills:skill:skills/engineering/implement-spec` — adopt, pending cr-r2pa.2.20 → implement#worktree-cleanup
 
 #### `worktree-per-implementer`
 Give each implementer subagent its own worktree and branch.
-- `mattpocock_skills:skill:skills/engineering/implement-spec` — defer
+- `mattpocock_skills:skill:skills/engineering/implement-spec` — adopt, pending cr-r2pa.2.20 → implement#worktree-per-significant-change
+
+#### `worktree-per-significant-change`
+Use a worktree only for a significant change: a spec's work usually is one and runs in one worktree on the integration branch, small tickets inside it get none of their own, and implementers never run in parallel.
 
 ### engineering · X · Governance
 
