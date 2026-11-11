@@ -16,7 +16,7 @@ ours:beads:
   tree_hash: "4033071f23315c2f9052a4dc8f65023b5c9115f6afef9a79212b1aa813e9d6e6"
   traits: [bead-type-taxonomy, field-roles, wait-as-edge, actor-identity, resume-line, session-close, session-recovery, knowledge-in-files, beads-setup, status-model, triage-routing, durable-unit-scope, review-as-task, destructive-command-guard, repeated-procedures, dolt-sync]
 ours:discovery:
-  tree_hash: "ae96b3e1b0ca1e8d52c0bc859359f7496a865932f5f7c3759901e17733589d31"
+  tree_hash: "fe148c1e8d02159ef79c3546fcef5bf72caa6efec66d147840f0db0b9d334771"
   traits: [match-interaction-to-ambiguity, scoped-context-read, reuse-before-new, decision-frame, answerer-triage, options-with-tradeoffs, question-batching, recommended-answer, yes-accepts-recommendation, round-format, answer-before-next-round, settled-stop, self-serve-facts, approval-interpretation, observable-outcomes, structured-divergence, exploration-lenses, assumption-audit, mvp-scope, judgment-frameworks, decision-sequences, inline-diagrams, visuals-into-spec, html-mockup-on-request, sourced-status-record, area-topic-filing, generated-record-index]
   notes:
     recommended-answer: "Labels the recommendation's assumptions."
@@ -234,13 +234,13 @@ ours:tdd:
     no-implementation-coupling: "Asserts exact source text only when that text is the contract."
     mock-boundaries: "Fakes and partial mocks are valid at any boundary that preserves the contract."
 ours:to-plan:
-  tree_hash: "c51982daf2bc070c0ae9f21b4477196f3de3869ebf3b0c79c1d29a4a24f1e28b"
+  tree_hash: "c92ac3df6aba5313be9c5f45c6e83788d45dc07b7717b096996abc472f15e2f1"
   traits: [plan-form-by-need, durable-plan-format, plan-evidence-bound, test-first-marking, no-placeholder-plan, plan-self-review, reviewer-rejectable-sizing, no-stale-code-snippets, ground-in-codebase, per-unit-evidence-boxes, named-execution-scope, plan-lint-last]
 ours:to-roadmap:
-  tree_hash: "16d5531a56f7bc84097710f417b921d26b7eddaa179f121bdd4763443af5e2a9"
+  tree_hash: "bdb70b10b00469f1929c5eb16b3d12a538735d55f7adf99e7c70494e81e84a4f"
   traits: [decompose-phases, breakdown-approval-before-publish]
 ours:to-spec:
-  tree_hash: "d8c6b29a0d3bcdd029554346ac0d3e5088c6cfbdd3479ac6b12a4bd6a79bbbd5"
+  tree_hash: "47c9a6eca86253f1cedb8fd6995d9bdc640005d5dd69e337caf619676d1cad2a"
   traits: [synthesize-settled, spec-template, spec-criteria-and-questions, none-keeps-heading, testing-seam-decision, no-stale-file-paths, no-stale-code-snippets, prototype-snippet, spec-approval-gate, material-risk-review, user-perspective-framing, implementation-decisions-scope, testing-decisions-contents]
 ours:tracker:
   tree_hash: "36cf8a2622dc5be2c79e1b6663a7a637009db7db2fd6cd78c4279da94854b424"
@@ -259,7 +259,7 @@ ours:triage:
     claim-verification: "An unreproduced bug gets questions for the owner, never an automatic close."
     prior-rejection-check: "Searches closed beads for earlier wontfix closes."
 ours:wayfinder:
-  tree_hash: "fbe859c17b4c58cd3935ad851a0e2dad47a2bb9ac3fcf6770dcbfb6a89be39dd"
+  tree_hash: "9b304f3728e916f1af0643b2336deb986bd0c49ce1ebecc8e4b2d469c7416ca1"
   traits: [decision-map-epic, plan-not-do, dependency-edges, map-as-index, map-body-sections, reference-by-name, bounded-decision-ticket, coherence-sized-tickets, label-free-typing, ticket-type-set, claim-before-work, destination-first, question-graduation, record-resolution, out-of-scope-close, human-decision-gate, multi-ticket-sessions, prototype-ticket-asset, fog-hygiene, low-res-map-load, breadth-first-charting, invalidated-ticket-reconciliation, prerequisite-task-human-checklist, prerequisite-task-result-facts]
   notes:
     breadth-first-charting: "Delivers sealed row 2026-10-30-mattpocock_skills-5beb35b:149: surfaces the open decisions before resolving any, where the definition charts by questioning and surfaces first steps too; T5."

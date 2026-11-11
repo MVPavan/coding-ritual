@@ -8,7 +8,8 @@ disable-model-invocation: true
 
 Map a multi-session effort whose material decisions are not yet settled. This is
 a decision graph, not an implementation backlog unless execution was explicitly
-included. If the route is already clear, use `to-plan` or `implement`.
+included. If the route is already clear, return to `mvp-mode`: a plan to write is
+the plan playbook, and work to build is the implement playbook.
 
 ## Map and tickets
 

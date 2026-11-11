@@ -10,7 +10,7 @@ status: active
 ---
 # discovery
 
-Use when material scope or behavior decisions are still open and need settling, or the user requests a brainstorm. Skip a single factual lookup or one routine detail, which need no run; writing settled decisions up as a spec is to-spec.
+Use when material scope or behavior decisions are still open and need settling, or the user requests a brainstorm. Skip a single factual lookup or one routine detail, which need no run; writing settled decisions up as a spec is to-spec; settling them on the way to a plan is the plan playbook, which calls this.
 
 **Boundary:** Settles open scope or behaviour questions by who can answer them (this project's code, outside sources through research, a run through prototype, a routine pick, the owner last) and writes a checked record of the answers; a single lookup or routine detail needs no run, writing settled decisions up as a durable spec is to-spec, an explicitly requested interview that challenges the owner's own plan is grilling, and decisions charted across sessions are wayfinder.
 
@@ -76,6 +76,7 @@ Use when material scope or behavior decisions are still open and need settling, 
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-11` **update** (2026-11-11-plan-playbook:008): Owner ruling N4 of 2026-11-11 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md:126), plan 45 U2 (scratchpad/mvp-stack/45/plan.md): the Hand off section bec…
 - `2026-11-11` **update** (2026-11-11-discovery:023): Owner ruling L1 of 2026-11-10 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 20 D5: check_record.py --index writes no trailing blank line when the…
 - `2026-11-11` **update** (2026-11-11-discovery:021): Owner ruling L1 of 2026-11-10 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 20 D5: check_record.py --index creates a root that does not exist yet…
 - `2026-11-11` **update** (2026-11-11-discovery:018): Owner ruling L1 of 2026-11-10 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 20 D4 (sections 4.4, 5): discovery lists area-topic-filing, the filin…

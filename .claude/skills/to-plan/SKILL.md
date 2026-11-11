@@ -14,13 +14,13 @@ make several. Decide routine cases directly; ask only on material ambiguity.
 
 | Situation | Path |
 |---|---|
-| A clear bounded task, or a roadmap phase whose row's acceptance already says enough | No plan document: say so, give a brief local sequence if useful, and continue only into implementation already authorized |
+| A clear bounded task, or a roadmap phase whose row's acceptance already says enough | No plan document: say so, give a brief local sequence if useful, and stop there |
 | Durable implementation plan requested or needed for handoff | Elaborate |
 | Plan to be run box by box with evidence per unit, when a calling playbook names this branch or someone asks for that form | Skeleton |
 
 Reuse recorded approvals. Ask only about material scope, dependency or authority
 choices that remain open. Planning-only requests authorize planning artifacts,
-not implementation; when implementation is already authorized, continue to it.
+not implementation.
 
 ## Elaborate
 

@@ -10,7 +10,7 @@ status: active
 ---
 # to-roadmap
 
-Use when an approved multi-phase spec should become tracked work: its phases, stages with acceptance and their order, for a new workstream or extending one; tracker seeds them. A one-phase spec is to-plan, then tracker; the plan for one phase is to-plan.
+Use when an approved multi-phase spec should become tracked work: its phases, stages with acceptance and their order, for a new workstream or extending one; tracker seeds them. A one-phase spec is to-plan, then tracker; the plan for one phase is to-plan; a person's request to plan the work is the plan playbook, which calls this.
 
 **Boundary:** Turns an approved multi-phase spec into phases and stages with acceptance, their order and real dependency edges, for a new workstream or extending an existing one, approved before tracker seeds them; a one-phase spec is to-plan then tracker, ordering the stages is principle-sequence-verifiable-units, writing the implementation plan for one phase or one change is to-plan, and writing the spec itself is to-spec.
 
@@ -32,6 +32,7 @@ Use when an approved multi-phase spec should become tracked work: its phases, st
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-11` **update** (2026-11-11-plan-playbook:010): Owner ruling N4 of 2026-11-11 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md:126), plan 45 U2 (scratchpad/mvp-stack/45/plan.md): a one-phase spec is rout…
 - `2026-11-11` **update** (2026-11-11-implement-playbook:008): Owner ruling N4 of 2026-11-11 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md:126), plan 40 U2 (scratchpad/mvp-stack/40/plan.md): the roadmap's risk field…
 - `2026-11-11` **update** (2026-11-11-tracker:008): Owner rulings M2 (2026-11-10), N2 and N3 (2026-11-11) (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 27 T1a. R2: an approved multi-phase spec only…
 - `2026-11-11` **update** (2026-11-10-renames-splits:152): Owner rulings M1, M4 (2026-11-10) and N1, N2 (2026-11-11) (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 24 U8r. Name, heading and description (an…

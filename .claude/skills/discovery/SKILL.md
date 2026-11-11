@@ -1,6 +1,6 @@
 ---
 name: discovery
-description: Use when material scope or behavior decisions are still open and need settling, or the user requests a brainstorm. Skip a single factual lookup or one routine detail, which need no run; writing settled decisions up as a spec is to-spec.
+description: Use when material scope or behavior decisions are still open and need settling, or the user requests a brainstorm. Skip a single factual lookup or one routine detail, which need no run; writing settled decisions up as a spec is to-spec; settling them on the way to a plan is the plan playbook, which calls this.
 ---
 
 # Discovery
@@ -77,11 +77,11 @@ in chat. A filled example is `references/record-example.md`.
 3. Run `scripts/check_record.py <file>` and fix every line it prints; for a record
    under `docs/discovery/`, then run `scripts/check_record.py --index docs/discovery`.
 
-## Hand off
+## End
 
-Report an unresolved direction as a blocker to whoever started the run. Hand the
-decisions to `to-spec` when a durable spec is wanted; continue into `to-spec`,
-`to-plan` or `implement` only when already authorized. A discovery-only request
-does not authorize code changes. Discovery writes no Beads and never calls
-`tracker`; a decision bead or ADR follows only where existing rules require one,
-and links the record.
+Report an unresolved direction as a blocker to whoever started the run. The run
+ends at the record and its report; a caller sequences what follows. At top level,
+work that goes on to a spec or a plan returns to `mvp-mode`; in a delegated task,
+report that route. A discovery-only request does not authorize code changes.
+Discovery writes no Beads and never calls `tracker`; a decision bead or ADR
+follows only where existing rules require one, and links the record.

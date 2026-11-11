@@ -1,6 +1,6 @@
 ---
 name: to-spec
-description: Use when decisions already settled should be written up as a durable spec for planning or another session. Skip choices still open or being compared, which are discovery.
+description: Use when decisions already settled should be written up as a durable spec for planning or another session. Skip choices still open or being compared, which are discovery; a spec as one step of planning work to build is the plan playbook, which calls this.
 ---
 
 # To spec
@@ -32,8 +32,8 @@ before approval. Check consistency, scope and verifiability; a spec with materia
 risk gets a critic review (review skill) before approval. Report a direction still
 unresolved as a blocker to whoever asked for the spec.
 
-## Hand off
+## End
 
-This skill's output is a spec. Continue into `to-roadmap`, `to-plan` or
-`implement` when already authorized; a request for a spec alone does not
-authorize code changes.
+This skill's output is a spec, and the run ends there; a request for a spec alone
+does not authorize code changes. At top level, work that goes on to a roadmap or
+plan returns to `mvp-mode`; in a delegated task, report that route.
