@@ -1,7 +1,7 @@
 # Skill curation: handoff
 
 Updated 2026-11-11 (MVP stack phase 1 closed; phase 2 running on the playbook
-map; the renames-and-splits batch closed by U9). Branch `mvp-stack` in the main worktree; `dws-workflow` is retired and
+map; the renames-and-splits batch closed by U9, the tracker batch by T1c). Branch `mvp-stack` in the main worktree; `dws-workflow` is retired and
 deleted. Beads is the work-state authority; this file is the narrative.
 
 ## Start here (new session)
@@ -77,7 +77,8 @@ deleted. Beads is the work-state authority; this file is the narrative.
 | after `fb84021` | U8: `suspect-the-observation` moved to `AGENTS.md` (same round), see below |
 | `0eafcea` | U8r: `planning` → `to-plan`, `to-tickets` → `to-roadmap`, ordering rules into one principle (same round), see below |
 | after `0eafcea` | U9: closeout; round `2026-11-10-renames-splits` sealed, owner's relocation list, sync list for the end-of-project sync, see below |
-| after `4654c93` | T1a: `tracker` split out of `beads` (round `2026-11-11-tracker`, open), see below |
+| `4647b3a`, `1fc0992` | T1a: `tracker` split out of `beads`; T1b: unit beads in every scope (`cr-r2pa.2.22`, round `2026-11-11-tracker`), see below |
+| after `1fc0992` | T1c: closeout; round `2026-11-11-tracker` sealed, owner's relocation list, sync list extended, see below |
 
 `main` is at `eb36cc9`; later work is on `mvp-stack` until the owner asks to merge.
 `mvp-stack` is pushed through U8 of the renames (`43d0d07`); later commits are local until the owner says to push.
@@ -239,15 +240,26 @@ critic, owner rulings, ledger, build, Sol review, commit after the owner approve
   with the coordinator's corrections. The Codex links, `catalogs/ours.json`, the publish manifest's
   `expect`, the plugin's `AGENTS.md` sentence and the rewording caveat for `cr-r2pa.2.18` wait for
   the end-of-project sync, listed on `cr-r2pa`.
-  T1a is built (owner ruling N, plan `scratchpad/mvp-stack/27/plan.md`): `tracker` holds our work
-  structure on Beads (workstreams, phase epics, seeding and extending, one-phase plans with proposed
-  stage names bound to real IDs after approval, plan records, approved decision maps, flat work,
-  phase-epic lookup, close gate, rendering); `beads` keeps the tool; `to-roadmap` takes only
-  multi-phase specs; `wayfinder` and `triage` create through `tracker`. Create recipes capture IDs
-  with `--silent`; the renderer keeps one-phase epics on the board, and a title opening with `[` is
-  reserved for phase epics (Sol `critic-27b`, `27d`, `28b`, `28d`, `28e`). Next: T1b (child beads
-  per plan unit in every scope) and T1c (seal the round), then discovery (`cr-r2pa.2.21`); `implement`
-  as a playbook (P1, `cr-r2pa.2.23`); a `plan` playbook (P2, `cr-r2pa.2.24`).
+  T1 (`cr-r2pa.2.22`, owner ruling N, plan `scratchpad/mvp-stack/27/plan.md`) is done. T1a
+  (`4647b3a`): `tracker` holds our work structure on Beads (workstreams, phase epics, seeding and
+  extending, one-phase plans with proposed stage names bound to real IDs after approval, plan
+  records, approved decision maps, flat work, phase-epic lookup, close gate, rendering); `beads`
+  keeps the tool; `to-roadmap` takes only multi-phase specs; `wayfinder` and `triage` create
+  through `tracker`. Create recipes capture IDs with `--silent`; the renderer keeps one-phase epics
+  on the board, and a title opening with `[` is reserved for phase epics (Sol `critic-27b`, `27d`,
+  `28b`, `28d`, `28e`). T1b (`1fc0992`): when an approved plan's units will span sessions, `tracker`
+  gives each a child task in every scope; `implement` drains a bead's open children before
+  claiming it, and in the Phase loop the coordinator, not the contractor, runs a stage with unit
+  beads (Sol `critic-29b`, `29c`). T1c sealed round `2026-11-11-tracker` (events `:001`-`:023`, no
+  pending row); the owner's relocation list (ruling I4, `scratchpad/mvp-stack/30/relocations.md`,
+  from `30/relocations.py`) shows 5 adopted rules moved to `tracker` (four from `to-roadmap`, one
+  from `wayfinder`), 6 of our traits moved (from `beads`, `to-roadmap`, `implement`, `wayfinder`)
+  and 7 new ones, two of them T1b's; `scratchpad/mvp-stack/26/sync-list.md` now also lists T1's
+  files for the end-of-project sync. Follow-up `cr-7c6i` (pre-existing, not T1's): rendering after
+  a contractor stage dirties the checkout the next contractor admits from.
+  Next: discovery D0-D6 (`cr-r2pa.2.21`), which first updates `scratchpad/mvp-stack/20/plan.md`
+  for the new names and the tracker split; then `implement` as a playbook (P1, `cr-r2pa.2.23`); a
+  `plan` playbook (P2, `cr-r2pa.2.24`).
 - `cr-r2pa.3.3`: at the end of the project, show the owner everything deferred or
   rejected, from the ledger's `defer` events, the deferred beads and each
   `deliberately_dropped` with its `revisit_when`, to revise and adapt.

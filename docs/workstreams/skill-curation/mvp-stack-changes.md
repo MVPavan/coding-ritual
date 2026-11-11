@@ -609,6 +609,47 @@ Left for the end-of-project sync (bead `cr-r2pa`): Codex skill links, the plugin
 copy of the `AGENTS.md` line, the publish manifest's skill count and
 `harness_lifecycle/catalogs/ours.json`.
 
+## 7. Tracker batch (phase 2, `cr-r2pa.2.22`)
+
+Added 2026-11-11. Plan `scratchpad/mvp-stack/27/plan.md` (gitignored), owner rulings M2,
+N2 and N3 of `scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md`; round
+`2026-11-11-tracker`, sealed. The owner's list of every moved rule and trait is
+`scratchpad/mvp-stack/30/relocations.md`.
+
+- **`tracker` is new** (`4647b3a`). It holds our work structure on top of Beads: the
+  workstream layout, phase epics and finding them, seeding a new workstream's phases and
+  stages with acceptance and real edges, extending one, recording an approved one-phase plan
+  (its proposed stage names bound to real IDs only after approval), a standalone plan
+  record, an approved decision map and its tickets, flat operational work from a charter,
+  the phase close gate, and rendering the tracking files. The renderer moved here from
+  `beads` (`.claude/skills/tracker/scripts/bd-render-tracking.sh`). Create recipes capture
+  the new ID with `--silent` and check it before any dependent write.
+- **`beads` keeps the tool.** Core rules, types, fields, status, waits, claims, reviews,
+  closing, setup, recovery and commands. Workstreams, phase epics, plan-unit beads and
+  tracking files now point to `tracker`.
+- **`to-roadmap` is narrower.** It takes only an approved multi-phase spec and decides its
+  phases, stages and order; `tracker` seeds them. A one-phase spec goes to `to-plan`, then
+  `tracker`. Five adopted rules moved to `tracker`: four from `to-roadmap` and Pocock's
+  `wayfinder#real-id-wiring`.
+- **`to-plan` hands off to `tracker`.** A plan for a seeded phase names the existing stage;
+  a new one-phase plan names a proposed stage and writes no Beads until `tracker` binds it.
+  The plan note, field roles and the standalone record moved to `tracker`. `wayfinder` and
+  `triage` also create through `tracker`.
+- **Unit beads** (`1fc0992`). When an approved plan's units will span sessions, `tracker`
+  gives each unit a child task under the plan bead, the one-phase stage, the spec ticket or
+  the workstream stage, with acceptance from the plan and edges by returned ID.
+- **`implement`'s changes.** The close gate moved to `tracker`. `implement` finishes a bead's
+  open children one at a time before claiming the bead itself. In the Phase loop, a stage
+  with unit beads is run by the coordinator rather than the contractor: it checks the
+  read-only trace first, releases and later reclaims the phase claim, renders and refreshes
+  the Beads export before the handoff commit, and checks the checkout is clean before the
+  next contractor call; without commit authority it stops with a handoff.
+
+Follow-up: `cr-7c6i`, a pre-existing bug: rendering after a contractor stage dirties the
+checkout the next contractor admits from. Left for the end-of-project sync (bead `cr-r2pa`):
+the new skill's Codex link, the plugin copy and the files listed in
+`scratchpad/mvp-stack/26/sync-list.md` §6.
+
 ## Regenerating
 
 From the worktree root:
