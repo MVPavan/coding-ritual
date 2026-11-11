@@ -12,7 +12,7 @@ status: active
 
 Map and resolve material decision dependencies across a multi-session effort.
 
-**Boundary:** Maps and resolves the material decisions of a multi-session effort and records its map and tickets through tracker; a route already clear is to-plan or implement.
+**Boundary:** Maps and resolves the material decisions of a multi-session effort and records its map and tickets through tracker; open questions settled within one session are discovery, and a route already clear is to-plan or implement.
 
 <!-- registry:generated traits -->
 - `decision-map-epic`: Chart a large effort as one map item on the tracker whose children are decision tickets. (A Beads epic whose title starts with Map:.)
@@ -71,6 +71,7 @@ Map and resolve material decision dependencies across a multi-session effort.
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-11` **update** (2026-11-11-discovery:020): Owner ruling L1 of 2026-11-10 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 20 D5 (sections 4.5, 7.1): a `Research:` ticket calls the research sk…
 - `2026-11-11` **update** (2026-11-11-tracker:009): Owner rulings M2 (2026-11-10), N2 and N3 (2026-11-11) (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 27 T1a. Section 4a: the map, its tickets and …
 - `2026-11-11` **update** (2026-11-10-renames-splits:160): Owner rulings M1, M4 (2026-11-10) and N1, N2 (2026-11-11) (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 24 U8r. A clear route uses to-plan or imp…
 - `2026-11-09` **adopt-merged** (2026-11-09-pocock-4ae2317:168): Checkpoint at 4ae2317 for the owner's trait rulings: 1 adopt.

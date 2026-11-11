@@ -25,7 +25,8 @@ title (`Research: …`); prerequisite work is type `task`. Record a settled
 architecture-level answer as a `decision` bead. Create no labels. Size by decision
 coherence and dependencies, not an assumed context-window size.
 
-- Research establishes missing facts; direct lookups are fine, delegation optional.
+- Research establishes missing facts: a `Research:` ticket calls the research
+  skill; direct lookups are fine, delegation optional.
 - Prototype raises fidelity for a decision; use the prototype skill when useful.
 - Grilling involves a live participant when an interview is requested.
 - Task performs authorized prerequisite work that unblocks a decision. When a

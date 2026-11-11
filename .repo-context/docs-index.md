@@ -40,6 +40,8 @@ Archived research is evidence, not operating policy.
 | Ledger-only record store and tracker port decision | `docs/adr/0006-ledger-only-record-store.md` |
 | Orchestration reference research | `docs/research/codebases/cli-agent-orchestrator/luna-exploration.md`, `docs/research/codebases/metaswarm/luna-exploration.md` |
 | Herdr and Orca comparison | `docs/research/codebases/comparison-herdr-orca.md` |
+| Past decisions | `docs/discovery/INDEX.md` |
+| Outside answers | `docs/research/<area>/<topic>/` |
 | Model catalog design | `docs/workstreams/model-catalog/design.md` |
 
 External inventories for `/codebase-research` live in

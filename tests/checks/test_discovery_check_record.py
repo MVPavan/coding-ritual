@@ -297,3 +297,9 @@ def test_index_lists_records_by_date_and_follows_a_move(tmp_path: Path) -> None:
     index = (base / "INDEX.md").read_text()
     assert "general/storage/2026-11-12-store.md" in index
     assert "general/run-state" not in index
+
+
+def test_index_of_a_root_not_yet_created_writes_an_empty_index(tmp_path: Path) -> None:
+    base = tmp_path / "docs/discovery"
+    assert run("--index", base)[0] == 0
+    assert not (base / "INDEX.md").read_text().endswith("\n\n")

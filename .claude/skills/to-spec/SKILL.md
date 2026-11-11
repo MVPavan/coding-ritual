@@ -11,7 +11,9 @@ Write decisions already reached into a durable spec that a later reader can act 
 
 Take the decisions from the conversation, the documents it names or the tracker
 record, and write them down without reopening them. A material choice that is
-still open goes back to `discovery`; do not settle it inside the spec.
+still open goes back to `discovery`; do not settle it inside the spec. From a
+discovery record, take its `decided`, `established` and `routine` rows; its
+`proposed` and `open` rows are still open and go back to `discovery`.
 Read only the code, docs and constraints the spec has to describe.
 
 ## Write

@@ -16,7 +16,7 @@ ours:beads:
   tree_hash: "4033071f23315c2f9052a4dc8f65023b5c9115f6afef9a79212b1aa813e9d6e6"
   traits: [bead-type-taxonomy, field-roles, wait-as-edge, actor-identity, resume-line, session-close, session-recovery, knowledge-in-files, beads-setup, status-model, triage-routing, durable-unit-scope, review-as-task, destructive-command-guard, repeated-procedures, dolt-sync]
 ours:discovery:
-  tree_hash: "c8fb6a3b73b9f3763b877ecb7e7e1ddaf18a1cf5b3ff8f6d6b553689fd834a41"
+  tree_hash: "ae96b3e1b0ca1e8d52c0bc859359f7496a865932f5f7c3759901e17733589d31"
   traits: [match-interaction-to-ambiguity, scoped-context-read, reuse-before-new, decision-frame, answerer-triage, options-with-tradeoffs, question-batching, recommended-answer, yes-accepts-recommendation, round-format, answer-before-next-round, settled-stop, self-serve-facts, approval-interpretation, observable-outcomes, structured-divergence, exploration-lenses, assumption-audit, mvp-scope, judgment-frameworks, decision-sequences, inline-diagrams, visuals-into-spec, html-mockup-on-request, sourced-status-record, area-topic-filing, generated-record-index]
   notes:
     recommended-answer: "Labels the recommendation's assumptions."
@@ -59,7 +59,7 @@ ours:implement:
   tree_hash: "56b7c5b7277200cff3b5179c5b6d8ddf06ebaad4d200119da254fea50d3b5a9c"
   traits: [scope-selector, risk-sized-review, task-loop, finding-adjudication, phase-loop, workstream-mode, child-workflows, context-recovery, stop-on-failure, bounded-fix-loop, scope-base-review-package, delegated-report-recovery, confirmed-cause-fix, regression-proof-and-rerun, attempt-log, two-failure-stop, dependency-edges, single-integration-branch, worktree-per-significant-change, worktree-base-verify, worktree-cleanup, pre-report-base-merge, unit-bead-execution]
 ours:how:
-  tree_hash: "ad92570c06e17b0858c0f2b657ef9fb093529b8840c276db8d8ad3896770148e"
+  tree_hash: "6e7f7aed0531ecd5113efac6cee037791b07fa7721a308521b8ca232118fe576"
   traits: [read-only-explanation, immaterial-ambiguity-reading, angles-when-wide, reconcile-by-reading, explanation-sections, cited-flow-walkthrough, recommendation-with-tradeoffs]
 ours:why:
   tree_hash: "5986d9c4fbd6e790d00f0204cdd58c7c87be532a9eccfd0c55ed4f65c35b7a88"
@@ -243,7 +243,7 @@ ours:to-roadmap:
   tree_hash: "9393d02a5582a2eca09198e885f1882372566df0f4e542678bc7d52abe03c63e"
   traits: [decompose-phases, breakdown-approval-before-publish]
 ours:to-spec:
-  tree_hash: "339b25077c244357cca222ec1d58b0d331ef2638fb5b58bc004959f67bd0fd14"
+  tree_hash: "d8c6b29a0d3bcdd029554346ac0d3e5088c6cfbdd3479ac6b12a4bd6a79bbbd5"
   traits: [synthesize-settled, spec-template, spec-criteria-and-questions, none-keeps-heading, testing-seam-decision, no-stale-file-paths, no-stale-code-snippets, prototype-snippet, spec-approval-gate, material-risk-review, user-perspective-framing, implementation-decisions-scope, testing-decisions-contents]
 ours:tracker:
   tree_hash: "7c396cbd5719841873eb9e76ffa9c063b6402a45c90a2c4d4b8cf6c5d2ec987d"
@@ -262,7 +262,7 @@ ours:triage:
     claim-verification: "An unreproduced bug gets questions for the owner, never an automatic close."
     prior-rejection-check: "Searches closed beads for earlier wontfix closes."
 ours:wayfinder:
-  tree_hash: "f2f2a2c303e80e1af15c5ef265c0320ab74229025be0db355549f3792a22c779"
+  tree_hash: "fbe859c17b4c58cd3935ad851a0e2dad47a2bb9ac3fcf6770dcbfb6a89be39dd"
   traits: [decision-map-epic, plan-not-do, dependency-edges, map-as-index, map-body-sections, reference-by-name, bounded-decision-ticket, coherence-sized-tickets, label-free-typing, ticket-type-set, claim-before-work, destination-first, question-graduation, record-resolution, out-of-scope-close, human-decision-gate, multi-ticket-sessions, prototype-ticket-asset, fog-hygiene, low-res-map-load, breadth-first-charting, invalidated-ticket-reconciliation, prerequisite-task-human-checklist, prerequisite-task-result-facts]
   notes:
     breadth-first-charting: "Delivers sealed row 2026-10-30-mattpocock_skills-5beb35b:149: surfaces the open decisions before resolving any, where the definition charts by questioning and surfaces first steps too; T5."

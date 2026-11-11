@@ -434,7 +434,7 @@ prototype:
   family: design-validation
   aliases: []
   status: active
-  boundary: "Builds a runnable throwaway experiment that answers one design question; the decision it informs belongs to codebase-design or domain-modeling. It recommends among variants it built; building the chosen one is separate work."
+  boundary: "Builds a runnable throwaway experiment that answers one design question; the decision it informs belongs to its caller, such as discovery, codebase-design or domain-modeling. It recommends among variants it built; building the chosen one is separate work."
 research:
   domain: core
   stage: Discovery
@@ -569,7 +569,7 @@ wayfinder:
   family: task-decomposition
   aliases: []
   status: active
-  boundary: "Maps and resolves the material decisions of a multi-session effort and records its map and tickets through tracker; a route already clear is to-plan or implement."
+  boundary: "Maps and resolves the material decisions of a multi-session effort and records its map and tickets through tracker; open questions settled within one session are discovery, and a route already clear is to-plan or implement."
 wake:
   domain: core
   stage: X

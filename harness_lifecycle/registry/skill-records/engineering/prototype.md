@@ -12,7 +12,7 @@ status: active
 
 Use when a runnable throwaway experiment can resolve a specific design, state-model, algorithm, or UI question, or before committing to an interaction or architecture with no precedent in the codebase or a product decision that depends on feel.
 
-**Boundary:** Builds a runnable throwaway experiment that answers one design question; the decision it informs belongs to codebase-design or domain-modeling. It recommends among variants it built; building the chosen one is separate work.
+**Boundary:** Builds a runnable throwaway experiment that answers one design question; the decision it informs belongs to its caller, such as discovery, codebase-design or domain-modeling. It recommends among variants it built; building the chosen one is separate work.
 
 <!-- registry:generated traits -->
 - `named-question`: Build a throwaway artifact to answer one named design question. (States the question and observable success before building.)
