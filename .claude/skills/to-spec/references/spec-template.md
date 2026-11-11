@@ -56,7 +56,7 @@ For each piece, be able to answer:
 If any of those has no clear answer, the boundary is in the wrong place.
 
 >Note: Do NOT include specific file paths or code snippets. They may end up being outdated very quickly.
-Naming existing components or tests is fine — the ban is on prescribing create/modify paths, which is `planning`'s job.
+Naming existing components or tests is fine — the ban is on prescribing create/modify paths, which is `to-plan`'s job.
 Exception: if a prototype produced a snippet that encodes a decision more precisely than prose can (state machine, reducer, schema, type shape), inline it within the relevant decision and note briefly that it came from a prototype. Trim to the decision-rich parts — not a working demo, just the important bits.
 
 ## Success Criteria
@@ -103,7 +103,7 @@ Anything else the next reader needs that fits no section above.
 
 ## Why these sections
 
-The `to-tickets` skill links this file from the epics it creates: a workstream's
+The `to-roadmap` skill links this file from the epics it creates: a workstream's
 phase epics carry it in `--design` and the roadmap in `--spec-id`, and a standalone
 single-phase epic can carry it in `--spec-id`. So it is read by people working on
 tasks that were split out of it long after the conversation ended.

@@ -1,9 +1,9 @@
 ---
-name: to-tickets
-description: "Use when an approved spec should be split into tracked work: phases, stages with acceptance and real dependency edges in Beads. Skip writing an implementation plan for settled work, which is planning."
+name: to-roadmap
+description: "Use when an approved spec should become tracked work: its phases, stages with acceptance and their order in Beads, for a new workstream or extending an existing one. Writing the implementation plan for one phase or one change is to-plan."
 ---
 
-# To tickets
+# To roadmap
 
 Split an approved spec into tracked work whose ready frontier drives execution.
 
@@ -23,18 +23,14 @@ separate specs or another interview.
 
 ## Slice
 
-Prefer independently verifiable vertical slices. Sequence any prefactoring that makes
-the change easy before the feature slices. For a broad refactor, use
-expand → migrate → contract with genuine dependencies. Size migrate batches by blast
-radius and keep the build green between them. If intermediate stages cannot remain
-green, name one integration boundary or atomic group explicitly.
+Order the stages by `principle-sequence-verifiable-units`.
 
 ## Seed
 
 No Beads write before the structure is approved; recorded approval counts. Then
 seed epics and stages, wire the edges and render tracking. A single-phase spec may
-use one epic and a `planning` plan without creating a workstream. Write later
-phase plans just in time, with `planning`, against the code those phases will
+use one epic and a `to-plan` plan without creating a workstream. Write later
+phase plans just in time, with `to-plan`, against the code those phases will
 encounter.
 
 This skill's output is tracked work. Continue into `implement` only when that is

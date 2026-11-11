@@ -1,9 +1,9 @@
 ---
-name: planning
-description: "Use when settled work needs a durable implementation plan: an existing roadmap phase or a plan in a form someone names. Splitting an approved spec into tracked phases and stages is to-tickets; a request to produce a plan for several units, or work whose open questions must be settled first, is the multi-phase-plan playbook, which calls this. Skip planning ceremonies for clear bounded tasks."
+name: to-plan
+description: "Use when settled work needs a durable implementation plan: one roadmap phase, one standalone change, or one batch of units written box by box when a caller names that form. Turning an approved spec into phases, stages and their order is to-roadmap; a person's request to plan several units, or work whose open questions must be settled first, is the multi-phase-plan playbook, which calls this. Skip a plan document for clear bounded tasks."
 ---
 
-# Planning
+# To plan
 
 Turn settled scope into executable work at the smallest useful scale.
 
@@ -11,11 +11,8 @@ Turn settled scope into executable work at the smallest useful scale.
 
 | Situation | Path |
 |---|---|
-| Material behavior unresolved | Brainstorming for those decisions |
-| Clear bounded task | Brief local sequence if useful; continue execution without a plan document |
+| A clear bounded task, or a roadmap phase whose row's acceptance already says enough | No plan document: say so, give a brief local sequence if useful, and continue only into implementation already authorized |
 | Durable implementation plan requested or needed for handoff | Elaborate |
-| Approved spec needs phase/stage decomposition | `to-tickets` |
-| Standard phase with sufficient roadmap acceptance | Execute from its roadmap row |
 | Plan to be run box by box with evidence per unit, when a calling playbook names this branch or someone asks for that form | Skeleton |
 
 Reuse recorded approvals. Ask only about material scope, dependency or authority
@@ -63,11 +60,7 @@ the output with the plan named as not ready.
 
 ## Slicing
 
-Prefer independently verifiable vertical slices. Sequence any prefactoring that makes
-the change easy before the feature slices. For broad refactors, use
-expand → migrate → contract with genuine dependencies. Size migrate batches by blast
-radius and keep the build green between them. If intermediate tasks
-cannot remain green, name one integration boundary or atomic group explicitly.
+Order the tasks by `principle-sequence-verifiable-units`.
 
 ## Ready
 

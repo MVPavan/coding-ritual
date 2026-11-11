@@ -1065,7 +1065,7 @@ phase-epic-contract:
   placement: {domain: core, stage: X, substage: Continuity}
   secondary: [Coordination]
   distinct_from: [beads-native-tracking]
-  note: "The tracker's field contract for a phase epic; beads-native-tracking is planning seeding epics and stages against it (overlap audit #3)."
+  note: "The tracker's field contract for a phase epic; beads-native-tracking is to-roadmap seeding epics and stages against it (overlap audit #3)."
 primary-vs-secondary-source:
   definition: "Recognise that every context move but continuing replaces the live session (a primary source) with a lossy summary that restores facts but not reasoning."
   placement: {domain: core, stage: X, substage: Continuity}
@@ -2015,6 +2015,11 @@ reviewer-rejectable-sizing:
 route-by-scale:
   definition: "Route between brainstorming, a brief local sequence, elaborate, decompose, or executing from a roadmap row according to the work's scale."
   placement: {domain: engineering, stage: Design, substage: Decomposition}
+plan-form-by-need:
+  definition: "Write no plan document when a bounded task or a roadmap row's acceptance suffices; otherwise a durable plan, or its box-by-box form when a caller names it."
+  placement: {domain: engineering, stage: Design, substage: Decomposition}
+  distinct_from: [route-by-scale, small-change-plan-skip]
+  note: "route-by-scale routed across units (brainstorming, decomposition); small-change-plan-skip skips by file count with no plan asked for and names the next request. This picks the plan skill's own form: none, durable, or box by box."
 sub-issue-linkage:
   definition: "Make each ticket a child of its source issue and never close or modify that parent."
   placement: {domain: engineering, stage: Design, substage: Decomposition}
@@ -2802,7 +2807,7 @@ risk-sized-review:
   definition: "Size work small, standard or deep and match inline work, delegation and independent review to that size."
   placement: {domain: engineering, stage: X, substage: Coordination}
 scope-selector:
-  definition: "Pick task, phase or workstream scope from the request and route unresolved material scope back to planning or brainstorming."
+  definition: "Pick task, phase or workstream scope from the request and route unresolved material scope back to to-plan or brainstorming."
   placement: {domain: engineering, stage: X, substage: Coordination}
 stop-on-failure:
   definition: "Let a failed gate, exit criterion or material blocker stop advancement and diagnose instead of re-dispatching without new evidence."

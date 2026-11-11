@@ -1,6 +1,6 @@
 # Decompose — workstream mechanics
 
-Consulted from `to-tickets`. Layout, the approval-gate format, and
+Consulted from `to-roadmap`. Layout, the approval-gate format, and
 seeding commands live here; the decision steps live in SKILL.md.
 
 ## Workstream layout
@@ -86,7 +86,7 @@ codex: `codex:${CODEX_THREAD_ID:0:8}`) on every bd write.
 For an approved spec that is one phase of work (SKILL.md scope-check): after
 the stage-level approval, seed one epic with `--spec-id` and stage children
 with acceptance — no roadmap, no workstream directory. The
-epic's consumer is task-scope execution driven by the `planning` plan and its
+epic's consumer is task-scope execution driven by the `to-plan` plan and its
 bd stages, not phase execution (which resolves epics through the workstream's roadmap
 anchor).
 

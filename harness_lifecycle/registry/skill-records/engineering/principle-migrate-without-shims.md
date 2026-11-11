@@ -12,7 +12,7 @@ status: active
 
 replacing an internal API no external user depends on, as part of a simplification in a project that can absorb a coordinated break; or running a planned rewrite or migration with declared phase boundaries.
 
-**Boundary:** Replaces an internal API or runs a declared migration without compatibility layers; ordinary unit sequencing is principle-sequence-verifiable-units, and the plan itself is planning.
+**Boundary:** Replaces an internal API or runs a declared migration without compatibility layers; ordinary unit sequencing is principle-sequence-verifiable-units, and the plan itself is to-plan.
 
 <!-- registry:generated traits -->
 - `same-wave-legacy-removal`: When an internal API with no external dependants is replaced as part of a simplification, in a project that can absorb a coordinated breaking change, migrate every caller and delete the old API in the same change instead of keeping a compatibility layer.

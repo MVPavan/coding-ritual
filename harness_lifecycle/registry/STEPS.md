@@ -125,7 +125,7 @@ Playbook traits: `plan-only-gate`
 | `multi-phase-plan#1` | always | `small-change-plan-skip` |  |  |
 | `multi-phase-plan#2` | multi-phase-plan#1 did not skip |  | `skill:delegation` (when: the router's delegation rule sends the exploring to a subagent, in its explorer role) |  |
 | `multi-phase-plan#3` | exploring left a question whose answer changes the plan | `settle-by-observation` | `skill:prototype` (when: a run can observe the answer) |  |
-| `multi-phase-plan#4` | multi-phase-plan#1 did not skip and no open question holds up every task |  | `skill:planning` (when: its Skeleton branch; this one whole call stays open through multi-phase-plan#5) |  |
+| `multi-phase-plan#4` | multi-phase-plan#1 did not skip and no open question holds up every task |  | `skill:to-plan` (when: its Skeleton branch; this one whole call stays open through multi-phase-plan#5) |  |
 | `multi-phase-plan#5` | multi-phase-plan#4 wrote a plan file |  | `skill:unslop` (when: on the sections a person reads, leaving task fields as they are) |  |
 | `multi-phase-plan#6` | every exit | `plan-only-closeout` |  |  |
 

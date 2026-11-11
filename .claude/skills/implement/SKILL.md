@@ -1,6 +1,6 @@
 ---
 name: implement
-description: Use to execute tracked multi-step work, a standalone plan, a roadmap phase, or a spec whose tickets are already in Beads with blocking edges. Skip writing tickets for a spec, which is to-tickets; clear bounded implementation can proceed directly under AGENTS.md.
+description: Use to execute tracked multi-step work, a standalone plan, a roadmap phase, or a spec whose tickets are already in Beads with blocking edges. Skip writing tickets for a spec, which is to-roadmap; clear bounded implementation can proceed directly under AGENTS.md.
 ---
 
 # Implement
@@ -17,7 +17,7 @@ durable task state; a plan document is not a prerequisite for a clear task.
 | Execute a named roadmap phase | Phase |
 | Task, standalone plan, or single-phase epic | Task, in the current checkout with no worktree |
 | Clear bounded implementation without a plan | Task; use the request and acceptance as the packet |
-| Material scope/behavior unresolved | Resolve that gap through planning or brainstorming |
+| Material scope/behavior unresolved | Resolve that gap through `to-plan` or brainstorming |
 
 Carry authorization through necessary fixes; a review finding cannot authorize
 scope expansion. Follow the delegation policy in `AGENTS.md`.

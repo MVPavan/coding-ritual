@@ -32,5 +32,6 @@ unresolved as a blocker to whoever asked for the spec.
 
 ## Hand off
 
-This skill's output is a spec. Continue into `planning` or `implement` when
-already authorized; a request for a spec alone does not authorize code changes.
+This skill's output is a spec. Continue into `to-roadmap`, `to-plan` or
+`implement` when already authorized; a request for a spec alone does not
+authorize code changes.

@@ -3,22 +3,26 @@ skill: principle-sequence-verifiable-units
 domain: engineering
 stage: Building
 substage: Implementation
-secondary: []
+secondary: [Decomposition]
 family: 
 aliases: []
 status: active
 ---
 # principle-sequence-verifiable-units
 
-multi-step work (a sweep, a migration, a run of similar edits) or stacking commits.
+multi-step work (a sweep, a migration, a run of similar edits), splitting work into units or tickets, or stacking commits.
 
-**Boundary:** Orders multi-step work into checked units and commits; test-first proof of one change is tdd, and a declared migration group is principle-migrate-without-shims.
+**Boundary:** Slices and orders multi-step work into checked units, and those units into commits: vertical slices, prefactoring first, expand, migrate then contract, and migration batches sized by blast radius; test-first proof of one change is tdd, a declared migration group is principle-migrate-without-shims, and writing the plan or the tracked stages that apply it is to-plan or to-roadmap.
 
 <!-- registry:generated traits -->
 - `baseline-check-before-change`: Before the first change of multi-step work, run its checks on the starting base and record the results, so later failures are classed as pre-existing or as regressions.
 - `verified-unit-sequence`: Split multi-step work into small units that each end in a checked state, and start the next only when the current one passes.
 - `small-single-purpose-commits`: Keep each commit small and about one thing.
 - `argument-order-commits`: Order commits so the history proves the work (failing test before fix, removal before reshape, baseline before treatment, scaffold before feature), each commit standing alone.
+- `vertical-slices`: Prefer independently verifiable vertical slices over horizontal layers.
+- `prefactor-first`: Find prefactoring that makes the change easy and sequence it before the feature slices.
+- `expand-contract`: For a broad refactor use expand, migrate then contract with genuine dependencies, naming one integration boundary when intermediate tasks cannot stay green.
+- `blast-radius-batches`: Size migration batches by blast radius and keep the build green between them.
 <!-- /registry:generated traits -->
 
 <!-- registry:generated lineage -->
@@ -26,9 +30,18 @@ multi-step work (a sweep, a migration, a run of similar edits) or stacking commi
 - **cursor_plugins:skill:pstack/skills/principle-sequence-verifiable-units#verified-unit-sequence** `pstack/skills/principle-sequence-verifiable-units/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
 - **cursor_plugins:skill:pstack/skills/principle-foundational-thinking#small-single-purpose-commits** `pstack/skills/principle-foundational-thinking/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
 - **cursor_plugins:skill:pstack/skills/principle-sequence-verifiable-units#argument-order-commits** `pstack/skills/principle-sequence-verifiable-units/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **mattpocock_skills:skill:skills/engineering/to-tickets#vertical-slices** `skills/engineering/to-tickets/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/engineering/to-tickets#prefactor-first** `skills/engineering/to-tickets/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/engineering/to-tickets#expand-contract** `skills/engineering/to-tickets/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/engineering/to-tickets#blast-radius-batches** `skills/engineering/to-tickets/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-11` **adopt** (2026-11-10-renames-splits:150): Owner ruling M1 (R1): the ordering rules move into principle-sequence-verifiable-units as its one copy; to-plan and to-roadmap order their tasks and stages by …
+- `2026-11-11` **adopt** (2026-11-10-renames-splits:149): Owner ruling M1 (R1): the ordering rules move into principle-sequence-verifiable-units as its one copy; to-plan and to-roadmap order their tasks and stages by …
+- `2026-11-11` **adopt** (2026-11-10-renames-splits:148): Owner ruling M1 (R1): the ordering rules move into principle-sequence-verifiable-units as its one copy; to-plan and to-roadmap order their tasks and stages by …
+- `2026-11-11` **adopt** (2026-11-10-renames-splits:147): Owner ruling M1 (R1): the ordering rules move into principle-sequence-verifiable-units as its one copy; to-plan and to-roadmap order their tasks and stages by …
+- `2026-11-11` **update** (2026-11-10-renames-splits:146): Owner rulings M1, M4 (2026-11-10) and N1, N2 (2026-11-11) (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 24 U8r. R1: four unordered rules join the…
 - `2026-11-05` **update** (2026-11-05-principle-edits:003): Prompting-guide review of the principles, critic-checked, owner ruling of 2026-11-05. A unit ends in the checks it needs, and a dependent unit waits on them, s…
 - `2026-11-05` **update** (2026-11-05-principle-move:012): Owner ruling of 2026-11-05: moved from a skill folder to a file read by path; frontmatter and sidecar removed; the rule text is unchanged; the situation now li…
 - `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:186): Completes pending 2026-11-01-cursor_plugins-pstack-principles:111: the principles build (cr-r2pa.1.2) delivered argument-order-commits in principle-sequence-ve…
@@ -51,10 +64,18 @@ None yet.
   - `cursor_plugins:skill:pstack/skills/principle-sequence-verifiable-units#argument-order-commits` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `baseline-check-before-change`:
   - `cursor_plugins:skill:pstack/skills/principle-sequence-verifiable-units#clean-baseline-first` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `blast-radius-batches`:
+  - `mattpocock_skills:skill:skills/engineering/to-tickets#blast-radius-batches` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `expand-contract`:
+  - `mattpocock_skills:skill:skills/engineering/to-tickets#expand-contract` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `prefactor-first`:
+  - `mattpocock_skills:skill:skills/engineering/to-tickets#prefactor-first` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `small-single-purpose-commits`:
   - `cursor_plugins:skill:pstack/skills/principle-foundational-thinking#small-single-purpose-commits` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `verified-unit-sequence`:
   - `cursor_plugins:skill:pstack/skills/principle-sequence-verifiable-units#verified-unit-sequence` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `vertical-slices`:
+  - `mattpocock_skills:skill:skills/engineering/to-tickets#vertical-slices` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 <!-- /registry:generated sources -->
 
 <!-- registry:generated declined -->

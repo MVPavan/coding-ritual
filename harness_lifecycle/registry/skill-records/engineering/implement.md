@@ -10,10 +10,10 @@ status: active
 ---
 # implement
 
-Use to execute tracked multi-step work, a standalone plan, a roadmap phase, or a spec whose tickets are already in Beads with blocking edges. Skip writing tickets for a spec, which is to-tickets; clear bounded implementation can proceed directly under AGENTS.md.
+Use to execute tracked multi-step work, a standalone plan, a roadmap phase, or a spec whose tickets are already in Beads with blocking edges. Skip writing tickets for a spec, which is to-roadmap; clear bounded implementation can proceed directly under AGENTS.md.
 
 <!-- registry:generated traits -->
-- `scope-selector`: Pick task, phase or workstream scope from the request and route unresolved material scope back to planning or brainstorming.
+- `scope-selector`: Pick task, phase or workstream scope from the request and route unresolved material scope back to to-plan or brainstorming.
 - `risk-sized-review`: Size work small, standard or deep and match inline work, delegation and independent review to that size.
 - `task-loop`: Claim the exact task, implement in dependency order within owned paths, run applicable checks, and close with evidence and material limitations.
 - `finding-adjudication`: Verify each incoming review finding against requirements, code and primary evidence before acting, and give each a visible disposition: fix a confirmed in-scope defect, answer an incorrect one with a retained ruling, record an out-of-scope follow-up.
@@ -56,6 +56,7 @@ Use to execute tracked multi-step work, a standalone plan, a roadmap phase, or a
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-11` **update** (2026-11-10-renames-splits:157): Owner rulings M1, M4 (2026-11-10) and N1, N2 (2026-11-11) (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 24 U8r. Description: writing tickets for …
 - `2026-11-10` **adopt** (2026-11-10-renames-splits:110): critic-19d F2: spec-run.md step 8 merges the base's tip into the one integration branch, not the integration branch's tip into each implementer's branch, so it…
 - `2026-11-10` **update** (2026-11-10-renames-splits:109): Critic-19d fix. F1: cleanup removes the spec worktree only with authority already held, else keeps it and reports its path and that cleanup is due. F3: a works…
 - `2026-11-10` **adopt** (2026-11-10-renames-splits:108): Completes pending 2026-11-10-renames-splits:026: worktree-cleanup is written at .claude/skills/implement/references/spec-run.md:50-54, read against its ruled r…

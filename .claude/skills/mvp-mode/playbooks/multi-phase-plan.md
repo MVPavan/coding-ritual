@@ -14,7 +14,7 @@ steps:
     calls: [{to: "skill:prototype", when: a run can observe the answer}]
   - id: multi-phase-plan#4
     when: multi-phase-plan#1 did not skip and no open question holds up every task
-    calls: [{to: "skill:planning", when: "its Skeleton branch; this one whole call stays open through multi-phase-plan#5"}]
+    calls: [{to: "skill:to-plan", when: "its Skeleton branch; this one whole call stays open through multi-phase-plan#5"}]
   - id: multi-phase-plan#5
     when: multi-phase-plan#4 wrote a plan file
     calls: [{to: "skill:unslop", when: "on the sections a person reads, leaving task fields as they are"}]
@@ -28,7 +28,7 @@ steps:
 For a request to produce a plan for several independently verifiable units, or work
 whose open questions must be settled before planning. A request to build is the feature
 playbook, which sends unsettled work here first. An existing roadmap phase or a settled
-plan keeps its route, `planning` or `implement`; an approved spec to split is `to-tickets`.
+plan keeps its route, `to-plan` or `implement`; an approved spec to split is `to-roadmap`.
 
 **The gate:** the run ends at the plan and implements nothing. It writes only the plan
 file, gitignored scratch, and authorized tracker metadata with its export, leaving what
@@ -51,7 +51,7 @@ each path already dirty.
    Asking does not stop the plan. Tasks that do not depend on the answer are written,
    and those that do carry `Blocked by:`. When every task waits on it, write no file
    and go to step 6.
-4. **Write.** Invoke `planning`, its Skeleton branch; this one whole call stays open
+4. **Write.** Invoke `to-plan`, its Skeleton branch; this one whole call stays open
    through step 5. `principle-sequence-verifiable-units` applies: one task, one change
    with its own evidence.
 5. **Edit for readers.** When step 4 wrote a plan file, invoke `unslop` on the

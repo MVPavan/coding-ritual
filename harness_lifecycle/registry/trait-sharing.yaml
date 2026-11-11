@@ -5,29 +5,13 @@
 # fails. Rules: docs/workstreams/skill-curation/stages-design.md §Shared traits.
 # Entries are justified by the owner (bead cr-talb).
 dependency-edges:
-  skills: [implement, to-tickets, wayfinder]
-  why: "Each lets the tracker graph's readiness drive the work: to-tickets encodes implementation stages and wayfinder decision tickets, and implement's spec scope runs a spec's tickets from the ready frontier, adding a blocking edge it finds missing; edge semantics stay in beads."
+  skills: [implement, to-roadmap, wayfinder]
+  why: "Each lets the tracker graph's readiness drive the work: to-roadmap encodes implementation stages and wayfinder decision tickets, and implement's spec scope runs a spec's tickets from the ready frontier, adding a blocking edge it finds missing; edge semantics stay in beads."
   reviewed: "2026-11-10"
 real-id-wiring:
-  skills: [to-tickets, wayfinder]
+  skills: [to-roadmap, wayfinder]
   why: "Both create beads and then wire edges between the IDs they just created, each inside its own seeding procedure."
   reviewed: "2026-10-30"
-vertical-slices:
-  skills: [planning, to-tickets]
-  why: "Same rule, applied by planning to a plan's tasks and by to-tickets to tracked stages; each entry point writes its own units."
-  reviewed: "2026-11-10"
-prefactor-first:
-  skills: [planning, to-tickets]
-  why: "Same rule, applied by planning to a plan's tasks and by to-tickets to tracked stages; each entry point writes its own units."
-  reviewed: "2026-11-10"
-expand-contract:
-  skills: [planning, to-tickets]
-  why: "Same rule, applied by planning to a plan's tasks and by to-tickets to tracked stages; each entry point writes its own units."
-  reviewed: "2026-11-10"
-blast-radius-batches:
-  skills: [planning, to-tickets]
-  why: "Same rule, applied by planning to a plan's tasks and by to-tickets to tracked stages; each entry point writes its own units."
-  reviewed: "2026-11-10"
 drift-scan:
   skills: [harness-scan, harness-status]
   why: "Both run the one drift command, scan for a single harness and status as a sweep of all of them; a pointer between them would add a hop to a one-line command."
@@ -69,7 +53,7 @@ material-risk-review:
   why: "Each gates acceptance of its own output, a spec or a template adoption, on an independent critic; the critic itself belongs to review."
   reviewed: "2026-10-30"
 no-stale-code-snippets:
-  skills: [planning, to-spec]
+  skills: [to-plan, to-spec]
   why: "Each owns a different durable artifact, a spec or a plan, and its own template must keep code out."
   reviewed: "2026-10-30"
 question-batching:

@@ -654,6 +654,10 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `verified-unit-sequence`: Split multi-step work into small units that each end in a checked state, and start the next only when the current one passes.
 - `small-single-purpose-commits`: Keep each commit small and about one thing.
 - `argument-order-commits`: Order commits so the history proves the work (failing test before fix, removal before reshape, baseline before treatment, scaffold before feature), each commit standing alone.
+- `vertical-slices`: Prefer independently verifiable vertical slices over horizontal layers.
+- `prefactor-first`: Find prefactoring that makes the change easy and sequence it before the feature slices.
+- `expand-contract`: For a broad refactor use expand, migrate then contract with genuine dependencies, naming one integration boundary when intermediate tasks cannot stay green.
+- `blast-radius-batches`: Size migration batches by blast radius and keep the build green between them.
 
 #### engineering · Building · Implementation — tdd
 - `mode-selection`: Choose test-first, characterization, or test-quality-only by the task rather than defaulting to one workflow.
@@ -847,24 +851,6 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `build-route-back`: When a build of the chosen direction is wanted, route it through the router at top level, or report that route to the parent inside a delegated task, and start no playbook.
 - `unobserved-surface-stated`: Where no available tool can drive the surface, hand over the pointer, say it was not observed, and leave the outcome inconclusive until a person reports.
 
-#### engineering · Design · Decomposition — planning
-- `route-by-scale`: Route between brainstorming, a brief local sequence, elaborate, decompose, or executing from a roadmap row according to the work's scale.
-- `durable-plan-format`: Produce a durable plan with ownership boundaries, interfaces, verification, dependencies and known files, saved to the plans path and approval-gated.
-- `plan-evidence-bound`: List known files but do not invent exact symbols or freeze a file map without evidence, leaving implementers to discover internals within their ownership.
-- `test-first-marking`: Mark risky changes test-first or characterization-first in the plan.
-- `no-placeholder-plan`: Reject plan placeholders such as TBD, vague error-handling notes, unnamed test behaviours, same-as-another-task references and unresolved cross-task contracts, naming concrete acceptance instead.
-- `plan-self-review`: Self-review the finished plan for spec-requirement coverage, consistent names and types across tasks, and a gap-naming pass that turns unnamed seams, migrations, rollout and cleanup into tasks or explicit exclusions.
-- `reviewer-rejectable-sizing`: Size each task so a reviewer could accept or reject it independently of its neighbour, folding setup, scaffolding and docs into the deliverable they serve.
-- `no-stale-code-snippets`: Keep code snippets out of a durable spec or ticket because they go stale.
-- `ground-in-codebase`: Explore the current state of the code before writing, so the artifact targets what actually exists.
-- `per-unit-evidence-boxes`: In a plan in checked form, give each task a required Check box with a command and pass condition, and Live and Measure each as a box or a stated not-applicable reason, for a coordinator to tick only when the evidence exists.
-- `named-execution-scope`: Name in the plan which one execution scope runs it, task, phase or workstream, chosen by how the work is held, and leave how that scope runs to execution.
-- `plan-lint-last`: Finish a plan in checked form by running its structure lint, fixing every line, rerunning after any later edit until it exits 0, reporting the last output and that it proves structure only, and handing back a plan still failing after two rounds as not ready.
-- `vertical-slices`: Prefer independently verifiable vertical slices over horizontal layers.
-- `prefactor-first`: Find prefactoring that makes the change easy and sequence it before the feature slices.
-- `expand-contract`: For a broad refactor use expand, migrate then contract with genuine dependencies, naming one integration boundary when intermediate tasks cannot stay green.
-- `blast-radius-batches`: Size migration batches by blast radius and keep the build green between them.
-
 #### engineering · Design · Decomposition — principle-migrate-without-shims
 - `same-wave-legacy-removal`: When an internal API with no external dependants is replaced as part of a simplification, in a project that can absorb a coordinated breaking change, migrate every caller and delete the old API in the same change instead of keeping a compatibility layer.
 - `migration-group-unit`: Treat an authorized migration group as one verifiable unit: only its declared interior breakage is allowed, and its boundary checks must pass before dependent work proceeds.
@@ -878,16 +864,26 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `single-source-of-truth`: Keep each meaning in one authoritative place so changing it is a one-place edit.
 - `cut-before-polish`: Reach the minimum version before investing in its quality.
 
-#### engineering · Design · Decomposition — to-tickets
+#### engineering · Design · Decomposition — to-plan
+- `plan-form-by-need`: Write no plan document when a bounded task or a roadmap row's acceptance suffices; otherwise a durable plan, or its box-by-box form when a caller names it.
+- `durable-plan-format`: Produce a durable plan with ownership boundaries, interfaces, verification, dependencies and known files, saved to the plans path and approval-gated.
+- `plan-evidence-bound`: List known files but do not invent exact symbols or freeze a file map without evidence, leaving implementers to discover internals within their ownership.
+- `test-first-marking`: Mark risky changes test-first or characterization-first in the plan.
+- `no-placeholder-plan`: Reject plan placeholders such as TBD, vague error-handling notes, unnamed test behaviours, same-as-another-task references and unresolved cross-task contracts, naming concrete acceptance instead.
+- `plan-self-review`: Self-review the finished plan for spec-requirement coverage, consistent names and types across tasks, and a gap-naming pass that turns unnamed seams, migrations, rollout and cleanup into tasks or explicit exclusions.
+- `reviewer-rejectable-sizing`: Size each task so a reviewer could accept or reject it independently of its neighbour, folding setup, scaffolding and docs into the deliverable they serve.
+- `no-stale-code-snippets`: Keep code snippets out of a durable spec or ticket because they go stale.
+- `ground-in-codebase`: Explore the current state of the code before writing, so the artifact targets what actually exists.
+- `per-unit-evidence-boxes`: In a plan in checked form, give each task a required Check box with a command and pass condition, and Live and Measure each as a box or a stated not-applicable reason, for a coordinator to tick only when the evidence exists.
+- `named-execution-scope`: Name in the plan which one execution scope runs it, task, phase or workstream, chosen by how the work is held, and leave how that scope runs to execution.
+- `plan-lint-last`: Finish a plan in checked form by running its structure lint, fixing every line, rerunning after any later edit until it exits 0, reporting the last output and that it proves structure only, and handing back a plan still failing after two rounds as not ready.
+
+#### engineering · Design · Decomposition — to-roadmap
 - `decompose-phases`: Split an approved spec into demoable phases with checkable exits and flat stages that each carry acceptance.
-- `vertical-slices`: Prefer independently verifiable vertical slices over horizontal layers.
-- `expand-contract`: For a broad refactor use expand, migrate then contract with genuine dependencies, naming one integration boundary when intermediate tasks cannot stay green.
 - `dependency-edges`: Encode real blocking edges in the tracker and let the ready frontier drive execution rather than listing order.
 - `beads-native-tracking`: Seed epics and stages and render tracking natively in the tracker, keeping the roadmap anchor on the epics and the stage mapping that execution closes against, and writing nothing before its matching approval.
 - `real-id-wiring`: Wire cross-references and dependencies with real identifiers, never placeholders.
 - `breakdown-approval-before-publish`: Iterate on the ticket breakdown until the user approves it, publishing nothing before approval.
-- `prefactor-first`: Find prefactoring that makes the change easy and sequence it before the feature slices.
-- `blast-radius-batches`: Size migration batches by blast radius and keep the build green between them.
 
 #### engineering · Design · Specification — principle-experience-first
 - `consumer-as-user`: Treat whoever consumes the work (end user, importing colleague, next maintainer) as its user, and explain impact from their side.
@@ -991,7 +987,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `implementation-test-deletion`: When internals change, rewrite or delete tests that only protect the old implementation, asserting the current contract instead.
 
 #### engineering · X · Coordination — implement
-- `scope-selector`: Pick task, phase or workstream scope from the request and route unresolved material scope back to planning or brainstorming.
+- `scope-selector`: Pick task, phase or workstream scope from the request and route unresolved material scope back to to-plan or brainstorming.
 - `risk-sized-review`: Size work small, standard or deep and match inline work, delegation and independent review to that size.
 - `task-loop`: Claim the exact task, implement in dependency order within owned paths, run applicable checks, and close with evidence and material limitations.
 - `finding-adjudication`: Verify each incoming review finding against requirements, code and primary evidence before acting, and give each a visible disposition: fix a confirmed in-scope defect, answer an incorrect one with a retained ruling, record an out-of-scope follow-up.
@@ -2669,29 +2665,29 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `observability-slot-questions`: Decide the observability product by a fixed question list: the shared export path, whether tool calls come through as spans, whether capturing prompts and tool output must be switched on, self-hosting terms, and retention against how far back the person looks. — defer
 
 #### engineering · Design · Decomposition — skill:skills/engineering/to-tickets
-- `ground-in-codebase`: Explore the current state of the code before writing, so the artifact targets what actually exists. — adopt → planning#ground-in-codebase
+- `ground-in-codebase`: Explore the current state of the code before writing, so the artifact targets what actually exists. — adopt → to-plan#ground-in-codebase
 - `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write. — defer
 - `respect-area-adrs`: Honour the recorded architectural decisions that govern the area being changed. — defer
-- `prefactor-first`: Find prefactoring that makes the change easy and sequence it before the feature slices. — adopt → to-tickets#prefactor-first
-- `vertical-slices`: Prefer independently verifiable vertical slices over horizontal layers. — adopt → to-tickets#vertical-slices
-- `dependency-edges`: Encode real blocking edges in the tracker and let the ready frontier drive execution rather than listing order. — adopt → to-tickets#dependency-edges
-- `expand-contract`: For a broad refactor use expand, migrate then contract with genuine dependencies, naming one integration boundary when intermediate tasks cannot stay green. — adopt → to-tickets#expand-contract
-- `publish-to-tracker`: Publish the finished artifact to the configured issue tracker. — adopt → to-tickets#beads-native-tracking
-- `real-id-wiring`: Wire cross-references and dependencies with real identifiers, never placeholders. — adopt → to-tickets#real-id-wiring
-- `sub-issue-linkage`: Make each ticket a child of its source issue and never close or modify that parent. — adopt → to-tickets#beads-native-tracking
+- `prefactor-first`: Find prefactoring that makes the change easy and sequence it before the feature slices. — adopt → principle-sequence-verifiable-units#prefactor-first
+- `vertical-slices`: Prefer independently verifiable vertical slices over horizontal layers. — adopt → principle-sequence-verifiable-units#vertical-slices
+- `dependency-edges`: Encode real blocking edges in the tracker and let the ready frontier drive execution rather than listing order. — adopt → to-roadmap#dependency-edges
+- `expand-contract`: For a broad refactor use expand, migrate then contract with genuine dependencies, naming one integration boundary when intermediate tasks cannot stay green. — adopt → principle-sequence-verifiable-units#expand-contract
+- `publish-to-tracker`: Publish the finished artifact to the configured issue tracker. — adopt → to-roadmap#beads-native-tracking
+- `real-id-wiring`: Wire cross-references and dependencies with real identifiers, never placeholders. — adopt → to-roadmap#real-id-wiring
+- `sub-issue-linkage`: Make each ticket a child of its source issue and never close or modify that parent. — adopt → to-roadmap#beads-native-tracking
 - `ready-for-agent-label`: Tag the published work with the ready-for-agent triage label so it needs no further triage. — defer
 - `ticket-template`: Fill a fixed ticket template of behavioural what-to-build, blocked-by, and checkable acceptance criteria. — defer
 - `no-stale-file-paths`: Keep concrete file paths out of a durable spec, ticket or brief, describing interfaces and behaviour that survive code drift. — defer
-- `no-stale-code-snippets`: Keep code snippets out of a durable spec or ticket because they go stale. — adopt → planning#no-stale-code-snippets
+- `no-stale-code-snippets`: Keep code snippets out of a durable spec or ticket because they go stale. — adopt → to-plan#no-stale-code-snippets
 - `prototype-snippet`: Inline a prototype snippet in the spec only when it encodes a decision more precisely than prose can. — adopt → to-spec#prototype-snippet
 - `read-full-source-issue`: Read the full body, comments and, for a pull request, the diff of any referenced spec, issue or pull request before working from it. — defer
 - `session-sized-tickets`: Size each ticket to fit one agent session's context window. — defer
-- `blast-radius-batches`: Size migration batches by blast radius and keep the build green between them. — adopt → to-tickets#blast-radius-batches
+- `blast-radius-batches`: Size migration batches by blast radius and keep the build green between them. — adopt → principle-sequence-verifiable-units#blast-radius-batches
 - `file-per-ticket`: Without a tracker, write one numbered file per ticket in dependency order, never one combined file. — defer
-- `brief-behavioural`: Describe what the system should do, not how to implement it, leaving implementation choices to the executing agent. — adopt → planning#plan-evidence-bound
+- `brief-behavioural`: Describe what the system should do, not how to implement it, leaving implementation choices to the executing agent. — adopt → to-plan#plan-evidence-bound
 - `ticket-breakdown-preview`: Show the proposed ticket breakdown as a numbered list of title, blockers and delivered behaviour before publishing it. — defer
 - `ticket-breakdown-feedback`: Ask the user about the breakdown's granularity, its blocking edges, and tickets to merge or split. — defer
-- `breakdown-approval-before-publish`: Iterate on the ticket breakdown until the user approves it, publishing nothing before approval. — adopt → to-tickets#breakdown-approval-before-publish
+- `breakdown-approval-before-publish`: Iterate on the ticket breakdown until the user approves it, publishing nothing before approval. — adopt → to-roadmap#breakdown-approval-before-publish
 
 #### engineering · Design · Specification — skill:skills/engineering/tdd
 - `meaningful-behaviour-assertion`: Assert meaningful results, state or boundary interactions at a stable boundary rather than internal call choreography. — adopt → tdd#meaningful-behaviour-assertion
@@ -3064,9 +3060,9 @@ Ticket a question once it is sharp enough to state, even while blocked, and hold
 
 #### `real-id-wiring`
 Wire cross-references and dependencies with real identifiers, never placeholders.
-- ours: `to-tickets`
+- ours: `to-roadmap`
 - ours: `wayfinder`
-- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → to-tickets#real-id-wiring
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → to-roadmap#real-id-wiring
 - `mattpocock_skills:skill:skills/engineering/wayfinder` — adopt → wayfinder#real-id-wiring
 
 #### `record-resolution`
@@ -3483,8 +3479,8 @@ When requested, record settled domain terms and qualifying architectural decisio
 
 #### `breakdown-approval-before-publish`
 Iterate on the ticket breakdown until the user approves it, publishing nothing before approval.
-- ours: `to-tickets`
-- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → to-tickets#breakdown-approval-before-publish
+- ours: `to-roadmap`
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → to-roadmap#breakdown-approval-before-publish
 
 #### `quiz-the-user` *(retired)*
 Present the breakdown as a numbered list of title, blocked-by and what it delivers, and iterate on granularity, edges and splits until the user approves.
@@ -3544,10 +3540,10 @@ Impose no structure such as AI, a checkpoint or a schedule on a workflow unless 
 
 #### `no-stale-code-snippets`
 Keep code snippets out of a durable spec or ticket because they go stale.
-- ours: `planning`
+- ours: `to-plan`
 - ours: `to-spec`
 - `mattpocock_skills:skill:skills/engineering/to-spec` — adopt → to-spec#no-stale-code-snippets
-- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → planning#no-stale-code-snippets
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → to-plan#no-stale-code-snippets
 
 #### `no-stale-file-paths`
 Keep concrete file paths out of a durable spec, ticket or brief, describing interfaces and behaviour that survive code drift.
@@ -7685,7 +7681,7 @@ Fill a fixed agent-brief template of category, summary, current behaviour, desir
 
 #### `brief-behavioural`
 Describe what the system should do, not how to implement it, leaving implementation choices to the executing agent.
-- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → planning#plan-evidence-bound
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → to-plan#plan-evidence-bound
 - `mattpocock_skills:skill:skills/engineering/triage` — adopt → triage#agent-ready-gate
 
 #### `needs-info-notes`
@@ -8739,13 +8735,12 @@ Use the design vocabulary exactly and never substitute looser words like compone
 
 #### `beads-native-tracking`
 Seed epics and stages and render tracking natively in the tracker, keeping the roadmap anchor on the epics and the stage mapping that execution closes against, and writing nothing before its matching approval.
-- ours: `to-tickets`
+- ours: `to-roadmap`
 
 #### `blast-radius-batches`
 Size migration batches by blast radius and keep the build green between them.
-- ours: `planning`
-- ours: `to-tickets`
-- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → to-tickets#blast-radius-batches
+- ours: `principle-sequence-verifiable-units`
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → principle-sequence-verifiable-units#blast-radius-batches
 
 #### `child-ticket-linking-fallbacks`
 Link a child ticket by the tracker's native parent link, falling back to an older link form and then a part-of line in its body, with a type label.
@@ -8762,27 +8757,26 @@ In a planned migration, accept declared, scoped and reversible intermediate brea
 
 #### `decompose-phases`
 Split an approved spec into demoable phases with checkable exits and flat stages that each carry acceptance.
-- ours: `to-tickets`
+- ours: `to-roadmap`
 
 #### `dependency-edges`
 Encode real blocking edges in the tracker and let the ready frontier drive execution rather than listing order.
 - ours: `implement`
-- ours: `to-tickets`
+- ours: `to-roadmap`
 - ours: `wayfinder`
 - `mattpocock_skills:skill:skills/engineering/implement-spec` — adopt → implement#dependency-edges
 - `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
-- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → to-tickets#dependency-edges
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → to-roadmap#dependency-edges
 - `mattpocock_skills:skill:skills/engineering/wayfinder` — adopt → wayfinder#dependency-edges
 
 #### `durable-plan-format`
 Produce a durable plan with ownership boundaries, interfaces, verification, dependencies and known files, saved to the plans path and approval-gated.
-- ours: `planning`
+- ours: `to-plan`
 
 #### `expand-contract`
 For a broad refactor use expand, migrate then contract with genuine dependencies, naming one integration boundary when intermediate tasks cannot stay green.
-- ours: `planning`
-- ours: `to-tickets`
-- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → to-tickets#expand-contract
+- ours: `principle-sequence-verifiable-units`
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → principle-sequence-verifiable-units#expand-contract
 
 #### `file-per-ticket`
 Without a tracker, write one numbered file per ticket in dependency order, never one combined file.
@@ -8813,15 +8807,19 @@ Write a spec and split it into tickets only when the build spans several session
 
 #### `named-execution-scope`
 Name in the plan which one execution scope runs it, task, phase or workstream, chosen by how the work is held, and leave how that scope runs to execution.
-- ours: `planning`
+- ours: `to-plan`
 
 #### `per-unit-evidence-boxes`
 In a plan in checked form, give each task a required Check box with a command and pass condition, and Live and Measure each as a box or a stated not-applicable reason, for a coordinator to tick only when the evidence exists.
-- ours: `planning`
+- ours: `to-plan`
+
+#### `plan-form-by-need`
+Write no plan document when a bounded task or a roadmap row's acceptance suffices; otherwise a durable plan, or its box-by-box form when a caller names it.
+- ours: `to-plan`
 
 #### `plan-lint-last`
 Finish a plan in checked form by running its structure lint, fixing every line, rerunning after any later edit until it exits 0, reporting the last output and that it proves structure only, and handing back a plan still failing after two rounds as not ready.
-- ours: `planning`
+- ours: `to-plan`
 
 #### `plan-only-closeout`
 On every exit of a planning run, confirm against the starting state, by a checksum for a path already dirty, that only the plan file, the tracker's export and ignored scratch differ, name anything else, and leave the plan uncommitted.
@@ -8833,14 +8831,13 @@ End a planning run at the plan: implement nothing, and write only the plan file,
 
 #### `prefactor-first`
 Find prefactoring that makes the change easy and sequence it before the feature slices.
-- ours: `planning`
-- ours: `to-tickets`
-- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → to-tickets#prefactor-first
+- ours: `principle-sequence-verifiable-units`
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → principle-sequence-verifiable-units#prefactor-first
 
 #### `publish-to-tracker`
 Publish the finished artifact to the configured issue tracker.
 - `mattpocock_skills:skill:skills/engineering/to-spec` — defer
-- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → to-tickets#beads-native-tracking
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → to-roadmap#beads-native-tracking
 
 #### `quantified-scope-with-blockers`
 State scope in rough units and effort along with the blockers grounding turned up.
@@ -8848,7 +8845,7 @@ State scope in rough units and effort along with the blockers grounding turned u
 
 #### `reviewer-rejectable-sizing`
 Size each task so a reviewer could accept or reject it independently of its neighbour, folding setup, scaffolding and docs into the deliverable they serve.
-- ours: `planning`
+- ours: `to-plan`
 
 #### `rigor-means-gates-and-artifacts`
 Define rigor as concrete gates and artifacts, not extra effort.
@@ -8860,7 +8857,6 @@ Order the units so the largest unknown is tackled first.
 
 #### `route-by-scale`
 Route between brainstorming, a brief local sequence, elaborate, decompose, or executing from a roadmap row according to the work's scale.
-- ours: `planning`
 
 #### `same-wave-legacy-removal`
 When an internal API with no external dependants is replaced as part of a simplification, in a project that can absorb a coordinated breaking change, migrate every caller and delete the old API in the same change instead of keeping a compatibility layer.
@@ -8886,7 +8882,7 @@ Split a labelled spec ticket into smaller tickets that each record what they dep
 
 #### `sub-issue-linkage`
 Make each ticket a child of its source issue and never close or modify that parent.
-- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → to-tickets#beads-native-tracking
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → to-roadmap#beads-native-tracking
 
 #### `subtraction-first`
 Before adding to a system, remove the complexity in its way (such as dead code, redundant validators and stub references), then build on the simpler base.
@@ -8895,7 +8891,7 @@ Before adding to a system, remove the complexity in its way (such as dead code, 
 
 #### `test-first-marking`
 Mark risky changes test-first or characterization-first in the plan.
-- ours: `planning`
+- ours: `to-plan`
 
 #### `touched-scope-subtraction`
 Before adding, remove the dead code, redundant validators and stubs that the change touches, and report other removals instead of making them.
@@ -8903,9 +8899,8 @@ Before adding, remove the dead code, redundant validators and stubs that the cha
 
 #### `vertical-slices`
 Prefer independently verifiable vertical slices over horizontal layers.
-- ours: `planning`
-- ours: `to-tickets`
-- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → to-tickets#vertical-slices
+- ours: `principle-sequence-verifiable-units`
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → principle-sequence-verifiable-units#vertical-slices
 
 #### `whole-design-incremental-delivery`
 Think a redesign through as a whole before starting, then deliver it in increments rather than in one drop.
@@ -8978,9 +8973,9 @@ Keep the glossary free of implementation details and never treat it as a spec or
 
 #### `ground-in-codebase`
 Explore the current state of the code before writing, so the artifact targets what actually exists.
-- ours: `planning`
+- ours: `to-plan`
 - `mattpocock_skills:skill:skills/engineering/to-spec` — adopt → brainstorming#scoped-context-read
-- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → planning#ground-in-codebase
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → to-plan#ground-in-codebase
 - `mattpocock_skills:skill:skills/engineering/triage` — defer
 
 #### `lazy-glossary-and-adr`
@@ -9097,7 +9092,7 @@ Never fill a gap the source leaves open; record it as TBD with its source and ke
 
 #### `no-placeholder-plan`
 Reject plan placeholders such as TBD, vague error-handling notes, unnamed test behaviours, same-as-another-task references and unresolved cross-task contracts, naming concrete acceptance instead.
-- ours: `planning`
+- ours: `to-plan`
 
 #### `per-seam-note`
 Give each proposed seam a one-line note on what it catches and what it misses.
@@ -9106,7 +9101,7 @@ Give each proposed seam a one-line note on what it catches and what it misses.
 
 #### `plan-evidence-bound`
 List known files but do not invent exact symbols or freeze a file map without evidence, leaving implementers to discover internals within their ownership.
-- ours: `planning`
+- ours: `to-plan`
 
 #### `plan-seams-no-approval`
 Take test seams from the plan without separate approval, surfacing a missing seam only when it materially changes scope or the obtainable evidence.
@@ -9114,7 +9109,7 @@ Take test seams from the plan without separate approval, surfacing a missing sea
 
 #### `plan-self-review`
 Self-review the finished plan for spec-requirement coverage, consistent names and types across tasks, and a gap-naming pass that turns unnamed seams, migrations, rollout and cleanup into tasks or explicit exclusions.
-- ours: `planning`
+- ours: `to-plan`
 
 #### `polish-over-breadth`
 Ship fewer finished features rather than more rough ones.
@@ -11450,7 +11445,7 @@ Choose the runner per task, so review and implementation runs may run on differe
 - `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
 
 #### `scope-selector`
-Pick task, phase or workstream scope from the request and route unresolved material scope back to planning or brainstorming.
+Pick task, phase or workstream scope from the request and route unresolved material scope back to to-plan or brainstorming.
 - ours: `implement`
 
 #### `self-chaining-implementer`
@@ -11534,15 +11529,13 @@ Traits listed by two or more of our active skills (`doc:AGENTS.md` and playbooks
 |---|---|---|
 | `attempt-log` | doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, implement | Each fixes a failure on its own path, the bug-fix playbook for a bug-fix request and implement inside a task it is running, often delegated, where it cannot start the playbook (R8); both log each fix attempt so a stop hands back usable evidence. |
 | `baseline` | performance-optimization, systematic-debugging | Each measures before a fix: performance-optimization for a resource target, systematic-debugging when the failure diagnosed is a performance regression, which it hands to the fixer. |
-| `blast-radius-batches` | planning, to-tickets | Same rule, applied by planning to a plan's tasks and by to-tickets to tracked stages; each entry point writes its own units. |
 | `bounded-background-wait` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md | The same one sentence on waiting sits at each step that waits, with its own stopped exit; no skill is called for it. |
 | `build-closeout` | doc:.claude/skills/mvp-mode/playbooks/feature.md, doc:.claude/skills/mvp-mode/playbooks/perf-issue.md, doc:.claude/skills/mvp-mode/playbooks/refactoring.md | Each playbook's closeout runs on its own exits and feeds its own reply, and these three have the same three duties; a skill of three duties would be ceremony (unit-kinds deviation log, St4 and B4). |
 | `canonical-term-and-aliases` | domain-modeling, teach | Each keeps a glossary of its own (project language, the learner's workspace) in one entry format, with its own admission rules. |
-| `dependency-edges` | implement, to-tickets, wayfinder | Each lets the tracker graph's readiness drive the work: to-tickets encodes implementation stages and wayfinder decision tickets, and implement's spec scope runs a spec's tickets from the ready frontier, adding a blocking edge it finds missing; edge semantics stay in beads. |
+| `dependency-edges` | implement, to-roadmap, wayfinder | Each lets the tracker graph's readiness drive the work: to-roadmap encodes implementation stages and wayfinder decision tickets, and implement's spec scope runs a spec's tickets from the ready frontier, adding a blocking edge it finds missing; edge semantics stay in beads. |
 | `domain-vocabulary` | brief-me, improve-codebase-architecture, prototype, teach | Each writes for its reader in the project's own terms: brief-me in its re-pitches, teach in its lessons, prototype in its states, actions and labels, so an answer transfers to the real code, and improve-codebase-architecture in its candidates and their friction. |
 | `drift-scan` | harness-scan, harness-status | Both run the one drift command, scan for a single harness and status as a sweep of all of them; a pointer between them would add a hop to a one-line command. |
 | `dropout-proceeds-noted` | interrogate, model-council | A failed member and a failed adversary are handled alike, going on and reporting it, but what is left when too few remain differs: no pick for one, not run for the other. |
-| `expand-contract` | planning, to-tickets | Same rule, applied by planning to a plan's tasks and by to-tickets to tracked stages; each entry point writes its own units. |
 | `finding-adjudication` | implement, review | Implement rules on findings inside its delivery loop and review owns the method; owner 2026-10-30: implement (then named execution) stays unchanged. |
 | `glossary-entry-template` | domain-modeling, teach | Each keeps a glossary of its own (project language, the learner's workspace) in one entry format, with its own admission rules. |
 | `immaterial-ambiguity-reading` | how, why | Both take an ambiguous target and state the reading taken when the readings would not change the answer; adopted for both upstream how and why (2026-11-01-batch-1:237, :238), kept in each half of the split. |
@@ -11554,17 +11547,16 @@ Traits listed by two or more of our active skills (`doc:AGENTS.md` and playbooks
 | `neutral-framing` | model-council, perspective-council | Each council frames its own neutral brief. |
 | `no-onward-delegation` | delegation, doc:AGENTS.md, mvp-mode | AGENTS.md holds it as policy every agent loads, so a delegate stops fanning out even when its brief was written by hand; the delegation skill writes it into each role block of the briefs it produces, so a delegate on a vendor or project without our AGENTS.md still receives it; the mvp-mode router states it beside its delegate-independent-by-default rule for plugin users who skip the optional AGENTS.md, so a router that tells them to delegate also tells their delegates not to fan out. |
 | `no-silent-substitution` | model-council, perspective-council | Either council can lose a member, and each must report the gap rather than fill it. |
-| `no-stale-code-snippets` | planning, to-spec | Each owns a different durable artifact, a spec or a plan, and its own template must keep code out. |
+| `no-stale-code-snippets` | to-plan, to-spec | Each owns a different durable artifact, a spec or a plan, and its own template must keep code out. |
 | `optional-record-sections` | domain-modeling, teach | Each keeps its own record folder (ADRs, learning records) in one minimal format. |
 | `own-output-location` | interrogate, model-council | Council members and adversaries each run independently on shared work, so each needs its own place to write; one is a branch of a council and the other a review, and neither calls the other. |
 | `pin-preserving-fetch` | harness-scan, harness-status | Both run the fetching drift command themselves, so each must state that a fetch never moves pins and that --no-fetch skips the network. |
-| `prefactor-first` | planning, to-tickets | Same rule, applied by planning to a plan's tasks and by to-tickets to tracked stages; each entry point writes its own units. |
 | `preserve-reproducers` | doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, systematic-debugging | Each cleans up after its own work: the diagnosis when called alone, the bug-fix playbook at its closeout on every exit. Both keep reproducers, so neither cleanup deletes the evidence the other relies on. |
 | `question-batching` | brainstorming, grilling | Brainstorming asks the owner questions inside its own exploration; grilling's rules live inside its interview loop, so pointing there would pull brainstorming into that loop. |
 | `read-only-closeout` | doc:.claude/skills/mvp-mode/playbooks/investigation.md, doc:.claude/skills/mvp-mode/playbooks/session-pickup.md | Each is a read-only run whose closeout belongs to its own exits and reply; logged under St4 in unit-kinds. |
 | `read-only-explanation` | how, why | Both answer a question about this project and change nothing while answering; one read-only rule, kept in each half of the split. |
 | `read-trail-first` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md | Each looping playbook reads its own trail before choosing the next change; each trail has its own columns and rows. |
-| `real-id-wiring` | to-tickets, wayfinder | Both create beads and then wire edges between the IDs they just created, each inside its own seeding procedure. |
+| `real-id-wiring` | to-roadmap, wayfinder | Both create beads and then wire edges between the IDs they just created, each inside its own seeding procedure. |
 | `recommended-answer` | brainstorming, grilling | As question-batching: a short rule each skill applies inside its own flow. |
 | `revert-ineffective-experiments` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, performance-optimization | Each runs its own loop of attempts, fix attempts in the bug-fix playbook and optimization experiments in performance-optimization, and removes its own failed edits before the next attempt. |
 | `row-then-checkpoint` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md | Each loop writes its own row and checkpoint in this order, around its own keep-or-discard step, so a closing return can trust them. |
@@ -11576,5 +11568,4 @@ Traits listed by two or more of our active skills (`doc:AGENTS.md` and playbooks
 | `stated-unattended-gate` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md | The same one sentence tells each of these playbooks whether a run is away; each then takes its own branch or exit. |
 | `tight-concept-definitions` | domain-modeling, teach | Each keeps a glossary of its own (project language, the learner's workspace) in one entry format, with its own admission rules. |
 | `two-failure-stop` | doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, implement | Each fixes a failure on its own path, the bug-fix playbook for a bug-fix request and implement inside a task it is running, often delegated, where it cannot start the playbook (R8); both stop after two failed fixes and return the attempt log, the playbook to the user and implement to the task owner. |
-| `vertical-slices` | planning, to-tickets | Same rule, applied by planning to a plan's tasks and by to-tickets to tracked stages; each entry point writes its own units. |
 | `worktree-environment-proof` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md | Each stated unattended loop proves its own command responds in its own worktree before starting; the check runs at each one's setup. |

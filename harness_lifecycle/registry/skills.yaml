@@ -273,15 +273,6 @@ perspective-council:
   aliases: []
   status: active
   boundary: "Runs an explicitly requested council of perspectives or roles (a war room); a council of named models with a judge is model-council."
-planning:
-  domain: engineering
-  stage: Design
-  substage: Decomposition
-  secondary: []
-  family: plan-authoring
-  aliases: []
-  status: active
-  boundary: "Writes a durable implementation plan for settled work; splitting an approved spec into tracked phases and stages is to-tickets, what to remove before adding is principle-subtract-before-you-add, and migrating without shims is principle-migrate-without-shims. A plan in checked form names per-unit evidence and one `implement` scope; running it is `implement`."
 principle-attack-the-premise:
   domain: engineering
   stage: Building
@@ -353,7 +344,7 @@ principle-migrate-without-shims:
   family: null
   aliases: []
   status: active
-  boundary: "Replaces an internal API or runs a declared migration without compatibility layers; ordinary unit sequencing is principle-sequence-verifiable-units, and the plan itself is planning."
+  boundary: "Replaces an internal API or runs a declared migration without compatibility layers; ordinary unit sequencing is principle-sequence-verifiable-units, and the plan itself is to-plan."
 principle-minimize-reader-load:
   domain: engineering
   stage: Design
@@ -394,11 +385,11 @@ principle-sequence-verifiable-units:
   domain: engineering
   stage: Building
   substage: Implementation
-  secondary: []
+  secondary: [Decomposition]
   family: null
   aliases: []
   status: active
-  boundary: "Orders multi-step work into checked units and commits; test-first proof of one change is tdd, and a declared migration group is principle-migrate-without-shims."
+  boundary: "Slices and orders multi-step work into checked units, and those units into commits: vertical slices, prefactoring first, expand, migrate then contract, and migration batches sized by blast radius; test-first proof of one change is tdd, a declared migration group is principle-migrate-without-shims, and writing the plan or the tracked stages that apply it is to-plan or to-roadmap."
 principle-subtract-before-you-add:
   domain: engineering
   stage: Design
@@ -407,7 +398,7 @@ principle-subtract-before-you-add:
   family: null
   aliases: []
   status: active
-  boundary: "Removes what the change touches before adding; decomposing work into a plan is planning."
+  boundary: "Removes what the change touches before adding; decomposing work into a plan is to-plan."
 principle-test-behavior-not-implementation:
   domain: engineering
   stage: Verification
@@ -525,6 +516,24 @@ tdd:
   aliases: []
   status: active
   boundary: "Runs the test-first cycle for risky behaviour changes, regression proof and characterization; ordering multi-step work and commits into checked units is principle-sequence-verifiable-units."
+to-plan:
+  domain: engineering
+  stage: Design
+  substage: Decomposition
+  secondary: []
+  family: plan-authoring
+  aliases: []
+  status: active
+  boundary: "Writes a durable implementation plan for settled work: one roadmap phase, one standalone change or one batch of units, and no plan document when a bounded task or a roadmap row already says enough; turning an approved spec into phases, stages and their order is to-roadmap, ordering the units is principle-sequence-verifiable-units, what to remove before adding is principle-subtract-before-you-add, and migrating without shims is principle-migrate-without-shims. A plan in checked form names per-unit evidence and one `implement` scope; running it is `implement`."
+to-roadmap:
+  domain: engineering
+  stage: Design
+  substage: Decomposition
+  secondary: []
+  family: plan-authoring
+  aliases: []
+  status: active
+  boundary: "Turns an approved spec into tracked phases and stages with acceptance, their order and real dependency edges, seeded in Beads after approval, for a new workstream or extending an existing one; ordering the stages is principle-sequence-verifiable-units, writing the implementation plan for one phase or one change is to-plan, and writing the spec itself is to-spec."
 to-spec:
   domain: core
   stage: Design
@@ -533,16 +542,7 @@ to-spec:
   family: spec-authoring
   aliases: []
   status: active
-  boundary: "Writes decisions already settled into a durable spec and gates its approval; exploring or comparing choices still open is brainstorming, and splitting an approved spec into tracked work is to-tickets."
-to-tickets:
-  domain: engineering
-  stage: Design
-  substage: Decomposition
-  secondary: []
-  family: plan-authoring
-  aliases: []
-  status: active
-  boundary: "Splits an approved spec into tracked phases and stages with acceptance and real dependency edges, seeded in Beads after approval; writing the implementation plan for settled work is planning, and writing the spec itself is to-spec."
+  boundary: "Writes decisions already settled into a durable spec and gates its approval; exploring or comparing choices still open is brainstorming, turning an approved spec into tracked phases and stages is to-roadmap, and its implementation plan is to-plan."
 triage:
   domain: core
   stage: Intake

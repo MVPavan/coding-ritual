@@ -94,7 +94,7 @@ entry, its ledger subject and its `traits/ours.yaml` key keep the name
 folder's hash covers it too, so editing a principle stales both. An entry:
 
 ```yaml
-planning:                       # the .claude/skills/<name> folder
+to-plan:                        # the .claude/skills/<name> folder
   domain: engineering
   stage: Design
   substage: Decomposition

@@ -41,6 +41,6 @@ An in-chat decision is enough for bounded work. When a durable spec is wanted
 for planning or another session, hand the decisions to `to-spec`. Report a
 direction still unresolved as a blocker to whoever started the brainstorm.
 
-This skill's output is decisions. Continue into `to-spec`, `planning` or
+This skill's output is decisions. Continue into `to-spec`, `to-plan` or
 `implement` when already authorized; a brainstorming-only request does not
 authorize code changes.

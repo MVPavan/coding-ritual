@@ -12,7 +12,7 @@ status: active
 
 sequencing an addition, refactor or rewrite.
 
-**Boundary:** Removes what the change touches before adding; decomposing work into a plan is planning.
+**Boundary:** Removes what the change touches before adding; decomposing work into a plan is to-plan.
 
 <!-- registry:generated traits -->
 - `touched-scope-subtraction`: Before adding, remove the dead code, redundant validators and stubs that the change touches, and report other removals instead of making them.

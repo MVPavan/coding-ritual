@@ -39,7 +39,7 @@ Catalog: `aeac41d4d005999432bb7312f7ff06383a91d59d`, 44 capabilities.
 | `skill:skills/frontend-ui-engineering` | reject | decided (whole skill) |  | 2026-10-14-migration | yes |
 | `skill:skills/git-workflow-and-versioning` | adopt-merged | not analysed | harness-publish | 2026-10-14-owner-review | no |
 | `skill:skills/idea-refine` | adopt | not analysed | idea-refine | 2026-10-14-migration | yes |
-| `skill:skills/incremental-implementation` | adopt | not analysed | planning | 2026-10-14-migration | yes |
+| `skill:skills/incremental-implementation` | adopt | not analysed | to-plan | 2026-10-14-migration | yes |
 | `skill:skills/interview-me` | adopt | not analysed | brainstorming | 2026-10-14-migration | yes |
 | `skill:skills/observability-and-instrumentation` | defer | decided (whole skill) |  | 2026-10-14-migration | yes |
 | `skill:skills/performance-optimization` | adopt | not analysed | performance-optimization | 2026-10-14-migration | yes |

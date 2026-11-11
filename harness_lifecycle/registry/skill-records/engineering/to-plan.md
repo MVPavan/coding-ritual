@@ -1,5 +1,5 @@
 ---
-skill: planning
+skill: to-plan
 domain: engineering
 stage: Design
 substage: Decomposition
@@ -8,14 +8,14 @@ family: plan-authoring
 aliases: []
 status: active
 ---
-# planning
+# to-plan
 
-Use when settled work needs a durable implementation plan: an existing roadmap phase or a plan in a form someone names. Splitting an approved spec into tracked phases and stages is to-tickets; a request to produce a plan for several units, or work whose open questions must be settled first, is the multi-phase-plan playbook, which calls this. Skip planning ceremonies for clear bounded tasks.
+Use when settled work needs a durable implementation plan: one roadmap phase, one standalone change, or one batch of units written box by box when a caller names that form. Turning an approved spec into phases, stages and their order is to-roadmap; a person's request to plan several units, or work whose open questions must be settled first, is the multi-phase-plan playbook, which calls this. Skip a plan document for clear bounded tasks.
 
-**Boundary:** Writes a durable implementation plan for settled work; splitting an approved spec into tracked phases and stages is to-tickets, what to remove before adding is principle-subtract-before-you-add, and migrating without shims is principle-migrate-without-shims. A plan in checked form names per-unit evidence and one `implement` scope; running it is `implement`.
+**Boundary:** Writes a durable implementation plan for settled work: one roadmap phase, one standalone change or one batch of units, and no plan document when a bounded task or a roadmap row already says enough; turning an approved spec into phases, stages and their order is to-roadmap, ordering the units is principle-sequence-verifiable-units, what to remove before adding is principle-subtract-before-you-add, and migrating without shims is principle-migrate-without-shims. A plan in checked form names per-unit evidence and one `implement` scope; running it is `implement`.
 
 <!-- registry:generated traits -->
-- `route-by-scale`: Route between brainstorming, a brief local sequence, elaborate, decompose, or executing from a roadmap row according to the work's scale.
+- `plan-form-by-need`: Write no plan document when a bounded task or a roadmap row's acceptance suffices; otherwise a durable plan, or its box-by-box form when a caller names it.
 - `durable-plan-format`: Produce a durable plan with ownership boundaries, interfaces, verification, dependencies and known files, saved to the plans path and approval-gated.
 - `plan-evidence-bound`: List known files but do not invent exact symbols or freeze a file map without evidence, leaving implementers to discover internals within their ownership.
 - `test-first-marking`: Mark risky changes test-first or characterization-first in the plan.
@@ -27,10 +27,6 @@ Use when settled work needs a durable implementation plan: an existing roadmap p
 - `per-unit-evidence-boxes`: In a plan in checked form, give each task a required Check box with a command and pass condition, and Live and Measure each as a box or a stated not-applicable reason, for a coordinator to tick only when the evidence exists.
 - `named-execution-scope`: Name in the plan which one execution scope runs it, task, phase or workstream, chosen by how the work is held, and leave how that scope runs to execution.
 - `plan-lint-last`: Finish a plan in checked form by running its structure lint, fixing every line, rerunning after any later edit until it exits 0, reporting the last output and that it proves structure only, and handing back a plan still failing after two rounds as not ready.
-- `vertical-slices`: Prefer independently verifiable vertical slices over horizontal layers.
-- `prefactor-first`: Find prefactoring that makes the change easy and sequence it before the feature slices.
-- `expand-contract`: For a broad refactor use expand, migrate then contract with genuine dependencies, naming one integration boundary when intermediate tasks cannot stay green.
-- `blast-radius-batches`: Size migration batches by blast radius and keep the build green between them.
 <!-- /registry:generated traits -->
 
 <!-- registry:generated lineage -->
@@ -63,6 +59,8 @@ Use when settled work needs a durable implementation plan: an existing roadmap p
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-11` **update** (2026-11-10-renames-splits:151): Owner rulings M1, M4 (2026-11-10) and N1, N2 (2026-11-11) (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 24 U8r. Name, heading and description (bo…
+- `2026-11-11` **rename** (2026-11-10-renames-splits:144): Owner rulings M1, M4 (2026-11-10) and N1, N2 (2026-11-11) (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 24 U8r. planning is renamed to-plan: an i…
 - `2026-11-10` **update** (2026-11-10-renames-splits:100): Critic-18b correction of the U4 split (coordinator rulings F1, F2). Elaborate keeps its approval gate: no Beads write, the task or its plan: note, before the p…
 - `2026-11-10` **update** (2026-11-10-renames-splits:087) *(superseded)*: Owner ruling C of 2026-11-05 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 14a U4. Route sends an approved spec needing phase/stage decomposition…
 - `2026-11-10` **split** (2026-11-10-renames-splits:086): Owner ruling C of 2026-11-05 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 14a U4. Its Decompose and Slicing sections become to-tickets; referenc…
@@ -112,14 +110,14 @@ Use when settled work needs a durable implementation plan: an existing roadmap p
   - `mattpocock_skills:skill:skills/engineering/to-tickets#publish-to-tracker` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2; withdrawn 2026-11-10)
   - `mattpocock_skills:skill:skills/engineering/to-tickets#sub-issue-linkage` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2; withdrawn 2026-11-10)
 - `blast-radius-batches`:
-  - `mattpocock_skills:skill:skills/engineering/to-tickets#blast-radius-batches` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+  - `mattpocock_skills:skill:skills/engineering/to-tickets#blast-radius-batches` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2; withdrawn 2026-11-11)
 - `breakdown-approval-before-publish`:
   - `mattpocock_skills:skill:skills/engineering/to-tickets#breakdown-approval-before-publish` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2; withdrawn 2026-11-10)
 - `dependency-edges`:
   - `mattpocock_skills:skill:skills/engineering/implement-spec#dependency-edges` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2; withdrawn 2026-11-10)
   - `mattpocock_skills:skill:skills/engineering/to-tickets#dependency-edges` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2; withdrawn 2026-11-10)
 - `expand-contract`:
-  - `mattpocock_skills:skill:skills/engineering/to-tickets#expand-contract` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+  - `mattpocock_skills:skill:skills/engineering/to-tickets#expand-contract` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2; withdrawn 2026-11-11)
 - `ground-in-codebase`:
   - `mattpocock_skills:skill:skills/engineering/to-tickets#ground-in-codebase` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `no-stale-code-snippets`:
@@ -127,11 +125,11 @@ Use when settled work needs a durable implementation plan: an existing roadmap p
 - `plan-evidence-bound`:
   - `mattpocock_skills:skill:skills/engineering/to-tickets#brief-behavioural` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `prefactor-first`:
-  - `mattpocock_skills:skill:skills/engineering/to-tickets#prefactor-first` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+  - `mattpocock_skills:skill:skills/engineering/to-tickets#prefactor-first` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2; withdrawn 2026-11-11)
 - `real-id-wiring`:
   - `mattpocock_skills:skill:skills/engineering/to-tickets#real-id-wiring` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2; withdrawn 2026-11-10)
 - `vertical-slices`:
-  - `mattpocock_skills:skill:skills/engineering/to-tickets#vertical-slices` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+  - `mattpocock_skills:skill:skills/engineering/to-tickets#vertical-slices` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2; withdrawn 2026-11-11)
 <!-- /registry:generated sources -->
 
 <!-- registry:generated declined -->

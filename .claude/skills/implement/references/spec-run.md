@@ -7,7 +7,7 @@ phase or a bounded task keeps its own scope. A spec seeded as a workstream
 which request is due (run all remaining phases, or a named phase) and ask
 nothing else. A spec whose tickets are one epic with stages and edges runs
 here if its work is significant (step 3), else as task scope in the current
-checkout with no worktree. No tickets yet, or none with edges, is `to-tickets`.
+checkout with no worktree. No tickets yet, or none with edges, is `to-roadmap`.
 
 ## Setup
 

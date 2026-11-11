@@ -1,6 +1,6 @@
 # Skeleton plan
 
-Consulted from `planning`'s Skeleton branch. It extends `plan-format.md`: fields keep
+Consulted from `to-plan`'s Skeleton branch. It extends `plan-format.md`: fields keep
 their meaning there, and its right-sizing test, placeholder list and self-review
 apply. `Evidence:` replaces `Verification:`. How a scope runs is `implement`'s.
 

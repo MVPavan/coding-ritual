@@ -75,9 +75,10 @@ deleted. Beads is the work-state authority; this file is the narrative.
 | after `560788a` | U6: `how` and `why` out of `explain-code` (same round), see below |
 | after `161be48` | U7: two principles restored (same round), see below |
 | after `fb84021` | U8: `suspect-the-observation` moved to `AGENTS.md` (same round), see below |
+| after `43d0d07` | U8r: `planning` → `to-plan`, `to-tickets` → `to-roadmap`, ordering rules into one principle (same round), see below |
 
 `main` is at `eb36cc9`; later work is on `mvp-stack` until the owner asks to merge.
-`mvp-stack` is pushed through U5 of the renames (`560788a`); later commits are local until the owner says to push.
+`mvp-stack` is pushed through U8 of the renames (`43d0d07`); later commits are local until the owner says to push.
 
 Decisions behind them: domains `core` and `engineering`; one primary
 coordinate per skill (domain · stage · sub-stage); reviews are flat files
@@ -226,8 +227,13 @@ critic, owner rulings, ledger, build, Sol review, commit after the owner approve
   no precedent of any kind, with the new trait `novel-decision-design-space`, and leaves runnable
   variants to `prototype` (Sol `critic-22b`). U8 is built: the suspect-the-observation rule is
   one sentence in `AGENTS.md` §Verification, no longer in `systematic-debugging`; the round has no
-  pending row left (Sol `critic-23b`). Next is U8r (ruling M: the `planning`/`to-tickets` cleanup
-  R1-R4), then U9.
+  pending row left (Sol `critic-23b`). U8r is built (owner rulings M and N): `planning` is renamed
+  `to-plan` and `to-tickets` `to-roadmap`; their four shared ordering rules live once in
+  `principle-sequence-verifiable-units` (report `reviews/2026-11-11-upstream-mattpocock_skills-5beb35b-r1.yaml`),
+  and `to-plan`'s routing table keeps only its own cases (Sol `critic-24b`, `critic-24d`, `critic-25b`).
+  Next is U9 (closeout), then T1 (a `tracker` skill split out of `beads`, which also takes one-phase
+  tracking, child beads per plan unit and flat operational work), discovery, then `implement` as a
+  playbook (P1) and a `plan` playbook (P2).
 - `cr-r2pa.3.3`: at the end of the project, show the owner everything deferred or
   rejected, from the ledger's `defer` events, the deferred beads and each
   `deliberately_dropped` with its `revisit_when`, to revise and adapt.

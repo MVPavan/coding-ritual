@@ -16,7 +16,7 @@ ours:beads:
   tree_hash: "14f92a47bc0da4f6e75c85db2df5fb58a6a2269bd16534ef7a3eaffdf99b5634"
   traits: [bead-type-taxonomy, field-roles, wait-as-edge, actor-identity, resume-line, session-close, session-recovery, knowledge-in-files, beads-setup, workstream-render, status-model, triage-routing, durable-unit-scope, review-as-task, phase-epic-contract, destructive-command-guard, repeated-procedures, dolt-sync]
 ours:brainstorming:
-  tree_hash: "6838a0835a41433634b671199534b9d15201b334daa5de5b0b3783f507f49c24"
+  tree_hash: "5dbb872c41cb115511362d36ba3a8e404fb221ece022a29acfb377426c88448e"
   traits: [match-interaction-to-ambiguity, scoped-context-read, reuse-before-new, decision-frame, options-with-tradeoffs, question-batching, recommended-answer, settled-stop, self-serve-facts, approval-interpretation, observable-outcomes, structured-divergence, exploration-lenses, inline-diagrams, visuals-into-spec, html-mockup-on-request]
   notes:
     recommended-answer: "Labels the recommendation's assumptions."
@@ -54,7 +54,7 @@ ours:domain-modeling:
     glossary-entry-template: "Lays the file out as a title and a one-or-two-sentence description, then each term in bold followed by its definition and an Avoid line."
     tight-concept-definitions: "One or two sentences at most."
 ours:implement:
-  tree_hash: "228ec647b053a22acb5868479fe7ea59a3da097bfc86ca4e110c06ce7b763687"
+  tree_hash: "b6cc4259317271318315d2945033f4e1e3667d289659200ba6fff7397f83bfba"
   traits: [scope-selector, risk-sized-review, task-loop, finding-adjudication, phase-loop, close-gate, workstream-mode, child-workflows, context-recovery, stop-on-failure, bounded-fix-loop, scope-base-review-package, delegated-report-recovery, confirmed-cause-fix, regression-proof-and-rerun, attempt-log, two-failure-stop, dependency-edges, single-integration-branch, worktree-per-significant-change, worktree-base-verify, worktree-cleanup, pre-report-base-merge]
 ours:how:
   tree_hash: "5c941f330897ec8f8b014b93ab4bfdeda12a9367a8d7dbdd5fcb18bd393f7cf6"
@@ -111,7 +111,7 @@ ours:model-council:
   tree_hash: "604be20a026528990ef9536cfbb643228189552f25f15eda46633ae3f4445f05"
   traits: [member-resolution, runtime-capability-check, neutral-framing, member-isolation, report-preservation, independent-synthesis, consolidated-delivery, identity-recording, failed-member-recovery, no-silent-substitution, artifact-named-up-front, task-rubric-criteria, rubric-withheld-from-candidates, own-output-location, rationale-names-rejected, dropout-proceeds-noted, read-only-judge, judge-other-family-or-stated, rubric-given-to-judge, path-labelled-candidates, judge-criterion-scores, judge-recommends-base, full-read-before-pick, picker-criterion-scores, pick-compared-with-judge, disagreement-rereads-rationales, base-chosen-for-extensibility, near-tie-smaller-surface, loser-graft-pass, sparse-grafts, hand-folded-grafts, converged-shape-no-graft, divergence-reframes-once, graft-change-rerun, verify-miss-returns-once, single-synthesized-artifact, synthesis-decision-record, note-judge-status, note-convergence-dropouts, note-verification-result, no-judge-no-pick]
 ours:mvp-mode:
-  tree_hash: "41aeced348f58809513c0ffeb3c383bab21bb1f2d773217a04781bdf52b0243d"
+  tree_hash: "392009113c78580f4425004ac08106cf6d2440764b244777e516558e0ce0c58a"
   traits: [unit-kind-lines, playbook-pick, need-to-skill-routing, overlap-arbitration, layered-catalog, platform-skill-invocation, no-playbook-in-delegate, delegate-independent-by-default, no-onward-delegation, playbook-steps-as-todos, recorded-step-skip, whole-callee, playbook-exit, legacy-entrypoint-flagging, catalog-trust-boundary]
 ours:performance-optimization:
   tree_hash: "8e393535c7e06691afca39ef9df84040ce4752a29a8cc58610b8522ce951c4da"
@@ -121,9 +121,6 @@ ours:perspective-council:
   traits: [declared-scale, opposing-lens-set, neutral-framing, member-isolation, evidence-calibration, anonymized-peer-review, independent-synthesis, no-silent-substitution, transcript-on-request]
   notes:
     independent-synthesis: "The synthesizer is a fresh chair who restores attribution after anonymized peer review and ends with a practical next step."
-ours:planning:
-  tree_hash: "54cefd2bb29945cf1033a9e9b404c86dca818d969927622392a7ef536fd485cd"
-  traits: [route-by-scale, durable-plan-format, plan-evidence-bound, test-first-marking, no-placeholder-plan, plan-self-review, reviewer-rejectable-sizing, no-stale-code-snippets, ground-in-codebase, per-unit-evidence-boxes, named-execution-scope, plan-lint-last, vertical-slices, prefactor-first, expand-contract, blast-radius-batches]
 ours:principle-attack-the-premise:
   tree_hash: "cf7cabf2ae6d4008f40654e817c4b2eb8a251800d10361a6cf0fe0caba8b554f"
   traits: [premise-test-gate]
@@ -161,8 +158,8 @@ ours:principle-separate-before-serializing-shared-state:
   tree_hash: "ba25adb2431b8645c62cd2c6ead36d64db5551ba1afb2d535fa7ce203e3edb00"
   traits: [concurrent-modification-test, eliminate-shared-writes, structural-serialization]
 ours:principle-sequence-verifiable-units:
-  tree_hash: "abdc6084155053c668c4a1f325313d08ff80b9cc771693ed373c81ae61f59d56"
-  traits: [baseline-check-before-change, verified-unit-sequence, small-single-purpose-commits, argument-order-commits]
+  tree_hash: "94d66dc84b255642af04d3d5884aa4f70bf0f0a623c301b8d6dde94db43d5e1d"
+  traits: [baseline-check-before-change, verified-unit-sequence, small-single-purpose-commits, argument-order-commits, vertical-slices, prefactor-first, expand-contract, blast-radius-batches]
 ours:principle-subtract-before-you-add:
   tree_hash: "76cd8d8c91d71be284e0570ffd72b4b747cd88b1fef6fd518c744fee37f7d1d8"
   traits: [touched-scope-subtraction, deletion-bias, stub-deletion, single-source-of-truth, cut-before-polish]
@@ -237,14 +234,17 @@ ours:tdd:
     red-green: "Confirms the intended failure, not a setup error, then implements the owning fix and reruns the proving check."
     no-implementation-coupling: "Asserts exact source text only when that text is the contract."
     mock-boundaries: "Fakes and partial mocks are valid at any boundary that preserves the contract."
-ours:to-spec:
-  tree_hash: "45244f27501e4c14c424a080e3fa46a18c5e30ba94503a11ec6e79345ce844b9"
-  traits: [synthesize-settled, spec-template, spec-criteria-and-questions, none-keeps-heading, testing-seam-decision, no-stale-file-paths, no-stale-code-snippets, prototype-snippet, spec-approval-gate, material-risk-review, user-perspective-framing, implementation-decisions-scope, testing-decisions-contents]
-ours:to-tickets:
-  tree_hash: "5f90b277f8d716e07f0da669935f5677b6dd097fab6226bc20c7e330b2a72b04"
-  traits: [decompose-phases, vertical-slices, expand-contract, dependency-edges, beads-native-tracking, real-id-wiring, breakdown-approval-before-publish, prefactor-first, blast-radius-batches]
+ours:to-plan:
+  tree_hash: "fdae682ee7c4439695654fbd89e2a311a56af6ab2540343425871b468f4ae8d4"
+  traits: [plan-form-by-need, durable-plan-format, plan-evidence-bound, test-first-marking, no-placeholder-plan, plan-self-review, reviewer-rejectable-sizing, no-stale-code-snippets, ground-in-codebase, per-unit-evidence-boxes, named-execution-scope, plan-lint-last]
+ours:to-roadmap:
+  tree_hash: "a915e3c38453a0ab3cd3af64341541eac617c207bf1b533e34438a0c9f50d544"
+  traits: [decompose-phases, dependency-edges, beads-native-tracking, real-id-wiring, breakdown-approval-before-publish]
   notes:
     beads-native-tracking: "The roadmap anchor is the --spec-id and the governing spec is --design; the renderer derives the workstream from the anchor, so a plan path never goes in --design."
+ours:to-spec:
+  tree_hash: "fdd82b7b195dbccd7b20ceb04c781d2243f276f543b2817d80e0b9d167f45cb6"
+  traits: [synthesize-settled, spec-template, spec-criteria-and-questions, none-keeps-heading, testing-seam-decision, no-stale-file-paths, no-stale-code-snippets, prototype-snippet, spec-approval-gate, material-risk-review, user-perspective-framing, implementation-decisions-scope, testing-decisions-contents]
 ours:triage:
   tree_hash: "3e6dc7d1be687f106a87b6ffe8c46deb0fdfa5d2a9776caf02eba25e25415ddf"
   traits: [attention-buckets, triage-decision, established-notes, triage-resume-notes, redundancy-check, prior-rejection-check, claim-verification, agent-ready-gate, pick-from-summary, durable-rejection-reasons, already-built-close, brief-acceptance-criteria, read-full-source-issue, ready-for-human-rationale]
@@ -255,7 +255,7 @@ ours:triage:
     claim-verification: "An unreproduced bug gets questions for the owner, never an automatic close."
     prior-rejection-check: "Searches closed beads for earlier wontfix closes."
 ours:wayfinder:
-  tree_hash: "762e9913dd407d092606371f0399b9481c9b83c6f7e69697c76fe06e4aa8308a"
+  tree_hash: "15ff36e9706bc85617ca7d2d3a3b2fec274da64474e84e38a5be8afcc087c11d"
   traits: [decision-map-epic, plan-not-do, dependency-edges, map-as-index, map-body-sections, reference-by-name, bounded-decision-ticket, coherence-sized-tickets, label-free-typing, ticket-type-set, claim-before-work, destination-first, question-graduation, real-id-wiring, record-resolution, out-of-scope-close, human-decision-gate, multi-ticket-sessions, prototype-ticket-asset, fog-hygiene, low-res-map-load, breadth-first-charting, invalidated-ticket-reconciliation, prerequisite-task-human-checklist, prerequisite-task-result-facts]
   notes:
     breadth-first-charting: "Delivers sealed row 2026-10-30-mattpocock_skills-5beb35b:149: surfaces the open decisions before resolving any, where the definition charts by questioning and surfaces first steps too; T5."

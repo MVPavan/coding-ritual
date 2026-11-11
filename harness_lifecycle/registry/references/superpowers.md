@@ -20,5 +20,5 @@ Catalog: `44c9b2d6e889982ac18c27d05a19fefe335194e1`, 16 capabilities.
 | `skill:skills/using-git-worktrees` | adopt | not analysed | review | 2026-10-14-migration | no |
 | `skill:skills/using-superpowers` | reject | decided (whole skill) |  | 2026-10-14-migration | no |
 | `skill:skills/verification-before-completion` | adopt | not analysed | verification-before-completion | 2026-10-14-migration | no |
-| `skill:skills/writing-plans` | adopt-merged | not analysed | planning | 2026-10-14-migration | no |
+| `skill:skills/writing-plans` | adopt-merged | not analysed | to-plan | 2026-10-14-migration | no |
 | `skill:skills/writing-skills` | adopt-merged | not analysed | authoring-for-agents | 2026-10-14-migration | no |

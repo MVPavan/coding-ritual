@@ -76,7 +76,8 @@
     "harness_lifecycle/registry/reviews/2026-11-09-upstream-mattpocock_skills-4ae2317.yaml": "3d590510d194e49e36d4dd0db37b869b1fa17ed3d66e5e0437818a5ca3550699",
     "harness_lifecycle/registry/reviews/2026-11-09-upstream-mattpocock_skills-5beb35b.yaml": "deba5f64596fdcf9c4d03c953f585ead35faeb62b710c2b0285025201a0b89db",
     "harness_lifecycle/registry/reviews/2026-11-10-upstream-mattpocock_skills-4ae2317.yaml": "484075a519040430ff7a0835167ca257c035e498cd9b078cbd60180771be1196",
-    "harness_lifecycle/registry/reviews/2026-11-10-upstream-mattpocock_skills-5beb35b.yaml": "6e264ec2ce6bfa078e92f4ff95bf688035e213a32a50c586ca1e3f22714b2f51"
+    "harness_lifecycle/registry/reviews/2026-11-10-upstream-mattpocock_skills-5beb35b.yaml": "6e264ec2ce6bfa078e92f4ff95bf688035e213a32a50c586ca1e3f22714b2f51",
+    "harness_lifecycle/registry/reviews/2026-11-11-upstream-mattpocock_skills-5beb35b-r1.yaml": "dc16a0e5c4fd4801bf940998505e7a366d3aada7022a5135c94fcd9b0b0ed5dc"
   },
   "analyses": {
     "cursor_plugins:skill:pstack/skills/architect@4dd1d05": "2f6b30fcea183d931ebb90718d90b26bed22bd0053ffc7322ede7757a9a18920",

@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-SCRIPT = Path(__file__).parents[2] / ".claude/skills/planning/scripts/check_plan.py"
+SCRIPT = Path(__file__).parents[2] / ".claude/skills/to-plan/scripts/check_plan.py"
 BRIEF = Path(__file__).parents[2] / ".claude/skills/implement/scripts/task-brief.sh"
 HEAD = """# Move the store
 **Origin:** docs/plans/x.md
