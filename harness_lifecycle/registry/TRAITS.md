@@ -77,8 +77,11 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `evidence-separation`: Compare alternatives and counterevidence while separating verified fact, inference, uncertainty and conflicts with recorded decisions.
 - `disconfirming-red-team`: Surface the strongest case against the conclusion and name what would reverse the recommendation.
 - `structured-synthesis`: For a complex question, organize evidence with a claim table and a pattern scan that turns facts into decision-relevant implications.
+- `evidence-lenses`: Apply one to three evidence frameworks (maturity, failure modes, source confidence) to weigh what the sources show, not to pick an option.
+- `evidence-without-verdict`: Say what the evidence favours and how strongly, and leave the decision to the caller.
 - `cited-artifact`: Bind citations to the claims they support in the research output.
 - `scaled-report`: Answer at the requested scale, saving a durable report only when requested or useful for an authorized handoff.
+- `area-topic-filing`: Without a path from the caller, file the output under one root by the work's area and topic, reusing an existing folder before creating one, two levels at most, and never replacing an earlier run's file without authority to revise it.
 - `decision-sufficient-stop`: Stop investigating when remaining uncertainty no longer changes the decision, or when a named access or budget limit is reached.
 - `sizeable-delegation`: Delegate only a sizeable, independent part of the investigation.
 
@@ -193,6 +196,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `visuals-into-spec`: Re-express an approved diagram inside the durable spec as a Mermaid block, or record what a mockup showed and decided, rather than linking disposable scratch files.
 - `html-mockup-on-request`: On explicit request only, produce one self-contained offline HTML mockup under the scratch directory for what a diagram cannot carry.
 - `sourced-status-record`: Write one file per run with a row per question giving its answer, its source, a confidence for each established fact and a status (established, decided, routine, proposed, open), marking a material choice decided only on the owner's quoted, dated word or a recorded delegation, and check the file with a script.
+- `area-topic-filing`: Without a path from the caller, file the output under one root by the work's area and topic, reusing an existing folder before creating one, two levels at most, and never replacing an earlier run's file without authority to revise it.
 - `generated-record-index`: Regenerate one index line per record (date, question, outcome) from the files themselves, never by hand.
 
 #### core · Intake · Clarification — grilling
@@ -3136,8 +3140,16 @@ Stop investigating when remaining uncertainty no longer changes the decision, or
 Surface the strongest case against the conclusion and name what would reverse the recommendation.
 - ours: `research`
 
+#### `evidence-lenses`
+Apply one to three evidence frameworks (maturity, failure modes, source confidence) to weigh what the sources show, not to pick an option.
+- ours: `research`
+
 #### `evidence-separation`
 Compare alternatives and counterevidence while separating verified fact, inference, uncertainty and conflicts with recorded decisions.
+- ours: `research`
+
+#### `evidence-without-verdict`
+Say what the evidence favours and how strongly, and leave the decision to the caller.
 - ours: `research`
 
 #### `findings-file`
@@ -5321,6 +5333,11 @@ Agree the wiki's location with the user before the first write.
 Write the header and rows only in append mode, so a false empty-file test costs a stray header and never the rows.
 - ours: `decision-trail`
 - `cursor_plugins:skill:pstack/skills/show-me-your-work` — adopt → decision-trail#append-mode-writes
+
+#### `area-topic-filing`
+Without a path from the caller, file the output under one root by the work's area and topic, reusing an existing folder before creating one, two levels at most, and never replacing an earlier run's file without authority to revise it.
+- ours: `discovery`
+- ours: `research`
 
 #### `audit-own-stretches`
 Limit an audit to this run's row stretches, each from one of its `start` rows or the log's first row to the next `start` row of another run.
@@ -11597,6 +11614,7 @@ Traits listed by two or more of our active skills (`doc:AGENTS.md` and playbooks
 | Trait | Holders | Why |
 |---|---|---|
 | `answer-before-next-round` | discovery, grilling | As question-batching: each skill waits for a round's answers inside its own question flow. |
+| `area-topic-filing` | discovery, research | Each files its own output under its own root by one rule: discovery its records under docs/discovery/, research its reports under docs/research/. |
 | `attempt-log` | doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, implement | Each fixes a failure on its own path, the bug-fix playbook for a bug-fix request and implement inside a task it is running, often delegated, where it cannot start the playbook (R8); both log each fix attempt so a stop hands back usable evidence. |
 | `baseline` | performance-optimization, systematic-debugging | Each measures before a fix: performance-optimization for a resource target, systematic-debugging when the failure diagnosed is a performance regression, which it hands to the fixer. |
 | `bounded-background-wait` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md | The same one sentence on waiting sits at each step that waits, with its own stopped exit; no skill is called for it. |

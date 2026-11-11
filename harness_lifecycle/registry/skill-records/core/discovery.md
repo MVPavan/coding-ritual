@@ -40,6 +40,7 @@ Use when material scope or behavior decisions are still open and need settling, 
 - `visuals-into-spec`: Re-express an approved diagram inside the durable spec as a Mermaid block, or record what a mockup showed and decided, rather than linking disposable scratch files.
 - `html-mockup-on-request`: On explicit request only, produce one self-contained offline HTML mockup under the scratch directory for what a diagram cannot carry.
 - `sourced-status-record`: Write one file per run with a row per question giving its answer, its source, a confidence for each established fact and a status (established, decided, routine, proposed, open), marking a material choice decided only on the owner's quoted, dated word or a recorded delegation, and check the file with a script.
+- `area-topic-filing`: Without a path from the caller, file the output under one root by the work's area and topic, reusing an existing folder before creating one, two levels at most, and never replacing an earlier run's file without authority to revise it.
 - `generated-record-index`: Regenerate one index line per record (date, question, outcome) from the files themselves, never by hand.
 <!-- /registry:generated traits -->
 
@@ -75,6 +76,7 @@ Use when material scope or behavior decisions are still open and need settling, 
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-11` **update** (2026-11-11-discovery:018): Owner ruling L1 of 2026-11-10 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 20 D4 (sections 4.4, 5): discovery lists area-topic-filing, the filin…
 - `2026-11-11` **update** (2026-11-11-discovery:016): Owner ruling L1 of 2026-11-10 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 20 D3 fix (critic-35b): the refinement reference's assumption audit (…
 - `2026-11-11` **adopt** (2026-11-11-discovery:014): Owner ruling L1 of 2026-11-10 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 20 D3: completes the pending rewording 2026-11-11-discovery:001. disc…
 - `2026-11-11` **update** (2026-11-11-discovery:013): Owner ruling L1 of 2026-11-10 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 20 D3 (section 6): the body is rewritten as the hub. It routes first,…

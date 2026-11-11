@@ -443,7 +443,7 @@ research:
   family: source-research
   aliases: []
   status: active
-  boundary: null
+  boundary: "Gathers, weighs and cites outside evidence and reports what it favours and how strongly, without deciding; a single factual lookup needs no run, a decision with open questions is discovery (which calls research), why this project chose something is why, and a durable report on an external codebase is codebase-research."
 resolving-merge-conflicts:
   domain: engineering
   stage: Delivery

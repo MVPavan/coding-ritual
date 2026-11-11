@@ -17,7 +17,7 @@ ours:beads:
   traits: [bead-type-taxonomy, field-roles, wait-as-edge, actor-identity, resume-line, session-close, session-recovery, knowledge-in-files, beads-setup, status-model, triage-routing, durable-unit-scope, review-as-task, destructive-command-guard, repeated-procedures, dolt-sync]
 ours:discovery:
   tree_hash: "c8fb6a3b73b9f3763b877ecb7e7e1ddaf18a1cf5b3ff8f6d6b553689fd834a41"
-  traits: [match-interaction-to-ambiguity, scoped-context-read, reuse-before-new, decision-frame, answerer-triage, options-with-tradeoffs, question-batching, recommended-answer, yes-accepts-recommendation, round-format, answer-before-next-round, settled-stop, self-serve-facts, approval-interpretation, observable-outcomes, structured-divergence, exploration-lenses, assumption-audit, mvp-scope, judgment-frameworks, decision-sequences, inline-diagrams, visuals-into-spec, html-mockup-on-request, sourced-status-record, generated-record-index]
+  traits: [match-interaction-to-ambiguity, scoped-context-read, reuse-before-new, decision-frame, answerer-triage, options-with-tradeoffs, question-batching, recommended-answer, yes-accepts-recommendation, round-format, answer-before-next-round, settled-stop, self-serve-facts, approval-interpretation, observable-outcomes, structured-divergence, exploration-lenses, assumption-audit, mvp-scope, judgment-frameworks, decision-sequences, inline-diagrams, visuals-into-spec, html-mockup-on-request, sourced-status-record, area-topic-filing, generated-record-index]
   notes:
     recommended-answer: "Labels the recommendation's assumptions."
     round-format: "Delivers report D's row (pending 2026-11-11-discovery:001) as one fixed block per question, in our own layout with no emoji."
@@ -190,8 +190,8 @@ ours:prototype:
     self-contained-html-demo: "Offered when a non-developer needs to manipulate states; offline when sharing is the goal."
     resettable-demo-scenarios: "Only the guided scenarios needed to expose the uncertainty."
 ours:research:
-  tree_hash: "552713d923bb3a7b7c7a39ebe1df59629d263b7b3a534c336c10c38c99e5fe46"
-  traits: [decision-framing, primary-source-preference, source-version-dating, vendor-claim-testing, source-weighting, evidence-separation, disconfirming-red-team, structured-synthesis, cited-artifact, scaled-report, decision-sufficient-stop, sizeable-delegation]
+  tree_hash: "2e76783fc5fe202fcfb32134de949fdd8cf995963b937045a5e80efb038df95e"
+  traits: [decision-framing, primary-source-preference, source-version-dating, vendor-claim-testing, source-weighting, evidence-separation, disconfirming-red-team, structured-synthesis, evidence-lenses, evidence-without-verdict, cited-artifact, scaled-report, area-topic-filing, decision-sufficient-stop, sizeable-delegation]
   notes:
     primary-source-preference: "Current primary sources for changing facts and technical behaviour."
 ours:resolving-merge-conflicts:

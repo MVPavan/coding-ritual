@@ -76,6 +76,10 @@ yes-accepts-recommendation:
   skills: [discovery, grilling]
   why: "As question-batching: each skill words its own questions so a yes accepts the recommendation."
   reviewed: "2026-11-11"
+area-topic-filing:
+  skills: [discovery, research]
+  why: "Each files its own output under its own root by one rule: discovery its records under docs/discovery/, research its reports under docs/research/."
+  reviewed: "2026-11-11"
 finding-adjudication:
   skills: [implement, review]
   why: "Implement rules on findings inside its delivery loop and review owns the method; owner 2026-10-30: implement (then named execution) stays unchanged."

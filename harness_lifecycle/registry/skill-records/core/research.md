@@ -10,7 +10,9 @@ status: active
 ---
 # research
 
-Use when a decision needs multiple outside sources gathered and weighed. Answer a single factual lookup directly from an appropriate source; why this project chose something, from its own record, is why.
+Use to answer a question from outside sources gathered, weighed and cited, reporting what the evidence favours without deciding. Skip a single factual lookup, which needs no run; a decision with open questions is discovery, which calls this; why this project chose something, from its own record, is why.
+
+**Boundary:** Gathers, weighs and cites outside evidence and reports what it favours and how strongly, without deciding; a single factual lookup needs no run, a decision with open questions is discovery (which calls research), why this project chose something is why, and a durable report on an external codebase is codebase-research.
 
 <!-- registry:generated traits -->
 - `decision-framing`: State the decision, scope, constraints and material unknowns, and choose sources by what would change the answer.
@@ -21,8 +23,11 @@ Use when a decision needs multiple outside sources gathered and weighed. Answer 
 - `evidence-separation`: Compare alternatives and counterevidence while separating verified fact, inference, uncertainty and conflicts with recorded decisions.
 - `disconfirming-red-team`: Surface the strongest case against the conclusion and name what would reverse the recommendation.
 - `structured-synthesis`: For a complex question, organize evidence with a claim table and a pattern scan that turns facts into decision-relevant implications.
+- `evidence-lenses`: Apply one to three evidence frameworks (maturity, failure modes, source confidence) to weigh what the sources show, not to pick an option.
+- `evidence-without-verdict`: Say what the evidence favours and how strongly, and leave the decision to the caller.
 - `cited-artifact`: Bind citations to the claims they support in the research output.
 - `scaled-report`: Answer at the requested scale, saving a durable report only when requested or useful for an authorized handoff.
+- `area-topic-filing`: Without a path from the caller, file the output under one root by the work's area and topic, reusing an existing folder before creating one, two levels at most, and never replacing an earlier run's file without authority to revise it.
 - `decision-sufficient-stop`: Stop investigating when remaining uncertainty no longer changes the decision, or when a named access or budget limit is reached.
 - `sizeable-delegation`: Delegate only a sizeable, independent part of the investigation.
 <!-- /registry:generated traits -->
@@ -36,6 +41,7 @@ Use when a decision needs multiple outside sources gathered and weighed. Answer 
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-11` **update** (2026-11-11-discovery:017): Owner ruling L1 of 2026-11-10 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 20 D4 (sections 4.4, 4.6, 5, 6): research becomes the evidence leaf. …
 - `2026-11-11` **update** (2026-11-11-discovery:015): Owner ruling L1 of 2026-11-10 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 20 D3 (section 4.6): the judgment frameworks (Decision Matrix, Build …
 - `2026-11-10` **update** (2026-11-10-renames-splits:130): Owner rulings C of 2026-11-05, I1 and I4 of 2026-11-06 and K of 2026-11-10 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 14a U6. Description boun…
 - `2026-11-09` **adopt-merged** (2026-11-09-pocock-4ae2317:166): Checkpoint at 4ae2317 for the owner's trait rulings: 1 adopt.

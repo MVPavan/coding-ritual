@@ -24,6 +24,16 @@ disconfirming-red-team:
 evidence-separation:
   definition: "Compare alternatives and counterevidence while separating verified fact, inference, uncertainty and conflicts with recorded decisions."
   placement: {domain: core, stage: Discovery, substage: Research}
+evidence-lenses:
+  definition: "Apply one to three evidence frameworks (maturity, failure modes, source confidence) to weigh what the sources show, not to pick an option."
+  placement: {domain: core, stage: Discovery, substage: Research}
+  distinct_from: [judgment-frameworks, source-weighting]
+  note: "judgment-frameworks compare options to sharpen a choice; source-weighting rates each source by its type. These lenses organize what the weighed sources show about an option and leave the choice to the caller."
+evidence-without-verdict:
+  definition: "Say what the evidence favours and how strongly, and leave the decision to the caller."
+  placement: {domain: core, stage: Discovery, substage: Research}
+  distinct_from: [disconfirming-red-team, recommended-answer]
+  note: "disconfirming-red-team argues against the conclusion and names what would reverse it; recommended-answer proposes an answer for the owner to accept. This states the evidence's lean and its strength and makes no decision."
 findings-file:
   definition: "Always write the findings to one Markdown file saved where the repository keeps such notes."
   placement: {domain: core, stage: Discovery, substage: Research}
@@ -1059,6 +1069,11 @@ flat-operational-tracking:
   note: "beads-native-tracking anchors phase epics on a roadmap; this has no phases and anchors on the charter."
 
 # ---- core · X · Continuity ----
+area-topic-filing:
+  definition: "Without a path from the caller, file the output under one root by the work's area and topic, reusing an existing folder before creating one, two levels at most, and never replacing an earlier run's file without authority to revise it."
+  placement: {domain: core, stage: X, substage: Continuity}
+  distinct_from: [trail-location-rule, scaled-report, scratch-artifact-location]
+  note: "trail-location-rule falls back to an ignored scratch path by slug; scaled-report decides whether to save a report at all; scratch-artifact-location puts temporary artifacts in scratch. This files a durable output in an area/topic tree and keeps every earlier run's file."
 actor-identity:
   definition: "Carry one stable actor for the whole session, claiming on start and acting only on your own claims."
   placement: {domain: core, stage: X, substage: Continuity}

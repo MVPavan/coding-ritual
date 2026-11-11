@@ -29,7 +29,7 @@ Look for:
 Turn facts into implications.
 
 Formula:
-`fact + context + implication for the user's decision`
+`fact + context + implication for the caller's question`
 
 If a paragraph does not answer "so what?", cut it or rewrite it.
 
@@ -40,7 +40,7 @@ Before writing the conclusion, answer:
 - What would make the opposite conclusion true?
 - Are we seeing only winners, recent data, or vendor-friendly evidence?
 - What source incentives could distort the picture?
-- What failure mode would make this recommendation expensive or wrong?
+- What failure mode would make this conclusion expensive or wrong?
 
 Include the strongest counterargument in the document.
 
@@ -60,5 +60,5 @@ Write in this order unless the topic demands otherwise:
 3. Landscape or options.
 4. Evidence and tradeoffs.
 5. Counterarguments.
-6. Decision points or recommendation.
+6. What the evidence favours, how strongly, and what would reverse it; the caller decides.
 7. Open questions and next research.
