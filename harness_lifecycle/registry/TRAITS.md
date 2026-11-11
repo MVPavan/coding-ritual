@@ -2196,7 +2196,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `question-batching`: Batch independent questions whose prerequisites are settled and defer each dependent question until its prerequisites are answered. — adopt → grilling#question-batching
 - `recommended-answer`: Attach a recommended answer to each question, letting the respondent disagree. — adopt → grilling#recommended-answer
 - `yes-accepts-recommendation`: Word each question so that a yes accepts your recommended answer. — adopt → grilling#yes-accepts-recommendation
-- `round-format`: Lay out each round in a fixed question-and-recommendation markdown format, one block per question. — defer
+- `round-format`: Lay out each round in a fixed question-and-recommendation markdown format, one block per question. — adopt, pending cr-r2pa.2.21 → brainstorming#round-format
 - `self-serve-facts`: Look up available facts yourself rather than asking, leaving only the decisions to the live participant. — adopt → grilling#self-serve-facts
 - `exhaustive-completion`: End the session only when the frontier is empty and every branch of the tree has been visited, with nothing silently assumed. — defer
 - `reconfirm-before-action`: Do not act until the user confirms a shared understanding has been reached. — defer
@@ -3367,7 +3367,7 @@ Name the closest existing solution before proposing a new one.
 
 #### `round-format`
 Lay out each round in a fixed question-and-recommendation markdown format, one block per question.
-- `mattpocock_skills:skill:skills/productivity/grilling` — defer
+- `mattpocock_skills:skill:skills/productivity/grilling` — adopt, pending cr-r2pa.2.21 → brainstorming#round-format
 
 #### `scoped-context-read`
 Read only the existing code, authoritative docs and constraints needed to distinguish the live choices.

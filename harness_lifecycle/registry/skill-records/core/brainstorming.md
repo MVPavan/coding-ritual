@@ -59,9 +59,11 @@ Use when material scope or behavior decisions are still open and need exploring,
 - **mattpocock_skills:skill:skills/engineering/to-spec#testing-decisions-contents** `skills/engineering/to-spec/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/engineering/to-tickets#prototype-snippet** `skills/engineering/to-tickets/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/engineering/to-spec#ground-in-codebase** `skills/engineering/to-spec/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/productivity/grilling#round-format** `skills/productivity/grilling/SKILL.md` @ 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d (pending cr-r2pa.2.21)
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-11` **adopt** (2026-11-11-discovery:001): Owner ruling L1 of 2026-11-10 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 20 D0: the discovery hub asks its open questions in rounds, each ques…
 - `2026-11-11` **update** (2026-11-10-renames-splits:159): Owner rulings M1, M4 (2026-11-10) and N1, N2 (2026-11-11) (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 24 U8r. Hand-off names to-plan.
 - `2026-11-10` **adopt** (2026-11-10-renames-splits:083): critic-17b F1: to-spec/SKILL.md:15 reads what the spec must describe, not what distinguishes the live choices, so it does not deliver scoped-context-read and c…
 - `2026-11-10` **update** (2026-11-10-renames-splits:070): Owner ruling C of 2026-11-05 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 14a U3. It ends at decisions and hands a durable spec to to-spec; its …
@@ -94,7 +96,7 @@ Use when material scope or behavior decisions are still open and need exploring,
 <!-- /registry:generated history -->
 
 <!-- registry:generated reviews -->
-None yet.
+- [2026-11-11-upstream-mattpocock_skills-4ae2317-discovery.md](../../reviews/2026-11-11-upstream-mattpocock_skills-4ae2317-discovery.md)
 <!-- /registry:generated reviews -->
 
 <!-- registry:generated sources -->
