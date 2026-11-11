@@ -34,6 +34,7 @@ close gate. bd itself (types, fields, waits, claims) is the `beads` skill.
 | Workstream: an approved roadmap to seed, or new phases appended to one | Read `references/workstreams.md`, then seed or extend |
 | One-phase plan: an approved plan for work of one phase, with no roadmap | One-phase plan, below |
 | Plan record: an approved standalone plan, a task | Plan record, below |
+| Unit beads: an approved plan whose units will span sessions | Unit beads, below |
 | Decision map: an approved map and its tickets, supplied or handed over by `wayfinder` | Decision map, below |
 | Flat operational work: a charter with recurring or plain tasks, no phases | Flat work, below |
 | A phase's epic to find, close or render | Phase epics, below |
@@ -50,9 +51,23 @@ scope, not the phase loop: no roadmap, no workstream directory.
 **Plan record.** For a standalone plan with no bead yet:
 `bd create "<title>" -t task --description "<why and what it changes>" --acceptance "<the plan's goal, checkably>" --notes "plan: <plan-path>" --actor … --silent`,
 capturing the ID as the Gate says.
-Dotted children only for genuinely independent units within the ask. A plan's path
-goes in notes (`bd note <id> "plan: <path>"` on an existing bead), never in
-`--design` or `--spec-id`.
+Dotted children only for genuinely independent units within the ask, or for units
+that will span sessions (Unit beads). A plan's path goes in notes
+(`bd note <id> "plan: <path>"` on an existing bead), never in `--design` or `--spec-id`.
+
+**Unit beads.** After the plan is approved, when its units will span sessions,
+give each unit one child task: acceptance from its Evidence boxes and their pass
+conditions (Skeleton) or its `Verification:` (Elaborate), edges from its
+`Dependencies:` by the returned IDs, and the ID beside its task in the plan
+(`### Task N: <name> (bead <id>)`; rerun `check_plan.py` on a Skeleton plan). A stage
+that already is the unit is reused, never duplicated. The units hang under:
+
+- a standalone plan: its plan bead;
+- a one-phase epic: the stage; a stage that one plan task maps to is itself the
+  unit (epic, stage, unit uses bd's one subtask level);
+- a spec: the ticket;
+- a workstream or phase: the stage, which `implement` then runs itself, never
+  through the contractor.
 
 **Decision map.** The approved map, supplied or handed over by a `wayfinder` run,
 gives the map body, each ticket's question, type and title, and the genuine

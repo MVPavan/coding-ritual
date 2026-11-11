@@ -46,7 +46,7 @@ recorded approval that covers this concrete plan counts.
 Save phase plans under `docs/workstreams/<name>/plans/`, standalone plans under
 `docs/plans/`, or the supplied path. Once approved, invoke `tracker` to record it:
 the plan note, one epic and stages for one-phase work, binding the plan's proposed
-stages to their IDs.
+stages to their IDs, and a child bead per unit when the units will span sessions.
 
 ## Skeleton
 

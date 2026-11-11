@@ -54,8 +54,8 @@ ours:domain-modeling:
     glossary-entry-template: "Lays the file out as a title and a one-or-two-sentence description, then each term in bold followed by its definition and an Avoid line."
     tight-concept-definitions: "One or two sentences at most."
 ours:implement:
-  tree_hash: "46648002211ec051a898e6fe4fe341a0a5d911481b7bca65b85a31b8267e1e11"
-  traits: [scope-selector, risk-sized-review, task-loop, finding-adjudication, phase-loop, workstream-mode, child-workflows, context-recovery, stop-on-failure, bounded-fix-loop, scope-base-review-package, delegated-report-recovery, confirmed-cause-fix, regression-proof-and-rerun, attempt-log, two-failure-stop, dependency-edges, single-integration-branch, worktree-per-significant-change, worktree-base-verify, worktree-cleanup, pre-report-base-merge]
+  tree_hash: "65c4057a7e496909943529af017184ea0b6b7b6b1a5dd05e9b101d569c9b55ac"
+  traits: [scope-selector, risk-sized-review, task-loop, finding-adjudication, phase-loop, workstream-mode, child-workflows, context-recovery, stop-on-failure, bounded-fix-loop, scope-base-review-package, delegated-report-recovery, confirmed-cause-fix, regression-proof-and-rerun, attempt-log, two-failure-stop, dependency-edges, single-integration-branch, worktree-per-significant-change, worktree-base-verify, worktree-cleanup, pre-report-base-merge, unit-bead-execution]
 ours:how:
   tree_hash: "5c941f330897ec8f8b014b93ab4bfdeda12a9367a8d7dbdd5fcb18bd393f7cf6"
   traits: [read-only-explanation, immaterial-ambiguity-reading, angles-when-wide, reconcile-by-reading, explanation-sections, cited-flow-walkthrough, recommendation-with-tradeoffs]
@@ -235,7 +235,7 @@ ours:tdd:
     no-implementation-coupling: "Asserts exact source text only when that text is the contract."
     mock-boundaries: "Fakes and partial mocks are valid at any boundary that preserves the contract."
 ours:to-plan:
-  tree_hash: "fc8f597e87e30d51da71ef3796b471899c34e2fff0fde41ca0f07dd0f9d57dd1"
+  tree_hash: "9d6ba7a238c9f5444210e467c0c6ce58b768f9e5cb25ceaa1d371fd4fb12249a"
   traits: [plan-form-by-need, durable-plan-format, plan-evidence-bound, test-first-marking, no-placeholder-plan, plan-self-review, reviewer-rejectable-sizing, no-stale-code-snippets, ground-in-codebase, per-unit-evidence-boxes, named-execution-scope, plan-lint-last]
 ours:to-roadmap:
   tree_hash: "9393d02a5582a2eca09198e885f1882372566df0f4e542678bc7d52abe03c63e"
@@ -244,8 +244,8 @@ ours:to-spec:
   tree_hash: "5c23b156125b2447ff46d6c511a897855104b166e3468f53311c190884cdc3ef"
   traits: [synthesize-settled, spec-template, spec-criteria-and-questions, none-keeps-heading, testing-seam-decision, no-stale-file-paths, no-stale-code-snippets, prototype-snippet, spec-approval-gate, material-risk-review, user-perspective-framing, implementation-decisions-scope, testing-decisions-contents]
 ours:tracker:
-  tree_hash: "44526600de3c60c868f2341ac8742e5ac732900c0c07d2d7ddbf8e60684fecc8"
-  traits: [phase-epic-contract, phase-epic-lookup, workstream-layout, beads-native-tracking, workstream-extension, dependency-edges, real-id-wiring, one-phase-plan-tracking, flat-operational-tracking, close-gate, workstream-render]
+  tree_hash: "7c396cbd5719841873eb9e76ffa9c063b6402a45c90a2c4d4b8cf6c5d2ec987d"
+  traits: [phase-epic-contract, phase-epic-lookup, workstream-layout, beads-native-tracking, workstream-extension, dependency-edges, real-id-wiring, one-phase-plan-tracking, flat-operational-tracking, close-gate, workstream-render, session-spanning-unit-beads]
   notes:
     beads-native-tracking: "The roadmap anchor is the --spec-id and the governing spec is --design; the renderer derives the workstream from the anchor, so a plan path never goes in --design."
     close-gate: "Also closes a one-phase epic, whose exit evidence is the epic's acceptance rather than a roadmap exit criterion."

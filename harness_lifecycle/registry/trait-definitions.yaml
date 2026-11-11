@@ -2051,6 +2051,12 @@ one-phase-plan-tracking:
   secondary: [Coordination]
   distinct_from: [beads-native-tracking]
   note: "beads-native-tracking seeds phase epics against a roadmap anchor; this has no roadmap, anchors the epic on the spec and binds an already written plan to its stages."
+session-spanning-unit-beads:
+  definition: "After a plan is approved, when its units will span sessions, give each unit a child bead under the work it belongs to, with acceptance from the unit's own evidence and edges from its dependencies by returned IDs, recording each ID beside its unit in the plan and reusing a bead that already is the unit."
+  placement: {domain: engineering, stage: Design, substage: Decomposition}
+  secondary: [Continuity]
+  distinct_from: [multi-session-split, sub-issue-linkage]
+  note: "multi-session-split decides whether to write a spec and tickets at all by whether the build outlasts a session; sub-issue-linkage makes upstream tickets children of a source issue they never close or modify. This tracks an already approved plan's units as children of its own bead, ticket or stage, which close before that parent closes."
 
 # ---- engineering · Building · Implementation ----
 author-stages-over-template:
@@ -2107,6 +2113,12 @@ scope-the-procedure:
 task-loop:
   definition: "Claim the exact task, implement in dependency order within owned paths, run applicable checks, and close with evidence and material limitations."
   placement: {domain: engineering, stage: Building, substage: Implementation}
+unit-bead-execution:
+  definition: "Run a bead that has children by draining them first, one ready direct child at a time, claiming the parent only for its aggregate verification and close, and run a phase stage with unit beads outside the contractor only after its trace permits it, handing off committed clean work before the next contractor stage."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+  secondary: [Coordination]
+  distinct_from: [task-loop]
+  note: "task-loop claims, implements and closes one task; this orders a parent and its unit children around that loop, and keeps a coordinator-run phase stage from mixing with the contractor's admissions."
 template-library:
   definition: "Build each wizard over a shared bash UX library that sits above the stages marker and is never hand-edited."
   placement: {domain: engineering, stage: Building, substage: Implementation}

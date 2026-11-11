@@ -35,6 +35,7 @@ No description.
 - `worktree-base-verify`: Confirm a worktree's base before work starts in it and, on a mismatch, preserve the work, stop and report, resetting onto the base only when reset authority is explicit.
 - `worktree-cleanup`: Remove every implementer worktree when the build ends.
 - `pre-report-base-merge`: Before reporting done, merge the base branch's tip into the integration branch and rerun the checks; without commit authority, report that merge as due.
+- `unit-bead-execution`: Run a bead that has children by draining them first, one ready direct child at a time, claiming the parent only for its aggregate verification and close, and run a phase stage with unit beads outside the contractor only after its trace permits it, handing off committed clean work before the next contractor stage.
 <!-- /registry:generated traits -->
 
 <!-- registry:generated lineage -->
@@ -55,6 +56,8 @@ No description.
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-11` **update** (2026-11-11-tracker:023): critic-29b F1 (scratchpad/mvp-stack/critic-29b.md), coordinator fix: the coordinator stage renders tracking and refreshes the Beads export before the handoff c…
+- `2026-11-11` **update** (2026-11-11-tracker:022): Owner ruling N, R2/R3 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 27 section 5 T1b with critic-27d R1/R2 applied. Task loop child rule (F2): a …
 - `2026-11-11` **update** (2026-11-11-tracker:012): Owner rulings M2 (2026-11-10), N2 and N3 (2026-11-11) (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 27 T1a. Skip clause names to-roadmap and trac…
 - `2026-11-11` **update** (2026-11-10-renames-splits:157): Owner rulings M1, M4 (2026-11-10) and N1, N2 (2026-11-11) (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 24 U8r. Description: writing tickets for …
 - `2026-11-10` **adopt** (2026-11-10-renames-splits:110): critic-19d F2: spec-run.md step 8 merges the base's tip into the one integration branch, not the integration branch's tip into each implementer's branch, so it…

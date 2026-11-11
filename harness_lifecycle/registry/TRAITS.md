@@ -562,6 +562,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `flat-operational-tracking`: Track phaseless operational work as one epic anchored on its charter with plain task children, without a roadmap.
 - `close-gate`: Close a phase only when it has at least one stage, every stage is closed, and its roadmap exit criterion has run with evidence recorded.
 - `workstream-render`: Regenerate the workstream status, ideas and backlog boards from the tracker through the render script, never hand-editing them.
+- `session-spanning-unit-beads`: After a plan is approved, when its units will span sessions, give each unit a child bead under the work it belongs to, with acceptance from the unit's own evidence and edges from its dependencies by returned IDs, recording each ID beside its unit in the plan and reusing a bead that already is the unit.
 
 #### engineering · Building · Diagnosis — performance-optimization
 - `define-metric`: Define the metric, workload and target first, proposing the measurement or asking about the tradeoff before tuning code.
@@ -1016,6 +1017,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `worktree-base-verify`: Confirm a worktree's base before work starts in it and, on a mismatch, preserve the work, stop and report, resetting onto the base only when reset authority is explicit.
 - `worktree-cleanup`: Remove every implementer worktree when the build ends.
 - `pre-report-base-merge`: Before reporting done, merge the base branch's tip into the integration branch and rerun the checks; without commit authority, report that merge as due.
+- `unit-bead-execution`: Run a bead that has children by draining them first, one ready direct child at a time, claiming the parent only for its aggregate verification and close, and run a phase stage with unit beads outside the contractor only after its trace permits it, handing off committed clean work before the next contractor stage.
 
 ### Docs
 
@@ -8885,6 +8887,10 @@ Sequence first the work every later phase benefits from (CI, linting, test infra
 - `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
 - `cursor_plugins:skill:pstack/skills/principle-foundational-thinking` — defer
 
+#### `session-spanning-unit-beads`
+After a plan is approved, when its units will span sessions, give each unit a child bead under the work it belongs to, with acceptance from the unit's own evidence and edges from its dependencies by returned IDs, recording each ID beside its unit in the plan and reusing a bead that already is the unit.
+- ours: `tracker`
+
 #### `settle-by-observation`
 Sort each question that changes a plan: observe by running what a run can answer, decide and record a routine choice, and ask the owner a material one with options and a recommendation, writing the tasks that do not depend on it and marking those that do as blocked.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/multi-phase-plan.md`
@@ -10498,6 +10504,10 @@ Leave kept comments that concern things outside the team's control.
 #### `unexplained-change-stop`
 Store branch, HEAD and a tree id taken with a temporary index in each row, and stop touching nothing when the state before an iteration differs from the last row.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md`
+
+#### `unit-bead-execution`
+Run a bead that has children by draining them first, one ready direct child at a time, claiming the parent only for its aggregate verification and close, and run a phase stage with unit beads outside the contractor only after its trace permits it, handing off committed clean work before the next contractor stage.
+- ours: `implement`
 
 #### `unsure-comment-kept-and-flagged`
 When unsure whether a comment should go, keep it, bringing it back if already deleted, and flag it for a person.

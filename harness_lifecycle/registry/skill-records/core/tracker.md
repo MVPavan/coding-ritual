@@ -26,6 +26,7 @@ Use to put Beads structure on approved work: seed or extend a workstream's phase
 - `flat-operational-tracking`: Track phaseless operational work as one epic anchored on its charter with plain task children, without a roadmap.
 - `close-gate`: Close a phase only when it has at least one stage, every stage is closed, and its roadmap exit criterion has run with evidence recorded. (Also closes a one-phase epic, whose exit evidence is the epic's acceptance rather than a roadmap exit criterion.)
 - `workstream-render`: Regenerate the workstream status, ideas and backlog boards from the tracker through the render script, never hand-editing them.
+- `session-spanning-unit-beads`: After a plan is approved, when its units will span sessions, give each unit a child bead under the work it belongs to, with acceptance from the unit's own evidence and edges from its dependencies by returned IDs, recording each ID beside its unit in the plan and reusing a bead that already is the unit.
 <!-- /registry:generated traits -->
 
 <!-- registry:generated lineage -->
@@ -37,6 +38,7 @@ Use to put Beads structure on approved work: seed or extend a workstream's phase
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-11` **update** (2026-11-11-tracker:020): Owner ruling N, R2/R3 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 27 section 5 T1b with critic-27d R1/R2 applied. Unit beads branch: after plan…
 - `2026-11-11` **update** (2026-11-11-tracker:019): critic-28d F2 (scratchpad/mvp-stack/critic-28d.md), coordinator fix: a title opening with '[' is reserved for a workstream phase epic; tracker gives other epic…
 - `2026-11-11` **update** (2026-11-11-tracker:017): critic-28b (scratchpad/mvp-stack/critic-28b.md), coordinator-accepted, plan 27 T1a. F1: create recipes use --silent, which prints the new ID (-q prints nothing…
 - `2026-11-11` **adopt** (2026-11-11-tracker:007): Owner ruling N3 (2026-11-11), plan 27 section 4a: wayfinder keeps its questions, map content, ticket meaning and resolution, and records its approved map, tick…

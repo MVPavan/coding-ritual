@@ -36,6 +36,14 @@ pre-existing edits are not automatically part of the task.
 
 ## Task loop
 
+**A bead with open children** runs them first. Holding its claim on resume,
+unclaim it with a resume note. Claim one ready direct child at a time
+(`bd ready --parent <id> --json`, keeping `parent == <id>`), run it through this
+loop and close it with evidence. Claim the parent only once every child is closed,
+for its aggregate verification and close. Children open but none ready: stop and
+report which waits on what. Units that will span sessions but have no beads get
+them from `tracker` first.
+
 1. Read the request, existing plan if any, and Beads description/acceptance.
    Claim the exact task with `--actor "<coding-agent>:<unique-id>"`.
 2. Implement in dependency order, within owned paths. Use test-first or
@@ -69,22 +77,44 @@ acceptance, then close it by `tracker`'s close gate with that evidence.
    Elaborate a deep phase when its packet
    needs a plan; reuse approval covering this work rather than pausing again.
 3. Select a ready direct child from `bd ready --parent <epic> --json`, keeping
-   only beads whose `parent` is the epic (the query returns every descendant),
-   then call the
-   contractor: `uv run python -m workflow_interpreter.foreman --config <foreman-config.toml> contract <epic_id> <stage_id>`.
+   only beads whose `parent` is the epic (the query returns every descendant).
+   Match deep-phase `Stage:` plan tasks to stage IDs and dependency order first;
+   correct missing or unmatched mappings. A stage with unit beads (any children,
+   open or closed: `bd list --parent <stage> --all --json`) takes step 4; any
+   other takes step 5.
+4. **Stage with unit beads:** never call the contractor for it. First read its
+   trace, read-only: step 5's command with `--trace`. Proceed only on `state`
+   `result` with `relation` and `relation_error` null. `blocked`, `refused` or
+   unreadable output stops or enters step 6's recovery; an empty `blocking_ids`
+   does not clear `blocked` (an unfinished admitted sibling blocks with an empty
+   list). A non-null `relation` means the contractor already admitted this stage:
+   run none of its units by hand; stop and report the recovery case. Otherwise
+   release the phase claim with a resume note, run the stage through the Task loop
+   (its child rule drains the units), verify the stage's aggregate acceptance and
+   close it. Render through `tracker` where authorized and refresh the Beads
+   export: every write comes before the handoff. Then hand off: with commit
+   authority, commit the stage's verified owned changes and tracked bookkeeping
+   (the Beads export and rendered tracking too) and return to step 3, confirming
+   `git status` is clean immediately before the next contractor call; without it,
+   preserve the work and stop with a precise handoff (stage, files, checks, the
+   commit due), never stashing, discarding or reporting it as a contractor result.
+   The contractor refuses a checkout with any dirt beyond its own stage's
+   `.wf/export/<stage>.jsonl` and `.wf/repo-id` (`refused`, "coordinator checkout
+   is not clean"); on resume, uncommitted work of a closed coordinator stage is
+   that handoff, still owed, in the same order.
+5. Call the contractor:
+   `uv run python -m workflow_interpreter.foreman --config <foreman-config.toml> contract <epic_id> <stage_id>`.
    The contractor claims atomically and owns execution through closure; do not
-   claim or close the stage separately. Match deep-phase `Stage:` plan tasks to
-   stage IDs and dependency order before the call. Correct missing or unmatched
-   mappings first.
-4. Read the contractor's one JSON result. `phase-exhausted` means proceed to
+   claim or close the stage separately.
+6. Read the contractor's one JSON result. `phase-exhausted` means proceed to
    the close gate; `blocked` names work to clear or bypass with another ready
    stage; `result` means the stage landed and closed, so render tracking through
    `tracker` where authorized, then select the next stage. `refused` (exit 2)
    names an invalid request: fix its reason before retrying; exit 1 is a crash to report. Use
    `--trace` for read-only evidence, and `--retry` only to mint an eligible new
    attempt. Never edit generated tracking by hand.
-5. **Close:** run the roadmap exit criterion, then close by `tracker`'s close gate
-   with its evidence.
+7. **Close:** reclaim the phase if step 4 released it, run the roadmap exit
+   criterion, then close by `tracker`'s close gate with its evidence.
 
 If the governing plan changes or code invalidates the chosen approach, reconcile
 before dependent work continues. Preserve completed work on failure. An unresolved
