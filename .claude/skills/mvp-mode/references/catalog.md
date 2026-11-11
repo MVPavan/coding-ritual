@@ -19,7 +19,7 @@ Principles are not skills, so they are not listed here; the router lists them.
 
 ## Model-invocable skills
 
-`authoring-for-agents`, `beads`, `build-a-lever`, `codebase-design`, `decision-trail`, `delegation`, `design-evolve`, `discovery`, `domain-modeling`, `grilling`, `harness-evaluate`, `harness-skill-compare`, `how`, `html-artifact`, `implement`, `interrogate`, `land`, `model-council`, `mvp-mode`, `performance-optimization`, `perspective-council`, `prototype`, `research`, `resolving-merge-conflicts`, `review`, `security`, `systematic-debugging`, `tdd`, `to-plan`, `to-roadmap`, `to-spec`, `tracker`, `unslop`, `wake`, `why`
+`authoring-for-agents`, `beads`, `build-a-lever`, `codebase-design`, `decision-trail`, `delegation`, `design-evolve`, `discovery`, `domain-modeling`, `grilling`, `harness-evaluate`, `harness-skill-compare`, `how`, `html-artifact`, `interrogate`, `land`, `model-council`, `mvp-mode`, `performance-optimization`, `perspective-council`, `prototype`, `research`, `resolving-merge-conflicts`, `review`, `security`, `systematic-debugging`, `tdd`, `to-plan`, `to-roadmap`, `to-spec`, `tracker`, `unslop`, `wake`, `why`
 
 ## Slash-only workflows
 
@@ -35,11 +35,10 @@ Principles are not skills, so they are not listed here; the router lists them.
 | `/harness-publish` | Publish this repo's harness into the mvp-plugin (the mvp-harness submodule) — copy the shippable skills and agents, run the provider-neutrality and leak audits, regenerate the shipped router and Codex sidecars, rebuild the residue template, validate both manifests, bump the version. |
 | `/harness-scan` | Scan a reference harness for material upstream drift and missing capabilities. |
 | `/harness-status` | Quick upstream-drift status across all reference_harnesses submodules — what changed since our pinned commits. |
+| `/implement` | Run settled, tracked work through the implement playbook: a bead, a plan, a roadmap phase, all remaining phases, or a spec. |
 | `/improve-codebase-architecture` | Find evidence-backed architecture improvements within a named area or requested codebase survey. |
 | `/migrate-claude-to-codex` | Adapt Claude harness assets for Codex while preserving shared AGENTS.md policy and canonical skills. |
-| `/phase-execution` | Execute one phase of a workstream roadmap. |
 | `/receiving-code-review` | Use when explicitly invoking the legacy receiving-code-review entrypoint; incoming feedback is owned by review. |
-| `/run-phases` | Run every remaining phase of a workstream unattended. |
 | `/show-me` | Show the current topic visually, inline in the conversation. |
 | `/skill-router` | Legacy entrypoint; routing moved to mvp-mode. |
 | `/teach` | Teach a concept, walk through a session, or conduct an explicitly requested ongoing course. |

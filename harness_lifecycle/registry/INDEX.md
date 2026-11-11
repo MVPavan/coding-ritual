@@ -61,9 +61,6 @@ Domain → stage → sub-stage. Each active skill under its primary home.
 ### Operations
 - **Maintenance**: improve-codebase-architecture
 
-### X
-- **Coordination**: implement
-
 ## Merge candidates
 
 Two or more active skills share one domain · sub-stage (README §2 rule 3):
@@ -85,7 +82,6 @@ Two or more active skills share one domain · sub-stage (README §2 rule 3):
 ## Aliases
 
 - grilling: grill-me, grill-with-docs
-- implement: phase-execution, run-phases
 - review: document-review, receiving-code-review
 - teach: teach-session
 

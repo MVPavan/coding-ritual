@@ -5225,6 +5225,11 @@ build-closeout:
   placement: {domain: engineering, stage: Building, substage: Implementation}
   distinct_from: [closeout]
   note: "closeout removes instrumentation and records a confirmed cause; this has no cause to record, and reports the tree and the open decisions."
+implement-closeout:
+  definition: "On every exit of a tracked build, close finished beads with evidence and limitations, link follow-ups to their origin, unclaim the rest with a resume line, persist the run ledger, and report the recovery pointers."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+  distinct_from: [build-closeout, closeout]
+  note: "build-closeout removes scaffolding and lists open decisions, and closeout removes instrumentation and records a cause; this leaves bead state, resume lines and the run ledger ready for another session."
 lead-owns-design:
   definition: "The lead settles the design and reviews the result, whoever writes the code."
   placement: {domain: engineering, stage: Design, substage: Architecture}

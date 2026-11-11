@@ -108,9 +108,9 @@ implement:
   substage: Coordination
   secondary: []
   family: plan-execution
-  aliases: [phase-execution, run-phases]
-  status: active
-  boundary: null
+  aliases: []
+  status: retired
+  boundary: "Became the implement playbook; kept as the manual /implement entry so its lineage and history stay readable. It delivers none of its former traits."
 how:
   domain: engineering
   stage: Discovery

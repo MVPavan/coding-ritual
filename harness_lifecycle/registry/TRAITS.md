@@ -1006,31 +1006,6 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `behaviour-and-edge-case-tests`: Judge tests by the behaviours and edge cases they exercise, not by line coverage.
 - `implementation-test-deletion`: When internals change, rewrite or delete tests that only protect the old implementation, asserting the current contract instead.
 
-#### engineering · X · Coordination — implement
-- `scope-selector`: Pick task, phase or workstream scope from the request and route unresolved material scope back to to-plan or discovery.
-- `risk-sized-review`: Size work small, standard or deep and match inline work, delegation and independent review to that size.
-- `task-loop`: Claim the exact task, implement in dependency order within owned paths, run applicable checks, and close with evidence and material limitations.
-- `finding-adjudication`: Verify each incoming review finding against requirements, code and primary evidence before acting, and give each a visible disposition: fix a confirmed in-scope defect, answer an incorrect one with a retained ruling, record an out-of-scope follow-up.
-- `phase-loop`: Resolve the roadmap phase's single epic, drive ready stages through the contractor that owns execution to closure, and refresh tracking between stages.
-- `workstream-mode`: Run remaining phases in order only on explicit opt-in, with per-phase tracking refresh and commits only when the invocation covers them.
-- `child-workflows`: Run independent graphs as admitted child workflows where collection is evidence and landing goes through the contractor, not automatic result binding.
-- `context-recovery`: Stay in context while useful and, before compacting or handing off, persist scope, decisions and next work to the ledger, tracker and Git, then rebuild from those rather than from a summary.
-- `stop-on-failure`: Let a failed gate, exit criterion or material blocker stop advancement and diagnose instead of re-dispatching without new evidence.
-- `bounded-fix-loop`: Group compatible confirmed findings into one fix unit, re-review only the delta plus any breakage it caused, adjudicate every round, and treat a small fixed count of completed fix/re-review rounds as a ceiling rather than a target.
-- `scope-base-review-package`: Review uncommitted working-tree and untracked changes against a recorded base revision by passing the authorized owned-path list, never attributing a baseline-dirty file's whole diff to the task.
-- `delegated-report-recovery`: Interpret each delegated worker's status (done, done-with-concerns, needs-context, blocked) and recover by supplying context, splitting, debugging or replanning, since bare repetition is not recovery.
-- `confirmed-cause-fix`: Fix a failure only for a cause its diagnosis confirmed.
-- `regression-proof-and-rerun`: Prove a fix with a regression check when one is feasible, then rerun the original failing scenario.
-- `attempt-log`: Record each debugging attempt as hypothesis, change and result.
-- `two-failure-stop`: After two failed fixes, stop and bring the attempt log to whoever started the task before trying another.
-- `dependency-edges`: Encode real blocking edges in the tracker and let the ready frontier drive execution rather than listing order.
-- `single-integration-branch`: Land every ticket of a multi-ticket build on one integration branch.
-- `worktree-per-significant-change`: Use a worktree only for a significant change: a spec's work usually is one and runs in one worktree on the integration branch, small tickets inside it get none of their own, and implementers never run in parallel.
-- `worktree-base-verify`: Confirm a worktree's base before work starts in it and, on a mismatch, preserve the work, stop and report, resetting onto the base only when reset authority is explicit.
-- `worktree-cleanup`: Remove every implementer worktree when the build ends.
-- `pre-report-base-merge`: Before reporting done, merge the base branch's tip into the integration branch and rerun the checks; without commit authority, report that merge as due.
-- `unit-bead-execution`: Run a bead that has children by draining them first, one ready direct child at a time, claiming the parent only for its aggregate verification and close, and run a phase stage with unit beads outside the contractor only after its trace permits it, handing off committed clean work before the next contractor stage.
-
 ### Docs
 
 #### doc:.repo-context/coding-style.md
@@ -1235,6 +1210,32 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `climb-closeout`: On every exit of a climb, bring an isolated climb back and remove its worktree or stop naming both, confirm the tree holds only kept attempts, name the kept patches and the harness, and run the trail's audit and review when one opened.
 - `climb-closing-settle`: A closing return starts no attempt: a card with a stopped marker is touched no further, otherwise it reconciles the checkpoint with its row, undoes an incomplete attempt through the helper even past the deadline, undoes nothing while a command runs, and only then judges the checkpoint's tree and value.
 - `unattended-climb-closeout`: On every exit of a stated unattended climb, write nothing to the main tree: keep the worktree, write the patch from the first tree to the checkpoint's tree, and name both.
+
+#### implement — `doc:.claude/skills/mvp-mode/playbooks/implement.md`
+- `stop-on-failure`: Let a failed gate, exit criterion or material blocker stop advancement and diagnose instead of re-dispatching without new evidence.
+- `scope-selector`: Pick task, phase or workstream scope from the request and route unresolved material scope back to to-plan or discovery.
+- `risk-sized-review`: Size work small, standard or deep and match inline work, delegation and independent review to that size.
+- `dependency-edges`: Encode real blocking edges in the tracker and let the ready frontier drive execution rather than listing order.
+- `single-integration-branch`: Land every ticket of a multi-ticket build on one integration branch.
+- `worktree-per-significant-change`: Use a worktree only for a significant change: a spec's work usually is one and runs in one worktree on the integration branch, small tickets inside it get none of their own, and implementers never run in parallel.
+- `worktree-base-verify`: Confirm a worktree's base before work starts in it and, on a mismatch, preserve the work, stop and report, resetting onto the base only when reset authority is explicit.
+- `task-loop`: Claim the exact task, implement in dependency order within owned paths, run applicable checks, and close with evidence and material limitations.
+- `unit-bead-execution`: Run a bead that has children by draining them first, one ready direct child at a time, claiming the parent only for its aggregate verification and close, and run a phase stage with unit beads outside the contractor only after its trace permits it, handing off committed clean work before the next contractor stage.
+- `confirmed-cause-fix`: Fix a failure only for a cause its diagnosis confirmed.
+- `regression-proof-and-rerun`: Prove a fix with a regression check when one is feasible, then rerun the original failing scenario.
+- `attempt-log`: Record each debugging attempt as hypothesis, change and result.
+- `two-failure-stop`: After two failed fixes, stop and bring the attempt log to whoever started the task before trying another.
+- `finding-adjudication`: Verify each incoming review finding against requirements, code and primary evidence before acting, and give each a visible disposition: fix a confirmed in-scope defect, answer an incorrect one with a retained ruling, record an out-of-scope follow-up.
+- `bounded-fix-loop`: Group compatible confirmed findings into one fix unit, re-review only the delta plus any breakage it caused, adjudicate every round, and treat a small fixed count of completed fix/re-review rounds as a ceiling rather than a target.
+- `scope-base-review-package`: Review uncommitted working-tree and untracked changes against a recorded base revision by passing the authorized owned-path list, never attributing a baseline-dirty file's whole diff to the task.
+- `delegated-report-recovery`: Interpret each delegated worker's status (done, done-with-concerns, needs-context, blocked) and recover by supplying context, splitting, debugging or replanning, since bare repetition is not recovery.
+- `phase-loop`: Resolve the roadmap phase's single epic, drive ready stages through the contractor that owns execution to closure, and refresh tracking between stages.
+- `child-workflows`: Run independent graphs as admitted child workflows where collection is evidence and landing goes through the contractor, not automatic result binding.
+- `workstream-mode`: Run remaining phases in order only on explicit opt-in, with per-phase tracking refresh and commits only when the invocation covers them.
+- `context-recovery`: Stay in context while useful and, before compacting or handing off, persist scope, decisions and next work to the ledger, tracker and Git, then rebuild from those rather than from a summary.
+- `pre-report-base-merge`: Before reporting done, merge the base branch's tip into the integration branch and rerun the checks; without commit authority, report that merge as due.
+- `worktree-cleanup`: Remove every implementer worktree when the build ends.
+- `implement-closeout`: On every exit of a tracked build, close finished beads with evidence and limitations, link follow-ups to their origin, unclaim the rest with a resume line, persist the run ledger, and report the recovery pointers.
 
 #### investigation — `doc:.claude/skills/mvp-mode/playbooks/investigation.md`
 - `read-only-answer-gate`: End a question about the code at its answer, changing nothing but an explicitly requested reply artifact and naming any wanted change as the next request.
@@ -2907,22 +2908,22 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `ordered-context-decision-tree`: Walk the context moves at a phase boundary as an ordered decision tree in which the first yes wins. — defer
 
 #### engineering · X · Coordination — skill:skills/engineering/implement-spec
-- `single-integration-branch`: Land every ticket of a multi-ticket build on one integration branch. — adopt → implement#single-integration-branch
-- `dependency-edges`: Encode real blocking edges in the tracker and let the ready frontier drive execution rather than listing order. — adopt → implement#dependency-edges
+- `single-integration-branch`: Land every ticket of a multi-ticket build on one integration branch. — adopt → doc:.claude/skills/mvp-mode/playbooks/implement.md#single-integration-branch
+- `dependency-edges`: Encode real blocking edges in the tracker and let the ready frontier drive execution rather than listing order. — adopt → doc:.claude/skills/mvp-mode/playbooks/implement.md#dependency-edges
 - `pointer-only-subagent-briefs`: Keep subagent communication sparse by passing pointers to the spec, tickets, notes and commits rather than copying their content. — defer
 - `parallel-frontier-implementers`: Run implementer subagents concurrently over the ready frontier of a ticket graph, dispatching new ones whenever a merge opens more tickets. — defer
 - `exploration-notes-subagent`: Optionally run an exploration subagent that saves markdown notes outside the repository for later subagents to read. — defer
 - `draft-closing-pr`: After the first merge, open a draft pull request marked as closing the spec and tickets when the tracker closes work through pull requests or the user asks. — defer
-- `worktree-per-implementer`: Give each implementer subagent its own worktree and branch. — adopt → implement#worktree-per-significant-change
-- `worktree-base-check`: Have each implementer confirm its worktree is based on the integration branch and reset onto it if not. — adopt → implement#worktree-base-verify
+- `worktree-per-implementer`: Give each implementer subagent its own worktree and branch. — adopt → doc:.claude/skills/mvp-mode/playbooks/implement.md#worktree-per-significant-change
+- `worktree-base-check`: Have each implementer confirm its worktree is based on the integration branch and reset onto it if not. — adopt → doc:.claude/skills/mvp-mode/playbooks/implement.md#worktree-base-verify
 - `red-green`: Make one test fail before implementing the change that makes it pass. — adopt → tdd#red-green
-- `pre-report-tip-merge`: Have each implementer merge the integration branch's tip into its own branch before reporting done. — adopt → implement#pre-report-base-merge
+- `pre-report-tip-merge`: Have each implementer merge the integration branch's tip into its own branch before reporting done. — adopt → doc:.claude/skills/mvp-mode/playbooks/implement.md#pre-report-base-merge
 - `dedicated-merger-agent`: Merge completed work into the integration branch through a dedicated merger subagent. — defer
 - `final-branch-review`: Once all tickets have landed, review the integration branch a single time and fix all findings through a single implementer. — defer
 - `delivery-closeout`: Finish a multi-ticket build by marking the draft pull request ready or closing the tickets, and report the branch. — defer
-- `worktree-cleanup`: Remove every implementer worktree when the build ends. — adopt → implement#worktree-cleanup
+- `worktree-cleanup`: Remove every implementer worktree when the build ends. — adopt → doc:.claude/skills/mvp-mode/playbooks/implement.md#worktree-cleanup
 - `fresh-context-subagent`: Start every subagent in a fresh context window rather than as a copy of the caller's conversation. — adopt, pending cr-r2pa.2.19 → delegation#fresh-context-subagent
-- `no-reused-implementer`: Give each ticket, and the closing round of review fixes, a newly started implementer rather than one that already finished other work. — adopt, pending cr-r2pa.2.19 → implement#no-reused-implementer
+- `no-reused-implementer`: Give each ticket, and the closing round of review fixes, a newly started implementer rather than one that already finished other work. — adopt, pending cr-r2pa.2.19 → doc:.claude/skills/mvp-mode/playbooks/implement.md#no-reused-implementer
 
 ## By trait
 
@@ -3835,8 +3836,8 @@ Make a proof script or test fail noisily if the claim is wrong.
 
 #### `finding-adjudication`
 Verify each incoming review finding against requirements, code and primary evidence before acting, and give each a visible disposition: fix a confirmed in-scope defect, answer an incorrect one with a retained ruling, record an out-of-scope follow-up.
-- ours: `implement`
 - ours: `review`
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/implement.md`
 
 #### `finding-repro-report`
 Require each finding to carry a title, the exact command, the printed output and the output the intent requires.
@@ -8827,10 +8828,10 @@ Split an approved spec into demoable phases with checkable exits and flat stages
 
 #### `dependency-edges`
 Encode real blocking edges in the tracker and let the ready frontier drive execution rather than listing order.
-- ours: `implement`
 - ours: `tracker`
 - ours: `wayfinder`
-- `mattpocock_skills:skill:skills/engineering/implement-spec` — adopt → implement#dependency-edges
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/implement.md`
+- `mattpocock_skills:skill:skills/engineering/implement-spec` — adopt → doc:.claude/skills/mvp-mode/playbooks/implement.md#dependency-edges
 - `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
 - `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → tracker#dependency-edges
 - `mattpocock_skills:skill:skills/engineering/wayfinder` — adopt → wayfinder#dependency-edges
@@ -9271,8 +9272,8 @@ Keep a compact baseline-to-result attempt record with decision and reason so fai
 
 #### `attempt-log`
 Record each debugging attempt as hypothesis, change and result.
-- ours: `implement`
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/bug-fix.md`
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/implement.md`
 
 #### `ballpark-path`
 For a rough figure the user asked for, let one run do while still checking errors and that the work happened, saying it is one run, and applying the other checks only if the run looks wrong.
@@ -9331,7 +9332,7 @@ Treat a result as a comparison of configurations only on a demonstrated mismatch
 
 #### `confirmed-cause-fix`
 Fix a failure only for a cause its diagnosis confirmed.
-- ours: `implement`
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/implement.md`
 
 #### `confirmed-cause-gate`
 Change production code only for a confirmed cause, and reject any change that merely hides the symptom.
@@ -9795,8 +9796,8 @@ For a claim about the tuned implementation or an adoption choice, tune an untune
 
 #### `two-failure-stop`
 After two failed fixes, stop and bring the attempt log to whoever started the task before trying another.
-- ours: `implement`
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/bug-fix.md`
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/implement.md`
 
 #### `unchecked-run-inconclusive`
 Call a verdict inconclusive when the error or work check could not be done.
@@ -10112,6 +10113,10 @@ Build against the sketch as the contract, surfacing any departure and revising t
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/perf-issue.md`
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/refactoring.md`
 - `cursor_plugins:skill:pstack/skills/architect` — adopt → doc:.claude/skills/mvp-mode/playbooks/feature.md
+
+#### `implement-closeout`
+On every exit of a tracked build, close finished beads with evidence and limitations, link follow-ups to their origin, unclaim the rest with a resume line, persist the run ledger, and report the recovery pointers.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/implement.md`
 
 #### `install-boundary-linter`
 Install the module-boundary linter as a development dependency.
@@ -10503,7 +10508,7 @@ Never swallow exceptions raised in background tasks.
 
 #### `task-loop`
 Claim the exact task, implement in dependency order within owned paths, run applicable checks, and close with evidence and material limitations.
-- ours: `implement`
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/implement.md`
 
 #### `template-library`
 Build each wizard over a shared bash UX library that sits above the stages marker and is never hand-edited.
@@ -10558,7 +10563,7 @@ Store branch, HEAD and a tree id taken with a temporary index in each row, and s
 
 #### `unit-bead-execution`
 Run a bead that has children by draining them first, one ready direct child at a time, claiming the parent only for its aggregate verification and close, and run a phase stage with unit beads outside the contractor only after its trace permits it, handing off committed clean work before the next contractor stage.
-- ours: `implement`
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/implement.md`
 
 #### `unsure-comment-kept-and-flagged`
 When unsure whether a comment should go, keep it, bringing it back if already deleted, and flag it for a person.
@@ -10642,7 +10647,7 @@ Report security findings through the shared review skill's severity and output c
 
 #### `bounded-fix-loop`
 Group compatible confirmed findings into one fix unit, re-review only the delta plus any breakage it caused, adjudicate every round, and treat a small fixed count of completed fix/re-review rounds as a ceiling rather than a target.
-- ours: `implement`
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/implement.md`
 
 #### `callers-and-evidence`
 Read enough surrounding code and affected callers, treating implementer and reviewer reports as evidence to verify rather than authority.
@@ -10747,7 +10752,7 @@ Send each rework push back to automated review.
 
 #### `scope-base-review-package`
 Review uncommitted working-tree and untracked changes against a recorded base revision by passing the authorized owned-path list, never attributing a baseline-dirty file's whole diff to the task.
-- ours: `implement`
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/implement.md`
 
 #### `scope-establishment`
 Fix the diff and the base it is measured from before reviewing.
@@ -10993,7 +10998,7 @@ Turn the failure into a durable regression check when feasible, showing failure 
 
 #### `regression-proof-and-rerun`
 Prove a fix with a regression check when one is feasible, then rerun the original failing scenario.
-- ours: `implement`
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/implement.md`
 
 #### `replace-dont-layer`
 Once the deepened interface is tested, delete the old shallow-module unit tests and assert only on observable outcomes that survive internal refactors.
@@ -11193,11 +11198,11 @@ Fill a fixed PR-body skeleton with Summary, Evidence, and Merge Danger sections.
 
 #### `pre-report-base-merge`
 Before reporting done, merge the base branch's tip into the integration branch and rerun the checks; without commit authority, report that merge as due.
-- ours: `implement`
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/implement.md`
 
 #### `pre-report-tip-merge`
 Have each implementer merge the integration branch's tip into its own branch before reporting done.
-- `mattpocock_skills:skill:skills/engineering/implement-spec` — adopt → implement#pre-report-base-merge
+- `mattpocock_skills:skill:skills/engineering/implement-spec` — adopt → doc:.claude/skills/mvp-mode/playbooks/implement.md#pre-report-base-merge
 
 #### `prune-on-approval-gate`
 Remove a worktree only after the owner approves that exact worktree, even when it is clean and merged.
@@ -11225,9 +11230,9 @@ Discover and run the project's automated checks and fix what the merge broke.
 
 #### `single-integration-branch`
 Land every ticket of a multi-ticket build on one integration branch.
-- ours: `implement`
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/implement.md`
 - `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
-- `mattpocock_skills:skill:skills/engineering/implement-spec` — adopt → implement#single-integration-branch
+- `mattpocock_skills:skill:skills/engineering/implement-spec` — adopt → doc:.claude/skills/mvp-mode/playbooks/implement.md#single-integration-branch
 
 #### `small-single-purpose-commits`
 Keep each commit small and about one thing.
@@ -11253,11 +11258,11 @@ Refuse to land work not verified on its final form, rechecking behaviour if a cl
 
 #### `worktree-base-check`
 Have each implementer confirm its worktree is based on the integration branch and reset onto it if not.
-- `mattpocock_skills:skill:skills/engineering/implement-spec` — adopt → implement#worktree-base-verify
+- `mattpocock_skills:skill:skills/engineering/implement-spec` — adopt → doc:.claude/skills/mvp-mode/playbooks/implement.md#worktree-base-verify
 
 #### `worktree-base-verify`
 Confirm a worktree's base before work starts in it and, on a mismatch, preserve the work, stop and report, resetting onto the base only when reset authority is explicit.
-- ours: `implement`
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/implement.md`
 
 ### engineering · Improvement · Codification
 
@@ -11381,7 +11386,7 @@ Present candidates as a self-contained HTML file written to the OS temp director
 
 #### `context-recovery`
 Stay in context while useful and, before compacting or handing off, persist scope, decisions and next work to the ledger, tracker and Git, then rebuild from those rather than from a summary.
-- ours: `implement`
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/implement.md`
 
 ### engineering · X · Coordination
 
@@ -11407,7 +11412,7 @@ Stop any loop of runs after a few tries and hand it to a person, labelled as wai
 
 #### `child-workflows`
 Run independent graphs as admitted child workflows where collection is evidence and landing goes through the contractor, not automatic result binding.
-- ours: `implement`
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/implement.md`
 
 #### `close-gate`
 Close a phase only when it has at least one stage, every stage is closed, and its roadmap exit criterion has run with evidence recorded.
@@ -11419,7 +11424,7 @@ Define each kind of automated work once as a task that runs many times against a
 
 #### `delegated-report-recovery`
 Interpret each delegated worker's status (done, done-with-concerns, needs-context, blocked) and recover by supplying context, splitting, debugging or replanning, since bare repetition is not recovery.
-- ours: `implement`
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/implement.md`
 
 #### `design-done-all-answered`
 Count a design unfinished until every task and ticket source answers every question.
@@ -11451,7 +11456,7 @@ Start nothing when a run that was fixing a failed run fails itself.
 
 #### `no-reused-implementer`
 Give each ticket, and the closing round of review fixes, a newly started implementer rather than one that already finished other work.
-- `mattpocock_skills:skill:skills/engineering/implement-spec` — adopt, pending cr-r2pa.2.19 → implement#no-reused-implementer
+- `mattpocock_skills:skill:skills/engineering/implement-spec` — adopt, pending cr-r2pa.2.19 → doc:.claude/skills/mvp-mode/playbooks/implement.md#no-reused-implementer
 
 #### `one-trigger-at-a-time`
 Add automated triggers one at a time rather than several together.
@@ -11484,7 +11489,7 @@ Find a phase's single epic by its roadmap anchor and bracketed phase-id title, t
 
 #### `phase-loop`
 Resolve the roadmap phase's single epic, drive ready stages through the contractor that owns execution to closure, and refresh tracking between stages.
-- ours: `implement`
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/implement.md`
 
 #### `question-duplicate-runs`
 Answer, for each automated task, what keeps two of its runs from doing one piece of work.
@@ -11512,7 +11517,7 @@ Answer, for each automated task, what starts it.
 
 #### `risk-sized-review`
 Size work small, standard or deep and match inline work, delegation and independent review to that size.
-- ours: `implement`
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/implement.md`
 
 #### `run-chaining-channels`
 Let a run start later runs only directly, through orchestrator logic, or by changing the tracker or git host.
@@ -11532,7 +11537,7 @@ Choose the runner per task, so review and implementation runs may run on differe
 
 #### `scope-selector`
 Pick task, phase or workstream scope from the request and route unresolved material scope back to to-plan or discovery.
-- ours: `implement`
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/implement.md`
 
 #### `self-chaining-implementer`
 Have the implementer pick the next ticket with no open dependency and restart itself until none remain.
@@ -11548,7 +11553,7 @@ Order the work as interview, optional prototype, spec, tickets, implementation, 
 
 #### `stop-on-failure`
 Let a failed gate, exit criterion or material blocker stop advancement and diagnose instead of re-dispatching without new evidence.
-- ours: `implement`
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/implement.md`
 
 #### `three-trigger-classes`
 Start every run from one of three event classes: a tracker or git host change, an orchestrator clock, or another run.
@@ -11576,20 +11581,20 @@ Route runs by what the tracker type offers: labels on a git-host tracker, status
 
 #### `workstream-mode`
 Run remaining phases in order only on explicit opt-in, with per-phase tracking refresh and commits only when the invocation covers them.
-- ours: `implement`
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/implement.md`
 
 #### `worktree-cleanup`
 Remove every implementer worktree when the build ends.
-- ours: `implement`
-- `mattpocock_skills:skill:skills/engineering/implement-spec` — adopt → implement#worktree-cleanup
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/implement.md`
+- `mattpocock_skills:skill:skills/engineering/implement-spec` — adopt → doc:.claude/skills/mvp-mode/playbooks/implement.md#worktree-cleanup
 
 #### `worktree-per-implementer`
 Give each implementer subagent its own worktree and branch.
-- `mattpocock_skills:skill:skills/engineering/implement-spec` — adopt → implement#worktree-per-significant-change
+- `mattpocock_skills:skill:skills/engineering/implement-spec` — adopt → doc:.claude/skills/mvp-mode/playbooks/implement.md#worktree-per-significant-change
 
 #### `worktree-per-significant-change`
 Use a worktree only for a significant change: a spec's work usually is one and runs in one worktree on the integration branch, small tickets inside it get none of their own, and implementers never run in parallel.
-- ours: `implement`
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/implement.md`
 
 ### engineering · X · Governance
 
@@ -11615,16 +11620,16 @@ Traits listed by two or more of our active skills (`doc:AGENTS.md` and playbooks
 |---|---|---|
 | `answer-before-next-round` | discovery, grilling | As question-batching: each skill waits for a round's answers inside its own question flow. |
 | `area-topic-filing` | discovery, research | Each files its own output under its own root by one rule: discovery its records under docs/discovery/, research its reports under docs/research/. |
-| `attempt-log` | doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, implement | Each fixes a failure on its own path, the bug-fix playbook for a bug-fix request and implement inside a task it is running, often delegated, where it cannot start the playbook (R8); both log each fix attempt so a stop hands back usable evidence. |
+| `attempt-log` | doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/implement.md | Each fixes a failure on its own path, the bug-fix playbook for a bug-fix request and the implement playbook inside a unit it coordinates, where a separate bug-fix request would leave its scope; both log each fix attempt so a stop hands back usable evidence. |
 | `baseline` | performance-optimization, systematic-debugging | Each measures before a fix: performance-optimization for a resource target, systematic-debugging when the failure diagnosed is a performance regression, which it hands to the fixer. |
 | `bounded-background-wait` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md | The same one sentence on waiting sits at each step that waits, with its own stopped exit; no skill is called for it. |
 | `build-closeout` | doc:.claude/skills/mvp-mode/playbooks/feature.md, doc:.claude/skills/mvp-mode/playbooks/perf-issue.md, doc:.claude/skills/mvp-mode/playbooks/refactoring.md | Each playbook's closeout runs on its own exits and feeds its own reply, and these three have the same three duties; a skill of three duties would be ceremony (unit-kinds deviation log, St4 and B4). |
 | `canonical-term-and-aliases` | domain-modeling, teach | Each keeps a glossary of its own (project language, the learner's workspace) in one entry format, with its own admission rules. |
-| `dependency-edges` | implement, tracker, wayfinder | Each lets the tracker graph's readiness drive the work: tracker writes the genuine edges of stages, plan stages and decision tickets by returned ID, wayfinder picks a map's genuine prerequisites and works its ready frontier, and implement's spec scope runs a spec's tickets from the ready frontier, adding a blocking edge it finds missing; edge semantics stay in beads. |
+| `dependency-edges` | doc:.claude/skills/mvp-mode/playbooks/implement.md, tracker, wayfinder | Each lets the tracker graph's readiness drive the work: tracker writes the genuine edges of stages, plan stages and decision tickets by returned ID, wayfinder picks a map's genuine prerequisites and works its ready frontier, and implement's spec scope runs a spec's tickets from the ready frontier, adding a blocking edge it finds missing; edge semantics stay in beads. |
 | `domain-vocabulary` | brief-me, improve-codebase-architecture, prototype, teach | Each writes for its reader in the project's own terms: brief-me in its re-pitches, teach in its lessons, prototype in its states, actions and labels, so an answer transfers to the real code, and improve-codebase-architecture in its candidates and their friction. |
 | `drift-scan` | harness-scan, harness-status | Both run the one drift command, scan for a single harness and status as a sweep of all of them; a pointer between them would add a hop to a one-line command. |
 | `dropout-proceeds-noted` | interrogate, model-council | A failed member and a failed adversary are handled alike, going on and reporting it, but what is left when too few remain differs: no pick for one, not run for the other. |
-| `finding-adjudication` | implement, review | Implement rules on findings inside its delivery loop and review owns the method; owner 2026-10-30: implement (then named execution) stays unchanged. |
+| `finding-adjudication` | doc:.claude/skills/mvp-mode/playbooks/implement.md, review | Implement rules on findings inside its delivery loop and review owns the method; owner 2026-10-30: implement (then named execution) stays unchanged. |
 | `glossary-entry-template` | domain-modeling, teach | Each keeps a glossary of its own (project language, the learner's workspace) in one entry format, with its own admission rules. |
 | `immaterial-ambiguity-reading` | how, why | Both take an ambiguous target and state the reading taken when the readings would not change the answer; adopted for both upstream how and why (2026-11-01-batch-1:237, :238), kept in each half of the split. |
 | `implement-against-sketch` | doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/feature.md, doc:.claude/skills/mvp-mode/playbooks/perf-issue.md, doc:.claude/skills/mvp-mode/playbooks/refactoring.md | Owner ruling 5 keeps the sketch design-only, so each playbook's own build step writes the code and holds this rule; a skill for it would bring back the implement branch the ruling removed (unit-kinds deviation log, St4). |
@@ -11654,6 +11659,6 @@ Traits listed by two or more of our active skills (`doc:AGENTS.md` and playbooks
 | `single-source-of-truth` | authoring-for-agents, principle-subtract-before-you-add | Each applies one-owner-per-meaning to its own material: authoring-for-agents to agent instructions (search for an existing owner before adding one), the principle to code and data before an addition; neither unit loads the other on its path. |
 | `stated-unattended-gate` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md | The same one sentence tells each of these playbooks whether a run is away; each then takes its own branch or exit. |
 | `tight-concept-definitions` | domain-modeling, teach | Each keeps a glossary of its own (project language, the learner's workspace) in one entry format, with its own admission rules. |
-| `two-failure-stop` | doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, implement | Each fixes a failure on its own path, the bug-fix playbook for a bug-fix request and implement inside a task it is running, often delegated, where it cannot start the playbook (R8); both stop after two failed fixes and return the attempt log, the playbook to the user and implement to the task owner. |
+| `two-failure-stop` | doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/implement.md | Each fixes a failure on its own path, the bug-fix playbook for a bug-fix request and the implement playbook inside a unit it coordinates, where a separate bug-fix request would leave its scope; both stop after two failed fixes and return the attempt log, the bug-fix playbook to the user and the implement playbook to whoever owns the unit. |
 | `worktree-environment-proof` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md | Each stated unattended loop proves its own command responds in its own worktree before starting; the check runs at each one's setup. |
 | `yes-accepts-recommendation` | discovery, grilling | As question-batching: each skill words its own questions so a yes accepts the recommendation. |

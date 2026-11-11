@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 SCRIPT = Path(__file__).parents[2] / ".claude/skills/to-plan/scripts/check_plan.py"
-BRIEF = Path(__file__).parents[2] / ".claude/skills/implement/scripts/task-brief.sh"
+BRIEF = Path(__file__).parents[2] / ".claude/skills/mvp-mode/playbooks/implement/task-brief.sh"
 HEAD = """# Move the store
 **Origin:** docs/plans/x.md
 **Goal:** Move the store.

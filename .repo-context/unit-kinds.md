@@ -90,7 +90,7 @@ material moves to references. [data: H1 holds via standalone use]
   is demoted to a principle. [proposed]
 - A4. Routing to units moves to the router when it lands; `AGENTS.md` keeps
   one line pointing at it, plus its document pointers. [proposed; today
-  "When needed" routes to `delegation` and `implement`]
+  "When needed" routes to `delegation` and the implement playbook]
 
 ### Router (`mvp-mode`)
 
@@ -283,7 +283,7 @@ material moves to references. [data: H1 holds via standalone use]
 - Mixed roles (8): `beads`, `codebase-design`,
   `codebase-research`, `domain-modeling`, `performance-optimization`,
   `security`, `systematic-debugging`, `wayfinder`.
-- Playbook-like (2): `implement`, `harness-publish`.
+- Playbook-like (1): `harness-publish`.
 - Principle-like (1): `brief-me`.
 - To retire (1): `skill-router` (R1).
 
@@ -305,6 +305,8 @@ material moves to references. [data: H1 holds via standalone use]
 | 2026-11-02 | `handover-url-keys` on `prototype` | T5 | The definition names a URL. The sealed rewording says a preview pointer, for a surface with no URL, and is frozen in the same way | Accepted for this row. It is the second deviation for this reason, so E4 fired: the owner ruled on 2026-11-02 and T5 now allows it, still logged |
 | 2026-11-02 | `session-pickup`, `pause-safely`, `trace-forensics`, `worktree-cleanup` | §2 composite test | Remove each one's calls and its whole result survives from its own actions, so the test calls it a skill. The map and the owner named each a playbook, and a request reaches it directly. Bug fix's obvious-cause path, Refactoring with an existing pin and Feature's local build survive only on that branch, and their normal paths keep their calls, so they are no exception. `eval` loses its required independent judge and verdict, and `runtime-forensics`, `hillclimb`, `investigation`, `perf-issue` and `multi-phase-plan` lose their capture, method, answer, baseline or plan: each passes as a playbook | Accepted by the owner's ruling of 2026-11-02 (E4), for these four: the test stays as written and now says an exception is named here |
 | 2026-11-04 | `autonomous-run` | §2 composite test | Remove its calls and a complete technique is left: fix a predicate, inspect, change, check, discard, pivot, decide scope, stop, report. The map and the owner named it a playbook and a request reaches it directly. No skills are manufactured to pass the test | Accepted by the owner's ruling of 2026-11-04 (E4), a fifth named exception |
+| 2026-11-11 | `implement` playbook | §2 composite test | Remove its calls and technique is left: the claim and child rule, the coordinator-run stage branch and the contractor protocol, the worktree base check, the bounded fix loop. The owner ruled the `implement` skill a playbook (N4, 2026-11-11) and a request reaches it directly. None of the technique has a second caller, so no skill is manufactured to pass the test | Accepted by the owner's ruling N4 (E4), a sixth named exception |
+| 2026-11-11 | `attempt-log`, `two-failure-stop` (`implement` step 4, `bug-fix` step 5) | St4 | The same own actions in two playbooks: each logs its fix attempts and stops after two failed fixes, `bug-fix` for a bug-fix request and `implement` inside a unit it coordinates, where a separate bug-fix request would leave its scope. A skill of two short rules would be ceremony, as for the 2026-11-04 row of short rules shared by two or three loops | Accepted, no skill. Revisit on a third caller |
 | 2026-11-02 | `pause-safely`, step 2 | B5 | A pause can reach a point in a running playbook that its reply contract names no exit for, such as Bug fix's first fix after a confirmed diagnosis. Pause's own reply stands in: it states the step reached, marks proof `not reached` rather than failed, and gives that playbook's closeout result, so no caller is edited | Accepted for a pause only. Revisit if real sessions (`cr-r2pa.2.12`) show a pause misreporting a stopped run |
 | 2026-11-02 | `read-only-closeout` (Investigation, `session-pickup`) | St4 | The same short closeout in two playbooks is the signal for a skill, but it belongs to each playbook's exits and reply (B7), and a skill for it would be ceremony | Accepted, no skill. With `build-closeout` this is the second deviation from St4 for this reason, so E4 fired: the owner ruled on 2026-11-02, and St4 now allows it when logged |
 | 2026-11-03 | `eval`, routing trials (`cr-r2pa.2.15`) | Eval's gates | Eval says a candidate sees no name hinting at an experiment or a test, but a routing trial must show the real harness, including `playbooks/eval.md`, and an ordinary project's `tests/` (owner ruling 2026-11-03) | Accepted for these trials: everything added for a trial stays free of those names, and results note what a session could see |

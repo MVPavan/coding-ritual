@@ -1,6 +1,6 @@
 # Workstream mode — unattended multi-phase execution
 
-Enter only through an explicit request to run the remaining phases or `/run-phases`.
+Enter only through an explicit request to run the remaining phases or `/implement all phases`.
 Reading this reference is not authorization. Record the authorized roadmap, phase
 scope, plan approval coverage and commit policy in the execution ledger.
 
@@ -14,7 +14,7 @@ ambiguous records before execution. Preserve all pre-existing edits.
 
 1. Read roadmap order and Beads status/dependencies. Select the first eligible
    unfinished phase; never cross an unmet prerequisite.
-2. Execute it through the implement skill's phase loop and close gate. Unattended
+2. Execute it through the playbook's Phase loop (step 6) and close gate. Unattended
    authority covers routine plan elaboration within the agreed roadmap, not new
    behavior, changed safety boundaries or scope expansion.
 3. After the stage gate and phase exit pass, render tracking through `tracker` and

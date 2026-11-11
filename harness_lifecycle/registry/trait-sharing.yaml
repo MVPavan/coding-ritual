@@ -5,7 +5,7 @@
 # fails. Rules: docs/workstreams/skill-curation/stages-design.md §Shared traits.
 # Entries are justified by the owner (bead cr-talb).
 dependency-edges:
-  skills: [implement, tracker, wayfinder]
+  skills: [doc:.claude/skills/mvp-mode/playbooks/implement.md, tracker, wayfinder]
   why: "Each lets the tracker graph's readiness drive the work: tracker writes the genuine edges of stages, plan stages and decision tickets by returned ID, wayfinder picks a map's genuine prerequisites and works its ready frontier, and implement's spec scope runs a spec's tickets from the ready frontier, adding a blocking edge it finds missing; edge semantics stay in beads."
   reviewed: "2026-11-11"
 drift-scan:
@@ -81,9 +81,9 @@ area-topic-filing:
   why: "Each files its own output under its own root by one rule: discovery its records under docs/discovery/, research its reports under docs/research/."
   reviewed: "2026-11-11"
 finding-adjudication:
-  skills: [implement, review]
+  skills: [doc:.claude/skills/mvp-mode/playbooks/implement.md, review]
   why: "Implement rules on findings inside its delivery loop and review owns the method; owner 2026-10-30: implement (then named execution) stays unchanged."
-  reviewed: "2026-10-30"
+  reviewed: "2026-11-11"
 domain-vocabulary:
   skills: [brief-me, improve-codebase-architecture, prototype, teach]
   why: "Each writes for its reader in the project's own terms: brief-me in its re-pitches, teach in its lessons, prototype in its states, actions and labels, so an answer transfers to the real code, and improve-codebase-architecture in its candidates and their friction."
@@ -109,13 +109,13 @@ revert-ineffective-experiments:
   why: "Each runs its own loop of attempts, fix attempts in the bug-fix playbook and optimization experiments in performance-optimization, and removes its own failed edits before the next attempt."
   reviewed: "2026-10-31"
 attempt-log:
-  skills: [doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, implement]
-  why: "Each fixes a failure on its own path, the bug-fix playbook for a bug-fix request and implement inside a task it is running, often delegated, where it cannot start the playbook (R8); both log each fix attempt so a stop hands back usable evidence."
-  reviewed: "2026-10-31"
+  skills: [doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/implement.md]
+  why: "Each fixes a failure on its own path, the bug-fix playbook for a bug-fix request and the implement playbook inside a unit it coordinates, where a separate bug-fix request would leave its scope; both log each fix attempt so a stop hands back usable evidence."
+  reviewed: "2026-11-11"
 two-failure-stop:
-  skills: [doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, implement]
-  why: "Each fixes a failure on its own path, the bug-fix playbook for a bug-fix request and implement inside a task it is running, often delegated, where it cannot start the playbook (R8); both stop after two failed fixes and return the attempt log, the playbook to the user and implement to the task owner."
-  reviewed: "2026-10-31"
+  skills: [doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/implement.md]
+  why: "Each fixes a failure on its own path, the bug-fix playbook for a bug-fix request and the implement playbook inside a unit it coordinates, where a separate bug-fix request would leave its scope; both stop after two failed fixes and return the attempt log, the bug-fix playbook to the user and the implement playbook to whoever owns the unit."
+  reviewed: "2026-11-11"
 single-source-of-truth:
   skills: [authoring-for-agents, principle-subtract-before-you-add]
   why: "Each applies one-owner-per-meaning to its own material: authoring-for-agents to agent instructions (search for an existing owner before adding one), the principle to code and data before an addition; neither unit loads the other on its path."

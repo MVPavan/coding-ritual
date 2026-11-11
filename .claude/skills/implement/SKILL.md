@@ -1,135 +1,24 @@
 ---
 name: implement
-description: Use to execute tracked multi-step work, a standalone plan, a roadmap phase, or a spec whose tickets are already in Beads with blocking edges. Skip creating tracked work: to-roadmap for a multi-phase spec, tracker for an approved plan; clear bounded implementation can proceed directly under AGENTS.md.
+description: "Run settled, tracked work through the implement playbook: a bead, a plan, a roadmap phase, all remaining phases, or a spec. Thin entry point."
+disable-model-invocation: true
 ---
 
 # Implement
 
-Execute authorized work through acceptance, verification and recovery. Beads owns
-durable task state; a plan document is not a prerequisite for a clear task.
+Run the implement playbook (`playbooks/implement.md` in the mvp-mode skill) for
+the scope named:
 
-## Scope selector
+- `/implement <bead-id | plan path>`: Task scope.
+- `/implement phase <id> [--roadmap <path>]`: Phase scope, e.g.
+  `/implement phase E --roadmap docs/workstreams/<name>/roadmap.md`. Carry prior
+  approval covering this phase and its plan. Workstream-wide authority does not
+  arise from a single-phase invocation; unresolved material scope decisions still
+  need the user.
+- `/implement all phases [<roadmap>]`: Workstream scope. This invocation **is**
+  the explicit user opt-in that workstream mode's auto-approvals and per-phase
+  commits require — record it in the workspace ledger as workstream-mode.md's
+  preflight directs.
+- `/implement spec <path>`: Spec scope.
 
-| Request | Scope |
-|---|---|
-| Explicit run-all-remaining-phases request or `/run-phases` | Workstream; read `references/workstream-mode.md` |
-| Implement a spec as a whole, its tickets in Beads with blocking edges | Spec; read `references/spec-run.md`. An explicit workstream request, a named phase or a bounded task keeps its own scope. A spec seeded as a workstream (epics anchored on a roadmap) runs under the Workstream or Phase scope: say which request is due and ask nothing else. A spec whose tickets are one epic with stages and edges runs here if its work is significant, else as Task in the current checkout |
-| Execute a named roadmap phase | Phase |
-| Task, standalone plan, or single-phase epic | Task, in the current checkout with no worktree |
-| Clear bounded implementation without a plan | Task; use the request and acceptance as the packet |
-| Material scope/behavior unresolved | Resolve that gap through `to-plan` or `discovery` |
-
-Carry authorization through necessary fixes; a review finding cannot authorize
-scope expansion. Follow the delegation policy in `AGENTS.md`.
-Risk labels: `small` is bounded, low-risk work; `standard` is a bounded behavior
-change; `deep` is cross-cutting, high-risk, or materially unresolved work.
-Small work stays inline. Standard work may stay inline or use one bounded worker
-when beneficial. Deep work needs risk-appropriate independent review; separate
-spec and quality reviewers only when the task requires them or the risks justify
-both. Use configured models/effort; if dispatch is unavailable, continue useful
-local work and state any required review that remains unperformed.
-
-For delegated units or multi-round review, read `references/task-engine.md`.
-Workspace: `scratchpad/implement/<slug>/`, with a slug that distinguishes full
-plan/workstream paths. Capture the starting revision and dirty-file baseline;
-pre-existing edits are not automatically part of the task.
-
-## Task loop
-
-**A bead with open children** runs them first. Holding its claim on resume,
-unclaim it with a resume note. Claim one ready direct child at a time
-(`bd ready --parent <id> --json`, keeping `parent == <id>`), run it through this
-loop and close it with evidence. Claim the parent only once every child is closed,
-for its aggregate verification and close. Children open but none ready: stop and
-report which waits on what. Units that will span sessions but have no beads get
-them from `tracker` first.
-
-1. Read the request, existing plan if any, and Beads description/acceptance.
-   Claim the exact task with `--actor "<coding-agent>:<unique-id>"`.
-2. Implement in dependency order, within owned paths. Use test-first or
-   characterization when risk calls for it; apply security to material boundary
-   changes. When a failure's cause is unclear, use `systematic-debugging` and fix
-   only a cause it confirms: prove the fix with a regression check when one is
-   feasible, rerun the original failing scenario, log each attempt (hypothesis,
-   change, result), and after two failed fixes stop and return the log to the
-   task owner. Hardening other boundaries the defect exposes is the bug-fix
-   playbook's step, and so is a top-level request to fix a bug: at top level
-   return to `mvp-mode`; inside a delegated task, report that route to the parent.
-3. Validate findings as they arrive. Fix confirmed in-scope defects, answer
-   incorrect findings with evidence, and record unresolved decisions. Do not
-   spend fix rounds implementing unverified feedback.
-4. Run applicable project/plan checks and inspect the scoped final diff. Reuse
-   valid evidence while its code, inputs and environment remain applicable.
-   Small work needs no mandatory reviewer pair. Independent review is driven by
-   explicit requirements or unresolved risk, not the act of closing a task.
-5. Close with evidence and material limitations in `--reason`; report the result.
-   Create durable follow-up work for discoveries outside scope, linked to origin.
-
-For a one-phase epic, map plan tasks to its stage IDs (bound by `tracker`), run its
-acceptance, then close it by `tracker`'s close gate with that evidence.
-
-## Phase loop
-
-1. Resolve the supplied or unambiguous roadmap and read this phase's deliverables,
-   spec references, acceptance, risk and exit criterion. Find the phase's epic with
-   `tracker` (its lookup and defect rule).
-2. Confirm the epic is not already closed, check blockers and claim the phase.
-   Elaborate a deep phase when its packet
-   needs a plan; reuse approval covering this work rather than pausing again.
-3. Select a ready direct child from `bd ready --parent <epic> --json`, keeping
-   only beads whose `parent` is the epic (the query returns every descendant).
-   Match deep-phase `Stage:` plan tasks to stage IDs and dependency order first;
-   correct missing or unmatched mappings. A stage with unit beads (any children,
-   open or closed: `bd list --parent <stage> --all --json`) takes step 4; any
-   other takes step 5.
-4. **Stage with unit beads:** never call the contractor for it. First read its
-   trace, read-only: step 5's command with `--trace`. Proceed only on `state`
-   `result` with `relation` and `relation_error` null. `blocked`, `refused` or
-   unreadable output stops or enters step 6's recovery; an empty `blocking_ids`
-   does not clear `blocked` (an unfinished admitted sibling blocks with an empty
-   list). A non-null `relation` means the contractor already admitted this stage:
-   run none of its units by hand; stop and report the recovery case. Otherwise
-   release the phase claim with a resume note, run the stage through the Task loop
-   (its child rule drains the units), verify the stage's aggregate acceptance and
-   close it. Render through `tracker` where authorized and refresh the Beads
-   export: every write comes before the handoff. Then hand off: with commit
-   authority, commit the stage's verified owned changes and tracked bookkeeping
-   (the Beads export and rendered tracking too) and return to step 3, confirming
-   `git status` is clean immediately before the next contractor call; without it,
-   preserve the work and stop with a precise handoff (stage, files, checks, the
-   commit due), never stashing, discarding or reporting it as a contractor result.
-   The contractor refuses a checkout with any dirt beyond its own stage's
-   `.wf/export/<stage>.jsonl` and `.wf/repo-id` (`refused`, "coordinator checkout
-   is not clean"); on resume, uncommitted work of a closed coordinator stage is
-   that handoff, still owed, in the same order.
-5. Call the contractor:
-   `uv run python -m workflow_interpreter.foreman --config <foreman-config.toml> contract <epic_id> <stage_id>`.
-   The contractor claims atomically and owns execution through closure; do not
-   claim or close the stage separately.
-6. Read the contractor's one JSON result. `phase-exhausted` means proceed to
-   the close gate; `blocked` names work to clear or bypass with another ready
-   stage; `result` means the stage landed and closed, so render tracking through
-   `tracker` where authorized, then select the next stage. `refused` (exit 2)
-   names an invalid request: fix its reason before retrying; exit 1 is a crash to report. Use
-   `--trace` for read-only evidence, and `--retry` only to mint an eligible new
-   attempt. Never edit generated tracking by hand.
-7. **Close:** reclaim the phase if step 4 released it, run the roadmap exit
-   criterion, then close by `tracker`'s close gate with its evidence.
-
-If the governing plan changes or code invalidates the chosen approach, reconcile
-before dependent work continues. Preserve completed work on failure. An unresolved
-stage or failed phase exit blocks phase completion and any dependent phase.
-Commits, publication and broader work retain their existing authorization gates.
-
-## Independent child workflows
-
-For parallel independent graphs, the orchestrator chooses inputs, models and
-an admitted coordination owner; the foreman makes one declared decision per
-tick, the inspector contains activations, and the crew runs its vendor CLI.
-Follow `docs/usage/children.md` for bounded `admit`,
-`drive`, `status` and `collect`. Collection is evidence, not stage closure.
-Select receipts with `integration prepare`, then use the contractor's `contract`
-command for combined review, checks and landing (`docs/usage/contractor.md`).
-Replace a changed graph/model through trusted `children replace`; ordinary
-decisions retain admitted pins and human gates. Do not invent child dependencies
-or automatic result binding.
+With no argument, or a roadmap that is omitted and ambiguous, ask which work.

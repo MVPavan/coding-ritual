@@ -29,7 +29,7 @@ Catalog: `aeac41d4d005999432bb7312f7ff06383a91d59d`, 44 capabilities.
 | `skill:skills/browser-testing-with-devtools` | reject | decided (whole skill) |  | 2026-10-14-migration | no |
 | `skill:skills/ci-cd-and-automation` | defer | decided (whole skill) |  | 2026-10-14-migration | no |
 | `skill:skills/code-review-and-quality` | adopt-merged | not analysed | review | 2026-10-14-migration | yes |
-| `skill:skills/code-simplification` | adopt | not analysed | implement | 2026-10-14-migration | no |
+| `skill:skills/code-simplification` | adopt | not analysed | doc:.claude/skills/mvp-mode/playbooks/implement.md | 2026-10-14-migration | no |
 | `skill:skills/constraint-driven-development` | not reviewed | not analysed |  |  |  |
 | `skill:skills/context-engineering` | defer | decided (whole skill) |  | 2026-10-14-owner-review | no |
 | `skill:skills/debugging-and-error-recovery` | adopt | not analysed | systematic-debugging | 2026-10-14-migration | yes |

@@ -23,11 +23,13 @@ Record `SCOPE_BASE = git rev-parse HEAD` once. Packages include working-tree
 changes and untracked contents, so always pass the authorized path list:
 
 ```text
-scripts/review-package.sh full <SCOPE_BASE> <workspace> <label> <owned paths…>
-scripts/review-package.sh fix <SCOPE_BASE> <previous-label> <workspace> <label> <owned paths…>
+"$implement_ref/review-package.sh" full <SCOPE_BASE> <workspace> <label> <owned paths…>
+"$implement_ref/review-package.sh" fix <SCOPE_BASE> <previous-label> <workspace> <label> <owned paths…>
 ```
 
-These script paths are relative to the implement skill directory. A full package
+Set `implement_ref` to the absolute path of this playbook's reference folder
+(`playbooks/implement/` in the mvp-mode skill) and run the scripts from the
+repository root as shown. A full package
 contains status, tracked diff and untracked content; the fix package compares
 against the saved snapshot. Pass both kinds the same scope. A baseline-dirty
 file may contain unrelated changes even inside owned paths: provide the starting
@@ -37,7 +39,7 @@ verification rather than loading every package into coordination context.
 
 ## Dispatch and recovery
 
-Extract a plan task with `scripts/task-brief.sh <plan> <N> <workspace>`, or write
+Extract a plan task with `"$implement_ref/task-brief.sh" <plan> <N> <workspace>`, or write
 its brief directly when planless. Include goal, acceptance, owned/forbidden paths,
 relevant source sections, invariants, dependencies, checks and commit authority.
 Dispatch through the `delegation` skill. Tell each worker it shares the checkout

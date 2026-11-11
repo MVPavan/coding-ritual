@@ -5,37 +5,17 @@ stage: X
 substage: Coordination
 secondary: []
 family: plan-execution
-aliases: [phase-execution, run-phases]
-status: active
+aliases: []
+status: retired
 ---
 # implement
 
-No description.
+Run settled, tracked work through the implement playbook: a bead, a plan, a roadmap phase, all remaining phases, or a spec. Thin entry point.
+
+**Boundary:** Became the implement playbook; kept as the manual /implement entry so its lineage and history stay readable. It delivers none of its former traits.
 
 <!-- registry:generated traits -->
-- `scope-selector`: Pick task, phase or workstream scope from the request and route unresolved material scope back to to-plan or discovery.
-- `risk-sized-review`: Size work small, standard or deep and match inline work, delegation and independent review to that size.
-- `task-loop`: Claim the exact task, implement in dependency order within owned paths, run applicable checks, and close with evidence and material limitations.
-- `finding-adjudication`: Verify each incoming review finding against requirements, code and primary evidence before acting, and give each a visible disposition: fix a confirmed in-scope defect, answer an incorrect one with a retained ruling, record an out-of-scope follow-up.
-- `phase-loop`: Resolve the roadmap phase's single epic, drive ready stages through the contractor that owns execution to closure, and refresh tracking between stages.
-- `workstream-mode`: Run remaining phases in order only on explicit opt-in, with per-phase tracking refresh and commits only when the invocation covers them.
-- `child-workflows`: Run independent graphs as admitted child workflows where collection is evidence and landing goes through the contractor, not automatic result binding.
-- `context-recovery`: Stay in context while useful and, before compacting or handing off, persist scope, decisions and next work to the ledger, tracker and Git, then rebuild from those rather than from a summary.
-- `stop-on-failure`: Let a failed gate, exit criterion or material blocker stop advancement and diagnose instead of re-dispatching without new evidence.
-- `bounded-fix-loop`: Group compatible confirmed findings into one fix unit, re-review only the delta plus any breakage it caused, adjudicate every round, and treat a small fixed count of completed fix/re-review rounds as a ceiling rather than a target.
-- `scope-base-review-package`: Review uncommitted working-tree and untracked changes against a recorded base revision by passing the authorized owned-path list, never attributing a baseline-dirty file's whole diff to the task.
-- `delegated-report-recovery`: Interpret each delegated worker's status (done, done-with-concerns, needs-context, blocked) and recover by supplying context, splitting, debugging or replanning, since bare repetition is not recovery.
-- `confirmed-cause-fix`: Fix a failure only for a cause its diagnosis confirmed.
-- `regression-proof-and-rerun`: Prove a fix with a regression check when one is feasible, then rerun the original failing scenario.
-- `attempt-log`: Record each debugging attempt as hypothesis, change and result.
-- `two-failure-stop`: After two failed fixes, stop and bring the attempt log to whoever started the task before trying another.
-- `dependency-edges`: Encode real blocking edges in the tracker and let the ready frontier drive execution rather than listing order.
-- `single-integration-branch`: Land every ticket of a multi-ticket build on one integration branch.
-- `worktree-per-significant-change`: Use a worktree only for a significant change: a spec's work usually is one and runs in one worktree on the integration branch, small tickets inside it get none of their own, and implementers never run in parallel.
-- `worktree-base-verify`: Confirm a worktree's base before work starts in it and, on a mismatch, preserve the work, stop and report, resetting onto the base only when reset authority is explicit.
-- `worktree-cleanup`: Remove every implementer worktree when the build ends.
-- `pre-report-base-merge`: Before reporting done, merge the base branch's tip into the integration branch and rerun the checks; without commit authority, report that merge as due.
-- `unit-bead-execution`: Run a bead that has children by draining them first, one ready direct child at a time, claiming the parent only for its aggregate verification and close, and run a phase stage with unit beads outside the contractor only after its trace permits it, handing off committed clean work before the next contractor stage.
+No traits recorded.
 <!-- /registry:generated traits -->
 
 <!-- registry:generated lineage -->
@@ -56,6 +36,7 @@ No description.
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-11` **merge** (2026-11-11-implement-playbook:002): Owner ruling N4 of 2026-11-11 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md:126), plan 40 U1 (scratchpad/mvp-stack/40/plan.md): the implement skill beco…
 - `2026-11-11` **update** (2026-11-11-discovery:005): Owner ruling L1 of 2026-11-10 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 20 D1. Its unresolved-scope row names `to-plan` or `discovery`; scope…
 - `2026-11-11` **update** (2026-11-11-tracker:023): critic-29b F1 (scratchpad/mvp-stack/critic-29b.md), coordinator fix: the coordinator stage renders tracking and refreshes the Beads export before the handoff c…
 - `2026-11-11` **update** (2026-11-11-tracker:022): Owner ruling N, R2/R3 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 27 section 5 T1b with critic-27d R1/R2 applied. Task loop child rule (F2): a …
@@ -105,18 +86,7 @@ No description.
 <!-- /registry:generated reviews -->
 
 <!-- registry:generated sources -->
-- `dependency-edges`:
-  - `mattpocock_skills:skill:skills/engineering/implement-spec#dependency-edges` (adopted at 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d)
-- `pre-report-base-merge`:
-  - `mattpocock_skills:skill:skills/engineering/implement-spec#pre-report-tip-merge` (adopted at 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d)
-- `single-integration-branch`:
-  - `mattpocock_skills:skill:skills/engineering/implement-spec#single-integration-branch` (adopted at 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d)
-- `worktree-base-verify`:
-  - `mattpocock_skills:skill:skills/engineering/implement-spec#worktree-base-check` (adopted at 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d)
-- `worktree-cleanup`:
-  - `mattpocock_skills:skill:skills/engineering/implement-spec#worktree-cleanup` (adopted at 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d)
-- `worktree-per-significant-change`:
-  - `mattpocock_skills:skill:skills/engineering/implement-spec#worktree-per-implementer` (adopted at 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d)
+No adopted traits recorded.
 <!-- /registry:generated sources -->
 
 <!-- registry:generated declined -->

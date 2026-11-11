@@ -55,9 +55,6 @@ ours:domain-modeling:
   notes:
     glossary-entry-template: "Lays the file out as a title and a one-or-two-sentence description, then each term in bold followed by its definition and an Avoid line."
     tight-concept-definitions: "One or two sentences at most."
-ours:implement:
-  tree_hash: "56b7c5b7277200cff3b5179c5b6d8ddf06ebaad4d200119da254fea50d3b5a9c"
-  traits: [scope-selector, risk-sized-review, task-loop, finding-adjudication, phase-loop, workstream-mode, child-workflows, context-recovery, stop-on-failure, bounded-fix-loop, scope-base-review-package, delegated-report-recovery, confirmed-cause-fix, regression-proof-and-rerun, attempt-log, two-failure-stop, dependency-edges, single-integration-branch, worktree-per-significant-change, worktree-base-verify, worktree-cleanup, pre-report-base-merge, unit-bead-execution]
 ours:how:
   tree_hash: "6e7f7aed0531ecd5113efac6cee037791b07fa7721a308521b8ca232118fe576"
   traits: [read-only-explanation, immaterial-ambiguity-reading, angles-when-wide, reconcile-by-reading, explanation-sections, cited-flow-walkthrough, recommendation-with-tradeoffs]
@@ -113,7 +110,7 @@ ours:model-council:
   tree_hash: "678a7f2a8a0872f518a32349f32b6b49e0a3b83ed8d978b5f26d4ef50f85165a"
   traits: [member-resolution, runtime-capability-check, neutral-framing, member-isolation, report-preservation, independent-synthesis, consolidated-delivery, identity-recording, failed-member-recovery, no-silent-substitution, artifact-named-up-front, task-rubric-criteria, rubric-withheld-from-candidates, own-output-location, rationale-names-rejected, dropout-proceeds-noted, read-only-judge, judge-other-family-or-stated, rubric-given-to-judge, path-labelled-candidates, judge-criterion-scores, judge-recommends-base, full-read-before-pick, picker-criterion-scores, pick-compared-with-judge, disagreement-rereads-rationales, base-chosen-for-extensibility, near-tie-smaller-surface, loser-graft-pass, sparse-grafts, hand-folded-grafts, converged-shape-no-graft, divergence-reframes-once, graft-change-rerun, verify-miss-returns-once, single-synthesized-artifact, synthesis-decision-record, note-judge-status, note-convergence-dropouts, note-verification-result, no-judge-no-pick]
 ours:mvp-mode:
-  tree_hash: "306969497d6b9f54cc5318f2769144d935a85fe5a0342be13cada178e5738549"
+  tree_hash: "d9321859784f13c6833c48e454d215f366028454a33bb1ef4861f789dabc4946"
   traits: [unit-kind-lines, playbook-pick, need-to-skill-routing, overlap-arbitration, layered-catalog, platform-skill-invocation, no-playbook-in-delegate, delegate-independent-by-default, no-onward-delegation, playbook-steps-as-todos, recorded-step-skip, whole-callee, playbook-exit, legacy-entrypoint-flagging, catalog-trust-boundary]
 ours:performance-optimization:
   tree_hash: "8e393535c7e06691afca39ef9df84040ce4752a29a8cc58610b8522ce951c4da"

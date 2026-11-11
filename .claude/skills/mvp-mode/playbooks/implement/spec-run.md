@@ -19,7 +19,7 @@ checkout with no worktree. No tickets yet, or none with edges, is `to-roadmap`
    never fall back to listing order.
 2. Use one integration branch for the whole spec; every ticket lands on it and
    nowhere else. Before any work, save the run record in the workspace ledger
-   (`scratchpad/implement/<slug>/progress.md`; see `SKILL.md` Workspace and
+   (`scratchpad/implement/<slug>/progress.md`; see the playbook's Workspace paragraph and
    `task-engine.md`): spec and epic ids, base branch and starting SHA,
    integration branch, worktree path. Point the epic at it:
    `bd note <epic> "spec run: scratchpad/implement/<slug>/progress.md"
