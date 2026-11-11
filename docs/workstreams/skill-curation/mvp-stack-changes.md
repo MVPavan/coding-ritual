@@ -570,6 +570,45 @@ its playbooks folder) and `cr-r2pa.1.8` (this report).
     `.claude/skills/mvp-mode/playbooks/`, route it, and drop it from the shipped plugin.
   - Remove the `skill-router` pointer once the registry views follow merges.
 
+## 6. Renames-and-splits batch (phase 2, `cr-r2pa.2.20`)
+
+Added 2026-11-11, after the snapshot above. Plan `scratchpad/mvp-stack/14a/plan.md`
+(gitignored), owner rulings C, D, I, K, M and N of
+`scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md`; rounds `2026-11-06-renames`
+and `2026-11-10-renames-splits`, both sealed. The owner's list of every moved rule is
+`scratchpad/mvp-stack/14/relocations.md`. Clean break: no stubs for old names (ruling I1).
+
+- **Renames.** `test-driven-development` → `tdd` (`6763f83`), `prose-pass` → `unslop`
+  (`d7165bb`), `i-have-adhd` → `brief-me` (`c2bed14`), `execution` → `implement`
+  (`12df2d8`). Bodies changed only in names; a skill record keeps its history after a
+  rename (`97f597e`) and reference pages name the new skill (`8870acb`).
+- **Splits.** `to-spec` out of `brainstorming`, which now ends at decisions (`3ab290f`);
+  `to-tickets` out of `planning`, which keeps plan documents, its approval gate and its
+  own slicing rules (`e43371b`). The pending adopts they deliver were recorded first
+  (`b4740e4`).
+- **`implement` spec branch** (`560788a`). `.claude/skills/implement/references/spec-run.md`
+  runs a whole spec whose tickets are one epic with edges, in one worktree on one
+  integration branch, one ticket at a time; commits, merges and worktree removal each
+  need authority. Its pre-report merge is the new trait `pre-report-base-merge`.
+- **`how` and `why`** (`161be48`). `explain-code` is renamed `why`: why something in the
+  project is the way it is, or what was decided about it, from the project's own record.
+  `how` is new: how something works now, and which option fits. Six playbooks and the
+  router point to the new names.
+- **Two principles restored** (`fb84021`). `principle-fix-root-causes` holds the three
+  rules moved out of `systematic-debugging`, which now points to it;
+  `principle-exhaust-the-design-space` covers decisions with no precedent of any kind,
+  with the new trait `novel-decision-design-space`.
+- **The `AGENTS.md` line** (`43d0d07`). "When a check fails unexpectedly, test the way it
+  observes" moved from `systematic-debugging` to `AGENTS.md` §Verification.
+- **Planning family renames** (`0eafcea`). `planning` → `to-plan` (one phase, one change
+  or one batch of units) and `to-tickets` → `to-roadmap` (an approved multi-phase spec
+  into phases, stages and their order); the four ordering rules live once in
+  `principle-sequence-verifiable-units`.
+
+Left for the end-of-project sync (bead `cr-r2pa`): Codex skill links, the plugin's
+copy of the `AGENTS.md` line, the publish manifest's skill count and
+`harness_lifecycle/catalogs/ours.json`.
+
 ## Regenerating
 
 From the worktree root:

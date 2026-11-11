@@ -1,7 +1,7 @@
 # Skill curation: handoff
 
-Updated 2026-11-04 (MVP stack phase 1 closed; phase 2 running on the playbook
-map, batches 2 to 4, pilots 2 and 3 and the Pocock pass done). Branch `mvp-stack` in the main worktree; `dws-workflow` is retired and
+Updated 2026-11-11 (MVP stack phase 1 closed; phase 2 running on the playbook
+map; the renames-and-splits batch closed by U9). Branch `mvp-stack` in the main worktree; `dws-workflow` is retired and
 deleted. Beads is the work-state authority; this file is the narrative.
 
 ## Start here (new session)
@@ -75,7 +75,8 @@ deleted. Beads is the work-state authority; this file is the narrative.
 | after `560788a` | U6: `how` and `why` out of `explain-code` (same round), see below |
 | after `161be48` | U7: two principles restored (same round), see below |
 | after `fb84021` | U8: `suspect-the-observation` moved to `AGENTS.md` (same round), see below |
-| after `43d0d07` | U8r: `planning` → `to-plan`, `to-tickets` → `to-roadmap`, ordering rules into one principle (same round), see below |
+| `0eafcea` | U8r: `planning` → `to-plan`, `to-tickets` → `to-roadmap`, ordering rules into one principle (same round), see below |
+| after `0eafcea` | U9: closeout; round `2026-11-10-renames-splits` sealed, owner's relocation list, sync list for the end-of-project sync, see below |
 
 `main` is at `eb36cc9`; later work is on `mvp-stack` until the owner asks to merge.
 `mvp-stack` is pushed through U8 of the renames (`43d0d07`); later commits are local until the owner says to push.
@@ -194,7 +195,7 @@ critic, owner rulings, ledger, build, Sol review, commit after the owner approve
   `scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md`; P1's ruling is section G there. The renames,
   splits, two restored principles and the move of `suspect-the-observation` are their own batch,
   `cr-r2pa.2.20`, on plan `scratchpad/mvp-stack/14a/plan.md` (units U0 to U9). U0 and U1 are done.
-  U2 is recorded (round `2026-11-10-renames-splits`, which stays open until U9 seals it): three
+  U2 is recorded (round `2026-11-10-renames-splits`, sealed in U9): three
   sealed reports, one per analysis sha, because a report holds one `to_sha` (Pocock `4ae2317` for
   `implement-spec`, Pocock `5beb35b` for `to-spec` and `to-tickets`, pstack `4dd1d05` for `how`,
   `why`, `fix-root-causes` and `prove-it-works`). Sol passed them (`critic-16b`). 63 rows: 36 pending
@@ -231,9 +232,15 @@ critic, owner rulings, ledger, build, Sol review, commit after the owner approve
   `to-plan` and `to-tickets` `to-roadmap`; their four shared ordering rules live once in
   `principle-sequence-verifiable-units` (report `reviews/2026-11-11-upstream-mattpocock_skills-5beb35b-r1.yaml`),
   and `to-plan`'s routing table keeps only its own cases (Sol `critic-24b`, `critic-24d`, `critic-25b`).
-  Next is U9 (closeout), then T1 (a `tracker` skill split out of `beads`, which also takes one-phase
-  tracking, child beads per plan unit and flat operational work), discovery, then `implement` as a
-  playbook (P1) and a `plan` playbook (P2).
+  U9 closed the batch: the round is sealed; the owner's relocation list (ruling I4,
+  `scratchpad/mvp-stack/14/relocations.md`, from `26/relocations.py`) shows 29 adopted rules that
+  moved home, 6 newly adopted, 78 that only followed a rename, 7 renames, 3 splits and 5 new units,
+  with the coordinator's corrections. The Codex links, `catalogs/ours.json`, the publish manifest's
+  `expect`, the plugin's `AGENTS.md` sentence and the rewording caveat for `cr-r2pa.2.18` wait for
+  the end-of-project sync, listed on `cr-r2pa`.
+  Next: T1, a `tracker` skill split out of `beads` that also takes one-phase tracking, child beads
+  per plan unit and flat operational work (`cr-r2pa.2.22`); discovery (`cr-r2pa.2.21`); `implement`
+  as a playbook (P1, `cr-r2pa.2.23`); a `plan` playbook (P2, `cr-r2pa.2.24`).
 - `cr-r2pa.3.3`: at the end of the project, show the owner everything deferred or
   rejected, from the ledger's `defer` events, the deferred beads and each
   `deliberately_dropped` with its `revisit_when`, to revise and adapt.
