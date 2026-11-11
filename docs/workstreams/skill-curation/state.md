@@ -1,7 +1,7 @@
 # Skill curation: handoff
 
 Updated 2026-11-11 (MVP stack phase 1 closed; phase 2 running on the playbook
-map; the renames-and-splits batch closed by U9, the tracker batch by T1c). Branch `mvp-stack` in the main worktree; `dws-workflow` is retired and
+map; the renames-and-splits batch closed by U9, the tracker batch by T1c, the discovery batch by D6). Branch `mvp-stack` in the main worktree; `dws-workflow` is retired and
 deleted. Beads is the work-state authority; this file is the narrative.
 
 ## Start here (new session)
@@ -79,6 +79,8 @@ deleted. Beads is the work-state authority; this file is the narrative.
 | after `0eafcea` | U9: closeout; round `2026-11-10-renames-splits` sealed, owner's relocation list, sync list for the end-of-project sync, see below |
 | `4647b3a`, `1fc0992` | T1a: `tracker` split out of `beads`; T1b: unit beads in every scope (`cr-r2pa.2.22`, round `2026-11-11-tracker`), see below |
 | after `1fc0992` | T1c: closeout; round `2026-11-11-tracker` sealed, owner's relocation list, sync list extended, see below |
+| `5d92415`, `5255bb0`, `43d6601`, `3e9eb94`, `d636079`, `236340b`, `fe1228c` | D0-D5: `discovery` replaces `brainstorming` and `idea-refine`; `research` narrowed to evidence (`cr-r2pa.2.21`, round `2026-11-11-discovery`), see below |
+| after `fe1228c` | D6: closeout; round `2026-11-11-discovery` sealed, owner's relocation list, sync list extended, see below |
 
 `main` is at `eb36cc9`; later work is on `mvp-stack` until the owner asks to merge.
 `mvp-stack` is pushed through U8 of the renames (`43d0d07`); later commits are local until the owner says to push.
@@ -257,9 +259,39 @@ critic, owner rulings, ledger, build, Sol review, commit after the owner approve
   and 7 new ones, two of them T1b's; `scratchpad/mvp-stack/26/sync-list.md` now also lists T1's
   files for the end-of-project sync. Follow-up `cr-7c6i` (pre-existing, not T1's): rendering after
   a contractor stage dirties the checkout the next contractor admits from.
-  Next: discovery D0-D6 (`cr-r2pa.2.21`), which first updates `scratchpad/mvp-stack/20/plan.md`
-  for the new names and the tracker split; then `implement` as a playbook (P1, `cr-r2pa.2.23`); a
-  `plan` playbook (P2, `cr-r2pa.2.24`).
+  Discovery (`cr-r2pa.2.21`, owner ruling L, plan `scratchpad/mvp-stack/20/plan.md`) is done. D0
+  (`5d92415`) opened round `2026-11-11-discovery` with Pocock `grilling#round-format` as a pending
+  rewording adopt (`:001`, report `reviews/2026-11-11-upstream-mattpocock_skills-4ae2317-discovery.yaml`).
+  D1 (`5255bb0`): `brainstorming` renamed `discovery`, `idea-refine` merged into it (clean break, its
+  references moved unchanged), callers renamed. D2 (`43d6601`): every run writes a record, checked
+  by `discovery/scripts/check_record.py` against `templates/record.md` (Source and Status per
+  answer; only the owner makes a choice `decided`). D3 (`3e9eb94`): the body sorts each open
+  question by who answers it and asks the owner last, one fixed block per question with a recommended
+  answer, batching independent questions in a round; the judgment frameworks and decision sequences 1, 4, 6 moved from `research` into
+  `discovery/references/frameworks.md`; `:014` completed `:001`. D4 (`d636079`): `research` gathers,
+  weighs and cites evidence without deciding; sequences 2, 3, 5, the five maps and the investing,
+  product and policy examples are dropped; reports and records file by one area/topic rule. D5
+  (`236340b`, `fe1228c`): `to-spec`, `wayfinder` and `how` call through the new split,
+  `docs/discovery/INDEX.md` is the generated records index, and the router sends a choice whose
+  scope or criteria are still open to discovery (Sol `critic-32b`, `33b`, `34b`, `34d`, `34f`,
+  `35b`, `35d`, `36b`, `37b`). Proof: a fresh session ran discovery on `cr-7c6i` and its record
+  (`scratchpad/mvp-stack/37/discovery-e2e.md`) passed `check_record.py` with 7 rows and 0 problems
+  (owner unavailable, so its owner rows stayed `proposed`; it used code and routine answerers, not
+  `research`, a prototype or an answered owner round); the routing trial
+  (`scratchpad/mvp-stack/38/result.md`) went 12 exact, 2 acceptable and 2 misses (one pattern) of 16
+  in round 1 and 16 of 16 in round 2 after the router fix. Limits: one session decided all 16
+  requests per round, one judge scored both rounds, and these were routing choices, not executed
+  runs. D6 sealed the round (events `:001`-`:024`,
+  no pending row); the owner's relocation list (`scratchpad/mvp-stack/39/relocations.md`, from
+  `39/relocations.py`) shows 1 newly adopted rule (`round-format` on `discovery`), 3 of our traits
+  moved or gained a home (`judgment-frameworks` research to discovery; `answer-before-next-round`
+  and `yes-accepts-recommendation` now also on discovery), 10 new and 1 dropped
+  (`research-playbooks`, definition kept), plus the dropped research mechanisms and the removed
+  `/brainstorming` and `/idea-refine`; `scratchpad/mvp-stack/26/sync-list.md` now also lists the
+  discovery files. Follow-ups: `cr-7c6i` (the run's record and its proposed rows are on it) and
+  `cr-onr1` (four points the run found unclear in `discovery`).
+  Next: `implement` as a playbook (P1, `cr-r2pa.2.23`), then a `plan` playbook (P2,
+  `cr-r2pa.2.24`).
 - `cr-r2pa.3.3`: at the end of the project, show the owner everything deferred or
   rejected, from the ledger's `defer` events, the deferred beads and each
   `deliberately_dropped` with its `revisit_when`, to revise and adapt.

@@ -650,6 +650,54 @@ checkout the next contractor admits from. Left for the end-of-project sync (bead
 the new skill's Codex link, the plugin copy and the files listed in
 `scratchpad/mvp-stack/26/sync-list.md` §6.
 
+## 8. Discovery batch (phase 2, `cr-r2pa.2.21`)
+
+Added 2026-11-11. Plan `scratchpad/mvp-stack/20/plan.md` (gitignored), owner ruling L of
+`scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md`; round `2026-11-11-discovery`, sealed. The
+owner's list of every moved rule, trait and mechanism is
+`scratchpad/mvp-stack/39/relocations.md`.
+
+- **`discovery` replaces `brainstorming` and `idea-refine`** (`5255bb0`). `brainstorming` is
+  renamed and `idea-refine`, its alias, merged in; idea-refine's lenses, criteria and examples
+  moved unchanged into `discovery/references/`. Clean break: `/brainstorming` and `/idea-refine`
+  no longer resolve. Callers (`to-spec`, `implement`, `how`, `model-council`, the catalog) name
+  `discovery`.
+- **Every run writes a record** (`43d6601`). A header and one table of the open questions, each
+  answer with its Source and Status. `discovery/scripts/check_record.py` checks it against
+  `discovery/templates/record.md`: only the owner can make a choice `decided`; `established`
+  needs code, outside or prototype evidence with a confidence; agent picks are `routine` or
+  `proposed`. `--next` gives the path to write and `--index` rebuilds `docs/discovery/INDEX.md`.
+- **The hub** (`3e9eb94`). `discovery` sorts each open question by who can answer it (the code,
+  outside evidence through `research`, a `prototype`, a routine agent pick, the owner) and asks the
+  owner last, one fixed block per question with a recommended answer, batching independent
+  questions in a round (Pocock
+  `grilling#round-format`, pending from D0 `5d92415` and completed here), and stops when settled.
+  The judgment frameworks and decision sequences 1, 4 and 6 moved from `research` into
+  `discovery/references/frameworks.md`.
+- **`research` is the evidence leaf** (`d636079`). It gathers, weighs and cites outside sources and
+  reports what the evidence favours without deciding; a decision with open questions is
+  `discovery`, which calls it. Dropped by the ruling: decision sequences 2, 3 and 5, the
+  positioning, segmentation, thesis, ripple-effect and regulatory-risk maps, and the investing,
+  product and policy examples. Its lens-selection rule stays, reworded to weigh evidence. Research
+  reports (`docs/research/<area>/<topic>/`) and discovery records (`docs/discovery/`) file by one
+  area/topic rule.
+- **Callers and routing** (`236340b`, `fe1228c`). `to-spec` writes up a record's decided,
+  established and routine rows and sends proposed and open rows back to `discovery`;
+  `wayfinder`'s `Research:` tickets call `research`; `how` gets outside evidence from `research`
+  and keeps the choice. The `mvp-mode` router sends a choice whose scope or criteria are still
+  open to `discovery`, and a settled one to the investigation playbook.
+
+Proof: a fresh session ran `discovery` on bead `cr-7c6i`; its record passed `check_record.py`
+(7 rows, 0 problems) with the owner's questions left `proposed`; it used code and routine
+answerers, not `research`, a prototype or an answered owner round. The routing trial, 16 requests
+in a fresh session with the answers withheld, scored 12 exact, 2 acceptable and 2 misses (one
+pattern) in round 1 and 16 of 16 in round 2 after the router fix. Limits: one session decided all
+16 requests per round, one judge scored both rounds, and these were routing choices, not executed
+runs. Follow-ups: `cr-7c6i` (the run's record is on it) and
+`cr-onr1` (four points the run found unclear in `discovery`). Left for the end-of-project sync
+(bead `cr-r2pa`): the new skill's Codex link and plugin copy, removing the old ones, and the
+files listed in `scratchpad/mvp-stack/26/sync-list.md` §7.
+
 ## Regenerating
 
 From the worktree root:
