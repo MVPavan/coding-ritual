@@ -8,9 +8,10 @@ seeding and rendering are the `tracker` skill's.
 
 `docs/workstreams/<name>/roadmap.md` is the phased plan. Per phase: Goal ·
 deliverables table `| # | Stage | Create/modify paths | Verify |` · spec
-references · `Exit (phase):` line · test focus · risk (standard/deep, defined in
-`.claude/skills/implement/SKILL.md` under Scope selector) · for review phases,
-which original phases they modify. Give each phase an identifier `tracker` can
+references · `Exit (phase):` line · test focus · risk (`small` is bounded,
+low-risk work; `standard` is a bounded behavior change; `deep` is cross-cutting,
+high-risk, or materially unresolved work) · for review phases, which original
+phases they modify. Give each phase an identifier `tracker` can
 carry as the epic's `[<phase-id>]` prefix.
 
 ## Extending an existing workstream

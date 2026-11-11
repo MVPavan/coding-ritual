@@ -237,13 +237,13 @@ ours:to-plan:
   tree_hash: "9d6ba7a238c9f5444210e467c0c6ce58b768f9e5cb25ceaa1d371fd4fb12249a"
   traits: [plan-form-by-need, durable-plan-format, plan-evidence-bound, test-first-marking, no-placeholder-plan, plan-self-review, reviewer-rejectable-sizing, no-stale-code-snippets, ground-in-codebase, per-unit-evidence-boxes, named-execution-scope, plan-lint-last]
 ours:to-roadmap:
-  tree_hash: "9393d02a5582a2eca09198e885f1882372566df0f4e542678bc7d52abe03c63e"
+  tree_hash: "16d5531a56f7bc84097710f417b921d26b7eddaa179f121bdd4763443af5e2a9"
   traits: [decompose-phases, breakdown-approval-before-publish]
 ours:to-spec:
   tree_hash: "d8c6b29a0d3bcdd029554346ac0d3e5088c6cfbdd3479ac6b12a4bd6a79bbbd5"
   traits: [synthesize-settled, spec-template, spec-criteria-and-questions, none-keeps-heading, testing-seam-decision, no-stale-file-paths, no-stale-code-snippets, prototype-snippet, spec-approval-gate, material-risk-review, user-perspective-framing, implementation-decisions-scope, testing-decisions-contents]
 ours:tracker:
-  tree_hash: "7c396cbd5719841873eb9e76ffa9c063b6402a45c90a2c4d4b8cf6c5d2ec987d"
+  tree_hash: "36cf8a2622dc5be2c79e1b6663a7a637009db7db2fd6cd78c4279da94854b424"
   traits: [phase-epic-contract, phase-epic-lookup, workstream-layout, beads-native-tracking, workstream-extension, dependency-edges, real-id-wiring, one-phase-plan-tracking, flat-operational-tracking, close-gate, workstream-render, session-spanning-unit-beads]
   notes:
     beads-native-tracking: "The roadmap anchor is the --spec-id and the governing spec is --design; the renderer derives the workstream from the anchor, so a plan path never goes in --design."
@@ -269,7 +269,7 @@ ours:wayfinder:
     decision-map-epic: "A Beads epic whose title starts with Map:."
     record-resolution: "Updates invalidated dependencies without deleting history."
 doc:AGENTS.md:
-  tree_hash: "f7f2f611e366f997b5d59f10adf68287f706738d4aedb51d11183a09089a3b5b"
+  tree_hash: "ea807472364357161d86cb2a60854e6020abe5cbba3f2bd51db539c05f409f0d"
   traits: [smallest-sufficient-change, implementation-authority-carry, inspection-only-authority, material-ambiguity-ask, work-while-waiting, consequential-action-authorization, approval-persistence, accuracy-over-agreement, no-grade-inflation, certainty-labelling, no-fabrication, scoped-reading, logs-behind-references, untrusted-content-no-authority, primary-evidence-check, volatile-fact-verification, decision-conflict-surfacing, handoff-contents, learnings-capture, memory-on-request, reuse-existing-first, present-requirement-only, no-unrelated-cleanup, owning-layer-fix, caller-impact-check, limitation-with-revisit, proportional-effort, explicit-workflow-adherence, configured-model-use, independence-batching, no-evidence-pivot, no-onward-delegation, worker-brief-contents, preserve-others-edits, no-duplicate-delegated-work, coordinator-ownership, applicable-checks-before-done, risk-proportional-tests, original-failure-check, rerun-on-change-only, final-diff-inspection, final-report-contents, secret-containment, simplification-preserves-safeguards, safe-retry-only, no-guard-bypass, explicit-path-staging, destructive-git-guard, commit-push-authority, merge-base-selection, merged-result-verification, unmerged-work-protection, repo-relative-committed-paths, scratch-artifact-location, read-only-references, minimal-borrowing, plugin-subset-invariant, resume-bead-and-handoff, generated-mirror-read-only, plain-path-references, durable-work-tracking, router-at-task-start, recurring-lesson-to-check, tool-when-it-pays, script-over-fanout, direct-observation, suspect-the-observation]
 doc:.repo-context/coding-style.md:
   tree_hash: "69c61c0c79bafd364f463e9a7e38bf023d39bc10223490f94d72523f29cd0868"

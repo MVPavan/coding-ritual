@@ -91,7 +91,9 @@ acceptance; no phases, no roadmap.
 - **Close gate.** `bd list --parent <epic> --all --json` must show at least one
   stage and every stage closed; name the unclosed ones otherwise. The exit evidence
   must be recorded: the roadmap's `Exit (phase):` line for a phase epic, the epic's
-  acceptance for a one-phase epic. If it has not run, send the work to `implement`.
+  acceptance for a one-phase epic. If it has not run, stop and report that the
+  exit is due; running it is the implement playbook's (at top level, return to
+  `mvp-mode`; in a delegated task, report the route).
   Then close with the evidence as `--reason` and as a comment.
 - **Render.** After any change, update Beads, then run
   `BD_RENDER=1 bash .claude/skills/tracker/scripts/bd-render-tracking.sh [<name>]`.

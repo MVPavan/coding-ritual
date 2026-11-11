@@ -71,8 +71,9 @@ amend or rewrite, and no work destroyed. Being asked to pause grants no authorit
    establish from its bead or a stable pointer to the work, such as its plan or trail, that it
    describes this same work. A matching `identity:` line alone does not, since two works can
    share a date and short name. Otherwise leave the file and take a distinct name for this work.
-   With `implement` running, also persist as its recovery section says. A failed `bd` write
-   falls back to the file, which says so, and so does the reply.
+   With `implement` running, also persist as its closeout (step 10) and the workstream walk's
+   recovery say. A failed `bd` write falls back to the file, which says so, and so does the
+   reply.
 
    **A frozen tree.** After a Hillclimb stop that leaves the tree untouched (an `attempt.py`
    non-zero exit or a path not meant to change), the freeze covers `.beads/` and its export. Write
