@@ -12,7 +12,7 @@ status: active
 
 Use to explain how something in this project works now (code, a script, config, a documented process or record format), with citations, or which option fits it once the scope is settled: before changing it, at a playbook step's call, or inside a delegated task. Why it has its shape or what motivated a change is why. At top level, a question that should end in that answer is the investigation playbook; a single lookup needs neither; an external codebase is codebase-research.
 
-**Boundary:** One cited, read-only answer about how something in this project works now, or which option fits once scope is settled. Why it has its shape is why, a report on an external codebase is codebase-research, a saved answer is the investigation playbook, outside sources are research, an unexplained failure is systematic-debugging, open scope is brainstorming, and a wanted change goes back through the router.
+**Boundary:** One cited, read-only answer about how something in this project works now, or which option fits once scope is settled. Why it has its shape is why, a report on an external codebase is codebase-research, a saved answer is the investigation playbook, outside sources are research, an unexplained failure is systematic-debugging, open scope is discovery, and a wanted change goes back through the router.
 
 <!-- registry:generated traits -->
 - `read-only-explanation`: Change nothing while explaining, not even temporary instrumentation.
@@ -33,6 +33,7 @@ Use to explain how something in this project works now (code, a script, config, 
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-11` **update** (2026-11-11-discovery:006): Owner ruling L1 of 2026-11-10 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 20 D1. Its decision branch sends open scope to discovery; outside sou…
 - `2026-11-10` **adopt** (2026-11-10-renames-splits:119): Completes pending 2026-11-10-renames-splits:031: reconcile-by-reading is delivered at .claude/skills/how/SKILL.md:33-34, in how, relocated from explain-code (p…
 - `2026-11-10` **adopt** (2026-11-10-renames-splits:118): Completes pending 2026-11-10-renames-splits:030: cited-flow-walkthrough is delivered at .claude/skills/how/SKILL.md:42-43, in how, relocated from explain-code …
 - `2026-11-10` **adopt** (2026-11-10-renames-splits:117): Completes pending 2026-11-10-renames-splits:029: explanation-sections is delivered at .claude/skills/how/SKILL.md:38-45, in how, relocated from explain-code (p…

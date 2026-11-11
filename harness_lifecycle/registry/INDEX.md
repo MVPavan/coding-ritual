@@ -11,7 +11,7 @@ Domain → stage → sub-stage. Each active skill under its primary home.
 - **Research**: research
 
 ### Intake
-- **Clarification**: brainstorming, grilling
+- **Clarification**: discovery, grilling
 - **Triage**: triage
 
 ### Design
@@ -68,7 +68,7 @@ Domain → stage → sub-stage. Each active skill under its primary home.
 
 Two or more active skills share one domain · sub-stage (README §2 rule 3):
 
-- core · Intake · Clarification: brainstorming, grilling
+- core · Intake · Clarification: discovery, grilling
 - core · Verification · Review: interrogate, review
 - core · Improvement · Codification: authoring-for-agents, harness-evaluate, harness-scan, harness-skill-compare, harness-status, migrate-claude-to-codex
 - core · X · Communication: brief-me, html-artifact, show-me, unslop
@@ -84,7 +84,6 @@ Two or more active skills share one domain · sub-stage (README §2 rule 3):
 
 ## Aliases
 
-- brainstorming: idea-refine
 - grilling: grill-me, grill-with-docs
 - implement: phase-execution, run-phases
 - review: document-review, receiving-code-review

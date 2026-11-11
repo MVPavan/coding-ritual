@@ -5,9 +5,9 @@ below is generated: it names every canonical skill, which is not proof that
 this harness exposes each one. Check actual runtime discovery before relying on
 a skill being available, and use the harness's own syntax for manual ones.
 
-Legacy entrypoints (`receiving-code-review`, `document-review`, `idea-refine`,
-`grill-me`, `grill-with-docs`, `teach-session`, `skill-router`) are thin
-pointers to the unit that owns the work. `verification-before-completion` and
+Legacy entrypoints (`receiving-code-review`, `document-review`, `grill-me`,
+`grill-with-docs`, `teach-session`, `skill-router`) are thin pointers to the
+unit that owns the work. `verification-before-completion` and
 `cost-estimate` keep only migration guidance; never suggest their retired
 workflows as steps.
 
@@ -19,7 +19,7 @@ Principles are not skills, so they are not listed here; the router lists them.
 
 ## Model-invocable skills
 
-`authoring-for-agents`, `beads`, `brainstorming`, `build-a-lever`, `codebase-design`, `decision-trail`, `delegation`, `design-evolve`, `domain-modeling`, `grilling`, `harness-evaluate`, `harness-skill-compare`, `how`, `html-artifact`, `implement`, `interrogate`, `land`, `model-council`, `mvp-mode`, `performance-optimization`, `perspective-council`, `prototype`, `research`, `resolving-merge-conflicts`, `review`, `security`, `systematic-debugging`, `tdd`, `to-plan`, `to-roadmap`, `to-spec`, `tracker`, `unslop`, `wake`, `why`
+`authoring-for-agents`, `beads`, `build-a-lever`, `codebase-design`, `decision-trail`, `delegation`, `design-evolve`, `discovery`, `domain-modeling`, `grilling`, `harness-evaluate`, `harness-skill-compare`, `how`, `html-artifact`, `implement`, `interrogate`, `land`, `model-council`, `mvp-mode`, `performance-optimization`, `perspective-council`, `prototype`, `research`, `resolving-merge-conflicts`, `review`, `security`, `systematic-debugging`, `tdd`, `to-plan`, `to-roadmap`, `to-spec`, `tracker`, `unslop`, `wake`, `why`
 
 ## Slash-only workflows
 
@@ -35,7 +35,6 @@ Principles are not skills, so they are not listed here; the router lists them.
 | `/harness-publish` | Publish this repo's harness into the mvp-plugin (the mvp-harness submodule) — copy the shippable skills and agents, run the provider-neutrality and leak audits, regenerate the shipped router and Codex sidecars, rebuild the residue template, validate both manifests, bump the version. |
 | `/harness-scan` | Scan a reference harness for material upstream drift and missing capabilities. |
 | `/harness-status` | Quick upstream-drift status across all reference_harnesses submodules — what changed since our pinned commits. |
-| `/idea-refine` | Explore a raw idea through brainstorming using the legacy idea-refine entrypoint. |
 | `/improve-codebase-architecture` | Find evidence-backed architecture improvements within a named area or requested codebase survey. |
 | `/migrate-claude-to-codex` | Adapt Claude harness assets for Codex while preserving shared AGENTS.md policy and canonical skills. |
 | `/phase-execution` | Execute one phase of a workstream roadmap. |

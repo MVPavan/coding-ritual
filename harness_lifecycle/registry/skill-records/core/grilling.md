@@ -12,7 +12,7 @@ status: active
 
 Use when the user explicitly requests a grilling interview to resolve or challenge material decisions. For a written critique, review the artifact directly.
 
-**Boundary:** Interrogates the owner's plan question by question, only on explicit request; open option exploration is brainstorming, and a written critique of an artifact is review.
+**Boundary:** Interrogates the owner's plan question by question, only on explicit request; open option exploration is discovery, and a written critique of an artifact is review.
 
 <!-- registry:generated traits -->
 - `map-decisions`: Map the material decisions and their prerequisites before questioning.

@@ -1,6 +1,6 @@
 ---
 name: model-council
-description: Use only on an explicit request for a council of named models or agents with a judge, never by itself; a yes in words to one counts. It can also turn candidates into one artifact, picked and grafted. Usually one critic review is enough, and ordinary brainstorming needs no council; two options to weigh is `codebase-design`, and two to try is `prototype`.
+description: Use only on an explicit request for a council of named models or agents with a judge, never by itself; a yes in words to one counts. It can also turn candidates into one artifact, picked and grafted. Usually one critic review is enough, and ordinary `discovery` needs no council; two options to weigh is `codebase-design`, and two to try is `prototype`.
 ---
 
 # Model Council

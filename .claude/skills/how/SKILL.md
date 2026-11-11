@@ -47,7 +47,7 @@ Use these sections, and drop any that does not apply:
 ## Branch: decision
 
 **Condition:** the question is a choice between alternatives for this project, and
-the scope is settled. Open scope is `brainstorming`; a choice that needs outside
+the scope is settled. Open scope is `discovery`; a choice that needs outside
 sources is `research`.
 
 Read what each alternative would touch, then recommend one, with a table of the

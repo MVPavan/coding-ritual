@@ -13,7 +13,7 @@ status: active
 No description.
 
 <!-- registry:generated traits -->
-- `scope-selector`: Pick task, phase or workstream scope from the request and route unresolved material scope back to to-plan or brainstorming.
+- `scope-selector`: Pick task, phase or workstream scope from the request and route unresolved material scope back to to-plan or discovery.
 - `risk-sized-review`: Size work small, standard or deep and match inline work, delegation and independent review to that size.
 - `task-loop`: Claim the exact task, implement in dependency order within owned paths, run applicable checks, and close with evidence and material limitations.
 - `finding-adjudication`: Verify each incoming review finding against requirements, code and primary evidence before acting, and give each a visible disposition: fix a confirmed in-scope defect, answer an incorrect one with a retained ruling, record an out-of-scope follow-up.
@@ -56,6 +56,7 @@ No description.
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-11` **update** (2026-11-11-discovery:005): Owner ruling L1 of 2026-11-10 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 20 D1. Its unresolved-scope row names `to-plan` or `discovery`; scope…
 - `2026-11-11` **update** (2026-11-11-tracker:023): critic-29b F1 (scratchpad/mvp-stack/critic-29b.md), coordinator fix: the coordinator stage renders tracking and refreshes the Beads export before the handoff c…
 - `2026-11-11` **update** (2026-11-11-tracker:022): Owner ruling N, R2/R3 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 27 section 5 T1b with critic-27d R1/R2 applied. Task loop child rule (F2): a …
 - `2026-11-11` **update** (2026-11-11-tracker:012): Owner rulings M2 (2026-11-10), N2 and N3 (2026-11-11) (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 27 T1a. Skip clause names to-roadmap and trac…

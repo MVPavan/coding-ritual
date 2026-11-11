@@ -8,7 +8,7 @@ Catalog: `44c9b2d6e889982ac18c27d05a19fefe335194e1`, 16 capabilities.
 |---|---|---|---|---|---|
 | `hook:hooks/session-start` | reject | decided |  | 2026-10-14-migration | no |
 | `plugin:superpowers` | reject | decided |  | 2026-10-14-migration | no |
-| `skill:skills/brainstorming` | adopt | not analysed | brainstorming | 2026-10-14-migration | no |
+| `skill:skills/brainstorming` | adopt | not analysed | discovery | 2026-10-14-migration | no |
 | `skill:skills/dispatching-parallel-agents` | reject | decided (whole skill) |  | 2026-10-14-owner-review | no |
 | `skill:skills/executing-plans` | reject | decided (whole skill) |  | 2026-10-14-migration | no |
 | `skill:skills/finishing-a-development-branch` | reject | decided (whole skill) |  | 2026-10-14-owner-review | no |

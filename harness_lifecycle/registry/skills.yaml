@@ -21,13 +21,13 @@ beads:
   aliases: []
   status: active
   boundary: "Tracks durable work state in Beads, the tool (types, fields, waits, claims, closing, setup, recovery) and how to resume it; workstreams, phase epics, plan records and tracking files are tracker, and a reviewable log of one run's decisions is decision-trail, which a bead note may point at."
-brainstorming:
+discovery:
   domain: core
   stage: Intake
   substage: Clarification
   secondary: []
   family: spec-authoring
-  aliases: [idea-refine]
+  aliases: []
   status: active
   boundary: "Explores and compares options when scope or behaviour is open and ends at decisions; writing settled decisions up as a durable spec is to-spec, and an explicitly requested interview that challenges the owner's own plan is grilling."
 build-a-lever:
@@ -119,7 +119,7 @@ how:
   family: null
   aliases: []
   status: active
-  boundary: "One cited, read-only answer about how something in this project works now, or which option fits once scope is settled. Why it has its shape is why, a report on an external codebase is codebase-research, a saved answer is the investigation playbook, outside sources are research, an unexplained failure is systematic-debugging, open scope is brainstorming, and a wanted change goes back through the router."
+  boundary: "One cited, read-only answer about how something in this project works now, or which option fits once scope is settled. Why it has its shape is why, a report on an external codebase is codebase-research, a saved answer is the investigation playbook, outside sources are research, an unexplained failure is systematic-debugging, open scope is discovery, and a wanted change goes back through the router."
 why:
   domain: engineering
   stage: Discovery
@@ -137,7 +137,7 @@ grilling:
   family: grilling
   aliases: [grill-me, grill-with-docs]
   status: active
-  boundary: "Interrogates the owner's plan question by question, only on explicit request; open option exploration is brainstorming, and a written critique of an artifact is review."
+  boundary: "Interrogates the owner's plan question by question, only on explicit request; open option exploration is discovery, and a written critique of an artifact is review."
 harness-evaluate:
   domain: core
   stage: Improvement
@@ -542,7 +542,7 @@ to-spec:
   family: spec-authoring
   aliases: []
   status: active
-  boundary: "Writes decisions already settled into a durable spec and gates its approval; exploring or comparing choices still open is brainstorming, turning an approved multi-phase spec into tracked phases and stages is to-roadmap, a one-phase spec is to-plan then tracker, and its implementation plan is to-plan."
+  boundary: "Writes decisions already settled into a durable spec and gates its approval; exploring or comparing choices still open is discovery, turning an approved multi-phase spec into tracked phases and stages is to-roadmap, a one-phase spec is to-plan then tracker, and its implementation plan is to-plan."
 tracker:
   domain: core
   stage: X

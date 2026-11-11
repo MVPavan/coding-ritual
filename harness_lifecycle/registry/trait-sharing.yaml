@@ -53,19 +53,19 @@ no-stale-code-snippets:
   why: "Each owns a different durable artifact, a spec or a plan, and its own template must keep code out."
   reviewed: "2026-10-30"
 question-batching:
-  skills: [brainstorming, grilling]
-  why: "Brainstorming asks the owner questions inside its own exploration; grilling's rules live inside its interview loop, so pointing there would pull brainstorming into that loop."
+  skills: [discovery, grilling]
+  why: "Discovery asks the owner questions inside its own exploration; grilling's rules live inside its interview loop, so pointing there would pull discovery into that loop."
   reviewed: "2026-10-30"
 recommended-answer:
-  skills: [brainstorming, grilling]
+  skills: [discovery, grilling]
   why: "As question-batching: a short rule each skill applies inside its own flow."
   reviewed: "2026-10-30"
 self-serve-facts:
-  skills: [brainstorming, grilling]
+  skills: [discovery, grilling]
   why: "As question-batching: a short rule each skill applies inside its own flow."
   reviewed: "2026-10-30"
 settled-stop:
-  skills: [brainstorming, grilling]
+  skills: [discovery, grilling]
   why: "As question-batching: each skill stops its own questioning when its decisions are settled."
   reviewed: "2026-10-30"
 finding-adjudication:

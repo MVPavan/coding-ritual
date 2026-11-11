@@ -1,16 +1,16 @@
 ---
-skill: brainstorming
+skill: discovery
 domain: core
 stage: Intake
 substage: Clarification
 secondary: []
 family: spec-authoring
-aliases: [idea-refine]
+aliases: []
 status: active
 ---
-# brainstorming
+# discovery
 
-Use when material scope or behavior decisions are still open and need exploring, or the user requests brainstorming. Skip writing settled decisions up as a spec, which is to-spec; handle a single routine ambiguity directly.
+Use when material scope or behavior decisions are still open and need exploring, or the user requests a brainstorm. Skip writing settled decisions up as a spec, which is to-spec; handle a single routine ambiguity directly.
 
 **Boundary:** Explores and compares options when scope or behaviour is open and ends at decisions; writing settled decisions up as a durable spec is to-spec, and an explicitly requested interview that challenges the owner's own plan is grilling.
 
@@ -34,6 +34,7 @@ Use when material scope or behavior decisions are still open and need exploring,
 <!-- /registry:generated traits -->
 
 <!-- registry:generated lineage -->
+- **agent-skills:skill:skills/idea-refine** `reference_harnesses/agent-skills/skills/idea-refine/SKILL.md` @ 7676817
 - **agent-skills:skill:skills/spec-driven-development** `reference_harnesses/agent-skills/skills/spec-driven-development/SKILL.md` @ 7676817
   - merged from: brainstorming
   - merged from: to-spec
@@ -41,6 +42,7 @@ Use when material scope or behavior decisions are still open and need exploring,
   - modified: absorb to-spec's no-interview fast path for when discussion has already settled
   - dropped: brainstorming's ~1,400-line visual-companion server bundle — heavy dependency, and prototype already covers the need
 - **agent-skills:skill:skills/interview-me** `skills/interview-me/SKILL.md`
+- **agent-skills:skill:skills/idea-refine** `skills/idea-refine/SKILL.md`
 - **agent-skills:skill:skills/spec-driven-development** `skills/spec-driven-development/SKILL.md`
   - merged from: brainstorming
   - merged from: to-spec
@@ -63,6 +65,8 @@ Use when material scope or behavior decisions are still open and need exploring,
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-11` **merge** (2026-11-11-discovery:003): Owner ruling L1 of 2026-11-10 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 20 D1. idea-refine, an alias of brainstorming, retires into discovery…
+- `2026-11-11` **rename** (2026-11-11-discovery:002): Owner ruling L1 of 2026-11-10 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 20 D1. The skill brainstorming is renamed discovery, the hub that set…
 - `2026-11-11` **adopt** (2026-11-11-discovery:001): Owner ruling L1 of 2026-11-10 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 20 D0: the discovery hub asks its open questions in rounds, each ques…
 - `2026-11-11` **update** (2026-11-10-renames-splits:159): Owner rulings M1, M4 (2026-11-10) and N1, N2 (2026-11-11) (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 24 U8r. Hand-off names to-plan.
 - `2026-11-10` **adopt** (2026-11-10-renames-splits:083): critic-17b F1: to-spec/SKILL.md:15 reads what the spec must describe, not what distinguishes the live choices, so it does not deliver scoped-context-read and c…
@@ -91,8 +95,10 @@ Use when material scope or behavior decisions are still open and need exploring,
 - `2026-08-12` **adopt** (2026-10-14-migration:109): Revisited 2026-08-12: still merged into ours, not installed. Per-unit boundary questions now live in the spec template's Implementation Decisions section (temp…
 - `2026-08-12` **adopt** (2026-10-14-migration:103): Revisited 2026-08-12: now the SKELETON of references/spec-template.md — Problem Statement, Solution, User Stories, Implementation Decisions, Testing Decisions,…
 - `2026-08-12` **adopt-merged** (2026-10-14-migration:099): Revisited 2026-08-12: spec half only, split from its plan/tasks/implement phases (those belong to our prepare-phases/planning/phase-execution). Taken into the …
+- `2026-08-12` **adopt** (2026-10-14-migration:095): Revisited 2026-08-12: original content restored (philosophy/anti-patterns/tone/red-flags kept) with surgical changes only — idea-doc write to docs/ideas/<name>…
 - `2026-08-11` **adopt** (2026-10-14-migration:086): Mechanics merged into brainstorming, not installed as a skill. Taken: predict-the-next-three stop test, approval-names-the-direction gate with the four near-mi…
 - `2026-08-11` **adopt-merged** (2026-10-14-migration:026) *(superseded)*: The only skill producing an approved written spec behind a hard no-implementation gate, with a six-area content model. Chosen as the merge base over to-spec be…
+- `2026-08-11` **adopt** (2026-10-14-migration:024) *(superseded)*: RESTORED BY USER after the council. Both members and the judge agreed to drop it: the judge classed it product-shape ideation rather than engineering, and it w…
 <!-- /registry:generated history -->
 
 <!-- registry:generated reviews -->

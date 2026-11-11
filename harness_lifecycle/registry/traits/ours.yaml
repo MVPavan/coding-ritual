@@ -15,8 +15,8 @@ ours:authoring-for-agents:
 ours:beads:
   tree_hash: "4033071f23315c2f9052a4dc8f65023b5c9115f6afef9a79212b1aa813e9d6e6"
   traits: [bead-type-taxonomy, field-roles, wait-as-edge, actor-identity, resume-line, session-close, session-recovery, knowledge-in-files, beads-setup, status-model, triage-routing, durable-unit-scope, review-as-task, destructive-command-guard, repeated-procedures, dolt-sync]
-ours:brainstorming:
-  tree_hash: "5dbb872c41cb115511362d36ba3a8e404fb221ece022a29acfb377426c88448e"
+ours:discovery:
+  tree_hash: "4d262ca51226a9503920c6b662390f735d21f3418452560e6e4d3b9ad7cbf4b0"
   traits: [match-interaction-to-ambiguity, scoped-context-read, reuse-before-new, decision-frame, options-with-tradeoffs, question-batching, recommended-answer, settled-stop, self-serve-facts, approval-interpretation, observable-outcomes, structured-divergence, exploration-lenses, inline-diagrams, visuals-into-spec, html-mockup-on-request]
   notes:
     recommended-answer: "Labels the recommendation's assumptions."
@@ -54,10 +54,10 @@ ours:domain-modeling:
     glossary-entry-template: "Lays the file out as a title and a one-or-two-sentence description, then each term in bold followed by its definition and an Avoid line."
     tight-concept-definitions: "One or two sentences at most."
 ours:implement:
-  tree_hash: "65c4057a7e496909943529af017184ea0b6b7b6b1a5dd05e9b101d569c9b55ac"
+  tree_hash: "56b7c5b7277200cff3b5179c5b6d8ddf06ebaad4d200119da254fea50d3b5a9c"
   traits: [scope-selector, risk-sized-review, task-loop, finding-adjudication, phase-loop, workstream-mode, child-workflows, context-recovery, stop-on-failure, bounded-fix-loop, scope-base-review-package, delegated-report-recovery, confirmed-cause-fix, regression-proof-and-rerun, attempt-log, two-failure-stop, dependency-edges, single-integration-branch, worktree-per-significant-change, worktree-base-verify, worktree-cleanup, pre-report-base-merge, unit-bead-execution]
 ours:how:
-  tree_hash: "5c941f330897ec8f8b014b93ab4bfdeda12a9367a8d7dbdd5fcb18bd393f7cf6"
+  tree_hash: "ad92570c06e17b0858c0f2b657ef9fb093529b8840c276db8d8ad3896770148e"
   traits: [read-only-explanation, immaterial-ambiguity-reading, angles-when-wide, reconcile-by-reading, explanation-sections, cited-flow-walkthrough, recommendation-with-tradeoffs]
 ours:why:
   tree_hash: "5986d9c4fbd6e790d00f0204cdd58c7c87be532a9eccfd0c55ed4f65c35b7a88"
@@ -108,10 +108,10 @@ ours:migrate-claude-to-codex:
   tree_hash: "27734a27265888408eca426706a7ad173b0f62709667cda6de5fa77afb3597ca"
   traits: [dry-run-default, skill-symlinking, destination-protection, command-conversion, agent-conversion, hook-conversion, config-scaffold, shared-policy-untouched, structural-verify, non-destructive, test-before-reliance]
 ours:model-council:
-  tree_hash: "604be20a026528990ef9536cfbb643228189552f25f15eda46633ae3f4445f05"
+  tree_hash: "678a7f2a8a0872f518a32349f32b6b49e0a3b83ed8d978b5f26d4ef50f85165a"
   traits: [member-resolution, runtime-capability-check, neutral-framing, member-isolation, report-preservation, independent-synthesis, consolidated-delivery, identity-recording, failed-member-recovery, no-silent-substitution, artifact-named-up-front, task-rubric-criteria, rubric-withheld-from-candidates, own-output-location, rationale-names-rejected, dropout-proceeds-noted, read-only-judge, judge-other-family-or-stated, rubric-given-to-judge, path-labelled-candidates, judge-criterion-scores, judge-recommends-base, full-read-before-pick, picker-criterion-scores, pick-compared-with-judge, disagreement-rereads-rationales, base-chosen-for-extensibility, near-tie-smaller-surface, loser-graft-pass, sparse-grafts, hand-folded-grafts, converged-shape-no-graft, divergence-reframes-once, graft-change-rerun, verify-miss-returns-once, single-synthesized-artifact, synthesis-decision-record, note-judge-status, note-convergence-dropouts, note-verification-result, no-judge-no-pick]
 ours:mvp-mode:
-  tree_hash: "d8926cb85d8f8fcf65532a8c2728a85bf92da8dd5c03f5d867af4055cd0790e8"
+  tree_hash: "6292e7bd7c05dd583251e9a811c1cc83fa57d8b90210d627de24a6e6e17ccd03"
   traits: [unit-kind-lines, playbook-pick, need-to-skill-routing, overlap-arbitration, layered-catalog, platform-skill-invocation, no-playbook-in-delegate, delegate-independent-by-default, no-onward-delegation, playbook-steps-as-todos, recorded-step-skip, whole-callee, playbook-exit, legacy-entrypoint-flagging, catalog-trust-boundary]
 ours:performance-optimization:
   tree_hash: "8e393535c7e06691afca39ef9df84040ce4752a29a8cc58610b8522ce951c4da"
@@ -241,7 +241,7 @@ ours:to-roadmap:
   tree_hash: "9393d02a5582a2eca09198e885f1882372566df0f4e542678bc7d52abe03c63e"
   traits: [decompose-phases, breakdown-approval-before-publish]
 ours:to-spec:
-  tree_hash: "5c23b156125b2447ff46d6c511a897855104b166e3468f53311c190884cdc3ef"
+  tree_hash: "339b25077c244357cca222ec1d58b0d331ef2638fb5b58bc004959f67bd0fd14"
   traits: [synthesize-settled, spec-template, spec-criteria-and-questions, none-keeps-heading, testing-seam-decision, no-stale-file-paths, no-stale-code-snippets, prototype-snippet, spec-approval-gate, material-risk-review, user-perspective-framing, implementation-decisions-scope, testing-decisions-contents]
 ours:tracker:
   tree_hash: "7c396cbd5719841873eb9e76ffa9c063b6402a45c90a2c4d4b8cf6c5d2ec987d"

@@ -1,6 +1,6 @@
 ---
 name: to-spec
-description: Use when decisions already settled should be written up as a durable spec for planning or another session. Skip choices still open or being compared, which are brainstorming.
+description: Use when decisions already settled should be written up as a durable spec for planning or another session. Skip choices still open or being compared, which are discovery.
 ---
 
 # To spec
@@ -11,7 +11,7 @@ Write decisions already reached into a durable spec that a later reader can act 
 
 Take the decisions from the conversation, the documents it names or the tracker
 record, and write them down without reopening them. A material choice that is
-still open goes back to `brainstorming`; do not settle it inside the spec.
+still open goes back to `discovery`; do not settle it inside the spec.
 Read only the code, docs and constraints the spec has to describe.
 
 ## Write

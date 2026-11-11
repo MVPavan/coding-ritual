@@ -169,7 +169,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `non-destructive`: Never delete, stage or commit the source assets.
 - `test-before-reliance`: Run the migrator's own tests and trial it in a disposable target before relying on changed behavior.
 
-#### core · Intake · Clarification — brainstorming
+#### core · Intake · Clarification — discovery
 - `match-interaction-to-ambiguity`: Match the interaction depth to the ambiguity — return to the task, ask one focused question, or run a structured exploration — rather than over- or under-investigating.
 - `scoped-context-read`: Read only the existing code, authoritative docs and constraints needed to distinguish the live choices.
 - `reuse-before-new`: Name the closest existing solution before proposing a new one.
@@ -995,7 +995,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `implementation-test-deletion`: When internals change, rewrite or delete tests that only protect the old implementation, asserting the current contract instead.
 
 #### engineering · X · Coordination — implement
-- `scope-selector`: Pick task, phase or workstream scope from the request and route unresolved material scope back to to-plan or brainstorming.
+- `scope-selector`: Pick task, phase or workstream scope from the request and route unresolved material scope back to to-plan or discovery.
 - `risk-sized-review`: Size work small, standard or deep and match inline work, delegation and independent review to that size.
 - `task-loop`: Claim the exact task, implement in dependency order within owned paths, run applicable checks, and close with evidence and material limitations.
 - `finding-adjudication`: Verify each incoming review finding against requirements, code and primary evidence before acting, and give each a visible disposition: fix a confirmed in-scope defect, answer an incorrect one with a retained ruling, record an out-of-scope follow-up.
@@ -2196,7 +2196,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `question-batching`: Batch independent questions whose prerequisites are settled and defer each dependent question until its prerequisites are answered. — adopt → grilling#question-batching
 - `recommended-answer`: Attach a recommended answer to each question, letting the respondent disagree. — adopt → grilling#recommended-answer
 - `yes-accepts-recommendation`: Word each question so that a yes accepts your recommended answer. — adopt → grilling#yes-accepts-recommendation
-- `round-format`: Lay out each round in a fixed question-and-recommendation markdown format, one block per question. — adopt, pending cr-r2pa.2.21 → brainstorming#round-format
+- `round-format`: Lay out each round in a fixed question-and-recommendation markdown format, one block per question. — adopt, pending cr-r2pa.2.21 → discovery#round-format
 - `self-serve-facts`: Look up available facts yourself rather than asking, leaving only the decisions to the live participant. — adopt → grilling#self-serve-facts
 - `exhaustive-completion`: End the session only when the frontier is empty and every branch of the tree has been visited, with nothing silently assumed. — defer
 - `reconfirm-before-action`: Do not act until the user confirms a shared understanding has been reached. — defer
@@ -2720,7 +2720,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 
 #### engineering · Design · Specification — skill:skills/engineering/to-spec
 - `synthesize-settled`: When the decisions are already settled, synthesize them into a spec without reopening the discussion. — adopt → to-spec#synthesize-settled
-- `ground-in-codebase`: Explore the current state of the code before writing, so the artifact targets what actually exists. — adopt → brainstorming#scoped-context-read
+- `ground-in-codebase`: Explore the current state of the code before writing, so the artifact targets what actually exists. — adopt → discovery#scoped-context-read
 - `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write. — defer
 - `respect-area-adrs`: Honour the recorded architectural decisions that govern the area being changed. — defer
 - `testing-seam-decision`: Record in the spec which seam the feature is tested at, preferring an existing and the highest useful seam and the fewest seams. — adopt → to-spec#testing-seam-decision
@@ -3203,11 +3203,11 @@ Wait for the respondent's answers to a round before asking the next one.
 
 #### `approval-interpretation`
 Treat a clear acceptance of a concrete proposal or an explicit delegation of routine choices as usable authority, and silence as not approval.
-- ours: `brainstorming`
+- ours: `discovery`
 
 #### `decision-frame`
 Establish the outcome, intended user, success criteria, constraints and exclusions before committing to an approach.
-- ours: `brainstorming`
+- ours: `discovery`
 
 #### `decision-summary`
 Produce the durable decision log in a fixed template — context, a decision table with rationale and implications, open items, a dependency map and a risk register.
@@ -3248,7 +3248,7 @@ Explain a question in one line only when its choice genuinely branches.
 
 #### `exploration-lenses`
 Apply ideation lenses such as SCAMPER or Jobs-to-Be-Done selectively to unlock options, never as a mandatory quota or sequence.
-- ours: `brainstorming`
+- ours: `discovery`
 
 #### `findings-summary-before-questions`
 Summarise what exists and what is missing before asking the user anything.
@@ -3288,7 +3288,7 @@ Map the material decisions and their prerequisites before questioning.
 
 #### `match-interaction-to-ambiguity`
 Match the interaction depth to the ambiguity — return to the task, ask one focused question, or run a structured exploration — rather than over- or under-investigating.
-- ours: `brainstorming`
+- ours: `discovery`
 
 #### `material-ambiguity-ask`
 Decide routine details yourself and ask only when an ambiguity materially affects correctness, scope or authority.
@@ -3305,7 +3305,7 @@ Run a fact lookup without blocking the interview, holding back only the question
 
 #### `observable-outcomes`
 Translate vague goals such as scalable or simple into observable outcomes only when the distinction affects the design.
-- ours: `brainstorming`
+- ours: `discovery`
 
 #### `one-question-at-a-time`
 Take the questions in a fixed order and get one answer before asking the next.
@@ -3313,7 +3313,7 @@ Take the questions in a fixed order and get one answer before asking the next.
 
 #### `options-with-tradeoffs`
 Present materially different options with their tradeoffs when alternatives remain.
-- ours: `brainstorming`
+- ours: `discovery`
 
 #### `outside-correctness-signal`
 Name something outside both the agent and the user that would show the result is correct.
@@ -3329,7 +3329,7 @@ Invite partial and don't-know answers, asking the respondent to flag uncertainty
 
 #### `question-batching`
 Batch independent questions whose prerequisites are settled and defer each dependent question until its prerequisites are answered.
-- ours: `brainstorming`
+- ours: `discovery`
 - ours: `grilling`
 - `mattpocock_skills:skill:skills/productivity/grilling` — adopt → grilling#question-batching
 
@@ -3351,7 +3351,7 @@ Name the least processed material a practitioner would begin from in place of th
 
 #### `recommended-answer`
 Attach a recommended answer to each question, letting the respondent disagree.
-- ours: `brainstorming`
+- ours: `discovery`
 - ours: `grilling`
 - `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
 - `mattpocock_skills:skill:skills/in-progress/loop-me` — adopt → grilling#recommended-answer
@@ -3363,15 +3363,15 @@ Do not act until the user confirms a shared understanding has been reached.
 
 #### `reuse-before-new`
 Name the closest existing solution before proposing a new one.
-- ours: `brainstorming`
+- ours: `discovery`
 
 #### `round-format`
 Lay out each round in a fixed question-and-recommendation markdown format, one block per question.
-- `mattpocock_skills:skill:skills/productivity/grilling` — adopt, pending cr-r2pa.2.21 → brainstorming#round-format
+- `mattpocock_skills:skill:skills/productivity/grilling` — adopt, pending cr-r2pa.2.21 → discovery#round-format
 
 #### `scoped-context-read`
 Read only the existing code, authoritative docs and constraints needed to distinguish the live choices.
-- ours: `brainstorming`
+- ours: `discovery`
 
 #### `selective-why-lines`
 Add a one-line reason a question matters only where it could be misread or invite a throwaway answer.
@@ -3379,13 +3379,13 @@ Add a one-line reason a question matters only where it could be misread or invit
 
 #### `self-serve-facts`
 Look up available facts yourself rather than asking, leaving only the decisions to the live participant.
-- ours: `brainstorming`
+- ours: `discovery`
 - ours: `grilling`
 - `mattpocock_skills:skill:skills/productivity/grilling` — adopt → grilling#self-serve-facts
 
 #### `settled-stop`
 Recompute the unresolved choices after each answer and stop once the needed ones are settled, deferred or blocked, without exhausting every branch.
-- ours: `brainstorming`
+- ours: `discovery`
 - ours: `grilling`
 
 #### `single-idea-questions`
@@ -3399,7 +3399,7 @@ Skip a question that what you already found has settled, such as one about a ski
 
 #### `structured-divergence`
 Generate only enough distinct options to expose the tradeoff, compare them on value, feasibility, cost and reversibility, test the assumption most likely to reverse the choice first, and keep rejected options with their reasons.
-- ours: `brainstorming`
+- ours: `discovery`
 
 #### `synthesize-settled`
 When the decisions are already settled, synthesize them into a spec without reopening the discussion.
@@ -3590,7 +3590,7 @@ Capture the spec in a fixed skeleton: problem, solution, user stories, implement
 
 #### `visuals-into-spec`
 Re-express an approved diagram inside the durable spec as a Mermaid block, or record what a mockup showed and decided, rather than linking disposable scratch files.
-- ours: `brainstorming`
+- ours: `discovery`
 
 #### `workflow-spec-artifact`
 Keep each workflow's spec in its own markdown file as the single source of truth.
@@ -4967,7 +4967,7 @@ Escalate to the dedicated HTML-artifact skill only under its full gate, and neve
 
 #### `html-mockup-on-request`
 On explicit request only, produce one self-contained offline HTML mockup under the scratch directory for what a diagram cannot carry.
-- ours: `brainstorming`
+- ours: `discovery`
 
 #### `ing-phrase-cut`
 Delete tacked-on present-participle phrases that claim significance, or back them with real sources.
@@ -4976,7 +4976,7 @@ Delete tacked-on present-participle phrases that claim significance, or back the
 
 #### `inline-diagrams`
 Draw a structure, flow, sequence or state question as a small inline Mermaid block, using prose for requirements and trade-offs.
-- ours: `brainstorming`
+- ours: `discovery`
 
 #### `inline-header-list-convert`
 Turn bullets whose bold label merely restates the line into prose, keeping a period-ended label followed by new detail.
@@ -9001,7 +9001,7 @@ Keep the glossary free of implementation details and never treat it as a spec or
 #### `ground-in-codebase`
 Explore the current state of the code before writing, so the artifact targets what actually exists.
 - ours: `to-plan`
-- `mattpocock_skills:skill:skills/engineering/to-spec` — adopt → brainstorming#scoped-context-read
+- `mattpocock_skills:skill:skills/engineering/to-spec` — adopt → discovery#scoped-context-read
 - `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → to-plan#ground-in-codebase
 - `mattpocock_skills:skill:skills/engineering/triage` — defer
 
@@ -11480,7 +11480,7 @@ Choose the runner per task, so review and implementation runs may run on differe
 - `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
 
 #### `scope-selector`
-Pick task, phase or workstream scope from the request and route unresolved material scope back to to-plan or brainstorming.
+Pick task, phase or workstream scope from the request and route unresolved material scope back to to-plan or discovery.
 - ours: `implement`
 
 #### `self-chaining-implementer`
@@ -11587,17 +11587,17 @@ Traits listed by two or more of our active skills (`doc:AGENTS.md` and playbooks
 | `own-output-location` | interrogate, model-council | Council members and adversaries each run independently on shared work, so each needs its own place to write; one is a branch of a council and the other a review, and neither calls the other. |
 | `pin-preserving-fetch` | harness-scan, harness-status | Both run the fetching drift command themselves, so each must state that a fetch never moves pins and that --no-fetch skips the network. |
 | `preserve-reproducers` | doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, systematic-debugging | Each cleans up after its own work: the diagnosis when called alone, the bug-fix playbook at its closeout on every exit. Both keep reproducers, so neither cleanup deletes the evidence the other relies on. |
-| `question-batching` | brainstorming, grilling | Brainstorming asks the owner questions inside its own exploration; grilling's rules live inside its interview loop, so pointing there would pull brainstorming into that loop. |
+| `question-batching` | discovery, grilling | Discovery asks the owner questions inside its own exploration; grilling's rules live inside its interview loop, so pointing there would pull discovery into that loop. |
 | `read-only-closeout` | doc:.claude/skills/mvp-mode/playbooks/investigation.md, doc:.claude/skills/mvp-mode/playbooks/session-pickup.md | Each is a read-only run whose closeout belongs to its own exits and reply; logged under St4 in unit-kinds. |
 | `read-only-explanation` | how, why | Both answer a question about this project and change nothing while answering; one read-only rule, kept in each half of the split. |
 | `read-trail-first` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md | Each looping playbook reads its own trail before choosing the next change; each trail has its own columns and rows. |
-| `recommended-answer` | brainstorming, grilling | As question-batching: a short rule each skill applies inside its own flow. |
+| `recommended-answer` | discovery, grilling | As question-batching: a short rule each skill applies inside its own flow. |
 | `revert-ineffective-experiments` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, performance-optimization | Each runs its own loop of attempts, fix attempts in the bug-fix playbook and optimization experiments in performance-optimization, and removes its own failed edits before the next attempt. |
 | `row-then-checkpoint` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md | Each loop writes its own row and checkpoint in this order, around its own keep-or-discard step, so a closing return can trust them. |
 | `run-limits-first` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md | Each long loop fixes its own limits before its first change, from the same stated defaults, and gives them to `wake`. |
-| `self-serve-facts` | brainstorming, grilling | As question-batching: a short rule each skill applies inside its own flow. |
+| `self-serve-facts` | discovery, grilling | As question-batching: a short rule each skill applies inside its own flow. |
 | `sequential-record-numbering` | domain-modeling, teach | Each keeps its own record folder (ADRs, learning records) in one minimal format. |
-| `settled-stop` | brainstorming, grilling | As question-batching: each skill stops its own questioning when its decisions are settled. |
+| `settled-stop` | discovery, grilling | As question-batching: each skill stops its own questioning when its decisions are settled. |
 | `single-source-of-truth` | authoring-for-agents, principle-subtract-before-you-add | Each applies one-owner-per-meaning to its own material: authoring-for-agents to agent instructions (search for an existing owner before adding one), the principle to code and data before an addition; neither unit loads the other on its path. |
 | `stated-unattended-gate` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md | The same one sentence tells each of these playbooks whether a run is away; each then takes its own branch or exit. |
 | `tight-concept-definitions` | domain-modeling, teach | Each keeps a glossary of its own (project language, the learner's workspace) in one entry format, with its own admission rules. |

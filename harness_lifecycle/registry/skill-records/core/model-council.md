@@ -10,7 +10,7 @@ status: active
 ---
 # model-council
 
-Use only on an explicit request for a council of named models or agents with a judge, never by itself; a yes in words to one counts. It can also turn candidates into one artifact, picked and grafted. Usually one critic review is enough, and ordinary brainstorming needs no council; two options to weigh is `codebase-design`, and two to try is `prototype`.
+Use only on an explicit request for a council of named models or agents with a judge, never by itself; a yes in words to one counts. It can also turn candidates into one artifact, picked and grafted. Usually one critic review is enough, and ordinary `discovery` needs no council; two options to weigh is `codebase-design`, and two to try is `prototype`.
 
 **Boundary:** Runs an explicitly requested council of named models or agents with a judge; a council of perspectives or roles is perspective-council, and dispatching each member is delegation; on request it also turns candidates into one artifact, which a build's playbook then uses.
 
@@ -93,6 +93,7 @@ Use only on an explicit request for a council of named models or agents with a j
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-11` **update** (2026-11-11-discovery:008): Owner ruling L1 of 2026-11-10 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 20 D1. Its description's routing clause names `discovery` (plan 20 De…
 - `2026-11-03` **update** (2026-11-03-batch-3:148): A branch that turns candidates into one artifact, picked and grafted, in references/pick-and-graft.md and loaded only on the branch. The description now says e…
 - `2026-11-03` **adopt** (2026-11-03-batch-3:147): Completes pending 2026-11-03-batch-3:049: note-verification-result is written at .claude/skills/model-council/references/pick-and-graft.md:35, read against its…
 - `2026-11-03` **adopt** (2026-11-03-batch-3:146): Completes pending 2026-11-03-batch-3:048: note-convergence-dropouts is written at .claude/skills/model-council/references/pick-and-graft.md:34-35, read against…

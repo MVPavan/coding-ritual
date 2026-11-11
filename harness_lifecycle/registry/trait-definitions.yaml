@@ -2841,7 +2841,7 @@ risk-sized-review:
   definition: "Size work small, standard or deep and match inline work, delegation and independent review to that size."
   placement: {domain: engineering, stage: X, substage: Coordination}
 scope-selector:
-  definition: "Pick task, phase or workstream scope from the request and route unresolved material scope back to to-plan or brainstorming."
+  definition: "Pick task, phase or workstream scope from the request and route unresolved material scope back to to-plan or discovery."
   placement: {domain: engineering, stage: X, substage: Coordination}
 stop-on-failure:
   definition: "Let a failed gate, exit criterion or material blocker stop advancement and diagnose instead of re-dispatching without new evidence."

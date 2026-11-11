@@ -1,9 +1,9 @@
 ---
-name: brainstorming
-description: Use when material scope or behavior decisions are still open and need exploring, or the user requests brainstorming. Skip writing settled decisions up as a spec, which is to-spec; handle a single routine ambiguity directly.
+name: discovery
+description: Use when material scope or behavior decisions are still open and need exploring, or the user requests a brainstorm. Skip writing settled decisions up as a spec, which is to-spec; handle a single routine ambiguity directly.
 ---
 
-# Brainstorming
+# Discovery
 
 Resolve material scope or behavior decisions before committing to an approach.
 
@@ -42,5 +42,5 @@ for planning or another session, hand the decisions to `to-spec`. Report a
 direction still unresolved as a blocker to whoever started the brainstorm.
 
 This skill's output is decisions. Continue into `to-spec`, `to-plan` or
-`implement` when already authorized; a brainstorming-only request does not
+`implement` when already authorized; a discovery-only request does not
 authorize code changes.

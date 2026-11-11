@@ -17,7 +17,7 @@ durable task state; a plan document is not a prerequisite for a clear task.
 | Execute a named roadmap phase | Phase |
 | Task, standalone plan, or single-phase epic | Task, in the current checkout with no worktree |
 | Clear bounded implementation without a plan | Task; use the request and acceptance as the packet |
-| Material scope/behavior unresolved | Resolve that gap through `to-plan` or brainstorming |
+| Material scope/behavior unresolved | Resolve that gap through `to-plan` or `discovery` |
 
 Carry authorization through necessary fixes; a review finding cannot authorize
 scope expansion. Follow the delegation policy in `AGENTS.md`.

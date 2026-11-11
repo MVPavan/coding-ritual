@@ -10,9 +10,9 @@ status: active
 ---
 # to-spec
 
-Use when decisions already settled should be written up as a durable spec for planning or another session. Skip choices still open or being compared, which are brainstorming.
+Use when decisions already settled should be written up as a durable spec for planning or another session. Skip choices still open or being compared, which are discovery.
 
-**Boundary:** Writes decisions already settled into a durable spec and gates its approval; exploring or comparing choices still open is brainstorming, turning an approved multi-phase spec into tracked phases and stages is to-roadmap, a one-phase spec is to-plan then tracker, and its implementation plan is to-plan.
+**Boundary:** Writes decisions already settled into a durable spec and gates its approval; exploring or comparing choices still open is discovery, turning an approved multi-phase spec into tracked phases and stages is to-roadmap, a one-phase spec is to-plan then tracker, and its implementation plan is to-plan.
 
 <!-- registry:generated traits -->
 - `synthesize-settled`: When the decisions are already settled, synthesize them into a spec without reopening the discussion.
@@ -45,6 +45,7 @@ Use when decisions already settled should be written up as a durable spec for pl
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-11` **update** (2026-11-11-discovery:004): Owner ruling L1 of 2026-11-10 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 20 D1. Its description and the open-choice hand-back name discovery f…
 - `2026-11-11` **update** (2026-11-11-tracker:014): Owner rulings M2 (2026-11-10), N2 and N3 (2026-11-11) (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 27 T1a. The template names tracker as the ski…
 - `2026-11-11` **update** (2026-11-10-renames-splits:158): Owner rulings M1, M4 (2026-11-10) and N1, N2 (2026-11-11) (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 24 U8r. Hand-off continues into to-roadma…
 - `2026-11-10` **update** (2026-11-10-renames-splits:101): Critic-18b F3. references/spec-template.md's consumer line names the epic fields as to-tickets and planning set them: a workstream's phase epics carry the spec…

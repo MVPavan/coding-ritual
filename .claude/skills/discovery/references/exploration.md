@@ -12,6 +12,6 @@ will matter to a later decision.
 
 Converge on a recommended direction and a checkable next step. A saved one-pager
 is optional; an explicit request for in-chat ideas should stay in chat. Optional
-lenses and examples remain at `../../idea-refine/frameworks.md`,
-`../../idea-refine/refinement-criteria.md` and `../../idea-refine/examples.md`;
+lenses and examples remain at `frameworks.md`,
+`refinement-criteria.md` and `examples.md` in this folder;
 use only the relevant lens.
