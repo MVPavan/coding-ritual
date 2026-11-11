@@ -219,21 +219,30 @@ class Event(StrictModel):
         return self
 
     def _check_playbook_subject(self) -> None:
-        """A playbook is its own subject (§4b). Only the shape is checked here:
-        the playbooks folder is config, so `record` and `check` decide that the
-        path names a playbook."""
-        if self.kind not in PLAYBOOK_KINDS:
+        """A playbook is its own subject (§4b); a `rename` names the new path
+        in `skill`. Only the shape is checked here: the playbooks folder is
+        config, so `record` and `check` decide that a path names a playbook."""
+        if self.kind == "rename":
+            # subject names the old path; skill names the new one (README §4b)
+            new = self.skill or ""
+            if not new.startswith("doc:") or new == self.subject:
+                raise ValueError(
+                    f"{self.id}: rename on a playbook subject: a playbook is renamed "
+                    f"only to another `doc:` playbook path, got {self.skill!r}"
+                )
+        elif self.kind not in PLAYBOOK_KINDS:
             raise ValueError(
                 f"{self.id}: {self.kind} on a playbook subject: only "
-                f"{sorted(PLAYBOOK_KINDS)}; a playbook has no `retire` yet"
+                f"{sorted(PLAYBOOK_KINDS | {'rename'})}; a playbook has no `retire` yet"
             )
-        if self.subject != self.skill:
+        elif self.subject != self.skill:
             raise ValueError(
                 f"{self.id}: a playbook event's subject and skill are the same "
                 f"`doc:<path>`, got {self.subject!r} and {self.skill!r}"
             )
-        if self.subject == "doc:" or "#" in self.subject:
-            raise ValueError(f"{self.id}: {self.subject!r} is not a playbook path")
+        for path in (self.subject, self.skill or ""):
+            if path == "doc:" or "#" in path:
+                raise ValueError(f"{self.id}: {path!r} is not a playbook path")
 
     def _check_contextual_fields(self) -> None:
         """Trait-level fields only where §5 defines them (review r1 #11)."""

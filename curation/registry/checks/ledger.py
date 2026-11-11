@@ -202,19 +202,28 @@ def _check_adopt_merged_adaptation(
 def reuse_errors(events: list[Event]) -> list[str]:
     """An `add` may not reintroduce a name an earlier live `rename`/`merge`
     forwards: lifecycle resolution is one timeless name map, so the new skill's
-    events would land in the survivor's record. A superseded lifecycle event
-    retires nothing."""
+    events would land in the survivor's record, and a renamed-away playbook
+    path would forward its adoptions to the new one. A skill is tracked by its
+    plain name, a playbook by its `doc:` path; for a playbook an `update` is
+    refused too, since it would make the old path a hashed holder again. A
+    superseded lifecycle event retires nothing."""
     errors: list[str] = []
     retiring: dict[str, Event] = {}
     for event in live_events(events):
-        if not event.subject.startswith("ours:"):
+        if event.subject.startswith("ours:"):
+            name = event.subject[len("ours:") :]
+        elif event.subject.startswith("doc:"):
+            name = event.subject
+        else:
             continue
-        name = event.subject[len("ours:") :]
         if event.kind in {"rename", "merge"} and event.skill:
             retiring.setdefault(name, event)
-        elif event.kind == "add" and name in retiring:
+        elif name in retiring and (
+            event.kind == "add" or (event.kind == "update" and name.startswith("doc:"))
+        ):
             by = retiring[name]
             errors.append(
-                f"{event.id}: add reintroduces {name!r}, retired by {by.kind} {by.id}"
+                f"{event.id}: {event.kind} reintroduces {name!r}, "
+                f"retired by {by.kind} {by.id}"
             )
     return errors

@@ -8,7 +8,12 @@ import re
 from curation.registry.checks.records import _target_exists
 from curation.registry.checks.traits import doc_holder_kind
 from curation.registry.config import RegistryConfig
-from curation.registry.ledger import effective_by_subject, live_events
+from curation.registry.ledger import (
+    build_lifecycle,
+    effective_by_subject,
+    live_events,
+    resolve_skill,
+)
 from curation.registry.loaders import unit_file
 from curation.registry.models import Event, TraitDefinition
 from curation.registry.steps import (
@@ -94,14 +99,30 @@ def playbook_errors(
 def playbook_ledger_errors(cfg: RegistryConfig, events: list[Event]) -> list[str]:
     """Each playbook's hash lives on its effective event (§4b): that event names
     a playbook file that exists and carries `target_tree_hash`, and every
-    playbook file has such an event, at its current hash. Only effective events
-    are read, so a sealed event is corrected by superseding it."""
+    playbook file has such an event, at its current hash. A renamed-away path's
+    effective event is its `rename`, whose survivor must have such an event.
+    Only effective events are read, so a sealed event is corrected by
+    superseding it."""
+    live = live_events(events)
+    current = effective_by_subject(live)
     effective = {
         subject: event
-        for subject, event in effective_by_subject(live_events(events)).items()
+        for subject, event in current.items()
         if subject.startswith("doc:") and event.kind in PLAYBOOK_KINDS
     }
     errors: list[str] = []
+    forward, _ = build_lifecycle(live)
+    for subject, event in sorted(current.items()):
+        if not (subject.startswith("doc:") and event.kind == "rename"):
+            continue
+        survivor = resolve_skill(subject, forward)
+        if doc_holder_kind(cfg, subject[len("doc:") :]) != "playbook":
+            errors.append(f"{event.id}: {subject} names no playbook file")
+        elif survivor not in effective:
+            errors.append(
+                f"{event.id}: {subject} is renamed to {survivor}, which has no "
+                f"effective `add` or `update` (README §4b)"
+            )
     for subject, event in sorted(effective.items()):
         rel = subject[len("doc:") :]
         if doc_holder_kind(cfg, rel) != "playbook":

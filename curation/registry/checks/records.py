@@ -12,6 +12,7 @@ from curation.registry.ledger import (
     effective_by_subject,
     is_pending_adopt,
     resolve_skill,
+    tracks_adoption,
 )
 from curation.registry.loaders import principle_names, record_paths, unit_file
 from curation.registry.models import Event, Frontmatter, SkillEntry
@@ -122,9 +123,9 @@ def _check_effective_targets(
         if event.source is None:
             errors.append(f"{event.id}: live adoption of {subject} has no source")
         target = event.skill
-        # Plain skill targets follow rename/merge; kind:name and doc: targets do not.
+        # Skill and `doc:` targets follow rename/merge; kind:name targets do not.
         resolved = target
-        if target and ":" not in target:
+        if target and tracks_adoption(target):
             resolved = resolve_skill(target, forward)
         if resolved in retired:
             continue

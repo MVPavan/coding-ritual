@@ -12,6 +12,7 @@ from curation.registry.ledger import (
     _round_of,
     effective_traits_for,
     resolve_skill,
+    tracks_adoption,
 )
 from curation.registry.models import Event, RoundHeader, UpstreamTraitEntry
 from curation.registry.status import capability_state
@@ -34,9 +35,10 @@ def _traits_cell(
 
 def _ruled_into(event: Event, forward: dict[str, str]) -> str:
     """A capability ruling's destination: a whole-skill adoption names the
-    skill that survives our renames and merges; anything else is verbatim."""
+    skill or playbook that survives our renames and merges; anything else is
+    verbatim."""
     skill = event.skill or ""
-    if event.kind in {"adopt", "adopt-merged"} and skill and ":" not in skill:
+    if event.kind in {"adopt", "adopt-merged"} and skill and tracks_adoption(skill):
         return resolve_skill(skill, forward)
     return skill
 

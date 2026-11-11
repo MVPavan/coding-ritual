@@ -213,9 +213,10 @@ def build_lifecycle(events: list[Event]) -> tuple[dict[str, str], set[str]]:
     """Our skill lifecycle, read in ledger order (§3, §5).
 
     Returns ``(forward, retired)``: a one-step ``old -> new`` map across
-    ``rename``/``merge`` and the set of retired skill names. Trait IDs are
-    global, so a merge needs no slug map (§5). Callers pass `live_events`, so
-    superseded lifecycle events are already excluded (review #8).
+    ``rename``/``merge`` and the set of retired skill names. A skill is keyed by
+    its plain name, a renamed playbook by its full ``doc:<path>`` (README §4b).
+    Trait IDs are global, so a merge needs no slug map (§5). Callers pass
+    `live_events`, so superseded lifecycle events are already excluded (review #8).
     """
     forward: dict[str, str] = {}
     retired: set[str] = set()
@@ -224,6 +225,9 @@ def build_lifecycle(events: list[Event]) -> tuple[dict[str, str], set[str]]:
             old = event.subject[len("ours:") :]
             if event.skill:
                 forward[old] = event.skill
+        elif event.kind == "rename" and event.subject.startswith("doc:"):
+            if event.skill:
+                forward[event.subject] = event.skill
         elif event.kind == "retire" and event.skill:
             retired.add(event.skill)
     return forward, retired
@@ -485,10 +489,13 @@ def seal_report_digest(cfg: RegistryConfig, key: str, digest: str) -> None:
 
 
 def _adopt_target(ruling: Event, forward: dict[str, str]) -> str:
-    """The rendered adoption target of a trait `adopt` ruling: a `doc:`/`kind:`
-    target verbatim, otherwise the survivor skill and the adopted trait id."""
+    """The rendered adoption target of a trait `adopt` ruling: a `kind:` target
+    verbatim, a `doc:` target as the path it was renamed to, otherwise the
+    survivor skill and the adopted trait id."""
     assert ruling.skill is not None
-    if ":" in ruling.skill:  # doc: or kind: target, no trait id, no lifecycle
+    if ruling.skill.startswith("doc:"):  # a playbook may be renamed; no trait id
+        return resolve_skill(ruling.skill, forward)
+    if ":" in ruling.skill:  # kind: target, no trait id, no lifecycle
         return ruling.skill
     survivor = resolve_skill(ruling.skill, forward)
     tid = ruling.into or _trait_slug(ruling.subject)

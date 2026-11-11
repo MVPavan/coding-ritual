@@ -89,6 +89,8 @@ def _single(cfg: RegistryConfig, data: dict[str, Any], events: list[Event]) -> E
         data["target_tree_hash"] = _target_hash(cfg, str(data["skill"]), events)
     if subject.startswith("doc:") and data.get("kind") in PLAYBOOK_KINDS:
         _fill_playbook_hash(cfg, data, subject, events)
+    elif subject.startswith("doc:") and data.get("kind") == "rename":
+        _check_playbook_rename(cfg, subject, data.get("skill"))
     ctx = report_files.load_context(cfg) if "#" in subject else None
     if ctx is not None:
         _set_policy_basis(data, subject, pending, ctx)
@@ -150,6 +152,28 @@ def _fill_playbook_hash(
     if prior is not None and prior.target_tree_hash == now:
         raise SystemExit(
             f"refused: {subject} is unchanged since {prior.id}; nothing to record"
+        )
+
+
+def _check_playbook_rename(cfg: RegistryConfig, subject: str, new: object) -> None:
+    """A playbook `rename` (README §4b): the old path names a playbook, whose
+    file may be gone, and the new path is an existing playbook file. No hash
+    is stored: the new path's own `add` holds it."""
+    folder = cfg.playbooks_dir.relative_to(cfg.repo_root)
+    if doc_holder_kind(cfg, subject[len("doc:") :]) != "playbook":
+        raise SystemExit(
+            f"refused: {subject} is not a playbook file; a renamed `doc:` subject "
+            f"names a file directly in {folder}/"
+        )
+    rel = new[len("doc:") :] if isinstance(new, str) and new.startswith("doc:") else ""
+    if (
+        not rel
+        or doc_holder_kind(cfg, rel) != "playbook"
+        or not (cfg.repo_root / rel).is_file()
+    ):
+        raise SystemExit(
+            f"refused: {new!r} is not a playbook file; a playbook `rename` names "
+            f"an existing file directly in {folder}/ as `skill`"
         )
 
 
@@ -235,11 +259,11 @@ def _freshness_errors(event: Event, ctx: report_files.Context) -> list[str]:
 
 def _target_hash(cfg: RegistryConfig, target: str, events: list[Event]) -> str:
     """The target's current tree hash: a skill folder's, a playbook's (its
-    file and reference folder, F3), or another `doc:` file's. A skill name
-    resolves first, so one merged into a playbook hashes that playbook."""
-    if not target.startswith("doc:"):
-        forward, _ = build_lifecycle(live_events(events))
-        target = resolve_skill(target, forward)
+    file and reference folder, F3), or another `doc:` file's. The target
+    resolves first, so a skill merged into a playbook, or a renamed playbook,
+    hashes the playbook it now is."""
+    forward, _ = build_lifecycle(live_events(events))
+    target = resolve_skill(target, forward)
     if target.startswith("doc:"):
         rel = target[len("doc:") :]
         file = cfg.repo_root / rel

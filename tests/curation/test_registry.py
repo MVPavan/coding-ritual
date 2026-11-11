@@ -14,13 +14,24 @@ import json
 import shutil
 import subprocess
 from pathlib import Path
+from typing import Any
 
 import pytest
 import yaml
 
-from curation.registry import catalogs, cli, config, ledger, loaders, models, vocab
+from curation.registry import (
+    catalogs,
+    cli,
+    config,
+    ledger,
+    loaders,
+    models,
+    vocab,
+)
 from curation.registry import traits as trait_facts
+from curation.registry.checks import ledger as checks_ledger
 from curation.registry.checks import records as record_checks
+from curation.registry.record import _target_hash
 from curation.registry.views import records as record_views
 from curation.scan import catalog as scan
 
@@ -2781,3 +2792,228 @@ def test_retained_adoption_may_target_doc_agents_md(tmp_path: Path) -> None:
     )
     assert cli.cmd_build(cfg, _ns()) == 0
     assert cli.cmd_check(cfg, _ns()) == 0
+
+
+# --- a playbook renamed (plan 45 §5b, P2 U0) ----------------------------------
+
+MEND_PATH = ".claude/skills/mvp-mode/playbooks/mend.md"
+
+
+def _steps() -> Any:
+    """The playbook fixtures live in `test_steps`, which imports this module,
+    so it is imported when a test runs."""
+    from tests.curation import test_steps
+
+    return test_steps
+
+
+def _rename(cfg: object, old: str, new: str) -> int:
+    fields = {"kind": "rename", "subject": old, "skill": new, "why": "renamed"}
+    return cli.cmd_record(cfg, _rec_ns(json=json.dumps(fields)))  # type: ignore[arg-type]
+
+
+def _renamed_playbook(base: Path, *, rename: bool = True) -> object:
+    """`fix` holds a whole-capability `adopt-merged` (shaped like
+    `2026-11-02-pilot-2:013`) and the adopted trait `gate`. Its file and
+    reference folder move to `mend`; `record` adds `mend`, then renames
+    `fix` into it."""
+    st = _steps()
+    old, new = f"doc:{st.FIX_PATH}", f"doc:{MEND_PATH}"
+    cfg = st._playbook_cfg(base)
+    caps = [_cap("skill", "tdd", LOGICAL, "hcur"), _cap("skill", "x", "skill:x", "h")]
+    _catalog(cfg, "refrepo", caps)
+    merged = _ref_event(
+        "2026-10-14-owner-review:1",
+        "adopt-merged",
+        "refrepo",
+        "skill:x",
+        skill=old,
+        adaptation={"merged_from": ["x"]},
+    )
+    _write_round(cfg, "2026-10-14-owner-review", merged)
+    ledger.seal(cfg, "2026-10-14-owner-review")  # type: ignore[arg-type]
+    _write_round(
+        cfg,
+        "2026-10-14-r",
+        _checkpoint("2026-10-14-r:1", "adopt", "tdd"),
+        _trait("2026-10-14-r:2", "adopt", "seams", skill="tdd"),
+        _trait("2026-10-14-r:3", "adopt", "gate", skill=old),
+        *st._baselines(cfg),
+        trait_level=True,
+    )
+    analysis = cfg.traits_dir / "refrepo.yaml"  # type: ignore[attr-defined]
+    analysis.write_text(analysis.read_text().replace("[seams]", "[seams, gate]"))
+    folder = cfg.playbooks_dir  # type: ignore[attr-defined]
+    (folder / "fix").rename(folder / "mend")
+    (folder / "fix.md").unlink()
+    mend = st.FIX.replace("fix#", "mend#").replace("fix/notes", "mend/notes")
+    st._write_playbook(cfg, "mend", mend)
+    assert st._record(cfg, "add", new) == 0
+    if rename:
+        assert _rename(cfg, old, new) == 0
+    assert cli.cmd_build(cfg, _ns()) == 0  # type: ignore[arg-type]
+    return cfg
+
+
+def test_a_renamed_playbook_keeps_its_adoptions(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Without the rename, the moved playbook's old event and adoptions fail;
+    with it, they follow the new path: the lifecycle, the target check, the
+    target hash and the reference page's current destination."""
+    st = _steps()
+    old, new = f"doc:{st.FIX_PATH}", f"doc:{MEND_PATH}"
+    stuck = _renamed_playbook(tmp_path / "stuck", rename=False)
+    assert cli.cmd_check(stuck, _ns()) == 1  # type: ignore[arg-type]
+    err = capsys.readouterr().err
+    assert f"{st.FIX_PATH}: no such playbook, but 2026-10-14-r:100" in err
+    assert f"has an invalid skill target {old!r}" in err
+
+    cfg = _renamed_playbook(tmp_path / "moved")
+    assert cli.cmd_check(cfg, _ns()) == 0, capsys.readouterr().err  # type: ignore[arg-type]
+    events = loaders.load_ledger(cfg)[1]  # type: ignore[arg-type]
+    forward, _ = ledger.build_lifecycle(ledger.live_events(events))
+    assert ledger.resolve_skill(old, forward) == new
+    want = st.steps.playbook_tree_hash(cfg, MEND_PATH)
+    assert _target_hash(cfg, old, events) == want  # type: ignore[arg-type]
+    page = (cfg.references_dir / "refrepo.md").read_text(encoding="utf-8")  # type: ignore[attr-defined]
+    row = next(line for line in page.splitlines() if "`skill:x`" in line)
+    assert row.split(" | ")[3] == new
+
+    # Status and a withdrawal under the new path see the adoption made under
+    # the old one.
+    gate = f"{SUBJECT}#gate"
+
+    def label() -> str:
+        context = st.reports.load_context(cfg)
+        return str(st.status.provisions(context)[gate])
+
+    assert label() == "delivered"
+    mend = (cfg.playbooks_dir / "mend.md").read_text()  # type: ignore[attr-defined]
+    st._write_playbook(cfg, "mend", mend.replace("[gate]", "[]"))
+    assert st._record(cfg, "update", new, withdraws=[gate]) == 0
+    assert cli.cmd_build(cfg, _ns()) == 0  # type: ignore[arg-type]
+    assert cli.cmd_check(cfg, _ns()) == 0, capsys.readouterr().err  # type: ignore[arg-type]
+    assert label() == "withdrawn"
+
+
+@pytest.mark.parametrize(
+    "new",
+    [
+        "doc:.claude/skills/mvp-mode/playbooks/gone.md",
+        "doc:.claude/skills/mvp-mode/playbooks/fix/notes.md",
+        "doc:AGENTS.md",
+        "tdd",
+    ],
+)
+def test_record_refuses_a_rename_onto_no_playbook(tmp_path: Path, new: str) -> None:
+    st = _steps()
+    cfg = st._playbook_cfg(tmp_path)
+    (cfg.repo_root / "AGENTS.md").write_text("x\n")  # type: ignore[attr-defined]
+    with pytest.raises(SystemExit, match="is not a playbook file"):
+        _rename(cfg, f"doc:{st.FIX_PATH}", new)
+
+
+def test_a_playbook_renames_only_onto_another_playbook_path() -> None:
+    """A hand-written rename cannot move a playbook onto a skill or itself."""
+    st = _steps()
+    old = f"doc:{st.FIX_PATH}"
+    base = {"type": "event", "id": "r:1", "date": "2026-10-14", "kind": "rename"}
+    for new in ("tdd", "ours:tdd", old):
+        with pytest.raises(ValueError, match="renamed only to another `doc:`"):
+            models.Event.model_validate(
+                base | {"subject": old, "skill": new, "why": "w"}
+            )
+
+
+def test_a_renamed_away_playbook_needs_its_survivor_add(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """A rename whose survivor has no `add` or `update` leaves no hashed
+    playbook behind, and one whose old path is no playbook would forward that
+    file's adoptions, so `check` fails."""
+    st = _steps()
+    cfg = st._playbook_cfg(tmp_path)
+    gone = "doc:.claude/skills/mvp-mode/playbooks/gone.md"
+    rename = st._baselines(cfg)[1] | {"id": "2026-10-14-r:102", "kind": "rename"}
+    (cfg.playbooks_dir / "ship.md").unlink()  # type: ignore[attr-defined]
+    del rename["target_tree_hash"]
+    path = cfg.ledger_dir / "2026-10-14-r.jsonl"  # type: ignore[attr-defined]
+    agents = rename | {"id": "2026-10-14-r:103", "subject": "doc:AGENTS.md"}
+    with path.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(rename | {"skill": gone}) + "\n")
+        handle.write(json.dumps(agents | {"skill": f"doc:{st.FIX_PATH}"}) + "\n")
+    assert cli.cmd_build(cfg, _ns()) == 0  # type: ignore[arg-type]
+    assert cli.cmd_check(cfg, _ns()) == 1  # type: ignore[arg-type]
+    err = capsys.readouterr().err
+    assert (
+        f"2026-10-14-r:102: doc:{st.SHIP_PATH} is renamed to {gone}, which has "
+        f"no effective `add` or `update`"
+    ) in err
+    assert "2026-10-14-r:103: doc:AGENTS.md names no playbook file" in err
+
+
+def test_adopt_target_follows_a_playbook_rename() -> None:
+    """A trait adopted into a renamed playbook renders under the new `doc:`
+    label; a `kind:name` target stays verbatim."""
+    st = _steps()
+    old, new = f"doc:{st.FIX_PATH}", f"doc:{MEND_PATH}"
+    forward = {old: new, "command:x": "command:y"}
+    for target, want in ((old, new), ("command:x", "command:x")):
+        adopt = models.Event.model_validate(
+            _trait("r:1", "adopt", "gate", skill=target)
+        )
+        assert ledger._adopt_target(adopt, forward) == want
+
+
+@pytest.mark.parametrize("kind", ["add", "update"])
+def test_a_renamed_away_playbook_path_is_not_reused(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], kind: str
+) -> None:
+    """`add` or `update` of a path a live rename forwards is refused by
+    `record` and `check`; once that rename is superseded, the path is free
+    again."""
+    st = _steps()
+    old = f"doc:{st.FIX_PATH}"
+    cfg = _renamed_playbook(tmp_path)
+    renamed = st._last_event(cfg)["id"]
+    st._write_playbook(cfg, "fix", st.FIX)
+    (cfg.playbooks_dir / "fix").mkdir()  # type: ignore[attr-defined]
+    (cfg.playbooks_dir / "fix" / "notes.md").write_text("Notes.\n")  # type: ignore[attr-defined]
+    with pytest.raises(SystemExit, match=f"retired by rename {renamed}"):
+        st._record(cfg, kind, old)
+    path = cfg.ledger_dir / "2026-10-14-r.jsonl"  # type: ignore[attr-defined]
+    before = path.read_text(encoding="utf-8")
+    readd = st._baselines(cfg)[0] | {"id": "2026-10-14-r:900", "kind": kind}
+    path.write_text(before + json.dumps(readd) + "\n", encoding="utf-8")
+    _fails_with(
+        cfg, capsys, f"2026-10-14-r:900: {kind} reintroduces {old!r}, retired by rename"
+    )
+    path.write_text(before, encoding="utf-8")
+    assert st._record(cfg, kind, old, supersedes=[renamed]) == 0
+    assert cli.cmd_build(cfg, _ns()) == 0  # type: ignore[arg-type]
+    assert cli.cmd_check(cfg, _ns()) == 0, capsys.readouterr().err  # type: ignore[arg-type]
+
+
+def test_plain_name_lifecycle_is_unchanged() -> None:
+    """Regression (unchanged code): a skill renamed, then merged into a
+    playbook, resolves to it under its plain names, renders with its trait
+    id, and its old name still cannot come back."""
+    st = _steps()
+    playbook = f"doc:{st.FIX_PATH}"
+    events = [
+        models.Event.model_validate(e)
+        for e in (
+            _ours_event("r:1", "add", "old"),
+            _ours_event("r:2", "rename", "mid", subject="ours:old"),
+            _ours_event("r:3", "merge", playbook, subject="ours:mid"),
+            _ours_event("r:4", "add", "old"),
+        )
+    ]
+    forward, _ = ledger.build_lifecycle(events)
+    assert forward == {"old": "mid", "mid": playbook}
+    adopt = models.Event.model_validate(_trait("r:5", "adopt", "seams", skill="old"))
+    assert ledger._adopt_target(adopt, forward) == f"{playbook}#seams"
+    assert checks_ledger.reuse_errors(events) == [
+        "r:4: add reintroduces 'old', retired by rename r:2"
+    ]
