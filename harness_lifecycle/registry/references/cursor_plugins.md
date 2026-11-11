@@ -172,7 +172,7 @@ Catalog: `2776ddd2355d6d6c8747d3964600f28daf62f049`, 354 capabilities.
 | `playbook:pstack/skills/poteto-mode/playbooks/feature` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/feature.md |  | 2026-11-03-batch-3 | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/hillclimb` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/hillclimb.md |  | 2026-11-04-batch-4 | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/investigation` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/investigation.md |  | 2026-11-01-batch-1 | no |
-| `playbook:pstack/skills/poteto-mode/playbooks/multi-phase-plan` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/multi-phase-plan.md |  | 2026-11-02-pilot-2 | no |
+| `playbook:pstack/skills/poteto-mode/playbooks/multi-phase-plan` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/plan.md |  | 2026-11-02-pilot-2 | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/opening-a-pr` | adopt-merged | decided | land |  | 2026-11-01-batch-1 | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/orchestrate` | defer | decided |  |  | 2026-11-01-pstack-playbooks | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/pause-safely` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/pause-safely.md |  | 2026-11-02-pilot-3 | no |

@@ -10,7 +10,7 @@ status: active
 ---
 # to-plan
 
-Use when settled work needs a durable implementation plan: one roadmap phase, one standalone change, or one batch of units written box by box when a caller names that form. Turning an approved multi-phase spec into phases and their order is to-roadmap; a one-phase spec is planned here and recorded by tracker; a person's request to plan several units, or work whose open questions must be settled first, is the multi-phase-plan playbook, which calls this. Skip a plan document for clear bounded tasks.
+Use when settled work needs a durable implementation plan: one roadmap phase, one standalone change, or one batch of units written box by box when a caller names that form. Turning an approved multi-phase spec into phases and their order is to-roadmap; a one-phase spec is planned here and recorded by tracker; a person's request for a plan, or work whose open questions must be settled first, is the plan playbook, which calls this; a delegated worker or a calling playbook uses this directly. Skip a plan document for clear bounded tasks.
 
 **Boundary:** Writes a durable implementation plan for settled work: one roadmap phase, one standalone change or one batch of units, and no plan document when a bounded task or a roadmap row already says enough; turning an approved multi-phase spec into phases and their order is to-roadmap, a one-phase spec is planned here and recorded by tracker, ordering the units is principle-sequence-verifiable-units, what to remove before adding is principle-subtract-before-you-add, and migrating without shims is principle-migrate-without-shims. A plan in checked form names per-unit evidence and one `implement` scope; running it is `implement`.
 
@@ -59,6 +59,7 @@ Use when settled work needs a durable implementation plan: one roadmap phase, on
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-11` **update** (2026-11-11-plan-playbook:006): Owner ruling N4 of 2026-11-11 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md:126), plan 45 U1 (scratchpad/mvp-stack/45/plan.md): the description names th…
 - `2026-11-11` **update** (2026-11-11-tracker:021): Owner ruling N, R2/R3 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 27 section 5 T1b with critic-27d R1/R2 applied. The hand-off to tracker adds …
 - `2026-11-11` **update** (2026-11-11-tracker:011): Owner rulings M2 (2026-11-10), N2 and N3 (2026-11-11) (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 27 T1a. F6: the nearest case names a multi-ph…
 - `2026-11-11` **update** (2026-11-10-renames-splits:151): Owner rulings M1, M4 (2026-11-10) and N1, N2 (2026-11-11) (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 24 U8r. Name, heading and description (bo…

@@ -5728,6 +5728,7 @@ plan-only-gate:
   placement: {domain: engineering, stage: Design, substage: Decomposition}
   distinct_from: [read-only-answer-gate]
   note: "read-only-answer-gate ends a question at its answer and changes nothing but a requested reply; this run's deliverable is a file, with the tracker's plan note and export beside it."
+  retired: {date: "2026-11-11", replaced_by: [planning-run-gate]}
 small-change-plan-skip:
   definition: "Skip the plan for a change of a file or two whose method is plain when no plan file was asked for, saying so and naming the change as the next request."
   placement: {domain: engineering, stage: Design, substage: Decomposition}
@@ -5739,6 +5740,22 @@ plan-only-closeout:
   placement: {domain: engineering, stage: Design, substage: Decomposition}
   distinct_from: [read-only-closeout]
   note: "read-only-closeout allows only a requested reply artifact; this allows the plan file and the tracker's export."
+  retired: {date: "2026-11-11", replaced_by: [planning-run-closeout]}
+planning-run-gate:
+  definition: "End a planning run at its planning documents: implement nothing, and write only the decision record (with the index its folder requires), spec, roadmap or plan its steps produce, gitignored scratch, and tracker writes made under approval with their export and renders, leaving what was already dirty as found."
+  placement: {domain: engineering, stage: Design, substage: Decomposition}
+  distinct_from: [plan-only-gate, read-only-answer-gate]
+  note: "plan-only-gate allowed only the plan file; read-only-answer-gate ends a question at its answer."
+planning-run-closeout:
+  definition: "On every exit of a planning run, confirm against the starting state, by a checksum for a path already dirty, that only the documents the run wrote (a decision record's required index included), the tracker's export and renders and ignored scratch differ, name anything else, and leave the documents uncommitted."
+  placement: {domain: engineering, stage: Design, substage: Decomposition}
+  distinct_from: [plan-only-closeout, read-only-closeout]
+  note: "plan-only-closeout allowed only the plan file and the tracker's export; read-only-closeout allows only a requested reply artifact."
+plan-route-by-shape:
+  definition: "Route work to be planned by its shape: open decisions are settled first, a multi-phase effort with no approved spec gets one and its approval before anything else, several phases become a roadmap, and one phase, change or batch of units becomes a plan."
+  placement: {domain: engineering, stage: Design, substage: Decomposition}
+  distinct_from: [route-by-scale, plan-form-by-need]
+  note: "route-by-scale also routes to execution, and plan-form-by-need picks the plan skill's own form."
 explicit-pause-only:
   definition: "Pause only on an explicit request to stop so a later session can resume, never on a request to keep going or on compaction alone."
   placement: {domain: core, stage: X, substage: Continuity}

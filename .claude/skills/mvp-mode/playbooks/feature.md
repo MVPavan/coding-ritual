@@ -33,7 +33,7 @@ steps:
 
 For new behaviour to design and build, with no settled plan to execute. A plan or
 roadmap phase to run is `implement`. A build whose units or questions are unsettled
-goes to the multi-phase-plan playbook first, and settled work to plan stays `to-plan`.
+goes to the plan playbook first, as does settled work that needs a plan written.
 
 **The gate:** the lead settles the design and reviews the result, whoever writes the
 code. This playbook does not call `implement`, so a Feature build keeps no run

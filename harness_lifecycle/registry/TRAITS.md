@@ -1241,12 +1241,6 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `read-only-answer-gate`: End a question about the code at its answer, changing nothing but an explicitly requested reply artifact and naming any wanted change as the next request.
 - `read-only-closeout`: On every exit of a read-only run, confirm against the starting state, by a checksum for a path already dirty, that nothing changed but an explicitly requested reply artifact, and name the scratch files kept.
 
-#### multi-phase-plan — `doc:.claude/skills/mvp-mode/playbooks/multi-phase-plan.md`
-- `plan-only-gate`: End a planning run at the plan: implement nothing, and write only the plan file, gitignored scratch and authorized tracker metadata with its export, leaving what was already dirty as found.
-- `small-change-plan-skip`: Skip the plan for a change of a file or two whose method is plain when no plan file was asked for, saying so and naming the change as the next request.
-- `settle-by-observation`: Sort each question that changes a plan: observe by running what a run can answer, decide and record a routine choice, and ask the owner a material one with options and a recommendation, writing the tasks that do not depend on it and marking those that do as blocked.
-- `plan-only-closeout`: On every exit of a planning run, confirm against the starting state, by a checksum for a path already dirty, that only the plan file, the tracker's export and ignored scratch differ, name anything else, and leave the plan uncommitted.
-
 #### pause-safely — `doc:.claude/skills/mvp-mode/playbooks/pause-safely.md`
 - `explicit-pause-only`: Pause only on an explicit request to stop so a later session can resume, never on a request to keep going or on compaction alone.
 - `no-irreversible-pause`: Take no irreversible action in order to pause (push, pull request, merge, amend, rewrite, destroyed work) and gain no authority from being asked to pause.
@@ -1264,6 +1258,13 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `paired-artifact-diff`: Keep the baseline's and the candidate's artifacts from the matching surface and diff them, treating a comparison on another surface or an inconclusive one as no pass.
 - `build-closeout`: On every exit of a build, remove temporary scaffolding, name what is unfinished in the tree and list the open decisions.
 - `measurement-in-commit-body`: Hand the measured number to the commit step for its body.
+
+#### plan — `doc:.claude/skills/mvp-mode/playbooks/plan.md`
+- `planning-run-gate`: End a planning run at its planning documents: implement nothing, and write only the decision record (with the index its folder requires), spec, roadmap or plan its steps produce, gitignored scratch, and tracker writes made under approval with their export and renders, leaving what was already dirty as found.
+- `small-change-plan-skip`: Skip the plan for a change of a file or two whose method is plain when no plan file was asked for, saying so and naming the change as the next request.
+- `settle-by-observation`: Sort each question that changes a plan: observe by running what a run can answer, decide and record a routine choice, and ask the owner a material one with options and a recommendation, writing the tasks that do not depend on it and marking those that do as blocked.
+- `plan-route-by-shape`: Route work to be planned by its shape: open decisions are settled first, a multi-phase effort with no approved spec gets one and its approval before anything else, several phases become a roadmap, and one phase, change or batch of units becomes a plan.
+- `planning-run-closeout`: On every exit of a planning run, confirm against the starting state, by a checksum for a path already dirty, that only the documents the run wrote (a decision record's required index included), the tracker's export and renders and ignored scratch differ, name anything else, and leave the documents uncommitted.
 
 #### refactoring — `doc:.claude/skills/mvp-mode/playbooks/refactoring.md`
 - `structure-only-gate`: Keep a refactoring to structure, splitting out any bug or missing feature as its own request instead of folding it in.
@@ -8892,13 +8893,23 @@ Write no plan document when a bounded task or a roadmap row's acceptance suffice
 Finish a plan in checked form by running its structure lint, fixing every line, rerunning after any later edit until it exits 0, reporting the last output and that it proves structure only, and handing back a plan still failing after two rounds as not ready.
 - ours: `to-plan`
 
-#### `plan-only-closeout`
+#### `plan-only-closeout` *(retired)*
 On every exit of a planning run, confirm against the starting state, by a checksum for a path already dirty, that only the plan file, the tracker's export and ignored scratch differ, name anything else, and leave the plan uncommitted.
-- playbook: `doc:.claude/skills/mvp-mode/playbooks/multi-phase-plan.md`
 
-#### `plan-only-gate`
+#### `plan-only-gate` *(retired)*
 End a planning run at the plan: implement nothing, and write only the plan file, gitignored scratch and authorized tracker metadata with its export, leaving what was already dirty as found.
-- playbook: `doc:.claude/skills/mvp-mode/playbooks/multi-phase-plan.md`
+
+#### `plan-route-by-shape`
+Route work to be planned by its shape: open decisions are settled first, a multi-phase effort with no approved spec gets one and its approval before anything else, several phases become a roadmap, and one phase, change or batch of units becomes a plan.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/plan.md`
+
+#### `planning-run-closeout`
+On every exit of a planning run, confirm against the starting state, by a checksum for a path already dirty, that only the documents the run wrote (a decision record's required index included), the tracker's export and renders and ignored scratch differ, name anything else, and leave the documents uncommitted.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/plan.md`
+
+#### `planning-run-gate`
+End a planning run at its planning documents: implement nothing, and write only the decision record (with the index its folder requires), spec, roadmap or plan its steps produce, gitignored scratch, and tracker writes made under approval with their export and renders, leaving what was already dirty as found.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/plan.md`
 
 #### `prefactor-first`
 Find prefactoring that makes the change easy and sequence it before the feature slices.
@@ -8945,11 +8956,11 @@ After a plan is approved, when its units will span sessions, give each unit a ch
 
 #### `settle-by-observation`
 Sort each question that changes a plan: observe by running what a run can answer, decide and record a routine choice, and ask the owner a material one with options and a recommendation, writing the tasks that do not depend on it and marking those that do as blocked.
-- playbook: `doc:.claude/skills/mvp-mode/playbooks/multi-phase-plan.md`
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/plan.md`
 
 #### `small-change-plan-skip`
 Skip the plan for a change of a file or two whose method is plain when no plan file was asked for, saying so and naming the change as the next request.
-- playbook: `doc:.claude/skills/mvp-mode/playbooks/multi-phase-plan.md`
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/plan.md`
 
 #### `spec-decompose-task`
 Split a labelled spec ticket into smaller tickets that each record what they depend on, then start an implementer run.

@@ -1,6 +1,6 @@
 ---
 name: to-plan
-description: "Use when settled work needs a durable implementation plan: one roadmap phase, one standalone change, or one batch of units written box by box when a caller names that form. Turning an approved multi-phase spec into phases and their order is to-roadmap; a one-phase spec is planned here and recorded by tracker; a person's request to plan several units, or work whose open questions must be settled first, is the multi-phase-plan playbook, which calls this. Skip a plan document for clear bounded tasks."
+description: "Use when settled work needs a durable implementation plan: one roadmap phase, one standalone change, or one batch of units written box by box when a caller names that form. Turning an approved multi-phase spec into phases and their order is to-roadmap; a one-phase spec is planned here and recorded by tracker; a person's request for a plan, or work whose open questions must be settled first, is the plan playbook, which calls this; a delegated worker or a calling playbook uses this directly. Skip a plan document for clear bounded tasks."
 ---
 
 # To plan

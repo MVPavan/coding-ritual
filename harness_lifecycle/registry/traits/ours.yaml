@@ -110,7 +110,7 @@ ours:model-council:
   tree_hash: "678a7f2a8a0872f518a32349f32b6b49e0a3b83ed8d978b5f26d4ef50f85165a"
   traits: [member-resolution, runtime-capability-check, neutral-framing, member-isolation, report-preservation, independent-synthesis, consolidated-delivery, identity-recording, failed-member-recovery, no-silent-substitution, artifact-named-up-front, task-rubric-criteria, rubric-withheld-from-candidates, own-output-location, rationale-names-rejected, dropout-proceeds-noted, read-only-judge, judge-other-family-or-stated, rubric-given-to-judge, path-labelled-candidates, judge-criterion-scores, judge-recommends-base, full-read-before-pick, picker-criterion-scores, pick-compared-with-judge, disagreement-rereads-rationales, base-chosen-for-extensibility, near-tie-smaller-surface, loser-graft-pass, sparse-grafts, hand-folded-grafts, converged-shape-no-graft, divergence-reframes-once, graft-change-rerun, verify-miss-returns-once, single-synthesized-artifact, synthesis-decision-record, note-judge-status, note-convergence-dropouts, note-verification-result, no-judge-no-pick]
 ours:mvp-mode:
-  tree_hash: "d9321859784f13c6833c48e454d215f366028454a33bb1ef4861f789dabc4946"
+  tree_hash: "8afde837a66b9eb1a36c237c5457e7dd1b34ef8c1e9293db54119c5d9ff829ae"
   traits: [unit-kind-lines, playbook-pick, need-to-skill-routing, overlap-arbitration, layered-catalog, platform-skill-invocation, no-playbook-in-delegate, delegate-independent-by-default, no-onward-delegation, playbook-steps-as-todos, recorded-step-skip, whole-callee, playbook-exit, legacy-entrypoint-flagging, catalog-trust-boundary]
 ours:performance-optimization:
   tree_hash: "8e393535c7e06691afca39ef9df84040ce4752a29a8cc58610b8522ce951c4da"
@@ -234,7 +234,7 @@ ours:tdd:
     no-implementation-coupling: "Asserts exact source text only when that text is the contract."
     mock-boundaries: "Fakes and partial mocks are valid at any boundary that preserves the contract."
 ours:to-plan:
-  tree_hash: "9d6ba7a238c9f5444210e467c0c6ce58b768f9e5cb25ceaa1d371fd4fb12249a"
+  tree_hash: "c51982daf2bc070c0ae9f21b4477196f3de3869ebf3b0c79c1d29a4a24f1e28b"
   traits: [plan-form-by-need, durable-plan-format, plan-evidence-bound, test-first-marking, no-placeholder-plan, plan-self-review, reviewer-rejectable-sizing, no-stale-code-snippets, ground-in-codebase, per-unit-evidence-boxes, named-execution-scope, plan-lint-last]
 ours:to-roadmap:
   tree_hash: "16d5531a56f7bc84097710f417b921d26b7eddaa179f121bdd4763443af5e2a9"
