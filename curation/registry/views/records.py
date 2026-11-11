@@ -66,8 +66,15 @@ _COMPARISON_RE = re.compile(r"skill-comparisons/([A-Za-z0-9._-]+)")
 
 def _names(skill: str, name: str | None, forward: dict[str, str]) -> bool:
     """Whether `name` is `skill` itself or an earlier name `rename`/`merge`
-    carried into it, so a renamed record keeps its lineage and history."""
-    return name is not None and (name == skill or resolve_skill(name, forward) == skill)
+    carried into it, so a renamed record keeps its lineage and history. The
+    chain may run past `skill`: one merged into a playbook keeps its own."""
+    seen: set[str] = set()
+    while name is not None and name not in seen:
+        if name == skill:
+            return True
+        seen.add(name)
+        name = forward.get(name)
+    return False
 
 
 def _concerns(skill: str, event: Event, forward: dict[str, str]) -> bool:
@@ -240,15 +247,20 @@ def _declined_block(
     skill: str, current: dict[str, Event], forward: dict[str, str]
 ) -> str:
     """Upstream traits whose effective ruling is reject/defer, considered for this
-    skill, with the reason (§7)."""
+    skill, with the reason (§7). A `doc:` survivor has no record, so a skill
+    merged into a playbook keeps the ones considered under its names."""
     lines: list[str] = []
     for subject, event in sorted(current.items()):
+        if not event.skill or ":" in event.skill:
+            continue
+        survivor = resolve_skill(event.skill, forward)
         if (
             _is_trait_subject(subject)
             and event.kind in {"reject", "defer"}
-            and event.skill
-            and ":" not in event.skill
-            and resolve_skill(event.skill, forward) == skill
+            and (
+                survivor == skill
+                or (survivor.startswith("doc:") and _names(skill, event.skill, forward))
+            )
         ):
             lines.append(f"- `{subject}` ({event.kind}): {_one_line(event.why, 160)}")
     return "\n".join(lines) if lines else "No declined traits recorded."

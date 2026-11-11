@@ -9,15 +9,21 @@ import subprocess
 from pathlib import Path
 
 import pytest
+import yaml
 
-from curation.registry import cli, steps
+from curation.registry import cli, reports, status, steps
+from curation.registry.loaders import load_ledger
+from curation.registry.models import Event
+from curation.registry.record import _target_hash
 from curation.registry.traits import _doc_tree_hash
+from curation.registry.views import records as record_views
 from tests.curation.test_registry import (
     SUBJECT,
     _checkpoint,
     _defs,
     _fails_with,
     _ns,
+    _ours_event,
     _rec_ns,
     _trait,
     _trait_cfg,
@@ -572,3 +578,105 @@ def test_when_guard_reads_past_any_spacing_and_key_spelling(gap: str, key: str) 
         quoted = f'{head}    {key}:{gap}"from fix#3, #5"\n{action}'
         parsed = steps.parse_playbook("fix", "fix.md", quoted)
         assert parsed.steps[0].when == "from fix#3, #5"
+
+
+# --- a skill merged into a playbook (plan 40 §5a 3, U0) -----------------------
+
+MERGED = f"doc:{FIX_PATH}"
+
+
+def _merged_into_fix(base: Path, *extra: dict[str, object]) -> object:
+    """`tdd-old` adopted `seams`, was renamed `tdd` and then merged into the
+    `fix` playbook, which lists `seams`: the adoption follows the merge."""
+    cfg = _playbook_cfg(base, FIX.replace("traits: [gate]", "traits: [gate, seams]"))
+    _write_round(
+        cfg,
+        "2026-10-14-r",
+        _checkpoint("2026-10-14-r:1", "adopt", "tdd-old"),
+        _trait("2026-10-14-r:2", "adopt", "seams", skill="tdd-old"),
+        {**_ours_event("2026-10-14-r:3", "rename", "tdd-old"), "skill": "tdd"},
+        *_baselines(cfg),
+        {**_ours_event("2026-10-14-r:102", "merge", "tdd"), "skill": MERGED},
+        *extra,
+        trait_level=True,
+    )
+    ours = cfg.traits_dir / "ours.yaml"  # type: ignore[attr-defined]
+    entry = yaml.safe_load(ours.read_text(encoding="utf-8"))
+    del entry["ours:tdd"]
+    ours.write_text(yaml.safe_dump(entry), encoding="utf-8")
+    if extra:  # each extra event rules on `gate`, so the analysis lists it
+        analysis = cfg.traits_dir / "refrepo.yaml"  # type: ignore[attr-defined]
+        analysis.write_text(analysis.read_text().replace("[seams]", "[seams, gate]"))
+    assert cli.cmd_build(cfg, _ns()) == 0  # type: ignore[arg-type]
+    return cfg
+
+
+def _events(cfg: object) -> list[Event]:
+    return load_ledger(cfg)[1]  # type: ignore[arg-type]
+
+
+def test_merged_skill_adoption_follows_into_the_playbook(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Coverage (C) reads the playbook's frontmatter for an adoption whose
+    skill merged into it, and `record` hashes that playbook for the old name."""
+    cfg = _merged_into_fix(tmp_path)
+    want = steps.playbook_tree_hash(cfg, FIX_PATH)  # type: ignore[arg-type]
+    assert _target_hash(cfg, "tdd-old", _events(cfg)) == want  # type: ignore[arg-type]
+    assert cli.cmd_check(cfg, _ns()) == 0, capsys.readouterr().err  # type: ignore[arg-type]
+
+    _write_playbook(cfg, "fix", FIX)
+    assert _record(cfg, "update", MERGED) == 0
+    _fails_with(cfg, capsys, f"trait 'seams' is not listed by {MERGED!r}")
+
+
+def test_pending_adopt_into_a_merged_skill_sees_the_playbook(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """A pending adopt into the old name is fulfilled once the playbook lists
+    the trait, as it would be for a skill survivor."""
+    pending = _trait("2026-10-14-r:103", "adopt", "gate", skill="tdd", pending="cr-1")
+    _fails_with(
+        _merged_into_fix(tmp_path, pending),
+        capsys,
+        f"pending adopt of '{SUBJECT}#gate' but {MERGED!r} already lists 'gate'",
+    )
+
+
+def test_merged_adoption_status_labels(tmp_path: Path) -> None:
+    """Regression (critic-40b F4, unchanged code): `status` labels the merged
+    adoption delivered, a withdrawn one withdrawn, an unlisted one no longer
+    provided."""
+    seams = f"{SUBJECT}#seams"
+
+    def label(cfg: object) -> str:
+        return str(status.provisions(reports.load_context(cfg))[seams])  # type: ignore[arg-type]
+
+    cfg = _merged_into_fix(tmp_path)
+    assert label(cfg) == "delivered"
+    _write_playbook(cfg, "fix", FIX)
+    assert label(cfg) == "no longer provided"
+    assert _record(cfg, "update", MERGED, withdraws=[seams]) == 0
+    assert label(cfg) == "withdrawn"
+
+
+def test_merged_skill_record_keeps_its_lineage_and_history(tmp_path: Path) -> None:
+    """The merged skill's record keeps what it had under every earlier name,
+    as a rename's survivor does, and the traits declined there: a playbook has
+    no record to carry them."""
+    defer = _trait(
+        "2026-10-14-r:103", "defer", "gate", skill="tdd-old", revisit_when="later"
+    )
+    cfg = _merged_into_fix(tmp_path, defer)
+    text: str = (cfg.skill_records_dir / "engineering" / "tdd.md").read_text()  # type: ignore[attr-defined]
+
+    def block(open_tag: str, close_tag: str) -> str:
+        return text.split(open_tag)[1].split(close_tag)[0]
+
+    lineage = block(record_views.LINEAGE_OPEN, record_views.LINEAGE_CLOSE)
+    history = block(record_views.HISTORY_OPEN, record_views.HISTORY_CLOSE)
+    assert f"**{SUBJECT}#seams**" in lineage
+    for n in (1, 2, 3, 102, 103):
+        assert f"(2026-10-14-r:{n})" in history
+    declined = block(record_views.DECLINED_OPEN, record_views.DECLINED_CLOSE)
+    assert f"`{SUBJECT}#gate` (defer): because" in declined

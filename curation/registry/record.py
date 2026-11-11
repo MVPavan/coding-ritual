@@ -235,7 +235,11 @@ def _freshness_errors(event: Event, ctx: report_files.Context) -> list[str]:
 
 def _target_hash(cfg: RegistryConfig, target: str, events: list[Event]) -> str:
     """The target's current tree hash: a skill folder's, a playbook's (its
-    file and reference folder, F3), or another `doc:` file's."""
+    file and reference folder, F3), or another `doc:` file's. A skill name
+    resolves first, so one merged into a playbook hashes that playbook."""
+    if not target.startswith("doc:"):
+        forward, _ = build_lifecycle(live_events(events))
+        target = resolve_skill(target, forward)
     if target.startswith("doc:"):
         rel = target[len("doc:") :]
         file = cfg.repo_root / rel
@@ -244,9 +248,7 @@ def _target_hash(cfg: RegistryConfig, target: str, events: list[Event]) -> str:
         if doc_holder_kind(cfg, rel) == "playbook":
             return playbook_tree_hash(cfg, rel)
         return _doc_tree_hash(rel, file.read_bytes())
-    forward, _ = build_lifecycle(live_events(events))
-    survivor = resolve_skill(target, forward)
-    found = _our_tree_hashes(build_ours(cfg)).get(survivor)
+    found = _our_tree_hashes(build_ours(cfg)).get(target)
     if found is None:
         raise SystemExit(f"{target}: no skill folder to hash")
     return found
