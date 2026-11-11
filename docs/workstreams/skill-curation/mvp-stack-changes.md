@@ -698,6 +698,41 @@ runs. Follow-ups: `cr-7c6i` (the run's record is on it) and
 (bead `cr-r2pa`): the new skill's Codex link and plugin copy, removing the old ones, and the
 files listed in `scratchpad/mvp-stack/26/sync-list.md` §7.
 
+## 9. Implement playbook batch (phase 2, `cr-r2pa.2.23`)
+
+Added 2026-11-11. Plan `scratchpad/mvp-stack/40/plan.md` (gitignored), owner ruling N4 of
+`scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md`; round `2026-11-11-implement-playbook`,
+sealed (events `:001`-`:008`).
+
+- **The registry follows a skill merged into a playbook** (`5bae85a`). Trait coverage, pending
+  fulfilment and the target hash resolve a merged skill to its `doc:` playbook, and the merged
+  skill's record keeps its lineage, history and declined traits (a playbook has no record of its
+  own).
+- **`implement` is a playbook** (`e721c56`): `mvp-mode/playbooks/implement.md`, eleven steps with
+  every former trait placed and a new `implement-closeout`. Its references and scripts moved to
+  `playbooks/implement/`, run through `"$implement_ref/..."`. The review step wraps each task run,
+  so a required review comes before a unit closes or lands, and the reply has a **Changed,
+  verification incomplete** exit. `implement/SKILL.md` is now the manual `/implement` alias,
+  carrying the authority rules of `/phase-execution` and `/run-phases`, which are removed. The
+  router lists the playbook; `unit-kinds.md` logs it as the sixth composite-test exception.
+- **Callers** (`0afc9fb`). `tracker`'s close gate stops and reports a due exit instead of sending
+  the work to `implement` (a skill never starts a playbook); `to-roadmap`'s decompose reference
+  states the three risk labels itself; `autonomous-run`, `pause-safely` and `AGENTS.md` name the
+  playbook. The three hand-offs into `implement` (`discovery`, `to-spec`, `to-roadmap`) are logged
+  as an open B11 deviation that P2 closes.
+
+Proof: a clone rehearsal showed the six coverage failures the plan predicted before the registry
+fix and a clean `check` after it. The six trait adoptions delivered into `implement` stay
+delivered at the playbook, and its capability adoptions follow the merge; the pending
+`no-reused-implementer` (`2026-11-09-pocock-4ae2317:161`) stays pending on `cr-r2pa.2.19`. Sol reviewed each unit (U0 and U1 each needed one fix round, U2 passed). The routing trial
+(`scratchpad/mvp-stack/40/routing.md`), 14 requests, each in its own fresh session with the
+answers withheld, scored 14 exact, every nearest negative holding. Limits: one judge, routing
+choices rather than executed runs. Not in this batch: `cr-7c6i` (rendering
+after a contractor stage dirties the next admission), which waits on the owner's answer on
+stopping without commit authority, and `.claude/agents/implementer.md:3` ("the implement
+skill"), the owner's file. Left for the end-of-project sync (bead `cr-r2pa`): `.codex` links and
+the plugin copy for the moved files and removed aliases.
+
 ## Regenerating
 
 From the worktree root:

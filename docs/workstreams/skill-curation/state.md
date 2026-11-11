@@ -290,8 +290,17 @@ critic, owner rulings, ledger, build, Sol review, commit after the owner approve
   `/brainstorming` and `/idea-refine`; `scratchpad/mvp-stack/26/sync-list.md` now also lists the
   discovery files. Follow-ups: `cr-7c6i` (the run's record and its proposed rows are on it) and
   `cr-onr1` (four points the run found unclear in `discovery`).
-  Next: `implement` as a playbook (P1, `cr-r2pa.2.23`), then a `plan` playbook (P2,
-  `cr-r2pa.2.24`).
+- `cr-r2pa.2.23` (P1), built (`5bae85a`, `e721c56`, `0afc9fb`): `implement` is a playbook
+  (`mvp-mode/playbooks/implement.md`), `/implement` its manual alias, `/phase-execution` and
+  `/run-phases` removed; round `2026-11-11-implement-playbook` sealed; routing trial 14 of 14
+  (`scratchpad/mvp-stack/40/routing.md`). Open: unit U3, the `cr-7c6i` fix, waits on the owner's
+  answer on stopping without commit authority and takes its own round; the owner's
+  `.claude/agents/implementer.md:3` still says "the implement skill". See
+  `mvp-stack-changes.md` §9.
+- `cr-r2pa.2.24` (P2), in progress: a `plan` playbook replaces `multi-phase-plan` by a rename.
+  Plan `scratchpad/mvp-stack/45/plan.md` (Sol-checked); U0 (`93d313c`) lets the registry follow
+  a playbook rename. Next: U1 (the playbook, the rename, the callers), U2 (the hand-off chain),
+  U3 (routing trial, records).
 - `cr-r2pa.3.3`: at the end of the project, show the owner everything deferred or
   rejected, from the ledger's `defer` events, the deferred beads and each
   `deliberately_dropped` with its `revisit_when`, to revise and adapt.
