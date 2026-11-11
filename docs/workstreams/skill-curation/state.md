@@ -297,10 +297,10 @@ critic, owner rulings, ledger, build, Sol review, commit after the owner approve
   answer on stopping without commit authority and takes its own round; the owner's
   `.claude/agents/implementer.md:3` still says "the implement skill". See
   `mvp-stack-changes.md` §9.
-- `cr-r2pa.2.24` (P2), in progress: a `plan` playbook replaces `multi-phase-plan` by a rename.
-  Plan `scratchpad/mvp-stack/45/plan.md` (Sol-checked); U0 (`93d313c`) lets the registry follow
-  a playbook rename. Next: U1 (the playbook, the rename, the callers), U2 (the hand-off chain),
-  U3 (routing trial, records).
+- `cr-r2pa.2.24` (P2), built (`93d313c`, `5d47d8c`, `3b725d3`): `plan` replaces
+  `multi-phase-plan` by a rename, and the planning skills end at their deliverable; round
+  `2026-11-11-plan-playbook` sealed; routing trial 16 of 16
+  (`scratchpad/mvp-stack/45/routing.md`). See `mvp-stack-changes.md` §10.
 - `cr-r2pa.3.3`: at the end of the project, show the owner everything deferred or
   rejected, from the ledger's `defer` events, the deferred beads and each
   `deliberately_dropped` with its `revisit_when`, to revise and adapt.

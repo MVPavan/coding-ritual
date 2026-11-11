@@ -733,6 +733,37 @@ stopping without commit authority, and `.claude/agents/implementer.md:3` ("the i
 skill"), the owner's file. Left for the end-of-project sync (bead `cr-r2pa`): `.codex` links and
 the plugin copy for the moved files and removed aliases.
 
+## 10. Plan playbook batch (phase 2, `cr-r2pa.2.24`)
+
+Added 2026-11-11. Plan `scratchpad/mvp-stack/45/plan.md` (gitignored), owner ruling N4 of
+`scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md`; round `2026-11-11-plan-playbook`, sealed
+(events `:001`-`:012`).
+
+- **The registry follows a playbook rename** (`93d313c`). A playbook may be renamed onto another
+  existing playbook file (`add` the new path, then `rename` the old `doc:` path onto it); its
+  adoptions, generated destinations and trait labels follow, and the old path cannot come back by
+  `add` or `update` while the rename stands.
+- **`plan` replaces `multi-phase-plan`** (`5d47d8c`), by a rename: `mvp-mode/playbooks/plan.md`,
+  eleven steps (skip, explore, settle through `discovery`, route by shape, spec and approval,
+  roadmap, plan, track, `unslop`, closeout, and a commit of tracking files only, with authority).
+  An approved, seeded roadmap or plan continues under `implement` at the scope actually
+  authorized, through `mvp-mode`; a draft spec or an unapproved roadmap does not. New traits
+  `planning-run-gate`, `planning-run-closeout` and `plan-route-by-shape` replace
+  `plan-only-gate` and `plan-only-closeout`. The router, `feature`, `refactoring` and the
+  `to-plan` description point to it. No `/plan` alias.
+- **Skills end at their deliverable** (`3b725d3`). `discovery`, `to-spec`, `to-roadmap` and
+  `to-plan` lose their "continue into" lines; at top level further work returns to `mvp-mode`,
+  and a delegated task reports the route. `wayfinder` routes a clear route back through
+  `mvp-mode`. The `tracker` calls in `to-roadmap` and `to-plan` stay (ruling N3). The B11
+  deviation row P1 opened is closed.
+
+Proof: a clone rehearsal of the rename showed the two predicted `check` errors before the registry
+fix and none after. Sol reviewed the plan (two rounds) and each unit (U0 and U1 each needed one fix
+round, U2 passed). The routing trial (`scratchpad/mvp-stack/45/routing.md`), 16 requests, each in its
+own fresh session with the answers withheld, scored 16 exact, every nearest negative holding.
+Limits: one judge, routing choices rather than executed runs. Left for the end-of-project sync
+(bead `cr-r2pa`): the `.codex` link and plugin copy for the renamed playbook.
+
 ## Regenerating
 
 From the worktree root:
