@@ -68,6 +68,14 @@ settled-stop:
   skills: [discovery, grilling]
   why: "As question-batching: each skill stops its own questioning when its decisions are settled."
   reviewed: "2026-10-30"
+answer-before-next-round:
+  skills: [discovery, grilling]
+  why: "As question-batching: each skill waits for a round's answers inside its own question flow."
+  reviewed: "2026-11-11"
+yes-accepts-recommendation:
+  skills: [discovery, grilling]
+  why: "As question-batching: each skill words its own questions so a yes accepts the recommendation."
+  reviewed: "2026-11-11"
 finding-adjudication:
   skills: [implement, review]
   why: "Implement rules on findings inside its delivery loop and review owns the method; owner 2026-10-30: implement (then named execution) stays unchanged."

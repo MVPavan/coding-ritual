@@ -10,8 +10,8 @@ bets. Test the assumption most likely to reverse the choice before elaborating
 low-value details. Keep rejected options and the reason for rejection when they
 will matter to a later decision.
 
-Converge on a recommended direction and a checkable next step. A saved one-pager
-is optional; an explicit request for in-chat ideas should stay in chat. Optional
-lenses and examples remain at `frameworks.md`,
-`refinement-criteria.md` and `examples.md` in this folder;
-use only the relevant lens.
+Converge on a recommended direction and a checkable next step. Presenting the
+options may stay in chat; the discovery record is always written, and a separate
+one-pager or spec stays optional. Optional lenses and examples remain at
+`frameworks.md`, `refinement-criteria.md` and `examples.md` in this folder; use
+only the relevant lens, never a quota of them.

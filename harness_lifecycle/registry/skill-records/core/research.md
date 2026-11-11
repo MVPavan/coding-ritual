@@ -21,8 +21,6 @@ Use when a decision needs multiple outside sources gathered and weighed. Answer 
 - `evidence-separation`: Compare alternatives and counterevidence while separating verified fact, inference, uncertainty and conflicts with recorded decisions.
 - `disconfirming-red-team`: Surface the strongest case against the conclusion and name what would reverse the recommendation.
 - `structured-synthesis`: For a complex question, organize evidence with a claim table and a pattern scan that turns facts into decision-relevant implications.
-- `research-playbooks`: Follow a research sequence matched to the question's domain, pulling from a second only when it truly spans domains.
-- `judgment-frameworks`: Apply one to three comparison frameworks to sharpen a choice rather than to decorate the report.
 - `cited-artifact`: Bind citations to the claims they support in the research output.
 - `scaled-report`: Answer at the requested scale, saving a durable report only when requested or useful for an authorized handoff.
 - `decision-sufficient-stop`: Stop investigating when remaining uncertainty no longer changes the decision, or when a named access or budget limit is reached.
@@ -38,6 +36,7 @@ Use when a decision needs multiple outside sources gathered and weighed. Answer 
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-11` **update** (2026-11-11-discovery:015): Owner ruling L1 of 2026-11-10 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 20 D3 (section 4.6): the judgment frameworks (Decision Matrix, Build …
 - `2026-11-10` **update** (2026-11-10-renames-splits:130): Owner rulings C of 2026-11-05, I1 and I4 of 2026-11-06 and K of 2026-11-10 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 14a U6. Description boun…
 - `2026-11-09` **adopt-merged** (2026-11-09-pocock-4ae2317:166): Checkpoint at 4ae2317 for the owner's trait rulings: 1 adopt.
 - `2026-10-30` **adopt-merged** (2026-10-30-mattpocock_skills-5beb35b:575) *(superseded)*: Checkpoint at 5beb35b for the owner's trait rulings: 4 adopt, 1 defer.

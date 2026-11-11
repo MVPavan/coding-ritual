@@ -225,13 +225,29 @@ absent-respondent:
   definition: "When the needed respondent is absent, prepare a questionnaire for them instead of interviewing the present user about the subject."
   placement: {domain: core, stage: Intake, substage: Clarification}
   secondary: [Communication]
+answerer-triage:
+  definition: "Sort each open question by who can answer it (this project's code, cited by file and line; outside sources; a run; a routine pick; the owner) and put to the owner only what the others cannot settle."
+  placement: {domain: core, stage: Intake, substage: Clarification}
+  distinct_from: [settle-by-observation, self-serve-facts, match-interaction-to-ambiguity]
+  note: "settle-by-observation sorts a plan's questions into run, routine and owner without code or outside sources; self-serve-facts only looks facts up instead of asking; match-interaction-to-ambiguity sets how deep to explore. This routes every question to one of five answerers, the owner last."
 approval-interpretation:
   definition: "Treat a clear acceptance of a concrete proposal or an explicit delegation of routine choices as usable authority, and silence as not approval."
   placement: {domain: core, stage: Intake, substage: Clarification}
   secondary: [Governance]
+assumption-audit:
+  definition: "For each candidate direction, list its assumptions as must be true (dealbreakers that kill it if wrong), should be true (important but the approach can adjust) or might be true (secondary), validate the dealbreakers before building, and leave the might-be-true ones until the core is proven."
+  placement: {domain: core, stage: Intake, substage: Clarification}
+  distinct_from: [structured-divergence, decision-frame, exploration-lenses, judgment-frameworks, recommended-answer]
+  note: "structured-divergence tests the one assumption most likely to reverse a choice; decision-frame fixes outcome and constraints; exploration-lenses unlock options; judgment-frameworks compare them; recommended-answer labels a recommendation's assumptions. This sorts every assumption of each direction into three tiers that set what to validate when."
 decision-frame:
   definition: "Establish the outcome, intended user, success criteria, constraints and exclusions before committing to an approach."
   placement: {domain: core, stage: Intake, substage: Clarification}
+decision-sequences:
+  definition: "Follow a decision sequence matched to the question's domain, handing its fact-finding steps to `research`."
+  placement: {domain: core, stage: Intake, substage: Clarification}
+  secondary: [Research]
+  distinct_from: [research-playbooks]
+  note: "research-playbooks runs a sequence that does its own fact-finding; this sequence ends in a decision and hands the fact-finding steps to research."
 decision-summary:
   definition: "Produce the durable decision log in a fixed template — context, a decision table with rationale and implications, open items, a dependency map and a risk register."
   placement: {domain: core, stage: Intake, substage: Clarification}
@@ -260,6 +276,12 @@ exploration-lenses:
 gap-targeted-questions:
   definition: "Aim a questionnaire's questions at the gap between what the recipient knows and what the sender needs."
   placement: {domain: core, stage: Intake, substage: Clarification}
+generated-record-index:
+  definition: "Regenerate one index line per record (date, question, outcome) from the files themselves, never by hand."
+  placement: {domain: core, stage: Intake, substage: Clarification}
+  secondary: [Continuity]
+  distinct_from: [registry-index, wiki-index, sourced-status-record]
+  note: "registry-index and wiki-index are kept by hand as the run writes; this index is rebuilt by a script from many records. sourced-status-record is one run's file."
 grill-the-send:
   definition: "Ask the present user only about the send (who it goes to and what they need back), never about the subject the recipient knows."
   placement: {domain: core, stage: Intake, substage: Clarification}
@@ -272,6 +294,12 @@ map-decisions:
 match-interaction-to-ambiguity:
   definition: "Match the interaction depth to the ambiguity — return to the task, ask one focused question, or run a structured exploration — rather than over- or under-investigating."
   placement: {domain: core, stage: Intake, substage: Clarification}
+mvp-scope:
+  definition: "Scope the first version of a chosen direction to one user job done well, sized by what can be built and tested in a time box rather than by a feature list, aimed at the riskiest assumption, with a mandatory list of what it is not doing and why, and expect it to feel incomplete to the builder."
+  placement: {domain: core, stage: Intake, substage: Clarification}
+  secondary: [Decomposition]
+  distinct_from: [structured-divergence, decision-frame, exploration-lenses, judgment-frameworks, cut-before-polish, vertical-slices, riskiest-unknown-first]
+  note: "decision-frame names exclusions before choosing an approach and structured-divergence picks the assumption to test, but neither sets the one-job and time-box rules; exploration-lenses and judgment-frameworks generate and compare options; cut-before-polish, vertical-slices and riskiest-unknown-first shape or order implementation units. This scopes the first version of an idea."
 observable-outcomes:
   definition: "Translate vague goals such as scalable or simple into observable outcomes only when the distinction affects the design."
   placement: {domain: core, stage: Intake, substage: Clarification}
@@ -319,6 +347,12 @@ settled-stop:
   placement: {domain: core, stage: Intake, substage: Clarification}
   distinct_from: [exhaustive-completion, spec-done-when-buildable]
   note: "exhaustive-completion visits every branch before ending; settled-stop ends once the needed decisions are settled. spec-done-when-buildable keeps going until an implementer could build the spec without asking a single question."
+sourced-status-record:
+  definition: "Write one file per run with a row per question giving its answer, its source, a confidence for each established fact and a status (established, decided, routine, proposed, open), marking a material choice decided only on the owner's quoted, dated word or a recorded delegation, and check the file with a script."
+  placement: {domain: core, stage: Intake, substage: Clarification}
+  secondary: [Communication]
+  distinct_from: [decision-summary, document-during-interview, single-tsv-decision-log, findings-file]
+  note: "decision-summary fills a fixed decision-log template; document-during-interview writes glossary and decision records live; single-tsv-decision-log keeps one TSV of decisions across a run; findings-file writes findings without status. This ties each row's status to the kind of source behind it and is checked by a script."
 structured-divergence:
   definition: "Generate only enough distinct options to expose the tradeoff, compare them on value, feasibility, cost and reversibility, test the assumption most likely to reverse the choice first, and keep rejected options with their reasons."
   placement: {domain: core, stage: Intake, substage: Clarification}

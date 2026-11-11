@@ -1,46 +1,87 @@
 ---
 name: discovery
-description: Use when material scope or behavior decisions are still open and need exploring, or the user requests a brainstorm. Skip writing settled decisions up as a spec, which is to-spec; handle a single routine ambiguity directly.
+description: Use when material scope or behavior decisions are still open and need settling, or the user requests a brainstorm. Skip a single factual lookup or one routine detail, which need no run; writing settled decisions up as a spec is to-spec.
 ---
 
 # Discovery
 
-Resolve material scope or behavior decisions before committing to an approach.
+Settle open scope or behavior questions before committing to an approach: sort
+each by who can answer it, answer what code, sources or a run can, ask the owner
+the rest, and write a checked record.
 
-## Route before grounding
+## Route first
 
-- Clear, bounded behavior: return to the task; no interview or spec is required.
-- One routine missing detail: infer from relevant code or ask one focused
-  question, then continue independent work.
-- Several live directions: use `references/exploration.md` when structured
-  divergence would help.
-- Requested interview: use the grilling skill. A written critique is a review,
-  not automatic permission to interview or edit documents.
-- Decisions already settled: do not reopen them; a durable spec of them is
-  `to-spec`.
+- Clear, bounded behavior: return to the task; no run or record is needed.
+- One factual lookup or one routine missing detail: infer it from the relevant
+  code or ask one focused question, then continue independent work.
+- Decisions already settled: do not reopen them; a durable spec of them is `to-spec`.
+- Requested interview: use `grilling`. A written critique is a review, not
+  permission to interview or edit documents.
+- Decisions that will span sessions as a tracked map: `wayfinder`.
 
-Read only the relevant existing code, authoritative docs and constraints needed
-to distinguish the live choices. Name the closest existing solution before
-proposing a new one.
+Read only the relevant code, authoritative docs and constraints needed to tell
+the live choices apart, and name the closest existing solution before proposing
+a new one. Establish outcome, intended user, success criteria, constraints and
+exclusions. Carry prior decisions and authorization forward. Several live
+directions: diverge and converge with `references/exploration.md`. A choice
+between options, or a decision in a known domain: the one fitting section of
+`references/frameworks.md`.
 
-## Resolve
+## Triage each question by who can answer it
 
-Establish outcome, intended user, success criteria, constraints and exclusions.
-Present materially different options with tradeoffs when alternatives remain.
-Ask about consequential unresolved choices; group independent questions when
-that is easier to answer. Carry prior decisions and authorization forward.
-For interview technique or an explanation that benefits from a picture, consult
-`references/interviewing.md` or `references/visuals.md`, respectively.
+| Answerer | Action | Source | Status |
+|---|---|---|---|
+| This project's code | read it; `how` for a walkthrough, `why` for history | `code: <path>:<line>` | established |
+| Outside sources | call `research` | `outside: <source>, <version>, <date>` | established |
+| A run | call `prototype` | `prototype: <report path>` | established |
+| A routine pick | decide it | `agent: routine, <basis>` | routine |
+| The owner | ask, last | `owner: "<quote>" (YYYY-MM-DD)` or `owner: delegation <ref>` | decided |
 
-Stop exploring when a direction and its acceptance criteria are sufficient for
-the next authorized step. Do not invent more questions or variants to fill a quota.
+Give every established row a Confidence of `high`, `medium` or `low`: how far
+the cited line, sources or run actually settle it. A prototype's recommendation
+among its variants is evidence, never a decision. A material choice the owner
+has not answered is `proposed`, with your recommendation as its answer, or `open`.
+
+## Ask the owner
+
+Ask only what the other answerers cannot settle, in rounds over the frontier:
+batch independent questions whose prerequisites are settled, hold dependent ones,
+and wait for a round's answers before asking the next. Present materially
+different options with their tradeoffs, and label the recommendation's assumptions.
+Ask each question as one fixed block, with no emoji: `**Q<n>. <title>**: <question; options if any>`, then `Recommended: <answer>. Reply yes to accept, or give yours.`
+Interview technique and reading approval: `references/interviewing.md`. A
+question about structure, flow or layout: `references/visuals.md`.
+
+## Stop
+
+Recompute the open questions after each answer. Stop when the decisions the next
+step needs are settled, deferred or blocked; do not invent questions or variants
+to fill a quota. If the owner is unavailable, their rows stay `proposed` or `open`
+and are reported.
+
+## Write the record
+
+Always write the record, from `templates/record.md`; presenting options may stay
+in chat. A filled example is `references/record-example.md`.
+
+1. Path: the one a calling skill or playbook names; otherwise
+   `docs/discovery/<area>/<topic>/<YYYY-MM-DD>-<slug>.md`. `<area>` is the
+   `docs/workstreams/<name>` folder the work belongs to, else the top-level
+   directory the question is about, kebab-cased, else `general`; `<topic>` is a
+   short kebab subject. Reuse an existing folder before creating one; never go deeper.
+2. `Run:` is fresh per run, `<session id>-<nonce>`, reused only to continue that
+   run; write to the path
+   `scripts/check_record.py --next <path> --run <id>` prints. Never replace an
+   earlier run's record without the owner or the caller naming it to revise,
+   noted as `Revises: <authority>`.
+3. Run `scripts/check_record.py <file>` and fix every line it prints; for a record
+   under `docs/discovery/`, then run `scripts/check_record.py --index docs/discovery`.
 
 ## Hand off
 
-An in-chat decision is enough for bounded work. When a durable spec is wanted
-for planning or another session, hand the decisions to `to-spec`. Report a
-direction still unresolved as a blocker to whoever started the brainstorm.
-
-This skill's output is decisions. Continue into `to-spec`, `to-plan` or
-`implement` when already authorized; a discovery-only request does not
-authorize code changes.
+Report an unresolved direction as a blocker to whoever started the run. Hand the
+decisions to `to-spec` when a durable spec is wanted; continue into `to-spec`,
+`to-plan` or `implement` only when already authorized. A discovery-only request
+does not authorize code changes. Discovery writes no Beads and never calls
+`tracker`; a decision bead or ADR follows only where existing rules require one,
+and links the record.

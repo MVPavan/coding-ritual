@@ -1,5 +1,7 @@
 > Optional exploration material, not a required sequence or numerical quota.
 > Illustrative market claims are examples to verify before relying on them.
+> They show how options are developed and evaluated. How to ask a question, and the record
+> every run writes, come from `SKILL.md`, not from the question lists below.
 
 # Ideation Session Examples
 

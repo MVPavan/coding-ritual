@@ -16,10 +16,12 @@ ours:beads:
   tree_hash: "4033071f23315c2f9052a4dc8f65023b5c9115f6afef9a79212b1aa813e9d6e6"
   traits: [bead-type-taxonomy, field-roles, wait-as-edge, actor-identity, resume-line, session-close, session-recovery, knowledge-in-files, beads-setup, status-model, triage-routing, durable-unit-scope, review-as-task, destructive-command-guard, repeated-procedures, dolt-sync]
 ours:discovery:
-  tree_hash: "48372b8f16c8a9de49f22de8d6189fe1b19c7b7545e300e976388d9720961faf"
-  traits: [match-interaction-to-ambiguity, scoped-context-read, reuse-before-new, decision-frame, options-with-tradeoffs, question-batching, recommended-answer, settled-stop, self-serve-facts, approval-interpretation, observable-outcomes, structured-divergence, exploration-lenses, inline-diagrams, visuals-into-spec, html-mockup-on-request]
+  tree_hash: "c8fb6a3b73b9f3763b877ecb7e7e1ddaf18a1cf5b3ff8f6d6b553689fd834a41"
+  traits: [match-interaction-to-ambiguity, scoped-context-read, reuse-before-new, decision-frame, answerer-triage, options-with-tradeoffs, question-batching, recommended-answer, yes-accepts-recommendation, round-format, answer-before-next-round, settled-stop, self-serve-facts, approval-interpretation, observable-outcomes, structured-divergence, exploration-lenses, assumption-audit, mvp-scope, judgment-frameworks, decision-sequences, inline-diagrams, visuals-into-spec, html-mockup-on-request, sourced-status-record, generated-record-index]
   notes:
     recommended-answer: "Labels the recommendation's assumptions."
+    round-format: "Delivers report D's row (pending 2026-11-11-discovery:001) as one fixed block per question, in our own layout with no emoji."
+    self-serve-facts: "Through the answerer triage: code is read, outside facts go to research, a run to prototype."
 ours:build-a-lever:
   tree_hash: "f2df37cf17fe6553b4d9eae0803b74add85485fccaa9ce7ff5a7f163036e3ecd"
   traits: [hand-first-recipe, minimal-tool, rerun-safe-tool, proposed-artifact-commit]
@@ -188,8 +190,8 @@ ours:prototype:
     self-contained-html-demo: "Offered when a non-developer needs to manipulate states; offline when sharing is the goal."
     resettable-demo-scenarios: "Only the guided scenarios needed to expose the uncertainty."
 ours:research:
-  tree_hash: "de382ae0eebc8b42a8c66a1c46e9eff4728a43c2c75c397372a64913f76e4476"
-  traits: [decision-framing, primary-source-preference, source-version-dating, vendor-claim-testing, source-weighting, evidence-separation, disconfirming-red-team, structured-synthesis, research-playbooks, judgment-frameworks, cited-artifact, scaled-report, decision-sufficient-stop, sizeable-delegation]
+  tree_hash: "552713d923bb3a7b7c7a39ebe1df59629d263b7b3a534c336c10c38c99e5fe46"
+  traits: [decision-framing, primary-source-preference, source-version-dating, vendor-claim-testing, source-weighting, evidence-separation, disconfirming-red-team, structured-synthesis, cited-artifact, scaled-report, decision-sufficient-stop, sizeable-delegation]
   notes:
     primary-source-preference: "Current primary sources for changing facts and technical behaviour."
 ours:resolving-merge-conflicts:

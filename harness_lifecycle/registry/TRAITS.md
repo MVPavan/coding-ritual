@@ -77,8 +77,6 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `evidence-separation`: Compare alternatives and counterevidence while separating verified fact, inference, uncertainty and conflicts with recorded decisions.
 - `disconfirming-red-team`: Surface the strongest case against the conclusion and name what would reverse the recommendation.
 - `structured-synthesis`: For a complex question, organize evidence with a claim table and a pattern scan that turns facts into decision-relevant implications.
-- `research-playbooks`: Follow a research sequence matched to the question's domain, pulling from a second only when it truly spans domains.
-- `judgment-frameworks`: Apply one to three comparison frameworks to sharpen a choice rather than to decorate the report.
 - `cited-artifact`: Bind citations to the claims they support in the research output.
 - `scaled-report`: Answer at the requested scale, saving a durable report only when requested or useful for an authorized handoff.
 - `decision-sufficient-stop`: Stop investigating when remaining uncertainty no longer changes the decision, or when a named access or budget limit is reached.
@@ -174,18 +172,28 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `scoped-context-read`: Read only the existing code, authoritative docs and constraints needed to distinguish the live choices.
 - `reuse-before-new`: Name the closest existing solution before proposing a new one.
 - `decision-frame`: Establish the outcome, intended user, success criteria, constraints and exclusions before committing to an approach.
+- `answerer-triage`: Sort each open question by who can answer it (this project's code, cited by file and line; outside sources; a run; a routine pick; the owner) and put to the owner only what the others cannot settle.
 - `options-with-tradeoffs`: Present materially different options with their tradeoffs when alternatives remain.
 - `question-batching`: Batch independent questions whose prerequisites are settled and defer each dependent question until its prerequisites are answered.
 - `recommended-answer`: Attach a recommended answer to each question, letting the respondent disagree.
+- `yes-accepts-recommendation`: Word each question so that a yes accepts your recommended answer.
+- `round-format`: Lay out each round in a fixed question-and-recommendation markdown format, one block per question.
+- `answer-before-next-round`: Wait for the respondent's answers to a round before asking the next one.
 - `settled-stop`: Recompute the unresolved choices after each answer and stop once the needed ones are settled, deferred or blocked, without exhausting every branch.
 - `self-serve-facts`: Look up available facts yourself rather than asking, leaving only the decisions to the live participant.
 - `approval-interpretation`: Treat a clear acceptance of a concrete proposal or an explicit delegation of routine choices as usable authority, and silence as not approval.
 - `observable-outcomes`: Translate vague goals such as scalable or simple into observable outcomes only when the distinction affects the design.
 - `structured-divergence`: Generate only enough distinct options to expose the tradeoff, compare them on value, feasibility, cost and reversibility, test the assumption most likely to reverse the choice first, and keep rejected options with their reasons.
 - `exploration-lenses`: Apply ideation lenses such as SCAMPER or Jobs-to-Be-Done selectively to unlock options, never as a mandatory quota or sequence.
+- `assumption-audit`: For each candidate direction, list its assumptions as must be true (dealbreakers that kill it if wrong), should be true (important but the approach can adjust) or might be true (secondary), validate the dealbreakers before building, and leave the might-be-true ones until the core is proven.
+- `mvp-scope`: Scope the first version of a chosen direction to one user job done well, sized by what can be built and tested in a time box rather than by a feature list, aimed at the riskiest assumption, with a mandatory list of what it is not doing and why, and expect it to feel incomplete to the builder.
+- `judgment-frameworks`: Apply one to three comparison frameworks to sharpen a choice rather than to decorate the report.
+- `decision-sequences`: Follow a decision sequence matched to the question's domain, handing its fact-finding steps to `research`.
 - `inline-diagrams`: Draw a structure, flow, sequence or state question as a small inline Mermaid block, using prose for requirements and trade-offs.
 - `visuals-into-spec`: Re-express an approved diagram inside the durable spec as a Mermaid block, or record what a mockup showed and decided, rather than linking disposable scratch files.
 - `html-mockup-on-request`: On explicit request only, produce one self-contained offline HTML mockup under the scratch directory for what a diagram cannot carry.
+- `sourced-status-record`: Write one file per run with a row per question giving its answer, its source, a confidence for each established fact and a status (established, decided, routine, proposed, open), marking a material choice decided only on the owner's quoted, dated word or a recorded delegation, and check the file with a script.
+- `generated-record-index`: Regenerate one index line per record (date, question, outcome) from the files themselves, never by hand.
 
 #### core · Intake · Clarification — grilling
 - `map-decisions`: Map the material decisions and their prerequisites before questioning.
@@ -2196,7 +2204,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `question-batching`: Batch independent questions whose prerequisites are settled and defer each dependent question until its prerequisites are answered. — adopt → grilling#question-batching
 - `recommended-answer`: Attach a recommended answer to each question, letting the respondent disagree. — adopt → grilling#recommended-answer
 - `yes-accepts-recommendation`: Word each question so that a yes accepts your recommended answer. — adopt → grilling#yes-accepts-recommendation
-- `round-format`: Lay out each round in a fixed question-and-recommendation markdown format, one block per question. — adopt, pending cr-r2pa.2.21 → discovery#round-format
+- `round-format`: Lay out each round in a fixed question-and-recommendation markdown format, one block per question. — adopt → discovery#round-format
 - `self-serve-facts`: Look up available facts yourself rather than asking, leaving only the decisions to the live participant. — adopt → grilling#self-serve-facts
 - `exhaustive-completion`: End the session only when the frontier is empty and every branch of the tree has been visited, with nothing silently assumed. — defer
 - `reconfirm-before-action`: Do not act until the user confirms a shared understanding has been reached. — defer
@@ -3138,7 +3146,7 @@ Always write the findings to one Markdown file saved where the repository keeps 
 
 #### `judgment-frameworks`
 Apply one to three comparison frameworks to sharpen a choice rather than to decorate the report.
-- ours: `research`
+- ours: `discovery`
 
 #### `primary-evidence-check`
 Check consequential claims from summaries, memory and agent reports against primary evidence before relying on them.
@@ -3156,7 +3164,6 @@ Prefer primary sources such as official docs, source code and specs over seconda
 
 #### `research-playbooks`
 Follow a research sequence matched to the question's domain, pulling from a second only when it truly spans domains.
-- ours: `research`
 
 #### `scaled-report`
 Answer at the requested scale, saving a durable report only when requested or useful for an authorized handoff.
@@ -3197,16 +3204,29 @@ When the needed respondent is absent, prepare a questionnaire for them instead o
 
 #### `answer-before-next-round`
 Wait for the respondent's answers to a round before asking the next one.
+- ours: `discovery`
 - ours: `grilling`
 - `mattpocock_skills:skill:skills/in-progress/loop-me` — adopt → grilling#answer-before-next-round
 - `mattpocock_skills:skill:skills/productivity/grilling` — adopt → grilling#answer-before-next-round
+
+#### `answerer-triage`
+Sort each open question by who can answer it (this project's code, cited by file and line; outside sources; a run; a routine pick; the owner) and put to the owner only what the others cannot settle.
+- ours: `discovery`
 
 #### `approval-interpretation`
 Treat a clear acceptance of a concrete proposal or an explicit delegation of routine choices as usable authority, and silence as not approval.
 - ours: `discovery`
 
+#### `assumption-audit`
+For each candidate direction, list its assumptions as must be true (dealbreakers that kill it if wrong), should be true (important but the approach can adjust) or might be true (secondary), validate the dealbreakers before building, and leave the might-be-true ones until the core is proven.
+- ours: `discovery`
+
 #### `decision-frame`
 Establish the outcome, intended user, success criteria, constraints and exclusions before committing to an approach.
+- ours: `discovery`
+
+#### `decision-sequences`
+Follow a decision sequence matched to the question's domain, handing its fact-finding steps to `research`.
 - ours: `discovery`
 
 #### `decision-summary`
@@ -3259,6 +3279,10 @@ Aim a questionnaire's questions at the gap between what the recipient knows and 
 - ours: `grilling`
 - `mattpocock_skills:skill:skills/productivity/to-questionnaire` — adopt → grilling#gap-targeted-questions
 
+#### `generated-record-index`
+Regenerate one index line per record (date, question, outcome) from the files themselves, never by hand.
+- ours: `discovery`
+
 #### `goal-and-problem-restatement`
 Say in your own wording what you believe the user is aiming for and which problem they are trying to solve.
 - `cursor_plugins:skill:pstack/skills/in-your-own-words` — adopt, pending cr-r2pa.2.18 → in-your-own-words#goal-and-problem-restatement
@@ -3293,6 +3317,10 @@ Match the interaction depth to the ambiguity — return to the task, ask one foc
 #### `material-ambiguity-ask`
 Decide routine details yourself and ask only when an ambiguity materially affects correctness, scope or authority.
 - `doc:AGENTS.md`
+
+#### `mvp-scope`
+Scope the first version of a chosen direction to one user job done well, sized by what can be built and tested in a time box rather than by a feature list, aimed at the riskiest assumption, with a mandatory list of what it is not doing and why, and expect it to feel incomplete to the builder.
+- ours: `discovery`
 
 #### `needed-item-coverage`
 Finish a questionnaire only when every needed decision or fact is covered by at least one question.
@@ -3367,7 +3395,8 @@ Name the closest existing solution before proposing a new one.
 
 #### `round-format`
 Lay out each round in a fixed question-and-recommendation markdown format, one block per question.
-- `mattpocock_skills:skill:skills/productivity/grilling` — adopt, pending cr-r2pa.2.21 → discovery#round-format
+- ours: `discovery`
+- `mattpocock_skills:skill:skills/productivity/grilling` — adopt → discovery#round-format
 
 #### `scoped-context-read`
 Read only the existing code, authoritative docs and constraints needed to distinguish the live choices.
@@ -3397,6 +3426,10 @@ Make each question a single idea, never a compound one.
 Skip a question that what you already found has settled, such as one about a skill that is not installed.
 - `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
 
+#### `sourced-status-record`
+Write one file per run with a row per question giving its answer, its source, a confidence for each established fact and a status (established, decided, routine, proposed, open), marking a material choice decided only on the owner's quoted, dated word or a recorded delegation, and check the file with a script.
+- ours: `discovery`
+
 #### `structured-divergence`
 Generate only enough distinct options to expose the tradeoff, compare them on value, feasibility, cost and reversibility, test the assumption most likely to reverse the choice first, and keep rejected options with their reasons.
 - ours: `discovery`
@@ -3416,6 +3449,7 @@ Capture the user's world, tools, channels and terminology in a notes file, inter
 
 #### `yes-accepts-recommendation`
 Word each question so that a yes accepts your recommended answer.
+- ours: `discovery`
 - ours: `grilling`
 - `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
 - `mattpocock_skills:skill:skills/productivity/grilling` — adopt → grilling#yes-accepts-recommendation
@@ -11562,6 +11596,7 @@ Traits listed by two or more of our active skills (`doc:AGENTS.md` and playbooks
 
 | Trait | Holders | Why |
 |---|---|---|
+| `answer-before-next-round` | discovery, grilling | As question-batching: each skill waits for a round's answers inside its own question flow. |
 | `attempt-log` | doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, implement | Each fixes a failure on its own path, the bug-fix playbook for a bug-fix request and implement inside a task it is running, often delegated, where it cannot start the playbook (R8); both log each fix attempt so a stop hands back usable evidence. |
 | `baseline` | performance-optimization, systematic-debugging | Each measures before a fix: performance-optimization for a resource target, systematic-debugging when the failure diagnosed is a performance regression, which it hands to the fixer. |
 | `bounded-background-wait` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md | The same one sentence on waiting sits at each step that waits, with its own stopped exit; no skill is called for it. |
@@ -11603,3 +11638,4 @@ Traits listed by two or more of our active skills (`doc:AGENTS.md` and playbooks
 | `tight-concept-definitions` | domain-modeling, teach | Each keeps a glossary of its own (project language, the learner's workspace) in one entry format, with its own admission rules. |
 | `two-failure-stop` | doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, implement | Each fixes a failure on its own path, the bug-fix playbook for a bug-fix request and implement inside a task it is running, often delegated, where it cannot start the playbook (R8); both stop after two failed fixes and return the attempt log, the playbook to the user and implement to the task owner. |
 | `worktree-environment-proof` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md | Each stated unattended loop proves its own command responds in its own worktree before starting; the check runs at each one's setup. |
+| `yes-accepts-recommendation` | discovery, grilling | As question-batching: each skill words its own questions so a yes accepts the recommendation. |

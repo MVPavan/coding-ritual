@@ -25,11 +25,11 @@ discovery:
   domain: core
   stage: Intake
   substage: Clarification
-  secondary: []
-  family: spec-authoring
+  secondary: [Research]
+  family: requirements-elicitation
   aliases: []
   status: active
-  boundary: "Explores and compares options when scope or behaviour is open and ends at decisions; writing settled decisions up as a durable spec is to-spec, and an explicitly requested interview that challenges the owner's own plan is grilling."
+  boundary: "Settles open scope or behaviour questions by who can answer them (this project's code, outside sources through research, a run through prototype, a routine pick, the owner last) and writes a checked record of the answers; a single lookup or routine detail needs no run, writing settled decisions up as a durable spec is to-spec, an explicitly requested interview that challenges the owner's own plan is grilling, and decisions charted across sessions are wayfinder."
 build-a-lever:
   domain: core
   stage: Building
