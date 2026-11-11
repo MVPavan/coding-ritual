@@ -1,6 +1,6 @@
 ---
 name: implement
-description: Use to execute tracked multi-step work, a standalone plan, a roadmap phase, or a spec whose tickets are already in Beads with blocking edges. Skip writing tickets for a spec, which is to-roadmap; clear bounded implementation can proceed directly under AGENTS.md.
+description: Use to execute tracked multi-step work, a standalone plan, a roadmap phase, or a spec whose tickets are already in Beads with blocking edges. Skip creating tracked work: to-roadmap for a multi-phase spec, tracker for an approved plan; clear bounded implementation can proceed directly under AGENTS.md.
 ---
 
 # Implement
@@ -57,16 +57,14 @@ pre-existing edits are not automatically part of the task.
 5. Close with evidence and material limitations in `--reason`; report the result.
    Create durable follow-up work for discoveries outside scope, linked to origin.
 
-For a task epic, map plan tasks to its stage IDs and use the phase close gate.
+For a one-phase epic, map plan tasks to its stage IDs (bound by `tracker`), run its
+acceptance, then close it by `tracker`'s close gate with that evidence.
 
 ## Phase loop
 
 1. Resolve the supplied or unambiguous roadmap and read this phase's deliverables,
-   spec references, acceptance, risk and exit criterion. Query
-   `bd list -t epic --all --spec docs/workstreams/<name>/ --json`: exactly one
-   epic title must start with `[<phase-id>]`. The roadmap anchor (`spec_id`) is
-   authoritative.
-   Zero/duplicate matches are a tracking defect; do not silently re-seed.
+   spec references, acceptance, risk and exit criterion. Find the phase's epic with
+   `tracker` (its lookup and defect rule).
 2. Confirm the epic is not already closed, check blockers and claim the phase.
    Elaborate a deep phase when its packet
    needs a plan; reuse approval covering this work rather than pausing again.
@@ -80,16 +78,13 @@ For a task epic, map plan tasks to its stage IDs and use the phase close gate.
    mappings first.
 4. Read the contractor's one JSON result. `phase-exhausted` means proceed to
    the close gate; `blocked` names work to clear or bypass with another ready
-   stage; `result` means the stage landed and closed, so render tracking with
-   the beads skill's `scripts/bd-render-tracking.sh` where available and
-   authorized, then select the next stage. `refused` (exit 2) names an invalid
-   request: fix its reason before retrying; exit 1 is a crash to report. Use
+   stage; `result` means the stage landed and closed, so render tracking through
+   `tracker` where authorized, then select the next stage. `refused` (exit 2)
+   names an invalid request: fix its reason before retrying; exit 1 is a crash to report. Use
    `--trace` for read-only evidence, and `--retry` only to mint an eligible new
    attempt. Never edit generated tracking by hand.
-5. **Close gate:** query `bd list --parent <epic> --all --json`; require at least
-   one stage and every stage closed. Name unclosed stages on failure. Then run
-   the roadmap exit criterion. Close the epic only after both conditions hold,
-   recording the actual exit evidence.
+5. **Close:** run the roadmap exit criterion, then close by `tracker`'s close gate
+   with its evidence.
 
 If the governing plan changes or code invalidates the chosen approach, reconcile
 before dependent work continues. Preserve completed work on failure. An unresolved

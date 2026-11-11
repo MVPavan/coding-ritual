@@ -1,6 +1,6 @@
 ---
 name: beads
-description: Use for Beads (bd) work beyond the core rules injected at session start - creating epics, plans or decision beads, dependencies and gates, triage, recovery, workstream tracking, reviews, setting up or joining a Beads project, or questions about Beads policy.
+description: "Use for how Beads (bd) itself works beyond the core rules injected at session start: types, fields, status, dependencies and gates, claims, reviews, closing, triage policy, recovery, setting up or joining a Beads project, upgrades, commands and traps. Workstreams, phase epics, plan-unit beads and tracking files are tracker."
 disable-model-invocation: false
 ---
 
@@ -38,7 +38,7 @@ missing, run `bd prime`:
 
 | Need | Read |
 |---|---|
-| Any rule in detail: types, fields, workstreams, waits and gates, triage, claims, reviews, session close, hygiene, traps, commands | `references/usage.md` |
+| Any rule in detail: types, fields, waits and gates, triage, claims, reviews, session close, hygiene, traps, commands | `references/usage.md` |
 | Installing bd, adopting Beads in a project, joining from a new machine or clone | `references/setup.md` |
 | The exact text sessions receive, including the common commands | `references/prime.md` |
 | Whether bd really behaves a certain way: the tested guide to every feature | `harness_lifecycle/beads/capabilities-1.3.0.md` |
@@ -46,9 +46,4 @@ missing, run `bd prime`:
 | Upgrading bd or migrating Beads databases (owner procedure) | `harness_lifecycle/beads/upgrades.md` |
 | bd's built-in prime text, for comparing after an upgrade | `harness_lifecycle/beads/prime-original-1.3.0.md` |
 
-## Scripts
-
-- `scripts/bd-render-tracking.sh` regenerates the workstream status files
-  from Beads (`usage.md` §16). Run it with `BD_RENDER=1`; never hand-edit
-  its output. The ideas board lists deferred spikes; the backlog board lists
-  every other deferred bead.
+Workstreams, phase epics and tracking files: `tracker`.

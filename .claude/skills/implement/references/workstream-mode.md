@@ -7,7 +7,7 @@ scope, plan approval coverage and commit policy in the execution ledger.
 ## Preflight
 
 Capture the starting revision and dirty-file baseline. Reconcile each roadmap
-phase ID with exactly one Beads epic title `[<phase-id>]`; report missing or
+phase ID with exactly one Beads epic through `tracker`'s lookup; report missing or
 ambiguous records before execution. Preserve all pre-existing edits.
 
 ## Walk
@@ -17,8 +17,8 @@ ambiguous records before execution. Preserve all pre-existing edits.
 2. Execute it through the implement skill's phase loop and close gate. Unattended
    authority covers routine plan elaboration within the agreed roadmap, not new
    behavior, changed safety boundaries or scope expansion.
-3. After the stage gate and phase exit pass, regenerate tracking and refresh the
-   Beads export where the authorized write scope permits it.
+3. After the stage gate and phase exit pass, render tracking through `tracker` and
+   refresh the Beads export where the authorized write scope permits it.
 4. Honor the mode's established per-phase commit convention only when the user's
    invocation covers it. An explicit no-commit restriction overrides it. Stage
    named phase-owned paths only; if they include pre-existing edits, prepare a

@@ -32,7 +32,7 @@ Domain → stage → sub-stage. Each active skill under its primary home.
 ### X
 - **Communication**: brief-me, html-artifact, show-me, unslop
 - **Continuity**: beads, decision-trail, wake
-- **Coordination**: delegation, model-council, mvp-mode, perspective-council
+- **Coordination**: delegation, model-council, mvp-mode, perspective-council, tracker
 
 ### U
 - **Tutoring**: teach
@@ -73,7 +73,7 @@ Two or more active skills share one domain · sub-stage (README §2 rule 3):
 - core · Improvement · Codification: authoring-for-agents, harness-evaluate, harness-scan, harness-skill-compare, harness-status, migrate-claude-to-codex
 - core · X · Communication: brief-me, html-artifact, show-me, unslop
 - core · X · Continuity: beads, decision-trail, wake
-- core · X · Coordination: delegation, model-council, mvp-mode, perspective-council
+- core · X · Coordination: delegation, model-council, mvp-mode, perspective-council, tracker
 - engineering · Discovery · Research: codebase-research, how, why
 - engineering · Design · Architecture: codebase-design, design-evolve, domain-modeling, principle-boundary-discipline, principle-exhaust-the-design-space, principle-make-operations-idempotent, principle-minimize-reader-load, principle-model-the-domain, principle-redesign-from-first-principles, principle-separate-before-serializing-shared-state, principle-type-system-discipline, prototype
 - engineering · Design · Decomposition: principle-migrate-without-shims, principle-subtract-before-you-add, to-plan, to-roadmap

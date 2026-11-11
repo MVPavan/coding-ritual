@@ -20,7 +20,7 @@ beads:
   family: handoff
   aliases: []
   status: active
-  boundary: "Tracks durable work state and how to resume it; a reviewable log of one run's decisions is decision-trail, which a bead note may point at."
+  boundary: "Tracks durable work state in Beads, the tool (types, fields, waits, claims, closing, setup, recovery) and how to resume it; workstreams, phase epics, plan records and tracking files are tracker, and a reviewable log of one run's decisions is decision-trail, which a bead note may point at."
 brainstorming:
   domain: core
   stage: Intake
@@ -524,7 +524,7 @@ to-plan:
   family: plan-authoring
   aliases: []
   status: active
-  boundary: "Writes a durable implementation plan for settled work: one roadmap phase, one standalone change or one batch of units, and no plan document when a bounded task or a roadmap row already says enough; turning an approved spec into phases, stages and their order is to-roadmap, ordering the units is principle-sequence-verifiable-units, what to remove before adding is principle-subtract-before-you-add, and migrating without shims is principle-migrate-without-shims. A plan in checked form names per-unit evidence and one `implement` scope; running it is `implement`."
+  boundary: "Writes a durable implementation plan for settled work: one roadmap phase, one standalone change or one batch of units, and no plan document when a bounded task or a roadmap row already says enough; turning an approved multi-phase spec into phases and their order is to-roadmap, a one-phase spec is planned here and recorded by tracker, ordering the units is principle-sequence-verifiable-units, what to remove before adding is principle-subtract-before-you-add, and migrating without shims is principle-migrate-without-shims. A plan in checked form names per-unit evidence and one `implement` scope; running it is `implement`."
 to-roadmap:
   domain: engineering
   stage: Design
@@ -533,7 +533,7 @@ to-roadmap:
   family: plan-authoring
   aliases: []
   status: active
-  boundary: "Turns an approved spec into tracked phases and stages with acceptance, their order and real dependency edges, seeded in Beads after approval, for a new workstream or extending an existing one; ordering the stages is principle-sequence-verifiable-units, writing the implementation plan for one phase or one change is to-plan, and writing the spec itself is to-spec."
+  boundary: "Turns an approved multi-phase spec into phases and stages with acceptance, their order and real dependency edges, for a new workstream or extending an existing one, approved before tracker seeds them; a one-phase spec is to-plan then tracker, ordering the stages is principle-sequence-verifiable-units, writing the implementation plan for one phase or one change is to-plan, and writing the spec itself is to-spec."
 to-spec:
   domain: core
   stage: Design
@@ -542,7 +542,16 @@ to-spec:
   family: spec-authoring
   aliases: []
   status: active
-  boundary: "Writes decisions already settled into a durable spec and gates its approval; exploring or comparing choices still open is brainstorming, turning an approved spec into tracked phases and stages is to-roadmap, and its implementation plan is to-plan."
+  boundary: "Writes decisions already settled into a durable spec and gates its approval; exploring or comparing choices still open is brainstorming, turning an approved multi-phase spec into tracked phases and stages is to-roadmap, a one-phase spec is to-plan then tracker, and its implementation plan is to-plan."
+tracker:
+  domain: core
+  stage: X
+  substage: Coordination
+  secondary: [Decomposition, Continuity]
+  family: handoff
+  aliases: []
+  status: active
+  boundary: "Puts approved work structure on Beads: seeds or extends a workstream's phase epics and stages, records an approved plan, seeds flat operational work from a charter, records a wayfinder map, finds and closes a phase's epic and renders the tracking files; how bd works is beads, choosing a spec's phases is to-roadmap, writing the plan is to-plan, and running the work is implement."
 triage:
   domain: core
   stage: Intake
@@ -560,7 +569,7 @@ wayfinder:
   family: task-decomposition
   aliases: []
   status: active
-  boundary: null
+  boundary: "Maps and resolves the material decisions of a multi-session effort and records its map and tickets through tracker; a route already clear is to-plan or implement."
 wake:
   domain: core
   stage: X

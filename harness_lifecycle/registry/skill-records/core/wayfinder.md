@@ -12,6 +12,8 @@ status: active
 
 Map and resolve material decision dependencies across a multi-session effort.
 
+**Boundary:** Maps and resolves the material decisions of a multi-session effort and records its map and tickets through tracker; a route already clear is to-plan or implement.
+
 <!-- registry:generated traits -->
 - `decision-map-epic`: Chart a large effort as one map item on the tracker whose children are decision tickets. (A Beads epic whose title starts with Map:.)
 - `plan-not-do`: Keep the map to planning: each ticket resolves a decision rather than executing a build slice.
@@ -26,7 +28,6 @@ Map and resolve material decision dependencies across a multi-session effort.
 - `claim-before-work`: Choose the requested or a ready unclaimed child and claim it before working on it.
 - `destination-first`: Name the destination first, since it fixes the scope and shapes every ticket.
 - `question-graduation`: Ticket a question once it is sharp enough to state, even while blocked, and hold not-yet-specifiable work aside until earlier answers make it expressible.
-- `real-id-wiring`: Wire cross-references and dependencies with real identifiers, never placeholders. (Creates the items first, then wires them.)
 - `record-resolution`: On resolving a ticket, record the answer on it, close it, and add a pointer to the map's decisions so far. (Updates invalidated dependencies without deleting history.)
 - `out-of-scope-close`: Close an out-of-scope ticket with an explicit exclusion reason rather than a claim of delivery.
 - `human-decision-gate`: Stop at a required human decision and prepare concrete options before requesting the final gate.
@@ -70,6 +71,7 @@ Map and resolve material decision dependencies across a multi-session effort.
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-11` **update** (2026-11-11-tracker:009): Owner rulings M2 (2026-11-10), N2 and N3 (2026-11-11) (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 27 T1a. Section 4a: the map, its tickets and …
 - `2026-11-11` **update** (2026-11-10-renames-splits:160): Owner rulings M1, M4 (2026-11-10) and N1, N2 (2026-11-11) (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 24 U8r. A clear route uses to-plan or imp…
 - `2026-11-09` **adopt-merged** (2026-11-09-pocock-4ae2317:168): Checkpoint at 4ae2317 for the owner's trait rulings: 1 adopt.
 - `2026-11-06` **update** (2026-11-06-renames:015): Owner ruling D of 2026-11-05 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 14a U1. A clear route goes to the units planning or implement, now nam…
@@ -97,7 +99,7 @@ Map and resolve material decision dependencies across a multi-session effort.
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:140): Ours deliberately creates no labels (SKILL.md:24), so the kind lives in the type and title.
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:139): Owner deferred the report's reject recommendation, to review the set later: Ours has no research branches (SKILL.md:27); a branch lifecycle rule has nothing to…
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:138): Ours deliberately keeps to the Beads rule that the only label is `human` (AGENTS.md, Track durable work).
-- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:137): Ours creates IDs before wiring dependencies.
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:137) *(superseded)*: Ours creates IDs before wiring dependencies.
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:136): Owner deferred the report's reject recommendation, to review the set later: Ours makes direct lookups fine and delegation optional (SKILL.md:27); a mandatory s…
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:135): Owner deferred the report's reject recommendation, to review the set later: Opposite stance: ours continues through further authorized ready tickets and explic…
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:134): Ours closes out-of-scope tickets with an explicit exclusion reason.
@@ -164,7 +166,7 @@ Map and resolve material decision dependencies across a multi-session effort.
 - `question-graduation`:
   - `mattpocock_skills:skill:skills/engineering/wayfinder#question-graduation` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `real-id-wiring`:
-  - `mattpocock_skills:skill:skills/engineering/wayfinder#real-id-wiring` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+  - `mattpocock_skills:skill:skills/engineering/wayfinder#real-id-wiring` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2; withdrawn 2026-11-11)
 - `record-resolution`:
   - `mattpocock_skills:skill:skills/engineering/wayfinder#record-resolution` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `reference-by-name`:

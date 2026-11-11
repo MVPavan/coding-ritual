@@ -12,11 +12,12 @@ included. If the route is already clear, use `to-plan` or `implement`.
 
 ## Map and tickets
 
-Use Beads: one map epic (`-t epic`, title starting `Map:`), with decision tickets
-as children and native prerequisite edges. The map contains Destination, Notes, Decisions so
-far, Not yet specified, and Out of scope. Keep resolution detail on the ticket;
-the map carries a named pointer and short gist. Reference names with IDs/links so
-readers can understand the map without opening every item.
+Record the map through `tracker`: one map epic (`-t epic`, title starting `Map:`),
+with decision tickets as children and native prerequisite edges. The map contains
+Destination, Notes, Decisions so far, Not yet specified, and Out of scope. Keep
+resolution detail on the ticket; the map carries a named pointer and short gist.
+Reference names with IDs/links so readers can understand the map without opening
+every item.
 
 A ticket asks one bounded question with a resolution criterion. Research,
 prototype and grilling tickets are type `spike`, with the kind first in the
@@ -41,15 +42,15 @@ do not silently create a competing Markdown tracker.
 
 Settle the destination from supplied context and material questions. Chart
 breadth-first: surface the open decisions across the whole effort before resolving
-any. Create sharp
-questions as tickets even if blocked; leave only questions not yet expressible in
-Not yet specified. Create IDs before wiring genuine dependencies.
+any. Make sharp questions tickets even if blocked; leave only questions not yet
+expressible in Not yet specified. `tracker` creates them and wires genuine
+dependencies by returned ID.
 
 Choose the requested ticket or a ready unclaimed child; claim it before working.
 Load detail as needed. Record the answer and supporting artifacts, close with
 evidence, and append its resolution pointer to the map. Graduate newly expressible
-questions into tickets and update invalidated dependencies. Update or close the
-tickets a recorded decision invalidated, without deleting history.
+questions into tickets through `tracker` and update invalidated dependencies. Update
+or close the tickets a recorded decision invalidated, without deleting history.
 Out-of-scope tickets close with an explicit exclusion reason, not a claim of delivery.
 
 Continue through additional authorized ready tickets while useful; there is no

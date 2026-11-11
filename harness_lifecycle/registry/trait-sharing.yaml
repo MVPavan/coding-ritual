@@ -5,13 +5,9 @@
 # fails. Rules: docs/workstreams/skill-curation/stages-design.md §Shared traits.
 # Entries are justified by the owner (bead cr-talb).
 dependency-edges:
-  skills: [implement, to-roadmap, wayfinder]
-  why: "Each lets the tracker graph's readiness drive the work: to-roadmap encodes implementation stages and wayfinder decision tickets, and implement's spec scope runs a spec's tickets from the ready frontier, adding a blocking edge it finds missing; edge semantics stay in beads."
-  reviewed: "2026-11-10"
-real-id-wiring:
-  skills: [to-roadmap, wayfinder]
-  why: "Both create beads and then wire edges between the IDs they just created, each inside its own seeding procedure."
-  reviewed: "2026-10-30"
+  skills: [implement, tracker, wayfinder]
+  why: "Each lets the tracker graph's readiness drive the work: tracker writes the genuine edges of stages, plan stages and decision tickets by returned ID, wayfinder picks a map's genuine prerequisites and works its ready frontier, and implement's spec scope runs a spec's tickets from the ready frontier, adding a blocking edge it finds missing; edge semantics stay in beads."
+  reviewed: "2026-11-11"
 drift-scan:
   skills: [harness-scan, harness-status]
   why: "Both run the one drift command, scan for a single harness and status as a sweep of all of them; a pointer between them would add a hop to a one-line command."

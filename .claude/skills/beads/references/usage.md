@@ -151,20 +151,11 @@ Which field carries what, by lifecycle stage:
 | Operations | finding or incident | — | — | fix criteria | investigation state | incident timeline | resolution |
 | Improvement | the lesson | — | — | when it counts as codified | — | — | where it was codified |
 
-## 7. Epics, specs and workstreams
+## 7. Epics and specs
 
 - Before creating an epic, look for a governing document and attach it with
   `--spec-id`. An epic without one says why in its description.
-- **Phase epics** belong to a workstream and follow the status-file
-  renderer's contract (§16):
-  - title starts `[<phase-id>]`;
-  - `spec_id` is the workstream's roadmap, `docs/workstreams/<name>/roadmap.md`
-    (the anchor that names the workstream);
-  - `design` is the path of the governing spec or brainstorm;
-  - each stage's acceptance matches the roadmap's Verify contract.
-- Find a workstream's epics with
-  `bd list -t epic --all --spec docs/workstreams/<name>/ --json`. Exactly one
-  epic per phase may carry the `[<phase-id>]` title.
+- Phase epics, workstreams, their lookup and close gate: the `tracker` skill.
 - Other beads: `spec_id` is the governing spec; `design` holds the approach
   text.
 - A plan's path goes in notes as a `plan: <path>` line, never in `design`
@@ -178,8 +169,9 @@ Which field carries what, by lifecycle stage:
 
 - `bd list --parent <epic>` and `bd children <epic>` list direct children
   only; `bd children` includes closed ones.
-- Epics never close themselves. Close one when its close gate holds;
-  `bd epic close-eligible --dry-run` lists candidates.
+- Epics never close themselves. Close one when its close gate holds (phase
+  epics: `tracker`'s close gate); `bd epic close-eligible --dry-run` lists
+  candidates.
 - Keep children as flat as the work allows.
 
 ## 8. Creating work
@@ -335,16 +327,7 @@ There are no intake labels. Triage reads the bead and decides one of:
 
 ## 16. Generated status files
 
-- `docs/workstreams/{status,ideas,backlog}.md` and
-  `docs/workstreams/*/tracking/*.md` are generated from Beads.
-- Update Beads, then regenerate:
-  `BD_RENDER=1 bash .claude/skills/beads/scripts/bd-render-tracking.sh [<name>]`.
-- Never hand-edit them; a hook blocks it. A missing renderer is a reported
-  limitation, not permission to edit by hand.
-- `README.md`, `roadmap.md` and `plans/*.md` in the same tree stay
-  hand-written.
-- The ideas board lists deferred spikes; the backlog board lists every other
-  deferred bead.
+The `tracker` skill renders them (its Render); never hand-edit them.
 
 ## 17. Hygiene
 

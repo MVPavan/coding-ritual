@@ -19,7 +19,7 @@ Principles are not skills, so they are not listed here; the router lists them.
 
 ## Model-invocable skills
 
-`authoring-for-agents`, `beads`, `brainstorming`, `build-a-lever`, `codebase-design`, `decision-trail`, `delegation`, `design-evolve`, `domain-modeling`, `grilling`, `harness-evaluate`, `harness-skill-compare`, `how`, `html-artifact`, `implement`, `interrogate`, `land`, `model-council`, `mvp-mode`, `performance-optimization`, `perspective-council`, `prototype`, `research`, `resolving-merge-conflicts`, `review`, `security`, `systematic-debugging`, `tdd`, `to-plan`, `to-roadmap`, `to-spec`, `unslop`, `wake`, `why`
+`authoring-for-agents`, `beads`, `brainstorming`, `build-a-lever`, `codebase-design`, `decision-trail`, `delegation`, `design-evolve`, `domain-modeling`, `grilling`, `harness-evaluate`, `harness-skill-compare`, `how`, `html-artifact`, `implement`, `interrogate`, `land`, `model-council`, `mvp-mode`, `performance-optimization`, `perspective-council`, `prototype`, `research`, `resolving-merge-conflicts`, `review`, `security`, `systematic-debugging`, `tdd`, `to-plan`, `to-roadmap`, `to-spec`, `tracker`, `unslop`, `wake`, `why`
 
 ## Slash-only workflows
 

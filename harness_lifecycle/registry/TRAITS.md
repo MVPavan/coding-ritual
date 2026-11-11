@@ -56,7 +56,6 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `claim-before-work`: Choose the requested or a ready unclaimed child and claim it before working on it.
 - `destination-first`: Name the destination first, since it fixes the scope and shapes every ticket.
 - `question-graduation`: Ticket a question once it is sharp enough to state, even while blocked, and hold not-yet-specifiable work aside until earlier answers make it expressible.
-- `real-id-wiring`: Wire cross-references and dependencies with real identifiers, never placeholders.
 - `record-resolution`: On resolving a ticket, record the answer on it, close it, and add a pointer to the map's decisions so far.
 - `out-of-scope-close`: Close an out-of-scope ticket with an explicit exclusion reason rather than a claim of delivery.
 - `human-decision-gate`: Stop at a required human decision and prepare concrete options before requesting the final gate.
@@ -404,12 +403,10 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `session-recovery`: At session start or after compaction, list in-progress beads and resume from each one's last note.
 - `knowledge-in-files`: Keep durable knowledge in files, never in the tracker's remember, memories or key-value stores.
 - `beads-setup`: Install the tracker, adopt it in a project, and join from a new clone with bootstrap rather than a re-init.
-- `workstream-render`: Regenerate the workstream status, ideas and backlog boards from the tracker through the render script, never hand-editing them.
 - `status-model`: Drive status through the model's own transitions — the custom review status, deferred as the whole backlog, and never a hand-set blocked.
 - `triage-routing`: Route each triaged item to one outcome expressed in the tracker's native fields (admit with acceptance, hand to a human task, defer, reject, or mark duplicate) with no separate intake labels.
 - `durable-unit-scope`: Track one durable unit of work per bead, keeping turn checklists out, searching before creating, and filing incidental finds as discovered-from beads.
 - `review-as-task`: Represent a review as its own task by an actor other than the author, which the reviewed bead depends on and sits in review status until it passes.
-- `phase-epic-contract`: Shape a phase epic to the status-renderer contract — a bracketed phase-id title, the roadmap as spec_id, the governing spec path as design, and acceptance matching the roadmap's verify rows.
 - `destructive-command-guard`: Never run the tracker's deleting commands, reclaiming space with a non-destructive compact instead.
 - `repeated-procedures`: Capture short repeated runs as disposable wisps and fixed multi-step procedures as poured formulas, checking what the tracker actually parsed.
 - `dolt-sync`: Treat the versioned database as the source of truth and the exported jsonl as a review mirror, syncing copies only with authority.
@@ -552,6 +549,19 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `independent-synthesis`: A fresh synthesizer that did not participate receives every member's full report and produces agreement, disputes, blind spots and a best-supported recommendation, treating agreement as no proof.
 - `no-silent-substitution`: Never backfill a missing member with your own answer or a silent substitute; report the gap and whether the synthesizer saw an incomplete set.
 - `transcript-on-request`: Save a council transcript only when it is requested.
+
+#### core · X · Coordination — tracker
+- `phase-epic-contract`: Shape a phase epic to the status-renderer contract — a bracketed phase-id title, the roadmap as spec_id, the governing spec path as design, and acceptance matching the roadmap's verify rows.
+- `phase-epic-lookup`: Find a phase's single epic by its roadmap anchor and bracketed phase-id title, treating zero or several matches as a tracking defect and never re-seeding silently.
+- `workstream-layout`: Lay out a workstream as a charter, a roadmap that anchors its phase epics, a folder for just-in-time plans and a generated tracking folder, joined to the tracker by a bracketed phase-id title prefix.
+- `beads-native-tracking`: Seed epics and stages and render tracking natively in the tracker, keeping the roadmap anchor on the epics and the stage mapping that execution closes against, and writing nothing before its matching approval.
+- `workstream-extension`: Extend a seeded workstream by seeding only its newly appended phases on the same roadmap anchor, allowing a different governing spec, and adding epic-to-epic edges only where a new phase genuinely depends on an old one.
+- `dependency-edges`: Encode real blocking edges in the tracker and let the ready frontier drive execution rather than listing order.
+- `real-id-wiring`: Wire cross-references and dependencies with real identifiers, never placeholders.
+- `one-phase-plan-tracking`: Record an approved one-phase plan as one epic anchored on its spec with stage children carrying the plan's acceptance, and bind the plan's proposed stage names to the returned IDs before execution.
+- `flat-operational-tracking`: Track phaseless operational work as one epic anchored on its charter with plain task children, without a roadmap.
+- `close-gate`: Close a phase only when it has at least one stage, every stage is closed, and its roadmap exit criterion has run with evidence recorded.
+- `workstream-render`: Regenerate the workstream status, ideas and backlog boards from the tracker through the render script, never hand-editing them.
 
 #### engineering · Building · Diagnosis — performance-optimization
 - `define-metric`: Define the metric, workload and target first, proposing the measurement or asking about the tradeoff before tuning code.
@@ -880,9 +890,6 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 
 #### engineering · Design · Decomposition — to-roadmap
 - `decompose-phases`: Split an approved spec into demoable phases with checkable exits and flat stages that each carry acceptance.
-- `dependency-edges`: Encode real blocking edges in the tracker and let the ready frontier drive execution rather than listing order.
-- `beads-native-tracking`: Seed epics and stages and render tracking natively in the tracker, keeping the roadmap anchor on the epics and the stage mapping that execution closes against, and writing nothing before its matching approval.
-- `real-id-wiring`: Wire cross-references and dependencies with real identifiers, never placeholders.
 - `breakdown-approval-before-publish`: Iterate on the ticket breakdown until the user approves it, publishing nothing before approval.
 
 #### engineering · Design · Specification — principle-experience-first
@@ -992,7 +999,6 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `task-loop`: Claim the exact task, implement in dependency order within owned paths, run applicable checks, and close with evidence and material limitations.
 - `finding-adjudication`: Verify each incoming review finding against requirements, code and primary evidence before acting, and give each a visible disposition: fix a confirmed in-scope defect, answer an incorrect one with a retained ruling, record an out-of-scope follow-up.
 - `phase-loop`: Resolve the roadmap phase's single epic, drive ready stages through the contractor that owns execution to closure, and refresh tracking between stages.
-- `close-gate`: Close a phase only when it has at least one stage, every stage is closed, and its roadmap exit criterion has run with evidence recorded.
 - `workstream-mode`: Run remaining phases in order only on explicit opt-in, with per-phase tracking refresh and commits only when the invocation covers them.
 - `child-workflows`: Run independent graphs as admitted child workflows where collection is evidence and landing goes through the contractor, not automatic result binding.
 - `context-recovery`: Stay in context while useful and, before compacting or handing off, persist scope, decisions and next work to the ledger, tracker and Git, then rebuild from those rather than from a summary.
@@ -2134,7 +2140,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `out-of-scope-close`: Close an out-of-scope ticket with an explicit exclusion reason rather than a claim of delivery. — adopt → wayfinder#out-of-scope-close
 - `one-ticket-per-session`: Resolve no more than one ticket per session, except research tickets. — defer
 - `research-subagent-branch`: Resolve research tickets with subagents that capture findings on a throwaway research branch. — defer
-- `real-id-wiring`: Wire cross-references and dependencies with real identifiers, never placeholders. — adopt → wayfinder#real-id-wiring
+- `real-id-wiring`: Wire cross-references and dependencies with real identifiers, never placeholders. — adopt → tracker#real-id-wiring
 - `no-triage-labels`: Carry only wayfinder-type labels on a map and its tickets, never a triage label. — adopt → wayfinder#label-free-typing
 - `research-branch-pr-policy`: Push the research branch but open no pull request from it, and never merge it. — defer
 - `type-directed-resolution`: Resolve each ticket as the type its label names, reading the label rather than inferring from the body. — adopt → wayfinder#ticket-type-set
@@ -2670,11 +2676,11 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `respect-area-adrs`: Honour the recorded architectural decisions that govern the area being changed. — defer
 - `prefactor-first`: Find prefactoring that makes the change easy and sequence it before the feature slices. — adopt → principle-sequence-verifiable-units#prefactor-first
 - `vertical-slices`: Prefer independently verifiable vertical slices over horizontal layers. — adopt → principle-sequence-verifiable-units#vertical-slices
-- `dependency-edges`: Encode real blocking edges in the tracker and let the ready frontier drive execution rather than listing order. — adopt → to-roadmap#dependency-edges
+- `dependency-edges`: Encode real blocking edges in the tracker and let the ready frontier drive execution rather than listing order. — adopt → tracker#dependency-edges
 - `expand-contract`: For a broad refactor use expand, migrate then contract with genuine dependencies, naming one integration boundary when intermediate tasks cannot stay green. — adopt → principle-sequence-verifiable-units#expand-contract
-- `publish-to-tracker`: Publish the finished artifact to the configured issue tracker. — adopt → to-roadmap#beads-native-tracking
-- `real-id-wiring`: Wire cross-references and dependencies with real identifiers, never placeholders. — adopt → to-roadmap#real-id-wiring
-- `sub-issue-linkage`: Make each ticket a child of its source issue and never close or modify that parent. — adopt → to-roadmap#beads-native-tracking
+- `publish-to-tracker`: Publish the finished artifact to the configured issue tracker. — adopt → tracker#beads-native-tracking
+- `real-id-wiring`: Wire cross-references and dependencies with real identifiers, never placeholders. — adopt → tracker#real-id-wiring
+- `sub-issue-linkage`: Make each ticket a child of its source issue and never close or modify that parent. — adopt → tracker#beads-native-tracking
 - `ready-for-agent-label`: Tag the published work with the ready-for-agent triage label so it needs no further triage. — defer
 - `ticket-template`: Fill a fixed ticket template of behavioural what-to-build, blocked-by, and checkable acceptance criteria. — defer
 - `no-stale-file-paths`: Keep concrete file paths out of a durable spec, ticket or brief, describing interfaces and behaviour that survive code drift. — defer
@@ -3060,10 +3066,9 @@ Ticket a question once it is sharp enough to state, even while blocked, and hold
 
 #### `real-id-wiring`
 Wire cross-references and dependencies with real identifiers, never placeholders.
-- ours: `to-roadmap`
-- ours: `wayfinder`
-- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → to-roadmap#real-id-wiring
-- `mattpocock_skills:skill:skills/engineering/wayfinder` — adopt → wayfinder#real-id-wiring
+- ours: `tracker`
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → tracker#real-id-wiring
+- `mattpocock_skills:skill:skills/engineering/wayfinder` — adopt → tracker#real-id-wiring
 
 #### `record-resolution`
 On resolving a ticket, record the answer on it, close it, and add a pointer to the map's decisions so far.
@@ -5595,7 +5600,7 @@ Keep durable memory in an interlinked markdown wiki that outlives the session.
 
 #### `phase-epic-contract`
 Shape a phase epic to the status-renderer contract — a bracketed phase-id title, the roadmap as spec_id, the governing spec path as design, and acceptance matching the roadmap's verify rows.
-- ours: `beads`
+- ours: `tracker`
 
 #### `phase-scope-caps`
 Cap each phase's scope with file limits and turn budgets, counting the context cost of the mechanisms used.
@@ -5897,9 +5902,13 @@ On learning something durable, update every affected wiki page and the index.
 While a card is open: no push, publish, merge, message or history rewrite, no deleting what this run did not create, no costly opt-in the request does not name, and a missing answer takes the unit's no-answer exit without skipping its core.
 - ours: `wake`
 
+#### `workstream-layout`
+Lay out a workstream as a charter, a roadmap that anchors its phase epics, a folder for just-in-time plans and a generated tracking folder, joined to the tracker by a bracketed phase-id title prefix.
+- ours: `tracker`
+
 #### `workstream-render`
 Regenerate the workstream status, ideas and backlog boards from the tracker through the render script, never hand-editing them.
-- ours: `beads`
+- ours: `tracker`
 
 ### core · X · Coordination
 
@@ -6112,6 +6121,10 @@ Decide what runs in parallel, parallelizing only where the work has seams and no
 #### `fix-wrong-gate-separately`
 When the gate itself is wrong, correct it in its own change and do not route around it.
 - `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+
+#### `flat-operational-tracking`
+Track phaseless operational work as one epic anchored on its charter with plain task children, without a roadmap.
+- ours: `tracker`
 
 #### `fork-overrides`
 Never promise model, effort, tool or permission overrides on a fork, which inherits the parent's model, tools, prompt and history wholesale.
@@ -8735,7 +8748,7 @@ Use the design vocabulary exactly and never substitute looser words like compone
 
 #### `beads-native-tracking`
 Seed epics and stages and render tracking natively in the tracker, keeping the roadmap anchor on the epics and the stage mapping that execution closes against, and writing nothing before its matching approval.
-- ours: `to-roadmap`
+- ours: `tracker`
 
 #### `blast-radius-batches`
 Size migration batches by blast radius and keep the build green between them.
@@ -8762,11 +8775,11 @@ Split an approved spec into demoable phases with checkable exits and flat stages
 #### `dependency-edges`
 Encode real blocking edges in the tracker and let the ready frontier drive execution rather than listing order.
 - ours: `implement`
-- ours: `to-roadmap`
+- ours: `tracker`
 - ours: `wayfinder`
 - `mattpocock_skills:skill:skills/engineering/implement-spec` — adopt → implement#dependency-edges
 - `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
-- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → to-roadmap#dependency-edges
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → tracker#dependency-edges
 - `mattpocock_skills:skill:skills/engineering/wayfinder` — adopt → wayfinder#dependency-edges
 
 #### `durable-plan-format`
@@ -8809,6 +8822,10 @@ Write a spec and split it into tickets only when the build spans several session
 Name in the plan which one execution scope runs it, task, phase or workstream, chosen by how the work is held, and leave how that scope runs to execution.
 - ours: `to-plan`
 
+#### `one-phase-plan-tracking`
+Record an approved one-phase plan as one epic anchored on its spec with stage children carrying the plan's acceptance, and bind the plan's proposed stage names to the returned IDs before execution.
+- ours: `tracker`
+
 #### `per-unit-evidence-boxes`
 In a plan in checked form, give each task a required Check box with a command and pass condition, and Live and Measure each as a box or a stated not-applicable reason, for a coordinator to tick only when the evidence exists.
 - ours: `to-plan`
@@ -8837,7 +8854,7 @@ Find prefactoring that makes the change easy and sequence it before the feature 
 #### `publish-to-tracker`
 Publish the finished artifact to the configured issue tracker.
 - `mattpocock_skills:skill:skills/engineering/to-spec` — defer
-- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → to-roadmap#beads-native-tracking
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → tracker#beads-native-tracking
 
 #### `quantified-scope-with-blockers`
 State scope in rough units and effort along with the blockers grounding turned up.
@@ -8882,7 +8899,7 @@ Split a labelled spec ticket into smaller tickets that each record what they dep
 
 #### `sub-issue-linkage`
 Make each ticket a child of its source issue and never close or modify that parent.
-- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → to-roadmap#beads-native-tracking
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → tracker#beads-native-tracking
 
 #### `subtraction-first`
 Before adding to a system, remove the complexity in its way (such as dead code, redundant validators and stub references), then build on the simpler base.
@@ -8906,6 +8923,10 @@ Prefer independently verifiable vertical slices over horizontal layers.
 Think a redesign through as a whole before starting, then deliver it in increments rather than in one drop.
 - ours: `principle-redesign-from-first-principles`
 - `cursor_plugins:skill:pstack/skills/principle-redesign-from-first-principles` — adopt → principle-redesign-from-first-principles#whole-design-incremental-delivery
+
+#### `workstream-extension`
+Extend a seeded workstream by seeding only its newly appended phases on the same roadmap anchor, allowing a different governing spec, and adding epic-to-epic edges only where a new phase genuinely depends on an old one.
+- ours: `tracker`
 
 #### `written-phase-list-for-review`
 Write down the designed phases as the thing the human reviews.
@@ -11329,7 +11350,7 @@ Run independent graphs as admitted child workflows where collection is evidence 
 
 #### `close-gate`
 Close a phase only when it has at least one stage, every stage is closed, and its roadmap exit criterion has run with evidence recorded.
-- ours: `implement`
+- ours: `tracker`
 
 #### `define-task-once`
 Define each kind of automated work once as a task that runs many times against a ticket, a pull request or the whole codebase.
@@ -11395,6 +11416,10 @@ Run implementer subagents concurrently over the ready frontier of a ticket graph
 #### `per-ticket-concurrency-lock`
 Use a concurrency group keyed on the ticket so two runs never work the same ticket.
 - `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
+#### `phase-epic-lookup`
+Find a phase's single epic by its roadmap anchor and bracketed phase-id title, treating zero or several matches as a tracking defect and never re-seeding silently.
+- ours: `tracker`
 
 #### `phase-loop`
 Resolve the roadmap phase's single epic, drive ready stages through the contractor that owns execution to closure, and refresh tracking between stages.
@@ -11532,7 +11557,7 @@ Traits listed by two or more of our active skills (`doc:AGENTS.md` and playbooks
 | `bounded-background-wait` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md | The same one sentence on waiting sits at each step that waits, with its own stopped exit; no skill is called for it. |
 | `build-closeout` | doc:.claude/skills/mvp-mode/playbooks/feature.md, doc:.claude/skills/mvp-mode/playbooks/perf-issue.md, doc:.claude/skills/mvp-mode/playbooks/refactoring.md | Each playbook's closeout runs on its own exits and feeds its own reply, and these three have the same three duties; a skill of three duties would be ceremony (unit-kinds deviation log, St4 and B4). |
 | `canonical-term-and-aliases` | domain-modeling, teach | Each keeps a glossary of its own (project language, the learner's workspace) in one entry format, with its own admission rules. |
-| `dependency-edges` | implement, to-roadmap, wayfinder | Each lets the tracker graph's readiness drive the work: to-roadmap encodes implementation stages and wayfinder decision tickets, and implement's spec scope runs a spec's tickets from the ready frontier, adding a blocking edge it finds missing; edge semantics stay in beads. |
+| `dependency-edges` | implement, tracker, wayfinder | Each lets the tracker graph's readiness drive the work: tracker writes the genuine edges of stages, plan stages and decision tickets by returned ID, wayfinder picks a map's genuine prerequisites and works its ready frontier, and implement's spec scope runs a spec's tickets from the ready frontier, adding a blocking edge it finds missing; edge semantics stay in beads. |
 | `domain-vocabulary` | brief-me, improve-codebase-architecture, prototype, teach | Each writes for its reader in the project's own terms: brief-me in its re-pitches, teach in its lessons, prototype in its states, actions and labels, so an answer transfers to the real code, and improve-codebase-architecture in its candidates and their friction. |
 | `drift-scan` | harness-scan, harness-status | Both run the one drift command, scan for a single harness and status as a sweep of all of them; a pointer between them would add a hop to a one-line command. |
 | `dropout-proceeds-noted` | interrogate, model-council | A failed member and a failed adversary are handled alike, going on and reporting it, but what is left when too few remain differs: no pick for one, not run for the other. |
@@ -11556,7 +11581,6 @@ Traits listed by two or more of our active skills (`doc:AGENTS.md` and playbooks
 | `read-only-closeout` | doc:.claude/skills/mvp-mode/playbooks/investigation.md, doc:.claude/skills/mvp-mode/playbooks/session-pickup.md | Each is a read-only run whose closeout belongs to its own exits and reply; logged under St4 in unit-kinds. |
 | `read-only-explanation` | how, why | Both answer a question about this project and change nothing while answering; one read-only rule, kept in each half of the split. |
 | `read-trail-first` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md | Each looping playbook reads its own trail before choosing the next change; each trail has its own columns and rows. |
-| `real-id-wiring` | to-roadmap, wayfinder | Both create beads and then wire edges between the IDs they just created, each inside its own seeding procedure. |
 | `recommended-answer` | brainstorming, grilling | As question-batching: a short rule each skill applies inside its own flow. |
 | `revert-ineffective-experiments` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, performance-optimization | Each runs its own loop of attempts, fix attempts in the bug-fix playbook and optimization experiments in performance-optimization, and removes its own failed edits before the next attempt. |
 | `row-then-checkpoint` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md | Each loop writes its own row and checkpoint in this order, around its own keep-or-discard step, so a closing return can trust them. |

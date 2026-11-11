@@ -27,8 +27,9 @@ section.
 Goal: <the behaviour that must be true when this task is done — acceptance,
 not activity>
 
-Stage: <the bd stage this task serves (`<epic>.N`) — phase and single-phase
-work only; omit for standalone plans>
+Stage: <the bd stage this task serves: the existing `<epic>.N` for a seeded
+phase; `proposed <name>` in a new one-phase plan until `tracker` binds it; omit
+for standalone plans>
 
 Files:
 - Create: <known paths or ownership boundary>
@@ -57,22 +58,6 @@ risk warrants it>
 neighbour. Fold setup, configuration, scaffolding, and documentation into the
 task whose deliverable needs them; split only at a boundary a reviewer could
 rule on independently.
-
-## Standalone bd record
-
-For a standalone plan with no bd record yet, create it when the request or
-existing approval covers the work (`--actor` as always):
-
-```bash
-bd create "<title>" -t task \
-  --description "<why this work exists and what it changes>" \
-  --acceptance "<the plan's goal, stated checkably>" \
-  --notes "plan: <plan-path>" \
-  --actor … -q
-```
-
-Dotted children only for genuinely independent units within the ask. Never
-put the plan path in `--design`.
 
 ## No placeholders
 

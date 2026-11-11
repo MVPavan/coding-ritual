@@ -103,7 +103,7 @@ Anything else the next reader needs that fits no section above.
 
 ## Why these sections
 
-The `to-roadmap` skill links this file from the epics it creates: a workstream's
+The `tracker` skill links this file from the epics it seeds: a workstream's
 phase epics carry it in `--design` and the roadmap in `--spec-id`, and a standalone
 single-phase epic can carry it in `--spec-id`. So it is read by people working on
 tasks that were split out of it long after the conversation ended.

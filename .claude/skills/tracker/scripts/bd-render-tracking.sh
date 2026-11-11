@@ -15,7 +15,7 @@
 # failure mode (re-run to fix) — divergent hand-edits are impossible.
 #
 # Run with BD_RENDER=1 (the guard whitelist that lets writes land on the generated paths):
-#   BD_RENDER=1 bash <beads-skill-dir>/scripts/bd-render-tracking.sh [workstream-name]
+#   BD_RENDER=1 bash <tracker-skill-dir>/scripts/bd-render-tracking.sh [workstream-name]
 #
 # Env knobs:
 #   DOCS_ROOT  output base dir that repo-relative paths are joined to (default: repo root ".")
@@ -48,7 +48,7 @@ write_generated() {
   echo "  rendered  $path"
 }
 
-header() { printf '# %s\n_generated from bd @ %s — DO NOT EDIT (run: BD_RENDER=1 bash <beads-skill-dir>/scripts/bd-render-tracking.sh)_\n' "$1" "$NOW"; }
+header() { printf '# %s\n_generated from bd @ %s — DO NOT EDIT (run: BD_RENDER=1 bash <tracker-skill-dir>/scripts/bd-render-tracking.sh)_\n' "$1" "$NOW"; }
 
 # All epics (open + closed), one per line, TSV: id <TAB> status <TAB> spec_id <TAB> title.
 # Sorted by spec_id then title so phases display in roadmap order (titles carry sortable prefixes).
@@ -169,10 +169,14 @@ render_board
 # Per-workstream: drive off the spec_ids of all epics (incl. closed).
 #   • under docs/workstreams/  → render its tracking trio
 #   • "(no anchor)"            → legitimate: an epic that belongs to no workstream
-#   • anything else            → MISCONFIGURED. spec_id is the workstream ANCHOR: it
-#     names the workstream and decides where tracking/ is written. A spec_id pointing
-#     somewhere else means that workstream silently gets no mirrors, so fail loudly.
+#   • anything else, per epic:
+#       - a phase epic (title "[<phase-id>] …", the workstream phase contract) → MISCONFIGURED.
+#         spec_id is the workstream ANCHOR: it names the workstream and decides where tracking/
+#         is written, so a phase epic anchored elsewhere silently gets no mirrors; fail loudly.
+#       - any other epic (e.g. a one-phase epic anchored on its spec) → legitimate: it stays on
+#         the global board and has no per-workstream mirror.
 SPEC_IDS="$(all_epics_tsv | cut -f3 | sort -u)"
+PHASE_TITLE='^[[][^]]+[]]'
 misanchored=0
 while IFS= read -r spec; do
   [ -n "$spec" ] || continue
@@ -180,17 +184,24 @@ while IFS= read -r spec; do
     "$WS_REL"/*)   render_workstream "$spec" ;;
     "(no anchor)") echo "  skip: $(all_epics_tsv | awk -F'\t' '$3=="(no anchor)"' | wc -l | tr -d ' ') epic(s) with no spec_id (not workstream epics)" ;;
     *)
-      misanchored=1
-      {
-        echo "  ERROR: epic spec_id is not under $WS_REL/ — no tracking was written for it."
-        echo "         spec_id:  $spec"
-        echo "         spec_id is the workstream ANCHOR. It names the workstream and"
-        echo "         determines the tracking output directory. Point it at the roadmap:"
-        echo "           bd update <epic> --spec-id $WS_REL/<name>/roadmap.md \\"
-        echo "                            --design <the governing spec>"
-        echo "         Affected epics:"
-        all_epics_tsv | awk -F'\t' -v s="$spec" '$3==s {printf "           %s  %s\n", $1, $4}'
-      } >&2
+      phase_epics="$(all_epics_tsv | awk -F'\t' -v s="$spec" -v re="$PHASE_TITLE" '$3==s && $4 ~ re {printf "           %s  %s\n", $1, $4}')"
+      others="$(all_epics_tsv | awk -F'\t' -v s="$spec" -v re="$PHASE_TITLE" '$3==s && $4 !~ re' | wc -l | tr -d ' ')"
+      [ "$others" -gt 0 ] && echo "  skip: $others non-workstream epic(s) anchored on $spec (global board only)"
+      if [ -n "$phase_epics" ]; then
+        misanchored=1
+        {
+          echo "  ERROR: phase epic spec_id is not under $WS_REL/ — no tracking was written for it."
+          echo "         spec_id:  $spec"
+          echo "         spec_id is the workstream ANCHOR. It names the workstream and"
+          echo "         determines the tracking output directory. Point it at the roadmap:"
+          echo "           bd update <epic> --spec-id $WS_REL/<name>/roadmap.md \\"
+          echo "                            --design <the governing spec>"
+          echo "         Not a workstream phase (a one-phase or other epic)? Its title must not"
+          echo "         open with '[': bd update <epic> --title '<plain title>'"
+          echo "         Affected phase epics:"
+          printf '%s\n' "$phase_epics"
+        } >&2
+      fi
       ;;
   esac
 done <<<"$SPEC_IDS"

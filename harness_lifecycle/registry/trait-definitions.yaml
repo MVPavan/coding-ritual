@@ -1018,6 +1018,11 @@ playbook-exit:
   placement: {domain: core, stage: X, substage: Coordination}
   distinct_from: [closeout]
   note: "closeout ends a diagnosis by removing instrumentation and recording the cause; this makes every playbook exit run that playbook's own closeout and reply."
+flat-operational-tracking:
+  definition: "Track phaseless operational work as one epic anchored on its charter with plain task children, without a roadmap."
+  placement: {domain: core, stage: X, substage: Coordination}
+  distinct_from: [beads-native-tracking]
+  note: "beads-native-tracking anchors phase epics on a roadmap; this has no phases and anchors on the charter."
 
 # ---- core · X · Continuity ----
 actor-identity:
@@ -1065,7 +1070,7 @@ phase-epic-contract:
   placement: {domain: core, stage: X, substage: Continuity}
   secondary: [Coordination]
   distinct_from: [beads-native-tracking]
-  note: "The tracker's field contract for a phase epic; beads-native-tracking is to-roadmap seeding epics and stages against it (overlap audit #3)."
+  note: "The tracker's field contract for a phase epic; beads-native-tracking is the tracker skill seeding epics and stages against it (overlap audit #3)."
 primary-vs-secondary-source:
   definition: "Recognise that every context move but continuing replaces the live session (a primary source) with a lossy summary that restores facts but not reasoning."
   placement: {domain: core, stage: X, substage: Continuity}
@@ -1154,6 +1159,12 @@ scratch-artifact-location:
   placement: {domain: core, stage: X, substage: Continuity}
   distinct_from: [temp-dir-destination]
   note: "temp-dir-destination saves a handoff to the OS temp directory; this sends every temporary artifact to the repository's scratch folder."
+workstream-layout:
+  definition: "Lay out a workstream as a charter, a roadmap that anchors its phase epics, a folder for just-in-time plans and a generated tracking folder, joined to the tracker by a bracketed phase-id title prefix."
+  placement: {domain: core, stage: X, substage: Continuity}
+  secondary: [Decomposition]
+  distinct_from: [workstream-render, phase-epic-contract]
+  note: "workstream-render regenerates the tracking files and phase-epic-contract shapes one epic's fields; this is the folder layout and the roadmap-to-epic join key."
 
 # ---- core · X · Governance ----
 authority-separation:
@@ -2029,6 +2040,17 @@ test-first-marking:
 vertical-slices:
   definition: "Prefer independently verifiable vertical slices over horizontal layers."
   placement: {domain: engineering, stage: Design, substage: Decomposition}
+workstream-extension:
+  definition: "Extend a seeded workstream by seeding only its newly appended phases on the same roadmap anchor, allowing a different governing spec, and adding epic-to-epic edges only where a new phase genuinely depends on an old one."
+  placement: {domain: engineering, stage: Design, substage: Decomposition}
+  distinct_from: [beads-native-tracking]
+  note: "beads-native-tracking seeds a workstream's epics and stages; this adds phases to one already seeded without moving its anchor."
+one-phase-plan-tracking:
+  definition: "Record an approved one-phase plan as one epic anchored on its spec with stage children carrying the plan's acceptance, and bind the plan's proposed stage names to the returned IDs before execution."
+  placement: {domain: engineering, stage: Design, substage: Decomposition}
+  secondary: [Coordination]
+  distinct_from: [beads-native-tracking]
+  note: "beads-native-tracking seeds phase epics against a roadmap anchor; this has no roadmap, anchors the epic on the spec and binds an already written plan to its stages."
 
 # ---- engineering · Building · Implementation ----
 author-stages-over-template:
@@ -2815,6 +2837,11 @@ stop-on-failure:
 workstream-mode:
   definition: "Run remaining phases in order only on explicit opt-in, with per-phase tracking refresh and commits only when the invocation covers them."
   placement: {domain: engineering, stage: X, substage: Coordination}
+phase-epic-lookup:
+  definition: "Find a phase's single epic by its roadmap anchor and bracketed phase-id title, treating zero or several matches as a tracking defect and never re-seeding silently."
+  placement: {domain: engineering, stage: X, substage: Coordination}
+  distinct_from: [phase-loop]
+  note: "phase-loop drives a phase's stages through execution to its exit; this only resolves which epic is the phase, for any caller."
 
 # ---- engineering · X · Continuity ----
 context-recovery:

@@ -1,11 +1,14 @@
 ---
 name: to-plan
-description: "Use when settled work needs a durable implementation plan: one roadmap phase, one standalone change, or one batch of units written box by box when a caller names that form. Turning an approved spec into phases, stages and their order is to-roadmap; a person's request to plan several units, or work whose open questions must be settled first, is the multi-phase-plan playbook, which calls this. Skip a plan document for clear bounded tasks."
+description: "Use when settled work needs a durable implementation plan: one roadmap phase, one standalone change, or one batch of units written box by box when a caller names that form. Turning an approved multi-phase spec into phases and their order is to-roadmap; a one-phase spec is planned here and recorded by tracker; a person's request to plan several units, or work whose open questions must be settled first, is the multi-phase-plan playbook, which calls this. Skip a plan document for clear bounded tasks."
 ---
 
 # To plan
 
-Turn settled scope into executable work at the smallest useful scale.
+Turn settled scope into executable work at the smallest useful scale. An approved
+spec is one phase or several by the spec and the owner's evidence: several only
+where each has an independently checkable exit, and dependent stages alone do not
+make several. Decide routine cases directly; ask only on material ambiguity.
 
 ## Route
 
@@ -27,8 +30,10 @@ interfaces, verification and dependencies. List known files; permit implementers
 to discover internal details within that ownership. Do not invent exact symbols
 or freeze a file map without evidence.
 
-Every phase plan task names an existing `Stage: <epic>.N`; every stage has covering
-tasks. Preserve this mapping because `implement` uses it to close stages. Mark
+A seeded roadmap phase's task names its existing `Stage: <epic>.N`; a new one-phase
+plan names `Stage: proposed <name>` and writes no Beads; after approval `tracker`
+binds each to its ID. Every stage has covering tasks. Preserve this mapping because
+`implement` uses it to close stages. Mark
 risky changes test-first or characterization-first as appropriate.
 
 Check requirement coverage, compatibility, unresolved decisions, integration
@@ -39,10 +44,9 @@ No Beads write, the task or its `plan:` note, before the plan is approved;
 recorded approval that covers this concrete plan counts.
 
 Save phase plans under `docs/workstreams/<name>/plans/`, standalone plans under
-`docs/plans/`, or the supplied path. Put `plan: <path>` in Beads notes. A phase
-epic's `--spec-id` holds its workstream roadmap and `--design` its governing
-spec; other beads' `--spec-id` holds their spec. Neither holds a plan. Attribute
-Beads writes with `--actor` and reuse existing records.
+`docs/plans/`, or the supplied path. Once approved, invoke `tracker` to record it:
+the plan note, one epic and stages for one-phase work, binding the plan's proposed
+stages to their IDs.
 
 ## Skeleton
 

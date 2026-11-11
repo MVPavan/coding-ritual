@@ -1,0 +1,79 @@
+harness: mattpocock_skills
+from_sha: null
+to_sha: 4ae2317
+supersedes: null
+analysis_critic:
+  by: claude-opus-5-5 coordinator (plan 27, critic-27d fixes applied)
+  date: '2026-11-11'
+  verdict: accepted
+  last_critic:
+    by: gpt-6.1-sol high (critic-27d)
+    date: '2026-11-11'
+    verdict: fail
+comparison_critic:
+  by: claude-opus-5-5 coordinator (plan 27, critic-27d fixes applied)
+  date: '2026-11-11'
+  verdict: accepted
+  last_critic:
+    by: gpt-6.1-sol high (critic-27d)
+    date: '2026-11-11'
+    verdict: fail
+themes: One reconsider row moving wayfinder's real-id-wiring adoption into the new tracker
+  skill (plan 27 section 4a, owner ruling N3 of 2026-11-11, scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md),
+  plan 27 T1a. At 4ae2317, wayfinder's accepted and newest analysis, because a 5beb35b report
+  cannot carry a wayfinder row.
+skills:
+  skill:skills/engineering/wayfinder:
+    upstream_tree_hash: bd82983c105881f6cb0c15e5d029c0d5fca756939b69eebe94e49003069a276f
+    accepted: 4ae2317
+    compared_with: tracker
+    pairing:
+      overlap:
+        beads: 1
+        implement: 1
+        tracker: 2
+        wayfinder: 25
+      placement_match:
+      - wayfinder
+      suggested: wayfinder
+      purpose_match: tracker
+      purpose: Upstream wayfinder; these rows compare only its tracker-structure mechanisms
+        with tracker, which now delivers them for our skills.
+      flag: suggested differs
+      reason: Compared with tracker, which delivers these rows; the computed signals suggest
+        wayfinder, and the skill's other rows keep their own rulings.
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      real-id-wiring:
+        scope: reconsider
+        change: []
+        fact: present
+        provider: tracker
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/tracker/SKILL.md:20-21
+        - .claude/skills/tracker/SKILL.md:49-52
+        - .claude/skills/wayfinder/SKILL.md:45-47
+        recommendation: adopt
+        delivery: delivered
+        target: tracker
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-02
+          override: null
+        reason: 'Owner ruling N3 (2026-11-11), plan 27 section 4a: wayfinder keeps its questions,
+          map content, ticket meaning and resolution, and records its approved map, tickets
+          and edges through tracker, which creates every bead and then wires the genuine prerequisites
+          by returned ID. The whole create-then-wire mechanism moves; decision-map-epic stays
+          at wayfinder and dependency-edges is shared. The live adopt into wayfinder is withdrawn
+          by its update. The adopt citing this row supersedes 2026-10-30-mattpocock_skills-5beb35b:137
+          (sourced at 5beb35b; the trait is carried to 4ae2317, wayfinder''s accepted analysis).'

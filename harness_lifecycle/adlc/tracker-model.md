@@ -7,8 +7,9 @@ of the model; `document-model.md` is the document half.
 
 It is design guidance from the 2026-10-07 to 2026-10-14 discussions. Only the
 `review` status (§3) is in the `beads` skill today. The rest waits until the
-skills (`beads` `usage.md` §7 and `prime.md`, `to-roadmap` `decompose.md`, and
-the status renderer) are updated together; §8 lists what that needs.
+skills (`beads` `prime.md` and the `tracker` skill: its `SKILL.md`,
+`references/workstreams.md` and the status renderer) are updated together; §8
+lists what that needs.
 
 ## 1. Two layers
 
@@ -242,11 +243,12 @@ These depend on §5 and are not yet decided:
 
 The model becomes policy only when these change together:
 
-1. `beads` `usage.md` §7 (rules 1–8 replace the phase-epic text) and one
-   `prime.md` line for rule 1.
-2. `to-roadmap` `references/decompose.md`: a pointer to `usage.md` §7, not a
-   copy.
-3. `bd-render-tracking.sh`: group by `spec_id` and show features, instead of
+1. `tracker` `SKILL.md` (rules 1–8 replace its phase-epic contract) and one
+   `beads` `prime.md` line for rule 1. The phase-epic text that `usage.md` §7
+   and `to-roadmap`'s `decompose.md` held now lives in `tracker`.
+2. `tracker` `references/workstreams.md`: its seeding follows rules 1–8, a
+   pointer to `SKILL.md`, not a copy.
+3. `tracker` `scripts/bd-render-tracking.sh`: group by `spec_id` and show features, instead of
    reading `[<phase-id>]` epic titles.
 4. `document-model.md` §2 to the folder layout in §7, and the word "spec"
    reconciled with the dictionary's (a `CONTEXT.md` note or a rename).

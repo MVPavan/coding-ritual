@@ -10,7 +10,7 @@ status: active
 ---
 # implement
 
-Use to execute tracked multi-step work, a standalone plan, a roadmap phase, or a spec whose tickets are already in Beads with blocking edges. Skip writing tickets for a spec, which is to-roadmap; clear bounded implementation can proceed directly under AGENTS.md.
+No description.
 
 <!-- registry:generated traits -->
 - `scope-selector`: Pick task, phase or workstream scope from the request and route unresolved material scope back to to-plan or brainstorming.
@@ -18,7 +18,6 @@ Use to execute tracked multi-step work, a standalone plan, a roadmap phase, or a
 - `task-loop`: Claim the exact task, implement in dependency order within owned paths, run applicable checks, and close with evidence and material limitations.
 - `finding-adjudication`: Verify each incoming review finding against requirements, code and primary evidence before acting, and give each a visible disposition: fix a confirmed in-scope defect, answer an incorrect one with a retained ruling, record an out-of-scope follow-up.
 - `phase-loop`: Resolve the roadmap phase's single epic, drive ready stages through the contractor that owns execution to closure, and refresh tracking between stages.
-- `close-gate`: Close a phase only when it has at least one stage, every stage is closed, and its roadmap exit criterion has run with evidence recorded.
 - `workstream-mode`: Run remaining phases in order only on explicit opt-in, with per-phase tracking refresh and commits only when the invocation covers them.
 - `child-workflows`: Run independent graphs as admitted child workflows where collection is evidence and landing goes through the contractor, not automatic result binding.
 - `context-recovery`: Stay in context while useful and, before compacting or handing off, persist scope, decisions and next work to the ledger, tracker and Git, then rebuild from those rather than from a summary.
@@ -56,6 +55,7 @@ Use to execute tracked multi-step work, a standalone plan, a roadmap phase, or a
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-11` **update** (2026-11-11-tracker:012): Owner rulings M2 (2026-11-10), N2 and N3 (2026-11-11) (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 27 T1a. Skip clause names to-roadmap and trac…
 - `2026-11-11` **update** (2026-11-10-renames-splits:157): Owner rulings M1, M4 (2026-11-10) and N1, N2 (2026-11-11) (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 24 U8r. Description: writing tickets for …
 - `2026-11-10` **adopt** (2026-11-10-renames-splits:110): critic-19d F2: spec-run.md step 8 merges the base's tip into the one integration branch, not the integration branch's tip into each implementer's branch, so it…
 - `2026-11-10` **update** (2026-11-10-renames-splits:109): Critic-19d fix. F1: cleanup removes the spec worktree only with authority already held, else keeps it and reports its path and that cleanup is due. F3: a works…

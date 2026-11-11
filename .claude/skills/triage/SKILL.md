@@ -50,9 +50,9 @@ request did not establish a scope.
 
    | Outcome | Commands |
    |---|---|
-   | Agent-executable | verify the gate below, add acceptance if missing (`bd update <id> --acceptance …`), give it a parent (`bd update <id> --parent <epic-or-feature>`), and `bd undefer <id>` if deferred |
+   | Agent-executable | verify the gate below, add acceptance if missing (`bd update <id> --acceptance …`), give it a parent (`bd update <id> --parent <epic-or-feature>`; a phase's epic is found with `tracker`), and `bd undefer <id>` if deferred |
    | Owner's work | `bd label add <id> human`, and `bd note <id>` with why an agent cannot do it |
-   | Questions for the owner | a `human` task holding the questions, which the bead needs: `bd create -t task "Questions: <title>" -d "<questions>" -l human --actor …`, then `bd dep add <id> <questions-id>` |
+   | Questions for the owner | a `human` task holding the questions, which the bead needs: `questions_id=$(bd create -t task "Questions: <title>" -d "<questions>" -l human --actor … --silent)`, checked non-empty, then `bd dep add <id> "$questions_id"` |
    | Real, not now | `bd defer <id>` (`--until <date>` for a real date) |
    | Idea for later | `bd update <id> -t spike`, then `bd defer <id>` |
    | Not doing it | `bd close <id> --reason "wontfix: <why>"` |
