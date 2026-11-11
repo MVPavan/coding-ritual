@@ -16,7 +16,7 @@ ours:beads:
   tree_hash: "4033071f23315c2f9052a4dc8f65023b5c9115f6afef9a79212b1aa813e9d6e6"
   traits: [bead-type-taxonomy, field-roles, wait-as-edge, actor-identity, resume-line, session-close, session-recovery, knowledge-in-files, beads-setup, status-model, triage-routing, durable-unit-scope, review-as-task, destructive-command-guard, repeated-procedures, dolt-sync]
 ours:discovery:
-  tree_hash: "4d262ca51226a9503920c6b662390f735d21f3418452560e6e4d3b9ad7cbf4b0"
+  tree_hash: "48372b8f16c8a9de49f22de8d6189fe1b19c7b7545e300e976388d9720961faf"
   traits: [match-interaction-to-ambiguity, scoped-context-read, reuse-before-new, decision-frame, options-with-tradeoffs, question-batching, recommended-answer, settled-stop, self-serve-facts, approval-interpretation, observable-outcomes, structured-divergence, exploration-lenses, inline-diagrams, visuals-into-spec, html-mockup-on-request]
   notes:
     recommended-answer: "Labels the recommendation's assumptions."
