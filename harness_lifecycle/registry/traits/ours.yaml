@@ -112,7 +112,7 @@ ours:model-council:
   tree_hash: "678a7f2a8a0872f518a32349f32b6b49e0a3b83ed8d978b5f26d4ef50f85165a"
   traits: [member-resolution, runtime-capability-check, neutral-framing, member-isolation, report-preservation, independent-synthesis, consolidated-delivery, identity-recording, failed-member-recovery, no-silent-substitution, artifact-named-up-front, task-rubric-criteria, rubric-withheld-from-candidates, own-output-location, rationale-names-rejected, dropout-proceeds-noted, read-only-judge, judge-other-family-or-stated, rubric-given-to-judge, path-labelled-candidates, judge-criterion-scores, judge-recommends-base, full-read-before-pick, picker-criterion-scores, pick-compared-with-judge, disagreement-rereads-rationales, base-chosen-for-extensibility, near-tie-smaller-surface, loser-graft-pass, sparse-grafts, hand-folded-grafts, converged-shape-no-graft, divergence-reframes-once, graft-change-rerun, verify-miss-returns-once, single-synthesized-artifact, synthesis-decision-record, note-judge-status, note-convergence-dropouts, note-verification-result, no-judge-no-pick]
 ours:mvp-mode:
-  tree_hash: "1b27e801bb43f733beacb0db99cc443746c93d9a63230caab7a5a5b825500e3a"
+  tree_hash: "a3119c2677784802aa24de1b4d554e4c0485d6c6dbe45e1056805d1ca3f5bcc0"
   traits: [unit-kind-lines, playbook-pick, need-to-skill-routing, overlap-arbitration, layered-catalog, platform-skill-invocation, no-playbook-in-delegate, delegate-independent-by-default, no-onward-delegation, playbook-steps-as-todos, recorded-step-skip, whole-callee, playbook-exit, legacy-entrypoint-flagging, catalog-trust-boundary]
 ours:performance-optimization:
   tree_hash: "8e393535c7e06691afca39ef9df84040ce4752a29a8cc58610b8522ce951c4da"
@@ -297,3 +297,9 @@ ours:sharpen:
 ours:recall:
   tree_hash: "e5237e7c4594d34349907152eb036e54dcb181f753a93d735fbd76e1abd7b60f"
   traits: [current-state-capsule-goal, two-record-context-model, recall-routes-away, skip-mining-with-supplied-state, lock-scope-before-search, seven-day-default-window, active-workspace-only-default, no-silent-narrowing, order-by-real-mtime, grep-then-read-matching-regions, exclude-current-and-noise-chats, uniform-per-chat-schema, finding-cited-by-source-kind, direct-search-for-small-corpus, default-shared-record-sweep, one-helper-per-sizeable-source, retarget-investigator-question, empty-search-is-finding, full-transcript-for-agent-behaviour, brief-grouped-by-thread, brief-section-order, capped-capsule-section, status-tagged-thread-lines-with-abandoned, capped-recurring-problems, single-next-move, adjacent-excluded-unless-blocking, cut-detail-before-threads, reply-is-the-deliverable]
+ours:no-comments:
+  tree_hash: "f0432cc638fff5e8c63596e0f5d93de3c9e2646a58f99c34df565492ad10b886"
+  traits: [merge-base-through-tree-scope, named-scope-first, comment-pass-stays-in-bounds, kept-code-not-guilty, reshape-flags-open-apart-from-comment, suppressions-in-comment-sweep, thin-importance-comment-check, trivial-flag-direct-fix, named-workarounds-removed, cheapest-enforcement-offer, encoding-approval-gate, encode-then-delete, unencoded-constraint-kept-and-reported, comment-sweep-report]
+ours:principle-no-comments:
+  tree_hash: "ad98275b7e7e0f99b69ede8b3b48036b2a93f94799ebd3ac5073d1c499d04cbb"
+  traits: [exact-proof-settles-a-protected-keep, unsure-comment-kept-and-flagged, safety-suppressions-removed, constraint-comment-class, unchangeable-constraint-kept]

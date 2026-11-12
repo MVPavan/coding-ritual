@@ -200,3 +200,7 @@ verified-unit-sequence:
   skills: [doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md, principle-sequence-verifiable-units]
   why: "The principle owns the rule; figure-it-out's Run step states it in one sentence and cites the principle, as the owner ruled for row 2026-11-06-batch-p1:250, because the registry takes a delivered row only from the compared unit (unit-kinds St4)."
   reviewed: "2026-11-12"
+named-scope-first:
+  skills: [interrogate, no-comments]
+  why: "Each works on a scope a person may name, interrogate on the change it attacks and no-comments on the files it sweeps, and each defaults differently without one; a pointer between two unrelated jobs would add a hop to one sentence."
+  reviewed: "2026-11-12"

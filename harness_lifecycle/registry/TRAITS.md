@@ -345,6 +345,22 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `unresolved-outranks-verdict`: Give no favourable verdict while an observed failure stays unreproduced or unreplayable.
 - `no-self-adversary`: Report not run rather than attack as an adversary work you wrote or a design you settled.
 
+#### core · Verification · Review — no-comments
+- `merge-base-through-tree-scope`: When no scope is named, review the branch from where it left the base branch up to and including the working tree.
+- `named-scope-first`: Use the scope the user names when one is given.
+- `comment-pass-stays-in-bounds`: During a comment pass, change only comments, and only inside the given scope.
+- `kept-code-not-guilty`: Refuse flags that treat intentionally retained code as being at fault.
+- `reshape-flags-open-apart-from-comment`: Keep flags asking to restructure surprising first-party code open, whether their comments stay, go or come back.
+- `suppressions-in-comment-sweep`: Include lint and type-checker suppression comments in a comment sweep.
+- `thin-importance-comment-check`: Before accepting a thinly justified decision on a comment marked important, investigate its symbol's behaviour and history.
+- `trivial-flag-direct-fix`: Resolve simple accepted flags at once through edits such as removing an unused path or parameter, or calling the genuine interface.
+- `named-workarounds-removed`: Eliminate every workaround the findings name.
+- `cheapest-enforcement-offer`: For other constraint comments, propose the least costly enforcement available in scope, whether a type, runtime check, test or CI lint.
+- `encoding-approval-gate`: Apply an encoding only with approval, through the route the caller names or given by the caller in advance.
+- `encode-then-delete`: When an encoding is approved, add the enforcement and then remove the comment.
+- `unencoded-constraint-kept-and-reported`: Without an approved enforcement, keep a constraint comment, report the constraint as open and sketch any out-of-scope work.
+- `comment-sweep-report`: Report the comments deleted, those restored on proof, those kept and flagged, the fixes, the enforcements offered and done, the constraints left unenforced and the open items.
+
 #### core · Verification · Review — review
 - `independent-critic-verdict`: A reviewer who did not author the work gives evidence-backed findings and a verdict, approving only what was verified and listing the rest as unverified.
 - `severity-and-verdict`: Rate each finding by consequence and approve only with no open blocker or major, otherwise require revision, never counting preference alone as a finding.
@@ -762,6 +778,13 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `falsifiable-hypotheses`: State each hypothesis as a falsifiable prediction that changing its cause changes the result, discarding any that cannot be stated so.
 - `one-variable-at-a-time`: Change exactly one variable per probe, each mapped to a specific prediction.
 - `placeholder-sensitive-data-redaction`: Replace secrets and personal data with placeholders in anything shown or saved.
+
+#### engineering · Building · Implementation — principle-no-comments
+- `exact-proof-settles-a-protected-keep`: Refuse deleting a comment a stated exception protects, and count a comment as a settled protected keep only with that exact exception and proof within scope, proof a provisional keep of a doubtful comment does not need.
+- `unsure-comment-kept-and-flagged`: When unsure whether a comment should go, keep it, bringing it back if already deleted, and flag it for a person.
+- `safety-suppressions-removed`: Treat suppressions bearing on correctness or safety as findings that must be removed.
+- `constraint-comment-class`: Treat comments that forbid removal, forbid rewording or require consulting someone as a distinct class.
+- `unchangeable-constraint-kept`: Leave kept comments that concern things outside the team's control.
 
 #### engineering · Building · Implementation — principle-sequence-verifiable-units
 - `baseline-check-before-change`: Before the first change of multi-step work, run its checks on the starting base and record the results, so later failures are classed as pre-existing or as regressions.
@@ -1565,37 +1588,37 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `dropped-finding-accounting`: Report for each adversary how many findings were dropped and why. — adopt → interrogate#dropped-finding-accounting
 
 #### core · Verification · Review — skill:pstack/skills/no-comments
-- `merge-base-through-tree-scope`: When no scope is named, review the branch from where it left the base branch up to and including the working tree. — adopt, pending cr-r2pa.2.18 → no-comments#merge-base-through-tree-scope
-- `named-scope-first`: Use the scope the user names when one is given. — adopt, pending cr-r2pa.2.18 → no-comments#named-scope-first
+- `merge-base-through-tree-scope`: When no scope is named, review the branch from where it left the base branch up to and including the working tree. — adopt → no-comments#merge-base-through-tree-scope
+- `named-scope-first`: Use the scope the user names when one is given. — adopt → no-comments#named-scope-first
 - `comment-critic-role`: Spawn a fixed subagent role to audit comments and pass it the scope. — reject
 - `defer-to-fresh-critic`: Give weight to a critic's fresh perspective over the caller's own attachment. — reject
 - `role-rules-not-restated`: Do not repeat a spawned role's rules in the request that spawns it. — reject
 - `job-fit-helper-effort`: Choose each helper's thinking depth and speed tier to suit its job. — reject
 - `read-worker-output`: Open the diff or artifact a worker produced and hold it to the evidence its brief named, instead of relying on its summary. — reject
-- `critic-out-of-bounds-refused`: Refuse a critic's edits to application code and any of its work outside the given scope. — adopt, pending cr-r2pa.2.18 → no-comments#comment-pass-stays-in-bounds
-- `comment-exception-gate`: Refuse deleting a comment a stated exception protects, and bring one back only with that exact exception and proof within scope. — adopt, pending cr-r2pa.2.18 → principle-no-comments#exact-proof-settles-a-protected-keep
+- `critic-out-of-bounds-refused`: Refuse a critic's edits to application code and any of its work outside the given scope. — adopt → no-comments#comment-pass-stays-in-bounds
+- `comment-exception-gate`: Refuse deleting a comment a stated exception protects, and bring one back only with that exact exception and proof within scope. — adopt → principle-no-comments#exact-proof-settles-a-protected-keep
 - `misstated-kill-reason-refused`: Refuse a report whose reason for a mandatory comment deletion is wrong. — reject
-- `kept-code-not-guilty`: Refuse flags that treat intentionally retained code as being at fault. — adopt, pending cr-r2pa.2.18 → no-comments#kept-code-not-guilty
-- `reshape-flags-stay-open`: Keep flags asking to restructure surprising first-party code open, without bringing their comments back. — adopt, pending cr-r2pa.2.18 → no-comments#reshape-flags-open-apart-from-comment
-- `comment-keep-needs-proof`: Let a comment survive only with proof it concerns something the team cannot alter. — adopt, pending cr-r2pa.2.18 → principle-no-comments#unsure-comment-kept-and-flagged
-- `missed-suppression-audit`: Check the scope for lint and type-checker suppression comments the critic overlooked. — adopt, pending cr-r2pa.2.18 → no-comments#suppressions-in-comment-sweep
-- `safety-suppressions-removed`: Treat suppressions bearing on correctness or safety as findings that must be removed. — adopt, pending cr-r2pa.2.18 → principle-no-comments#safety-suppressions-removed
-- `thin-importance-comment-check`: Before accepting a thinly justified decision on a comment marked important, investigate its symbol's behaviour and history. — adopt, pending cr-r2pa.2.18 → no-comments#thin-importance-comment-check
-- `ambiguous-comment-deleted`: Leave an ambiguous deletion deleted, and delete a kept comment that is refuted or stays ambiguous. — adopt, pending cr-r2pa.2.18 → principle-no-comments#unsure-comment-kept-and-flagged
+- `kept-code-not-guilty`: Refuse flags that treat intentionally retained code as being at fault. — adopt → no-comments#kept-code-not-guilty
+- `reshape-flags-stay-open`: Keep flags asking to restructure surprising first-party code open, without bringing their comments back. — adopt → no-comments#reshape-flags-open-apart-from-comment
+- `comment-keep-needs-proof`: Let a comment survive only with proof it concerns something the team cannot alter. — adopt → principle-no-comments#unsure-comment-kept-and-flagged
+- `missed-suppression-audit`: Check the scope for lint and type-checker suppression comments the critic overlooked. — adopt → no-comments#suppressions-in-comment-sweep
+- `safety-suppressions-removed`: Treat suppressions bearing on correctness or safety as findings that must be removed. — adopt → principle-no-comments#safety-suppressions-removed
+- `thin-importance-comment-check`: Before accepting a thinly justified decision on a comment marked important, investigate its symbol's behaviour and history. — adopt → no-comments#thin-importance-comment-check
+- `ambiguous-comment-deleted`: Leave an ambiguous deletion deleted, and delete a kept comment that is refuted or stays ambiguous. — adopt → principle-no-comments#unsure-comment-kept-and-flagged
 - `one-named-rerun-then-fail`: After rejecting a report, revert it and rerun the critic once with the failure named, and fail the run if the second report is rejected too. — reject
-- `trivial-flag-direct-fix`: Resolve simple accepted flags at once through edits such as removing an unused path or parameter, or calling the genuine interface. — adopt, pending cr-r2pa.2.18 → no-comments#trivial-flag-direct-fix
+- `trivial-flag-direct-fix`: Resolve simple accepted flags at once through edits such as removing an unused path or parameter, or calling the genuine interface. — adopt → no-comments#trivial-flag-direct-fix
 - `one-sketch-for-accepted-set`: When a fix needs a design, run one design pass over all accepted flags and nearby code, stopping at the sketch and leaving implementation to a later step. — reject
 - `smallest-in-scope-root-cause-fix`: Implement the smallest in-scope fix for the underlying cause, and when the cause lies beyond scope land that fix and list the rest as open. — reject
-- `named-workarounds-removed`: Eliminate every workaround the findings name. — adopt, pending cr-r2pa.2.18 → no-comments#named-workarounds-removed
+- `named-workarounds-removed`: Eliminate every workaround the findings name. — adopt → no-comments#named-workarounds-removed
 - `principles-never-widen-scope`: Treat guiding principles as intent only, never permission to expand the boundary or fix other instances. — reject
 - `no-symptom-guards`: Never add a guard that merely masks a symptom. — reject
-- `constraint-comment-class`: Treat comments that forbid removal, forbid rewording or require consulting someone as a distinct class. — adopt, pending cr-r2pa.2.18 → principle-no-comments#constraint-comment-class
-- `unchangeable-constraint-kept`: Leave kept comments that concern things outside the team's control. — adopt, pending cr-r2pa.2.18 → principle-no-comments#unchangeable-constraint-kept
-- `cheapest-enforcement-offer`: For other constraint comments, propose the least costly enforcement available in scope, whether a type, runtime check, test or CI lint. — adopt, pending cr-r2pa.2.18 → no-comments#cheapest-enforcement-offer
-- `encoding-approval-gate`: Apply an encoding only with approval, through the route the caller names or given by the caller in advance. — adopt, pending cr-r2pa.2.18 → no-comments#encoding-approval-gate
-- `encode-then-delete`: When an encoding is approved, add the enforcement and then remove the comment. — adopt, pending cr-r2pa.2.18 → no-comments#encode-then-delete
-- `unencoded-constraint-reported`: Without approval, delete the comment, report the constraint as open and sketch any out-of-scope work. — adopt, pending cr-r2pa.2.18 → no-comments#unencoded-constraint-kept-and-reported
-- `comment-audit-report`: Report the counts of comments deleted and restored, reruns, the sketch, fixes, encodings offered and done, constraints left unenforced and open items. — adopt, pending cr-r2pa.2.18 → no-comments#comment-sweep-report
+- `constraint-comment-class`: Treat comments that forbid removal, forbid rewording or require consulting someone as a distinct class. — adopt → principle-no-comments#constraint-comment-class
+- `unchangeable-constraint-kept`: Leave kept comments that concern things outside the team's control. — adopt → principle-no-comments#unchangeable-constraint-kept
+- `cheapest-enforcement-offer`: For other constraint comments, propose the least costly enforcement available in scope, whether a type, runtime check, test or CI lint. — adopt → no-comments#cheapest-enforcement-offer
+- `encoding-approval-gate`: Apply an encoding only with approval, through the route the caller names or given by the caller in advance. — adopt → no-comments#encoding-approval-gate
+- `encode-then-delete`: When an encoding is approved, add the enforcement and then remove the comment. — adopt → no-comments#encode-then-delete
+- `unencoded-constraint-reported`: Without approval, delete the comment, report the constraint as open and sketch any out-of-scope work. — adopt → no-comments#unencoded-constraint-kept-and-reported
+- `comment-audit-report`: Report the counts of comments deleted and restored, reruns, the sketch, fixes, encodings offered and done, constraints left unenforced and open items. — adopt → no-comments#comment-sweep-report
 
 #### core · Verification · Validation — skill:pstack/skills/principle-prove-it-works
 - `direct-observation`: Verify a result by observing the real thing (run it, read the actual value, check liveness directly), never a proxy, a cached view or a self-report. — adopt → doc:AGENTS.md
@@ -3920,7 +3943,8 @@ Retrieve the related pull request and commits while reading a change.
 
 #### `cheapest-enforcement-offer`
 For other constraint comments, propose the least costly enforcement available in scope, whether a type, runtime check, test or CI lint.
-- `cursor_plugins:skill:pstack/skills/no-comments` — adopt, pending cr-r2pa.2.18 → no-comments#cheapest-enforcement-offer
+- ours: `no-comments`
+- `cursor_plugins:skill:pstack/skills/no-comments` — adopt → no-comments#cheapest-enforcement-offer
 
 #### `checkout-change-check`
 After each adversary returns, compare the shared checkout with the snapshot's state and report each changed path, without voiding the run, restoring anything or naming who changed it.
@@ -3928,7 +3952,7 @@ After each adversary returns, compare the shared checkout with the snapshot's st
 
 #### `comment-audit-report`
 Report the counts of comments deleted and restored, reruns, the sketch, fixes, encodings offered and done, constraints left unenforced and open items.
-- `cursor_plugins:skill:pstack/skills/no-comments` — adopt, pending cr-r2pa.2.18 → no-comments#comment-sweep-report
+- `cursor_plugins:skill:pstack/skills/no-comments` — adopt → no-comments#comment-sweep-report
 
 #### `comment-critic-role`
 Spawn a fixed subagent role to audit comments and pass it the scope.
@@ -3936,9 +3960,11 @@ Spawn a fixed subagent role to audit comments and pass it the scope.
 
 #### `comment-pass-stays-in-bounds`
 During a comment pass, change only comments, and only inside the given scope.
+- ours: `no-comments`
 
 #### `comment-sweep-report`
 Report the comments deleted, those restored on proof, those kept and flagged, the fixes, the enforcements offered and done, the constraints left unenforced and the open items.
+- ours: `no-comments`
 
 #### `confirmed-and-cleared-split`
 Keep confirmed risks apart from those checked and cleared, saying why each cleared one is fine.
@@ -3952,7 +3978,7 @@ Have the coordinator verify each finding by running its command again.
 
 #### `critic-out-of-bounds-refused`
 Refuse a critic's edits to application code and any of its work outside the given scope.
-- `cursor_plugins:skill:pstack/skills/no-comments` — adopt, pending cr-r2pa.2.18 → no-comments#comment-pass-stays-in-bounds
+- `cursor_plugins:skill:pstack/skills/no-comments` — adopt → no-comments#comment-pass-stays-in-bounds
 
 #### `defer-to-fresh-critic`
 Give weight to a critic's fresh perspective over the caller's own attachment.
@@ -4002,11 +4028,13 @@ Count a search that returned nothing as a result to report, not as work to disca
 
 #### `encode-then-delete`
 When an encoding is approved, add the enforcement and then remove the comment.
-- `cursor_plugins:skill:pstack/skills/no-comments` — adopt, pending cr-r2pa.2.18 → no-comments#encode-then-delete
+- ours: `no-comments`
+- `cursor_plugins:skill:pstack/skills/no-comments` — adopt → no-comments#encode-then-delete
 
 #### `encoding-approval-gate`
 Apply an encoding only with approval, through the route the caller names or given by the caller in advance.
-- `cursor_plugins:skill:pstack/skills/no-comments` — adopt, pending cr-r2pa.2.18 → no-comments#encoding-approval-gate
+- ours: `no-comments`
+- `cursor_plugins:skill:pstack/skills/no-comments` — adopt → no-comments#encoding-approval-gate
 
 #### `evidence-ladder`
 Grade each safety-bearing fact as asserted, cited to a line, failure walked through, executed in a script or test, or reproduced in the running product.
@@ -4079,7 +4107,8 @@ Restate the change's intent in your own words before sending out adversaries.
 
 #### `kept-code-not-guilty`
 Refuse flags that treat intentionally retained code as being at fault.
-- `cursor_plugins:skill:pstack/skills/no-comments` — adopt, pending cr-r2pa.2.18 → no-comments#kept-code-not-guilty
+- ours: `no-comments`
+- `cursor_plugins:skill:pstack/skills/no-comments` — adopt → no-comments#kept-code-not-guilty
 
 #### `ladder-as-far-as-cheap`
 Take each fact as far up the evidence ladder as is cheap and state where it stopped.
@@ -4098,8 +4127,9 @@ Route an artifact or change with material risk or a broad blast radius through a
 
 #### `merge-base-through-tree-scope`
 When no scope is named, review the branch from where it left the base branch up to and including the working tree.
+- ours: `no-comments`
 - `cursor_plugins:skill:pstack/skills/interrogate` — defer
-- `cursor_plugins:skill:pstack/skills/no-comments` — adopt, pending cr-r2pa.2.18 → no-comments#merge-base-through-tree-scope
+- `cursor_plugins:skill:pstack/skills/no-comments` — adopt → no-comments#merge-base-through-tree-scope
 
 #### `merge-by-root-cause`
 Combine findings that share one root cause.
@@ -4108,7 +4138,7 @@ Combine findings that share one root cause.
 
 #### `missed-suppression-audit`
 Check the scope for lint and type-checker suppression comments the critic overlooked.
-- `cursor_plugins:skill:pstack/skills/no-comments` — adopt, pending cr-r2pa.2.18 → no-comments#suppressions-in-comment-sweep
+- `cursor_plugins:skill:pstack/skills/no-comments` — adopt → no-comments#suppressions-in-comment-sweep
 
 #### `misstated-kill-reason-refused`
 Refuse a report whose reason for a mandatory comment deletion is wrong.
@@ -4121,12 +4151,14 @@ For a big or wide change, put the same question to more than one model and merge
 #### `named-scope-first`
 Use the scope the user names when one is given.
 - ours: `interrogate`
+- ours: `no-comments`
 - `cursor_plugins:skill:pstack/skills/interrogate` — adopt → interrogate#named-scope-first
-- `cursor_plugins:skill:pstack/skills/no-comments` — adopt, pending cr-r2pa.2.18 → no-comments#named-scope-first
+- `cursor_plugins:skill:pstack/skills/no-comments` — adopt → no-comments#named-scope-first
 
 #### `named-workarounds-removed`
 Eliminate every workaround the findings name.
-- `cursor_plugins:skill:pstack/skills/no-comments` — adopt, pending cr-r2pa.2.18 → no-comments#named-workarounds-removed
+- ours: `no-comments`
+- `cursor_plugins:skill:pstack/skills/no-comments` — adopt → no-comments#named-workarounds-removed
 
 #### `no-findings-valid`
 Accept a report with no findings as a valid result, and say so explicitly when none remain.
@@ -4213,10 +4245,11 @@ Check missing, extra and misunderstood requirements before judging code quality.
 
 #### `reshape-flags-open-apart-from-comment`
 Keep flags asking to restructure surprising first-party code open, whether their comments stay, go or come back.
+- ours: `no-comments`
 
 #### `reshape-flags-stay-open`
 Keep flags asking to restructure surprising first-party code open, without bringing their comments back.
-- `cursor_plugins:skill:pstack/skills/no-comments` — adopt, pending cr-r2pa.2.18 → no-comments#reshape-flags-open-apart-from-comment
+- `cursor_plugins:skill:pstack/skills/no-comments` — adopt → no-comments#reshape-flags-open-apart-from-comment
 
 #### `review-as-task`
 Represent a review as its own task by an actor other than the author, which the reviewed bead depends on and sits in review status until it passes.
@@ -4274,10 +4307,12 @@ Leave style, naming and structure out of an adversary's findings.
 
 #### `suppressions-in-comment-sweep`
 Include lint and type-checker suppression comments in a comment sweep.
+- ours: `no-comments`
 
 #### `thin-importance-comment-check`
 Before accepting a thinly justified decision on a comment marked important, investigate its symbol's behaviour and history.
-- `cursor_plugins:skill:pstack/skills/no-comments` — adopt, pending cr-r2pa.2.18 → no-comments#thin-importance-comment-check
+- ours: `no-comments`
+- `cursor_plugins:skill:pstack/skills/no-comments` — adopt → no-comments#thin-importance-comment-check
 
 #### `three-replay-outcomes`
 Sort each replayed finding into reproduced, not reproduced (dropped and stated as unreproduced, not disproved) or unreplayable (listed with no severity).
@@ -4309,7 +4344,8 @@ Have the trail's reviewer flag weak or absent evidence, checks skipped or claime
 
 #### `trivial-flag-direct-fix`
 Resolve simple accepted flags at once through edits such as removing an unused path or parameter, or calling the genuine interface.
-- `cursor_plugins:skill:pstack/skills/no-comments` — adopt, pending cr-r2pa.2.18 → no-comments#trivial-flag-direct-fix
+- ours: `no-comments`
+- `cursor_plugins:skill:pstack/skills/no-comments` — adopt → no-comments#trivial-flag-direct-fix
 
 #### `uncommitted-changes-seeded`
 Seed every adversary workspace with the uncommitted work included in the review scope.
@@ -4317,10 +4353,11 @@ Seed every adversary workspace with the uncommitted work included in the review 
 
 #### `unencoded-constraint-kept-and-reported`
 Without an approved enforcement, keep a constraint comment, report the constraint as open and sketch any out-of-scope work.
+- ours: `no-comments`
 
 #### `unencoded-constraint-reported`
 Without approval, delete the comment, report the constraint as open and sketch any out-of-scope work.
-- `cursor_plugins:skill:pstack/skills/no-comments` — adopt, pending cr-r2pa.2.18 → no-comments#unencoded-constraint-kept-and-reported
+- `cursor_plugins:skill:pstack/skills/no-comments` — adopt → no-comments#unencoded-constraint-kept-and-reported
 
 #### `union-of-verified-findings`
 Keep every verified finding across adversaries rather than selecting one adversary's list.
@@ -10143,7 +10180,7 @@ Prove the work happened inside the timed span and the code used its result, sinc
 
 #### `ambiguous-comment-deleted`
 Leave an ambiguous deletion deleted, and delete a kept comment that is refuted or stays ambiguous.
-- `cursor_plugins:skill:pstack/skills/no-comments` — adopt, pending cr-r2pa.2.18 → principle-no-comments#unsure-comment-kept-and-flagged
+- `cursor_plugins:skill:pstack/skills/no-comments` — adopt → principle-no-comments#unsure-comment-kept-and-flagged
 
 #### `append-only-supersede`
 Never edit or delete a ledger record; correct or reverse one by appending a record that supersedes it.
@@ -10265,11 +10302,11 @@ Make closed input schemas reject unknown fields.
 
 #### `comment-exception-gate`
 Refuse deleting a comment a stated exception protects, and bring one back only with that exact exception and proof within scope.
-- `cursor_plugins:skill:pstack/skills/no-comments` — adopt, pending cr-r2pa.2.18 → principle-no-comments#exact-proof-settles-a-protected-keep
+- `cursor_plugins:skill:pstack/skills/no-comments` — adopt → principle-no-comments#exact-proof-settles-a-protected-keep
 
 #### `comment-keep-needs-proof`
 Let a comment survive only with proof it concerns something the team cannot alter.
-- `cursor_plugins:skill:pstack/skills/no-comments` — adopt, pending cr-r2pa.2.18 → principle-no-comments#unsure-comment-kept-and-flagged
+- `cursor_plugins:skill:pstack/skills/no-comments` — adopt → principle-no-comments#unsure-comment-kept-and-flagged
 
 #### `commonjs-config`
 Use a CommonJS extension for the boundary config so it loads in ES-module repositories.
@@ -10281,7 +10318,8 @@ Inject configuration at construction and keep environment-variable reads out of 
 
 #### `constraint-comment-class`
 Treat comments that forbid removal, forbid rewording or require consulting someone as a distinct class.
-- `cursor_plugins:skill:pstack/skills/no-comments` — adopt, pending cr-r2pa.2.18 → principle-no-comments#constraint-comment-class
+- ours: `principle-no-comments`
+- `cursor_plugins:skill:pstack/skills/no-comments` — adopt → principle-no-comments#constraint-comment-class
 
 #### `cross-platform-url-open`
 Open URLs on every platform including WSL, telling the person to visit manually when no opener works.
@@ -10348,6 +10386,7 @@ Express an even-length list as an array of two-element tuples.
 
 #### `exact-proof-settles-a-protected-keep`
 Refuse deleting a comment a stated exception protects, and count a comment as a settled protected keep only with that exact exception and proof within scope, proof a provisional keep of a doubtful comment does not need.
+- ours: `principle-no-comments`
 
 #### `exhaustive-variant-handling`
 Handle every variant of a closed type so the checker reports a variant left unhandled.
@@ -10731,7 +10770,8 @@ Use the non-throwing parse variant when failure is an ordinary branch.
 
 #### `safety-suppressions-removed`
 Treat suppressions bearing on correctness or safety as findings that must be removed.
-- `cursor_plugins:skill:pstack/skills/no-comments` — adopt, pending cr-r2pa.2.18 → principle-no-comments#safety-suppressions-removed
+- ours: `principle-no-comments`
+- `cursor_plugins:skill:pstack/skills/no-comments` — adopt → principle-no-comments#safety-suppressions-removed
 
 #### `satisfies-over-cast`
 Check a value against a type with an operator that keeps its literal types, in place of a cast.
@@ -10864,7 +10904,8 @@ An unattended climb takes its target from the request, none meaning not started,
 
 #### `unchangeable-constraint-kept`
 Leave kept comments that concern things outside the team's control.
-- `cursor_plugins:skill:pstack/skills/no-comments` — adopt, pending cr-r2pa.2.18 → principle-no-comments#unchangeable-constraint-kept
+- ours: `principle-no-comments`
+- `cursor_plugins:skill:pstack/skills/no-comments` — adopt → principle-no-comments#unchangeable-constraint-kept
 
 #### `unexplained-change-stop`
 Store branch, HEAD and a tree id taken with a temporary index in each row, and stop touching nothing when the state before an iteration differs from the last row.
@@ -10876,6 +10917,7 @@ Run a bead that has children by draining them first, one ready direct child at a
 
 #### `unsure-comment-kept-and-flagged`
 When unsure whether a comment should go, keep it, bringing it back if already deleted, and flag it for a person.
+- ours: `principle-no-comments`
 
 #### `untrusted-input-validation`
 Validate user-controlled paths and shell arguments before use.
@@ -12033,6 +12075,7 @@ Traits listed by two or more of our active skills (`doc:AGENTS.md` and playbooks
 | `limit-bounded-hold` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md | Each long loop stops starting at its own limit with an idea left; the rule is one short sentence, and a skill for it would be ceremony. |
 | `material-risk-review` | harness-evaluate, to-spec | Each gates acceptance of its own output, a spec or a template adoption, on an independent critic; the critic itself belongs to review. |
 | `member-isolation` | model-council, perspective-council | Each council dispatches its own members in isolation. |
+| `named-scope-first` | interrogate, no-comments | Each works on a scope a person may name, interrogate on the change it attacks and no-comments on the files it sweeps, and each defaults differently without one; a pointer between two unrelated jobs would add a hop to one sentence. |
 | `neutral-framing` | model-council, perspective-council | Each council frames its own neutral brief. |
 | `no-onward-delegation` | delegation, doc:AGENTS.md, mvp-mode | AGENTS.md holds it as policy every agent loads, so a delegate stops fanning out even when its brief was written by hand; the delegation skill writes it into each role block of the briefs it produces, so a delegate on a vendor or project without our AGENTS.md still receives it; the mvp-mode router states it beside its delegate-independent-by-default rule for plugin users who skip the optional AGENTS.md, so a router that tells them to delegate also tells their delegates not to fan out. |
 | `no-silent-substitution` | model-council, perspective-council | Either council can lose a member, and each must report the gap rather than fill it. |

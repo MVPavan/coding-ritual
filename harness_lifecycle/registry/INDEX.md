@@ -21,7 +21,7 @@ Domain → stage → sub-stage. Each active skill under its primary home.
 - **Implementation**: build-a-lever
 
 ### Verification
-- **Review**: interrogate, review
+- **Review**: interrogate, no-comments, review
 
 ### Delivery
 - **Release**: harness-publish
@@ -49,7 +49,7 @@ Domain → stage → sub-stage. Each active skill under its primary home.
 
 ### Building
 - **Diagnosis**: performance-optimization, principle-attack-the-premise, principle-explain-the-number, principle-fix-root-causes, systematic-debugging
-- **Implementation**: principle-sequence-verifiable-units, tdd
+- **Implementation**: principle-no-comments, principle-sequence-verifiable-units, tdd
 
 ### Verification
 - **Review**: security
@@ -66,7 +66,7 @@ Domain → stage → sub-stage. Each active skill under its primary home.
 Two or more active skills share one domain · sub-stage (README §2 rule 3):
 
 - core · Intake · Clarification: discovery, grilling, restate, sharpen
-- core · Verification · Review: interrogate, review
+- core · Verification · Review: interrogate, no-comments, review
 - core · Improvement · Codification: authoring-for-agents, harness-evaluate, harness-scan, harness-skill-compare, harness-status, migrate-claude-to-codex
 - core · X · Communication: brief-me, html-artifact, show-me, unslop
 - core · X · Continuity: beads, decision-trail, recall, wake
@@ -75,7 +75,7 @@ Two or more active skills share one domain · sub-stage (README §2 rule 3):
 - engineering · Design · Architecture: codebase-design, design-evolve, domain-modeling, principle-boundary-discipline, principle-exhaust-the-design-space, principle-make-operations-idempotent, principle-minimize-reader-load, principle-model-the-domain, principle-redesign-from-first-principles, principle-separate-before-serializing-shared-state, principle-type-system-discipline, prototype
 - engineering · Design · Decomposition: principle-migrate-without-shims, principle-subtract-before-you-add, to-plan, to-roadmap
 - engineering · Building · Diagnosis: performance-optimization, principle-attack-the-premise, principle-explain-the-number, principle-fix-root-causes, systematic-debugging
-- engineering · Building · Implementation: principle-sequence-verifiable-units, tdd
+- engineering · Building · Implementation: principle-no-comments, principle-sequence-verifiable-units, tdd
 - engineering · Verification · Testing: check-invariants, principle-test-behavior-not-implementation
 - engineering · Delivery · Integration: land, resolving-merge-conflicts
 

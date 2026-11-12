@@ -39,6 +39,7 @@ Use at the start of every task to pick the playbook, principle or skill that fit
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-12` **update** (2026-11-12-batch-p1-no-comments:023): Owner rulings of 2026-11-05 §E (no-comments: a principle for the rules plus a manual skill for the sweep; persona dropped; when unsure, keep and flag) and §G (…
 - `2026-11-12` **update** (2026-11-12-batch-p1-figure-it-out:034): Owner rulings of 2026-11-05 §E (figure-it-out: a playbook, adopted whole) and §G (batch P1 as recommended; guide exceptions O-05, C-14, C-12 confirmed) (scratc…
 - `2026-11-12` **update** (2026-11-12-batch-p1-recall:031): Bead cr-r2pa.2.18, plan 61: the generated skill catalog lists the new manual skill recall; router text unchanged.
 - `2026-11-12` **update** (2026-11-12-batch-p1-manual:013): Bead cr-r2pa.2.18, plan 60: the generated skill catalog lists the new manual skills sharpen and restate; router text unchanged.

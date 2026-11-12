@@ -255,6 +255,15 @@ mvp-mode:
   aliases: []
   status: active
   boundary: "Routes a task to the playbook, principle or skill that fits and lists what exists; it holds no policy (AGENTS.md) or technique, spawns no agents (delegation) and convenes no council."
+no-comments:
+  domain: core
+  stage: Verification
+  substage: Review
+  secondary: []
+  family: null
+  aliases: []
+  status: active
+  boundary: "Sweeps a scope for comments that should go, fixes what the sweep exposes inside it and offers checks for real constraints; judging one comment is principle-no-comments, and reviewing a change for bugs or design is review."
 performance-optimization:
   domain: engineering
   stage: Building
@@ -363,6 +372,15 @@ principle-model-the-domain:
   aliases: []
   status: active
   boundary: "Chooses data structures and module boundaries around domain knowledge before logic; domain terms and ADRs are domain-modeling, and interface depth is codebase-design."
+principle-no-comments:
+  domain: engineering
+  stage: Building
+  substage: Implementation
+  secondary: []
+  family: null
+  aliases: []
+  status: active
+  boundary: "Decides whether one code comment is kept, deleted or kept and flagged, from its keep classes; running a sweep over a scope is no-comments."
 principle-redesign-from-first-principles:
   domain: engineering
   stage: Design

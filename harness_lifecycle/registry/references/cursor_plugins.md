@@ -240,7 +240,7 @@ Catalog: `2776ddd2355d6d6c8747d3964600f28daf62f049`, 354 capabilities.
 | `skill:harness/pstack/claude-code/skills/maintain-formal-verification-skill` | not reviewed | not analysed |  |  |  |  |
 | `skill:harness/pstack/claude-code/skills/maintain-verification-skill` | not reviewed | not analysed |  |  |  |  |
 | `skill:harness/pstack/claude-code/skills/make-bot-ui` | not reviewed | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/no-comments` | not reviewed | not analysed |  |  |  |  |
+| `skill:harness/pstack/claude-code/skills/no-comments` | present, unruled | not analysed |  |  |  |  |
 | `skill:harness/pstack/claude-code/skills/poteto-help` | not reviewed | not analysed |  |  |  |  |
 | `skill:harness/pstack/claude-code/skills/poteto-mode` | not reviewed | not analysed |  |  |  |  |
 | `skill:harness/pstack/claude-code/skills/principle-attack-the-premise` | present, unruled | not analysed |  |  |  |  |
@@ -305,7 +305,7 @@ Catalog: `2776ddd2355d6d6c8747d3964600f28daf62f049`, 354 capabilities.
 | `skill:pstack/skills/maintain-formal-verification-skill` | not reviewed | not analysed |  |  |  |  |
 | `skill:pstack/skills/maintain-verification-skill` | not reviewed | not analysed |  |  |  |  |
 | `skill:pstack/skills/make-bot-ui` | not reviewed | not analysed |  |  |  |  |
-| `skill:pstack/skills/no-comments` | adopt-merged | decided | no-comments#merge-base-through-tree-scope, no-comments#named-scope-first, no-comments#comment-pass-stays-in-bounds, principle-no-comments#exact-proof-settles-a-protected-keep, no-comments#kept-code-not-guilty, no-comments#reshape-flags-open-apart-from-comment, principle-no-comments#unsure-comment-kept-and-flagged, no-comments#suppressions-in-comment-sweep, principle-no-comments#safety-suppressions-removed, no-comments#thin-importance-comment-check, no-comments#trivial-flag-direct-fix, no-comments#named-workarounds-removed, principle-no-comments#constraint-comment-class, principle-no-comments#unchangeable-constraint-kept, no-comments#cheapest-enforcement-offer, no-comments#encoding-approval-gate, no-comments#encode-then-delete, no-comments#unencoded-constraint-kept-and-reported, no-comments#comment-sweep-report | 20 adopt · 11 reject | 2026-11-06-batch-p1 | no |
+| `skill:pstack/skills/no-comments` | adopt-merged | decided | no-comments#merge-base-through-tree-scope, no-comments#named-scope-first, no-comments#comment-pass-stays-in-bounds, no-comments#kept-code-not-guilty, no-comments#reshape-flags-open-apart-from-comment, no-comments#suppressions-in-comment-sweep, no-comments#thin-importance-comment-check, no-comments#trivial-flag-direct-fix, no-comments#named-workarounds-removed, no-comments#cheapest-enforcement-offer, no-comments#encoding-approval-gate, no-comments#encode-then-delete, no-comments#unencoded-constraint-kept-and-reported, no-comments#comment-sweep-report, principle-no-comments#exact-proof-settles-a-protected-keep, principle-no-comments#unsure-comment-kept-and-flagged, principle-no-comments#safety-suppressions-removed, principle-no-comments#constraint-comment-class, principle-no-comments#unchangeable-constraint-kept | 20 adopt · 11 reject | 2026-11-06-batch-p1 | no |
 | `skill:pstack/skills/poteto-help` | not reviewed | not analysed |  |  |  |  |
 | `skill:pstack/skills/poteto-mode` | not reviewed | not analysed |  |  |  |  |
 | `skill:pstack/skills/principle-attack-the-premise` | adopt | decided | doc:AGENTS.md, principle-attack-the-premise#premise-test-gate | 2 adopt | 2026-11-01-cursor_plugins-pstack-principles | no |

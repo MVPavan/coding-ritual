@@ -1008,6 +1008,29 @@ Added 2026-11-12. Plan `scratchpad/mvp-stack/62/plan.md` (gitignored); round
 Proof: Sol reviewed the plan (two fixes) and the build (four fixes, then a re-check); registry check,
 catalog check and 600 tests pass. Limit: not run on a real request.
 
+## 21. `no-comments` and `principle-no-comments` (`cr-r2pa.2.18`, slice 5)
+
+Added 2026-11-12. Plan `scratchpad/mvp-stack/63/plan.md` (gitignored); round
+`2026-11-12-batch-p1-no-comments`, 23 events, sealed. Delivers batch P1's last 20 pending rows, so every
+row the bead held is now completed.
+
+- **`principle-no-comments`** (`.claude/skills/mvp-mode/principles/no-comments.md`) judges one comment.
+  A narrating comment goes. Five classes stay (owner, 2026-11-12, from pstack's comment-sicko): license
+  headers, behaviour forced by something we cannot reshape, formatter directives and suppressions whose
+  rule is faulty or style-only, public API contract docs, and issue or RFC links. Constraint comments
+  ("do not remove", "ask X first") are their own class; a suppression hiding a correctness or safety
+  check is a finding. When unsure, keep and flag. The router lists it.
+- **`/no-comments`** (`.claude/skills/no-comments/SKILL.md`, slash-only) runs the sweep: the named
+  scope, or this branch since it left `main` with the working tree; a pass that changes only comments,
+  suppressions included, using `how` and `why` before deciding on a comment marked important; then fixes
+  inside the scope, removing every named workaround; a check offered for each constraint we control,
+  applied only with approval; and a report of what went, what stayed and what is open.
+- Dropped from upstream: the comment-hating persona, its `MUST KILL` markers and "unsure means delete".
+- `named-scope-first` is shared with `interrogate`.
+
+Proof: Sol reviewed the plan (two fixes) and the build; registry check, catalog check and 600 tests
+pass. Limit: not run on a real request.
+
 ## Regenerating
 
 From the worktree root:
