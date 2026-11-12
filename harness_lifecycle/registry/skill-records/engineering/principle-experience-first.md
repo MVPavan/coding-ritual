@@ -4,7 +4,7 @@ domain: engineering
 stage: Design
 substage: Specification
 secondary: []
-family: 
+family:
 aliases: []
 status: active
 ---

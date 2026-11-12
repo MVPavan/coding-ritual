@@ -1247,6 +1247,9 @@ def test_skills_yaml_and_generated_records(
     assert text.startswith("---\nskill: planning\ndomain: engineering\n")
     assert "\n# planning\n\nA test skill.\n\n<!-- registry:generated traits -->" in text
     assert "## Capability" not in text
+    # A skill with no family renders a bare `family:` key, with no trailing space.
+    assert "\nfamily:\n" in text
+    assert [line for line in text.splitlines() if line != line.rstrip()] == []
 
     # (a) a hand edit to a record fails until `build`
     record.write_text(text.replace("A test skill.", "Edited."), encoding="utf-8")

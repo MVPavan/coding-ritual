@@ -268,11 +268,11 @@ def _declined_block(
 
 def _frontmatter_text(skill: str, entry: SkillEntry) -> str:
     """The record frontmatter: today's keys and order (README §3)."""
-    family = entry.family or ""
+    family = f" {entry.family}" if entry.family else ""  # none: a bare `family:` (YAML null)
     return (
         f"---\nskill: {skill}\ndomain: {entry.domain}\nstage: {entry.stage}\n"
         f"substage: {entry.substage}\nsecondary: [{', '.join(entry.secondary)}]\n"
-        f"family: {family}\naliases: [{', '.join(entry.aliases)}]\n"
+        f"family:{family}\naliases: [{', '.join(entry.aliases)}]\n"
         f"status: {entry.status}\n---\n"
     )
 

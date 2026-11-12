@@ -4,7 +4,7 @@ domain: core
 stage: Building
 substage: Implementation
 secondary: []
-family: 
+family:
 aliases: []
 status: active
 ---

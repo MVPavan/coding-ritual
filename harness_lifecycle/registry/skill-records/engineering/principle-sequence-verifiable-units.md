@@ -4,7 +4,7 @@ domain: engineering
 stage: Building
 substage: Implementation
 secondary: [Decomposition]
-family: 
+family:
 aliases: []
 status: active
 ---

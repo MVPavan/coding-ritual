@@ -4,7 +4,7 @@ domain: core
 stage: X
 substage: Coordination
 secondary: []
-family: 
+family:
 aliases: []
 status: active
 ---

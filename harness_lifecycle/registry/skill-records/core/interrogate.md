@@ -4,7 +4,7 @@ domain: core
 stage: Verification
 substage: Review
 secondary: []
-family: 
+family:
 aliases: []
 status: active
 ---

@@ -4,7 +4,7 @@ domain: core
 stage: Delivery
 substage: Release
 secondary: []
-family: 
+family:
 aliases: []
 status: active
 ---

@@ -4,7 +4,7 @@ domain: engineering
 stage: Discovery
 substage: Research
 secondary: []
-family: 
+family:
 aliases: []
 status: active
 ---

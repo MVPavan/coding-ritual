@@ -4,7 +4,7 @@ domain: engineering
 stage: Building
 substage: Diagnosis
 secondary: []
-family: 
+family:
 aliases: []
 status: active
 ---
