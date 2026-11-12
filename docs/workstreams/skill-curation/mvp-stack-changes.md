@@ -841,6 +841,29 @@ output. Sol accepts the build, but the trials still graded answers assembled fro
 `high`, and one blurred two populations (211 stored events against 207 the change check actually
 evaluates). The bead stays open for a mechanical check of that grading rule and one more trial.
 
+## 14. `verification.md` cleaned up and given its traits (`cr-k1b6`)
+
+Added 2026-11-12. Plan `scratchpad/mvp-stack/55/plan.md` (gitignored). No ledger round: a
+`doc:.repo-context/<file>` entry in `traits/ours.yaml` needs no event (registry README §4a).
+
+- `.repo-context/verification.md` is now one table that picks checks by the kind of material
+  changed, classing a file by the component it exercises. The claim and evidence table, the partial
+  report form and the plugin checks are kept word for word.
+- The interpreter's five-stage host gate and its sandbox notes moved, word for word, to
+  `docs/usage/interpreter-gate.md`; the interpreter row of the table points there.
+  `.repo-context/learnings.md` points at the new file in two lines.
+- 16 new trait definitions, one per mechanism of the file, listed under
+  `doc:.repo-context/verification.md`. Final-diff inspection and preserving others' edits stay out
+  as repetitions of AGENTS.md.
+
+Proof: a script compares the four kept or moved blocks with the previous version, in order, and
+they are identical. A fresh session given only `AGENTS.md` picked the right checks for four kinds of
+change (interpreter code, a skill and the registry, a curation test, a shell script). Sol reviewed
+the plan twice and the build, and judged each of the 16 definitions; two were reworded. Limits: the
+mechanism list was drawn up by a builder who had read the plan's candidate list, so it is not
+blind. The session also found gaps the rewrite did not create: no lint or type command for
+Python outside the interpreter, and no YAML row.
+
 ## Regenerating
 
 From the worktree root:

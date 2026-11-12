@@ -305,6 +305,9 @@ critic, owner rulings, ledger, build, Sol review, commit after the owner approve
 - `cr-r2pa.3.3`: at the end of the project, show the owner everything deferred or
   rejected, from the ledger's `defer` events, the deferred beads and each
   `deliberately_dropped` with its `revisit_when`, to revise and adapt.
+- `cr-k1b6`, done: `.repo-context/verification.md` is one router of checks by changed material;
+  the interpreter's host gate and sandbox notes moved to `docs/usage/interpreter-gate.md`; 16
+  traits listed under `doc:.repo-context/verification.md`. See `mvp-stack-changes.md` §14.
 
 ## Uncommitted work (as of this handoff)
 

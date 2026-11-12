@@ -2638,6 +2638,79 @@ rerun-original-repro:
   distinct_from: [regression-check]
   note: "regression-check also turns the failure into a durable check that fails before the fix and passes after; this is the rerun alone (study H7)."
 
+checks-by-changed-material:
+  definition: "Select the checks to run from a table keyed by the kind of material changed, classing each file by the component it exercises rather than the directory it sits in."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [applicable-checks-before-done]
+  note: "applicable-checks-before-done is the duty to run the declared checks; this is how they are selected."
+docs-only-suite-exemption:
+  definition: "Let a documentation-only change skip one named component's heavyweight test suite while every other applicable check still runs."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [optional-regression-test-skip]
+  note: "optional-regression-test-skip weighs the cost of a new test; this is a standing exemption of an existing suite by kind of change."
+claim-evidence-table:
+  definition: "Hold each kind of completion claim to a fixed table naming the evidence that proves it and the tempting proxy that does not."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+  distinct_from: [direct-observation, primary-evidence-check]
+  note: "direct-observation and primary-evidence-check are general rules against proxies and reports; this is a per-claim template that fixes the proof for each claim kind."
+partial-verification-report:
+  definition: "When an end-to-end check is out of reach, report the result as partial in three parts: what was verified, what needs a human check, and why."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+  distinct_from: [final-report-contents]
+  note: "final-report-contents covers the whole closing report; this fixes the form of one partially verified claim."
+diff-whitespace-check:
+  definition: "Run git diff --check on every change to catch whitespace errors and leftover conflict markers."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [final-diff-inspection]
+  note: "final-diff-inspection is reading the diff and status; this is a mechanical check Git performs."
+doc-link-validation:
+  definition: "Validate the paths and links changed by a documentation edit."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [consistency-check]
+  note: "consistency-check also audits cross-document meaning, invariant coverage and stale versions; this validates changed paths and links."
+historical-vs-active-guidance:
+  definition: "When editing documentation, keep historical evidence clearly distinguishable from guidance that is still in force."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+syntax-checks-by-file-type:
+  definition: "Parse each changed file with the checker for its type (shell, JSON, Python) before claiming it valid."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [syntax-check-handoff]
+  note: "syntax-check-handoff also makes the script executable and hands the run to the user; this is only the per-type parse check."
+shell-lint-when-available:
+  definition: "Lint each changed shell script with ShellCheck whenever it is installed."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+harness-code-suite:
+  definition: "After changing curation code, a skill script or their tests, run both the full curation and script-check regression suites."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [applicable-checks-before-done, checks-by-changed-material]
+  note: "applicable-checks-before-done requires declared checks and checks-by-changed-material selects them; this fixes the combined tests/curation and tests/checks regression gate for any of the named changes."
+registry-check-on-change:
+  definition: "After changing registry data or any file the registry hashes, run the registry check, rebuilding its generated views first when it reports them stale."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+tracker-cli-health:
+  definition: "After a tracker change, confirm a read command against the tracker still succeeds."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+tracker-export-current:
+  definition: "Keep the tracker's committed export in step with its database whenever tracker data changes."
+  placement: {domain: core, stage: X, substage: Continuity}
+  distinct_from: [session-close, dolt-sync]
+  note: "session-close refreshes the export as one step of ending a session; dolt-sync says which copy is the source of truth; this keeps the export current after any tracker change."
+skill-catalog-check:
+  definition: "After changing a skill, run the catalog check that validates the generated catalog, its pointers and invocation metadata."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [preflight-gates, invocation-sidecar-sync]
+  note: "preflight-gates adds publish timing and a clean tree; invocation-sidecar-sync regenerates after metadata edits; this is the validation run after any skill change."
+guard-hook-block-proof:
+  definition: "After changing a guard hook, feed it a known-forbidden input and confirm it rejects it, not merely that it parses."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [prove-the-rules-bite]
+  note: "prove-the-rules-bite observes pass, planted failure, pass again; this proves rejection only."
+plugin-harness-or-unverified:
+  definition: "For a plugin change, run that plugin's own test harness once its prerequisites are in place, and report the change as unverified when the harness cannot run."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [prerequisites-scope, partial-verification-report]
+  note: "prerequisites-scope gates publication on the submodule and publish script; partial-verification-report is the general three-part partial form; this is the plugin's verification gate and its unverified outcome."
+
 # ---- engineering · Verification · Review ----
 actionable-defects-only:
   definition: "Report only actionable defects with trigger, consequence and evidence, defer formatting to configured tools, and state plainly when none are found rather than inventing findings."

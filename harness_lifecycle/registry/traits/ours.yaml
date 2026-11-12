@@ -276,6 +276,9 @@ doc:.repo-context/coding-style.md:
   traits: [ruff-format, scoped-formatting, ruff-lint, strict-mypy, explicit-signatures, pydantic-models, no-incidental-model-migration, frozen-by-default, closed-schema, per-instance-defaults, plain-serialized-contracts, preserve-config-format, config-injection, no-secrets-in-yaml-git-logs, io-timeouts, bounded-retries, no-blocking-in-async, bounded-concurrency, surface-background-errors, parameterized-queries, untrusted-input-validation, no-dynamic-execution, structured-logging, no-bare-except, public-interface-testing, system-boundary-mocks-only, test-parametrization, shared-test-fixtures, risk-gated-test-first, reuse-test-fixtures, uv-sync-environment, uv-run-tools, uv-add-remove, manifest-lock-consistency, declared-dependencies-only, jsonl-ledger-format, per-round-ledger-files, sealed-rounds, append-only-supersede, ledger-record-fields, ledger-validator, generated-human-view, ledger-view-no-hand-edit]
   notes:
     strict-mypy: "ty is optional feedback and never replaces the mypy gate."
+doc:.repo-context/verification.md:
+  tree_hash: "7840a0551b7d0b9e9e5c94e6c209f300736029c399dbe6d80ffcf5a9590c92d3"
+  traits: [checks-by-changed-material, docs-only-suite-exemption, claim-evidence-table, partial-verification-report, diff-whitespace-check, doc-link-validation, historical-vs-active-guidance, syntax-checks-by-file-type, shell-lint-when-available, harness-code-suite, registry-check-on-change, tracker-cli-health, tracker-export-current, skill-catalog-check, guard-hook-block-proof, plugin-harness-or-unverified]
 ours:wake:
   tree_hash: "c75ab0ca50f5de35a9607e148c2c7090a3131b200e00c978278a862e9d083af8"
   traits: [run-card-limits, one-consuming-admit, one-closing-timer, timer-positive-evidence, timer-identity-check, timer-close-cancels, woken-run-limits]

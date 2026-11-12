@@ -1053,6 +1053,24 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `generated-human-view`: Give each ledger a Markdown human view generated from its records and marked as generated.
 - `ledger-view-no-hand-edit`: Never hand-edit a ledger's generated human view.
 
+#### doc:.repo-context/verification.md
+- `checks-by-changed-material`: Select the checks to run from a table keyed by the kind of material changed, classing each file by the component it exercises rather than the directory it sits in.
+- `docs-only-suite-exemption`: Let a documentation-only change skip one named component's heavyweight test suite while every other applicable check still runs.
+- `claim-evidence-table`: Hold each kind of completion claim to a fixed table naming the evidence that proves it and the tempting proxy that does not.
+- `partial-verification-report`: When an end-to-end check is out of reach, report the result as partial in three parts: what was verified, what needs a human check, and why.
+- `diff-whitespace-check`: Run git diff --check on every change to catch whitespace errors and leftover conflict markers.
+- `doc-link-validation`: Validate the paths and links changed by a documentation edit.
+- `historical-vs-active-guidance`: When editing documentation, keep historical evidence clearly distinguishable from guidance that is still in force.
+- `syntax-checks-by-file-type`: Parse each changed file with the checker for its type (shell, JSON, Python) before claiming it valid.
+- `shell-lint-when-available`: Lint each changed shell script with ShellCheck whenever it is installed.
+- `harness-code-suite`: After changing curation code, a skill script or their tests, run both the full curation and script-check regression suites.
+- `registry-check-on-change`: After changing registry data or any file the registry hashes, run the registry check, rebuilding its generated views first when it reports them stale.
+- `tracker-cli-health`: After a tracker change, confirm a read command against the tracker still succeeds.
+- `tracker-export-current`: Keep the tracker's committed export in step with its database whenever tracker data changes.
+- `skill-catalog-check`: After changing a skill, run the catalog check that validates the generated catalog, its pointers and invocation metadata.
+- `guard-hook-block-proof`: After changing a guard hook, feed it a known-forbidden input and confirm it rejects it, not merely that it parses.
+- `plugin-harness-or-unverified`: For a plugin change, run that plugin's own test harness once its prerequisites are in place, and report the change as unverified when the harness cannot run.
+
 #### doc:AGENTS.md
 - `smallest-sufficient-change`: Deliver the correct result with the smallest change that achieves it.
 - `implementation-authority-carry`: Treat a request to implement as authority to carry the work through verification and necessary fixes without asking again.
@@ -5874,6 +5892,10 @@ On a timer fire ask the card only whether this run is open; a closed or other ru
 #### `timer-positive-evidence`
 Report a timer set only on the surface's named evidence; a listed tool alone is not evidence and uncertain means unavailable.
 - ours: `wake`
+
+#### `tracker-export-current`
+Keep the tracker's committed export in step with its database whenever tracker data changes.
+- `doc:.repo-context/verification.md`
 
 #### `trail-header-template`
 Start a new log from a supplied file holding only the header row.
@@ -10702,6 +10724,10 @@ Confirm the review ref resolves and the diff is non-empty before fanning out, fa
 - ours: `review`
 - `mattpocock_skills:skill:skills/engineering/code-review` — adopt → review#fixed-point-preflight
 
+#### `historical-vs-active-guidance`
+When editing documentation, keep historical evidence clearly distinguishable from guidance that is still in force.
+- `doc:.repo-context/verification.md`
+
 #### `human-reads-before-merge`
 Have a person read each change an automated run produced before it merges.
 - `mattpocock_skills:skill:skills/in-progress/software-factory` — adopt, pending cr-r2pa.2.19 → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
@@ -10870,6 +10896,10 @@ Before accepting substantive tests, name the specific wrong branch, missing vali
 Identify intended behaviour, current behaviour, the affected path and the smallest observable reproduction.
 - `cursor_plugins:skill:pstack/skills/tdd` — reject
 
+#### `checks-by-changed-material`
+Select the checks to run from a table keyed by the kind of material changed, classing each file by the component it exercises rather than the directory it sits in.
+- `doc:.repo-context/verification.md`
+
 #### `closest-executable-fallback`
 When a failing test is impractical, substitute a targeted script, reproduction command, browser automation, snapshot diff, log assertion or narrow integration check.
 - `cursor_plugins:skill:pstack/skills/tdd` — adopt, pending cr-r2pa.2.18 → tdd#closest-executable-fallback
@@ -10890,6 +10920,18 @@ Make the smallest production change that gives the intended behaviour and preser
 #### `deterministic-state`
 Prefer deterministic inputs and isolated state, controlling time, randomness and shared state that cause nondeterminism.
 - ours: `tdd`
+
+#### `diff-whitespace-check`
+Run git diff --check on every change to catch whitespace errors and leftover conflict markers.
+- `doc:.repo-context/verification.md`
+
+#### `doc-link-validation`
+Validate the paths and links changed by a documentation edit.
+- `doc:.repo-context/verification.md`
+
+#### `docs-only-suite-exemption`
+Let a documentation-only change skip one named component's heavyweight test suite while every other applicable check still runs.
+- `doc:.repo-context/verification.md`
 
 #### `evidence-tests`
 Test the material abuse path and legitimate use, verify authorization per resource rather than merely login, and check leakage, retries and failure behaviour.
@@ -10923,6 +10965,14 @@ At the end of a planned migration or rewrite, run full static and runtime verifi
 #### `green-on-break-test-fixed`
 Repair or remove a test that stays green when its behaviour breaks.
 - `cursor_plugins:skill:pstack/skills/correct` — adopt, pending cr-r2pa.2.18 → principle-test-behavior-not-implementation#green-on-break-test-fixed
+
+#### `guard-hook-block-proof`
+After changing a guard hook, feed it a known-forbidden input and confirm it rejects it, not merely that it parses.
+- `doc:.repo-context/verification.md`
+
+#### `harness-code-suite`
+After changing curation code, a skill script or their tests, run both the full curation and script-check regression suites.
+- `doc:.repo-context/verification.md`
 
 #### `hollow-test-forms`
 Check a test for the usual hollow forms: an assertion looser than the contract, a restated constant the code never reads, or an assertion on data the test built itself.
@@ -10989,6 +11039,10 @@ Skip only an optional regression test whose cost outweighs its risk, keeping req
 Make a check for a bug one that detects the original failure.
 - `doc:AGENTS.md`
 
+#### `plugin-harness-or-unverified`
+For a plugin change, run that plugin's own test harness once its prerequisites are in place, and report the change as unverified when the harness cannot run.
+- `doc:.repo-context/verification.md`
+
 #### `prove-the-rules-bite`
 Before trusting the guardrail, observe it pass clean, fail on a deliberately planted violation, then pass again.
 - `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules` — defer
@@ -11002,6 +11056,10 @@ Exercise behaviour in tests through public interfaces.
 #### `real-test-primitives-with-leak-checks`
 Prefer the framework's real test primitives along with leak and disposable checks.
 - `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+
+#### `registry-check-on-change`
+After changing registry data or any file the registry hashes, run the registry check, rebuilding its generated views first when it reports them stale.
+- `doc:.repo-context/verification.md`
 
 #### `regression-check`
 Turn the failure into a durable regression check when feasible, showing failure before the fix and success after, then rerun the original scenario.
@@ -11039,9 +11097,21 @@ Add tests in proportion to behavioural risk, using the existing test tooling.
 Prefer shared fixtures to setup repeated across test bodies.
 - `doc:.repo-context/coding-style.md`
 
+#### `shell-lint-when-available`
+Lint each changed shell script with ShellCheck whenever it is installed.
+- `doc:.repo-context/verification.md`
+
+#### `skill-catalog-check`
+After changing a skill, run the catalog check that validates the generated catalog, its pointers and invocation metadata.
+- `doc:.repo-context/verification.md`
+
 #### `syntax-check-handoff`
 Syntax-check the script and make it executable, then tell the user how to run it instead of running it end-to-end yourself.
 - `mattpocock_skills:skill:skills/engineering/wizard` — defer
+
+#### `syntax-checks-by-file-type`
+Parse each changed file with the checker for its type (shell, JSON, Python) before claiming it valid.
+- `doc:.repo-context/verification.md`
 
 #### `system-boundary-mocks-only`
 Use test doubles only at system boundaries such as external services, time and the file system, never for modules you own.
@@ -11065,6 +11135,10 @@ During a migration, keep fast high-signal checks running on the areas being chan
 - ours: `principle-migrate-without-shims`
 - `cursor_plugins:skill:pstack/skills/principle-outcome-oriented-execution` — adopt → principle-migrate-without-shims#touched-area-checks
 
+#### `tracker-cli-health`
+After a tracker change, confirm a read command against the tracker still succeeds.
+- `doc:.repo-context/verification.md`
+
 #### `two-edit-test-judgement`
 Judge every test by two imagined edits: breaking the behaviour must fail it, and restructuring the internals must not.
 - ours: `principle-test-behavior-not-implementation`
@@ -11076,9 +11150,17 @@ Confirm interface behaviour in an actual running build.
 
 ### engineering · Verification · Validation
 
+#### `claim-evidence-table`
+Hold each kind of completion claim to a fixed table naming the evidence that proves it and the tempting proxy that does not.
+- `doc:.repo-context/verification.md`
+
 #### `explicit-commands-only`
 Run only invariants that carry an explicit runnable command, leaving everything else unexecuted.
 - ours: `check-invariants`
+
+#### `partial-verification-report`
+When an end-to-end check is out of reach, report the result as partial in three parts: what was verified, what needs a human check, and why.
+- `doc:.repo-context/verification.md`
 
 #### `pass-fail-report`
 Report a plain pass or fail result for each invariant that was run.
