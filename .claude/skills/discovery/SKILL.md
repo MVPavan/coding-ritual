@@ -22,7 +22,10 @@ the rest, and write a checked record.
 Read only the relevant code, authoritative docs and constraints needed to tell
 the live choices apart, and name the closest existing solution before proposing
 a new one. Establish outcome, intended user, success criteria, constraints and
-exclusions. Carry prior decisions and authorization forward. Several live
+exclusions. Carry prior decisions and authorization forward: a decision is
+prior only with the owner's authority (an owner answer, an approved spec, plan
+or ADR, a delegation); an unconfirmed precedent is evidence, cited in a row
+that stays `proposed` unless code, sources or a run settle it. Several live
 directions: diverge and converge with `references/exploration.md`. A choice
 between options, or a decision in a known domain: the one fitting section of
 `references/frameworks.md`.
@@ -38,9 +41,17 @@ between options, or a decision in a known domain: the one fitting section of
 | The owner | ask, last | `owner: "<quote>" (YYYY-MM-DD)` or `owner: delegation <ref>` | decided |
 
 Give every established row a Confidence of `high`, `medium` or `low`: how far
-the cited line, sources or run actually settle it. A prototype's recommendation
-among its variants is evidence, never a decision. A material choice the owner
-has not answered is `proposed`, with your recommendation as its answer, or `open`.
+the cited line, sources or run actually settle it. `high` only when the cited
+source shows the answer by itself. An answer you put together from several
+lines, or from a search that found nothing (no caller, no other reader), is
+`medium` or `low`: cite the most direct line, and name the other lines or the
+search and the inference in the answer. If together they do not settle it, it
+stays `proposed`. Write a fact and a choice made on it as separate rows: the
+code can establish what exists and what it lacks, but lines that only allow or
+favour one option settle nothing, so that choice is `proposed`, with them as its
+basis. A prototype's recommendation among its variants is evidence, never a
+decision. A material choice the owner has not answered is `proposed`, with your
+recommendation as its answer, or `open`.
 
 ## Ask the owner
 
@@ -68,13 +79,18 @@ in chat. A filled example is `references/record-example.md`.
    `docs/discovery/<area>/<topic>/<YYYY-MM-DD>-<slug>.md`. `<area>` is the
    `docs/workstreams/<name>` folder the work belongs to, else the top-level
    directory the question is about, kebab-cased, else `general`; `<topic>` is a
-   short kebab subject. Reuse an existing folder before creating one; never go deeper.
-2. `Run:` is fresh per run, `<session id>-<nonce>`, reused only to continue that
+   short kebab subject. Area and Topic describe the question, so they follow this
+   rule even when a caller names a path elsewhere. Reuse an existing folder before
+   creating one; never go deeper.
+2. `Caller:` names who started the run: `user request`, the calling unit and
+   step (`plan playbook, step 3`), or `delegated: <brief path>`, optionally with a
+   short note in parentheses.
+3. `Run:` is fresh per run, `<session id>-<nonce>`, reused only to continue that
    run; write to the path
    `scripts/check_record.py --next <path> --run <id>` prints. Never replace an
    earlier run's record without the owner or the caller naming it to revise,
    noted as `Revises: <authority>`.
-3. Run `scripts/check_record.py <file>` and fix every line it prints; for a record
+4. Run `scripts/check_record.py <file>` and fix every line it prints; for a record
    under `docs/discovery/`, then run `scripts/check_record.py --index docs/discovery`.
 
 ## End

@@ -289,7 +289,8 @@ critic, owner rulings, ledger, build, Sol review, commit after the owner approve
   (`research-playbooks`, definition kept), plus the dropped research mechanisms and the removed
   `/brainstorming` and `/idea-refine`; `scratchpad/mvp-stack/26/sync-list.md` now also lists the
   discovery files. Follow-ups: `cr-7c6i` (the run's record and its proposed rows are on it) and
-  `cr-onr1` (four points the run found unclear in `discovery`).
+  `cr-onr1` (four points the run found unclear in `discovery`; done 2026-11-12, see
+  `mvp-stack-changes.md` §12, follow-up `cr-oiyn`).
 - `cr-r2pa.2.23` (P1), built (`5bae85a`, `e721c56`, `0afc9fb`): `implement` is a playbook
   (`mvp-mode/playbooks/implement.md`), `/implement` its manual alias, `/phase-execution` and
   `/run-phases` removed; round `2026-11-11-implement-playbook` sealed; routing trial 14 of 14

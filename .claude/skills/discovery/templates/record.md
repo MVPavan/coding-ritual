@@ -14,6 +14,8 @@
 
 <!--
 Fill every angle-bracket field; one row per open question; write `\|` for a pipe in a cell.
+Caller: `user request` | `<unit>, step <n>` | `delegated: <brief path>`, optional `(note)`.
+Area and Topic classify the question, wherever the caller puts the file.
 Run: fresh per run, `<session id>-<nonce>`; write to what `scripts/check_record.py --next
 <path> --run <id>` prints. Add `**Revises:** <authority>` under Outcome only when the owner
 or the caller named this path to revise.
@@ -25,5 +27,8 @@ Status and Source:
   proposed     agent: <basis>, with the recommendation as the answer
   open         answer and source may be empty
 Confidence stays empty on every row that is not established.
+High only when the cited source shows the answer by itself. An answer put together from
+several lines or a search that found nothing: medium or low, naming the rest and the inference.
+A fact and a choice made on it go in separate rows; the choice stays proposed.
 Then run `scripts/check_record.py <file>` and `scripts/check_record.py --index docs/discovery`.
 -->

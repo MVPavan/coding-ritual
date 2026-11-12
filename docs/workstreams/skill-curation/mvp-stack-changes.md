@@ -793,6 +793,33 @@ the build, which each needed one fix round, then the registry repair. Limits: th
 checkout boundary, not admission or an agent following the text. Left for the end-of-project sync
 (bead `cr-r2pa`): the `.codex` link and the plugin copy.
 
+## 12. Four points the first `discovery` run found unclear (`cr-onr1`)
+
+Added 2026-11-12. Plan `scratchpad/mvp-stack/52/plan.md` (gitignored); rounds
+`2026-11-12-discovery-clarify`, `2026-11-12-discovery-clarify-options` and
+`2026-11-12-discovery-clarify-grading`, each one `update ours:discovery`, all sealed.
+
+- **Caller:** the record's field names who started the run: `user request`, the calling unit and
+  step, or `delegated:` with the brief path.
+- **Area and Topic** describe the question, so a caller-named path elsewhere does not change them.
+- **Prior decisions** carry forward only with the owner's authority (an answer, an approved spec,
+  plan or ADR, a delegation); an unconfirmed precedent is evidence, and its row stays `proposed`
+  unless code, sources or a run settle it.
+- **Confidence:** `high` only when the cited source shows the answer by itself; an answer put
+  together from several lines or from a search that found nothing is `medium` or `low`, naming
+  the rest and the inference. A fact and a choice made on it go in separate rows; lines that only
+  allow or favour an option leave the choice `proposed`.
+
+Proof: three fresh sessions ran `discovery` on real queued questions (`cr-5v7n`, then
+`cr-r2pa.3.3` twice). The first still found the several-lines rule unclear; the rule was tightened
+twice. The third reported none of the four points unclear, separated facts from choices, and graded
+its counted answers `medium`. Sol reviewed the plan, the build and two re-checks. It accepts the
+text, but found the third record still rated two combined answers `high` and compared two
+different populations in one row. Limit: a record has no source kind for a saved computation, so
+counted facts lean on code lines that cannot show them. That gap and four further unclear points
+are bead `cr-oiyn`. Left for the end-of-project sync (bead `cr-r2pa`): the `.codex` link and the
+plugin copy.
+
 ## Regenerating
 
 From the worktree root:
