@@ -945,6 +945,22 @@ Proof: a script finds each row's words at its cited lines; Sol reviewed the plan
 fixes) and passed the build; registry check, catalog check and 600 tests pass. Limit: no reading
 trials for this slice.
 
+## 18. `sharpen` and `restate`, two manual skills (`cr-r2pa.2.18`, slice 2)
+
+Added 2026-11-12. Plan `scratchpad/mvp-stack/60/plan.md` (gitignored); round
+`2026-11-12-batch-p1-manual`, 13 events, sealed. Delivers batch P1 rows 005 and 007-013.
+
+- **`/sharpen`:** rewrites a person's task deeper, not bigger, after four questions (what a top
+  practitioner would add, the rawest material, the methods and tools, an outside signal of
+  correctness), leaving their own choices open as questions. It does not do the task.
+- **`/restate`:** says back what the agent takes the person's aim and problem to be, then stops.
+  Ruled as `in-your-own-words`; the owner renamed it on 2026-11-12, recorded as a `rename` plus a
+  checkpoint correction.
+- Both are slash-only, with no router line; their descriptions name `discovery` as the case to skip.
+
+Proof: Sol reviewed the plan (three fixes) and passed the build; registry check, catalog check and 600
+tests pass. Limit: neither skill has been run on a real prompt.
+
 ## Regenerating
 
 From the worktree root:

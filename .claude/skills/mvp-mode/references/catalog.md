@@ -39,6 +39,8 @@ Principles are not skills, so they are not listed here; the router lists them.
 | `/improve-codebase-architecture` | Find evidence-backed architecture improvements within a named area or requested codebase survey. |
 | `/migrate-claude-to-codex` | Adapt Claude harness assets for Codex while preserving shared AGENTS.md policy and canonical skills. |
 | `/receiving-code-review` | Use when explicitly invoking the legacy receiving-code-review entrypoint; incoming feedback is owned by review. |
+| `/restate` | Restate what you take the person's aim and problem to be, then stop. |
+| `/sharpen` | Make a task deeper, not bigger: answer four questions about it, then rewrite the prompt. |
 | `/show-me` | Show the current topic visually, inline in the conversation. |
 | `/skill-router` | Legacy entrypoint; routing moved to mvp-mode. |
 | `/teach` | Teach a concept, walk through a session, or conduct an explicitly requested ongoing course. |

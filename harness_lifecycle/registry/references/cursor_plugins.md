@@ -270,7 +270,7 @@ Catalog: `2776ddd2355d6d6c8747d3964600f28daf62f049`, 354 capabilities.
 | `skill:harness/pstack/claude-code/skills/recall` | not reviewed | not analysed |  |  |  |  |
 | `skill:harness/pstack/claude-code/skills/reflect` | not reviewed | not analysed |  |  |  |  |
 | `skill:harness/pstack/claude-code/skills/setup-pstack` | not reviewed | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/sharpen` | not reviewed | not analysed |  |  |  |  |
+| `skill:harness/pstack/claude-code/skills/sharpen` | present, unruled | not analysed |  |  |  |  |
 | `skill:harness/pstack/claude-code/skills/show-me-your-work` | not reviewed | not analysed |  |  |  |  |
 | `skill:harness/pstack/claude-code/skills/statechart` | not reviewed | not analysed |  |  |  |  |
 | `skill:harness/pstack/claude-code/skills/swarm` | not reviewed | not analysed |  |  |  |  |
@@ -298,7 +298,7 @@ Catalog: `2776ddd2355d6d6c8747d3964600f28daf62f049`, 354 capabilities.
 | `skill:pstack/skills/create-verification-skill` | not reviewed | not analysed |  |  |  |  |
 | `skill:pstack/skills/figure-it-out` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md, doc:AGENTS.md, decision-trail#proposed-trail-commit | 35 adopt · 2 reject | 2026-11-06-batch-p1 | no |
 | `skill:pstack/skills/how` | adopt-merged | decided | how#immaterial-ambiguity-reading, how#angles-when-wide, how#explanation-sections, how#cited-flow-walkthrough, how#reconcile-by-reading | 5 adopt · 15 reject | 2026-11-10-renames-splits | no |
-| `skill:pstack/skills/in-your-own-words` | adopt | decided | in-your-own-words#goal-and-problem-restatement | 1 adopt | 2026-11-06-batch-p1 | no |
+| `skill:pstack/skills/in-your-own-words` | adopt | decided | restate#goal-and-problem-restatement | 1 adopt | 2026-11-12-batch-p1-manual | no |
 | `skill:pstack/skills/interrogate` | adopt-merged | decided | doc:AGENTS.md, interrogate#break-it-mandate, interrogate#run-proven-finding, interrogate#named-scope-first, interrogate#intent-restated-first, interrogate#intent-from-stated-sources, interrogate#ask-or-not-run-on-intent, interrogate#own-output-location, interrogate#dropout-proceeds-noted, interrogate#verified-snapshot-copy, interrogate#adversaries-by-model-or-angle, interrogate#run-against-real-code, interrogate#design-proof-by-probe, interrogate#repros-stay-in-copy, interrogate#finding-repro-report, interrogate#no-findings-valid, interrogate#coordinator-replays-finding, interrogate#reproduced-and-breaks-intent, interrogate#three-replay-outcomes, interrogate#merge-by-root-cause, interrogate#union-of-verified-findings, interrogate#output-opens-with-intent, interrogate#output-finding-fields, interrogate#adversary-attribution, interrogate#dropped-finding-accounting | 25 adopt · 1 defer · 6 reject | 2026-11-03-batch-3 | no |
 | `skill:pstack/skills/ketchup` | not reviewed | not analysed |  |  |  |  |
 | `skill:pstack/skills/ketchup-video` | not reviewed | not analysed |  |  |  |  |

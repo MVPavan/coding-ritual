@@ -453,6 +453,15 @@ resolving-merge-conflicts:
   aliases: []
   status: active
   boundary: "Resolves a merge, rebase or cherry-pick already in conflict and finishes that operation; turning ordinary verified changes into commits is land."
+restate:
+  domain: core
+  stage: Intake
+  substage: Clarification
+  secondary: []
+  family: null
+  aliases: []
+  status: active
+  boundary: "Says back what the agent takes the person's aim and problem to be, then stops; settling an open choice is discovery, and stating a change's intent before an attack is interrogate."
 review:
   domain: core
   stage: Verification
@@ -471,6 +480,15 @@ security:
   aliases: []
   status: active
   boundary: null
+sharpen:
+  domain: core
+  stage: Intake
+  substage: Clarification
+  secondary: []
+  family: null
+  aliases: []
+  status: active
+  boundary: "Rewrites a person's own task prompt deeper, not bigger, after four questions, leaving their choices open; open scope or behaviour questions are discovery, human-facing prose wording is unslop, authoring agent instructions is authoring-for-agents, and an interview that challenges the person's plan is grilling."
 show-me:
   domain: core
   stage: X

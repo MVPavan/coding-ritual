@@ -221,6 +221,18 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `needed-item-coverage`: Finish a questionnaire only when every needed decision or fact is covered by at least one question.
 - `single-idea-questions`: Make each question a single idea, never a compound one.
 
+#### core · Intake · Clarification — restate
+- `goal-and-problem-restatement`: Say in your own wording what you believe the user is aiming for and which problem they are trying to solve.
+
+#### core · Intake · Clarification — sharpen
+- `depth-not-scope-rewrite`: Treat improving a task as making it deeper, and refuse to make it merely larger.
+- `diagnose-then-rewrite-prompt`: Answer a fixed set of diagnostic questions first, then rewrite the prompt to ask for exactly what they revealed.
+- `expert-gap-question`: Say what a leading practitioner would do here that the request leaves out.
+- `rawest-source-question`: Name the least processed material a practitioner would begin from in place of the summarized input.
+- `expert-methods-question`: Name the concrete techniques and instruments a practitioner would apply.
+- `outside-correctness-signal`: Name something outside both the agent and the user that would show the result is correct.
+- `owner-choices-left-open`: Keep decisions that belong to the user unresolved when rewriting their request.
+
 #### core · Intake · Triage — triage
 - `attention-buckets`: Present the items needing triage attention as named buckets, oldest first.
 - `triage-decision`: Decide and apply each triage outcome within existing authority rather than deferring every call to the owner.
@@ -1410,16 +1422,16 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 ### cursor_plugins
 
 #### core · Intake · Clarification — skill:pstack/skills/in-your-own-words
-- `goal-and-problem-restatement`: Say in your own wording what you believe the user is aiming for and which problem they are trying to solve. — adopt, pending cr-r2pa.2.18 → in-your-own-words#goal-and-problem-restatement
+- `goal-and-problem-restatement`: Say in your own wording what you believe the user is aiming for and which problem they are trying to solve. — adopt → restate#goal-and-problem-restatement
 
 #### core · Intake · Clarification — skill:pstack/skills/sharpen
-- `depth-not-scope-rewrite`: Treat improving a task as making it deeper, and refuse to make it merely larger. — adopt, pending cr-r2pa.2.18 → sharpen#depth-not-scope-rewrite
-- `diagnose-then-rewrite-prompt`: Answer a fixed set of diagnostic questions first, then rewrite the prompt to ask for exactly what they revealed. — adopt, pending cr-r2pa.2.18 → sharpen#diagnose-then-rewrite-prompt
-- `expert-gap-question`: Say what a leading practitioner would do here that the request leaves out. — adopt, pending cr-r2pa.2.18 → sharpen#expert-gap-question
-- `rawest-source-question`: Name the least processed material a practitioner would begin from in place of the summarized input. — adopt, pending cr-r2pa.2.18 → sharpen#rawest-source-question
-- `expert-methods-question`: Name the concrete techniques and instruments a practitioner would apply. — adopt, pending cr-r2pa.2.18 → sharpen#expert-methods-question
-- `outside-correctness-signal`: Name something outside both the agent and the user that would show the result is correct. — adopt, pending cr-r2pa.2.18 → sharpen#outside-correctness-signal
-- `owner-choices-left-open`: Keep decisions that belong to the user unresolved when rewriting their request. — adopt, pending cr-r2pa.2.18 → sharpen#owner-choices-left-open
+- `depth-not-scope-rewrite`: Treat improving a task as making it deeper, and refuse to make it merely larger. — adopt → sharpen#depth-not-scope-rewrite
+- `diagnose-then-rewrite-prompt`: Answer a fixed set of diagnostic questions first, then rewrite the prompt to ask for exactly what they revealed. — adopt → sharpen#diagnose-then-rewrite-prompt
+- `expert-gap-question`: Say what a leading practitioner would do here that the request leaves out. — adopt → sharpen#expert-gap-question
+- `rawest-source-question`: Name the least processed material a practitioner would begin from in place of the summarized input. — adopt → sharpen#rawest-source-question
+- `expert-methods-question`: Name the concrete techniques and instruments a practitioner would apply. — adopt → sharpen#expert-methods-question
+- `outside-correctness-signal`: Name something outside both the agent and the user that would show the result is correct. — adopt → sharpen#outside-correctness-signal
+- `owner-choices-left-open`: Keep decisions that belong to the user unresolved when rewriting their request. — adopt → sharpen#owner-choices-left-open
 
 #### core · Building · Implementation — skill:pstack/skills/principle-build-the-lever
 - `tool-over-hand-work`: For non-trivial edits, analyses or checks, write a rerunnable tool that does or proves the work, so a reviewer reruns it instead of trusting a hand-made result. — adopt → doc:AGENTS.md
@@ -3344,11 +3356,13 @@ Produce the durable decision log in a fixed template — context, a decision tab
 
 #### `depth-not-scope-rewrite`
 Treat improving a task as making it deeper, and refuse to make it merely larger.
-- `cursor_plugins:skill:pstack/skills/sharpen` — adopt, pending cr-r2pa.2.18 → sharpen#depth-not-scope-rewrite
+- ours: `sharpen`
+- `cursor_plugins:skill:pstack/skills/sharpen` — adopt → sharpen#depth-not-scope-rewrite
 
 #### `diagnose-then-rewrite-prompt`
 Answer a fixed set of diagnostic questions first, then rewrite the prompt to ask for exactly what they revealed.
-- `cursor_plugins:skill:pstack/skills/sharpen` — adopt, pending cr-r2pa.2.18 → sharpen#diagnose-then-rewrite-prompt
+- ours: `sharpen`
+- `cursor_plugins:skill:pstack/skills/sharpen` — adopt → sharpen#diagnose-then-rewrite-prompt
 
 #### `document-during-interview`
 Pair a clarifying interview with live documentation so the glossary and decision records are produced as the interview settles each question.
@@ -3365,11 +3379,13 @@ End the session only when the frontier is empty and every branch of the tree has
 
 #### `expert-gap-question`
 Say what a leading practitioner would do here that the request leaves out.
-- `cursor_plugins:skill:pstack/skills/sharpen` — adopt, pending cr-r2pa.2.18 → sharpen#expert-gap-question
+- ours: `sharpen`
+- `cursor_plugins:skill:pstack/skills/sharpen` — adopt → sharpen#expert-gap-question
 
 #### `expert-methods-question`
 Name the concrete techniques and instruments a practitioner would apply.
-- `cursor_plugins:skill:pstack/skills/sharpen` — adopt, pending cr-r2pa.2.18 → sharpen#expert-methods-question
+- ours: `sharpen`
+- `cursor_plugins:skill:pstack/skills/sharpen` — adopt → sharpen#expert-methods-question
 
 #### `explainer-only-on-real-branch`
 Explain a question in one line only when its choice genuinely branches.
@@ -3394,7 +3410,8 @@ Regenerate one index line per record (date, question, outcome) from the files th
 
 #### `goal-and-problem-restatement`
 Say in your own wording what you believe the user is aiming for and which problem they are trying to solve.
-- `cursor_plugins:skill:pstack/skills/in-your-own-words` — adopt, pending cr-r2pa.2.18 → in-your-own-words#goal-and-problem-restatement
+- ours: `restate`
+- `cursor_plugins:skill:pstack/skills/in-your-own-words` — adopt → restate#goal-and-problem-restatement
 
 #### `grill-the-send`
 Ask the present user only about the send (who it goes to and what they need back), never about the subject the recipient knows.
@@ -3454,11 +3471,13 @@ Present materially different options with their tradeoffs when alternatives rema
 
 #### `outside-correctness-signal`
 Name something outside both the agent and the user that would show the result is correct.
-- `cursor_plugins:skill:pstack/skills/sharpen` — adopt, pending cr-r2pa.2.18 → sharpen#outside-correctness-signal
+- ours: `sharpen`
+- `cursor_plugins:skill:pstack/skills/sharpen` — adopt → sharpen#outside-correctness-signal
 
 #### `owner-choices-left-open`
 Keep decisions that belong to the user unresolved when rewriting their request.
-- `cursor_plugins:skill:pstack/skills/sharpen` — adopt, pending cr-r2pa.2.18 → sharpen#owner-choices-left-open
+- ours: `sharpen`
+- `cursor_plugins:skill:pstack/skills/sharpen` — adopt → sharpen#owner-choices-left-open
 
 #### `partial-uncertain-answers-welcome`
 Invite partial and don't-know answers, asking the respondent to flag uncertainty rather than skip the question.
@@ -3484,7 +3503,8 @@ Tell the respondent the deadline and the rough effort answering will take.
 
 #### `rawest-source-question`
 Name the least processed material a practitioner would begin from in place of the summarized input.
-- `cursor_plugins:skill:pstack/skills/sharpen` — adopt, pending cr-r2pa.2.18 → sharpen#rawest-source-question
+- ours: `sharpen`
+- `cursor_plugins:skill:pstack/skills/sharpen` — adopt → sharpen#rawest-source-question
 
 #### `recommended-answer`
 Attach a recommended answer to each question, letting the respondent disagree.

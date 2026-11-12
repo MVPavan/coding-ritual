@@ -112,7 +112,7 @@ ours:model-council:
   tree_hash: "678a7f2a8a0872f518a32349f32b6b49e0a3b83ed8d978b5f26d4ef50f85165a"
   traits: [member-resolution, runtime-capability-check, neutral-framing, member-isolation, report-preservation, independent-synthesis, consolidated-delivery, identity-recording, failed-member-recovery, no-silent-substitution, artifact-named-up-front, task-rubric-criteria, rubric-withheld-from-candidates, own-output-location, rationale-names-rejected, dropout-proceeds-noted, read-only-judge, judge-other-family-or-stated, rubric-given-to-judge, path-labelled-candidates, judge-criterion-scores, judge-recommends-base, full-read-before-pick, picker-criterion-scores, pick-compared-with-judge, disagreement-rereads-rationales, base-chosen-for-extensibility, near-tie-smaller-surface, loser-graft-pass, sparse-grafts, hand-folded-grafts, converged-shape-no-graft, divergence-reframes-once, graft-change-rerun, verify-miss-returns-once, single-synthesized-artifact, synthesis-decision-record, note-judge-status, note-convergence-dropouts, note-verification-result, no-judge-no-pick]
 ours:mvp-mode:
-  tree_hash: "3fe847aa0c5e017c12659a0c68cc08762abdd0b5c25f13d07ebcdcdc54062c62"
+  tree_hash: "696585a63e8734dd8b9b4fa870d57e029cefb59632ec06c813090599d7306fd4"
   traits: [unit-kind-lines, playbook-pick, need-to-skill-routing, overlap-arbitration, layered-catalog, platform-skill-invocation, no-playbook-in-delegate, delegate-independent-by-default, no-onward-delegation, playbook-steps-as-todos, recorded-step-skip, whole-callee, playbook-exit, legacy-entrypoint-flagging, catalog-trust-boundary]
 ours:performance-optimization:
   tree_hash: "8e393535c7e06691afca39ef9df84040ce4752a29a8cc58610b8522ce951c4da"
@@ -288,3 +288,9 @@ doc:.repo-context/verification.md:
 ours:wake:
   tree_hash: "c75ab0ca50f5de35a9607e148c2c7090a3131b200e00c978278a862e9d083af8"
   traits: [run-card-limits, one-consuming-admit, one-closing-timer, timer-positive-evidence, timer-identity-check, timer-close-cancels, woken-run-limits]
+ours:restate:
+  tree_hash: "1d9ce4beb2f7f408a6b3ace34fea24652e5c5e1fc417d603682bbdebaeb10290"
+  traits: [goal-and-problem-restatement]
+ours:sharpen:
+  tree_hash: "9cea278b015e6ba0fe6548c6a41c1414a2037b7f66ee7571fc2b1ec346a1007f"
+  traits: [depth-not-scope-rewrite, diagnose-then-rewrite-prompt, expert-gap-question, rawest-source-question, expert-methods-question, outside-correctness-signal, owner-choices-left-open]
