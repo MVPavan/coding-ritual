@@ -61,6 +61,9 @@ Domain → stage → sub-stage. Each active skill under its primary home.
 ### Operations
 - **Maintenance**: improve-codebase-architecture
 
+### Improvement
+- **Retrospective**: reflect
+
 ## Merge candidates
 
 Two or more active skills share one domain · sub-stage (README §2 rule 3):

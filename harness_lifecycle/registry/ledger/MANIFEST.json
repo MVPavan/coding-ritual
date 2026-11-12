@@ -46,7 +46,8 @@
     "2026-11-12-implement-commit-gate.jsonl": "4fc2f51b00126810f64b628d9024530f789e94abeeeabfceb6f78b2baee41f2f",
     "2026-11-12-implement-tracker-when.jsonl": "883384ff4b5f804ba0a7a1a5a6a1273da42210e030a7d570b2bec363a0c403d9",
     "2026-11-12-overlap-owners.jsonl": "b6e70ddc3950a337a8ccd0cee074d273e0f65ad5d1767c1bc4e48accb59aed8e",
-    "2026-11-12-pocock-4ae2317-delivery.jsonl": "08167ac3aea7259b7c8da18c02baf62cfc911812c1094bc95bd5fe1ea1e8d88b"
+    "2026-11-12-pocock-4ae2317-delivery.jsonl": "08167ac3aea7259b7c8da18c02baf62cfc911812c1094bc95bd5fe1ea1e8d88b",
+    "2026-11-12-reflect.jsonl": "7c42c7bfe23f25fd69a7c320e6110e632bc8321b05ac4513e67b6a5dbd0e7646"
   },
   "round_order": [
     "2026-10-14-migration.jsonl",
@@ -94,7 +95,8 @@
     "2026-11-12-batch-p1-manual.jsonl",
     "2026-11-12-batch-p1-recall.jsonl",
     "2026-11-12-batch-p1-figure-it-out.jsonl",
-    "2026-11-12-batch-p1-no-comments.jsonl"
+    "2026-11-12-batch-p1-no-comments.jsonl",
+    "2026-11-12-reflect.jsonl"
   ],
   "reports": {
     "harness_lifecycle/registry/reviews/2026-10-30-upstream-mattpocock_skills-5beb35b.yaml": "fb413772a75f116bd9baeaa06b6e414fe59978c654a951cb53345f17459d7597",
@@ -118,7 +120,8 @@
     "harness_lifecycle/registry/reviews/2026-11-11-upstream-mattpocock_skills-4ae2317-discovery.yaml": "c4cf30f3fbb89e231f65ec561d9ba7f445404ff48bb2b4e66d46e52f2fc6b824",
     "harness_lifecycle/registry/reviews/2026-11-11-upstream-mattpocock_skills-4ae2317-r1.yaml": "b81279bc7eef54878352051506a01a75187bf252e434f146667ebf8da60d2d4f",
     "harness_lifecycle/registry/reviews/2026-11-11-upstream-mattpocock_skills-5beb35b-r1.yaml": "dc16a0e5c4fd4801bf940998505e7a366d3aada7022a5135c94fcd9b0b0ed5dc",
-    "harness_lifecycle/registry/reviews/2026-11-11-upstream-mattpocock_skills-5beb35b-r2.yaml": "a4d3e4bb6ad7dc23a6d4ce6002cd0f09815faa30b16713b971da34f07a470810"
+    "harness_lifecycle/registry/reviews/2026-11-11-upstream-mattpocock_skills-5beb35b-r2.yaml": "a4d3e4bb6ad7dc23a6d4ce6002cd0f09815faa30b16713b971da34f07a470810",
+    "harness_lifecycle/registry/reviews/2026-11-12-upstream-mattpocock_skills-5beb35b-reflect.yaml": "1966178a82b85b8681a90d44311fe322021b9db760942c698a89c5e6eb73c833"
   },
   "analyses": {
     "cursor_plugins:skill:pstack/skills/architect@4dd1d05": "2f6b30fcea183d931ebb90718d90b26bed22bd0053ffc7322ede7757a9a18920",

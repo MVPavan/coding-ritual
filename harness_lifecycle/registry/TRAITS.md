@@ -1093,6 +1093,15 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `constraints-before-change`: When a change follows, turn the findings into preserve, change, avoid and risk lists.
 - `pr-discussion-pull`: For each substantive commit, read the pull request body, linked issues, comments and reviews.
 
+#### engineering · Improvement · Retrospective — reflect
+- `sampled-session-retros`: Retro a sample of about one in five delegated sessions, nested dispatches included, rather than every one.
+- `failures-first-retro-sample`: Fill a retro sample with the sessions where something went wrong before any others.
+- `environment-retro-categories`: Review a session for improvements to the agent's environment across fixed categories (navigation, automated checks, coding standards, steering files, tool economy, no-ops, information access).
+- `read-existing-check-first`: Read the repo's own lint and check commands before proposing one, treating an unwired or broken check, or the absence of any guardrail, as itself the finding.
+- `read-session-sources`: Read the primary sources (session logs) for the session under review, defaulting to the current one.
+- `severity-ordered-proposals`: Present improvement candidates to the user in order of severity.
+- `retro-in-reviewed-session`: Run a retrospective inside the session it reviews before clearing, or point it at that session's log afterwards.
+
 #### engineering · Operations · Maintenance — improve-codebase-architecture
 - `scope-by-evidence`: Scope the audit to a named module or pain point, otherwise to the hot spots in recent change history.
 - `friction-signals`: Surface architectural friction that current code actually supports rather than speculative smells.
@@ -2554,8 +2563,8 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `shared-wiki-first`: Look for a wiki that the user or other agents keep already, and write into it before starting a separate one. — defer
 - `host-wiki-conventions-win`: Follow a shared wiki's own conventions wherever they differ from your default page rules. — defer
 - `sibling-skill-by-relative-path`: Run another skill's procedure by reading its instruction file at a path relative to the current skill and following it. — reject
-- `sampled-session-retros`: Retro a sample of about one in five delegated sessions, nested dispatches included, rather than every one. — adopt, pending cr-r2pa.2.19 → reflect#sampled-session-retros
-- `failures-first-retro-sample`: Fill a retro sample with the sessions where something went wrong before any others. — adopt, pending cr-r2pa.2.19 → reflect#failures-first-retro-sample
+- `sampled-session-retros`: Retro a sample of about one in five delegated sessions, nested dispatches included, rather than every one. — adopt → reflect#sampled-session-retros
+- `failures-first-retro-sample`: Fill a retro sample with the sessions where something went wrong before any others. — adopt → reflect#failures-first-retro-sample
 - `retro-without-approval`: Decide which retro candidates are worth pursuing and pursue them, in place of presenting them for approval. — reject
 - `spec-tickets-implement-pipeline`: Send large work through a spec, then tickets, then publishing both to the tracker, then implementing them. — defer
 
@@ -3063,12 +3072,12 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `minimal-visual-selection`: Use the fewest and smallest visuals that make the point, never a gallery. — adopt → show-me#minimal-visual-selection
 
 #### engineering · Improvement · Retrospective — skill:skills/engineering/retro
-- `environment-retro-categories`: Review a session for improvements to the agent's environment across fixed categories (navigation, automated checks, coding standards, steering files, tool economy, no-ops, information access). — defer
+- `environment-retro-categories`: Review a session for improvements to the agent's environment across fixed categories (navigation, automated checks, coding standards, steering files, tool economy, no-ops, information access). — adopt → reflect#environment-retro-categories
 - `mechanical-vs-judgement`: Classify each finding as mechanical (a fixed syntactic pattern suiting a deterministic check) or judgement (cross-file consistency suiting a standards doc). — adopt → authoring-for-agents#mechanical-vs-judgement
 - `build-check-over-rule`: Default to building a deterministic check over writing a prose rule for any mechanical finding. — adopt → authoring-for-agents#build-check-over-rule
-- `read-existing-check-first`: Read the repo's own lint and check commands before proposing one, treating an unwired or broken check, or the absence of any guardrail, as itself the finding. — defer
-- `read-session-sources`: Read the primary sources (session logs) for the session under review, defaulting to the current one. — defer
-- `severity-ordered-proposals`: Present improvement candidates to the user in order of severity. — defer
+- `read-existing-check-first`: Read the repo's own lint and check commands before proposing one, treating an unwired or broken check, or the absence of any guardrail, as itself the finding. — adopt → reflect#read-existing-check-first
+- `read-session-sources`: Read the primary sources (session logs) for the session under review, defaulting to the current one. — adopt → reflect#read-session-sources
+- `severity-ordered-proposals`: Present improvement candidates to the user in order of severity. — adopt → reflect#severity-ordered-proposals
 - `separate-review-stage`: Run review as a separate, low-context-pressure stage from implementation. — defer
 - `reviewer-owns-standards`: Allocate coding-standards enforcement to the review agent rather than the implementation agent. — defer
 - `load-writing-guide-first`: Load the agent-writing guidance before writing any improvement suggestion. — defer
@@ -3096,7 +3105,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `ticket-per-fresh-context`: Work build tickets one per fresh context window, clearing between them and taking blockers first. — defer
 - `parallel-frontier-implementers`: Run implementer subagents concurrently over the ready frontier of a ticket graph, dispatching new ones whenever a merge opens more tickets. — defer
 - `single-integration-branch`: Land every ticket of a multi-ticket build on one integration branch. — defer
-- `retro-in-reviewed-session`: Run a retrospective inside the session it reviews before clearing, or point it at that session's log afterwards. — defer
+- `retro-in-reviewed-session`: Run a retrospective inside the session it reviews before clearing, or point it at that session's log afterwards. — adopt → reflect#retro-in-reviewed-session
 - `triage-external-only`: Triage only items the user did not author, since tickets the ticketing step produced are already agent-ready. — defer
 - `post-fix-retro`: After a bug fix, ask in the same session what would have prevented it, escalating to architecture work when no good seam exists. — defer
 - `decision-map-for-large-efforts`: Chart a decision map only for an effort too large for one session, feeding its result into spec writing rather than straight into implementation unless the effort proved small. — defer
@@ -11715,7 +11724,8 @@ Classify each finding as mechanical (a fixed syntactic pattern suiting a determi
 
 #### `read-existing-check-first`
 Read the repo's own lint and check commands before proposing one, treating an unwired or broken check, or the absence of any guardrail, as itself the finding.
-- `mattpocock_skills:skill:skills/engineering/retro` — defer
+- ours: `reflect`
+- `mattpocock_skills:skill:skills/engineering/retro` — adopt → reflect#read-existing-check-first
 
 ### engineering · Improvement · Evaluation
 
@@ -11751,7 +11761,8 @@ Scope the audit to a named module or pain point, otherwise to the hot spots in r
 
 #### `environment-retro-categories`
 Review a session for improvements to the agent's environment across fixed categories (navigation, automated checks, coding standards, steering files, tool economy, no-ops, information access).
-- `mattpocock_skills:skill:skills/engineering/retro` — defer
+- ours: `reflect`
+- `mattpocock_skills:skill:skills/engineering/retro` — adopt → reflect#environment-retro-categories
 
 #### `factory-retro-task`
 After a merge, read the pull request, its ticket, reviews and run logs and propose changes to the automation's instructions as a pull request that starts an automated review run.
@@ -11763,7 +11774,8 @@ Run the merge retrospective on only one merged pull request in ten.
 
 #### `failures-first-retro-sample`
 Fill a retro sample with the sessions where something went wrong before any others.
-- `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — adopt, pending cr-r2pa.2.19 → reflect#failures-first-retro-sample
+- ours: `reflect`
+- `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — adopt → reflect#failures-first-retro-sample
 
 #### `load-writing-guide-first`
 Load the agent-writing guidance before writing any improvement suggestion.
@@ -11775,11 +11787,13 @@ After a bug fix, ask in the same session what would have prevented it, escalatin
 
 #### `read-session-sources`
 Read the primary sources (session logs) for the session under review, defaulting to the current one.
-- `mattpocock_skills:skill:skills/engineering/retro` — defer
+- ours: `reflect`
+- `mattpocock_skills:skill:skills/engineering/retro` — adopt → reflect#read-session-sources
 
 #### `retro-in-reviewed-session`
 Run a retrospective inside the session it reviews before clearing, or point it at that session's log afterwards.
-- `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
+- ours: `reflect`
+- `mattpocock_skills:skill:skills/engineering/ask-matt` — adopt → reflect#retro-in-reviewed-session
 
 #### `retro-without-approval`
 Decide which retro candidates are worth pursuing and pursue them, in place of presenting them for approval.
@@ -11787,11 +11801,13 @@ Decide which retro candidates are worth pursuing and pursue them, in place of pr
 
 #### `sampled-session-retros`
 Retro a sample of about one in five delegated sessions, nested dispatches included, rather than every one.
-- `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — adopt, pending cr-r2pa.2.19 → reflect#sampled-session-retros
+- ours: `reflect`
+- `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — adopt → reflect#sampled-session-retros
 
 #### `severity-ordered-proposals`
 Present improvement candidates to the user in order of severity.
-- `mattpocock_skills:skill:skills/engineering/retro` — defer
+- ours: `reflect`
+- `mattpocock_skills:skill:skills/engineering/retro` — adopt → reflect#severity-ordered-proposals
 
 ### engineering · X · Communication
 

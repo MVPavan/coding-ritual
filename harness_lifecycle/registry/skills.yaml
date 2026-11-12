@@ -462,6 +462,15 @@ recall:
   aliases: []
   status: active
   boundary: "Rebuilds recent work in this project from past chats and the shared record into one brief of where it stands and the next move; resuming one identified piece of work is session-pickup, why something was decided is why, and how it works now is how."
+reflect:
+  domain: engineering
+  stage: Improvement
+  substage: Retrospective
+  secondary: []
+  family: null
+  aliases: []
+  status: active
+  boundary: "Reviews a session, or a sample of a delegated run's sessions, for changes to the agents' environment and applies the approved ones through their owners; the cause of one failure is systematic-debugging, and reviewing a change is review."
 research:
   domain: core
   stage: Discovery

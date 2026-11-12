@@ -41,6 +41,7 @@ Principles are not skills, so they are not listed here; the router lists them.
 | `/no-comments` | Sweep a scope for comments that should go, judged by principle-no-comments, then fix what the sweep exposes and offer checks for real constraints. |
 | `/recall` | Rebuild recent work in this project from past chats and the shared record (beads, commits) into one brief of where things stand and the next move. |
 | `/receiving-code-review` | Use when explicitly invoking the legacy receiving-code-review entrypoint; incoming feedback is owned by review. |
+| `/reflect` | Review a session, or a sample of a delegated run's sessions, for changes to the agents' instructions, checks and tools that would have prevented its mistakes, and apply the ones the person approves. |
 | `/restate` | Restate what you take the person's aim and problem to be, then stop. |
 | `/sharpen` | Make a task deeper, not bigger: answer four questions about it, then rewrite the prompt. |
 | `/show-me` | Show the current topic visually, inline in the conversation. |
