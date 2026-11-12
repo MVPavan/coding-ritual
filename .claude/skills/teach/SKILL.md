@@ -17,6 +17,8 @@ or session walkthrough does not imply a course or persistent learning workspace.
   use retrieval questions to expose gaps, without requiring total mastery to stop.
 - Ongoing course explicitly requested: use the optional workspace below.
 
+The one-concept and session-walkthrough shapes read `references/plain-explaining.md`.
+
 Infer level from the conversation, then adjust from the learner's responses.
 Separate what happened from why it was chosen. Use a small exercise or prediction
 question when useful; give feedback after the learner responds. Quiz options

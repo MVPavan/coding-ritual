@@ -180,3 +180,7 @@ immaterial-ambiguity-reading:
   skills: [how, why]
   why: "Both take an ambiguous target and state the reading taken when the readings would not change the answer; adopted for both upstream how and why (2026-11-01-batch-1:237, :238), kept in each half of the split."
   reviewed: "2026-11-10"
+confidence-language-kept:
+  skills: [teach, unslop]
+  why: "Each rewrites a finished answer for a reader: unslop edits prose, teach rewords cited findings for teaching; both must keep the hedges and confidence words, which are results. The owner's batch P1 ruling put it into teach (sealed row 2026-11-06-batch-p1:019)."
+  reviewed: "2026-11-12"

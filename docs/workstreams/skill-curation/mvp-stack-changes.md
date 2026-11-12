@@ -922,6 +922,29 @@ Proof: a structural check finds every conflicting phrase gone and every pointer'
 and it catches four planted deletions. Eight fresh reading sessions matched the expected answers.
 Sol reviewed the plan three times and the build. Limit: reading trials, not live runs.
 
+## 17. Batch P1's adoptions into existing skills (`cr-r2pa.2.18`, slice 1)
+
+Added 2026-11-12. Plan `scratchpad/mvp-stack/59/plan.md` (gitignored); round
+`2026-11-12-batch-p1-existing`, 73 events, sealed. Delivers 65 of batch P1's 153 pending adoptions,
+those whose target already existed, after a re-check against the stack's changes since the 2026-11-06
+ruling (renames, principle move, `how`/`why` split).
+
+- **`teach`:** new `.claude/skills/teach/references/plain-explaining.md` (23 rows), read by the
+  one-concept and session shapes, not the course.
+- **`review`:** new `.claude/skills/review/references/blast-radius.md` (19 rows), a mode used only
+  when asked what a change could break.
+- **`tdd`:** nine rows on regression tests, substitutes and before/after proof; two were already there.
+- **`authoring-for-agents`** (4 rows on checks), **`brief-me`** (re-pitch explains project terms), and
+  the **type-system** (5) and **test-behaviour** (1) principles.
+- Owner-approved departures from the ruled words (2026-11-12): `explain-code` and `prose-pass` are
+  renamed to `how`/`why` and `unslop`; the type principle's own-type rule is replaced by one merged,
+  narrower rule. Four T5 deviation rows in `unit-kinds.md`; `confidence-language-kept` is shared by
+  `teach` and `unslop`.
+
+Proof: a script finds each row's words at its cited lines; Sol reviewed the plan (three recording
+fixes) and passed the build; registry check, catalog check and 600 tests pass. Limit: no reading
+trials for this slice.
+
 ## Regenerating
 
 From the worktree root:

@@ -117,6 +117,10 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `relevance-check`: Check every line still bears on the document's task, pruning stale or irrelevant ones.
 - `sharpen-before-inline`: Fix a weakly reached must-have target by sharpening its pointer's wording first, inlining it only if that fails.
 - `split-by-invocation`: Split off a model-invoked skill only when a distinct leading word should trigger it or another skill must reach it.
+- `fix-at-highest-level`: Try fixes for a repeated mistake in order of architecture, types, lint or CI, tests and finally docs, stopping at the highest level that works.
+- `check-error-names-replacement`: Where wrong code can still compile, add a check whose message points at the specific file, type or function to use.
+- `ratchet-on-common-patterns`: When a pattern is already widespread, fail only on changes that add more of it.
+- `check-proved-on-real-mistake`: Show each new check failing against a mistake that actually occurred.
 
 #### core · Improvement · Codification — harness-evaluate
 - `read-first`: Before judging a candidate, read its canonical source, the relevant prior ledger decision and the closest local implementation, keeping reference repositories as read-only evidence.
@@ -275,6 +279,30 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `spacing`: Space practice over time to build long-term retention.
 - `storage-strength`: Favour long-term retention over in-the-moment fluency, which can give an illusory sense of mastery.
 - `vary-answer-position`: Vary which position holds the correct answer across questions so order gives nothing away.
+- `what-how-why-account`: Cover what a thing is, how it operates and why it has that design.
+- `single-blended-account`: Merge the findings of separate investigations into one continuous explanation, never separate reports.
+- `lead-with-what-matters`: Open an explanation on its central point and on what matters most to this reader.
+- `confidence-language-kept`: Keep the tier words and hedges that mark uncertainty when editing a finished answer.
+- `pick-few-takeaways`: Choose a small number of things the person should come away understanding before explaining anything.
+- `learner-context-from-conversation`: Work out why the person is asking and what they already know from the conversation, not by questioning them.
+- `depth-where-asked`: Omit what the person evidently already knows and spend the depth on the area they asked about.
+- `orient-then-use-investigation`: Read a body of work only far enough to get oriented, and take the digging from a dedicated investigation rather than redoing it.
+- `plain-definition-first`: Begin by naming the thing and defining it in general terms, using its common name if one exists.
+- `general-tied-to-local-case`: After the general definition, connect it to how this codebase uses the idea.
+- `build-up-order`: Proceed from definition to mechanism, then deeper reasons, then edge cases.
+- `problem-and-mechanism-per-part`: For each part, explain the problem it addresses and how it actually operates.
+- `walkthrough-of-user-action`: When it helps the idea land, trace what happens step by step as someone performs the action.
+- `no-symbol-inventory`: Do not substitute a list of functions and constants for an explanation.
+- `no-labels-or-step-words`: Print no stock labels announcing the key idea, and never echo a skill's step wording as headers or phrases.
+- `requested-depth-first-answer`: In conversation, give a short complete answer first and stop, and give a requested walkthrough, lesson or full account whole in one reply.
+- `offer-depth-follow-lead`: Invite the person to go deeper or change topic, and let them steer.
+- `no-teaching-theatre`: Do not announce pauses, sentences to master, or that a part is hard or important; state it, and actually stop when a pause is wanted.
+- `show-the-real-artifact`: Bring up the actual diff, source or debugger when that conveys the point most quickly.
+- `figure-when-faster`: Add a figure when a picture would land faster than prose, and omit one for a single simple point.
+- `incremental-diagram-series`: For three or more moving parts, draw a sequence in which each figure repeats the last and adds exactly one part, and never rely on one complete figure, of whatever kind.
+- `plain-colleague-voice`: Write in plain spoken English as if to a coworker, removing filler and hedging while keeping the piece that makes the idea click.
+- `reply-is-the-deliverable`: Return the deliverable itself as the reply, never an account of what was done to produce it.
+- `threads-to-chase`: Include the lines of inquiry worth pursuing further.
 
 #### core · Verification · Review — interrogate
 - `break-it-mandate`: Assign adversaries to try to break a change or design rather than assess it in general.
@@ -328,6 +356,25 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `standards-source-discovery`: Search the repo for every file documenting how code should be written, always including the conventional standards and contributing files.
 - `cited-standard-findings`: Cite the standard's file and rule for every violation and quote the hunk for every smell.
 - `spec-conformance-findings`: Report spec findings as missing or partial requirements, unrequested behaviour and wrongly implemented requirements, quoting the spec line for each.
+- `breakage-beyond-callers`: Spend the effort on breakage text search cannot reveal, not on listing callers.
+- `safety-fact-proved-by-run`: Treat a convincing writeup as worthless by itself, and prove the fact a change's safety rests on by running real code and including what happened.
+- `evidence-ladder`: Grade each safety-bearing fact as asserted, cited to a line, failure walked through, executed in a script or test, or reproduced in the running product.
+- `ladder-as-far-as-cheap`: Take each fact as far up the evidence ladder as is cheap and state where it stopped.
+- `small-real-library-script`: Normally reach the executed level with one short script that imports the library shipped with the product and calls exactly the function at issue.
+- `failing-loud-proof`: Make a proof script or test fail noisily if the claim is wrong.
+- `whole-change-including-unstated`: Go through the diff, the symbols added, changed and deleted, and the behaviour change the diff does not spell out.
+- `change-history-pull`: Retrieve the related pull request and commits while reading a change.
+- `single-safety-fact-search`: Find the one fact that makes a change safe and clears most risky cases, and spend the time there, not on a long list of possibilities.
+- `dependency-source-and-pin`: Read the called library's source and confirm its pinned version and whether it is locally patched.
+- `timing-and-lifecycle-analysis`: Work out when things execute, including deferred callbacks, teardown and framework differences.
+- `non-symbol-coupling-trace`: Follow links symbol search misses: returned data shapes, database columns, wire formats, another language reading the same bytes, feature flags and code several hops away.
+- `likelihood-and-cost-per-risk`: Give each risk an honest probability and an honest cost.
+- `confirmed-and-cleared-split`: Keep confirmed risks apart from those checked and cleared, saying why each cleared one is fine.
+- `empty-search-is-finding`: Count a search that returned nothing as a result to report, not as work to discard.
+- `handback-what-it-does`: Say what changed, including the non-obvious part.
+- `handback-safety-fact-with-grade`: State the safety fact, its ladder level and its proof, or mark it unproven.
+- `handback-risk-fields`: For each risk give how it breaks, the actual file and line, likelihood and severity, how to check it, and the proof for those that matter.
+- `handback-pre-merge-check`: Give the cheapest test or reproduction able to expose the actual bug, along with any script written.
 
 #### core · X · Communication — brief-me
 - `next-action-first`: Lead with the next concrete action — a command, path or snippet — before any prose.
@@ -346,6 +393,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `controlled-language`: Re-pitch in controlled simplified language with short sentences and common words.
 - `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write.
 - `pre-send-check`: Before sending, delete announcements, closers, sidebars and empty hedges.
+- `repitch-explains-project-terms`: Drop technical jargon from a re-pitch, keeping a project term only with a plain explanation of it.
 
 #### core · X · Communication — html-artifact
 - `self-contained-contract`: Produce one HTML file with inline CSS and JS, viewport metadata and no build step, working offline with no external fonts, trackers, fetches or runtime assets.
@@ -701,6 +749,17 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `behaviour-test-names`: Name each test for the behaviour that exists, not how it is achieved.
 - `prove-the-red`: When forcing the red by mutating code or a fixture, diff against a pristine copy to prove the mutation landed before trusting it.
 - `covered-test-removal`: Remove an old test only when its behaviour is covered elsewhere or deliberately retired, inspecting a changed test rather than deleting it automatically.
+- `optional-regression-test-skip`: Skip only an optional regression test whose cost outweighs its risk, keeping required proof and project gates and reporting any proof that could not be obtained.
+- `closest-existing-test-kind`: Prefer the kind of test already used for that codepath.
+- `failure-for-the-right-reason`: Run a new test before fixing and, if it passes or fails for another reason, correct the test or reproduction first.
+- `closest-executable-fallback`: When a failing test is impractical, substitute a targeted script, reproduction command, browser automation, snapshot diff, log assertion or narrow integration check.
+- `no-test-over-bad-test`: Prefer adding nothing to a test that mostly exercises mocks, encodes internals, depends on timing or global state, needs costly infrastructure for a minor fix, or would be discarded right after.
+- `no-tests-bent-or-weakened`: Do not change tests to agree with wrong behaviour, and keep existing assertions as strong unless expected behaviour truly changed for a clear reason.
+- `focused-regression-test`: Write the smallest test focused on this bug, without broad fixture changes or added unrelated coverage.
+- `flaky-test-names-its-signal`: For a flaky bug, remove nondeterminism from the test as far as possible and document which signal it pins.
+- `focused-first-then-siblings`: When a bug reveals a wider failure class, land the focused regression first and only then consider related coverage.
+- `before-after-proof-report`: Name the check that failed before the fix with its failure, and the passing run after the fix with any nearby validation.
+- `missing-red-explained`: If a failure before the fix could not be shown, say why and describe the substitute check.
 
 #### engineering · Delivery · Integration — land
 - `verified-work-only`: Refuse to land work not verified on its final form, rechecking behaviour if a closeout changed executable content, and report the gap.
@@ -837,6 +896,11 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `exhaustive-variant-handling`: Handle every variant of a closed type so the checker reports a variant left unhandled.
 - `branded-primitives`: Give semantically distinct values that share a primitive type their own types, validated once at creation and trusted afterwards.
 - `schema-derived-types`: Derive types from the authoritative schema that owns a shape instead of hand-writing a parallel type.
+- `brand-only-on-confusion-risk`: Leave a number unbranded unless a raw number could actually be passed in its place.
+- `simplest-total-type`: Keep a loose type while every operation on it is defined for all inputs, tightening it only where it forces an assertion, a cast or an impossible-case throw.
+- `weaken-result-alternative`: Return a possibly absent result as the other way of making a signature total.
+- `one-schema-validates-and-types`: Let one schema own validation and infer the static type from it, never keeping a schema, a parallel type and a guard that can disagree.
+- `guards-must-verify`: Require a type guard to really prove what it asserts, treating a false guard as worse than a cast.
 
 #### engineering · Design · Architecture — prototype
 - `named-question`: Build a throwaway artifact to answer one named design question.
@@ -1006,6 +1070,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `hollow-test-forms`: Check a test for the usual hollow forms: an assertion looser than the contract, a restated constant the code never reads, or an assertion on data the test built itself.
 - `behaviour-and-edge-case-tests`: Judge tests by the behaviours and edge cases they exercise, not by line coverage.
 - `implementation-test-deletion`: When internals change, rewrite or delete tests that only protect the old implementation, asserting the current contract instead.
+- `green-on-break-test-fixed`: Repair or remove a test that stays green when its behaviour breaks.
 
 ### Docs
 
@@ -1366,27 +1431,27 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `minimal-tool`: Build the smallest script that does or proves the job, never a framework. — adopt → build-a-lever#minimal-tool
 
 #### core · Verification · Review — skill:pstack/skills/blast-radius
-- `breakage-beyond-callers`: Spend the effort on breakage text search cannot reveal, not on listing callers. — adopt, pending cr-r2pa.2.18 → review#breakage-beyond-callers
-- `safety-fact-proved-by-run`: Treat a convincing writeup as worthless by itself, and prove the fact a change's safety rests on by running real code and including what happened. — adopt, pending cr-r2pa.2.18 → review#safety-fact-proved-by-run
-- `evidence-ladder`: Grade each safety-bearing fact as asserted, cited to a line, failure walked through, executed in a script or test, or reproduced in the running product. — adopt, pending cr-r2pa.2.18 → review#evidence-ladder
-- `ladder-as-far-as-cheap`: Take each fact as far up the evidence ladder as is cheap and state where it stopped. — adopt, pending cr-r2pa.2.18 → review#ladder-as-far-as-cheap
-- `small-real-library-script`: Normally reach the executed level with one short script that imports the library shipped with the product and calls exactly the function at issue. — adopt, pending cr-r2pa.2.18 → review#small-real-library-script
-- `failing-loud-proof`: Make a proof script or test fail noisily if the claim is wrong. — adopt, pending cr-r2pa.2.18 → review#failing-loud-proof
-- `whole-change-including-unstated`: Go through the diff, the symbols added, changed and deleted, and the behaviour change the diff does not spell out. — adopt, pending cr-r2pa.2.18 → review#whole-change-including-unstated
-- `change-history-pull`: Retrieve the related pull request and commits while reading a change. — adopt, pending cr-r2pa.2.18 → review#change-history-pull
-- `single-safety-fact-search`: Find the one fact that makes a change safe and clears most risky cases, and spend the time there, not on a long list of possibilities. — adopt, pending cr-r2pa.2.18 → review#single-safety-fact-search
-- `dependency-source-and-pin`: Read the called library's source and confirm its pinned version and whether it is locally patched. — adopt, pending cr-r2pa.2.18 → review#dependency-source-and-pin
-- `timing-and-lifecycle-analysis`: Work out when things execute, including deferred callbacks, teardown and framework differences. — adopt, pending cr-r2pa.2.18 → review#timing-and-lifecycle-analysis
-- `non-symbol-coupling-trace`: Follow links symbol search misses: returned data shapes, database columns, wire formats, another language reading the same bytes, feature flags and code several hops away. — adopt, pending cr-r2pa.2.18 → review#non-symbol-coupling-trace
-- `likelihood-and-cost-per-risk`: Give each risk an honest probability and an honest cost. — adopt, pending cr-r2pa.2.18 → review#likelihood-and-cost-per-risk
-- `confirmed-and-cleared-split`: Keep confirmed risks apart from those checked and cleared, saying why each cleared one is fine. — adopt, pending cr-r2pa.2.18 → review#confirmed-and-cleared-split
-- `empty-search-is-finding`: Count a search that returned nothing as a result to report, not as work to discard. — adopt, pending cr-r2pa.2.18 → review#empty-search-is-finding
+- `breakage-beyond-callers`: Spend the effort on breakage text search cannot reveal, not on listing callers. — adopt → review#breakage-beyond-callers
+- `safety-fact-proved-by-run`: Treat a convincing writeup as worthless by itself, and prove the fact a change's safety rests on by running real code and including what happened. — adopt → review#safety-fact-proved-by-run
+- `evidence-ladder`: Grade each safety-bearing fact as asserted, cited to a line, failure walked through, executed in a script or test, or reproduced in the running product. — adopt → review#evidence-ladder
+- `ladder-as-far-as-cheap`: Take each fact as far up the evidence ladder as is cheap and state where it stopped. — adopt → review#ladder-as-far-as-cheap
+- `small-real-library-script`: Normally reach the executed level with one short script that imports the library shipped with the product and calls exactly the function at issue. — adopt → review#small-real-library-script
+- `failing-loud-proof`: Make a proof script or test fail noisily if the claim is wrong. — adopt → review#failing-loud-proof
+- `whole-change-including-unstated`: Go through the diff, the symbols added, changed and deleted, and the behaviour change the diff does not spell out. — adopt → review#whole-change-including-unstated
+- `change-history-pull`: Retrieve the related pull request and commits while reading a change. — adopt → review#change-history-pull
+- `single-safety-fact-search`: Find the one fact that makes a change safe and clears most risky cases, and spend the time there, not on a long list of possibilities. — adopt → review#single-safety-fact-search
+- `dependency-source-and-pin`: Read the called library's source and confirm its pinned version and whether it is locally patched. — adopt → review#dependency-source-and-pin
+- `timing-and-lifecycle-analysis`: Work out when things execute, including deferred callbacks, teardown and framework differences. — adopt → review#timing-and-lifecycle-analysis
+- `non-symbol-coupling-trace`: Follow links symbol search misses: returned data shapes, database columns, wire formats, another language reading the same bytes, feature flags and code several hops away. — adopt → review#non-symbol-coupling-trace
+- `likelihood-and-cost-per-risk`: Give each risk an honest probability and an honest cost. — adopt → review#likelihood-and-cost-per-risk
+- `confirmed-and-cleared-split`: Keep confirmed risks apart from those checked and cleared, saying why each cleared one is fine. — adopt → review#confirmed-and-cleared-split
+- `empty-search-is-finding`: Count a search that returned nothing as a result to report, not as work to discard. — adopt → review#empty-search-is-finding
 - `no-fabrication`: Never fabricate citations, data or examples. — adopt → doc:AGENTS.md
 - `multi-model-question-on-wide-change`: For a big or wide change, put the same question to more than one model and merge the answers. — reject
-- `handback-what-it-does`: Say what changed, including the non-obvious part. — adopt, pending cr-r2pa.2.18 → review#handback-what-it-does
-- `handback-safety-fact-with-grade`: State the safety fact, its ladder level and its proof, or mark it unproven. — adopt, pending cr-r2pa.2.18 → review#handback-safety-fact-with-grade
-- `handback-risk-fields`: For each risk give how it breaks, the actual file and line, likelihood and severity, how to check it, and the proof for those that matter. — adopt, pending cr-r2pa.2.18 → review#handback-risk-fields
-- `handback-pre-merge-check`: Give the cheapest test or reproduction able to expose the actual bug, along with any script written. — adopt, pending cr-r2pa.2.18 → review#handback-pre-merge-check
+- `handback-what-it-does`: Say what changed, including the non-obvious part. — adopt → review#handback-what-it-does
+- `handback-safety-fact-with-grade`: State the safety fact, its ladder level and its proof, or mark it unproven. — adopt → review#handback-safety-fact-with-grade
+- `handback-risk-fields`: For each risk give how it breaks, the actual file and line, likelihood and severity, how to check it, and the proof for those that matter. — adopt → review#handback-risk-fields
+- `handback-pre-merge-check`: Give the cheapest test or reproduction able to expose the actual bug, along with any script written. — adopt → review#handback-pre-merge-check
 - `secret-containment`: Keep secrets and private data out of any destination not authorized to hold them. — adopt → doc:AGENTS.md
 
 #### core · Verification · Review — skill:pstack/skills/interrogate
@@ -1467,21 +1532,21 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `next-agent-test`: Prefer a design where an edit that looks right from one file is right everywhere, assuming the next editor sees only the files it opened and copies the nearest example. — reject
 - `mine-and-group-mistakes`: Collect mistakes from recent history, reverts, review remarks, instruction files and workaround comments, and cluster them into classes. — defer
 - `two-occurrence-threshold`: Count a class of mistake only after it has happened at least twice. — defer
-- `fix-at-highest-level`: Try fixes for a repeated mistake in order of architecture, types, lint or CI, tests and finally docs, stopping at the highest level that works. — adopt, pending cr-r2pa.2.18 → authoring-for-agents#fix-at-highest-level
+- `fix-at-highest-level`: Try fixes for a repeated mistake in order of architecture, types, lint or CI, tests and finally docs, stopping at the highest level that works. — adopt → authoring-for-agents#fix-at-highest-level
 - `split-ownership-flag`: Give each piece of state one owner, so that others read it or ask the owner to change it, with no second writer and no copy. — reject
 - `one-way-per-task`: Keep a single way to do a task, moving callers off the others and deleting them in the same change. — reject
 - `unreachable-internals`: Make a module's internals unreachable, so that an import from outside fails the build. — reject
 - `derived-or-checked-lists`: Derive duplicate lists from one, or make the build fail when lists that cannot be derived disagree. — reject
 - `delete-copyable-old-ways`: Remove outdated approaches and dead code an agent might imitate. — reject
 - `unrepresentable-invalid-states`: Shape types so the checker rejects impossible states, defining special cases out of existence instead of handling them. — reject
-- `check-error-names-replacement`: Where wrong code can still compile, add a check whose message points at the specific file, type or function to use. — adopt, pending cr-r2pa.2.18 → authoring-for-agents#check-error-names-replacement
-- `ratchet-on-common-patterns`: When a pattern is already widespread, fail only on changes that add more of it. — adopt, pending cr-r2pa.2.18 → authoring-for-agents#ratchet-on-common-patterns
-- `green-on-break-test-fixed`: Repair or remove a test that stays green when its behaviour breaks. — adopt, pending cr-r2pa.2.18 → principle-test-behavior-not-implementation#green-on-break-test-fixed
+- `check-error-names-replacement`: Where wrong code can still compile, add a check whose message points at the specific file, type or function to use. — adopt → authoring-for-agents#check-error-names-replacement
+- `ratchet-on-common-patterns`: When a pattern is already widespread, fail only on changes that add more of it. — adopt → authoring-for-agents#ratchet-on-common-patterns
+- `green-on-break-test-fixed`: Repair or remove a test that stays green when its behaviour breaks. — adopt → principle-test-behavior-not-implementation#green-on-break-test-fixed
 - `implementation-test-deletion`: When internals change, rewrite or delete tests that only protect the old implementation, asserting the current contract instead. — reject
 - `build-check-over-rule`: Default to building a deterministic check over writing a prose rule for any mechanical finding. — adopt → authoring-for-agents#build-check-over-rule
 - `most-frequent-classes-first`: Fix the classes of mistake that occur most often in this pass. — defer
 - `small-single-purpose-commits`: Keep each commit small and about one thing. — reject
-- `check-proved-on-real-mistake`: Show each new check failing against a mistake that actually occurred. — adopt, pending cr-r2pa.2.18 → authoring-for-agents#check-proved-on-real-mistake
+- `check-proved-on-real-mistake`: Show each new check failing against a mistake that actually occurred. — adopt → authoring-for-agents#check-proved-on-real-mistake
 - `same-command-local-and-ci`: Run the identical command on a developer machine and in CI. — defer
 - `inline-exception-with-reason`: Record an exception to a check on the offending line along with its justification. — defer
 - `expiring-exceptions`: Give every exception to a check an expiry date. — defer
@@ -1500,7 +1565,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 #### core · X · Communication — skill:pstack/skills/bro
 - `repitch-trigger`: When a message did not land, stop and re-pitch it rather than adding more. — adopt → brief-me#repitch-trigger
 - `controlled-language`: Re-pitch in controlled simplified language with short sentences and common words. — adopt → brief-me#controlled-language
-- `jargon-free-restatement`: Drop technical jargon from a restatement, wording it as one person would speak to another. — adopt, pending cr-r2pa.2.18 → brief-me#repitch-explains-project-terms
+- `jargon-free-restatement`: Drop technical jargon from a restatement, wording it as one person would speak to another. — adopt → brief-me#repitch-explains-project-terms
 
 #### core · X · Communication — skill:pstack/skills/unslop
 - `meaning-and-tone-preserved`: Keep the original sense of a text and fit its intended tone when editing it. — adopt → unslop#meaning-preserved-edit
@@ -1719,36 +1784,36 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 
 #### core · U · Tutoring — skill:pstack/skills/teach
 - `inspection-only-authority`: Treat a review or analysis request as authority to inspect and report only, never to change the work. — adopt → doc:AGENTS.md
-- `what-how-why-account`: Cover what a thing is, how it operates and why it has that design. — adopt, pending cr-r2pa.2.18 → teach#what-how-why-account
-- `single-blended-account`: Merge the findings of separate investigations into one continuous explanation, never separate reports. — adopt, pending cr-r2pa.2.18 → teach#single-blended-account
-- `lead-with-what-matters`: Open an explanation on its central point and on what matters most to this reader. — adopt, pending cr-r2pa.2.18 → teach#lead-with-what-matters
-- `confidence-language-kept`: Keep the tier words and hedges that mark uncertainty when editing a finished answer. — adopt, pending cr-r2pa.2.18 → teach#confidence-language-kept
-- `pick-few-takeaways`: Choose a small number of things the person should come away understanding before explaining anything. — adopt, pending cr-r2pa.2.18 → teach#pick-few-takeaways
-- `learner-context-from-conversation`: Work out why the person is asking and what they already know from the conversation, not by questioning them. — adopt, pending cr-r2pa.2.18 → teach#learner-context-from-conversation
-- `depth-where-asked`: Omit what the person evidently already knows and spend the depth on the area they asked about. — adopt, pending cr-r2pa.2.18 → teach#depth-where-asked
-- `orient-then-use-investigation`: Read a body of work only far enough to get oriented, and take the digging from a dedicated investigation rather than redoing it. — adopt, pending cr-r2pa.2.18 → teach#orient-then-use-investigation
+- `what-how-why-account`: Cover what a thing is, how it operates and why it has that design. — adopt → teach#what-how-why-account
+- `single-blended-account`: Merge the findings of separate investigations into one continuous explanation, never separate reports. — adopt → teach#single-blended-account
+- `lead-with-what-matters`: Open an explanation on its central point and on what matters most to this reader. — adopt → teach#lead-with-what-matters
+- `confidence-language-kept`: Keep the tier words and hedges that mark uncertainty when editing a finished answer. — adopt → teach#confidence-language-kept
+- `pick-few-takeaways`: Choose a small number of things the person should come away understanding before explaining anything. — adopt → teach#pick-few-takeaways
+- `learner-context-from-conversation`: Work out why the person is asking and what they already know from the conversation, not by questioning them. — adopt → teach#learner-context-from-conversation
+- `depth-where-asked`: Omit what the person evidently already knows and spend the depth on the area they asked about. — adopt → teach#depth-where-asked
+- `orient-then-use-investigation`: Read a body of work only far enough to get oriented, and take the digging from a dedicated investigation rather than redoing it. — adopt → teach#orient-then-use-investigation
 - `parallel-investigations-combined`: Run the how and why investigations at the same time and merge what they return. — reject
 - `investigation-sized-to-question`: Run both investigations for a subsystem and possibly only one for a small change. — reject
 - `narrow-rationale-search`: Keep a slow rationale search narrow by default through the question it is given, so it records what it skipped, widening only when the reasoning is the point. — reject
-- `plain-definition-first`: Begin by naming the thing and defining it in general terms, using its common name if one exists. — adopt, pending cr-r2pa.2.18 → teach#plain-definition-first
-- `general-tied-to-local-case`: After the general definition, connect it to how this codebase uses the idea. — adopt, pending cr-r2pa.2.18 → teach#general-tied-to-local-case
-- `build-up-order`: Proceed from definition to mechanism, then deeper reasons, then edge cases. — adopt, pending cr-r2pa.2.18 → teach#build-up-order
-- `problem-and-mechanism-per-part`: For each part, explain the problem it addresses and how it actually operates. — adopt, pending cr-r2pa.2.18 → teach#problem-and-mechanism-per-part
-- `walkthrough-of-user-action`: When it helps the idea land, trace what happens step by step as someone performs the action. — adopt, pending cr-r2pa.2.18 → teach#walkthrough-of-user-action
-- `no-symbol-inventory`: Do not substitute a list of functions and constants for an explanation. — adopt, pending cr-r2pa.2.18 → teach#no-symbol-inventory
-- `no-labels-or-step-words`: Print no stock labels announcing the key idea, and never echo a skill's step wording as headers or phrases. — adopt, pending cr-r2pa.2.18 → teach#no-labels-or-step-words
-- `smallest-complete-answer-first`: Give a complete answer of one or two sentences first, then stop, adding layers only when asked and never delivering an unbroken block. — adopt, pending cr-r2pa.2.18 → teach#requested-depth-first-answer
-- `offer-depth-follow-lead`: Invite the person to go deeper or change topic, and let them steer. — adopt, pending cr-r2pa.2.18 → teach#offer-depth-follow-lead
+- `plain-definition-first`: Begin by naming the thing and defining it in general terms, using its common name if one exists. — adopt → teach#plain-definition-first
+- `general-tied-to-local-case`: After the general definition, connect it to how this codebase uses the idea. — adopt → teach#general-tied-to-local-case
+- `build-up-order`: Proceed from definition to mechanism, then deeper reasons, then edge cases. — adopt → teach#build-up-order
+- `problem-and-mechanism-per-part`: For each part, explain the problem it addresses and how it actually operates. — adopt → teach#problem-and-mechanism-per-part
+- `walkthrough-of-user-action`: When it helps the idea land, trace what happens step by step as someone performs the action. — adopt → teach#walkthrough-of-user-action
+- `no-symbol-inventory`: Do not substitute a list of functions and constants for an explanation. — adopt → teach#no-symbol-inventory
+- `no-labels-or-step-words`: Print no stock labels announcing the key idea, and never echo a skill's step wording as headers or phrases. — adopt → teach#no-labels-or-step-words
+- `smallest-complete-answer-first`: Give a complete answer of one or two sentences first, then stop, adding layers only when asked and never delivering an unbroken block. — adopt → teach#requested-depth-first-answer
+- `offer-depth-follow-lead`: Invite the person to go deeper or change topic, and let them steer. — adopt → teach#offer-depth-follow-lead
 - `no-quizzes`: Do not test the person or ask them to repeat the idea back. — reject
-- `no-teaching-theatre`: Do not announce pauses, sentences to master, or that a part is hard or important; state it, and actually stop when a pause is wanted. — adopt, pending cr-r2pa.2.18 → teach#no-teaching-theatre
+- `no-teaching-theatre`: Do not announce pauses, sentences to master, or that a part is hard or important; state it, and actually stop when a pause is wanted. — adopt → teach#no-teaching-theatre
 - `one-shot-delivery-mode`: When the caller asks for full delivery, give the whole explanation in one reply and place any offer of more depth at the end. — defer
-- `show-the-real-artifact`: Bring up the actual diff, source or debugger when that conveys the point most quickly. — adopt, pending cr-r2pa.2.18 → teach#show-the-real-artifact
-- `figure-when-faster`: Add a figure when a picture would land faster than prose, and omit one for a single simple point. — adopt, pending cr-r2pa.2.18 → teach#figure-when-faster
-- `incremental-diagram-series`: For three or more moving parts, draw a sequence in which each figure repeats the last and adds exactly one part, and never rely on one complete figure, of whatever kind. — adopt, pending cr-r2pa.2.18 → teach#incremental-diagram-series
+- `show-the-real-artifact`: Bring up the actual diff, source or debugger when that conveys the point most quickly. — adopt → teach#show-the-real-artifact
+- `figure-when-faster`: Add a figure when a picture would land faster than prose, and omit one for a single simple point. — adopt → teach#figure-when-faster
+- `incremental-diagram-series`: For three or more moving parts, draw a sequence in which each figure repeats the last and adds exactly one part, and never rely on one complete figure, of whatever kind. — adopt → teach#incremental-diagram-series
 - `figure-kind-by-idea`: Choose the figure type by the nature of the idea, using a labelled diagram where the labels carry the meaning. — reject
 - `complementary-figures`: Use more than one kind of figure when each shows something the other cannot. — defer
 - `generated-image-for-spatial-ideas`: For spatial ideas, actually generate a marker-on-whiteboard image with an image tool, with few short labels, instead of describing the picture. — reject
-- `plain-colleague-voice`: Write in plain spoken English as if to a coworker, removing filler and hedging while keeping the piece that makes the idea click. — adopt, pending cr-r2pa.2.18 → teach#plain-colleague-voice
+- `plain-colleague-voice`: Write in plain spoken English as if to a coworker, removing filler and hedging while keeping the piece that makes the idea click. — adopt → teach#plain-colleague-voice
 - `mechanism-not-metaphor`: State the actual mechanism, never a metaphor, framing or preview of what comes next. — reject
 - `density-exemplar`: Supply a worked sample sentence pair that fixes the wanted information density. — reject
 - `sentence-case-prose`: Use normal sentence capitalization in prose. — reject
@@ -1756,8 +1821,8 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `comma-budget`: Favour periods, allow at most two commas per sentence, and break a sentence up when clauses accumulate. — reject
 - `synonym-cycling-cut`: Keep one term for one referent instead of rotating through synonyms. — reject
 - `no-mirror-or-tidy-closer`: Avoid symmetrical constructions and neat concluding lines. — reject
-- `reply-is-the-deliverable`: Return the deliverable itself as the reply, never an account of what was done to produce it. — adopt, pending cr-r2pa.2.18 → teach#reply-is-the-deliverable
-- `threads-to-chase`: Include the lines of inquiry worth pursuing further. — adopt, pending cr-r2pa.2.18 → teach#threads-to-chase
+- `reply-is-the-deliverable`: Return the deliverable itself as the reply, never an account of what was done to produce it. — adopt → teach#reply-is-the-deliverable
+- `threads-to-chase`: Include the lines of inquiry worth pursuing further. — adopt → teach#threads-to-chase
 
 #### engineering · Discovery · Research — skill:pstack/skills/how
 - `stated-scope-reading`: State your reading of an ambiguous target and proceed, so the user can redirect afterward. — adopt → how#immaterial-ambiguity-reading
@@ -2098,15 +2163,15 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `single-narrowing-guard`: Where an ordinary array arrives, narrow it once with a guard so the fact travels in the type. — defer
 - `even-length-as-pairs`: Express an even-length list as an array of two-element tuples. — defer
 - `range-as-start-plus-duration`: Express a time range as a start and a duration in place of two endpoints. — defer
-- `brand-only-on-confusion-risk`: Leave a number unbranded unless a raw number could actually be passed in its place. — adopt, pending cr-r2pa.2.18 → principle-type-system-discipline#brand-only-on-confusion-risk
+- `brand-only-on-confusion-risk`: Leave a number unbranded unless a raw number could actually be passed in its place. — adopt → principle-type-system-discipline#brand-only-on-confusion-risk
 - `readings-over-representation`: Expose other views of the data through helpers or derivations on top of the chosen representation. — defer
-- `simplest-total-type`: Keep a loose type while every operation on it is defined for all inputs, tightening it only where it forces an assertion, a cast or an impossible-case throw. — adopt, pending cr-r2pa.2.18 → principle-type-system-discipline#simplest-total-type
-- `weaken-result-alternative`: Return a possibly absent result as the other way of making a signature total. — adopt, pending cr-r2pa.2.18 → principle-type-system-discipline#weaken-result-alternative
+- `simplest-total-type`: Keep a loose type while every operation on it is defined for all inputs, tightening it only where it forces an assertion, a cast or an impossible-case throw. — adopt → principle-type-system-discipline#simplest-total-type
+- `weaken-result-alternative`: Return a possibly absent result as the other way of making a signature total. — adopt → principle-type-system-discipline#weaken-result-alternative
 - `external-data-is-unknown`: Type all outside data as unknown and never as any. — defer
 - `narrow-before-use`: Narrow unknown values before accessing them so the compiler checks the access. — defer
 - `external-source-enumeration`: Count remote payloads, parsed text, posted messages, process messages, file contents, environment variables and database results as external. — defer
 - `check-for-schema-library-first`: Before hand-writing a field-by-field guard, find out which runtime schema library the repository uses and which schemas already exist. — defer
-- `one-schema-validates-and-types`: Let one schema own validation and infer the static type from it, never keeping a schema, a parallel type and a guard that can disagree. — adopt, pending cr-r2pa.2.18 → principle-type-system-discipline#one-schema-validates-and-types
+- `one-schema-validates-and-types`: Let one schema own validation and infer the static type from it, never keeping a schema, a parallel type and a guard that can disagree. — adopt → principle-type-system-discipline#one-schema-validates-and-types
 - `safe-parse-for-expected-failure`: Use the non-throwing parse variant when failure is an ordinary branch. — defer
 - `repo-schema-helper-equivalent`: Use the matching inference helper when the repository has a different schema library. — defer
 - `no-new-schema-dependency-for-one-guard`: Do not add a schema dependency for the sake of a single guard. — defer
@@ -2119,7 +2184,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `cast-fix-parse-boundary`: When a cast sits at an untyped boundary, parse with the schema responsible for that shape, adding one only where none exists. — defer
 - `cast-fix-brand-or-satisfies`: When a type truly cannot be expressed, use a brand or a checking operator in place of a cast. — defer
 - `narrowing-preference-order`: Prefer discriminant checks, then property-presence checks, then runtime type checks, then a user-defined guard, with a cast last and only after validation. — defer
-- `guards-must-verify`: Require a type guard to really prove what it asserts, treating a false guard as worse than a cast. — adopt, pending cr-r2pa.2.18 → principle-type-system-discipline#guards-must-verify
+- `guards-must-verify`: Require a type guard to really prove what it asserts, treating a false guard as worse than a cast. — adopt → principle-type-system-discipline#guards-must-verify
 - `guard-naming-convention`: Name guards with an is or has prefix. — defer
 - `discriminant-over-guard`: Use discriminant narrowing instead of a guard when it is available. — defer
 - `exhaustive-variant-handling`: Handle every variant of a closed type so the checker reports a variant left unhandled. — adopt → principle-type-system-discipline#exhaustive-variant-handling
@@ -2153,20 +2218,20 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 
 #### engineering · Verification · Testing — skill:pstack/skills/tdd
 - `red-green`: Make one test fail before implementing the change that makes it pass. — adopt → tdd#red-green
-- `test-skipped-when-impractical`: Add no new test when it would demand wide harness setup, fragile mocks, slow full-stack infrastructure, production-only state, unclear reproduction or heavy unrelated fixtures, and never build a test path from nothing just to follow the workflow. — adopt, pending cr-r2pa.2.18 → tdd#optional-regression-test-skip
+- `test-skipped-when-impractical`: Add no new test when it would demand wide harness setup, fragile mocks, slow full-stack infrastructure, production-only state, unclear reproduction or heavy unrelated fixtures, and never build a test path from nothing just to follow the workflow. — adopt → tdd#optional-regression-test-skip
 - `bug-understanding-checklist`: Identify intended behaviour, current behaviour, the affected path and the smallest observable reproduction. — reject
-- `closest-existing-test-kind`: Prefer the kind of test already used for that codepath. — adopt, pending cr-r2pa.2.18 → tdd#closest-existing-test-kind
+- `closest-existing-test-kind`: Prefer the kind of test already used for that codepath. — adopt → tdd#closest-existing-test-kind
 - `no-implementation-coupling`: Avoid tests coupled to the implementation's internal structure, so they survive behaviour-preserving refactors. — adopt → tdd#no-implementation-coupling
-- `failure-for-the-right-reason`: Run a new test before fixing and, if it passes or fails for another reason, correct the test or reproduction first. — adopt, pending cr-r2pa.2.18 → tdd#failure-for-the-right-reason
+- `failure-for-the-right-reason`: Run a new test before fixing and, if it passes or fails for another reason, correct the test or reproduction first. — adopt → tdd#failure-for-the-right-reason
 - `contract-preserving-fix`: Make the smallest production change that gives the intended behaviour and preserves neighbouring contracts. — reject
-- `closest-executable-fallback`: When a failing test is impractical, substitute a targeted script, reproduction command, browser automation, snapshot diff, log assertion or narrow integration check. — adopt, pending cr-r2pa.2.18 → tdd#closest-executable-fallback
-- `no-test-over-bad-test`: Prefer adding nothing to a test that mostly exercises mocks, encodes internals, depends on timing or global state, needs costly infrastructure for a minor fix, or would be discarded right after. — adopt, pending cr-r2pa.2.18 → tdd#no-test-over-bad-test
-- `no-tests-bent-or-weakened`: Do not change tests to agree with wrong behaviour, and keep existing assertions as strong unless expected behaviour truly changed for a clear reason. — adopt, pending cr-r2pa.2.18 → tdd#no-tests-bent-or-weakened
-- `focused-regression-test`: Write the smallest test focused on this bug, without broad fixture changes or added unrelated coverage. — adopt, pending cr-r2pa.2.18 → tdd#focused-regression-test
-- `flaky-test-names-its-signal`: For a flaky bug, remove nondeterminism from the test as far as possible and document which signal it pins. — adopt, pending cr-r2pa.2.18 → tdd#flaky-test-names-its-signal
-- `focused-first-then-siblings`: When a bug reveals a wider failure class, land the focused regression first and only then consider related coverage. — adopt, pending cr-r2pa.2.18 → tdd#focused-first-then-siblings
-- `before-after-proof-report`: Name the check that failed before the fix with its failure, and the passing run after the fix with any nearby validation. — adopt, pending cr-r2pa.2.18 → tdd#before-after-proof-report
-- `missing-red-explained`: If a failure before the fix could not be shown, say why and describe the substitute check. — adopt, pending cr-r2pa.2.18 → tdd#missing-red-explained
+- `closest-executable-fallback`: When a failing test is impractical, substitute a targeted script, reproduction command, browser automation, snapshot diff, log assertion or narrow integration check. — adopt → tdd#closest-executable-fallback
+- `no-test-over-bad-test`: Prefer adding nothing to a test that mostly exercises mocks, encodes internals, depends on timing or global state, needs costly infrastructure for a minor fix, or would be discarded right after. — adopt → tdd#no-test-over-bad-test
+- `no-tests-bent-or-weakened`: Do not change tests to agree with wrong behaviour, and keep existing assertions as strong unless expected behaviour truly changed for a clear reason. — adopt → tdd#no-tests-bent-or-weakened
+- `focused-regression-test`: Write the smallest test focused on this bug, without broad fixture changes or added unrelated coverage. — adopt → tdd#focused-regression-test
+- `flaky-test-names-its-signal`: For a flaky bug, remove nondeterminism from the test as far as possible and document which signal it pins. — adopt → tdd#flaky-test-names-its-signal
+- `focused-first-then-siblings`: When a bug reveals a wider failure class, land the focused regression first and only then consider related coverage. — adopt → tdd#focused-first-then-siblings
+- `before-after-proof-report`: Name the check that failed before the fix with its failure, and the passing run after the fix with any nearby validation. — adopt → tdd#before-after-proof-report
+- `missing-red-explained`: If a failure before the fix could not be shown, say why and describe the substitute check. — adopt → tdd#missing-red-explained
 
 ### mattpocock_skills
 
@@ -3761,11 +3826,13 @@ Assign adversaries to try to break a change or design rather than assess it in g
 
 #### `breakage-beyond-callers`
 Spend the effort on breakage text search cannot reveal, not on listing callers.
-- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt, pending cr-r2pa.2.18 → review#breakage-beyond-callers
+- ours: `review`
+- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt → review#breakage-beyond-callers
 
 #### `change-history-pull`
 Retrieve the related pull request and commits while reading a change.
-- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt, pending cr-r2pa.2.18 → review#change-history-pull
+- ours: `review`
+- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt → review#change-history-pull
 
 #### `cheapest-enforcement-offer`
 For other constraint comments, propose the least costly enforcement available in scope, whether a type, runtime check, test or CI lint.
@@ -3791,7 +3858,8 @@ Report the comments deleted, those restored on proof, those kept and flagged, th
 
 #### `confirmed-and-cleared-split`
 Keep confirmed risks apart from those checked and cleared, saying why each cleared one is fine.
-- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt, pending cr-r2pa.2.18 → review#confirmed-and-cleared-split
+- ours: `review`
+- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt → review#confirmed-and-cleared-split
 
 #### `coordinator-replays-finding`
 Have the coordinator verify each finding by running its command again.
@@ -3808,7 +3876,8 @@ Give weight to a critic's fresh perspective over the caller's own attachment.
 
 #### `dependency-source-and-pin`
 Read the called library's source and confirm its pinned version and whether it is locally patched.
-- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt, pending cr-r2pa.2.18 → review#dependency-source-and-pin
+- ours: `review`
+- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt → review#dependency-source-and-pin
 
 #### `design-proof-by-probe`
 For a design or plan, prove a finding by running a prototype or probing the current tree.
@@ -3842,7 +3911,8 @@ Report for each adversary how many findings were dropped and why.
 
 #### `empty-search-is-finding`
 Count a search that returned nothing as a result to report, not as work to discard.
-- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt, pending cr-r2pa.2.18 → review#empty-search-is-finding
+- ours: `review`
+- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt → review#empty-search-is-finding
 - `cursor_plugins:skill:pstack/skills/recall` — adopt, pending cr-r2pa.2.18 → recall#empty-search-is-finding
 
 #### `encode-then-delete`
@@ -3855,7 +3925,8 @@ Apply an encoding only with approval, through the route the caller names or give
 
 #### `evidence-ladder`
 Grade each safety-bearing fact as asserted, cited to a line, failure walked through, executed in a script or test, or reproduced in the running product.
-- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt, pending cr-r2pa.2.18 → review#evidence-ladder
+- ours: `review`
+- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt → review#evidence-ladder
 
 #### `evidence-pointer-review`
 Give a trail's critic the trail and the evidence each row points at, or the trail and a verified workspace-scoped record when one is named.
@@ -3863,7 +3934,8 @@ Give a trail's critic the trail and the evidence each row points at, or the trai
 
 #### `failing-loud-proof`
 Make a proof script or test fail noisily if the claim is wrong.
-- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt, pending cr-r2pa.2.18 → review#failing-loud-proof
+- ours: `review`
+- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt → review#failing-loud-proof
 
 #### `finding-adjudication`
 Verify each incoming review finding against requirements, code and primary evidence before acting, and give each a visible disposition: fix a confirmed in-scope defect, answer an incorrect one with a retained ruling, record an out-of-scope follow-up.
@@ -3885,19 +3957,23 @@ Spawn each adversary as the general-purpose subagent type.
 
 #### `handback-pre-merge-check`
 Give the cheapest test or reproduction able to expose the actual bug, along with any script written.
-- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt, pending cr-r2pa.2.18 → review#handback-pre-merge-check
+- ours: `review`
+- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt → review#handback-pre-merge-check
 
 #### `handback-risk-fields`
 For each risk give how it breaks, the actual file and line, likelihood and severity, how to check it, and the proof for those that matter.
-- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt, pending cr-r2pa.2.18 → review#handback-risk-fields
+- ours: `review`
+- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt → review#handback-risk-fields
 
 #### `handback-safety-fact-with-grade`
 State the safety fact, its ladder level and its proof, or mark it unproven.
-- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt, pending cr-r2pa.2.18 → review#handback-safety-fact-with-grade
+- ours: `review`
+- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt → review#handback-safety-fact-with-grade
 
 #### `handback-what-it-does`
 Say what changed, including the non-obvious part.
-- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt, pending cr-r2pa.2.18 → review#handback-what-it-does
+- ours: `review`
+- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt → review#handback-what-it-does
 
 #### `independent-critic-verdict`
 A reviewer who did not author the work gives evidence-backed findings and a verdict, approving only what was verified and listing the rest as unverified.
@@ -3922,11 +3998,13 @@ Refuse flags that treat intentionally retained code as being at fault.
 
 #### `ladder-as-far-as-cheap`
 Take each fact as far up the evidence ladder as is cheap and state where it stopped.
-- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt, pending cr-r2pa.2.18 → review#ladder-as-far-as-cheap
+- ours: `review`
+- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt → review#ladder-as-far-as-cheap
 
 #### `likelihood-and-cost-per-risk`
 Give each risk an honest probability and an honest cost.
-- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt, pending cr-r2pa.2.18 → review#likelihood-and-cost-per-risk
+- ours: `review`
+- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt → review#likelihood-and-cost-per-risk
 
 #### `material-risk-review`
 Route an artifact or change with material risk or a broad blast radius through an independent critic review before it is accepted.
@@ -3992,7 +4070,8 @@ Never add a guard that merely masks a symptom.
 
 #### `non-symbol-coupling-trace`
 Follow links symbol search misses: returned data shapes, database columns, wire formats, another language reading the same bytes, feature flags and code several hops away.
-- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt, pending cr-r2pa.2.18 → review#non-symbol-coupling-trace
+- ours: `review`
+- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt → review#non-symbol-coupling-trace
 
 #### `one-message-fan-out`
 Launch every candidate or adversary in one message as background subagents.
@@ -4074,7 +4153,8 @@ Let a finding stand only when a run executed in the review shows it, so a claim 
 
 #### `safety-fact-proved-by-run`
 Treat a convincing writeup as worthless by itself, and prove the fact a change's safety rests on by running real code and including what happened.
-- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt, pending cr-r2pa.2.18 → review#safety-fact-proved-by-run
+- ours: `review`
+- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt → review#safety-fact-proved-by-run
 
 #### `same-family-or-unreviewed`
 Have a critic from another model family review the trail before hand-back, one of the same family only with the owner's approval, and otherwise report it not reviewed, never reviewing your own run.
@@ -4090,11 +4170,13 @@ Rate each finding by consequence and approve only with no open blocker or major,
 
 #### `single-safety-fact-search`
 Find the one fact that makes a change safe and clears most risky cases, and spend the time there, not on a long list of possibilities.
-- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt, pending cr-r2pa.2.18 → review#single-safety-fact-search
+- ours: `review`
+- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt → review#single-safety-fact-search
 
 #### `small-real-library-script`
 Normally reach the executed level with one short script that imports the library shipped with the product and calls exactly the function at issue.
-- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt, pending cr-r2pa.2.18 → review#small-real-library-script
+- ours: `review`
+- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt → review#small-real-library-script
 
 #### `smallest-in-scope-root-cause-fix`
 Implement the smallest in-scope fix for the underlying cause, and when the cause lies beyond scope land that fix and list the rest as open.
@@ -4121,7 +4203,8 @@ Report results as verified, not verified or inconclusive, with inconclusive neve
 
 #### `timing-and-lifecycle-analysis`
 Work out when things execute, including deferred callbacks, teardown and framework differences.
-- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt, pending cr-r2pa.2.18 → review#timing-and-lifecycle-analysis
+- ours: `review`
+- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt → review#timing-and-lifecycle-analysis
 
 #### `too-easy-pass-suspicion`
 When something passes too easily, question the observation method before crediting the system.
@@ -4166,7 +4249,8 @@ Give each adversary and each replay a disposable copy made from one pristine sna
 
 #### `whole-change-including-unstated`
 Go through the diff, the symbols added, changed and deleted, and the behaviour change the diff does not spell out.
-- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt, pending cr-r2pa.2.18 → review#whole-change-including-unstated
+- ours: `review`
+- `cursor_plugins:skill:pstack/skills/blast-radius` — adopt → review#whole-change-including-unstated
 
 #### `whole-result-on-real-product`
 Check the finished whole against the opening predicate on the real product, beyond the harness.
@@ -4332,7 +4416,8 @@ Install the tracker, adopt it in a project, and join from a new clone with boots
 
 #### `check-error-names-replacement`
 Where wrong code can still compile, add a check whose message points at the specific file, type or function to use.
-- `cursor_plugins:skill:pstack/skills/correct` — adopt, pending cr-r2pa.2.18 → authoring-for-agents#check-error-names-replacement
+- ours: `authoring-for-agents`
+- `cursor_plugins:skill:pstack/skills/correct` — adopt → authoring-for-agents#check-error-names-replacement
 
 #### `check-pointer-not-restatement`
 Once a check enforces a rule, replace the instruction that restated it with a pointer to the check.
@@ -4340,7 +4425,8 @@ Once a check enforces a rule, replace the instruction that restated it with a po
 
 #### `check-proved-on-real-mistake`
 Show each new check failing against a mistake that actually occurred.
-- `cursor_plugins:skill:pstack/skills/correct` — adopt, pending cr-r2pa.2.18 → authoring-for-agents#check-proved-on-real-mistake
+- ours: `authoring-for-agents`
+- `cursor_plugins:skill:pstack/skills/correct` — adopt → authoring-for-agents#check-proved-on-real-mistake
 
 #### `class-evidence-level-report`
 Report for every class of mistake the supporting evidence, the chosen level and why no higher level worked.
@@ -4459,7 +4545,8 @@ Put reference shared by user-invoked skills in a plain external file rather than
 
 #### `fix-at-highest-level`
 Try fixes for a repeated mistake in order of architecture, types, lint or CI, tests and finally docs, stopping at the highest level that works.
-- `cursor_plugins:skill:pstack/skills/correct` — adopt, pending cr-r2pa.2.18 → authoring-for-agents#fix-at-highest-level
+- ours: `authoring-for-agents`
+- `cursor_plugins:skill:pstack/skills/correct` — adopt → authoring-for-agents#fix-at-highest-level
 
 #### `hook-conversion`
 Copy hooks and rewrite hook registrations into the target format, flagging that fixtures must validate before enforcement is trusted.
@@ -4584,7 +4671,8 @@ Match prescription to fragility: exact recipes for deterministic operations, jud
 
 #### `ratchet-on-common-patterns`
 When a pattern is already widespread, fail only on changes that add more of it.
-- `cursor_plugins:skill:pstack/skills/correct` — adopt, pending cr-r2pa.2.18 → authoring-for-agents#ratchet-on-common-patterns
+- ours: `authoring-for-agents`
+- `cursor_plugins:skill:pstack/skills/correct` — adopt → authoring-for-agents#ratchet-on-common-patterns
 
 #### `record-command`
 Append a curation decision with the registry record command carrying its kind, subject, reason and evidence.
@@ -4959,8 +5047,9 @@ Give estimates in concrete units as agent execution plus review time rather than
 
 #### `confidence-language-kept`
 Keep the tier words and hedges that mark uncertainty when editing a finished answer.
+- ours: `teach`
 - ours: `unslop`
-- `cursor_plugins:skill:pstack/skills/teach` — adopt, pending cr-r2pa.2.18 → teach#confidence-language-kept
+- `cursor_plugins:skill:pstack/skills/teach` — adopt → teach#confidence-language-kept
 - `cursor_plugins:skill:pstack/skills/why` — adopt → unslop#confidence-language-kept
 
 #### `controlled-language`
@@ -5062,7 +5151,7 @@ Turn bullets whose bold label merely restates the line into prose, keeping a per
 
 #### `jargon-free-restatement`
 Drop technical jargon from a restatement, wording it as one person would speak to another.
-- `cursor_plugins:skill:pstack/skills/bro` — adopt, pending cr-r2pa.2.18 → brief-me#repitch-explains-project-terms
+- `cursor_plugins:skill:pstack/skills/bro` — adopt → brief-me#repitch-explains-project-terms
 
 #### `limitation-with-revisit`
 Document material limitations together with the conditions under which to revisit them.
@@ -5212,6 +5301,7 @@ Redraw a diagram that needs a paragraph to be understood rather than explaining 
 
 #### `repitch-explains-project-terms`
 Drop technical jargon from a re-pitch, keeping a project term only with a plain explanation of it.
+- ours: `brief-me`
 
 #### `repitch-trigger`
 When a message did not land, stop and re-pitch it rather than adding more.
@@ -5221,8 +5311,9 @@ When a message did not land, stop and re-pitch it rather than adding more.
 
 #### `reply-is-the-deliverable`
 Return the deliverable itself as the reply, never an account of what was done to produce it.
+- ours: `teach`
 - `cursor_plugins:skill:pstack/skills/recall` — adopt, pending cr-r2pa.2.18 → recall#reply-is-the-deliverable
-- `cursor_plugins:skill:pstack/skills/teach` — adopt, pending cr-r2pa.2.18 → teach#reply-is-the-deliverable
+- `cursor_plugins:skill:pstack/skills/teach` — adopt → teach#reply-is-the-deliverable
 
 #### `report-header-legend`
 Open a visual report with a header of repository name, date and a visual legend, and no intro paragraph.
@@ -6888,7 +6979,8 @@ Open a course workspace only for an explicitly requested ongoing course, in an a
 
 #### `build-up-order`
 Proceed from definition to mechanism, then deeper reasons, then edge cases.
-- `cursor_plugins:skill:pstack/skills/teach` — adopt, pending cr-r2pa.2.18 → teach#build-up-order
+- ours: `teach`
+- `cursor_plugins:skill:pstack/skills/teach` — adopt → teach#build-up-order
 
 #### `community-opt-out`
 Respect the learner's choice not to join communities and record it.
@@ -6910,7 +7002,8 @@ Supply a worked sample sentence pair that fixes the wanted information density.
 
 #### `depth-where-asked`
 Omit what the person evidently already knows and spend the depth on the area they asked about.
-- `cursor_plugins:skill:pstack/skills/teach` — adopt, pending cr-r2pa.2.18 → teach#depth-where-asked
+- ours: `teach`
+- `cursor_plugins:skill:pstack/skills/teach` — adopt → teach#depth-where-asked
 
 #### `difficulty-by-kind`
 Minimise difficulty when conveying knowledge but make retrieval effortful when building skills.
@@ -6927,7 +7020,8 @@ Choose the figure type by the nature of the idea, using a labelled diagram where
 
 #### `figure-when-faster`
 Add a figure when a picture would land faster than prose, and omit one for a single simple point.
-- `cursor_plugins:skill:pstack/skills/teach` — adopt, pending cr-r2pa.2.18 → teach#figure-when-faster
+- ours: `teach`
+- `cursor_plugins:skill:pstack/skills/teach` — adopt → teach#figure-when-faster
 
 #### `follow-up-prompt`
 Remind the learner in each lesson to ask follow-up questions.
@@ -6935,7 +7029,8 @@ Remind the learner in each lesson to ask follow-up questions.
 
 #### `general-tied-to-local-case`
 After the general definition, connect it to how this codebase uses the idea.
-- `cursor_plugins:skill:pstack/skills/teach` — adopt, pending cr-r2pa.2.18 → teach#general-tied-to-local-case
+- ours: `teach`
+- `cursor_plugins:skill:pstack/skills/teach` — adopt → teach#general-tied-to-local-case
 
 #### `generated-image-for-spatial-ideas`
 For spatial ideas, actually generate a marker-on-whiteboard image with an image tool, with few short labels, instead of describing the picture.
@@ -6962,7 +7057,8 @@ Revise glossary definitions in place as understanding deepens.
 
 #### `incremental-diagram-series`
 For three or more moving parts, draw a sequence in which each figure repeats the last and adds exactly one part, and never rely on one complete figure, of whatever kind.
-- `cursor_plugins:skill:pstack/skills/teach` — adopt, pending cr-r2pa.2.18 → teach#incremental-diagram-series
+- ours: `teach`
+- `cursor_plugins:skill:pstack/skills/teach` — adopt → teach#incremental-diagram-series
 
 #### `interleaving`
 Interleave different but related topics in practice.
@@ -6982,11 +7078,13 @@ Frame learning as knowledge from trusted sources, skills from interactive lesson
 
 #### `lead-with-what-matters`
 Open an explanation on its central point and on what matters most to this reader.
-- `cursor_plugins:skill:pstack/skills/teach` — adopt, pending cr-r2pa.2.18 → teach#lead-with-what-matters
+- ours: `teach`
+- `cursor_plugins:skill:pstack/skills/teach` — adopt → teach#lead-with-what-matters
 
 #### `learner-context-from-conversation`
 Work out why the person is asking and what they already know from the conversation, not by questioning them.
-- `cursor_plugins:skill:pstack/skills/teach` — adopt, pending cr-r2pa.2.18 → teach#learner-context-from-conversation
+- ours: `teach`
+- `cursor_plugins:skill:pstack/skills/teach` — adopt → teach#learner-context-from-conversation
 
 #### `learning-record-criteria`
 Write a learning record only for demonstrated understanding, disclosed prior knowledge, a corrected misconception or a mission shift, never for coverage, glossary duplicates or activity logs.
@@ -7056,7 +7154,8 @@ Keep a slow rationale search narrow by default through the question it is given,
 
 #### `no-labels-or-step-words`
 Print no stock labels announcing the key idea, and never echo a skill's step wording as headers or phrases.
-- `cursor_plugins:skill:pstack/skills/teach` — adopt, pending cr-r2pa.2.18 → teach#no-labels-or-step-words
+- ours: `teach`
+- `cursor_plugins:skill:pstack/skills/teach` — adopt → teach#no-labels-or-step-words
 
 #### `no-quizzes`
 Do not test the person or ask them to repeat the idea back.
@@ -7064,15 +7163,18 @@ Do not test the person or ask them to repeat the idea back.
 
 #### `no-symbol-inventory`
 Do not substitute a list of functions and constants for an explanation.
-- `cursor_plugins:skill:pstack/skills/teach` — adopt, pending cr-r2pa.2.18 → teach#no-symbol-inventory
+- ours: `teach`
+- `cursor_plugins:skill:pstack/skills/teach` — adopt → teach#no-symbol-inventory
 
 #### `no-teaching-theatre`
 Do not announce pauses, sentences to master, or that a part is hard or important; state it, and actually stop when a pause is wanted.
-- `cursor_plugins:skill:pstack/skills/teach` — adopt, pending cr-r2pa.2.18 → teach#no-teaching-theatre
+- ours: `teach`
+- `cursor_plugins:skill:pstack/skills/teach` — adopt → teach#no-teaching-theatre
 
 #### `offer-depth-follow-lead`
 Invite the person to go deeper or change topic, and let them steer.
-- `cursor_plugins:skill:pstack/skills/teach` — adopt, pending cr-r2pa.2.18 → teach#offer-depth-follow-lead
+- ours: `teach`
+- `cursor_plugins:skill:pstack/skills/teach` — adopt → teach#offer-depth-follow-lead
 
 #### `one-mission-per-workspace`
 Keep exactly one mission per learning workspace.
@@ -7090,7 +7192,8 @@ When the caller asks for full delivery, give the whole explanation in one reply 
 
 #### `orient-then-use-investigation`
 Read a body of work only far enough to get oriented, and take the digging from a dedicated investigation rather than redoing it.
-- `cursor_plugins:skill:pstack/skills/teach` — adopt, pending cr-r2pa.2.18 → teach#orient-then-use-investigation
+- ours: `teach`
+- `cursor_plugins:skill:pstack/skills/teach` — adopt → teach#orient-then-use-investigation
 
 #### `parallel-investigations-combined`
 Run the how and why investigations at the same time and merge what they return.
@@ -7098,15 +7201,18 @@ Run the how and why investigations at the same time and merge what they return.
 
 #### `pick-few-takeaways`
 Choose a small number of things the person should come away understanding before explaining anything.
-- `cursor_plugins:skill:pstack/skills/teach` — adopt, pending cr-r2pa.2.18 → teach#pick-few-takeaways
+- ours: `teach`
+- `cursor_plugins:skill:pstack/skills/teach` — adopt → teach#pick-few-takeaways
 
 #### `plain-colleague-voice`
 Write in plain spoken English as if to a coworker, removing filler and hedging while keeping the piece that makes the idea click.
-- `cursor_plugins:skill:pstack/skills/teach` — adopt, pending cr-r2pa.2.18 → teach#plain-colleague-voice
+- ours: `teach`
+- `cursor_plugins:skill:pstack/skills/teach` — adopt → teach#plain-colleague-voice
 
 #### `plain-definition-first`
 Begin by naming the thing and defining it in general terms, using its common name if one exists.
-- `cursor_plugins:skill:pstack/skills/teach` — adopt, pending cr-r2pa.2.18 → teach#plain-definition-first
+- ours: `teach`
+- `cursor_plugins:skill:pstack/skills/teach` — adopt → teach#plain-definition-first
 
 #### `polished-lesson-typography`
 Make lessons visually polished with clean typography so they serve later review.
@@ -7118,7 +7224,8 @@ Record the learner's stated teaching preferences in a notes file to steer future
 
 #### `problem-and-mechanism-per-part`
 For each part, explain the problem it addresses and how it actually operates.
-- `cursor_plugins:skill:pstack/skills/teach` — adopt, pending cr-r2pa.2.18 → teach#problem-and-mechanism-per-part
+- ours: `teach`
+- `cursor_plugins:skill:pstack/skills/teach` — adopt → teach#problem-and-mechanism-per-part
 
 #### `proximal-next-lesson`
 When the learner names no target, choose the next lesson from the learning records and mission so it challenges them just enough.
@@ -7143,6 +7250,7 @@ Build durable quick-reference documents that outlive the lessons that spawned th
 
 #### `requested-depth-first-answer`
 In conversation, give a short complete answer first and stop, and give a requested walkthrough, lesson or full account whole in one reply.
+- ours: `teach`
 
 #### `resource-gap-register`
 List the areas the learning goal needs but no good resource covers in a gaps section of the resources file.
@@ -7176,11 +7284,13 @@ Write each new reusable lesson piece as a shared component and link to it, never
 
 #### `show-the-real-artifact`
 Bring up the actual diff, source or debugger when that conveys the point most quickly.
-- `cursor_plugins:skill:pstack/skills/teach` — adopt, pending cr-r2pa.2.18 → teach#show-the-real-artifact
+- ours: `teach`
+- `cursor_plugins:skill:pstack/skills/teach` — adopt → teach#show-the-real-artifact
 
 #### `single-blended-account`
 Merge the findings of separate investigations into one continuous explanation, never separate reports.
-- `cursor_plugins:skill:pstack/skills/teach` — adopt, pending cr-r2pa.2.18 → teach#single-blended-account
+- ours: `teach`
+- `cursor_plugins:skill:pstack/skills/teach` — adopt → teach#single-blended-account
 
 #### `skill-practice-forms`
 Teach skills through quizzes, in-browser tasks or guided real-world step lists.
@@ -7192,7 +7302,7 @@ Interleave related topics only when practising skills, not when conveying knowle
 
 #### `smallest-complete-answer-first`
 Give a complete answer of one or two sentences first, then stop, adding layers only when asked and never delivering an unbroken block.
-- `cursor_plugins:skill:pstack/skills/teach` — adopt, pending cr-r2pa.2.18 → teach#requested-depth-first-answer
+- `cursor_plugins:skill:pstack/skills/teach` — adopt → teach#requested-depth-first-answer
 
 #### `sourced-explanations`
 Draw explanations from trusted, cited sources and check unfamiliar or changing facts rather than relying on unverified recall.
@@ -7216,7 +7326,8 @@ Keep a multi-session course's state (mission, resources, learning records, gloss
 
 #### `threads-to-chase`
 Include the lines of inquiry worth pursuing further.
-- `cursor_plugins:skill:pstack/skills/teach` — adopt, pending cr-r2pa.2.18 → teach#threads-to-chase
+- ours: `teach`
+- `cursor_plugins:skill:pstack/skills/teach` — adopt → teach#threads-to-chase
 
 #### `tight-feedback-loop`
 Teach skills through an interactive feedback loop that is as tight and immediate, ideally automatic, as possible.
@@ -7233,11 +7344,13 @@ Vary which position holds the correct answer across questions so order gives not
 
 #### `walkthrough-of-user-action`
 When it helps the idea land, trace what happens step by step as someone performs the action.
-- `cursor_plugins:skill:pstack/skills/teach` — adopt, pending cr-r2pa.2.18 → teach#walkthrough-of-user-action
+- ours: `teach`
+- `cursor_plugins:skill:pstack/skills/teach` — adopt → teach#walkthrough-of-user-action
 
 #### `what-how-why-account`
 Cover what a thing is, how it operates and why it has that design.
-- `cursor_plugins:skill:pstack/skills/teach` — adopt, pending cr-r2pa.2.18 → teach#what-how-why-account
+- ours: `teach`
+- `cursor_plugins:skill:pstack/skills/teach` — adopt → teach#what-how-why-account
 
 #### `what-vs-why`
 Separate what happened from why it was chosen when explaining.
@@ -9939,7 +10052,8 @@ Bound the retries of external I/O calls.
 
 #### `brand-only-on-confusion-risk`
 Leave a number unbranded unless a raw number could actually be passed in its place.
-- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — adopt, pending cr-r2pa.2.18 → principle-type-system-discipline#brand-only-on-confusion-risk
+- ours: `principle-type-system-discipline`
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — adopt → principle-type-system-discipline#brand-only-on-confusion-risk
 
 #### `brand-only-through-verifying-guard`
 Obtain a brand only from a type guard that truly checks the value, never from a cast.
@@ -10145,7 +10259,8 @@ Name guards with an is or has prefix.
 
 #### `guards-must-verify`
 Require a type guard to really prove what it asserts, treating a false guard as worse than a cast.
-- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — adopt, pending cr-r2pa.2.18 → principle-type-system-discipline#guards-must-verify
+- ours: `principle-type-system-discipline`
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — adopt → principle-type-system-discipline#guards-must-verify
 
 #### `hot-path-positional-exception`
 Skip object arguments on per-frame rendering, tokenizers, parsers and other tight loops where allocation matters.
@@ -10311,7 +10426,8 @@ Settle on a single tag field name and use it consistently.
 
 #### `one-schema-validates-and-types`
 Let one schema own validation and infer the static type from it, never keeping a schema, a parallel type and a guard that can disagree.
-- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — adopt, pending cr-r2pa.2.18 → principle-type-system-discipline#one-schema-validates-and-types
+- ours: `principle-type-system-discipline`
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — adopt → principle-type-system-discipline#one-schema-validates-and-types
 
 #### `one-test-per-cycle`
 Alternate one test and its implementation at a time instead of writing all tests before any implementation.
@@ -10505,7 +10621,8 @@ Port a fix to shared code to every consumer and verify each one.
 
 #### `simplest-total-type`
 Keep a loose type while every operation on it is defined for all inputs, tightening it only where it forces an assertion, a cast or an impossible-case throw.
-- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — adopt, pending cr-r2pa.2.18 → principle-type-system-discipline#simplest-total-type
+- ours: `principle-type-system-discipline`
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — adopt → principle-type-system-discipline#simplest-total-type
 
 #### `single-narrowing-guard`
 Where an ordinary array arrives, narrow it once with a guard so the fact travels in the type.
@@ -10649,7 +10766,8 @@ Split multi-step work into small units that each end in a checked state, and sta
 
 #### `weaken-result-alternative`
 Return a possibly absent result as the other way of making a signature total.
-- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — adopt, pending cr-r2pa.2.18 → principle-type-system-discipline#weaken-result-alternative
+- ours: `principle-type-system-discipline`
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — adopt → principle-type-system-discipline#weaken-result-alternative
 
 #### `wire-parse-ignores-unknown-fields`
 Parse wire formats with unknown fields ignored so forward-compatible changes do not break old clients.
@@ -10891,7 +11009,8 @@ Before the first change of multi-step work, run its checks on the starting base 
 
 #### `before-after-proof-report`
 Name the check that failed before the fix with its failure, and the passing run after the fix with any nearby validation.
-- `cursor_plugins:skill:pstack/skills/tdd` — adopt, pending cr-r2pa.2.18 → tdd#before-after-proof-report
+- ours: `tdd`
+- `cursor_plugins:skill:pstack/skills/tdd` — adopt → tdd#before-after-proof-report
 
 #### `behaviour-and-edge-case-tests`
 Judge tests by the behaviours and edge cases they exercise, not by line coverage.
@@ -10921,11 +11040,13 @@ Select the checks to run from a table keyed by the kind of material changed, cla
 
 #### `closest-executable-fallback`
 When a failing test is impractical, substitute a targeted script, reproduction command, browser automation, snapshot diff, log assertion or narrow integration check.
-- `cursor_plugins:skill:pstack/skills/tdd` — adopt, pending cr-r2pa.2.18 → tdd#closest-executable-fallback
+- ours: `tdd`
+- `cursor_plugins:skill:pstack/skills/tdd` — adopt → tdd#closest-executable-fallback
 
 #### `closest-existing-test-kind`
 Prefer the kind of test already used for that codepath.
-- `cursor_plugins:skill:pstack/skills/tdd` — adopt, pending cr-r2pa.2.18 → tdd#closest-existing-test-kind
+- ours: `tdd`
+- `cursor_plugins:skill:pstack/skills/tdd` — adopt → tdd#closest-existing-test-kind
 
 #### `contract-exact-assertion`
 Assert exactly what the contract promises, no less and no more, letting the contract decide whether a call, an absence, a payload or an error type is behaviour.
@@ -10962,19 +11083,23 @@ When the failing check that showed the bug already fails for the reported reason
 
 #### `failure-for-the-right-reason`
 Run a new test before fixing and, if it passes or fails for another reason, correct the test or reproduction first.
-- `cursor_plugins:skill:pstack/skills/tdd` — adopt, pending cr-r2pa.2.18 → tdd#failure-for-the-right-reason
+- ours: `tdd`
+- `cursor_plugins:skill:pstack/skills/tdd` — adopt → tdd#failure-for-the-right-reason
 
 #### `flaky-test-names-its-signal`
 For a flaky bug, remove nondeterminism from the test as far as possible and document which signal it pins.
-- `cursor_plugins:skill:pstack/skills/tdd` — adopt, pending cr-r2pa.2.18 → tdd#flaky-test-names-its-signal
+- ours: `tdd`
+- `cursor_plugins:skill:pstack/skills/tdd` — adopt → tdd#flaky-test-names-its-signal
 
 #### `focused-first-then-siblings`
 When a bug reveals a wider failure class, land the focused regression first and only then consider related coverage.
-- `cursor_plugins:skill:pstack/skills/tdd` — adopt, pending cr-r2pa.2.18 → tdd#focused-first-then-siblings
+- ours: `tdd`
+- `cursor_plugins:skill:pstack/skills/tdd` — adopt → tdd#focused-first-then-siblings
 
 #### `focused-regression-test`
 Write the smallest test focused on this bug, without broad fixture changes or added unrelated coverage.
-- `cursor_plugins:skill:pstack/skills/tdd` — adopt, pending cr-r2pa.2.18 → tdd#focused-regression-test
+- ours: `tdd`
+- `cursor_plugins:skill:pstack/skills/tdd` — adopt → tdd#focused-regression-test
 
 #### `full-verification-at-completion`
 At the end of a planned migration or rewrite, run full static and runtime verification, not only the checks the last change touched.
@@ -10983,7 +11108,8 @@ At the end of a planned migration or rewrite, run full static and runtime verifi
 
 #### `green-on-break-test-fixed`
 Repair or remove a test that stays green when its behaviour breaks.
-- `cursor_plugins:skill:pstack/skills/correct` — adopt, pending cr-r2pa.2.18 → principle-test-behavior-not-implementation#green-on-break-test-fixed
+- ours: `principle-test-behavior-not-implementation`
+- `cursor_plugins:skill:pstack/skills/correct` — adopt → principle-test-behavior-not-implementation#green-on-break-test-fixed
 
 #### `guard-hook-block-proof`
 After changing a guard hook, feed it a known-forbidden input and confirm it rejects it, not merely that it parses.
@@ -11023,7 +11149,8 @@ Assert meaningful results, state or boundary interactions at a stable boundary r
 
 #### `missing-red-explained`
 If a failure before the fix could not be shown, say why and describe the substitute check.
-- `cursor_plugins:skill:pstack/skills/tdd` — adopt, pending cr-r2pa.2.18 → tdd#missing-red-explained
+- ours: `tdd`
+- `cursor_plugins:skill:pstack/skills/tdd` — adopt → tdd#missing-red-explained
 
 #### `mock-boundaries`
 Use test doubles only at boundaries, never in place of the behaviour under test.
@@ -11041,11 +11168,13 @@ Mock only what cannot run locally, and avoid mocks for anything that can.
 
 #### `no-test-over-bad-test`
 Prefer adding nothing to a test that mostly exercises mocks, encodes internals, depends on timing or global state, needs costly infrastructure for a minor fix, or would be discarded right after.
-- `cursor_plugins:skill:pstack/skills/tdd` — adopt, pending cr-r2pa.2.18 → tdd#no-test-over-bad-test
+- ours: `tdd`
+- `cursor_plugins:skill:pstack/skills/tdd` — adopt → tdd#no-test-over-bad-test
 
 #### `no-tests-bent-or-weakened`
 Do not change tests to agree with wrong behaviour, and keep existing assertions as strong unless expected behaviour truly changed for a clear reason.
-- `cursor_plugins:skill:pstack/skills/tdd` — adopt, pending cr-r2pa.2.18 → tdd#no-tests-bent-or-weakened
+- ours: `tdd`
+- `cursor_plugins:skill:pstack/skills/tdd` — adopt → tdd#no-tests-bent-or-weakened
 
 #### `one-assertion-per-test`
 Keep one logical assertion per test.
@@ -11053,6 +11182,7 @@ Keep one logical assertion per test.
 
 #### `optional-regression-test-skip`
 Skip only an optional regression test whose cost outweighs its risk, keeping required proof and project gates and reporting any proof that could not be obtained.
+- ours: `tdd`
 
 #### `original-failure-check`
 Make a check for a bug one that detects the original failure.
@@ -11147,7 +11277,7 @@ Prefer parametrized tests to repeated test bodies.
 
 #### `test-skipped-when-impractical`
 Add no new test when it would demand wide harness setup, fragile mocks, slow full-stack infrastructure, production-only state, unclear reproduction or heavy unrelated fixtures, and never build a test path from nothing just to follow the workflow.
-- `cursor_plugins:skill:pstack/skills/tdd` — adopt, pending cr-r2pa.2.18 → tdd#optional-regression-test-skip
+- `cursor_plugins:skill:pstack/skills/tdd` — adopt → tdd#optional-regression-test-skip
 
 #### `touched-area-checks`
 During a migration, keep fast high-signal checks running on the areas being changed.
@@ -11745,6 +11875,7 @@ Traits listed by two or more of our active skills (`doc:AGENTS.md` and playbooks
 | `bounded-background-wait` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md | The same one sentence on waiting sits at each step that waits, with its own stopped exit; no skill is called for it. |
 | `build-closeout` | doc:.claude/skills/mvp-mode/playbooks/feature.md, doc:.claude/skills/mvp-mode/playbooks/perf-issue.md, doc:.claude/skills/mvp-mode/playbooks/refactoring.md | Each playbook's closeout runs on its own exits and feeds its own reply, and these three have the same three duties; a skill of three duties would be ceremony (unit-kinds deviation log, St4 and B4). |
 | `canonical-term-and-aliases` | domain-modeling, teach | Each keeps a glossary of its own (project language, the learner's workspace) in one entry format, with its own admission rules. |
+| `confidence-language-kept` | teach, unslop | Each rewrites a finished answer for a reader: unslop edits prose, teach rewords cited findings for teaching; both must keep the hedges and confidence words, which are results. The owner's batch P1 ruling put it into teach (sealed row 2026-11-06-batch-p1:019). |
 | `dependency-edges` | doc:.claude/skills/mvp-mode/playbooks/implement.md, tracker, wayfinder | Each lets the tracker graph's readiness drive the work: tracker writes the genuine edges of stages, plan stages and decision tickets by returned ID, wayfinder picks a map's genuine prerequisites and works its ready frontier, and implement's spec scope runs a spec's tickets from the ready frontier, adding a blocking edge it finds missing; edge semantics stay in beads. |
 | `domain-vocabulary` | brief-me, improve-codebase-architecture, prototype, teach | Each writes for its reader in the project's own terms: brief-me in its re-pitches, teach in its lessons, prototype in its states, actions and labels, so an answer transfers to the real code, and improve-codebase-architecture in its candidates and their friction. |
 | `drift-scan` | harness-scan, harness-status | Both run the one drift command, scan for a single harness and status as a sweep of all of them; a pointer between them would add a hop to a one-line command. |

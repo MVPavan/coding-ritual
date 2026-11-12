@@ -22,6 +22,13 @@ fact the agent cannot infer reliably. Remove generic advice that adds no behavio
 Once a check enforces a rule, replace any instruction that restated the rule
 with a pointer to the check.
 
+Fix a repeated mistake at the highest level that works: structure
+(`codebase-design`), then types, then a check or lint, then a test, and prose only
+for a judgement call. A check's failure message points to what to use instead: a
+named file, type or function. Where the pattern is already common, fail only on a
+change that adds more of it. Show a new check failing on a real past mistake when
+one exists; otherwise on a planted violation, and say which.
+
 Search for an existing owner before adding another. Split a workflow into its own
 model-invoked skill only when it has a distinct trigger or another skill must
 reach it; each description costs discovery context. Keep shared semantics

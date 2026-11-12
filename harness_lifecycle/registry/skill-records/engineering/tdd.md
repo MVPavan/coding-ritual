@@ -32,6 +32,17 @@ Use for risky behavior changes, regression proof, legacy characterization, or su
 - `behaviour-test-names`: Name each test for the behaviour that exists, not how it is achieved.
 - `prove-the-red`: When forcing the red by mutating code or a fixture, diff against a pristine copy to prove the mutation landed before trusting it.
 - `covered-test-removal`: Remove an old test only when its behaviour is covered elsewhere or deliberately retired, inspecting a changed test rather than deleting it automatically.
+- `optional-regression-test-skip`: Skip only an optional regression test whose cost outweighs its risk, keeping required proof and project gates and reporting any proof that could not be obtained.
+- `closest-existing-test-kind`: Prefer the kind of test already used for that codepath.
+- `failure-for-the-right-reason`: Run a new test before fixing and, if it passes or fails for another reason, correct the test or reproduction first.
+- `closest-executable-fallback`: When a failing test is impractical, substitute a targeted script, reproduction command, browser automation, snapshot diff, log assertion or narrow integration check.
+- `no-test-over-bad-test`: Prefer adding nothing to a test that mostly exercises mocks, encodes internals, depends on timing or global state, needs costly infrastructure for a minor fix, or would be discarded right after.
+- `no-tests-bent-or-weakened`: Do not change tests to agree with wrong behaviour, and keep existing assertions as strong unless expected behaviour truly changed for a clear reason.
+- `focused-regression-test`: Write the smallest test focused on this bug, without broad fixture changes or added unrelated coverage.
+- `flaky-test-names-its-signal`: For a flaky bug, remove nondeterminism from the test as far as possible and document which signal it pins.
+- `focused-first-then-siblings`: When a bug reveals a wider failure class, land the focused regression first and only then consider related coverage.
+- `before-after-proof-report`: Name the check that failed before the fix with its failure, and the passing run after the fix with any nearby validation.
+- `missing-red-explained`: If a failure before the fix could not be shown, say why and describe the substitute check.
 <!-- /registry:generated traits -->
 
 <!-- registry:generated lineage -->
@@ -62,36 +73,48 @@ Use for risky behavior changes, regression proof, legacy characterization, or su
 - **mattpocock_skills:skill:skills/engineering/tdd#behaviour-test-names** `skills/engineering/tdd/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/engineering/diagnosing-bugs#prove-the-red** `skills/engineering/diagnosing-bugs/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **cursor_plugins:skill:pstack/skills/tdd#red-green** `pstack/skills/tdd/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
-- **cursor_plugins:skill:pstack/skills/tdd#test-skipped-when-impractical** `pstack/skills/tdd/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe (pending cr-r2pa.2.18)
-- **cursor_plugins:skill:pstack/skills/tdd#closest-existing-test-kind** `pstack/skills/tdd/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe (pending cr-r2pa.2.18)
 - **cursor_plugins:skill:pstack/skills/tdd#no-implementation-coupling** `pstack/skills/tdd/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
-- **cursor_plugins:skill:pstack/skills/tdd#failure-for-the-right-reason** `pstack/skills/tdd/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe (pending cr-r2pa.2.18)
-- **cursor_plugins:skill:pstack/skills/tdd#closest-executable-fallback** `pstack/skills/tdd/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe (pending cr-r2pa.2.18)
-- **cursor_plugins:skill:pstack/skills/tdd#no-test-over-bad-test** `pstack/skills/tdd/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe (pending cr-r2pa.2.18)
-- **cursor_plugins:skill:pstack/skills/tdd#no-tests-bent-or-weakened** `pstack/skills/tdd/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe (pending cr-r2pa.2.18)
-- **cursor_plugins:skill:pstack/skills/tdd#focused-regression-test** `pstack/skills/tdd/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe (pending cr-r2pa.2.18)
-- **cursor_plugins:skill:pstack/skills/tdd#flaky-test-names-its-signal** `pstack/skills/tdd/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe (pending cr-r2pa.2.18)
-- **cursor_plugins:skill:pstack/skills/tdd#focused-first-then-siblings** `pstack/skills/tdd/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe (pending cr-r2pa.2.18)
-- **cursor_plugins:skill:pstack/skills/tdd#before-after-proof-report** `pstack/skills/tdd/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe (pending cr-r2pa.2.18)
-- **cursor_plugins:skill:pstack/skills/tdd#missing-red-explained** `pstack/skills/tdd/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe (pending cr-r2pa.2.18)
+- **cursor_plugins:skill:pstack/skills/tdd#test-skipped-when-impractical** `pstack/skills/tdd/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/tdd#closest-existing-test-kind** `pstack/skills/tdd/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/tdd#failure-for-the-right-reason** `pstack/skills/tdd/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/tdd#closest-executable-fallback** `pstack/skills/tdd/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/tdd#no-test-over-bad-test** `pstack/skills/tdd/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/tdd#no-tests-bent-or-weakened** `pstack/skills/tdd/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/tdd#focused-regression-test** `pstack/skills/tdd/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/tdd#flaky-test-names-its-signal** `pstack/skills/tdd/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/tdd#focused-first-then-siblings** `pstack/skills/tdd/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/tdd#before-after-proof-report** `pstack/skills/tdd/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/tdd#missing-red-explained** `pstack/skills/tdd/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-12` **adopt** (2026-11-12-batch-p1-existing:057): Completes pending 2026-11-06-batch-p1:223: missing-red-explained is written at .claude/skills/tdd/SKILL.md:53-55, in its ruled words (plan 59).
+- `2026-11-12` **adopt** (2026-11-12-batch-p1-existing:056): Completes pending 2026-11-06-batch-p1:222: before-after-proof-report is written at .claude/skills/tdd/SKILL.md:74-75, in its ruled words (plan 59).
+- `2026-11-12` **adopt** (2026-11-12-batch-p1-existing:055): Completes pending 2026-11-06-batch-p1:221: focused-first-then-siblings is written at .claude/skills/tdd/SKILL.md:42-44, in its ruled words (plan 59).
+- `2026-11-12` **adopt** (2026-11-12-batch-p1-existing:054): Completes pending 2026-11-06-batch-p1:220: flaky-test-names-its-signal is written at .claude/skills/tdd/SKILL.md:66-67, in its ruled words (plan 59).
+- `2026-11-12` **adopt** (2026-11-12-batch-p1-existing:053): Completes pending 2026-11-06-batch-p1:219: focused-regression-test is written at .claude/skills/tdd/SKILL.md:41-42, in its ruled words (plan 59).
+- `2026-11-12` **adopt** (2026-11-12-batch-p1-existing:052): Completes pending 2026-11-06-batch-p1:218: no-tests-bent-or-weakened was already written at .claude/skills/tdd/references/writing-good-tests.md:32-35, as the r…
+- `2026-11-12` **adopt** (2026-11-12-batch-p1-existing:051): Completes pending 2026-11-06-batch-p1:217: no-test-over-bad-test is written at .claude/skills/tdd/references/writing-good-tests.md:14-16, in its ruled words (p…
+- `2026-11-12` **adopt** (2026-11-12-batch-p1-existing:050): Completes pending 2026-11-06-batch-p1:216: closest-executable-fallback is written at .claude/skills/tdd/SKILL.md:46-48, in its ruled words (plan 59).
+- `2026-11-12` **adopt** (2026-11-12-batch-p1-existing:049): Completes pending 2026-11-06-batch-p1:214: failure-for-the-right-reason was already written at .claude/skills/tdd/SKILL.md:33-34, as the ruling said; no words …
+- `2026-11-12` **adopt** (2026-11-12-batch-p1-existing:048): Completes pending 2026-11-06-batch-p1:212: closest-existing-test-kind is written at .claude/skills/tdd/SKILL.md:20-21, in its ruled words (plan 59).
+- `2026-11-12` **adopt** (2026-11-12-batch-p1-existing:047): Completes pending 2026-11-06-batch-p1:210: optional-regression-test-skip is written at .claude/skills/tdd/SKILL.md:48-53, in its ruled words (plan 59).
+- `2026-11-12` **update** (2026-11-12-batch-p1-existing:046): Bead cr-r2pa.2.18, plan 59 slice 1: delivers 11 pending adopts of round 2026-11-06-batch-p1 (:210, :212, :214, :216, :217, :218, :219, :220, :221, :222, :223) …
 - `2026-11-12` **update** (2026-11-12-overlap-owners:001): Overlap audit #1 (test retention): tdd's writing-good-tests.md now owns the rule, keep a test that catches a distinct failure and remove one only when its beha…
 - `2026-11-06` **rename** (2026-11-06-renames:001): Owner ruling D of 2026-11-05 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 14a U1. The skill test-driven-development is renamed tdd; its body is …
 - `2026-11-06` **adopt-merged** (2026-11-06-batch-p1:224): Checkpoint at 4dd1d05 for the owner's trait rulings: 13 adopt, 2 reject.
-- `2026-11-06` **adopt** (2026-11-06-batch-p1:223): Owner ruling 2026-11-06: Prevents: A demonstrated fix and an assumed one reported in the same words. Lands in test-driven-development, SKILL.md, Test-first. Up…
-- `2026-11-06` **adopt** (2026-11-06-batch-p1:222): Owner ruling 2026-11-06: Prevents: A report saying only that the tests pass, with no sign the test ever failed. Lands in test-driven-development, SKILL.md, Tes…
-- `2026-11-06` **adopt** (2026-11-06-batch-p1:221): Owner ruling 2026-11-06: Prevents: A regression fix held up while wider coverage gets written around it. Lands in test-driven-development, SKILL.md, Test-first…
-- `2026-11-06` **adopt** (2026-11-06-batch-p1:220): Owner ruling 2026-11-06: Prevents: A flaky-bug test nobody can later tell is still checking the real signal. Lands in test-driven-development, SKILL.md, Test q…
-- `2026-11-06` **adopt** (2026-11-06-batch-p1:219): Owner ruling 2026-11-06: Prevents: A bug fix whose diff is mostly fixture changes and unrelated coverage. Lands in test-driven-development, SKILL.md, Test-firs…
-- `2026-11-06` **adopt** (2026-11-06-batch-p1:218): Owner ruling 2026-11-06: Prevents: A green run bought by loosening the test that caught the bug. Lands in test-driven-development, references/writing-good-test…
-- `2026-11-06` **adopt** (2026-11-06-batch-p1:217): Owner ruling 2026-11-06: Prevents: A low-value test kept because some test felt better than none. Lands in test-driven-development, references/writing-good-tes…
-- `2026-11-06` **adopt** (2026-11-06-batch-p1:216): Owner ruling 2026-11-06: Prevents: No executable check at all, because a proper test was not practical. Lands in test-driven-development, SKILL.md, Test-first.…
-- `2026-11-06` **adopt** (2026-11-06-batch-p1:214): Owner ruling 2026-11-06: Prevents: A test accepted as red when it failed on an import or setup error. Lands in test-driven-development, SKILL.md, Test-first. T…
+- `2026-11-06` **adopt** (2026-11-06-batch-p1:223) *(superseded)*: Owner ruling 2026-11-06: Prevents: A demonstrated fix and an assumed one reported in the same words. Lands in test-driven-development, SKILL.md, Test-first. Up…
+- `2026-11-06` **adopt** (2026-11-06-batch-p1:222) *(superseded)*: Owner ruling 2026-11-06: Prevents: A report saying only that the tests pass, with no sign the test ever failed. Lands in test-driven-development, SKILL.md, Tes…
+- `2026-11-06` **adopt** (2026-11-06-batch-p1:221) *(superseded)*: Owner ruling 2026-11-06: Prevents: A regression fix held up while wider coverage gets written around it. Lands in test-driven-development, SKILL.md, Test-first…
+- `2026-11-06` **adopt** (2026-11-06-batch-p1:220) *(superseded)*: Owner ruling 2026-11-06: Prevents: A flaky-bug test nobody can later tell is still checking the real signal. Lands in test-driven-development, SKILL.md, Test q…
+- `2026-11-06` **adopt** (2026-11-06-batch-p1:219) *(superseded)*: Owner ruling 2026-11-06: Prevents: A bug fix whose diff is mostly fixture changes and unrelated coverage. Lands in test-driven-development, SKILL.md, Test-firs…
+- `2026-11-06` **adopt** (2026-11-06-batch-p1:218) *(superseded)*: Owner ruling 2026-11-06: Prevents: A green run bought by loosening the test that caught the bug. Lands in test-driven-development, references/writing-good-test…
+- `2026-11-06` **adopt** (2026-11-06-batch-p1:217) *(superseded)*: Owner ruling 2026-11-06: Prevents: A low-value test kept because some test felt better than none. Lands in test-driven-development, references/writing-good-tes…
+- `2026-11-06` **adopt** (2026-11-06-batch-p1:216) *(superseded)*: Owner ruling 2026-11-06: Prevents: No executable check at all, because a proper test was not practical. Lands in test-driven-development, SKILL.md, Test-first.…
+- `2026-11-06` **adopt** (2026-11-06-batch-p1:214) *(superseded)*: Owner ruling 2026-11-06: Prevents: A test accepted as red when it failed on an import or setup error. Lands in test-driven-development, SKILL.md, Test-first. T…
 - `2026-11-06` **adopt** (2026-11-06-batch-p1:213): Owner ruling 2026-11-06: The skill warns against tests whose expectations repeat the implementation.
-- `2026-11-06` **adopt** (2026-11-06-batch-p1:212): Owner ruling 2026-11-06: Prevents: A new style of test arriving in a codepath that already has a working one. Lands in test-driven-development, SKILL.md, the s…
-- `2026-11-06` **adopt** (2026-11-06-batch-p1:210): Owner ruling 2026-11-06: Prevents: A brittle test built only to satisfy the workflow, which then blocks later changes. Lands in test-driven-development, SKILL.…
+- `2026-11-06` **adopt** (2026-11-06-batch-p1:212) *(superseded)*: Owner ruling 2026-11-06: Prevents: A new style of test arriving in a codepath that already has a working one. Lands in test-driven-development, SKILL.md, the s…
+- `2026-11-06` **adopt** (2026-11-06-batch-p1:210) *(superseded)*: Owner ruling 2026-11-06: Prevents: A brittle test built only to satisfy the workflow, which then blocks later changes. Lands in test-driven-development, SKILL.…
 - `2026-11-06` **adopt** (2026-11-06-batch-p1:209): Owner ruling 2026-11-06: Test-first writes the test, runs it to see the intended failure, makes the fix and reruns the proving check.
 - `2026-11-01` **adopt** (2026-11-01-batch-1:202): Completes pending 2026-11-01-pocock-retarget:006: prove-the-red is written at .claude/skills/test-driven-development/SKILL.md:34-35, read against its definitio…
 - `2026-11-01` **adopt** (2026-11-01-batch-1:201): Completes pending 2026-10-30-mattpocock_skills-5beb35b:214: behaviour-test-names is written at .claude/skills/test-driven-development/references/writing-good-t…
@@ -132,21 +155,43 @@ Use for risky behavior changes, regression proof, legacy characterization, or su
 <!-- /registry:generated reviews -->
 
 <!-- registry:generated sources -->
+- `before-after-proof-report`:
+  - `cursor_plugins:skill:pstack/skills/tdd#before-after-proof-report` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `behaviour-test-names`:
   - `mattpocock_skills:skill:skills/engineering/tdd#behaviour-test-names` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `closest-executable-fallback`:
+  - `cursor_plugins:skill:pstack/skills/tdd#closest-executable-fallback` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `closest-existing-test-kind`:
+  - `cursor_plugins:skill:pstack/skills/tdd#closest-existing-test-kind` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `failure-for-the-right-reason`:
+  - `cursor_plugins:skill:pstack/skills/tdd#failure-for-the-right-reason` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `flaky-test-names-its-signal`:
+  - `cursor_plugins:skill:pstack/skills/tdd#flaky-test-names-its-signal` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `focused-first-then-siblings`:
+  - `cursor_plugins:skill:pstack/skills/tdd#focused-first-then-siblings` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `focused-regression-test`:
+  - `cursor_plugins:skill:pstack/skills/tdd#focused-regression-test` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `independent-expectation`:
   - `cursor_plugins:skill:pstack/skills/principle-test-behavior-not-implementation#independent-expectation` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
   - `mattpocock_skills:skill:skills/engineering/tdd#independent-expectation` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `meaningful-behaviour-assertion`:
   - `cursor_plugins:skill:pstack/skills/principle-test-behavior-not-implementation#meaningful-behaviour-assertion` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
   - `mattpocock_skills:skill:skills/engineering/tdd#meaningful-behaviour-assertion` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `missing-red-explained`:
+  - `cursor_plugins:skill:pstack/skills/tdd#missing-red-explained` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `mock-boundaries`:
   - `mattpocock_skills:skill:skills/engineering/tdd#system-boundary-mocks-only` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `no-implementation-coupling`:
   - `cursor_plugins:skill:pstack/skills/tdd#no-implementation-coupling` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
   - `mattpocock_skills:skill:skills/engineering/tdd#no-implementation-coupling` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `no-test-over-bad-test`:
+  - `cursor_plugins:skill:pstack/skills/tdd#no-test-over-bad-test` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `no-tests-bent-or-weakened`:
+  - `cursor_plugins:skill:pstack/skills/tdd#no-tests-bent-or-weakened` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `one-test-per-cycle`:
   - `mattpocock_skills:skill:skills/engineering/tdd#one-test-per-cycle` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `optional-regression-test-skip`:
+  - `cursor_plugins:skill:pstack/skills/tdd#test-skipped-when-impractical` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `per-seam-note`:
   - `mattpocock_skills:skill:skills/engineering/tdd#per-seam-note` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `prove-the-red`:

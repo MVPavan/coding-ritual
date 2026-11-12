@@ -46,6 +46,10 @@ Use when creating or changing agent instructions or their activation behavior. S
 - `relevance-check`: Check every line still bears on the document's task, pruning stale or irrelevant ones. (Delivers sealed row 2026-10-30-mattpocock_skills-5beb35b:545: drops lines gone stale, where the definition checks every line; T5.)
 - `sharpen-before-inline`: Fix a weakly reached must-have target by sharpening its pointer's wording first, inlining it only if that fails.
 - `split-by-invocation`: Split off a model-invoked skill only when a distinct leading word should trigger it or another skill must reach it. (Delivers sealed row 2026-10-30-mattpocock_skills-5beb35b:539: a distinct trigger, where the definition says a distinct leading word; T5.)
+- `fix-at-highest-level`: Try fixes for a repeated mistake in order of architecture, types, lint or CI, tests and finally docs, stopping at the highest level that works.
+- `check-error-names-replacement`: Where wrong code can still compile, add a check whose message points at the specific file, type or function to use.
+- `ratchet-on-common-patterns`: When a pattern is already widespread, fail only on changes that add more of it.
+- `check-proved-on-real-mistake`: Show each new check failing against a mistake that actually occurred. (Delivers sealed row 2026-11-06-batch-p1:160: a real past mistake when one exists, otherwise a planted violation, saying which, where the definition requires a real one; T5.)
 <!-- /registry:generated traits -->
 
 <!-- registry:generated lineage -->
@@ -80,22 +84,27 @@ Use when creating or changing agent instructions or their activation behavior. S
 - **mattpocock_skills:skill:skills/productivity/writing-for-agents#relevance-check** `skills/productivity/writing-for-agents/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/productivity/writing-for-agents#sharpen-before-inline** `skills/productivity/writing-for-agents/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/productivity/writing-for-agents#split-by-invocation** `skills/productivity/writing-for-agents/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
-- **cursor_plugins:skill:pstack/skills/correct#fix-at-highest-level** `pstack/skills/correct/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe (pending cr-r2pa.2.18)
-- **cursor_plugins:skill:pstack/skills/correct#check-error-names-replacement** `pstack/skills/correct/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe (pending cr-r2pa.2.18)
-- **cursor_plugins:skill:pstack/skills/correct#ratchet-on-common-patterns** `pstack/skills/correct/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe (pending cr-r2pa.2.18)
 - **cursor_plugins:skill:pstack/skills/correct#build-check-over-rule** `pstack/skills/correct/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
-- **cursor_plugins:skill:pstack/skills/correct#check-proved-on-real-mistake** `pstack/skills/correct/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe (pending cr-r2pa.2.18)
 - **cursor_plugins:skill:pstack/skills/correct#structural-fix-only** `pstack/skills/correct/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/correct#fix-at-highest-level** `pstack/skills/correct/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/correct#check-error-names-replacement** `pstack/skills/correct/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/correct#ratchet-on-common-patterns** `pstack/skills/correct/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/correct#check-proved-on-real-mistake** `pstack/skills/correct/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-12` **adopt** (2026-11-12-batch-p1-existing:062): Completes pending 2026-11-06-batch-p1:160: check-proved-on-real-mistake is written at .claude/skills/authoring-for-agents/SKILL.md:29-30, in its ruled words (p…
+- `2026-11-12` **adopt** (2026-11-12-batch-p1-existing:061): Completes pending 2026-11-06-batch-p1:154: ratchet-on-common-patterns is written at .claude/skills/authoring-for-agents/SKILL.md:28-29, in its ruled words (pla…
+- `2026-11-12` **adopt** (2026-11-12-batch-p1-existing:060): Completes pending 2026-11-06-batch-p1:153: check-error-names-replacement is written at .claude/skills/authoring-for-agents/SKILL.md:27-28, in its ruled words (…
+- `2026-11-12` **adopt** (2026-11-12-batch-p1-existing:059): Completes pending 2026-11-06-batch-p1:146: fix-at-highest-level is written at .claude/skills/authoring-for-agents/SKILL.md:25-27, in its ruled words (plan 59).
+- `2026-11-12` **update** (2026-11-12-batch-p1-existing:058): Bead cr-r2pa.2.18, plan 59 slice 1: delivers 4 pending adopts of round 2026-11-06-batch-p1 (:146, :153, :154, :160) into authoring-for-agents, in their ruled w…
 - `2026-11-06` **adopt-merged** (2026-11-06-batch-p1:170): Checkpoint at 4dd1d05 for the owner's trait rulings: 8 adopt, 8 defer, 12 reject.
 - `2026-11-06` **adopt** (2026-11-06-batch-p1:168): Owner ruling 2026-11-06: Ours replaces the restating instruction with a pointer, so a reader learns the check exists (`2026-11-01-cursor_plugins-pstack-princip…
-- `2026-11-06` **adopt** (2026-11-06-batch-p1:160): Owner ruling 2026-11-06: Prevents: A new check that passes because it could never fail, and so catches nothing. Lands in authoring-for-agents, SKILL.md, Choose…
+- `2026-11-06` **adopt** (2026-11-06-batch-p1:160) *(superseded)*: Owner ruling 2026-11-06: Prevents: A new check that passes because it could never fail, and so catches nothing. Lands in authoring-for-agents, SKILL.md, Choose…
 - `2026-11-06` **adopt** (2026-11-06-batch-p1:157): Owner ruling 2026-11-06: The surface table proposes a hook, check or script before a prose rule.
-- `2026-11-06` **adopt** (2026-11-06-batch-p1:154): Owner ruling 2026-11-06: Prevents: A useful check that never lands because the code already breaks it in many places. Lands in authoring-for-agents, SKILL.md, …
-- `2026-11-06` **adopt** (2026-11-06-batch-p1:153): Owner ruling 2026-11-06: Prevents: A check an agent silences or works around because its error does not say what to do. Lands in authoring-for-agents, SKILL.md…
-- `2026-11-06` **adopt** (2026-11-06-batch-p1:146): Owner ruling 2026-11-06: Prevents: A lint or a note added for a mistake that a type or a structural change would have made impossible. Lands in authoring-for-a…
+- `2026-11-06` **adopt** (2026-11-06-batch-p1:154) *(superseded)*: Owner ruling 2026-11-06: Prevents: A useful check that never lands because the code already breaks it in many places. Lands in authoring-for-agents, SKILL.md, …
+- `2026-11-06` **adopt** (2026-11-06-batch-p1:153) *(superseded)*: Owner ruling 2026-11-06: Prevents: A check an agent silences or works around because its error does not say what to do. Lands in authoring-for-agents, SKILL.md…
+- `2026-11-06` **adopt** (2026-11-06-batch-p1:146) *(superseded)*: Owner ruling 2026-11-06: Prevents: A lint or a note added for a mistake that a type or a structural change would have made impossible. Lands in authoring-for-a…
 - `2026-11-04` **defer** (2026-11-04-pocock-pass:040): Owner ruling 2026-11-04: cancels the pending adoption and defers it to the end-of-project revision pass (cr-r2pa.3.4), which owns description wording. The trai…
 - `2026-11-04` **adopt** (2026-11-04-pocock-pass:008): Completes pending 2026-10-30-mattpocock_skills-5beb35b:539: split-by-invocation is written at .claude/skills/authoring-for-agents/SKILL.md:25-27, in the sealed…
 - `2026-11-04` **adopt** (2026-11-04-pocock-pass:007): Completes pending 2026-10-30-mattpocock_skills-5beb35b:550: sharpen-before-inline is written at .claude/skills/authoring-for-agents/SKILL.md:56-58, in the seal…
@@ -157,9 +166,13 @@ Use when creating or changing agent instructions or their activation behavior. S
 - `build-check-over-rule`:
   - `cursor_plugins:skill:pstack/skills/correct#build-check-over-rule` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
   - `mattpocock_skills:skill:skills/engineering/retro#build-check-over-rule` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `check-error-names-replacement`:
+  - `cursor_plugins:skill:pstack/skills/correct#check-error-names-replacement` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `check-pointer-not-restatement`:
   - `cursor_plugins:skill:pstack/skills/correct#structural-fix-only` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
   - `cursor_plugins:skill:pstack/skills/principle-encode-lessons-in-structure#structural-fix-only` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `check-proved-on-real-mistake`:
+  - `cursor_plugins:skill:pstack/skills/correct#check-proved-on-real-mistake` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `co-location`:
   - `mattpocock_skills:skill:skills/productivity/writing-for-agents#co-location` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `completion-criteria-clarity`:
@@ -172,6 +185,8 @@ Use when creating or changing agent instructions or their activation behavior. S
   - `mattpocock_skills:skill:skills/productivity/writing-for-agents#environment-as-cache` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `extend-existing-docs-first`:
   - `mattpocock_skills:skill:skills/engineering/retro#extend-existing-docs-first` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `fix-at-highest-level`:
+  - `cursor_plugins:skill:pstack/skills/correct#fix-at-highest-level` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `inline-vs-disclose`:
   - `mattpocock_skills:skill:skills/productivity/writing-for-agents#inline-vs-disclose` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `invocation-mode`:
@@ -186,6 +201,8 @@ Use when creating or changing agent instructions or their activation behavior. S
   - `mattpocock_skills:skill:skills/productivity/writing-for-agents#one-trigger-per-branch` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `pointer-identity-trim`:
   - `mattpocock_skills:skill:skills/productivity/writing-for-agents#pointer-identity-trim` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `ratchet-on-common-patterns`:
+  - `cursor_plugins:skill:pstack/skills/correct#ratchet-on-common-patterns` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `relevance-check`:
   - `mattpocock_skills:skill:skills/productivity/writing-for-agents#relevance-check` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `sharpen-before-inline`:

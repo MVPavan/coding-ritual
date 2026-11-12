@@ -4,6 +4,8 @@ A test earns its place by catching broken behaviour and nothing else.
 
 - Judge every test by two imagined edits: breaking the behaviour must fail
   it, and restructuring the internals must not.
+- A test you are working with that stays green when its behaviour breaks gets
+  repaired or removed; report others outside the task.
 - Exercise behaviour through public interfaces.
 - Assert exactly what the contract promises, no less and no more; the
   contract decides whether a call, an absence, a payload or an error type is

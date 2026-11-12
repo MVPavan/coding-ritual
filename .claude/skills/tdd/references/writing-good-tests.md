@@ -11,6 +11,9 @@ it. Use existing repository tooling and representative boundaries.
 - Prefer real components where economical. Fakes, mocks and partial responses are
   legitimate when they preserve the contract exercised and do not replace the
   behavior being proved. Add integration coverage for material assumptions they omit.
+- An optional new test is not worth adding when it mostly tests mocks, encodes
+  internals, depends on timing or global state, or would be thrown away right
+  after. Required proof still stands.
 - Choose a stable public boundary when practical; internal tests can earn their
   place for algorithms and invariants. Do not add production methods solely for
   test cleanup or expose internals just to satisfy a test pattern.

@@ -3,8 +3,8 @@
 # tree_hash is the skill folder's (or the file's) hash when the list was written.
 
 ours:authoring-for-agents:
-  tree_hash: "0257d580584793b96993504406cbab0b4b6bc44575c278e915da67e7f28a61d8"
-  traits: [surface-choice, activation-boundary, inline-vs-disclose, outputs-and-authority, one-effective-instruction, context-pointers, two-loads, completion-criteria-clarity, precision-and-discretion, single-source-of-truth, environment-as-cache, decision-relevance-pruning, no-op-deletion, unsupported-claim-removal, skill-packaging, invocation-mode, invocation-sidecar-sync, compatibility-alias, verification, mechanical-vs-judgement, extend-existing-docs-first, check-pointer-not-restatement, judgement-lesson-failure-example, build-check-over-rule, co-location, completion-criteria-demand, one-trigger-per-branch, pointer-identity-trim, relevance-check, sharpen-before-inline, split-by-invocation]
+  tree_hash: "61d6995351aff5cc38837aac964ec73105e86c9b436ce0e401b5b9640b57aa73"
+  traits: [surface-choice, activation-boundary, inline-vs-disclose, outputs-and-authority, one-effective-instruction, context-pointers, two-loads, completion-criteria-clarity, precision-and-discretion, single-source-of-truth, environment-as-cache, decision-relevance-pruning, no-op-deletion, unsupported-claim-removal, skill-packaging, invocation-mode, invocation-sidecar-sync, compatibility-alias, verification, mechanical-vs-judgement, extend-existing-docs-first, check-pointer-not-restatement, judgement-lesson-failure-example, build-check-over-rule, co-location, completion-criteria-demand, one-trigger-per-branch, pointer-identity-trim, relevance-check, sharpen-before-inline, split-by-invocation, fix-at-highest-level, check-error-names-replacement, ratchet-on-common-patterns, check-proved-on-real-mistake]
   notes:
     split-by-invocation: "Delivers sealed row 2026-10-30-mattpocock_skills-5beb35b:539: a distinct trigger, where the definition says a distinct leading word; T5."
     relevance-check: "Delivers sealed row 2026-10-30-mattpocock_skills-5beb35b:545: drops lines gone stale, where the definition checks every line; T5."
@@ -12,6 +12,7 @@ ours:authoring-for-agents:
     context-pointers: "Also distinguishes the nearest competing workflow."
     two-loads: "Judges savings by the full read path rather than entrypoint length."
     inline-vs-disclose: "An unconditional read saves no context."
+    check-proved-on-real-mistake: "Delivers sealed row 2026-11-06-batch-p1:160: a real past mistake when one exists, otherwise a planted violation, saying which, where the definition requires a real one; T5."
 ours:beads:
   tree_hash: "4033071f23315c2f9052a4dc8f65023b5c9115f6afef9a79212b1aa813e9d6e6"
   traits: [bead-type-taxonomy, field-roles, wait-as-edge, actor-identity, resume-line, session-close, session-recovery, knowledge-in-files, beads-setup, status-model, triage-routing, durable-unit-scope, review-as-task, destructive-command-guard, repeated-procedures, dolt-sync]
@@ -90,8 +91,8 @@ ours:html-artifact:
   tree_hash: "1c4c952e6555f09f0e4f54275d42feb19856c315ba0b0e52251ac86493d2eee9"
   traits: [self-contained-contract, accessibility-contract, progressive-enhancement, honest-content, preset-report, preset-dashboard, preset-explainer, preset-editor, tokens-first-style, component-vocabulary, svg-figure-grammar, svg-complexity-budget, svg-accessibility, honest-data-encoding, deliver-verify]
 ours:brief-me:
-  tree_hash: "612bd0955268b29f0ff89b5f272b5fbb9948c5e0c9e19d0b2b243c3a0350f90c"
-  traits: [next-action-first, numbered-steps, single-next-action, tangent-suppression, state-restatement, concrete-time-estimates, visible-progress, matter-of-fact-errors, capped-lists, no-preamble, explain-on-request, debug-spiral-reset, repitch-trigger, controlled-language, domain-vocabulary, pre-send-check]
+  tree_hash: "ba314a374e3c96bd9b3a909a745e496ffd192a2d4b662f2963afec6b85125f32"
+  traits: [next-action-first, numbered-steps, single-next-action, tangent-suppression, state-restatement, concrete-time-estimates, visible-progress, matter-of-fact-errors, capped-lists, no-preamble, explain-on-request, debug-spiral-reset, repitch-trigger, controlled-language, domain-vocabulary, pre-send-check, repitch-explains-project-terms]
 ours:improve-codebase-architecture:
   tree_hash: "616472db7e4fff6ae7d259fa5e7dc4c7cd3c05222a2a33072db1f18b3bae0042"
   traits: [scope-by-evidence, friction-signals, candidate-comparison, optional-report, adr-conflict-callout, review-no-auto-followup, respect-area-adrs, top-candidate-recommendation, concrete-benefit-claims, domain-vocabulary, read-domain-docs-first, rejection-decision-record]
@@ -111,7 +112,7 @@ ours:model-council:
   tree_hash: "678a7f2a8a0872f518a32349f32b6b49e0a3b83ed8d978b5f26d4ef50f85165a"
   traits: [member-resolution, runtime-capability-check, neutral-framing, member-isolation, report-preservation, independent-synthesis, consolidated-delivery, identity-recording, failed-member-recovery, no-silent-substitution, artifact-named-up-front, task-rubric-criteria, rubric-withheld-from-candidates, own-output-location, rationale-names-rejected, dropout-proceeds-noted, read-only-judge, judge-other-family-or-stated, rubric-given-to-judge, path-labelled-candidates, judge-criterion-scores, judge-recommends-base, full-read-before-pick, picker-criterion-scores, pick-compared-with-judge, disagreement-rereads-rationales, base-chosen-for-extensibility, near-tie-smaller-surface, loser-graft-pass, sparse-grafts, hand-folded-grafts, converged-shape-no-graft, divergence-reframes-once, graft-change-rerun, verify-miss-returns-once, single-synthesized-artifact, synthesis-decision-record, note-judge-status, note-convergence-dropouts, note-verification-result, no-judge-no-pick]
 ours:mvp-mode:
-  tree_hash: "8afde837a66b9eb1a36c237c5457e7dd1b34ef8c1e9293db54119c5d9ff829ae"
+  tree_hash: "3fe847aa0c5e017c12659a0c68cc08762abdd0b5c25f13d07ebcdcdc54062c62"
   traits: [unit-kind-lines, playbook-pick, need-to-skill-routing, overlap-arbitration, layered-catalog, platform-skill-invocation, no-playbook-in-delegate, delegate-independent-by-default, no-onward-delegation, playbook-steps-as-todos, recorded-step-skip, whole-callee, playbook-exit, legacy-entrypoint-flagging, catalog-trust-boundary]
 ours:performance-optimization:
   tree_hash: "8e393535c7e06691afca39ef9df84040ce4752a29a8cc58610b8522ce951c4da"
@@ -164,11 +165,13 @@ ours:principle-subtract-before-you-add:
   tree_hash: "76cd8d8c91d71be284e0570ffd72b4b747cd88b1fef6fd518c744fee37f7d1d8"
   traits: [touched-scope-subtraction, deletion-bias, stub-deletion, single-source-of-truth, cut-before-polish]
 ours:principle-test-behavior-not-implementation:
-  tree_hash: "ff743653e28de3db321e4aba9f2a2909ce759b4add64e5cb4fe1f49286291e79"
-  traits: [two-edit-test-judgement, public-interface-testing, contract-exact-assertion, absence-positive-control, hollow-test-forms, behaviour-and-edge-case-tests, implementation-test-deletion]
+  tree_hash: "5b010301c8ce2dee9f354b676ff40b6e33d0603ba042162cf1b73b07f1aa6240"
+  traits: [two-edit-test-judgement, public-interface-testing, contract-exact-assertion, absence-positive-control, hollow-test-forms, behaviour-and-edge-case-tests, implementation-test-deletion, green-on-break-test-fixed]
 ours:principle-type-system-discipline:
-  tree_hash: "31c1fb89f74f17e466a8557eadc20b9dde2efece0bd3d1098dc27b21fdfb71de"
-  traits: [unrepresentable-invalid-states, exhaustive-variant-handling, branded-primitives, schema-derived-types]
+  tree_hash: "9646e1d6cedcbecab1fd9dfb2785535edaa2140a4cf6b1b798ab61bb32f1a4b1"
+  traits: [unrepresentable-invalid-states, exhaustive-variant-handling, branded-primitives, schema-derived-types, brand-only-on-confusion-risk, simplest-total-type, weaken-result-alternative, one-schema-validates-and-types, guards-must-verify]
+  notes:
+    branded-primitives: "Narrowed by sealed row 2026-11-06-batch-p1:099 (brand-only-on-confusion-risk) and the owner's amendment of 2026-11-12: a value gets its own type only where a raw value of the same primitive could really be passed in its place; T5."
 ours:unslop:
   tree_hash: "679b179bfd1c9b2f0d76c21d256b76d6925a19cb948dbee7a08c8c3129ba72ef"
   traits: [meaning-preserved-edit, confidence-language-kept, ing-phrase-cut, vague-attribution-cut, name-the-mechanism, filler-phrase-cut, chatbot-phrase-cut, sycophancy-cut, generic-conclusion-cut, tell-vocabulary-swap, plain-is-has, plain-word, synonym-cycling-cut, local-metaphor-noun-swap, not-just-but-cut, forced-triplet-cut, false-range-cut, hedge-stack-trim, dense-sentence-split, active-voice, adverb-cut, mannered-prose-cut, over-compression-fix, no-em-dash, mid-sentence-colon-cut, bold-restraint, inline-header-list-convert, sentence-case-headings, no-decorative-emoji, straight-quotes]
@@ -196,8 +199,8 @@ ours:resolving-merge-conflicts:
   tree_hash: "18e9abe7213d906c177ab91e945bc1c0747776e3a875091dbff5bdc16b26e401"
   traits: [capture-conflict-set, trace-intent, resolve-preserve-both, resolve-over-abort, run-project-checks, explicit-staging, commit-authority-gate]
 ours:review:
-  tree_hash: "d93708d471af939a41ffad89300cfa643e399a7033b6bb6f310714e837ce490f"
-  traits: [independent-critic-verdict, severity-and-verdict, scope-establishment, pre-existing-edit-separation, callers-and-evidence, mechanical-gate-precedence, requirements-before-quality, distinct-axis-verdicts, test-quality-judgment, actionable-defects-only, read-only-isolation, verdict-contract, re-review-finding-tracking, document-review, finding-adjudication, fixed-point-preflight, spec-source-discovery, missing-spec-axis-skip, two-axis-review, standards-source-discovery, cited-standard-findings, spec-conformance-findings]
+  tree_hash: "de95d32c11fe83e2c26ebaaff3eca5710fd70019830ca3e60a1cebbe0dec4d4c"
+  traits: [independent-critic-verdict, severity-and-verdict, scope-establishment, pre-existing-edit-separation, callers-and-evidence, mechanical-gate-precedence, requirements-before-quality, distinct-axis-verdicts, test-quality-judgment, actionable-defects-only, read-only-isolation, verdict-contract, re-review-finding-tracking, document-review, finding-adjudication, fixed-point-preflight, spec-source-discovery, missing-spec-axis-skip, two-axis-review, standards-source-discovery, cited-standard-findings, spec-conformance-findings, breakage-beyond-callers, safety-fact-proved-by-run, evidence-ladder, ladder-as-far-as-cheap, small-real-library-script, failing-loud-proof, whole-change-including-unstated, change-history-pull, single-safety-fact-search, dependency-source-and-pin, timing-and-lifecycle-analysis, non-symbol-coupling-trace, likelihood-and-cost-per-risk, confirmed-and-cleared-split, empty-search-is-finding, handback-what-it-does, handback-safety-fact-with-grade, handback-risk-fields, handback-pre-merge-check]
   notes:
     severity-and-verdict: "A plan-mandated defect is still reported as major, labelled plan-mandated, for the user to decide."
 ours:security:
@@ -216,8 +219,8 @@ ours:systematic-debugging:
     falsifiable-hypotheses: "Delivers sealed row 2026-10-30-mattpocock_skills-5beb35b:238: each hypothesis states what would confirm or refute it, with no discard step and no prediction about changing the cause; T5."
     reproduction-preferred: "Reuses an existing failing test or command first, otherwise builds the smallest useful reproduction."
 ours:teach:
-  tree_hash: "c1b1783a4834fc39e6355c77255b31818d1e4fd348ea081775260bc43af2c286"
-  traits: [learning-shape, level-adaptation, what-vs-why, teaching-workspace, authorized-course-location, mission-grounding, glossary-entry-template, canonical-term-and-aliases, tight-concept-definitions, glossary-self-vocabulary, glossary-admission-on-use, learning-records, learning-resource-register, high-trust-resource-filter, resource-gap-register, prune-invalid-resources, lesson-format, reusable-assets, quiz-answer-hygiene, retrieval-practice, scope-discipline, sourced-explanations, mission-interview-first, community-opt-out, learning-record-criteria, field-term-resolution, in-place-definition-revision, mission-document-template, one-mission-per-workspace, one-screen-mission, minimal-learning-record-template, learning-record-supersession, cross-linked-lessons, domain-vocabulary, sequential-record-numbering, optional-record-sections, knowledge-skills-wisdom-frame, mission-shift-handling, spacing, storage-strength, vary-answer-position]
+  tree_hash: "9c2bfa6a3cebea9c36fe6fa3ddde8965971b18b8d2417a2f62dbb5cbd18f5aea"
+  traits: [learning-shape, level-adaptation, what-vs-why, teaching-workspace, authorized-course-location, mission-grounding, glossary-entry-template, canonical-term-and-aliases, tight-concept-definitions, glossary-self-vocabulary, glossary-admission-on-use, learning-records, learning-resource-register, high-trust-resource-filter, resource-gap-register, prune-invalid-resources, lesson-format, reusable-assets, quiz-answer-hygiene, retrieval-practice, scope-discipline, sourced-explanations, mission-interview-first, community-opt-out, learning-record-criteria, field-term-resolution, in-place-definition-revision, mission-document-template, one-mission-per-workspace, one-screen-mission, minimal-learning-record-template, learning-record-supersession, cross-linked-lessons, domain-vocabulary, sequential-record-numbering, optional-record-sections, knowledge-skills-wisdom-frame, mission-shift-handling, spacing, storage-strength, vary-answer-position, what-how-why-account, single-blended-account, lead-with-what-matters, confidence-language-kept, pick-few-takeaways, learner-context-from-conversation, depth-where-asked, orient-then-use-investigation, plain-definition-first, general-tied-to-local-case, build-up-order, problem-and-mechanism-per-part, walkthrough-of-user-action, no-symbol-inventory, no-labels-or-step-words, requested-depth-first-answer, offer-depth-follow-lead, no-teaching-theatre, show-the-real-artifact, figure-when-faster, incremental-diagram-series, plain-colleague-voice, reply-is-the-deliverable, threads-to-chase]
   notes:
     mission-shift-handling: "Delivers sealed row 2026-10-30-mattpocock_skills-5beb35b:503: confirm only an inferred, materially ambiguous shift; the learning record is LEARNING-RECORD-FORMAT.md's own trigger; T5."
     knowledge-skills-wisdom-frame: "Delivers sealed row 2026-10-30-mattpocock_skills-5beb35b:495: wisdom from learners and practitioners, where the definition says communities; T5."
@@ -226,9 +229,11 @@ ours:teach:
     reusable-assets: "Never invents a component library for a single lesson."
     glossary-entry-template: "Lays the file out as a title and a one-or-two-sentence description, then each term in bold followed by its definition and an Avoid line."
     tight-concept-definitions: "One or two sentences at most."
+    learner-context-from-conversation: "Delivers sealed row 2026-11-06-batch-p1:021: reads purpose and knowledge from the conversation and asks only if it is truly unclear, where the definition never asks; T5."
+    plain-colleague-voice: "Delivers sealed row 2026-11-06-batch-p1:045: cuts filler and keeps the part that makes it click; confidence hedges stay (row 019), where the definition removes hedging; T5."
 ours:tdd:
-  tree_hash: "ee34b3424d45ee5378e4653fc1982a26aea0a8a4a11e4ccd01a1f66b883fd227"
-  traits: [mode-selection, seam-selection, plan-seams-no-approval, red-green, refactor-after-green, mock-boundaries, proof-discipline, meaningful-behaviour-assertion, independent-expectation, no-implementation-coupling, deterministic-state, break-naming-validation, per-seam-note, one-test-per-cycle, behaviour-test-names, prove-the-red, covered-test-removal]
+  tree_hash: "cb345eecd659ecb2571c69c18e6a4112aa1905e046932b1d4dd6a3de34a3a2e3"
+  traits: [mode-selection, seam-selection, plan-seams-no-approval, red-green, refactor-after-green, mock-boundaries, proof-discipline, meaningful-behaviour-assertion, independent-expectation, no-implementation-coupling, deterministic-state, break-naming-validation, per-seam-note, one-test-per-cycle, behaviour-test-names, prove-the-red, covered-test-removal, optional-regression-test-skip, closest-existing-test-kind, failure-for-the-right-reason, closest-executable-fallback, no-test-over-bad-test, no-tests-bent-or-weakened, focused-regression-test, flaky-test-names-its-signal, focused-first-then-siblings, before-after-proof-report, missing-red-explained]
   notes:
     seam-selection: "The smallest such boundary."
     red-green: "Confirms the intended failure, not a setup error, then implements the owning fix and reruns the proving check."

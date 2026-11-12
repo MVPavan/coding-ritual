@@ -31,6 +31,7 @@ Use when the user invokes /brief-me.
 - `controlled-language`: Re-pitch in controlled simplified language with short sentences and common words.
 - `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write.
 - `pre-send-check`: Before sending, delete announcements, closers, sidebars and empty hedges.
+- `repitch-explains-project-terms`: Drop technical jargon from a re-pitch, keeping a project term only with a plain explanation of it.
 <!-- /registry:generated traits -->
 
 <!-- registry:generated lineage -->
@@ -39,14 +40,16 @@ Use when the user invokes /brief-me.
 - **mattpocock_skills:skill:skills/productivity/wait-what#standard-controlled-language** `skills/productivity/wait-what/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **cursor_plugins:skill:pstack/skills/bro#repitch-trigger** `pstack/skills/bro/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
 - **cursor_plugins:skill:pstack/skills/bro#controlled-language** `pstack/skills/bro/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
-- **cursor_plugins:skill:pstack/skills/bro#jargon-free-restatement** `pstack/skills/bro/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe (pending cr-r2pa.2.18)
+- **cursor_plugins:skill:pstack/skills/bro#jargon-free-restatement** `pstack/skills/bro/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-12` **adopt** (2026-11-12-batch-p1-existing:064): Completes pending 2026-11-06-batch-p1:003: repitch-explains-project-terms is written at .claude/skills/brief-me/SKILL.md:110, in its ruled words (plan 59).
+- `2026-11-12` **update** (2026-11-12-batch-p1-existing:063): Bead cr-r2pa.2.18, plan 59 slice 1: delivers 1 pending adopts of round 2026-11-06-batch-p1 (:003) into brief-me, in their ruled words. Traits added: repitch-ex…
 - `2026-11-12` **update** (2026-11-12-overlap-owners:008): Overlap audit (failure loop): the debug-spiral override now takes its stop from the work's owner (the running playbook's stop, or the parent's limit) instead o…
 - `2026-11-06` **rename** (2026-11-06-renames:009): Owner ruling D of 2026-11-05 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 14a U1. The skill i-have-adhd is renamed brief-me; its body is unchang…
 - `2026-11-06` **adopt** (2026-11-06-batch-p1:004): Checkpoint at 4dd1d05 for the owner's trait rulings: 3 adopt.
-- `2026-11-06` **adopt** (2026-11-06-batch-p1:003): Owner ruling 2026-11-06: Prevents: A re-pitch still carrying terms the reader cannot follow, so it fails a second time. Lands in i-have-adhd, SKILL.md, When to…
+- `2026-11-06` **adopt** (2026-11-06-batch-p1:003) *(superseded)*: Owner ruling 2026-11-06: Prevents: A re-pitch still carrying terms the reader cannot follow, so it fails a second time. Lands in i-have-adhd, SKILL.md, When to…
 - `2026-11-06` **adopt** (2026-11-06-batch-p1:002): Owner ruling 2026-11-06: The same line asks for short sentences and common words, and for a simpler answer rather than a longer one.
 - `2026-11-06` **adopt** (2026-11-06-batch-p1:001): Owner ruling 2026-11-06: i-have-adhd's rule 5 re-explains a message that did not land instead of adding to it, which is what this command asks for.
 - `2026-10-30` **adopt-merged** (2026-10-30-mattpocock_skills-5beb35b:585): Checkpoint at 5beb35b for the owner's trait rulings: 3 adopt, 1 defer.
@@ -68,6 +71,8 @@ Use when the user invokes /brief-me.
   - `mattpocock_skills:skill:skills/productivity/wait-what#standard-controlled-language` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `domain-vocabulary`:
   - `mattpocock_skills:skill:skills/productivity/wait-what#domain-vocabulary` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `repitch-explains-project-terms`:
+  - `cursor_plugins:skill:pstack/skills/bro#jargon-free-restatement` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `repitch-trigger`:
   - `cursor_plugins:skill:pstack/skills/bro#repitch-trigger` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
   - `mattpocock_skills:skill:skills/productivity/wait-what#repitch-trigger` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)

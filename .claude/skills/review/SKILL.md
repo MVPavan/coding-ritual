@@ -32,6 +32,7 @@ plan-mandated; the user decides.
 - `feedback`: verify and act on incoming findings within authorization, using
   `references/feedback.md`. Producing a review is read-only, whereas applying
   feedback requires implementation authority.
+- `blast-radius`, only when asked what a change could break: `references/blast-radius.md`.
 
 ## Document review
 
