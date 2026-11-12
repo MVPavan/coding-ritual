@@ -31,7 +31,7 @@ No adopted lineage recorded.
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
-No ledger history recorded.
+- `2026-11-12` **update** (2026-11-12-skill-curation-playbook:004): Plan 65 D5: its pointer to the curation method follows the move of harness_lifecycle/playbook.md to .claude/skills/mvp-mode/playbooks/skill-curation.md and its…
 <!-- /registry:generated history -->
 
 <!-- registry:generated reviews -->

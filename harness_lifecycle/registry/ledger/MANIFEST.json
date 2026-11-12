@@ -47,7 +47,8 @@
     "2026-11-12-implement-tracker-when.jsonl": "883384ff4b5f804ba0a7a1a5a6a1273da42210e030a7d570b2bec363a0c403d9",
     "2026-11-12-overlap-owners.jsonl": "b6e70ddc3950a337a8ccd0cee074d273e0f65ad5d1767c1bc4e48accb59aed8e",
     "2026-11-12-pocock-4ae2317-delivery.jsonl": "08167ac3aea7259b7c8da18c02baf62cfc911812c1094bc95bd5fe1ea1e8d88b",
-    "2026-11-12-reflect.jsonl": "7c42c7bfe23f25fd69a7c320e6110e632bc8321b05ac4513e67b6a5dbd0e7646"
+    "2026-11-12-reflect.jsonl": "7c42c7bfe23f25fd69a7c320e6110e632bc8321b05ac4513e67b6a5dbd0e7646",
+    "2026-11-12-skill-curation-playbook.jsonl": "547203f803f57054df26264d7b0f6733eb345f7cfcb462859180d8c8e09f37af"
   },
   "round_order": [
     "2026-10-14-migration.jsonl",
@@ -96,7 +97,8 @@
     "2026-11-12-batch-p1-recall.jsonl",
     "2026-11-12-batch-p1-figure-it-out.jsonl",
     "2026-11-12-batch-p1-no-comments.jsonl",
-    "2026-11-12-reflect.jsonl"
+    "2026-11-12-reflect.jsonl",
+    "2026-11-12-skill-curation-playbook.jsonl"
   ],
   "reports": {
     "harness_lifecycle/registry/reviews/2026-10-30-upstream-mattpocock_skills-5beb35b.yaml": "fb413772a75f116bd9baeaa06b6e414fe59978c654a951cb53345f17459d7597",

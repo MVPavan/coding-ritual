@@ -138,7 +138,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `drift-scan`: Run the drift scan to surface upstream changes since our pin.
 - `gap-report`: Run the gap report for capabilities never ruled on, changed upstream since their ruling, or held but never ruled on.
 - `material-report`: Report the material drift and useful candidates against existing equivalents.
-- `upstream-review-on-pin-move`: When the submodule pointer moves, write the upstream review in the same change and regenerate the catalog at the new pin.
+- `pin-move-catalog-refresh`: When the submodule pointer moves, regenerate the catalog at the new pin and report which skills need analysis, leaving the review itself to the curation route.
 - `beads-followup`: Let the gap command print tracker-create lines to review by hand, never auto-running them, and only within filing authority.
 - `pin-preserving-fetch`: Fetching upstream refs updates only the local cache and never moves pinned submodule commits, with a no-fetch option to skip the network when offline.
 - `reject-valid`: Treat reject or defer as a valid outcome when a candidate adds no durable behavioural value.
@@ -1494,6 +1494,36 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `pickup-verdict`: Pick one verdict for the resumed work (carry on, finished, uphold or reverse a conclusion, look into a failed run) and name the unit that takes it, as a selection and not a call.
 - `resumed-run-handover`: Tell the run taking resumed work on how to list its steps: a proved step as a skip with evidence, an open call invoked again whole, a gate held as new, and that it owns the work's checkpoint file.
 - `read-only-closeout`: On every exit of a read-only run, confirm against the starting state, by a checksum for a path already dirty, that nothing changed but an explicitly requested reply artifact, and name the scratch files kept.
+
+#### skill-curation — `doc:.claude/skills/mvp-mode/playbooks/skill-curation.md`
+- `curation-role-separation`: Split curation into an owner who decides every ruling and approves delivery, an author who gathers evidence and drafts but never approves its own work, and a critic who reviews from a separate context and never edits during review.
+- `curation-intake-bead`: Open each curation change as one bead typed by its origin: a spike for an upstream review, a bug for an observed failure, a feature for a new capability.
+- `artifact-owned-placement`: Place a skill at the sub-stage that owns the artifact it produces, reject a placement that needs a boundary exception, add at most two secondary tags for real spans, and make two active skills in one sub-stage each state their boundary or become merge candidates.
+- `placement-vs-description`: Record a skill's placement and boundary in the registry's skill entry, and leave what the skill does and when it fires to its own description.
+- `blind-extract-then-map`: List a skill's traits in two passes: an extraction from the skill folder alone, its brief naming no trait vocabulary, then a separate mapping that reuses a definition only for the same mechanism, splits a partial match and defines a variant with distinct_from.
+- `skill-entries-with-change`: Change a skill together with its registry entries (its placement entry when placement or boundary change, its trait list and its folder hash; a playbook's frontmatter and the hash its update event stores), then regenerate the records with the registry build, never editing a generated record.
+- `upstream-review-on-pin-move`: When the submodule pointer moves, write the upstream review in the same change and regenerate the catalog at the new pin.
+- `append-only-trait-analysis`: Add an upstream skill's trait list as a new proposed analysis at the new sha, giving a changed skill's added, changed and removed traits from the diff and leaving untouched traits in place, and never edit an earlier analysis.
+- `report-pairing-coverage`: Draft one report per upstream skill against one compared skill of ours or none, picked from trait overlap, placement and purpose, flagging the pairing with a reason when those signals disagree, and count a trait present only in the compared skill or AGENTS.md, never in another of our skills.
+- `row-recommendation-rules`: Fill each upstream report row with our file:line citations for a present or variant row and a recommendation set by its presence: present adopts as delivered; a deliberate variant adopts modified, saying how; any other variant adopts pending an edit; absent adopts pending an edit, defers with a revisit condition, rejects with a reason or rule, or is out of scope.
+- `prompting-guide-check`: Check the wording each adopted trait will carry against the prompting guide's rule IDs and the writing principles, marking it ok, reword with the new wording, or conflict with a recommended rejection, and follow a pre-filled trait-policy stance or argue to change it.
+- `failure-first-update`: Record the failure (the task, what the agent did, what it should have done) before changing anything, fix it in the skill that owns it, and keep a rerun of the task or a fresh-context test as the update's evidence.
+- `withdraw-on-local-update`: When a fix from our own failure drops a trait adopted from upstream, name that trait in the update event's withdraws, since an upstream ruling never removes it for us.
+- `ruling-before-change`: Record the owner's ruling before the unit changes, and record an adopt or adopt-merged only once the adopted state exists.
+- `record-command`: Append a curation decision with the registry record command carrying its kind, subject, reason and evidence.
+- `per-trait-ruling`: Rule an upstream release trait by trait from a sealed report that two critics checked, one for the extraction and mapping and one for the facts and recommendations, recording one event per in-scope trait and one checkpoint per reviewed skill, ruling a skill not analysed only whole as defer, reject or out-of-scope, promoting each decided analysis to accepted, and never re-deciding an earlier take or decline.
+- `mechanism-rule-policy-entry`: When a rejection or rewording follows a prompting-guide rule that holds for the mechanism itself, add a trait-policy entry in the same change.
+- `isolated-skill-build`: Build a skill change in a git worktree on its own branch, so running sessions keep the current skills until the merge promotes it.
+- `rewrite-borrowed-ideas`: Rewrite every idea borrowed from a reference harness in our own words, never pasting upstream text.
+- `writing-idea-destination`: Put a writing idea taken from a reference harness into the authoring skill's writing principles, never into the prompting guide.
+- `merge-split-reference-fix`: Fix every reference to a merged or split skill in the same change as the merge or split.
+- `retire-stub-one-release`: Retire a skill by leaving a stub for one plugin release, then removing its folder.
+- `pending-adoption-completion`: When a pending adoption's edit lands, record the completing adopt superseding the pending event in the same change as the edit, and refresh the skill's hash.
+- `skill-catalog-check`: After changing a skill, run the catalog check that validates the generated catalog, its pointers and invocation metadata.
+- `curation-verify`: Before delivering a skill change, run the registry build and check, and put every new or rewritten skill body before a critic.
+- `authority-separation`: Confirm publication and commit authority separately, treating a no-commit instruction as binding.
+- `curation-delivery-order`: Deliver a skill change in order: commits, then the merge that promotes it, then the .codex sync, then the publish.
+- `curation-closeout`: On every exit of a curation run, note the bead with the evidence and a resume line or close it with the evidence, name the ledger state reached, and confirm nothing was built without a recorded ruling.
 
 #### trace-forensics — `doc:.claude/skills/mvp-mode/playbooks/trace-forensics.md`
 - `fixed-artifact-gate`: Treat a captured artifact as a fixed dataset: query it, leave it unchanged, and never re-run the scenario to get a different one.
@@ -4541,6 +4571,10 @@ Convert source agents into conservative target config scaffolds, inferring a san
 Give agents direct data sources such as process logs, test databases and browser access.
 - `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — defer
 
+#### `artifact-owned-placement`
+Place a skill at the sub-stage that owns the artifact it produces, reject a placement that needs a boundary exception, add at most two secondary tags for real spans, and make two active skills in one sub-stage each state their boundary or become merge candidates.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/skill-curation.md`
+
 #### `beads-followup`
 Let the gap command print tracker-create lines to review by hand, never auto-running them, and only within filing authority.
 - ours: `harness-scan`
@@ -4615,6 +4649,10 @@ Add lint rules that force correct code so agents cannot drift from it.
 Sharpen a vague completion criterion before considering hiding the later steps.
 - `mattpocock_skills:skill:skills/productivity/writing-for-agents` — defer
 
+#### `curation-verify`
+Before delivering a skill change, run the registry build and check, and put every new or rewritten skill body before a critic.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/skill-curation.md`
+
 #### `daily-ratchet-task`
 On a daily clock, take one file off the exception list, fix it until the check passes and open a pull request that starts an automated review run, ending when the list is empty.
 - `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
@@ -4678,6 +4716,10 @@ Prefer extending existing pointed-to documents before writing new ones.
 Put reference shared by user-invoked skills in a plain external file rather than a skill.
 - `mattpocock_skills:skill:skills/productivity/writing-for-agents` — adopt → authoring-for-agents#surface-choice
 
+#### `failure-first-update`
+Record the failure (the task, what the agent did, what it should have done) before changing anything, fix it in the skill that owns it, and keep a rerun of the task or a fresh-context test as the update's evidence.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/skill-curation.md`
+
 #### `fix-at-highest-level`
 Try fixes for a repeated mistake in order of architecture, types, lint or CI, tests and finally docs, stopping at the highest level that works.
 - ours: `authoring-for-agents`
@@ -4725,6 +4767,10 @@ Choose model-invoked or user-invoked activation, setting the disable-model-invoc
 Pair the manual-invocation flag with the provider's implicit-invocation policy and regenerate the catalog and sidecars together after metadata edits.
 - ours: `authoring-for-agents`
 
+#### `isolated-skill-build`
+Build a skill change in a git worktree on its own branch, so running sessions keep the current skills until the merge promotes it.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/skill-curation.md`
+
 #### `judgement-lesson-example`
 When a recurring lesson needs judgement and cannot be checked, make its instruction more prominent and pair it with an example of the failure.
 - `cursor_plugins:skill:pstack/skills/principle-encode-lessons-in-structure` — adopt → authoring-for-agents#judgement-lesson-failure-example
@@ -4736,6 +4782,10 @@ When a recurring lesson needs judgement and cannot be checked, revise the instru
 #### `leading-words`
 Anchor behaviour in a compact pretrained concept repeated as a token, reaching for an existing word before coining one.
 - `mattpocock_skills:skill:skills/productivity/writing-for-agents` — defer
+
+#### `merge-split-reference-fix`
+Fix every reference to a merged or split skill in the same change as the merge or split.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/skill-curation.md`
 
 #### `mine-and-group-mistakes`
 Collect mistakes from recent history, reverts, review remarks, instruction files and workaround comments, and cluster them into classes.
@@ -4791,6 +4841,18 @@ Give each trigger branch of a pointer one trigger, collapsing synonyms.
 State outputs, material invariants, authority boundaries and stop conditions explicitly.
 - ours: `authoring-for-agents`
 
+#### `pending-adoption-completion`
+When a pending adoption's edit lands, record the completing adopt superseding the pending event in the same change as the edit, and refresh the skill's hash.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/skill-curation.md`
+
+#### `pin-move-catalog-refresh`
+When the submodule pointer moves, regenerate the catalog at the new pin and report which skills need analysis, leaving the review itself to the curation route.
+- ours: `harness-scan`
+
+#### `placement-vs-description`
+Record a skill's placement and boundary in the registry's skill entry, and leave what the skill does and when it fires to its own description.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/skill-curation.md`
+
 #### `plain-path-references`
 Keep conditional references as plain paths, never automatic imports.
 - `doc:AGENTS.md`
@@ -4812,6 +4874,7 @@ When a pattern is already widespread, fail only on changes that add more of it.
 #### `record-command`
 Append a curation decision with the registry record command carrying its kind, subject, reason and evidence.
 - ours: `harness-evaluate`
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/skill-curation.md`
 
 #### `recurring-lesson-to-check`
 When a correction or instruction recurs, encode it as a lint, flag, runtime check or script instead of adding more instruction text.
@@ -4825,6 +4888,10 @@ Check every line still bears on the document's task, pruning stale or irrelevant
 - ours: `authoring-for-agents`
 - `mattpocock_skills:skill:skills/productivity/writing-for-agents` — adopt → authoring-for-agents#relevance-check
 
+#### `retire-stub-one-release`
+Retire a skill by leaving a stub for one plugin release, then removing its folder.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/skill-curation.md`
+
 #### `review-catches-become-checks`
 Turn what human review catches into new automated checks and sharper automated review.
 - `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
@@ -4833,6 +4900,10 @@ Turn what human review catches into new automated checks and sharper automated r
 Treat the coding-standards file as review-time material and split it behind pointers once it passes about a thousand lines.
 - `mattpocock_skills:skill:skills/engineering/retro` — defer
 
+#### `rewrite-borrowed-ideas`
+Rewrite every idea borrowed from a reference harness in our own words, never pasting upstream text.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/skill-curation.md`
+
 #### `router-skills`
 When user-invoked skills multiply, add a user-invoked router skill that names the others and when to reach each, hinting rather than firing them.
 - `mattpocock_skills:skill:skills/productivity/writing-for-agents` — defer
@@ -4840,6 +4911,10 @@ When user-invoked skills multiply, add a user-invoked router skill that names th
 #### `rule-to-enforcer-table`
 Maintain in the agent instruction file a table pairing each rule with what enforces it.
 - `cursor_plugins:skill:pstack/skills/correct` — reject
+
+#### `ruling-before-change`
+Record the owner's ruling before the unit changes, and record an adopt or adopt-merged only once the adopted state exists.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/skill-curation.md`
 
 #### `same-command-local-and-ci`
 Run the identical command on a developer machine and in CI.
@@ -4873,6 +4948,10 @@ Keep each meaning in one authoritative place so changing it is a one-place edit.
 - `cursor_plugins:skill:pstack/skills/architect` — reject
 - `cursor_plugins:skill:pstack/skills/principle-laziness-protocol` — adopt → principle-subtract-before-you-add#single-source-of-truth
 - `mattpocock_skills:skill:skills/productivity/writing-for-agents` — adopt → authoring-for-agents#single-source-of-truth
+
+#### `skill-entries-with-change`
+Change a skill together with its registry entries (its placement entry when placement or boundary change, its trait list and its folder hash; a playbook's frontmatter and the hash its update event stores), then regenerate the records with the registry build, never editing a generated record.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/skill-curation.md`
 
 #### `skill-packaging`
 Keep one canonical directory per workflow with a SKILL.md, adding references only for substantial conditional material and scripts for reusable mechanical work.
@@ -4976,9 +5055,25 @@ Update an existing generated section in place rather than appending a duplicate.
 
 #### `upstream-review-on-pin-move`
 When the submodule pointer moves, write the upstream review in the same change and regenerate the catalog at the new pin.
-- ours: `harness-scan`
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/skill-curation.md`
+
+#### `withdraw-on-local-update`
+When a fix from our own failure drops a trait adopted from upstream, name that trait in the update event's withdraws, since an upstream ruling never removes it for us.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/skill-curation.md`
+
+#### `writing-idea-destination`
+Put a writing idea taken from a reference harness into the authoring skill's writing principles, never into the prompting guide.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/skill-curation.md`
 
 ### core · Improvement · Evaluation
+
+#### `append-only-trait-analysis`
+Add an upstream skill's trait list as a new proposed analysis at the new sha, giving a changed skill's added, changed and removed traits from the diff and leaving untouched traits in place, and never edit an earlier analysis.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/skill-curation.md`
+
+#### `blind-extract-then-map`
+List a skill's traits in two passes: an extraction from the skill folder alone, its brief naming no trait vocabulary, then a separate mapping that reuses a definition only for the same mechanism, splits a partial match and defines a variant with distinct_from.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/skill-curation.md`
 
 #### `candidate-blinding`
 Keep every name, path and prompt a candidate session can see free of any sign that it is being measured or that other candidates exist.
@@ -5042,6 +5137,10 @@ Frame the variant and the behaviour that counts as success, and hold a rubric of
 Report the material drift and useful candidates against existing equivalents.
 - ours: `harness-scan`
 
+#### `mechanism-rule-policy-entry`
+When a rejection or rewording follows a prompting-guide rule that holds for the mechanism itself, add a trait-policy entry in the same change.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/skill-curation.md`
+
 #### `minimal-borrowing`
 Borrow only the smallest justified pattern from a reference repository.
 - `doc:AGENTS.md`
@@ -5058,9 +5157,17 @@ Have one judge score every output, both sets of a comparison in one pass on one 
 Give every candidate the same prompt, written as a user would type it, stating the goal and nothing of what is measured.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/eval.md`
 
+#### `per-trait-ruling`
+Rule an upstream release trait by trait from a sealed report that two critics checked, one for the extraction and mapping and one for the facts and recommendations, recording one event per in-scope trait and one checkpoint per reviewed skill, ruling a skill not analysed only whole as defer, reject or out-of-scope, promoting each decided analysis to accepted, and never re-deciding an earlier take or decline.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/skill-curation.md`
+
 #### `presence-matrix`
 Tabulate one row per component and one column per skill, marking present, variant or absent, and explain how each varying row is realised and which is stronger.
 - ours: `harness-skill-compare`
+
+#### `prompting-guide-check`
+Check the wording each adopted trait will carry against the prompting guide's rule IDs and the writing principles, marking it ok, reword with the new wording, or conflict with a recommended rejection, and follow a pre-filled trait-policy stance or argue to change it.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/skill-curation.md`
 
 #### `read-every-output`
 Read every candidate's output end to end and compare with the judge, reporting a disagreement as a biased judge or an ambiguous rubric.
@@ -5086,9 +5193,17 @@ Consult the registry index, skill records and reference pages for classification
 Treat reject or defer as a valid outcome when a candidate adds no durable behavioural value.
 - ours: `harness-scan`
 
+#### `report-pairing-coverage`
+Draft one report per upstream skill against one compared skill of ours or none, picked from trait overlap, placement and purpose, flagging the pairing with a reason when those signals disagree, and count a trait present only in the compared skill or AGENTS.md, never in another of our skills.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/skill-curation.md`
+
 #### `resolve-target`
 Resolve the named reference harness or path, asking only when it is ambiguous.
 - ours: `harness-scan`
+
+#### `row-recommendation-rules`
+Fill each upstream report row with our file:line citations for a present or variant row and a recommendation set by its presence: present adopts as delivered; a deliberate variant adopts modified, saying how; any other variant adopts pending an edit; absent adopts pending an edit, defers with a revisit condition, rejects with a reason or rule, or is out of scope.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/skill-curation.md`
 
 #### `sandbox-template-per-variant`
 Build one secret-free repository template per variant with its baseline committed and the variant at its normal discovery location.
@@ -6348,6 +6463,22 @@ The coordinator collects every worker result and owns integration, the dispositi
 Have work reviewed by a model from a different family than its author's, and get the owner's explicit approval before a same-family review.
 - ours: `delegation`
 
+#### `curation-closeout`
+On every exit of a curation run, note the bead with the evidence and a resume line or close it with the evidence, name the ledger state reached, and confirm nothing was built without a recorded ruling.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/skill-curation.md`
+
+#### `curation-delivery-order`
+Deliver a skill change in order: commits, then the merge that promotes it, then the .codex sync, then the publish.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/skill-curation.md`
+
+#### `curation-intake-bead`
+Open each curation change as one bead typed by its origin: a spike for an upstream review, a bug for an observed failure, a feature for a new capability.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/skill-curation.md`
+
+#### `curation-role-separation`
+Split curation into an owner who decides every ruling and approves delivery, an author who gathers evidence and drafts but never approves its own work, and a critic who reviews from a separate context and never edits during review.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/skill-curation.md`
+
 #### `declared-scale`
 Choose and state the council's scale before dispatch, naming membership and whether peer review is included.
 - ours: `perspective-council`
@@ -7031,6 +7162,7 @@ Ask the user for help when redacted output is too thin to diagnose from.
 #### `authority-separation`
 Confirm publication and commit authority separately, treating a no-commit instruction as binding.
 - ours: `harness-publish`
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/skill-curation.md`
 
 #### `consequential-action-authorization`
 Require authorization before publishing, deploying, sending messages, taking destructive actions or expanding scope.
@@ -11448,6 +11580,7 @@ Lint each changed shell script with ShellCheck whenever it is installed.
 #### `skill-catalog-check`
 After changing a skill, run the catalog check that validates the generated catalog, its pointers and invocation metadata.
 - `doc:.repo-context/verification.md`
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/skill-curation.md`
 
 #### `syntax-check-handoff`
 Syntax-check the script and make it executable, then tell the user how to run it instead of running it end-to-end yourself.
@@ -12073,6 +12206,7 @@ Traits listed by two or more of our active skills (`doc:AGENTS.md` and playbooks
 | `answer-before-next-round` | discovery, grilling | As question-batching: each skill waits for a round's answers inside its own question flow. |
 | `area-topic-filing` | discovery, research | Each files its own output under its own root by one rule: discovery its records under docs/discovery/, research its reports under docs/research/. |
 | `attempt-log` | doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/implement.md | Each fixes a failure on its own path, the bug-fix playbook for a bug-fix request and the implement playbook inside a unit it coordinates, where a separate bug-fix request would leave its scope; both log each fix attempt so a stop hands back usable evidence. |
+| `authority-separation` | doc:.claude/skills/mvp-mode/playbooks/skill-curation.md, harness-publish | harness-publish confirms publish and commit authority separately at its own entry; the playbook's delivery step states the same split for the whole curation path. Each is read alone. |
 | `baseline` | performance-optimization, systematic-debugging | Each measures before a fix: performance-optimization for a resource target, systematic-debugging when the failure diagnosed is a performance regression, which it hands to the fixer. |
 | `bounded-background-wait` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md | The same one sentence on waiting sits at each step that waits, with its own stopped exit; no skill is called for it. |
 | `build-closeout` | doc:.claude/skills/mvp-mode/playbooks/feature.md, doc:.claude/skills/mvp-mode/playbooks/perf-issue.md, doc:.claude/skills/mvp-mode/playbooks/refactoring.md | Each playbook's closeout runs on its own exits and feeds its own reply, and these three have the same three duties; a skill of three duties would be ceremony (unit-kinds deviation log, St4 and B4). |
@@ -12105,6 +12239,7 @@ Traits listed by two or more of our active skills (`doc:AGENTS.md` and playbooks
 | `read-only-explanation` | how, why | Both answer a question about this project and change nothing while answering; one read-only rule, kept in each half of the split. |
 | `read-trail-first` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md | Each looping playbook reads its own trail before choosing the next change; each trail has its own columns and rows. |
 | `recommended-answer` | discovery, grilling | As question-batching: a short rule each skill applies inside its own flow. |
+| `record-command` | doc:.claude/skills/mvp-mode/playbooks/skill-curation.md, harness-evaluate | harness-evaluate records its own ruling; the playbook's ruling step names the same command for every curation operation. A pointer would add a hop to one command line. |
 | `reply-is-the-deliverable` | recall, teach | Each skill's reply is its product, an explanation or a brief, so neither may hand back a report of having done it instead. Batch P1 rows 2026-11-06-batch-p1:053 (teach) and :207 (recall), owner-ruled 2026-11-06. |
 | `revert-ineffective-experiments` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, performance-optimization | Each runs its own loop of attempts, fix attempts in the bug-fix playbook and optimization experiments in performance-optimization, and removes its own failed edits before the next attempt. |
 | `row-then-checkpoint` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md | Each loop writes its own row and checkpoint in this order, around its own keep-or-discard step, so a closing return can trust them. |

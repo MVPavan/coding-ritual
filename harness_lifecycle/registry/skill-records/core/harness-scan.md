@@ -19,7 +19,7 @@ Scan a reference harness for material upstream drift and missing capabilities.
 - `drift-scan`: Run the drift scan to surface upstream changes since our pin.
 - `gap-report`: Run the gap report for capabilities never ruled on, changed upstream since their ruling, or held but never ruled on.
 - `material-report`: Report the material drift and useful candidates against existing equivalents.
-- `upstream-review-on-pin-move`: When the submodule pointer moves, write the upstream review in the same change and regenerate the catalog at the new pin.
+- `pin-move-catalog-refresh`: When the submodule pointer moves, regenerate the catalog at the new pin and report which skills need analysis, leaving the review itself to the curation route.
 - `beads-followup`: Let the gap command print tracker-create lines to review by hand, never auto-running them, and only within filing authority.
 - `pin-preserving-fetch`: Fetching upstream refs updates only the local cache and never moves pinned submodule commits, with a no-fetch option to skip the network when offline.
 - `reject-valid`: Treat reject or defer as a valid outcome when a candidate adds no durable behavioural value.
@@ -30,7 +30,7 @@ No adopted lineage recorded.
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
-No ledger history recorded.
+- `2026-11-12` **update** (2026-11-12-skill-curation-playbook:005): Plan 65 D5 and critic-65b F4: on a pin move it regenerates the catalog and reports which skills need analysis, then hands the review back through mvp-mode to t…
 <!-- /registry:generated history -->
 
 <!-- registry:generated reviews -->

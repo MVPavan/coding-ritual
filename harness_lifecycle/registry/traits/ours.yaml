@@ -71,14 +71,14 @@ ours:grilling:
     recommended-answer: "Labels the recommendation's assumptions."
     self-serve-facts: "Ordinary lookups stay inline; only bounded work is delegated."
 ours:harness-evaluate:
-  tree_hash: "d9febd065f1d58c32e72825cbb5206de4aba3fe6b629f257435037ee525e56df"
+  tree_hash: "4ba41d978d395a33869c64cb5ea450fe6edf766e814da8c96ba997025995a290"
   traits: [read-first, decision-dimensions, disposition-choice, recommendation-vs-record, record-command, edit-canonical-source, template-adoption-gate, material-risk-review, adopt-after-state-exists]
 ours:harness-publish:
   tree_hash: "cf40e127d248854f39a320f0c28e57245177df21c830437284a3354f84805e14"
   traits: [manual-root-only, prerequisites-scope, repo-context-check, authority-separation, preflight-gates, dry-run, publish-bump, plugin-repo-review, submodule-pointer, failure-table, never-edit-build-output]
 ours:harness-scan:
-  tree_hash: "e6ec350b3b8ad25014c32a588ac2f463d95454d98c5185d7a118d2404cf6ff2c"
-  traits: [resolve-target, drift-scan, gap-report, material-report, upstream-review-on-pin-move, beads-followup, pin-preserving-fetch, reject-valid]
+  tree_hash: "4f9ea1d107731642b20f793149a36c23cb3a4cda3b010b15eda781ce532659e6"
+  traits: [resolve-target, drift-scan, gap-report, material-report, pin-move-catalog-refresh, beads-followup, pin-preserving-fetch, reject-valid]
 ours:harness-skill-compare:
   tree_hash: "6f4f9a2f6872ab67ed29fe061de8caf4bc0fd0c18c7926a253a35f74dfaab7a2"
   traits: [scale-to-question, inspected-vs-executed, registry-consult, skill-review-file, component-inventory, presence-matrix, verdict, narrow-stays-in-chat]
@@ -112,7 +112,7 @@ ours:model-council:
   tree_hash: "678a7f2a8a0872f518a32349f32b6b49e0a3b83ed8d978b5f26d4ef50f85165a"
   traits: [member-resolution, runtime-capability-check, neutral-framing, member-isolation, report-preservation, independent-synthesis, consolidated-delivery, identity-recording, failed-member-recovery, no-silent-substitution, artifact-named-up-front, task-rubric-criteria, rubric-withheld-from-candidates, own-output-location, rationale-names-rejected, dropout-proceeds-noted, read-only-judge, judge-other-family-or-stated, rubric-given-to-judge, path-labelled-candidates, judge-criterion-scores, judge-recommends-base, full-read-before-pick, picker-criterion-scores, pick-compared-with-judge, disagreement-rereads-rationales, base-chosen-for-extensibility, near-tie-smaller-surface, loser-graft-pass, sparse-grafts, hand-folded-grafts, converged-shape-no-graft, divergence-reframes-once, graft-change-rerun, verify-miss-returns-once, single-synthesized-artifact, synthesis-decision-record, note-judge-status, note-convergence-dropouts, note-verification-result, no-judge-no-pick]
 ours:mvp-mode:
-  tree_hash: "c667792b155d7b6d848b4f9bde719cae305a5856a62c4bc4a45f3bcbb6dd887c"
+  tree_hash: "eee7245e50955324013e4692218afcab615392bcda148550c43a9c302434de44"
   traits: [unit-kind-lines, playbook-pick, need-to-skill-routing, overlap-arbitration, layered-catalog, platform-skill-invocation, no-playbook-in-delegate, delegate-independent-by-default, no-onward-delegation, playbook-steps-as-todos, recorded-step-skip, whole-callee, playbook-exit, legacy-entrypoint-flagging, catalog-trust-boundary]
 ours:performance-optimization:
   tree_hash: "8e393535c7e06691afca39ef9df84040ce4752a29a8cc58610b8522ce951c4da"

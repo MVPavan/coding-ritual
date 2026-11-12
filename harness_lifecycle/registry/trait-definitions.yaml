@@ -1,6 +1,6 @@
 # Trait definitions: the shared vocabulary every skill, ours and upstream, maps to.
 # Rules: harness_lifecycle/registry/README.md §4a. Map to these only after a blind
-# extraction (harness_lifecycle/playbook.md §4). Grouped by placement.
+# extraction (.claude/skills/mvp-mode/playbooks/skill-curation/upstream-review.md step 2). Grouped by placement.
 # Migration evidence: docs/workstreams/skill-curation/trait-migration-2026-10-28.md
 
 # ---- core · Discovery · Research ----
@@ -735,6 +735,11 @@ unsupported-claim-removal:
 upstream-review-on-pin-move:
   definition: "When the submodule pointer moves, write the upstream review in the same change and regenerate the catalog at the new pin."
   placement: {domain: core, stage: Improvement, substage: Codification}
+pin-move-catalog-refresh:
+  definition: "When the submodule pointer moves, regenerate the catalog at the new pin and report which skills need analysis, leaving the review itself to the curation route."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+  distinct_from: [upstream-review-on-pin-move]
+  note: "upstream-review-on-pin-move also writes the review in the same change; this stops at the catalog and the list of skills to analyse."
 
 # ---- core · Improvement · Evaluation ----
 component-inventory:
@@ -7778,3 +7783,118 @@ novel-decision-design-space:
   placement: {domain: engineering, stage: Design, substage: Architecture}
   distinct_from: [options-with-tradeoffs, design-it-twice, competing-prototypes]
   note: "options-with-tradeoffs presents options to the user while alternatives remain open, with no trigger and no choice; design-it-twice optionally compares interface designs for a consequential choice; competing-prototypes builds running prototypes for an unprecedented interaction or architecture or a feel-dependent decision. This one is a required judgment on any unprecedented decision, made in reasoning, ending in a choice."
+# ---- ours only, skill-curation playbook (plan 65, 2026-11-12) ----
+curation-role-separation:
+  definition: "Split curation into an owner who decides every ruling and approves delivery, an author who gathers evidence and drafts but never approves its own work, and a critic who reviews from a separate context and never edits during review."
+  placement: {domain: core, stage: X, substage: Coordination}
+  distinct_from: [authority-separation, independent-critic-verdict]
+  note: "authority-separation confirms commit and publication authority separately; independent-critic-verdict is the reviewer's own conduct. This assigns the three curation roles and what each never does."
+curation-intake-bead:
+  definition: "Open each curation change as one bead typed by its origin: a spike for an upstream review, a bug for an observed failure, a feature for a new capability."
+  placement: {domain: core, stage: X, substage: Coordination}
+  distinct_from: [bead-type-taxonomy]
+  note: "bead-type-taxonomy limits the tracker to its six types; this picks the type from what started the curation change."
+artifact-owned-placement:
+  definition: "Place a skill at the sub-stage that owns the artifact it produces, reject a placement that needs a boundary exception, add at most two secondary tags for real spans, and make two active skills in one sub-stage each state their boundary or become merge candidates."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+blind-extract-then-map:
+  definition: "List a skill's traits in two passes: an extraction from the skill folder alone, its brief naming no trait vocabulary, then a separate mapping that reuses a definition only for the same mechanism, splits a partial match and defines a variant with distinct_from."
+  placement: {domain: core, stage: Improvement, substage: Evaluation}
+prompting-guide-check:
+  definition: "Check the wording each adopted trait will carry against the prompting guide's rule IDs and the writing principles, marking it ok, reword with the new wording, or conflict with a recommended rejection, and follow a pre-filled trait-policy stance or argue to change it."
+  placement: {domain: core, stage: Improvement, substage: Evaluation}
+per-trait-ruling:
+  definition: "Rule an upstream release trait by trait from a sealed report that two critics checked, one for the extraction and mapping and one for the facts and recommendations, recording one event per in-scope trait and one checkpoint per reviewed skill, ruling a skill not analysed only whole as defer, reject or out-of-scope, promoting each decided analysis to accepted, and never re-deciding an earlier take or decline."
+  placement: {domain: core, stage: Improvement, substage: Evaluation}
+  distinct_from: [recommendation-vs-record]
+  note: "recommendation-vs-record records one event per capability, and only under authorization; this rules a skill per trait, from a critic-checked sealed report."
+failure-first-update:
+  definition: "Record the failure (the task, what the agent did, what it should have done) before changing anything, fix it in the skill that owns it, and keep a rerun of the task or a fresh-context test as the update's evidence."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+  distinct_from: [owning-fix, reproduction-first]
+  note: "owning-fix fixes a confirmed code cause at its layer and reproduction-first reproduces a defect before diagnosing; this records an agent's failure before editing the instruction that owns it and keeps the rerun as ledger evidence."
+ruling-before-change:
+  definition: "Record the owner's ruling before the unit changes, and record an adopt or adopt-merged only once the adopted state exists."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+  secondary: [Governance]
+  distinct_from: [adopt-after-state-exists]
+  note: "adopt-after-state-exists covers only the adoption's timing and passes its adaptation as JSON; this also bars any change before its ruling is recorded."
+isolated-skill-build:
+  definition: "Build a skill change in a git worktree on its own branch, so running sessions keep the current skills until the merge promotes it."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+  distinct_from: [worktree-per-significant-change, worktree-or-branch-per-worker]
+  note: "worktree-per-significant-change gives a worktree only to a significant change and worktree-or-branch-per-worker isolates parallel workers; this isolates every skill change from the sessions running the current skills."
+rewrite-borrowed-ideas:
+  definition: "Rewrite every idea borrowed from a reference harness in our own words, never pasting upstream text."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+  distinct_from: [minimal-borrowing]
+  note: "minimal-borrowing limits how much is borrowed; this governs how a borrowed idea is written."
+curation-verify:
+  definition: "Before delivering a skill change, run the registry build and check, and put every new or rewritten skill body before a critic."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+  secondary: [Validation]
+  distinct_from: [skill-catalog-check, material-risk-review]
+  note: "skill-catalog-check validates the generated catalog; material-risk-review sends a change to a critic by its risk. This runs the registry gates and sends every new or rewritten skill body to a critic."
+curation-closeout:
+  definition: "On every exit of a curation run, note the bead with the evidence and a resume line or close it with the evidence, name the ledger state reached, and confirm nothing was built without a recorded ruling."
+  placement: {domain: core, stage: X, substage: Coordination}
+  distinct_from: [implement-closeout, build-closeout]
+  note: "implement-closeout also unclaims beads and persists a run ledger, and build-closeout removes scaffolding and lists open decisions; this leaves the bead and the curation ledger state named and checks the ruling gate held."
+placement-vs-description:
+  definition: "Record a skill's placement and boundary in the registry's skill entry, and leave what the skill does and when it fires to its own description."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+  distinct_from: [artifact-owned-placement]
+  note: "artifact-owned-placement decides the coordinate; this says where the coordinate and the behaviour are each written."
+skill-entries-with-change:
+  definition: "Change a skill together with its registry entries (its placement entry when placement or boundary change, its trait list and its folder hash; a playbook's frontmatter and the hash its update event stores), then regenerate the records with the registry build, never editing a generated record."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+  distinct_from: [ledger-view-no-hand-edit, registry-check-on-change]
+  note: "ledger-view-no-hand-edit forbids editing a ledger's human view and registry-check-on-change runs the check; this keeps a skill's own registry entries in the same change as the skill and rebuilds its records from them."
+append-only-trait-analysis:
+  definition: "Add an upstream skill's trait list as a new proposed analysis at the new sha, giving a changed skill's added, changed and removed traits from the diff and leaving untouched traits in place, and never edit an earlier analysis."
+  placement: {domain: core, stage: Improvement, substage: Evaluation}
+  distinct_from: [append-only-supersede, blind-extract-then-map]
+  note: "append-only-supersede governs ledger records and blind-extract-then-map produces the list; this stores each upstream analysis as a new entry at its sha."
+report-pairing-coverage:
+  definition: "Draft one report per upstream skill against one compared skill of ours or none, picked from trait overlap, placement and purpose, flagging the pairing with a reason when those signals disagree, and count a trait present only in the compared skill or AGENTS.md, never in another of our skills."
+  placement: {domain: core, stage: Improvement, substage: Evaluation}
+  distinct_from: [presence-matrix]
+  note: "presence-matrix lays out presence across a compared set; this picks the one compared skill for an upstream report and bounds what counts as present."
+row-recommendation-rules:
+  definition: "Fill each upstream report row with our file:line citations for a present or variant row and a recommendation set by its presence: present adopts as delivered; a deliberate variant adopts modified, saying how; any other variant adopts pending an edit; absent adopts pending an edit, defers with a revisit condition, rejects with a reason or rule, or is out of scope."
+  placement: {domain: core, stage: Improvement, substage: Evaluation}
+  distinct_from: [disposition-choice]
+  note: "disposition-choice chooses how a whole capability is taken; this sets each trait row's recommendation from its presence in our compared skill."
+withdraw-on-local-update:
+  definition: "When a fix from our own failure drops a trait adopted from upstream, name that trait in the update event's withdraws, since an upstream ruling never removes it for us."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+  distinct_from: [append-only-supersede]
+  note: "append-only-supersede corrects a ledger record; this removes an adopted trait from our unit through the update that dropped it."
+mechanism-rule-policy-entry:
+  definition: "When a rejection or rewording follows a prompting-guide rule that holds for the mechanism itself, add a trait-policy entry in the same change."
+  placement: {domain: core, stage: Improvement, substage: Evaluation}
+  distinct_from: [prompting-guide-check]
+  note: "prompting-guide-check gives each adopt row its verdict; this records a mechanism-level verdict as policy for later reviews."
+writing-idea-destination:
+  definition: "Put a writing idea taken from a reference harness into the authoring skill's writing principles, never into the prompting guide."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+  distinct_from: [rewrite-borrowed-ideas]
+  note: "rewrite-borrowed-ideas governs how a borrowed idea is worded; this governs where a borrowed writing idea goes."
+merge-split-reference-fix:
+  definition: "Fix every reference to a merged or split skill in the same change as the merge or split."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+  distinct_from: [same-wave-legacy-removal]
+  note: "same-wave-legacy-removal migrates callers of a replaced internal API; this repoints references when skills merge or split."
+retire-stub-one-release:
+  definition: "Retire a skill by leaving a stub for one plugin release, then removing its folder."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+pending-adoption-completion:
+  definition: "When a pending adoption's edit lands, record the completing adopt superseding the pending event in the same change as the edit, and refresh the skill's hash."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+  distinct_from: [adopt-after-state-exists, append-only-supersede]
+  note: "adopt-after-state-exists times an adoption and append-only-supersede corrects a ledger record; this closes a pending adoption with its edit."
+curation-delivery-order:
+  definition: "Deliver a skill change in order: commits, then the merge that promotes it, then the .codex sync, then the publish."
+  placement: {domain: core, stage: X, substage: Coordination}
+  distinct_from: [authority-separation]
+  note: "authority-separation gates each part on its own approval; this fixes the order of the parts."

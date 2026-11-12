@@ -69,6 +69,7 @@ One line per playbook: `` - `playbooks/<name>.md`: <the request it fits> ``.
 - `playbooks/refactoring.md`: a focused structure change that must keep behaviour unchanged, with no settled plan to execute, including a focused redesign of internals; changed behaviour is a feature; staged work across many modules goes to plan first, whether or not its units are settled.
 - `playbooks/runtime-forensics.md`: a process running now (spinning, leaking, stuck) to diagnose from a live capture, with no fix wanted; an artifact captured earlier is trace-forensics.
 - `playbooks/session-pickup.md`: a request to resume work a prior session or agent left, where this conversation does not hold its state ("where were we", "pick up cr-abc"); a "continue" that it does hold just goes on, and a settled plan to run is implement.
+- `playbooks/skill-curation.md`: adding, placing, reviewing, comparing, updating or retiring a skill of this repository, or reviewing an upstream harness release.
 - `playbooks/trace-forensics.md`: an artifact captured earlier (trace, profile, heap dump, core) to explain, with no fix wanted and nothing new to measure.
 - `playbooks/worktree-cleanup.md`: stale Git worktrees to audit and prune.
 

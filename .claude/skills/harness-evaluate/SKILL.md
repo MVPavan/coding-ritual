@@ -16,7 +16,7 @@ useful low-cost guidance. Use harness-skill-compare for a substantive comparison
 
 Evaluation alone produces a recommendation. Record a curation decision only when
 ledger changes are authorized, in the open round
-(`harness_lifecycle/registry/README.md` §5–§5c, method in `harness_lifecycle/playbook.md`).
+(`harness_lifecycle/registry/README.md` §5–§5c, method in `.claude/skills/mvp-mode/playbooks/skill-curation.md`).
 An upstream skill is ruled trait by trait, each event citing a sealed report
 (`--json` with `report`); a skill without an accepted analysis may only be ruled
 whole as `defer`, `reject` or `out-of-scope` (`--whole-skill`). Other capabilities

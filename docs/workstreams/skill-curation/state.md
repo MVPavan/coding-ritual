@@ -6,7 +6,7 @@ deleted. Beads is the work-state authority; this file is the narrative.
 
 ## Start here (new session)
 
-1. Read `harness_lifecycle/playbook.md` (the method), then
+1. Read `.claude/skills/mvp-mode/playbooks/skill-curation.md` (the method), then
    `harness_lifecycle/registry/README.md` (records, ledger, tool).
 2. `git status` and `git log --oneline -6`; compare with "Uncommitted work"
    below.

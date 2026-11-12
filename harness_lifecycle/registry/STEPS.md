@@ -255,6 +255,24 @@ Playbook traits: `pickup-read-only-gate`
 | `session-pickup#4` | session-pickup#3 named a resume point | `pickup-verdict`, `resumed-run-handover` |  |  |
 | `session-pickup#5` | every exit | `read-only-closeout` |  |  |
 
+## skill-curation
+
+`.claude/skills/mvp-mode/playbooks/skill-curation.md`
+
+Trigger: Adding, placing, reviewing, comparing, updating or retiring a skill of this repository, or reviewing an upstream harness release.
+
+Playbook traits: `curation-role-separation`
+
+| Step | When | Traits | Calls | Loads |
+|---|---|---|---|---|
+| `skill-curation#1` | always | `curation-intake-bead` |  |  |
+| `skill-curation#2` | always; read only the references the applicable branches need | `artifact-owned-placement`, `placement-vs-description`, `blind-extract-then-map`, `skill-entries-with-change`, `upstream-review-on-pin-move`, `append-only-trait-analysis`, `report-pairing-coverage`, `row-recommendation-rules`, `prompting-guide-check`, `failure-first-update`, `withdraw-on-local-update` | `skill:harness-scan` (when: an upstream release); `skill:harness-skill-compare` (when: Compare, Merge or split, or two skills in one sub-stage); `skill:harness-evaluate` (when: Add with an upstream source, or a new non-skill capability in an upstream release); `skill:authoring-for-agents` (when: an update from our own failure: picking the form of the fix) | `.claude/skills/mvp-mode/playbooks/skill-curation/placing.md` (when: Place, Add, or finding the owning skill of a failure); `.claude/skills/mvp-mode/playbooks/skill-curation/upstream-review.md` (when: an upstream release; for Place or Add, only its step 2 (extract blind, then map)); `.claude/skills/mvp-mode/playbooks/skill-curation/skill-review.md` (when: Compare, Merge or split, or placing.md step 4 finding two skills in one sub-stage); `.claude/skills/mvp-mode/playbooks/skill-curation/candidate-evaluation.md` (when: Add with an upstream source, or a new non-skill capability in an upstream release); `.claude/skills/mvp-mode/playbooks/skill-curation/failure-update.md` (when: an update from our own failure) |
+| `skill-curation#3` | the evidence is ready | `ruling-before-change`, `record-command`, `per-trait-ruling`, `mechanism-rule-policy-entry` |  |  |
+| `skill-curation#4` | a recorded ruling calls for a change | `isolated-skill-build`, `skill-entries-with-change`, `rewrite-borrowed-ideas`, `writing-idea-destination`, `merge-split-reference-fix`, `retire-stub-one-release`, `pending-adoption-completion` | `skill:authoring-for-agents` |  |
+| `skill-curation#5` | skill-curation#4 changed something | `skill-catalog-check`, `curation-verify` | `skill:authoring-for-agents` needs `verification` |  |
+| `skill-curation#6` | skill-curation#5 passed, each part only with the owner's approval for this change | `authority-separation`, `curation-delivery-order` | `skill:land`; `skill:harness-publish` (when: the owner approves the publish) |  |
+| `skill-curation#7` | every exit | `curation-closeout` |  |  |
+
 ## trace-forensics
 
 `.claude/skills/mvp-mode/playbooks/trace-forensics.md`
@@ -321,7 +339,7 @@ Traits and calls used by two or more playbooks. Repeating a step is fine; the sa
 | `skill:delegation` | autonomous-run: `autonomous-run#4`; eval: `eval#5`; feature: `feature#4`; figure-it-out: `figure-it-out#5`; hillclimb: `hillclimb#4`; implement: `implement#4`; perf-issue: `perf-issue#3`, `perf-issue#4`; plan: `plan#2`; refactoring: `refactoring#4`; runtime-forensics: `runtime-forensics#1`; session-pickup: `session-pickup#1`; trace-forensics: `trace-forensics#1` |
 | `skill:discovery` | implement: `implement#1`; plan: `plan#3` |
 | `skill:how` | bug-fix: `bug-fix#2`; feature: `feature#1`; hillclimb: `hillclimb#1`; investigation: `investigation#1`; perf-issue: `perf-issue#2`; refactoring: `refactoring#1` |
-| `skill:land` | autonomous-run: `autonomous-run#7`; bug-fix: `bug-fix#8`; feature: `feature#8`; hillclimb: `hillclimb#8`; implement: `implement#4`, `implement#6`, `implement#8`, `implement#11`; perf-issue: `perf-issue#6`; plan: `plan#11`; refactoring: `refactoring#8` |
+| `skill:land` | autonomous-run: `autonomous-run#7`; bug-fix: `bug-fix#8`; feature: `feature#8`; hillclimb: `hillclimb#8`; implement: `implement#4`, `implement#6`, `implement#8`, `implement#11`; perf-issue: `perf-issue#6`; plan: `plan#11`; refactoring: `refactoring#8`; skill-curation: `skill-curation#6` |
 | `skill:performance-optimization` | hillclimb: `hillclimb#1`; perf-issue: `perf-issue#1`; runtime-forensics: `runtime-forensics#1` |
 | `skill:review` | feature: `feature#4`; figure-it-out: `figure-it-out#5`; implement: `implement#5`; perf-issue: `perf-issue#3` |
 | `skill:systematic-debugging` | bug-fix: `bug-fix#2`; implement: `implement#4`; runtime-forensics: `runtime-forensics#2` |

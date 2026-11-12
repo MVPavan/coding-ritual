@@ -89,7 +89,7 @@ ADLC stage × sub-stage), every ruling on a reference capability, and every
 change, in one append-only JSONL ledger, with the reviews behind each ruling
 (`reviews/`). Its tool imports `scan.py`. The method,
 layout and ledger schema are in [`registry/README.md`](registry/README.md); the method
-for changing a skill is in [`playbook.md`](playbook.md).
+for changing a skill is in [`skill-curation.md`](../.claude/skills/mvp-mode/playbooks/skill-curation.md).
 
 ```bash
 uv run python harness_lifecycle/registry/registry.py gap superpowers --kind skill --beads   # unruled, changed since ruled, present but unruled

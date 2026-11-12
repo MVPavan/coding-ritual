@@ -204,3 +204,11 @@ named-scope-first:
   skills: [interrogate, no-comments]
   why: "Each works on a scope a person may name, interrogate on the change it attacks and no-comments on the files it sweeps, and each defaults differently without one; a pointer between two unrelated jobs would add a hop to one sentence."
   reviewed: "2026-11-12"
+authority-separation:
+  skills: [harness-publish, doc:.claude/skills/mvp-mode/playbooks/skill-curation.md]
+  why: "harness-publish confirms publish and commit authority separately at its own entry; the playbook's delivery step states the same split for the whole curation path. Each is read alone."
+  reviewed: "2026-11-12"
+record-command:
+  skills: [harness-evaluate, doc:.claude/skills/mvp-mode/playbooks/skill-curation.md]
+  why: "harness-evaluate records its own ruling; the playbook's ruling step names the same command for every curation operation. A pointer would add a hop to one command line."
+  reviewed: "2026-11-12"

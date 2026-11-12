@@ -1060,6 +1060,31 @@ approval, and chief-of-staff's worst-first sampling.
 Proof: Sol reviewed the plan (three fixes) and the build (two fixes, accepted by the coordinator);
 registry check, catalog check and 600 tests pass. Limit: not run on a real session.
 
+## 23. The curation playbook moves into the router (`cr-r2pa.3.1`)
+
+Added 2026-11-12. Plan `scratchpad/mvp-stack/65/plan.md` (gitignored); round
+`2026-11-12-skill-curation-playbook`, 5 events, sealed. Owner ruling 2026-11-01 (pstack report decision 15 (a)):
+the curation method stays outside the router until phase 3, then joins it.
+
+- `harness_lifecycle/playbook.md` is now `.claude/skills/mvp-mode/playbooks/skill-curation.md`, a routed playbook
+  with a seven-step list (intake, evidence, ruling, build, verify, delivery, closeout) and a reply for each exit:
+  done, recommendation only, awaiting a ruling, verification incomplete. The ruling step names the registry
+  `record` command; delivery states that commits, merges, pushes and publishes wait for the owner.
+- The five operation methods moved verbatim into `.claude/skills/mvp-mode/playbooks/skill-curation/`
+  (placing, upstream review, skill review, candidate evaluation, failure update, one file each); a run reads
+  only the ones its branch needs.
+- 25 new trait definitions: 24 cover the method's own rules, and `harness-scan` now hands a due upstream review back
+  through the router instead of running it, so it holds the new, narrower `pin-move-catalog-refresh`.
+- Live references repointed (`.repo-context/docs-index.md`, `harness-evaluate`, `harness-scan`, the registry and
+  lifecycle READMEs, the prompting-guides README); sealed reports, the ledger and history keep the old path. The
+  pstack "authoring a skill" adoption follows the file to its new path.
+- Not done here: the shipped plugin must drop this root-only playbook, its folder and its router line. That
+  change is in `mvp-harness/`, so it waits for the end-of-project sync as `cr-r2pa.3.5`; nothing publishes
+  before then.
+
+Proof: Sol reviewed the plan (four fixes) and the build twice (five fixes, then one); registry check, catalog
+check and 600 tests pass. Limit: not run on a real curation request.
+
 ## Regenerating
 
 From the worktree root:

@@ -257,7 +257,7 @@ kinds keep one ruling per capability, with no analysis and no report row.
 6. IDs are kebab case and name the mechanism, never the skill
    (`seam-selection`, not `tdd-seams`).
 
-**Extract blind, then map** (the procedure is in `../playbook.md` §4): the
+**Extract blind, then map** (the procedure is in `../../.claude/skills/mvp-mode/playbooks/skill-curation/upstream-review.md` step 2): the
 agent listing a skill's traits reads only the skill folder, never these two
 files; a separate pass maps each extracted trait to an existing ID (same
 mechanism), splits it (partial match) or defines a new one. The review keeps
@@ -666,7 +666,7 @@ full rules and their rationale are in
    every stage it reached. `scan.py drift` and `harness-status` only report;
    moving a pin is a separate, authorized step.
 2. **Analysis.** A new skill gets a blind extraction of its whole folder,
-   then a separate mapping pass (`../playbook.md` §4). A changed skill gets a
+   then a separate mapping pass (`../../.claude/skills/mvp-mode/playbooks/skill-curation/upstream-review.md` step 2). A changed skill gets a
    new analysis from the previous one and `git diff <accepted sha>..<new sha>
    -- <folder>`: added, changed (same meaning), removed traits. The new
    analysis is added as `proposed`; earlier analyses are never edited.
@@ -733,4 +733,4 @@ is a thin entry for the `curation` package at the repo root
 ## 7. Changing skills
 
 The method for every change (placing, upstream reviews, comparisons,
-evaluations, updates and retirement) is in `../playbook.md`.
+evaluations, updates and retirement) is in `../../.claude/skills/mvp-mode/playbooks/skill-curation.md`.

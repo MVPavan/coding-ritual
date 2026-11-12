@@ -162,7 +162,7 @@ Catalog: `2776ddd2355d6d6c8747d3964600f28daf62f049`, 354 capabilities.
 | `playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/trace-forensics` | not reviewed | not reviewed |  |  |  |  |
 | `playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/visual-parity` | not reviewed | not reviewed |  |  |  |  |
 | `playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/worktree-cleanup` | not reviewed | not reviewed |  |  |  |  |
-| `playbook:pstack/skills/poteto-mode/playbooks/authoring-a-skill` | adopt-merged | decided | doc:harness_lifecycle/playbook.md |  | 2026-11-01-pstack-playbooks | no |
+| `playbook:pstack/skills/poteto-mode/playbooks/authoring-a-skill` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/skill-curation.md |  | 2026-11-12-skill-curation-playbook | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/autonomous-run` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md |  | 2026-11-04-batch-4 | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/autopilot-full` | defer | decided |  |  | 2026-11-01-pstack-playbooks | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/autopilot-stack` | defer | decided |  |  | 2026-11-01-pstack-playbooks | no |
