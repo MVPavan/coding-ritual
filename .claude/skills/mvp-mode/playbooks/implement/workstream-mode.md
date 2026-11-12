@@ -20,11 +20,16 @@ ambiguous records before execution. Preserve all pre-existing edits.
 3. After the stage gate and phase exit pass, render tracking through `tracker` and
    refresh the Beads export where the authorized write scope permits it.
 4. Honor the mode's established per-phase commit convention only when the user's
-   invocation covers it. An explicit no-commit restriction overrides it. Stage
-   named phase-owned paths only; if they include pre-existing edits, prepare a
-   scoped result rather than committing unrelated content. No push is implied.
-5. Continue eligible phases until the authorized scope is complete. If work is
-   unfinished but no phase is eligible, report the blocking dependencies.
+   invocation covers it. An explicit no-commit restriction overrides it. Commit
+   through `land`, staging named phase-owned paths and every changed tracking and
+   export path; if they include pre-existing edits, prepare a scoped result rather
+   than committing unrelated content. No push is implied. Confirm `git status` is
+   clean before the next phase's first contractor call.
+5. When the invocation does not cover the commit, or forbids it, stop at this
+   phase's end with the playbook's handoff (Stopped, no commit authority): the
+   next phase's first contractor call would refuse the uncommitted bookkeeping.
+   Otherwise continue eligible phases until the authorized scope is complete. If
+   work is unfinished but no phase is eligible, report the blocking dependencies.
 
 ## Context and recovery
 

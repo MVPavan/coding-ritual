@@ -26,14 +26,14 @@ steps:
   - id: implement#6
     when: Phase scope, or each phase implement#8 selects
     actions: [{trait: phase-loop}]
-    calls: [{to: "skill:to-plan", when: a deep phase whose packet needs a plan}, {to: "skill:tracker", when: "the phase's epic, rendering after a stage, and the close gate"}, {to: "skill:land", when: "a coordinator-run stage's handoff commit"}]
+    calls: [{to: "skill:to-plan", when: a deep phase whose packet needs a plan}, {to: "skill:tracker", when: "the phase's epic, rendering after a stage or before a contractor call that coordinator writes precede, and the close gate"}, {to: "skill:land", when: "the handoff commits: a coordinator-run stage's, the bookkeeping after a contractor result, and any coordinator writes before a contractor call"}]
   - id: implement#7
     when: the coordinator runs independent graphs in parallel
     actions: [{trait: child-workflows}]
   - id: implement#8
     when: Workstream scope, an explicit request or /implement all phases
     actions: [{trait: workstream-mode}, {trait: context-recovery}]
-    calls: [{to: "skill:tracker", when: render at each phase exit}, {to: "skill:land", when: "the per-phase commit, only when the invocation covers it"}]
+    calls: [{to: "skill:tracker", when: render at each phase exit}, {to: "skill:land", when: "the per-phase commit, only when the invocation covers it; without it the walk stops at the phase end"}]
     loads: [{path: implement/workstream-mode.md}]
   - id: implement#9
     when: Spec scope, after its tickets
@@ -196,14 +196,27 @@ names the loop's own numbered steps.
    `.wf/export/<stage>.jsonl` and `.wf/repo-id` (`refused`, "coordinator checkout
    is not clean"); on resume, uncommitted work of a closed coordinator stage is
    that handoff, still owed, in the same order.
-5. Call the contractor:
+5. Call the contractor. Immediately before each call `git status` must be clean.
+   If coordinator writes since the last handoff left it dirty (the claim's Beads
+   export, a plan from `to-plan`, corrected mappings, a newly minted
+   `.wf/repo-id`), hand them off first in step 4's order: render where
+   authorized and refresh the export, then `land` them by path. Without commit
+   authority, preserve the work and stop with step 4's handoff.
    `uv run python -m workflow_interpreter.foreman --config <foreman-config.toml> contract <epic_id> <stage_id>`.
    The contractor claims atomically and owns execution through closure; do not
    claim or close the stage separately.
 6. Read the contractor's one JSON result. `phase-exhausted` means proceed to
    the close gate; `blocked` names work to clear or bypass with another ready
-   stage; `result` means the stage landed and closed, so render tracking through
-   `tracker` where authorized, then select the next stage. `refused` (exit 2)
+   stage; `result` means the stage landed and closed; hand off before the next
+   stage in step 4's order. Render through `tracker` where authorized and refresh
+   the Beads export, then invoke `land` for the bookkeeping (the rendered
+   tracking, the Beads export, this stage's `.wf/export/<stage>.jsonl` and a newly
+   minted `.wf/repo-id` still owed, staged by path) and return to step 3,
+   confirming `git status` is clean immediately before the next contractor call.
+   Landing leaves that export in the checkout, so the commit is due even with
+   nothing rendered. Without commit authority, preserve the work and stop with
+   step 4's handoff. On resume, a closed contractor stage's uncommitted
+   bookkeeping is that handoff, still owed, in the same order. `refused` (exit 2)
    names an invalid request: fix its reason before retrying; exit 1 is a crash to report. Use
    `--trace` for read-only evidence, and `--retry` only to mint an eligible new
    attempt. Never edit generated tracking by hand.
@@ -231,7 +244,8 @@ Workstream scope only: an explicit request to run the remaining phases or
 `/implement all phases`. Read `implement/workstream-mode.md` and follow its
 preflight, walk and recovery; each phase runs through step 6. Render tracking at
 each phase exit through `tracker`. Make the per-phase commit through `land`, and
-only when the invocation covers it.
+only when the invocation covers it; when it does not, or the user said not to
+commit, stop at that phase's end with the handoff (Stopped, no commit authority).
 
 ## 9. Spec finish
 
@@ -267,8 +281,8 @@ unverified work and, without commit authority, returns a commit plan.
   verified, the checks run, the requirement still missing and why, the evidence
   it still needs, and where the work is preserved; its beads stay open, step 10
   runs and step 11 does not.
-- **Stopped, no commit authority:** the stage or tickets, the files, the checks,
-  and the commits or merges due.
+- **Stopped, no commit authority:** the stage, phase or tickets, the files, the
+  checks, and the commits or merges due.
 - **Stopped, failure:** the attempt log and the failed gate (a stage, a phase
   gate or an exit criterion).
 - **Stopped, base mismatch:** the expected and actual bases, the worktree path

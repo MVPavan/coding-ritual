@@ -764,6 +764,35 @@ own fresh session with the answers withheld, scored 16 exact, every nearest nega
 Limits: one judge, routing choices rather than executed runs. Left for the end-of-project sync
 (bead `cr-r2pa`): the `.codex` link and plugin copy for the renamed playbook.
 
+## 11. Commit before each contractor call (`cr-7c6i`, P1 U3)
+
+Added 2026-11-12. Plan `scratchpad/mvp-stack/51/plan.md` (gitignored), which pins plan 40 §7 and
+§8 U3 after the owner's answer of 2026-11-12: without commit authority, stop with a handoff, and an
+all-phases run that may not commit stops at the end of the current phase. Rounds
+`2026-11-12-implement-commit-gate` (`:001`) and `2026-11-12-implement-tracker-when` (`:001`, the
+review fix), both sealed.
+
+- **The bug:** after a contractor stage, the `implement` playbook rendered tracking and went on.
+  The rendered mirrors, the Beads export and the stage's `.wf/export/<stage>.jsonl` stayed
+  uncommitted, so the next contractor call refused a dirty checkout.
+- **The fix:** the Phase loop checks that `git status` is clean immediately before each contractor
+  call. After a contractor result, it renders where authorized, refreshes the export and commits
+  the bookkeeping through `land` by path. The same applies to coordinator writes made before a
+  call: a claim, a plan from `to-plan`, corrected mappings, a newly minted `.wf/repo-id`. Without
+  commit authority, the run keeps the work and stops with a handoff. The workstream walk commits
+  each phase's tracking and export paths through `land`. It stops at the phase end when the
+  invocation does not cover the commit, or forbids it. The `phase-loop` and `workstream-mode`
+  definitions say the same. No exemption is added to the contractor's dirty guard.
+- `.claude/agents/implementer.md:3` now names the implement playbook, with the owner's leave.
+
+Proof: an isolated probe used the real renderer and the real dirty guard
+(`execute_contractor` on the contractor test lab, with a sentinel right after the guard). In the
+old order, the next call is refused. After the new handoff, it passes the guard, including at a
+phase's entry. Without authority, HEAD and the dirty files are unchanged. Sol reviewed the plan and
+the build, which each needed one fix round, then the registry repair. Limits: the probe proves the
+checkout boundary, not admission or an agent following the text. Left for the end-of-project sync
+(bead `cr-r2pa`): the `.codex` link and the plugin copy.
+
 ## Regenerating
 
 From the worktree root:

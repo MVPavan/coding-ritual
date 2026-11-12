@@ -293,10 +293,9 @@ critic, owner rulings, ledger, build, Sol review, commit after the owner approve
 - `cr-r2pa.2.23` (P1), built (`5bae85a`, `e721c56`, `0afc9fb`): `implement` is a playbook
   (`mvp-mode/playbooks/implement.md`), `/implement` its manual alias, `/phase-execution` and
   `/run-phases` removed; round `2026-11-11-implement-playbook` sealed; routing trial 14 of 14
-  (`scratchpad/mvp-stack/40/routing.md`). Open: unit U3, the `cr-7c6i` fix, waits on the owner's
-  answer on stopping without commit authority and takes its own round; the owner's
-  `.claude/agents/implementer.md:3` still says "the implement skill". See
-  `mvp-stack-changes.md` §9.
+  (`scratchpad/mvp-stack/40/routing.md`). Unit U3, the `cr-7c6i` fix, followed in its own
+  rounds after the owner's answer of 2026-11-12, with the `.claude/agents/implementer.md:3`
+  wording. See `mvp-stack-changes.md` §9 and §11.
 - `cr-r2pa.2.24` (P2), built (`93d313c`, `5d47d8c`, `3b725d3`): `plan` replaces
   `multi-phase-plan` by a rename, and the planning skills end at their deliverable; round
   `2026-11-11-plan-playbook` sealed; routing trial 16 of 16

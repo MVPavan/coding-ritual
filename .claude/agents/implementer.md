@@ -1,6 +1,6 @@
 ---
 name: implementer
-description: Bounded implementation agent for file-scoped tasks. Use through the implement skill's task engine.
+description: Bounded implementation agent for file-scoped tasks. Use through the implement playbook's task engine.
 tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]
 ---
 

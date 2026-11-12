@@ -1229,9 +1229,9 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `bounded-fix-loop`: Group compatible confirmed findings into one fix unit, re-review only the delta plus any breakage it caused, adjudicate every round, and treat a small fixed count of completed fix/re-review rounds as a ceiling rather than a target.
 - `scope-base-review-package`: Review uncommitted working-tree and untracked changes against a recorded base revision by passing the authorized owned-path list, never attributing a baseline-dirty file's whole diff to the task.
 - `delegated-report-recovery`: Interpret each delegated worker's status (done, done-with-concerns, needs-context, blocked) and recover by supplying context, splitting, debugging or replanning, since bare repetition is not recovery.
-- `phase-loop`: Resolve the roadmap phase's single epic, drive ready stages through the contractor that owns execution to closure, and refresh tracking between stages.
+- `phase-loop`: Resolve the roadmap phase's single epic, drive ready stages to closure (stages with units through the Task loop, the others through the contractor that owns their execution), and refresh and commit the bookkeeping before each contractor call, stopping without commit authority.
 - `child-workflows`: Run independent graphs as admitted child workflows where collection is evidence and landing goes through the contractor, not automatic result binding.
-- `workstream-mode`: Run remaining phases in order only on explicit opt-in, with per-phase tracking refresh and commits only when the invocation covers them.
+- `workstream-mode`: Run remaining phases in order only on explicit opt-in, with per-phase tracking refresh and commits only when the invocation covers them, stopping at the phase end when it does not.
 - `context-recovery`: Stay in context while useful and, before compacting or handing off, persist scope, decisions and next work to the ledger, tracker and Git, then rebuild from those rather than from a summary.
 - `pre-report-base-merge`: Before reporting done, merge the base branch's tip into the integration branch and rerun the checks; without commit authority, report that merge as due.
 - `worktree-cleanup`: Remove every implementer worktree when the build ends.
@@ -11499,7 +11499,7 @@ Find a phase's single epic by its roadmap anchor and bracketed phase-id title, t
 - ours: `tracker`
 
 #### `phase-loop`
-Resolve the roadmap phase's single epic, drive ready stages through the contractor that owns execution to closure, and refresh tracking between stages.
+Resolve the roadmap phase's single epic, drive ready stages to closure (stages with units through the Task loop, the others through the contractor that owns their execution), and refresh and commit the bookkeeping before each contractor call, stopping without commit authority.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/implement.md`
 
 #### `question-duplicate-runs`
@@ -11591,7 +11591,7 @@ Route runs by what the tracker type offers: labels on a git-host tracker, status
 - `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
 
 #### `workstream-mode`
-Run remaining phases in order only on explicit opt-in, with per-phase tracking refresh and commits only when the invocation covers them.
+Run remaining phases in order only on explicit opt-in, with per-phase tracking refresh and commits only when the invocation covers them, stopping at the phase end when it does not.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/implement.md`
 
 #### `worktree-cleanup`

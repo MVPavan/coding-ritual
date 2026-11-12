@@ -2884,7 +2884,7 @@ delegated-report-recovery:
   definition: "Interpret each delegated worker's status (done, done-with-concerns, needs-context, blocked) and recover by supplying context, splitting, debugging or replanning, since bare repetition is not recovery."
   placement: {domain: engineering, stage: X, substage: Coordination}
 phase-loop:
-  definition: "Resolve the roadmap phase's single epic, drive ready stages through the contractor that owns execution to closure, and refresh tracking between stages."
+  definition: "Resolve the roadmap phase's single epic, drive ready stages to closure (stages with units through the Task loop, the others through the contractor that owns their execution), and refresh and commit the bookkeeping before each contractor call, stopping without commit authority."
   placement: {domain: engineering, stage: X, substage: Coordination}
 risk-sized-review:
   definition: "Size work small, standard or deep and match inline work, delegation and independent review to that size."
@@ -2896,7 +2896,7 @@ stop-on-failure:
   definition: "Let a failed gate, exit criterion or material blocker stop advancement and diagnose instead of re-dispatching without new evidence."
   placement: {domain: engineering, stage: X, substage: Coordination}
 workstream-mode:
-  definition: "Run remaining phases in order only on explicit opt-in, with per-phase tracking refresh and commits only when the invocation covers them."
+  definition: "Run remaining phases in order only on explicit opt-in, with per-phase tracking refresh and commits only when the invocation covers them, stopping at the phase end when it does not."
   placement: {domain: engineering, stage: X, substage: Coordination}
 phase-epic-lookup:
   definition: "Find a phase's single epic by its roadmap anchor and bracketed phase-id title, treating zero or several matches as a tracking defect and never re-seeding silently."
