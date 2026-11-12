@@ -13,6 +13,7 @@ Check exit 0: holds. 1: problems, each `<path>:<line>: <rule>: <problem>`. 2: ca
 `computed: <script> -> <output>` resolves both paths the same way; each need only exist.
 The table ends at its first non-row line; any later line starting with `|` is a problem,
 whatever surrounds it. Fences and comments are not read: nothing can hide a row.
+Notes (`<path>:<line>: note: <rule>: <text>`) are advisory and never change the exit code.
 """
 
 import argparse
@@ -36,6 +37,8 @@ SEPARATOR = re.compile(r":?-+:?")
 OWNER = re.compile(r'owner: (?:"[^"]+" \((\d{4}-\d{2}-\d{2})\)|delegation \S.*)')
 CODE = re.compile(r"code: (\S.*):(\d+)(?:-(\d+))?")
 COMPUTED = re.compile(r"computed: (\S.*?) -> (\S.*)")
+URI = re.compile(r"\b[a-z][a-z0-9+.-]*://\S+")
+LOCATION = re.compile(r"(?<![\w/.:-])([\w./-]*\w\.[A-Za-z]\w*):(\d+)(?:-(\d+))?")
 INDEX = "INDEX.md"
 
 Say = Callable[[str, str], None]
@@ -203,7 +206,44 @@ def check_row(
         say("proposed", "needs the recommendation as its answer")
 
 
-def check(lines: list[str], root: Path) -> tuple[list[Problem], int] | None:
+def other_locations(answer: str, source: str) -> list[str]:
+    """File locations a high answer names beyond its own `code:` source's lines."""
+    own = CODE.fullmatch(source)
+    found = []
+    for token in LOCATION.finditer(URI.sub(" ", answer)):
+        path = token[1].removeprefix("./")
+        try:
+            first, last = int(token[2]), int(token[3] or token[2])
+        except ValueError:  # too many digits to convert: never one of its own lines
+            found.append(token[0])
+            continue
+        if own:
+            name = own[1].strip()
+            same = name == path or name.endswith("/" + path)
+            if same and int(own[2]) <= first <= last <= int(own[3] or own[2]):
+                continue
+        found.append(token[0])
+    return found
+
+
+def check_confidence(
+    number: int, row: list[str], note: Callable[[int, str, str], None]
+) -> None:
+    """Advisory (plan 58): a high answer naming another location may be assembled."""
+    if len(row) != len(TABLE) or row[4:] != ["high", "established"]:
+        return
+    if found := other_locations(row[2], row[3]):
+        note(
+            number,
+            "confidence",
+            f"a high answer names {', '.join(found)}; confirm its source shows"
+            " the answer by itself, else grade it medium",
+        )
+
+
+def check(
+    lines: list[str], root: Path
+) -> tuple[list[Problem], int, list[Problem]] | None:
     record = read(lines)
     if record is None:
         return None
@@ -222,9 +262,15 @@ def check(lines: list[str], root: Path) -> tuple[list[Problem], int] | None:
         say(number, "header", f"Date {value} is not YYYY-MM-DD")
     if "Revises" in fields and not fields["Revises"][1]:
         say(fields["Revises"][0], "header", "**Revises:** names no authority")
+    notes: list[Problem] = []
+
+    def note(number: int, rule: str, text: str) -> None:
+        notes.append((number, rule, text))
+
     for number, row in rows:
         check_row(root, number, row, say)
-    return sorted(problems), len(rows)
+        check_confidence(number, row, note)
+    return sorted(problems), len(rows), notes
 
 
 def load(path: Path) -> list[str]:
@@ -334,10 +380,13 @@ def main() -> int:
     if result is None:
         print(f"{args.record}: not a discovery record (title or table); unchecked")
         return 3
-    problems, count = result
+    problems, count, notes = result
     for number, rule, problem in problems:
         print(f"{args.record}:{number}: {rule}: {problem}")
-    print(f"{args.record}: {count} rows, {len(problems)} problems")
+    for number, rule, note in notes:
+        print(f"{args.record}:{number}: note: {rule}: {note}")
+    noted = f", {len(notes)} notes" if notes else ""
+    print(f"{args.record}: {count} rows, {len(problems)} problems{noted}")
     return 1 if problems else 0
 
 

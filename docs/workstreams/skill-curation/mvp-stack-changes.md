@@ -820,7 +820,7 @@ counted facts lean on code lines that cannot show them. That gap and four furthe
 are bead `cr-oiyn`. Left for the end-of-project sync (bead `cr-r2pa`): the `.codex` link and the
 plugin copy.
 
-## 13. A source for saved computations in `discovery` (`cr-oiyn`, in progress)
+## 13. A source for saved computations in `discovery` (`cr-oiyn`, acceptance not met)
 
 Added 2026-11-12. Plan `scratchpad/mvp-stack/57/plan.md` (gitignored); round
 `2026-11-12-discovery-computed`, one `update ours:discovery`, sealed.
@@ -839,7 +839,17 @@ Proof: 76 checker tests (a valid record with a computed row fails the old checke
 new one). Two fresh sessions ran `discovery` on bead `cr-bes`; every script reran to the same
 output. Sol accepts the build, but the trials still graded answers assembled from several lines
 `high`, and one blurred two populations (211 stored events against 207 the change check actually
-evaluates). The bead stays open for a mechanical check of that grading rule and one more trial.
+evaluates).
+
+Follow-up (plan 58, round `2026-11-12-discovery-high-check`): `check_record.py` prints an advisory
+note, never a problem, on a `high` answer that names a file location other than its own source,
+and the skill asks the session to confirm the source shows the answer by itself or grade it
+`medium`. Over the five earlier trial records the note fires on 6 of the 8 rows Sol rejected and
+none it accepted. A third fresh run regraded both noted rows to `medium`, but Sol still failed it:
+two `high` answers rested on more than their source, the outcome counted 211 rulings where the
+change check evaluates 207, and it missed an existing commit-only baseline test. Trials stopped
+there; the bead stays open for the owner, since the remaining errors are research quality that no
+grading rule can catch.
 
 ## 14. `verification.md` cleaned up and given its traits (`cr-k1b6`)
 

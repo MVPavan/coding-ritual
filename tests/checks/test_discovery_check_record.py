@@ -324,3 +324,82 @@ def test_index_of_a_root_not_yet_created_writes_an_empty_index(tmp_path: Path) -
     base = tmp_path / "docs/discovery"
     assert run("--index", base)[0] == 0
     assert not (base / "INDEX.md").read_text().endswith("\n\n")
+
+
+# Plan 58: a `high` answer that names another location gets an advisory note, never a problem.
+NOTE = "note: confidence: a high answer names "
+
+
+def high_row(
+    answer: str, source: str = "code: src/store.py:1-2", grade: str = "high"
+) -> str:
+    return HEAD + f"| 1 | Format? | {answer} | {source} | {grade} | established |\n"
+
+
+def notes(output: str) -> list[str]:
+    return [line for line in output.splitlines() if ": note: " in line]
+
+
+def test_a_high_answer_naming_another_file_gets_one_note(root: Path) -> None:
+    text = high_row("JSONL, as reports/bench.md:1 and scripts/count.py:1 show")
+    line = text.count("\n")
+    code, output = check(root, text)
+    assert code == 0, output
+    assert notes(output) == [
+        (
+            f"{root / 'record.md'}:{line}: {NOTE}reports/bench.md:1, scripts/count.py:1;"
+            " confirm its source shows the answer by itself, else grade it medium"
+        )
+    ]
+    assert output.endswith(": 1 rows, 0 problems, 1 notes\n"), output
+
+
+def test_a_medium_answer_naming_another_file_gets_no_note(root: Path) -> None:
+    text = high_row("JSONL, as reports/bench.md:1 shows", grade="medium")
+    assert check(root, text) == (0, f"{root / 'record.md'}: 1 rows, 0 problems\n")
+
+
+@pytest.mark.parametrize(
+    "answer,noted",
+    [
+        ("JSONL at store.py:2", False),
+        ("JSONL at ./src/store.py:1-2", False),
+        ("JSONL at src/store.py:3", True),
+        ("JSONL served at https://example.com:8443/api", False),
+    ],
+)
+def test_own_lines_and_urls_get_no_note(root: Path, answer: str, noted: bool) -> None:
+    code, output = check(root, high_row(answer))
+    assert code == 0, output
+    assert len(notes(output)) == int(noted), output
+
+
+@pytest.mark.parametrize(
+    "answer,source",
+    [
+        (
+            "SKILL.md:47 word count: 14",
+            "computed: scripts/count.py -> reports/count.txt",
+        ),
+        ("The guidance string is `See SKILL.md:47`.", "code: src/store.py:1"),
+    ],
+)
+def test_valid_high_rows_naming_a_location_are_noted_not_failed(
+    root: Path, answer: str, source: str
+) -> None:
+    code, output = check(root, high_row(answer, source))
+    assert code == 0, output
+    assert len(notes(output)) == 1 and "problem" not in notes(output)[0], output
+    assert NOTE + "SKILL.md:47;" in output, output
+
+
+@pytest.mark.parametrize(
+    "answer",
+    [f"See other.py:{'9' * 5000}", f"See store.py:1-{'9' * 5000}"],
+    ids=["line", "range-end"],
+)
+def test_an_oversized_line_number_is_noted_not_a_crash(root: Path, answer: str) -> None:
+    code, output = check(root, high_row(answer))
+    assert code == 0, output
+    assert len(notes(output)) == 1, output
+    assert output.endswith(": 1 rows, 0 problems, 1 notes\n"), output

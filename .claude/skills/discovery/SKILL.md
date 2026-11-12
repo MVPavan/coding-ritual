@@ -43,20 +43,22 @@ between options, or a decision in a known domain: the one fitting section of
 Give every established row a Confidence of `high`, `medium` or `low`: how far
 the cited line, sources, run or computation actually settle it. `high` only when
 the cited source shows the answer by itself, as a saved computation's output
-shows its count. An answer you put together from several
-lines, or from a search that found nothing (no caller, no other reader), is
-`medium` or `low`: cite the most direct line, and name the other lines or the
-search and the inference in the answer. If together they do not settle it, it
-stays `proposed`. A `computed:` answer names what the script selects; two counts
-compared must cover the same population. Write a fact and a choice made on it as
-separate rows: the code can establish what exists and what it lacks, but lines
-that only allow or favour one option settle nothing, so that choice is
-`proposed`, with them as its basis. A consequence that holds once a proposed
-choice is made can be established when code or a run settles it: its answer
-starts `If row <n> is chosen,` and row `<n>` stays `proposed`. A prototype's
-recommendation among its variants is evidence, never a decision; a cited report
-holds what the `prototype` skill says to record. A material choice the owner has
-not answered is `proposed`, with your recommendation as its answer, or `open`.
+shows its count. An answer you put together from several lines, or from a search
+that found nothing (no caller, no other reader), is `medium` or `low`: cite the
+most direct line, and name the other lines or the search and the inference in
+the answer. If together they do not settle it, it stays `proposed`.
+`check_record.py` notes a `high` answer that names another location: confirm its
+source shows that answer by itself, or grade it `medium`. A `computed:` answer
+names what the script selects; two counts compared must cover the same
+population. Write a fact and a choice made on it as separate rows: the code can
+establish what exists and what it lacks, but lines that only allow or favour one
+option settle nothing, so that choice is `proposed`, with them as its basis. A
+consequence that holds once a proposed choice is made can be established when
+code or a run settles it: its answer starts `If row <n> is chosen,` and row
+`<n>` stays `proposed`. A prototype's recommendation among its variants is
+evidence, never a decision; a cited report holds what the `prototype` skill says
+to record. A material choice the owner has not answered is `proposed`, with your
+recommendation as its answer, or `open`.
 
 ## Ask the owner
 
