@@ -820,6 +820,27 @@ counted facts lean on code lines that cannot show them. That gap and four furthe
 are bead `cr-oiyn`. Left for the end-of-project sync (bead `cr-r2pa`): the `.codex` link and the
 plugin copy.
 
+## 13. A source for saved computations in `discovery` (`cr-oiyn`, in progress)
+
+Added 2026-11-12. Plan `scratchpad/mvp-stack/57/plan.md` (gitignored); round
+`2026-11-12-discovery-computed`, one `update ours:discovery`, sealed.
+
+- **Computed source:** a record can cite `computed: <script path> -> <output path>`, a saved script
+  that reruns as is and its output. `check_record.py` checks both paths exist, like `prototype:`.
+  A computation is a method of the code answerer, not a sixth answerer. A computed answer names what
+  it selects, compared counts cover one population, and a saved output that shows its count can be
+  `high`.
+- **Four smaller points:** the Area when code spans several directories (the one the answer would
+  change; other `docs/` folders do not set it); what a cited prototype report holds; a consequence
+  of a proposed choice (established as "If row <n> is chosen", the choice stays proposed); a fact
+  that corrects a bead (reported to the caller).
+
+Proof: 76 checker tests (a valid record with a computed row fails the old checker and passes the
+new one). Two fresh sessions ran `discovery` on bead `cr-bes`; every script reran to the same
+output. Sol accepts the build, but the trials still graded answers assembled from several lines
+`high`, and one blurred two populations (211 stored events against 207 the change check actually
+evaluates). The bead stays open for a mechanical check of that grading rule and one more trial.
+
 ## Regenerating
 
 From the worktree root:

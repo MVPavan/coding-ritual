@@ -16,7 +16,7 @@ ours:beads:
   tree_hash: "4033071f23315c2f9052a4dc8f65023b5c9115f6afef9a79212b1aa813e9d6e6"
   traits: [bead-type-taxonomy, field-roles, wait-as-edge, actor-identity, resume-line, session-close, session-recovery, knowledge-in-files, beads-setup, status-model, triage-routing, durable-unit-scope, review-as-task, destructive-command-guard, repeated-procedures, dolt-sync]
 ours:discovery:
-  tree_hash: "fc4ead126fa2342772a40a335dd2376d69f0c3af86da2a80a595186697238552"
+  tree_hash: "47e8b926a373838b116b2b13fce3d5bf790e29f1717d4f2960926b45b66e4618"
   traits: [match-interaction-to-ambiguity, scoped-context-read, reuse-before-new, decision-frame, answerer-triage, options-with-tradeoffs, question-batching, recommended-answer, yes-accepts-recommendation, round-format, answer-before-next-round, settled-stop, self-serve-facts, approval-interpretation, observable-outcomes, structured-divergence, exploration-lenses, assumption-audit, mvp-scope, judgment-frameworks, decision-sequences, inline-diagrams, visuals-into-spec, html-mockup-on-request, sourced-status-record, area-topic-filing, generated-record-index]
   notes:
     recommended-answer: "Labels the recommendation's assumptions."

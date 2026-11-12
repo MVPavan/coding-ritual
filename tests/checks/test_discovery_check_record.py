@@ -33,6 +33,7 @@ ROWS = {
     "routine": "| 6 | Name? | runs.jsonl | agent: routine, matches logs.jsonl |  | routine |\n",
     "proposed": "| 7 | Compress? | gzip weekly | agent: smallest change |  | proposed |\n",
     "open": "| 8 | Retention? |  |  |  | open |\n",
+    "computed": "| 9 | How many? | 3 lines | computed: scripts/count.py -> reports/count.txt | high | established |\n",
 }
 GOOD = HEAD + "".join(ROWS.values())
 
@@ -87,6 +88,11 @@ FAULTS = [
     ("src/store.py:2", "src/store.py:0", "code"),
     ("src/store.py:2", "../outside.py:1", "code"),
     ("reports/bench.md", "reports/none.md", "prototype"),
+    ("count.py -> reports", "count.py reports", "computed"),
+    ("scripts/count.py ->", "scripts/none.py ->", "computed"),
+    ("-> reports/count.txt", "-> reports/none.txt", "computed"),
+    ("count.txt | high", "count.txt | ", "established"),
+    ("count.txt | high | established", "count.txt |  | proposed", "proposed"),
 ]
 # Each must still pass: the other legal shapes of a rule.
 PASSES = [
@@ -115,6 +121,9 @@ def root(tmp_path: Path) -> Path:
     (tmp_path / "reports").mkdir()
     (tmp_path / "reports/bench.md").write_text("# Bench\n")
     (tmp_path / "src/space name.py").write_text("x = 1\n")
+    (tmp_path / "scripts").mkdir()
+    (tmp_path / "scripts/count.py").write_text("print(3)\n")
+    (tmp_path / "reports/count.txt").write_text("3\n")
     return tmp_path
 
 
@@ -135,7 +144,8 @@ def check(root: Path, text: str, name: str = "record.md") -> tuple[int, str]:
 
 
 def test_good_record_passes(root: Path) -> None:
-    assert check(root, GOOD) == (0, f"{root / 'record.md'}: 8 rows, 0 problems\n")
+    expected = f"{root / 'record.md'}: {len(ROWS)} rows, 0 problems\n"
+    assert check(root, GOOD) == (0, expected)
 
 
 @pytest.mark.parametrize("text", PASSES)
@@ -175,6 +185,17 @@ def test_prototype_report_outside_the_root_only_needs_to_exist(
     report.unlink()
     code, output = check(root, GOOD.replace("reports/bench.md", str(report)))
     assert code == 1 and "prototype: " in output, output
+
+
+def test_computed_output_outside_the_root_only_needs_to_exist(
+    root: Path, tmp_path_factory: pytest.TempPathFactory
+) -> None:
+    output = tmp_path_factory.mktemp("elsewhere") / "count.txt"
+    output.write_text("3\n")
+    assert check(root, GOOD.replace("reports/count.txt", str(output)))[0] == 0
+    output.unlink()
+    code, out = check(root, GOOD.replace("reports/count.txt", str(output)))
+    assert code == 1 and "computed: output " in out, out
 
 
 def test_a_record_needs_the_title_first(root: Path) -> None:

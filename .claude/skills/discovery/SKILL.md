@@ -34,24 +34,29 @@ between options, or a decision in a known domain: the one fitting section of
 
 | Answerer | Action | Source | Status |
 |---|---|---|---|
-| This project's code | read it; `how` for a walkthrough, `why` for history | `code: <path>:<line>` | established |
+| This project's code | read it; `how` for a walkthrough, `why` for history; for a count, join or search, save a script that reruns as is and its output beside the record | `code: <path>:<line>`, or `computed: <script path> -> <output path>` | established |
 | Outside sources | call `research` | `outside: <source>, <version>, <date>` | established |
 | A run | call `prototype` | `prototype: <report path>` | established |
 | A routine pick | decide it | `agent: routine, <basis>` | routine |
 | The owner | ask, last | `owner: "<quote>" (YYYY-MM-DD)` or `owner: delegation <ref>` | decided |
 
 Give every established row a Confidence of `high`, `medium` or `low`: how far
-the cited line, sources or run actually settle it. `high` only when the cited
-source shows the answer by itself. An answer you put together from several
+the cited line, sources, run or computation actually settle it. `high` only when
+the cited source shows the answer by itself, as a saved computation's output
+shows its count. An answer you put together from several
 lines, or from a search that found nothing (no caller, no other reader), is
 `medium` or `low`: cite the most direct line, and name the other lines or the
 search and the inference in the answer. If together they do not settle it, it
-stays `proposed`. Write a fact and a choice made on it as separate rows: the
-code can establish what exists and what it lacks, but lines that only allow or
-favour one option settle nothing, so that choice is `proposed`, with them as its
-basis. A prototype's recommendation among its variants is evidence, never a
-decision. A material choice the owner has not answered is `proposed`, with your
-recommendation as its answer, or `open`.
+stays `proposed`. A `computed:` answer names what the script selects; two counts
+compared must cover the same population. Write a fact and a choice made on it as
+separate rows: the code can establish what exists and what it lacks, but lines
+that only allow or favour one option settle nothing, so that choice is
+`proposed`, with them as its basis. A consequence that holds once a proposed
+choice is made can be established when code or a run settles it: its answer
+starts `If row <n> is chosen,` and row `<n>` stays `proposed`. A prototype's
+recommendation among its variants is evidence, never a decision; a cited report
+holds what the `prototype` skill says to record. A material choice the owner has
+not answered is `proposed`, with your recommendation as its answer, or `open`.
 
 ## Ask the owner
 
@@ -78,7 +83,9 @@ in chat. A filled example is `references/record-example.md`.
 1. Path: the one a calling skill or playbook names; otherwise
    `docs/discovery/<area>/<topic>/<YYYY-MM-DD>-<slug>.md`. `<area>` is the
    `docs/workstreams/<name>` folder the work belongs to, else the top-level
-   directory the question is about, kebab-cased, else `general`; `<topic>` is a
+   directory the question is about, kebab-cased (when it spans several, the one
+   holding the code the answer would change; still several, `general`), else
+   `general`. Other `docs/` folders, such as `docs/research/<name>`, do not set it; `<topic>` is a
    short kebab subject. Area and Topic describe the question, so they follow this
    rule even when a caller names a path elsewhere. Reuse an existing folder before
    creating one; never go deeper.
@@ -100,4 +107,6 @@ ends at the record and its report; a caller sequences what follows. At top level
 work that goes on to a spec or a plan returns to `mvp-mode`; in a delegated task,
 report that route. A discovery-only request does not authorize code changes.
 Discovery writes no Beads and never calls `tracker`; a decision bead or ADR
-follows only where existing rules require one, and links the record.
+follows only where existing rules require one, and links the record. A fact
+that corrects a bead goes in a row and in the report, naming the bead, for
+whoever started the run to correct.

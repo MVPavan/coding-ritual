@@ -10,6 +10,7 @@ Check exit 0: holds. 1: problems, each `<path>:<line>: <rule>: <problem>`. 2: ca
 `| # | Question | Answer | Source | Confidence | Status |` table follows the header fields.
 `--root` (default: the record's Git top level): `code:` paths must lie under it; a relative
 `prototype:` report is read from it, and any `prototype:` report need only exist.
+`computed: <script> -> <output>` resolves both paths the same way; each need only exist.
 The table ends at its first non-row line; any later line starting with `|` is a problem,
 whatever surrounds it. Fences and comments are not read: nothing can hide a row.
 """
@@ -29,11 +30,12 @@ HEADER = ["Question", "Area", "Topic", "Date", "Run", "Caller", "Outcome"]
 FIELD = re.compile(r"\*\*(\w+):\*\*(.*)")
 STATUSES = {"decided", "established", "routine", "proposed", "open"}
 CONFIDENCE = {"high", "medium", "low"}
-KINDS = {"code", "outside", "prototype", "agent", "owner"}
+KINDS = {"code", "outside", "prototype", "computed", "agent", "owner"}
 CELL = re.compile(r"(?<!\\)\|")
 SEPARATOR = re.compile(r":?-+:?")
 OWNER = re.compile(r'owner: (?:"[^"]+" \((\d{4}-\d{2}-\d{2})\)|delegation \S.*)')
 CODE = re.compile(r"code: (\S.*):(\d+)(?:-(\d+))?")
+COMPUTED = re.compile(r"computed: (\S.*?) -> (\S.*)")
 INDEX = "INDEX.md"
 
 Say = Callable[[str, str], None]
@@ -137,6 +139,13 @@ def check_source(root: Path, source: str, say: Say) -> None:
         report = root / rest if rest else None
         if not report or not report.is_file():
             say("prototype", f"report {rest or '(none)'} does not exist")
+    elif kind == "computed":
+        found = COMPUTED.fullmatch(source)
+        if not found:
+            return say("computed", "needs computed: <script path> -> <output path>")
+        for label, name in (("script", found[1].strip()), ("output", found[2].strip())):
+            if not (root / name).is_file():
+                say("computed", f"{label} {name} does not exist")
     elif kind == "agent":
         if not rest:
             say("agent", "needs agent: <basis>")
@@ -169,14 +178,16 @@ def check_row(
     if kind in KINDS:
         check_source(root, source, say)
     elif source or status != "open":
-        say("source", "needs code:, outside:, prototype:, agent: or owner:")
+        say("source", "needs code:, outside:, prototype:, computed:, agent: or owner:")
     if not answer and status != "open":
         say("answer", f"a {status} row needs an answer")
     if status == "decided" and kind != "owner":
         say("decided", 'needs owner: "<quote>" (YYYY-MM-DD) or owner: delegation <ref>')
     if status == "established":
-        if kind not in {"code", "outside", "prototype"}:
-            say("established", "needs a code:, outside: or prototype: source")
+        if kind not in {"code", "outside", "prototype", "computed"}:
+            say(
+                "established", "needs a code:, outside:, prototype: or computed: source"
+            )
         if confidence not in CONFIDENCE:
             say("established", "needs Confidence high, medium or low")
     elif confidence:
