@@ -12,7 +12,7 @@ status: active
 
 Use to answer why something in this project is the way it is (code, a document, a decision, config, a tracker record): what was decided about it, what motivated it, or which change brought a regression and for what reason, from the project's own record, cited at the strength the evidence has. How it works now is how; evidence from outside the project is research; a failure whose cause is unknown is systematic-debugging. At top level, a question that should end in that answer is the investigation playbook.
 
-**Boundary:** One cited, read-only answer about why something in this project is the way it is, or what was decided about it, from the project's own record (git, Beads, decision records, docs). How it works now is how, evidence from outside the project is research, past agent sessions are recall once it exists, an unexplained failure is systematic-debugging, and a saved answer is the investigation playbook.
+**Boundary:** One cited, read-only answer about why something in this project is the way it is, or what was decided about it, from the project's own record (git, Beads, decision records, docs). How it works now is how, evidence from outside the project is research, past agent sessions are recall, an unexplained failure is systematic-debugging, and a saved answer is the investigation playbook.
 
 <!-- registry:generated traits -->
 - `read-only-explanation`: Change nothing while explaining, not even temporary instrumentation.
@@ -77,6 +77,7 @@ Use to answer why something in this project is the way it is (code, a document, 
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-12` **update** (2026-11-12-batch-p1-recall:002): Bead cr-r2pa.2.18, plan 61 D4: past agent sessions are recall's (/recall, started by the person) now that it exists; why still lists them in its sources line a…
 - `2026-11-10` **update** (2026-11-10-renames-splits:131): Coordinator fix for critic-21b F1 (scratchpad/mvp-stack/critic-21b.md): a question about what was decided in this project has a present route (why) while recal…
 - `2026-11-10` **adopt** (2026-11-10-renames-splits:120): Completes pending 2026-11-10-renames-splits:032: pr-discussion-pull is written at .claude/skills/why/SKILL.md:38-39, .claude/skills/why/references/pull-request…
 - `2026-11-10` **update** (2026-11-10-renames-splits:114): Owner rulings C of 2026-11-05, I1 and I4 of 2026-11-06 and K of 2026-11-10 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 14a U6. Body is the hist…

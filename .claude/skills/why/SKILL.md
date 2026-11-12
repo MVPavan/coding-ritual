@@ -20,8 +20,7 @@ the reading you took and carry on.
 
 This skill reads the project's own record. Evidence from outside the project
 (vendor documentation, papers, other codebases) is `research`'s. Past agent
-sessions are `recall`'s, once that skill exists; until then, a past decision is
-answered from the project's own record here, and sessions are listed in the
+sessions are `recall`'s (`/recall`, started by the person); list them in the
 sources line as not searched.
 
 ## Gather

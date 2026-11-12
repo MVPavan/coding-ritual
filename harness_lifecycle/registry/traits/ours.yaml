@@ -61,7 +61,7 @@ ours:how:
   tree_hash: "6e7f7aed0531ecd5113efac6cee037791b07fa7721a308521b8ca232118fe576"
   traits: [read-only-explanation, immaterial-ambiguity-reading, angles-when-wide, reconcile-by-reading, explanation-sections, cited-flow-walkthrough, recommendation-with-tradeoffs]
 ours:why:
-  tree_hash: "5986d9c4fbd6e790d00f0204cdd58c7c87be532a9eccfd0c55ed4f65c35b7a88"
+  tree_hash: "1b401db14a5a027d8165cbb330a3536da6c80dd682124b3e8e802d9cccf70a30"
   traits: [read-only-explanation, immaterial-ambiguity-reading, gather-without-concluding, code-anchor-first, named-record-first, target-derived-search-terms, local-evidence-sources, pickaxe-history-search, full-record-reading, record-lineage-walk, recency-bias-check, embedded-hypothesis-check, confidence-tiers, adjacent-citation-gate, code-not-intent-evidence, no-retrofitted-rationale, consistency-is-not-intent, absence-is-not-evidence, contradiction-shown, competing-hypotheses-section, searched-and-unknown, unreachable-data-is-gap, sources-consulted-line, constraints-before-change, pr-discussion-pull]
 ours:grilling:
   tree_hash: "3f9df72abc79355fead616ca0db983426b1d0f532537e8e95bfdd6e568288907"
@@ -112,7 +112,7 @@ ours:model-council:
   tree_hash: "678a7f2a8a0872f518a32349f32b6b49e0a3b83ed8d978b5f26d4ef50f85165a"
   traits: [member-resolution, runtime-capability-check, neutral-framing, member-isolation, report-preservation, independent-synthesis, consolidated-delivery, identity-recording, failed-member-recovery, no-silent-substitution, artifact-named-up-front, task-rubric-criteria, rubric-withheld-from-candidates, own-output-location, rationale-names-rejected, dropout-proceeds-noted, read-only-judge, judge-other-family-or-stated, rubric-given-to-judge, path-labelled-candidates, judge-criterion-scores, judge-recommends-base, full-read-before-pick, picker-criterion-scores, pick-compared-with-judge, disagreement-rereads-rationales, base-chosen-for-extensibility, near-tie-smaller-surface, loser-graft-pass, sparse-grafts, hand-folded-grafts, converged-shape-no-graft, divergence-reframes-once, graft-change-rerun, verify-miss-returns-once, single-synthesized-artifact, synthesis-decision-record, note-judge-status, note-convergence-dropouts, note-verification-result, no-judge-no-pick]
 ours:mvp-mode:
-  tree_hash: "696585a63e8734dd8b9b4fa870d57e029cefb59632ec06c813090599d7306fd4"
+  tree_hash: "7cc66079ae538629d5d2f52e90b5a6a53f3c75239ea779e78e6580d6fd0c006c"
   traits: [unit-kind-lines, playbook-pick, need-to-skill-routing, overlap-arbitration, layered-catalog, platform-skill-invocation, no-playbook-in-delegate, delegate-independent-by-default, no-onward-delegation, playbook-steps-as-todos, recorded-step-skip, whole-callee, playbook-exit, legacy-entrypoint-flagging, catalog-trust-boundary]
 ours:performance-optimization:
   tree_hash: "8e393535c7e06691afca39ef9df84040ce4752a29a8cc58610b8522ce951c4da"
@@ -294,3 +294,6 @@ ours:restate:
 ours:sharpen:
   tree_hash: "9cea278b015e6ba0fe6548c6a41c1414a2037b7f66ee7571fc2b1ec346a1007f"
   traits: [depth-not-scope-rewrite, diagnose-then-rewrite-prompt, expert-gap-question, rawest-source-question, expert-methods-question, outside-correctness-signal, owner-choices-left-open]
+ours:recall:
+  tree_hash: "e5237e7c4594d34349907152eb036e54dcb181f753a93d735fbd76e1abd7b60f"
+  traits: [current-state-capsule-goal, two-record-context-model, recall-routes-away, skip-mining-with-supplied-state, lock-scope-before-search, seven-day-default-window, active-workspace-only-default, no-silent-narrowing, order-by-real-mtime, grep-then-read-matching-regions, exclude-current-and-noise-chats, uniform-per-chat-schema, finding-cited-by-source-kind, direct-search-for-small-corpus, default-shared-record-sweep, one-helper-per-sizeable-source, retarget-investigator-question, empty-search-is-finding, full-transcript-for-agent-behaviour, brief-grouped-by-thread, brief-section-order, capped-capsule-section, status-tagged-thread-lines-with-abandoned, capped-recurring-problems, single-next-move, adjacent-excluded-unless-blocking, cut-detail-before-threads, reply-is-the-deliverable]

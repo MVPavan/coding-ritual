@@ -961,6 +961,26 @@ Added 2026-11-12. Plan `scratchpad/mvp-stack/60/plan.md` (gitignored); round
 Proof: Sol reviewed the plan (three fixes) and passed the build; registry check, catalog check and 600
 tests pass. Limit: neither skill has been run on a real prompt.
 
+## 19. `recall`, a manual skill (`cr-r2pa.2.18`, slice 3)
+
+Added 2026-11-12. Plan `scratchpad/mvp-stack/61/plan.md` (gitignored); round
+`2026-11-12-batch-p1-recall`, 31 events, sealed. Delivers batch P1's 28 `recall` rows.
+
+- **`/recall`** rebuilds recent work in this project (default the last 7 days, this workspace) from
+  past chats and the shared record (Beads, git, state files) into one brief: capsule, status-tagged
+  threads, recurring problems, a coverage line (each source searched, empty or unavailable), ending
+  on the single next move.
+- **Sources** (owner, 2026-11-12): this project's Claude Code and Codex chat logs, located by
+  `.claude/skills/recall/references/chat-logs.md`; the current chat is skipped by its session id, helper
+  chats by their metadata; a missing store is a coverage gap.
+- Slash-only; turns away resuming one known piece of work (`session-pickup`), turning habits into a
+  skill, and writing a work summary for a person. `why` now hands past agent sessions to `/recall`.
+- `empty-search-is-finding` (with `review`) and `reply-is-the-deliverable` (with `teach`) are shared traits.
+
+Proof: Sol reviewed the plan (six fixes) and the build (four fixes, then a pass); a metadata-only check
+against this machine's stores confirmed both layouts; registry check, catalog check and 600 tests pass.
+Limit: not run on a real request.
+
 ## Regenerating
 
 From the worktree root:

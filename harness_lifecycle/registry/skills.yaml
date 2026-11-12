@@ -128,7 +128,7 @@ why:
   family: null
   aliases: []
   status: active
-  boundary: "One cited, read-only answer about why something in this project is the way it is, or what was decided about it, from the project's own record (git, Beads, decision records, docs). How it works now is how, evidence from outside the project is research, past agent sessions are recall once it exists, an unexplained failure is systematic-debugging, and a saved answer is the investigation playbook."
+  boundary: "One cited, read-only answer about why something in this project is the way it is, or what was decided about it, from the project's own record (git, Beads, decision records, docs). How it works now is how, evidence from outside the project is research, past agent sessions are recall, an unexplained failure is systematic-debugging, and a saved answer is the investigation playbook."
 grilling:
   domain: core
   stage: Intake
@@ -435,6 +435,15 @@ prototype:
   aliases: []
   status: active
   boundary: "Builds a runnable throwaway experiment that answers one design question; the decision it informs belongs to its caller, such as discovery, codebase-design or domain-modeling. It recommends among variants it built; building the chosen one is separate work."
+recall:
+  domain: core
+  stage: X
+  substage: Continuity
+  secondary: []
+  family: null
+  aliases: []
+  status: active
+  boundary: "Rebuilds recent work in this project from past chats and the shared record into one brief of where it stands and the next move; resuming one identified piece of work is session-pickup, why something was decided is why, and how it works now is how."
 research:
   domain: core
   stage: Discovery

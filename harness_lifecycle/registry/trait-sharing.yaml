@@ -184,3 +184,11 @@ confidence-language-kept:
   skills: [teach, unslop]
   why: "Each rewrites a finished answer for a reader: unslop edits prose, teach rewords cited findings for teaching; both must keep the hedges and confidence words, which are results. The owner's batch P1 ruling put it into teach (sealed row 2026-11-06-batch-p1:019)."
   reviewed: "2026-11-12"
+empty-search-is-finding:
+  skills: [recall, review]
+  why: "Each reports what a search found to someone deciding on it: review's blast-radius assessment and recall's sweep of the shared record. A search that found nothing is an answer in both, so each says it. Batch P1 rows 2026-11-06-batch-p1:277 (review) and :194 (recall), owner-ruled 2026-11-06."
+  reviewed: "2026-11-12"
+reply-is-the-deliverable:
+  skills: [recall, teach]
+  why: "Each skill's reply is its product, an explanation or a brief, so neither may hand back a report of having done it instead. Batch P1 rows 2026-11-06-batch-p1:053 (teach) and :207 (recall), owner-ruled 2026-11-06."
+  reviewed: "2026-11-12"

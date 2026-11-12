@@ -35,6 +35,7 @@
     "2026-11-11-tracker.jsonl": "48ed635194c78b67006afa01e65501e10dba0908d1f766828bc2732b07429fea",
     "2026-11-12-batch-p1-existing.jsonl": "060c02191da1e78e38511573d810c65189bad9f3220272584208bde492480065",
     "2026-11-12-batch-p1-manual.jsonl": "b362e97e7421f7749d3deac3771554b28be161f8af874a93a4d5f2d58a5443fd",
+    "2026-11-12-batch-p1-recall.jsonl": "aff5c97e4479de3b4efc066fd50c703ac0c9c270ba082e6440e1b03c653ce4cf",
     "2026-11-12-discovery-clarify-grading.jsonl": "695622ba8e74680700b713da2ec8e7e9f4c383a3207d71117045cf5fb8353d09",
     "2026-11-12-discovery-clarify-options.jsonl": "2ad37d3bc3bf4ee9141d3db8a758f9d61f14d04cef99d6dda7002b635cb68f5d",
     "2026-11-12-discovery-clarify.jsonl": "7ced93156f42c5480d68c5c5243a8afe45850211f38c4cdd03c474518b875498",
@@ -88,7 +89,8 @@
     "2026-11-12-overlap-owners.jsonl",
     "2026-11-12-discovery-high-check.jsonl",
     "2026-11-12-batch-p1-existing.jsonl",
-    "2026-11-12-batch-p1-manual.jsonl"
+    "2026-11-12-batch-p1-manual.jsonl",
+    "2026-11-12-batch-p1-recall.jsonl"
   ],
   "reports": {
     "harness_lifecycle/registry/reviews/2026-10-30-upstream-mattpocock_skills-5beb35b.yaml": "fb413772a75f116bd9baeaa06b6e414fe59978c654a951cb53345f17459d7597",
