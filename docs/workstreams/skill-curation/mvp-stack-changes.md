@@ -1085,6 +1085,30 @@ the curation method stays outside the router until phase 3, then joins it.
 Proof: Sol reviewed the plan (four fixes) and the build twice (five fixes, then one); registry check, catalog
 check and 600 tests pass. Limit: not run on a real curation request.
 
+## 24. `pr`, a skill for pull request bodies (`cr-r2pa.2.13.5`)
+
+Added 2026-11-12. Plan `scratchpad/mvp-stack/69/plan.md` (gitignored); round `2026-11-12-pr`, 7 events,
+trait-level, sealed; reconsider report
+`harness_lifecycle/registry/reviews/2026-11-12-upstream-mattpocock_skills-5beb35b-pr.yaml`, sealed. Owner ruling
+2026-11-05 §E: a new `pr` skill with evidence and merge danger, citing `show-me` for visuals.
+
+- **`pr`** (`.claude/skills/pr/SKILL.md`, model-invocable) writes a pull request's body in three fixed
+  sections: Summary (why, what it leaves out when a reviewer would ask, then the smallest visual of the change),
+  Evidence (before and after from real runs: a screenshot when one can be taken, else the exact check and its
+  short output) and Merge danger (one-way or two-way door with the reason, and the blast radius). Opening or
+  editing the PR needs publish authority; without it the skill returns the text. Commits and titles stay with
+  `land`.
+- `show-me` is slash-only, so a model cannot use it from here: `pr` carries the compact visual forms itself and
+  names `show-me` for the person. The four visual traits and "no preamble" are recorded as shared.
+- Registry: adopts four Pocock `pr` rows deferred on 2026-10-30 for want of a PR template (the template,
+  before-and-after evidence, merge danger, no preamble), and records pstack's "Opening a PR" playbook as a source
+  for its description parts; the earlier adoption of that playbook's commit rules into `land` stays.
+- Not taken: the domain-vocabulary row (owner-deferred, `cr-r2pa.3.3`); the playbook's forge, PR tool, stack,
+  readiness and babysitting sections.
+
+Proof: Sol reviewed the plan (three fixes) and the build (pass); registry check, catalog check and 600 tests
+pass. Limit: not run on a real pull request.
+
 ## Regenerating
 
 From the worktree root:

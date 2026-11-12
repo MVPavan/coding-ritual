@@ -56,7 +56,7 @@ Domain → stage → sub-stage. Each active skill under its primary home.
 - **Testing**: check-invariants, principle-test-behavior-not-implementation
 
 ### Delivery
-- **Integration**: land, resolving-merge-conflicts
+- **Integration**: land, pr, resolving-merge-conflicts
 
 ### Operations
 - **Maintenance**: improve-codebase-architecture
@@ -80,7 +80,7 @@ Two or more active skills share one domain · sub-stage (README §2 rule 3):
 - engineering · Building · Diagnosis: performance-optimization, principle-attack-the-premise, principle-explain-the-number, principle-fix-root-causes, systematic-debugging
 - engineering · Building · Implementation: principle-no-comments, principle-sequence-verifiable-units, tdd
 - engineering · Verification · Testing: check-invariants, principle-test-behavior-not-implementation
-- engineering · Delivery · Integration: land, resolving-merge-conflicts
+- engineering · Delivery · Integration: land, pr, resolving-merge-conflicts
 
 ## Aliases
 

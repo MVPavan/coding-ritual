@@ -282,6 +282,15 @@ perspective-council:
   aliases: []
   status: active
   boundary: "Runs an explicitly requested council of perspectives or roles (a war room); a council of named models with a judge is model-council."
+pr:
+  domain: engineering
+  stage: Delivery
+  substage: Integration
+  secondary: []
+  family: null
+  aliases: []
+  status: active
+  boundary: "Writes a pull request's body (why, a visual, evidence, merge danger); the commits and their titles are land, and opening or merging the PR needs publish authority."
 principle-attack-the-premise:
   domain: engineering
   stage: Building

@@ -112,7 +112,7 @@ ours:model-council:
   tree_hash: "678a7f2a8a0872f518a32349f32b6b49e0a3b83ed8d978b5f26d4ef50f85165a"
   traits: [member-resolution, runtime-capability-check, neutral-framing, member-isolation, report-preservation, independent-synthesis, consolidated-delivery, identity-recording, failed-member-recovery, no-silent-substitution, artifact-named-up-front, task-rubric-criteria, rubric-withheld-from-candidates, own-output-location, rationale-names-rejected, dropout-proceeds-noted, read-only-judge, judge-other-family-or-stated, rubric-given-to-judge, path-labelled-candidates, judge-criterion-scores, judge-recommends-base, full-read-before-pick, picker-criterion-scores, pick-compared-with-judge, disagreement-rereads-rationales, base-chosen-for-extensibility, near-tie-smaller-surface, loser-graft-pass, sparse-grafts, hand-folded-grafts, converged-shape-no-graft, divergence-reframes-once, graft-change-rerun, verify-miss-returns-once, single-synthesized-artifact, synthesis-decision-record, note-judge-status, note-convergence-dropouts, note-verification-result, no-judge-no-pick]
 ours:mvp-mode:
-  tree_hash: "eee7245e50955324013e4692218afcab615392bcda148550c43a9c302434de44"
+  tree_hash: "8fcccfab8f29b74954f5ecef1d8ddfba2fd7ba7d0aff75f9e0f3d1b92379fe60"
   traits: [unit-kind-lines, playbook-pick, need-to-skill-routing, overlap-arbitration, layered-catalog, platform-skill-invocation, no-playbook-in-delegate, delegate-independent-by-default, no-onward-delegation, playbook-steps-as-todos, recorded-step-skip, whole-callee, playbook-exit, legacy-entrypoint-flagging, catalog-trust-boundary]
 ours:performance-optimization:
   tree_hash: "8e393535c7e06691afca39ef9df84040ce4752a29a8cc58610b8522ce951c4da"
@@ -306,3 +306,6 @@ ours:principle-no-comments:
 ours:reflect:
   tree_hash: "7386ad4473ba60054f86e6d9c971b495df670fc884dc152e1a20c8407b411a6c"
   traits: [sampled-session-retros, failures-first-retro-sample, environment-retro-categories, read-existing-check-first, read-session-sources, severity-ordered-proposals, retro-in-reviewed-session]
+ours:pr:
+  tree_hash: "9100e0bcbf28d3ac914d697b0b2968dce4612c2fb0f06e421c3ff3d1db7db3ac"
+  traits: [pr-body-template, evidence-before-after, merge-danger, no-preamble, visual-form-catalog, structural-diff, visual-placement, minimal-visual-selection]

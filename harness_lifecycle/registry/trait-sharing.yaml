@@ -212,3 +212,23 @@ record-command:
   skills: [harness-evaluate, doc:.claude/skills/mvp-mode/playbooks/skill-curation.md]
   why: "harness-evaluate records its own ruling; the playbook's ruling step names the same command for every curation operation. A pointer would add a hop to one command line."
   reviewed: "2026-11-12"
+no-preamble:
+  skills: [brief-me, pr]
+  why: "brief-me states it for a status briefing, pr for a pull request body; each is read alone, and one line does not earn a pointer."
+  reviewed: "2026-11-12"
+visual-form-catalog:
+  skills: [show-me, pr]
+  why: "show-me is manual, so a model writing a PR body cannot invoke it or read its file; pr carries the compact visual technique itself, as its upstream does, and names show-me for the person (plan 69 D3)."
+  reviewed: "2026-11-12"
+structural-diff:
+  skills: [show-me, pr]
+  why: "show-me is manual, so a model writing a PR body cannot invoke it or read its file; pr carries the compact visual technique itself, as its upstream does, and names show-me for the person (plan 69 D3)."
+  reviewed: "2026-11-12"
+visual-placement:
+  skills: [show-me, pr]
+  why: "show-me is manual, so a model writing a PR body cannot invoke it or read its file; pr carries the compact visual technique itself, as its upstream does, and names show-me for the person (plan 69 D3)."
+  reviewed: "2026-11-12"
+minimal-visual-selection:
+  skills: [show-me, pr]
+  why: "show-me is manual, so a model writing a PR body cannot invoke it or read its file; pr carries the compact visual technique itself, as its upstream does, and names show-me for the person (plan 69 D3)."
+  reviewed: "2026-11-12"

@@ -833,6 +833,16 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `commit-body-adds`: A commit body says what the subject cannot and never restates it.
 - `commit-plan-without-authority`: Without commit authority, stage nothing and report the ordered commits with paths, titles and bodies.
 
+#### engineering · Delivery · Integration — pr
+- `pr-body-template`: Fill a fixed PR-body skeleton with Summary, Evidence, and Merge Danger sections.
+- `evidence-before-after`: Show concrete before/after evidence that the change works, preferring screenshots, then execution-based test or console output.
+- `merge-danger`: State the merge's one-way or two-way door and its blast radius.
+- `no-preamble`: Open with the answer and stop when it is done, with no preamble, recap or closing pleasantry.
+- `visual-form-catalog`: Offer a set of inline visual forms — pseudocode, call, component and file trees, Mermaid and whole-block — each with its own shape rules.
+- `structural-diff`: Show a change as a diff against the structure the reader already holds rather than against raw source.
+- `visual-placement`: Place each visual immediately after the sentence it supports and include only the detail the current question needs.
+- `minimal-visual-selection`: Use the fewest and smallest visuals that make the point, never a gallery.
+
 #### engineering · Delivery · Integration — resolving-merge-conflicts
 - `capture-conflict-set`: Capture the conflicted file set up front from the version control's unmerged-paths listing.
 - `trace-intent`: Find the primary source of each conflict via commit messages and requirements first, expanding to PRs or issues only when a disputed hunk needs that history.
@@ -3091,11 +3101,11 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `fresh-context-subagent`: Start every subagent in a fresh context window rather than as a copy of the caller's conversation. — adopt → delegation#fresh-context-subagent
 
 #### engineering · Delivery · Integration — skill:skills/engineering/pr
-- `pr-body-template`: Fill a fixed PR-body skeleton with Summary, Evidence, and Merge Danger sections. — defer
+- `pr-body-template`: Fill a fixed PR-body skeleton with Summary, Evidence, and Merge Danger sections. — adopt → pr#pr-body-template
 - `visual-form-catalog`: Offer a set of inline visual forms — pseudocode, call, component and file trees, Mermaid and whole-block — each with its own shape rules. — adopt → show-me#visual-form-catalog
-- `evidence-before-after`: Show concrete before/after evidence that the change works, preferring screenshots, then execution-based test or console output. — defer
-- `merge-danger`: State the merge's one-way or two-way door and its blast radius. — defer
-- `no-preamble`: Open with the answer and stop when it is done, with no preamble, recap or closing pleasantry. — defer
+- `evidence-before-after`: Show concrete before/after evidence that the change works, preferring screenshots, then execution-based test or console output. — adopt → pr#evidence-before-after
+- `merge-danger`: State the merge's one-way or two-way door and its blast radius. — adopt → pr#merge-danger
+- `no-preamble`: Open with the answer and stop when it is done, with no preamble, recap or closing pleasantry. — adopt → pr#no-preamble
 - `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write. — defer
 - `structural-diff`: Show a change as a diff against the structure the reader already holds rather than against raw source. — adopt → show-me#structural-diff
 - `visual-placement`: Place each visual immediately after the sentence it supports and include only the detail the current question needs. — adopt → show-me#visual-placement
@@ -5447,6 +5457,7 @@ Keep colons for lists and examples, rewriting mid-sentence uses and the comparis
 
 #### `minimal-visual-selection`
 Use the fewest and smallest visuals that make the point, never a gallery.
+- ours: `pr`
 - ours: `show-me`
 - `mattpocock_skills:skill:skills/engineering/pr` — adopt → show-me#minimal-visual-selection
 
@@ -5481,7 +5492,8 @@ Avoid symmetrical constructions and neat concluding lines.
 #### `no-preamble`
 Open with the answer and stop when it is done, with no preamble, recap or closing pleasantry.
 - ours: `brief-me`
-- `mattpocock_skills:skill:skills/engineering/pr` — defer
+- ours: `pr`
+- `mattpocock_skills:skill:skills/engineering/pr` — adopt → pr#no-preamble
 
 #### `not-just-but-cut`
 Replace the construction that denies one thing to promote another with a direct statement of the point.
@@ -5617,6 +5629,7 @@ Let a run stream its progress into the ticket it works on.
 
 #### `structural-diff`
 Show a change as a diff against the structure the reader already holds rather than against raw source.
+- ours: `pr`
 - ours: `show-me`
 - `mattpocock_skills:skill:skills/engineering/pr` — adopt → show-me#structural-diff
 
@@ -5675,11 +5688,13 @@ Show completed work in concrete, runnable terms instead of burying it in a recap
 
 #### `visual-form-catalog`
 Offer a set of inline visual forms — pseudocode, call, component and file trees, Mermaid and whole-block — each with its own shape rules.
+- ours: `pr`
 - ours: `show-me`
 - `mattpocock_skills:skill:skills/engineering/pr` — adopt → show-me#visual-form-catalog
 
 #### `visual-placement`
 Place each visual immediately after the sentence it supports and include only the detail the current question needs.
+- ours: `pr`
 - ours: `show-me`
 - `mattpocock_skills:skill:skills/engineering/pr` — adopt → show-me#visual-placement
 
@@ -11724,7 +11739,8 @@ After the first merge, open a draft pull request marked as closing the spec and 
 
 #### `evidence-before-after`
 Show concrete before/after evidence that the change works, preferring screenshots, then execution-based test or console output.
-- `mattpocock_skills:skill:skills/engineering/pr` — defer
+- ours: `pr`
+- `mattpocock_skills:skill:skills/engineering/pr` — adopt → pr#evidence-before-after
 
 #### `explicit-path-staging`
 Stage changes by explicitly named paths, never with a whole-tree add such as git add . or git add -A unless explicitly approved.
@@ -11744,7 +11760,8 @@ Establish the intended base branch before merging.
 
 #### `merge-danger`
 State the merge's one-way or two-way door and its blast radius.
-- `mattpocock_skills:skill:skills/engineering/pr` — defer
+- ours: `pr`
+- `mattpocock_skills:skill:skills/engineering/pr` — adopt → pr#merge-danger
 
 #### `merged-result-verification`
 Verify the merged result after merging.
@@ -11764,7 +11781,8 @@ Cross-check every cleanup candidate against the owner's list of pinned or in-use
 
 #### `pr-body-template`
 Fill a fixed PR-body skeleton with Summary, Evidence, and Merge Danger sections.
-- `mattpocock_skills:skill:skills/engineering/pr` — defer
+- ours: `pr`
+- `mattpocock_skills:skill:skills/engineering/pr` — adopt → pr#pr-body-template
 
 #### `pre-report-base-merge`
 Before reporting done, merge the base branch's tip into the integration branch and rerun the checks; without commit authority, report that merge as due.
@@ -12225,9 +12243,11 @@ Traits listed by two or more of our active skills (`doc:AGENTS.md` and playbooks
 | `limit-bounded-hold` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md | Each long loop stops starting at its own limit with an idea left; the rule is one short sentence, and a skill for it would be ceremony. |
 | `material-risk-review` | harness-evaluate, to-spec | Each gates acceptance of its own output, a spec or a template adoption, on an independent critic; the critic itself belongs to review. |
 | `member-isolation` | model-council, perspective-council | Each council dispatches its own members in isolation. |
+| `minimal-visual-selection` | pr, show-me | show-me is manual, so a model writing a PR body cannot invoke it or read its file; pr carries the compact visual technique itself, as its upstream does, and names show-me for the person (plan 69 D3). |
 | `named-scope-first` | interrogate, no-comments | Each works on a scope a person may name, interrogate on the change it attacks and no-comments on the files it sweeps, and each defaults differently without one; a pointer between two unrelated jobs would add a hop to one sentence. |
 | `neutral-framing` | model-council, perspective-council | Each council frames its own neutral brief. |
 | `no-onward-delegation` | delegation, doc:AGENTS.md, mvp-mode | AGENTS.md holds it as policy every agent loads, so a delegate stops fanning out even when its brief was written by hand; the delegation skill writes it into each role block of the briefs it produces, so a delegate on a vendor or project without our AGENTS.md still receives it; the mvp-mode router states it beside its delegate-independent-by-default rule for plugin users who skip the optional AGENTS.md, so a router that tells them to delegate also tells their delegates not to fan out. |
+| `no-preamble` | brief-me, pr | brief-me states it for a status briefing, pr for a pull request body; each is read alone, and one line does not earn a pointer. |
 | `no-silent-substitution` | model-council, perspective-council | Either council can lose a member, and each must report the gap rather than fill it. |
 | `no-stale-code-snippets` | to-plan, to-spec | Each owns a different durable artifact, a spec or a plan, and its own template must keep code out. |
 | `optional-record-sections` | domain-modeling, teach | Each keeps its own record folder (ADRs, learning records) in one minimal format. |
@@ -12250,8 +12270,11 @@ Traits listed by two or more of our active skills (`doc:AGENTS.md` and playbooks
 | `single-source-of-truth` | authoring-for-agents, principle-subtract-before-you-add | Each applies one-owner-per-meaning to its own material: authoring-for-agents to agent instructions (search for an existing owner before adding one), the principle to code and data before an addition; neither unit loads the other on its path. |
 | `smallest-evidenced-change` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md | Each loop makes the smallest change the evidence justifies and checks its predicate on it: autonomous-run per iteration toward one condition, figure-it-out per designed unit. A skill of one sentence would be ceremony (unit-kinds deviation log, St4, 2026-11-12). |
 | `stated-unattended-gate` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md | The same one sentence tells each of these playbooks whether a run is away; each then takes its own branch or exit. |
+| `structural-diff` | pr, show-me | show-me is manual, so a model writing a PR body cannot invoke it or read its file; pr carries the compact visual technique itself, as its upstream does, and names show-me for the person (plan 69 D3). |
 | `tight-concept-definitions` | domain-modeling, teach | Each keeps a glossary of its own (project language, the learner's workspace) in one entry format, with its own admission rules. |
 | `two-failure-stop` | doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/implement.md | Each fixes a failure on its own path, the bug-fix playbook for a bug-fix request and the implement playbook inside a unit it coordinates, where a separate bug-fix request would leave its scope; both stop after two failed fixes and return the attempt log, the bug-fix playbook to the user and the implement playbook to whoever owns the unit. |
 | `verified-unit-sequence` | doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md, principle-sequence-verifiable-units | The principle owns the rule; figure-it-out's Run step states it in one sentence and cites the principle, as the owner ruled for row 2026-11-06-batch-p1:250, because the registry takes a delivered row only from the compared unit (unit-kinds St4). |
+| `visual-form-catalog` | pr, show-me | show-me is manual, so a model writing a PR body cannot invoke it or read its file; pr carries the compact visual technique itself, as its upstream does, and names show-me for the person (plan 69 D3). |
+| `visual-placement` | pr, show-me | show-me is manual, so a model writing a PR body cannot invoke it or read its file; pr carries the compact visual technique itself, as its upstream does, and names show-me for the person (plan 69 D3). |
 | `worktree-environment-proof` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md | Each stated unattended loop proves its own command responds in its own worktree before starting; the check runs at each one's setup. |
 | `yes-accepts-recommendation` | discovery, grilling | As question-batching: each skill words its own questions so a yes accepts the recommendation. |
