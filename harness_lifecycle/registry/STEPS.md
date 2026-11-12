@@ -79,6 +79,23 @@ Playbook traits: `lead-owns-design`, `contested-design-gate`
 | `feature#7` | every exit | `build-closeout` |  |  |
 | `feature#8` | finished and verified with no open dispute, after feature#7 |  | `skill:land` |  |
 
+## figure-it-out
+
+`.claude/skills/mvp-mode/playbooks/figure-it-out.md`
+
+Trigger: A large migration, an ambitious multi-part change or long work a person reviews after stepping away, to work out and carry through, that no narrower playbook fits.
+
+Playbook traits: `design-workflow-before-code`
+
+| Step | When | Traits | Calls | Loads |
+|---|---|---|---|---|
+| `figure-it-out#1` | always | `phase-todos`, `principles-first-todo` |  |  |
+| `figure-it-out#2` | always | `framing-before-run`, `falsifiable-done-predicate`, `quantified-scope-with-blockers`, `rigor-biased-high-by-reversibility`, `rigor-means-gates-and-artifacts`, `framing-and-tradeoffs-shown` |  |  |
+| `figure-it-out#3` | the framing is stated | `landable-units-or-named-group`, `riskiest-unknown-first`, `scaffold-first`, `harness-with-pre-change-baseline`, `alternatives-compared-on-one-way-doors`, `fan-out-across-seams-only`, `worktree-or-branch-per-worker`, `written-phase-list-for-review`, `designed-steps-as-todos` | `skill:codebase-design` (when: a design choice that cannot be undone, not mechanical and not already settled, has materially different alternatives) |  |
+| `figure-it-out#4` | the design is written; this one whole call stays open through figure-it-out#6 | `rolling-log-rows` | `skill:decision-trail` |  |
+| `figure-it-out#5` | once per designed unit, in the designed order | `one-checkpoint-unless-told-not-to`, `hypothesis-per-unit`, `smallest-evidenced-change`, `keep-or-revert-on-predicate`, `verified-unit-sequence`, `too-easy-pass-suspicion`, `judge-paired-with-delegation`, `bounded-gate-gaming-retry`, `fix-wrong-gate-separately`, `three-value-verdict`, `no-hidden-negatives` | `skill:delegation` (when: a unit goes to a worker); `skill:review` (when: a delegated unit's judge is a critic) |  |
+| `figure-it-out#6` | every exit | `whole-result-on-real-product`, `designed-run-reply-fields` |  |  |
+
 ## hillclimb
 
 `.claude/skills/mvp-mode/playbooks/hillclimb.md`
@@ -290,6 +307,7 @@ Traits and calls used by two or more playbooks. Repeating a step is fine; the sa
 | `revert-ineffective-experiments` | autonomous-run: `autonomous-run#4`; bug-fix: `bug-fix#5` |
 | `row-then-checkpoint` | autonomous-run: `autonomous-run#4`; hillclimb: `hillclimb#4` |
 | `run-limits-first` | autonomous-run: `autonomous-run#1`; hillclimb: `hillclimb#1` |
+| `smallest-evidenced-change` | autonomous-run: `autonomous-run#4`; figure-it-out: `figure-it-out#5` |
 | `stated-unattended-gate` | autonomous-run: `playbook`; bug-fix: `playbook`; hillclimb: `playbook` |
 | `two-failure-stop` | bug-fix: `bug-fix#5`; implement: `implement#4` |
 | `worktree-environment-proof` | autonomous-run: `autonomous-run#2`; hillclimb: `hillclimb#2` |
@@ -298,14 +316,14 @@ Traits and calls used by two or more playbooks. Repeating a step is fine; the sa
 
 | Item | Playbooks |
 |---|---|
-| `skill:codebase-design` | bug-fix: `bug-fix#3`; feature: `feature#2`; perf-issue: `perf-issue#3`; refactoring: `refactoring#3` |
-| `skill:decision-trail` | autonomous-run: `autonomous-run#2`; hillclimb: `hillclimb#3` |
-| `skill:delegation` | autonomous-run: `autonomous-run#4`; eval: `eval#5`; feature: `feature#4`; hillclimb: `hillclimb#4`; implement: `implement#4`; perf-issue: `perf-issue#3`, `perf-issue#4`; plan: `plan#2`; refactoring: `refactoring#4`; runtime-forensics: `runtime-forensics#1`; session-pickup: `session-pickup#1`; trace-forensics: `trace-forensics#1` |
+| `skill:codebase-design` | bug-fix: `bug-fix#3`; feature: `feature#2`; figure-it-out: `figure-it-out#3`; perf-issue: `perf-issue#3`; refactoring: `refactoring#3` |
+| `skill:decision-trail` | autonomous-run: `autonomous-run#2`; figure-it-out: `figure-it-out#4`; hillclimb: `hillclimb#3` |
+| `skill:delegation` | autonomous-run: `autonomous-run#4`; eval: `eval#5`; feature: `feature#4`; figure-it-out: `figure-it-out#5`; hillclimb: `hillclimb#4`; implement: `implement#4`; perf-issue: `perf-issue#3`, `perf-issue#4`; plan: `plan#2`; refactoring: `refactoring#4`; runtime-forensics: `runtime-forensics#1`; session-pickup: `session-pickup#1`; trace-forensics: `trace-forensics#1` |
 | `skill:discovery` | implement: `implement#1`; plan: `plan#3` |
 | `skill:how` | bug-fix: `bug-fix#2`; feature: `feature#1`; hillclimb: `hillclimb#1`; investigation: `investigation#1`; perf-issue: `perf-issue#2`; refactoring: `refactoring#1` |
 | `skill:land` | autonomous-run: `autonomous-run#7`; bug-fix: `bug-fix#8`; feature: `feature#8`; hillclimb: `hillclimb#8`; implement: `implement#4`, `implement#6`, `implement#8`, `implement#11`; perf-issue: `perf-issue#6`; plan: `plan#11`; refactoring: `refactoring#8` |
 | `skill:performance-optimization` | hillclimb: `hillclimb#1`; perf-issue: `perf-issue#1`; runtime-forensics: `runtime-forensics#1` |
-| `skill:review` | feature: `feature#4`; implement: `implement#5`; perf-issue: `perf-issue#3` |
+| `skill:review` | feature: `feature#4`; figure-it-out: `figure-it-out#5`; implement: `implement#5`; perf-issue: `perf-issue#3` |
 | `skill:systematic-debugging` | bug-fix: `bug-fix#2`; implement: `implement#4`; runtime-forensics: `runtime-forensics#2` |
 | `skill:tdd` | bug-fix: `bug-fix#3`; implement: `implement#4`; refactoring: `refactoring#1` |
 | `skill:to-plan` | implement: `implement#6`; plan: `plan#7` |

@@ -981,6 +981,33 @@ Proof: Sol reviewed the plan (six fixes) and the build (four fixes, then a pass)
 against this machine's stores confirmed both layouts; registry check, catalog check and 600 tests pass.
 Limit: not run on a real request.
 
+## 20. `figure-it-out`, a playbook (`cr-r2pa.2.18`, slice 4)
+
+Added 2026-11-12. Plan `scratchpad/mvp-stack/62/plan.md` (gitignored); round
+`2026-11-12-batch-p1-figure-it-out`, 34 events, sealed. Delivers batch P1's 32 `figure-it-out` rows.
+
+- **`.claude/skills/mvp-mode/playbooks/figure-it-out.md`**: for a large migration, an ambitious
+  multi-part change or long work a person reviews after stepping away, which the person asks the agent
+  to work out and carry through and no narrower playbook fits. Six steps: Principles; Frame (a predicate
+  that could fail, scope with blockers, rigor starting high); Design (landable units or a named group,
+  riskiest unknown first, checks before features, `codebase-design` on one-way doors, parallel work only
+  across seams with a worktree each, the design written to a file); Trail (one `decision-trail` call);
+  Run (a hypothesis per unit, smallest change, keep or revert, a judge for delegated units, bounded
+  retry on gate gaming, three-value verdicts, no hidden negatives); Hand back (the whole checked on the
+  real product and logged before the trail's audit and review). One checkpoint with the person when the
+  run is estimated over an hour, unless the request waives it. Nothing commits.
+- The router lists it after `feature`. Its overlap with the other playbooks is reviewed later
+  (`cr-r2pa.3.4`), not here.
+- `.repo-context/unit-kinds.md` logs four deviations: a seventh named composite-test exception, a traited
+  reply format, `smallest-evidenced-change` shared with Autonomous run, and three frozen wordings narrower
+  than their definitions (rows 237, 239, 255).
+- `smallest-evidenced-change` (with Autonomous run) and `verified-unit-sequence` (with
+  `principle-sequence-verifiable-units`) are shared traits. Rows 231, 253 and 259 keep the guide conflict
+  the owner overrode (O-05, C-14, C-12).
+
+Proof: Sol reviewed the plan (two fixes) and the build (four fixes, then a re-check); registry check,
+catalog check and 600 tests pass. Limit: not run on a real request.
+
 ## Regenerating
 
 From the worktree root:

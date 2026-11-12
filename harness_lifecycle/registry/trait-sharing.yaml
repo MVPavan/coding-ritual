@@ -192,3 +192,11 @@ reply-is-the-deliverable:
   skills: [recall, teach]
   why: "Each skill's reply is its product, an explanation or a brief, so neither may hand back a report of having done it instead. Batch P1 rows 2026-11-06-batch-p1:053 (teach) and :207 (recall), owner-ruled 2026-11-06."
   reviewed: "2026-11-12"
+smallest-evidenced-change:
+  skills: [doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md]
+  why: "Each loop makes the smallest change the evidence justifies and checks its predicate on it: autonomous-run per iteration toward one condition, figure-it-out per designed unit. A skill of one sentence would be ceremony (unit-kinds deviation log, St4, 2026-11-12)."
+  reviewed: "2026-11-12"
+verified-unit-sequence:
+  skills: [doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md, principle-sequence-verifiable-units]
+  why: "The principle owns the rule; figure-it-out's Run step states it in one sentence and cites the principle, as the owner ruled for row 2026-11-06-batch-p1:250, because the registry takes a delivered row only from the compared unit (unit-kinds St4)."
+  reviewed: "2026-11-12"

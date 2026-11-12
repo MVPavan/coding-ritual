@@ -1323,6 +1323,40 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `matching-surface-verify`: Verify a change on the surface where it will be used, treating an inconclusive result or a pass on another surface as no pass.
 - `build-closeout`: On every exit of a build, remove temporary scaffolding, name what is unfinished in the tree and list the open decisions.
 
+#### figure-it-out — `doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md`
+- `design-workflow-before-code`: When no existing playbook fits, produce a phased workflow as the first deliverable, ahead of any code.
+- `phase-todos`: Open a task list with one item per phase before beginning.
+- `principles-first-todo`: Make reading a principles section the first item on the todo list.
+- `framing-before-run`: Do the grounding before starting, and do not begin a run until its framing can be stated.
+- `falsifiable-done-predicate`: Define done as a claim that can be shown false.
+- `quantified-scope-with-blockers`: State scope in rough units and effort along with the blockers grounding turned up.
+- `rigor-biased-high-by-reversibility`: Pick a rigor level biased high, raised for one-way doors and wide impact and lowered for reversible low-stakes steps.
+- `rigor-means-gates-and-artifacts`: Define rigor as concrete gates and artifacts, not extra effort.
+- `framing-and-tradeoffs-shown`: Show the human the framing and its tradeoffs ahead of a long run.
+- `landable-units-or-named-group`: Split the work into units that can each land alone, or into a declared group where intermediate states cannot stay green.
+- `riskiest-unknown-first`: Order the units so the largest unknown is tackled first.
+- `scaffold-first`: Sequence first the work every later phase benefits from (CI, linting, test infrastructure, shared types) before features.
+- `harness-with-pre-change-baseline`: Build the verification harness first and capture a baseline before changing anything, so results read as old against new.
+- `alternatives-compared-on-one-way-doors`: For a design choice that cannot be undone, compare materially different alternatives, skipping mechanical work or a settled design, and start a council only on a person's request.
+- `fan-out-across-seams-only`: Decide what runs in parallel, parallelizing only where the work has seams and not over-fanning.
+- `worktree-or-branch-per-worker`: Give each parallel worker its own worktree or branch.
+- `written-phase-list-for-review`: Write down the designed phases as the thing the human reviews.
+- `designed-steps-as-todos`: Insert the designed steps as concrete todo items between the loop and audit entries.
+- `rolling-log-rows`: Add a trail row as each step lands, not all at the end.
+- `one-checkpoint-unless-told-not-to`: Stop once on a run estimated at over an hour to check with the person, unless the request says to run without stopping.
+- `hypothesis-per-unit`: Treat each unit as an experiment with a stated hypothesis.
+- `smallest-evidenced-change`: Each iteration makes the smallest change the evidence justifies and checks the predicate on it.
+- `keep-or-revert-on-predicate`: Keep a change that moved things forward and revert one that did not.
+- `verified-unit-sequence`: Split multi-step work into small units that each end in a checked state, and start the next only when the current one passes.
+- `too-easy-pass-suspicion`: When something passes too easily, question the observation method before crediting the system.
+- `judge-paired-with-delegation`: Pair delegated work with a judge.
+- `bounded-gate-gaming-retry`: Refuse a pass won by weakening a check, undo only attributable edits within authority, and retry on a hardened brief inside the existing retry limit.
+- `fix-wrong-gate-separately`: When the gate itself is wrong, correct it in its own change and do not route around it.
+- `three-value-verdict`: Report results as verified, not verified or inconclusive, with inconclusive never counting as a pass.
+- `no-hidden-negatives`: Do not conceal negative results.
+- `whole-result-on-real-product`: Check the finished whole against the opening predicate on the real product, beyond the harness.
+- `designed-run-reply-fields`: Reply with the designed playbook, rigor level and reason, trail path, what is verified against the predicate and what is open.
+
 #### hillclimb — `doc:.claude/skills/mvp-mode/playbooks/hillclimb.md`
 - `stated-unattended-gate`: Treat a run as unattended only when the request's own words say so; otherwise it is attended, whatever its length.
 - `one-change-one-measurement`: Make one change, take one measurement, then keep or undo it, never stacking untested changes.
@@ -1781,43 +1815,43 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `note-verification-result`: Record the verification result in the synthesis note. — adopt → model-council#note-verification-result
 
 #### core · X · Coordination — skill:pstack/skills/figure-it-out
-- `design-workflow-before-code`: When no existing playbook fits, produce a phased workflow as the first deliverable, ahead of any code. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
-- `phase-todos`: Open a task list with one item per phase before beginning. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
-- `principles-first-todo`: Make reading a principles section the first item on the todo list. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
-- `framing-before-run`: Do the grounding before starting, and do not begin a run until its framing can be stated. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
-- `falsifiable-done-predicate`: Define done as a claim that can be shown false. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
-- `quantified-scope-with-blockers`: State scope in rough units and effort along with the blockers grounding turned up. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
-- `rigor-biased-high-by-reversibility`: Pick a rigor level biased high, raised for one-way doors and wide impact and lowered for reversible low-stakes steps. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
-- `rigor-means-gates-and-artifacts`: Define rigor as concrete gates and artifacts, not extra effort. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
-- `framing-and-tradeoffs-shown`: Show the human the framing and its tradeoffs ahead of a long run. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `design-workflow-before-code`: When no existing playbook fits, produce a phased workflow as the first deliverable, ahead of any code. — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `phase-todos`: Open a task list with one item per phase before beginning. — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `principles-first-todo`: Make reading a principles section the first item on the todo list. — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `framing-before-run`: Do the grounding before starting, and do not begin a run until its framing can be stated. — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `falsifiable-done-predicate`: Define done as a claim that can be shown false. — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `quantified-scope-with-blockers`: State scope in rough units and effort along with the blockers grounding turned up. — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `rigor-biased-high-by-reversibility`: Pick a rigor level biased high, raised for one-way doors and wide impact and lowered for reversible low-stakes steps. — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `rigor-means-gates-and-artifacts`: Define rigor as concrete gates and artifacts, not extra effort. — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `framing-and-tradeoffs-shown`: Show the human the framing and its tradeoffs ahead of a long run. — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
 - `reversible-work-proceeds`: Proceed without asking on reversible work, then present the result and its reasoning so the human can correct it afterwards, leaving product direction to the human. — reject
-- `single-checkpoint-on-long-run`: Give a multi-hour run one checkpoint with the human. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
-- `independently-landable-units`: Split the work into atomic units that can each land independently. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
-- `riskiest-unknown-first`: Order the units so the largest unknown is tackled first. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
-- `scaffold-first`: Sequence first the work every later phase benefits from (CI, linting, test infrastructure, shared types) before features. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
-- `harness-with-pre-change-baseline`: Build the verification harness first and capture a baseline before changing anything, so results read as old against new. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
-- `design-contest-on-one-way-doors`: For design choices that cannot be undone, run a design skill that pits alternatives against each other, and skip that for mechanical work or a settled design. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
-- `fan-out-across-seams-only`: Decide what runs in parallel, parallelizing only where the work has seams and not over-fanning. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
-- `worktree-or-branch-per-worker`: Give each parallel worker its own worktree or branch. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `single-checkpoint-on-long-run`: Give a multi-hour run one checkpoint with the human. — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `independently-landable-units`: Split the work into atomic units that can each land independently. — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `riskiest-unknown-first`: Order the units so the largest unknown is tackled first. — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `scaffold-first`: Sequence first the work every later phase benefits from (CI, linting, test infrastructure, shared types) before features. — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `harness-with-pre-change-baseline`: Build the verification harness first and capture a baseline before changing anything, so results read as old against new. — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `design-contest-on-one-way-doors`: For design choices that cannot be undone, run a design skill that pits alternatives against each other, and skip that for mechanical work or a settled design. — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `fan-out-across-seams-only`: Decide what runs in parallel, parallelizing only where the work has seams and not over-fanning. — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `worktree-or-branch-per-worker`: Give each parallel worker its own worktree or branch. — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
 - `job-fit-helper-effort`: Choose each helper's thinking depth and speed tier to suit its job. — reject
-- `written-phase-list-for-review`: Write down the designed phases as the thing the human reviews. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
-- `designed-steps-as-todos`: Insert the designed steps as concrete todo items between the loop and audit entries. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
-- `rolling-log-rows`: Add a trail row as each step lands, not all at the end. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
-- `hypothesis-per-unit`: Treat each unit as an experiment with a stated hypothesis. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
-- `smallest-evidenced-change`: Each iteration makes the smallest change the evidence justifies and checks the predicate on it. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
-- `keep-or-revert-on-predicate`: Keep a change that moved things forward and revert one that did not. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
-- `verified-unit-sequence`: Split multi-step work into small units that each end in a checked state, and start the next only when the current one passes. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `written-phase-list-for-review`: Write down the designed phases as the thing the human reviews. — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `designed-steps-as-todos`: Insert the designed steps as concrete todo items between the loop and audit entries. — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `rolling-log-rows`: Add a trail row as each step lands, not all at the end. — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `hypothesis-per-unit`: Treat each unit as an experiment with a stated hypothesis. — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `smallest-evidenced-change`: Each iteration makes the smallest change the evidence justifies and checks the predicate on it. — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `keep-or-revert-on-predicate`: Keep a change that moved things forward and revert one that did not. — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `verified-unit-sequence`: Split multi-step work into small units that each end in a checked state, and start the next only when the current one passes. — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
 - `direct-observation`: Verify a result by observing the real thing (run it, read the actual value, check liveness directly), never a proxy, a cached view or a self-report. — adopt → doc:AGENTS.md
-- `too-easy-pass-suspicion`: When something passes too easily, question the observation method before crediting the system. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
-- `judge-paired-with-delegation`: Pair delegated work with a judge. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
-- `reset-and-harden-on-gate-gaming`: When a worker games the gate, reset it and strengthen the contract. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
-- `fix-wrong-gate-separately`: When the gate itself is wrong, correct it in its own change and do not route around it. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
-- `three-value-verdict`: Report results as verified, not verified or inconclusive, with inconclusive never counting as a pass. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
-- `no-hidden-negatives`: Do not conceal negative results. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `too-easy-pass-suspicion`: When something passes too easily, question the observation method before crediting the system. — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `judge-paired-with-delegation`: Pair delegated work with a judge. — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `reset-and-harden-on-gate-gaming`: When a worker games the gate, reset it and strengthen the contract. — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `fix-wrong-gate-separately`: When the gate itself is wrong, correct it in its own change and do not route around it. — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `three-value-verdict`: Report results as verified, not verified or inconclusive, with inconclusive never counting as a pass. — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `no-hidden-negatives`: Do not conceal negative results. — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
 - `commit-on-reviewer-need`: Leave the log out of Git unless the work is large enough that a reviewer could not trust the outcome without it. — adopt → decision-trail#proposed-trail-commit
-- `whole-result-on-real-product`: Check the finished whole against the opening predicate on the real product, beyond the harness. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `whole-result-on-real-product`: Check the finished whole against the opening predicate on the real product, beyond the harness. — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
 - `recurring-lesson-to-check`: When a correction or instruction recurs, encode it as a lint, flag, runtime check or script instead of adding more instruction text. — adopt → doc:AGENTS.md
-- `designed-run-reply-fields`: Reply with the designed playbook, rigor level and reason, trail path, what is verified against the predicate and what is open. — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `designed-run-reply-fields`: Reply with the designed playbook, rigor level and reason, trail path, what is verified against the predicate and what is open. — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
 
 #### core · X · Coordination — skill:pstack/skills/principle-never-block-on-the-human
 - `reversible-work-proceeds`: Proceed without asking on reversible work, then present the result and its reasoning so the human can correct it afterwards, leaving product direction to the human. — reject
@@ -4105,7 +4139,8 @@ Assess work critically without inflating the grade.
 
 #### `no-hidden-negatives`
 Do not conceal negative results.
-- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md`
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
 
 #### `no-judge-pick-or-graft`
 Omit judging, base selection and grafting from a review by adversaries.
@@ -4250,7 +4285,8 @@ Sort each replayed finding into reproduced, not reproduced (dropped and stated a
 
 #### `three-value-verdict`
 Report results as verified, not verified or inconclusive, with inconclusive never counting as a pass.
-- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md`
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
 
 #### `timing-and-lifecycle-analysis`
 Work out when things execute, including deferred callbacks, teardown and framework differences.
@@ -4259,7 +4295,8 @@ Work out when things execute, including deferred callbacks, teardown and framewo
 
 #### `too-easy-pass-suspicion`
 When something passes too easily, question the observation method before crediting the system.
-- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md`
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
 
 #### `trail-and-transcript-review`
 Give the reviewer the audit trail and the run's transcript as its inputs.
@@ -4305,7 +4342,8 @@ Go through the diff, the symbols added, changed and deleted, and the behaviour c
 
 #### `whole-result-on-real-product`
 Check the finished whole against the opening predicate on the real product, beyond the harness.
-- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md`
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
 
 ### core · Verification · Validation
 
@@ -5919,7 +5957,8 @@ Change the investigators' question from design rationale to current state, faile
 
 #### `rolling-log-rows`
 Add a trail row as each step lands, not all at the end.
-- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md`
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
 
 #### `row-maps-to-real-event`
 Check that each audited row corresponds to a decision or action that actually occurred.
@@ -6174,6 +6213,7 @@ Regenerate the workstream status, ideas and backlog boards from the tracker thro
 
 #### `alternatives-compared-on-one-way-doors`
 For a design choice that cannot be undone, compare materially different alternatives, skipping mechanical work or a settled design, and start a council only on a person's request.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md`
 
 #### `anonymized-peer-review`
 When peer review is included, anonymize responses before reviewers compare their reasoning and gaps.
@@ -6205,6 +6245,7 @@ Choose the base a later maintainer could extend most easily while keeping invari
 
 #### `bounded-gate-gaming-retry`
 Refuse a pass won by weakening a check, undo only attributable edits within authority, and retry on a hardened brief inside the existing retry limit.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md`
 
 #### `brief-names-done-evidence`
 A brief names what will show the work is finished, and a unit with nothing to name is scoped further or raised with the owner before dispatch.
@@ -6281,19 +6322,22 @@ Delegate bounded independent work only when it materially improves speed, contex
 
 #### `design-contest-on-one-way-doors`
 For design choices that cannot be undone, run a design skill that pits alternatives against each other, and skip that for mechanical work or a settled design.
-- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
 
 #### `design-workflow-before-code`
 When no existing playbook fits, produce a phased workflow as the first deliverable, ahead of any code.
-- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md`
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
 
 #### `designed-run-reply-fields`
 Reply with the designed playbook, rigor level and reason, trail path, what is verified against the predicate and what is open.
-- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md`
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
 
 #### `designed-steps-as-todos`
 Insert the designed steps as concrete todo items between the loop and audit entries.
-- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md`
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
 
 #### `disagreement-rereads-rationales`
 Treat a disagreement with the judge as a sign of bias or an unclear rubric, and read both rationales before deciding.
@@ -6368,7 +6412,8 @@ Give a failed member bounded safe recovery before treating it as missing.
 
 #### `falsifiable-done-predicate`
 Define done as a claim that can be shown false.
-- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md`
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
 
 #### `family-check-unrun-disclosed`
 When the coordinator's own model is unknown, try the judge pool in order and disclose that the family check did not run.
@@ -6376,11 +6421,13 @@ When the coordinator's own model is unknown, try the judge pool in order and dis
 
 #### `fan-out-across-seams-only`
 Decide what runs in parallel, parallelizing only where the work has seams and not over-fanning.
-- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md`
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
 
 #### `fix-wrong-gate-separately`
 When the gate itself is wrong, correct it in its own change and do not route around it.
-- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md`
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
 
 #### `flat-operational-tracking`
 Track phaseless operational work as one epic anchored on its charter with plain task children, without a roadmap.
@@ -6391,11 +6438,13 @@ Never promise model, effort, tool or permission overrides on a fork, which inher
 
 #### `framing-and-tradeoffs-shown`
 Show the human the framing and its tradeoffs ahead of a long run.
-- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md`
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
 
 #### `framing-before-run`
 Do the grounding before starting, and do not begin a run until its framing can be stated.
-- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md`
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
 
 #### `fresh-context-subagent`
 Start every subagent in a fresh context window rather than as a copy of the caller's conversation.
@@ -6430,7 +6479,8 @@ Rewrite each graft into the base by hand, so the result keeps one coherent desig
 
 #### `hypothesis-per-unit`
 Treat each unit as an experiment with a stated hypothesis.
-- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md`
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
 
 #### `identity-recording`
 Record the actual model identities wherever the runtime provides evidence of them.
@@ -6485,7 +6535,8 @@ Never let the judge's model share a family with the coordinating agent's model.
 
 #### `judge-paired-with-delegation`
 Pair delegated work with a judge.
-- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md`
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
 
 #### `judge-parallel-with-picker`
 Run the judge while the picker reads, not before or after.
@@ -6506,7 +6557,8 @@ When no judge can run, skip it, pick the base alone and say so.
 
 #### `keep-or-revert-on-predicate`
 Keep a change that moved things forward and revert one that did not.
-- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md`
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
 
 #### `layer-placement`
 Separate the invocation layer's small accepted field set from the definition layer, which alone carries effort, tools, permissions, memory, skills, MCP and full model IDs.
@@ -6605,6 +6657,7 @@ Record the verification result in the synthesis note.
 
 #### `one-checkpoint-unless-told-not-to`
 Stop once on a run estimated at over an hour to check with the person, unless the request says to run without stopping.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md`
 
 #### `one-helper-per-sizeable-source`
 Give a shared-record source its own helper only when its investigation is sizeable and independent, and read small sources directly.
@@ -6629,9 +6682,10 @@ Show the judge each candidate under its path label.
 
 #### `phase-todos`
 Open a task list with one item per phase before beginning.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md`
 - `cursor_plugins:skill:pstack/skills/architect` — reject
 - `cursor_plugins:skill:pstack/skills/arena` — reject
-- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
 
 #### `pick-compared-with-judge`
 Compare your scored pick with the judge's, treating the same choice as confirmation.
@@ -6675,7 +6729,8 @@ Keep role behaviour in one role prompt independent of the runtime metadata appli
 
 #### `principles-first-todo`
 Make reading a principles section the first item on the todo list.
-- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md`
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
 
 #### `principles-never-widen-scope`
 Treat guiding principles as intent only, never permission to expand the boundary or fix other instances.
@@ -6735,7 +6790,7 @@ Report which values were selected from the catalog, accepted by the active surfa
 
 #### `reset-and-harden-on-gate-gaming`
 When a worker games the gate, reset it and strengthen the contract.
-- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
 
 #### `retry-by-cause`
 Retry a failed worker according to why it failed, with a narrower unit, the same brief or another model, and after two retries drop the unit and plan around it.
@@ -6748,7 +6803,8 @@ Proceed without asking on reversible work, then present the result and its reaso
 
 #### `rigor-biased-high-by-reversibility`
 Pick a rigor level biased high, raised for one-way doors and wide impact and lowered for reversible low-stakes steps.
-- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md`
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
 
 #### `role-contracts`
 Give each delegated role a fixed contract of access, duties and report shape, and carry it inside the brief because the worker may not load the delegating instructions.
@@ -6819,7 +6875,7 @@ Run another skill's procedure by reading its instruction file at a path relative
 
 #### `single-checkpoint-on-long-run`
 Give a multi-hour run one checkpoint with the human.
-- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
 
 #### `single-coordinator-session`
 Act as the single accountable coordinator for a long-running goal within one session.
@@ -6905,7 +6961,8 @@ Give each worker a brief stating the outcome, owned paths, constraints, acceptan
 
 #### `worktree-or-branch-per-worker`
 Give each parallel worker its own worktree or branch.
-- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md`
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
 
 #### `worktree-or-temp-output`
 Prefer a git worktree for each candidate's output, falling back to a per-candidate temporary directory.
@@ -9081,14 +9138,16 @@ Without a tracker, write one numbered file per ticket in dependency order, never
 
 #### `harness-with-pre-change-baseline`
 Build the verification harness first and capture a baseline before changing anything, so results read as old against new.
-- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md`
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
 
 #### `independently-landable-units`
 Split the work into atomic units that can each land independently.
-- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
 
 #### `landable-units-or-named-group`
 Split the work into units that can each land alone, or into a declared group where intermediate states cannot stay green.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md`
 
 #### `local-markdown-tracker-layout`
 Without a hosted tracker, keep one directory per feature holding its spec and one numbered file per ticket, with a status line near the top and comments appended at the bottom.
@@ -9152,7 +9211,8 @@ Publish the finished artifact to the configured issue tracker.
 
 #### `quantified-scope-with-blockers`
 State scope in rough units and effort along with the blockers grounding turned up.
-- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md`
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
 
 #### `reviewer-rejectable-sizing`
 Size each task so a reviewer could accept or reject it independently of its neighbour, folding setup, scaffolding and docs into the deliverable they serve.
@@ -9160,11 +9220,13 @@ Size each task so a reviewer could accept or reject it independently of its neig
 
 #### `rigor-means-gates-and-artifacts`
 Define rigor as concrete gates and artifacts, not extra effort.
-- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md`
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
 
 #### `riskiest-unknown-first`
 Order the units so the largest unknown is tackled first.
-- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md`
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
 
 #### `route-by-scale`
 Route between brainstorming, a brief local sequence, elaborate, decompose, or executing from a roadmap row according to the work's scale.
@@ -9176,7 +9238,8 @@ When an internal API with no external dependants is replaced as part of a simpli
 
 #### `scaffold-first`
 Sequence first the work every later phase benefits from (CI, linting, test infrastructure, shared types) before features.
-- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md`
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
 - `cursor_plugins:skill:pstack/skills/principle-foundational-thinking` — defer
 
 #### `session-spanning-unit-beads`
@@ -9228,7 +9291,8 @@ Extend a seeded workstream by seeding only its newly appended phases on the same
 
 #### `written-phase-list-for-review`
 Write down the designed phases as the thing the human reviews.
-- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md`
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
 
 ### engineering · Design · Grounding
 
@@ -10713,7 +10777,8 @@ Commit the agreed sketch separately before implementing it.
 #### `smallest-evidenced-change`
 Each iteration makes the smallest change the evidence justifies and checks the predicate on it.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md`
-- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md`
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
 
 #### `stage-progress-counter`
 Show the person's progress as the current stage over the total.
@@ -10839,7 +10904,8 @@ Finish scoping only when every captured value's source, destination and secrecy 
 #### `verified-unit-sequence`
 Split multi-step work into small units that each end in a checked state, and start the next only when the current one passes.
 - ours: `principle-sequence-verifiable-units`
-- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt, pending cr-r2pa.2.18 → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md`
+- `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
 - `cursor_plugins:skill:pstack/skills/principle-sequence-verifiable-units` — adopt → principle-sequence-verifiable-units#verified-unit-sequence
 
 #### `weaken-result-alternative`
@@ -11988,8 +12054,10 @@ Traits listed by two or more of our active skills (`doc:AGENTS.md` and playbooks
 | `sequential-record-numbering` | domain-modeling, teach | Each keeps its own record folder (ADRs, learning records) in one minimal format. |
 | `settled-stop` | discovery, grilling | As question-batching: each skill stops its own questioning when its decisions are settled. |
 | `single-source-of-truth` | authoring-for-agents, principle-subtract-before-you-add | Each applies one-owner-per-meaning to its own material: authoring-for-agents to agent instructions (search for an existing owner before adding one), the principle to code and data before an addition; neither unit loads the other on its path. |
+| `smallest-evidenced-change` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md | Each loop makes the smallest change the evidence justifies and checks its predicate on it: autonomous-run per iteration toward one condition, figure-it-out per designed unit. A skill of one sentence would be ceremony (unit-kinds deviation log, St4, 2026-11-12). |
 | `stated-unattended-gate` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md | The same one sentence tells each of these playbooks whether a run is away; each then takes its own branch or exit. |
 | `tight-concept-definitions` | domain-modeling, teach | Each keeps a glossary of its own (project language, the learner's workspace) in one entry format, with its own admission rules. |
 | `two-failure-stop` | doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/implement.md | Each fixes a failure on its own path, the bug-fix playbook for a bug-fix request and the implement playbook inside a unit it coordinates, where a separate bug-fix request would leave its scope; both stop after two failed fixes and return the attempt log, the bug-fix playbook to the user and the implement playbook to whoever owns the unit. |
+| `verified-unit-sequence` | doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md, principle-sequence-verifiable-units | The principle owns the rule; figure-it-out's Run step states it in one sentence and cites the principle, as the owner ruled for row 2026-11-06-batch-p1:250, because the registry takes a delivered row only from the compared unit (unit-kinds St4). |
 | `worktree-environment-proof` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md | Each stated unattended loop proves its own command responds in its own worktree before starting; the check runs at each one's setup. |
 | `yes-accepts-recommendation` | discovery, grilling | As question-batching: each skill words its own questions so a yes accepts the recommendation. |
