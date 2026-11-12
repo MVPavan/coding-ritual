@@ -1,10 +1,10 @@
 ---
 trigger: A request to keep working without further prompting until a stated, checkable condition holds, with no settled plan to execute.
-traits: [stated-unattended-gate]
+traits: [stated-unattended-gate, human-reads-before-merge]
 steps:
   - id: autonomous-run#1
     when: always
-    actions: [{trait: exit-predicate-first}, {trait: run-limits-first}]
+    actions: [{trait: exit-predicate-first}, {trait: run-limits-first}, {trait: question-task-trigger}, {trait: question-task-effects}, {trait: question-task-successor}, {trait: question-human-reentry}, {trait: question-duplicate-runs}, {trait: design-done-all-answered}, {trait: question-source-dedupe}]
   - id: autonomous-run#2
     when: autonomous-run#1 fixed a checkable predicate
     actions: [{trait: unattended-isolation}, {trait: worktree-environment-proof}]   # both only when stated unattended
@@ -14,14 +14,14 @@ steps:
     calls: [{to: "skill:wake", when: "one whole call, opened once, stays open through autonomous-run#6"}]
   - id: autonomous-run#4
     when: once per iteration, entered from autonomous-run#2, autonomous-run#3 or autonomous-run#5
-    actions: [{trait: read-trail-first}, {trait: unexplained-change-stop}, {trait: bounded-background-wait}, {trait: smallest-evidenced-change}, {trait: revert-ineffective-experiments}, {trait: row-then-checkpoint}, {trait: discovery-scope-split}]
+    actions: [{trait: read-trail-first}, {trait: unexplained-change-stop}, {trait: bounded-background-wait}, {trait: smallest-evidenced-change}, {trait: deterministic-gates-every-run}, {trait: revert-ineffective-experiments}, {trait: row-then-checkpoint}, {trait: discovery-scope-split}]
     calls: [{to: "skill:delegation", when: an attended run and the router's delegation rule sends the iteration to a subagent; told not to stage}]
   - id: autonomous-run#5
     when: after each iteration; in this order, predicate met, a limit hit, or a dead end goes to autonomous-run#6, and anything else returns to autonomous-run#4
     actions: [{trait: limit-bounded-hold}, {trait: category-pivot}]
   - id: autonomous-run#6
     when: every exit, including a closing return from the timer
-    actions: [{trait: autonomous-closing-settle}, {trait: autonomous-closeout}]
+    actions: [{trait: autonomous-closing-settle}, {trait: autonomous-closeout}, {trait: cold-automated-review-run}]
   - id: autonomous-run#7
     when: an attended Met exit with this run's changes in the working tree, after autonomous-run#6
     calls: [{to: "skill:land"}]
@@ -35,8 +35,9 @@ test is bug-fix, even overnight. A plan or roadmap is `implement`, new behaviour
 focused redesign is refactoring, "stop for today" is pause-safely. A person's next message wins.
 
 **The gates:** A run is unattended only when the request's own words say so: overnight, while I'm away, off to bed, unattended, come back by yourself, or the like. Otherwise it is attended, whatever its length.
-The reply names the words it took. Never relax the predicate. The loop commits nothing, and a small
-task skips no step here.
+The reply names the words it took. Never relax the predicate. A small task skips no step here.
+Nothing this run makes merges unread: the loop commits nothing, a stated unattended run hands over a
+patch, and `land` never pushes or merges, so a person reads the change before it merges.
 
 Waiting on a command: run it in the background with a finite lifetime and take the platform's completion notice, or wait in the foreground. If the runtime gives neither for what must be waited on, take the stopped-waiting exit.
 
@@ -47,6 +48,19 @@ named; over 24 hours only in the request's words. With a card open, a command's 
 
 1. **The exit.** Write the predicate as a command and the result it must give. Set the limits.
    Attended with no checkable predicate: ask. Stated unattended with none: Not started.
+   - Before the first change, state what started this run and what may bring it back: a command's
+     notice or the closing timer.
+   - State what the run reads and what it may write: files in the tree, the tracker, and anything
+     outside the artifact directory.
+   - State what each exit hands on to: `land`, a patch, a `discovered-from` bead or only the reply.
+   - State where a person comes back in: the stopped exits that wait on them, and the reply that
+     says how to continue.
+   - State what keeps a second run or another writer off the same work: a claim on its bead, or the
+     request's word that no other run takes it; a separate worktree keeps files apart, not the
+     work. With neither, it is unanswered.
+   - With any of these answers missing, ask when attended; stated unattended, Not started.
+   - Before filing a `discovered-from` bead, search the tracker for the same discovery and add to an
+     open bead instead of filing it twice.
 2. **Where it runs, then the trail.** On every path, name one artifact directory outside the tree;
    the trail and each saved patch go there.
    - **Stated unattended:** one detached worktree from `HEAD`, local commands with absolute paths, no
@@ -60,8 +74,9 @@ named; over 24 hours only in the request's words. With a card open, a command's 
      needs the real checkout is Not started, needs the real checkout: it can run attended.
    - **Attended:** in place, under the stop below.
    - **Then the trail:** invoke `decision-trail` with extra columns `seq, predicate, branch, head,
-     tree`; this one whole call stays open through step 6, with a baseline row before the first edit,
-     and a bead note when Beads tracks the work.
+     tree`; this one whole call stays open through step 6, with a baseline row before the first edit
+     whose `evidence` names each of the project's own checks that already fails, and a bead note
+     when Beads tracks the work.
 3. **The card.** When a limit or unattended words apply, invoke `wake`; this one whole call stays
    open through step 6. `refused`: Not started, refused. When stated unattended the first checkpoint
    goes in as the card opens: `note --phase iterating --set recipe=… --set worktree=…
@@ -70,7 +85,10 @@ named; over 24 hours only in the request's words. With a card open, a command's 
 4. **One iteration.** Read the trail's tail, compare the state (below), and retry nothing it
    rejected. An attended run may hand the change over by the router's delegation rule through
    `delegation`, told not to stage. When a card is open, `admit` immediately before the change. Make
-   the smallest change the evidence justifies and check the predicate.
+   the smallest change the evidence justifies and check the predicate. Keep an iteration only when
+   the project's own checks that its change touches pass on its tree, apart from failures the
+   baseline row records by name that have not grown, which the reply names; a new failure, or one
+   you cannot tell apart from a baseline failure, is Not advanced.
    `principle-sequence-verifiable-units` applies.
    - **A background command, when stated unattended:** before waiting on it, `note --set
      command=<id>`, where the id or the recipe gives its invocation and an output file in the
@@ -104,8 +122,9 @@ named; over 24 hours only in the request's words. With a card open, a command's 
      artifact directory and keep the folder.
    - Then the trail's audit and review: one critic, one try, 30 minutes, which may run past the
      deadline. Critic or roster unreachable: `not reviewed` with a reason, never a self-review or a
-     silent substitute. Name what changed, what was discarded, each deferred discovery and anything
-     still running.
+     silent substitute. The closeout critic also reads the run's whole diff cold, against the
+     project's written standards and the request, and the reply carries its findings. Name what
+     changed, what was discarded, each deferred discovery and anything still running.
 7. **Land.** On an attended Met only: invoke `land`. Being called grants no commit authority, so with
    none it returns the plan. A stopped path and an unattended path never land.
 

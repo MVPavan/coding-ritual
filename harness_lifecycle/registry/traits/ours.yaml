@@ -42,10 +42,11 @@ ours:decision-trail:
   tree_hash: "59a06d52dee4578dc93ddc23e834d1c61cffbde047d2713f759aa82dd9d9843e"
   traits: [single-tsv-decision-log, evidence-pointer-cell, trail-six-columns, caller-trail-columns, plain-row-wording, named-cell-row-helper, decision-points-only, row-per-iteration, creates-log-parent, locked-single-header, append-mode-writes, automatic-utc-stamp, cell-whitespace-strip, numeric-safe-formula-quote, run-boundary, start-row-triggers, start-row-contents, trail-location-rule, proposed-trail-commit, append-only-supersede, end-of-run-audit, no-cross-project-transcript-search, audit-own-stretches, verified-record-row-walk, evidence-resolves-check, unlogged-fork-gap, audit-supersedes-in-place-of-editing, foreign-row-on-own-evidence, same-family-or-unreviewed, evidence-pointer-review, attention-scan-not-redo, trail-review-flags, attention-with-coverage, script-evidence-preference]
 ours:delegation:
-  tree_hash: "4d516b4156610c1d01be60a50eb885b9335f8c1b80903a11010e3c59b63cd9eb"
-  traits: [role-contracts, no-onward-delegation, preserve-role-prompt, owner-roster, cross-family-review, vendor-model-list, model-list-freshness, validate-selection, vendor-owned-dispatch, capable-native-subagent, effective-run-record, enforced-read-only, session-resume-followup, codex-direct, closed-stdin, result-error-check, background-dispatch-for-dialogue, brief-names-done-evidence, read-worker-output, stalled-worker-by-output, retry-by-cause]
+  tree_hash: "1885eae1cfcb8e8a6db49ff8eec93547b30a91cba45965eb431420e96f8db8c6"
+  traits: [role-contracts, no-onward-delegation, preserve-role-prompt, owner-roster, cross-family-review, vendor-model-list, model-list-freshness, validate-selection, vendor-owned-dispatch, capable-native-subagent, effective-run-record, enforced-read-only, session-resume-followup, codex-direct, closed-stdin, result-error-check, background-dispatch-for-dialogue, brief-names-done-evidence, read-worker-output, stalled-worker-by-output, retry-by-cause, fresh-context-subagent]
   notes:
     validate-selection: "Against each vendor's own list; a model or setting it does not list stops the dispatch."
+    fresh-context-subagent: "Delivers sealed rows 2026-11-09-pocock-4ae2317:156, :158, :160, :163, :165, :167, :170 and :179: a fresh window for each new worker, and a fork when the calling workflow asks for one, where the definition says every subagent; T5."
 ours:design-evolve:
   tree_hash: "65c51587d97ed3bdcbc3d614f3e7cdf377b089c4cb116709c5a747cff2f1d079"
   traits: [integration-not-redesign, resolve-scope, classify-maturity, evidence-before-edit, start-from-source, no-gap-filling, version-rekey, consistency-check, concept-map, layout-mirror, preserve-structure, report-provenance]

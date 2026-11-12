@@ -15,9 +15,9 @@ steps:
     loads: [{path: implement/spec-run.md, when: "its Setup, steps 1-4"}]
   - id: implement#4
     when: Task scope, each Spec ticket, and each coordinator-run stage from implement#6
-    actions: [{trait: task-loop}, {trait: unit-bead-execution}, {trait: confirmed-cause-fix}, {trait: regression-proof-and-rerun}, {trait: attempt-log}, {trait: two-failure-stop}, {trait: finding-adjudication}]
+    actions: [{trait: task-loop}, {trait: unit-bead-execution}, {trait: confirmed-cause-fix}, {trait: regression-proof-and-rerun}, {trait: attempt-log}, {trait: two-failure-stop}, {trait: finding-adjudication}, {trait: no-reused-implementer}]
     calls: [{to: "skill:tdd", when: risk calls for test-first or characterization}, {to: "skill:security", when: a material boundary change}, {to: "skill:systematic-debugging", when: a failure's cause is unclear}, {to: "skill:delegation", when: the router's delegation rule sends a unit to a worker}, {to: "skill:tracker", when: "a one-phase epic: its stage mapping and close gate"}, {to: "skill:land", when: "Spec scope: landing a ticket on the integration branch"}]
-    loads: [{path: implement/task-engine.md, when: delegated units or multi-round review}]
+    loads: [{path: implement/task-engine.md, when: delegated units or multi-round review}, {path: implement/spec-run.md, when: "Spec scope: each ticket, steps 5-7"}]
   - id: implement#5
     when: "around each implement#4 run that delegates a unit or whose requirements or unresolved risk require independent review: a required brief review before it implements, the implementation review and fix rounds before it closes the unit or invokes land"
     actions: [{trait: bounded-fix-loop}, {trait: scope-base-review-package}, {trait: delegated-report-recovery}]

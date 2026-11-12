@@ -186,7 +186,8 @@ critic, owner rulings, ledger, build, Sol review, commit after the owner approve
   The Pocock update `5beb35b` to `4ae2317` (170 rows: 21 pending adopts, 6 already held, 98 defers,
   45 rejects) is ruled as recommended on 2026-11-09 and recorded (round `2026-11-09-pocock-4ae2317`).
   `cursor_plugins` moved to `2776ddd` with no report: only `third_party/` changed. The 21 are pending
-  on `cr-r2pa.2.19`; `software-factory` stays on the owner's hold, and its whole-system comparison
+  on `cr-r2pa.2.19` (19 delivered 2026-11-12, `mvp-stack-changes.md` §15; `:174`/`:175` wait on the
+  `reflect` skill, `cr-r2pa.2.25`); `software-factory` stays on the owner's hold, and its whole-system comparison
   with `firstmate` and `dori-superagent` is `cr-56rw.15`. The report's critic fields are `accepted`:
   Sol's last round (`critic-15d`) asked for two fixes, which the coordinator made and read.
 - Principles against the prompting guides: proposal in

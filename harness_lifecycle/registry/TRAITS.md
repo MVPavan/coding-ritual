@@ -490,6 +490,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `read-worker-output`: Open the diff or artifact a worker produced and hold it to the evidence its brief named, instead of relying on its summary.
 - `stalled-worker-by-output`: Stop or replace a worker that stalls or loops, judging it by what it has produced rather than its status text.
 - `retry-by-cause`: Retry a failed worker according to why it failed, with a narrower unit, the same brief or another model, and after two retries drop the unit and plan around it.
+- `fresh-context-subagent`: Start every subagent in a fresh context window rather than as a copy of the caller's conversation.
 
 #### core · X · Coordination — model-council
 - `member-resolution`: Resolve the members and judge from the request's explicit selections, asking only for missing choices or unreachable members.
@@ -1144,14 +1145,23 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 
 #### autonomous-run — `doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md`
 - `stated-unattended-gate`: Treat a run as unattended only when the request's own words say so; otherwise it is attended, whatever its length.
+- `human-reads-before-merge`: Have a person read each change an automated run produced before it merges.
 - `exit-predicate-first`: State the exit condition as a command and the result it must give before the first change; with none, ask when attended and do not start when stated unattended.
 - `run-limits-first`: Fix a deadline and an attempt limit before the first change when the request names a limit or is stated unattended, from its words or the stated defaults.
+- `question-task-trigger`: Answer, for each automated task, what starts it.
+- `question-task-effects`: Answer, for each automated task, what it does and which services it reads and writes.
+- `question-task-successor`: Answer, for each automated task, what it starts next.
+- `question-human-reentry`: Answer, for each automated task, where a person comes back in.
+- `question-duplicate-runs`: Answer, for each automated task, what keeps two of its runs from doing one piece of work.
+- `design-done-all-answered`: Count a design unfinished until every task and ticket source answers every question.
+- `question-source-dedupe`: Answer, for each ticket source, what keeps it from filing one problem as two tickets.
 - `unattended-isolation`: A stated unattended run works in one detached worktree with an artifact directory outside it, local commands and no delegated writer, and writes nothing to the main tree.
 - `worktree-environment-proof`: At setup establish the command's environment without the parent's source and prove the command responds to a small real change in the worktree, with the tree proved back; otherwise do not start.
 - `read-trail-first`: Read the trail before each attempt and retry nothing it already rejected.
 - `unexplained-change-stop`: Store branch, HEAD and a tree id taken with a temporary index in each row, and stop touching nothing when the state before an iteration differs from the last row.
 - `bounded-background-wait`: Wait on a command in the background with a finite lifetime and its completion notice, or in the foreground; with neither available take the stopped-waiting exit.
 - `smallest-evidenced-change`: Each iteration makes the smallest change the evidence justifies and checks the predicate on it.
+- `deterministic-gates-every-run`: Make every automated run pass the project's deterministic gates, such as types, lint and tests, before its result moves on.
 - `revert-ineffective-experiments`: Remove your own ineffective experimental edits, preserving all other work.
 - `row-then-checkpoint`: Finish keep or discard and prove the state first, then append the row, then write the checkpoint naming it; a row past the checkpoint is an incomplete attempt.
 - `discovery-scope-split`: Fix a discovery only when the predicate cannot be met without it or the request names it; record the rest as a linked bead or in the reply, unfixed, granting no standing scope.
@@ -1159,6 +1169,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `category-pivot`: A plateau is not a stop: change category and reread the source; a dead end is three iterations with no movement after that, and no further approach statable in one sentence.
 - `autonomous-closing-settle`: A closing return reconciles the checkpoint with its row, names a half iteration and any running command, leaves them out of the result, and takes the result from the checkpoint.
 - `autonomous-closeout`: On every exit close the card and timer, write the patch from the base tree to the checkpoint's tree and keep the folder when stated unattended, run the trail's audit and review, and name what changed, what was discarded, each deferred discovery and what still runs.
+- `cold-automated-review-run`: Have a separate run read the diff without the author's context, against the codebase's standards and the originating ticket.
 
 #### bug-fix — `doc:.claude/skills/mvp-mode/playbooks/bug-fix.md`
 - `confirmed-cause-gate`: Change production code only for a confirmed cause, and reject any change that merely hides the symptom.
@@ -1244,6 +1255,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `attempt-log`: Record each debugging attempt as hypothesis, change and result.
 - `two-failure-stop`: After two failed fixes, stop and bring the attempt log to whoever started the task before trying another.
 - `finding-adjudication`: Verify each incoming review finding against requirements, code and primary evidence before acting, and give each a visible disposition: fix a confirmed in-scope defect, answer an incorrect one with a retained ruling, record an out-of-scope follow-up.
+- `no-reused-implementer`: Give each ticket, and the closing round of review fixes, a newly started implementer rather than one that already finished other work.
 - `bounded-fix-loop`: Group compatible confirmed findings into one fix unit, re-review only the delta plus any breakage it caused, adjudicate every round, and treat a small fixed count of completed fix/re-review rounds as a ceiling rather than a target.
 - `scope-base-review-package`: Review uncommitted working-tree and untracked changes against a recorded base revision by passing the authorized owned-path list, never attributing a baseline-dirty file's whole diff to the task.
 - `delegated-report-recovery`: Interpret each delegated worker's status (done, done-with-concerns, needs-context, blocked) and recover by supplying context, splitting, debugging or replanning, since bare repetition is not recovery.
@@ -2194,7 +2206,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `prerequisite-task-human-checklist`: Do prerequisite task work alone where possible, otherwise hand the human a precise checklist. — adopt → wayfinder#prerequisite-task-human-checklist
 - `prerequisite-task-result-facts`: Record on a prerequisite task the resulting facts later tickets depend on, such as URLs or where credentials live. — adopt → wayfinder#prerequisite-task-result-facts
 - `invalidated-ticket-reconciliation`: Update or delete the other tickets that a recorded decision invalidated. — adopt → wayfinder#invalidated-ticket-reconciliation
-- `fresh-context-subagent`: Start every subagent in a fresh context window rather than as a copy of the caller's conversation. — adopt, pending cr-r2pa.2.19 → delegation#fresh-context-subagent
+- `fresh-context-subagent`: Start every subagent in a fresh context window rather than as a copy of the caller's conversation. — adopt → delegation#fresh-context-subagent
 
 #### core · Discovery · Research — skill:skills/engineering/research
 - `background-agent`: Delegate reading legwork to a background agent so the caller keeps working while it investigates. — adopt → research#sizeable-delegation
@@ -2202,7 +2214,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `findings-file`: Always write the findings to one Markdown file saved where the repository keeps such notes. — adopt → research#scaled-report
 - `primary-source-only-research`: Research only from primary sources such as official docs, source code and specs, never from a secondary write-up of them. — adopt → research#primary-source-preference
 - `claim-source-tracing`: Follow every claim back to the primary source that owns it. — defer
-- `fresh-context-subagent`: Start every subagent in a fresh context window rather than as a copy of the caller's conversation. — adopt, pending cr-r2pa.2.19 → delegation#fresh-context-subagent
+- `fresh-context-subagent`: Start every subagent in a fresh context window rather than as a copy of the caller's conversation. — adopt → delegation#fresh-context-subagent
 
 #### core · Intake · Clarification — skill:skills/engineering/grill-with-docs
 - `document-during-interview`: Pair a clarifying interview with live documentation so the glossary and decision records are produced as the interview settles each question. — adopt → grilling#optional-docs
@@ -2234,7 +2246,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `reconfirm-before-action`: Do not act until the user confirms a shared understanding has been reached. — defer
 - `answer-before-next-round`: Wait for the respondent's answers to a round before asking the next one. — adopt → grilling#answer-before-next-round
 - `non-blocking-lookup`: Run a fact lookup without blocking the interview, holding back only the questions downstream of it. — defer
-- `fresh-context-subagent`: Start every subagent in a fresh context window rather than as a copy of the caller's conversation. — adopt, pending cr-r2pa.2.19 → delegation#fresh-context-subagent
+- `fresh-context-subagent`: Start every subagent in a fresh context window rather than as a copy of the caller's conversation. — adopt → delegation#fresh-context-subagent
 
 #### core · Intake · Clarification — skill:skills/productivity/to-questionnaire
 - `grill-the-send`: Ask the present user only about the send (who it goes to and what they need back), never about the subject the recipient knows. — adopt → grilling#grill-the-send
@@ -2374,7 +2386,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `constrained-agent-interfaces`: Give agents tightly constrained APIs and functions so the easy path is the correct one. — defer
 - `correctness-enforcing-lint`: Add lint rules that force correct code so agents cannot drift from it. — defer
 - `reviewer-owns-standards`: Allocate coding-standards enforcement to the review agent rather than the implementation agent. — defer
-- `fresh-context-subagent`: Start every subagent in a fresh context window rather than as a copy of the caller's conversation. — adopt, pending cr-r2pa.2.19 → delegation#fresh-context-subagent
+- `fresh-context-subagent`: Start every subagent in a fresh context window rather than as a copy of the caller's conversation. — adopt → delegation#fresh-context-subagent
 - `shared-wiki-first`: Look for a wiki that the user or other agents keep already, and write into it before starting a separate one. — defer
 - `host-wiki-conventions-win`: Follow a shared wiki's own conventions wherever they differ from your default page rules. — defer
 - `sibling-skill-by-relative-path`: Run another skill's procedure by reading its instruction file at a path relative to the current skill and following it. — reject
@@ -2505,7 +2517,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `parallel-interface-generation`: Generate several radically different interfaces through parallel designers, each working under a different constraint brief. — adopt → codebase-design#design-it-twice
 - `depth-locality-seam-comparison`: Present alternative designs one at a time, then compare them on depth, locality and seam placement. — adopt → codebase-design#design-axes-comparison
 - `interface-design-recommendation`: Finish a comparison of interface designs with an opinionated recommendation. — adopt → codebase-design#interface-design-recommendation
-- `fresh-context-subagent`: Start every subagent in a fresh context window rather than as a copy of the caller's conversation. — adopt, pending cr-r2pa.2.19 → delegation#fresh-context-subagent
+- `fresh-context-subagent`: Start every subagent in a fresh context window rather than as a copy of the caller's conversation. — adopt → delegation#fresh-context-subagent
 
 #### engineering · Design · Architecture — skill:skills/engineering/domain-modeling
 - `active-discipline`: Actively build the model by challenging terms, inventing scenarios and writing it down, as distinct from merely reading the glossary. — adopt → domain-modeling#active-discipline
@@ -2560,7 +2572,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `candidate-dependency-tag`: Tag each architecture candidate with the dependency category of what it touches. — defer
 - `top-candidate-recommendation`: End a candidate survey with a single top recommendation. — adopt → improve-codebase-architecture#top-candidate-recommendation
 - `candidate-constraint-interview`: Once the user picks an architecture candidate, interview them on its constraints, dependencies, module shape, hidden internals and the tests that survive. — defer
-- `fresh-context-subagent`: Start every subagent in a fresh context window rather than as a copy of the caller's conversation. — adopt, pending cr-r2pa.2.19 → delegation#fresh-context-subagent
+- `fresh-context-subagent`: Start every subagent in a fresh context window rather than as a copy of the caller's conversation. — adopt → delegation#fresh-context-subagent
 
 #### engineering · Design · Architecture — skill:skills/engineering/prototype
 - `named-question`: Build a throwaway artifact to answer one named design question. — adopt → prototype#named-question
@@ -2621,9 +2633,9 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `service-slots-and-tasks`: Split a design into service slots and the tasks that push work through them, letting one product fill several slots and one server host several services. — defer
 - `git-host-slot`: Give branches, pull requests and reviews to one service slot of their own, the git host. — defer
 - `start-from-user-problem`: Begin a design from the user's concrete problem rather than from the system to be built. — defer
-- `deterministic-gates-every-run`: Make every automated run pass the project's deterministic gates, such as types, lint and tests, before its result moves on. — adopt, pending cr-r2pa.2.19 → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
-- `cold-automated-review-run`: Have a separate run read the diff without the author's context, against the codebase's standards and the originating ticket. — adopt, pending cr-r2pa.2.19 → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
-- `human-reads-before-merge`: Have a person read each change an automated run produced before it merges. — adopt, pending cr-r2pa.2.19 → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
+- `deterministic-gates-every-run`: Make every automated run pass the project's deterministic gates, such as types, lint and tests, before its result moves on. — adopt → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
+- `cold-automated-review-run`: Have a separate run read the diff without the author's context, against the codebase's standards and the originating ticket. — adopt → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
+- `human-reads-before-merge`: Have a person read each change an automated run produced before it merges. — adopt → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
 - `review-catches-become-checks`: Turn what human review catches into new automated checks and sharper automated review. — defer
 - `one-trigger-at-a-time`: Add automated triggers one at a time rather than several together. — defer
 - `throttled-trigger-ramp`: Run a new trigger throttled, with a person reviewing every change it makes, and widen the throttle only as the checks earn trust. — defer
@@ -2631,13 +2643,13 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `reference-design-comparison`: Compare whole candidate designs side by side, slot by slot, against a few reference designs. — defer
 - `dated-survey-as-orientation`: Use a dated product survey only for orientation, and research what is on offer now yourself. — defer
 - `buy-services-build-tasks`: Buy the generic services, preferring an off-the-shelf tracker, and build the tasks that carry the design. — defer
-- `question-task-trigger`: Answer, for each automated task, what starts it. — adopt, pending cr-r2pa.2.19 → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
-- `question-task-effects`: Answer, for each automated task, what it does and which services it reads and writes. — adopt, pending cr-r2pa.2.19 → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
-- `question-task-successor`: Answer, for each automated task, what it starts next. — adopt, pending cr-r2pa.2.19 → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
-- `question-human-reentry`: Answer, for each automated task, where a person comes back in. — adopt, pending cr-r2pa.2.19 → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
-- `question-duplicate-runs`: Answer, for each automated task, what keeps two of its runs from doing one piece of work. — adopt, pending cr-r2pa.2.19 → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
-- `question-source-dedupe`: Answer, for each ticket source, what keeps it from filing one problem as two tickets. — adopt, pending cr-r2pa.2.19 → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
-- `design-done-all-answered`: Count a design unfinished until every task and ticket source answers every question. — adopt, pending cr-r2pa.2.19 → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
+- `question-task-trigger`: Answer, for each automated task, what starts it. — adopt → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
+- `question-task-effects`: Answer, for each automated task, what it does and which services it reads and writes. — adopt → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
+- `question-task-successor`: Answer, for each automated task, what it starts next. — adopt → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
+- `question-human-reentry`: Answer, for each automated task, where a person comes back in. — adopt → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
+- `question-duplicate-runs`: Answer, for each automated task, what keeps two of its runs from doing one piece of work. — adopt → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
+- `question-source-dedupe`: Answer, for each ticket source, what keeps it from filing one problem as two tickets. — adopt → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
+- `design-done-all-answered`: Count a design unfinished until every task and ticket source answers every question. — adopt → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
 - `every-slot-named`: Count a design unfinished until every service slot names a product. — defer
 - `problem-indexed-task-catalogue`: Keep example tasks indexed by the problem each solves, each naming its trigger, its work and what it starts next. — defer
 - `grow-by-chaining`: Start with one catalogued task and grow the system by chaining the next one onto it. — defer
@@ -2873,7 +2885,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `code-smell-catalog`: Check changes against a fixed catalogue of named code smells, each with a description and a fix, whether or not the repository documents standards. — defer
 - `repo-standards-over-smells`: Let a documented repository standard override and suppress a conflicting catalogue smell. — defer
 - `smells-as-heuristics`: Report a catalogue smell only as a labelled possible judgement call, never as a hard violation. — defer
-- `fresh-context-subagent`: Start every subagent in a fresh context window rather than as a copy of the caller's conversation. — adopt, pending cr-r2pa.2.19 → delegation#fresh-context-subagent
+- `fresh-context-subagent`: Start every subagent in a fresh context window rather than as a copy of the caller's conversation. — adopt → delegation#fresh-context-subagent
 
 #### engineering · Delivery · Integration — skill:skills/engineering/pr
 - `pr-body-template`: Fill a fixed PR-body skeleton with Summary, Evidence, and Merge Danger sections. — defer
@@ -2941,8 +2953,8 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `final-branch-review`: Once all tickets have landed, review the integration branch a single time and fix all findings through a single implementer. — defer
 - `delivery-closeout`: Finish a multi-ticket build by marking the draft pull request ready or closing the tickets, and report the branch. — defer
 - `worktree-cleanup`: Remove every implementer worktree when the build ends. — adopt → doc:.claude/skills/mvp-mode/playbooks/implement.md#worktree-cleanup
-- `fresh-context-subagent`: Start every subagent in a fresh context window rather than as a copy of the caller's conversation. — adopt, pending cr-r2pa.2.19 → delegation#fresh-context-subagent
-- `no-reused-implementer`: Give each ticket, and the closing round of review fixes, a newly started implementer rather than one that already finished other work. — adopt, pending cr-r2pa.2.19 → doc:.claude/skills/mvp-mode/playbooks/implement.md#no-reused-implementer
+- `fresh-context-subagent`: Start every subagent in a fresh context window rather than as a copy of the caller's conversation. — adopt → delegation#fresh-context-subagent
+- `no-reused-implementer`: Give each ticket, and the closing round of review fixes, a newly started implementer rather than one that already finished other work. — adopt → doc:.claude/skills/mvp-mode/playbooks/implement.md#no-reused-implementer
 
 ## By trait
 
@@ -6216,14 +6228,15 @@ Do the grounding before starting, and do not begin a run until its framing can b
 
 #### `fresh-context-subagent`
 Start every subagent in a fresh context window rather than as a copy of the caller's conversation.
-- `mattpocock_skills:skill:skills/engineering/code-review` — adopt, pending cr-r2pa.2.19 → delegation#fresh-context-subagent
-- `mattpocock_skills:skill:skills/engineering/codebase-design` — adopt, pending cr-r2pa.2.19 → delegation#fresh-context-subagent
-- `mattpocock_skills:skill:skills/engineering/implement-spec` — adopt, pending cr-r2pa.2.19 → delegation#fresh-context-subagent
-- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — adopt, pending cr-r2pa.2.19 → delegation#fresh-context-subagent
-- `mattpocock_skills:skill:skills/engineering/research` — adopt, pending cr-r2pa.2.19 → delegation#fresh-context-subagent
-- `mattpocock_skills:skill:skills/engineering/wayfinder` — adopt, pending cr-r2pa.2.19 → delegation#fresh-context-subagent
-- `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — adopt, pending cr-r2pa.2.19 → delegation#fresh-context-subagent
-- `mattpocock_skills:skill:skills/productivity/grilling` — adopt, pending cr-r2pa.2.19 → delegation#fresh-context-subagent
+- ours: `delegation`
+- `mattpocock_skills:skill:skills/engineering/code-review` — adopt → delegation#fresh-context-subagent
+- `mattpocock_skills:skill:skills/engineering/codebase-design` — adopt → delegation#fresh-context-subagent
+- `mattpocock_skills:skill:skills/engineering/implement-spec` — adopt → delegation#fresh-context-subagent
+- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — adopt → delegation#fresh-context-subagent
+- `mattpocock_skills:skill:skills/engineering/research` — adopt → delegation#fresh-context-subagent
+- `mattpocock_skills:skill:skills/engineering/wayfinder` — adopt → delegation#fresh-context-subagent
+- `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — adopt → delegation#fresh-context-subagent
+- `mattpocock_skills:skill:skills/productivity/grilling` — adopt → delegation#fresh-context-subagent
 
 #### `fresh-synthesizer`
 Wait for every finding, then have one agent that did no searching weigh the raw findings and write the only answer.
@@ -10701,7 +10714,8 @@ Check changes against a fixed catalogue of named code smells, each with a descri
 
 #### `cold-automated-review-run`
 Have a separate run read the diff without the author's context, against the codebase's standards and the originating ticket.
-- `mattpocock_skills:skill:skills/in-progress/software-factory` — adopt, pending cr-r2pa.2.19 → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md`
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — adopt → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
 
 #### `dependency-triage`
 Triage dependency advisories by reachability and impact rather than count, recording material exceptions with a revisit condition.
@@ -10709,7 +10723,8 @@ Triage dependency advisories by reachability and impact rather than count, recor
 
 #### `deterministic-gates-every-run`
 Make every automated run pass the project's deterministic gates, such as types, lint and tests, before its result moves on.
-- `mattpocock_skills:skill:skills/in-progress/software-factory` — adopt, pending cr-r2pa.2.19 → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md`
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — adopt → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
 
 #### `final-branch-review`
 Once all tickets have landed, review the integration branch a single time and fix all findings through a single implementer.
@@ -10730,7 +10745,8 @@ When editing documentation, keep historical evidence clearly distinguishable fro
 
 #### `human-reads-before-merge`
 Have a person read each change an automated run produced before it merges.
-- `mattpocock_skills:skill:skills/in-progress/software-factory` — adopt, pending cr-r2pa.2.19 → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md`
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — adopt → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
 
 #### `interruption-point-audit`
 Check a state-changing operation by asking what happens when it runs twice and when it stops at each point, and add reconciliation wherever the answer depends on leftovers.
@@ -11521,7 +11537,8 @@ Interpret each delegated worker's status (done, done-with-concerns, needs-contex
 
 #### `design-done-all-answered`
 Count a design unfinished until every task and ticket source answers every question.
-- `mattpocock_skills:skill:skills/in-progress/software-factory` — adopt, pending cr-r2pa.2.19 → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md`
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — adopt → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
 
 #### `disposability-by-runner-type`
 Make each runner disposable by the means its type offers: a microVM made and killed per run, an ephemeral CI runner, a removed container or a destroyed machine.
@@ -11549,7 +11566,8 @@ Start nothing when a run that was fixing a failed run fails itself.
 
 #### `no-reused-implementer`
 Give each ticket, and the closing round of review fixes, a newly started implementer rather than one that already finished other work.
-- `mattpocock_skills:skill:skills/engineering/implement-spec` — adopt, pending cr-r2pa.2.19 → doc:.claude/skills/mvp-mode/playbooks/implement.md#no-reused-implementer
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/implement.md`
+- `mattpocock_skills:skill:skills/engineering/implement-spec` — adopt → doc:.claude/skills/mvp-mode/playbooks/implement.md#no-reused-implementer
 
 #### `one-trigger-at-a-time`
 Add automated triggers one at a time rather than several together.
@@ -11586,27 +11604,33 @@ Resolve the roadmap phase's single epic, drive ready stages to closure (stages w
 
 #### `question-duplicate-runs`
 Answer, for each automated task, what keeps two of its runs from doing one piece of work.
-- `mattpocock_skills:skill:skills/in-progress/software-factory` — adopt, pending cr-r2pa.2.19 → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md`
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — adopt → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
 
 #### `question-human-reentry`
 Answer, for each automated task, where a person comes back in.
-- `mattpocock_skills:skill:skills/in-progress/software-factory` — adopt, pending cr-r2pa.2.19 → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md`
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — adopt → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
 
 #### `question-source-dedupe`
 Answer, for each ticket source, what keeps it from filing one problem as two tickets.
-- `mattpocock_skills:skill:skills/in-progress/software-factory` — adopt, pending cr-r2pa.2.19 → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md`
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — adopt → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
 
 #### `question-task-effects`
 Answer, for each automated task, what it does and which services it reads and writes.
-- `mattpocock_skills:skill:skills/in-progress/software-factory` — adopt, pending cr-r2pa.2.19 → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md`
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — adopt → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
 
 #### `question-task-successor`
 Answer, for each automated task, what it starts next.
-- `mattpocock_skills:skill:skills/in-progress/software-factory` — adopt, pending cr-r2pa.2.19 → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md`
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — adopt → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
 
 #### `question-task-trigger`
 Answer, for each automated task, what starts it.
-- `mattpocock_skills:skill:skills/in-progress/software-factory` — adopt, pending cr-r2pa.2.19 → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md`
+- `mattpocock_skills:skill:skills/in-progress/software-factory` — adopt → doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md
 
 #### `risk-sized-review`
 Size work small, standard or deep and match inline work, delegation and independent review to that size.

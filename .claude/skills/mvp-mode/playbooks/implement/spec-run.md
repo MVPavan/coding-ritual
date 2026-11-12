@@ -42,7 +42,9 @@ checkout with no worktree. No tickets yet, or none with edges, is `to-roadmap`
 5. Take tickets from the ready frontier (`bd ready --parent <epic> --json`,
    keeping direct children), one at a time, in the spec's worktree. Each runs
    through the task loop; a delegated implementer works in that worktree, and
-   only one implementer runs at a time: none in parallel.
+   only one implementer runs at a time: none in parallel. On this scope, start a
+   new implementer for each ticket and another for the final review's fixes;
+   never hand a second ticket to one that has finished a ticket.
 6. On this scope the spec's worktree replaces the shared checkout of
    `task-engine.md` (Dispatch): tell each worker it works in the worktree, not
    the shared checkout, and that the shared checkout's edits are not its own.

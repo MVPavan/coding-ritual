@@ -864,6 +864,32 @@ mechanism list was drawn up by a builder who had read the plan's candidate list,
 blind. The session also found gaps the rewrite did not create: no lint or type command for
 Python outside the interpreter, and no YAML row.
 
+## 15. The Pocock 4ae2317 update's pending adoptions (`cr-r2pa.2.19`)
+
+Added 2026-11-12. Plan `scratchpad/mvp-stack/53/plan.md` (gitignored); round
+`2026-11-12-pocock-4ae2317-delivery` (3 updates, 19 completions), sealed. The wordings are the
+owner's rulings of 2026-11-09, used verbatim except where noted.
+
+- **`autonomous-run`:** a person reads every change before it merges (The gates); step 1 states
+  what started the run and may bring it back, what it reads and writes, what each exit hands on to,
+  where a person comes back in and what keeps a second run off the same work, asking when attended
+  and Not started when unattended if any answer is missing, and searches for an open bead before
+  filing a discovery; step 4 keeps an iteration only when the checks its change touches pass, apart
+  from failures the baseline row names; step 6's critic also reads the whole diff cold. Supporting
+  clause: the baseline row names each check that already fails.
+- **`implement`:** on Spec scope a new implementer for each ticket and another for the final
+  review's fixes (`spec-run.md` step 5, "On this scope" for the ruled "On the spec branch", since
+  the unit moved), loaded per ticket by `implement#4`.
+- **`delegation`:** each new worker starts in a fresh context window, not a fork, unless the calling
+  workflow asks for one; a follow-up resumes the same worker. The fork exception is a T5 deviation
+  (`.repo-context/unit-kinds.md`), noted on the trait.
+
+Proof: ten fresh sessions each read one case and matched the expected answers held outside the
+checkout; T2's first run hit a missing `src/` in its own setup and was rerun on a valid predicate.
+Sol reviewed the plan twice, the build and the rerun. Limit: these are reading trials, not live
+runs. `:174` and `:175` (`sampled-session-retros`, `failures-first-retro-sample`) stay pending:
+their target skill `reflect` does not exist yet (`cr-r2pa.2.25`, which `cr-r2pa.2.19` now waits on).
+
 ## Regenerating
 
 From the worktree root:

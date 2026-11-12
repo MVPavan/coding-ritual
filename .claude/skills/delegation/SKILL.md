@@ -48,9 +48,12 @@ same family, ask the owner to approve that explicitly before dispatching.
    command with its expected output, an artifact to inspect, or a report citing
    its sources. A unit with nothing to name is not scoped yet: narrow it or ask
    the owner, and dispatch nothing until then.
-4. Dispatch through the vendor. Dispatch in the background when the runtime
-   allows, and keep working or talking with the user while the worker runs;
-   collect every result.
+4. Dispatch through the vendor. Start each new worker in a fresh context window,
+   not a fork of your conversation, so the brief carries everything it needs;
+   fork only when the calling workflow asks for one, and send a follow-up to the
+   same worker by resuming its session. Dispatch in the background when the
+   runtime allows, and keep working or talking with the user while the worker
+   runs; collect every result.
 5. A worker that stalls or loops gets stopped or replaced by the vendor's own
    means, under that vendor's rules on waiting. Decide from what it has produced
    so far, whatever its status text says. Retry according to why it failed: on
