@@ -324,8 +324,7 @@ critic, owner rulings, ledger, build, Sol review, commit after the owner approve
    (`reviews/2026-10-14-upstream-agent-skills-0.6.13.md`) but no rulings; `gap
    agent-skills` shows 12 changed and 2 new (constraint-driven-development
    and `/constraints`). Its six borrow candidates feed the verdicts.
-3. `cr-talb`: the overlap-audit items the 2026-10-30 sharing rulings left open
-   (#1–#4, #7–#9, #15 and the stale show-me gate; see its comment).
+3. `cr-talb`, done 2026-11-12: one owner per overlapping mechanism (`mvp-stack-changes.md` §16).
 4. Data clean-up in the migration round: 29 casebook/ledger disagreements and
    84 rulings with no content hash (re-rule them as each harness is reviewed).
 

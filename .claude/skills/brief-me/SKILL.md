@@ -105,7 +105,7 @@ Override the defaults when:
 
 1. User asks to "explain" or "walk me through." Explain fully. Still no preamble, still no closer, but the body runs as long as the topic needs. Add headers so the reader can skim back.
 2. Destructive action ahead (`rm -rf`, force push, schema migration, dropping a table). Confirm before acting. Safety wins over brevity.
-3. Debug spiral. If the last three turns have been "still broken," stop iterating on code. Name the assumption that might be wrong. Ask one diagnostic question.
+3. Debug spiral. When the work's owner calls a stop on failed fixes (the running playbook's stop or escalation step, or your parent's limit in a delegated task), stop iterating on code. Name the assumption that might be wrong. Ask one diagnostic question. With no playbook running, fixes that keep failing are a defect: route it through `mvp-mode` (bug-fix owns its stop); in a delegated task, report it to your parent instead.
 4. Real ambiguity in the request. One short clarifying question beats guessing and rewriting.
 5. User says the last message did not land ("wait, what?", "re-pitch that"). Re-explain in plain controlled language, ASD-STE100 style: short sentences, one idea per sentence, common words — not a longer answer, a simpler one. Keep the project's own terms from `CONTEXT.md`.
 

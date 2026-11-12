@@ -192,12 +192,12 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `mvp-scope`: Scope the first version of a chosen direction to one user job done well, sized by what can be built and tested in a time box rather than by a feature list, aimed at the riskiest assumption, with a mandatory list of what it is not doing and why, and expect it to feel incomplete to the builder.
 - `judgment-frameworks`: Apply one to three comparison frameworks to sharpen a choice rather than to decorate the report.
 - `decision-sequences`: Follow a decision sequence matched to the question's domain, handing its fact-finding steps to `research`.
-- `inline-diagrams`: Draw a structure, flow, sequence or state question as a small inline Mermaid block, using prose for requirements and trade-offs.
 - `visuals-into-spec`: Re-express an approved diagram inside the durable spec as a Mermaid block, or record what a mockup showed and decided, rather than linking disposable scratch files.
 - `html-mockup-on-request`: On explicit request only, produce one self-contained offline HTML mockup under the scratch directory for what a diagram cannot carry.
 - `sourced-status-record`: Write one file per run with a row per question giving its answer, its source, a confidence for each established fact and a status (established, decided, routine, proposed, open), marking a material choice decided only on the owner's quoted, dated word or a recorded delegation, and check the file with a script.
 - `area-topic-filing`: Without a path from the caller, file the output under one root by the work's area and topic, reusing an existing folder before creating one, two levels at most, and never replacing an earlier run's file without authority to revise it.
 - `generated-record-index`: Regenerate one index line per record (date, question, outcome) from the files themselves, never by hand.
+- `structure-question-visual`: During design, answer a structure, flow, sequence or state question with an inline visual rather than prose, keeping prose for requirements, scope and trade-offs; the visual's form, size and medium come from the show-me skill's rules.
 
 #### core · Intake · Clarification — grilling
 - `map-decisions`: Map the material decisions and their prerequisites before questioning.
@@ -700,6 +700,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `one-test-per-cycle`: Alternate one test and its implementation at a time instead of writing all tests before any implementation.
 - `behaviour-test-names`: Name each test for the behaviour that exists, not how it is achieved.
 - `prove-the-red`: When forcing the red by mutating code or a fixture, diff against a pristine copy to prove the mutation landed before trusting it.
+- `covered-test-removal`: Remove an old test only when its behaviour is covered elsewhere or deliberately retired, inspecting a changed test rather than deleting it automatically.
 
 #### engineering · Delivery · Integration — land
 - `verified-work-only`: Refuse to land work not verified on its final form, rechecking behaviour if a closeout changed executable content, and report the gap.
@@ -728,7 +729,6 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `single-adapter-justified`: Accept an interface justified by encapsulation, ownership or a present testing need with a single adapter, treating extra adapters as evidence of real variation rather than a prerequisite.
 - `internal-seams`: Allow internal seams and focused internal tests without exposing internals through the public interface merely to satisfy a testing rule.
 - `dependency-categories`: Classify a module's dependencies as in-process, locally substitutable, owned remote or true external to choose how it is tested across its seam.
-- `covered-test-removal`: Remove an old test only when its behaviour is covered elsewhere or deliberately retired, inspecting a changed test rather than deleting it automatically.
 - `design-it-twice`: Optionally compare a few materially different interface designs before a consequential choice, without forcing a multi-agent exercise on a clear one.
 - `design-proposal-contents`: Have each design proposal return its interface, a usage example, the hidden internals, its dependency strategy and its trade-offs.
 - `interface-design-recommendation`: Finish a comparison of interface designs with an opinionated recommendation.
@@ -5054,7 +5054,6 @@ Delete tacked-on present-participle phrases that claim significance, or back the
 
 #### `inline-diagrams`
 Draw a structure, flow, sequence or state question as a small inline Mermaid block, using prose for requirements and trade-offs.
-- ours: `discovery`
 
 #### `inline-header-list-convert`
 Turn bullets whose bold label merely restates the line into prose, keeping a period-ended label followed by new detail.
@@ -5278,6 +5277,10 @@ Let a run stream its progress into the ticket it works on.
 Show a change as a diff against the structure the reader already holds rather than against raw source.
 - ours: `show-me`
 - `mattpocock_skills:skill:skills/engineering/pr` — adopt → show-me#structural-diff
+
+#### `structure-question-visual`
+During design, answer a structure, flow, sequence or state question with an inline visual rather than prose, keeping prose for requirements, scope and trade-offs; the visual's form, size and medium come from the show-me skill's rules.
+- ours: `discovery`
 
 #### `svg-accessibility`
 Give each inline SVG a role, figure-prefixed title and description IDs, carry meaning in both shape and colour, and mark direction on every edge.
@@ -8098,7 +8101,7 @@ Design state-changing operations to converge on the same correct end state howev
 
 #### `covered-test-removal`
 Remove an old test only when its behaviour is covered elsewhere or deliberately retired, inspecting a changed test rather than deleting it automatically.
-- ours: `codebase-design`
+- ours: `tdd`
 
 #### `data-shape-first`
 Settle the core types and data structures, traced against every access pattern, before writing the logic that uses them.

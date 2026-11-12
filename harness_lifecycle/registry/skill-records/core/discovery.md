@@ -36,12 +36,12 @@ Use when material scope or behavior decisions are still open and need settling, 
 - `mvp-scope`: Scope the first version of a chosen direction to one user job done well, sized by what can be built and tested in a time box rather than by a feature list, aimed at the riskiest assumption, with a mandatory list of what it is not doing and why, and expect it to feel incomplete to the builder.
 - `judgment-frameworks`: Apply one to three comparison frameworks to sharpen a choice rather than to decorate the report.
 - `decision-sequences`: Follow a decision sequence matched to the question's domain, handing its fact-finding steps to `research`.
-- `inline-diagrams`: Draw a structure, flow, sequence or state question as a small inline Mermaid block, using prose for requirements and trade-offs.
 - `visuals-into-spec`: Re-express an approved diagram inside the durable spec as a Mermaid block, or record what a mockup showed and decided, rather than linking disposable scratch files.
 - `html-mockup-on-request`: On explicit request only, produce one self-contained offline HTML mockup under the scratch directory for what a diagram cannot carry.
 - `sourced-status-record`: Write one file per run with a row per question giving its answer, its source, a confidence for each established fact and a status (established, decided, routine, proposed, open), marking a material choice decided only on the owner's quoted, dated word or a recorded delegation, and check the file with a script.
 - `area-topic-filing`: Without a path from the caller, file the output under one root by the work's area and topic, reusing an existing folder before creating one, two levels at most, and never replacing an earlier run's file without authority to revise it.
 - `generated-record-index`: Regenerate one index line per record (date, question, outcome) from the files themselves, never by hand.
+- `structure-question-visual`: During design, answer a structure, flow, sequence or state question with an inline visual rather than prose, keeping prose for requirements, scope and trade-offs; the visual's form, size and medium come from the show-me skill's rules.
 <!-- /registry:generated traits -->
 
 <!-- registry:generated lineage -->
@@ -76,6 +76,7 @@ Use when material scope or behavior decisions are still open and need settling, 
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-12` **update** (2026-11-12-overlap-owners:005): Overlap audit #8 (inline diagrams) and #7 (HTML contract): discovery keeps when to draw during design and reads show-me's forms and rules for how, so it no lon…
 - `2026-11-12` **update** (2026-11-12-discovery-computed:001): Bead cr-oiyn, plan 57 (scratchpad/mvp-stack/57/plan.md), from critic 52g R1/R2: a discovery record had no source kind for a saved computation, so counts leaned…
 - `2026-11-12` **update** (2026-11-12-discovery-clarify-grading:001): Bead cr-onr1, critic 52e (scratchpad/mvp-stack/critic-52e.md) F1 and F2: two trial runs still graded answers put together from several lines, or from a search …
 - `2026-11-12` **update** (2026-11-12-discovery-clarify-options:001): Bead cr-onr1, plan 52 §4 (scratchpad/mvp-stack/52/plan.md): the first trial run of the clarified discovery skill (scratchpad/mvp-stack/52/discovery-trial.md, b…

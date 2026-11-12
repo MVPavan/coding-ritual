@@ -89,6 +89,7 @@ Use for a critic review of any artifact, a substantive review of code or of a sp
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-12` **update** (2026-11-12-overlap-owners:004): Overlap audit #1: the code review judges tests by tdd's criteria in writing-good-tests.md instead of restating them. No trait change; test-quality-judgment sti…
 - `2026-11-09` **adopt-merged** (2026-11-09-pocock-4ae2317:157): Checkpoint at 4ae2317 for the owner's trait rulings: 1 adopt.
 - `2026-11-06` **adopt-merged** (2026-11-06-batch-p1:285): Checkpoint at 4dd1d05 for the owner's trait rulings: 21 adopt, 1 reject.
 - `2026-11-06` **adopt** (2026-11-06-batch-p1:283): Owner ruling 2026-11-06: Prevents: A list of risks with nothing the author can run before landing. Lands in review, references/blast-radius.md, through its con…

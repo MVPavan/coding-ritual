@@ -45,8 +45,8 @@ Approach: <prose — no code blocks>
 
 Verification: <command + expected signal that proves the Goal>
 
-Test seams: <the public observable boundaries tests attach to — required
-when the task is test-first or characterization-first; omit otherwise>
+Test seams: <the boundaries tests attach to, chosen by the `tdd` skill's seam rule —
+required when the task is test-first or characterization-first; omit otherwise>
 
 Dependencies: <task numbers, or None>
 

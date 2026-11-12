@@ -1329,6 +1329,12 @@ inline-diagrams:
   secondary: [Clarification]
   distinct_from: [smallest-view, medium-appropriate-form]
   note: "Picks Mermaid for structure, flow, sequence or state questions during design; the show-me traits govern the choice of visual in general (overlap audit #8)."
+structure-question-visual:
+  definition: "During design, answer a structure, flow, sequence or state question with an inline visual rather than prose, keeping prose for requirements, scope and trade-offs; the visual's form, size and medium come from the show-me skill's rules."
+  placement: {domain: core, stage: X, substage: Communication}
+  secondary: [Clarification]
+  distinct_from: [inline-diagrams, medium-appropriate-form, visual-form-catalog]
+  note: "Overlap audit #8: discovery owns when to draw during design; show-me owns how."
 matter-of-fact-errors:
   definition: "State an error's cause and fix plainly with no alarm language."
   placement: {domain: core, stage: X, substage: Communication}

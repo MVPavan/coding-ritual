@@ -41,8 +41,8 @@ documented coding standards, before general quality. A dispatched spec reviewer 
 requirements; standards go with quality. Review against the coding standards the
 repository documents (the files its agent instructions route to, or a CONTRIBUTING or
 standards file). If it documents none, say so. Examine correctness, error handling,
-compatibility, data migration, ownership and relevant invariants. Judge tests by whether
-they detect meaningful failures with independent expectations; changes to tests are not
+compatibility, data migration, ownership and relevant invariants. Judge tests by the
+`tdd` skill's criteria (its `references/writing-good-tests.md`); changes to tests are not
 inherently defects. Apply the security skill's relevant boundary controls for material
 security changes.
 

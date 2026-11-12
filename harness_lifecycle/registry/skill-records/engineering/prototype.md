@@ -100,6 +100,7 @@ Use when a runnable throwaway experiment can resolve a specific design, state-mo
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-12` **update** (2026-11-12-overlap-owners:006): Overlap audit #7: a shared logic prototype's HTML file follows html-artifact's artifact contract instead of restating offline rules. No trait change.
 - `2026-11-02` **adopt-merged** (2026-11-02-pilot-2:019): Map 2.9 and ruling 13: by the composite test the playbook is a skill, so it folds into our prototype skill and no playbook is drafted. Restates 2026-11-02-pilo…
 - `2026-11-02` **adopt-merged** (2026-11-02-pilot-2:008) *(superseded)*: Map 2.9 and ruling 13: by the composite test the playbook is a skill, so it folds into our prototype skill and no playbook is drafted.
 - `2026-11-02` **adopt** (2026-11-02-pilot-2:007): Completes pending 2026-10-30-mattpocock_skills-5beb35b:194: existing-variant-styling-system is written at .claude/skills/prototype/UI.md:6, read against its ru…

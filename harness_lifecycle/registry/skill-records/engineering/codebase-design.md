@@ -25,7 +25,6 @@ Use for substantive module-interface, encapsulation or testability decisions, or
 - `single-adapter-justified`: Accept an interface justified by encapsulation, ownership or a present testing need with a single adapter, treating extra adapters as evidence of real variation rather than a prerequisite.
 - `internal-seams`: Allow internal seams and focused internal tests without exposing internals through the public interface merely to satisfy a testing rule.
 - `dependency-categories`: Classify a module's dependencies as in-process, locally substitutable, owned remote or true external to choose how it is tested across its seam. (Categories suggest options, never automatic permission to merge modules.)
-- `covered-test-removal`: Remove an old test only when its behaviour is covered elsewhere or deliberately retired, inspecting a changed test rather than deleting it automatically.
 - `design-it-twice`: Optionally compare a few materially different interface designs before a consequential choice, without forcing a multi-agent exercise on a clear one.
 - `design-proposal-contents`: Have each design proposal return its interface, a usage example, the hidden internals, its dependency strategy and its trade-offs.
 - `interface-design-recommendation`: Finish a comparison of interface designs with an opinionated recommendation.
@@ -87,6 +86,7 @@ Use for substantive module-interface, encapsulation or testability decisions, or
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-12` **update** (2026-11-12-overlap-owners:002): Overlap audit #1: DEEPENING.md no longer restates the test-retention rule; it keeps, changes or removes old tests by tdd's retention rule. covered-test-removal…
 - `2026-11-10` **update** (2026-11-10-renames-splits:128): Owner rulings C of 2026-11-05, I1 and I4 of 2026-11-06 and K of 2026-11-10 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 14a U6. Description skip…
 - `2026-11-09` **adopt-merged** (2026-11-09-pocock-4ae2317:159): Checkpoint at 4ae2317 for the owner's trait rulings: 1 adopt.
 - `2026-11-01` **adopt** (2026-11-01-batch-1:280): Completes pending 2026-11-01-batch-1:144: sketch-rationale is written at .claude/skills/codebase-design/SKETCH.md:46-48, read against its definition (T5).

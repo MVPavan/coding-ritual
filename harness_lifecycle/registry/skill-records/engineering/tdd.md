@@ -31,6 +31,7 @@ Use for risky behavior changes, regression proof, legacy characterization, or su
 - `one-test-per-cycle`: Alternate one test and its implementation at a time instead of writing all tests before any implementation.
 - `behaviour-test-names`: Name each test for the behaviour that exists, not how it is achieved.
 - `prove-the-red`: When forcing the red by mutating code or a fixture, diff against a pristine copy to prove the mutation landed before trusting it.
+- `covered-test-removal`: Remove an old test only when its behaviour is covered elsewhere or deliberately retired, inspecting a changed test rather than deleting it automatically.
 <!-- /registry:generated traits -->
 
 <!-- registry:generated lineage -->
@@ -76,6 +77,7 @@ Use for risky behavior changes, regression proof, legacy characterization, or su
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-12` **update** (2026-11-12-overlap-owners:001): Overlap audit #1 (test retention): tdd's writing-good-tests.md now owns the rule, keep a test that catches a distinct failure and remove one only when its beha…
 - `2026-11-06` **rename** (2026-11-06-renames:001): Owner ruling D of 2026-11-05 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 14a U1. The skill test-driven-development is renamed tdd; its body is …
 - `2026-11-06` **adopt-merged** (2026-11-06-batch-p1:224): Checkpoint at 4dd1d05 for the owner's trait rulings: 13 adopt, 2 reject.
 - `2026-11-06` **adopt** (2026-11-06-batch-p1:223): Owner ruling 2026-11-06: Prevents: A demonstrated fix and an assumed one reported in the same words. Lands in test-driven-development, SKILL.md, Test-first. Up…

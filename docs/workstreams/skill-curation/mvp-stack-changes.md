@@ -890,6 +890,28 @@ Sol reviewed the plan twice, the build and the rerun. Limit: these are reading t
 runs. `:174` and `:175` (`sampled-session-retros`, `failures-first-retro-sample`) stay pending:
 their target skill `reflect` does not exist yet (`cr-r2pa.2.25`, which `cr-r2pa.2.19` now waits on).
 
+## 16. One owner per overlapping mechanism (`cr-talb`)
+
+Added 2026-11-12. Plan `scratchpad/mvp-stack/56/plan.md` (gitignored); round
+`2026-11-12-overlap-owners`, eight `update ours:` events, sealed. Closes the overlap-audit items the
+2026-10-30 sharing rulings left open; the audit file's Resolution section lists each.
+
+- **Tests (#1):** `tdd`'s `writing-good-tests.md` owns test retention (remove an old test only when
+  its behaviour is covered elsewhere or retired) and its seam rule. `codebase-design`, `review` and
+  `to-plan` point there. `covered-test-removal` moves from `codebase-design` to `tdd`.
+- **Visuals (#8, #7):** `discovery` decides when to draw during design and reads `show-me` for the
+  form, so it no longer defaults to Mermaid. Its on-request HTML file and `prototype`'s shared file
+  follow `html-artifact`'s contract. `discovery` drops `inline-diagrams` and gains the new
+  `structure-question-visual`.
+- **Show-me pointer:** `show-me` hands off to `html-artifact` only on that skill's real trigger.
+- **Failure loop (#15):** `brief-me`'s debug-spiral override stops when the work's owner calls the
+  stop (bug-fix's two failed fixes, or a parent's limit), and with no playbook routes through
+  `mvp-mode` to bug-fix.
+
+Proof: a structural check finds every conflicting phrase gone and every pointer's target present,
+and it catches four planted deletions. Eight fresh reading sessions matched the expected answers.
+Sol reviewed the plan three times and the build. Limit: reading trials, not live runs.
+
 ## Regenerating
 
 From the worktree root:

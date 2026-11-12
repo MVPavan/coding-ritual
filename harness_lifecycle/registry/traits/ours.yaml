@@ -16,8 +16,8 @@ ours:beads:
   tree_hash: "4033071f23315c2f9052a4dc8f65023b5c9115f6afef9a79212b1aa813e9d6e6"
   traits: [bead-type-taxonomy, field-roles, wait-as-edge, actor-identity, resume-line, session-close, session-recovery, knowledge-in-files, beads-setup, status-model, triage-routing, durable-unit-scope, review-as-task, destructive-command-guard, repeated-procedures, dolt-sync]
 ours:discovery:
-  tree_hash: "47e8b926a373838b116b2b13fce3d5bf790e29f1717d4f2960926b45b66e4618"
-  traits: [match-interaction-to-ambiguity, scoped-context-read, reuse-before-new, decision-frame, answerer-triage, options-with-tradeoffs, question-batching, recommended-answer, yes-accepts-recommendation, round-format, answer-before-next-round, settled-stop, self-serve-facts, approval-interpretation, observable-outcomes, structured-divergence, exploration-lenses, assumption-audit, mvp-scope, judgment-frameworks, decision-sequences, inline-diagrams, visuals-into-spec, html-mockup-on-request, sourced-status-record, area-topic-filing, generated-record-index]
+  tree_hash: "344d27591ac94a02f650569a74d939c1365772ef9cd6dd0ead0430d009ccdfc5"
+  traits: [match-interaction-to-ambiguity, scoped-context-read, reuse-before-new, decision-frame, answerer-triage, options-with-tradeoffs, question-batching, recommended-answer, yes-accepts-recommendation, round-format, answer-before-next-round, settled-stop, self-serve-facts, approval-interpretation, observable-outcomes, structured-divergence, exploration-lenses, assumption-audit, mvp-scope, judgment-frameworks, decision-sequences, visuals-into-spec, html-mockup-on-request, sourced-status-record, area-topic-filing, generated-record-index, structure-question-visual]
   notes:
     recommended-answer: "Labels the recommendation's assumptions."
     round-format: "Delivers report D's row (pending 2026-11-11-discovery:001) as one fixed block per question, in our own layout with no emoji."
@@ -29,8 +29,8 @@ ours:check-invariants:
   tree_hash: "323f807bdd498bdc3e560d5c7fd83faa8384181506bfc61e6474a64c6227b2ab"
   traits: [read-overlay, explicit-commands-only, pass-fail-report, skip-aspirational, repo-relative-paths]
 ours:codebase-design:
-  tree_hash: "827e9631aa6e73153fbfdf66b164eeb9800ae7d3de73808672b9cea3b77eae49"
-  traits: [module-vocabulary, project-term-allowance, interface-is-everything, depth-as-leverage, deletion-test, inject-dependencies, return-not-mutate, single-adapter-justified, internal-seams, dependency-categories, covered-test-removal, design-it-twice, design-proposal-contents, interface-design-recommendation, design-axes-comparison, grounded-sketch, ownership-change-rationale, caller-usage-first, stub-body-sketch, design-red-flag-screen, shallow-module-signs, leaked-decision-flag, pass-through-flag, split-ownership-flag, one-way-per-task, unreachable-internals, derived-or-checked-lists, next-agent-test, sketch-rationale]
+  tree_hash: "0a53e74dd1cbd70391422ae06c94dd2a72dbda19f677dbc5f6c39d62c14e51ea"
+  traits: [module-vocabulary, project-term-allowance, interface-is-everything, depth-as-leverage, deletion-test, inject-dependencies, return-not-mutate, single-adapter-justified, internal-seams, dependency-categories, design-it-twice, design-proposal-contents, interface-design-recommendation, design-axes-comparison, grounded-sketch, ownership-change-rationale, caller-usage-first, stub-body-sketch, design-red-flag-screen, shallow-module-signs, leaked-decision-flag, pass-through-flag, split-ownership-flag, one-way-per-task, unreachable-internals, derived-or-checked-lists, next-agent-test, sketch-rationale]
   notes:
     inject-dependencies: "Where it clarifies behaviour, not as a blanket rule."
     return-not-mutate: "Pure calculations where they clarify behaviour, isolating legitimate side effects."
@@ -90,7 +90,7 @@ ours:html-artifact:
   tree_hash: "1c4c952e6555f09f0e4f54275d42feb19856c315ba0b0e52251ac86493d2eee9"
   traits: [self-contained-contract, accessibility-contract, progressive-enhancement, honest-content, preset-report, preset-dashboard, preset-explainer, preset-editor, tokens-first-style, component-vocabulary, svg-figure-grammar, svg-complexity-budget, svg-accessibility, honest-data-encoding, deliver-verify]
 ours:brief-me:
-  tree_hash: "c1828c731c6fea668dc19ced0cb14e54c478d81daba8d5e758cefb74b76ccef5"
+  tree_hash: "612bd0955268b29f0ff89b5f272b5fbb9948c5e0c9e19d0b2b243c3a0350f90c"
   traits: [next-action-first, numbered-steps, single-next-action, tangent-suppression, state-restatement, concrete-time-estimates, visible-progress, matter-of-fact-errors, capped-lists, no-preamble, explain-on-request, debug-spiral-reset, repitch-trigger, controlled-language, domain-vocabulary, pre-send-check]
 ours:improve-codebase-architecture:
   tree_hash: "616472db7e4fff6ae7d259fa5e7dc4c7cd3c05222a2a33072db1f18b3bae0042"
@@ -173,7 +173,7 @@ ours:unslop:
   tree_hash: "679b179bfd1c9b2f0d76c21d256b76d6925a19cb948dbee7a08c8c3129ba72ef"
   traits: [meaning-preserved-edit, confidence-language-kept, ing-phrase-cut, vague-attribution-cut, name-the-mechanism, filler-phrase-cut, chatbot-phrase-cut, sycophancy-cut, generic-conclusion-cut, tell-vocabulary-swap, plain-is-has, plain-word, synonym-cycling-cut, local-metaphor-noun-swap, not-just-but-cut, forced-triplet-cut, false-range-cut, hedge-stack-trim, dense-sentence-split, active-voice, adverb-cut, mannered-prose-cut, over-compression-fix, no-em-dash, mid-sentence-colon-cut, bold-restraint, inline-header-list-convert, sentence-case-headings, no-decorative-emoji, straight-quotes]
 ours:prototype:
-  tree_hash: "4c270193b6a4eb08e957262ccd0725b252c33e5702ae7f3673065c355d68e7cb"
+  tree_hash: "4cb41e8670aa7f3eba2d13b59e936cb07fed7f94d018d02b27ba6c94a01f2a0b"
   traits: [named-question, pick-form, throwaway-marked, trivial-to-run, surface-state, scoped-data, persistence-when-needed, cheap-assertions, logic-pure-module, self-contained-html-demo, demo-states-question, readable-state-panel, demo-state-controls, resettable-demo-scenarios, ui-contextual-preview, variants-when-comparing, structural-variants, variant-switcher, ui-keyboard-safety, ui-accessibility, capture-outcome, separate-promotion, stubbed-mutations, production-hidden-switcher, competing-prototypes, skip-polish, domain-vocabulary, handover-url-keys, always-available-free-play, resettable-guided-scenarios, existing-variant-styling-system, one-switcher-all-variants, variant-recommendation-tradeoffs, build-route-back, unobserved-surface-stated]
   notes:
     skip-polish: "Delivers the row's ruled rewording, which keeps the error handling and safety checks needed to run the experiment and abstractions that help answer the question, where the definition allows neither; logged in unit-kinds under T5."
@@ -196,7 +196,7 @@ ours:resolving-merge-conflicts:
   tree_hash: "18e9abe7213d906c177ab91e945bc1c0747776e3a875091dbff5bdc16b26e401"
   traits: [capture-conflict-set, trace-intent, resolve-preserve-both, resolve-over-abort, run-project-checks, explicit-staging, commit-authority-gate]
 ours:review:
-  tree_hash: "ec7ebcac5765fada6e7dd0d9fa41e56403ab5120b966435f91a8a46a15828761"
+  tree_hash: "d93708d471af939a41ffad89300cfa643e399a7033b6bb6f310714e837ce490f"
   traits: [independent-critic-verdict, severity-and-verdict, scope-establishment, pre-existing-edit-separation, callers-and-evidence, mechanical-gate-precedence, requirements-before-quality, distinct-axis-verdicts, test-quality-judgment, actionable-defects-only, read-only-isolation, verdict-contract, re-review-finding-tracking, document-review, finding-adjudication, fixed-point-preflight, spec-source-discovery, missing-spec-axis-skip, two-axis-review, standards-source-discovery, cited-standard-findings, spec-conformance-findings]
   notes:
     severity-and-verdict: "A plan-mandated defect is still reported as major, labelled plan-mandated, for the user to decide."
@@ -204,7 +204,7 @@ ours:security:
   tree_hash: "35aefa4c235b7a4bfd05114303300b7548913c40aec76a462ea57aefbf131012"
   traits: [scope-threat, abuse-cases, targeted-control-groups, web-reference, boundary-controls-ref, llm-surface-ref, authority-gate, enforce-in-code, evidence-tests, dependency-triage, boundary-review]
 ours:show-me:
-  tree_hash: "acf2d91481bb0b78884b34888a203a855a29e9db3f1d6996a3beb59922374f95"
+  tree_hash: "aec4f94d5f60a3470c841aabf79cb05305d48d604274098a894dae71450b89b3"
   traits: [minimal-visual-selection, visual-form-catalog, structural-diff, visual-placement, real-code-names, medium-appropriate-form, html-handoff]
   notes:
     minimal-visual-selection: "One form, occasionally two, never a gallery, with a sentence or two of prose each."
@@ -227,15 +227,15 @@ ours:teach:
     glossary-entry-template: "Lays the file out as a title and a one-or-two-sentence description, then each term in bold followed by its definition and an Avoid line."
     tight-concept-definitions: "One or two sentences at most."
 ours:tdd:
-  tree_hash: "f8b191b64704910c2ca8dc90f2356814058b6aea1ef32b9aebe12c4272a66df5"
-  traits: [mode-selection, seam-selection, plan-seams-no-approval, red-green, refactor-after-green, mock-boundaries, proof-discipline, meaningful-behaviour-assertion, independent-expectation, no-implementation-coupling, deterministic-state, break-naming-validation, per-seam-note, one-test-per-cycle, behaviour-test-names, prove-the-red]
+  tree_hash: "ee34b3424d45ee5378e4653fc1982a26aea0a8a4a11e4ccd01a1f66b883fd227"
+  traits: [mode-selection, seam-selection, plan-seams-no-approval, red-green, refactor-after-green, mock-boundaries, proof-discipline, meaningful-behaviour-assertion, independent-expectation, no-implementation-coupling, deterministic-state, break-naming-validation, per-seam-note, one-test-per-cycle, behaviour-test-names, prove-the-red, covered-test-removal]
   notes:
     seam-selection: "The smallest such boundary."
     red-green: "Confirms the intended failure, not a setup error, then implements the owning fix and reruns the proving check."
     no-implementation-coupling: "Asserts exact source text only when that text is the contract."
     mock-boundaries: "Fakes and partial mocks are valid at any boundary that preserves the contract."
 ours:to-plan:
-  tree_hash: "c92ac3df6aba5313be9c5f45c6e83788d45dc07b7717b096996abc472f15e2f1"
+  tree_hash: "f2402c9c8eb2518cd9546b9ed171a80e7a8a057d23fe0317105d737ae36d2b6b"
   traits: [plan-form-by-need, durable-plan-format, plan-evidence-bound, test-first-marking, no-placeholder-plan, plan-self-review, reviewer-rejectable-sizing, no-stale-code-snippets, ground-in-codebase, per-unit-evidence-boxes, named-execution-scope, plan-lint-last]
 ours:to-roadmap:
   tree_hash: "bdb70b10b00469f1929c5eb16b3d12a538735d55f7adf99e7c70494e81e84a4f"

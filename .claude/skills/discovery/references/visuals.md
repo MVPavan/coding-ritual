@@ -1,17 +1,17 @@
 # Visuals
 
-Diagrams during a brainstorm. Default to Mermaid in the conversation; escalate
-only when asked.
+Diagrams during a brainstorm. Show structure inline in the conversation;
+escalate to a file only when asked.
 
-## Default: Mermaid, inline
+## Default: an inline visual
 
 When a question is genuinely about structure — what the pieces are and how they
-relate, a flow, a sequence, a state machine — draw it as a Mermaid block in the
-reply instead of describing it in prose. A drawing the user can point at gets a
+relate, a flow, a sequence, a state machine — show it as a visual in the reply
+instead of describing it in prose. A drawing the user can point at gets a
 correction faster than a paragraph they have to hold in their head.
 
-Keep it small. A diagram with more than a dozen or so nodes is answering more
-than one question; split it.
+The `show-me` skill owns the visual's form, size and medium: read its `SKILL.md`
+(§The forms and §Rules) and follow them. Read it; do not invoke it.
 
 Prose is still right for requirements and scope questions, choices described in
 words, and trade-off lists. A question *about* a visual topic is not
@@ -20,13 +20,11 @@ conceptual; "which of these two layouts?" is not.
 
 ## On request: a rendered HTML file
 
-If the user asks for something Mermaid cannot carry — a real mockup, a layout
-comparison, spacing and hierarchy — write **one self-contained HTML file** to
-`scratchpad/brainstorm/<topic>-<n>.html` and give them the path.
-
-No server, no build step, no external stylesheets, fonts, or CDN scripts. One
-file they can open. Offer this only when a diagram genuinely will not do; do not
-offer it upfront.
+If the user asks for something an inline visual cannot carry — a real mockup, a
+layout comparison, spacing and hierarchy — write **one HTML file** under the
+`html-artifact` skill's artifact contract to `scratchpad/brainstorm/<topic>-<n>.html`
+and give them the path. Offer this only when a diagram genuinely will not do; do
+not offer it upfront.
 
 `scratchpad/` is gitignored. Everything in it is disposable working material.
 

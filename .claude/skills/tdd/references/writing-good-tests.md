@@ -26,6 +26,8 @@ worth its cost; mental inspection is not a reported executed mutation test.
 Regression checks should fail against the original defect and pass after the fix.
 Characterization checks instead establish the existing passing baseline.
 
-Preserve tests that catch distinct failures. Update expectations for intentional
-behavior changes and explain why; do not weaken checks merely to obtain green.
+Preserve tests that catch distinct failures; remove an old test only when its
+behavior is covered elsewhere or intentionally retired, and inspect a changed test
+rather than deleting or rejecting it automatically. Update expectations for
+intentional behavior changes and explain why; do not weaken checks merely to obtain green.
 Scale verification to affected behavior and honor required repository gates.
