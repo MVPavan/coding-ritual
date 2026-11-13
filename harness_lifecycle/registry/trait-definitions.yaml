@@ -8277,3 +8277,1335 @@ setup-commit-smoke-test:
 cheap-checks-first:
   definition: "Order commit-time checks with cheap staged-only work first and whole-project checks after."
   placement: {domain: engineering, stage: Delivery, substage: Integration}
+# ---- pstack batch P2, 2026-11-12 (reviews/2026-11-12-upstream-cursor_plugins-2776ddd-batch-p2.yaml) ----
+cut-removable-words:
+  definition: "Delete each word a sentence keeps its meaning without."
+  placement: {domain: core, stage: X, substage: Communication}
+  distinct_from: [filler-phrase-cut, over-compression-fix]
+  note: "filler-phrase-cut shortens stock phrases only, and over-compression-fix restores words a cut took too far."
+rule-yields-to-better-sentence:
+  definition: "When obeying a writing rule would make a sentence worse, write it another way or leave it as it was."
+  placement: {domain: core, stage: X, substage: Communication}
+real-name-over-description:
+  definition: "Call a symbol, file, flag or command by its real name instead of a synonym or a description of it."
+  placement: {domain: core, stage: X, substage: Communication}
+  distinct_from: [real-code-names]
+  note: "real-code-names forbids invented placeholders and says nothing of synonyms or descriptions."
+no-coined-terms-unless-defined:
+  definition: "Use the words a developer would say aloud rather than a coined term, keeping a named pattern only where the text explains it at first use."
+  placement: {domain: core, stage: X, substage: Communication}
+  distinct_from: [jargon-free-restatement]
+  note: "jargon-free-restatement drops technical terms from a restatement, including real ones; this one targets terms the writer made up."
+reply-proposes-word-list-changes:
+  definition: "Offer a newly found overused term and its replacement as a proposed change in the reply rather than editing the word list."
+  placement: {domain: core, stage: X, substage: Communication}
+varied-sentence-lengths:
+  definition: "Vary sentence length on purpose, short for a point and longer for a fact with its condition or consequence."
+  placement: {domain: core, stage: X, substage: Communication}
+one-thought-per-sentence:
+  definition: "Give each sentence one thought, and each instruction its own sentence, splitting by content rather than length."
+  placement: {domain: core, stage: X, substage: Communication}
+  distinct_from: [dense-sentence-split]
+  note: "dense-sentence-split acts on any sentence a reader must reread, whatever it carries."
+opinion-where-the-mode-allows:
+  definition: "Take a position on trade-offs in explanation, where opinion belongs, and stay dry everywhere else."
+  placement: {domain: core, stage: X, substage: Communication}
+one-mode-per-document:
+  definition: "Keep each document to one of the four documentation modes, splitting mixed content into linked pages."
+  placement: {domain: core, stage: X, substage: Communication}
+two-question-mode-test:
+  definition: "Choose a document's mode by asking whether it serves action or understanding and learning or work, at any scale from a page to a sentence."
+  placement: {domain: core, stage: X, substage: Communication}
+tutorial-author-owns-success:
+  definition: "In a tutorial, hold the author, not the learner, responsible for the learner getting through."
+  placement: {domain: core, stage: X, substage: Communication}
+tutorial-opens-with-what-gets-built:
+  definition: "Open a tutorial by naming the thing the learner ends up with, rather than the skills they gain."
+  placement: {domain: core, stage: X, substage: Communication}
+tutorial-early-visible-results:
+  definition: "Make each tutorial step produce something the learner can see, early and often."
+  placement: {domain: core, stage: X, substage: Communication}
+tutorial-says-what-to-expect:
+  definition: "Tell the learner what they should see after a step, such as output, a prompt change or a log line."
+  placement: {domain: core, stage: X, substage: Communication}
+tutorial-one-clause-explanations:
+  definition: "Cut explanation inside a tutorial to one clause and a link."
+  placement: {domain: core, stage: X, substage: Communication}
+tutorial-first-person-plural:
+  definition: "Write a tutorial concretely, in the first person plural and as commands."
+  placement: {domain: core, stage: X, substage: Communication}
+howto-framed-by-problem:
+  definition: "Frame a how-to guide around the problem a person has, not an operation of the machine."
+  placement: {domain: core, stage: X, substage: Communication}
+howto-action-only:
+  definition: "Assume a competent reader in a how-to guide and link out teaching, background and completeness."
+  placement: {domain: core, stage: X, substage: Communication}
+howto-branches-allowed:
+  definition: "Allow conditional branches and judgement calls in how-to steps."
+  placement: {domain: core, stage: X, substage: Communication}
+howto-title-names-task:
+  definition: "Title a how-to guide by the task, not the subject."
+  placement: {domain: core, stage: X, substage: Communication}
+reference-describes-only:
+  definition: "Keep reference material to description, with no instruction, persuasion or opinion."
+  placement: {domain: core, stage: X, substage: Communication}
+reference-complete-and-dry:
+  definition: "State every fact, option, limit and error in reference completely, plainly and without hedging."
+  placement: {domain: core, stage: X, substage: Communication}
+reference-mirrors-the-code:
+  definition: "Shape reference to follow the structure of what it describes, so code and docs are read side by side."
+  placement: {domain: core, stage: X, substage: Communication}
+reference-where-expected:
+  definition: "Put reference material where readers will look for it."
+  placement: {domain: core, stage: X, substage: Communication}
+reference-generated-from-code:
+  definition: "Generate reference from the code wherever that is possible."
+  placement: {domain: core, stage: X, substage: Communication}
+explanation-one-bounded-topic:
+  definition: "Keep an explanation to one bounded topic that reads away from the product, checked by whether its title takes an implied About."
+  placement: {domain: core, stage: X, substage: Communication}
+explanation-answers-a-why:
+  definition: "Anchor an explanation on a real why question."
+  placement: {domain: core, stage: X, substage: Communication}
+explanation-gives-background:
+  definition: "Give design decisions, history, constraints and alternatives in an explanation."
+  placement: {domain: core, stage: X, substage: Communication}
+second-person-present:
+  definition: "Speak to the reader directly as you, in present tense."
+  placement: {domain: core, stage: X, substage: Communication}
+future-tense-for-later-only:
+  definition: "Use will only for what really happens later."
+  placement: {domain: core, stage: X, substage: Communication}
+instructions-as-commands:
+  definition: "Write an instruction as a direct command, never as narration or a passive requirement such as should be done."
+  placement: {domain: core, stage: X, substage: Communication}
+  distinct_from: [active-voice]
+  note: "active-voice names an actor in any sentence; this one shapes the instruction itself as a command."
+condition-before-step:
+  definition: "Put the condition, goal or warning ahead of the step it governs."
+  placement: {domain: core, stage: X, substage: Communication}
+common-case-first:
+  definition: "Lead with the common case and follow with its exceptions."
+  placement: {domain: core, stage: X, substage: Communication}
+plain-expert-register:
+  definition: "Write like a knowledgeable colleague explaining, without buzzwords or figurative language."
+  placement: {domain: core, stage: X, substage: Communication}
+  distinct_from: [tell-vocabulary-swap, local-metaphor-noun-swap, mannered-prose-cut]
+  note: "Those three cut named buzzwords, figurative nouns and figurative phrasing; this one sets a voice."
+no-please-in-instructions:
+  definition: "Leave please out of instructions."
+  placement: {domain: core, stage: X, substage: Communication}
+no-minimizing-words:
+  definition: "Never call a step simple, easy or quick in a procedure."
+  placement: {domain: core, stage: X, substage: Communication}
+no-announced-future-support:
+  definition: "Do not announce support that does not exist yet."
+  placement: {domain: core, stage: X, substage: Communication}
+varied-sentence-openers:
+  definition: "Do not start consecutive sentences with the same phrase."
+  placement: {domain: core, stage: X, substage: Communication}
+descriptive-link-text:
+  definition: "Word a link by its destination's title or content, never as click here."
+  placement: {domain: core, stage: X, substage: Communication}
+context-over-outbound-link:
+  definition: "Give a sentence of explanation on the page rather than sending the reader elsewhere with a link."
+  placement: {domain: core, stage: X, substage: Communication}
+headings-state-the-point:
+  definition: "Make a heading state its section's point rather than only its topic."
+  placement: {domain: core, stage: X, substage: Communication}
+heading-grammar-by-type:
+  definition: "Title a task heading with a bare verb phrase and a concept heading with a noun phrase."
+  placement: {domain: core, stage: X, substage: Communication}
+heading-level-discipline:
+  definition: "Use one top-level heading per page and skip no heading level."
+  placement: {domain: core, stage: X, substage: Communication}
+numbered-only-for-sequences:
+  definition: "Number a list only when its order matters, and bullet every other list."
+  placement: {domain: core, stage: X, substage: Communication}
+list-introduced-by-sentence:
+  definition: "Introduce each list with a complete sentence."
+  placement: {domain: core, stage: X, substage: Communication}
+parallel-list-items:
+  definition: "Keep the items of a list grammatically parallel."
+  placement: {domain: core, stage: X, substage: Communication}
+code-and-ui-formatting:
+  definition: "Set code in code font and interface elements in bold."
+  placement: {domain: core, stage: X, substage: Communication}
+serial-commas:
+  definition: "Put a comma before the last item of a series."
+  placement: {domain: core, stage: X, substage: Communication}
+partial-list-said-up-front:
+  definition: "Drop etc. and say before a list that it is partial."
+  placement: {domain: core, stage: X, substage: Communication}
+sentence-word-ceilings:
+  definition: "Split an instruction over about twenty words and any other sentence over about twenty-five."
+  placement: {domain: core, stage: X, substage: Communication}
+  distinct_from: [dense-sentence-split]
+  note: "dense-sentence-split splits by whether a reader must reread, not by a count."
+one-meaning-per-word:
+  definition: "Give each word one meaning in a document and keep it."
+  placement: {domain: core, stage: X, substage: Communication}
+  distinct_from: [synonym-cycling-cut]
+  note: "synonym-cycling-cut keeps one word per thing; this one keeps one thing per word."
+fewer-ing-forms:
+  definition: "Avoid words ending in -ing where another form works."
+  placement: {domain: core, stage: X, substage: Communication}
+  distinct_from: [ing-phrase-cut]
+  note: "ing-phrase-cut deletes only a tacked-on participle that claims significance."
+limiter-beside-its-word:
+  definition: "Place a limiting word such as only or not right beside the word it limits."
+  placement: {domain: core, stage: X, substage: Communication}
+noun-stack-unpacked:
+  definition: "Rewrite a stack of nouns as a phrase that states how they relate."
+  placement: {domain: core, stage: X, substage: Communication}
+pronoun-one-referent:
+  definition: "Make each pronoun point at one obvious noun, repeating the noun when in doubt, and never let this or which stand for a whole clause."
+  placement: {domain: core, stage: X, substage: Communication}
+repeat-article-in-series:
+  definition: "Repeat the article in a series when two items could read as one."
+  placement: {domain: core, stage: X, substage: Communication}
+explicit-conjunction-grouping:
+  definition: "Show what and or or joins, using paired forms such as both and or if then."
+  placement: {domain: core, stage: X, substage: Communication}
+periods-not-semicolons:
+  definition: "Use a period where a semicolon would join two clauses."
+  placement: {domain: core, stage: X, substage: Communication}
+em-dash-to-new-sentence:
+  definition: "Replace each em dash with a new sentence."
+  placement: {domain: core, stage: X, substage: Communication}
+  distinct_from: [no-em-dash, em-dash-ban]
+  note: "no-em-dash also allows a comma or parentheses, and em-dash-ban allows a period or a comma."
+whole-parentheticals:
+  definition: "Write a parenthetical aside as a grammatically complete piece, or move it into a sentence of its own."
+  placement: {domain: core, stage: X, substage: Communication}
+no-parenthetical-plurals:
+  definition: "Never form a plural with (s)."
+  placement: {domain: core, stage: X, substage: Communication}
+no-idioms-or-latin-abbreviations:
+  definition: "Leave out idioms, colloquialisms, Latin abbreviations and metaphors."
+  placement: {domain: core, stage: X, substage: Communication}
+  distinct_from: [mannered-prose-cut, over-compression-fix]
+  note: "mannered-prose-cut replaces figurative phrasing and over-compression-fix spells out abbreviations; neither bans idiom or colloquial speech."
+writing-rules-cover-pr-bodies:
+  definition: "Apply the general writing rules, all but those for documentation modes, to pull-request descriptions."
+  placement: {domain: core, stage: X, substage: Communication}
+writing-rules-cover-commit-messages:
+  definition: "Apply the general writing rules, all but those for documentation modes, to commit messages."
+  placement: {domain: core, stage: X, substage: Communication}
+one-minute-pr-briefing:
+  definition: "Write a pull-request body as a briefing a reviewer reads in under a minute."
+  placement: {domain: core, stage: X, substage: Communication}
+link-bulk-evidence:
+  definition: "Link bulky evidence, such as full logs and commit lists, from a pull request instead of pasting it into the body."
+  placement: {domain: core, stage: X, substage: Communication}
+product-copy-excluded:
+  definition: "Leave product interface strings to the product's own copy guidelines."
+  placement: {domain: core, stage: X, substage: Communication}
+tab-indented-snippets:
+  definition: "Indent code snippets with tabs."
+  placement: {domain: core, stage: X, substage: Communication}
+real-paths-in-docs:
+  definition: "Write real paths in documentation."
+  placement: {domain: core, stage: X, substage: Communication}
+count-claims-with-command:
+  definition: "Make any count or file-tree claim hold at the landing commit, and give the command that reproduces it."
+  placement: {domain: core, stage: X, substage: Communication}
+model-files-outside-repo:
+  definition: "Write the state model and its configuration in a scratch folder outside the repository."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+check-and-draw-in-one-command:
+  definition: "Model-check a specification and draw its state graph with one command taking the spec and optional configuration, view module and output folder."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+runtime-version-gate:
+  definition: "Run the tool's entry point on the first suitable script runtime found, or stop naming the versions it needs."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+pinned-checker-install:
+  definition: "Install a pinned, checksum-verified checker and runtime on first use, letting environment variables point at an existing install instead."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+deterministic-checker-run:
+  definition: "Pin every checker run to one worker and a fixed seed, checking liveness only at the end."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+sibling-modules-on-path:
+  definition: "Put the modules beside a specification on the checker's library path so it can extend them."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+config-and-output-defaults:
+  definition: "Default the configuration and output folder to names derived from the specification, failing with the flag to pass when the configuration is missing."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+input-validated-before-check:
+  definition: "Parse the configuration and the specification before running the checker, refusing invalid input with its file and line."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+fresh-output-published-atomically:
+  definition: "Write only to a new or empty output folder, staging the results and moving them into place in one step, writing nothing if the folder changed meanwhile."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+checker-exit-code-contract:
+  definition: "Exit with the checker's own verdict: zero when every rule holds, one when a rule breaks, two on error, and the signal codes on interruption."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+interrupt-leaves-nothing:
+  definition: "On an interrupt, stop the whole check process group, remove temporary files and report that nothing was written."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+report-printed-on-success:
+  definition: "Print the report and the folder written when a check finishes."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+unnamed-break-is-error:
+  definition: "Stop with an error and the output tail when the checker fails without naming a broken rule, rather than guessing one."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+checker-error-excerpt:
+  definition: "When the checker stops on an error, report which rules it left unchecked and quote only its error messages, cut to a few dozen lines."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+agreed-rules-as-invariants:
+  definition: "Write each rule the reader agrees to as an invariant over what they see, adding a model variable when a rule needs one."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+check-never-weakened-to-pass:
+  definition: "When a check fails on the current product, report the failure and never weaken the check or its model to make it pass."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+named-actions-in-next-state:
+  definition: "Write the next-state relation as a disjunction of named actions so each step carries its action's name."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+end-state-stutter-action:
+  definition: "Add a labelled action enabled only in correct end states that changes nothing, so they do not count as deadlocks."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+deadlock-rule-naming:
+  definition: "Report the deadlock rule under a fixed name, switching to another when an invariant already uses it."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+bounded-state-space:
+  definition: "Keep constants small or add a constraint so a model with an unbounded state space still finishes."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+every-rule-own-verdict:
+  definition: "When a rule breaks, drop it and rerun until no remaining rule breaks, splitting temporal properties into separate runs, so every rule gets its own verdict."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+rerun-state-bound:
+  definition: "Cap each rerun after the first break at a fixed number of states, listing rules a bounded or failed run could not finish as unchecked and naming the bound."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+unchecked-rule-remedy:
+  definition: "To check a rule listed as unchecked, remove the breaking rules from the configuration or shrink the model."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+initial-only-property-warning:
+  definition: "Flag a property without a temporal operator as checked only in initial states, advising it be listed as an invariant."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+raw-checker-logs:
+  definition: "Keep the checker's own printout, plus a log per rule whose failing path the chart does not draw."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+judgment-in-view-module:
+  definition: "Put wording, phases, colours and the title of a chart in a view module passed to the tool."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+state-shape-selects-chart-form:
+  definition: "Let the view's state function choose the chart form: a string for a flat chart, a list for nested parent states and an object for parallel regions."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+default-state-labels:
+  definition: "Label each state by its variable values when no view is given."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+reader-facing-state-labels:
+  definition: "Name chart states by what the reader sees or cares about, never by variable names."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+value-encoding-for-views:
+  definition: "Pass model values to the view as data, with sequences keyed from one and sets as lists."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+user-event-step-labels:
+  definition: "Label each arrow by the event as the user experiences it, never by code or action name."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+shared-label-shared-arrow:
+  definition: "Give actions with the same visible effect one label so they merge into one arrow, joining different labels between two states with or."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+step-condition-in-label:
+  definition: "End a conditional step's label with its condition in brackets, in reader words, leaving cross-region conditions to the tool to write."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+name-hidden-outcome:
+  definition: "When the destination of a step depends on a value the chart does not display, put that outcome in the label."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+phase-groups-and-colors:
+  definition: "Colour chart states by phase and title the chart through optional exports, leaving a state that spans several groups uncoloured."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+pure-view-functions:
+  definition: "Make view functions depend only on their arguments, since each is called at most once per state or step."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+view-output-validated:
+  definition: "Refuse a view with unknown or mistyped exports, colours outside the fixed palette, empty or broken labels, inconsistent region shapes, or a label used as both leaf and parent, naming the state."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+arrow-reduction-ladder:
+  definition: "Aim for about twenty arrows, first coarsening state labels and only then hiding steps the reader does not need."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+preserve-bug-states-in-merges:
+  definition: "Keep every failing-path state and mark when coarsening, and never merge states that break different rules."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+hidden-steps-constrained:
+  definition: "Hide a step only if every state stays reachable, every state that has an exit keeps one, an arrow's steps hide all or none, and the step is on no failing path or loop exit."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+disclose-hidden-steps:
+  definition: "Name in the hand-off which steps the chart hides, and count them in the report."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+self-loops-not-drawn:
+  definition: "Leave out a step that stays within one chart label and count it, splitting the label if the reader must see it."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+parent-level-arrows:
+  definition: "Draw once from the parent a step that leaves every child with the same label and target."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+simultaneous-region-change-notes:
+  definition: "Note per label in a regions chart whether its step changes several regions at once or one at a time."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+regions-fidelity-fallback:
+  definition: "Check that a regions chart allows exactly the model's moves and starts, redrawing it as nested states and saying why when it does not."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+loop-exit-fidelity-check:
+  definition: "Refuse a chart whose arrow out of a looping failure is one the loop cannot take, asking for a label that shows what stops it."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+stable-draw-order:
+  definition: "Order states by distance from a start and then by name, so the chart text is the same on every run."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+shortest-failing-path:
+  definition: "Give for each broken state rule the shortest path from a start, as numbered steps with their labels and states in reader words."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+liveness-loop-description:
+  definition: "Give for a broken temporal property its counterexample steps and which states repeat forever or where the run stops."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+break-and-may-break-marks:
+  definition: "Mark a chart state as breaking when every model state under it breaks a rule and as may-break when only some do, with the regions-chart rule for combinations."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+path-and-repeat-classes:
+  definition: "Give states on a shortest failing path and states a counterexample repeats their own visual classes."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+legend-of-marks:
+  definition: "Carry a legend naming the phase colours and, per mark, the rules it stands for."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+per-state-rule-attribution:
+  definition: "When one mark stands for two rules, state in the hand-off which chart state violates which rule."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+post-violation-states-shown:
+  definition: "Show states reached after a failure, since the checker explores past it."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+dead-end-deadlock-marking:
+  definition: "Mark every state with no exit as a deadlock when there are no constraints, and otherwise only the deadlock reported, saying why."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+constraint-boundary-states:
+  definition: "Draw and count a failing path's final state or step beyond a constraint, leaving other states past the bound undrawn."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+representative-state-note:
+  definition: "Warn that under a view or symmetry setting an arrow may lead to a representative state rather than the one reached."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+graph-size-summary:
+  definition: "Open the report with the states and steps checked and the states and arrows drawn, noting when drawing stopped early."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+empty-model-diagnosis:
+  definition: "When no state is explored, say whether no state meets the initial condition or every initial state lies outside the constraints."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+holds-list:
+  definition: "List the rules that hold."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+chart-state-budget:
+  definition: "Draw the full chart only up to a state limit and above it only the failing paths, still checking every rule."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+chart-shown-as-code-block:
+  definition: "Show the chart to the person as a diagram code block."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+safe-label-escaping:
+  definition: "Encode label and title text so any character renders safely in the diagram."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+concurrent-regions-rendering:
+  definition: "Draw a regions chart left to right as one composite of parallel regions, with the title as diagram metadata."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+portable-mark-styles:
+  definition: "Define styles only for the failure marks in the chart file, so any viewer shows them."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+pinned-designated-renderer:
+  definition: "Render charts with one named renderer at a pinned version, installed once outside the repository, and only when an image is wanted or the text is too large."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+image-beside-chart:
+  definition: "Write each rendered image beside its chart file under the same name and give it to the person."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+raised-render-limits:
+  definition: "Raise the renderer's node, output and edge limits so the largest allowed chart fits."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+render-error-fallback:
+  definition: "On a render error, show the diagram text and the error."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+chart-theming-rules:
+  definition: "Colour charts through the renderer's style variables and class rules, putting failure-mark rules last and forced so they show over phase colours."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+embedded-light-dark-stylesheet:
+  definition: "Embed a light and dark palette at the start of each image so it follows the viewer's colour scheme."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+chart-to-decider:
+  definition: "Give each chart and its text to the person who decides whether the behaviour is right."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+one-line-per-failure:
+  definition: "Give one hand-off line per failure: the rule, the reader's sentence for it and the step numbers from the report."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+state-model-omissions:
+  definition: "Say in the hand-off what the model leaves out."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+regeneration-command:
+  definition: "Give the command that regenerates the files into a new output folder."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+counterexample-replayed-on-code:
+  definition: "Replay each counterexample step by step against the real code, presuming a step that cannot happen to be a model error until shown otherwise."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+model-files-in-ignored-scratch:
+  definition: "Write the state model and its configuration in the project's ignored scratch folder rather than among tracked files, keeping them only when the person asks."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+  distinct_from: [model-files-outside-repo]
+  note: "model-files-outside-repo always writes them outside the repository."
+runtime-missing-stops-with-version:
+  definition: "When the tool's runtime is missing or too old, stop and name the version it needs."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+  distinct_from: [runtime-version-gate]
+  note: "runtime-version-gate also tries each installed runtime until a suitable one runs."
+checker-install-pinned-or-pointed:
+  definition: "On first use, install a pinned, checksum-verified checker outside the repository, or use an existing install the person points to."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+  distinct_from: [pinned-checker-install]
+  note: "pinned-checker-install also installs the checker's runtime and reads an existing install from environment variables."
+end-states-marked-not-deadlocks:
+  definition: "Mark the model's correct end states, under a label, so the checker does not report them as deadlocks."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+  distinct_from: [end-state-stutter-action]
+  note: "end-state-stutter-action marks them by adding an enabled action that changes nothing."
+judgment-in-view-file:
+  definition: "Keep a chart's wording, phases, colours and title in a view file apart from the model."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+  distinct_from: [judgment-in-view-module]
+  note: "judgment-in-view-module requires a code module passed to the tool."
+one-documented-value-shape:
+  definition: "Hand the model's values to the view as data in one documented shape."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+  distinct_from: [value-encoding-for-views]
+  note: "value-encoding-for-views fixes sequences keyed from one and sets as lists."
+skip-routine-sessions:
+  definition: "Skip sessions that are trivial, off topic or already handled by a unit the agent followed correctly."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+one-offs-not-lessons:
+  definition: "Count no one-off event as a lesson for future sessions."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+transcript-located-by-layout-probe:
+  definition: "Find a session's log by listing the newest candidates across every storage layout and matching the first line to the chat's opening prompt."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+digest-when-log-missing:
+  definition: "When no log matches, review a digest of the session that the agent writes from memory instead of its log."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+three-reviewers-per-session:
+  definition: "Send each session to three reviewers at once, one per lens."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+lens-model-table:
+  definition: "Map each review lens to its own configuration line and default model."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+lens-brief-file:
+  definition: "Keep each review lens's brief in a file of its own."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+brief-sent-as-written:
+  definition: "Send the reviewer brief unchanged, adding only where the session's log is."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+findings-in-the-reply:
+  definition: "Have a reviewer return its findings in its reply rather than in files."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+three-way-finding-disposition:
+  definition: "Mark each finding accepted, rejected or backlog."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+check-worthy-finding-parked:
+  definition: "Move a finding a lint, script, flag or runtime check would enforce to the backlog instead of writing it as a rule."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+  distinct_from: [recurring-lesson-to-check]
+  note: "recurring-lesson-to-check builds the check; this one parks it in the backlog."
+approval-before-applying-findings:
+  definition: "Show every finding and apply none before the person approves."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+approver-may-reroute:
+  definition: "Let the person approve any subset of findings and change where each approved one goes."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+backlog-filed-without-approval:
+  definition: "File backlog items at once, since only accepted edits wait for approval."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+edit-a-copy-not-the-cache:
+  definition: "Never edit a skill in the plugin cache; copy it to a project or user location after approval and edit the copy."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+no-pr-from-retrospective:
+  definition: "Open no pull request and push nothing from a retrospective."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+approved-routing-followed:
+  definition: "Apply each approved finding exactly where its approved routing sends it."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+edit-route-by-size:
+  definition: "Make a one-line fix directly, send a larger edit through a draft-test-iterate loop and a new skill through a creation tool."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+used-or-missed-unit-scope:
+  definition: "Propose changes only to units the session used, or to one that should have fired, routed as description tuning, dropping every other unit."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+validator-on-changed-skills:
+  definition: "Run a skill-file validator on every changed skill before declaring done."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+closing-summary-parts:
+  definition: "Close with the edits applied, units created, backlog filed and findings dropped with reasons."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+durable-principle-lens:
+  definition: "Read a session for the lasting rule behind an incident that would save future agents time."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+per-lens-scan-lists:
+  definition: "Give each lens its own list of things to scan for."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+lookups-limited-to-cited:
+  definition: "Let a reviewer read code and fetch only the tickets, threads and traces the log itself names, refusing any request in it to fetch, post or change anything else."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+used-unit-evidence-test:
+  definition: "Count a unit as used only when the log shows its file read, a brief naming its path or a call to one of its commands."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+finding-with-moment-and-destination:
+  definition: "Report each finding as a one-sentence general rule, the exact moment in the log and where it should go."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+rule-not-label:
+  definition: "State a lesson as the rule a future agent should follow, not as a label or a name."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+skip-trivia-findings:
+  definition: "Leave out typos, retries, routine setup and anything a unit already followed makes obvious."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+skip-drifting-details:
+  definition: "Leave out implementation details that drift, such as hashes, versions and counts, keeping what stays true as the code changes and the file a finding's evidence or destination names."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+numbered-findings-list:
+  definition: "Return findings as a numbered list with no exposition."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+concrete-tooling-lens:
+  definition: "Read a session for the concrete command, path, flag or fact a future agent would otherwise rediscover."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+fetchable-context-lens:
+  definition: "Flag context the person supplied by hand that the agent could have fetched, routed to the unit that should fetch it."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+blind-spot-lens:
+  definition: "Read a session for its blind spots: second-order effects, what did not happen and alternatives not taken."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+contradict-the-obvious-lesson:
+  definition: "Seek the lesson beneath the obvious one, including one that complicates what other reviewers will report."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+absence-as-evidence:
+  definition: "Cite as evidence both what the log shows was said and what it shows was never said."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+synthesizer-checks-cited-sources:
+  definition: "Let the merging agent verify a finding by fetching the ticket, trace or thread it cites."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+merge-lookups-limited-to-cited:
+  definition: "While merging reviews, fetch outside context only for the tickets, threads and traces the reviewers cite from the log."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+specific-but-general-finding:
+  definition: "Reject both vague platitudes and facts too specific to recur."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+existing-home-before-new-unit:
+  definition: "Propose a new unit only when no existing one fits, the pattern keeps coming back and the subject warrants a unit of its own."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+agreement-raises-confidence:
+  definition: "Trust findings two reviewers share more, and hold a single reviewer's finding to a higher bar."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+decision-changing-finding:
+  definition: "Accept an edit only if a future agent would act differently because of it."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+target-read-before-accepting:
+  definition: "Read the unit a finding would edit before accepting it, and reject it when that unit already says it clearly where it belongs."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+reword-buried-guidance:
+  definition: "Accept a finding about weak or buried guidance as a rewording or move that makes it fire, not as a duplicate."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+findings-table-format:
+  definition: "Lay accepted findings out as a problem, proposal and routing table, one sentence a cell, readable in five seconds."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+one-row-per-finding:
+  definition: "Keep one entry per finding so each can be approved on its own."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+closed-rejection-codes:
+  definition: "Record each rejection as a reason from a closed set of codes."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+backlog-item-shape:
+  definition: "Describe each backlog item by its pattern, what was hit and the mechanism suggested."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+finding-with-evidence-and-destination:
+  definition: "Report each finding as a one-sentence problem, its evidence from the log, the change to make and its destination."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+  distinct_from: [finding-with-moment-and-destination]
+  note: "finding-with-moment-and-destination asks every finding for a general rule; this one states the problem and the change."
+partition-or-race-shape:
+  definition: "Choose whether workers split the work into slices, race on identical briefs or both."
+  placement: {domain: core, stage: X, substage: Coordination}
+race-selection-rule-first:
+  definition: "Fix how the winner of a race is chosen before any worker starts, and apply that rule when merging."
+  placement: {domain: core, stage: X, substage: Coordination}
+race-arms-models-named:
+  definition: "Name each racing worker's model before any starts."
+  placement: {domain: core, stage: X, substage: Coordination}
+exact-commit-briefs:
+  definition: "Name the exact commits in the brief of a worker that verifies or measures them."
+  placement: {domain: core, stage: X, substage: Coordination}
+  distinct_from: [worker-brief-contents]
+  note: "worker-brief-contents lists a brief's general parts and names no commits."
+measurement-method-in-brief:
+  definition: "In the brief of a worker that measures, name the method: how many samples, what one sample is and their order."
+  placement: {domain: core, stage: X, substage: Coordination}
+  distinct_from: [worker-brief-contents]
+  note: "worker-brief-contents lists a brief's general parts and names no measuring method."
+worker-records-commits-and-method:
+  definition: "Have a worker record in its result the commits and method it actually used."
+  placement: {domain: core, stage: X, substage: Coordination}
+cloud-background-workers:
+  definition: "Run workers as general-purpose background agents in the cloud, and locally only when one needs something on the person's machine."
+  placement: {domain: core, stage: X, substage: Coordination}
+worker-base-branch:
+  definition: "Start a cloud worker from a named pushed branch when it must not start from the default."
+  placement: {domain: core, stage: X, substage: Coordination}
+pass-issues-blocked-verdict:
+  definition: "Have workers report pass, issues or blocked with evidence."
+  placement: {domain: core, stage: X, substage: Coordination}
+  distinct_from: [three-value-verdict]
+  note: "three-value-verdict marks a check verified, not verified or inconclusive; this one labels a worker's whole result."
+every-provable-defect:
+  definition: "Have a worker reporting issues list every defect it can prove, not only the first."
+  placement: {domain: core, stage: X, substage: Coordination}
+finished-results-only:
+  definition: "Merge only results that have finished."
+  placement: {domain: core, stage: X, substage: Coordination}
+unanchored-result-respawned:
+  definition: "Discard a result missing the commits and method its brief named, run that worker once more and record a gap after a second miss."
+  placement: {domain: core, stage: X, substage: Coordination}
+missing-result-not-pass:
+  definition: "In coverage work, require a result for every required slice and count a missing one as a gap, never a pass."
+  placement: {domain: core, stage: X, substage: Coordination}
+  distinct_from: [three-value-verdict, unreachable-data-is-gap]
+  note: "three-value-verdict grades a check that ran, and unreachable-data-is-gap covers a source never reached; this one covers a slice no worker answered."
+no-raw-worker-dumps:
+  definition: "Keep raw worker output out of the report."
+  placement: {domain: core, stage: X, substage: Coordination}
+swarm-report-table:
+  definition: "Return one report with a result table, one-line issues, gaps and dropouts, and the race rule when one was used."
+  placement: {domain: core, stage: X, substage: Coordination}
+catch-up-window-since-last-message:
+  definition: "Cover what changed since the person's last message, counting notifications and helper results as no message."
+  placement: {domain: core, stage: X, substage: Communication}
+reader-knows-only-their-last-message:
+  definition: "Assume the person recalls their own last message and none of what followed."
+  placement: {domain: core, stage: X, substage: Communication}
+explain-each-change:
+  definition: "Help the person grasp each change, beyond its current status."
+  placement: {domain: core, stage: X, substage: Communication}
+decidable-from-the-reply:
+  definition: "Set out every waiting decision so the person can make it from the reply alone."
+  placement: {domain: core, stage: X, substage: Communication}
+catch-up-spoken-register:
+  definition: "Use plain words, short sentences and no jargon, as one person catching another up."
+  placement: {domain: core, stage: X, substage: Communication}
+  distinct_from: [jargon-free-restatement, controlled-language]
+  note: "Those two govern a re-pitch of a message that failed; this one is the register of a catch-up."
+outcome-over-method:
+  definition: "Say what changed for the person in their terms, not how it was done."
+  placement: {domain: core, stage: X, substage: Communication}
+identifiers-only-when-needed:
+  definition: "Omit hashes, paths, commands, build numbers and test counts except where the person needs one to act."
+  placement: {domain: core, stage: X, substage: Communication}
+names-the-person-knows:
+  definition: "Call each pull request, branch or agent by a name the person would know, never an invented label."
+  placement: {domain: core, stage: X, substage: Communication}
+context-or-omit:
+  definition: "Give a fact the context it needs to make sense, or leave it out."
+  placement: {domain: core, stage: X, substage: Communication}
+catch-up-read-only:
+  definition: "During a catch-up change no code, start no app or job and post nothing, drawing only from material already in hand."
+  placement: {domain: core, stage: X, substage: Communication}
+gather-every-source-in-window:
+  definition: "Collect your own work, helper reports and messages from anyone else in the chat since the window began."
+  placement: {domain: core, stage: X, substage: Communication}
+live-state-of-touched-items:
+  definition: "Check the current state of every pull request, build or agent the chat touched."
+  placement: {domain: core, stage: X, substage: Communication}
+shown-numbers-verified:
+  definition: "Check each number shown against its source, and say so when one is corrected."
+  placement: {domain: core, stage: X, substage: Communication}
+  distinct_from: [primary-evidence-check]
+  note: "primary-evidence-check verifies claims before relying on them and does not require saying a correction was made."
+owner-only-action-items:
+  definition: "Count as an action item only a decision the person alone can take, never work the agent can still do."
+  placement: {domain: core, stage: X, substage: Communication}
+pending-calls-carried:
+  definition: "Include every decision still waiting on the person, even one raised before their last message."
+  placement: {domain: core, stage: X, substage: Communication}
+no-invented-calls:
+  definition: "Never make up a decision to fill the reply."
+  placement: {domain: core, stage: X, substage: Communication}
+unrequested-step-excluded:
+  definition: "Leave out a step nobody requested that the work does not need, unless it cannot be undone and waits on the person, which gets one line."
+  placement: {domain: core, stage: X, substage: Communication}
+calls-group-items:
+  definition: "Let one decision cover many items, such as several pull requests awaiting merge."
+  placement: {domain: core, stage: X, substage: Communication}
+per-item-decision-facts:
+  definition: "Gather for each item its link, its effect on users, the evidence for the pick, its risk and the agent's pick."
+  placement: {domain: core, stage: X, substage: Communication}
+explicit-unknowns:
+  definition: "Write unknown for any needed fact you do not know, and leave out links you do not have."
+  placement: {domain: core, stage: X, substage: Communication}
+  distinct_from: [searched-and-unknown]
+  note: "searched-and-unknown reports what was searched; this one marks a gap in a decision item."
+words-on-decisions:
+  definition: "Spend the words on the decisions, not the story, leaving out work that changed nothing for the person."
+  placement: {domain: core, stage: X, substage: Communication}
+catch-up-length-budget:
+  definition: "Keep what happened under about a hundred words and each item to about thirty, growing only with the item count."
+  placement: {domain: core, stage: X, substage: Communication}
+never-shrink-items:
+  definition: "Never drop items or replace them with a count or a bare link to meet a length budget."
+  placement: {domain: core, stage: X, substage: Communication}
+waiting-first-opening:
+  definition: "Open with one sentence naming what waits on the person, or saying nothing does."
+  placement: {domain: core, stage: X, substage: Communication}
+nothing-happened-stop:
+  definition: "When nothing happened and nothing waits, say so and stop."
+  placement: {domain: core, stage: X, substage: Communication}
+pictures-first-summary:
+  definition: "Show what happened with pictures first: captured screenshots and videos, then any explanatory diagram."
+  placement: {domain: core, stage: X, substage: Communication}
+per-request-outcome-lines:
+  definition: "Give one short line per thing the person requested, with its result and its state: finished, running, failed or unchecked."
+  placement: {domain: core, stage: X, substage: Communication}
+spoken-sentence-bullets:
+  definition: "Write each bullet as a sentence one would say aloud, not a label and a status."
+  placement: {domain: core, stage: X, substage: Communication}
+name-incidental-fixes:
+  definition: "Name any bug found and fixed along the way."
+  placement: {domain: core, stage: X, substage: Communication}
+standalone-true-lines:
+  definition: "Make each line true when read on its own."
+  placement: {domain: core, stage: X, substage: Communication}
+no-done-while-waiting:
+  definition: "Never mark done what still waits on the person."
+  placement: {domain: core, stage: X, substage: Communication}
+each-fact-once:
+  definition: "Give each fact once, whether in text, in a picture or in the action items."
+  placement: {domain: core, stage: X, substage: Communication}
+three-takeaways-cap:
+  definition: "Under the summary, add no more than three short lines, each changing what the person knows or has to do."
+  placement: {domain: core, stage: X, substage: Communication}
+remaining-own-work-line:
+  definition: "Say in a single line what work the agent can still do on its own."
+  placement: {domain: core, stage: X, substage: Communication}
+decision-asked-with-pick:
+  definition: "For each action item, ask the decision the person owns and give the agent's pick."
+  placement: {domain: core, stage: X, substage: Communication}
+pick-names-prereqs-and-irreversibles:
+  definition: "Make the pick cover what the agent would do first, what must come first and what cannot be undone."
+  placement: {domain: core, stage: X, substage: Communication}
+cite-item-identifiers:
+  definition: "Give the number or link of each pull request, issue or agent a decision concerns, also inside a choice between options."
+  placement: {domain: core, stage: X, substage: Communication}
+single-item-decision-line:
+  definition: "Put a decision about one item in one line with the decision, pick, user impact, evidence and risk, naming the item once."
+  placement: {domain: core, stage: X, substage: Communication}
+shared-decision-riskiest-first:
+  definition: "When items share a decision, state it and the pick once, then one line per item, riskiest first, naming a different pick only for the item that has one."
+  placement: {domain: core, stage: X, substage: Communication}
+always-state-risk:
+  definition: "State every item's risk, low ones included."
+  placement: {domain: core, stage: X, substage: Communication}
+waiting-cost-if-material:
+  definition: "Mention the cost of waiting only when it is worse than a delay, for example a missed deadline or data that would be lost."
+  placement: {domain: core, stage: X, substage: Communication}
+options-with-gain-and-cost:
+  definition: "For a choice between options, give every option weighed with its gain, its cost and its current state, under its screenshot when one is shown."
+  placement: {domain: core, stage: X, substage: Communication}
+banned-visual-kinds:
+  definition: "Never draw a status list, an action-item list or boxes with no connections."
+  placement: {domain: core, stage: X, substage: Communication}
+glanceable-visual-limits:
+  definition: "Keep each visual to six boxes or fewer with eight words or fewer in each."
+  placement: {domain: core, stage: X, substage: Communication}
+plain-visual-labels:
+  definition: "Label visuals in plain spoken words, putting any fact that needs a sentence in the text or nowhere."
+  placement: {domain: core, stage: X, substage: Communication}
+inline-media-for-visible-changes:
+  definition: "Embed screenshots and videos of a visible change in the reply, not only as links."
+  placement: {domain: core, stage: X, substage: Communication}
+no-screenshot-said:
+  definition: "When a visible change lacks a screenshot, say that it lacks one and describe the change on screen."
+  placement: {domain: core, stage: X, substage: Communication}
+diagram-kind-by-content:
+  definition: "Use a diagram for how things connect and a chart for numbers, drawn only from facts in hand."
+  placement: {domain: core, stage: X, substage: Communication}
+  distinct_from: [figure-kind-by-idea]
+  note: "figure-kind-by-idea picks among figure types for teaching; this one splits connection from numbers."
+video-replaces-catch-up-summary:
+  definition: "Run the full catch-up but replace its summary and visuals with a short subtitled video."
+  placement: {domain: core, stage: X, substage: Communication}
+prior-catch-up-not-a-boundary:
+  definition: "Start a catch-up's window at the person's last message, not at an earlier catch-up."
+  placement: {domain: core, stage: X, substage: Communication}
+render-outside-repo-exception:
+  definition: "Allow writing and rendering the video outside the repository as the one exception to a read-only catch-up."
+  placement: {domain: core, stage: X, substage: Communication}
+video-reply-composition:
+  definition: "Make the reply the opening sentence, the embedded video, one line of remaining own work and the action items."
+  placement: {domain: core, stage: X, substage: Communication}
+option-names-match-video:
+  definition: "Name each option in the text exactly as the video does."
+  placement: {domain: core, stage: X, substage: Communication}
+render-failure-gives-calls:
+  definition: "If the video fails to render, report that in one line and give only the decisions."
+  placement: {domain: core, stage: X, substage: Communication}
+slides-from-primary-artifacts:
+  definition: "Build slides from captured screenshots, recordings, diffs and data, not from chat prose about them."
+  placement: {domain: core, stage: X, substage: Communication}
+storyline-before-slides:
+  definition: "Before drawing, write the one sentence the person should take away and one line for each slide, kept out of the reply."
+  placement: {domain: core, stage: X, substage: Communication}
+drop-uninformative-slides:
+  definition: "Drop any slide that does not change what the person knows."
+  placement: {domain: core, stage: X, substage: Communication}
+slide-count-cap:
+  definition: "Use ten slides at most, and fewer by preference."
+  placement: {domain: core, stage: X, substage: Communication}
+one-point-per-slide:
+  definition: "Make one point per slide."
+  placement: {domain: core, stage: X, substage: Communication}
+one-evolving-picture:
+  definition: "Let slides develop one picture rather than cut between unrelated ones."
+  placement: {domain: core, stage: X, substage: Communication}
+  distinct_from: [incremental-diagram-series]
+  note: "incremental-diagram-series adds exactly one part per figure for three or more moving parts."
+consistent-visual-encoding:
+  definition: "Keep a colour or shape meaning the same thing on every slide."
+  placement: {domain: core, stage: X, substage: Communication}
+slides-show-pictures:
+  definition: "Present the work visually, for instance a system's workings, a stack of changes with their states, a before and after, or options side by side."
+  placement: {domain: core, stage: X, substage: Communication}
+point-at-the-change:
+  definition: "Direct attention to what changed with arrows, highlights and motion."
+  placement: {domain: core, stage: X, substage: Communication}
+banned-slide-kinds:
+  definition: "Never make a slide a bullet list, status list, table or set of unconnected boxes."
+  placement: {domain: core, stage: X, substage: Communication}
+labels-on-their-objects:
+  definition: "Keep slide text minimal and put each plain label on the thing it names."
+  placement: {domain: core, stage: X, substage: Communication}
+one-subtitle-per-slide:
+  definition: "Give each slide one subtitle of about ten words that states its point from what the slide shows."
+  placement: {domain: core, stage: X, substage: Communication}
+dedicated-subtitle-strip:
+  definition: "Put subtitles in a fixed strip below the slide that holds nothing else and covers nothing."
+  placement: {domain: core, stage: X, substage: Communication}
+slide-video-format:
+  definition: "Render one silent landscape video whose frames are the slides themselves, with each subtitle burned in for the slide's whole hold."
+  placement: {domain: core, stage: X, substage: Communication}
+reading-time-hold:
+  definition: "Hold each slide at least one second per three newly added words."
+  placement: {domain: core, stage: X, substage: Communication}
+frame-legibility-check:
+  definition: "Before embedding, look at one frame per slide at chat size to confirm the subtitle reads and covers nothing."
+  placement: {domain: core, stage: X, substage: Communication}
+measured-hold-check:
+  definition: "Measure each slide's hold from the file's frames and compare it with the slide's added words."
+  placement: {domain: core, stage: X, substage: Communication}
+fix-rerender-recheck:
+  definition: "Fix any slide that cannot be read in its hold, render again and check again."
+  placement: {domain: core, stage: X, substage: Communication}
+render-in-ignored-scratch-exception:
+  definition: "Allow writing and rendering the video in the project's ignored scratch folder as the one exception to a read-only catch-up."
+  placement: {domain: core, stage: X, substage: Communication}
+  distinct_from: [render-outside-repo-exception]
+  note: "render-outside-repo-exception writes and renders it outside the repository."
+project-verification-skill:
+  definition: "Produce a skill kept in the project that launches the real product, drives a feature as a user would and captures evidence."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+cold-agent-reader:
+  definition: "Write a generated skill for an agent that meets the project cold, in the middle of a task, rather than for a person."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+ask-only-unobservable:
+  definition: "Answer setup questions from the codebase and ask the person only what the code cannot show."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [self-serve-facts]
+  note: "self-serve-facts leaves only decisions to the person; this one also asks for facts the code cannot show, such as credentials or outside accounts."
+primary-surface-chosen:
+  definition: "Identify every surface a user touches, choose the main one and note the others."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+documented-run-command-first:
+  definition: "Prefer the project's own documented development command when working out how to start it."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+run-prerequisite-inventory:
+  definition: "Record the ports, environment variables, seed data and sign-in a local run needs."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+existing-harness-then-recipe:
+  definition: "Use a driving harness the project already has, and only then a generic recipe matched to the surface."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+evidence-inventory:
+  definition: "List the kinds of evidence the product can give, such as screenshots, transcripts, response bodies, logs, exit codes and stored state."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+instance-isolation-probe:
+  definition: "Establish whether two instances can run side by side through separate ports, data folders or profiles."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+drive-only-own-instance:
+  definition: "Drive only an instance this run started, declining a shared one that cannot be isolated."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+working-base-first:
+  definition: "Make a broken checkout build and start, or report the failure exactly, before generating anything from it."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+marked-startup-scaffolding:
+  definition: "Allow a run to create an unrelated asset that blocks startup only if it is labelled as verification scaffolding and removed in cleanup."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+registering-generated-frontmatter:
+  definition: "Give a generated skill frontmatter naming what it covers and when to use it, so it registers."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+launch-ready-means-usable:
+  definition: "State the exact start command and the concrete sign that the product is ready to use, not merely that a process or health check answers."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+launch-from-empty-data:
+  definition: "Require a launch to become usable starting from an empty data folder, migrations and seed data included."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+launch-with-teardown:
+  definition: "Pair the launch instructions with their teardown."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+short-lived-cli-launch:
+  definition: "For a short-lived command-line or terminal program, treat launch as one build or install followed by an isolated session per drive."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+read-only-doctor:
+  definition: "Provide one read-only check that the instance is alive, the right build, owns its port, has valid sign-in and matches the expected address, data folder and revision."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+doctor-when-suspicious:
+  definition: "Run the doctor check first whenever something looks wrong."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+stable-handles:
+  definition: "Prefer durable handles such as accessible roles and names, data attributes, prompt strings and routes over coordinates, tab order or position."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+named-evidence-destination:
+  definition: "Say which evidence a proof captures and the place it is kept."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+real-user-path-proof:
+  definition: "Prove a feature through the path a real user takes, never internal setters or test-only endpoints."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+action-and-state-capture:
+  definition: "Capture both the action taken and the state that resulted, not only the final screen."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+side-effects-verified:
+  definition: "Verify side effects such as written files, inserted rows and sent messages, as well as what is visible."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+teardown-only-own-instances:
+  definition: "Stop only instances this run created, never by process name."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+cleanup-keeps-evidence:
+  definition: "Make cleanup remove instances and scratch state while proof files survive where the skill names."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+runnable-documented-helpers:
+  definition: "Make every shipped helper script executable and give its invocation in the skill body."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+seeded-feature-map:
+  definition: "Start a feature map of an index with one line per feature and one file per user-facing feature, beginning with the main few found in routes, commands, menus or docs."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+user-view-feature-file:
+  definition: "Have each feature file describe, from the user's side, what the feature does, the route to it, how to drive it and the visible end state that proves it."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+feature-file-template:
+  definition: "Open each feature file with a title and one paragraph of user-visible behaviour, then fixed sections for sub-features by short id, how to reach it, driving it as action, command and result lines, and gotchas."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+missing-precondition-in-gotchas:
+  definition: "When seed data lacks a precondition a journey needs, record the missing precondition in that feature's gotchas."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [run-invalidating-gotchas, unreachable-with-route-and-prerequisite]
+  note: "run-invalidating-gotchas says what a gotcha is, and unreachable-with-route-and-prerequisite reports a run; this one corrects the map so the next run does not repeat the failed journey."
+map-defines-completeness:
+  definition: "Treat the feature map as the source of what must be proven, so proof through one entry point falls short while the map lists more, and a skipped one is never claimed through another route."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+generated-skill-run-once:
+  definition: "Follow a generated skill end to end once, as its next reader would, before handing it over, counting an unrun skill as a draft."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [prove-the-rules-bite]
+  note: "prove-the-rules-bite plants a violation to see a guardrail fail; this one only runs the generated steps."
+single-feature-handover-proof:
+  definition: "Count one mapped feature, proven end to end, as enough for the handover proof, leaving the rest of the map to later runs."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+evidence-checked-after-cleanup:
+  definition: "After cleanup, confirm the captured evidence still exists where the skill says it is, and fail the step if it does not."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+cleanup-after-failed-attempt:
+  definition: "Run the cleanup after every failed attempt too, so no process or port is left stranded."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+stand-in-gap-disclosure:
+  definition: "When a proof ran in a substitute environment, list each setup step it did that the real target will not, keeping those steps marked unverified."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+cadence-only-on-request:
+  definition: "Suggest a maintenance schedule only when asked for one."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+read-index-first:
+  definition: "Have the map send its reader to the index first and then to the feature file that matches, used as the recipe."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+baseline-preconditions-block:
+  definition: "Open the map index with the shared preconditions: launch address, seed data and tools on the path."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+per-run-disposable-data:
+  definition: "Give each run its own throwaway data folder keyed by a run id, so concurrent runs share no state."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+baseline-start-and-reset:
+  definition: "Start each recipe from the baseline state unless it says otherwise, and return to the required state before proving the next case when an earlier step changed it."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+literal-commands:
+  definition: "Treat each command as literal, keeping quoted names and flags unchanged."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+single-control-wrapper:
+  definition: "Route browser and terminal actions through one control command."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+restore-seed-after-mutation:
+  definition: "Put seeded data back after any change to it."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+ui-proof-snapshot-and-screenshot:
+  definition: "For an interface, define proof as an accessibility snapshot plus a screenshot showing the product's identity."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+cli-proof-command-output-exit:
+  definition: "For a command line, define proof as the command, its output, its errors and its exit code."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+change-proven-by-second-read:
+  definition: "Prove a change persisted by reading it back through a separate read-only view, such as reopening the item from the list, not by its save confirmation."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+artifact-provenance:
+  definition: "Label every proof file with the feature, entry point, product, input used and expected item."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+unreachable-with-route-and-prerequisite:
+  definition: "Report a feature as unreachable only with the route tried and the prerequisite that was missing."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [unreachable-data-is-gap]
+  note: "unreachable-data-is-gap covers data a search could not reach; this one covers a product path a drive could not reach."
+run-invalidating-gotchas:
+  definition: "Keep the gotchas section for traps that could waste a verification run or make its result invalid."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+complete-entry-point-list:
+  definition: "List every way a user can reach a feature."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+user-terms-only-in-map:
+  definition: "Keep implementation detail out of the feature map, naming only the user's routes, durable handles, needed state, commands and visible proof."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+cancel-path-covered:
+  definition: "For a feature with a cancel action, include a journey that cancels and checks the product shows what it specifies a cancel leaves, such as no saved item."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+rendered-value-asserted:
+  definition: "Assert the value the product displayed, not the value typed, since the product may normalise input."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+no-result-state-asserted:
+  definition: "Tell a true no-results state from an unavailable feature, waiting for the finished state, and on a command line assert the exact exit code and empty output."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+wait-on-condition-not-sleep:
+  definition: "Wait for a concrete result element or status rather than a fixed delay."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+structured-output-for-assertions:
+  definition: "Use a machine-readable output option for stable command-line assertions."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+ui-proof-screenshot-snapshot-where-offered:
+  definition: "For an interface, define proof as a screenshot showing the product's identity, plus an accessibility snapshot when the surface and the available tools provide one."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [ui-proof-snapshot-and-screenshot]
+  note: "ui-proof-snapshot-and-screenshot always asks for the accessibility snapshot."
+every-feature-source-and-live:
+  definition: "Cover each feature both from its source and live at least once, even when the source reading looks clean, without testing every sentence."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+one-pass-outcome:
+  definition: "End each pass with exactly one outcome, clean, changes or blocked, a blocked pass saying exactly what stopped it."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+no-change-outcome-report:
+  definition: "When a pass is clean or blocked, open no change and report the outcome and coverage honestly."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+one-pr-of-proven-fixes:
+  definition: "Ship a pass's changes as one pull request holding only proven fixes to docs, harness or map."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+verification-only-edits:
+  definition: "During a verification pass, edit only the verification skill's own files and never product code unless asked."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+map-drift-or-regression:
+  definition: "Classify a gap between map and product as doc drift to fix or a product regression to report outside the change, never hiding a regression in the docs."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+harness-gap-fix:
+  definition: "Fix working behaviour the harness cannot drive as a harness gap, under the same runnable-and-documented helper rule."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+target-found-by-content:
+  definition: "Find the verification skill to maintain by what it does, not by a fixed name, or use the one the person named."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+no-target-points-to-create:
+  definition: "When no verification skill exists, stop and point to the unit that creates one rather than inventing one."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+index-hygiene:
+  definition: "Compare the map index with its feature files and fix missing, extra, duplicate or dead entries by hand, building no generated inventory."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+per-feature-source-readers:
+  definition: "Launch one concurrent read-only helper per feature file to explain from source how the feature works."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+source-reader-return-shape:
+  definition: "Have each source reader return the feature summary, its source entry points, likely drift with citations or none, and one short live recipe."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+source-readers-never-drive:
+  definition: "Keep source readers from driving the product or editing files."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [brief-only-read-only]
+  note: "brief-only-read-only forbids writes; this one also forbids touching the running product."
+merge-recipes-few-states:
+  definition: "Merge overlapping live recipes into as few product states as practical."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+spot-check-cited-drift:
+  definition: "Check the drift readers cited, without re-proving what they reported clean."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+churn-sweep-with-source-path:
+  definition: "Sweep recent changes for user-facing surfaces the map lacks, and cite the source file that shows one before reporting it absent."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+coordinator-only-driving:
+  definition: "Leave all driving of the product to the coordinator."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+launch-model-from-skill:
+  definition: "Follow the target skill's launch section to choose one long-lived instance or a fresh isolated session per drive."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+doctor-at-fixed-points:
+  definition: "Run the doctor check before the first drive, on each fresh session and after any failed drive, resetting or relaunching where it cannot see the fault."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+failed-drive-residue-cleanup:
+  definition: "Clean up what a failed drive left, whether its session hung, ended or is shared, taking only that residue from a shared instance."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [cleanup-after-failed-attempt]
+  note: "cleanup-after-failed-attempt runs the general cleanup; this one handles a stuck or shared session."
+drift-doctor-fix-retry-once:
+  definition: "Treat a doctor failure caused by skill drift as drift: fix it within scope, restart only what the fix invalidated and retry once before declaring blocked."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+omitted-prerequisite-is-drift:
+  definition: "Count a prerequisite the map fails to mention as drift."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+harness-fix-redriven:
+  definition: "Drive any harness fix live again before it ships."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+final-teardown-after-last-drive:
+  definition: "Tear down only after the run's last drive, re-proofs included, leaving the evidence in place."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+reread-changed-files-whole:
+  definition: "Read each changed file in full, not only its diff, before shipping the change."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [final-diff-inspection]
+  note: "final-diff-inspection reads the patch and Git status; this one also reads the unchanged parts of each changed file, where a clash with the change can sit."
+uncommitted-run-notes:
+  definition: "Keep short notes on features covered, unreachable prerequisites, confirmed drift and outcome in an uncommitted scratch place."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [scratch-artifact-location]
+  note: "scratch-artifact-location says where temporary files go; this one fixes what a run's notes hold."
+one-change-of-proven-fixes:
+  definition: "Gather a pass's proven fixes to docs, harness and map into one change, opening a pull request for it only with authority to do so."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [one-pr-of-proven-fixes]
+  note: "one-pr-of-proven-fixes always opens a pull request."
+source-reader-per-sizeable-feature:
+  definition: "Give a feature's source reading its own read-only helper only when it is sizeable and independent, reading small ones directly."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [per-feature-source-readers]
+  note: "per-feature-source-readers starts one helper per feature whatever its size."
+formal-check-left-as-skill:
+  definition: "Verify one property and leave a project skill that lets a later agent check changes against it."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+result-trusted-without-the-language:
+  definition: "Make the result something the person can trust and act on without learning the verification language."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+harmful-rarely-tested-promise:
+  definition: "Pick as the target a promise the code makes whose breaking harms users and that tests rarely reach."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+strongest-target-not-easiest:
+  definition: "Choose the strongest such target, not the easiest to verify."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+verification-tool-by-question:
+  definition: "Pick the cheapest tool that answers the question: a model checker over a small design model for bad event orderings, a code-level verifier for behaviour on every input, and a proof for properties no bound can settle."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+generated-input-fallback:
+  definition: "When no verifier supports the language, say so and exercise the real code with generated inputs rather than a hand-written model of it."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+installable-tool-preference:
+  definition: "Prefer a verification tool the project's developers are able to install and run, and explain the choice to the person."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+traceable-to-code:
+  definition: "Make every part of a verification model or proof point to code a reviewer can open."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+atomicity-fidelity:
+  definition: "Treat as one indivisible step in the verification only what is one indivisible step in the code."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+property-fails-on-broken-variant:
+  definition: "Show each property failing on a deliberately broken variant of the code it guards, after first writing it and after each update."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+  distinct_from: [prove-the-rules-bite]
+  note: "prove-the-rules-bite proves a guardrail by a clean pass, a planted failure and a clean pass again."
+verified-scope-statement:
+  definition: "Say what the verification covers, the bounds and assumptions it holds under, and what it leaves out."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+plain-property-and-harm:
+  definition: "State the property and the harm of breaking it in one plain sentence each."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+counterexample-as-code-steps:
+  definition: "Describe a counterexample as a few steps phrased in the code's own terms."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+cheap-rerun:
+  definition: "Make the check rerunnable with a single command, a pinned tool version and a short running time."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+coverage-and-sync-record:
+  definition: "Record, per check, the files and functions it guards and the last commit it was confirmed against, so drift shows."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+verify-skill-capabilities:
+  definition: "Let the next agent learn from the skill alone whether a change touches verified code, how to run the check, how to tell a real bug from a modelling error and how to update the verification for an intended change."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+sync-commit-advanced-after-match:
+  definition: "Move the recorded sync commit forward only after confirming the verification matches the code at the new commit."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+companion-tool-by-name:
+  definition: "When the check is a state-machine model, such as a TLA+ check, point the generated skill at a named companion tool for reading results, copying none of its commands, options or paths."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+generated-check-catches-planted-break:
+  definition: "Follow the generated skill once against a throwaway edit to real code that violates the property, confirm it catches the break, then remove the edit and confirm the check is back to its earlier state."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+  distinct_from: [prove-the-rules-bite, generated-skill-run-once]
+  note: "prove-the-rules-bite proves an existing guardrail, and generated-skill-run-once only runs the generated steps without a planted break."
+fix-skill-not-scratch-break:
+  definition: "When the skill misses a planted break or a step fails, fix the skill or the verification, never the planted break."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+verification-handoff-report:
+  definition: "Tell the person what was verified, with which tool and why, the bounds, the findings in plain words, the command to run it and what it leaves uncovered."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+  distinct_from: [handoff-contents]
+  note: "handoff-contents is a general hand-off to another agent; this one reports a verification to a person."
+adjacent-target-only-if-close:
+  definition: "Suggest a second target only when a close one turned up."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+per-check-outcome:
+  definition: "Give each check one named outcome, in sync, updated, bug or blocked with the reason, allowing updated and bug together when an update restores fidelity and the property then fails."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+per-check-inventory:
+  definition: "Collect for each check its property, covered code, bounds and assumptions, run command and last sync commit."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+inferred-sync-commit:
+  definition: "With no recorded sync commit, take the most recent commit that touched the verification files and say so."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+failure-classified-after-rerun:
+  definition: "Leave a baseline failure unclassified as drift or bug until the rerun-and-judge step."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+covered-change-sweep:
+  definition: "Diff the covered files since the sync commit and read each commit message, following renamed, split or moved code and new writers of the guarded state."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+four-way-change-classification:
+  definition: "Classify each change as no effect, verification out of date, promise changed on purpose or promise maybe broken, treating a changed promise without evidence as a bug candidate."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+no-effect-judged-by-model:
+  definition: "Judge that a change has no effect against the model or harness, not the commit message."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+intended-change-needs-evidence:
+  definition: "Count a promise as changed on purpose only with evidence cited from the change, such as a doc comment, tests, changelog or commit message."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+update-from-code-before-rerun:
+  definition: "Write a model update from the code before rerunning, never shaped by what makes the check pass."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+property-change-audit-trail:
+  definition: "Change a property only for a promise changed on purpose, recording its wording before and after and the evidence."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+keep-bounds:
+  definition: "Keep the bounds unless a change makes them wrong, and report any reduction."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+bug-report-fields:
+  definition: "Give a confirmed bug the commit that introduced it, its counterexample told in the code's terms and its harm in one sentence."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+uncommitted-repro-evidence:
+  definition: "Put a cheap test or reproduction showing the bug in the report as evidence without committing it to product code."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+verify-skill-metadata-refresh:
+  definition: "Update each check's covered code, commands, bounds, assumptions and sync commit in the verification skill, setting the sync commit to the one checked."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+blocked-check-sync-freeze:
+  definition: "Leave a blocked check's sync commit where it was, and say so."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+per-check-report:
+  definition: "Report per check the outcome, commits read, each verification change with its reason, the rerun result and the break used, each bug in plain words with its commit and the coverage gaps left, saying outright which failures were drift and which were bugs."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+stale-pass-disclosure:
+  definition: "For a check that passed before an update and fails after, say the old pass was against a stale description."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+separate-verification-change:
+  definition: "Keep verification updates in their own change, apart from any product fix."
+  placement: {domain: engineering, stage: Verification, substage: Validation}

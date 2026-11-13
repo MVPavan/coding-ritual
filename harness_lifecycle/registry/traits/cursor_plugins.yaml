@@ -436,3 +436,104 @@
       traits: [breakage-beyond-callers, safety-fact-proved-by-run, evidence-ladder, ladder-as-far-as-cheap, small-real-library-script, failing-loud-proof, whole-change-including-unstated, change-history-pull, single-safety-fact-search, dependency-source-and-pin, timing-and-lifecycle-analysis, non-symbol-coupling-trace, likelihood-and-cost-per-risk, confirmed-and-cleared-split, empty-search-is-finding, no-fabrication, multi-model-question-on-wide-change, handback-what-it-does, handback-safety-fact-with-grade, handback-risk-fields, handback-pre-merge-check, secret-containment]
       added: {}
       changed: {}
+# Batch P2: ten skills at 2776ddd, proposed.
+"cursor_plugins:skill:pstack/skills/technical-writing":
+  accepted: "2776ddd"
+  proposed: null
+  analyses:
+    "2776ddd":
+      tree_hash: "1863cdf897424614dbd6a4b63841850fe806d59e842c4083efa178e01b72003e"
+      placement: {domain: core, stage: X, substage: Communication}
+      traits: [plain-word, cut-removable-words, rule-yields-to-better-sentence, real-name-over-description, no-coined-terms-unless-defined, reply-proposes-word-list-changes, varied-sentence-lengths, one-thought-per-sentence, opinion-where-the-mode-allows, name-the-mechanism, one-mode-per-document, two-question-mode-test, tutorial-author-owns-success, tutorial-opens-with-what-gets-built, tutorial-early-visible-results, tutorial-says-what-to-expect, tutorial-one-clause-explanations, tutorial-first-person-plural, howto-framed-by-problem, howto-action-only, howto-branches-allowed, howto-title-names-task, reference-describes-only, reference-complete-and-dry, reference-mirrors-the-code, reference-where-expected, reference-generated-from-code, explanation-one-bounded-topic, explanation-answers-a-why, explanation-gives-background, second-person-present, future-tense-for-later-only, active-voice, instructions-as-commands, condition-before-step, common-case-first, plain-expert-register, no-please-in-instructions, no-minimizing-words, no-announced-future-support, varied-sentence-openers, descriptive-link-text, context-over-outbound-link, headings-state-the-point, sentence-case-headings, heading-grammar-by-type, heading-level-discipline, numbered-only-for-sequences, list-introduced-by-sentence, parallel-list-items, code-and-ui-formatting, serial-commas, partial-list-said-up-front, sentence-word-ceilings, over-compression-fix, one-meaning-per-word, synonym-cycling-cut, fewer-ing-forms, limiter-beside-its-word, noun-stack-unpacked, pronoun-one-referent, repeat-article-in-series, explicit-conjunction-grouping, periods-not-semicolons, em-dash-to-new-sentence, whole-parentheticals, no-parenthetical-plurals, no-unrelated-cleanup, no-idioms-or-latin-abbreviations, writing-rules-cover-pr-bodies, writing-rules-cover-commit-messages, one-minute-pr-briefing, link-bulk-evidence, product-copy-excluded, tab-indented-snippets, real-paths-in-docs, count-claims-with-command]
+      added: {}
+      changed: {}
+"cursor_plugins:skill:pstack/skills/statechart":
+  accepted: "2776ddd"
+  proposed: null
+  analyses:
+    "2776ddd":
+      tree_hash: "3b9a1f08cfc53c73ee8735f2392dbbd777e1c2c17fa89a22a9dddf1cd147677c"
+      placement: {domain: engineering, stage: Verification, substage: Validation}
+      traits: [model-files-outside-repo, check-and-draw-in-one-command, runtime-version-gate, pinned-checker-install, deterministic-checker-run, sibling-modules-on-path, config-and-output-defaults, input-validated-before-check, fresh-output-published-atomically, checker-exit-code-contract, interrupt-leaves-nothing, report-printed-on-success, unnamed-break-is-error, checker-error-excerpt, agreed-rules-as-invariants, check-never-weakened-to-pass, named-actions-in-next-state, end-state-stutter-action, deadlock-rule-naming, bounded-state-space, every-rule-own-verdict, rerun-state-bound, unchecked-rule-remedy, initial-only-property-warning, raw-checker-logs, judgment-in-view-module, state-shape-selects-chart-form, default-state-labels, reader-facing-state-labels, value-encoding-for-views, user-event-step-labels, shared-label-shared-arrow, step-condition-in-label, name-hidden-outcome, phase-groups-and-colors, pure-view-functions, view-output-validated, arrow-reduction-ladder, preserve-bug-states-in-merges, hidden-steps-constrained, disclose-hidden-steps, self-loops-not-drawn, parent-level-arrows, simultaneous-region-change-notes, regions-fidelity-fallback, loop-exit-fidelity-check, stable-draw-order, shortest-failing-path, liveness-loop-description, break-and-may-break-marks, path-and-repeat-classes, legend-of-marks, per-state-rule-attribution, post-violation-states-shown, dead-end-deadlock-marking, constraint-boundary-states, representative-state-note, graph-size-summary, empty-model-diagnosis, holds-list, chart-state-budget, chart-shown-as-code-block, safe-label-escaping, concurrent-regions-rendering, portable-mark-styles, pinned-designated-renderer, image-beside-chart, raised-render-limits, render-error-fallback, chart-theming-rules, embedded-light-dark-stylesheet, chart-to-decider, one-line-per-failure, state-model-omissions, regeneration-command, counterexample-replayed-on-code]
+      added: {}
+      changed: {}
+"cursor_plugins:skill:pstack/skills/reflect":
+  accepted: "2776ddd"
+  proposed: null
+  analyses:
+    "2776ddd":
+      tree_hash: "9c52cfc7da8c70ac85a3acb023f703547a6cef2e2c773ead8b94b42afde0c70f"
+      placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+      traits: [skip-routine-sessions, one-offs-not-lessons, no-cross-project-transcript-search, transcript-located-by-layout-probe, digest-when-log-missing, three-reviewers-per-session, writable-helper-mode, role-model-config-line, rejected-model-swap, lens-model-table, lens-brief-file, brief-sent-as-written, findings-in-the-reply, fresh-synthesizer, three-way-finding-disposition, check-worthy-finding-parked, approval-before-applying-findings, approver-may-reroute, backlog-filed-without-approval, edit-a-copy-not-the-cache, no-pr-from-retrospective, approved-routing-followed, edit-route-by-size, used-or-missed-unit-scope, validator-on-changed-skills, closing-summary-parts, durable-principle-lens, per-lens-scan-lists, brief-only-read-only, lookups-limited-to-cited, untrusted-content-no-authority, used-unit-evidence-test, finding-with-moment-and-destination, rule-not-label, skip-trivia-findings, skip-drifting-details, numbered-findings-list, concrete-tooling-lens, fetchable-context-lens, blind-spot-lens, contradict-the-obvious-lesson, absence-as-evidence, synthesizer-checks-cited-sources, merge-lookups-limited-to-cited, specific-but-general-finding, existing-home-before-new-unit, agreement-raises-confidence, decision-changing-finding, target-read-before-accepting, reword-buried-guidance, findings-table-format, one-row-per-finding, closed-rejection-codes, backlog-item-shape]
+      added: {}
+      changed: {}
+"cursor_plugins:skill:pstack/skills/swarm":
+  accepted: "2776ddd"
+  proposed: null
+  analyses:
+    "2776ddd":
+      tree_hash: "b5e6e44e275cfa944ab27e431037992343849fc7aae5f4f5fedb4c1c66200cf2"
+      placement: {domain: core, stage: X, substage: Coordination}
+      traits: [phase-todos, brief-names-done-evidence, partition-or-race-shape, race-selection-rule-first, role-model-config-line, rejected-model-swap, race-arms-models-named, job-fit-helper-effort, own-output-location, exact-commit-briefs, measurement-method-in-brief, worker-records-commits-and-method, one-message-fan-out, cloud-background-workers, worker-base-branch, worker-brief-contents, pass-issues-blocked-verdict, every-provable-defect, dropout-proceeds-noted, finished-results-only, unanchored-result-respawned, missing-result-not-pass, no-raw-worker-dumps, swarm-report-table]
+      added: {}
+      changed: {}
+"cursor_plugins:skill:pstack/skills/ketchup":
+  accepted: "2776ddd"
+  proposed: null
+  analyses:
+    "2776ddd":
+      tree_hash: "f2f883bf6e1e1e9de3936d21faa3c64da9f8e9c103499f6dee8c3eb6d455083e"
+      placement: {domain: core, stage: X, substage: Communication}
+      traits: [catch-up-window-since-last-message, reader-knows-only-their-last-message, explain-each-change, decidable-from-the-reply, catch-up-spoken-register, outcome-over-method, identifiers-only-when-needed, names-the-person-knows, context-or-omit, catch-up-read-only, gather-every-source-in-window, live-state-of-touched-items, shown-numbers-verified, owner-only-action-items, pending-calls-carried, no-invented-calls, unrequested-step-excluded, calls-group-items, per-item-decision-facts, explicit-unknowns, words-on-decisions, catch-up-length-budget, never-shrink-items, waiting-first-opening, nothing-happened-stop, pictures-first-summary, per-request-outcome-lines, spoken-sentence-bullets, name-incidental-fixes, standalone-true-lines, no-done-while-waiting, each-fact-once, three-takeaways-cap, remaining-own-work-line, decision-asked-with-pick, pick-names-prereqs-and-irreversibles, cite-item-identifiers, single-item-decision-line, shared-decision-riskiest-first, always-state-risk, waiting-cost-if-material, options-with-gain-and-cost, figure-when-faster, banned-visual-kinds, glanceable-visual-limits, plain-visual-labels, inline-media-for-visible-changes, no-screenshot-said, diagram-kind-by-content, no-fabrication]
+      added: {}
+      changed: {}
+"cursor_plugins:skill:pstack/skills/ketchup-video":
+  accepted: "2776ddd"
+  proposed: null
+  analyses:
+    "2776ddd":
+      tree_hash: "2cf5134c32cd8dd4d76f4c69bc0fc2036254cd77f6de1b6ec440ce8653fdd6be"
+      placement: {domain: core, stage: X, substage: Communication}
+      traits: [video-replaces-catch-up-summary, prior-catch-up-not-a-boundary, render-outside-repo-exception, video-reply-composition, option-names-match-video, render-failure-gives-calls, slides-from-primary-artifacts, storyline-before-slides, drop-uninformative-slides, slide-count-cap, one-point-per-slide, one-evolving-picture, consistent-visual-encoding, slides-show-pictures, point-at-the-change, banned-slide-kinds, labels-on-their-objects, each-fact-once, per-request-outcome-lines, name-incidental-fixes, no-screenshot-said, no-fabrication, one-subtitle-per-slide, dedicated-subtitle-strip, slide-video-format, reading-time-hold, frame-legibility-check, measured-hold-check, fix-rerender-recheck]
+      added: {}
+      changed: {}
+"cursor_plugins:skill:pstack/skills/create-verification-skill":
+  accepted: "2776ddd"
+  proposed: null
+  analyses:
+    "2776ddd":
+      tree_hash: "8a96bace9d61f0c3bfc226755a7de750cfc738f4e3c598430401077d9b9f42d6"
+      placement: {domain: engineering, stage: Verification, substage: Testing}
+      traits: [project-verification-skill, cold-agent-reader, ask-only-unobservable, primary-surface-chosen, documented-run-command-first, run-prerequisite-inventory, existing-harness-then-recipe, evidence-inventory, instance-isolation-probe, drive-only-own-instance, working-base-first, marked-startup-scaffolding, registering-generated-frontmatter, real-code-names, launch-ready-means-usable, launch-from-empty-data, launch-with-teardown, short-lived-cli-launch, read-only-doctor, doctor-when-suspicious, stable-handles, named-evidence-destination, real-user-path-proof, action-and-state-capture, side-effects-verified, system-boundary-mocks-only, direct-observation, teardown-only-own-instances, cleanup-keeps-evidence, runnable-documented-helpers, seeded-feature-map, user-view-feature-file, feature-file-template, check-never-weakened-to-pass, missing-precondition-in-gotchas, map-defines-completeness, generated-skill-run-once, single-feature-handover-proof, evidence-checked-after-cleanup, cleanup-after-failed-attempt, stand-in-gap-disclosure, cadence-only-on-request, read-index-first, baseline-preconditions-block, per-run-disposable-data, baseline-start-and-reset, literal-commands, single-control-wrapper, restore-seed-after-mutation, ui-proof-snapshot-and-screenshot, cli-proof-command-output-exit, change-proven-by-second-read, artifact-provenance, unreachable-with-route-and-prerequisite, run-invalidating-gotchas, complete-entry-point-list, user-terms-only-in-map, cancel-path-covered, rendered-value-asserted, no-result-state-asserted, wait-on-condition-not-sleep, structured-output-for-assertions]
+      added: {}
+      changed: {}
+"cursor_plugins:skill:pstack/skills/maintain-verification-skill":
+  accepted: "2776ddd"
+  proposed: null
+  analyses:
+    "2776ddd":
+      tree_hash: "7e8fa052ad6e9935e53225dcadf7e1c29f2a9c1efc82bb8dd73d4d019fb2cb21"
+      placement: {domain: engineering, stage: Verification, substage: Testing}
+      traits: [every-feature-source-and-live, one-pass-outcome, no-change-outcome-report, one-pr-of-proven-fixes, verification-only-edits, map-drift-or-regression, harness-gap-fix, target-found-by-content, material-ambiguity-ask, no-target-points-to-create, index-hygiene, per-feature-source-readers, source-reader-return-shape, source-readers-never-drive, missing-result-not-pass, merge-recipes-few-states, spot-check-cited-drift, churn-sweep-with-source-path, coordinator-only-driving, launch-model-from-skill, doctor-at-fixed-points, evidence-checked-after-cleanup, failed-drive-residue-cleanup, drift-doctor-fix-retry-once, unreachable-with-route-and-prerequisite, omitted-prerequisite-is-drift, harness-fix-redriven, final-teardown-after-last-drive, reread-changed-files-whole, uncommitted-run-notes]
+      added: {}
+      changed: {}
+"cursor_plugins:skill:pstack/skills/create-formal-verification-skill":
+  accepted: "2776ddd"
+  proposed: null
+  analyses:
+    "2776ddd":
+      tree_hash: "c968cb41c00203d7818089ff9356126f0e25aa0d5cb35031206f2558208ddcee"
+      placement: {domain: engineering, stage: Verification, substage: Validation}
+      traits: [formal-check-left-as-skill, cold-agent-reader, result-trusted-without-the-language, ask-only-unobservable, named-scope-first, harmful-rarely-tested-promise, strongest-target-not-easiest, verification-tool-by-question, generated-input-fallback, installable-tool-preference, traceable-to-code, atomicity-fidelity, domain-vocabulary, property-fails-on-broken-variant, check-never-weakened-to-pass, verification-only-edits, verified-scope-statement, plain-property-and-harm, counterexample-as-code-steps, cheap-rerun, coverage-and-sync-record, registering-generated-frontmatter, verify-skill-capabilities, sync-commit-advanced-after-match, real-code-names, companion-tool-by-name, generated-check-catches-planted-break, generated-skill-run-once, fix-skill-not-scratch-break, verification-handoff-report, adjacent-target-only-if-close]
+      added: {}
+      changed: {}
+"cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill":
+  accepted: "2776ddd"
+  proposed: null
+  analyses:
+    "2776ddd":
+      tree_hash: "10c850aa0b1db151e2b196428c0166bebbb0ae307032d71bf1cadc82eb93e669"
+      placement: {domain: engineering, stage: Verification, substage: Validation}
+      traits: [per-check-outcome, verification-only-edits, check-never-weakened-to-pass, target-found-by-content, per-check-inventory, no-target-points-to-create, inferred-sync-commit, baseline-check-before-change, failure-classified-after-rerun, covered-change-sweep, four-way-change-classification, no-effect-judged-by-model, intended-change-needs-evidence, update-from-code-before-rerun, traceable-to-code, atomicity-fidelity, property-change-audit-trail, keep-bounds, property-fails-on-broken-variant, counterexample-replayed-on-code, bug-report-fields, uncommitted-repro-evidence, verify-skill-metadata-refresh, blocked-check-sync-freeze, generated-skill-run-once, per-check-report, stale-pass-disclosure, separate-verification-change]
+      added: {}
+      changed: {}

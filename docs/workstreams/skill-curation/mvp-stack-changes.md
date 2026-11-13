@@ -1134,6 +1134,37 @@ Proof: Sol reviewed the mapping and report (critic-66c, seven findings fixed; cr
 registry check before and after, a row-by-row match of the round against the report, and a build and check
 in a fresh clone pass. Limit: the two `delegation` adopts are not yet delivered.
 
+## 26. Batch P2: ten pstack skills ruled trait by trait (`cr-r2pa.2.13.2`)
+
+Added 2026-11-13. Mapping and sheet `scratchpad/mvp-stack/67/` (gitignored), recorder
+`scratchpad/mvp-stack/72/record_p2.py`; round `2026-11-13-batch-p2`, 489 events, trait-level, sealed;
+report `harness_lifecycle/registry/reviews/2026-11-12-upstream-cursor_plugins-2776ddd-batch-p2.yaml`,
+sealed. Ten skills never ruled before were taken apart into 461 rows; 415 trait definitions are new.
+
+- **Counts:** 368 adopt pending, 14 already held (`unslop` 6, `AGENTS.md` 7, `delegation` 1), 78 reject,
+  1 out of scope. Of the pending adopts, 300 go to seven units still to be built: `statechart` 75,
+  `ketchup` 49, `ketchup-video` 28, `create-verification-skill` 69, `maintain-verification-skill` 32,
+  `create-formal-verification-skill` 24 and `maintain-formal-verification-skill` 23. The other 68 go to
+  `reflect` 47, `unslop` 15, `delegation` 4 and `pr` 2.
+- **Held rows:** 18 adopts (17 `reflect`, 1 `pr`) were already said by their unit. `traits/ours.yaml` now
+  lists them, and a completing adopt supersedes each pending one in the same round. One `reflect` row lands
+  as our variant `finding-with-evidence-and-destination`. 50 adopts into existing units stay pending.
+- **Owner rulings of 2026-11-13:** `technical-writing` rejected except its 15 `unslop` and 2 `pr` adopts (its
+  document-mode rows are rejects); `reflect` taken whole except six rows that break rules ours keeps on
+  purpose; `swarm` rejected except its four `delegation` adopts; `statechart`, `ketchup` and
+  `ketchup-video` taken as new units; the four verification units taken, with a detailed discussion before
+  delivery. `statechart`'s engine is TLA+ with the TLC checker: its 17 engine-dependent rows are written
+  for that engine, and 4 more adopt our engine-neutral variants.
+- Ten checkpoints at 2776ddd, none superseding anything: `adopt` for the five skills taken whole,
+  `adopt-merged` for the other five. Their ten analyses are accepted.
+
+Proof: Sol reviewed the mapping and report four times (critic-67c, 67e, 67g, 67i); the coordinator applied
+critic-67i's three fixes without a further round, so both critic fields read `accepted`. Batch checks,
+registry check before and after, a row-by-row match of the round against the report, and a build and check
+in a fresh clone pass. Limits: 350 adopts are not yet delivered, 300 of them into units not yet built.
+`no-cross-project-transcript-search` is now listed by `decision-trail` and `reflect` with no
+`trait-sharing.yaml` entry, so `check` warns until the owner justifies one.
+
 ## Regenerating
 
 From the worktree root:

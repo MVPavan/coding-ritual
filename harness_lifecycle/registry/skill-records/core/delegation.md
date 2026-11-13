@@ -51,9 +51,20 @@ Use when handing work to another agent or model (an explorer, implementer, revie
 - **mattpocock_skills:skill:skills/productivity/grilling#fresh-context-subagent** `skills/productivity/grilling/SKILL.md` @ 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d
 - **mattpocock_skills:skill:skills/in-progress/claude-handoff#brief-from-file** `skills/in-progress/claude-handoff/SKILL.md` @ 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d (pending cr-r2pa.2.13.1)
 - **mattpocock_skills:skill:skills/in-progress/claude-handoff#named-background-worker** `skills/in-progress/claude-handoff/SKILL.md` @ 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d (pending cr-r2pa.2.13.1)
+- **cursor_plugins:skill:pstack/skills/swarm#brief-names-done-evidence** `pstack/skills/swarm/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/swarm#exact-commit-briefs** `pstack/skills/swarm/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049 (pending cr-r2pa.2.13.2)
+- **cursor_plugins:skill:pstack/skills/swarm#measurement-method-in-brief** `pstack/skills/swarm/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049 (pending cr-r2pa.2.13.2)
+- **cursor_plugins:skill:pstack/skills/swarm#worker-records-commits-and-method** `pstack/skills/swarm/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049 (pending cr-r2pa.2.13.2)
+- **cursor_plugins:skill:pstack/skills/swarm#missing-result-not-pass** `pstack/skills/swarm/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049 (pending cr-r2pa.2.13.2)
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-13` **adopt-merged** (2026-11-13-batch-p2:235): Checkpoint at 2776ddd for the owner's trait rulings: 6 adopt, 18 reject.
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:232): Owner ruling 2026-11-13: Prevents: Coverage reported as complete when some slices never came back. Lands in delegation, SKILL.md, the collect paragraph. Upstre…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:222): Owner ruling 2026-11-13: Prevents: A result that cannot be tied to what it tested, so a stale or misdirected run passes for a current one. Lands in delegation,…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:221): Owner ruling 2026-11-13: Prevents: Measurements no one can repeat or compare, because each worker chose its own samples. Lands in delegation, SKILL.md, the bri…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:220): Owner ruling 2026-11-13: Prevents: A worker that verifies or measures the wrong commit. Lands in delegation, SKILL.md, the brief paragraph. Upstream: SKILL.md:…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:212): Owner ruling 2026-11-13: delegation:47-50 has the brief name what will show the work is finished.
 - `2026-11-13` **adopt-merged** (2026-11-13-batch-m:020): Checkpoint at 4ae2317 for the owner's trait rulings: 2 adopt, 7 reject.
 - `2026-11-13` **adopt** (2026-11-13-batch-m:016): Owner ruling 2026-11-13: Prevents: Several background workers that a person or the coordinator cannot tell apart in the vendor's list, so the wrong one gets st…
 - `2026-11-13` **adopt** (2026-11-13-batch-m:015): Owner ruling 2026-11-13: Prevents: A brief holding backticks or `$` that the shell runs or expands before the worker reads it, so the worker gets a damaged bri…
@@ -85,12 +96,15 @@ Use when handing work to another agent or model (an explorer, implementer, revie
 
 <!-- registry:generated reviews -->
 - [2026-11-12-upstream-mattpocock_skills-4ae2317-batch-m.md](../../reviews/2026-11-12-upstream-mattpocock_skills-4ae2317-batch-m.md)
+- [2026-11-12-upstream-cursor_plugins-2776ddd-batch-p2.md](../../reviews/2026-11-12-upstream-cursor_plugins-2776ddd-batch-p2.md)
 - [2026-11-06-upstream-mattpocock_skills-4ae2317.md](../../reviews/2026-11-06-upstream-mattpocock_skills-4ae2317.md)
 <!-- /registry:generated reviews -->
 
 <!-- registry:generated sources -->
 - `background-dispatch-for-dialogue`:
   - `mattpocock_skills:skill:skills/in-progress/chief-of-staff#background-dispatch-for-dialogue` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `brief-names-done-evidence`:
+  - `cursor_plugins:skill:pstack/skills/swarm#brief-names-done-evidence` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
 - `fresh-context-subagent`:
   - `mattpocock_skills:skill:skills/engineering/code-review#fresh-context-subagent` (adopted at 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d)
   - `mattpocock_skills:skill:skills/engineering/codebase-design#fresh-context-subagent` (adopted at 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d)

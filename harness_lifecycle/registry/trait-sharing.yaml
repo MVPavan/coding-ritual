@@ -232,3 +232,7 @@ minimal-visual-selection:
   skills: [show-me, pr]
   why: "show-me is manual, so a model writing a PR body cannot invoke it or read its file; pr carries the compact visual technique itself, as its upstream does, and names show-me for the person (plan 69 D3)."
   reviewed: "2026-11-12"
+no-cross-project-transcript-search:
+  skills: [decision-trail, reflect]
+  why: "decision-trail states it for an audit of a long run, reflect for reviewing past sessions; each reads transcripts on its own, and one line does not earn a pointer."
+  reviewed: "2026-11-13"

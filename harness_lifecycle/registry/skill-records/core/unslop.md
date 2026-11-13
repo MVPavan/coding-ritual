@@ -78,9 +78,52 @@ Use to edit a reply or document a person will read, removing patterns that make 
 - **cursor_plugins:skill:pstack/skills/unslop#plain-word** `pstack/skills/unslop/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
 - **cursor_plugins:skill:pstack/skills/unslop#mannered-prose-cut** `pstack/skills/unslop/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
 - **cursor_plugins:skill:pstack/skills/unslop#over-compression-fix** `pstack/skills/unslop/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/technical-writing#plain-word** `pstack/skills/technical-writing/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/technical-writing#rule-yields-to-better-sentence** `pstack/skills/technical-writing/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049 (pending cr-r2pa.2.13.2)
+- **cursor_plugins:skill:pstack/skills/technical-writing#real-name-over-description** `pstack/skills/technical-writing/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049 (pending cr-r2pa.2.13.2)
+- **cursor_plugins:skill:pstack/skills/technical-writing#no-coined-terms-unless-defined** `pstack/skills/technical-writing/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049 (pending cr-r2pa.2.13.2)
+- **cursor_plugins:skill:pstack/skills/technical-writing#name-the-mechanism** `pstack/skills/technical-writing/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/technical-writing#future-tense-for-later-only** `pstack/skills/technical-writing/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049 (pending cr-r2pa.2.13.2)
+- **cursor_plugins:skill:pstack/skills/technical-writing#active-voice** `pstack/skills/technical-writing/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/technical-writing#instructions-as-commands** `pstack/skills/technical-writing/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049 (pending cr-r2pa.2.13.2)
+- **cursor_plugins:skill:pstack/skills/technical-writing#condition-before-step** `pstack/skills/technical-writing/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049 (pending cr-r2pa.2.13.2)
+- **cursor_plugins:skill:pstack/skills/technical-writing#descriptive-link-text** `pstack/skills/technical-writing/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049 (pending cr-r2pa.2.13.2)
+- **cursor_plugins:skill:pstack/skills/technical-writing#sentence-case-headings** `pstack/skills/technical-writing/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/technical-writing#numbered-only-for-sequences** `pstack/skills/technical-writing/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049 (pending cr-r2pa.2.13.2)
+- **cursor_plugins:skill:pstack/skills/technical-writing#partial-list-said-up-front** `pstack/skills/technical-writing/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049 (pending cr-r2pa.2.13.2)
+- **cursor_plugins:skill:pstack/skills/technical-writing#over-compression-fix** `pstack/skills/technical-writing/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/technical-writing#one-meaning-per-word** `pstack/skills/technical-writing/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049 (pending cr-r2pa.2.13.2)
+- **cursor_plugins:skill:pstack/skills/technical-writing#synonym-cycling-cut** `pstack/skills/technical-writing/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/technical-writing#limiter-beside-its-word** `pstack/skills/technical-writing/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049 (pending cr-r2pa.2.13.2)
+- **cursor_plugins:skill:pstack/skills/technical-writing#noun-stack-unpacked** `pstack/skills/technical-writing/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049 (pending cr-r2pa.2.13.2)
+- **cursor_plugins:skill:pstack/skills/technical-writing#pronoun-one-referent** `pstack/skills/technical-writing/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049 (pending cr-r2pa.2.13.2)
+- **cursor_plugins:skill:pstack/skills/technical-writing#repeat-article-in-series** `pstack/skills/technical-writing/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049 (pending cr-r2pa.2.13.2)
+- **cursor_plugins:skill:pstack/skills/technical-writing#explicit-conjunction-grouping** `pstack/skills/technical-writing/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049 (pending cr-r2pa.2.13.2)
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-13` **adopt-merged** (2026-11-13-batch-p2:078): Checkpoint at 2776ddd for the owner's trait rulings: 24 adopt, 1 out-of-scope, 52 reject.
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:063): Owner ruling 2026-11-13: Prevents: A condition read with the wrong grouping, so the reader acts in a case the writer did not mean. Lands in unslop, SKILL.md, S…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:062): Owner ruling 2026-11-13: Prevents: Two separate things in a series read as one, because one article covers both. Lands in unslop, SKILL.md, Sentences. Upstream…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:061): Owner ruling 2026-11-13: Prevents: A reader who attaches it, they or this to the wrong thing and follows the wrong instruction. Lands in unslop, SKILL.md, Sent…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:060): Owner ruling 2026-11-13: Prevents: A string of nouns the reader must decode, guessing which modifies which. Lands in unslop, SKILL.md, Sentences. Upstream: SKI…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:059): Owner ruling 2026-11-13: Prevents: A sentence that says something other than meant because only or not modifies the wrong word. Lands in unslop, SKILL.md, Sent…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:057): Owner ruling 2026-11-13: unslop:36 keeps one term for one referent, an action or a thing alike.
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:056): Owner ruling 2026-11-13: Prevents: A reader who takes a word in the meaning it had a paragraph earlier. Lands in unslop, SKILL.md, Words. Upstream: SKILL.md:71.
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:055): Owner ruling 2026-11-13: unslop:49 restores articles, verbs and whole sentences and spells out symbols, which covers small structural words, a verb in every cl…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:053): Owner ruling 2026-11-13: Prevents: A reader who takes a partial list as complete, or cannot tell what etc. stands for. Lands in unslop, SKILL.md, Words. Upstre…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:048): Owner ruling 2026-11-13: Prevents: A reader who follows numbered items as an order that does not exist, or misses the order of steps set as bullets. Lands in u…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:045): Owner ruling 2026-11-13: unslop:57 writes headings in sentence case.
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:042): Owner ruling 2026-11-13: Prevents: A link whose text, such as here, tells a skimming reader or a screen reader nothing about where it goes. Lands in unslop, SK…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:035): Owner ruling 2026-11-13: Prevents: A reader who carries out a step before reaching the condition or warning that should have stopped them. Lands in unslop, SKI…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:034): Owner ruling 2026-11-13: Prevents: Steps the reader cannot tell are required, because they are told as a story or a passive wish. Lands in unslop, SKILL.md, Se…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:033): Owner ruling 2026-11-13: unslop:46 names the actor and keeps a passive only when the actor is unknown or does not matter.
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:032): Owner ruling 2026-11-13: Prevents: A reader who cannot tell whether a described behaviour exists now or is only planned, a common question in our specs and pla…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:010): Owner ruling 2026-11-13: unslop:25 rewrites an impression into a mechanism or number, or cuts it.
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:005): Owner ruling 2026-11-13: Prevents: A reader stopped by a label the writer invented, which no search or glossary explains. Lands in unslop, SKILL.md, Words. Ups…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:004): Owner ruling 2026-11-13: Prevents: A reader who cannot search for the thing named, because the prose describes it instead of naming it. Lands in unslop, SKILL.…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:003): Owner ruling 2026-11-13: Prevents: A rule applied mechanically that leaves a sentence harder to read than before. Lands in unslop, SKILL.md, the limits list ab…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:001): Owner ruling 2026-11-13: unslop:35 swaps a fancier word for the common one.
 - `2026-11-06` **rename** (2026-11-06-renames:005): Owner ruling D of 2026-11-05 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 14a U1. The skill prose-pass is renamed unslop; its body is unchanged …
 - `2026-11-01` **adopt** (2026-11-01-batch-1:233): Completes pending 2026-11-01-batch-1:188: over-compression-fix is written at .claude/skills/prose-pass/SKILL.md:49, read against its definition (T5).
 - `2026-11-01` **adopt** (2026-11-01-batch-1:232): Completes pending 2026-11-01-batch-1:187: mannered-prose-cut is written at .claude/skills/prose-pass/SKILL.md:48, read against its definition (T5).
@@ -146,11 +189,12 @@ Use to edit a reply or document a person will read, removing patterns that make 
 <!-- /registry:generated history -->
 
 <!-- registry:generated reviews -->
-None yet.
+- [2026-11-12-upstream-cursor_plugins-2776ddd-batch-p2.md](../../reviews/2026-11-12-upstream-cursor_plugins-2776ddd-batch-p2.md)
 <!-- /registry:generated reviews -->
 
 <!-- registry:generated sources -->
 - `active-voice`:
+  - `cursor_plugins:skill:pstack/skills/technical-writing#active-voice` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
   - `cursor_plugins:skill:pstack/skills/unslop#active-voice` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `adverb-cut`:
   - `cursor_plugins:skill:pstack/skills/unslop#adverb-cut` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
@@ -185,6 +229,7 @@ None yet.
 - `mid-sentence-colon-cut`:
   - `cursor_plugins:skill:pstack/skills/unslop#mid-sentence-colon-cut` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `name-the-mechanism`:
+  - `cursor_plugins:skill:pstack/skills/technical-writing#name-the-mechanism` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
   - `cursor_plugins:skill:pstack/skills/unslop#name-the-mechanism` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `no-decorative-emoji`:
   - `cursor_plugins:skill:pstack/skills/unslop#no-decorative-emoji` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
@@ -193,18 +238,22 @@ None yet.
 - `not-just-but-cut`:
   - `cursor_plugins:skill:pstack/skills/unslop#not-just-but-cut` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `over-compression-fix`:
+  - `cursor_plugins:skill:pstack/skills/technical-writing#over-compression-fix` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
   - `cursor_plugins:skill:pstack/skills/unslop#over-compression-fix` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `plain-is-has`:
   - `cursor_plugins:skill:pstack/skills/unslop#plain-is-has` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `plain-word`:
+  - `cursor_plugins:skill:pstack/skills/technical-writing#plain-word` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
   - `cursor_plugins:skill:pstack/skills/unslop#plain-word` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `sentence-case-headings`:
+  - `cursor_plugins:skill:pstack/skills/technical-writing#sentence-case-headings` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
   - `cursor_plugins:skill:pstack/skills/unslop#sentence-case-headings` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `straight-quotes`:
   - `cursor_plugins:skill:pstack/skills/unslop#straight-quotes` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `sycophancy-cut`:
   - `cursor_plugins:skill:pstack/skills/unslop#sycophancy-cut` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `synonym-cycling-cut`:
+  - `cursor_plugins:skill:pstack/skills/technical-writing#synonym-cycling-cut` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
   - `cursor_plugins:skill:pstack/skills/unslop#synonym-cycling-cut` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `tell-vocabulary-swap`:
   - `cursor_plugins:skill:pstack/skills/unslop#tell-vocabulary-swap` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
