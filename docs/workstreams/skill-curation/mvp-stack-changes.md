@@ -1165,6 +1165,43 @@ in a fresh clone pass. Limits: 350 adopts are not yet delivered, 300 of them int
 `no-cross-project-transcript-search` is now listed by `decision-trail` and `reflect` with no
 `trait-sharing.yaml` entry, so `check` warns until the owner justifies one.
 
+## 27. Batch P3: eight pstack skills ruled trait by trait (`cr-r2pa.2.13.3`)
+
+Added 2026-11-13. Mapping and sheet `scratchpad/mvp-stack/68/` (gitignored), carried onto this tip with the
+dedupe against batch P2 in `scratchpad/mvp-stack/73/`, recorder `scratchpad/mvp-stack/73/record_p3.py`; round
+`2026-11-13-batch-p3`, 311 events, trait-level, sealed; report
+`harness_lifecycle/registry/reviews/2026-11-12-upstream-cursor_plugins-2776ddd-batch-p3.yaml`, sealed. Eight
+skills never ruled before were taken apart into 303 rows; 258 trait definitions are new.
+
+- **Counts:** 57 adopt pending, 13 already held (`AGENTS.md` 9, `mvp-mode` 3, `reflect` 1), 105 reject, 104
+  defer, 24 out of scope. Of the pending adopts, 50 go to three units still to be built:
+  `create-verification-skill` 19, `mvp-help` 25 and `setup-mvp-stack` 6. The other 7 go to `triage` 3,
+  `AGENTS.md` 2, `systematic-debugging` 1 and `pr` 1.
+- **Owner rulings of 2026-11-13:** `poteto-mode` mapped onto `mvp-mode` (rejects for choices made differently
+  on purpose stay, what is not used yet stays deferred); `poteto-help` kept as the new unit `mvp-help`;
+  `setup-pstack` replaced by the new unit `setup-mvp-stack`; `automate-me` wanted, its shape still to settle
+  with the owner; `make-bot-ui` takes nothing; `reproduce-and-fix-issues` adopts what has a home, its
+  chat-intake rows stay deferred and its app-driving rows go to the verification units; `setup-benny`
+  rejected; `triage-issue-reports`' three rules go to `triage`.
+- **Dedupe against batch P2:** 7 rows restate a P2 `create-verification-skill` trait whole and use its ID with
+  P2's row (`reproduce-and-fix-issues` 6, `setup-benny` 1). Where the upstream contract differs from a P2
+  definition, P3 keeps a trait of its own that names the P2 traits in `distinct_from`, and no P2 definition
+  changed. These are the feature map (one map of sections, delivered through the variant
+  `feature-map-entry-required`, and `map-section-per-reproducible-feature`), target confirmation (the
+  look-alike-window check only when a window is driven, variant `target-confirmed-for-surface`), the
+  driving tool's smoke proof (`driver-smoke-proof-for-surface`), cleanup by retention, and
+  `identity-screenshot`. `real-user-actions-only` is renamed `coordinates-from-fresh-screenshot`.
+  `automate-me`'s `no-cross-project-transcript-search` is held, not rejected, since P2 listed it on `reflect`.
+- Eight checkpoints at 2776ddd, all `adopt-merged`, none superseding anything: none of the eight skills had an
+  earlier ruling. Their eight analyses are accepted.
+
+Proof: Sol reviewed the mapping and report four times (critic-68c, 68e, 68g, 68i); the coordinator applied
+critic-68i's two fixes without a further round, so both critic fields read `accepted`. The P2 dedupe was
+reviewed by critic-73b (REVISE) and re-recorded with its fixes; critic-73d passed that delta, and its two
+wording fixes were re-recorded before any commit. Batch checks, registry check
+before and after, a row-by-row match of the round against the report, and a build and check in a fresh clone
+pass. Limits: 57 adopts are not yet delivered, 50 of them into units not yet built.
+
 ## Regenerating
 
 From the worktree root:

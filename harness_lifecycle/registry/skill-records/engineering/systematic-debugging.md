@@ -61,9 +61,11 @@ Use to find the cause of a failure when it is unclear, after a fix did not hold,
 - **mattpocock_skills:skill:skills/engineering/diagnosing-bugs#falsifiable-hypotheses** `skills/engineering/diagnosing-bugs/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/engineering/diagnosing-bugs#one-variable-at-a-time** `skills/engineering/diagnosing-bugs/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/engineering/diagnosing-bugs#placeholder-sensitive-data-redaction** `skills/engineering/diagnosing-bugs/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues#no-symptom-injection** `pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049 (pending cr-r2pa.2.13.3)
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-13` **adopt** (2026-11-13-batch-p3:207): Owner ruling 2026-11-13: Prevents: A reproduction made by forcing the broken state directly, which shows the symptom can exist but not how the user reached it,…
 - `2026-11-10` **update** (2026-11-10-renames-splits:143): Owner ruling 2026-11-05 §B.3 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 14a U8. Step 1 no longer says to test the way a check observes before …
 - `2026-11-10` **update** (2026-11-10-renames-splits:139): Owner rulings A and B of 2026-11-05 and I2 of 2026-11-06 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 14a U7. Steps 2-4 keep what to do and tell…
 - `2026-11-04` **adopt** (2026-11-04-pocock-pass:024): Completes pending 2026-10-30-mattpocock_skills-5beb35b:242: placeholder-sensitive-data-redaction is written at .claude/skills/systematic-debugging/SKILL.md:21-…
@@ -123,6 +125,7 @@ Use to find the cause of a failure when it is unclear, after a fix did not hold,
 <!-- /registry:generated history -->
 
 <!-- registry:generated reviews -->
+- [2026-11-12-upstream-cursor_plugins-2776ddd-batch-p3.md](../../reviews/2026-11-12-upstream-cursor_plugins-2776ddd-batch-p3.md)
 - [skill-comparisons/debugging-loop](../../../archive/skill-comparisons/debugging-loop/)
 <!-- /registry:generated reviews -->
 

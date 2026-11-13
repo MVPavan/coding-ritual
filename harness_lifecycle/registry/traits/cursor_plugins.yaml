@@ -537,3 +537,84 @@
       traits: [per-check-outcome, verification-only-edits, check-never-weakened-to-pass, target-found-by-content, per-check-inventory, no-target-points-to-create, inferred-sync-commit, baseline-check-before-change, failure-classified-after-rerun, covered-change-sweep, four-way-change-classification, no-effect-judged-by-model, intended-change-needs-evidence, update-from-code-before-rerun, traceable-to-code, atomicity-fidelity, property-change-audit-trail, keep-bounds, property-fails-on-broken-variant, counterexample-replayed-on-code, bug-report-fields, uncommitted-repro-evidence, verify-skill-metadata-refresh, blocked-check-sync-freeze, generated-skill-run-once, per-check-report, stale-pass-disclosure, separate-verification-change]
       added: {}
       changed: {}
+# Batch P3: eight skills at 2776ddd, proposed.
+"cursor_plugins:skill:pstack/skills/poteto-mode":
+  accepted: "2776ddd"
+  proposed: null
+  analyses:
+    "2776ddd":
+      tree_hash: "2f1513daf76f57a78a3a4b95664fee6a41eb611a7f7ca0c61ad3dff28e815b57"
+      placement: {domain: core, stage: X, substage: Coordination}
+      traits: [skill-root-path-in-briefs, principle-citation-in-reply, task-start-goal-restatement, evidence-veto-stop, goal-in-every-brief, goal-opens-pr-why, goal-opens-final-report, answerer-triage, prototype-settles-observable-fork, autonomy-grant-decide-and-report, operator-call-default-with-alternative, named-gates-outlast-autonomy, own-words-answers-only, data-shape-named-first, design-before-cross-boundary-code, contested-design-multi-model-review, checkpoint-for-all-multistep-work, same-surface-agent-repro, drive-shipped-surface, finding-adjudication, separate-fix-for-broken-skill, read-principle-before-applying, irreversible-writes-wait, irreversible-only-confirmation, away-phrase-keeps-going, accuracy-over-agreement, single-house-helper-type, routed-skills-keep-helper-types, no-playbook-in-delegate, background-every-dispatch, writable-helper-mode, pointer-only-subagent-briefs, role-model-config-line, vendor-default-role-models, difficulty-tiered-model-choice, job-fit-helper-effort, verification-on-worker-model, effort-change-keeps-family, rejected-model-swap, read-worker-output, same-prompt-second-opinion, fresh-helper-per-round, distrust-interrupted-resume, draft-without-machine-patterns, one-thought-sentences, no-em-dash, mid-sentence-colon-cut, brevity-keeps-required-sections, impact-before-implementation, only-seen-artifacts-cited, evidence-label-per-claim, run-checks-yourself, full-pr-url, reply-sections-only-unique, why-only-comments, assertion-strings-not-step-comments, comment-rule-on-delegate-diffs, playbook-steps-as-todos, recorded-step-skip, bot-comment-three-way-triage, fix-in-owning-pr-with-sha-reply, dismiss-needs-pattern-and-proof, ask-on-risky-or-doubtful-comment, learned-skip-pattern-ledger, seeded-skip-patterns, never-auto-skip-risk-classes, human-dismissal-not-precedent, native-behaviour-findings-default-fix, run-contract-test-before-ruling, security-dismissal-needs-gate-on-tip, keep-deliberately-narrow-errors, plan-lint-cli-contract, fence-aware-plan-lint, plan-prose-lint, plan-reading-guide, program-plan-sections, per-pr-nine-sub-blocks, ten-lane-live-verify, perf-verify-four-boxes, review-gate-shape, plan-box-count-report, pr-watcher-modes, draft-gate-option, watcher-output-contract, pr-context-resolution, stack-discovery, complete-forge-reads, strict-forge-response-parsing, skip-rollup-while-queued, unknown-check-state-fails, forge-refusal-outranks-checks, approval-gate-own-kind, earlier-pass-flag, review-bot-tracking, blocker-priority, ready-needs-positive-proof, query-retry-budget, versioned-event-stream, merge-queue-frontier-polling, human-status-rendering, watcher-test-harness, self-installing-launcher, bucketed-worktree-report, base-ref-fallback-and-fetch, portable-shell-date-flags, pr-state-as-merge-signal, tracked-wip-vs-untracked-scratch, remote-push-state, last-chat-from-transcripts]
+      added: {}
+      changed: {}
+"cursor_plugins:skill:pstack/skills/poteto-help":
+  accepted: "2776ddd"
+  proposed: null
+  analyses:
+    "2776ddd":
+      tree_hash: "74d2f75606c45a357cb7ca58115398616d21bbadafbcd79c57e949c88c9edfb4"
+      placement: {domain: core, stage: X, substage: Communication}
+      traits: [how-to-answer-not-run, router-at-task-start, primary-evidence-check, unclear-need-one-choice-question, help-setup-state-checks, onboarding-first-real-task, token-cost-guidance, pack-install-notes, host-feature-caveat, offer-to-word-first-request, request-states-outcome, request-omits-method, withhold-cause-theory, restate-noisy-report-first, ask-for-a-case, settle-design-in-code-first, docs-first-for-shared-api, plan-after-design, terse-follow-ups, new-task-phrase-reset, away-notice-stops-questions, loop-done-as-checks, unattended-request-advice, isolate-parallel-writers, challenge-green-build-claims, default-to-router, route-unlisted-by-description, fixed-confusable-pair-notes, steer-by-principle-name, steer-by-restating-goal, short-help-answer, read-dropped-findings, read-attention-first, run-failure-troubleshooting, approve-decision-changing-edits]
+      added: {}
+      changed: {}
+"cursor_plugins:skill:pstack/skills/setup-pstack":
+  accepted: "2776ddd"
+  proposed: null
+  analyses:
+    "2776ddd":
+      tree_hash: "3bba46e779c24a45db7602a8b47e3e184ca8215d812007ee5f2a114262ad9af1"
+      placement: {domain: core, stage: X, substage: Coordination}
+      traits: [role-model-rule-file, detect-selectable-models, confirmed-slugs-only, rerun-keeps-role-choices, budget-tier-rewrites-effort, show-roles-and-confirm, panel-list-sets-fan-out, judge-outside-lead-family, ordered-judge-pool-no-alias, swarm-worker-model-role, vendor-default-role-models, new-sessions-notice, offer-app-driving-generator, offer-formal-verification-generator]
+      added: {}
+      changed: {}
+"cursor_plugins:skill:pstack/skills/automate-me":
+  accepted: "2776ddd"
+  proposed: null
+  analyses:
+    "2776ddd":
+      tree_hash: "db8ccff7ace85fd5c31705acdca40c13f82b88c938fbbaeaccaf91184cd61894"
+      placement: {domain: core, stage: Improvement, substage: Codification}
+      traits: [persona-update-or-fresh, incremental-persona-update, no-cross-project-transcript-search, sliced-parallel-history-mining, working-style-signal-checklist, corroborated-patterns-only, structured-choice-interview, granularity-reference-only, persona-skill-placement, persona-skill-frontmatter, trigger-tuning-on-observed-miss, iterate-draft-and-cut, skill-lands-via-branch-and-pr, operational-agent-prose, reference-other-skills-by-path, sections-only-for-non-default-rules, generic-person-naming, vibe-check-evaluation, persona-scope-excludes-task-skills]
+      added: {}
+      changed: {}
+"cursor_plugins:skill:pstack/skills/make-bot-ui":
+  accepted: "2776ddd"
+  proposed: null
+  analyses:
+    "2776ddd":
+      tree_hash: "8f32748333369065a97d536e463ffbf40c6c908c32ad3ac342f8337fdef45914"
+      placement: {domain: engineering, stage: U, substage: Tooling}
+      traits: [credential-holding-relay, relay-config-beside-page, webhook-routine-setup, webhook-field-contract, webhook-post-policy, no-media-on-webhook, failed-post-outbox, tailnet-exposure, untrusted-content-no-authority, secret-containment, harmless-probe-before-live]
+      added: {}
+      changed: {}
+"cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues":
+  accepted: "2776ddd"
+  proposed: null
+  analyses:
+    "2776ddd":
+      tree_hash: "30d16d73b621fa9abadaa9cd2de34076e7def49c083857841727ec6005f41c5b"
+      placement: {domain: engineering, stage: Building, substage: Diagnosis}
+      traits: [fail-closed-run-config, frozen-source-coordinates, no-root-post-in-source, thread-parent-preflight, coordinator-only-chat-writes, findings-only-read-only-workers, worker-isolation-or-coordinator, coordinator-checks-worker-edit, coordinator-owns-landing, yield-to-human-fix-owner, concrete-fix-artifact, verify-existing-fix-mode, symptom-twice-through-real-ui, no-symptom-injection, no-proxy-ui-repro, named-end-states, report-fact-capture, trace-with-competing-hypotheses, repro-budget-outcomes, repro-capture-bundle, identity-screenshot, independent-media-review, trusted-verdict-marker, reread-thread-before-acting, ops-thread-status, quiet-source-thread, narrow-bot-token, correction-window-before-fix, bounded-fix-gate, no-fix-without-repro, runtime-confirmed-mechanism, smallest-root-cause-fix, cheap-test-first-or-reason, no-unrelated-cleanup, after-proof-mirrors-baseline, direct-observation, blast-radius-smoke-gate, pre-pr-diff-and-secret-review, small-ordered-commits, draft-pr-only, bug-pr-contents, full-pr-url, honest-pr-failure, run-artifacts-uncommitted, bounded-follow-up-window, follow-up-evidence-one-correction, always-cleanup-keeping-user-work, cleanup-after-failed-attempt, feature-map-required, user-terms-only-in-map, control-adapter-capabilities, single-feature-handover-proof, coordinates-from-fresh-screenshot, real-user-path-proof, action-and-state-capture, stable-handles, target-confirmed-by-stable-markers, translate-environment-before-blocking]
+      added: {}
+      changed: {}
+"cursor_plugins:skill:pstack/automations/benny/skills/setup-benny":
+  accepted: "2776ddd"
+  proposed: null
+  analyses:
+    "2776ddd":
+      tree_hash: "4dfe8cb24e508a711f7107b0f3556a137c20af02a95a3bcccc5e9dfb81233ed0"
+      placement: {domain: engineering, stage: U, substage: Tooling}
+      traits: [dormant-pack-read-by-path, no-automation-until-asked, secret-containment, pack-install-order, additive-pack-merge, user-config-outside-pack, verify-installed-pack, enable-pack-setting-preserving, project-scope-dependency-check, commit-before-enable-notice, committed-paths-for-automation-prompts, map-section-per-reproducible-feature, user-terms-only-in-map, explicit-required-setup-values, confirmed-slugs-only, integration-capability-checklist, narrow-bot-token, routing-map-preparation, owner-ping-gate, no-guessed-route, control-adapter-capabilities, automation-creation-handoff, automation-intent-specs, thread-safety-test-before-enable]
+      added: {}
+      changed: {}
+"cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports":
+  accepted: "2776ddd"
+  proposed: null
+  analyses:
+    "2776ddd":
+      tree_hash: "dcca688d8d2f3ddd586274f67aea96d04c6175f730706ecef15536412a430c5d"
+      placement: {domain: core, stage: Intake, substage: Triage}
+      traits: [triage-never-reproduces, fail-closed-run-config, frozen-source-coordinates, no-root-post-in-source, no-cross-post, thread-parent-preflight, single-verdict-reply, coordinator-only-chat-writes, findings-only-read-only-workers, worker-isolation-or-coordinator, strict-issue-create-gate, whole-report-thread-read, report-fact-capture, inspect-attachments-admit-unreadable, self-serve-facts, routing-cause-trace, five-way-report-classes, evidence-based-routing, no-guessed-route, route-map-schema, owner-ping-gate, tracker-adapter-contract, already-handled-check, tracker-duplicate-search, duplicate-search-key-list, graded-duplicate-match, closed-match-is-regression-lead, issue-template-and-title, trusted-verdict-marker, compensate-orphan-issue, bounded-follow-up-window, follow-up-safe-issue-corrections, secret-containment]
+      added: {}
+      changed: {}

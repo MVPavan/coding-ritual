@@ -36,9 +36,16 @@ Use at the start of every task to pick the playbook, principle or skill that fit
 - **mattpocock_skills:skill:skills/engineering/ask-matt** `skills/engineering/ask-matt/SKILL.md` @ 84fdeff
 - **mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules** `skills/in-progress/setup-ts-deep-modules/SKILL.md` @ 84fdeffd12f2ee307994d1eb6feb48173b6e0502
 - **cursor_plugins:skill:pstack/skills/principle-guard-the-context-window#bulk-to-subagents** `pstack/skills/principle-guard-the-context-window/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/poteto-mode#no-playbook-in-delegate** `pstack/skills/poteto-mode/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/poteto-mode#playbook-steps-as-todos** `pstack/skills/poteto-mode/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/poteto-mode#recorded-step-skip** `pstack/skills/poteto-mode/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-13` **adopt-merged** (2026-11-13-batch-p3:110): Checkpoint at 2776ddd for the owner's trait rulings: 8 adopt, 42 defer, 2 out-of-scope, 57 reject.
+- `2026-11-13` **adopt** (2026-11-13-batch-p3:059): Owner ruling 2026-11-13: A step that will not run stays in the list as `skip: <reason>`.
+- `2026-11-13` **adopt** (2026-11-13-batch-p3:058): Owner ruling 2026-11-13: The router copies a playbook's steps into the todo list first, before any task-specific todos.
+- `2026-11-13` **adopt** (2026-11-13-batch-p3:029): Owner ruling 2026-11-13: The router says a delegated task never starts a playbook: the parent runs it, and the brief is its step.
 - `2026-11-12` **update** (2026-11-12-pr:007): Owner ruling of 2026-11-05 §E (pr: new, with evidence and merge danger; cites show-me for visuals) (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md:44), go…
 - `2026-11-12` **update** (2026-11-12-skill-curation-playbook:003): Owner ruling 2026-11-01, pstack report decision 15 (a) (docs/workstreams/skill-curation/pstack-report.md §6 item 15): the curation playbook stays where it is u…
 - `2026-11-12` **update** (2026-11-12-reflect:010): Owner ruling of 2026-11-05 §E (reflect: one skill combining retro's categories, reflect's lenses and approval, and chief-of-staff's worst-first sampling; appro…
@@ -108,6 +115,7 @@ Use at the start of every task to pick the playbook, principle or skill that fit
 <!-- /registry:generated history -->
 
 <!-- registry:generated reviews -->
+- [2026-11-12-upstream-cursor_plugins-2776ddd-batch-p3.md](../../reviews/2026-11-12-upstream-cursor_plugins-2776ddd-batch-p3.md)
 - [skill-comparisons/harness-bootstrap](../../../archive/skill-comparisons/harness-bootstrap/)
 - [skill-comparisons/plan-execution-engines](../../../archive/skill-comparisons/plan-execution-engines/)
 <!-- /registry:generated reviews -->
@@ -115,6 +123,12 @@ Use at the start of every task to pick the playbook, principle or skill that fit
 <!-- registry:generated sources -->
 - `delegate-independent-by-default`:
   - `cursor_plugins:skill:pstack/skills/principle-guard-the-context-window#bulk-to-subagents` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `no-playbook-in-delegate`:
+  - `cursor_plugins:skill:pstack/skills/poteto-mode#no-playbook-in-delegate` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `playbook-steps-as-todos`:
+  - `cursor_plugins:skill:pstack/skills/poteto-mode#playbook-steps-as-todos` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `recorded-step-skip`:
+  - `cursor_plugins:skill:pstack/skills/poteto-mode#recorded-step-skip` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
 <!-- /registry:generated sources -->
 
 <!-- registry:generated declined -->

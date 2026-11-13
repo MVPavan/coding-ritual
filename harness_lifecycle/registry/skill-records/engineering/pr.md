@@ -40,9 +40,11 @@ Use when writing or revising a pull request's body: why, a visual of the change,
   - dropped: Worktree recipes, the deslop and comment passes, and the writing skills it names.
 - **cursor_plugins:skill:pstack/skills/technical-writing#writing-rules-cover-pr-bodies** `pstack/skills/technical-writing/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049 (pending cr-r2pa.2.13.2)
 - **cursor_plugins:skill:pstack/skills/technical-writing#link-bulk-evidence** `pstack/skills/technical-writing/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues#bug-pr-contents** `pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049 (pending cr-r2pa.2.13.3)
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-13` **adopt** (2026-11-13-batch-p3:234): Owner ruling 2026-11-13: Prevents: A bug-fix pull request whose reviewer cannot tell what broke, why, or which tracked item it closes, so the fix is checked ag…
 - `2026-11-13` **adopt** (2026-11-13-batch-p2:472): Owner ruling 2026-11-13: completes the held row's pending adopt. pr already says this at pr/SKILL.md:59-60; traits/ours.yaml now lists `link-bulk-evidence` on …
 - `2026-11-13` **adopt** (2026-11-13-batch-p2:073) *(superseded)*: Owner ruling 2026-11-13: Prevents: A body buried under pasted logs and commit lists that a reviewer has to scroll past. Lands in pr, SKILL.md:59-60. It already…
 - `2026-11-13` **adopt** (2026-11-13-batch-p2:070): Owner ruling 2026-11-13: Prevents: A body the reviewer must reread because its prose is padded, vague or reads as machine-written, which the body's short secti…
@@ -55,6 +57,7 @@ Use when writing or revising a pull request's body: why, a visual of the change,
 <!-- /registry:generated history -->
 
 <!-- registry:generated reviews -->
+- [2026-11-12-upstream-cursor_plugins-2776ddd-batch-p3.md](../../reviews/2026-11-12-upstream-cursor_plugins-2776ddd-batch-p3.md)
 - [2026-11-12-upstream-cursor_plugins-2776ddd-batch-p2.md](../../reviews/2026-11-12-upstream-cursor_plugins-2776ddd-batch-p2.md)
 <!-- /registry:generated reviews -->
 

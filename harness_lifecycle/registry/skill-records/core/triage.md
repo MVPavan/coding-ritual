@@ -45,9 +45,16 @@ Evaluate untriaged beads and decide each one — agent-ready under a parent, own
 - **mattpocock_skills:skill:skills/engineering/triage#brief-acceptance-criteria** `skills/engineering/triage/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/engineering/triage#read-full-source-issue** `skills/engineering/triage/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/engineering/triage#ready-for-human-rationale** `skills/engineering/triage/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports#tracker-duplicate-search** `pstack/automations/benny/skills/triage-issue-reports/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049 (pending cr-r2pa.2.13.3)
+- **cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports#graded-duplicate-match** `pstack/automations/benny/skills/triage-issue-reports/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049 (pending cr-r2pa.2.13.3)
+- **cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports#closed-match-is-regression-lead** `pstack/automations/benny/skills/triage-issue-reports/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049 (pending cr-r2pa.2.13.3)
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-13` **adopt-merged** (2026-11-13-batch-p3:311): Checkpoint at 2776ddd for the owner's trait rulings: 4 adopt, 24 defer, 5 reject.
+- `2026-11-13` **adopt** (2026-11-13-batch-p3:304): Owner ruling 2026-11-13: Prevents: A fault that came back closed as a duplicate of the bead that once fixed it, so the regression goes unnoticed. Lands in tria…
+- `2026-11-13` **adopt** (2026-11-13-batch-p3:303): Owner ruling 2026-11-13: Prevents: An item closed as a duplicate of one that only looks alike, which loses the report, or a related item left unlinked. Lands i…
+- `2026-11-13` **adopt** (2026-11-13-batch-p3:301): Owner ruling 2026-11-13: Prevents: Two open bug beads describing the same live fault, never related because triage only searches the code for an implementation…
 - `2026-11-11` **update** (2026-11-11-tracker:018): critic-28b (scratchpad/mvp-stack/critic-28b.md), coordinator-accepted, plan 27 T1a, F1: the owner-questions recipe creates its human task with --silent and che…
 - `2026-11-11` **update** (2026-11-11-tracker:013): Owner rulings M2 (2026-11-10), N2 and N3 (2026-11-11) (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 27 T1a. An agent-ready bead's parent: a phase…
 - `2026-11-04` **adopt** (2026-11-04-pocock-pass:033): Completes pending 2026-10-30-mattpocock_skills-5beb35b:306: ready-for-human-rationale is written at .claude/skills/triage/SKILL.md:54, in the sealed rewording'…
@@ -95,7 +102,7 @@ Evaluate untriaged beads and decide each one — agent-ready under a parent, own
 <!-- /registry:generated history -->
 
 <!-- registry:generated reviews -->
-None yet.
+- [2026-11-12-upstream-cursor_plugins-2776ddd-batch-p3.md](../../reviews/2026-11-12-upstream-cursor_plugins-2776ddd-batch-p3.md)
 <!-- /registry:generated reviews -->
 
 <!-- registry:generated sources -->

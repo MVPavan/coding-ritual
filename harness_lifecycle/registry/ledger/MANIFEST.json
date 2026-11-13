@@ -51,7 +51,8 @@
     "2026-11-12-reflect.jsonl": "7c42c7bfe23f25fd69a7c320e6110e632bc8321b05ac4513e67b6a5dbd0e7646",
     "2026-11-12-skill-curation-playbook.jsonl": "547203f803f57054df26264d7b0f6733eb345f7cfcb462859180d8c8e09f37af",
     "2026-11-13-batch-m.jsonl": "979f4d184ce4217acb705f20851ec7ccacf093ea14f96ec0f6fb1c4b59c50244",
-    "2026-11-13-batch-p2.jsonl": "da7b578b586521978f49415974aa774ccc34063b662ef6018c67d348721e7d6c"
+    "2026-11-13-batch-p2.jsonl": "da7b578b586521978f49415974aa774ccc34063b662ef6018c67d348721e7d6c",
+    "2026-11-13-batch-p3.jsonl": "ac494169d67b72755fa626c16e680346f950dfa11603cb3cba3b8272fa0bcc97"
   },
   "round_order": [
     "2026-10-14-migration.jsonl",
@@ -104,7 +105,8 @@
     "2026-11-12-skill-curation-playbook.jsonl",
     "2026-11-12-pr.jsonl",
     "2026-11-13-batch-m.jsonl",
-    "2026-11-13-batch-p2.jsonl"
+    "2026-11-13-batch-p2.jsonl",
+    "2026-11-13-batch-p3.jsonl"
   ],
   "reports": {
     "harness_lifecycle/registry/reviews/2026-10-30-upstream-mattpocock_skills-5beb35b.yaml": "fb413772a75f116bd9baeaa06b6e414fe59978c654a951cb53345f17459d7597",
@@ -130,13 +132,18 @@
     "harness_lifecycle/registry/reviews/2026-11-11-upstream-mattpocock_skills-5beb35b-r1.yaml": "dc16a0e5c4fd4801bf940998505e7a366d3aada7022a5135c94fcd9b0b0ed5dc",
     "harness_lifecycle/registry/reviews/2026-11-11-upstream-mattpocock_skills-5beb35b-r2.yaml": "a4d3e4bb6ad7dc23a6d4ce6002cd0f09815faa30b16713b971da34f07a470810",
     "harness_lifecycle/registry/reviews/2026-11-12-upstream-cursor_plugins-2776ddd-batch-p2.yaml": "bb3a45a802bbf048f33afa73e32b4606bbbe1808fb9142c35dc90ec0f3e2d53c",
+    "harness_lifecycle/registry/reviews/2026-11-12-upstream-cursor_plugins-2776ddd-batch-p3.yaml": "6d943c7cc1050e521713eebfeb5974149cbc78e5553236606b9a442d627868ff",
     "harness_lifecycle/registry/reviews/2026-11-12-upstream-mattpocock_skills-4ae2317-batch-m.yaml": "0e42d7451456edf8b90c522feacd55867164b6ac1865b8e5112044ca934e287d",
     "harness_lifecycle/registry/reviews/2026-11-12-upstream-mattpocock_skills-5beb35b-pr.yaml": "55dd4836aca525848b0a428ea66c2638133758b7667ed2a679668945a1c34ab0",
     "harness_lifecycle/registry/reviews/2026-11-12-upstream-mattpocock_skills-5beb35b-reflect.yaml": "1966178a82b85b8681a90d44311fe322021b9db760942c698a89c5e6eb73c833"
   },
   "analyses": {
+    "cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues@2776ddd": "fc812fe2862360b96af3af540dc32d236357f0b439d0fe81001e718890696a6d",
+    "cursor_plugins:skill:pstack/automations/benny/skills/setup-benny@2776ddd": "cbb5c25a5b93dcaa7ca78171dc8c19b62df39b2b159d7d3eaf643e0246170b0a",
+    "cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports@2776ddd": "e52e83d0b296d980dd2de2fe0f4df9e6cc829373ce634a566f4c118112e23eb6",
     "cursor_plugins:skill:pstack/skills/architect@4dd1d05": "2f6b30fcea183d931ebb90718d90b26bed22bd0053ffc7322ede7757a9a18920",
     "cursor_plugins:skill:pstack/skills/arena@4dd1d05": "b0eaf136d15a6f365932f7f828230f05fa113f327d473cdaae57a4cfbcfe56fd",
+    "cursor_plugins:skill:pstack/skills/automate-me@2776ddd": "2a0f83dd9e1295d2f9c80c8c12ecc52d7b65dcc3e13082a7f465e6aae8fe1f81",
     "cursor_plugins:skill:pstack/skills/benchmark-checklist@4dd1d05": "45228662c0597a4acdca6966815239a1728c906a666f7883d5520ea7f2705230",
     "cursor_plugins:skill:pstack/skills/blast-radius@4dd1d05": "40cfe7cf73c20dad7a38c6fec9479cb862f6fc9f072abe49d14787cca8999191",
     "cursor_plugins:skill:pstack/skills/bro@4dd1d05": "81996da4460e70d84f466809c1da42db36313665894d56dfe01ff1661531db83",
@@ -151,7 +158,10 @@
     "cursor_plugins:skill:pstack/skills/ketchup@2776ddd": "207bfd12e268b2e0070da03d0872c8848d4f14374846b1ec5f3857dd57347d13",
     "cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill@2776ddd": "4cefcf012d3f2d693a57784054835be437c888436c3fe1504b2254ab647b2c80",
     "cursor_plugins:skill:pstack/skills/maintain-verification-skill@2776ddd": "56117c11b208f3a55bb51d743132b517b371ac07fec3e8c4e88304a83a8e3802",
+    "cursor_plugins:skill:pstack/skills/make-bot-ui@2776ddd": "c6cc81cfc087e7e27b75ba079b079f2a83a52a6420dcd4c939f561649b63c6b6",
     "cursor_plugins:skill:pstack/skills/no-comments@4dd1d05": "b2b1d4f55fc3683387815595c77209896b394b21456a5d259415f3d13d08c915",
+    "cursor_plugins:skill:pstack/skills/poteto-help@2776ddd": "968a3ef913f9353050fbef1db00d81f2f95ac3be9554157c3f17e013fc3af9d8",
+    "cursor_plugins:skill:pstack/skills/poteto-mode@2776ddd": "cc58d5e58b5d09322f29ee6ece5e3bf152ded64ced9ec735f521938f890de322",
     "cursor_plugins:skill:pstack/skills/principle-attack-the-premise@4dd1d05": "03d11af4ad6191885ccc52be13403b76412a9faae542cc27c3c0f5339963b8e6",
     "cursor_plugins:skill:pstack/skills/principle-boundary-discipline@4dd1d05": "2a6553e804b60ef0ad7ef809acd2bd13daee0acdbc75d206b1d7e338cb7c69cc",
     "cursor_plugins:skill:pstack/skills/principle-build-the-lever@4dd1d05": "2f37772acbb6fa14611bdaec16f1c2de2e9ba7c6f2a8e69a459189294ac3e467",
@@ -178,6 +188,7 @@
     "cursor_plugins:skill:pstack/skills/principle-type-system-discipline@4dd1d05": "2cf9cb0dd8065938c14225198d51a26874060e190d771a0feaba4b3204dca3cd",
     "cursor_plugins:skill:pstack/skills/recall@4dd1d05": "8706a8fbdeef1017be1ddbcfb58d1b184e17bffae4347d55a4737fc2e56d23f6",
     "cursor_plugins:skill:pstack/skills/reflect@2776ddd": "f3645efb555b4872ddee084c86cd65072fb28f3996f482ba15c0d453158a5722",
+    "cursor_plugins:skill:pstack/skills/setup-pstack@2776ddd": "500496f5a6de8474c3432badee91bd60a2aa991feedfb5d1de9bc3c8dc3c3e8c",
     "cursor_plugins:skill:pstack/skills/sharpen@4dd1d05": "4d1200071b293669c6f0bcc109ec06e9e264cd1f1c29482f82acd292bac35b46",
     "cursor_plugins:skill:pstack/skills/show-me-your-work@4dd1d05": "6c3a4f34bbdac8b197827d7a4e3abe71cdaeadac891d505043eb0adcf5ca0a01",
     "cursor_plugins:skill:pstack/skills/statechart@2776ddd": "baf4e7ae069d6517d0cbd265b977ca2925896fb80ed5d51205075e212d62fd5d",

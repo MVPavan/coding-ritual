@@ -9609,3 +9609,904 @@ stale-pass-disclosure:
 separate-verification-change:
   definition: "Keep verification updates in their own change, apart from any product fix."
   placement: {domain: engineering, stage: Verification, substage: Validation}
+# ---- pstack batch P3, 2026-11-12 (reviews/2026-11-12-upstream-cursor_plugins-2776ddd-batch-p3.yaml) ----
+skill-root-path-in-briefs:
+  definition: "Put the calling skill file's absolute path in every helper brief so the helper can find sibling files it names by relative path."
+  placement: {domain: core, stage: X, substage: Coordination}
+  distinct_from: [sibling-skill-by-relative-path, platform-skill-invocation]
+  note: "sibling-skill-by-relative-path reads the sibling's file, and platform-skill-invocation calls it through the platform; this only passes the path along."
+principle-citation-in-reply:
+  definition: "Cite in the reply every principle behind a decision, with the choice it altered, and cite only principles whose file this session has read."
+  placement: {domain: core, stage: X, substage: Communication}
+task-start-goal-restatement:
+  definition: "Open the first message on every task by restating the user's goal, the problem behind it and the smallest change expected to meet it, then carry on without waiting for a confirmation."
+  placement: {domain: core, stage: Intake, substage: Clarification}
+  distinct_from: [goal-and-problem-restatement]
+  note: "goal-and-problem-restatement restates goal and problem when asked, with no expected change and no rule about waiting."
+evidence-veto-stop:
+  definition: "When evidence shows the change the user asked for cannot meet their goal or would do harm, show that evidence and ask before making it."
+  placement: {domain: core, stage: X, substage: Governance}
+  distinct_from: [accuracy-over-agreement, material-ambiguity-ask]
+  note: "accuracy-over-agreement points out errors but does not hold the change, and material-ambiguity-ask covers unclear readings, not a clear request the evidence contradicts."
+goal-in-every-brief:
+  definition: "Restate the user's own goal in every brief given to a helper."
+  placement: {domain: core, stage: X, substage: Coordination}
+  distinct_from: [worker-brief-contents]
+  note: "worker-brief-contents states the worker's outcome, not the user's goal behind it."
+goal-opens-pr-why:
+  definition: "Open a pull request's reasons section with the user's goal."
+  placement: {domain: core, stage: X, substage: Communication}
+goal-opens-final-report:
+  definition: "Start every final report and closing reply by stating the goal, skipping it only for a one-line edit given in full."
+  placement: {domain: core, stage: X, substage: Communication}
+prototype-settles-observable-fork:
+  definition: "Settle a design fork whose answer can be observed by running something with a throwaway prototype instead of a question."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+  distinct_from: [answerer-triage, named-question]
+  note: "answerer-triage routes a question to whichever source can answer it, and named-question builds an artifact for one named question; this mandates the prototype."
+autonomy-grant-decide-and-report:
+  definition: "Under a full-autonomy grant, make every decision within its reach yourself, carry it out and tell the operator afterwards, offering no options to pick from."
+  placement: {domain: core, stage: X, substage: Governance}
+operator-call-default-with-alternative:
+  definition: "Under a full-autonomy grant, take a default for a decision reserved to the operator, explain it fully and name plainly the alternative the operator could request."
+  placement: {domain: core, stage: X, substage: Governance}
+named-gates-outlast-autonomy:
+  definition: "Keep every gate the operator named, and every always-pause action, waiting for the operator even under a full-autonomy grant."
+  placement: {domain: core, stage: X, substage: Governance}
+own-words-answers-only:
+  definition: "Ask the operator to answer in their own words and never offer a short token to type back."
+  placement: {domain: core, stage: X, substage: Communication}
+  distinct_from: [yes-accepts-recommendation]
+  note: "yes-accepts-recommendation invites a one-word yes to a stated recommendation; this forbids any short token."
+data-shape-named-first:
+  definition: "Before writing any code, name the data shape and choose the structure that organizes it."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+design-before-cross-boundary-code:
+  definition: "Run a design exploration with parallel options before writing code that crosses a function boundary."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+contested-design-multi-model-review:
+  definition: "Put a contested design through an adversarial review by several models before it ships."
+  placement: {domain: core, stage: Verification, substage: Review}
+  distinct_from: [contested-design-gate]
+  note: "contested-design-gate fires on a narrower dispute and asks for run-proven adversaries, not a multi-model panel."
+checkpoint-for-all-multistep-work:
+  definition: "Write a throughput checkpoint before any nontrivial multi-step work, not only feature work."
+  placement: {domain: engineering, stage: Design, substage: Decomposition}
+  distinct_from: [throughput-checkpoint]
+  note: "throughput-checkpoint is written in the feature playbook's build step only."
+same-surface-agent-repro:
+  definition: "Reproduce a reported bug yourself on the same surface the user saw it on before fixing it, handing that to the user only under one narrow named exception."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [reproduction-preferred, matching-surface-verify]
+  note: "reproduction-preferred asks for the reported failure in any form, and matching-surface-verify checks the fix, not the reproduction, on the surface."
+drive-shipped-surface:
+  definition: "Treat every change that ships interface, editor or command-line behaviour as not done until it has been run through the tool that drives that surface."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [matching-surface-verify, real-user-path-proof]
+  note: "matching-surface-verify requires the surface but names no tool that drives it, and real-user-path-proof says how a run proves a feature, not which changes need one."
+separate-fix-for-broken-skill:
+  definition: "Fix a skill found broken mid-task in its own separate pull request, without blocking the task and without a silent workaround."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+  distinct_from: [isolated-skill-build]
+  note: "isolated-skill-build gives a skill change its own branch, with no pull request and no rule about the task it interrupts."
+read-principle-before-applying:
+  definition: "Read a principle's whole file, found by a fixed naming rule, before applying it."
+  placement: {domain: core, stage: X, substage: Governance}
+irreversible-writes-wait:
+  definition: "Always wait for the person before force-pushing a shared branch, deploying, deleting data or messaging a customer."
+  placement: {domain: core, stage: X, substage: Governance}
+  distinct_from: [consequential-action-authorization, irreversible-only-confirmation]
+  note: "consequential-action-authorization also holds publishing, every message and scope expansion; irreversible-only-confirmation asks only before irreversible actions and lets the rest go ahead."
+away-phrase-keeps-going:
+  definition: "Treat phrases such as \"don't stop\" or \"going to bed\" as switching the session to continue without stopping."
+  placement: {domain: core, stage: X, substage: Governance}
+  distinct_from: [stated-unattended-gate]
+  note: "stated-unattended-gate reads the same phrases but refuses to start, rather than switching to keep going."
+single-house-helper-type:
+  definition: "Spawn every helper inside a playbook step as one designated house helper type."
+  placement: {domain: core, stage: X, substage: Coordination}
+routed-skills-keep-helper-types:
+  definition: "Let a routed skill that sets its own helper types for a diverse review keep them, with no override to the house type."
+  placement: {domain: core, stage: X, substage: Coordination}
+background-every-dispatch:
+  definition: "Run every helper call in the background, steers and resumes included, so no call holds the turn."
+  placement: {domain: core, stage: X, substage: Coordination}
+  distinct_from: [background-dispatch-for-dialogue]
+  note: "background-dispatch-for-dialogue backgrounds to keep the dialogue going, not every call."
+vendor-default-role-models:
+  definition: "Ship fixed default model names per role, one for code roles and one for judgement roles."
+  placement: {domain: core, stage: X, substage: Coordination}
+difficulty-tiered-model-choice:
+  definition: "Send the hardest code changes to the strongest judgement model and trivial mechanical edits to the fast code model."
+  placement: {domain: core, stage: X, substage: Coordination}
+verification-on-worker-model:
+  definition: "Always run verification work on the parallel-worker model and speed."
+  placement: {domain: core, stage: X, substage: Coordination}
+effort-change-keeps-family:
+  definition: "Never let an effort or speed adjustment change a role's model family, using the nearest available model of that family when the exact one is missing."
+  placement: {domain: core, stage: X, substage: Coordination}
+same-prompt-second-opinion:
+  definition: "Get a second opinion by running the same prompt on a different model and treat their agreement as a strong signal."
+  placement: {domain: core, stage: Verification, substage: Review}
+fresh-helper-per-round:
+  definition: "Give each fix round, follow-up or next queue item to a new helper whose brief merges the first brief, all directives since and the previous helper's report, resuming an old helper only to keep costly state such as its checkout, uncommitted changes or a running process."
+  placement: {domain: core, stage: X, substage: Coordination}
+  distinct_from: [session-resume-followup, fresh-context-subagent]
+  note: "session-resume-followup resumes the same worker, and fresh-context-subagent starts each new helper clean; this replaces the helper every round."
+distrust-interrupted-resume:
+  definition: "Treat a helper resumed after an interrupt as having dropped directives, and start a fresh one instead of trusting its done summary."
+  placement: {domain: core, stage: X, substage: Coordination}
+draft-without-machine-patterns:
+  definition: "Write the reply free of machine-written patterns while drafting, since a later cleanup pass does not remove them."
+  placement: {domain: core, stage: X, substage: Communication}
+one-thought-sentences:
+  definition: "Write one thought per sentence and end each with a period."
+  placement: {domain: core, stage: X, substage: Communication}
+brevity-keeps-required-sections:
+  definition: "Never let brevity drop a section the reply contract requires, such as details, trade-offs, choices or open decisions."
+  placement: {domain: core, stage: X, substage: Communication}
+impact-before-implementation:
+  definition: "In a reply, put who the work serves and how it changes things for them ahead of how it was built, followed by what the next owner inherits."
+  placement: {domain: core, stage: X, substage: Communication}
+  distinct_from: [consumer-as-user]
+  note: "consumer-as-user explains impact from the consumer's side but sets no order and says nothing of the next owner."
+only-seen-artifacts-cited:
+  definition: "Link or cite only artifacts produced or read in this session."
+  placement: {domain: core, stage: X, substage: Communication}
+  distinct_from: [no-fabrication]
+  note: "no-fabrication bans invented citations; this also bans true ones not read in the session."
+evidence-label-per-claim:
+  definition: "Attach to every claim, in the same sentence, its evidence or a measured, inferred or guessed label, treating predictions and unseen causes as guesses."
+  placement: {domain: core, stage: X, substage: Communication}
+  distinct_from: [certainty-labelling]
+  note: "certainty-labelling marks what is uncertain; this labels every claim in the same sentence."
+run-checks-yourself:
+  definition: "Run any check you are able to run instead of asking the user to run it."
+  placement: {domain: core, stage: X, substage: Governance}
+  distinct_from: [self-serve-facts]
+  note: "self-serve-facts looks facts up instead of asking, inside discovery only; running a check is not covered."
+full-pr-url:
+  definition: "Give each pull request link as its full web address in the forge's public form."
+  placement: {domain: core, stage: X, substage: Communication}
+reply-sections-only-unique:
+  definition: "List in each playbook's reply section only what is unique to it, letting a shared style supply the rest."
+  placement: {domain: core, stage: X, substage: Communication}
+why-only-comments:
+  definition: "Keep a code comment only for a non-obvious reason the code cannot show."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+  distinct_from: [unchangeable-constraint-kept]
+  note: "unchangeable-constraint-kept keeps only a constraint we cannot reshape, not every non-obvious reason."
+assertion-strings-not-step-comments:
+  definition: "Write verify and test scripts without comments narrating their steps, letting assertion and log strings say what each step checks."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+comment-rule-on-delegate-diffs:
+  definition: "Apply the comment rule to every file produced, helpers' diffs included."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+bot-comment-three-way-triage:
+  definition: "Sort each automated review thread into fix, dismiss or ask before acting on it."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+fix-in-owning-pr-with-sha-reply:
+  definition: "Land a review fix in the lowest pull request of a stack that owns the code, then reply on the thread with the commit and resolve it."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+dismiss-needs-pattern-and-proof:
+  definition: "Dismiss a review comment only when it fits a recorded low-risk pattern and the current code proves no change is needed, with a short reason before resolving."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+ask-on-risky-or-doubtful-comment:
+  definition: "Take a novel, severe, security, privacy, data or unclear review comment to the user, and ask whenever in doubt."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+learned-skip-pattern-ledger:
+  definition: "Record each learned skip pattern with its name, confidence tier, when to skip, when never to, sample signals and source, and promote a candidate only after several confirmed dismissals."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+seeded-skip-patterns:
+  definition: "Start the skip ledger with a few bounded patterns, such as intended visual changes, exports used later in the stack, temporary duplication, warnings an enforced invariant covers, owner-deferred follow-ups and findings the bot withdrew."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+never-auto-skip-risk-classes:
+  definition: "Never skip a review finding automatically when it concerns security, privacy, money, data handling, schema, concurrency or cross-system effects, or when a small fix clearly lowers risk."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+human-dismissal-not-precedent:
+  definition: "Treat a past human dismissal of a security or data-flow comment as that owner's judgement, not a rule for skipping later ones."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+native-behaviour-findings-default-fix:
+  definition: "Default to fixing a logic finding against code that reimplements behaviour the platform already provides."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+run-contract-test-before-ruling:
+  definition: "When a reviewer says a test pinning prose no longer matches its document, run that test on the branch tip first and let its result decide."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+security-dismissal-needs-gate-on-tip:
+  definition: "Dismiss a finding about a missing security check only when the branch tip holds that exact check with tests, ahead of the side effect, covering the principal concerned."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+keep-deliberately-narrow-errors:
+  definition: "Decline to widen a deliberately narrow error condition into a catch-all when the narrowness separates distinct failures, unless the gap is the same kind, loses data or the retry is safe."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+plan-lint-cli-contract:
+  definition: "Have the plan lint print usage and exit 2 without a file, print each problem as file, line and message and exit 1, and exit 0 when clean."
+  placement: {domain: engineering, stage: Design, substage: Decomposition}
+fence-aware-plan-lint:
+  definition: "Skip front matter and ignore text inside properly opened and closed code fences when linting a plan, with regression tests for indented, longer, nested, tilde and mismatched fences."
+  placement: {domain: engineering, stage: Design, substage: Decomposition}
+plan-prose-lint:
+  definition: "Flag long dashes, curly quotes and mid-sentence colons in a plan's prose outside code."
+  placement: {domain: engineering, stage: Design, substage: Decomposition}
+plan-reading-guide:
+  definition: "Open a plan with a title, an introduction under ten lines and a reading guide that states the box and evidence conventions and points to the playbooks."
+  placement: {domain: engineering, stage: Design, substage: Decomposition}
+program-plan-sections:
+  definition: "Require a program plan to carry an ordered program checklist (arming, owners, pull request mechanics, verdict and merge, boot recipe, a main-branch read, an hourly loop and a status message), pull request sections, a close section and only appendices after it, one of them prototype evidence."
+  placement: {domain: engineering, stage: Design, substage: Decomposition}
+per-pr-nine-sub-blocks:
+  definition: "Give each pull request section nine bold sub-blocks in a fixed order, with a dependency that names something, checkboxes in the file, build, result, unit and merge blocks, and verify blocks opening with a fixed sentence."
+  placement: {domain: engineering, stage: Design, substage: Decomposition}
+ten-lane-live-verify:
+  definition: "Declare live verification as ten numbered lanes on a named worker model at the branch head, each naming a screenshot and a pass condition."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+perf-verify-four-boxes:
+  definition: "Give performance verification exactly four boxes in order: metric, probe, baseline and rule."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+review-gate-shape:
+  definition: "Make a plan's review gate either the word None with no boxes, or boxes that mention a screenshot, a video and the operator."
+  placement: {domain: engineering, stage: Design, substage: Decomposition}
+plan-box-count-report:
+  definition: "Print each pull request's total checkbox count and its count per sub-block when linting a plan."
+  placement: {domain: engineering, stage: Design, substage: Decomposition}
+pr-watcher-modes:
+  definition: "Watch one pull request, the open stack around it or a frozen queued stack until all merge, with a one-shot status table option."
+  placement: {domain: core, stage: Operations, substage: Monitoring}
+draft-gate-option:
+  definition: "Let an opt-in flag stop a draft from blocking, wait for checks before reporting a draft as blocked, and note that a pull request ready under that flag should stay a draft."
+  placement: {domain: core, stage: Operations, substage: Monitoring}
+watcher-output-contract:
+  definition: "Emit machine-readable events by default with an optional human view, exit 64 on bad arguments with errors on standard error only, and give each blocker kind its own exit code."
+  placement: {domain: core, stage: Operations, substage: Monitoring}
+pr-context-resolution:
+  definition: "Resolve repository and pull request from flags, then the local remote, then the branch's pull request, accepting only canonical forge addresses."
+  placement: {domain: core, stage: Operations, substage: Monitoring}
+stack-discovery:
+  definition: "Rebuild a stack from open pull requests' head and base branches, never treating a fork's head as a parent, and settle a merged or closed one before any other query."
+  placement: {domain: core, stage: Operations, substage: Monitoring}
+complete-forge-reads:
+  definition: "Read checks by a fast path with a paginated fallback and page review threads to the end, dropping resolved ones, so no state is judged from a partial read."
+  placement: {domain: core, stage: Operations, substage: Monitoring}
+strict-forge-response-parsing:
+  definition: "Treat a missing key or an unknown value in a forge response as a retryable error carrying the raw value, never as a default."
+  placement: {domain: core, stage: Operations, substage: Monitoring}
+skip-rollup-while-queued:
+  definition: "Skip the commit-rollup query for a queued pull request whose checks are only pending."
+  placement: {domain: core, stage: Operations, substage: Monitoring}
+unknown-check-state-fails:
+  definition: "Count an unknown or unexpected check state as failed and an unfinished one as pending."
+  placement: {domain: core, stage: Operations, substage: Monitoring}
+forge-refusal-outranks-checks:
+  definition: "Treat a blocked merge with a failing head-commit rollup as failing CI even when every visible check is clean."
+  placement: {domain: core, stage: Operations, substage: Monitoring}
+approval-gate-own-kind:
+  definition: "Classify a check that stands for a human approval as its own kind, never pending or failed, so the watcher never waits on it."
+  placement: {domain: core, stage: Operations, substage: Monitoring}
+earlier-pass-flag:
+  definition: "Record with each CI state whether any earlier commit of the pull request passed."
+  placement: {domain: core, stage: Operations, substage: Monitoring}
+review-bot-tracking:
+  definition: "Tag threads opened by review bots, count their distinct passes, and mark review automation as still running while its check is pending."
+  placement: {domain: core, stage: Operations, substage: Monitoring}
+blocker-priority:
+  definition: "Rank blockers as conflicts, open threads, failing checks, merge gates, then pending checks, scanning each tier across the whole stack first and naming the pull request a wait is really on."
+  placement: {domain: core, stage: Operations, substage: Monitoring}
+ready-needs-positive-proof:
+  definition: "Report ready only with positive proof of a clean merge state, no open threads, clean checks and an open review state, enforced by types that reject a ready verdict without it."
+  placement: {domain: core, stage: Operations, substage: Monitoring}
+query-retry-budget:
+  definition: "Poll at validated intervals, back off exponentially with a cap after a failed query, end after a budget of consecutive failures, and cut every wait to an optional deadline."
+  placement: {domain: core, stage: Operations, substage: Monitoring}
+versioned-event-stream:
+  definition: "Give every event a schema version, sequence number, time, mode, kind and terminal flag, emit the captured queue first, advance at once when the frontier merges, and drop repeated identical waits."
+  placement: {domain: core, stage: Operations, substage: Monitoring}
+merge-queue-frontier-polling:
+  definition: "In a merge queue, sweep every unmerged pull request at intervals and otherwise poll only the lowest, resuming a sweep at a failed read and waiting on the queue whatever upstream checks are pending."
+  placement: {domain: core, stage: Operations, substage: Monitoring}
+human-status-rendering:
+  definition: "Render a table of each pull request's checks, review and merge state with full links, and give each blocker a next action."
+  placement: {domain: core, stage: Operations, substage: Monitoring}
+watcher-test-harness:
+  definition: "Pin the watcher's behaviour with tests against a fake forge reader and an injected clock, and typecheck it strictly."
+  placement: {domain: core, stage: Operations, substage: Monitoring}
+self-installing-launcher:
+  definition: "Install a script's dependencies from a frozen lockfile only when a hash of its manifest changes, check the install, then rerun the original command."
+  placement: {domain: engineering, stage: U, substage: Tooling}
+bucketed-worktree-report:
+  definition: "List every non-main worktree read-only with its size, age, merge, dirty, remote, pull request and last-chat columns, a suggested bucket by fixed precedence, largest first."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+  distinct_from: [listed-worktree-audit, advisory-audit-bucket]
+  note: "listed-worktree-audit classifies by uncommitted work, activity, prunable record and merge state; this adds size, remote, pull request and chat columns and its own buckets."
+base-ref-fallback-and-fetch:
+  definition: "Judge merge state against a ref given by flag, else the remote default, main or master with a warning, fetching it first and only warning if the fetch fails."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+portable-shell-date-flags:
+  definition: "Detect the platform's `stat` and `date` flags once at start."
+  placement: {domain: engineering, stage: U, substage: Tooling}
+pr-state-as-merge-signal:
+  definition: "Treat a pull request's merged state as the merge signal for squash merges, which ancestor checks miss."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+tracked-wip-vs-untracked-scratch:
+  definition: "Count tracked edits as work in progress and untracked files alone as disposable scratch."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+remote-push-state:
+  definition: "Report each worktree branch as detached, pushed, ahead by a count, or with no remote branch."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+last-chat-from-transcripts:
+  definition: "Date a worktree's last activity from the newest chat transcript naming its exact path, counting four days as recent."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+how-to-answer-not-run:
+  definition: "Answer a question about how to get something done by explaining it, with a request the person can send and a link to the source, without starting the work."
+  placement: {domain: core, stage: X, substage: Communication}
+  distinct_from: [inspection-only-authority]
+  note: "inspection-only-authority covers any analysis request; this adds a ready-to-send request and a source link."
+unclear-need-one-choice-question:
+  definition: "Infer the person's need from context and, only if it stays unclear, ask one multiple-choice question with fixed options and answer only the chosen part."
+  placement: {domain: core, stage: Intake, substage: Clarification}
+help-setup-state-checks:
+  definition: "Before a help answer, check the setup state that would change it, such as the model configuration, which app-driving and formal verification skills the project has and whether code a formal skill covers changed after its recorded sync, mention each only where it changes the answer, and offer a missing setup at most once per chat."
+  placement: {domain: core, stage: X, substage: Communication}
+onboarding-first-real-task:
+  definition: "Explain getting started as installing, setting up models, then sending a first real task with its goal and a pass-or-fail check."
+  placement: {domain: core, stage: X, substage: Communication}
+token-cost-guidance:
+  definition: "For a worry about cost, explain where tokens go and which settings cut them."
+  placement: {domain: core, stage: X, substage: Communication}
+pack-install-notes:
+  definition: "Explain how the pack installs, persists and is linked on each host, which helper type users may spawn, and which commands come from elsewhere."
+  placement: {domain: engineering, stage: U, substage: Tooling}
+host-feature-caveat:
+  definition: "Say which features depend on host abilities, such as spawning helpers, staying loaded across turns or running loops, that another host may lack."
+  placement: {domain: core, stage: X, substage: Communication}
+offer-to-word-first-request:
+  definition: "Offer to word the person's first request for them using the prompting guidance."
+  placement: {domain: core, stage: X, substage: Communication}
+request-states-outcome:
+  definition: "Advise a person to state in a request what is wrong or wanted, a pass-or-fail done check, the proof to show, the evidence they already have and any real constraint."
+  placement: {domain: core, stage: Intake, substage: Clarification}
+request-omits-method:
+  definition: "Advise a person to say what to achieve and not how, listing no skills or steps except to override one choice."
+  placement: {domain: core, stage: Intake, substage: Clarification}
+withhold-cause-theory:
+  definition: "Advise a person to hold back their theory of the cause until the agent has restated the problem, so it does not narrow the search."
+  placement: {domain: core, stage: Intake, substage: Clarification}
+restate-noisy-report-first:
+  definition: "Before acting on a noisy report, put its underlying problem in plain words so a misreading surfaces before any code is written."
+  placement: {domain: core, stage: Intake, substage: Clarification}
+  distinct_from: [goal-and-problem-restatement, task-start-goal-restatement]
+  note: "goal-and-problem-restatement restates the user's goal and problem when asked; task-start-goal-restatement does it on every task; this restates only a noisy report's problem, unasked."
+ask-for-a-case:
+  definition: "Advise a person to ask the agent to argue for a choice rather than summarize it, since a case is easier to check."
+  placement: {domain: core, stage: Verification, substage: Review}
+settle-design-in-code-first:
+  definition: "Advise a person to settle an open design question with prototypes of several options, compared on evidence such as screenshots, rather than by reviewing an abstract plan."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+docs-first-for-shared-api:
+  definition: "For a shared package or interface, write the readme or tutorial first and check the code against it."
+  placement: {domain: engineering, stage: Design, substage: Architecture}
+plan-after-design:
+  definition: "Advise a person to ask for the plan only once the design settles, with each step ending in a check."
+  placement: {domain: engineering, stage: Design, substage: Decomposition}
+terse-follow-ups:
+  definition: "Treat a short follow-up such as \"do it\" or \"keep going\" as a whole request once the chat holds the task."
+  placement: {domain: core, stage: Intake, substage: Clarification}
+new-task-phrase-reset:
+  definition: "Start a fresh playbook pick when a message opens with \"new task\"."
+  placement: {domain: core, stage: X, substage: Coordination}
+away-notice-stops-questions:
+  definition: "Treat a person saying they are stepping away as a signal to stop asking questions."
+  placement: {domain: core, stage: Intake, substage: Clarification}
+loop-done-as-checks:
+  definition: "Give an unattended loop a done condition written as checks each iteration can run, never a length of time."
+  placement: {domain: core, stage: X, substage: Continuity}
+  distinct_from: [exit-predicate-first]
+  note: "exit-predicate-first also asks when the person is there and does not start when the request says it is unattended; this only asks for a checkable done condition."
+unattended-request-advice:
+  definition: "Advise a person sending unattended work to name a fresh worktree off a base, pre-answer the stops, ask for a decision log and give a stuck exit."
+  placement: {domain: core, stage: X, substage: Continuity}
+isolate-parallel-writers:
+  definition: "Give parallel agents that would overwrite each other separate worktrees or machines."
+  placement: {domain: core, stage: X, substage: Coordination}
+  distinct_from: [independence-batching]
+  note: "independence-batching serializes overlapping writes; this separates them by checkout."
+challenge-green-build-claims:
+  definition: "Advise a person to question a success claimed from a passing build and to ask for proof from the running thing: the command, the user flow, a stored value or a profile."
+  placement: {domain: core, stage: Verification, substage: Review}
+default-to-router:
+  definition: "Recommend the main router by default and name a specific skill only when the person wants more or less than its pick gives."
+  placement: {domain: core, stage: X, substage: Coordination}
+route-unlisted-by-description:
+  definition: "Route a skill missing from the help table by reading its own description."
+  placement: {domain: core, stage: X, substage: Coordination}
+  distinct_from: [layered-catalog]
+  note: "layered-catalog loads a generated list of every skill; this reads one unlisted skill's own description."
+fixed-confusable-pair-notes:
+  definition: "Keep fixed notes that separate easily confused pairs of skills."
+  placement: {domain: core, stage: X, substage: Coordination}
+  distinct_from: [overlap-arbitration]
+  note: "overlap-arbitration settles an overlap when it arises; this keeps a fixed list of confusable pairs."
+steer-by-principle-name:
+  definition: "Steer a drifting run by naming the principle it should apply, which works because the reply names the decision each principle changed."
+  placement: {domain: core, stage: Intake, substage: Clarification}
+steer-by-restating-goal:
+  definition: "Steer a drifting run by restating its goal in one line."
+  placement: {domain: core, stage: Intake, substage: Clarification}
+short-help-answer:
+  definition: "Lead a help reply with the answer and at most one example request, keeping it short unless the whole map was asked for."
+  placement: {domain: core, stage: X, substage: Communication}
+read-dropped-findings:
+  definition: "Advise a person to read the list of findings an adversarial review dropped, not only those it kept."
+  placement: {domain: core, stage: Verification, substage: Review}
+read-attention-first:
+  definition: "Advise a person catching up on an overnight decision log to read its attention section first."
+  placement: {domain: core, stage: X, substage: Continuity}
+run-failure-troubleshooting:
+  definition: "Answer a run that went wrong from a table that maps common failure symptoms to their fixes."
+  placement: {domain: core, stage: X, substage: Communication}
+approve-decision-changing-edits:
+  definition: "Approve only those proposed skill edits that would change a future decision."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+role-model-rule-file:
+  definition: "Write one always-loaded rule file that records a budget line and one model per role, overwritten whole on each run."
+  placement: {domain: core, stage: X, substage: Coordination}
+  distinct_from: [owner-roster]
+  note: "owner-roster reads the roster the owner keeps; this is a wizard that writes it."
+detect-selectable-models:
+  definition: "Take the selectable models from what the helper tool accepts this session, preferring a full models list, and ask the person to paste them when none can be found."
+  placement: {domain: core, stage: X, substage: Coordination}
+  distinct_from: [vendor-model-list]
+  note: "vendor-model-list reads the vendor's catalog and falls back to a seed; this reads the helper tool and asks the person."
+confirmed-slugs-only:
+  definition: "Write or use a model name only after confirming it is selectable now, never guessing one or carrying it over from someone else's default."
+  placement: {domain: core, stage: X, substage: Coordination}
+rerun-keeps-role-choices:
+  definition: "On a rerun, start from the existing budget and role values, keep roles the person customized, and drop and list lines for retired roles."
+  placement: {domain: core, stage: X, substage: Coordination}
+budget-tier-rewrites-effort:
+  definition: "Offer four labelled budgets that set the reasoning effort of every role's model, falling back within the family when that effort is unavailable."
+  placement: {domain: core, stage: X, substage: Coordination}
+show-roles-and-confirm:
+  definition: "Show every role with its model, flag undetected ones, and let the person accept or change roles from the detected models."
+  placement: {domain: core, stage: X, substage: Coordination}
+panel-list-sets-fan-out:
+  definition: "Let a panel role's value be a list, running one helper per entry."
+  placement: {domain: core, stage: Verification, substage: Review}
+ordered-judge-pool-no-alias:
+  definition: "Take the judge as the first allowed entry of an ordered list of models, never letting an alias that stands for another model be the judge."
+  placement: {domain: core, stage: X, substage: Coordination}
+  distinct_from: [judge-pool-walk]
+  note: "judge-pool-walk also moves to a nearby model or the next entry when one is refused and falls back to a default pool; this only orders the list and bars aliases."
+swarm-worker-model-role:
+  definition: "Set one model for every parallel worker unless a race assigns models per arm."
+  placement: {domain: engineering, stage: U, substage: Tooling}
+new-sessions-notice:
+  definition: "Tell the person the model rule applies from new sessions on and that rerunning updates it."
+  placement: {domain: engineering, stage: U, substage: Tooling}
+offer-app-driving-generator:
+  definition: "When a project has no way to drive its real app for proof, offer once to generate one and accept a no."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+offer-formal-verification-generator:
+  definition: "When a project has no formal verification of its code, offer once to generate a skill for it and accept a no."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+persona-update-or-fresh:
+  definition: "Find an existing working-style skill for the person and confirm whether to update it, the default, or start fresh, asking why before starting fresh."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+incremental-persona-update:
+  definition: "In update mode, mine only history since the skill's last commit, ask what changed, and edit the file in place keeping sections nothing contradicts."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+sliced-parallel-history-mining:
+  definition: "Mine recent history with parallel helpers, each taking one time slice and returning a short structured list of patterns with pointers to evidence."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+working-style-signal-checklist:
+  definition: "Look for a fixed set of working-style signals and group them into fixed sections: reply style, autonomy, understanding first, helpers, prose and code discipline, review, process and skills."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+corroborated-patterns-only:
+  definition: "Codify a preference only when it recurs across separate stretches of history, dropping a lone or later-contradicted signal."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+structured-choice-interview:
+  definition: "Ask the person one or two structured questions with four to six options, broad before specific, then one open question."
+  placement: {domain: core, stage: Intake, substage: Clarification}
+granularity-reference-only:
+  definition: "Read an existing working-style skill for its level of detail only, never copying its content."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+persona-skill-placement:
+  definition: "Place the generated skill in an existing category, else a personal folder the repo has, else a project mode folder, or the person's own skills folder on request."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+persona-skill-frontmatter:
+  definition: "Give the generated skill a description that triggers on the person's name and style, written as one YAML scalar, and make it manual unless wanted every turn."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+trigger-tuning-on-observed-miss:
+  definition: "Tune a skill's description in a loop only after its triggering has been shown to fail in use."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+iterate-draft-and-cut:
+  definition: "Show the draft over several feedback rounds and cut it hard."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+skill-lands-via-branch-and-pr:
+  definition: "Land a skill from a worktree off main with a commit and pull request, never a direct push."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+  distinct_from: [isolated-skill-build]
+  note: "isolated-skill-build gives a skill change its own branch, with no pull request."
+operational-agent-prose:
+  definition: "Write agent-facing text operationally, with no restating of other skills, metaphors or poetic prose."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+reference-other-skills-by-path:
+  definition: "Refer to other skills and principle files by path instead of pasting excerpts."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+  distinct_from: [context-pointers]
+  note: "context-pointers says how a pointer is written; this forbids the pasted excerpt."
+sections-only-for-non-default-rules:
+  definition: "Include a section only where the person has a specific rule that differs from the default, omitting any section with nothing in it."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+generic-person-naming:
+  definition: "Say \"the user\" or \"the human\" in instructions, never the author's name."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+vibe-check-evaluation:
+  definition: "Judge a generated working-style skill by asking the person whether it reads like them and what is missing, not by a benchmark loop."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+persona-scope-excludes-task-skills:
+  definition: "Write task-specific skills and single narrow workflows as ordinary skills without mining, never as a working-style skill."
+  placement: {domain: core, stage: Improvement, substage: Codification}
+credential-holding-relay:
+  definition: "Let a browser page reach an outside service only through a server of ours that alone holds the sender credential, keeping it out of the page, chat and instructions."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+relay-config-beside-page:
+  definition: "Store the relay's target address and key in the page's own folder."
+  placement: {domain: engineering, stage: U, substage: Tooling}
+webhook-routine-setup:
+  definition: "Create a webhook-triggered routine through the host's state tool, wait on its confirm card, give exact steps to copy its URL and key, and take the key only through a secret card bound to the routine."
+  placement: {domain: engineering, stage: U, substage: Tooling}
+webhook-field-contract:
+  definition: "Keep the field names the page sends and the receiving routine reads identical and few, with the routine reading the body as data and staying silent when there is nothing to report."
+  placement: {domain: engineering, stage: U, substage: Tooling}
+webhook-post-policy:
+  definition: "Post one JSON object with the key in two headers, an eight-second timeout and a single try with no retry."
+  placement: {domain: engineering, stage: U, substage: Tooling}
+no-media-on-webhook:
+  definition: "Never send media bytes over the webhook."
+  placement: {domain: engineering, stage: U, substage: Tooling}
+failed-post-outbox:
+  definition: "When a post can fail, append the same record to a local log that the receiver drains, rather than relying on polling."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+tailnet-exposure:
+  definition: "Serve the page to a private network: reuse an existing node or install and join one with a short hostname, have the person approve the login, give both its name and address URLs, use plain HTTP unless asked, and probe the page over that network."
+  placement: {domain: engineering, stage: U, substage: Tooling}
+harmless-probe-before-live:
+  definition: "Before saying an integration is live, send it one request it is built to ignore and check for the success reply."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [direct-observation]
+  note: "direct-observation requires observing the real result; this names a harmless request as the observation."
+fail-closed-run-config:
+  definition: "Stop a run before any write when its configuration or a required tool or map is missing, malformed or incomplete."
+  placement: {domain: core, stage: Operations, substage: Monitoring}
+frozen-source-coordinates:
+  definition: "Read and check the source channel and thread of a report once, before any work list or delegation, and never change or replace them for the rest of the run."
+  placement: {domain: core, stage: Operations, substage: Monitoring}
+no-root-post-in-source:
+  definition: "Post in the source channel only as a reply inside the report's thread, never as a new top-level message."
+  placement: {domain: core, stage: X, substage: Communication}
+thread-parent-preflight:
+  definition: "Before each write tied to a report thread, re-read the thread to confirm its parent message still exists in the same channel, and after posting confirm the reply landed, never falling back to another place."
+  placement: {domain: core, stage: Operations, substage: Monitoring}
+coordinator-only-chat-writes:
+  definition: "Let only the coordinating agent write to chat, telling every worker in its brief that chat writes are forbidden and giving it no means to make them."
+  placement: {domain: core, stage: X, substage: Coordination}
+findings-only-read-only-workers:
+  definition: "Give each delegated analysis worker one narrow question, no write access and no chat credentials, and take back findings only."
+  placement: {domain: core, stage: X, substage: Coordination}
+worker-isolation-or-coordinator:
+  definition: "Hand work to a worker only where its environment provably enforces the run's write limits, and otherwise have the coordinator do that work itself."
+  placement: {domain: core, stage: X, substage: Coordination}
+coordinator-checks-worker-edit:
+  definition: "Have the coordinator review every edit a worker made and run or check the tests it requires."
+  placement: {domain: core, stage: X, substage: Coordination}
+  distinct_from: [read-worker-output]
+  note: "read-worker-output holds a worker's diff to its brief's evidence; this also has the coordinator run the tests."
+coordinator-owns-landing:
+  definition: "Let only the coordinator do the final diff review, the commits and the pull request."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+yield-to-human-fix-owner:
+  definition: "Stop when a person claims the fix, gives a concrete plan or asks another agent to build it, counting diagnosis requests, bot summaries and unaccepted hypotheses as no claim, and never racing an owner who has no artifact yet."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+concrete-fix-artifact:
+  definition: "Count as an existing fix only an open pull request with relevant code, a merged one or a matching merged commit, never a claim, a ticket status, a branch name or a hypothesis."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+verify-existing-fix-mode:
+  definition: "When a fix already exists, verify it instead of authoring another: pick the linked artifact, record both revisions and the shared inputs, take the right baseline, and report confirmed, insufficient or inconclusive with no competing change."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+symptom-twice-through-real-ui:
+  definition: "Count a reproduction only when the exact distinguishing symptom shows twice through real interface use, with the state reset between attempts and a real state value cross-checked."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [reproduction-preferred]
+  note: "reproduction-preferred needs the reported failure once, in any fitting form; this needs it twice through the interface."
+no-symptom-injection:
+  definition: "Make a reproduction arise from the reported actions alone, never writing state, calling hidden methods or injecting into the page to make the symptom appear, and inspect state only to confirm what was seen."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [reproduction-preferred, loop-construction]
+  note: "reproduction-preferred asks for the reported failure and loop-construction picks its form; neither forbids forcing the state."
+no-proxy-ui-repro:
+  definition: "Never count a screenshot, unit test, state change or source reading as a reproduction of an interface bug."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+named-end-states:
+  definition: "Before calling a reproduction, name the correct and the broken final state, reach the point where they diverge, and never count expected setup steps as the bug."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+report-fact-capture:
+  definition: "Collect a fixed set of facts from a bug report before deciding on it: the reporter's words, version and environment, expected and observed behaviour, frequency and trigger, error signatures, attachments, links and any claim that someone already owns it."
+  placement: {domain: core, stage: Intake, substage: Triage}
+trace-with-competing-hypotheses:
+  definition: "Trace the reported action through the code, check its regression history, and form competing causes with the evidence that would separate them."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+repro-budget-outcomes:
+  definition: "End a reproduction attempt within its budget as either cleanly not reproduced or blocked, naming the missing capability."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+repro-capture-bundle:
+  definition: "Keep a step note and a whole-path recording that shows the broken final state for a reproduction, looking at every captured screenshot and recording before citing it."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [action-and-state-capture, identity-screenshot]
+  note: "action-and-state-capture records each action with its resulting state, and identity-screenshot asks for a screenshot that shows the app; this adds the step note, the whole-path recording and the look at every captured item before citing."
+identity-screenshot:
+  definition: "Capture a screenshot of the app's current state showing enough of its chrome to prove the right app is under test, returned with its path, capture time, app marker and what should be visible."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [ui-proof-snapshot-and-screenshot, ui-proof-screenshot-snapshot-where-offered]
+  note: "Both define interface proof as such a screenshot plus an accessibility snapshot, always or where the surface and tools offer one; this asks for the screenshot alone, with its capture details."
+independent-media-review:
+  definition: "Have a separate read-only reviewer say whether the media visibly shows the broken state, treating no or unsure as unconfirmed."
+  placement: {domain: core, stage: Verification, substage: Review}
+trusted-verdict-marker:
+  definition: "Pass a report from triage to repair through a fixed one-line marker that repair accepts only from the configured triage identity, in the same thread, and only for a bug or performance verdict."
+  placement: {domain: core, stage: Operations, substage: Monitoring}
+reread-thread-before-acting:
+  definition: "Re-read the whole report thread immediately before starting work on it."
+  placement: {domain: core, stage: Intake, substage: Triage}
+ops-thread-status:
+  definition: "Keep detailed status in one operations thread, updated before any source reply, using a fixed short vocabulary, and fall back to the run output when no such thread is configured."
+  placement: {domain: core, stage: Operations, substage: Monitoring}
+quiet-source-thread:
+  definition: "Post nothing to the reporter's thread on failure, at most one short reply on a confirmed reproduction with no default ping, and attachments only where retention allows."
+  placement: {domain: core, stage: X, substage: Communication}
+narrow-bot-token:
+  definition: "Prefer the platform's built-in chat actions, use a separate bot token only for a named gap, keep it in a secret store, and never pass it to a worker."
+  placement: {domain: core, stage: Operations, substage: Monitoring}
+correction-window-before-fix:
+  definition: "Wait out a configured window for corrections before the fix phase, and rerun the reproduction once on one valid correction."
+  placement: {domain: core, stage: Operations, substage: Monitoring}
+bounded-fix-gate:
+  definition: "Attempt a fix only when the reproduction and its media review are confirmed, no fix or owner appeared, runtime evidence names the cause, and the change fits the effort and risk budget, stopping if it outgrows it."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+no-fix-without-repro:
+  definition: "Author no fix until a reproduction is confirmed."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [confirmed-cause-gate]
+  note: "confirmed-cause-gate needs a confirmed cause, which a reproduction or independent evidence can give; this needs the reproduction."
+runtime-confirmed-mechanism:
+  definition: "Confirm the mechanism with runtime evidence and eliminate the competing causes before editing."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [confirmed-cause-gate]
+  note: "confirmed-cause-gate accepts any confirming evidence; this requires runtime evidence and every rival cause ruled out."
+smallest-root-cause-fix:
+  definition: "Fix the root cause with the smallest change that justifies itself."
+  placement: {domain: engineering, stage: Building, substage: Diagnosis}
+  distinct_from: [smallest-sufficient-change, owning-layer-fix]
+  note: "smallest-sufficient-change and owning-layer-fix each hold one half; this joins them."
+cheap-test-first-or-reason:
+  definition: "Write the failing test first when a cheap local test target exists, otherwise state why none was written."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [test-skipped-when-impractical, risk-gated-test-first]
+  note: "risk-gated-test-first writes the test first for risky changes, and test-skipped-when-impractical lists when to skip; this keys both on a cheap target."
+after-proof-mirrors-baseline:
+  definition: "Prove a fix with two runs on the unfixed build that show the fault and two on the fixed build that do not, in one environment, making no claim when the unfixed build never shows it."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [rerun-original-repro, evidence-before-after]
+  note: "rerun-original-repro reruns the scenario once after the change, and evidence-before-after shows the result; this demands two runs on each build."
+blast-radius-smoke-gate:
+  definition: "After the focused tests, try the neighbouring states, inputs, permission levels, platforms and error paths, and open no pull request while anything there has regressed."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+pre-pr-diff-and-secret-review:
+  definition: "Before opening a pull request, read the whole change for stray edits and leaked secrets and run the checks the repository requires."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+  distinct_from: [final-diff-inspection]
+  note: "final-diff-inspection reads the diff; this also names secrets and required checks before a pull request."
+small-ordered-commits:
+  definition: "Make commits small and ordered where the repository allows."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+draft-pr-only:
+  definition: "Open only a draft pull request and never merge or deploy."
+  placement: {domain: core, stage: Delivery, substage: Release}
+bug-pr-contents:
+  definition: "Link the tracker issue in the pull request with the tracker's own syntax, and put in its body how to reproduce, the cause, the test results, evidence from before and after, and what was checked around the change."
+  placement: {domain: core, stage: X, substage: Communication}
+honest-pr-failure:
+  definition: "When opening the pull request fails, claim no success, put the branch state in the run output and report that the fix did not land."
+  placement: {domain: core, stage: X, substage: Communication}
+run-artifacts-uncommitted:
+  definition: "Never commit a run's captures, recordings, logs or tokens to source control."
+  placement: {domain: core, stage: X, substage: Continuity}
+  distinct_from: [scratch-artifact-location, secret-containment]
+  note: "scratch-artifact-location names the gitignored scratch folder as the place; this only keeps the files out of source control, wherever they go."
+bounded-follow-up-window:
+  definition: "After the main reply, watch the thread for one bounded window, answering only direct questions, staying out of side chatter and stopping when asked."
+  placement: {domain: core, stage: X, substage: Communication}
+follow-up-evidence-one-correction:
+  definition: "During a follow-up window, answer only from evidence already gathered and apply at most one concrete correction, with one rerun."
+  placement: {domain: core, stage: X, substage: Communication}
+always-cleanup-keeping-user-work:
+  definition: "Make a run's cleanup stop the processes and sessions its driver created, remove its disposable profiles, temporary workspaces and the fixtures it created and any captures past their retention window, keeping captures still within it, report what was stopped, removed, kept or left, and never delete the person's own work."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [teardown-only-own-instances, cleanup-keeps-evidence, cleanup-after-failed-attempt]
+  note: "teardown-only-own-instances also forbids stopping by process name, and cleanup-keeps-evidence keeps every proof file at the place the skill names; this stops what the driver created by any means and keeps or removes captures by their retention window. cleanup-after-failed-attempt runs the cleanup after failed tries too."
+feature-map-required:
+  definition: "Drive an app only through one maintained feature map kept outside any copied pack, with a section per feature giving how a user reaches it, the driving actions with their reset, stable selectors, the states that apply, its preconditions and its evidence, and block when the needed section is missing."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [user-view-feature-file, feature-file-template, user-terms-only-in-map, baseline-start-and-reset, seeded-feature-map, map-defines-completeness]
+  note: "The P2 IDs build the map as an index plus one file per feature, with sub-feature IDs, action, command and result lines and a default baseline start, keep it in user terms and make it the measure of proof; this is one map of per-feature sections, each with its own reset, applicable states and preconditions, kept outside any copied pack, and every run goes through it and stops at a missing section."
+control-adapter-capabilities:
+  definition: "Require the tool that drives an app to support every mapped feature through real input, inspection without changing state, screenshot and recording capture and cleanup, and to prove this on a harmless run of one mapped feature before any reproduction relies on it."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [generated-skill-run-once, single-feature-handover-proof]
+  note: "generated-skill-run-once follows a generated skill's own instructions as its next reader before handover, and single-feature-handover-proof counts one proven feature as enough for that handover; this requires the driving tool's capabilities for every mapped feature and proves the tool itself on one harmless run before any reproduction relies on it."
+coordinates-from-fresh-screenshot:
+  definition: "Drive an interface by screen coordinates only when they come from a screenshot taken right before the action."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [stable-handles, real-user-path-proof, action-and-state-capture]
+  note: "stable-handles prefers durable handles to coordinates, and the other two require the user's path and the resulting state; this only says when coordinates may be used."
+target-confirmed-by-stable-markers:
+  definition: "Before acting, confirm by stable markers, not window order or a familiar title, that the target is the checked app, workspace, account and data set rather than a look-alike window, shell or production instance, and that the feature is in the expected state."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [read-only-doctor, drive-only-own-instance]
+  note: "read-only-doctor is one read-only check of liveness, build, port ownership, sign-in, address, data folder and revision, and drive-only-own-instance limits driving to an instance the run started; this confirms the target's identity and the feature's state by stable markers before acting."
+translate-environment-before-blocking:
+  definition: "Before calling an environment a block, restate the defect without platform nouns and try a labelled translation that tests the same behaviour, accepting hardware, permission, device-only and account states as real blocks."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+repro-evidence-for-surface:
+  definition: "Keep a step note for a reproduction and, on a visual surface with capture tools, a whole-path recording that shows the broken final state, looking at every captured screenshot and recording before citing it and saying what stays unverified when proof cannot be captured."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [repro-capture-bundle, action-and-state-capture, identity-screenshot]
+  note: "repro-capture-bundle requires the recording whatever the surface and tools; action-and-state-capture holds the record of each action and identity-screenshot the interface screenshot, whose look before citing this rule requires."
+driver-smoke-proof-for-surface:
+  definition: "Require the tool that drives an app to support every mapped feature through real input, inspection without changing state, the evidence capture its surface allows and cleanup, and to prove this on a harmless run of one mapped feature before any run relies on it, reporting a capability it lacks as incomplete and stopping only the work that needs it."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [control-adapter-capabilities, generated-skill-run-once, single-feature-handover-proof]
+  note: "control-adapter-capabilities requires screenshot and recording capture on every surface; generated-skill-run-once follows a generated skill's own instructions before handover, and single-feature-handover-proof counts one proven feature as enough for it."
+feature-map-entry-required:
+  definition: "Drive an app only through its feature map, kept where a refresh does not overwrite it, with each feature's entry giving its reset, the states that apply and its preconditions, and block when the entry a run needs is missing."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [feature-map-required, user-view-feature-file, baseline-start-and-reset]
+  note: "feature-map-required asks for one map file outside any copied pack whose sections also give the path, actions, selectors and evidence; user-view-feature-file puts the route, drive and proof in each feature file, and baseline-start-and-reset starts every recipe from a baseline."
+target-confirmed-for-surface:
+  definition: "Before acting, confirm by stable markers suited to the driven surface that the target is the checked app instance, workspace, account and data set rather than a look-alike or production instance and that the feature is in the expected state, and, when the run drives a window, that the window belongs to that target, never judged by window order or title alone."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [target-confirmed-by-stable-markers, read-only-doctor, drive-only-own-instance]
+  note: "target-confirmed-by-stable-markers names app-oriented window, shell and instance checks; this makes marker selection surface-specific and requires window ownership only when a window is driven; read-only-doctor is one read-only check of liveness, build, port, sign-in, address, data folder and revision, and drive-only-own-instance limits driving to an instance the run started."
+dormant-pack-read-by-path:
+  definition: "Ship an automation pack dormant, never registered as commands, and read its files from the copied repository path."
+  placement: {domain: engineering, stage: U, substage: Tooling}
+no-automation-until-asked:
+  definition: "Create or update no automation until the person asks for it."
+  placement: {domain: core, stage: X, substage: Governance}
+  distinct_from: [consequential-action-authorization]
+  note: "consequential-action-authorization covers every consequential action; this names automations only."
+pack-install-order:
+  definition: "Copy the pack and enable its dependencies before asking for configuration, after the person names the target repository."
+  placement: {domain: engineering, stage: U, substage: Tooling}
+additive-pack-merge:
+  definition: "Merge a pack into its destination additively: create what is missing, never delete files only the destination has, and diff-merge a changed managed file without losing local edits, stopping when ownership is unclear."
+  placement: {domain: engineering, stage: U, substage: Tooling}
+  distinct_from: [destination-protection]
+  note: "destination-protection never overwrites an existing skill; this merges into a destination and keeps its extra files."
+user-config-outside-pack:
+  definition: "Keep the person's own settings and maps outside the installed pack as copies made from its examples, leaving the examples untouched and never overwriting the copies."
+  placement: {domain: engineering, stage: U, substage: Tooling}
+verify-installed-pack:
+  definition: "Check that the destination holds every expected pack file, even when setup already reads from it."
+  placement: {domain: engineering, stage: U, substage: Tooling}
+enable-pack-setting-preserving:
+  definition: "Enable the pack by merging one entry into the project settings file, keeping other settings and comments, then validate the file."
+  placement: {domain: engineering, stage: U, substage: Tooling}
+project-scope-dependency-check:
+  definition: "Require a fresh agent in the target repository to resolve every shared skill and principle the pack needs from project scope, and stop setup if any does not."
+  placement: {domain: engineering, stage: U, substage: Tooling}
+commit-before-enable-notice:
+  definition: "Tell the person that settings, pack and configuration must be committed before enabling, committing nothing unless asked."
+  placement: {domain: engineering, stage: U, substage: Tooling}
+committed-paths-for-automation-prompts:
+  definition: "Have a live automation prompt read committed, secret-free files by stable repository paths, never a plugin cache, paraphrasing values into the prompt only when no committed file exists."
+  placement: {domain: engineering, stage: U, substage: Tooling}
+map-section-per-reproducible-feature:
+  definition: "Give the feature map a section for each user-facing feature that an automated run may reproduce."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [seeded-feature-map, feature-map-required]
+  note: "seeded-feature-map starts the map with an index and one file for each of the main few features found in routes, commands, menus or docs, and feature-map-required makes every run go through the map; this asks at setup for a section for every feature that may be reproduced."
+explicit-required-setup-values:
+  definition: "Ask for every required setting by checklist and fail setup unless the critical ones are given explicitly."
+  placement: {domain: engineering, stage: U, substage: Tooling}
+integration-capability-checklist:
+  definition: "List the chat, tracker and repository capabilities each automation needs, and use no undocumented integration endpoint."
+  placement: {domain: engineering, stage: U, substage: Tooling}
+routing-map-preparation:
+  definition: "Copy the routing example outside the pack with every placeholder filled before reroutes or pings are used."
+  placement: {domain: engineering, stage: U, substage: Tooling}
+owner-ping-gate:
+  definition: "Keep owner pings off by default and allow one only to a configured feature owner who agreed or a confirmed regression author, never a broad on-call group or an unverified owner."
+  placement: {domain: core, stage: X, substage: Communication}
+no-guessed-route:
+  definition: "Without a matching route, classify but name no destination or owner, and keep the fallback empty unless one team accepts everything unmatched."
+  placement: {domain: core, stage: Intake, substage: Triage}
+automation-creation-handoff:
+  definition: "Create automations one at a time through the platform's reviewed creation flow, assembling each request from the entry doc, the configuration and the template, and give a field checklist for existing ones instead of duplicates."
+  placement: {domain: engineering, stage: U, substage: Tooling}
+automation-intent-specs:
+  definition: "State what the triage and repair automations must each do, from trigger and scope to the rules they follow."
+  placement: {domain: engineering, stage: U, substage: Tooling}
+thread-safety-test-before-enable:
+  definition: "Enable no chat automation until a test on a harmless report, run after everything is committed, shows it keeps to its thread, its marker and its write limits."
+  placement: {domain: core, stage: Operations, substage: Monitoring}
+triage-never-reproduces:
+  definition: "Limit triage to classifying one report, posting one verdict and filing only clear new bugs, never reproducing or fixing."
+  placement: {domain: core, stage: Intake, substage: Triage}
+  distinct_from: [claim-verification]
+  note: "claim-verification reproduces a reported bug during triage; this forbids it."
+no-cross-post:
+  definition: "Never post to another channel, broadcast, message privately or start a new thread, and point a misdirected reporter to the right place inside their own thread."
+  placement: {domain: core, stage: X, substage: Communication}
+single-verdict-reply:
+  definition: "Post one verdict and no progress messages, leading with the outcome, linking any issue, naming a reroute or one missing fact, with at most one allowed ping and one marker line."
+  placement: {domain: core, stage: X, substage: Communication}
+strict-issue-create-gate:
+  definition: "File an issue only for a clearly broken, still-live bug or performance report with no live match, a passing preflight, resolved fields and a link back to the source, preferring no ticket to a guessed or duplicate one."
+  placement: {domain: core, stage: Intake, substage: Triage}
+whole-report-thread-read:
+  definition: "Read a report's opening message and every reply so far before deciding on it."
+  placement: {domain: core, stage: Intake, substage: Triage}
+  distinct_from: [read-full-source-issue, reread-thread-before-acting]
+  note: "read-full-source-issue reads a referenced spec, issue or pull request in full, a pull request's diff included; reread-thread-before-acting reads the thread again just before work starts; this reads a chat report's thread once before deciding."
+inspect-attachments-admit-unreadable:
+  definition: "Read every relevant screenshot, video and log closely, and name an attachment that could not be read rather than guess at it."
+  placement: {domain: core, stage: Intake, substage: Triage}
+routing-cause-trace:
+  definition: "Before routing, run a bounded trace from action to result that checks where the symptom belongs, recent changes and existing fixes, deep enough to avoid misrouting but not a full root cause, and say tracing was unavailable when the code cannot be read."
+  placement: {domain: core, stage: Intake, substage: Triage}
+five-way-report-classes:
+  definition: "Give each report exactly one class: bug, performance (kept as a bug with its measurements), feature request, question or feedback, or reroute, filing nothing when bug versus feature is unclear."
+  placement: {domain: core, stage: Intake, substage: Triage}
+evidence-based-routing:
+  definition: "Match a report to a route only on evidence of its product area, code path or error signature, using stable keys and never the visible symptom or a keyword alone."
+  placement: {domain: core, stage: Intake, substage: Triage}
+route-map-schema:
+  definition: "Describe each route by name, match lists, destination, owners and whether its feature owner may be pinged."
+  placement: {domain: core, stage: Intake, substage: Triage}
+tracker-adapter-contract:
+  definition: "Require a tracker adapter that searches, reads, creates, updates without clobbering, adds links and recurrence notes and undoes its own issue, failing closed per missing operation and inventing no field value."
+  placement: {domain: core, stage: Intake, substage: Triage}
+already-handled-check:
+  definition: "Post and create nothing when the report's link is already tied to an issue or a prior triage reply."
+  placement: {domain: core, stage: Intake, substage: Triage}
+tracker-duplicate-search:
+  definition: "Search the tracker for an existing issue that describes the same fault before deciding on a bug report."
+  placement: {domain: core, stage: Intake, substage: Triage}
+  distinct_from: [redundancy-check, prior-rejection-check]
+  note: "redundancy-check searches the code for an existing implementation, and prior-rejection-check searches closed beads for wontfix closes; neither looks for a live issue about the same fault."
+duplicate-search-key-list:
+  definition: "Run the duplicate search over a fixed list of keys, among them the error signature, the area, the trigger, the symptom, a version window, the suspected commit and the source link."
+  placement: {domain: core, stage: Intake, substage: Triage}
+graded-duplicate-match:
+  definition: "Grade each search hit as a confident duplicate, possibly related or no match, marking only a confident one as a duplicate and linking a possible one without acting on it."
+  placement: {domain: core, stage: Intake, substage: Triage}
+  distinct_from: [redundancy-check]
+  note: "redundancy-check searches for an existing implementation; it does not grade a match or say what a weak one gets."
+closed-match-is-regression-lead:
+  definition: "Treat a long-closed issue that matches a new report as a lead to a regression, not as a live duplicate."
+  placement: {domain: core, stage: Intake, substage: Triage}
+  distinct_from: [prior-rejection-check]
+  note: "prior-rejection-check surfaces earlier wontfix closes; this reads any long-closed match as a regression lead."
+issue-template-and-title:
+  definition: "Write a new issue as a self-contained record with a plain area-and-symptom title that never states a guessed cause, the reporter's words, expected and observed behaviour, version, trigger, frequency, link, labelled hypotheses and media."
+  placement: {domain: core, stage: Intake, substage: Triage}
+compensate-orphan-issue:
+  definition: "If the run created an issue and its verdict did not land, cancel or remove that issue and confirm it, reporting any unconfirmed undo in the run output."
+  placement: {domain: core, stage: Intake, substage: Triage}
+follow-up-safe-issue-corrections:
+  definition: "During a follow-up window, safely correct the existing or new tracker issue linked to the report, emit no second marker, extend the window at most once and leave new reports to new runs."
+  placement: {domain: core, stage: X, substage: Communication}
+fixed-match-regression-lead:
+  definition: "Treat a closed item documented as fixed that matches a new report, when the report shows the fixed behaviour has returned, as a possible regression rather than a duplicate."
+  placement: {domain: core, stage: Intake, substage: Triage}
+  distinct_from: [closed-match-is-regression-lead, prior-rejection-check]
+  note: "closed-match-is-regression-lead reads any long-closed match as a regression lead; prior-rejection-check surfaces earlier wontfix closes; this needs a match closed as fixed and evidence the behaviour returned."

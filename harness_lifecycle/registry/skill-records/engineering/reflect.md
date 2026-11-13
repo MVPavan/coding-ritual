@@ -96,9 +96,12 @@ Review a session, or a sample of a delegated run's sessions, for changes to the 
 - **cursor_plugins:skill:pstack/skills/reflect#concrete-tooling-lens** `pstack/skills/reflect/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
 - **cursor_plugins:skill:pstack/skills/reflect#decision-changing-finding** `pstack/skills/reflect/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
 - **cursor_plugins:skill:pstack/skills/reflect#one-row-per-finding** `pstack/skills/reflect/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/automate-me#no-cross-project-transcript-search** `pstack/skills/automate-me/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-13` **adopt-merged** (2026-11-13-batch-p3:181): Checkpoint at 2776ddd for the owner's trait rulings: 1 adopt, 12 defer, 6 reject.
+- `2026-11-13` **adopt** (2026-11-13-batch-p3:164): Owner ruling 2026-11-13: reflect reads the primary log of every session in scope, and only this project's, so past chats are mined only in this workspace; `dec…
 - `2026-11-13` **adopt** (2026-11-13-batch-p2:489): Owner ruling 2026-11-13: completes the held row's pending adopt. reflect already says this at reflect/SKILL.md:35-37; traits/ours.yaml now lists `one-row-per-f…
 - `2026-11-13` **adopt** (2026-11-13-batch-p2:488): Owner ruling 2026-11-13: completes the held row's pending adopt. reflect already says this at reflect/SKILL.md:12-13; traits/ours.yaml now lists `decision-chan…
 - `2026-11-13` **adopt** (2026-11-13-batch-p2:487): Owner ruling 2026-11-13: completes the held row's pending adopt. reflect already says this at reflect/references/reviewer-brief.md:19-20; traits/ours.yaml now …
@@ -178,6 +181,7 @@ Review a session, or a sample of a delegated run's sessions, for changes to the 
 <!-- /registry:generated history -->
 
 <!-- registry:generated reviews -->
+- [2026-11-12-upstream-cursor_plugins-2776ddd-batch-p3.md](../../reviews/2026-11-12-upstream-cursor_plugins-2776ddd-batch-p3.md)
 - [2026-11-12-upstream-cursor_plugins-2776ddd-batch-p2.md](../../reviews/2026-11-12-upstream-cursor_plugins-2776ddd-batch-p2.md)
 - [2026-11-06-upstream-mattpocock_skills-4ae2317.md](../../reviews/2026-11-06-upstream-mattpocock_skills-4ae2317.md)
 <!-- /registry:generated reviews -->
@@ -208,6 +212,7 @@ Review a session, or a sample of a delegated run's sessions, for changes to the 
 - `findings-in-the-reply`:
   - `cursor_plugins:skill:pstack/skills/reflect#findings-in-the-reply` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
 - `no-cross-project-transcript-search`:
+  - `cursor_plugins:skill:pstack/skills/automate-me#no-cross-project-transcript-search` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
   - `cursor_plugins:skill:pstack/skills/reflect#no-cross-project-transcript-search` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
 - `one-offs-not-lessons`:
   - `cursor_plugins:skill:pstack/skills/reflect#one-offs-not-lessons` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
