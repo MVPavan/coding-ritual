@@ -49,7 +49,8 @@
     "2026-11-12-pocock-4ae2317-delivery.jsonl": "08167ac3aea7259b7c8da18c02baf62cfc911812c1094bc95bd5fe1ea1e8d88b",
     "2026-11-12-pr.jsonl": "4fd4ea15d01914c979557a585d5f4bac83c12f4ea447d95f9a41c918f33e1ac9",
     "2026-11-12-reflect.jsonl": "7c42c7bfe23f25fd69a7c320e6110e632bc8321b05ac4513e67b6a5dbd0e7646",
-    "2026-11-12-skill-curation-playbook.jsonl": "547203f803f57054df26264d7b0f6733eb345f7cfcb462859180d8c8e09f37af"
+    "2026-11-12-skill-curation-playbook.jsonl": "547203f803f57054df26264d7b0f6733eb345f7cfcb462859180d8c8e09f37af",
+    "2026-11-13-batch-m.jsonl": "979f4d184ce4217acb705f20851ec7ccacf093ea14f96ec0f6fb1c4b59c50244"
   },
   "round_order": [
     "2026-10-14-migration.jsonl",
@@ -100,7 +101,8 @@
     "2026-11-12-batch-p1-no-comments.jsonl",
     "2026-11-12-reflect.jsonl",
     "2026-11-12-skill-curation-playbook.jsonl",
-    "2026-11-12-pr.jsonl"
+    "2026-11-12-pr.jsonl",
+    "2026-11-13-batch-m.jsonl"
   ],
   "reports": {
     "harness_lifecycle/registry/reviews/2026-10-30-upstream-mattpocock_skills-5beb35b.yaml": "fb413772a75f116bd9baeaa06b6e414fe59978c654a951cb53345f17459d7597",
@@ -125,6 +127,7 @@
     "harness_lifecycle/registry/reviews/2026-11-11-upstream-mattpocock_skills-4ae2317-r1.yaml": "b81279bc7eef54878352051506a01a75187bf252e434f146667ebf8da60d2d4f",
     "harness_lifecycle/registry/reviews/2026-11-11-upstream-mattpocock_skills-5beb35b-r1.yaml": "dc16a0e5c4fd4801bf940998505e7a366d3aada7022a5135c94fcd9b0b0ed5dc",
     "harness_lifecycle/registry/reviews/2026-11-11-upstream-mattpocock_skills-5beb35b-r2.yaml": "a4d3e4bb6ad7dc23a6d4ce6002cd0f09815faa30b16713b971da34f07a470810",
+    "harness_lifecycle/registry/reviews/2026-11-12-upstream-mattpocock_skills-4ae2317-batch-m.yaml": "0e42d7451456edf8b90c522feacd55867164b6ac1865b8e5112044ca934e287d",
     "harness_lifecycle/registry/reviews/2026-11-12-upstream-mattpocock_skills-5beb35b-pr.yaml": "55dd4836aca525848b0a428ea66c2638133758b7667ed2a679668945a1c34ab0",
     "harness_lifecycle/registry/reviews/2026-11-12-upstream-mattpocock_skills-5beb35b-reflect.yaml": "1966178a82b85b8681a90d44311fe322021b9db760942c698a89c5e6eb73c833"
   },
@@ -182,6 +185,7 @@
     "mattpocock_skills:skill:skills/engineering/grill-with-docs@5beb35b": "9cecb0ee7aa752da1b00c23888ad07f484e6b954e45c7c0f9bffa89633fee18d",
     "mattpocock_skills:skill:skills/engineering/implement-spec@4ae2317": "6d19bfc1562f4a217f434afdce04d6c6b46d96675b177c1af03cd19e5c60bfa5",
     "mattpocock_skills:skill:skills/engineering/implement-spec@5beb35b": "e3bff95652f2ec94ebf139b391a3fdfdc2acdfc41ac99f2d330fb9862cfe7292",
+    "mattpocock_skills:skill:skills/engineering/implement@4ae2317": "4e1a0e41150c2c5dc2e91e43ba550ea115c3b061fac561d090a796670ecf0de8",
     "mattpocock_skills:skill:skills/engineering/improve-codebase-architecture@4ae2317": "2a8488773afcfc14faf2fc224a28fd5f56e6fc4fc3b2fb4eaac33b1cc83c3b04",
     "mattpocock_skills:skill:skills/engineering/improve-codebase-architecture@5beb35b": "97fb2f6066b96bbcbba2825a9af69cb75aebea13d6b98b2d4fd8385ba41e4422",
     "mattpocock_skills:skill:skills/engineering/pr@5beb35b": "eba8091c36b58787b4719164d7175a14de32d2c49c7622baa8e251d5ed5de40f",
@@ -199,9 +203,17 @@
     "mattpocock_skills:skill:skills/engineering/wizard@5beb35b": "406dd982bbd5fd83c3ba928cf5e470c35c8915ad52830f9e4d0a7add6bceb6a5",
     "mattpocock_skills:skill:skills/in-progress/chief-of-staff@4ae2317": "5c70adce37128b6747021071115a23f064c162d9ef207776afe7852d27105459",
     "mattpocock_skills:skill:skills/in-progress/chief-of-staff@5beb35b": "33ded1c27487e8ab7e955b46bfa91549625b15f520da183fc4bd23136e92987e",
+    "mattpocock_skills:skill:skills/in-progress/claude-handoff@4ae2317": "8c9ff1fefc22fdbebe566c7626940c66d096de61194eaf7dbd73d7af93074191",
     "mattpocock_skills:skill:skills/in-progress/loop-me@5beb35b": "c1c902368e0e8cf601bf35ce7eed5f16a870b3a37a776d4bae7645808753fa3c",
     "mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules@5beb35b": "ad79c68f726ceb7fa739b9de1cb7313d1003097f56d10ae34ec2020e0121efed",
     "mattpocock_skills:skill:skills/in-progress/software-factory@4ae2317": "b647f43639c51f36b604c3129938a2e940c153ad902c875d18af374716708703",
+    "mattpocock_skills:skill:skills/in-progress/writing-beats@4ae2317": "480e4f8b14e2e72a9e4bb5aa6f290751c553a883e3b5ac1d46cd6619a758215b",
+    "mattpocock_skills:skill:skills/in-progress/writing-fragments@4ae2317": "b7c0efab3c8846e9e5ba1cdb401dfc271078ca3dbb9a0eb0a2e3b3680878ce7b",
+    "mattpocock_skills:skill:skills/in-progress/writing-shape@4ae2317": "978d782ca07c52b3f8a804c6f1ce6454fc203f40da38e963980ac81d9a6e68c2",
+    "mattpocock_skills:skill:skills/misc/git-guardrails-claude-code@4ae2317": "669c42e0b7fe82b31e6529abcadbbfb29c680ba43fd1d34ccd2b0fd4ddee61fa",
+    "mattpocock_skills:skill:skills/misc/migrate-to-shoehorn@4ae2317": "1401efb317541d1a53472506b8248dc1c0b1152b619d5624d689cba92d0986dd",
+    "mattpocock_skills:skill:skills/misc/scaffold-exercises@4ae2317": "a7ee74cd38373b89e99c5bef4eb6636a287bcbbf21f73562326d352f3aa913ad",
+    "mattpocock_skills:skill:skills/misc/setup-pre-commit@4ae2317": "689ce0909a3fe4a894c04f28c6c3c68d39ca37a8088054839bb14f82e032e537",
     "mattpocock_skills:skill:skills/productivity/grilling@4ae2317": "f52d1a7c9a719da7fe95c490e985220c472f49882b6281121fe3e65eb428d347",
     "mattpocock_skills:skill:skills/productivity/grilling@5beb35b": "fba6b8323aa95eded3894b4a8a59c00c1c2a248152e3f3d2eb14a41560ac8640",
     "mattpocock_skills:skill:skills/productivity/handoff@5beb35b": "48687c4696d627a4b4bad23d3752ffab36ecf84a05621e337006d32837c0c84b",

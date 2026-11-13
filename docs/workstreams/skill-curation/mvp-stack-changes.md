@@ -1109,6 +1109,31 @@ trait-level, sealed; reconsider report
 Proof: Sol reviewed the plan (three fixes) and the build (pass); registry check, catalog check and 600 tests
 pass. Limit: not run on a real pull request.
 
+## 25. Batch M: nine Pocock skills ruled trait by trait (`cr-r2pa.2.13.1`)
+
+Added 2026-11-13. Mapping and sheet `scratchpad/mvp-stack/66/` (gitignored), recorder
+`scratchpad/mvp-stack/71/record_m.py`; round `2026-11-13-batch-m`, 138 events, trait-level, sealed;
+report `harness_lifecycle/registry/reviews/2026-11-12-upstream-mattpocock_skills-4ae2317-batch-m.yaml`,
+sealed. Ten skills earlier ruled whole were taken apart into 129 rows; 106 trait definitions are new.
+
+- **Counts:** 2 adopt (pending, into `delegation`: pass a worker's brief as a file, and name each
+  background worker), 1 already held (ask when a reference is ambiguous, `AGENTS.md`), 1 defer (merge into
+  a settings file rather than overwrite it), 116 reject, 9 out of scope.
+- **Owner rulings of 2026-11-13:** `claude-handoff` rejected whole except its two `delegation` adopts; the
+  three writing skills, `migrate-to-shoehorn` and `setup-pre-commit` rejected whole (their 91 deferred
+  rows became rejects); `scaffold-exercises` as recommended (2 reject, 9 out of scope); `implement` as
+  recommended. `git-guardrails-claude-code`: take what our guard hook lacks; its loose-phrase row is a
+  reject, held by the hook once bead `cr-oez0`'s fix lands, since the hook is not a registry unit.
+- **`grill-me`** has no traits (its body only hands off to grilling), and the registry cannot accept an
+  analysis with no trait rulings. By the owner's ruling it left the batch: its earlier whole reject
+  (`2026-10-14-migration:089`) stays, with no registry change.
+- Nine checkpoints at 4ae2317 supersede the skills' earlier whole rulings: `implement` and
+  `claude-handoff` become `adopt-merged`, the other seven `reject`. Their nine analyses are accepted.
+
+Proof: Sol reviewed the mapping and report (critic-66c, seven findings fixed; critic-66e, approve). Batch checks,
+registry check before and after, a row-by-row match of the round against the report, and a build and check
+in a fresh clone pass. Limit: the two `delegation` adopts are not yet delivered.
+
 ## Regenerating
 
 From the worktree root:

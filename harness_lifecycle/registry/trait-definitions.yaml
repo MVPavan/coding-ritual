@@ -7898,3 +7898,382 @@ curation-delivery-order:
   placement: {domain: core, stage: X, substage: Coordination}
   distinct_from: [authority-separation]
   note: "authority-separation gates each part on its own approval; this fixes the order of the parts."
+# ---- Pocock batch M, 2026-11-12 (reviews/2026-11-12-upstream-mattpocock_skills-4ae2317-batch-m.yaml) ----
+ticket-title-echo:
+  definition: "When given a ticket reference, fetch the ticket and state its title before starting work."
+  placement: {domain: core, stage: Intake, substage: Clarification}
+test-first-where-possible:
+  definition: "Build test-first wherever a test can be written first."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [risk-gated-test-first]
+  note: "risk-gated-test-first writes the test first only for a risky change."
+pre-agreed-test-seams:
+  definition: "Test only at seams agreed before the build starts, never choosing new ones during it."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [plan-seams-no-approval, seam-preconfirmation]
+  note: "plan-seams-no-approval takes seams from the plan but surfaces a missing seam that matters, and seam-preconfirmation asks the user to confirm seams before any test."
+frequent-typecheck-while-building:
+  definition: "While building, run the type checker repeatedly rather than only at the end."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+  distinct_from: [touched-area-checks]
+  note: "touched-area-checks keeps fast checks running on the changed areas during a migration only."
+frequent-single-test-files:
+  definition: "While building, run individual test files repeatedly as a fast inner loop."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+  distinct_from: [touched-area-checks]
+  note: "touched-area-checks keeps fast checks running on the changed areas during a migration only."
+full-suite-at-end:
+  definition: "Run the whole test suite once when the work is finished."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+  distinct_from: [full-verification-at-completion]
+  note: "full-verification-at-completion runs full static and runtime verification at the end of a migration or rewrite."
+review-after-every-build:
+  definition: "Run a code review over the work every time a build finishes."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+  distinct_from: [material-risk-review, risk-sized-review]
+  note: "material-risk-review and risk-sized-review send work to review only when its risk or size calls for it."
+commit-on-current-branch:
+  definition: "Commit the finished work to whatever branch is checked out, without asking."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+  distinct_from: [commit-push-authority]
+  note: "commit-push-authority commits only with authority."
+handoff-successor-launch:
+  definition: "Start a fresh background session seeded with the handoff summary, in the same directory, and return at once."
+  placement: {domain: core, stage: X, substage: Continuity}
+  distinct_from: [background-agent, delegate-afk-work]
+  note: "background-agent and delegate-afk-work hand a scoped task to a worker; this one passes the whole conversation on to a successor that carries on."
+brief-from-file:
+  definition: "Pass a worker's prompt to a command-line launcher by reading it from a file, so the shell does not interpret its contents."
+  placement: {domain: core, stage: X, substage: Coordination}
+named-background-worker:
+  definition: "Give every background worker a display name that says what its task is."
+  placement: {domain: core, stage: X, substage: Coordination}
+handoff-sensitive-data-removal:
+  definition: "Take secrets, passwords and personal data out of a handoff summary, since the summary becomes the next session's prompt."
+  placement: {domain: core, stage: X, substage: Continuity}
+  distinct_from: [placeholder-sensitive-data-redaction]
+  note: "placeholder-sensitive-data-redaction requires placeholders in anything shown or saved; this one only keeps such data out of one summary, by removal or any other means."
+no-new-material-gathering:
+  definition: "Work only from the supplied material, gathering nothing new."
+  placement: {domain: core, stage: X, substage: Communication}
+ask-save-path-once:
+  definition: "When no save location was given, ask for one once and keep it for the rest of the session."
+  placement: {domain: core, stage: X, substage: Communication}
+agree-reader-prerequisites:
+  definition: "Before writing, agree with the person which concepts the intended reader already holds."
+  placement: {domain: core, stage: X, substage: Communication}
+grounded-concepts-only:
+  definition: "Let no part of a piece rely on an idea that is neither an agreed prerequisite nor introduced by an earlier part, judging by the idea rather than its name."
+  placement: {domain: core, stage: X, substage: Communication}
+term-lands-with-idea:
+  definition: "Introduce a named concept's idea and its name in the same place."
+  placement: {domain: core, stage: X, substage: Communication}
+grounded-concept-list:
+  definition: "Keep a running list of the concepts the piece has grounded so far, updated after each part lands."
+  placement: {domain: core, stage: X, substage: Communication}
+two-or-three-openings:
+  definition: "Offer two or three distinct candidate openings and have the person choose before any is written."
+  placement: {domain: core, stage: X, substage: Communication}
+opening-grounds-noted:
+  definition: "Note against each candidate opening which new concepts it would ground."
+  placement: {domain: core, stage: X, substage: Communication}
+  distinct_from: [reachable-next-candidates]
+  note: "reachable-next-candidates labels the later parts on offer; this one labels the opening alternatives."
+candidates-shown-before-writing:
+  definition: "Show the candidate next parts to the person and write nothing until they pick one."
+  placement: {domain: core, stage: X, substage: Communication}
+preview-unlocked-parts:
+  definition: "After a pick, preview which parts it opens up a short way ahead."
+  placement: {domain: core, stage: X, substage: Communication}
+write-each-agreed-part-alone:
+  definition: "Write each part to the file as soon as it is agreed, one at a time, never drafting ahead."
+  placement: {domain: core, stage: X, substage: Communication}
+edits-steer-next-part:
+  definition: "Read the piece again before proposing what comes next, letting the person's edits change the direction."
+  placement: {domain: core, stage: X, substage: Communication}
+reachable-next-candidates:
+  definition: "Offer two or three next parts, each reachable from what is already grounded and labelled with what it would ground."
+  placement: {domain: core, stage: X, substage: Communication}
+stop-at-natural-end:
+  definition: "Keep adding parts until the piece reaches its natural end, and stop there even with material left over."
+  placement: {domain: core, stage: X, substage: Communication}
+ground-before-use:
+  definition: "When the next part needs a concept not yet grounded, ground that concept first."
+  placement: {domain: core, stage: X, substage: Communication}
+prerequisite-balance:
+  definition: "Settle with the person how much to assume of the reader and how much to explain inside the piece."
+  placement: {domain: core, stage: X, substage: Communication}
+one-move-per-part:
+  definition: "Make each part do a single move, such as a scene, point, question, aside or twist, and end it at a turn."
+  placement: {domain: core, stage: X, substage: Communication}
+part-sized-by-its-move:
+  definition: "Size each part by what its move needs, splitting one that grows to several paragraphs with subheadings."
+  placement: {domain: core, stage: X, substage: Communication}
+source-material-reworked:
+  definition: "Rework the supplied material freely to fill the piece, splitting, merging, paraphrasing or quoting it as each part needs."
+  placement: {domain: core, stage: X, substage: Communication}
+reread-before-write-keep-edits:
+  definition: "Read the file again before every write and keep every change the person made to it."
+  placement: {domain: core, stage: X, substage: Communication}
+targeted-in-place-rewrite:
+  definition: "On a request to change particular parts, change only those parts in place and leave the rest as it is."
+  placement: {domain: core, stage: X, substage: Communication}
+explore-without-structure:
+  definition: "Widen what could be written without committing to an outline, phases or any structure."
+  placement: {domain: core, stage: X, substage: Communication}
+interview-to-draw-out-material:
+  definition: "Question the person hard about their topic to draw raw material out of them."
+  placement: {domain: core, stage: X, substage: Communication}
+  distinct_from: [document-during-interview]
+  note: "document-during-interview records settled decisions and terms; this one collects raw writing material."
+capture-from-either-side:
+  definition: "Record material that comes from the person or from the agent alike."
+  placement: {domain: core, stage: X, substage: Communication}
+single-fragment-file:
+  definition: "Collect every fragment in one file."
+  placement: {domain: core, stage: X, substage: Communication}
+append-unless-asked-to-edit:
+  definition: "Add each new fragment by appending it and never overwrite the file, changing an existing fragment in place only when the person asks for that edit, cut or merge."
+  placement: {domain: core, stage: X, substage: Communication}
+  distinct_from: [targeted-in-place-rewrite]
+  note: "targeted-in-place-rewrite says how a requested change is made; this one says that new material only ever appends and that nothing else alters the file unasked."
+capture-from-first-message:
+  definition: "Start capturing material with the person's opening message."
+  placement: {domain: core, stage: X, substage: Communication}
+bare-working-title:
+  definition: "Open the file with one top-level working title and nothing else."
+  placement: {domain: core, stage: X, substage: Communication}
+author-readable-fragments:
+  definition: "Hold each fragment only to making sense to its author and being well written, not to standing alone."
+  placement: {domain: core, stage: X, substage: Communication}
+any-fragment-kind:
+  definition: "Accept any kind of fragment, from a single sentence or claim to a scene, quote, complaint or half-formed thought."
+  placement: {domain: core, stage: X, substage: Communication}
+coin-name-for-recurring-idea:
+  definition: "When an idea keeps coming back, push to name it with one compact coinage or metaphor and keep that name above other fragments."
+  placement: {domain: core, stage: X, substage: Communication}
+  distinct_from: [leading-words]
+  note: "leading-words anchors an agent instruction in a compact concept; this one names a recurring idea in a person's own writing."
+flat-rule-separated-fragments:
+  definition: "Separate fragments with horizontal rules, with no headings, tags or order other than when each was added."
+  placement: {domain: core, stage: X, substage: Communication}
+save-without-asking:
+  definition: "Save each new fragment without asking first and mention the addition only in passing."
+  placement: {domain: core, stage: X, substage: Communication}
+any-form-source-material:
+  definition: "Accept raw material in any form, such as fragments, drafts or a transcript, as the source of a piece."
+  placement: {domain: core, stage: X, substage: Communication}
+read-all-material-first:
+  definition: "Read all of the supplied material before doing anything else."
+  placement: {domain: core, stage: X, substage: Communication}
+source-file-untouched:
+  definition: "Write the piece to its own file and never edit the file holding the raw material."
+  placement: {domain: core, stage: X, substage: Communication}
+opening-hybrid-allowed:
+  definition: "Let the person compose a hybrid of the candidate openings instead of picking only one."
+  placement: {domain: core, stage: X, substage: Communication}
+  distinct_from: [two-or-three-openings]
+  note: "two-or-three-openings has the person choose among the candidates; this one also allows combining them."
+opening-sets-obligations:
+  definition: "Treat the chosen opening as the promise that decides what the rest of the piece must deliver."
+  placement: {domain: core, stage: X, substage: Communication}
+reader-next-need:
+  definition: "Choose each next part by asking what the reader must hear next, given what is already written."
+  placement: {domain: core, stage: X, substage: Communication}
+argued-block-format:
+  definition: "Argue the form of each block, such as paragraph, list, table, callout, quote or code, weighing the choice openly with the person."
+  placement: {domain: core, stage: X, substage: Communication}
+person-declares-done:
+  definition: "Let the person, not the agent, say when the piece is finished."
+  placement: {domain: core, stage: X, substage: Communication}
+adversarial-editor:
+  definition: "Act as a demanding editor who pushes back, refuses weak transitions and cuts any paragraph that does not earn its place."
+  placement: {domain: core, stage: X, substage: Communication}
+standing-paragraph-questions:
+  definition: "Keep asking of each paragraph what it gives the reader beyond the one before, what would break without it, and why it is prose rather than a list."
+  placement: {domain: core, stage: X, substage: Communication}
+double-duty-sentence-split:
+  definition: "When a sentence does two jobs, split it in two or keep only one of the jobs."
+  placement: {domain: core, stage: X, substage: Communication}
+opening-drift-repair:
+  definition: "When the piece has drifted from what its opening promised, either bring it back to that promise or change the opening."
+  placement: {domain: core, stage: X, substage: Communication}
+  distinct_from: [opening-sets-obligations]
+  note: "opening-sets-obligations treats the opening as the promise; this one repairs the piece once it strays from it."
+reads-as-one-voice:
+  definition: "Rework borrowed material until the piece reads in a single voice rather than as stitched-together sources."
+  placement: {domain: core, stage: X, substage: Communication}
+  distinct_from: [source-material-reworked]
+  note: "source-material-reworked only permits reworking the material; this one sets the quality the finished piece must reach."
+name-material-gaps:
+  definition: "When the material lacks something the piece needs, say so and ask the person to supply it or cut that part."
+  placement: {domain: core, stage: X, substage: Communication}
+prose-for-argument:
+  definition: "Write an argument as prose and keep lists for items that are truly parallel."
+  placement: {domain: core, stage: X, substage: Communication}
+  distinct_from: [inline-header-list-convert]
+  note: "inline-header-list-convert turns only bullets with a restating bold label into prose."
+callout-only-when-derailing:
+  definition: "Put a tip or warning in a callout only when it would derail the argument inline."
+  placement: {domain: core, stage: X, substage: Communication}
+table-at-three-repeats:
+  definition: "Use a table once the same set of fields repeats three or more times, and prose with bold leads below that."
+  placement: {domain: core, stage: X, substage: Communication}
+  distinct_from: [medium-appropriate-form]
+  note: "medium-appropriate-form prefers a table over a diagram for a flat list or comparison."
+quote-when-wording-matters:
+  definition: "Quote a source only when its exact words are the point, and paraphrase otherwise."
+  placement: {domain: core, stage: X, substage: Communication}
+code-block-or-inline:
+  definition: "Put multi-line, runnable or illustrative code in a block and single names inline."
+  placement: {domain: core, stage: X, substage: Communication}
+no-publishing-or-frontmatter:
+  definition: "Leave platform formatting, publishing and any frontmatter nobody asked for out of the piece."
+  placement: {domain: core, stage: X, substage: Communication}
+pre-run-git-command-guard:
+  definition: "Check every shell command before it runs and block destructive git commands such as hard resets, forced cleans, forced branch deletion and whole-tree discards."
+  placement: {domain: engineering, stage: X, substage: Governance}
+  distinct_from: [destructive-git-guard]
+  note: "destructive-git-guard is the written rule an agent follows; this one enforces it mechanically before the command runs."
+block-every-push:
+  definition: "Block every git push, forced or not."
+  placement: {domain: engineering, stage: X, substage: Governance}
+  distinct_from: [commit-push-authority]
+  note: "commit-push-authority allows a push the person authorized."
+refusal-without-recourse:
+  definition: "Tell a blocked agent that it lacks authority for the command, with no route to ask for it."
+  placement: {domain: engineering, stage: X, substage: Governance}
+guard-install-scope-choice:
+  definition: "Ask whether to install a command guard for this project only or for every project of the user."
+  placement: {domain: engineering, stage: U, substage: Tooling}
+guard-hook-install:
+  definition: "Install a guard hook by copying its script, marking it executable and registering it in the matching settings file."
+  placement: {domain: engineering, stage: U, substage: Tooling}
+settings-merge-not-overwrite:
+  definition: "When adding to an existing settings file, merge into its arrays and leave every other setting as it was."
+  placement: {domain: engineering, stage: U, substage: Tooling}
+  distinct_from: [preserve-existing-config]
+  note: "preserve-existing-config covers only one linter's config file."
+guard-pattern-customization:
+  definition: "Offer to add or remove blocked patterns at install time and edit the copied script to match."
+  placement: {domain: engineering, stage: U, substage: Tooling}
+hook-payload-needs-json-tool:
+  definition: "Read the hook payload from standard input and extract the command with a JSON tool the hook requires."
+  placement: {domain: engineering, stage: U, substage: Tooling}
+bare-force-push-reset-fragments:
+  definition: "Besides the full git patterns, block the bare fragments `push --force` and `reset --hard` anywhere in a command, which also catches those two with options between `git` and the subcommand and any other text containing them."
+  placement: {domain: engineering, stage: X, substage: Governance}
+  distinct_from: [pre-run-git-command-guard]
+  note: "pre-run-git-command-guard blocks the destructive commands as written with `git` directly before them; this one adds two looser fragments and gives no such cover to forced cleans, branch deletion or whole-tree discards."
+match-anywhere-in-command:
+  definition: "Block a command when a dangerous pattern appears anywhere in its text, including inside quotes or a longer command."
+  placement: {domain: engineering, stage: X, substage: Governance}
+first-match-block-else-allow:
+  definition: "Stop at the first matching pattern and exit with the blocking code and a reason naming the command and pattern, and allow any command that matches none."
+  placement: {domain: engineering, stage: X, substage: Governance}
+test-data-helper-tests-only:
+  definition: "Use a partial test-data helper library in test code only, never in production code."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+casts-avoided-in-tests:
+  definition: "Avoid type casts in tests, since a cast must name its target type and needs a second cast for deliberately wrong data."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [satisfies-over-cast]
+  note: "satisfies-over-cast checks a value against a type in place of a cast in any code."
+test-data-helper-install:
+  definition: "Install the test-data helper package and import it in each file that uses it."
+  placement: {domain: engineering, stage: U, substage: Tooling}
+partial-test-data-helper:
+  definition: "Build test data through a partial-data helper that still type-checks the fields given, in place of a full object or a single cast."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+wrong-data-helper:
+  definition: "Build deliberately invalid test data through a helper that accepts any value, in place of a cast through an unknown type."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+test-data-helper-choice:
+  definition: "Choose the partial, any-value or exact helper by whether the test data is partial, deliberately wrong or complete."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+cast-migration-intake:
+  definition: "Before migrating, ask which test files hold problem casts, whether large objects with few relevant fields are involved and whether invalid data is needed."
+  placement: {domain: core, stage: Intake, substage: Clarification}
+cast-search-in-tests:
+  definition: "Find candidate casts by searching test and spec files for the cast pattern."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+typecheck-after-migration:
+  definition: "Run the type checker to confirm a migration."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [full-verification-at-completion]
+  note: "full-verification-at-completion runs full static and runtime verification at the end of a migration, not the type checker alone."
+course-lint-gate:
+  definition: "Require every scaffolded structure to pass the course linter, fixing and rerunning it until clean, including after any move."
+  placement: {domain: core, stage: U, substage: Tutoring}
+scaffold-commit:
+  definition: "Commit the scaffolded result once it is done."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+  distinct_from: [commit-push-authority]
+  note: "commit-push-authority commits only with authority."
+numbered-course-layout:
+  definition: "Name sections and the exercises inside them with numeric prefixes and dash-case words."
+  placement: {domain: core, stage: U, substage: Tutoring}
+exercise-variant-folders:
+  definition: "Give each exercise at least one problem, solution or explainer folder."
+  placement: {domain: core, stage: U, substage: Tutoring}
+explainer-stub-default:
+  definition: "Stub an exercise as an explainer unless the plan says otherwise."
+  placement: {domain: core, stage: U, substage: Tutoring}
+variant-readme-required:
+  definition: "Give every variant folder a readme that is not empty, starting from a title and one line of description."
+  placement: {domain: core, stage: U, substage: Tutoring}
+variant-main-file:
+  definition: "Give a variant that has code a main source file of more than one line."
+  placement: {domain: core, stage: U, substage: Tutoring}
+plan-to-exercise-tree:
+  definition: "Read sections, exercises and variants from the plan, then create every folder and one titled readme in each variant."
+  placement: {domain: core, stage: U, substage: Tutoring}
+course-lint-rules:
+  definition: "Know which files and readme contents the course linter forbids and which it requires."
+  placement: {domain: core, stage: U, substage: Tutoring}
+history-preserving-moves:
+  definition: "Rename or move tracked files with git's own move command rather than a plain move."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+renumber-on-move:
+  definition: "Update numeric prefixes after a move so the order stays right."
+  placement: {domain: core, stage: U, substage: Tutoring}
+lockfile-package-manager:
+  definition: "Pick the package manager from the lockfile present, defaulting to the stock one, and use it in every hook command."
+  placement: {domain: engineering, stage: U, substage: Tooling}
+  distinct_from: [detect-package-conventions]
+  note: "detect-package-conventions also finds the packages root and confirms a different convention with the user."
+hook-tooling-dev-dependencies:
+  definition: "Install a git-hook manager, a staged-file runner and a formatter as development dependencies."
+  placement: {domain: engineering, stage: U, substage: Tooling}
+hook-manager-init:
+  definition: "Initialise a git-hook manager, which creates its own hooks folder and a script that installs it."
+  placement: {domain: engineering, stage: U, substage: Tooling}
+commit-time-checks:
+  definition: "Run formatting of staged files, then the type check, then the tests in a pre-commit hook."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+omit-missing-check-and-tell:
+  definition: "Leave out a check the project has no command for and tell the person, never inventing one."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+staged-only-formatting:
+  definition: "Format only the staged files at commit time, skipping file types the formatter cannot read."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+  distinct_from: [scoped-formatting]
+  note: "scoped-formatting limits a formatter to the files of the requested work, not to what is staged."
+create-config-only-if-missing:
+  definition: "Create a tool's config file with defaults only when the repository has none."
+  placement: {domain: engineering, stage: U, substage: Tooling}
+  distinct_from: [preserve-existing-config]
+  note: "preserve-existing-config merges rules into one linter's existing config rather than skipping creation."
+hook-setup-checklist:
+  definition: "After setting up a commit hook, check that the hook file exists and is executable and that each tool it calls is configured and runs."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+  distinct_from: [guard-hook-block-proof]
+  note: "guard-hook-block-proof proves a guard rejects a forbidden input, not that a setup is complete."
+setup-commit-smoke-test:
+  definition: "Commit the setup itself so the new hook runs on its own installation."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+  distinct_from: [commit-push-authority]
+  note: "commit-push-authority commits only with authority."
+cheap-checks-first:
+  definition: "Order commit-time checks with cheap staged-only work first and whole-project checks after."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}

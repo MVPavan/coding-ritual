@@ -2560,11 +2560,97 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `observed-rushing-context-isolation`: Hide post-completion steps only after sharpening the completion criterion has failed and rushing is observed, and only across a real context boundary such as a handoff or subagent. — defer
 - `empirical-instruction-default-check`: Settle whether an instruction changes behaviour from the model's default by running the document, not by debate. — adopt → authoring-for-agents#verification
 
+#### core · X · Communication — skill:skills/in-progress/writing-beats
+- `no-new-material-gathering`: Work only from the supplied material, gathering nothing new. — reject
+- `ask-save-path-once`: When no save location was given, ask for one once and keep it for the rest of the session. — reject
+- `agree-reader-prerequisites`: Before writing, agree with the person which concepts the intended reader already holds. — reject
+- `grounded-concepts-only`: Let no part of a piece rely on an idea that is neither an agreed prerequisite nor introduced by an earlier part, judging by the idea rather than its name. — reject
+- `term-lands-with-idea`: Introduce a named concept's idea and its name in the same place. — reject
+- `grounded-concept-list`: Keep a running list of the concepts the piece has grounded so far, updated after each part lands. — reject
+- `two-or-three-openings`: Offer two or three distinct candidate openings and have the person choose before any is written. — reject
+- `opening-grounds-noted`: Note against each candidate opening which new concepts it would ground. — reject
+- `candidates-shown-before-writing`: Show the candidate next parts to the person and write nothing until they pick one. — reject
+- `preview-unlocked-parts`: After a pick, preview which parts it opens up a short way ahead. — reject
+- `write-each-agreed-part-alone`: Write each part to the file as soon as it is agreed, one at a time, never drafting ahead. — reject
+- `edits-steer-next-part`: Read the piece again before proposing what comes next, letting the person's edits change the direction. — reject
+- `reachable-next-candidates`: Offer two or three next parts, each reachable from what is already grounded and labelled with what it would ground. — reject
+- `stop-at-natural-end`: Keep adding parts until the piece reaches its natural end, and stop there even with material left over. — reject
+- `ground-before-use`: When the next part needs a concept not yet grounded, ground that concept first. — reject
+- `prerequisite-balance`: Settle with the person how much to assume of the reader and how much to explain inside the piece. — reject
+- `one-move-per-part`: Make each part do a single move, such as a scene, point, question, aside or twist, and end it at a turn. — reject
+- `part-sized-by-its-move`: Size each part by what its move needs, splitting one that grows to several paragraphs with subheadings. — reject
+- `source-material-reworked`: Rework the supplied material freely to fill the piece, splitting, merging, paraphrasing or quoting it as each part needs. — reject
+- `reread-before-write-keep-edits`: Read the file again before every write and keep every change the person made to it. — reject
+- `targeted-in-place-rewrite`: On a request to change particular parts, change only those parts in place and leave the rest as it is. — reject
+
+#### core · X · Communication — skill:skills/in-progress/writing-fragments
+- `explore-without-structure`: Widen what could be written without committing to an outline, phases or any structure. — reject
+- `interview-to-draw-out-material`: Question the person hard about their topic to draw raw material out of them. — reject
+- `capture-from-either-side`: Record material that comes from the person or from the agent alike. — reject
+- `single-fragment-file`: Collect every fragment in one file. — reject
+- `append-unless-asked-to-edit`: Add each new fragment by appending it and never overwrite the file, changing an existing fragment in place only when the person asks for that edit, cut or merge. — reject
+- `ask-save-path-once`: When no save location was given, ask for one once and keep it for the rest of the session. — reject
+- `capture-from-first-message`: Start capturing material with the person's opening message. — reject
+- `bare-working-title`: Open the file with one top-level working title and nothing else. — reject
+- `author-readable-fragments`: Hold each fragment only to making sense to its author and being well written, not to standing alone. — reject
+- `any-fragment-kind`: Accept any kind of fragment, from a single sentence or claim to a scene, quote, complaint or half-formed thought. — reject
+- `coin-name-for-recurring-idea`: When an idea keeps coming back, push to name it with one compact coinage or metaphor and keep that name above other fragments. — reject
+- `flat-rule-separated-fragments`: Separate fragments with horizontal rules, with no headings, tags or order other than when each was added. — reject
+- `save-without-asking`: Save each new fragment without asking first and mention the addition only in passing. — reject
+- `reread-before-write-keep-edits`: Read the file again before every write and keep every change the person made to it. — reject
+- `targeted-in-place-rewrite`: On a request to change particular parts, change only those parts in place and leave the rest as it is. — reject
+
+#### core · X · Communication — skill:skills/in-progress/writing-shape
+- `any-form-source-material`: Accept raw material in any form, such as fragments, drafts or a transcript, as the source of a piece. — reject
+- `read-all-material-first`: Read all of the supplied material before doing anything else. — reject
+- `source-file-untouched`: Write the piece to its own file and never edit the file holding the raw material. — reject
+- `ask-save-path-once`: When no save location was given, ask for one once and keep it for the rest of the session. — reject
+- `agree-reader-prerequisites`: Before writing, agree with the person which concepts the intended reader already holds. — reject
+- `grounded-concepts-only`: Let no part of a piece rely on an idea that is neither an agreed prerequisite nor introduced by an earlier part, judging by the idea rather than its name. — reject
+- `term-lands-with-idea`: Introduce a named concept's idea and its name in the same place. — reject
+- `grounded-concept-list`: Keep a running list of the concepts the piece has grounded so far, updated after each part lands. — reject
+- `ground-before-use`: When the next part needs a concept not yet grounded, ground that concept first. — reject
+- `prerequisite-balance`: Settle with the person how much to assume of the reader and how much to explain inside the piece. — reject
+- `two-or-three-openings`: Offer two or three distinct candidate openings and have the person choose before any is written. — reject
+- `opening-hybrid-allowed`: Let the person compose a hybrid of the candidate openings instead of picking only one. — reject
+- `opening-sets-obligations`: Treat the chosen opening as the promise that decides what the rest of the piece must deliver. — reject
+- `reader-next-need`: Choose each next part by asking what the reader must hear next, given what is already written. — reject
+- `argued-block-format`: Argue the form of each block, such as paragraph, list, table, callout, quote or code, weighing the choice openly with the person. — reject
+- `write-each-agreed-part-alone`: Write each part to the file as soon as it is agreed, one at a time, never drafting ahead. — reject
+- `person-declares-done`: Let the person, not the agent, say when the piece is finished. — reject
+- `adversarial-editor`: Act as a demanding editor who pushes back, refuses weak transitions and cuts any paragraph that does not earn its place. — reject
+- `standing-paragraph-questions`: Keep asking of each paragraph what it gives the reader beyond the one before, what would break without it, and why it is prose rather than a list. — reject
+- `double-duty-sentence-split`: When a sentence does two jobs, split it in two or keep only one of the jobs. — reject
+- `opening-drift-repair`: When the piece has drifted from what its opening promised, either bring it back to that promise or change the opening. — reject
+- `source-material-reworked`: Rework the supplied material freely to fill the piece, splitting, merging, paraphrasing or quoting it as each part needs. — reject
+- `reads-as-one-voice`: Rework borrowed material until the piece reads in a single voice rather than as stitched-together sources. — reject
+- `name-material-gaps`: When the material lacks something the piece needs, say so and ask the person to supply it or cut that part. — reject
+- `prose-for-argument`: Write an argument as prose and keep lists for items that are truly parallel. — reject
+- `callout-only-when-derailing`: Put a tip or warning in a callout only when it would derail the argument inline. — reject
+- `table-at-three-repeats`: Use a table once the same set of fields repeats three or more times, and prose with bold leads below that. — reject
+- `quote-when-wording-matters`: Quote a source only when its exact words are the point, and paraphrase otherwise. — reject
+- `code-block-or-inline`: Put multi-line, runnable or illustrative code in a block and single names inline. — reject
+- `reread-before-write-keep-edits`: Read the file again before every write and keep every change the person made to it. — reject
+- `targeted-in-place-rewrite`: On a request to change particular parts, change only those parts in place and leave the rest as it is. — reject
+- `no-new-material-gathering`: Work only from the supplied material, gathering nothing new. — reject
+- `no-publishing-or-frontmatter`: Leave platform formatting, publishing and any frontmatter nobody asked for out of the piece. — reject
+
 #### core · X · Communication — skill:skills/productivity/wait-what
 - `repitch-trigger`: When a message did not land, stop and re-pitch it rather than adding more. — adopt → brief-me#repitch-trigger
 - `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write. — adopt → brief-me#domain-vocabulary
 - `context-map-lookup`: Follow the context map to the right context's glossary when the repository has several. — defer
 - `standard-controlled-language`: Re-pitch in ASD-STE100 Simplified Technical English. — adopt → brief-me#controlled-language
+
+#### core · X · Continuity — skill:skills/in-progress/claude-handoff
+- `tailor-to-next-focus`: Treat any passed arguments as the next session's focus and tailor the handoff to it. — reject
+- `handoff-doc`: Write a handoff document summarising the current conversation so a fresh agent can continue the work. — reject
+- `temp-dir-destination`: Save the handoff to the operating system's temporary directory rather than the workspace. — reject
+- `handoff-successor-launch`: Start a fresh background session seeded with the handoff summary, in the same directory, and return at once. — reject
+- `brief-from-file`: Pass a worker's prompt to a command-line launcher by reading it from a file, so the shell does not interpret its contents. — adopt, pending cr-r2pa.2.13.1 → delegation#brief-from-file
+- `named-background-worker`: Give every background worker a display name that says what its task is. — adopt, pending cr-r2pa.2.13.1 → delegation#named-background-worker
+- `suggested-skills`: Name in the handoff which skills the next agent should reach for. — reject
+- `link-dont-copy`: Reference existing artifacts by path or URL rather than copying their content into a handoff. — reject
+- `handoff-sensitive-data-removal`: Take secrets, passwords and personal data out of a handoff summary, since the summary becomes the next session's prompt. — reject
 
 #### core · X · Continuity — skill:skills/productivity/handoff
 - `handoff-doc`: Write a handoff document summarising the current conversation so a fresh agent can continue the work. — defer
@@ -2607,6 +2693,19 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `failures-first-retro-sample`: Fill a retro sample with the sessions where something went wrong before any others. — adopt → reflect#failures-first-retro-sample
 - `retro-without-approval`: Decide which retro candidates are worth pursuing and pursue them, in place of presenting them for approval. — reject
 - `spec-tickets-implement-pipeline`: Send large work through a spec, then tickets, then publishing both to the tracker, then implementing them. — defer
+
+#### core · U · Tutoring — skill:skills/misc/scaffold-exercises
+- `course-lint-gate`: Require every scaffolded structure to pass the course linter, fixing and rerunning it until clean, including after any move. — out-of-scope
+- `scaffold-commit`: Commit the scaffolded result once it is done. — reject
+- `numbered-course-layout`: Name sections and the exercises inside them with numeric prefixes and dash-case words. — out-of-scope
+- `exercise-variant-folders`: Give each exercise at least one problem, solution or explainer folder. — out-of-scope
+- `explainer-stub-default`: Stub an exercise as an explainer unless the plan says otherwise. — out-of-scope
+- `variant-readme-required`: Give every variant folder a readme that is not empty, starting from a title and one line of description. — out-of-scope
+- `variant-main-file`: Give a variant that has code a main source file of more than one line. — out-of-scope
+- `plan-to-exercise-tree`: Read sections, exercises and variants from the plan, then create every folder and one titled readme in each variant. — out-of-scope
+- `course-lint-rules`: Know which files and readme contents the course linter forbids and which it requires. — out-of-scope
+- `history-preserving-moves`: Rename or move tracked files with git's own move command rather than a plain move. — reject
+- `renumber-on-move`: Update numeric prefixes after a move so the order stays right. — out-of-scope
 
 #### core · U · Tutoring — skill:skills/productivity/teach
 - `teaching-workspace`: Keep a multi-session course's state (mission, resources, learning records, glossary and lessons) as files in one course workspace. — adopt → teach#teaching-workspace
@@ -3025,6 +3124,17 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `loop-construction`: Build the reproduction in the form that fits the failure: a focused test, CLI fixture, captured trace or isolated scratch harness. — adopt → systematic-debugging#loop-construction
 - `preferred-reproduction-order`: Try reproduction techniques roughly in a preference order, starting from a failing test and leaving a human-driven script for last. — adopt → systematic-debugging#loop-construction
 
+#### engineering · Building · Implementation — skill:skills/engineering/implement
+- `ticket-title-echo`: When given a ticket reference, fetch the ticket and state its title before starting work. — reject
+- `material-ambiguity-ask`: Decide routine details yourself and ask only when an ambiguity materially affects correctness, scope or authority. — adopt → doc:AGENTS.md
+- `test-first-where-possible`: Build test-first wherever a test can be written first. — reject
+- `pre-agreed-test-seams`: Test only at seams agreed before the build starts, never choosing new ones during it. — reject
+- `frequent-typecheck-while-building`: While building, run the type checker repeatedly rather than only at the end. — reject
+- `frequent-single-test-files`: While building, run individual test files repeatedly as a fast inner loop. — reject
+- `full-suite-at-end`: Run the whole test suite once when the work is finished. — reject
+- `review-after-every-build`: Run a code review over the work every time a build finishes. — reject
+- `commit-on-current-branch`: Commit the finished work to whatever branch is checked out, without asking. — reject
+
 #### engineering · Building · Implementation — skill:skills/engineering/wizard
 - `template-library`: Build each wizard over a shared bash UX library that sits above the stages marker and is never hand-edited. — defer
 - `scope-the-procedure`: Enumerate every manual step and captured value by reading the repo's configuration rather than asking cold, and confirm the ordered stage list with the user. — defer
@@ -3100,6 +3210,17 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `smells-as-heuristics`: Report a catalogue smell only as a labelled possible judgement call, never as a hard violation. — defer
 - `fresh-context-subagent`: Start every subagent in a fresh context window rather than as a copy of the caller's conversation. — adopt → delegation#fresh-context-subagent
 
+#### engineering · Verification · Testing — skill:skills/misc/migrate-to-shoehorn
+- `test-data-helper-tests-only`: Use a partial test-data helper library in test code only, never in production code. — reject
+- `casts-avoided-in-tests`: Avoid type casts in tests, since a cast must name its target type and needs a second cast for deliberately wrong data. — reject
+- `test-data-helper-install`: Install the test-data helper package and import it in each file that uses it. — reject
+- `partial-test-data-helper`: Build test data through a partial-data helper that still type-checks the fields given, in place of a full object or a single cast. — reject
+- `wrong-data-helper`: Build deliberately invalid test data through a helper that accepts any value, in place of a cast through an unknown type. — reject
+- `test-data-helper-choice`: Choose the partial, any-value or exact helper by whether the test data is partial, deliberately wrong or complete. — reject
+- `cast-migration-intake`: Before migrating, ask which test files hold problem casts, whether large objects with few relevant fields are involved and whether invalid data is needed. — reject
+- `cast-search-in-tests`: Find candidate casts by searching test and spec files for the cast pattern. — reject
+- `typecheck-after-migration`: Run the type checker to confirm a migration. — reject
+
 #### engineering · Delivery · Integration — skill:skills/engineering/pr
 - `pr-body-template`: Fill a fixed PR-body skeleton with Summary, Evidence, and Merge Danger sections. — adopt → pr#pr-body-template
 - `visual-form-catalog`: Offer a set of inline visual forms — pseudocode, call, component and file trees, Mermaid and whole-block — each with its own shape rules. — adopt → show-me#visual-form-catalog
@@ -3168,6 +3289,32 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `worktree-cleanup`: Remove every implementer worktree when the build ends. — adopt → doc:.claude/skills/mvp-mode/playbooks/implement.md#worktree-cleanup
 - `fresh-context-subagent`: Start every subagent in a fresh context window rather than as a copy of the caller's conversation. — adopt → delegation#fresh-context-subagent
 - `no-reused-implementer`: Give each ticket, and the closing round of review fixes, a newly started implementer rather than one that already finished other work. — adopt → doc:.claude/skills/mvp-mode/playbooks/implement.md#no-reused-implementer
+
+#### engineering · X · Governance — skill:skills/misc/git-guardrails-claude-code
+- `pre-run-git-command-guard`: Check every shell command before it runs and block destructive git commands such as hard resets, forced cleans, forced branch deletion and whole-tree discards. — reject
+- `block-every-push`: Block every git push, forced or not. — reject
+- `refusal-without-recourse`: Tell a blocked agent that it lacks authority for the command, with no route to ask for it. — reject
+- `guard-install-scope-choice`: Ask whether to install a command guard for this project only or for every project of the user. — reject
+- `guard-hook-install`: Install a guard hook by copying its script, marking it executable and registering it in the matching settings file. — reject
+- `settings-merge-not-overwrite`: When adding to an existing settings file, merge into its arrays and leave every other setting as it was. — defer
+- `guard-pattern-customization`: Offer to add or remove blocked patterns at install time and edit the copied script to match. — reject
+- `guard-hook-block-proof`: After changing a guard hook, feed it a known-forbidden input and confirm it rejects it, not merely that it parses. — reject
+- `hook-payload-needs-json-tool`: Read the hook payload from standard input and extract the command with a JSON tool the hook requires. — reject
+- `bare-force-push-reset-fragments`: Besides the full git patterns, block the bare fragments `push --force` and `reset --hard` anywhere in a command, which also catches those two with options between `git` and the subcommand and any other text containing them. — reject
+- `match-anywhere-in-command`: Block a command when a dangerous pattern appears anywhere in its text, including inside quotes or a longer command. — reject
+- `first-match-block-else-allow`: Stop at the first matching pattern and exit with the blocking code and a reason naming the command and pattern, and allow any command that matches none. — reject
+
+#### engineering · U · Tooling — skill:skills/misc/setup-pre-commit
+- `lockfile-package-manager`: Pick the package manager from the lockfile present, defaulting to the stock one, and use it in every hook command. — reject
+- `hook-tooling-dev-dependencies`: Install a git-hook manager, a staged-file runner and a formatter as development dependencies. — reject
+- `hook-manager-init`: Initialise a git-hook manager, which creates its own hooks folder and a script that installs it. — reject
+- `commit-time-checks`: Run formatting of staged files, then the type check, then the tests in a pre-commit hook. — reject
+- `omit-missing-check-and-tell`: Leave out a check the project has no command for and tell the person, never inventing one. — reject
+- `staged-only-formatting`: Format only the staged files at commit time, skipping file types the formatter cannot read. — reject
+- `create-config-only-if-missing`: Create a tool's config file with defaults only when the repository has none. — reject
+- `hook-setup-checklist`: After setting up a commit hook, check that the hook file exists and is executable and that each tool it calls is configured and runs. — reject
+- `setup-commit-smoke-test`: Commit the setup itself so the new hook runs on its own installation. — reject
+- `cheap-checks-first`: Order commit-time checks with cheap staged-only work first and whole-project checks after. — reject
 
 ## By trait
 
@@ -3478,6 +3625,10 @@ Treat a clear acceptance of a concrete proposal or an explicit delegation of rou
 For each candidate direction, list its assumptions as must be true (dealbreakers that kill it if wrong), should be true (important but the approach can adjust) or might be true (secondary), validate the dealbreakers before building, and leave the might-be-true ones until the core is proven.
 - ours: `discovery`
 
+#### `cast-migration-intake`
+Before migrating, ask which test files hold problem casts, whether large objects with few relevant fields are involved and whether invalid data is needed.
+- `mattpocock_skills:skill:skills/misc/migrate-to-shoehorn` — reject
+
 #### `decision-frame`
 Establish the outcome, intended user, success criteria, constraints and exclusions before committing to an approach.
 - ours: `discovery`
@@ -3579,6 +3730,7 @@ Match the interaction depth to the ambiguity — return to the task, ask one foc
 #### `material-ambiguity-ask`
 Decide routine details yourself and ask only when an ambiguity materially affects correctness, scope or authority.
 - `doc:AGENTS.md`
+- `mattpocock_skills:skill:skills/engineering/implement` — adopt → doc:AGENTS.md
 
 #### `mvp-scope`
 Scope the first version of a chosen direction to one user job done well, sized by what can be built and tested in a time box rather than by a feature list, aimed at the riskiest assumption, with a mandatory list of what it is not doing and why, and expect it to feel incomplete to the builder.
@@ -3703,6 +3855,10 @@ Generate only enough distinct options to expose the tradeoff, compare them on va
 When the decisions are already settled, synthesize them into a spec without reopening the discussion.
 - ours: `to-spec`
 - `mattpocock_skills:skill:skills/engineering/to-spec` — adopt → to-spec#synthesize-settled
+
+#### `ticket-title-echo`
+When given a ticket reference, fetch the ticket and state its title before starting work.
+- `mattpocock_skills:skill:skills/engineering/implement` — reject
 
 #### `two-exchange-interview`
 Run the interview as two bounded exchanges, the recipient and what the user needs back.
@@ -5255,6 +5411,41 @@ Cut an adverb, using a stronger verb or the measured figure in its place.
 - ours: `unslop`
 - `cursor_plugins:skill:pstack/skills/unslop` — adopt → unslop#adverb-cut
 
+#### `adversarial-editor`
+Act as a demanding editor who pushes back, refuses weak transitions and cuts any paragraph that does not earn its place.
+- `mattpocock_skills:skill:skills/in-progress/writing-shape` — reject
+
+#### `agree-reader-prerequisites`
+Before writing, agree with the person which concepts the intended reader already holds.
+- `mattpocock_skills:skill:skills/in-progress/writing-beats` — reject
+- `mattpocock_skills:skill:skills/in-progress/writing-shape` — reject
+
+#### `any-form-source-material`
+Accept raw material in any form, such as fragments, drafts or a transcript, as the source of a piece.
+- `mattpocock_skills:skill:skills/in-progress/writing-shape` — reject
+
+#### `any-fragment-kind`
+Accept any kind of fragment, from a single sentence or claim to a scene, quote, complaint or half-formed thought.
+- `mattpocock_skills:skill:skills/in-progress/writing-fragments` — reject
+
+#### `append-unless-asked-to-edit`
+Add each new fragment by appending it and never overwrite the file, changing an existing fragment in place only when the person asks for that edit, cut or merge.
+- `mattpocock_skills:skill:skills/in-progress/writing-fragments` — reject
+
+#### `argued-block-format`
+Argue the form of each block, such as paragraph, list, table, callout, quote or code, weighing the choice openly with the person.
+- `mattpocock_skills:skill:skills/in-progress/writing-shape` — reject
+
+#### `ask-save-path-once`
+When no save location was given, ask for one once and keep it for the rest of the session.
+- `mattpocock_skills:skill:skills/in-progress/writing-beats` — reject
+- `mattpocock_skills:skill:skills/in-progress/writing-fragments` — reject
+- `mattpocock_skills:skill:skills/in-progress/writing-shape` — reject
+
+#### `author-readable-fragments`
+Hold each fragment only to making sense to its author and being well written, not to standing alone.
+- `mattpocock_skills:skill:skills/in-progress/writing-fragments` — reject
+
 #### `avoid-ruled-out-synonyms`
 Avoid in your output any synonym the glossary explicitly rules out.
 - `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — defer
@@ -5263,14 +5454,34 @@ Avoid in your output any synonym the glossary explicitly rules out.
 When the user says a word the vocabulary lists as avoided, answer with the defined term instead.
 - `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
 
+#### `bare-working-title`
+Open the file with one top-level working title and nothing else.
+- `mattpocock_skills:skill:skills/in-progress/writing-fragments` — reject
+
 #### `bold-restraint`
 Do not bold every proper noun or acronym.
 - ours: `unslop`
 - `cursor_plugins:skill:pstack/skills/unslop` — adopt → unslop#bold-restraint
 
+#### `callout-only-when-derailing`
+Put a tip or warning in a callout only when it would derail the argument inline.
+- `mattpocock_skills:skill:skills/in-progress/writing-shape` — reject
+
+#### `candidates-shown-before-writing`
+Show the candidate next parts to the person and write nothing until they pick one.
+- `mattpocock_skills:skill:skills/in-progress/writing-beats` — reject
+
 #### `capped-lists`
 Cap a list at five items, ranking them or splitting into now and later.
 - ours: `brief-me`
+
+#### `capture-from-either-side`
+Record material that comes from the person or from the agent alike.
+- `mattpocock_skills:skill:skills/in-progress/writing-fragments` — reject
+
+#### `capture-from-first-message`
+Start capturing material with the person's opening message.
+- `mattpocock_skills:skill:skills/in-progress/writing-fragments` — reject
 
 #### `cdn-only-scripts`
 Load only CDN-hosted styling and diagram libraries as scripts, keeping the document otherwise static.
@@ -5288,6 +5499,14 @@ Remove assistant pleasantries, offers of further help and excited discovery line
 #### `closed-term-set`
 Discuss and sketch a design only in a fixed set of defined terms.
 - `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
+#### `code-block-or-inline`
+Put multi-line, runnable or illustrative code in a block and single names inline.
+- `mattpocock_skills:skill:skills/in-progress/writing-shape` — reject
+
+#### `coin-name-for-recurring-idea`
+When an idea keeps coming back, push to name it with one compact coinage or metaphor and keep that name above other fragments.
+- `mattpocock_skills:skill:skills/in-progress/writing-fragments` — reject
 
 #### `comma-budget`
 Favour periods, allow at most two commas per sentence, and break a sentence up when clauses accumulate.
@@ -5347,6 +5566,14 @@ Use the project's established domain vocabulary throughout what you write.
 - `mattpocock_skills:skill:skills/productivity/teach` — adopt → teach#domain-vocabulary
 - `mattpocock_skills:skill:skills/productivity/wait-what` — adopt → brief-me#domain-vocabulary
 
+#### `double-duty-sentence-split`
+When a sentence does two jobs, split it in two or keep only one of the jobs.
+- `mattpocock_skills:skill:skills/in-progress/writing-shape` — reject
+
+#### `edits-steer-next-part`
+Read the piece again before proposing what comes next, letting the person's edits change the direction.
+- `mattpocock_skills:skill:skills/in-progress/writing-beats` — reject
+
 #### `em-dash-ban`
 Ban em dashes and their substitutes, including parentheses, en dashes and hyphens as dashes, leaving only periods and commas to separate thoughts.
 - `cursor_plugins:skill:pstack/skills/unslop` — adopt → unslop#no-em-dash
@@ -5354,6 +5581,10 @@ Ban em dashes and their substitutes, including parentheses, en dashes and hyphen
 #### `explain-on-request`
 When the user asks to explain or walk through, run as long as the topic needs while keeping the brevity discipline.
 - ours: `brief-me`
+
+#### `explore-without-structure`
+Widen what could be written without committing to an outline, phases or any structure.
+- `mattpocock_skills:skill:skills/in-progress/writing-fragments` — reject
 
 #### `false-range-cut`
 Replace a from-to construction that has no real scale with a direct list.
@@ -5365,6 +5596,10 @@ Shorten wordy stock phrases and delete empty announcements of importance.
 - ours: `unslop`
 - `cursor_plugins:skill:pstack/skills/unslop` — adopt → unslop#filler-phrase-cut
 
+#### `flat-rule-separated-fragments`
+Separate fragments with horizontal rules, with no headings, tags or order other than when each was added.
+- `mattpocock_skills:skill:skills/in-progress/writing-fragments` — reject
+
 #### `forced-triplet-cut`
 List as many items as naturally exist, never forcing a group of three.
 - ours: `unslop`
@@ -5374,6 +5609,21 @@ List as many items as naturally exist, never forcing a group of three.
 Replace optimistic sign-offs with specific plans or facts.
 - ours: `unslop`
 - `cursor_plugins:skill:pstack/skills/unslop` — adopt → unslop#generic-conclusion-cut
+
+#### `ground-before-use`
+When the next part needs a concept not yet grounded, ground that concept first.
+- `mattpocock_skills:skill:skills/in-progress/writing-beats` — reject
+- `mattpocock_skills:skill:skills/in-progress/writing-shape` — reject
+
+#### `grounded-concept-list`
+Keep a running list of the concepts the piece has grounded so far, updated after each part lands.
+- `mattpocock_skills:skill:skills/in-progress/writing-beats` — reject
+- `mattpocock_skills:skill:skills/in-progress/writing-shape` — reject
+
+#### `grounded-concepts-only`
+Let no part of a piece rely on an idea that is neither an agreed prerequisite nor introduced by an earlier part, judging by the idea rather than its name.
+- `mattpocock_skills:skill:skills/in-progress/writing-beats` — reject
+- `mattpocock_skills:skill:skills/in-progress/writing-shape` — reject
 
 #### `hedge-stack-trim`
 Reduce piled-up qualifiers to a single modal.
@@ -5408,6 +5658,10 @@ Draw a structure, flow, sequence or state question as a small inline Mermaid blo
 Turn bullets whose bold label merely restates the line into prose, keeping a period-ended label followed by new detail.
 - ours: `unslop`
 - `cursor_plugins:skill:pstack/skills/unslop` — adopt → unslop#inline-header-list-convert
+
+#### `interview-to-draw-out-material`
+Question the person hard about their topic to draw raw material out of them.
+- `mattpocock_skills:skill:skills/in-progress/writing-fragments` — reject
 
 #### `jargon-free-restatement`
 Drop technical jargon from a restatement, wording it as one person would speak to another.
@@ -5461,6 +5715,10 @@ Use the fewest and smallest visuals that make the point, never a gallery.
 - ours: `show-me`
 - `mattpocock_skills:skill:skills/engineering/pr` — adopt → show-me#minimal-visual-selection
 
+#### `name-material-gaps`
+When the material lacks something the piece needs, say so and ask the person to supply it or cut that part.
+- `mattpocock_skills:skill:skills/in-progress/writing-shape` — reject
+
 #### `name-the-mechanism`
 Rewrite a sentence that conveys an impression so that it states a mechanism or number, cutting it if it cannot become an instruction, fact or figure.
 - ours: `unslop`
@@ -5489,11 +5747,20 @@ Never fabricate citations, data or examples.
 Avoid symmetrical constructions and neat concluding lines.
 - `cursor_plugins:skill:pstack/skills/teach` — reject
 
+#### `no-new-material-gathering`
+Work only from the supplied material, gathering nothing new.
+- `mattpocock_skills:skill:skills/in-progress/writing-beats` — reject
+- `mattpocock_skills:skill:skills/in-progress/writing-shape` — reject
+
 #### `no-preamble`
 Open with the answer and stop when it is done, with no preamble, recap or closing pleasantry.
 - ours: `brief-me`
 - ours: `pr`
 - `mattpocock_skills:skill:skills/engineering/pr` — adopt → pr#no-preamble
+
+#### `no-publishing-or-frontmatter`
+Leave platform formatting, publishing and any frontmatter nobody asked for out of the piece.
+- `mattpocock_skills:skill:skills/in-progress/writing-shape` — reject
 
 #### `not-just-but-cut`
 Replace the construction that denies one thing to promote another with a direct statement of the point.
@@ -5504,15 +5771,43 @@ Replace the construction that denies one thing to promote another with a direct 
 Render multi-step work as a numbered list with one bounded action per step.
 - ours: `brief-me`
 
+#### `one-move-per-part`
+Make each part do a single move, such as a scene, point, question, aside or twist, and end it at a turn.
+- `mattpocock_skills:skill:skills/in-progress/writing-beats` — reject
+
 #### `open-artifact-for-user`
 Open a generated artifact for the user with the platform's opener and give its path.
 - `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — defer
 - `mattpocock_skills:skill:skills/productivity/teach` — defer
 
+#### `opening-drift-repair`
+When the piece has drifted from what its opening promised, either bring it back to that promise or change the opening.
+- `mattpocock_skills:skill:skills/in-progress/writing-shape` — reject
+
+#### `opening-grounds-noted`
+Note against each candidate opening which new concepts it would ground.
+- `mattpocock_skills:skill:skills/in-progress/writing-beats` — reject
+
+#### `opening-hybrid-allowed`
+Let the person compose a hybrid of the candidate openings instead of picking only one.
+- `mattpocock_skills:skill:skills/in-progress/writing-shape` — reject
+
+#### `opening-sets-obligations`
+Treat the chosen opening as the promise that decides what the rest of the piece must deliver.
+- `mattpocock_skills:skill:skills/in-progress/writing-shape` — reject
+
 #### `over-compression-fix`
 Restore articles, verbs and whole sentences, and spell out arrows, symbols and abbreviations.
 - ours: `unslop`
 - `cursor_plugins:skill:pstack/skills/unslop` — adopt → unslop#over-compression-fix
+
+#### `part-sized-by-its-move`
+Size each part by what its move needs, splitting one that grows to several paragraphs with subheadings.
+- `mattpocock_skills:skill:skills/in-progress/writing-beats` — reject
+
+#### `person-declares-done`
+Let the person, not the agent, say when the piece is finished.
+- `mattpocock_skills:skill:skills/in-progress/writing-shape` — reject
 
 #### `plain-is-has`
 Use is or has in place of grand verbs standing in for them.
@@ -5532,6 +5827,11 @@ Cut a sentence that would fit another project's docs unchanged.
 Before sending, delete announcements, closers, sidebars and empty hedges.
 - ours: `brief-me`
 
+#### `prerequisite-balance`
+Settle with the person how much to assume of the reader and how much to explain inside the piece.
+- `mattpocock_skills:skill:skills/in-progress/writing-beats` — reject
+- `mattpocock_skills:skill:skills/in-progress/writing-shape` — reject
+
 #### `preset-dashboard`
 Shape a chart-first document where prose only captions inline-SVG charts, with a drill-down data table.
 - ours: `html-artifact`
@@ -5548,9 +5848,37 @@ Shape a concept walkthrough — a TL;DR box, question-headed sections, a glossar
 Shape a skim-by-section report — orientation KPIs, numbered sections with a per-type order, and a source footer.
 - ours: `html-artifact`
 
+#### `preview-unlocked-parts`
+After a pick, preview which parts it opens up a short way ahead.
+- `mattpocock_skills:skill:skills/in-progress/writing-beats` — reject
+
 #### `progressive-enhancement`
 Ensure the explanation, data and limitations exist before scripts run and survive with JavaScript disabled.
 - ours: `html-artifact`
+
+#### `prose-for-argument`
+Write an argument as prose and keep lists for items that are truly parallel.
+- `mattpocock_skills:skill:skills/in-progress/writing-shape` — reject
+
+#### `quote-when-wording-matters`
+Quote a source only when its exact words are the point, and paraphrase otherwise.
+- `mattpocock_skills:skill:skills/in-progress/writing-shape` — reject
+
+#### `reachable-next-candidates`
+Offer two or three next parts, each reachable from what is already grounded and labelled with what it would ground.
+- `mattpocock_skills:skill:skills/in-progress/writing-beats` — reject
+
+#### `read-all-material-first`
+Read all of the supplied material before doing anything else.
+- `mattpocock_skills:skill:skills/in-progress/writing-shape` — reject
+
+#### `reader-next-need`
+Choose each next part by asking what the reader must hear next, given what is already written.
+- `mattpocock_skills:skill:skills/in-progress/writing-shape` — reject
+
+#### `reads-as-one-voice`
+Rework borrowed material until the piece reads in a single voice rather than as stitched-together sources.
+- `mattpocock_skills:skill:skills/in-progress/writing-shape` — reject
 
 #### `real-code-names`
 Use real names from the actual code, never invented placeholders.
@@ -5582,6 +5910,16 @@ Return the deliverable itself as the reply, never an account of what was done to
 Open a visual report with a header of repository name, date and a visual legend, and no intro paragraph.
 - `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — defer
 
+#### `reread-before-write-keep-edits`
+Read the file again before every write and keep every change the person made to it.
+- `mattpocock_skills:skill:skills/in-progress/writing-beats` — reject
+- `mattpocock_skills:skill:skills/in-progress/writing-fragments` — reject
+- `mattpocock_skills:skill:skills/in-progress/writing-shape` — reject
+
+#### `save-without-asking`
+Save each new fragment without asking first and mention the addition only in passing.
+- `mattpocock_skills:skill:skills/in-progress/writing-fragments` — reject
+
 #### `self-contained-contract`
 Produce one HTML file with inline CSS and JS, viewport metadata and no build step, working offline with no external fonts, trackers, fetches or runtime assets.
 - ours: `html-artifact`
@@ -5599,12 +5937,25 @@ Use normal sentence capitalization in prose.
 Report which skills now read the written files and that editing them directly needs no rerun.
 - `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
 
+#### `single-fragment-file`
+Collect every fragment in one file.
+- `mattpocock_skills:skill:skills/in-progress/writing-fragments` — reject
+
 #### `single-next-action`
 Close with exactly one concrete next action the reader can do in under two minutes.
 - ours: `brief-me`
 
 #### `smallest-view` *(retired)*
 Pick the smallest view that makes the point, placing each visual next to the brief prose it supports.
+
+#### `source-file-untouched`
+Write the piece to its own file and never edit the file holding the raw material.
+- `mattpocock_skills:skill:skills/in-progress/writing-shape` — reject
+
+#### `source-material-reworked`
+Rework the supplied material freely to fill the piece, splitting, merging, paraphrasing or quoting it as each part needs.
+- `mattpocock_skills:skill:skills/in-progress/writing-beats` — reject
+- `mattpocock_skills:skill:skills/in-progress/writing-shape` — reject
 
 #### `stable-rule-numbers`
 Keep rule numbers as permanent identifiers that other documents can cite, leaving a deleted rule's number unused.
@@ -5614,9 +5965,17 @@ Keep rule numbers as permanent identifiers that other documents can cite, leavin
 Re-pitch in ASD-STE100 Simplified Technical English.
 - `mattpocock_skills:skill:skills/productivity/wait-what` — adopt → brief-me#controlled-language
 
+#### `standing-paragraph-questions`
+Keep asking of each paragraph what it gives the reader beyond the one before, what would break without it, and why it is prose rather than a list.
+- `mattpocock_skills:skill:skills/in-progress/writing-shape` — reject
+
 #### `state-restatement`
 Restate the current progress state every turn so the reader need not hold it in memory.
 - ours: `brief-me`
+
+#### `stop-at-natural-end`
+Keep adding parts until the piece reaches its natural end, and stop there even with material left over.
+- `mattpocock_skills:skill:skills/in-progress/writing-beats` — reject
 
 #### `straight-quotes`
 Replace typographic quotation marks with straight ones.
@@ -5660,14 +6019,29 @@ Keep one term for one referent instead of rotating through synonyms.
 - `cursor_plugins:skill:pstack/skills/teach` — reject
 - `cursor_plugins:skill:pstack/skills/unslop` — adopt → unslop#synonym-cycling-cut
 
+#### `table-at-three-repeats`
+Use a table once the same set of fields repeats three or more times, and prose with bold leads below that.
+- `mattpocock_skills:skill:skills/in-progress/writing-shape` — reject
+
 #### `tangent-suppression`
 Finish the current issue first, then offer any other concern as a separate question.
 - ours: `brief-me`
+
+#### `targeted-in-place-rewrite`
+On a request to change particular parts, change only those parts in place and leave the rest as it is.
+- `mattpocock_skills:skill:skills/in-progress/writing-beats` — reject
+- `mattpocock_skills:skill:skills/in-progress/writing-fragments` — reject
+- `mattpocock_skills:skill:skills/in-progress/writing-shape` — reject
 
 #### `tell-vocabulary-swap`
 Replace a fixed list of overused elevated words with plain ones.
 - ours: `unslop`
 - `cursor_plugins:skill:pstack/skills/unslop` — adopt → unslop#tell-vocabulary-swap
+
+#### `term-lands-with-idea`
+Introduce a named concept's idea and its name in the same place.
+- `mattpocock_skills:skill:skills/in-progress/writing-beats` — reject
+- `mattpocock_skills:skill:skills/in-progress/writing-shape` — reject
 
 #### `terse-card-prose`
 Hold each report card to a one-sentence problem and solution and wins bullets of six words or fewer.
@@ -5676,6 +6050,11 @@ Hold each report card to a one-sentence problem and solution and wins bullets of
 #### `tokens-first-style`
 Derive the artifact's styling from the project's own tokens when they exist, otherwise apply the default neutral aesthetic, never inventing look-alike tokens.
 - ours: `html-artifact`
+
+#### `two-or-three-openings`
+Offer two or three distinct candidate openings and have the person choose before any is written.
+- `mattpocock_skills:skill:skills/in-progress/writing-beats` — reject
+- `mattpocock_skills:skill:skills/in-progress/writing-shape` — reject
 
 #### `vague-attribution-cut`
 Name the source of any claim credited to unnamed groups, or delete the claim.
@@ -5702,6 +6081,11 @@ Place each visual immediately after the sentence it supports and include only th
 Keep visuals restrained, with muted colour and no decorative animation, so the content carries the attention.
 - `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — defer
 - `mattpocock_skills:skill:skills/engineering/prototype` — defer
+
+#### `write-each-agreed-part-alone`
+Write each part to the file as soon as it is agreed, one at a time, never drafting ahead.
+- `mattpocock_skills:skill:skills/in-progress/writing-beats` — reject
+- `mattpocock_skills:skill:skills/in-progress/writing-shape` — reject
 
 ### core · X · Continuity
 
@@ -5943,11 +6327,20 @@ Make a handoff carry the scope, decisions, source references, verification done 
 
 #### `handoff-doc`
 Write a handoff document summarising the current conversation so a fresh agent can continue the work.
+- `mattpocock_skills:skill:skills/in-progress/claude-handoff` — reject
 - `mattpocock_skills:skill:skills/productivity/handoff` — defer
 
 #### `handoff-for-portability`
 Write a portable handoff file only when the work must travel to another harness, directory, person, or a forked side task.
 - `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
+
+#### `handoff-sensitive-data-removal`
+Take secrets, passwords and personal data out of a handoff summary, since the summary becomes the next session's prompt.
+- `mattpocock_skills:skill:skills/in-progress/claude-handoff` — reject
+
+#### `handoff-successor-launch`
+Start a fresh background session seeded with the handoff summary, in the same directory, and return at once.
+- `mattpocock_skills:skill:skills/in-progress/claude-handoff` — reject
 
 #### `header-on-empty-file`
 Have the log helper write the header row when the log is missing or empty.
@@ -5971,6 +6364,7 @@ Record verified patterns likely to recur in the shared learnings file.
 
 #### `link-dont-copy`
 Reference existing artifacts by path or URL rather than copying their content into a handoff.
+- `mattpocock_skills:skill:skills/in-progress/claude-handoff` — reject
 - `mattpocock_skills:skill:skills/productivity/handoff` — defer
 
 #### `local-log-default`
@@ -6259,6 +6653,7 @@ Give each thread one line with one tag from merged, open pull request, in flight
 
 #### `suggested-skills`
 Name in the handoff which skills the next agent should reach for.
+- `mattpocock_skills:skill:skills/in-progress/claude-handoff` — reject
 - `mattpocock_skills:skill:skills/productivity/handoff` — defer
 
 #### `supersede-wiki-claims`
@@ -6271,10 +6666,12 @@ Run the shared-record sweep at the same time as chat-history mining.
 
 #### `tailor-to-next-focus`
 Treat any passed arguments as the next session's focus and tailor the handoff to it.
+- `mattpocock_skills:skill:skills/in-progress/claude-handoff` — reject
 - `mattpocock_skills:skill:skills/productivity/handoff` — defer
 
 #### `temp-dir-destination`
 Save the handoff to the operating system's temporary directory rather than the workspace.
+- `mattpocock_skills:skill:skills/in-progress/claude-handoff` — reject
 - `mattpocock_skills:skill:skills/productivity/handoff` — defer
 
 #### `timer-close-cancels`
@@ -6422,6 +6819,10 @@ Choose the base a later maintainer could extend most easily while keeping invari
 #### `bounded-gate-gaming-retry`
 Refuse a pass won by weakening a check, undo only attributable edits within authority, and retry on a hardened brief inside the existing retry limit.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md`
+
+#### `brief-from-file`
+Pass a worker's prompt to a command-line launcher by reading it from a file, so the shell does not interpret its contents.
+- `mattpocock_skills:skill:skills/in-progress/claude-handoff` — adopt, pending cr-r2pa.2.13.1 → delegation#brief-from-file
 
 #### `brief-names-done-evidence`
 A brief names what will show the work is finished, and a unit with nothing to name is scoped further or raised with the owner before dispatch.
@@ -6788,6 +7189,10 @@ Sort models into families by name prefix.
 #### `model-list-freshness`
 Refuse a generated model list when the vendor fetch behind it is missing or older than the allowed age, timing it by the vendor's fetch rather than by when the list was written.
 - ours: `delegation`
+
+#### `named-background-worker`
+Give every background worker a display name that says what its task is.
+- `mattpocock_skills:skill:skills/in-progress/claude-handoff` — adopt, pending cr-r2pa.2.13.1 → delegation#named-background-worker
 
 #### `narrowest-contract`
 Default to the narrowest useful specialist contract, with clear bounded work needing no skill and the router treated as optional rather than a startup checklist.
@@ -7319,6 +7724,14 @@ Respect the learner's choice not to join communities and record it.
 Use more than one kind of figure when each shows something the other cannot.
 - `cursor_plugins:skill:pstack/skills/teach` — defer
 
+#### `course-lint-gate`
+Require every scaffolded structure to pass the course linter, fixing and rerunning it until clean, including after any move.
+- `mattpocock_skills:skill:skills/misc/scaffold-exercises` — out-of-scope
+
+#### `course-lint-rules`
+Know which files and readme contents the course linter forbids and which it requires.
+- `mattpocock_skills:skill:skills/misc/scaffold-exercises` — out-of-scope
+
 #### `cross-linked-lessons`
 Cross-link lessons to other lessons and reference documents.
 - ours: `teach`
@@ -7336,6 +7749,14 @@ Omit what the person evidently already knows and spend the depth on the area the
 #### `difficulty-by-kind`
 Minimise difficulty when conveying knowledge but make retrieval effortful when building skills.
 - `mattpocock_skills:skill:skills/productivity/teach` — defer
+
+#### `exercise-variant-folders`
+Give each exercise at least one problem, solution or explainer folder.
+- `mattpocock_skills:skill:skills/misc/scaffold-exercises` — out-of-scope
+
+#### `explainer-stub-default`
+Stub an exercise as an explainer unless the plan says otherwise.
+- `mattpocock_skills:skill:skills/misc/scaffold-exercises` — out-of-scope
 
 #### `field-term-resolution`
 Record in the glossary how loosely used field terms are resolved in this workspace.
@@ -7499,6 +7920,10 @@ Do not announce pauses, sentences to master, or that a part is hard or important
 - ours: `teach`
 - `cursor_plugins:skill:pstack/skills/teach` — adopt → teach#no-teaching-theatre
 
+#### `numbered-course-layout`
+Name sections and the exercises inside them with numeric prefixes and dash-case words.
+- `mattpocock_skills:skill:skills/misc/scaffold-exercises` — out-of-scope
+
 #### `offer-depth-follow-lead`
 Invite the person to go deeper or change topic, and let them steer.
 - ours: `teach`
@@ -7542,6 +7967,10 @@ Begin by naming the thing and defining it in general terms, using its common nam
 - ours: `teach`
 - `cursor_plugins:skill:pstack/skills/teach` — adopt → teach#plain-definition-first
 
+#### `plan-to-exercise-tree`
+Read sections, exercises and variants from the plan, then create every folder and one titled readme in each variant.
+- `mattpocock_skills:skill:skills/misc/scaffold-exercises` — out-of-scope
+
 #### `polished-lesson-typography`
 Make lessons visually polished with clean typography so they serve later review.
 - `mattpocock_skills:skill:skills/productivity/teach` — defer
@@ -7575,6 +8004,10 @@ Make every quiz answer the same number of words, and characters where possible, 
 #### `reference-sheets`
 Build durable quick-reference documents that outlive the lessons that spawned them.
 - `mattpocock_skills:skill:skills/productivity/teach` — defer
+
+#### `renumber-on-move`
+Update numeric prefixes after a move so the order stays right.
+- `mattpocock_skills:skill:skills/misc/scaffold-exercises` — out-of-scope
 
 #### `requested-depth-first-answer`
 In conversation, give a short complete answer first and stop, and give a requested walkthrough, lesson or full account whole in one reply.
@@ -7664,6 +8097,14 @@ Teach skills through an interactive feedback loop that is as tight and immediate
 #### `topic-dependent-learning-balance`
 Vary the balance between knowledge teaching and skills practice with the topic.
 - `mattpocock_skills:skill:skills/productivity/teach` — defer
+
+#### `variant-main-file`
+Give a variant that has code a main source file of more than one line.
+- `mattpocock_skills:skill:skills/misc/scaffold-exercises` — out-of-scope
+
+#### `variant-readme-required`
+Give every variant folder a readme that is not empty, starting from a title and one line of description.
+- `mattpocock_skills:skill:skills/misc/scaffold-exercises` — out-of-scope
 
 #### `vary-answer-position`
 Vary which position holds the correct answer across questions so order gives nothing away.
@@ -10574,9 +11015,21 @@ Count remote payloads, parsed text, posted messages, process messages, file cont
 Accept scoped, planned breakage while filling in a sketch.
 - `cursor_plugins:skill:pstack/skills/architect` — reject
 
+#### `frequent-single-test-files`
+While building, run individual test files repeatedly as a fast inner loop.
+- `mattpocock_skills:skill:skills/engineering/implement` — reject
+
+#### `frequent-typecheck-while-building`
+While building, run the type checker repeatedly rather than only at the end.
+- `mattpocock_skills:skill:skills/engineering/implement` — reject
+
 #### `frozen-by-default`
 Make data models immutable by default and mutable only when their lifecycle needs mutation.
 - `doc:.repo-context/coding-style.md`
+
+#### `full-suite-at-end`
+Run the whole test suite once when the work is finished.
+- `mattpocock_skills:skill:skills/engineering/implement` — reject
 
 #### `gate-green-baseline`
 Record the baseline and a green run of the regression gate before any change, stopping when the gate is red.
@@ -11258,6 +11711,10 @@ Judge maintainability by the layers a reader must trace and the state they must 
 Let a documented repository standard override and suppress a conflicting catalogue smell.
 - `mattpocock_skills:skill:skills/engineering/code-review` — defer
 
+#### `review-after-every-build`
+Run a code review over the work every time a build finishes.
+- `mattpocock_skills:skill:skills/engineering/implement` — reject
+
 #### `rework-fixes-only-findings`
 Have a rework run fix only what the automated review named.
 - `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
@@ -11376,6 +11833,14 @@ Before accepting substantive tests, name the specific wrong branch, missing vali
 Identify intended behaviour, current behaviour, the affected path and the smallest observable reproduction.
 - `cursor_plugins:skill:pstack/skills/tdd` — reject
 
+#### `cast-search-in-tests`
+Find candidate casts by searching test and spec files for the cast pattern.
+- `mattpocock_skills:skill:skills/misc/migrate-to-shoehorn` — reject
+
+#### `casts-avoided-in-tests`
+Avoid type casts in tests, since a cast must name its target type and needs a second cast for deliberately wrong data.
+- `mattpocock_skills:skill:skills/misc/migrate-to-shoehorn` — reject
+
 #### `checks-by-changed-material`
 Select the checks to run from a table keyed by the kind of material changed, classing each file by the component it exercises rather than the directory it sits in.
 - `doc:.repo-context/verification.md`
@@ -11456,6 +11921,7 @@ Repair or remove a test that stays green when its behaviour breaks.
 #### `guard-hook-block-proof`
 After changing a guard hook, feed it a known-forbidden input and confirm it rejects it, not merely that it parses.
 - `doc:.repo-context/verification.md`
+- `mattpocock_skills:skill:skills/misc/git-guardrails-claude-code` — reject
 
 #### `harness-code-suite`
 After changing curation code, a skill script or their tests, run both the full curation and script-check regression suites.
@@ -11530,9 +11996,17 @@ Skip only an optional regression test whose cost outweighs its risk, keeping req
 Make a check for a bug one that detects the original failure.
 - `doc:AGENTS.md`
 
+#### `partial-test-data-helper`
+Build test data through a partial-data helper that still type-checks the fields given, in place of a full object or a single cast.
+- `mattpocock_skills:skill:skills/misc/migrate-to-shoehorn` — reject
+
 #### `plugin-harness-or-unverified`
 For a plugin change, run that plugin's own test harness once its prerequisites are in place, and report the change as unverified when the harness cannot run.
 - `doc:.repo-context/verification.md`
+
+#### `pre-agreed-test-seams`
+Test only at seams agreed before the build starts, never choosing new ones during it.
+- `mattpocock_skills:skill:skills/engineering/implement` — reject
 
 #### `prove-the-rules-bite`
 Before trusting the guardrail, observe it pass clean, fail on a deliberately planted violation, then pass again.
@@ -11610,9 +12084,21 @@ Use test doubles only at system boundaries such as external services, time and t
 - `doc:.repo-context/coding-style.md`
 - `mattpocock_skills:skill:skills/engineering/tdd` — adopt → tdd#mock-boundaries
 
+#### `test-data-helper-choice`
+Choose the partial, any-value or exact helper by whether the test data is partial, deliberately wrong or complete.
+- `mattpocock_skills:skill:skills/misc/migrate-to-shoehorn` — reject
+
+#### `test-data-helper-tests-only`
+Use a partial test-data helper library in test code only, never in production code.
+- `mattpocock_skills:skill:skills/misc/migrate-to-shoehorn` — reject
+
 #### `test-database-over-mock`
 Prefer a test database to mocking the database.
 - `mattpocock_skills:skill:skills/engineering/tdd` — defer
+
+#### `test-first-where-possible`
+Build test-first wherever a test can be written first.
+- `mattpocock_skills:skill:skills/engineering/implement` — reject
 
 #### `test-parametrization`
 Prefer parametrized tests to repeated test bodies.
@@ -11636,9 +12122,17 @@ Judge every test by two imagined edits: breaking the behaviour must fail it, and
 - ours: `principle-test-behavior-not-implementation`
 - `cursor_plugins:skill:pstack/skills/principle-test-behavior-not-implementation` — adopt → principle-test-behavior-not-implementation#two-edit-test-judgement
 
+#### `typecheck-after-migration`
+Run the type checker to confirm a migration.
+- `mattpocock_skills:skill:skills/misc/migrate-to-shoehorn` — reject
+
 #### `verify-ui-in-running-build`
 Confirm interface behaviour in an actual running build.
 - `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+
+#### `wrong-data-helper`
+Build deliberately invalid test data through a helper that accepts any value, in place of a cast through an unknown type.
+- `mattpocock_skills:skill:skills/misc/migrate-to-shoehorn` — reject
 
 ### engineering · Verification · Validation
 
@@ -11689,6 +12183,10 @@ Order commits so the history proves the work (failing test before fix, removal b
 Capture the conflicted file set up front from the version control's unmerged-paths listing.
 - ours: `resolving-merge-conflicts`
 
+#### `cheap-checks-first`
+Order commit-time checks with cheap staged-only work first and whole-project checks after.
+- `mattpocock_skills:skill:skills/misc/setup-pre-commit` — reject
+
 #### `ci-secrets-via-cli`
 Set CI secrets and variables through the hosting platform's CLI, recording each skip when the CLI is missing or unauthenticated.
 - `mattpocock_skills:skill:skills/engineering/wizard` — defer
@@ -11709,6 +12207,10 @@ Commit or continue the rebase only with granted authority, otherwise stop with t
 A commit body says what the subject cannot and never restates it.
 - ours: `land`
 
+#### `commit-on-current-branch`
+Commit the finished work to whatever branch is checked out, without asking.
+- `mattpocock_skills:skill:skills/engineering/implement` — reject
+
 #### `commit-plan-without-authority`
 Without commit authority, stage nothing and report the ordered commits with paths, titles and bodies.
 - ours: `land`
@@ -11716,6 +12218,10 @@ Without commit authority, stage nothing and report the ordered commits with path
 #### `commit-push-authority`
 Commit or push only when authorized, and amend only when asked.
 - `doc:AGENTS.md`
+
+#### `commit-time-checks`
+Run formatting of staged files, then the type check, then the tests in a pre-commit hook.
+- `mattpocock_skills:skill:skills/misc/setup-pre-commit` — reject
 
 #### `conventional-commit-title`
 Title a commit type(scope): imperative subject, no trailing period, naming the real symbol that carries the change.
@@ -11750,6 +12256,14 @@ Stage changes by explicitly named paths, never with a whole-tree add such as git
 Stage only the resolved files from the captured conflict set by explicit path.
 - ours: `resolving-merge-conflicts`
 
+#### `history-preserving-moves`
+Rename or move tracked files with git's own move command rather than a plain move.
+- `mattpocock_skills:skill:skills/misc/scaffold-exercises` — reject
+
+#### `hook-setup-checklist`
+After setting up a commit hook, check that the hook file exists and is executable and that each tool it calls is configured and runs.
+- `mattpocock_skills:skill:skills/misc/setup-pre-commit` — reject
+
 #### `listed-worktree-audit`
 Audit worktrees from the paths Git lists, never typed ones, classifying each read-only by uncommitted work, last activity, prunable record and merge state against one base commit resolved once for all of them.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/worktree-cleanup.md`
@@ -11766,6 +12280,10 @@ State the merge's one-way or two-way door and its blast radius.
 #### `merged-result-verification`
 Verify the merged result after merging.
 - `doc:AGENTS.md`
+
+#### `omit-missing-check-and-tell`
+Leave out a check the project has no command for and tell the person, never inventing one.
+- `mattpocock_skills:skill:skills/misc/setup-pre-commit` — reject
 
 #### `own-path-partition`
 Assign only the task's changed paths to commits, leaving and naming every other change in the tree.
@@ -11816,6 +12334,14 @@ Resolve each hunk preserving both intents where possible, picking the one matchi
 Discover and run the project's automated checks and fix what the merge broke.
 - ours: `resolving-merge-conflicts`
 
+#### `scaffold-commit`
+Commit the scaffolded result once it is done.
+- `mattpocock_skills:skill:skills/misc/scaffold-exercises` — reject
+
+#### `setup-commit-smoke-test`
+Commit the setup itself so the new hook runs on its own installation.
+- `mattpocock_skills:skill:skills/misc/setup-pre-commit` — reject
+
 #### `single-integration-branch`
 Land every ticket of a multi-ticket build on one integration branch.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/implement.md`
@@ -11827,6 +12353,10 @@ Keep each commit small and about one thing.
 - ours: `principle-sequence-verifiable-units`
 - `cursor_plugins:skill:pstack/skills/correct` — reject
 - `cursor_plugins:skill:pstack/skills/principle-foundational-thinking` — adopt → principle-sequence-verifiable-units#small-single-purpose-commits
+
+#### `staged-only-formatting`
+Format only the staged files at commit time, skipping file types the formatter cannot read.
+- `mattpocock_skills:skill:skills/misc/setup-pre-commit` — reject
 
 #### `trace-intent`
 Find the primary source of each conflict via commit messages and requirements first, expanding to PRs or issues only when a disputed hunk needs that history.
@@ -12205,15 +12735,79 @@ Use a worktree only for a significant change: a spec's work usually is one and r
 Treat existing approval of the exact change as satisfying the gate while an unapproved sensitive-data category, integration, permission grant or material relaxation needs a fresh decision, and routine controls within an approved feature need no repeated gate.
 - ours: `security`
 
+#### `bare-force-push-reset-fragments`
+Besides the full git patterns, block the bare fragments `push --force` and `reset --hard` anywhere in a command, which also catches those two with options between `git` and the subcommand and any other text containing them.
+- `mattpocock_skills:skill:skills/misc/git-guardrails-claude-code` — reject
+
+#### `block-every-push`
+Block every git push, forced or not.
+- `mattpocock_skills:skill:skills/misc/git-guardrails-claude-code` — reject
+
+#### `first-match-block-else-allow`
+Stop at the first matching pattern and exit with the blocking code and a reason naming the command and pattern, and allow any command that matches none.
+- `mattpocock_skills:skill:skills/misc/git-guardrails-claude-code` — reject
+
+#### `match-anywhere-in-command`
+Block a command when a dangerous pattern appears anywhere in its text, including inside quotes or a longer command.
+- `mattpocock_skills:skill:skills/misc/git-guardrails-claude-code` — reject
+
+#### `pre-run-git-command-guard`
+Check every shell command before it runs and block destructive git commands such as hard resets, forced cleans, forced branch deletion and whole-tree discards.
+- `mattpocock_skills:skill:skills/misc/git-guardrails-claude-code` — reject
+
+#### `refusal-without-recourse`
+Tell a blocked agent that it lacks authority for the command, with no route to ask for it.
+- `mattpocock_skills:skill:skills/misc/git-guardrails-claude-code` — reject
+
 ### engineering · U · Tooling
+
+#### `create-config-only-if-missing`
+Create a tool's config file with defaults only when the repository has none.
+- `mattpocock_skills:skill:skills/misc/setup-pre-commit` — reject
 
 #### `frontend-performance`
 Supply browser performance mechanics — Core Web Vitals targets, synthetic plus real-user measurement, a symptom-to-measurement tree, fix patterns and budgets.
 - ours: `performance-optimization`
 
+#### `guard-hook-install`
+Install a guard hook by copying its script, marking it executable and registering it in the matching settings file.
+- `mattpocock_skills:skill:skills/misc/git-guardrails-claude-code` — reject
+
+#### `guard-install-scope-choice`
+Ask whether to install a command guard for this project only or for every project of the user.
+- `mattpocock_skills:skill:skills/misc/git-guardrails-claude-code` — reject
+
+#### `guard-pattern-customization`
+Offer to add or remove blocked patterns at install time and edit the copied script to match.
+- `mattpocock_skills:skill:skills/misc/git-guardrails-claude-code` — reject
+
+#### `hook-manager-init`
+Initialise a git-hook manager, which creates its own hooks folder and a script that installs it.
+- `mattpocock_skills:skill:skills/misc/setup-pre-commit` — reject
+
+#### `hook-payload-needs-json-tool`
+Read the hook payload from standard input and extract the command with a JSON tool the hook requires.
+- `mattpocock_skills:skill:skills/misc/git-guardrails-claude-code` — reject
+
+#### `hook-tooling-dev-dependencies`
+Install a git-hook manager, a staged-file runner and a formatter as development dependencies.
+- `mattpocock_skills:skill:skills/misc/setup-pre-commit` — reject
+
+#### `lockfile-package-manager`
+Pick the package manager from the lockfile present, defaulting to the stock one, and use it in every hook command.
+- `mattpocock_skills:skill:skills/misc/setup-pre-commit` — reject
+
 #### `measurement-recipes`
 Supply backend tool mechanics for measurement — monotonic timing, sampling and allocation profilers, query plans and N+1 counting, benchmark gating, and the host and runtime view.
 - ours: `performance-optimization`
+
+#### `settings-merge-not-overwrite`
+When adding to an existing settings file, merge into its arrays and leave every other setting as it was.
+- `mattpocock_skills:skill:skills/misc/git-guardrails-claude-code` — defer
+
+#### `test-data-helper-install`
+Install the test-data helper package and import it in each file that uses it.
+- `mattpocock_skills:skill:skills/misc/migrate-to-shoehorn` — reject
 
 ## Shared traits
 

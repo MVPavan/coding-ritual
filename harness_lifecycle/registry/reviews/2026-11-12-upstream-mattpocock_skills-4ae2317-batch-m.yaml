@@ -1,0 +1,3554 @@
+harness: mattpocock_skills
+from_sha: null
+to_sha: 4ae2317
+supersedes: null
+analysis_critic:
+  by: gpt-6.1-sol high (critic-66c, critic-66e)
+  date: '2026-11-13'
+  verdict: pass
+  last_critic: null
+comparison_critic:
+  by: gpt-6.1-sol high (critic-66c, critic-66e)
+  date: '2026-11-13'
+  verdict: pass
+  last_critic: null
+themes: 'These rows serve two aims. A worker''s brief reaches it intact and running workers
+  can be told apart (two adopts into `delegation`). Git safety stays enforced: our guard hook
+  already holds most of the upstream rules, and the one place it falls short, git options
+  before the subcommand, is closed by a fix of the hook itself, which is not a registry unit.
+  The rest is rejected: co-writing with a person, conversation handoff, commit-time checks
+  and TypeScript test data have no place among ours, and the course scaffold is out of scope.'
+skills:
+  skill:skills/engineering/implement:
+    upstream_tree_hash: 560465496ad0669329993bfdd0604e5c93b5c2446309a76f486040010b063908
+    accepted: null
+    compared_with: none
+    pairing:
+      overlap:
+        doc:AGENTS.md: 1
+        how: 1
+        sharpen: 1
+        why: 1
+      placement_match:
+      - principle-no-comments
+      - principle-sequence-verifiable-units
+      - tdd
+      suggested: how
+      purpose_match: none
+      purpose: 'Upstream builds a spec or tickets end to end: tests, checks, review, commit.
+        Our match in purpose is the implement playbook, which is not a skill and cannot be
+        compared; the retired `implement` skill has no trait entry.'
+      flag: suggested differs
+      reason: 'Compared with none: the playbook that does this job cannot be compared, and
+        AGENTS.md still makes its ambiguity row present. `how` shares one near trait on asking
+        about an unclear reference and nothing of the job. Suggested how by the computed signals
+        only.'
+    analysis:
+      blind:
+      - 'fetch-ticket-and-state-title: When given a ticket reference, pull it from the configured
+        issue tracker and say its title aloud before any work begins (SKILL.md:9).'
+      - 'ask-on-ambiguous-reference: When a ticket reference could point at more than one
+        thing, ask the user instead of guessing (SKILL.md:9).'
+      - 'test-first-at-agreed-seams: Use a test-first cycle wherever it fits, at seams agreed
+        beforehand rather than ones chosen mid-build (SKILL.md:11).'
+      - 'frequent-typecheck: Run the type checker repeatedly during the work, not only at
+        the end (SKILL.md:13).'
+      - 'frequent-single-file-tests: Run individual test files repeatedly during the work
+        as a fast inner loop (SKILL.md:13).'
+      - 'full-suite-once-at-end: Run the complete test suite a single time when the work is
+        finished (SKILL.md:13).'
+      - 'post-build-code-review: After the work is done, run a code review over it (SKILL.md:15).'
+      - 'commit-to-current-branch: Commit the finished work onto whatever branch is checked
+        out, with no new branch (SKILL.md:17).'
+      mapping:
+      - line: 1
+        to:
+        - ticket-title-echo
+        mark: new
+      - line: 2
+        to:
+        - material-ambiguity-ask
+        mark: match
+      - line: 3
+        to:
+        - test-first-where-possible
+        - pre-agreed-test-seams
+        mark: split
+      - line: 4
+        to:
+        - frequent-typecheck-while-building
+        mark: new
+      - line: 5
+        to:
+        - frequent-single-test-files
+        mark: new
+      - line: 6
+        to:
+        - full-suite-at-end
+        mark: new
+      - line: 7
+        to:
+        - review-after-every-build
+        mark: new
+      - line: 8
+        to:
+        - commit-on-current-branch
+        mark: new
+    traits:
+      ticket-title-echo:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Our implement playbook's step 1 reads the bead and claims it by exact ID (`.claude/skills/mvp-mode/playbooks/implement.md:119-120`),
+          so a reference cannot resolve to the wrong item; saying the title first adds a turn
+          without catching anything the exact ID leaves open.
+      material-ambiguity-ask:
+        scope: new
+        change: []
+        fact: present
+        provider: doc:AGENTS.md
+        candidates: []
+        via: null
+        also_in:
+          how: variant
+          sharpen: variant
+          why: variant
+        ours:
+        - AGENTS.md:9
+        recommendation: adopt
+        delivery: delivered
+        target: doc:AGENTS.md
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-02
+          override: null
+        reason: AGENTS.md asks whenever an ambiguity materially affects correctness, scope
+          or authority; a work reference that could name two items always affects scope, so
+          the upstream case is one instance of the rule.
+      test-first-where-possible:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Ours writes the test first when risk calls for it (`AGENTS.md:56-57`, `.claude/skills/mvp-mode/playbooks/implement.md:121-122`);
+          a test first for every change costs time on changes where it proves nothing, which
+          the prompting guide's O-05 also warns against.
+      pre-agreed-test-seams:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: '`tdd` already takes its seams from the plan and, unlike this rule, says what
+          to do when the plan lacks one that matters (`plan-seams-no-approval`); forbidding
+          any seam chosen mid-build would leave that case with no way forward.'
+      frequent-typecheck-while-building:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Already the cadence of every implementer we dispatch, limited to commands
+          the repository provides (`.claude/agents/implementer.md:21`), which round 2026-10-14-migration
+          took from this skill; an agent contract is not a unit the registry compares, and
+          writing it into the playbook as well would state one rule in two places.
+      frequent-single-test-files:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Held separately from the type-check cadence by the same line, `.claude/agents/implementer.md:21`,
+          limited to commands the repository provides and taken from this skill in round 2026-10-14-migration;
+          an agent contract is not a unit the registry compares, and a second copy in the
+          playbook would state one rule in two places.
+      full-suite-at-end:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Held, with the same limit to repository commands, by `.claude/agents/implementer.md:21`,
+          taken from this skill in round 2026-10-14-migration; the playbook's own close runs
+          the checks `.repo-context/verification.md` names for the changed material (`.claude/skills/mvp-mode/playbooks/implement.md:133`),
+          so a second copy would add nothing.
+      review-after-every-build:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Ours drives independent review by explicit requirements or unresolved risk,
+          not the act of closing a task (`.claude/skills/mvp-mode/playbooks/implement.md:135-136`);
+          the prompting guide's C-12 also asks to remove generic final-verification steps.
+      commit-on-current-branch:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Ours commits only when authorized (`AGENTS.md:72`), and every commit goes
+          through `land`; the earlier ruling of round 2026-10-14-migration rejected this skill
+          for this unconditional commit.
+  skill:skills/in-progress/claude-handoff:
+    upstream_tree_hash: e903af941877ac195671a1eff550ba42266f5f5a4028ebeae4cd1fec82b88dd4
+    accepted: null
+    compared_with: none
+    pairing:
+      overlap:
+        beads: 1
+        doc:AGENTS.md: 3
+      placement_match:
+      - beads
+      - decision-trail
+      - recall
+      - wake
+      suggested: beads
+      purpose_match: none
+      purpose: Upstream passes the whole conversation to a fresh background session. Ours
+        keeps continuity in Beads notes and dispatches scoped workers through `delegation`;
+        neither starts a successor from a summary.
+      flag: suggested differs
+      reason: 'Compared with none, as the upstream `handoff` skill was: `delegation` shares
+        only its dispatch details, and `beads` shares one near trait while holding work state,
+        not a summary for a successor. Suggested beads by the computed signals only.'
+    analysis:
+      blind:
+      - 'argument-as-next-focus: Optional arguments describe what the next session will do,
+        and the summary is tailored to that (SKILL.md:4, 18).'
+      - 'handoff-summary-artifact: Write a summary of the current conversation sufficient
+        for a fresh agent to continue (SKILL.md:8).'
+      - 'summary-saved-to-os-temp: Save the summary to the operating system''s temporary directory
+        (SKILL.md:8).'
+      - 'launch-background-successor: Start a new background agent with the summary as its
+        prompt, in the current directory, returning immediately (SKILL.md:8).'
+      - 'prompt-passed-from-file-to-avoid-shell-expansion: Feed the summary via reading the
+        file so the shell does not run backticks or expand dollar signs in it (SKILL.md:8).'
+      - 'mandatory-descriptive-session-name: Always give the background agent a descriptive
+        display name (SKILL.md:10).'
+      - 'suggested-skills-section: The summary includes a section naming which skills the
+        successor should invoke (SKILL.md:12).'
+      - 'reference-dont-duplicate: Point at existing specs, plans, decision records, issues,
+        commits and diffs by path or URL rather than copying them in (SKILL.md:14).'
+      - 'redact-secrets-and-pii: Remove keys, passwords and personal data, because the summary
+        becomes another agent''s prompt (SKILL.md:16).'
+      mapping:
+      - line: 1
+        to:
+        - tailor-to-next-focus
+        mark: match
+      - line: 2
+        to:
+        - handoff-doc
+        mark: match
+      - line: 3
+        to:
+        - temp-dir-destination
+        mark: match
+      - line: 4
+        to:
+        - handoff-successor-launch
+        mark: new
+      - line: 5
+        to:
+        - brief-from-file
+        mark: new
+      - line: 6
+        to:
+        - named-background-worker
+        mark: new
+      - line: 7
+        to:
+        - suggested-skills
+        mark: match
+      - line: 8
+        to:
+        - link-dont-copy
+        mark: match
+      - line: 9
+        to:
+        - handoff-sensitive-data-removal
+        mark: new
+    traits:
+      tailor-to-next-focus:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: handing the conversation to a fresh session is rejected;
+          continuity stays in Beads notes and scoped `delegation` briefs.'
+      handoff-doc:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          doc:AGENTS.md: variant
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: handing the conversation to a fresh session is rejected;
+          continuity stays in Beads notes and scoped `delegation` briefs.'
+      temp-dir-destination:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          doc:AGENTS.md: variant
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: handing the conversation to a fresh session is rejected;
+          continuity stays in Beads notes and scoped `delegation` briefs.'
+      handoff-successor-launch:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: handing the conversation to a fresh session is rejected;
+          continuity stays in Beads notes and scoped `delegation` briefs.'
+      brief-from-file:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: delegation
+        modification: null
+        rewording: Hand a command-line worker its brief or follow-up as the contents of a
+          file, never typed into the command itself, so the shell cannot execute backticks
+          or substitute `$` expressions inside it.
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - S-09
+          override: null
+        reason: 'Prevents: A brief holding backticks or `$` that the shell runs or expands
+          before the worker reads it, so the worker gets a damaged brief or a command runs
+          unasked. Lands in delegation, Dispatch, step 4. Upstream: SKILL.md:8.'
+      named-background-worker:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: delegation
+        modification: null
+        rewording: When the vendor lets a worker carry a display name, give each background
+          worker one that says what its task is.
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - O-04
+          override: null
+        reason: 'Prevents: Several background workers that a person or the coordinator cannot
+          tell apart in the vendor''s list, so the wrong one gets stopped, resumed or read.
+          Lands in delegation, Dispatch, step 4. Upstream: SKILL.md:10.'
+      suggested-skills:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          beads: variant
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: handing the conversation to a fresh session is rejected;
+          continuity stays in Beads notes and scoped `delegation` briefs.'
+      link-dont-copy:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          doc:AGENTS.md: variant
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: handing the conversation to a fresh session is rejected;
+          continuity stays in Beads notes and scoped `delegation` briefs.'
+      handoff-sensitive-data-removal:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: handing the conversation to a fresh session is rejected;
+          continuity stays in Beads notes and scoped `delegation` briefs.'
+  skill:skills/in-progress/writing-beats:
+    upstream_tree_hash: 5af3ce4383f995c76a4780b3d3029af8e9c69aa1a44d57a6c8bc13a820836b8a
+    accepted: null
+    compared_with: none
+    pairing:
+      overlap: {}
+      placement_match:
+      - brief-me
+      - html-artifact
+      - show-me
+      - unslop
+      suggested: brief-me
+      purpose_match: none
+      purpose: Upstream builds an article one beat at a time with its author from a fixed
+        pile of material. Nothing of ours writes for a human reader with them; `unslop` edits
+        a finished text.
+      flag: suggested differs
+      reason: 'Compared with none: no unit of ours co-writes an article; `brief-me` sits at
+        the same place in the lifecycle but briefs a person on work, with no shared trait.
+        Suggested brief-me by the computed signals only.'
+    analysis:
+      blind:
+      - 'fixed-pile-exploit-mode: Treat the supplied raw-material file as fixed; the job is
+        to commit to a path through it, not to gather more (SKILL.md:9).'
+      - 'ask-output-path-once: If no save location was given, ask once and remember it (SKILL.md:11).'
+      - 'settle-prerequisites-first: Before any beat, agree with the user which concepts the
+        audience already holds (SKILL.md:15).'
+      - 'grounding-gate: No beat may rely on a concept not yet grounded, either as a prerequisite
+        or by an earlier beat; the unit is the idea, not just its jargon (SKILL.md:15, 27).'
+      - 'term-and-idea-land-together: Grounding a named concept means introducing the idea
+        and its name together (SKILL.md:27).'
+      - 'running-grounded-list: Keep an updated list of grounded concepts, refreshed after
+        each beat lands (SKILL.md:34).'
+      - 'candidate-openings-two-to-three: Offer two or three distinct opening beats drawn
+        from the pile, each noting what it grounds (SKILL.md:16).'
+      - 'show-before-write: Show candidate beats to the user before anything goes into the
+        article file; the user picks (SKILL.md:16).'
+      - 'preview-unlocked-paths: After a pick, preview which beats it unlocks a short way
+        ahead (SKILL.md:16).'
+      - 'write-only-the-chosen-beat: Write just the selected beat, then stop (SKILL.md:17).'
+      - 'reread-before-offering-next: Re-read the article from disk before proposing next
+        beats (SKILL.md:18).'
+      - 'reachable-next-candidates: Offer two or three next beats, each reachable from the
+        current grounded set and labelled with what it grounds (SKILL.md:18, 36).'
+      - 'loop-to-natural-end: Repeat write/re-read/offer until the article reaches a natural
+        ending (SKILL.md:19).'
+      - 'ungrounded-beat-repair: When a desired beat needs an ungrounded concept, either insert
+        a grounding beat before it or promote the concept to a prerequisite, revisited with
+        the user (SKILL.md:38).'
+      - 'prerequisite-balance-lever: Weigh how much to demand upfront against how much to
+        define inside the piece, settled with the user (SKILL.md:38).'
+      - 'one-move-per-beat: A beat does a single move (scene, point, question, aside, twist)
+        and stops at a pivot point (SKILL.md:42).'
+      - 'beat-sized-by-need: A beat is as long as its move requires, from one sentence to
+        several paragraphs (SKILL.md:44-48).'
+      - 'split-oversized-beat: A beat needing many paragraphs and subheadings is two beats
+        and must be split (SKILL.md:50).'
+      - 'pile-as-quarry: Paraphrase, split, recombine or quote pile material freely (SKILL.md:54).'
+      - 'end-on-journey-not-pile: Stop when the journey is complete even if material is left
+        over (SKILL.md:58).'
+      - 'append-one-beat-never-ahead: Add one beat at a time and never draft ahead (SKILL.md:62).'
+      - 'reread-before-every-write-preserve-edits: Re-read the file before each write and
+        keep the user''s edits absolutely (SKILL.md:63).'
+      - 'user-edits-steer-direction: A substantial user edit to an earlier beat may change
+        what comes next (SKILL.md:64).'
+      - 'targeted-beat-rewrite: On request to redo a specific beat, edit it in place and leave
+        the rest alone (SKILL.md:65).'
+      mapping:
+      - line: 1
+        to:
+        - no-new-material-gathering
+        mark: new
+      - line: 2
+        to:
+        - ask-save-path-once
+        mark: new
+      - line: 3
+        to:
+        - agree-reader-prerequisites
+        mark: new
+      - line: 4
+        to:
+        - grounded-concepts-only
+        mark: new
+      - line: 5
+        to:
+        - term-lands-with-idea
+        mark: new
+      - line: 6
+        to:
+        - grounded-concept-list
+        mark: new
+      - line: 7
+        to:
+        - two-or-three-openings
+        - opening-grounds-noted
+        mark: split
+      - line: 8
+        to:
+        - candidates-shown-before-writing
+        mark: new
+      - line: 9
+        to:
+        - preview-unlocked-parts
+        mark: new
+      - line: 10
+        to:
+        - write-each-agreed-part-alone
+        mark: new
+      - line: 11
+        to:
+        - edits-steer-next-part
+        mark: new
+      - line: 12
+        to:
+        - reachable-next-candidates
+        mark: new
+      - line: 13
+        to:
+        - stop-at-natural-end
+        mark: new
+      - line: 14
+        to:
+        - ground-before-use
+        mark: new
+      - line: 15
+        to:
+        - prerequisite-balance
+        mark: new
+      - line: 16
+        to:
+        - one-move-per-part
+        mark: new
+      - line: 17
+        to:
+        - part-sized-by-its-move
+        mark: new
+      - line: 18
+        to:
+        - part-sized-by-its-move
+        mark: new
+      - line: 19
+        to:
+        - source-material-reworked
+        mark: new
+      - line: 20
+        to:
+        - stop-at-natural-end
+        mark: new
+      - line: 21
+        to:
+        - write-each-agreed-part-alone
+        mark: new
+      - line: 22
+        to:
+        - reread-before-write-keep-edits
+        mark: new
+      - line: 23
+        to:
+        - edits-steer-next-part
+        mark: new
+      - line: 24
+        to:
+        - targeted-in-place-rewrite
+        mark: new
+    traits:
+      no-new-material-gathering:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      ask-save-path-once:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      agree-reader-prerequisites:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      grounded-concepts-only:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      term-lands-with-idea:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      grounded-concept-list:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      two-or-three-openings:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      opening-grounds-noted:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      candidates-shown-before-writing:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      preview-unlocked-parts:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      write-each-agreed-part-alone:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      edits-steer-next-part:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      reachable-next-candidates:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      stop-at-natural-end:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      ground-before-use:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      prerequisite-balance:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      one-move-per-part:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      part-sized-by-its-move:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      source-material-reworked:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      reread-before-write-keep-edits:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      targeted-in-place-rewrite:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+  skill:skills/in-progress/writing-fragments:
+    upstream_tree_hash: 00d286876c139f3f764e5021923f632c785dba1eb2fd7afdd9f44854a12772d2
+    accepted: null
+    compared_with: none
+    pairing:
+      overlap: {}
+      placement_match:
+      - brief-me
+      - html-artifact
+      - show-me
+      - unslop
+      suggested: brief-me
+      purpose_match: none
+      purpose: Upstream interviews a person and collects raw writing fragments in one file.
+        Nothing of ours gathers material for a person's own writing.
+      flag: suggested differs
+      reason: 'Compared with none: no unit of ours collects writing material; `brief-me` matches
+        only by its place in the lifecycle. Suggested brief-me by the computed signals only.'
+    analysis:
+      blind:
+      - 'explore-no-structure: Widen what could be written without committing to phases, outlines
+        or structure; structuring is out of scope (SKILL.md:9).'
+      - 'relentless-interview-for-fragments: Interview the user hard about their topic to
+        draw fragments out (SKILL.md:9).'
+      - 'capture-from-both-sides: Fragments may come from either the user or the agent (SKILL.md:11).'
+      - 'single-append-file: All fragments go into one markdown file (SKILL.md:11).'
+      - 'ask-output-path-once: If no path was given, ask once and remember it for the session
+        (SKILL.md:13).'
+      - 'capture-from-first-message: Capture starts with the user''s initial prompt (SKILL.md:15).'
+      - 'bare-h1-working-title: The first write is a single top-level working title and nothing
+        else: no metadata, contents or date (SKILL.md:17).'
+      - 'author-readable-bar: A fragment need only make sense to the author and be good writing,
+        not be self-contained (SKILL.md:25).'
+      - 'heterogeneous-fragment-types: Sentences, claims, vignettes, half-thoughts, quotes,
+        observation clusters, complaints and coinages all count (SKILL.md:27-36).'
+      - 'push-to-coin-leading-word: When an idea keeps recurring, push to name it with one
+        compact metaphor or coinage, treated as the most valuable fragment (SKILL.md:36-38).'
+      - 'rule-separated-flat-format: Fragments are separated by horizontal rules, with no
+        body headings, no tags and no order but insertion order (SKILL.md:44-69).'
+      - 'silent-append-with-passing-mention: Save without asking permission, mentioning the
+        addition briefly in passing (SKILL.md:73).'
+      - 'reread-before-every-write: Re-read the file before each write to keep the user''s
+        edits, reorders and deletions (SKILL.md:75).'
+      - 'append-only-never-overwrite: Never overwrite the file; only append, or edit one fragment
+        in place on request (SKILL.md:75).'
+      - 'fragment-edit-commands-first-class: Requests to cut, sharpen or merge specific fragments
+        are honoured immediately (SKILL.md:77).'
+      mapping:
+      - line: 1
+        to:
+        - explore-without-structure
+        mark: new
+      - line: 2
+        to:
+        - interview-to-draw-out-material
+        mark: new
+      - line: 3
+        to:
+        - capture-from-either-side
+        mark: new
+      - line: 4
+        to:
+        - single-fragment-file
+        mark: new
+      - line: 5
+        to:
+        - ask-save-path-once
+        mark: new
+      - line: 6
+        to:
+        - capture-from-first-message
+        mark: new
+      - line: 7
+        to:
+        - bare-working-title
+        mark: new
+      - line: 8
+        to:
+        - author-readable-fragments
+        mark: new
+      - line: 9
+        to:
+        - any-fragment-kind
+        mark: new
+      - line: 10
+        to:
+        - coin-name-for-recurring-idea
+        mark: new
+      - line: 11
+        to:
+        - flat-rule-separated-fragments
+        mark: new
+      - line: 12
+        to:
+        - save-without-asking
+        mark: new
+      - line: 13
+        to:
+        - reread-before-write-keep-edits
+        mark: new
+      - line: 14
+        to:
+        - append-unless-asked-to-edit
+        mark: new
+      - line: 15
+        to:
+        - targeted-in-place-rewrite
+        mark: new
+    traits:
+      explore-without-structure:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      interview-to-draw-out-material:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      capture-from-either-side:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      single-fragment-file:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      append-unless-asked-to-edit:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      ask-save-path-once:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      capture-from-first-message:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      bare-working-title:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      author-readable-fragments:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      any-fragment-kind:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      coin-name-for-recurring-idea:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      flat-rule-separated-fragments:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      save-without-asking:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      reread-before-write-keep-edits:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      targeted-in-place-rewrite:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+  skill:skills/in-progress/writing-shape:
+    upstream_tree_hash: 7e06f4ca8a96c83b5b9a540c0279e998ba449e74586c77d44f9b8183c1bd8ef8
+    accepted: null
+    compared_with: none
+    pairing:
+      overlap: {}
+      placement_match:
+      - brief-me
+      - html-artifact
+      - show-me
+      - unslop
+      suggested: brief-me
+      purpose_match: none
+      purpose: Upstream turns a pile of material into an article with its author, block by
+        block. Nothing of ours shapes a person's article; `unslop` edits finished text.
+      flag: suggested differs
+      reason: 'Compared with none: no unit of ours shapes an article with its author; `brief-me`
+        matches only by its place in the lifecycle. Suggested brief-me by the computed signals
+        only.'
+    analysis:
+      blind:
+      - 'any-format-input-pile: Accept raw material in any form (fragments, prose, transcript)
+        as the source (SKILL.md:9).'
+      - 'read-pile-fully-first: Read the whole input end to end before anything else (SKILL.md:9,
+        21).'
+      - 'separate-output-document: Produce the article in a different file from the input
+        (SKILL.md:11).'
+      - 'source-file-read-only: Never edit the raw-material file (SKILL.md:11, 76).'
+      - 'ask-output-path-once: If no save location was given, ask once and remember it (SKILL.md:13).'
+      - 'settle-prerequisites-first: Agree on the concepts the reader brings before writing
+        (SKILL.md:22).'
+      - 'grounding-gate: No block may lean on an ungrounded concept; the unit is the idea,
+        and a named concept is grounded with its term (SKILL.md:22, 30-35).'
+      - 'running-grounded-list: Keep a list of grounded concepts as the article grows (SKILL.md:37).'
+      - 'ungrounded-need-is-next-move: When the next move needs an ungrounded concept, grounding
+        it becomes the next step (SKILL.md:37).'
+      - 'prerequisite-balance-lever: Balance upfront demands against in-article definitions,
+        settled with the user (SKILL.md:39).'
+      - 'candidate-openings-distinct-theses: Draft two or three openings each implying a different
+        thesis, show all, and make the user pick or build a hybrid (SKILL.md:23).'
+      - 'opening-defines-obligations: The chosen opening sets what the rest of the article
+        must deliver (SKILL.md:23).'
+      - 'reader-needs-next-question: Grow the article by asking what the reader must hear
+        next given what is written (SKILL.md:24).'
+      - 'deliberate-block-format: Argue the form of each block (paragraph, list, table, callout,
+        quote, code) so each choice is defensible (SKILL.md:24).'
+      - 'append-each-agreed-block: Write each agreed block to the file immediately, not in
+        batches (SKILL.md:25, 71).'
+      - 'user-decides-done: The user, not the agent, says when the article is finished (SKILL.md:26).'
+      - 'adversarial-editor-stance: Push back, refuse weak transitions, and cut paragraphs
+        that do not earn their place (SKILL.md:43).'
+      - 'standing-challenge-questions: Keep asking what each paragraph adds, what breaks if
+        cut, prose versus list, split double-duty sentences, and whether the article drifted
+        from its opening''s promise (SKILL.md:45-51).'
+      - 'pile-as-quarry-one-voice: Rework, split, merge or paraphrase pile material so the
+        article reads as one voice (SKILL.md:55).'
+      - 'name-material-gaps: When the pile lacks something needed, say so and ask the user
+        to supply it now or cut the section (SKILL.md:57).'
+      - 'prose-vs-list-rule: Use prose for argument and lists only for truly parallel items
+        (SKILL.md:63).'
+      - 'callout-only-if-derailing: Put tips and warnings in callouts only when inline they
+        would derail the argument (SKILL.md:64).'
+      - 'table-at-three-repeats: Use a table when the same field shape repeats three or more
+        times, otherwise prose with bold leads (SKILL.md:65).'
+      - 'quote-when-wording-matters: Quote when exact wording is the point, paraphrase otherwise
+        (SKILL.md:66).'
+      - 'code-block-vs-inline-rule: Multi-line, runnable or illustrative code goes in a block;
+        single tokens inline (SKILL.md:67).'
+      - 'format-tradeoffs-out-loud: Discuss format tradeoffs with the user rather than deciding
+        silently (SKILL.md:61).'
+      - 'reread-before-every-write: Re-read the article before every write and never overwrite
+        blindly (SKILL.md:71).'
+      - 'targeted-paragraph-rewrite: Rewrite only the requested paragraph in place (SKILL.md:71).'
+      - 'no-new-material-mining: Gathering new fragments outside the pile is out of scope;
+        gaps are named instead (SKILL.md:75).'
+      - 'no-publishing-or-unrequested-frontmatter: Platform formatting, publishing and unrequested
+        frontmatter are out of scope (SKILL.md:77).'
+      mapping:
+      - line: 1
+        to:
+        - any-form-source-material
+        mark: new
+      - line: 2
+        to:
+        - read-all-material-first
+        mark: new
+      - line: 3
+        to:
+        - source-file-untouched
+        mark: new
+      - line: 4
+        to:
+        - source-file-untouched
+        mark: new
+      - line: 5
+        to:
+        - ask-save-path-once
+        mark: new
+      - line: 6
+        to:
+        - agree-reader-prerequisites
+        mark: new
+      - line: 7
+        to:
+        - grounded-concepts-only
+        - term-lands-with-idea
+        mark: split
+      - line: 8
+        to:
+        - grounded-concept-list
+        mark: new
+      - line: 9
+        to:
+        - ground-before-use
+        mark: new
+      - line: 10
+        to:
+        - prerequisite-balance
+        mark: new
+      - line: 11
+        to:
+        - two-or-three-openings
+        - opening-hybrid-allowed
+        mark: split
+      - line: 12
+        to:
+        - opening-sets-obligations
+        mark: new
+      - line: 13
+        to:
+        - reader-next-need
+        mark: new
+      - line: 14
+        to:
+        - argued-block-format
+        mark: new
+      - line: 15
+        to:
+        - write-each-agreed-part-alone
+        mark: new
+      - line: 16
+        to:
+        - person-declares-done
+        mark: new
+      - line: 17
+        to:
+        - adversarial-editor
+        mark: new
+      - line: 18
+        to:
+        - standing-paragraph-questions
+        - double-duty-sentence-split
+        - opening-drift-repair
+        mark: split
+      - line: 19
+        to:
+        - source-material-reworked
+        - reads-as-one-voice
+        mark: split
+      - line: 20
+        to:
+        - name-material-gaps
+        mark: new
+      - line: 21
+        to:
+        - prose-for-argument
+        mark: new
+      - line: 22
+        to:
+        - callout-only-when-derailing
+        mark: new
+      - line: 23
+        to:
+        - table-at-three-repeats
+        mark: new
+      - line: 24
+        to:
+        - quote-when-wording-matters
+        mark: new
+      - line: 25
+        to:
+        - code-block-or-inline
+        mark: new
+      - line: 26
+        to:
+        - argued-block-format
+        mark: new
+      - line: 27
+        to:
+        - reread-before-write-keep-edits
+        mark: new
+      - line: 28
+        to:
+        - targeted-in-place-rewrite
+        mark: new
+      - line: 29
+        to:
+        - no-new-material-gathering
+        mark: new
+      - line: 30
+        to:
+        - no-publishing-or-frontmatter
+        mark: new
+    traits:
+      any-form-source-material:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      read-all-material-first:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      source-file-untouched:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      ask-save-path-once:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      agree-reader-prerequisites:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      grounded-concepts-only:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      term-lands-with-idea:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      grounded-concept-list:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      ground-before-use:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      prerequisite-balance:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      two-or-three-openings:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      opening-hybrid-allowed:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      opening-sets-obligations:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      reader-next-need:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      argued-block-format:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      write-each-agreed-part-alone:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      person-declares-done:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      adversarial-editor:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      standing-paragraph-questions:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      double-duty-sentence-split:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      opening-drift-repair:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      source-material-reworked:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      reads-as-one-voice:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      name-material-gaps:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      prose-for-argument:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      callout-only-when-derailing:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      table-at-three-repeats:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      quote-when-wording-matters:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      code-block-or-inline:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      reread-before-write-keep-edits:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      targeted-in-place-rewrite:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      no-new-material-gathering:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+      no-publishing-or-frontmatter:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: no unit for co-writing with a person; the writing
+          skills are rejected whole.'
+  skill:skills/misc/git-guardrails-claude-code:
+    upstream_tree_hash: 7aa92e9d469c6cd0b24ed8accb2e4be681c44c1524d71604c06b4055b7b56482
+    accepted: null
+    compared_with: none
+    pairing:
+      overlap:
+        doc:.repo-context/verification.md: 1
+      placement_match: []
+      suggested: null
+      purpose_match: none
+      purpose: Upstream installs a hook that blocks dangerous git commands. Ours already ships
+        such a hook as project configuration; a hook is not a skill and cannot be compared.
+      flag: null
+      reason: 'Compared with none: our equivalent is a hook, outside the registry''s skill
+        comparison.'
+    analysis:
+      blind:
+      - 'pre-tool-command-hook: Install a hook that inspects shell commands before execution
+        and blocks dangerous git ones (SKILL.md:8).'
+      - 'blocked-command-list: The blocked set is pushes of any kind, hard resets, forced
+        cleans, forced branch deletion, and whole-tree checkout or restore (SKILL.md:10-16).'
+      - 'no-authority-message: A blocked agent is told it lacks authority to run that command
+        (SKILL.md:18).'
+      - 'ask-install-scope: Ask whether to install for this project or for all projects (SKILL.md:22-24).'
+      - 'copy-script-by-scope: Copy the bundled script into a project or user hooks folder
+        per the chosen scope (SKILL.md:26-33).'
+      - 'make-script-executable: Mark the copied script executable (SKILL.md:35).'
+      - 'settings-hook-registration-template: Register the script as a command hook on the
+        shell tool in the matching settings file, using a project-dir variable for project
+        scope and a home path for global (SKILL.md:37-79).'
+      - 'merge-not-overwrite-settings: Merge into an existing hook array without disturbing
+        other settings (SKILL.md:81).'
+      - 'offer-pattern-customization: Ask whether to add or remove blocked patterns, and edit
+        the copied script accordingly (SKILL.md:83-85).'
+      - 'pipe-test-verification: Verify by piping a sample push command as hook input and
+        expecting exit code 2 with a blocked message on stderr (SKILL.md:87-95).'
+      - 'reads-hook-json-from-stdin: Reads the hook payload from standard input and extracts
+        the command field with a JSON tool, which is therefore required (block-dangerous-git.sh:3-4).'
+      - 'regex-pattern-blocklist: Holds nine extended-regex patterns: push, hard reset, forced
+        clean (two forms), forced branch delete, checkout-dot, restore-dot, plus bare "push
+        --force" and "reset --hard" fragments that also catch git invocations with options
+        before the subcommand (block-dangerous-git.sh:6-16).'
+      - 'substring-match-anywhere: A pattern matching anywhere in the command string blocks
+        it, so the pattern inside a longer command or quoted text also triggers (block-dangerous-git.sh:18-19).'
+      - 'block-with-exit-2-and-stderr-reason: On a match, prints to stderr a message naming
+        the command and the matched pattern and saying the user prevented it, then exits 2
+        (block-dangerous-git.sh:20-21).'
+      - 'first-match-stops: Stops checking at the first matching pattern (block-dangerous-git.sh:18-23).'
+      - 'allow-by-default: Any command matching no pattern exits 0 and is allowed (block-dangerous-git.sh:25).'
+      mapping:
+      - line: 1
+        to:
+        - pre-run-git-command-guard
+        mark: new
+      - line: 2
+        to:
+        - block-every-push
+        - pre-run-git-command-guard
+        mark: split
+      - line: 3
+        to:
+        - refusal-without-recourse
+        mark: new
+      - line: 4
+        to:
+        - guard-install-scope-choice
+        mark: new
+      - line: 5
+        to:
+        - guard-hook-install
+        mark: new
+      - line: 6
+        to:
+        - guard-hook-install
+        mark: new
+      - line: 7
+        to:
+        - guard-hook-install
+        mark: new
+      - line: 8
+        to:
+        - settings-merge-not-overwrite
+        mark: new
+      - line: 9
+        to:
+        - guard-pattern-customization
+        mark: new
+      - line: 10
+        to:
+        - guard-hook-block-proof
+        mark: match
+      - line: 11
+        to:
+        - hook-payload-needs-json-tool
+        mark: new
+      - line: 12
+        to:
+        - bare-force-push-reset-fragments
+        mark: new
+      - line: 13
+        to:
+        - match-anywhere-in-command
+        mark: new
+      - line: 14
+        to:
+        - first-match-block-else-allow
+        mark: new
+      - line: 15
+        to:
+        - first-match-block-else-allow
+        mark: new
+      - line: 16
+        to:
+        - first-match-block-else-allow
+        mark: new
+    traits:
+      pre-run-git-command-guard:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Already in force here: `.claude/hooks/block-dangerous-commands.sh` blocks
+          each of these before a shell command runs, registered at `.claude/settings.json:3-12`,
+          and the plugin''s template carries the same registration to every repository it
+          sets up. A hook is not a unit the registry compares, so no row can show it as held;
+          a second hook would duplicate it.'
+      block-every-push:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Ours blocks only forced pushes (`.claude/hooks/block-dangerous-commands.sh`:20-21)
+          and lets an authorized push run, as `AGENTS.md:72` allows; blocking every push would
+          stop pushes the owner asked for.
+      refusal-without-recourse:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Ours tells the agent to ask the user before proceeding (`.claude/hooks/block-dangerous-commands.sh`:33),
+          because AGENTS.md allows these commands with explicit approval (`AGENTS.md:70-73`);
+          a flat refusal would leave a sanctioned request with no path.
+      guard-install-scope-choice:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Our guard ships as project configuration with the harness, so a repository
+          gets it by adopting the harness; a user-wide install would act in repositories that
+          never chose it.
+      guard-hook-install:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Nothing to install: `.claude/hooks/block-dangerous-commands.sh` and its registration
+          already ship with the harness (`.claude/settings.json:3-12`).'
+      settings-merge-not-overwrite:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: A unit of ours comes to edit a harness settings file in a repository
+          by hand.
+        policy: null
+        guide: null
+        reason: Sound, but no unit of ours writes into a settings file by hand now, so there
+          is no place it would change what an agent does.
+      guard-pattern-customization:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: A pattern changes through an ordinary reviewed edit to `.claude/hooks/block-dangerous-commands.sh`,
+          proven with a forbidden payload as `.repo-context/verification.md:37-41` requires;
+          an install-time prompt adds no safety.
+      guard-hook-block-proof:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          doc:.repo-context/verification.md: present
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Held whole by `.repo-context/verification.md:37-41`, which round 2026-10-14-migration
+          took from this skill; that file is not the compared skill or AGENTS.md, so the row
+          cannot show it as held, and a second copy would add nothing.
+      hook-payload-needs-json-tool:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Ours reads it with a JSON tool when one is installed and falls back to plain
+          text matching when not (`.claude/hooks/block-dangerous-commands.sh`:10-14); requiring
+          the tool would make the hook error out where it is missing, and an erroring hook
+          lets the command run.
+      bare-force-push-reset-fragments:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Held by the guard hook once bead cr-oez0's fix lands (owner ruling 2026-11-13);
+          the hook is not a registry unit.
+      match-anywhere-in-command:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Ours already matches anywhere in the command (`.claude/hooks/block-dangerous-commands.sh`:31-32),
+          choosing to over-block rather than miss a real one; that also blocks some harmless
+          commands, such as checking out a file whose name starts with a dot, which the owner
+          can weigh with the gap above.
+      first-match-block-else-allow:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Held whole by ours: it exits 2 on the first match with a message naming the
+          command and the pattern, and exits 0 otherwise (`.claude/hooks/block-dangerous-commands.sh`:31-35,
+          :89); a hook is not a unit the registry compares, so the row cannot show it as held.'
+  skill:skills/misc/migrate-to-shoehorn:
+    upstream_tree_hash: a63549df6d5b5c6595029f8c504ccf31a12f01312f03db70da4b45cb10ba5ca8
+    accepted: null
+    compared_with: none
+    pairing:
+      overlap: {}
+      placement_match:
+      - check-invariants
+      - principle-test-behavior-not-implementation
+      suggested: check-invariants
+      purpose_match: none
+      purpose: Upstream migrates casts in TypeScript tests to a test-data helper library.
+        `principle-type-system-discipline` is about types in the code itself, and no repository
+        we serve uses TypeScript.
+      flag: suggested differs
+      reason: 'Compared with none: the type principle shares only the dislike of casts, not
+        the job, and `check-invariants` matches only by its place in the lifecycle. Suggested
+        check-invariants by the computed signals only.'
+    analysis:
+      blind:
+      - 'tests-only-scope: The partial-data helper library is used only in test code, never
+        production code (SKILL.md:12).'
+      - 'rationale-against-casts-in-tests: Type casts in tests are discouraged because they
+        require naming the target type and need a double cast for deliberately wrong data
+        (SKILL.md:14-18).'
+      - 'install-helper-library: Install the helper package from the package registry (SKILL.md:20-24,
+        113).'
+      - 'partial-helper-for-large-objects: Replace hand-built full objects, where only a few
+        fields matter, with the partial helper (SKILL.md:28-63).'
+      - 'single-cast-to-partial-helper: Replace a single type cast with the partial helper
+        (SKILL.md:65-79, 115).'
+      - 'double-cast-to-any-helper: Replace a cast through unknown, used for intentionally
+        wrong data, with the any helper, which keeps autocomplete (SKILL.md:81-95, 116).'
+      - 'helper-selection-table: Choose between partial (partial but type-checking), any (deliberately
+        wrong) and exact (full object, swappable later) helpers (SKILL.md:97-103).'
+      - 'requirements-questions: First ask which test files have problem casts, whether large
+        objects with few relevant fields are involved, and whether wrong data for error tests
+        is needed (SKILL.md:107-110).'
+      - 'grep-for-casts-in-test-files: Find candidate casts by searching test and spec files
+        for a capitalised cast pattern (SKILL.md:114).'
+      - 'add-imports: Add the helper imports to each migrated file (SKILL.md:117).'
+      - 'typecheck-to-verify: Run the type checker to confirm the migration (SKILL.md:118).'
+      mapping:
+      - line: 1
+        to:
+        - test-data-helper-tests-only
+        mark: new
+      - line: 2
+        to:
+        - casts-avoided-in-tests
+        mark: new
+      - line: 3
+        to:
+        - test-data-helper-install
+        mark: new
+      - line: 4
+        to:
+        - partial-test-data-helper
+        mark: new
+      - line: 5
+        to:
+        - partial-test-data-helper
+        mark: new
+      - line: 6
+        to:
+        - wrong-data-helper
+        mark: new
+      - line: 7
+        to:
+        - test-data-helper-choice
+        mark: new
+      - line: 8
+        to:
+        - cast-migration-intake
+        mark: new
+      - line: 9
+        to:
+        - cast-search-in-tests
+        mark: new
+      - line: 10
+        to:
+        - test-data-helper-install
+        mark: new
+      - line: 11
+        to:
+        - typecheck-after-migration
+        mark: new
+    traits:
+      test-data-helper-tests-only:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: rejected whole; no repository we serve uses TypeScript.'
+      casts-avoided-in-tests:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: rejected whole; no repository we serve uses TypeScript.'
+      test-data-helper-install:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: rejected whole; no repository we serve uses TypeScript.'
+      partial-test-data-helper:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: rejected whole; no repository we serve uses TypeScript.'
+      wrong-data-helper:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: rejected whole; no repository we serve uses TypeScript.'
+      test-data-helper-choice:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: rejected whole; no repository we serve uses TypeScript.'
+      cast-migration-intake:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: rejected whole; no repository we serve uses TypeScript.'
+      cast-search-in-tests:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: rejected whole; no repository we serve uses TypeScript.'
+      typecheck-after-migration:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: rejected whole; no repository we serve uses TypeScript.'
+  skill:skills/misc/scaffold-exercises:
+    upstream_tree_hash: 019bbcc250992c776244aa1c818aed4015364f65bb9d1dbfd3bef9bae196b065
+    accepted: null
+    compared_with: none
+    pairing:
+      overlap: {}
+      placement_match:
+      - teach
+      suggested: teach
+      purpose_match: none
+      purpose: Upstream creates exercise folders for one course repository and makes its linter
+        pass. Nothing of ours writes course material.
+      flag: suggested differs
+      reason: 'Compared with none: no unit of ours has this job; `teach` matches only by its
+        place in the lifecycle. Suggested teach by the computed signals only.'
+    analysis:
+      blind:
+      - 'lint-pass-gate: Created structures must pass the course linter (SKILL.md:8, 49-50).'
+      - 'commit-when-done: Commit the scaffolded result with git (SKILL.md:8).'
+      - 'numbered-section-naming: Sections are two-digit-prefixed dash-case folders under
+        the exercises directory (SKILL.md:12, 14-15).'
+      - 'numbered-exercise-naming: Exercises are section-dot-number-prefixed dash-case folders
+        inside a section (SKILL.md:13-15).'
+      - 'variant-subfolders-at-least-one: Each exercise has at least one of a problem (with
+        TODOs), solution, or explainer (no TODOs) subfolder (SKILL.md:19-23).'
+      - 'explainer-default-for-stubs: When stubbing, default to the explainer variant unless
+        the plan says otherwise (SKILL.md:25).'
+      - 'nonempty-readme-per-variant: Every variant folder needs a non-empty readme with no
+        broken links (SKILL.md:29-32).'
+      - 'minimal-readme-stub-template: Stub readmes hold a title and a one-line description
+        (SKILL.md:34-40).'
+      - 'main-file-when-code: A variant with code also needs a multi-line main source file;
+        readme-only stubs are acceptable (SKILL.md:42).'
+      - 'parse-plan-into-structure: Extract section names, exercise names and variant types
+        from the supplied plan (SKILL.md:46, 79-88).'
+      - 'create-dirs-then-readmes: Create every directory path, then one titled readme per
+        variant folder (SKILL.md:47-48, 90-106).'
+      - 'iterate-until-lint-clean: Fix lint errors and rerun until it passes (SKILL.md:50).'
+      - 'lint-rule-knowledge: Know the linter forbids keep-files, speaker-notes files, broken
+        links and run-exercise commands in readmes, and requires a readme in the primary subfolder
+        and a main file unless readme-only (SKILL.md:52-63).'
+      - 'history-preserving-moves: Rename or move exercises with git''s move command rather
+        than plain move (SKILL.md:69, 76).'
+      - 'renumber-to-keep-order: Update numeric prefixes on moves so ordering stays correct
+        (SKILL.md:70).'
+      - 'relint-after-moves: Run the linter again after any move (SKILL.md:71).'
+      mapping:
+      - line: 1
+        to:
+        - course-lint-gate
+        mark: new
+      - line: 2
+        to:
+        - scaffold-commit
+        mark: new
+      - line: 3
+        to:
+        - numbered-course-layout
+        mark: new
+      - line: 4
+        to:
+        - numbered-course-layout
+        mark: new
+      - line: 5
+        to:
+        - exercise-variant-folders
+        mark: new
+      - line: 6
+        to:
+        - explainer-stub-default
+        mark: new
+      - line: 7
+        to:
+        - variant-readme-required
+        mark: new
+      - line: 8
+        to:
+        - variant-readme-required
+        mark: new
+      - line: 9
+        to:
+        - variant-main-file
+        mark: new
+      - line: 10
+        to:
+        - plan-to-exercise-tree
+        mark: new
+      - line: 11
+        to:
+        - plan-to-exercise-tree
+        mark: new
+      - line: 12
+        to:
+        - course-lint-gate
+        mark: new
+      - line: 13
+        to:
+        - course-lint-rules
+        mark: new
+      - line: 14
+        to:
+        - history-preserving-moves
+        mark: new
+      - line: 15
+        to:
+        - renumber-on-move
+        mark: new
+      - line: 16
+        to:
+        - course-lint-gate
+        mark: new
+    traits:
+      course-lint-gate:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Specific to one course repository's exercise layout and its own lint command;
+          nothing of ours writes course exercises.
+      scaffold-commit:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Ours commits only when authorized (`AGENTS.md:72`), through `land`.
+      numbered-course-layout:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Specific to one course repository's exercise layout and its own lint command;
+          nothing of ours writes course exercises.
+      exercise-variant-folders:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Specific to one course repository's exercise layout and its own lint command;
+          nothing of ours writes course exercises.
+      explainer-stub-default:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Specific to one course repository's exercise layout and its own lint command;
+          nothing of ours writes course exercises.
+      variant-readme-required:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Specific to one course repository's exercise layout and its own lint command;
+          nothing of ours writes course exercises.
+      variant-main-file:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Specific to one course repository's exercise layout and its own lint command;
+          nothing of ours writes course exercises.
+      plan-to-exercise-tree:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Specific to one course repository's exercise layout and its own lint command;
+          nothing of ours writes course exercises.
+      course-lint-rules:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Specific to one course repository's exercise layout and its own lint command;
+          nothing of ours writes course exercises.
+      history-preserving-moves:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Git records no rename either way and detects renames from content, so its
+          move command keeps no more history than a plain move followed by staging; the rule
+          changes nothing.
+      renumber-on-move:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Specific to one course repository's exercise layout and its own lint command;
+          nothing of ours writes course exercises.
+  skill:skills/misc/setup-pre-commit:
+    upstream_tree_hash: 98523a8db5977c41a095834df8697123bb845ff6ddbb9500733b161f11441a37
+    accepted: null
+    compared_with: none
+    pairing:
+      overlap: {}
+      placement_match: []
+      suggested: null
+      purpose_match: none
+      purpose: Upstream installs a JavaScript commit-hook stack that formats, type-checks
+        and tests. Nothing of ours sets up commit hooks; this repository's hooks path belongs
+        to Beads.
+      flag: null
+      reason: 'Compared with none: no unit of ours sets up commit hooks.'
+    analysis:
+      blind:
+      - 'detect-package-manager-by-lockfile: Pick the package manager from which lockfile
+        exists, defaulting to npm (SKILL.md:17-19).'
+      - 'install-hook-and-format-devdeps: Install the git-hook manager, staged-file runner
+        and formatter as dev dependencies (SKILL.md:21-27).'
+      - 'init-hook-manager: Initialise the hook manager, which creates its folder and a prepare
+        script (SKILL.md:29-35).'
+      - 'pre-commit-runs-staged-format-typecheck-test: The pre-commit hook runs the staged-file
+        formatter, then type check, then tests, without a shebang on the current hook-manager
+        version (SKILL.md:37-45, 89).'
+      - 'adapt-commands-to-package-manager: Substitute the detected package manager in hook
+        commands (SKILL.md:47).'
+      - 'omit-missing-scripts-and-tell: If the project lacks a typecheck or test script, drop
+        that line and inform the user (SKILL.md:47).'
+      - 'format-all-staged-ignoring-unknown: The staged-file config formats every staged file,
+        skipping types the formatter cannot parse (SKILL.md:49-55, 90).'
+      - 'formatter-config-only-if-missing: Create a formatter config with fixed defaults only
+        when none exists (SKILL.md:57-71).'
+      - 'verification-checklist: Check the hook file exists and is executable, the staged
+        config exists, the prepare script is set, a formatter config exists, and the staged
+        runner works (SKILL.md:73-79).'
+      - 'commit-as-smoke-test: Commit the setup with a fixed message so the new hook runs
+        on its own installation (SKILL.md:81-85).'
+      - 'fast-then-full-ordering: Hook order is cheap staged-only work first, then whole-project
+        checks (SKILL.md:91).'
+      mapping:
+      - line: 1
+        to:
+        - lockfile-package-manager
+        mark: new
+      - line: 2
+        to:
+        - hook-tooling-dev-dependencies
+        mark: new
+      - line: 3
+        to:
+        - hook-manager-init
+        mark: new
+      - line: 4
+        to:
+        - commit-time-checks
+        mark: new
+      - line: 5
+        to:
+        - lockfile-package-manager
+        mark: new
+      - line: 6
+        to:
+        - omit-missing-check-and-tell
+        mark: new
+      - line: 7
+        to:
+        - staged-only-formatting
+        mark: new
+      - line: 8
+        to:
+        - create-config-only-if-missing
+        mark: new
+      - line: 9
+        to:
+        - hook-setup-checklist
+        mark: new
+      - line: 10
+        to:
+        - setup-commit-smoke-test
+        mark: new
+      - line: 11
+        to:
+        - cheap-checks-first
+        mark: new
+    traits:
+      lockfile-package-manager:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Specific to JavaScript package managers, which owner ruling E of 2026-11-05
+          keeps rejected with Husky; a stack-neutral version would take its commands from
+          the repository's own `.repo-context/verification.md`.
+      hook-tooling-dev-dependencies:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Husky and its JavaScript companions, which owner ruling E of 2026-11-05 keeps
+          rejected.
+      hook-manager-init:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Initialising a hook manager points `core.hooksPath` at its own folder, which
+          would switch off the Beads hooks this repository runs from `.beads/hooks` (`.claude/skills/beads/references/setup.md:70`);
+          owner ruling E requires coexisting with that path.
+      commit-time-checks:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: rejected whole; no commit-time check setup, and
+          this repository''s hooks path belongs to Beads.'
+      omit-missing-check-and-tell:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: rejected whole; no commit-time check setup, and
+          this repository''s hooks path belongs to Beads.'
+      staged-only-formatting:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: rejected whole; no commit-time check setup, and
+          this repository''s hooks path belongs to Beads.'
+      create-config-only-if-missing:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: rejected whole; no commit-time check setup, and
+          this repository''s hooks path belongs to Beads.'
+      hook-setup-checklist:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: rejected whole; no commit-time check setup, and
+          this repository''s hooks path belongs to Beads.'
+      setup-commit-smoke-test:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Ours commits only when authorized (`AGENTS.md:72`); a hook can be proven by
+          running it directly, without a commit.
+      cheap-checks-first:
+        scope: new
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-13: rejected whole; no commit-time check setup, and
+          this repository''s hooks path belongs to Beads.'

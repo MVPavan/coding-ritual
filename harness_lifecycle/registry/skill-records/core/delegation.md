@@ -49,9 +49,14 @@ Use when handing work to another agent or model (an explorer, implementer, revie
 - **mattpocock_skills:skill:skills/engineering/wayfinder#fresh-context-subagent** `skills/engineering/wayfinder/SKILL.md` @ 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d
 - **mattpocock_skills:skill:skills/in-progress/chief-of-staff#fresh-context-subagent** `skills/in-progress/chief-of-staff/SKILL.md` @ 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d
 - **mattpocock_skills:skill:skills/productivity/grilling#fresh-context-subagent** `skills/productivity/grilling/SKILL.md` @ 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d
+- **mattpocock_skills:skill:skills/in-progress/claude-handoff#brief-from-file** `skills/in-progress/claude-handoff/SKILL.md` @ 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d (pending cr-r2pa.2.13.1)
+- **mattpocock_skills:skill:skills/in-progress/claude-handoff#named-background-worker** `skills/in-progress/claude-handoff/SKILL.md` @ 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d (pending cr-r2pa.2.13.1)
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-13` **adopt-merged** (2026-11-13-batch-m:020): Checkpoint at 4ae2317 for the owner's trait rulings: 2 adopt, 7 reject.
+- `2026-11-13` **adopt** (2026-11-13-batch-m:016): Owner ruling 2026-11-13: Prevents: Several background workers that a person or the coordinator cannot tell apart in the vendor's list, so the wrong one gets st…
+- `2026-11-13` **adopt** (2026-11-13-batch-m:015): Owner ruling 2026-11-13: Prevents: A brief holding backticks or `$` that the shell runs or expands before the worker reads it, so the worker gets a damaged bri…
 - `2026-11-12` **adopt** (2026-11-12-pocock-4ae2317-delivery:022): Completes pending 2026-11-09-pocock-4ae2317:179: fresh-context-subagent is written at .claude/skills/delegation/SKILL.md:51-54, .repo-context/unit-kinds.md:317…
 - `2026-11-12` **adopt** (2026-11-12-pocock-4ae2317-delivery:021): Completes pending 2026-11-09-pocock-4ae2317:170: fresh-context-subagent is written at .claude/skills/delegation/SKILL.md:51-54, .repo-context/unit-kinds.md:317…
 - `2026-11-12` **adopt** (2026-11-12-pocock-4ae2317-delivery:020): Completes pending 2026-11-09-pocock-4ae2317:167: fresh-context-subagent is written at .claude/skills/delegation/SKILL.md:51-54, .repo-context/unit-kinds.md:317…
@@ -79,6 +84,7 @@ Use when handing work to another agent or model (an explorer, implementer, revie
 <!-- /registry:generated history -->
 
 <!-- registry:generated reviews -->
+- [2026-11-12-upstream-mattpocock_skills-4ae2317-batch-m.md](../../reviews/2026-11-12-upstream-mattpocock_skills-4ae2317-batch-m.md)
 - [2026-11-06-upstream-mattpocock_skills-4ae2317.md](../../reviews/2026-11-06-upstream-mattpocock_skills-4ae2317.md)
 <!-- /registry:generated reviews -->
 
