@@ -244,3 +244,51 @@ artifact-contracts:
   skills: [codebase-research, create-verification-skill]
   why: "Each writes its own artifact type in a fixed section set and order, saying a section is empty or does not apply rather than dropping it: codebase-research its reports, create-verification-skill the verify skill it generates (critic-81b F1)."
   reviewed: "2026-11-14"
+evidence-checked-after-cleanup:
+  skills: [create-verification-skill, maintain-verification-skill]
+  why: "Each unit's own run cleans up and must find its proof afterwards: the generator's proof run of the skill it writes, and the maintenance pass over an existing one (plan 82 §5)."
+  reviewed: "2026-11-14"
+unreachable-with-route-and-prerequisite:
+  skills: [create-verification-skill, maintain-verification-skill]
+  why: "The generator writes the rule into the map's skip reporting, and the maintenance pass applies it to its coverage report (plan 82 §5)."
+  reviewed: "2026-11-14"
+check-never-weakened-to-pass:
+  skills: [create-verification-skill, maintain-verification-skill]
+  why: "The generator writes the rule into a generated skill, and the maintenance pass applies it while fixing one: a failing journey is fixed only when source proves the map wrong (R3)."
+  reviewed: "2026-11-14"
+live-service-isolation:
+  skills: [create-verification-skill, maintain-verification-skill]
+  why: "The generator writes the isolation controls into a generated skill, and the maintenance pass drives one only through them, stopping blocked when a control is missing (ruling A)."
+  reviewed: "2026-11-14"
+dry-run-skips-observed:
+  skills: [create-verification-skill, maintain-verification-skill]
+  why: "The generator records what a generated skill's offline mode really skips, and the maintenance pass re-observes it on each drive (Q1)."
+  reviewed: "2026-11-14"
+undriven-feature-marked:
+  skills: [create-verification-skill, maintain-verification-skill]
+  why: "The generator marks seeded features no run has driven, and the maintenance pass keeps the mark while a case stays undriven and replaces it with observed values once one is driven (ruling B)."
+  reviewed: "2026-11-14"
+change-proven-by-second-read:
+  skills: [create-verification-skill, maintain-verification-skill]
+  why: "The generator's map contract proves a saved change through a separate read-only view, and the maintenance pass names that product command for each saved change it drives (ruling C)."
+  reviewed: "2026-11-14"
+unreadable-change-unverified:
+  skills: [create-verification-skill, maintain-verification-skill]
+  why: "The generator writes the no-read-view disclosure into a feature file, and the maintenance pass adds it where it is missing and reports the change unverified (ruling C)."
+  reviewed: "2026-11-14"
+credentials-never-captured:
+  skills: [create-verification-skill, maintain-verification-skill]
+  why: "The generator keeps credentials out of a generated skill's proof, and the maintenance pass keeps them out of its evidence, notes, reply and helper fixes (ruling D)."
+  reviewed: "2026-11-14"
+generated-skill-left-uncommitted:
+  skills: [create-verification-skill, maintain-verification-skill]
+  why: "The generator leaves the skill it writes uncommitted, and the maintenance pass leaves its fixes uncommitted; land commits either when the person asks (R10)."
+  reviewed: "2026-11-14"
+generator-started-by-person:
+  skills: [create-verification-skill, maintain-verification-skill]
+  why: "Both verification units start only when the person starts them: manual-only in frontmatter and sidecar, reached through an mvp-mode router line (R1)."
+  reviewed: "2026-11-14"
+destination-protection:
+  skills: [create-verification-skill, migrate-claude-to-codex]
+  why: "Each writes a skill folder and never overwrites one already there: migrate-claude-to-codex a converted skill's destination, create-verification-skill an occupied verify-skill folder, where it stops blocked and asks the person (plan 82 misfit 6, critic-82d N1)."
+  reviewed: "2026-11-14"

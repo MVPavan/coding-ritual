@@ -10595,3 +10595,14 @@ unenforced-read-only-brief-and-status-check:
   placement: {domain: core, stage: X, substage: Coordination}
   distinct_from: [enforced-read-only, brief-only-read-only, read-only-closeout]
   note: "enforced-read-only picks the vendor control and says when the brief is the only one; brief-only-read-only is only the brief; read-only-closeout is the read-only run checking itself. This adds the coordinator's check afterward, and reuses read-only-closeout's baseline (status plus a checksum per already dirty path)."
+# ---- ours only, maintain-verification-skill (plan 82; owner rulings of 2026-11-14) ----
+installed-recipe-or-blocked:
+  definition: "In a maintenance pass, install a missing tool only by the recipe the target skill records, project-local or per user and pinned, never system-wide; with none recorded, mark the work that needs the tool blocked and name it."
+  placement: {domain: engineering, stage: U, substage: Tooling}
+  distinct_from: [install-scope-project-or-user, checker-install-pinned-or-pointed]
+  note: "install-scope-project-or-user asks the person before a generator installs a driving tool, and checker-install-pinned-or-pointed installs a pinned checker on first use. This installs nothing beyond what the maintained skill records, and blocks otherwise."
+contract-gaps-reported:
+  definition: "In a maintenance pass, check the maintained skill against the current shared contracts and report each gap as a follow-up, fixing one only when a drive proves it; a missing live-service isolation control blocks the pass instead."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [live-service-isolation, map-drift-or-regression]
+  note: "live-service-isolation is the unconditional block on a missing isolation control, and map-drift-or-regression classifies gaps between the map and the product. This compares the skill with the contracts as they are now, reports the other gaps without fixing them, and fixes one only when a drive proves it."

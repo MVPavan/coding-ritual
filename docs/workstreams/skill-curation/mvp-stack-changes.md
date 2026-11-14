@@ -1320,6 +1320,61 @@ Proof: registry `check` before showed only the 35 stale-hash errors these edits 
 `verify` matches the round, the definition and both entries. Limits: the other 35 pending adopts into
 `reflect` (29) and `delegation` (6) are not delivered here; no behavioural trial of the new wording was run.
 
+## 31. `maintain-verification-skill`: keeping a verify skill true to the real app (`cr-r2pa.2.28.2`)
+
+Added 2026-11-14. Plan `scratchpad/mvp-stack/82/plan.md` (gitignored), recorder
+`scratchpad/mvp-stack/82/record_mvs.py`; round `2026-11-14-maintain-verification-skill`, 35 events, trait-level,
+sealed. The second of the four verification units ruled in batch P2. Section 30 was already taken on this base.
+
+- **What was built:** a new manual skill, `.claude/skills/maintain-verification-skill/`. One pass keeps a
+  project's existing verify skill and its feature map true to the product. It finds the target by its content
+  in every skills folder the project's hosts read, checks the index, reads every feature from source (a
+  sizeable one through a read-only helper briefed by
+  `.claude/skills/maintain-verification-skill/references/source-reader.md`), drives each one live through the
+  target's own helper, fixes proven doc drift, omitted prerequisites and harness gaps, and ends clean, changed
+  or blocked. Its fixes stay uncommitted for `land`. It reuses the sibling's two references by pointer rather
+  than copying them. Placement: engineering · Improvement · Codification, secondary Testing. The `mvp-mode`
+  router gains one row. In `create-verification-skill`, the two handover pointers became checked slash
+  pointers, Scope gains a stop for an occupied folder without a verify skill's shape, and the feature-map's
+  "A saved change" bullet now names "a second product query that shows the saved item".
+- **Owner rulings of 2026-11-14:** the verification-unit decisions (manual only, the upstream name, short
+  guardrails restated, rules for later work in the generated skill, installs by recipe only, edits left
+  uncommitted, the sibling's pointer made true) and A-D, which the pass applies as the generator writes them.
+  "Maintain proof and formal pair" item 7 approved the proof setup. Item 9 (plan 82 Q1, option (a)): a pass
+  reports an older skill's gaps against the current contracts as follow-ups, fixes only those a drive proves,
+  and blocks when the missing piece is live-service isolation.
+- **Traits:** 39 listed. 28 are adopted, completing all 32 pending adopts of batch P2 (four of them come from the
+  formal units' rows and share an ID with this unit's; two `into` adoptions keep their target and
+  modification). 9 existing traits are reused, each with a holder note: `check-never-weakened-to-pass`,
+  `live-service-isolation`, `dry-run-skips-observed`, `undriven-feature-marked` (a feature keeps its mark while
+  any case is undriven), `change-proven-by-second-read`, `unreadable-change-unverified`,
+  `credentials-never-captured`, `generated-skill-left-uncommitted` and `generator-started-by-person`. 2 are ours:
+  `installed-recipe-or-blocked` and `contract-gaps-reported`, each defined with `distinct_from`. Eleven traits
+  are now shared by the two app units, each with a `trait-sharing.yaml` entry. `create-verification-skill` now
+  also lists `destination-protection`, shared with `migrate-claude-to-codex`. Two output rules the blind checks
+  found need no trait: asking which target when several match (`AGENTS.md` authority), and naming self-read
+  features in the reply (a restatement of `source-reader-per-sizeable-feature`).
+- **Registry updates:** `update ours:create-verification-skill` (the three changes above) and
+  `update ours:mvp-mode` (router row and catalog line), each with its tree hash refreshed.
+
+Proof on equity-os, on a copy of `verify-eqos` with one planted drift (a renamed flag), in its own worktree with
+its own throwaway Postgres, offline. The first pass (`scratchpad/mvp-stack/82/proof-report.md`, archive
+`scratchpad/mvp-stack/82/proof/82c/`) failed: it found and fixed the plant, but it did not mark the registry
+change as having no read-only view and claimed it verified. The unit's read-back rule was clarified with the
+other lessons. A fresh pass from a fresh copy and plant (`scratchpad/mvp-stack/82/proof-report-2.md`, archive
+`scratchpad/mvp-stack/82/proof/82e/`) passed with outcome changed. The plant was caught by both source and the
+live drive and fixed as doc drift. Every asserted value was re-observed unchanged, the change was reported
+unverified, and the inventory's missing identity prerequisite was added. Nothing was left running, and no
+credential appeared in a kept file. Its residual defects became further clarifications. Review: critic-82b and
+82d on the plan; critic-85b and 85e on the build; critic-89b on the later rounds (REVISE: a doc-command re-drive
+gate was taken out and held for the owner); blind checks 85 and 88. A rehearsal on a scratch clone, a match of
+the round against the recorder, and a build (no diff) and check in a fresh clone pass. In the build worktree
+itself the final `check` fails with seven stale reference pages, for the same environment reason as in section
+29 (empty reference submodule folders). The committed pages are kept.
+Limits: one target app; browser and desktop branches are unproven. Publishing waits for the formal pair (one
+publish for all four). Two owner questions are open: a unit-level evidence hash and credential scan before
+final teardown, and driving a corrected documented command before it ships.
+
 ## Regenerating
 
 From the worktree root:

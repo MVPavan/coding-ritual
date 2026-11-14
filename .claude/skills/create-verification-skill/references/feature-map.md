@@ -58,8 +58,8 @@ record what works.
 - **Command line:** the command, its standard output, its standard error and its
   exit code.
 - **A saved change** is proven by reading it back through a separate read-only
-  view (reopening the item from the list, a second query), never by its save
-  confirmation.
+  view (reopening the item from the list, a second product query that shows the
+  saved item), never by its save confirmation.
 - **No read view:** when the product offers no read-only way to read a change
   back, the feature file says so and the run reports that change as unverified.
 - **Displayed value:** assert what the product showed, not what was typed; the

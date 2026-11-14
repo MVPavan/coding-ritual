@@ -111,3 +111,4 @@ Only where a description alone would miss or collide.
 | A rerunnable tool would materially cut repeated work (bulk or repeated edits, a migration) or supply proof a reviewer needs that no existing check gives | `build-a-lever` |
 | An interaction or architecture with no precedent in the codebase, or a product decision whose experience depends on feel | `prototype`, competing-variants branch |
 | No scripted way to launch and drive the real app for proof | `/create-verification-skill` (the person starts it) |
+| A project's verify skill may have drifted from its app, or the person asks to audit it | `/maintain-verification-skill` (the person starts it) |

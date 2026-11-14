@@ -55,7 +55,8 @@
     "2026-11-13-batch-p3.jsonl": "ac494169d67b72755fa626c16e680346f950dfa11603cb3cba3b8272fa0bcc97",
     "2026-11-14-adapter-adopts.jsonl": "11ff47d5c19d21b109cc5acfc96100a75642811864379b413523d7a54b2f9655",
     "2026-11-14-cc-copy.jsonl": "b059e8a054ca26bb2f16a65b83ca385a7ef9c86abf432d810bee0ca626b25c15",
-    "2026-11-14-create-verification-skill.jsonl": "8c769e597b0d9ea9b64e823ca8fbb933a95181771619fa7956307f4f4b1eca55"
+    "2026-11-14-create-verification-skill.jsonl": "8c769e597b0d9ea9b64e823ca8fbb933a95181771619fa7956307f4f4b1eca55",
+    "2026-11-14-maintain-verification-skill.jsonl": "75744eb5db653ff2f438eeb065f6662b121e8637c5aaed2b2ee964049250514c"
   },
   "round_order": [
     "2026-10-14-migration.jsonl",
@@ -112,7 +113,8 @@
     "2026-11-13-batch-p3.jsonl",
     "2026-11-14-cc-copy.jsonl",
     "2026-11-14-create-verification-skill.jsonl",
-    "2026-11-14-adapter-adopts.jsonl"
+    "2026-11-14-adapter-adopts.jsonl",
+    "2026-11-14-maintain-verification-skill.jsonl"
   ],
   "reports": {
     "harness_lifecycle/registry/reviews/2026-10-30-upstream-mattpocock_skills-5beb35b.yaml": "fb413772a75f116bd9baeaa06b6e414fe59978c654a951cb53345f17459d7597",

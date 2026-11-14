@@ -103,6 +103,7 @@ Use for /create-verification-skill when a project has no scripted way to drive i
 - `recognised-by-content-shape`: Define the shape a generated verify skill is recognised by, a skill file with Launch, Doctor, Drive, Evidence and Cleanup sections beside a feature-map index, so other units find it by content, not by name, in every skills folder the project's hosts read.
 - `generator-edits-own-output-only`: Edit only the generated skill's folder and any scaffolding the run labels, leaving a fix to product code to the person's authority.
 - `generator-reply-fields`: Reply with the generated skill's path and the surfaces it covers and does not, the seeded features, the proof run's feature, entry points, evidence paths and doctor and cleanup results, what stays unverified, and for a failed base or proof the exact failure and that the skill is a draft.
+- `destination-protection`: Never overwrite an existing skill destination even under force, which applies only to generated scaffolds. (Held by its Scope: a folder it would write that exists without a verify skill's shape stops the run blocked, names the folder and asks the person; it never writes into an occupied folder (plan 82 misfit 6, critic-82b F2, critic-82d N1).)
 <!-- /registry:generated traits -->
 
 <!-- registry:generated lineage -->
@@ -197,6 +198,7 @@ Use for /create-verification-skill when a project has no scripted way to drive i
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-14` **update** (2026-11-14-maintain-verification-skill:034): Bead cr-r2pa.2.28.2, plan 82 §4 and §5 step 6: three changes. The two handover pointers now name /maintain-verification-skill, so skill-catalog.py --check prov…
 - `2026-11-14` **adopt** (2026-11-14-create-verification-skill:089): Completes pending 2026-11-13-batch-p3:273: driver-smoke-proof-for-surface is written at .claude/skills/create-verification-skill/references/generated-skill.md:…
 - `2026-11-14` **adopt** (2026-11-14-create-verification-skill:088): Completes pending 2026-11-13-batch-p3:265: user-terms-only-in-map is written at .claude/skills/create-verification-skill/references/feature-map.md:84, in its r…
 - `2026-11-14` **adopt** (2026-11-14-create-verification-skill:087): Completes pending 2026-11-13-batch-p3:264: map-section-per-reproducible-feature is written at .claude/skills/create-verification-skill/references/feature-map.m…

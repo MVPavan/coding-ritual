@@ -17,7 +17,10 @@ learned. The skill lands in the project's skills folder as `verify-<app>/`
 can have one per host) for an existing verify skill, recognised by its shape
 (`references/generated-skill.md`, "How other units recognise it"). If one
 exists, or a feature map already exists, stop: keeping it current is
-maintain-verification-skill, and a rerun here would overwrite the map.
+`/maintain-verification-skill`, and a rerun here would overwrite the map.
+If the folder it would write already exists without that shape (drive sections,
+no feature-map index), stop blocked, name the folder and ask the person what
+happens to it; never write into an occupied folder.
 This skill edits only the new skill folder and any scaffolding it labels; a fix
 to product code needs the person's authority.
 
@@ -108,7 +111,7 @@ reply.
 
 The generated skill and map stay uncommitted unless the person asks for a commit;
 `land` makes it. Tell the person that keeping the skill current as the product
-changes is maintain-verification-skill.
+changes is `/maintain-verification-skill`.
 
 ## Reply
 

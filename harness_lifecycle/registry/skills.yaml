@@ -237,6 +237,15 @@ land:
   aliases: []
   status: active
   boundary: "Turns verified changes into titled, ordered commits or a commit plan, only on finished work; a tree already in conflict is resolving-merge-conflicts, plugin releases are harness-publish, running the work is implement, and commit size and order come from principle-sequence-verifiable-units."
+maintain-verification-skill:
+  domain: engineering
+  stage: Improvement
+  substage: Codification
+  secondary: [Testing]
+  family: null
+  aliases: []
+  status: active
+  boundary: "Keeps an existing verify skill and its feature map true to the real app by reading every feature from source and driving each live, fixing only proven drift; generating one is create-verification-skill, judging a change by reading is review, and running a project's invariant checks is check-invariants."
 migrate-claude-to-codex:
   domain: core
   stage: Improvement

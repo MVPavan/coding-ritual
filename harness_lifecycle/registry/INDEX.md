@@ -62,7 +62,7 @@ Domain → stage → sub-stage. Each active skill under its primary home.
 - **Maintenance**: improve-codebase-architecture
 
 ### Improvement
-- **Codification**: create-verification-skill
+- **Codification**: create-verification-skill, maintain-verification-skill
 - **Retrospective**: reflect
 
 ## Merge candidates
@@ -82,6 +82,7 @@ Two or more active skills share one domain · sub-stage (README §2 rule 3):
 - engineering · Building · Implementation: principle-no-comments, principle-sequence-verifiable-units, tdd
 - engineering · Verification · Testing: check-invariants, principle-test-behavior-not-implementation
 - engineering · Delivery · Integration: land, pr, resolving-merge-conflicts
+- engineering · Improvement · Codification: create-verification-skill, maintain-verification-skill
 
 ## Aliases
 
