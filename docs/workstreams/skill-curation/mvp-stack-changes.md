@@ -1292,6 +1292,34 @@ maintain-verification-skill, so the handoff pointer is true when shipped. The pl
 changes only at that publish. The full publish gate still fails on 31 neutrality hits in 14 files that
 predate this unit; only the new lines were audited (0 hits).
 
+## 30. The Claude Code adapter's two adopts delivered (`cr-r2pa.2.27`)
+
+Added 2026-11-14. Recorder `scratchpad/mvp-stack/84/record_84.py` (gitignored); round
+`2026-11-14-adapter-adopts`, 3 events, trait-level, sealed. Delivers the two adopts ruled in
+`harness_lifecycle/registry/reviews/2026-11-14-skill-pstack-claude-code-adapter.md` (section 28, option D).
+
+- **`delegation`:** before dispatching a read-only worker whose only control is its brief (every T3 worker,
+  a Claude CLI worker given Bash), the coordinator records `git status --short` and a checksum of each path
+  already modified or untracked. At collect, a difference outside the worker's report file is a discrepancy
+  pending attribution: a breach when the worker made it, left in place when it cannot be attributed, and the
+  claim narrowed when other writers shared the checkout. Steps 4 and 6 of `.claude/skills/delegation/SKILL.md`; the
+  role contracts and vendor files stay true unchanged. New trait `unenforced-read-only-brief-and-status-check`,
+  defined with `distinct_from` its three nearest read-only traits.
+- **`reflect`:** `.claude/skills/reflect/references/session-logs.md` now says Claude Code's project-folder name
+  turns each `.` as well as each `/` into `-`, so a workspace under a dotted folder is found. With it, the
+  pending layout-probe adopt (`2026-11-13-batch-p2:159`) is delivered in its ruled rewording: a session with no
+  readable id is matched among this project's candidate logs only when its id, parent or run record identifies
+  it alone, else reported as a gap. `reflect` now lists `transcript-location-convention` and
+  `transcript-located-by-layout-probe`.
+- **Events:** two ours-side `update` events (`ours:delegation`, `ours:reflect`), each citing the adapter
+  review, so both skill records now link it; one `adopt` completing `2026-11-13-batch-p2:159` with
+  `--supersedes`, inheriting its source and report, guide `ok` (U-01).
+
+Proof: registry `check` before showed only the 35 stale-hash errors these edits cause, plus the two
+`harness_lifecycle/registry/traits/ours.yaml` entries; after recording, `build`, `check`, seal and `check` pass, and the recorder's
+`verify` matches the round, the definition and both entries. Limits: the other 35 pending adopts into
+`reflect` (29) and `delegation` (6) are not delivered here; no behavioural trial of the new wording was run.
+
 ## Regenerating
 
 From the worktree root:

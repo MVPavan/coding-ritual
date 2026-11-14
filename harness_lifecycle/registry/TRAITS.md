@@ -597,6 +597,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `stalled-worker-by-output`: Stop or replace a worker that stalls or loops, judging it by what it has produced rather than its status text.
 - `retry-by-cause`: Retry a failed worker according to why it failed, with a narrower unit, the same brief or another model, and after two retries drop the unit and plan around it.
 - `fresh-context-subagent`: Start every subagent in a fresh context window rather than as a copy of the caller's conversation.
+- `unenforced-read-only-brief-and-status-check`: When a read-only worker's tool access still lets it write, say in its brief not to edit files and, after it returns, check the checkout against a baseline the coordinator recorded before dispatch.
 
 #### core · X · Coordination — model-council
 - `member-resolution`: Resolve the members and judge from the request's explicit selections, asking only for missing choices or unreachable members.
@@ -1219,6 +1220,8 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `concrete-tooling-lens`: Read a session for the concrete command, path, flag or fact a future agent would otherwise rediscover.
 - `decision-changing-finding`: Accept an edit only if a future agent would act differently because of it.
 - `one-row-per-finding`: Keep one entry per finding so each can be approved on its own.
+- `transcript-location-convention`: Locate past chats in a per-workspace folder of line-per-message files named from the workspace path.
+- `transcript-located-by-layout-probe`: Find a session's log by listing the newest candidates across every storage layout and matching the first line to the chat's opening prompt.
 
 #### engineering · Operations · Maintenance — improve-codebase-architecture
 - `scope-by-evidence`: Scope the audit to a named module or pain point, otherwise to the hot spots in recent change history.
@@ -3198,7 +3201,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `skip-routine-sessions`: Skip sessions that are trivial, off topic or already handled by a unit the agent followed correctly. — adopt, pending cr-r2pa.2.13.2 → reflect#skip-routine-sessions
 - `one-offs-not-lessons`: Count no one-off event as a lesson for future sessions. — adopt → reflect#one-offs-not-lessons
 - `no-cross-project-transcript-search`: Never search across project transcript folders during an audit, because that exposes unrelated private conversations. — adopt → reflect#no-cross-project-transcript-search
-- `transcript-located-by-layout-probe`: Find a session's log by listing the newest candidates across every storage layout and matching the first line to the chat's opening prompt. — adopt, pending cr-r2pa.2.13.2 → reflect#transcript-located-by-layout-probe
+- `transcript-located-by-layout-probe`: Find a session's log by listing the newest candidates across every storage layout and matching the first line to the chat's opening prompt. — adopt → reflect#transcript-located-by-layout-probe
 - `digest-when-log-missing`: When no log matches, review a digest of the session that the agent writes from memory instead of its log. — reject
 - `three-reviewers-per-session`: Send each session to three reviewers at once, one per lens. — adopt, pending cr-r2pa.2.13.2 → reflect#three-reviewers-per-session
 - `writable-helper-mode`: Spawn helpers in a writable mode because the read-only mode removes the tool access they need. — reject
@@ -8712,6 +8715,7 @@ Give every row the fixed columns ts in ISO8601, phase or workstream, the decisio
 
 #### `transcript-location-convention`
 Locate past chats in a per-workspace folder of line-per-message files named from the workspace path.
+- ours: `reflect`
 - `cursor_plugins:skill:pstack/skills/recall` — out-of-scope
 
 #### `transcript-path-audit`
@@ -9686,6 +9690,10 @@ Save a council transcript only when it is requested.
 #### `unanchored-result-respawned`
 Discard a result missing the commits and method its brief named, run that worker once more and record a gap after a second miss.
 - `cursor_plugins:skill:pstack/skills/swarm` — reject
+
+#### `unenforced-read-only-brief-and-status-check`
+When a read-only worker's tool access still lets it write, say in its brief not to edit files and, after it returns, check the checkout against a baseline the coordinator recorded before dispatch.
+- ours: `delegation`
 
 #### `unit-kind-lines`
 Define each unit kind in one line inside the router, so a copy shipped without the repository's rules still distinguishes them.
@@ -16212,7 +16220,8 @@ Mark each finding accepted, rejected or backlog.
 
 #### `transcript-located-by-layout-probe`
 Find a session's log by listing the newest candidates across every storage layout and matching the first line to the chat's opening prompt.
-- `cursor_plugins:skill:pstack/skills/reflect` — adopt, pending cr-r2pa.2.13.2 → reflect#transcript-located-by-layout-probe
+- ours: `reflect`
+- `cursor_plugins:skill:pstack/skills/reflect` — adopt → reflect#transcript-located-by-layout-probe
 
 #### `used-or-missed-unit-scope`
 Propose changes only to units the session used, or to one that should have fired, routed as description tuning, dropping every other unit.

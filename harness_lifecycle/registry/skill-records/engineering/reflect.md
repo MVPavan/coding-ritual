@@ -39,6 +39,8 @@ Review a session, or a sample of a delegated run's sessions, for changes to the 
 - `concrete-tooling-lens`: Read a session for the concrete command, path, flag or fact a future agent would otherwise rediscover.
 - `decision-changing-finding`: Accept an edit only if a future agent would act differently because of it.
 - `one-row-per-finding`: Keep one entry per finding so each can be approved on its own.
+- `transcript-location-convention`: Locate past chats in a per-workspace folder of line-per-message files named from the workspace path.
+- `transcript-located-by-layout-probe`: Find a session's log by listing the newest candidates across every storage layout and matching the first line to the chat's opening prompt.
 <!-- /registry:generated traits -->
 
 <!-- registry:generated lineage -->
@@ -50,7 +52,6 @@ Review a session, or a sample of a delegated run's sessions, for changes to the 
 - **mattpocock_skills:skill:skills/in-progress/chief-of-staff#sampled-session-retros** `skills/in-progress/chief-of-staff/SKILL.md` @ 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d
 - **mattpocock_skills:skill:skills/in-progress/chief-of-staff#failures-first-retro-sample** `skills/in-progress/chief-of-staff/SKILL.md` @ 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d
 - **cursor_plugins:skill:pstack/skills/reflect#skip-routine-sessions** `pstack/skills/reflect/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049 (pending cr-r2pa.2.13.2)
-- **cursor_plugins:skill:pstack/skills/reflect#transcript-located-by-layout-probe** `pstack/skills/reflect/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049 (pending cr-r2pa.2.13.2)
 - **cursor_plugins:skill:pstack/skills/reflect#three-reviewers-per-session** `pstack/skills/reflect/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049 (pending cr-r2pa.2.13.2)
 - **cursor_plugins:skill:pstack/skills/reflect#lens-brief-file** `pstack/skills/reflect/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049 (pending cr-r2pa.2.13.2)
 - **cursor_plugins:skill:pstack/skills/reflect#fresh-synthesizer** `pstack/skills/reflect/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049 (pending cr-r2pa.2.13.2)
@@ -97,9 +98,12 @@ Review a session, or a sample of a delegated run's sessions, for changes to the 
 - **cursor_plugins:skill:pstack/skills/reflect#decision-changing-finding** `pstack/skills/reflect/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
 - **cursor_plugins:skill:pstack/skills/reflect#one-row-per-finding** `pstack/skills/reflect/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
 - **cursor_plugins:skill:pstack/skills/automate-me#no-cross-project-transcript-search** `pstack/skills/automate-me/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/reflect#transcript-located-by-layout-probe** `pstack/skills/reflect/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-14` **adopt** (2026-11-14-adapter-adopts:003): Completes pending 2026-11-13-batch-p2:159: transcript-located-by-layout-probe is written at .claude/skills/reflect/references/session-logs.md:9-14, replacing t…
+- `2026-11-14` **update** (2026-11-14-adapter-adopts:002): Bead cr-r2pa.2.27. Owner ruling 2026-11-14 ("All as recommended") on pstack's Claude Code adapter, kept by option D: adopts transcript-location-convention (ada…
 - `2026-11-13` **adopt-merged** (2026-11-13-batch-p3:181): Checkpoint at 2776ddd for the owner's trait rulings: 1 adopt, 12 defer, 6 reject.
 - `2026-11-13` **adopt** (2026-11-13-batch-p3:164): Owner ruling 2026-11-13: reflect reads the primary log of every session in scope, and only this project's, so past chats are mined only in this workspace; `dec…
 - `2026-11-13` **adopt** (2026-11-13-batch-p2:489): Owner ruling 2026-11-13: completes the held row's pending adopt. reflect already says this at reflect/SKILL.md:35-37; traits/ours.yaml now lists `one-row-per-f…
@@ -163,7 +167,7 @@ Review a session, or a sample of a delegated run's sessions, for changes to the 
 - `2026-11-13` **adopt** (2026-11-13-batch-p2:167) *(superseded)*: Owner ruling 2026-11-13: Prevents: A coordinator who paraphrases the brief and drops a rule from it. Lands in reflect, SKILL.md:26-28. It already says this the…
 - `2026-11-13` **adopt** (2026-11-13-batch-p2:166): Owner ruling 2026-11-13: Prevents: Lens briefs that drift into one another when they share a file. Lands in reflect, references/. Upstream: SKILL.md:29-33.
 - `2026-11-13` **adopt** (2026-11-13-batch-p2:161): Owner ruling 2026-11-13: Prevents: Findings one reader misses because a single reviewer holds every lens at once. Lands in reflect, SKILL.md, step 3. Upstream:…
-- `2026-11-13` **adopt** (2026-11-13-batch-p2:159): Owner ruling 2026-11-13: Prevents: A review that stops when a session's id cannot be read, or reviews the wrong session's log. Lands in reflect, references/ses…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:159) *(superseded)*: Owner ruling 2026-11-13: Prevents: A review that stops when a session's id cannot be read, or reviews the wrong session's log. Lands in reflect, references/ses…
 - `2026-11-13` **adopt** (2026-11-13-batch-p2:158) *(superseded)*: Owner ruling 2026-11-13: Prevents: Reading other projects' private chats while looking for a log. Lands in reflect, SKILL.md:22-23. It already says this there,…
 - `2026-11-13` **adopt** (2026-11-13-batch-p2:157) *(superseded)*: Owner ruling 2026-11-13: Prevents: A retrospective that turns a single accident into a standing rule. Lands in reflect, SKILL.md:12-13. It already says this th…
 - `2026-11-13` **adopt** (2026-11-13-batch-p2:156): Owner ruling 2026-11-13: Prevents: Reviews spent on sessions with nothing to learn from. Lands in reflect, SKILL.md, step 1. Upstream: SKILL.md:11.
@@ -181,6 +185,7 @@ Review a session, or a sample of a delegated run's sessions, for changes to the 
 <!-- /registry:generated history -->
 
 <!-- registry:generated reviews -->
+- [2026-11-14-skill-pstack-claude-code-adapter.md](../../reviews/2026-11-14-skill-pstack-claude-code-adapter.md)
 - [2026-11-12-upstream-cursor_plugins-2776ddd-batch-p3.md](../../reviews/2026-11-12-upstream-cursor_plugins-2776ddd-batch-p3.md)
 - [2026-11-12-upstream-cursor_plugins-2776ddd-batch-p2.md](../../reviews/2026-11-12-upstream-cursor_plugins-2776ddd-batch-p2.md)
 - [2026-11-06-upstream-mattpocock_skills-4ae2317.md](../../reviews/2026-11-06-upstream-mattpocock_skills-4ae2317.md)
@@ -234,6 +239,8 @@ Review a session, or a sample of a delegated run's sessions, for changes to the 
   - `cursor_plugins:skill:pstack/skills/reflect#skip-drifting-details` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
 - `three-way-finding-disposition`:
   - `cursor_plugins:skill:pstack/skills/reflect#three-way-finding-disposition` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `transcript-located-by-layout-probe`:
+  - `cursor_plugins:skill:pstack/skills/reflect#transcript-located-by-layout-probe` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
 - `used-or-missed-unit-scope`:
   - `cursor_plugins:skill:pstack/skills/reflect#used-or-missed-unit-scope` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
 <!-- /registry:generated sources -->

@@ -53,7 +53,10 @@ same family, ask the owner to approve that explicitly before dispatching.
    fork only when the calling workflow asks for one, and send a follow-up to the
    same worker by resuming its session. Dispatch in the background when the
    runtime allows, and keep working or talking with the user while the worker
-   runs; collect every result.
+   runs; collect every result. Before dispatching a read-only worker whose only
+   control is its brief (its vendor file says when), record a baseline:
+   `git status --short` and a checksum of each path already modified or
+   untracked.
 5. A worker that stalls or loops gets stopped or replaced by the vendor's own
    means, under that vendor's rules on waiting. Decide from what it has produced
    so far, whatever its status text says. Retry according to why it failed: on
@@ -66,7 +69,12 @@ same family, ask the owner to approve that explicitly before dispatching.
    any it does not report as requested-but-unverified, and verify consequential
    claims against primary evidence before relying on them. Open what the worker
    changed or produced, its diff or artifact, instead of relying on its summary,
-   and hold it to the evidence the brief named.
+   and hold it to the evidence the brief named. For a worker with a baseline, a
+   new or changed status line or checksum outside its report file is a
+   discrepancy pending attribution: inspect it, report it as a breach when the
+   worker made it, and leave in place a change you cannot attribute, since it
+   may be another writer's. When other writers shared the checkout, say the
+   check could not attribute such a change.
 
 If your harness has its own subagent tool that can run the roster's model with
 its settings, you may use it instead; it needs no vendor file.

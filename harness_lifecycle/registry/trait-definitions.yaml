@@ -10589,3 +10589,9 @@ generator-reply-fields:
   placement: {domain: engineering, stage: X, substage: Communication}
   distinct_from: [designed-run-reply-fields]
   note: "designed-run-reply-fields is a designed playbook run's reply; this is the skill generator's."
+# ---- ours only, pstack Claude Code adapter (reviews/2026-11-14-skill-pstack-claude-code-adapter.md) ----
+unenforced-read-only-brief-and-status-check:
+  definition: "When a read-only worker's tool access still lets it write, say in its brief not to edit files and, after it returns, check the checkout against a baseline the coordinator recorded before dispatch."
+  placement: {domain: core, stage: X, substage: Coordination}
+  distinct_from: [enforced-read-only, brief-only-read-only, read-only-closeout]
+  note: "enforced-read-only picks the vendor control and says when the brief is the only one; brief-only-read-only is only the brief; read-only-closeout is the read-only run checking itself. This adds the coordinator's check afterward, and reuses read-only-closeout's baseline (status plus a checksum per already dirty path)."

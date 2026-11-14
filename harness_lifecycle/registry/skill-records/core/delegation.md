@@ -37,6 +37,7 @@ Use when handing work to another agent or model (an explorer, implementer, revie
 - `stalled-worker-by-output`: Stop or replace a worker that stalls or loops, judging it by what it has produced rather than its status text.
 - `retry-by-cause`: Retry a failed worker according to why it failed, with a narrower unit, the same brief or another model, and after two retries drop the unit and plan around it.
 - `fresh-context-subagent`: Start every subagent in a fresh context window rather than as a copy of the caller's conversation. (Delivers sealed rows 2026-11-09-pocock-4ae2317:156, :158, :160, :163, :165, :167, :170 and :179: a fresh window for each new worker, and a fork when the calling workflow asks for one, where the definition says every subagent; T5.)
+- `unenforced-read-only-brief-and-status-check`: When a read-only worker's tool access still lets it write, say in its brief not to edit files and, after it returns, check the checkout against a baseline the coordinator recorded before dispatch.
 <!-- /registry:generated traits -->
 
 <!-- registry:generated lineage -->
@@ -59,6 +60,7 @@ Use when handing work to another agent or model (an explorer, implementer, revie
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-14` **update** (2026-11-14-adapter-adopts:001): Bead cr-r2pa.2.27. Owner ruling 2026-11-14 ("All as recommended") on pstack's Claude Code adapter, kept by option D: adopts unenforced-read-only-brief-and-stat…
 - `2026-11-13` **adopt-merged** (2026-11-13-batch-p2:235): Checkpoint at 2776ddd for the owner's trait rulings: 6 adopt, 18 reject.
 - `2026-11-13` **adopt** (2026-11-13-batch-p2:232): Owner ruling 2026-11-13: Prevents: Coverage reported as complete when some slices never came back. Lands in delegation, SKILL.md, the collect paragraph. Upstre…
 - `2026-11-13` **adopt** (2026-11-13-batch-p2:222): Owner ruling 2026-11-13: Prevents: A result that cannot be tied to what it tested, so a stale or misdirected run passes for a current one. Lands in delegation,…
@@ -95,6 +97,7 @@ Use when handing work to another agent or model (an explorer, implementer, revie
 <!-- /registry:generated history -->
 
 <!-- registry:generated reviews -->
+- [2026-11-14-skill-pstack-claude-code-adapter.md](../../reviews/2026-11-14-skill-pstack-claude-code-adapter.md)
 - [2026-11-12-upstream-mattpocock_skills-4ae2317-batch-m.md](../../reviews/2026-11-12-upstream-mattpocock_skills-4ae2317-batch-m.md)
 - [2026-11-12-upstream-cursor_plugins-2776ddd-batch-p2.md](../../reviews/2026-11-12-upstream-cursor_plugins-2776ddd-batch-p2.md)
 - [2026-11-06-upstream-mattpocock_skills-4ae2317.md](../../reviews/2026-11-06-upstream-mattpocock_skills-4ae2317.md)
