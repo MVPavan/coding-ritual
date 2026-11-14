@@ -632,7 +632,10 @@ are in §5c.
 mirror copy (`.cursor/skills/…` beside `skills/…`), its body or its bundled files,
 is not reported: a ruling stores the canonical copy's hashes, and sealed events
 cannot gain a hash over the mirrors. `scan.py diff` and `drift` show a mirror's
-body edit as minor and its bundled files not at all. Of 195 capability rulings on
+body edit as minor and its bundled files not at all. A generated copy at its own
+path (`harness/<host>/…/skills/x`, beside `skills/x`) is not a mirror: it is a
+separate capability with its own hashes, ruled `reject` as redundant packaging of
+its canonical, whose ruling its `why` cites. Of 195 capability rulings on
 2026-11-03, one has a mirror, a `reject`
 (`The-Claude-Protocol:skill:skills/create-beads-orchestration`). Revisit when an
 adopt or adopt-merged ruling is made on a mirrored capability, or a harness ships

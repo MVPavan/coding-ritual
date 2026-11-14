@@ -1202,6 +1202,39 @@ wording fixes were re-recorded before any commit. Batch checks, registry check
 before and after, a row-by-row match of the round against the report, and a build and check in a fresh clone
 pass. Limits: 57 adopts are not yet delivered, 50 of them into units not yet built.
 
+## 28. pstack's Claude Code copy ruled whole (`cr-r2pa.2.26`)
+
+Added 2026-11-14. Analysis, mapping and sheet `scratchpad/mvp-stack/74/` (gitignored), recorder
+`scratchpad/mvp-stack/75/record_cc.py`; round `2026-11-14-cc-copy`, 82 events, trait-level, sealed; review
+`harness_lifecycle/registry/reviews/2026-11-14-skill-pstack-claude-code-adapter.md`. pstack ships a generated
+Claude Code tree (upstream folder harness/pstack/claude-code at 2776ddd) beside its Cursor sources, and one
+adapter page that maps Cursor names to Claude Code.
+
+- **Copies:** 82 whole-capability `reject` events as redundant generated packaging at 2776ddd: 58 skill copies
+  (35 byte-identical to their canonical, 23 identical except one added line pointing at the adapter) and 23
+  `poteto-mode` playbook copies (all byte-identical). Each `why` names the canonical subject, its effective
+  event and its verdict (skills: 23 `adopt`, 34 `adopt-merged`, 1 `reject`; playbooks: 17 `adopt-merged`,
+  6 `defer`), so the content stays ruled on the canonical. The copy's plugin manifest is rejected as umbrella
+  packaging, as for the earlier umbrella plugins. The two agent copies stay unreviewed until their canonicals
+  are ruled.
+- **The adapter:** not a catalog capability, so its 27 traits are kept as one `skill`-type review named after
+  the adapter, which serves `delegation` and `reflect` (owner ruling: option D, and the departure from the
+  one-skill filename). As ruled: 2 adopt (`delegation`'s before-dispatch baseline and attribution check, for
+  every helper whose only read-only control is its brief, Claude CLI reviewers included; `reflect`'s
+  log-folder naming fix, `.` as well as `/` becomes `-`), 5 already have, 1 already ruled with delivery
+  pending, 7 defer, 12 reject. The review holds each row's upstream lines, our holder, the revisit conditions
+  and the pin with the adapter's blob id. The 23 pointer-only copies' `why` names it.
+- **README:** §5's mirror Limit now says a generated copy at its own path is not a mirror.
+
+Proof: critic-74b reviewed the mapping and the proposal (REVISE, five majors and three minors, all fixed);
+critic-74d passed the revision; the owner ruled it all as recommended on 2026-11-14. Before recording, the
+recorder re-compared every copy with its canonical through git objects at the pin and recomputed each
+canonical's effective event from the ledger. Registry check before and after, a match of the round and the
+review against the recorder, and a build (no diff) and check in a fresh clone pass. Limits: the adapter's rows
+are kept as review evidence only, not per-trait ledger state, so `status`, `TRAITS.md` and `gap` do not list
+them and no check brings a defer back; the two adopts are not delivered, and each `update` that delivers one
+cites the review.
+
 ## Regenerating
 
 From the worktree root:

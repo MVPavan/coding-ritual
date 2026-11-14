@@ -139,29 +139,29 @@ Catalog: `2776ddd2355d6d6c8747d3964600f28daf62f049`, 354 capabilities.
 | `playbook:dyl-stack/skills/dyl-mode/playbooks/bug-fix` | not reviewed | not reviewed |  |  |  |  |
 | `playbook:dyl-stack/skills/dyl-mode/playbooks/feature` | not reviewed | not reviewed |  |  |  |  |
 | `playbook:dyl-stack/skills/dyl-mode/playbooks/opening-a-pr` | not reviewed | not reviewed |  |  |  |  |
-| `playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/authoring-a-skill` | not reviewed | not reviewed |  |  |  |  |
-| `playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/autonomous-run` | not reviewed | not reviewed |  |  |  |  |
-| `playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/autopilot-full` | not reviewed | not reviewed |  |  |  |  |
-| `playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/autopilot-stack` | not reviewed | not reviewed |  |  |  |  |
-| `playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/babysit` | not reviewed | not reviewed |  |  |  |  |
-| `playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/bug-fix` | not reviewed | not reviewed |  |  |  |  |
-| `playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/eval` | not reviewed | not reviewed |  |  |  |  |
-| `playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/feature` | not reviewed | not reviewed |  |  |  |  |
-| `playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/hillclimb` | not reviewed | not reviewed |  |  |  |  |
-| `playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/investigation` | not reviewed | not reviewed |  |  |  |  |
-| `playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/multi-phase-plan` | not reviewed | not reviewed |  |  |  |  |
-| `playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/opening-a-pr` | not reviewed | not reviewed |  |  |  |  |
-| `playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/orchestrate` | not reviewed | not reviewed |  |  |  |  |
-| `playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/pause-safely` | not reviewed | not reviewed |  |  |  |  |
-| `playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/perf-issue` | not reviewed | not reviewed |  |  |  |  |
-| `playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/prototype` | not reviewed | not reviewed |  |  |  |  |
-| `playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/refactoring` | not reviewed | not reviewed |  |  |  |  |
-| `playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/runtime-forensics` | not reviewed | not reviewed |  |  |  |  |
-| `playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/session-pickup` | not reviewed | not reviewed |  |  |  |  |
-| `playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/shipping` | not reviewed | not reviewed |  |  |  |  |
-| `playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/trace-forensics` | not reviewed | not reviewed |  |  |  |  |
-| `playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/visual-parity` | not reviewed | not reviewed |  |  |  |  |
-| `playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/worktree-cleanup` | not reviewed | not reviewed |  |  |  |  |
+| `playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/authoring-a-skill` | reject | decided |  |  | 2026-11-14-cc-copy | no |
+| `playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/autonomous-run` | reject | decided |  |  | 2026-11-14-cc-copy | no |
+| `playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/autopilot-full` | reject | decided |  |  | 2026-11-14-cc-copy | no |
+| `playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/autopilot-stack` | reject | decided |  |  | 2026-11-14-cc-copy | no |
+| `playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/babysit` | reject | decided |  |  | 2026-11-14-cc-copy | no |
+| `playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/bug-fix` | reject | decided |  |  | 2026-11-14-cc-copy | no |
+| `playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/eval` | reject | decided |  |  | 2026-11-14-cc-copy | no |
+| `playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/feature` | reject | decided |  |  | 2026-11-14-cc-copy | no |
+| `playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/hillclimb` | reject | decided |  |  | 2026-11-14-cc-copy | no |
+| `playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/investigation` | reject | decided |  |  | 2026-11-14-cc-copy | no |
+| `playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/multi-phase-plan` | reject | decided |  |  | 2026-11-14-cc-copy | no |
+| `playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/opening-a-pr` | reject | decided |  |  | 2026-11-14-cc-copy | no |
+| `playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/orchestrate` | reject | decided |  |  | 2026-11-14-cc-copy | no |
+| `playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/pause-safely` | reject | decided |  |  | 2026-11-14-cc-copy | no |
+| `playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/perf-issue` | reject | decided |  |  | 2026-11-14-cc-copy | no |
+| `playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/prototype` | reject | decided |  |  | 2026-11-14-cc-copy | no |
+| `playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/refactoring` | reject | decided |  |  | 2026-11-14-cc-copy | no |
+| `playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/runtime-forensics` | reject | decided |  |  | 2026-11-14-cc-copy | no |
+| `playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/session-pickup` | reject | decided |  |  | 2026-11-14-cc-copy | no |
+| `playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/shipping` | reject | decided |  |  | 2026-11-14-cc-copy | no |
+| `playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/trace-forensics` | reject | decided |  |  | 2026-11-14-cc-copy | no |
+| `playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/visual-parity` | reject | decided |  |  | 2026-11-14-cc-copy | no |
+| `playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/worktree-cleanup` | reject | decided |  |  | 2026-11-14-cc-copy | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/authoring-a-skill` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/skill-curation.md |  | 2026-11-12-skill-curation-playbook | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/autonomous-run` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md |  | 2026-11-04-batch-4 | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/autopilot-full` | defer | decided |  |  | 2026-11-01-pstack-playbooks | no |
@@ -185,7 +185,7 @@ Catalog: `2776ddd2355d6d6c8747d3964600f28daf62f049`, 354 capabilities.
 | `playbook:pstack/skills/poteto-mode/playbooks/trace-forensics` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/trace-forensics.md |  | 2026-11-01-batch-0 | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/visual-parity` | defer | decided |  |  | 2026-11-01-pstack-playbooks | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/worktree-cleanup` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/worktree-cleanup.md |  | 2026-11-01-batch-0 | no |
-| `plugin:harness/pstack/claude-code/pstack` | not reviewed | not reviewed |  |  |  |  |
+| `plugin:harness/pstack/claude-code/pstack` | reject | decided |  |  | 2026-11-14-cc-copy | no |
 | `plugin:origin-apps/origin-apps` | not reviewed | not reviewed |  |  |  |  |
 | `skill:advisor/skills/advisor` | not reviewed | not analysed |  |  |  |  |
 | `skill:agent-compatibility/skills/check-agent-compatibility` | not reviewed | not analysed |  |  |  |  |
@@ -222,64 +222,64 @@ Catalog: `2776ddd2355d6d6c8747d3964600f28daf62f049`, 354 capabilities.
 | `skill:grok-voice/skills/add-read-aloud` | not reviewed | not analysed |  |  |  |  |
 | `skill:grok-voice/skills/add-voice` | not reviewed | not analysed |  |  |  |  |
 | `skill:grok-voice/skills/debug-voice` | not reviewed | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/architect` | not reviewed | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/arena` | not reviewed | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/automate-me` | not reviewed | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/benchmark-checklist` | not reviewed | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/blast-radius` | not reviewed | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/bro` | not reviewed | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/correct` | not reviewed | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/create-formal-verification-skill` | not reviewed | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/create-verification-skill` | not reviewed | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/figure-it-out` | not reviewed | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/how` | present, unruled | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/in-your-own-words` | not reviewed | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/interrogate` | present, unruled | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/ketchup` | not reviewed | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/ketchup-video` | not reviewed | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/maintain-formal-verification-skill` | not reviewed | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/maintain-verification-skill` | not reviewed | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/make-bot-ui` | not reviewed | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/no-comments` | present, unruled | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/poteto-help` | not reviewed | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/poteto-mode` | not reviewed | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/principle-attack-the-premise` | present, unruled | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/principle-boundary-discipline` | present, unruled | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/principle-build-the-lever` | not reviewed | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/principle-encode-lessons-in-structure` | not reviewed | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/principle-exhaust-the-design-space` | present, unruled | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/principle-experience-first` | present, unruled | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/principle-explain-the-number` | present, unruled | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/principle-fix-root-causes` | present, unruled | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/principle-foundational-thinking` | not reviewed | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/principle-guard-the-context-window` | not reviewed | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/principle-laziness-protocol` | not reviewed | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/principle-make-operations-idempotent` | present, unruled | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/principle-migrate-callers-then-delete-legacy-apis` | not reviewed | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/principle-minimize-reader-load` | present, unruled | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/principle-model-the-domain` | present, unruled | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/principle-never-block-on-the-human` | not reviewed | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/principle-outcome-oriented-execution` | not reviewed | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/principle-prove-it-works` | not reviewed | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/principle-redesign-from-first-principles` | present, unruled | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/principle-separate-before-serializing-shared-state` | present, unruled | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/principle-sequence-verifiable-units` | present, unruled | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/principle-subtract-before-you-add` | present, unruled | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/principle-test-behavior-not-implementation` | present, unruled | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/principle-type-system-discipline` | present, unruled | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/recall` | present, unruled | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/reflect` | present, unruled | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/setup-pstack` | not reviewed | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/sharpen` | present, unruled | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/show-me-your-work` | not reviewed | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/statechart` | not reviewed | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/swarm` | not reviewed | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/tdd` | present, unruled | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/teach` | present, unruled | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/technical-writing` | not reviewed | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/typescript-best-practices` | not reviewed | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/unslop` | present, unruled | not analysed |  |  |  |  |
-| `skill:harness/pstack/claude-code/skills/why` | present, unruled | not analysed |  |  |  |  |
+| `skill:harness/pstack/claude-code/skills/architect` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/arena` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/automate-me` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/benchmark-checklist` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/blast-radius` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/bro` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/correct` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/create-formal-verification-skill` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/create-verification-skill` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/figure-it-out` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/how` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/in-your-own-words` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/interrogate` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/ketchup` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/ketchup-video` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/maintain-formal-verification-skill` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/maintain-verification-skill` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/make-bot-ui` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/no-comments` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/poteto-help` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/poteto-mode` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/principle-attack-the-premise` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/principle-boundary-discipline` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/principle-build-the-lever` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/principle-encode-lessons-in-structure` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/principle-exhaust-the-design-space` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/principle-experience-first` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/principle-explain-the-number` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/principle-fix-root-causes` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/principle-foundational-thinking` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/principle-guard-the-context-window` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/principle-laziness-protocol` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/principle-make-operations-idempotent` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/principle-migrate-callers-then-delete-legacy-apis` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/principle-minimize-reader-load` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/principle-model-the-domain` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/principle-never-block-on-the-human` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/principle-outcome-oriented-execution` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/principle-prove-it-works` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/principle-redesign-from-first-principles` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/principle-separate-before-serializing-shared-state` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/principle-sequence-verifiable-units` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/principle-subtract-before-you-add` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/principle-test-behavior-not-implementation` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/principle-type-system-discipline` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/recall` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/reflect` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/setup-pstack` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/sharpen` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/show-me-your-work` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/statechart` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/swarm` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/tdd` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/teach` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/technical-writing` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/typescript-best-practices` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/unslop` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
+| `skill:harness/pstack/claude-code/skills/why` | reject | decided (whole skill) |  |  | 2026-11-14-cc-copy | no |
 | `skill:orchestrate/skills/orchestrate` | not reviewed | not analysed |  |  |  |  |
 | `skill:origin-apps/skills/origin-api` | not reviewed | not analysed |  |  |  |  |
 | `skill:origin-apps/skills/port-github-app-to-origin` | not reviewed | not analysed |  |  |  |  |
