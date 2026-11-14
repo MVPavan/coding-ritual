@@ -19,7 +19,7 @@ Principles are not skills, so they are not listed here; the router lists them.
 
 ## Model-invocable skills
 
-`authoring-for-agents`, `beads`, `build-a-lever`, `codebase-design`, `decision-trail`, `delegation`, `design-evolve`, `discovery`, `domain-modeling`, `grilling`, `harness-evaluate`, `harness-skill-compare`, `how`, `html-artifact`, `interrogate`, `land`, `model-council`, `mvp-mode`, `performance-optimization`, `perspective-council`, `pr`, `prototype`, `research`, `resolving-merge-conflicts`, `review`, `security`, `systematic-debugging`, `tdd`, `to-plan`, `to-roadmap`, `to-spec`, `tracker`, `unslop`, `wake`, `why`
+`authoring-for-agents`, `beads`, `build-a-lever`, `codebase-design`, `decision-trail`, `delegation`, `design-evolve`, `discovery`, `domain-modeling`, `grilling`, `harness-evaluate`, `harness-skill-compare`, `how`, `html-artifact`, `interrogate`, `land`, `model-council`, `mvp-mode`, `performance-optimization`, `perspective-council`, `pr`, `prototype`, `research`, `resolving-merge-conflicts`, `review`, `security`, `statechart`, `systematic-debugging`, `tdd`, `to-plan`, `to-roadmap`, `to-spec`, `tracker`, `unslop`, `wake`, `why`
 
 ## Slash-only workflows
 
@@ -29,6 +29,7 @@ Principles are not skills, so they are not listed here; the router lists them.
 | `/check-invariants` | Run mechanically checkable invariants from the project overlay and report pass or fail. |
 | `/codebase-research` | Graduated research on an external codebase — survey its capabilities, map its architecture, or trace one mechanism — into durable reports under docs/research/codebases/. |
 | `/cost-estimate` | Legacy entrypoint; the uncalibrated code-volume and commit-based estimation method is retired. |
+| `/create-formal-verification-skill` | Use for /create-formal-verification-skill when a promise whose breaking harms users and that tests rarely reach needs checking across every case in a stated scope; keeping an existing formal check current is maintain-formal-verification-skill, and driving the real app is create-verification-skill. |
 | `/create-verification-skill` | Use for /create-verification-skill when a project has no scripted way to drive its real app; updating an existing verify skill is maintain-verification-skill, and proving one change on its surface needs no new skill. |
 | `/document-review` | Use when explicitly invoking the legacy document-review entrypoint; spec and plan review is owned by review. |
 | `/grill-me` | Start a decision interview using the shared grilling workflow. |

@@ -56,6 +56,7 @@
     "2026-11-14-adapter-adopts.jsonl": "11ff47d5c19d21b109cc5acfc96100a75642811864379b413523d7a54b2f9655",
     "2026-11-14-cc-copy.jsonl": "b059e8a054ca26bb2f16a65b83ca385a7ef9c86abf432d810bee0ca626b25c15",
     "2026-11-14-create-verification-skill.jsonl": "8c769e597b0d9ea9b64e823ca8fbb933a95181771619fa7956307f4f4b1eca55",
+    "2026-11-14-formal-pair.jsonl": "791e671b4946aafaed24388080301dcb6dc1f4070cf0f99e11d0660070b03121",
     "2026-11-14-maintain-verification-skill.jsonl": "75744eb5db653ff2f438eeb065f6662b121e8637c5aaed2b2ee964049250514c"
   },
   "round_order": [
@@ -114,7 +115,8 @@
     "2026-11-14-cc-copy.jsonl",
     "2026-11-14-create-verification-skill.jsonl",
     "2026-11-14-adapter-adopts.jsonl",
-    "2026-11-14-maintain-verification-skill.jsonl"
+    "2026-11-14-maintain-verification-skill.jsonl",
+    "2026-11-14-formal-pair.jsonl"
   ],
   "reports": {
     "harness_lifecycle/registry/reviews/2026-10-30-upstream-mattpocock_skills-5beb35b.yaml": "fb413772a75f116bd9baeaa06b6e414fe59978c654a951cb53345f17459d7597",

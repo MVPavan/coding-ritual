@@ -10606,3 +10606,34 @@ contract-gaps-reported:
   placement: {domain: engineering, stage: Verification, substage: Testing}
   distinct_from: [live-service-isolation, map-drift-or-regression]
   note: "live-service-isolation is the unconditional block on a missing isolation control, and map-drift-or-regression classifies gaps between the map and the product. This compares the skill with the contracts as they are now, reports the other gaps without fixing them, and fixes one only when a drive proves it."
+# ---- ours only, formal pair (plan 83; owner rulings of 2026-11-14; blind rulings 87) ----
+checker-install-approved-per-user:
+  definition: "Install a missing model checker or its runtime only after the person approves it, and then per user under their home folder, never system-wide, as root or through a shell-profile change; without approval, stop and name what is missing."
+  placement: {domain: engineering, stage: U, substage: Tooling}
+  distinct_from: [install-scope-project-or-user, checker-install-pinned-or-pointed]
+  note: "install-scope-project-or-user asks before the app generator installs a driving tool, per project or per user; checker-install-pinned-or-pointed says which checker version is installed and from where. This is the approval and the per-user scope of a checker install, which the checking tool never starts on its own."
+checker-install-signed-and-undoable:
+  definition: "Before a per-user checker install changes anything, verify each tool it downloads against a pinned checksum and, where the publisher signs its release, against that publisher's signature under a pinned key fingerprint (mise and the Temurin Java build; the TLC jar has no signature and is checked by its checksums alone); record an inventory and an ownership manifest of what the install creates, and on failure or removal undo only what it created and still owns unchanged."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+  distinct_from: [checker-install-pinned-or-pointed, checker-install-approved-per-user]
+  note: "checker-install-pinned-or-pointed is what to install (a pinned, checksum-verified checker, or one the person points to), and checker-install-approved-per-user is the approval and its per-user scope. This is how the install proves its downloads before any change (by checksum, and by signature where one exists) and undoes only its own changes."
+formal-coverage-data-file:
+  definition: "Keep a formal verify skill's coverage and sync record in one small data file of a versioned format beside its skill file, never as prose inside the skill, so its check script, the maintenance unit and freshness checks read the same record."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+  distinct_from: [coverage-and-sync-record]
+  note: "coverage-and-sync-record says what is recorded per check, the code it guards and the commit it last matched; this fixes where that record lives and in what form."
+formal-skill-recognised-by-record:
+  definition: "Define the shape a formal verify skill is recognised by, a skill file beside a coverage data file whose format field names the formal coverage format, so other units find it by content, not by name, in every skills folder the project's hosts read."
+  placement: {domain: engineering, stage: Improvement, substage: Codification}
+  distinct_from: [recognised-by-content-shape]
+  note: "recognised-by-content-shape fixes the app verify skill's shape, Launch, Doctor, Drive, Evidence and Cleanup sections beside a feature-map index; a formal verify skill has none of them and is known by its coverage record."
+existing-formal-skill-stops:
+  definition: "Before generating a formal check, search every skills folder the project's hosts read for a formal verify skill, known by its coverage record, as an older skill that runs a kept model or proof, or as an occupied target folder, and stop without writing when one covers the area or cannot be ruled out, pointing to the formal maintenance unit."
+  placement: {domain: engineering, stage: Improvement, substage: Codification}
+  distinct_from: [existing-verify-skill-stops, formal-skill-recognised-by-record]
+  note: "existing-verify-skill-stops is the app generator's stop, which also stops on a feature map; this unit has no feature map and stops on a formal verify skill or an occupied <area>-verification folder. formal-skill-recognised-by-record defines the shape searched for; this is the generator's search and stop."
+verdict-from-exit-and-messages:
+  definition: "Count a checker run as a verdict only when its exit code and its own completion and violation messages agree, with every rule checked where the checker checks all reachable states and no option that hides a violation."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+  distinct_from: [checker-exit-code-contract, property-fails-on-broken-variant]
+  note: "checker-exit-code-contract is the exit code a checking tool gives its own caller, and property-fails-on-broken-variant is showing each property fail on a broken variant; this is when a run may be read as a verdict at all. A coordinator's ruling on the blind check (87/blind/rulings.md, revised after critic-90d F1), backed by critics 87e F1 and 87g N1 and 83/tlc-facts.md; not owner-ruled, open to the owner's veto."

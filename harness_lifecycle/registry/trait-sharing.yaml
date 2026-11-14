@@ -85,9 +85,9 @@ finding-adjudication:
   why: "Implement rules on findings inside its delivery loop and review owns the method; owner 2026-10-30: implement (then named execution) stays unchanged."
   reviewed: "2026-11-11"
 domain-vocabulary:
-  skills: [brief-me, improve-codebase-architecture, prototype, teach]
-  why: "Each writes for its reader in the project's own terms: brief-me in its re-pitches, teach in its lessons, prototype in its states, actions and labels, so an answer transfers to the real code, and improve-codebase-architecture in its candidates and their friction."
-  reviewed: "2026-11-04"
+  skills: [brief-me, create-formal-verification-skill, improve-codebase-architecture, prototype, teach]
+  why: "Each writes for its reader in the project's own terms: brief-me in its re-pitches, teach in its lessons, prototype in its states, actions and labels, so an answer transfers to the real code, and improve-codebase-architecture in its candidates and their friction. create-formal-verification-skill names the model, the property and everything the person reads as the project does (its adopted P2 row)."
+  reviewed: "2026-11-14"
 baseline:
   skills: [performance-optimization, systematic-debugging]
   why: "Each measures before a fix: performance-optimization for a resource target, systematic-debugging when the failure diagnosed is a performance regression, which it hands to the fixer."
@@ -117,9 +117,9 @@ two-failure-stop:
   why: "Each fixes a failure on its own path, the bug-fix playbook for a bug-fix request and the implement playbook inside a unit it coordinates, where a separate bug-fix request would leave its scope; both stop after two failed fixes and return the attempt log, the bug-fix playbook to the user and the implement playbook to whoever owns the unit."
   reviewed: "2026-11-11"
 single-source-of-truth:
-  skills: [authoring-for-agents, principle-subtract-before-you-add]
-  why: "Each applies one-owner-per-meaning to its own material: authoring-for-agents to agent instructions (search for an existing owner before adding one), the principle to code and data before an addition; neither unit loads the other on its path."
-  reviewed: "2026-11-01"
+  skills: [authoring-for-agents, create-formal-verification-skill, principle-subtract-before-you-add]
+  why: "Each applies one-owner-per-meaning to its own material: authoring-for-agents to agent instructions (search for an existing owner before adding one), the principle to code and data before an addition; neither unit loads the other on its path. create-formal-verification-skill's references/model-fidelity.md is the one home of the model-fidelity rules, which maintain-formal-verification-skill reads without restating (decision 4)."
+  reviewed: "2026-11-14"
 no-onward-delegation:
   skills: [delegation, doc:AGENTS.md, mvp-mode]
   why: "AGENTS.md holds it as policy every agent loads, so a delegate stops fanning out even when its brief was written by hand; the delegation skill writes it into each role block of the briefs it produces, so a delegate on a vendor or project without our AGENTS.md still receives it; the mvp-mode router states it beside its delegate-independent-by-default rule for plugin users who skip the optional AGENTS.md, so a router that tells them to delegate also tells their delegates not to fan out."
@@ -201,9 +201,9 @@ verified-unit-sequence:
   why: "The principle owns the rule; figure-it-out's Run step states it in one sentence and cites the principle, as the owner ruled for row 2026-11-06-batch-p1:250, because the registry takes a delivered row only from the compared unit (unit-kinds St4)."
   reviewed: "2026-11-12"
 named-scope-first:
-  skills: [interrogate, no-comments]
-  why: "Each works on a scope a person may name, interrogate on the change it attacks and no-comments on the files it sweeps, and each defaults differently without one; a pointer between two unrelated jobs would add a hop to one sentence."
-  reviewed: "2026-11-12"
+  skills: [create-formal-verification-skill, interrogate, no-comments]
+  why: "Each works on a scope a person may name, interrogate on the change it attacks and no-comments on the files it sweeps, and each defaults differently without one; a pointer between two unrelated jobs would add a hop to one sentence. create-formal-verification-skill begins with the area, promise or bug the person names (its adopted P2 row)."
+  reviewed: "2026-11-14"
 authority-separation:
   skills: [harness-publish, doc:.claude/skills/mvp-mode/playbooks/skill-curation.md]
   why: "harness-publish confirms publish and commit authority separately at its own entry; the playbook's delivery step states the same split for the whole curation path. Each is read alone."
@@ -237,8 +237,8 @@ no-cross-project-transcript-search:
   why: "decision-trail states it for an audit of a long run, reflect for reviewing past sessions; each reads transcripts on its own, and one line does not earn a pointer."
   reviewed: "2026-11-13"
 real-code-names:
-  skills: [create-verification-skill, show-me]
-  why: "Both write text that must name the real code it describes: show-me a visual of a change, create-verification-skill the commands, routes, ports and paths a generated skill gives (plan 77 \u00a75)."
+  skills: [create-formal-verification-skill, create-verification-skill, show-me]
+  why: "Each writes text that must name the real code it describes: show-me a visual of a change, create-verification-skill the commands, routes, ports and paths a generated skill gives (plan 77 §5). create-formal-verification-skill applies generated-skill.md's \"Writing rules\", which require the real names from the code, to the formal skill it writes (decision 3)."
   reviewed: "2026-11-14"
 artifact-contracts:
   skills: [codebase-research, create-verification-skill]
@@ -253,8 +253,8 @@ unreachable-with-route-and-prerequisite:
   why: "The generator writes the rule into the map's skip reporting, and the maintenance pass applies it to its coverage report (plan 82 §5)."
   reviewed: "2026-11-14"
 check-never-weakened-to-pass:
-  skills: [create-verification-skill, maintain-verification-skill]
-  why: "The generator writes the rule into a generated skill, and the maintenance pass applies it while fixing one: a failing journey is fixed only when source proves the map wrong (R3)."
+  skills: [create-formal-verification-skill, create-verification-skill, maintain-verification-skill, statechart]
+  why: "The app generator writes the rule into a generated skill, and the maintenance pass applies it while fixing one: a failing journey is fixed only when source proves the map wrong (R3). statechart never loosens a rule, the model or its bounds so that a check passes, and create-formal-verification-skill never loosens the property, the model or the bounds (decision 3, restated per unit)."
   reviewed: "2026-11-14"
 live-service-isolation:
   skills: [create-verification-skill, maintain-verification-skill]
@@ -281,14 +281,46 @@ credentials-never-captured:
   why: "The generator keeps credentials out of a generated skill's proof, and the maintenance pass keeps them out of its evidence, notes, reply and helper fixes (ruling D)."
   reviewed: "2026-11-14"
 generated-skill-left-uncommitted:
-  skills: [create-verification-skill, maintain-verification-skill]
-  why: "The generator leaves the skill it writes uncommitted, and the maintenance pass leaves its fixes uncommitted; land commits either when the person asks (R10)."
+  skills: [create-formal-verification-skill, create-verification-skill, maintain-verification-skill]
+  why: "The app generator leaves the skill it writes uncommitted, and the maintenance pass leaves its fixes uncommitted; land commits either when the person asks (R10). create-formal-verification-skill leaves the formal verify skill it writes uncommitted unless the person asks; land makes the commit (decision 10)."
   reviewed: "2026-11-14"
 generator-started-by-person:
-  skills: [create-verification-skill, maintain-verification-skill]
-  why: "Both verification units start only when the person starts them: manual-only in frontmatter and sidecar, reached through an mvp-mode router line (R1)."
+  skills: [create-formal-verification-skill, create-verification-skill, maintain-verification-skill]
+  why: "Both app verification units start only when the person starts them: manual-only in frontmatter and sidecar, reached through an mvp-mode router line (R1). create-formal-verification-skill starts the same way: manual-only in frontmatter and sidecar, reached through its mvp-mode router row (decision 1)."
   reviewed: "2026-11-14"
 destination-protection:
   skills: [create-verification-skill, migrate-claude-to-codex]
   why: "Each writes a skill folder and never overwrites one already there: migrate-claude-to-codex a converted skill's destination, create-verification-skill an occupied verify-skill folder, where it stops blocked and asks the person (plan 82 misfit 6, critic-82d N1)."
+  reviewed: "2026-11-14"
+checker-install-approved-per-user:
+  skills: [create-formal-verification-skill, statechart]
+  why: "statechart owns the per-user checker install and asks first; create-formal-verification-skill follows the same approval and recipe for TLC by pointer to statechart's references/install.md (decision 6, owner item 2)."
+  reviewed: "2026-11-14"
+cold-agent-reader:
+  skills: [create-formal-verification-skill, create-verification-skill]
+  why: "create-verification-skill's references/generated-skill.md \"Writing rules\" state it, and create-formal-verification-skill applies those rules to the formal skill it writes, by pointer (decision 3, the one shared writing reference)."
+  reviewed: "2026-11-14"
+generated-skill-run-once:
+  skills: [create-formal-verification-skill, create-verification-skill]
+  why: "Each generator follows the skill it writes once, as its next reader, before handing it over: the app generator's proof drive and the formal generator's planted-break proof (decision 3, restated per unit)."
+  reviewed: "2026-11-14"
+generator-edits-own-output-only:
+  skills: [create-formal-verification-skill, create-verification-skill]
+  why: "Each generator edits only the skill folder it creates and the scaffolding it labels: the app generator's marked startup scaffolding, the formal generator's one reversible planted edit; a product-code fix is the person's call (decision 3)."
+  reviewed: "2026-11-14"
+handover-points-to-maintenance:
+  skills: [create-formal-verification-skill, create-verification-skill]
+  why: "Each create unit tells the person at hand-off that keeping its generated skill current is its maintenance unit's job: create-verification-skill names maintain-verification-skill, create-formal-verification-skill names maintain-formal-verification-skill (decision 11)."
+  reviewed: "2026-11-14"
+pre-existing-edit-separation:
+  skills: [create-formal-verification-skill, review]
+  why: "review separates a task's changes from pre-existing ones by the task baseline; create-formal-verification-skill records the product checkout's baseline before its planted edit, never clears the person's changes, and proves the restoration against that baseline."
+  reviewed: "2026-11-14"
+registering-generated-frontmatter:
+  skills: [create-formal-verification-skill, create-verification-skill]
+  why: "Both generators give the skill they write registering frontmatter by generated-skill.md's \"Frontmatter\"; create-formal-verification-skill uses the formal name <area>-verification and its own description (decision 3)."
+  reviewed: "2026-11-14"
+verification-only-edits:
+  skills: [create-formal-verification-skill, maintain-verification-skill]
+  why: "The maintenance pass edits only the verify skill's files, and the formal verify skill that create-formal-verification-skill writes tells its own verification pass to leave product code alone unless the person asks (decision 3)."
   reviewed: "2026-11-14"

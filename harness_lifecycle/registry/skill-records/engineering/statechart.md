@@ -1,0 +1,490 @@
+---
+skill: statechart
+domain: engineering
+stage: Design
+substage: Architecture
+secondary: [Diagnosis]
+family: design-validation
+aliases: []
+status: active
+---
+# statechart
+
+Use to check a TLA+ model of something that moves between states, such as a product flow, a protocol or a service, and draw it as a statechart, or to read a TLA+ check's result as the shortest path to each broken rule. A runnable experiment of chosen cases is prototype; a formal check kept as a project skill is create-formal-verification-skill. Runs TLC on Java, installed per user only with the person's approval.
+
+**Boundary:** Checks a TLA+ model with TLC and draws it as a statechart with the shortest path to each broken rule; a runnable experiment of chosen cases is prototype, the code's own structure is principle-model-the-domain, and a formal check kept as a project skill is create-formal-verification-skill.
+
+<!-- registry:generated traits -->
+- `check-and-draw-in-one-command`: Model-check a specification and draw its state graph with one command taking the spec and optional configuration, view module and output folder. (Carried by the tool at statechart.py:119-198 (run); named in .claude/skills/statechart/SKILL.md:22-25.)
+- `runtime-missing-stops-with-version`: When the tool's runtime is missing or too old, stop and name the version it needs. (Carried by the tool at statechart.py:52-87 (find_runtime); named in .claude/skills/statechart/SKILL.md:53-56.)
+- `config-and-output-defaults`: Default the configuration and output folder to names derived from the specification, failing with the flag to pass when the configuration is missing. (Carried by the tool at statechart.py:90-116 (arguments); named in .claude/skills/statechart/SKILL.md:27-29.)
+- `checker-exit-code-contract`: Exit with the checker's own verdict: zero when every rule holds, one when a rule breaks, two on error, and the signal codes on interruption. (Carried by the tool at statechart.py:119-198 (run); named in .claude/skills/statechart/SKILL.md:32-37.)
+- `interrupt-leaves-nothing`: On an interrupt, stop the whole check process group, remove temporary files and report that nothing was written. (Carried by the tool at statechart.py:119-198 (run); named in .claude/skills/statechart/SKILL.md:36-37, .claude/skills/statechart/scripts/statechart_lib/tlc.py:287-292.)
+- `report-printed-on-success`: Print the report and the folder written when a check finishes. (Carried by the tool at statechart.py:119-198 (run); named in .claude/skills/statechart/SKILL.md:38-39.)
+- `checker-install-pinned-or-pointed`: On first use, install a pinned, checksum-verified checker outside the repository, or use an existing install the person points to. (Carried by the tool at statechart_lib/install.py:316-390 (install); named in .claude/skills/statechart/references/install.md:6-8.)
+- `deterministic-checker-run`: Pin every checker run to one worker and a fixed seed, checking liveness only at the end. (Carried by the tool at statechart_lib/tlc.py:19-21 (TLC_OPTIONS); named in .claude/skills/statechart/SKILL.md:46-47, .claude/skills/statechart/scripts/statechart_lib/tlc.py:243-267.)
+- `sibling-modules-on-path`: Put the modules beside a specification on the checker's library path so it can extend them. (Carried by the tool at statechart_lib/tlc.py:243-267 (JavaRunner.command); named in .claude/skills/statechart/SKILL.md:47-48.)
+- `input-validated-before-check`: Parse the configuration and the specification before running the checker, refusing invalid input with its file and line. (Carried by the tool at statechart_lib/tlc.py:136-182 (parse_config); named in .claude/skills/statechart/SKILL.md:48-51, .claude/skills/statechart/scripts/statechart_lib/tlc.py:471-492. Adaptation (blind ruling): TLC's own parse validates the spec and the configuration, since standalone SANY exits 0 on a semantic error (83/tlc-facts.md); an ALIAS in the configuration is refused because it changes how TLC prints states (blind row alias-refused).)
+- `unnamed-break-is-error`: Stop with an error and the output tail when the checker fails without naming a broken rule, rather than guessing one. (Carried by the tool at statechart_lib/tlc.py:385-444 (judge); named in .claude/skills/statechart/SKILL.md:32-34, .claude/skills/statechart/scripts/statechart_lib/tlc.py:503-645.)
+- `checker-error-excerpt`: When the checker stops on an error, report which rules it left unchecked and quote only its error messages, cut to a few dozen lines. (Carried by the tool at statechart_lib/tlc.py:503-645 (check); named in .claude/skills/statechart/SKILL.md:34-36, .claude/skills/statechart/scripts/statechart_lib/tlc.py:378-382.)
+- `every-rule-own-verdict`: When a rule breaks, drop it and rerun until no remaining rule breaks, splitting temporal properties into separate runs, so every rule gets its own verdict. (Carried by the tool at statechart_lib/tlc.py:503-645 (check); named in .claude/skills/statechart/SKILL.md:105-106.)
+- `rerun-state-bound`: Cap each rerun after the first break at a fixed number of states, listing rules a bounded or failed run could not finish as unchecked and naming the bound. (Carried by the tool at statechart_lib/tlc.py:503-645 (check); named in .claude/skills/statechart/SKILL.md:107-108, .claude/skills/statechart/references/report.md:28-29, .claude/skills/statechart/scripts/statechart_lib/tlc.py:15.)
+- `initial-only-property-warning`: Flag a property without a temporal operator as checked only in initial states, advising it be listed as an invariant. (Carried by the tool at statechart.py:119-198 (run); named in .claude/skills/statechart/SKILL.md:84-90, .claude/skills/statechart/references/report.md:64-66, .claude/skills/statechart/scripts/statechart_lib/tlc.py:653-669.)
+- `raw-checker-logs`: Keep the checker's own printout, plus a log per rule whose failing path the chart does not draw. (Carried by the tool at statechart.py:119-198 (run); named in .claude/skills/statechart/SKILL.md:41-44, .claude/skills/statechart/references/report.md:83-88.)
+- `constraint-boundary-states`: Draw and count a failing path's final state or step beyond a constraint, leaving other states past the bound undrawn. (Carried by the tool at statechart_lib/chart.py:66-90 (_add_traces); named in .claude/skills/statechart/references/report.md:76-77.)
+- `fresh-output-published-atomically`: Write only to a new or empty output folder, staging the results and moving them into place in one step, writing nothing if the folder changed meanwhile. (Carried by the tool at statechart_lib/publish.py:44-57 (publish); named in .claude/skills/statechart/SKILL.md:29-31, .claude/skills/statechart/scripts/statechart_lib/publish.py:31-41.)
+- `pure-view-functions`: Make view functions depend only on their arguments, since each is called at most once per state or step. (Carried by the tool at statechart_lib/view.py:58-133 (View); named in .claude/skills/statechart/references/view.md:23-25.)
+- `view-output-validated`: Refuse a view with unknown or mistyped exports, colours outside the fixed palette, empty or broken labels, inconsistent region shapes, or a label used as both leaf and parent, naming the state. (Carried by the tool at statechart_lib/view.py:164-201 (load); named in .claude/skills/statechart/references/view.md:17-21, .claude/skills/statechart/references/view.md:57-60, .claude/skills/statechart/scripts/statechart_lib/view.py:71-112, .claude/skills/statechart/scripts/statechart_lib/view.py:136-145.)
+- `one-documented-value-shape`: Hand the model's values to the view as data in one documented shape. (Carried by the tool at statechart_lib/values.py:79-94 (Decoder); named in .claude/skills/statechart/references/view.md:29-53.)
+- `state-shape-selects-chart-form`: Let the view's state function choose the chart form: a string for a flat chart, a list for nested parent states and an object for parallel regions. (Carried by the tool at statechart_lib/view.py:71-112 (View.label); named in .claude/skills/statechart/SKILL.md:97-99, .claude/skills/statechart/scripts/statechart_lib/chart.py:145-182.)
+- `default-state-labels`: Label each state by its variable values when no view is given. (Carried by the tool at statechart_lib/view.py:54-55 (default_label); named in .claude/skills/statechart/SKILL.md:96-97.)
+- `shared-label-shared-arrow`: Give actions with the same visible effect one label so they merge into one arrow, joining different labels between two states with or. (Carried by the tool at statechart_lib/chart.py:185-297 (_lift); named in .claude/skills/statechart/references/view.md:66-67, .claude/skills/statechart/scripts/statechart_lib/mermaid.py:36-84.)
+- `phase-groups-and-colors`: Colour chart states by phase and title the chart through optional exports, leaving a state that spans several groups uncoloured. (Carried by the tool at statechart_lib/chart.py:185-297 (_lift); named in .claude/skills/statechart/references/view.md:81-82.)
+- `self-loops-not-drawn`: Leave out a step that stays within one chart label and count it, splitting the label if the reader must see it. (Carried by the tool at statechart_lib/chart.py:185-297 (_lift); named in .claude/skills/statechart/references/view.md:76-77.)
+- `parent-level-arrows`: Draw once from the parent a step that leaves every child with the same label and target. (Carried by the tool at statechart_lib/chart.py:375-401 (_parent_arrows); named in .claude/skills/statechart/references/view.md:86-88.)
+- `simultaneous-region-change-notes`: Note per label in a regions chart whether its step changes several regions at once or one at a time. (Carried by the tool at statechart_lib/chart.py:185-297 (_lift); named in .claude/skills/statechart/references/view.md:85-86, .claude/skills/statechart/references/report.md:78-79, .claude/skills/statechart/scripts/statechart_lib/report.py:63-168.)
+- `regions-fidelity-fallback`: Check that a regions chart allows exactly the model's moves and starts, redrawing it as nested states and saying why when it does not. (Carried by the tool at statechart_lib/chart.py:145-182 (build); named in .claude/skills/statechart/references/view.md:82-85, .claude/skills/statechart/scripts/statechart_lib/chart.py:454-494, .claude/skills/statechart/references/report.md:67-68.)
+- `loop-exit-fidelity-check`: Refuse a chart whose arrow out of a looping failure is one the loop cannot take, asking for a label that shows what stops it. (Carried by the tool at statechart_lib/chart.py:435-451 (_check_loop_exits); named in .claude/skills/statechart/references/view.md:100-102.)
+- `break-and-may-break-marks`: Mark a chart state as breaking when every model state under it breaks a rule and as may-break when only some do, with the regions-chart rule for combinations. (Carried by the tool at statechart_lib/chart.py:300-331 (_mark); named in .claude/skills/statechart/references/report.md:35-43.)
+- `dead-end-deadlock-marking`: Mark every state with no exit as a deadlock when there are no constraints, and otherwise only the deadlock reported, saying why. (Carried by the tool at statechart_lib/chart.py:93-114 (_breaking); named in .claude/skills/statechart/references/report.md:54-60, .claude/skills/statechart/scripts/statechart_lib/report.py:63-168.)
+- `chart-state-budget`: Draw the full chart only up to a state limit and above it only the failing paths, still checking every rule. (Carried by the tool at statechart_lib/chart.py:145-182 (build); named in .claude/skills/statechart/SKILL.md:116-119, .claude/skills/statechart/references/report.md:11-12, .claude/skills/statechart/scripts/statechart_lib/chart.py:15.)
+- `deadlock-rule-naming`: Report the deadlock rule under a fixed name, switching to another when an invariant already uses it. (Carried by the tool at statechart_lib/tlc.py:495-500 (deadlock_name); named in .claude/skills/statechart/SKILL.md:72-75.)
+- `shortest-failing-path`: Give for each broken state rule the shortest path from a start, as numbered steps with their labels and states in reader words. (Carried by the tool at statechart_lib/report.py:15-27 (_path_lines); named in .claude/skills/statechart/references/report.md:21-24.)
+- `liveness-loop-description`: Give for a broken temporal property its counterexample steps and which states repeat forever or where the run stops. (Carried by the tool at statechart_lib/report.py:63-168 (render); named in .claude/skills/statechart/references/report.md:25-27.)
+- `legend-of-marks`: Carry a legend naming the phase colours and, per mark, the rules it stands for. (Carried by the tool at statechart_lib/report.py:30-60 (_legend); named in .claude/skills/statechart/references/report.md:48-52.)
+- `representative-state-note`: Warn that under a view or symmetry setting an arrow may lead to a representative state rather than the one reached. (Carried by the tool at statechart_lib/report.py:63-168 (render); named in .claude/skills/statechart/references/report.md:73-75.)
+- `graph-size-summary`: Open the report with the states and steps checked and the states and arrows drawn, noting when drawing stopped early. (Carried by the tool at statechart_lib/report.py:63-168 (render); named in .claude/skills/statechart/references/report.md:8-9.)
+- `empty-model-diagnosis`: When no state is explored, say whether no state meets the initial condition or every initial state lies outside the constraints. (Carried by the tool at statechart_lib/tlc.py:385-444 (judge); named in .claude/skills/statechart/references/report.md:69-70, .claude/skills/statechart/scripts/statechart_lib/report.py:63-168.)
+- `holds-list`: List the rules that hold. (Carried by the tool at statechart_lib/report.py:63-168 (render); named in .claude/skills/statechart/references/report.md:20.)
+- `post-violation-states-shown`: Show states reached after a failure, since the checker explores past it. (Carried by the tool at statechart_lib/report.py:63-168 (render); named in .claude/skills/statechart/references/report.md:71-72.)
+- `stable-draw-order`: Order states by distance from a start and then by name, so the chart text is the same on every run. (Carried by the tool at statechart_lib/chart.py:185-297 (_lift); named in .claude/skills/statechart/SKILL.md:122-123.)
+- `path-and-repeat-classes`: Give states on a shortest failing path and states a counterexample repeats their own visual classes. (Carried by the tool at statechart_lib/chart.py:185-297 (_lift); named in .claude/skills/statechart/references/report.md:48-50.)
+- `safe-label-escaping`: Encode label and title text so any character renders safely in the diagram. (Carried by the tool at statechart_lib/mermaid.py:31-33 (escape); named in .claude/skills/statechart/SKILL.md:124-125.)
+- `concurrent-regions-rendering`: Draw a regions chart left to right as one composite of parallel regions, with the title as diagram metadata. (Carried by the tool at statechart_lib/mermaid.py:36-84 (render); named in .claude/skills/statechart/SKILL.md:125-126.)
+- `portable-mark-styles`: Define styles only for the failure marks in the chart file, so any viewer shows them. (Carried by the tool at statechart_lib/mermaid.py:11-16 (MARK_STYLES); named in .claude/skills/statechart/references/render.md:39-40.)
+- `model-files-in-ignored-scratch`: Write the state model and its configuration in the project's ignored scratch folder rather than among tracked files, keeping them only when the person asks.
+- `agreed-rules-as-invariants`: Write each rule the reader agrees to as an invariant over what they see, adding a model variable when a rule needs one.
+- `named-actions-in-next-state`: Write the next-state relation as a disjunction of named actions so each step carries its action's name.
+- `end-states-marked-not-deadlocks`: Mark the model's correct end states, under a label, so the checker does not report them as deadlocks.
+- `bounded-state-space`: Keep constants small or add a constraint so a model with an unbounded state space still finishes.
+- `chart-shown-as-code-block`: Show the chart to the person as a diagram code block.
+- `chart-to-decider`: Give each chart and its text to the person who decides whether the behaviour is right.
+- `one-line-per-failure`: Give one hand-off line per failure: the rule, the reader's sentence for it and the step numbers from the report.
+- `per-state-rule-attribution`: When one mark stands for two rules, state in the hand-off which chart state violates which rule.
+- `hidden-steps-constrained`: Hide a step only if every state stays reachable, every state that has an exit keeps one, an arrow's steps hide all or none, and the step is on no failing path or loop exit.
+- `disclose-hidden-steps`: Name in the hand-off which steps the chart hides, and count them in the report.
+- `state-model-omissions`: Say in the hand-off what the model leaves out.
+- `regeneration-command`: Give the command that regenerates the files into a new output folder.
+- `counterexample-replayed-on-code`: Replay each counterexample step by step against the real code, presuming a step that cannot happen to be a model error until shown otherwise.
+- `judgment-in-view-file`: Keep a chart's wording, phases, colours and title in a view file apart from the model.
+- `reader-facing-state-labels`: Name chart states by what the reader sees or cares about, never by variable names.
+- `user-event-step-labels`: Label each arrow by the event as the user experiences it, never by code or action name.
+- `step-condition-in-label`: End a conditional step's label with its condition in brackets, in reader words, leaving cross-region conditions to the tool to write.
+- `name-hidden-outcome`: When the destination of a step depends on a value the chart does not display, put that outcome in the label.
+- `arrow-reduction-ladder`: Aim for about twenty arrows, first coarsening state labels and only then hiding steps the reader does not need.
+- `preserve-bug-states-in-merges`: Keep every failing-path state and mark when coarsening, and never merge states that break different rules.
+- `unchecked-rule-remedy`: To check a rule listed as unchecked, remove the breaking rules from the configuration or shrink the model.
+- `pinned-designated-renderer`: Render charts with one named renderer at a pinned version, installed once outside the repository, and only when an image is wanted or the text is too large.
+- `image-beside-chart`: Write each rendered image beside its chart file under the same name and give it to the person.
+- `render-error-fallback`: On a render error, show the diagram text and the error.
+- `raised-render-limits`: Raise the renderer's node, output and edge limits so the largest allowed chart fits. (Adaptation (blind ruling): Mermaid has exactly two such limits, maxTextSize and maxEdges, and the tool computes both per chart into render.json. Rendering is unproven: the renderer is pinned, not installed (owner item 3).)
+- `chart-theming-rules`: Colour charts through the renderer's style variables and class rules, putting failure-mark rules last and forced so they show over phase colours. (Adaptation (blind ruling): CSS class rules only, in the stylesheet references/render.md gives. Rendering is unproven: the renderer is pinned, not installed (owner item 3).)
+- `embedded-light-dark-stylesheet`: Embed a light and dark palette at the start of each image so it follows the viewer's colour scheme.
+- `checker-install-approved-per-user`: Install a missing model checker or its runtime only after the person approves it, and then per user under their home folder, never system-wide, as root or through a shell-profile change; without approval, stop and name what is missing.
+- `check-never-weakened-to-pass`: When a check fails on the current product, report the failure and never weaken the check or its model to make it pass. (Held (plan 83 §3a, as decision 3 restates it in the verification units): never loosen a rule, the model or its bounds so that a check passes; a break on the current behaviour is the finding (SKILL.md "Write the spec").)
+- `checker-install-signed-and-undoable`: Before a per-user checker install changes anything, verify each tool it downloads against a pinned checksum and, where the publisher signs its release, against that publisher's signature under a pinned key fingerprint (mise and the Temurin Java build; the TLC jar has no signature and is checked by its checksums alone); record an inventory and an ownership manifest of what the install creates, and on failure or removal undo only what it created and still owns unchanged. (Carried by the tool at statechart_lib/install.py: _stage checks mise, the Temurin archive and the TLC jar against their pinned checksums (_pinned), and mise's signed SHASUMS256.txt and Temurin's .sig against the publisher's key under a pinned fingerprint (_gpg); the TLC jar has no signature and is checked by sha256 and sha1 alone. install writes inventory-before.txt and inventory-after.txt (_inventory) and manifest.json (_Record) and on failure calls _remove; _remove, _remove_java and remove undo only what the manifest records and is still unchanged. Written in references/install.md, the per-user recipe both formal skills use. From the blind check's five install rows (87/blind/rulings.md), basis owner item 2.)
+<!-- /registry:generated traits -->
+
+<!-- registry:generated lineage -->
+- **cursor_plugins:skill:pstack/skills/statechart#model-files-outside-repo** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#check-and-draw-in-one-command** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#runtime-version-gate** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#pinned-checker-install** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#deterministic-checker-run** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#sibling-modules-on-path** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#config-and-output-defaults** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#input-validated-before-check** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#fresh-output-published-atomically** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#checker-exit-code-contract** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#interrupt-leaves-nothing** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#report-printed-on-success** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#unnamed-break-is-error** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#checker-error-excerpt** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#agreed-rules-as-invariants** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#named-actions-in-next-state** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#end-state-stutter-action** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#deadlock-rule-naming** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#bounded-state-space** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#every-rule-own-verdict** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#rerun-state-bound** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#unchecked-rule-remedy** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#initial-only-property-warning** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#raw-checker-logs** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#judgment-in-view-module** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#state-shape-selects-chart-form** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#default-state-labels** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#reader-facing-state-labels** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#value-encoding-for-views** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#user-event-step-labels** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#shared-label-shared-arrow** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#step-condition-in-label** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#name-hidden-outcome** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#phase-groups-and-colors** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#pure-view-functions** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#view-output-validated** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#arrow-reduction-ladder** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#preserve-bug-states-in-merges** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#hidden-steps-constrained** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#disclose-hidden-steps** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#self-loops-not-drawn** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#parent-level-arrows** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#simultaneous-region-change-notes** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#regions-fidelity-fallback** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#loop-exit-fidelity-check** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#stable-draw-order** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#shortest-failing-path** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#liveness-loop-description** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#break-and-may-break-marks** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#path-and-repeat-classes** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#legend-of-marks** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#per-state-rule-attribution** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#post-violation-states-shown** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#dead-end-deadlock-marking** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#constraint-boundary-states** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#representative-state-note** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#graph-size-summary** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#empty-model-diagnosis** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#holds-list** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#chart-state-budget** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#chart-shown-as-code-block** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#safe-label-escaping** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#concurrent-regions-rendering** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#portable-mark-styles** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#pinned-designated-renderer** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#image-beside-chart** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#raised-render-limits** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#render-error-fallback** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#chart-theming-rules** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#embedded-light-dark-stylesheet** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#chart-to-decider** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#one-line-per-failure** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#state-model-omissions** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#regeneration-command** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/statechart#counterexample-replayed-on-code** `pstack/skills/statechart/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+<!-- /registry:generated lineage -->
+
+<!-- registry:generated history -->
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:077): Completes pending 2026-11-13-batch-p2:154: counterexample-replayed-on-code is written at .claude/skills/statechart/SKILL.md:143-145, in its ruled words (plan 8…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:076): Completes pending 2026-11-13-batch-p2:153: regeneration-command is written at .claude/skills/statechart/SKILL.md:141-142, in its ruled words (plan 83).
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:075): Completes pending 2026-11-13-batch-p2:152: state-model-omissions is written at .claude/skills/statechart/SKILL.md:140, in its ruled words (plan 83).
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:074): Completes pending 2026-11-13-batch-p2:151: one-line-per-failure is written at .claude/skills/statechart/SKILL.md:132-133, in its ruled words (plan 83).
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:073): Completes pending 2026-11-13-batch-p2:150: chart-to-decider is written at .claude/skills/statechart/SKILL.md:130-131, in its ruled words (plan 83).
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:072): Completes pending 2026-11-13-batch-p2:149: embedded-light-dark-stylesheet is written at .claude/skills/statechart/references/render.md:41-42, in its ruled word…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:071): Completes pending 2026-11-13-batch-p2:148: chart-theming-rules is written at .claude/skills/statechart/references/render.md:40-60, in its ruled words (plan 83)…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:070): Completes pending 2026-11-13-batch-p2:147: render-error-fallback is written at .claude/skills/statechart/references/render.md:28-29, in its ruled words (plan 8…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:069): Completes pending 2026-11-13-batch-p2:146: raised-render-limits is written at .claude/skills/statechart/references/render.md:31-37, in its ruled words (plan 83…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:068): Completes pending 2026-11-13-batch-p2:145: image-beside-chart is written at .claude/skills/statechart/references/render.md:19-20, in its ruled words (plan 83).…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:067): Completes pending 2026-11-13-batch-p2:144: pinned-designated-renderer is written at .claude/skills/statechart/references/render.md:3-6, in its ruled words (pla…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:066): Completes pending 2026-11-13-batch-p2:143: portable-mark-styles is carried by the tool at .claude/skills/statechart/scripts/statechart_lib/mermaid.py:11-16 (MA…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:065): Completes pending 2026-11-13-batch-p2:142: concurrent-regions-rendering is carried by the tool at .claude/skills/statechart/scripts/statechart_lib/mermaid.py:3…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:064): Completes pending 2026-11-13-batch-p2:141: safe-label-escaping is carried by the tool at .claude/skills/statechart/scripts/statechart_lib/mermaid.py:31-33 (esc…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:063): Completes pending 2026-11-13-batch-p2:140: chart-shown-as-code-block is written at .claude/skills/statechart/SKILL.md:116, in its ruled words (plan 83).
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:062): Completes pending 2026-11-13-batch-p2:139: chart-state-budget is carried by the tool at .claude/skills/statechart/scripts/statechart_lib/chart.py:145-182 (buil…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:061): Completes pending 2026-11-13-batch-p2:138: holds-list is carried by the tool at .claude/skills/statechart/scripts/statechart_lib/report.py:63-168 (render) and …
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:060): Completes pending 2026-11-13-batch-p2:137: empty-model-diagnosis is carried by the tool at .claude/skills/statechart/scripts/statechart_lib/tlc.py:385-444 (jud…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:059): Completes pending 2026-11-13-batch-p2:136: graph-size-summary is carried by the tool at .claude/skills/statechart/scripts/statechart_lib/report.py:63-168 (rend…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:058): Completes pending 2026-11-13-batch-p2:135: representative-state-note is carried by the tool at .claude/skills/statechart/scripts/statechart_lib/report.py:63-16…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:057): Completes pending 2026-11-13-batch-p2:134: constraint-boundary-states is carried by the tool at .claude/skills/statechart/scripts/statechart_lib/chart.py:66-90…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:056): Completes pending 2026-11-13-batch-p2:133: dead-end-deadlock-marking is carried by the tool at .claude/skills/statechart/scripts/statechart_lib/chart.py:93-114…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:055): Completes pending 2026-11-13-batch-p2:132: post-violation-states-shown is carried by the tool at .claude/skills/statechart/scripts/statechart_lib/report.py:63-…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:054): Completes pending 2026-11-13-batch-p2:131: per-state-rule-attribution is written at .claude/skills/statechart/SKILL.md:134-135, in its ruled words (plan 83).
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:053): Completes pending 2026-11-13-batch-p2:130: legend-of-marks is carried by the tool at .claude/skills/statechart/scripts/statechart_lib/report.py:30-60 (_legend)…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:052): Completes pending 2026-11-13-batch-p2:129: path-and-repeat-classes is carried by the tool at .claude/skills/statechart/scripts/statechart_lib/chart.py:185-297 …
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:051): Completes pending 2026-11-13-batch-p2:128: break-and-may-break-marks is carried by the tool at .claude/skills/statechart/scripts/statechart_lib/chart.py:300-33…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:050): Completes pending 2026-11-13-batch-p2:127: liveness-loop-description is carried by the tool at .claude/skills/statechart/scripts/statechart_lib/report.py:63-16…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:049): Completes pending 2026-11-13-batch-p2:126: shortest-failing-path is carried by the tool at .claude/skills/statechart/scripts/statechart_lib/report.py:15-27 (_p…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:048): Completes pending 2026-11-13-batch-p2:125: stable-draw-order is carried by the tool at .claude/skills/statechart/scripts/statechart_lib/chart.py:185-297 (_lift…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:047): Completes pending 2026-11-13-batch-p2:124: loop-exit-fidelity-check is carried by the tool at .claude/skills/statechart/scripts/statechart_lib/chart.py:435-451…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:046): Completes pending 2026-11-13-batch-p2:123: regions-fidelity-fallback is carried by the tool at .claude/skills/statechart/scripts/statechart_lib/chart.py:145-18…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:045): Completes pending 2026-11-13-batch-p2:122: simultaneous-region-change-notes is carried by the tool at .claude/skills/statechart/scripts/statechart_lib/chart.py…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:044): Completes pending 2026-11-13-batch-p2:121: parent-level-arrows is carried by the tool at .claude/skills/statechart/scripts/statechart_lib/chart.py:375-401 (_pa…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:043): Completes pending 2026-11-13-batch-p2:120: self-loops-not-drawn is carried by the tool at .claude/skills/statechart/scripts/statechart_lib/chart.py:185-297 (_l…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:042): Completes pending 2026-11-13-batch-p2:119: disclose-hidden-steps is written at .claude/skills/statechart/SKILL.md:139 (restated at .claude/skills/statechart/re…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:041): Completes pending 2026-11-13-batch-p2:118: hidden-steps-constrained is written at .claude/skills/statechart/SKILL.md:136-139 (restated at .claude/skills/statec…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:040): Completes pending 2026-11-13-batch-p2:117: preserve-bug-states-in-merges is written at .claude/skills/statechart/references/view.md:93-95, in its ruled words (…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:039): Completes pending 2026-11-13-batch-p2:116: arrow-reduction-ladder is written at .claude/skills/statechart/references/view.md:92-98, in its ruled words (plan 83…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:038): Completes pending 2026-11-13-batch-p2:115: view-output-validated is carried by the tool at .claude/skills/statechart/scripts/statechart_lib/view.py:164-201 (lo…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:037): Completes pending 2026-11-13-batch-p2:114: pure-view-functions is carried by the tool at .claude/skills/statechart/scripts/statechart_lib/view.py:58-133 (View)…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:036): Completes pending 2026-11-13-batch-p2:113: phase-groups-and-colors is carried by the tool at .claude/skills/statechart/scripts/statechart_lib/chart.py:185-297 …
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:035): Completes pending 2026-11-13-batch-p2:112: name-hidden-outcome is written at .claude/skills/statechart/references/view.md:74-75, in its ruled words (plan 83).
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:034): Completes pending 2026-11-13-batch-p2:111: step-condition-in-label is written at .claude/skills/statechart/references/view.md:68-73, in its ruled words (plan 8…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:033): Completes pending 2026-11-13-batch-p2:110: shared-label-shared-arrow is carried by the tool at .claude/skills/statechart/scripts/statechart_lib/chart.py:185-29…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:032): Completes pending 2026-11-13-batch-p2:109: user-event-step-labels is written at .claude/skills/statechart/references/view.md:64-65, in its ruled words (plan 83…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:031): Completes pending 2026-11-13-batch-p2:108: one-documented-value-shape is carried by the tool at .claude/skills/statechart/scripts/statechart_lib/values.py:79-9…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:030): Completes pending 2026-11-13-batch-p2:107: reader-facing-state-labels is written at .claude/skills/statechart/references/view.md:62-63, in its ruled words (pla…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:029): Completes pending 2026-11-13-batch-p2:106: default-state-labels is carried by the tool at .claude/skills/statechart/scripts/statechart_lib/view.py:54-55 (defau…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:028): Completes pending 2026-11-13-batch-p2:105: state-shape-selects-chart-form is carried by the tool at .claude/skills/statechart/scripts/statechart_lib/view.py:71…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:027): Completes pending 2026-11-13-batch-p2:104: judgment-in-view-file is written at .claude/skills/statechart/references/view.md:3-5, in its ruled words (plan 83). …
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:026): Completes pending 2026-11-13-batch-p2:103: raw-checker-logs is carried by the tool at .claude/skills/statechart/scripts/statechart.py:119-198 (run) and named a…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:025): Completes pending 2026-11-13-batch-p2:102: initial-only-property-warning is carried by the tool at .claude/skills/statechart/scripts/statechart.py:119-198 (run…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:024): Completes pending 2026-11-13-batch-p2:101: unchecked-rule-remedy is written at .claude/skills/statechart/references/report.md:30-31, in its ruled words (plan 8…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:023): Completes pending 2026-11-13-batch-p2:100: rerun-state-bound is carried by the tool at .claude/skills/statechart/scripts/statechart_lib/tlc.py:503-645 (check) …
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:022): Completes pending 2026-11-13-batch-p2:099: every-rule-own-verdict is carried by the tool at .claude/skills/statechart/scripts/statechart_lib/tlc.py:503-645 (ch…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:021): Completes pending 2026-11-13-batch-p2:098: bounded-state-space is written at .claude/skills/statechart/SKILL.md:82-83, in its ruled words (plan 83).
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:020): Completes pending 2026-11-13-batch-p2:097: deadlock-rule-naming is carried by the tool at .claude/skills/statechart/scripts/statechart_lib/tlc.py:495-500 (dead…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:019): Completes pending 2026-11-13-batch-p2:096: end-states-marked-not-deadlocks is written at .claude/skills/statechart/SKILL.md:76-81, in its ruled words (plan 83)…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:018): Completes pending 2026-11-13-batch-p2:095: named-actions-in-next-state is written at .claude/skills/statechart/SKILL.md:69-71, in its ruled words (plan 83). Wr…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:017): Completes pending 2026-11-13-batch-p2:093: agreed-rules-as-invariants is written at .claude/skills/statechart/SKILL.md:64-66, in its ruled words (plan 83).
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:016): Completes pending 2026-11-13-batch-p2:092: checker-error-excerpt is carried by the tool at .claude/skills/statechart/scripts/statechart_lib/tlc.py:503-645 (che…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:015): Completes pending 2026-11-13-batch-p2:091: unnamed-break-is-error is carried by the tool at .claude/skills/statechart/scripts/statechart_lib/tlc.py:385-444 (ju…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:014): Completes pending 2026-11-13-batch-p2:090: report-printed-on-success is carried by the tool at .claude/skills/statechart/scripts/statechart.py:119-198 (run) an…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:013): Completes pending 2026-11-13-batch-p2:089: interrupt-leaves-nothing is carried by the tool at .claude/skills/statechart/scripts/statechart.py:119-198 (run) and…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:012): Completes pending 2026-11-13-batch-p2:088: checker-exit-code-contract is carried by the tool at .claude/skills/statechart/scripts/statechart.py:119-198 (run) a…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:011): Completes pending 2026-11-13-batch-p2:087: fresh-output-published-atomically is carried by the tool at .claude/skills/statechart/scripts/statechart_lib/publish…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:010): Completes pending 2026-11-13-batch-p2:086: input-validated-before-check is carried by the tool at .claude/skills/statechart/scripts/statechart_lib/tlc.py:136-1…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:009): Completes pending 2026-11-13-batch-p2:085: config-and-output-defaults is carried by the tool at .claude/skills/statechart/scripts/statechart.py:90-116 (argumen…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:008): Completes pending 2026-11-13-batch-p2:084: sibling-modules-on-path is carried by the tool at .claude/skills/statechart/scripts/statechart_lib/tlc.py:243-267 (J…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:007): Completes pending 2026-11-13-batch-p2:083: deterministic-checker-run is carried by the tool at .claude/skills/statechart/scripts/statechart_lib/tlc.py:19-21 (T…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:006): Completes pending 2026-11-13-batch-p2:082: checker-install-pinned-or-pointed is carried by the tool at .claude/skills/statechart/scripts/statechart_lib/install…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:005): Completes pending 2026-11-13-batch-p2:081: runtime-missing-stops-with-version is carried by the tool at .claude/skills/statechart/scripts/statechart.py:52-87 (…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:004): Completes pending 2026-11-13-batch-p2:080: check-and-draw-in-one-command is carried by the tool at .claude/skills/statechart/scripts/statechart.py:119-198 (run…
+- `2026-11-14` **adopt** (2026-11-14-formal-pair:003): Completes pending 2026-11-13-batch-p2:079: model-files-in-ignored-scratch is written at .claude/skills/statechart/SKILL.md:16-19, in its ruled words (plan 83).…
+- `2026-11-14` **add** (2026-11-14-formal-pair:001): Bead cr-r2pa.2.28.3, plan 83 (with its Round 2 table). New model-invocable skill: it models something that moves between states in TLA+, checks every reachable…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:155): Checkpoint at 2776ddd for the owner's trait rulings: 76 adopt.
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:154) *(superseded)*: Owner ruling 2026-11-13: Prevents: A model error reported as a bug in the code. Lands in statechart, SKILL.md, a new skill per the owner's ruling of 2026-11-13…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:153) *(superseded)*: Owner ruling 2026-11-13: Prevents: A chart nobody can regenerate after the model changes. Lands in statechart, SKILL.md, a new skill per the owner's ruling of …
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:152) *(superseded)*: Owner ruling 2026-11-13: Prevents: A pass read as covering behaviour the model leaves out. Lands in statechart, SKILL.md, a new skill per the owner's ruling of…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:151) *(superseded)*: Owner ruling 2026-11-13: Prevents: Failures handed over without their rule, plain sentence or path. Lands in statechart, SKILL.md, a new skill per the owner's …
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:150) *(superseded)*: Owner ruling 2026-11-13: Prevents: A chart that never reaches the person who decides whether the behaviour is right. Lands in statechart, SKILL.md, a new skill…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:149) *(superseded)*: Owner ruling 2026-11-13: Prevents: An image unreadable in the viewer's light or dark theme. Lands in statechart, SKILL.md, a new skill per the owner's ruling o…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:148) *(superseded)*: Owner ruling 2026-11-13: Prevents: Failure marks hidden under phase colours. Lands in statechart, SKILL.md, a new skill per the owner's ruling of 2026-11-13. U…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:147) *(superseded)*: Owner ruling 2026-11-13: Prevents: A failed render that leaves the person with nothing to look at. Lands in statechart, SKILL.md, a new skill per the owner's r…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:146) *(superseded)*: Owner ruling 2026-11-13: Prevents: The largest allowed chart failing to render on a default size limit. Lands in statechart, SKILL.md, a new skill per the owne…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:145) *(superseded)*: Owner ruling 2026-11-13: Prevents: A rendered image the person cannot match to its chart file. Lands in statechart, SKILL.md, a new skill per the owner's rulin…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:144) *(superseded)*: Owner ruling 2026-11-13: Prevents: Charts that render differently each time, or a renderer installed into the repository. Lands in statechart, SKILL.md, a new …
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:143) *(superseded)*: Owner ruling 2026-11-13: Prevents: Failure marks that vanish in a viewer that ignores custom themes. Lands in statechart, SKILL.md, a new skill per the owner's…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:142) *(superseded)*: Owner ruling 2026-11-13: Prevents: A regions chart drawn as one tangled graph. Lands in statechart, SKILL.md, a new skill per the owner's ruling of 2026-11-13.…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:141) *(superseded)*: Owner ruling 2026-11-13: Prevents: A label whose special character breaks the diagram. Lands in statechart, SKILL.md, a new skill per the owner's ruling of 202…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:140) *(superseded)*: Owner ruling 2026-11-13: Prevents: A chart left in a file the person never opens. Lands in statechart, SKILL.md, a new skill per the owner's ruling of 2026-11-…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:139) *(superseded)*: Owner ruling 2026-11-13: Prevents: A chart too large to draw or read, or rules left unchecked because the chart could not be drawn. Lands in statechart, SKILL.…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:138) *(superseded)*: Owner ruling 2026-11-13: Prevents: Rules that held left unsaid, so the reader cannot tell them from unchecked ones. Lands in statechart, SKILL.md, a new skill …
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:137) *(superseded)*: Owner ruling 2026-11-13: Prevents: An empty result with no hint why no state was explored. Lands in statechart, SKILL.md, a new skill per the owner's ruling of…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:136) *(superseded)*: Owner ruling 2026-11-13: Prevents: A chart read as complete when drawing stopped early. Lands in statechart, SKILL.md, a new skill per the owner's ruling of 20…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:135) *(superseded)*: Owner ruling 2026-11-13: Prevents: An arrow read as reaching a state it only stands in for. Lands in statechart, SKILL.md, a new skill per the owner's ruling o…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:134) *(superseded)*: Owner ruling 2026-11-13: Prevents: A failing path that ends off the chart because its last state lies past a bound. Lands in statechart, SKILL.md, a new skill …
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:133) *(superseded)*: Owner ruling 2026-11-13: Prevents: States with no exit wrongly marked, or wrongly left unmarked, as deadlocks. Lands in statechart, SKILL.md, a new skill per t…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:132) *(superseded)*: Owner ruling 2026-11-13: Prevents: A reader surprised by states drawn after a failure, or unaware of what follows one. Lands in statechart, SKILL.md, a new ski…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:131) *(superseded)*: Owner ruling 2026-11-13: Prevents: A reader unable to tell which state breaks which of two rules sharing a mark. Lands in statechart, SKILL.md, a new skill per…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:130) *(superseded)*: Owner ruling 2026-11-13: Prevents: Marks the reader cannot match to rules. Lands in statechart, SKILL.md, a new skill per the owner's ruling of 2026-11-13. Ups…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:129) *(superseded)*: Owner ruling 2026-11-13: Prevents: A failing path the reader cannot pick out on the chart. Lands in statechart, SKILL.md, a new skill per the owner's ruling of…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:128) *(superseded)*: Owner ruling 2026-11-13: Prevents: A state marked as breaking a rule when only part of it does, or left unmarked. Lands in statechart, SKILL.md, a new skill pe…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:127) *(superseded)*: Owner ruling 2026-11-13: Prevents: A broken liveness property with no account of where the system gets stuck. Lands in statechart, SKILL.md, a new skill per th…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:126) *(superseded)*: Owner ruling 2026-11-13: Prevents: A broken rule reported without the steps that reach it. Lands in statechart, SKILL.md, a new skill per the owner's ruling of…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:125) *(superseded)*: Owner ruling 2026-11-13: Prevents: Chart text that changes on every run, so its diffs show only noise. Lands in statechart, SKILL.md, a new skill per the owner…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:124) *(superseded)*: Owner ruling 2026-11-13: Prevents: A chart showing a way out of a failure loop that the system cannot take. Lands in statechart, SKILL.md, a new skill per the …
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:123) *(superseded)*: Owner ruling 2026-11-13: Prevents: A regions chart that allows moves the model does not. Lands in statechart, SKILL.md, a new skill per the owner's ruling of 2…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:122) *(superseded)*: Owner ruling 2026-11-13: Prevents: A reader of a regions chart who cannot tell whether regions change together. Lands in statechart, SKILL.md, a new skill per …
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:121) *(superseded)*: Owner ruling 2026-11-13: Prevents: The same arrow drawn once for every child state. Lands in statechart, SKILL.md, a new skill per the owner's ruling of 2026-1…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:120) *(superseded)*: Owner ruling 2026-11-13: Prevents: Clutter from steps that change nothing the reader sees, or a needed step lost for want of a split label. Lands in statechart…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:119) *(superseded)*: Owner ruling 2026-11-13: Prevents: A decider judging a chart without knowing that steps were hidden. Lands in statechart, SKILL.md, a new skill per the owner's…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:118) *(superseded)*: Owner ruling 2026-11-13: Prevents: A hidden step that makes a state look unreachable or stuck, or makes a failing path vanish. Lands in statechart, SKILL.md, a…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:117) *(superseded)*: Owner ruling 2026-11-13: Prevents: A simplification that hides where a rule breaks. Lands in statechart, SKILL.md, a new skill per the owner's ruling of 2026-1…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:116) *(superseded)*: Owner ruling 2026-11-13: Prevents: A chart too busy to read, or one thinned by hiding steps before its labels were coarsened. Lands in statechart, SKILL.md, a …
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:115) *(superseded)*: Owner ruling 2026-11-13: Prevents: A chart drawn from a broken view, mislabelled without any error. Lands in statechart, SKILL.md, a new skill per the owner's …
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:114) *(superseded)*: Owner ruling 2026-11-13: Prevents: Labels that differ between the chart and the report because the view depends on hidden state. Lands in statechart, SKILL.md,…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:113) *(superseded)*: Owner ruling 2026-11-13: Prevents: A chart with no visible phases, or a colour claiming a phase a state does not belong to. Lands in statechart, SKILL.md, a ne…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:112) *(superseded)*: Owner ruling 2026-11-13: Prevents: Two arrows from one state that look the same but lead to different places. Lands in statechart, SKILL.md, a new skill per th…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:111) *(superseded)*: Owner ruling 2026-11-13: Prevents: A step that looks always possible when it happens only under a condition. Lands in statechart, SKILL.md, a new skill per the…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:110) *(superseded)*: Owner ruling 2026-11-13: Prevents: A chart crowded with parallel arrows that mean the same thing to the reader. Lands in statechart, SKILL.md, a new skill per …
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:109) *(superseded)*: Owner ruling 2026-11-13: Prevents: Arrows labelled with code names the decider does not know. Lands in statechart, SKILL.md, a new skill per the owner's ruling…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:108) *(superseded)*: Owner ruling 2026-11-13: Prevents: View code that misreads the model's values and labels states wrongly. Lands in statechart, SKILL.md, a new skill per the own…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:107) *(superseded)*: Owner ruling 2026-11-13: Prevents: A chart the decider cannot read because it is labelled with variable names. Lands in statechart, SKILL.md, a new skill per t…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:106) *(superseded)*: Owner ruling 2026-11-13: Prevents: A chart with no readable labels when no view is given. Lands in statechart, SKILL.md, a new skill per the owner's ruling of …
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:105) *(superseded)*: Owner ruling 2026-11-13: Prevents: A chart forced into the wrong form for how the system is built. Lands in statechart, SKILL.md, a new skill per the owner's r…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:104) *(superseded)*: Owner ruling 2026-11-13: Prevents: Reader-facing wording mixed into the model, so changing a label risks changing the behaviour checked. Lands in statechart, S…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:103) *(superseded)*: Owner ruling 2026-11-13: Prevents: A failure nobody can investigate because the checker's own output is gone. Lands in statechart, SKILL.md, a new skill per th…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:102) *(superseded)*: Owner ruling 2026-11-13: Prevents: A property believed checked in every state that was checked only at the start. Lands in statechart, SKILL.md, a new skill pe…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:101) *(superseded)*: Owner ruling 2026-11-13: Prevents: Rules left unchecked with no route to checking them. Lands in statechart, SKILL.md, a new skill per the owner's ruling of 20…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:100) *(superseded)*: Owner ruling 2026-11-13: Prevents: A rerun that never ends on a large model, or a bounded run read as complete. Lands in statechart, SKILL.md, a new skill per …
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:099) *(superseded)*: Owner ruling 2026-11-13: Prevents: Rules after the first break left with no verdict and read as holding. Lands in statechart, SKILL.md, a new skill per the own…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:098) *(superseded)*: Owner ruling 2026-11-13: Prevents: A check that never finishes because the model's states are unbounded. Lands in statechart, SKILL.md, a new skill per the own…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:097) *(superseded)*: Owner ruling 2026-11-13: Prevents: A deadlock reported under a name another rule already uses. Lands in statechart, SKILL.md, a new skill per the owner's rulin…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:096) *(superseded)*: Owner ruling 2026-11-13: Prevents: Correct end states reported as deadlocks. Lands in statechart, SKILL.md, a new skill per the owner's ruling of 2026-11-13, i…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:095) *(superseded)*: Owner ruling 2026-11-13: Prevents: Every arrow carrying the same generic step name, so no path can be read. Lands in statechart, SKILL.md, a new skill per the …
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:093) *(superseded)*: Owner ruling 2026-11-13: Prevents: A model that checks rules the reader never agreed to, or cannot express the one they care about. Lands in statechart, SKILL.…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:092) *(superseded)*: Owner ruling 2026-11-13: Prevents: A checker error lost in pages of output, or rules silently left unchecked. Lands in statechart, SKILL.md, a new skill per th…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:091) *(superseded)*: Owner ruling 2026-11-13: Prevents: A failure reported against a rule the checker never named. Lands in statechart, SKILL.md, a new skill per the owner's ruling…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:090) *(superseded)*: Owner ruling 2026-11-13: Prevents: A finished check whose result and files the agent must go looking for. Lands in statechart, SKILL.md, a new skill per the ow…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:089) *(superseded)*: Owner ruling 2026-11-13: Prevents: Stray checker processes or partial files left behind by an interrupted run. Lands in statechart, SKILL.md, a new skill per t…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:088) *(superseded)*: Owner ruling 2026-11-13: Prevents: A caller that cannot tell a broken rule from a tool error. Lands in statechart, SKILL.md, a new skill per the owner's ruling…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:087) *(superseded)*: Owner ruling 2026-11-13: Prevents: Results of two runs mixed in one folder, or half-written results read as complete. Lands in statechart, SKILL.md, a new skil…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:086) *(superseded)*: Owner ruling 2026-11-13: Prevents: A long check run on a malformed model that fails late or with an unreadable error. Lands in statechart, SKILL.md, a new skil…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:085) *(superseded)*: Owner ruling 2026-11-13: Prevents: A run that guesses its configuration, or fails without saying which option it needs. Lands in statechart, SKILL.md, a new sk…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:084) *(superseded)*: Owner ruling 2026-11-13: Prevents: A model that fails to load because the modules it extends, kept beside it, are not found. Lands in statechart, SKILL.md, a n…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:083) *(superseded)*: Owner ruling 2026-11-13: Prevents: A check that gives a different verdict or failing path on each run. Lands in statechart, SKILL.md, a new skill per the owner…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:082) *(superseded)*: Owner ruling 2026-11-13: Prevents: Results that differ between machines because each runs another checker version, or a second checker installed beside one the…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:081) *(superseded)*: Owner ruling 2026-11-13: Prevents: A cryptic crash when the tool's runtime is missing or too old. Lands in statechart, SKILL.md, a new skill per the owner's ru…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:080) *(superseded)*: Owner ruling 2026-11-13: Prevents: A chart drawn from a different model or run than the one checked. Lands in statechart, SKILL.md, a new skill per the owner's…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:079) *(superseded)*: Owner ruling 2026-11-13: Prevents: Scratch models and their configurations committed to the repository by accident. Lands in statechart, SKILL.md, a new skill …
+<!-- /registry:generated history -->
+
+<!-- registry:generated reviews -->
+- [2026-11-12-upstream-cursor_plugins-2776ddd-batch-p2.md](../../reviews/2026-11-12-upstream-cursor_plugins-2776ddd-batch-p2.md)
+<!-- /registry:generated reviews -->
+
+<!-- registry:generated sources -->
+- `agreed-rules-as-invariants`:
+  - `cursor_plugins:skill:pstack/skills/statechart#agreed-rules-as-invariants` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `arrow-reduction-ladder`:
+  - `cursor_plugins:skill:pstack/skills/statechart#arrow-reduction-ladder` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `bounded-state-space`:
+  - `cursor_plugins:skill:pstack/skills/statechart#bounded-state-space` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `break-and-may-break-marks`:
+  - `cursor_plugins:skill:pstack/skills/statechart#break-and-may-break-marks` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `chart-shown-as-code-block`:
+  - `cursor_plugins:skill:pstack/skills/statechart#chart-shown-as-code-block` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `chart-state-budget`:
+  - `cursor_plugins:skill:pstack/skills/statechart#chart-state-budget` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `chart-theming-rules`:
+  - `cursor_plugins:skill:pstack/skills/statechart#chart-theming-rules` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `chart-to-decider`:
+  - `cursor_plugins:skill:pstack/skills/statechart#chart-to-decider` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `check-and-draw-in-one-command`:
+  - `cursor_plugins:skill:pstack/skills/statechart#check-and-draw-in-one-command` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `checker-error-excerpt`:
+  - `cursor_plugins:skill:pstack/skills/statechart#checker-error-excerpt` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `checker-exit-code-contract`:
+  - `cursor_plugins:skill:pstack/skills/statechart#checker-exit-code-contract` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `checker-install-pinned-or-pointed`:
+  - `cursor_plugins:skill:pstack/skills/statechart#pinned-checker-install` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `concurrent-regions-rendering`:
+  - `cursor_plugins:skill:pstack/skills/statechart#concurrent-regions-rendering` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `config-and-output-defaults`:
+  - `cursor_plugins:skill:pstack/skills/statechart#config-and-output-defaults` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `constraint-boundary-states`:
+  - `cursor_plugins:skill:pstack/skills/statechart#constraint-boundary-states` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `counterexample-replayed-on-code`:
+  - `cursor_plugins:skill:pstack/skills/statechart#counterexample-replayed-on-code` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `dead-end-deadlock-marking`:
+  - `cursor_plugins:skill:pstack/skills/statechart#dead-end-deadlock-marking` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `deadlock-rule-naming`:
+  - `cursor_plugins:skill:pstack/skills/statechart#deadlock-rule-naming` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `default-state-labels`:
+  - `cursor_plugins:skill:pstack/skills/statechart#default-state-labels` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `deterministic-checker-run`:
+  - `cursor_plugins:skill:pstack/skills/statechart#deterministic-checker-run` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `disclose-hidden-steps`:
+  - `cursor_plugins:skill:pstack/skills/statechart#disclose-hidden-steps` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `embedded-light-dark-stylesheet`:
+  - `cursor_plugins:skill:pstack/skills/statechart#embedded-light-dark-stylesheet` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `empty-model-diagnosis`:
+  - `cursor_plugins:skill:pstack/skills/statechart#empty-model-diagnosis` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `end-states-marked-not-deadlocks`:
+  - `cursor_plugins:skill:pstack/skills/statechart#end-state-stutter-action` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `every-rule-own-verdict`:
+  - `cursor_plugins:skill:pstack/skills/statechart#every-rule-own-verdict` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `fresh-output-published-atomically`:
+  - `cursor_plugins:skill:pstack/skills/statechart#fresh-output-published-atomically` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `graph-size-summary`:
+  - `cursor_plugins:skill:pstack/skills/statechart#graph-size-summary` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `hidden-steps-constrained`:
+  - `cursor_plugins:skill:pstack/skills/statechart#hidden-steps-constrained` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `holds-list`:
+  - `cursor_plugins:skill:pstack/skills/statechart#holds-list` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `image-beside-chart`:
+  - `cursor_plugins:skill:pstack/skills/statechart#image-beside-chart` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `initial-only-property-warning`:
+  - `cursor_plugins:skill:pstack/skills/statechart#initial-only-property-warning` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `input-validated-before-check`:
+  - `cursor_plugins:skill:pstack/skills/statechart#input-validated-before-check` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `interrupt-leaves-nothing`:
+  - `cursor_plugins:skill:pstack/skills/statechart#interrupt-leaves-nothing` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `judgment-in-view-file`:
+  - `cursor_plugins:skill:pstack/skills/statechart#judgment-in-view-module` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `legend-of-marks`:
+  - `cursor_plugins:skill:pstack/skills/statechart#legend-of-marks` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `liveness-loop-description`:
+  - `cursor_plugins:skill:pstack/skills/statechart#liveness-loop-description` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `loop-exit-fidelity-check`:
+  - `cursor_plugins:skill:pstack/skills/statechart#loop-exit-fidelity-check` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `model-files-in-ignored-scratch`:
+  - `cursor_plugins:skill:pstack/skills/statechart#model-files-outside-repo` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `name-hidden-outcome`:
+  - `cursor_plugins:skill:pstack/skills/statechart#name-hidden-outcome` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `named-actions-in-next-state`:
+  - `cursor_plugins:skill:pstack/skills/statechart#named-actions-in-next-state` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `one-documented-value-shape`:
+  - `cursor_plugins:skill:pstack/skills/statechart#value-encoding-for-views` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `one-line-per-failure`:
+  - `cursor_plugins:skill:pstack/skills/statechart#one-line-per-failure` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `parent-level-arrows`:
+  - `cursor_plugins:skill:pstack/skills/statechart#parent-level-arrows` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `path-and-repeat-classes`:
+  - `cursor_plugins:skill:pstack/skills/statechart#path-and-repeat-classes` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `per-state-rule-attribution`:
+  - `cursor_plugins:skill:pstack/skills/statechart#per-state-rule-attribution` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `phase-groups-and-colors`:
+  - `cursor_plugins:skill:pstack/skills/statechart#phase-groups-and-colors` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `pinned-designated-renderer`:
+  - `cursor_plugins:skill:pstack/skills/statechart#pinned-designated-renderer` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `portable-mark-styles`:
+  - `cursor_plugins:skill:pstack/skills/statechart#portable-mark-styles` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `post-violation-states-shown`:
+  - `cursor_plugins:skill:pstack/skills/statechart#post-violation-states-shown` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `preserve-bug-states-in-merges`:
+  - `cursor_plugins:skill:pstack/skills/statechart#preserve-bug-states-in-merges` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `pure-view-functions`:
+  - `cursor_plugins:skill:pstack/skills/statechart#pure-view-functions` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `raised-render-limits`:
+  - `cursor_plugins:skill:pstack/skills/statechart#raised-render-limits` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `raw-checker-logs`:
+  - `cursor_plugins:skill:pstack/skills/statechart#raw-checker-logs` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `reader-facing-state-labels`:
+  - `cursor_plugins:skill:pstack/skills/statechart#reader-facing-state-labels` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `regeneration-command`:
+  - `cursor_plugins:skill:pstack/skills/statechart#regeneration-command` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `regions-fidelity-fallback`:
+  - `cursor_plugins:skill:pstack/skills/statechart#regions-fidelity-fallback` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `render-error-fallback`:
+  - `cursor_plugins:skill:pstack/skills/statechart#render-error-fallback` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `report-printed-on-success`:
+  - `cursor_plugins:skill:pstack/skills/statechart#report-printed-on-success` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `representative-state-note`:
+  - `cursor_plugins:skill:pstack/skills/statechart#representative-state-note` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `rerun-state-bound`:
+  - `cursor_plugins:skill:pstack/skills/statechart#rerun-state-bound` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `runtime-missing-stops-with-version`:
+  - `cursor_plugins:skill:pstack/skills/statechart#runtime-version-gate` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `safe-label-escaping`:
+  - `cursor_plugins:skill:pstack/skills/statechart#safe-label-escaping` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `self-loops-not-drawn`:
+  - `cursor_plugins:skill:pstack/skills/statechart#self-loops-not-drawn` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `shared-label-shared-arrow`:
+  - `cursor_plugins:skill:pstack/skills/statechart#shared-label-shared-arrow` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `shortest-failing-path`:
+  - `cursor_plugins:skill:pstack/skills/statechart#shortest-failing-path` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `sibling-modules-on-path`:
+  - `cursor_plugins:skill:pstack/skills/statechart#sibling-modules-on-path` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `simultaneous-region-change-notes`:
+  - `cursor_plugins:skill:pstack/skills/statechart#simultaneous-region-change-notes` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `stable-draw-order`:
+  - `cursor_plugins:skill:pstack/skills/statechart#stable-draw-order` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `state-model-omissions`:
+  - `cursor_plugins:skill:pstack/skills/statechart#state-model-omissions` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `state-shape-selects-chart-form`:
+  - `cursor_plugins:skill:pstack/skills/statechart#state-shape-selects-chart-form` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `step-condition-in-label`:
+  - `cursor_plugins:skill:pstack/skills/statechart#step-condition-in-label` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `unchecked-rule-remedy`:
+  - `cursor_plugins:skill:pstack/skills/statechart#unchecked-rule-remedy` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `unnamed-break-is-error`:
+  - `cursor_plugins:skill:pstack/skills/statechart#unnamed-break-is-error` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `user-event-step-labels`:
+  - `cursor_plugins:skill:pstack/skills/statechart#user-event-step-labels` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `view-output-validated`:
+  - `cursor_plugins:skill:pstack/skills/statechart#view-output-validated` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+<!-- /registry:generated sources -->
+
+<!-- registry:generated declined -->
+No declined traits recorded.
+<!-- /registry:generated declined -->

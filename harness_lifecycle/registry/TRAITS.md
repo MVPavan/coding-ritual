@@ -1016,6 +1016,86 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `build-route-back`: When a build of the chosen direction is wanted, route it through the router at top level, or report that route to the parent inside a delegated task, and start no playbook.
 - `unobserved-surface-stated`: Where no available tool can drive the surface, hand over the pointer, say it was not observed, and leave the outcome inconclusive until a person reports.
 
+#### engineering · Design · Architecture — statechart
+- `check-and-draw-in-one-command`: Model-check a specification and draw its state graph with one command taking the spec and optional configuration, view module and output folder.
+- `runtime-missing-stops-with-version`: When the tool's runtime is missing or too old, stop and name the version it needs.
+- `config-and-output-defaults`: Default the configuration and output folder to names derived from the specification, failing with the flag to pass when the configuration is missing.
+- `checker-exit-code-contract`: Exit with the checker's own verdict: zero when every rule holds, one when a rule breaks, two on error, and the signal codes on interruption.
+- `interrupt-leaves-nothing`: On an interrupt, stop the whole check process group, remove temporary files and report that nothing was written.
+- `report-printed-on-success`: Print the report and the folder written when a check finishes.
+- `checker-install-pinned-or-pointed`: On first use, install a pinned, checksum-verified checker outside the repository, or use an existing install the person points to.
+- `deterministic-checker-run`: Pin every checker run to one worker and a fixed seed, checking liveness only at the end.
+- `sibling-modules-on-path`: Put the modules beside a specification on the checker's library path so it can extend them.
+- `input-validated-before-check`: Parse the configuration and the specification before running the checker, refusing invalid input with its file and line.
+- `unnamed-break-is-error`: Stop with an error and the output tail when the checker fails without naming a broken rule, rather than guessing one.
+- `checker-error-excerpt`: When the checker stops on an error, report which rules it left unchecked and quote only its error messages, cut to a few dozen lines.
+- `every-rule-own-verdict`: When a rule breaks, drop it and rerun until no remaining rule breaks, splitting temporal properties into separate runs, so every rule gets its own verdict.
+- `rerun-state-bound`: Cap each rerun after the first break at a fixed number of states, listing rules a bounded or failed run could not finish as unchecked and naming the bound.
+- `initial-only-property-warning`: Flag a property without a temporal operator as checked only in initial states, advising it be listed as an invariant.
+- `raw-checker-logs`: Keep the checker's own printout, plus a log per rule whose failing path the chart does not draw.
+- `constraint-boundary-states`: Draw and count a failing path's final state or step beyond a constraint, leaving other states past the bound undrawn.
+- `fresh-output-published-atomically`: Write only to a new or empty output folder, staging the results and moving them into place in one step, writing nothing if the folder changed meanwhile.
+- `pure-view-functions`: Make view functions depend only on their arguments, since each is called at most once per state or step.
+- `view-output-validated`: Refuse a view with unknown or mistyped exports, colours outside the fixed palette, empty or broken labels, inconsistent region shapes, or a label used as both leaf and parent, naming the state.
+- `one-documented-value-shape`: Hand the model's values to the view as data in one documented shape.
+- `state-shape-selects-chart-form`: Let the view's state function choose the chart form: a string for a flat chart, a list for nested parent states and an object for parallel regions.
+- `default-state-labels`: Label each state by its variable values when no view is given.
+- `shared-label-shared-arrow`: Give actions with the same visible effect one label so they merge into one arrow, joining different labels between two states with or.
+- `phase-groups-and-colors`: Colour chart states by phase and title the chart through optional exports, leaving a state that spans several groups uncoloured.
+- `self-loops-not-drawn`: Leave out a step that stays within one chart label and count it, splitting the label if the reader must see it.
+- `parent-level-arrows`: Draw once from the parent a step that leaves every child with the same label and target.
+- `simultaneous-region-change-notes`: Note per label in a regions chart whether its step changes several regions at once or one at a time.
+- `regions-fidelity-fallback`: Check that a regions chart allows exactly the model's moves and starts, redrawing it as nested states and saying why when it does not.
+- `loop-exit-fidelity-check`: Refuse a chart whose arrow out of a looping failure is one the loop cannot take, asking for a label that shows what stops it.
+- `break-and-may-break-marks`: Mark a chart state as breaking when every model state under it breaks a rule and as may-break when only some do, with the regions-chart rule for combinations.
+- `dead-end-deadlock-marking`: Mark every state with no exit as a deadlock when there are no constraints, and otherwise only the deadlock reported, saying why.
+- `chart-state-budget`: Draw the full chart only up to a state limit and above it only the failing paths, still checking every rule.
+- `deadlock-rule-naming`: Report the deadlock rule under a fixed name, switching to another when an invariant already uses it.
+- `shortest-failing-path`: Give for each broken state rule the shortest path from a start, as numbered steps with their labels and states in reader words.
+- `liveness-loop-description`: Give for a broken temporal property its counterexample steps and which states repeat forever or where the run stops.
+- `legend-of-marks`: Carry a legend naming the phase colours and, per mark, the rules it stands for.
+- `representative-state-note`: Warn that under a view or symmetry setting an arrow may lead to a representative state rather than the one reached.
+- `graph-size-summary`: Open the report with the states and steps checked and the states and arrows drawn, noting when drawing stopped early.
+- `empty-model-diagnosis`: When no state is explored, say whether no state meets the initial condition or every initial state lies outside the constraints.
+- `holds-list`: List the rules that hold.
+- `post-violation-states-shown`: Show states reached after a failure, since the checker explores past it.
+- `stable-draw-order`: Order states by distance from a start and then by name, so the chart text is the same on every run.
+- `path-and-repeat-classes`: Give states on a shortest failing path and states a counterexample repeats their own visual classes.
+- `safe-label-escaping`: Encode label and title text so any character renders safely in the diagram.
+- `concurrent-regions-rendering`: Draw a regions chart left to right as one composite of parallel regions, with the title as diagram metadata.
+- `portable-mark-styles`: Define styles only for the failure marks in the chart file, so any viewer shows them.
+- `model-files-in-ignored-scratch`: Write the state model and its configuration in the project's ignored scratch folder rather than among tracked files, keeping them only when the person asks.
+- `agreed-rules-as-invariants`: Write each rule the reader agrees to as an invariant over what they see, adding a model variable when a rule needs one.
+- `named-actions-in-next-state`: Write the next-state relation as a disjunction of named actions so each step carries its action's name.
+- `end-states-marked-not-deadlocks`: Mark the model's correct end states, under a label, so the checker does not report them as deadlocks.
+- `bounded-state-space`: Keep constants small or add a constraint so a model with an unbounded state space still finishes.
+- `chart-shown-as-code-block`: Show the chart to the person as a diagram code block.
+- `chart-to-decider`: Give each chart and its text to the person who decides whether the behaviour is right.
+- `one-line-per-failure`: Give one hand-off line per failure: the rule, the reader's sentence for it and the step numbers from the report.
+- `per-state-rule-attribution`: When one mark stands for two rules, state in the hand-off which chart state violates which rule.
+- `hidden-steps-constrained`: Hide a step only if every state stays reachable, every state that has an exit keeps one, an arrow's steps hide all or none, and the step is on no failing path or loop exit.
+- `disclose-hidden-steps`: Name in the hand-off which steps the chart hides, and count them in the report.
+- `state-model-omissions`: Say in the hand-off what the model leaves out.
+- `regeneration-command`: Give the command that regenerates the files into a new output folder.
+- `counterexample-replayed-on-code`: Replay each counterexample step by step against the real code, presuming a step that cannot happen to be a model error until shown otherwise.
+- `judgment-in-view-file`: Keep a chart's wording, phases, colours and title in a view file apart from the model.
+- `reader-facing-state-labels`: Name chart states by what the reader sees or cares about, never by variable names.
+- `user-event-step-labels`: Label each arrow by the event as the user experiences it, never by code or action name.
+- `step-condition-in-label`: End a conditional step's label with its condition in brackets, in reader words, leaving cross-region conditions to the tool to write.
+- `name-hidden-outcome`: When the destination of a step depends on a value the chart does not display, put that outcome in the label.
+- `arrow-reduction-ladder`: Aim for about twenty arrows, first coarsening state labels and only then hiding steps the reader does not need.
+- `preserve-bug-states-in-merges`: Keep every failing-path state and mark when coarsening, and never merge states that break different rules.
+- `unchecked-rule-remedy`: To check a rule listed as unchecked, remove the breaking rules from the configuration or shrink the model.
+- `pinned-designated-renderer`: Render charts with one named renderer at a pinned version, installed once outside the repository, and only when an image is wanted or the text is too large.
+- `image-beside-chart`: Write each rendered image beside its chart file under the same name and give it to the person.
+- `render-error-fallback`: On a render error, show the diagram text and the error.
+- `raised-render-limits`: Raise the renderer's node, output and edge limits so the largest allowed chart fits.
+- `chart-theming-rules`: Colour charts through the renderer's style variables and class rules, putting failure-mark rules last and forced so they show over phase colours.
+- `embedded-light-dark-stylesheet`: Embed a light and dark palette at the start of each image so it follows the viewer's colour scheme.
+- `checker-install-approved-per-user`: Install a missing model checker or its runtime only after the person approves it, and then per user under their home folder, never system-wide, as root or through a shell-profile change; without approval, stop and name what is missing.
+- `check-never-weakened-to-pass`: When a check fails on the current product, report the failure and never weaken the check or its model to make it pass.
+- `checker-install-signed-and-undoable`: Before a per-user checker install changes anything, verify each tool it downloads against a pinned checksum and, where the publisher signs its release, against that publisher's signature under a pinned key fingerprint (mise and the Temurin Java build; the TLC jar has no signature and is checked by its checksums alone); record an inventory and an ownership manifest of what the install creates, and on failure or removal undo only what it created and still owns unchanged.
+
 #### engineering · Design · Decomposition — principle-migrate-without-shims
 - `same-wave-legacy-removal`: When an internal API with no external dependants is replaced as part of a simplification, in a project that can absorb a coordinated breaking change, migrate every caller and delete the old API in the same change instead of keeping a compatibility layer.
 - `migration-group-unit`: Treat an authorized migration group as one verifiable unit: only its declared interior breakage is allowed, and its boundary checks must pass before dependent work proceeds.
@@ -1104,6 +1184,49 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `sources-consulted-line`: List each source searched, empty or skipped, with the reason.
 - `constraints-before-change`: When a change follows, turn the findings into preserve, change, avoid and risk lists.
 - `pr-discussion-pull`: For each substantive commit, read the pull request body, linked issues, comments and reviews.
+
+#### engineering · Improvement · Codification — create-formal-verification-skill
+- `formal-check-left-as-skill`: Verify one property and leave a project skill that lets a later agent check changes against it.
+- `result-trusted-without-the-language`: Make the result something the person can trust and act on without learning the verification language.
+- `named-scope-first`: Use the scope the user names when one is given.
+- `harmful-rarely-tested-promise`: Pick as the target a promise the code makes whose breaking harms users and that tests rarely reach.
+- `strongest-target-not-easiest`: Choose the strongest such target, not the easiest to verify.
+- `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write.
+- `verification-tool-by-question`: Pick the cheapest tool that answers the question: a model checker over a small design model for bad event orderings, a code-level verifier for behaviour on every input, and a proof for properties no bound can settle.
+- `generated-input-fallback`: When no verifier supports the language, say so and exercise the real code with generated inputs rather than a hand-written model of it.
+- `installable-tool-preference`: Prefer a verification tool the project's developers are able to install and run, and explain the choice to the person.
+- `generated-check-catches-planted-break`: Follow the generated skill once against a throwaway edit to real code that violates the property, confirm it catches the break, then remove the edit and confirm the check is back to its earlier state.
+- `fix-skill-not-scratch-break`: When the skill misses a planted break or a step fails, fix the skill or the verification, never the planted break.
+- `verification-handoff-report`: Tell the person what was verified, with which tool and why, the bounds, the findings in plain words, the command to run it and what it leaves uncovered.
+- `adjacent-target-only-if-close`: Suggest a second target only when a close one turned up.
+- `traceable-to-code`: Make every part of a verification model or proof point to code a reviewer can open.
+- `atomicity-fidelity`: Treat as one indivisible step in the verification only what is one indivisible step in the code.
+- `property-fails-on-broken-variant`: Show each property failing on a deliberately broken variant of the code it guards, after first writing it and after each update.
+- `coverage-and-sync-record`: Record, per check, the files and functions it guards and the last commit it was confirmed against, so drift shows.
+- `sync-commit-advanced-after-match`: Move the recorded sync commit forward only after confirming the verification matches the code at the new commit.
+- `plain-property-and-harm`: State the property and the harm of breaking it in one plain sentence each.
+- `cheap-rerun`: Make the check rerunnable with a single command, a pinned tool version and a short running time.
+- `verify-skill-capabilities`: Let the next agent learn from the skill alone whether a change touches verified code, how to run the check, how to tell a real bug from a modelling error and how to update the verification for an intended change.
+- `counterexample-as-code-steps`: Describe a counterexample as a few steps phrased in the code's own terms.
+- `verified-scope-statement`: Say what the verification covers, the bounds and assumptions it holds under, and what it leaves out.
+- `companion-tool-by-name`: When the check is a state-machine model, such as a TLA+ check, point the generated skill at a named companion tool for reading results, copying none of its commands, options or paths.
+- `existing-formal-skill-stops`: Before generating a formal check, search every skills folder the project's hosts read for a formal verify skill, known by its coverage record, as an older skill that runs a kept model or proof, or as an occupied target folder, and stop without writing when one covers the area or cannot be ruled out, pointing to the formal maintenance unit.
+- `generator-started-by-person`: Run the skill generator only when the person starts it: manual-only in its frontmatter and its sidecar, reached through setup, help or a router line, never by the model on its own.
+- `generated-skill-left-uncommitted`: Leave the generated skill and its map uncommitted unless the person asks for a commit, which the commit skill then makes.
+- `handover-points-to-maintenance`: At handover, tell the person that keeping the generated skill current as the product changes is the maintenance unit's job.
+- `formal-coverage-data-file`: Keep a formal verify skill's coverage and sync record in one small data file of a versioned format beside its skill file, never as prose inside the skill, so its check script, the maintenance unit and freshness checks read the same record.
+- `formal-skill-recognised-by-record`: Define the shape a formal verify skill is recognised by, a skill file beside a coverage data file whose format field names the formal coverage format, so other units find it by content, not by name, in every skills folder the project's hosts read.
+- `single-source-of-truth`: Keep each meaning in one authoritative place so changing it is a one-place edit.
+- `checker-install-approved-per-user`: Install a missing model checker or its runtime only after the person approves it, and then per user under their home folder, never system-wide, as root or through a shell-profile change; without approval, stop and name what is missing.
+- `check-never-weakened-to-pass`: When a check fails on the current product, report the failure and never weaken the check or its model to make it pass.
+- `generated-skill-run-once`: Follow a generated skill end to end once, as its next reader would, before handing it over, counting an unrun skill as a draft.
+- `verification-only-edits`: During a verification pass, edit only the verification skill's own files and never product code unless asked.
+- `generator-edits-own-output-only`: Edit only the generated skill's folder and any scaffolding the run labels, leaving a fix to product code to the person's authority.
+- `verdict-from-exit-and-messages`: Count a checker run as a verdict only when its exit code and its own completion and violation messages agree, with every rule checked where the checker checks all reachable states and no option that hides a violation.
+- `cold-agent-reader`: Write a generated skill for an agent that meets the project cold, in the middle of a task, rather than for a person.
+- `real-code-names`: Use real names from the actual code, never invented placeholders.
+- `registering-generated-frontmatter`: Give a generated skill frontmatter naming what it covers and when to use it, so it registers.
+- `pre-existing-edit-separation`: Separate pre-existing edits from the task's own changes using the task baseline, not filenames.
 
 #### engineering · Improvement · Codification — create-verification-skill
 - `ask-only-unobservable`: Answer setup questions from the codebase and ask the person only what the code cannot show.
@@ -3099,37 +3222,37 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `missing-red-explained`: If a failure before the fix could not be shown, say why and describe the substitute check. — adopt → tdd#missing-red-explained
 
 #### engineering · Verification · Validation — skill:pstack/skills/create-formal-verification-skill
-- `formal-check-left-as-skill`: Verify one property and leave a project skill that lets a later agent check changes against it. — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#formal-check-left-as-skill
+- `formal-check-left-as-skill`: Verify one property and leave a project skill that lets a later agent check changes against it. — adopt → create-formal-verification-skill#formal-check-left-as-skill
 - `cold-agent-reader`: Write a generated skill for an agent that meets the project cold, in the middle of a task, rather than for a person. — adopt → create-verification-skill#cold-agent-reader
-- `result-trusted-without-the-language`: Make the result something the person can trust and act on without learning the verification language. — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#result-trusted-without-the-language
+- `result-trusted-without-the-language`: Make the result something the person can trust and act on without learning the verification language. — adopt → create-formal-verification-skill#result-trusted-without-the-language
 - `ask-only-unobservable`: Answer setup questions from the codebase and ask the person only what the code cannot show. — adopt → create-verification-skill#ask-only-unobservable
-- `named-scope-first`: Use the scope the user names when one is given. — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#named-scope-first
-- `harmful-rarely-tested-promise`: Pick as the target a promise the code makes whose breaking harms users and that tests rarely reach. — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#harmful-rarely-tested-promise
-- `strongest-target-not-easiest`: Choose the strongest such target, not the easiest to verify. — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#strongest-target-not-easiest
-- `verification-tool-by-question`: Pick the cheapest tool that answers the question: a model checker over a small design model for bad event orderings, a code-level verifier for behaviour on every input, and a proof for properties no bound can settle. — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#verification-tool-by-question
-- `generated-input-fallback`: When no verifier supports the language, say so and exercise the real code with generated inputs rather than a hand-written model of it. — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#generated-input-fallback
-- `installable-tool-preference`: Prefer a verification tool the project's developers are able to install and run, and explain the choice to the person. — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#installable-tool-preference
-- `traceable-to-code`: Make every part of a verification model or proof point to code a reviewer can open. — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#traceable-to-code
-- `atomicity-fidelity`: Treat as one indivisible step in the verification only what is one indivisible step in the code. — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#atomicity-fidelity
-- `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write. — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#domain-vocabulary
-- `property-fails-on-broken-variant`: Show each property failing on a deliberately broken variant of the code it guards, after first writing it and after each update. — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#property-fails-on-broken-variant
+- `named-scope-first`: Use the scope the user names when one is given. — adopt → create-formal-verification-skill#named-scope-first
+- `harmful-rarely-tested-promise`: Pick as the target a promise the code makes whose breaking harms users and that tests rarely reach. — adopt → create-formal-verification-skill#harmful-rarely-tested-promise
+- `strongest-target-not-easiest`: Choose the strongest such target, not the easiest to verify. — adopt → create-formal-verification-skill#strongest-target-not-easiest
+- `verification-tool-by-question`: Pick the cheapest tool that answers the question: a model checker over a small design model for bad event orderings, a code-level verifier for behaviour on every input, and a proof for properties no bound can settle. — adopt → create-formal-verification-skill#verification-tool-by-question
+- `generated-input-fallback`: When no verifier supports the language, say so and exercise the real code with generated inputs rather than a hand-written model of it. — adopt → create-formal-verification-skill#generated-input-fallback
+- `installable-tool-preference`: Prefer a verification tool the project's developers are able to install and run, and explain the choice to the person. — adopt → create-formal-verification-skill#installable-tool-preference
+- `traceable-to-code`: Make every part of a verification model or proof point to code a reviewer can open. — adopt → create-formal-verification-skill#traceable-to-code
+- `atomicity-fidelity`: Treat as one indivisible step in the verification only what is one indivisible step in the code. — adopt → create-formal-verification-skill#atomicity-fidelity
+- `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write. — adopt → create-formal-verification-skill#domain-vocabulary
+- `property-fails-on-broken-variant`: Show each property failing on a deliberately broken variant of the code it guards, after first writing it and after each update. — adopt → create-formal-verification-skill#property-fails-on-broken-variant
 - `check-never-weakened-to-pass`: When a check fails on the current product, report the failure and never weaken the check or its model to make it pass. — adopt → create-verification-skill#check-never-weakened-to-pass
 - `verification-only-edits`: During a verification pass, edit only the verification skill's own files and never product code unless asked. — adopt → maintain-verification-skill#verification-only-edits
-- `verified-scope-statement`: Say what the verification covers, the bounds and assumptions it holds under, and what it leaves out. — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#verified-scope-statement
-- `plain-property-and-harm`: State the property and the harm of breaking it in one plain sentence each. — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#plain-property-and-harm
-- `counterexample-as-code-steps`: Describe a counterexample as a few steps phrased in the code's own terms. — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#counterexample-as-code-steps
-- `cheap-rerun`: Make the check rerunnable with a single command, a pinned tool version and a short running time. — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#cheap-rerun
-- `coverage-and-sync-record`: Record, per check, the files and functions it guards and the last commit it was confirmed against, so drift shows. — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#coverage-and-sync-record
+- `verified-scope-statement`: Say what the verification covers, the bounds and assumptions it holds under, and what it leaves out. — adopt → create-formal-verification-skill#verified-scope-statement
+- `plain-property-and-harm`: State the property and the harm of breaking it in one plain sentence each. — adopt → create-formal-verification-skill#plain-property-and-harm
+- `counterexample-as-code-steps`: Describe a counterexample as a few steps phrased in the code's own terms. — adopt → create-formal-verification-skill#counterexample-as-code-steps
+- `cheap-rerun`: Make the check rerunnable with a single command, a pinned tool version and a short running time. — adopt → create-formal-verification-skill#cheap-rerun
+- `coverage-and-sync-record`: Record, per check, the files and functions it guards and the last commit it was confirmed against, so drift shows. — adopt → create-formal-verification-skill#coverage-and-sync-record
 - `registering-generated-frontmatter`: Give a generated skill frontmatter naming what it covers and when to use it, so it registers. — adopt → create-verification-skill#registering-generated-frontmatter
-- `verify-skill-capabilities`: Let the next agent learn from the skill alone whether a change touches verified code, how to run the check, how to tell a real bug from a modelling error and how to update the verification for an intended change. — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#verify-skill-capabilities
-- `sync-commit-advanced-after-match`: Move the recorded sync commit forward only after confirming the verification matches the code at the new commit. — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#sync-commit-advanced-after-match
+- `verify-skill-capabilities`: Let the next agent learn from the skill alone whether a change touches verified code, how to run the check, how to tell a real bug from a modelling error and how to update the verification for an intended change. — adopt → create-formal-verification-skill#verify-skill-capabilities
+- `sync-commit-advanced-after-match`: Move the recorded sync commit forward only after confirming the verification matches the code at the new commit. — adopt → create-formal-verification-skill#sync-commit-advanced-after-match
 - `real-code-names`: Use real names from the actual code, never invented placeholders. — adopt → create-verification-skill#real-code-names
-- `companion-tool-by-name`: When the check is a state-machine model, such as a TLA+ check, point the generated skill at a named companion tool for reading results, copying none of its commands, options or paths. — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#companion-tool-by-name
-- `generated-check-catches-planted-break`: Follow the generated skill once against a throwaway edit to real code that violates the property, confirm it catches the break, then remove the edit and confirm the check is back to its earlier state. — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#generated-check-catches-planted-break
+- `companion-tool-by-name`: When the check is a state-machine model, such as a TLA+ check, point the generated skill at a named companion tool for reading results, copying none of its commands, options or paths. — adopt → create-formal-verification-skill#companion-tool-by-name
+- `generated-check-catches-planted-break`: Follow the generated skill once against a throwaway edit to real code that violates the property, confirm it catches the break, then remove the edit and confirm the check is back to its earlier state. — adopt → create-formal-verification-skill#generated-check-catches-planted-break
 - `generated-skill-run-once`: Follow a generated skill end to end once, as its next reader would, before handing it over, counting an unrun skill as a draft. — adopt → create-verification-skill#generated-skill-run-once
-- `fix-skill-not-scratch-break`: When the skill misses a planted break or a step fails, fix the skill or the verification, never the planted break. — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#fix-skill-not-scratch-break
-- `verification-handoff-report`: Tell the person what was verified, with which tool and why, the bounds, the findings in plain words, the command to run it and what it leaves uncovered. — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#verification-handoff-report
-- `adjacent-target-only-if-close`: Suggest a second target only when a close one turned up. — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#adjacent-target-only-if-close
+- `fix-skill-not-scratch-break`: When the skill misses a planted break or a step fails, fix the skill or the verification, never the planted break. — adopt → create-formal-verification-skill#fix-skill-not-scratch-break
+- `verification-handoff-report`: Tell the person what was verified, with which tool and why, the bounds, the findings in plain words, the command to run it and what it leaves uncovered. — adopt → create-formal-verification-skill#verification-handoff-report
+- `adjacent-target-only-if-close`: Suggest a second target only when a close one turned up. — adopt → create-formal-verification-skill#adjacent-target-only-if-close
 
 #### engineering · Verification · Validation — skill:pstack/skills/maintain-formal-verification-skill
 - `per-check-outcome`: Give each check one named outcome, in sync, updated, bug or blocked with the reason, allowing updated and bug together when an update restores fidelity and the property then fails. — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#per-check-outcome
@@ -3162,82 +3285,82 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `separate-verification-change`: Keep verification updates in their own change, apart from any product fix. — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#separate-verification-change
 
 #### engineering · Verification · Validation — skill:pstack/skills/statechart
-- `model-files-outside-repo`: Write the state model and its configuration in a scratch folder outside the repository. — adopt, pending cr-r2pa.2.13.2 → statechart#model-files-in-ignored-scratch
-- `check-and-draw-in-one-command`: Model-check a specification and draw its state graph with one command taking the spec and optional configuration, view module and output folder. — adopt, pending cr-r2pa.2.13.2 → statechart#check-and-draw-in-one-command
-- `runtime-version-gate`: Run the tool's entry point on the first suitable script runtime found, or stop naming the versions it needs. — adopt, pending cr-r2pa.2.13.2 → statechart#runtime-missing-stops-with-version
-- `pinned-checker-install`: Install a pinned, checksum-verified checker and runtime on first use, letting environment variables point at an existing install instead. — adopt, pending cr-r2pa.2.13.2 → statechart#checker-install-pinned-or-pointed
-- `deterministic-checker-run`: Pin every checker run to one worker and a fixed seed, checking liveness only at the end. — adopt, pending cr-r2pa.2.13.2 → statechart#deterministic-checker-run
-- `sibling-modules-on-path`: Put the modules beside a specification on the checker's library path so it can extend them. — adopt, pending cr-r2pa.2.13.2 → statechart#sibling-modules-on-path
-- `config-and-output-defaults`: Default the configuration and output folder to names derived from the specification, failing with the flag to pass when the configuration is missing. — adopt, pending cr-r2pa.2.13.2 → statechart#config-and-output-defaults
-- `input-validated-before-check`: Parse the configuration and the specification before running the checker, refusing invalid input with its file and line. — adopt, pending cr-r2pa.2.13.2 → statechart#input-validated-before-check
-- `fresh-output-published-atomically`: Write only to a new or empty output folder, staging the results and moving them into place in one step, writing nothing if the folder changed meanwhile. — adopt, pending cr-r2pa.2.13.2 → statechart#fresh-output-published-atomically
-- `checker-exit-code-contract`: Exit with the checker's own verdict: zero when every rule holds, one when a rule breaks, two on error, and the signal codes on interruption. — adopt, pending cr-r2pa.2.13.2 → statechart#checker-exit-code-contract
-- `interrupt-leaves-nothing`: On an interrupt, stop the whole check process group, remove temporary files and report that nothing was written. — adopt, pending cr-r2pa.2.13.2 → statechart#interrupt-leaves-nothing
-- `report-printed-on-success`: Print the report and the folder written when a check finishes. — adopt, pending cr-r2pa.2.13.2 → statechart#report-printed-on-success
-- `unnamed-break-is-error`: Stop with an error and the output tail when the checker fails without naming a broken rule, rather than guessing one. — adopt, pending cr-r2pa.2.13.2 → statechart#unnamed-break-is-error
-- `checker-error-excerpt`: When the checker stops on an error, report which rules it left unchecked and quote only its error messages, cut to a few dozen lines. — adopt, pending cr-r2pa.2.13.2 → statechart#checker-error-excerpt
-- `agreed-rules-as-invariants`: Write each rule the reader agrees to as an invariant over what they see, adding a model variable when a rule needs one. — adopt, pending cr-r2pa.2.13.2 → statechart#agreed-rules-as-invariants
+- `model-files-outside-repo`: Write the state model and its configuration in a scratch folder outside the repository. — adopt → statechart#model-files-in-ignored-scratch
+- `check-and-draw-in-one-command`: Model-check a specification and draw its state graph with one command taking the spec and optional configuration, view module and output folder. — adopt → statechart#check-and-draw-in-one-command
+- `runtime-version-gate`: Run the tool's entry point on the first suitable script runtime found, or stop naming the versions it needs. — adopt → statechart#runtime-missing-stops-with-version
+- `pinned-checker-install`: Install a pinned, checksum-verified checker and runtime on first use, letting environment variables point at an existing install instead. — adopt → statechart#checker-install-pinned-or-pointed
+- `deterministic-checker-run`: Pin every checker run to one worker and a fixed seed, checking liveness only at the end. — adopt → statechart#deterministic-checker-run
+- `sibling-modules-on-path`: Put the modules beside a specification on the checker's library path so it can extend them. — adopt → statechart#sibling-modules-on-path
+- `config-and-output-defaults`: Default the configuration and output folder to names derived from the specification, failing with the flag to pass when the configuration is missing. — adopt → statechart#config-and-output-defaults
+- `input-validated-before-check`: Parse the configuration and the specification before running the checker, refusing invalid input with its file and line. — adopt → statechart#input-validated-before-check
+- `fresh-output-published-atomically`: Write only to a new or empty output folder, staging the results and moving them into place in one step, writing nothing if the folder changed meanwhile. — adopt → statechart#fresh-output-published-atomically
+- `checker-exit-code-contract`: Exit with the checker's own verdict: zero when every rule holds, one when a rule breaks, two on error, and the signal codes on interruption. — adopt → statechart#checker-exit-code-contract
+- `interrupt-leaves-nothing`: On an interrupt, stop the whole check process group, remove temporary files and report that nothing was written. — adopt → statechart#interrupt-leaves-nothing
+- `report-printed-on-success`: Print the report and the folder written when a check finishes. — adopt → statechart#report-printed-on-success
+- `unnamed-break-is-error`: Stop with an error and the output tail when the checker fails without naming a broken rule, rather than guessing one. — adopt → statechart#unnamed-break-is-error
+- `checker-error-excerpt`: When the checker stops on an error, report which rules it left unchecked and quote only its error messages, cut to a few dozen lines. — adopt → statechart#checker-error-excerpt
+- `agreed-rules-as-invariants`: Write each rule the reader agrees to as an invariant over what they see, adding a model variable when a rule needs one. — adopt → statechart#agreed-rules-as-invariants
 - `check-never-weakened-to-pass`: When a check fails on the current product, report the failure and never weaken the check or its model to make it pass. — adopt → create-verification-skill#check-never-weakened-to-pass
-- `named-actions-in-next-state`: Write the next-state relation as a disjunction of named actions so each step carries its action's name. — adopt, pending cr-r2pa.2.13.2 → statechart#named-actions-in-next-state
-- `end-state-stutter-action`: Add a labelled action enabled only in correct end states that changes nothing, so they do not count as deadlocks. — adopt, pending cr-r2pa.2.13.2 → statechart#end-states-marked-not-deadlocks
-- `deadlock-rule-naming`: Report the deadlock rule under a fixed name, switching to another when an invariant already uses it. — adopt, pending cr-r2pa.2.13.2 → statechart#deadlock-rule-naming
-- `bounded-state-space`: Keep constants small or add a constraint so a model with an unbounded state space still finishes. — adopt, pending cr-r2pa.2.13.2 → statechart#bounded-state-space
-- `every-rule-own-verdict`: When a rule breaks, drop it and rerun until no remaining rule breaks, splitting temporal properties into separate runs, so every rule gets its own verdict. — adopt, pending cr-r2pa.2.13.2 → statechart#every-rule-own-verdict
-- `rerun-state-bound`: Cap each rerun after the first break at a fixed number of states, listing rules a bounded or failed run could not finish as unchecked and naming the bound. — adopt, pending cr-r2pa.2.13.2 → statechart#rerun-state-bound
-- `unchecked-rule-remedy`: To check a rule listed as unchecked, remove the breaking rules from the configuration or shrink the model. — adopt, pending cr-r2pa.2.13.2 → statechart#unchecked-rule-remedy
-- `initial-only-property-warning`: Flag a property without a temporal operator as checked only in initial states, advising it be listed as an invariant. — adopt, pending cr-r2pa.2.13.2 → statechart#initial-only-property-warning
-- `raw-checker-logs`: Keep the checker's own printout, plus a log per rule whose failing path the chart does not draw. — adopt, pending cr-r2pa.2.13.2 → statechart#raw-checker-logs
-- `judgment-in-view-module`: Put wording, phases, colours and the title of a chart in a view module passed to the tool. — adopt, pending cr-r2pa.2.13.2 → statechart#judgment-in-view-file
-- `state-shape-selects-chart-form`: Let the view's state function choose the chart form: a string for a flat chart, a list for nested parent states and an object for parallel regions. — adopt, pending cr-r2pa.2.13.2 → statechart#state-shape-selects-chart-form
-- `default-state-labels`: Label each state by its variable values when no view is given. — adopt, pending cr-r2pa.2.13.2 → statechart#default-state-labels
-- `reader-facing-state-labels`: Name chart states by what the reader sees or cares about, never by variable names. — adopt, pending cr-r2pa.2.13.2 → statechart#reader-facing-state-labels
-- `value-encoding-for-views`: Pass model values to the view as data, with sequences keyed from one and sets as lists. — adopt, pending cr-r2pa.2.13.2 → statechart#one-documented-value-shape
-- `user-event-step-labels`: Label each arrow by the event as the user experiences it, never by code or action name. — adopt, pending cr-r2pa.2.13.2 → statechart#user-event-step-labels
-- `shared-label-shared-arrow`: Give actions with the same visible effect one label so they merge into one arrow, joining different labels between two states with or. — adopt, pending cr-r2pa.2.13.2 → statechart#shared-label-shared-arrow
-- `step-condition-in-label`: End a conditional step's label with its condition in brackets, in reader words, leaving cross-region conditions to the tool to write. — adopt, pending cr-r2pa.2.13.2 → statechart#step-condition-in-label
-- `name-hidden-outcome`: When the destination of a step depends on a value the chart does not display, put that outcome in the label. — adopt, pending cr-r2pa.2.13.2 → statechart#name-hidden-outcome
-- `phase-groups-and-colors`: Colour chart states by phase and title the chart through optional exports, leaving a state that spans several groups uncoloured. — adopt, pending cr-r2pa.2.13.2 → statechart#phase-groups-and-colors
-- `pure-view-functions`: Make view functions depend only on their arguments, since each is called at most once per state or step. — adopt, pending cr-r2pa.2.13.2 → statechart#pure-view-functions
-- `view-output-validated`: Refuse a view with unknown or mistyped exports, colours outside the fixed palette, empty or broken labels, inconsistent region shapes, or a label used as both leaf and parent, naming the state. — adopt, pending cr-r2pa.2.13.2 → statechart#view-output-validated
-- `arrow-reduction-ladder`: Aim for about twenty arrows, first coarsening state labels and only then hiding steps the reader does not need. — adopt, pending cr-r2pa.2.13.2 → statechart#arrow-reduction-ladder
-- `preserve-bug-states-in-merges`: Keep every failing-path state and mark when coarsening, and never merge states that break different rules. — adopt, pending cr-r2pa.2.13.2 → statechart#preserve-bug-states-in-merges
-- `hidden-steps-constrained`: Hide a step only if every state stays reachable, every state that has an exit keeps one, an arrow's steps hide all or none, and the step is on no failing path or loop exit. — adopt, pending cr-r2pa.2.13.2 → statechart#hidden-steps-constrained
-- `disclose-hidden-steps`: Name in the hand-off which steps the chart hides, and count them in the report. — adopt, pending cr-r2pa.2.13.2 → statechart#disclose-hidden-steps
-- `self-loops-not-drawn`: Leave out a step that stays within one chart label and count it, splitting the label if the reader must see it. — adopt, pending cr-r2pa.2.13.2 → statechart#self-loops-not-drawn
-- `parent-level-arrows`: Draw once from the parent a step that leaves every child with the same label and target. — adopt, pending cr-r2pa.2.13.2 → statechart#parent-level-arrows
-- `simultaneous-region-change-notes`: Note per label in a regions chart whether its step changes several regions at once or one at a time. — adopt, pending cr-r2pa.2.13.2 → statechart#simultaneous-region-change-notes
-- `regions-fidelity-fallback`: Check that a regions chart allows exactly the model's moves and starts, redrawing it as nested states and saying why when it does not. — adopt, pending cr-r2pa.2.13.2 → statechart#regions-fidelity-fallback
-- `loop-exit-fidelity-check`: Refuse a chart whose arrow out of a looping failure is one the loop cannot take, asking for a label that shows what stops it. — adopt, pending cr-r2pa.2.13.2 → statechart#loop-exit-fidelity-check
-- `stable-draw-order`: Order states by distance from a start and then by name, so the chart text is the same on every run. — adopt, pending cr-r2pa.2.13.2 → statechart#stable-draw-order
-- `shortest-failing-path`: Give for each broken state rule the shortest path from a start, as numbered steps with their labels and states in reader words. — adopt, pending cr-r2pa.2.13.2 → statechart#shortest-failing-path
-- `liveness-loop-description`: Give for a broken temporal property its counterexample steps and which states repeat forever or where the run stops. — adopt, pending cr-r2pa.2.13.2 → statechart#liveness-loop-description
-- `break-and-may-break-marks`: Mark a chart state as breaking when every model state under it breaks a rule and as may-break when only some do, with the regions-chart rule for combinations. — adopt, pending cr-r2pa.2.13.2 → statechart#break-and-may-break-marks
-- `path-and-repeat-classes`: Give states on a shortest failing path and states a counterexample repeats their own visual classes. — adopt, pending cr-r2pa.2.13.2 → statechart#path-and-repeat-classes
-- `legend-of-marks`: Carry a legend naming the phase colours and, per mark, the rules it stands for. — adopt, pending cr-r2pa.2.13.2 → statechart#legend-of-marks
-- `per-state-rule-attribution`: When one mark stands for two rules, state in the hand-off which chart state violates which rule. — adopt, pending cr-r2pa.2.13.2 → statechart#per-state-rule-attribution
-- `post-violation-states-shown`: Show states reached after a failure, since the checker explores past it. — adopt, pending cr-r2pa.2.13.2 → statechart#post-violation-states-shown
-- `dead-end-deadlock-marking`: Mark every state with no exit as a deadlock when there are no constraints, and otherwise only the deadlock reported, saying why. — adopt, pending cr-r2pa.2.13.2 → statechart#dead-end-deadlock-marking
-- `constraint-boundary-states`: Draw and count a failing path's final state or step beyond a constraint, leaving other states past the bound undrawn. — adopt, pending cr-r2pa.2.13.2 → statechart#constraint-boundary-states
-- `representative-state-note`: Warn that under a view or symmetry setting an arrow may lead to a representative state rather than the one reached. — adopt, pending cr-r2pa.2.13.2 → statechart#representative-state-note
-- `graph-size-summary`: Open the report with the states and steps checked and the states and arrows drawn, noting when drawing stopped early. — adopt, pending cr-r2pa.2.13.2 → statechart#graph-size-summary
-- `empty-model-diagnosis`: When no state is explored, say whether no state meets the initial condition or every initial state lies outside the constraints. — adopt, pending cr-r2pa.2.13.2 → statechart#empty-model-diagnosis
-- `holds-list`: List the rules that hold. — adopt, pending cr-r2pa.2.13.2 → statechart#holds-list
-- `chart-state-budget`: Draw the full chart only up to a state limit and above it only the failing paths, still checking every rule. — adopt, pending cr-r2pa.2.13.2 → statechart#chart-state-budget
-- `chart-shown-as-code-block`: Show the chart to the person as a diagram code block. — adopt, pending cr-r2pa.2.13.2 → statechart#chart-shown-as-code-block
-- `safe-label-escaping`: Encode label and title text so any character renders safely in the diagram. — adopt, pending cr-r2pa.2.13.2 → statechart#safe-label-escaping
-- `concurrent-regions-rendering`: Draw a regions chart left to right as one composite of parallel regions, with the title as diagram metadata. — adopt, pending cr-r2pa.2.13.2 → statechart#concurrent-regions-rendering
-- `portable-mark-styles`: Define styles only for the failure marks in the chart file, so any viewer shows them. — adopt, pending cr-r2pa.2.13.2 → statechart#portable-mark-styles
-- `pinned-designated-renderer`: Render charts with one named renderer at a pinned version, installed once outside the repository, and only when an image is wanted or the text is too large. — adopt, pending cr-r2pa.2.13.2 → statechart#pinned-designated-renderer
-- `image-beside-chart`: Write each rendered image beside its chart file under the same name and give it to the person. — adopt, pending cr-r2pa.2.13.2 → statechart#image-beside-chart
-- `raised-render-limits`: Raise the renderer's node, output and edge limits so the largest allowed chart fits. — adopt, pending cr-r2pa.2.13.2 → statechart#raised-render-limits
-- `render-error-fallback`: On a render error, show the diagram text and the error. — adopt, pending cr-r2pa.2.13.2 → statechart#render-error-fallback
-- `chart-theming-rules`: Colour charts through the renderer's style variables and class rules, putting failure-mark rules last and forced so they show over phase colours. — adopt, pending cr-r2pa.2.13.2 → statechart#chart-theming-rules
-- `embedded-light-dark-stylesheet`: Embed a light and dark palette at the start of each image so it follows the viewer's colour scheme. — adopt, pending cr-r2pa.2.13.2 → statechart#embedded-light-dark-stylesheet
-- `chart-to-decider`: Give each chart and its text to the person who decides whether the behaviour is right. — adopt, pending cr-r2pa.2.13.2 → statechart#chart-to-decider
-- `one-line-per-failure`: Give one hand-off line per failure: the rule, the reader's sentence for it and the step numbers from the report. — adopt, pending cr-r2pa.2.13.2 → statechart#one-line-per-failure
-- `state-model-omissions`: Say in the hand-off what the model leaves out. — adopt, pending cr-r2pa.2.13.2 → statechart#state-model-omissions
-- `regeneration-command`: Give the command that regenerates the files into a new output folder. — adopt, pending cr-r2pa.2.13.2 → statechart#regeneration-command
-- `counterexample-replayed-on-code`: Replay each counterexample step by step against the real code, presuming a step that cannot happen to be a model error until shown otherwise. — adopt, pending cr-r2pa.2.13.2 → statechart#counterexample-replayed-on-code
+- `named-actions-in-next-state`: Write the next-state relation as a disjunction of named actions so each step carries its action's name. — adopt → statechart#named-actions-in-next-state
+- `end-state-stutter-action`: Add a labelled action enabled only in correct end states that changes nothing, so they do not count as deadlocks. — adopt → statechart#end-states-marked-not-deadlocks
+- `deadlock-rule-naming`: Report the deadlock rule under a fixed name, switching to another when an invariant already uses it. — adopt → statechart#deadlock-rule-naming
+- `bounded-state-space`: Keep constants small or add a constraint so a model with an unbounded state space still finishes. — adopt → statechart#bounded-state-space
+- `every-rule-own-verdict`: When a rule breaks, drop it and rerun until no remaining rule breaks, splitting temporal properties into separate runs, so every rule gets its own verdict. — adopt → statechart#every-rule-own-verdict
+- `rerun-state-bound`: Cap each rerun after the first break at a fixed number of states, listing rules a bounded or failed run could not finish as unchecked and naming the bound. — adopt → statechart#rerun-state-bound
+- `unchecked-rule-remedy`: To check a rule listed as unchecked, remove the breaking rules from the configuration or shrink the model. — adopt → statechart#unchecked-rule-remedy
+- `initial-only-property-warning`: Flag a property without a temporal operator as checked only in initial states, advising it be listed as an invariant. — adopt → statechart#initial-only-property-warning
+- `raw-checker-logs`: Keep the checker's own printout, plus a log per rule whose failing path the chart does not draw. — adopt → statechart#raw-checker-logs
+- `judgment-in-view-module`: Put wording, phases, colours and the title of a chart in a view module passed to the tool. — adopt → statechart#judgment-in-view-file
+- `state-shape-selects-chart-form`: Let the view's state function choose the chart form: a string for a flat chart, a list for nested parent states and an object for parallel regions. — adopt → statechart#state-shape-selects-chart-form
+- `default-state-labels`: Label each state by its variable values when no view is given. — adopt → statechart#default-state-labels
+- `reader-facing-state-labels`: Name chart states by what the reader sees or cares about, never by variable names. — adopt → statechart#reader-facing-state-labels
+- `value-encoding-for-views`: Pass model values to the view as data, with sequences keyed from one and sets as lists. — adopt → statechart#one-documented-value-shape
+- `user-event-step-labels`: Label each arrow by the event as the user experiences it, never by code or action name. — adopt → statechart#user-event-step-labels
+- `shared-label-shared-arrow`: Give actions with the same visible effect one label so they merge into one arrow, joining different labels between two states with or. — adopt → statechart#shared-label-shared-arrow
+- `step-condition-in-label`: End a conditional step's label with its condition in brackets, in reader words, leaving cross-region conditions to the tool to write. — adopt → statechart#step-condition-in-label
+- `name-hidden-outcome`: When the destination of a step depends on a value the chart does not display, put that outcome in the label. — adopt → statechart#name-hidden-outcome
+- `phase-groups-and-colors`: Colour chart states by phase and title the chart through optional exports, leaving a state that spans several groups uncoloured. — adopt → statechart#phase-groups-and-colors
+- `pure-view-functions`: Make view functions depend only on their arguments, since each is called at most once per state or step. — adopt → statechart#pure-view-functions
+- `view-output-validated`: Refuse a view with unknown or mistyped exports, colours outside the fixed palette, empty or broken labels, inconsistent region shapes, or a label used as both leaf and parent, naming the state. — adopt → statechart#view-output-validated
+- `arrow-reduction-ladder`: Aim for about twenty arrows, first coarsening state labels and only then hiding steps the reader does not need. — adopt → statechart#arrow-reduction-ladder
+- `preserve-bug-states-in-merges`: Keep every failing-path state and mark when coarsening, and never merge states that break different rules. — adopt → statechart#preserve-bug-states-in-merges
+- `hidden-steps-constrained`: Hide a step only if every state stays reachable, every state that has an exit keeps one, an arrow's steps hide all or none, and the step is on no failing path or loop exit. — adopt → statechart#hidden-steps-constrained
+- `disclose-hidden-steps`: Name in the hand-off which steps the chart hides, and count them in the report. — adopt → statechart#disclose-hidden-steps
+- `self-loops-not-drawn`: Leave out a step that stays within one chart label and count it, splitting the label if the reader must see it. — adopt → statechart#self-loops-not-drawn
+- `parent-level-arrows`: Draw once from the parent a step that leaves every child with the same label and target. — adopt → statechart#parent-level-arrows
+- `simultaneous-region-change-notes`: Note per label in a regions chart whether its step changes several regions at once or one at a time. — adopt → statechart#simultaneous-region-change-notes
+- `regions-fidelity-fallback`: Check that a regions chart allows exactly the model's moves and starts, redrawing it as nested states and saying why when it does not. — adopt → statechart#regions-fidelity-fallback
+- `loop-exit-fidelity-check`: Refuse a chart whose arrow out of a looping failure is one the loop cannot take, asking for a label that shows what stops it. — adopt → statechart#loop-exit-fidelity-check
+- `stable-draw-order`: Order states by distance from a start and then by name, so the chart text is the same on every run. — adopt → statechart#stable-draw-order
+- `shortest-failing-path`: Give for each broken state rule the shortest path from a start, as numbered steps with their labels and states in reader words. — adopt → statechart#shortest-failing-path
+- `liveness-loop-description`: Give for a broken temporal property its counterexample steps and which states repeat forever or where the run stops. — adopt → statechart#liveness-loop-description
+- `break-and-may-break-marks`: Mark a chart state as breaking when every model state under it breaks a rule and as may-break when only some do, with the regions-chart rule for combinations. — adopt → statechart#break-and-may-break-marks
+- `path-and-repeat-classes`: Give states on a shortest failing path and states a counterexample repeats their own visual classes. — adopt → statechart#path-and-repeat-classes
+- `legend-of-marks`: Carry a legend naming the phase colours and, per mark, the rules it stands for. — adopt → statechart#legend-of-marks
+- `per-state-rule-attribution`: When one mark stands for two rules, state in the hand-off which chart state violates which rule. — adopt → statechart#per-state-rule-attribution
+- `post-violation-states-shown`: Show states reached after a failure, since the checker explores past it. — adopt → statechart#post-violation-states-shown
+- `dead-end-deadlock-marking`: Mark every state with no exit as a deadlock when there are no constraints, and otherwise only the deadlock reported, saying why. — adopt → statechart#dead-end-deadlock-marking
+- `constraint-boundary-states`: Draw and count a failing path's final state or step beyond a constraint, leaving other states past the bound undrawn. — adopt → statechart#constraint-boundary-states
+- `representative-state-note`: Warn that under a view or symmetry setting an arrow may lead to a representative state rather than the one reached. — adopt → statechart#representative-state-note
+- `graph-size-summary`: Open the report with the states and steps checked and the states and arrows drawn, noting when drawing stopped early. — adopt → statechart#graph-size-summary
+- `empty-model-diagnosis`: When no state is explored, say whether no state meets the initial condition or every initial state lies outside the constraints. — adopt → statechart#empty-model-diagnosis
+- `holds-list`: List the rules that hold. — adopt → statechart#holds-list
+- `chart-state-budget`: Draw the full chart only up to a state limit and above it only the failing paths, still checking every rule. — adopt → statechart#chart-state-budget
+- `chart-shown-as-code-block`: Show the chart to the person as a diagram code block. — adopt → statechart#chart-shown-as-code-block
+- `safe-label-escaping`: Encode label and title text so any character renders safely in the diagram. — adopt → statechart#safe-label-escaping
+- `concurrent-regions-rendering`: Draw a regions chart left to right as one composite of parallel regions, with the title as diagram metadata. — adopt → statechart#concurrent-regions-rendering
+- `portable-mark-styles`: Define styles only for the failure marks in the chart file, so any viewer shows them. — adopt → statechart#portable-mark-styles
+- `pinned-designated-renderer`: Render charts with one named renderer at a pinned version, installed once outside the repository, and only when an image is wanted or the text is too large. — adopt → statechart#pinned-designated-renderer
+- `image-beside-chart`: Write each rendered image beside its chart file under the same name and give it to the person. — adopt → statechart#image-beside-chart
+- `raised-render-limits`: Raise the renderer's node, output and edge limits so the largest allowed chart fits. — adopt → statechart#raised-render-limits
+- `render-error-fallback`: On a render error, show the diagram text and the error. — adopt → statechart#render-error-fallback
+- `chart-theming-rules`: Colour charts through the renderer's style variables and class rules, putting failure-mark rules last and forced so they show over phase colours. — adopt → statechart#chart-theming-rules
+- `embedded-light-dark-stylesheet`: Embed a light and dark palette at the start of each image so it follows the viewer's colour scheme. — adopt → statechart#embedded-light-dark-stylesheet
+- `chart-to-decider`: Give each chart and its text to the person who decides whether the behaviour is right. — adopt → statechart#chart-to-decider
+- `one-line-per-failure`: Give one hand-off line per failure: the rule, the reader's sentence for it and the step numbers from the report. — adopt → statechart#one-line-per-failure
+- `state-model-omissions`: Say in the hand-off what the model leaves out. — adopt → statechart#state-model-omissions
+- `regeneration-command`: Give the command that regenerates the files into a new output folder. — adopt → statechart#regeneration-command
+- `counterexample-replayed-on-code`: Replay each counterexample step by step against the real code, presuming a step that cannot happen to be a model error until shown otherwise. — adopt → statechart#counterexample-replayed-on-code
 
 #### engineering · Improvement · Retrospective — skill:pstack/skills/reflect
 - `skip-routine-sessions`: Skip sessions that are trivial, off topic or already handled by a unit the agent followed correctly. — adopt, pending cr-r2pa.2.13.2 → reflect#skip-routine-sessions
@@ -5455,9 +5578,10 @@ For a big or wide change, put the same question to more than one model and merge
 
 #### `named-scope-first`
 Use the scope the user names when one is given.
+- ours: `create-formal-verification-skill`
 - ours: `interrogate`
 - ours: `no-comments`
-- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#named-scope-first
+- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt → create-formal-verification-skill#named-scope-first
 - `cursor_plugins:skill:pstack/skills/interrogate` — adopt → interrogate#named-scope-first
 - `cursor_plugins:skill:pstack/skills/no-comments` — adopt → no-comments#named-scope-first
 
@@ -6405,6 +6529,7 @@ Fix a weakly reached must-have target by sharpening its pointer's wording first,
 #### `single-source-of-truth`
 Keep each meaning in one authoritative place so changing it is a one-place edit.
 - ours: `authoring-for-agents`
+- ours: `create-formal-verification-skill`
 - ours: `principle-subtract-before-you-add`
 - `cursor_plugins:skill:pstack/skills/architect` — reject
 - `cursor_plugins:skill:pstack/skills/principle-laziness-protocol` — adopt → principle-subtract-before-you-add#single-source-of-truth
@@ -6966,10 +7091,11 @@ Use a diagram for how things connect and a chart for numbers, drawn only from fa
 #### `domain-vocabulary`
 Use the project's established domain vocabulary throughout what you write.
 - ours: `brief-me`
+- ours: `create-formal-verification-skill`
 - ours: `improve-codebase-architecture`
 - ours: `prototype`
 - ours: `teach`
-- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#domain-vocabulary
+- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt → create-formal-verification-skill#domain-vocabulary
 - `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — adopt → improve-codebase-architecture#domain-vocabulary
 - `mattpocock_skills:skill:skills/engineering/pr` — defer
 - `mattpocock_skills:skill:skills/engineering/prototype` — adopt → prototype#domain-vocabulary
@@ -7696,6 +7822,7 @@ Rework borrowed material until the piece reads in a single voice rather than as 
 
 #### `real-code-names`
 Use real names from the actual code, never invented placeholders.
+- ours: `create-formal-verification-skill`
 - ours: `create-verification-skill`
 - ours: `show-me`
 - `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt → create-verification-skill#real-code-names
@@ -14151,6 +14278,7 @@ Close a multi-axis review with one line giving each axis's finding count and its
 
 #### `pre-existing-edit-separation`
 Separate pre-existing edits from the task's own changes using the task baseline, not filenames.
+- ours: `create-formal-verification-skill`
 - ours: `review`
 
 #### `re-review-finding-tracking`
@@ -14374,8 +14502,10 @@ Write the failing test first when a cheap local test target exists, otherwise st
 
 #### `check-never-weakened-to-pass`
 When a check fails on the current product, report the failure and never weaken the check or its model to make it pass.
+- ours: `create-formal-verification-skill`
 - ours: `create-verification-skill`
 - ours: `maintain-verification-skill`
+- ours: `statechart`
 - `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt → create-verification-skill#check-never-weakened-to-pass
 - `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#check-never-weakened-to-pass
 - `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt → create-verification-skill#check-never-weakened-to-pass
@@ -14418,6 +14548,7 @@ Prefer the kind of test already used for that codepath.
 
 #### `cold-agent-reader`
 Write a generated skill for an agent that meets the project cold, in the middle of a task, rather than for a person.
+- ours: `create-formal-verification-skill`
 - ours: `create-verification-skill`
 - `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt → create-verification-skill#cold-agent-reader
 - `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#cold-agent-reader
@@ -14595,6 +14726,7 @@ At the end of a planned migration or rewrite, run full static and runtime verifi
 
 #### `generated-skill-run-once`
 Follow a generated skill end to end once, as its next reader would, before handing it over, counting an unrun skill as a draft.
+- ours: `create-formal-verification-skill`
 - ours: `create-verification-skill`
 - `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt → create-verification-skill#generated-skill-run-once
 - `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#generated-skill-run-once
@@ -14886,6 +15018,7 @@ Prove a feature through the path a real user takes, never internal setters or te
 
 #### `registering-generated-frontmatter`
 Give a generated skill frontmatter naming what it covers and when to use it, so it registers.
+- ours: `create-formal-verification-skill`
 - ours: `create-verification-skill`
 - `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt → create-verification-skill#registering-generated-frontmatter
 - `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#registering-generated-frontmatter
@@ -15166,6 +15299,7 @@ Have each feature file describe, from the user's side, what the feature does, th
 
 #### `verification-only-edits`
 During a verification pass, edit only the verification skill's own files and never product code unless asked.
+- ours: `create-formal-verification-skill`
 - ours: `maintain-verification-skill`
 - `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt → maintain-verification-skill#verification-only-edits
 - `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt → maintain-verification-skill#verification-only-edits
@@ -15193,19 +15327,23 @@ Build deliberately invalid test data through a helper that accepts any value, in
 
 #### `adjacent-target-only-if-close`
 Suggest a second target only when a close one turned up.
-- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#adjacent-target-only-if-close
+- ours: `create-formal-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt → create-formal-verification-skill#adjacent-target-only-if-close
 
 #### `agreed-rules-as-invariants`
 Write each rule the reader agrees to as an invariant over what they see, adding a model variable when a rule needs one.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#agreed-rules-as-invariants
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#agreed-rules-as-invariants
 
 #### `arrow-reduction-ladder`
 Aim for about twenty arrows, first coarsening state labels and only then hiding steps the reader does not need.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#arrow-reduction-ladder
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#arrow-reduction-ladder
 
 #### `atomicity-fidelity`
 Treat as one indivisible step in the verification only what is one indivisible step in the code.
-- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#atomicity-fidelity
+- ours: `create-formal-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt → create-formal-verification-skill#atomicity-fidelity
 - `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#atomicity-fidelity
 
 #### `blocked-check-sync-freeze`
@@ -15214,11 +15352,13 @@ Leave a blocked check's sync commit where it was, and say so.
 
 #### `bounded-state-space`
 Keep constants small or add a constraint so a model with an unbounded state space still finishes.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#bounded-state-space
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#bounded-state-space
 
 #### `break-and-may-break-marks`
 Mark a chart state as breaking when every model state under it breaks a rule and as may-break when only some do, with the regions-chart rule for combinations.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#break-and-may-break-marks
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#break-and-may-break-marks
 
 #### `bug-report-fields`
 Give a confirmed bug the commit that introduced it, its counterexample told in the code's terms and its harm in one sentence.
@@ -15226,38 +15366,51 @@ Give a confirmed bug the commit that introduced it, its counterexample told in t
 
 #### `chart-shown-as-code-block`
 Show the chart to the person as a diagram code block.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#chart-shown-as-code-block
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#chart-shown-as-code-block
 
 #### `chart-state-budget`
 Draw the full chart only up to a state limit and above it only the failing paths, still checking every rule.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#chart-state-budget
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#chart-state-budget
 
 #### `chart-theming-rules`
 Colour charts through the renderer's style variables and class rules, putting failure-mark rules last and forced so they show over phase colours.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#chart-theming-rules
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#chart-theming-rules
 
 #### `chart-to-decider`
 Give each chart and its text to the person who decides whether the behaviour is right.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#chart-to-decider
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#chart-to-decider
 
 #### `cheap-rerun`
 Make the check rerunnable with a single command, a pinned tool version and a short running time.
-- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#cheap-rerun
+- ours: `create-formal-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt → create-formal-verification-skill#cheap-rerun
 
 #### `check-and-draw-in-one-command`
 Model-check a specification and draw its state graph with one command taking the spec and optional configuration, view module and output folder.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#check-and-draw-in-one-command
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#check-and-draw-in-one-command
 
 #### `checker-error-excerpt`
 When the checker stops on an error, report which rules it left unchecked and quote only its error messages, cut to a few dozen lines.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#checker-error-excerpt
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#checker-error-excerpt
 
 #### `checker-exit-code-contract`
 Exit with the checker's own verdict: zero when every rule holds, one when a rule breaks, two on error, and the signal codes on interruption.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#checker-exit-code-contract
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#checker-exit-code-contract
 
 #### `checker-install-pinned-or-pointed`
 On first use, install a pinned, checksum-verified checker outside the repository, or use an existing install the person points to.
+- ours: `statechart`
+
+#### `checker-install-signed-and-undoable`
+Before a per-user checker install changes anything, verify each tool it downloads against a pinned checksum and, where the publisher signs its release, against that publisher's signature under a pinned key fingerprint (mise and the Temurin Java build; the TLC jar has no signature and is checked by its checksums alone); record an inventory and an ownership manifest of what the install creates, and on failure or removal undo only what it created and still owns unchanged.
+- ours: `statechart`
 
 #### `claim-evidence-table`
 Hold each kind of completion claim to a fixed table naming the evidence that proves it and the tempting proxy that does not.
@@ -15265,32 +15418,39 @@ Hold each kind of completion claim to a fixed table naming the evidence that pro
 
 #### `companion-tool-by-name`
 When the check is a state-machine model, such as a TLA+ check, point the generated skill at a named companion tool for reading results, copying none of its commands, options or paths.
-- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#companion-tool-by-name
+- ours: `create-formal-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt → create-formal-verification-skill#companion-tool-by-name
 
 #### `concurrent-regions-rendering`
 Draw a regions chart left to right as one composite of parallel regions, with the title as diagram metadata.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#concurrent-regions-rendering
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#concurrent-regions-rendering
 
 #### `config-and-output-defaults`
 Default the configuration and output folder to names derived from the specification, failing with the flag to pass when the configuration is missing.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#config-and-output-defaults
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#config-and-output-defaults
 
 #### `constraint-boundary-states`
 Draw and count a failing path's final state or step beyond a constraint, leaving other states past the bound undrawn.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#constraint-boundary-states
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#constraint-boundary-states
 
 #### `counterexample-as-code-steps`
 Describe a counterexample as a few steps phrased in the code's own terms.
-- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#counterexample-as-code-steps
+- ours: `create-formal-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt → create-formal-verification-skill#counterexample-as-code-steps
 
 #### `counterexample-replayed-on-code`
 Replay each counterexample step by step against the real code, presuming a step that cannot happen to be a model error until shown otherwise.
+- ours: `statechart`
 - `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#counterexample-replayed-on-code
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#counterexample-replayed-on-code
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#counterexample-replayed-on-code
 
 #### `coverage-and-sync-record`
 Record, per check, the files and functions it guards and the last commit it was confirmed against, so drift shows.
-- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#coverage-and-sync-record
+- ours: `create-formal-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt → create-formal-verification-skill#coverage-and-sync-record
 
 #### `covered-change-sweep`
 Diff the covered files since the sync commit and read each commit message, following renamed, split or moved code and new writers of the guarded state.
@@ -15298,42 +15458,51 @@ Diff the covered files since the sync commit and read each commit message, follo
 
 #### `dead-end-deadlock-marking`
 Mark every state with no exit as a deadlock when there are no constraints, and otherwise only the deadlock reported, saying why.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#dead-end-deadlock-marking
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#dead-end-deadlock-marking
 
 #### `deadlock-rule-naming`
 Report the deadlock rule under a fixed name, switching to another when an invariant already uses it.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#deadlock-rule-naming
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#deadlock-rule-naming
 
 #### `default-state-labels`
 Label each state by its variable values when no view is given.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#default-state-labels
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#default-state-labels
 
 #### `deterministic-checker-run`
 Pin every checker run to one worker and a fixed seed, checking liveness only at the end.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#deterministic-checker-run
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#deterministic-checker-run
 
 #### `disclose-hidden-steps`
 Name in the hand-off which steps the chart hides, and count them in the report.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#disclose-hidden-steps
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#disclose-hidden-steps
 
 #### `embedded-light-dark-stylesheet`
 Embed a light and dark palette at the start of each image so it follows the viewer's colour scheme.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#embedded-light-dark-stylesheet
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#embedded-light-dark-stylesheet
 
 #### `empty-model-diagnosis`
 When no state is explored, say whether no state meets the initial condition or every initial state lies outside the constraints.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#empty-model-diagnosis
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#empty-model-diagnosis
 
 #### `end-state-stutter-action`
 Add a labelled action enabled only in correct end states that changes nothing, so they do not count as deadlocks.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#end-states-marked-not-deadlocks
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#end-states-marked-not-deadlocks
 
 #### `end-states-marked-not-deadlocks`
 Mark the model's correct end states, under a label, so the checker does not report them as deadlocks.
+- ours: `statechart`
 
 #### `every-rule-own-verdict`
 When a rule breaks, drop it and rerun until no remaining rule breaks, splitting temporal properties into separate runs, so every rule gets its own verdict.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#every-rule-own-verdict
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#every-rule-own-verdict
 
 #### `explicit-commands-only`
 Run only invariants that carry an explicit runnable command, leaving everything else unexecuted.
@@ -15345,11 +15514,17 @@ Leave a baseline failure unclassified as drift or bug until the rerun-and-judge 
 
 #### `fix-skill-not-scratch-break`
 When the skill misses a planted break or a step fails, fix the skill or the verification, never the planted break.
-- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#fix-skill-not-scratch-break
+- ours: `create-formal-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt → create-formal-verification-skill#fix-skill-not-scratch-break
 
 #### `formal-check-left-as-skill`
 Verify one property and leave a project skill that lets a later agent check changes against it.
-- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#formal-check-left-as-skill
+- ours: `create-formal-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt → create-formal-verification-skill#formal-check-left-as-skill
+
+#### `formal-coverage-data-file`
+Keep a formal verify skill's coverage and sync record in one small data file of a versioned format beside its skill file, never as prose inside the skill, so its check script, the maintenance unit and freshness checks read the same record.
+- ours: `create-formal-verification-skill`
 
 #### `four-way-change-classification`
 Classify each change as no effect, verification out of date, promise changed on purpose or promise maybe broken, treating a changed promise without evidence as a bug candidate.
@@ -15357,35 +15532,43 @@ Classify each change as no effect, verification out of date, promise changed on 
 
 #### `fresh-output-published-atomically`
 Write only to a new or empty output folder, staging the results and moving them into place in one step, writing nothing if the folder changed meanwhile.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#fresh-output-published-atomically
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#fresh-output-published-atomically
 
 #### `generated-check-catches-planted-break`
 Follow the generated skill once against a throwaway edit to real code that violates the property, confirm it catches the break, then remove the edit and confirm the check is back to its earlier state.
-- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#generated-check-catches-planted-break
+- ours: `create-formal-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt → create-formal-verification-skill#generated-check-catches-planted-break
 
 #### `generated-input-fallback`
 When no verifier supports the language, say so and exercise the real code with generated inputs rather than a hand-written model of it.
-- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#generated-input-fallback
+- ours: `create-formal-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt → create-formal-verification-skill#generated-input-fallback
 
 #### `graph-size-summary`
 Open the report with the states and steps checked and the states and arrows drawn, noting when drawing stopped early.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#graph-size-summary
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#graph-size-summary
 
 #### `harmful-rarely-tested-promise`
 Pick as the target a promise the code makes whose breaking harms users and that tests rarely reach.
-- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#harmful-rarely-tested-promise
+- ours: `create-formal-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt → create-formal-verification-skill#harmful-rarely-tested-promise
 
 #### `hidden-steps-constrained`
 Hide a step only if every state stays reachable, every state that has an exit keeps one, an arrow's steps hide all or none, and the step is on no failing path or loop exit.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#hidden-steps-constrained
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#hidden-steps-constrained
 
 #### `holds-list`
 List the rules that hold.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#holds-list
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#holds-list
 
 #### `image-beside-chart`
 Write each rendered image beside its chart file under the same name and give it to the person.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#image-beside-chart
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#image-beside-chart
 
 #### `inferred-sync-commit`
 With no recorded sync commit, take the most recent commit that touched the verification files and say so.
@@ -15393,15 +15576,18 @@ With no recorded sync commit, take the most recent commit that touched the verif
 
 #### `initial-only-property-warning`
 Flag a property without a temporal operator as checked only in initial states, advising it be listed as an invariant.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#initial-only-property-warning
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#initial-only-property-warning
 
 #### `input-validated-before-check`
 Parse the configuration and the specification before running the checker, refusing invalid input with its file and line.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#input-validated-before-check
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#input-validated-before-check
 
 #### `installable-tool-preference`
 Prefer a verification tool the project's developers are able to install and run, and explain the choice to the person.
-- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#installable-tool-preference
+- ours: `create-formal-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt → create-formal-verification-skill#installable-tool-preference
 
 #### `intended-change-needs-evidence`
 Count a promise as changed on purpose only with evidence cited from the change, such as a doc comment, tests, changelog or commit message.
@@ -15409,14 +15595,16 @@ Count a promise as changed on purpose only with evidence cited from the change, 
 
 #### `interrupt-leaves-nothing`
 On an interrupt, stop the whole check process group, remove temporary files and report that nothing was written.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#interrupt-leaves-nothing
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#interrupt-leaves-nothing
 
 #### `judgment-in-view-file`
 Keep a chart's wording, phases, colours and title in a view file apart from the model.
+- ours: `statechart`
 
 #### `judgment-in-view-module`
 Put wording, phases, colours and the title of a chart in a view module passed to the tool.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#judgment-in-view-file
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#judgment-in-view-file
 
 #### `keep-bounds`
 Keep the bounds unless a change makes them wrong, and report any reduction.
@@ -15424,30 +15612,36 @@ Keep the bounds unless a change makes them wrong, and report any reduction.
 
 #### `legend-of-marks`
 Carry a legend naming the phase colours and, per mark, the rules it stands for.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#legend-of-marks
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#legend-of-marks
 
 #### `liveness-loop-description`
 Give for a broken temporal property its counterexample steps and which states repeat forever or where the run stops.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#liveness-loop-description
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#liveness-loop-description
 
 #### `loop-exit-fidelity-check`
 Refuse a chart whose arrow out of a looping failure is one the loop cannot take, asking for a label that shows what stops it.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#loop-exit-fidelity-check
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#loop-exit-fidelity-check
 
 #### `model-files-in-ignored-scratch`
 Write the state model and its configuration in the project's ignored scratch folder rather than among tracked files, keeping them only when the person asks.
+- ours: `statechart`
 
 #### `model-files-outside-repo`
 Write the state model and its configuration in a scratch folder outside the repository.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#model-files-in-ignored-scratch
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#model-files-in-ignored-scratch
 
 #### `name-hidden-outcome`
 When the destination of a step depends on a value the chart does not display, put that outcome in the label.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#name-hidden-outcome
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#name-hidden-outcome
 
 #### `named-actions-in-next-state`
 Write the next-state relation as a disjunction of named actions so each step carries its action's name.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#named-actions-in-next-state
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#named-actions-in-next-state
 
 #### `no-effect-judged-by-model`
 Judge that a change has no effect against the model or harness, not the commit message.
@@ -15455,14 +15649,17 @@ Judge that a change has no effect against the model or harness, not the commit m
 
 #### `one-documented-value-shape`
 Hand the model's values to the view as data in one documented shape.
+- ours: `statechart`
 
 #### `one-line-per-failure`
 Give one hand-off line per failure: the rule, the reader's sentence for it and the step numbers from the report.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#one-line-per-failure
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#one-line-per-failure
 
 #### `parent-level-arrows`
 Draw once from the parent a step that leaves every child with the same label and target.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#parent-level-arrows
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#parent-level-arrows
 
 #### `partial-verification-report`
 When an end-to-end check is out of reach, report the result as partial in three parts: what was verified, what needs a human check, and why.
@@ -15474,7 +15671,8 @@ Report a plain pass or fail result for each invariant that was run.
 
 #### `path-and-repeat-classes`
 Give states on a shortest failing path and states a counterexample repeats their own visual classes.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#path-and-repeat-classes
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#path-and-repeat-classes
 
 #### `per-check-inventory`
 Collect for each check its property, covered code, bounds and assumptions, run command and last sync commit.
@@ -15490,35 +15688,42 @@ Report per check the outcome, commits read, each verification change with its re
 
 #### `per-state-rule-attribution`
 When one mark stands for two rules, state in the hand-off which chart state violates which rule.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#per-state-rule-attribution
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#per-state-rule-attribution
 
 #### `phase-groups-and-colors`
 Colour chart states by phase and title the chart through optional exports, leaving a state that spans several groups uncoloured.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#phase-groups-and-colors
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#phase-groups-and-colors
 
 #### `pinned-checker-install`
 Install a pinned, checksum-verified checker and runtime on first use, letting environment variables point at an existing install instead.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#checker-install-pinned-or-pointed
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#checker-install-pinned-or-pointed
 
 #### `pinned-designated-renderer`
 Render charts with one named renderer at a pinned version, installed once outside the repository, and only when an image is wanted or the text is too large.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#pinned-designated-renderer
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#pinned-designated-renderer
 
 #### `plain-property-and-harm`
 State the property and the harm of breaking it in one plain sentence each.
-- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#plain-property-and-harm
+- ours: `create-formal-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt → create-formal-verification-skill#plain-property-and-harm
 
 #### `portable-mark-styles`
 Define styles only for the failure marks in the chart file, so any viewer shows them.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#portable-mark-styles
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#portable-mark-styles
 
 #### `post-violation-states-shown`
 Show states reached after a failure, since the checker explores past it.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#post-violation-states-shown
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#post-violation-states-shown
 
 #### `preserve-bug-states-in-merges`
 Keep every failing-path state and mark when coarsening, and never merge states that break different rules.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#preserve-bug-states-in-merges
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#preserve-bug-states-in-merges
 
 #### `property-change-audit-trail`
 Change a property only for a promise changed on purpose, recording its wording before and after and the evidence.
@@ -15526,20 +15731,24 @@ Change a property only for a promise changed on purpose, recording its wording b
 
 #### `property-fails-on-broken-variant`
 Show each property failing on a deliberately broken variant of the code it guards, after first writing it and after each update.
-- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#property-fails-on-broken-variant
+- ours: `create-formal-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt → create-formal-verification-skill#property-fails-on-broken-variant
 - `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#property-fails-on-broken-variant
 
 #### `pure-view-functions`
 Make view functions depend only on their arguments, since each is called at most once per state or step.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#pure-view-functions
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#pure-view-functions
 
 #### `raised-render-limits`
 Raise the renderer's node, output and edge limits so the largest allowed chart fits.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#raised-render-limits
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#raised-render-limits
 
 #### `raw-checker-logs`
 Keep the checker's own printout, plus a log per rule whose failing path the chart does not draw.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#raw-checker-logs
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#raw-checker-logs
 
 #### `read-overlay`
 Read the project's declared invariants file and run each listed check against the current tree.
@@ -15547,19 +15756,23 @@ Read the project's declared invariants file and run each listed check against th
 
 #### `reader-facing-state-labels`
 Name chart states by what the reader sees or cares about, never by variable names.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#reader-facing-state-labels
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#reader-facing-state-labels
 
 #### `regeneration-command`
 Give the command that regenerates the files into a new output folder.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#regeneration-command
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#regeneration-command
 
 #### `regions-fidelity-fallback`
 Check that a regions chart allows exactly the model's moves and starts, redrawing it as nested states and saying why when it does not.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#regions-fidelity-fallback
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#regions-fidelity-fallback
 
 #### `render-error-fallback`
 On a render error, show the diagram text and the error.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#render-error-fallback
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#render-error-fallback
 
 #### `repo-relative-paths`
 Present every result using repository-relative paths only.
@@ -15567,34 +15780,41 @@ Present every result using repository-relative paths only.
 
 #### `report-printed-on-success`
 Print the report and the folder written when a check finishes.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#report-printed-on-success
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#report-printed-on-success
 
 #### `representative-state-note`
 Warn that under a view or symmetry setting an arrow may lead to a representative state rather than the one reached.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#representative-state-note
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#representative-state-note
 
 #### `rerun-state-bound`
 Cap each rerun after the first break at a fixed number of states, listing rules a bounded or failed run could not finish as unchecked and naming the bound.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#rerun-state-bound
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#rerun-state-bound
 
 #### `result-trusted-without-the-language`
 Make the result something the person can trust and act on without learning the verification language.
-- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#result-trusted-without-the-language
+- ours: `create-formal-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt → create-formal-verification-skill#result-trusted-without-the-language
 
 #### `runtime-missing-stops-with-version`
 When the tool's runtime is missing or too old, stop and name the version it needs.
+- ours: `statechart`
 
 #### `runtime-version-gate`
 Run the tool's entry point on the first suitable script runtime found, or stop naming the versions it needs.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#runtime-missing-stops-with-version
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#runtime-missing-stops-with-version
 
 #### `safe-label-escaping`
 Encode label and title text so any character renders safely in the diagram.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#safe-label-escaping
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#safe-label-escaping
 
 #### `self-loops-not-drawn`
 Leave out a step that stays within one chart label and count it, splitting the label if the reader must see it.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#self-loops-not-drawn
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#self-loops-not-drawn
 
 #### `separate-verification-change`
 Keep verification updates in their own change, apart from any product fix.
@@ -15602,19 +15822,23 @@ Keep verification updates in their own change, apart from any product fix.
 
 #### `shared-label-shared-arrow`
 Give actions with the same visible effect one label so they merge into one arrow, joining different labels between two states with or.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#shared-label-shared-arrow
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#shared-label-shared-arrow
 
 #### `shortest-failing-path`
 Give for each broken state rule the shortest path from a start, as numbered steps with their labels and states in reader words.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#shortest-failing-path
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#shortest-failing-path
 
 #### `sibling-modules-on-path`
 Put the modules beside a specification on the checker's library path so it can extend them.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#sibling-modules-on-path
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#sibling-modules-on-path
 
 #### `simultaneous-region-change-notes`
 Note per label in a regions chart whether its step changes several regions at once or one at a time.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#simultaneous-region-change-notes
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#simultaneous-region-change-notes
 
 #### `skip-aspirational`
 Name and skip any invariant that is aspirational rather than mechanically checkable instead of guessing a verdict.
@@ -15622,7 +15846,8 @@ Name and skip any invariant that is aspirational rather than mechanically checka
 
 #### `stable-draw-order`
 Order states by distance from a start and then by name, so the chart text is the same on every run.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#stable-draw-order
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#stable-draw-order
 
 #### `stale-pass-disclosure`
 For a check that passed before an update and fails after, say the old pass was against a stale description.
@@ -15630,32 +15855,39 @@ For a check that passed before an update and fails after, say the old pass was a
 
 #### `state-model-omissions`
 Say in the hand-off what the model leaves out.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#state-model-omissions
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#state-model-omissions
 
 #### `state-shape-selects-chart-form`
 Let the view's state function choose the chart form: a string for a flat chart, a list for nested parent states and an object for parallel regions.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#state-shape-selects-chart-form
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#state-shape-selects-chart-form
 
 #### `step-condition-in-label`
 End a conditional step's label with its condition in brackets, in reader words, leaving cross-region conditions to the tool to write.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#step-condition-in-label
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#step-condition-in-label
 
 #### `strongest-target-not-easiest`
 Choose the strongest such target, not the easiest to verify.
-- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#strongest-target-not-easiest
+- ours: `create-formal-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt → create-formal-verification-skill#strongest-target-not-easiest
 
 #### `sync-commit-advanced-after-match`
 Move the recorded sync commit forward only after confirming the verification matches the code at the new commit.
-- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#sync-commit-advanced-after-match
+- ours: `create-formal-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt → create-formal-verification-skill#sync-commit-advanced-after-match
 
 #### `traceable-to-code`
 Make every part of a verification model or proof point to code a reviewer can open.
-- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#traceable-to-code
+- ours: `create-formal-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt → create-formal-verification-skill#traceable-to-code
 - `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#traceable-to-code
 
 #### `unchecked-rule-remedy`
 To check a rule listed as unchecked, remove the breaking rules from the configuration or shrink the model.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#unchecked-rule-remedy
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#unchecked-rule-remedy
 
 #### `uncommitted-repro-evidence`
 Put a cheap test or reproduction showing the bug in the report as evidence without committing it to product code.
@@ -15663,7 +15895,8 @@ Put a cheap test or reproduction showing the bug in the report as evidence witho
 
 #### `unnamed-break-is-error`
 Stop with an error and the output tail when the checker fails without naming a broken rule, rather than guessing one.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#unnamed-break-is-error
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#unnamed-break-is-error
 
 #### `update-from-code-before-rerun`
 Write a model update from the code before rerunning, never shaped by what makes the check pass.
@@ -15671,27 +15904,36 @@ Write a model update from the code before rerunning, never shaped by what makes 
 
 #### `user-event-step-labels`
 Label each arrow by the event as the user experiences it, never by code or action name.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#user-event-step-labels
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#user-event-step-labels
 
 #### `value-encoding-for-views`
 Pass model values to the view as data, with sequences keyed from one and sets as lists.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#one-documented-value-shape
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#one-documented-value-shape
+
+#### `verdict-from-exit-and-messages`
+Count a checker run as a verdict only when its exit code and its own completion and violation messages agree, with every rule checked where the checker checks all reachable states and no option that hides a violation.
+- ours: `create-formal-verification-skill`
 
 #### `verification-handoff-report`
 Tell the person what was verified, with which tool and why, the bounds, the findings in plain words, the command to run it and what it leaves uncovered.
-- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#verification-handoff-report
+- ours: `create-formal-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt → create-formal-verification-skill#verification-handoff-report
 
 #### `verification-tool-by-question`
 Pick the cheapest tool that answers the question: a model checker over a small design model for bad event orderings, a code-level verifier for behaviour on every input, and a proof for properties no bound can settle.
-- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#verification-tool-by-question
+- ours: `create-formal-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt → create-formal-verification-skill#verification-tool-by-question
 
 #### `verified-scope-statement`
 Say what the verification covers, the bounds and assumptions it holds under, and what it leaves out.
-- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#verified-scope-statement
+- ours: `create-formal-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt → create-formal-verification-skill#verified-scope-statement
 
 #### `verify-skill-capabilities`
 Let the next agent learn from the skill alone whether a change touches verified code, how to run the check, how to tell a real bug from a modelling error and how to update the verification for an intended change.
-- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#verify-skill-capabilities
+- ours: `create-formal-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt → create-formal-verification-skill#verify-skill-capabilities
 
 #### `verify-skill-metadata-refresh`
 Update each check's covered code, commands, bounds, assumptions and sync commit in the verification skill, setting the sync commit to the one checked.
@@ -15699,7 +15941,8 @@ Update each check's covered code, commands, bounds, assumptions and sync commit 
 
 #### `view-output-validated`
 Refuse a view with unknown or mistyped exports, colours outside the fixed palette, empty or broken labels, inconsistent region shapes, or a label used as both leaf and parent, naming the state.
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → statechart#view-output-validated
+- ours: `statechart`
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#view-output-validated
 
 ### engineering · Delivery · Integration
 
@@ -15979,6 +16222,10 @@ Default to building a deterministic check over writing a prose rule for any mech
 Document the boundary convention in a README beside the packages it governs.
 - `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules` — out-of-scope
 
+#### `existing-formal-skill-stops`
+Before generating a formal check, search every skills folder the project's hosts read for a formal verify skill, known by its coverage record, as an older skill that runs a kept model or proof, or as an occupied target folder, and stop without writing when one covers the area or cannot be ruled out, pointing to the formal maintenance unit.
+- ours: `create-formal-verification-skill`
+
 #### `existing-verify-skill-stops`
 Before generating, search every skills folder the project's hosts read for a verify skill, recognised by its content, and stop when one or a feature map already exists, pointing to the maintenance unit, so a rerun never overwrites them.
 - ours: `create-verification-skill`
@@ -15987,22 +16234,30 @@ Before generating, search every skills folder the project's hosts read for a ver
 Where the generated-skill contract and the feature-map contract carry the same rule, the feature-map contract owns it and the generated-skill contract restates it for the section it lands in.
 - ours: `create-verification-skill`
 
+#### `formal-skill-recognised-by-record`
+Define the shape a formal verify skill is recognised by, a skill file beside a coverage data file whose format field names the formal coverage format, so other units find it by content, not by name, in every skills folder the project's hosts read.
+- ours: `create-formal-verification-skill`
+
 #### `generated-skill-left-uncommitted`
 Leave the generated skill and its map uncommitted unless the person asks for a commit, which the commit skill then makes.
+- ours: `create-formal-verification-skill`
 - ours: `create-verification-skill`
 - ours: `maintain-verification-skill`
 
 #### `generator-edits-own-output-only`
 Edit only the generated skill's folder and any scaffolding the run labels, leaving a fix to product code to the person's authority.
+- ours: `create-formal-verification-skill`
 - ours: `create-verification-skill`
 
 #### `generator-started-by-person`
 Run the skill generator only when the person starts it: manual-only in its frontmatter and its sidecar, reached through setup, help or a router line, never by the model on its own.
+- ours: `create-formal-verification-skill`
 - ours: `create-verification-skill`
 - ours: `maintain-verification-skill`
 
 #### `handover-points-to-maintenance`
 At handover, tell the person that keeping the generated skill current as the product changes is the maintenance unit's job.
+- ours: `create-formal-verification-skill`
 - ours: `create-verification-skill`
 
 #### `link-convention-from-agents-file`
@@ -16607,6 +16862,11 @@ Create automations one at a time through the platform's reviewed creation flow, 
 State what the triage and repair automations must each do, from trigger and scope to the rules they follow.
 - `cursor_plugins:skill:pstack/automations/benny/skills/setup-benny` — out-of-scope
 
+#### `checker-install-approved-per-user`
+Install a missing model checker or its runtime only after the person approves it, and then per user under their home folder, never system-wide, as root or through a shell-profile change; without approval, stop and name what is missing.
+- ours: `create-formal-verification-skill`
+- ours: `statechart`
+
 #### `commit-before-enable-notice`
 Tell the person that settings, pack and configuration must be committed before enabling, committing nothing unless asked.
 - `cursor_plugins:skill:pstack/automations/benny/skills/setup-benny` — out-of-scope
@@ -16767,21 +17027,26 @@ Traits listed by two or more of our active skills (`doc:AGENTS.md` and playbooks
 | `build-closeout` | doc:.claude/skills/mvp-mode/playbooks/feature.md, doc:.claude/skills/mvp-mode/playbooks/perf-issue.md, doc:.claude/skills/mvp-mode/playbooks/refactoring.md | Each playbook's closeout runs on its own exits and feeds its own reply, and these three have the same three duties; a skill of three duties would be ceremony (unit-kinds deviation log, St4 and B4). |
 | `canonical-term-and-aliases` | domain-modeling, teach | Each keeps a glossary of its own (project language, the learner's workspace) in one entry format, with its own admission rules. |
 | `change-proven-by-second-read` | create-verification-skill, maintain-verification-skill | The generator's map contract proves a saved change through a separate read-only view, and the maintenance pass names that product command for each saved change it drives (ruling C). |
-| `check-never-weakened-to-pass` | create-verification-skill, maintain-verification-skill | The generator writes the rule into a generated skill, and the maintenance pass applies it while fixing one: a failing journey is fixed only when source proves the map wrong (R3). |
+| `check-never-weakened-to-pass` | create-formal-verification-skill, create-verification-skill, maintain-verification-skill, statechart | The app generator writes the rule into a generated skill, and the maintenance pass applies it while fixing one: a failing journey is fixed only when source proves the map wrong (R3). statechart never loosens a rule, the model or its bounds so that a check passes, and create-formal-verification-skill never loosens the property, the model or the bounds (decision 3, restated per unit). |
+| `checker-install-approved-per-user` | create-formal-verification-skill, statechart | statechart owns the per-user checker install and asks first; create-formal-verification-skill follows the same approval and recipe for TLC by pointer to statechart's references/install.md (decision 6, owner item 2). |
+| `cold-agent-reader` | create-formal-verification-skill, create-verification-skill | create-verification-skill's references/generated-skill.md "Writing rules" state it, and create-formal-verification-skill applies those rules to the formal skill it writes, by pointer (decision 3, the one shared writing reference). |
 | `confidence-language-kept` | teach, unslop | Each rewrites a finished answer for a reader: unslop edits prose, teach rewords cited findings for teaching; both must keep the hedges and confidence words, which are results. The owner's batch P1 ruling put it into teach (sealed row 2026-11-06-batch-p1:019). |
 | `credentials-never-captured` | create-verification-skill, maintain-verification-skill | The generator keeps credentials out of a generated skill's proof, and the maintenance pass keeps them out of its evidence, notes, reply and helper fixes (ruling D). |
 | `dependency-edges` | doc:.claude/skills/mvp-mode/playbooks/implement.md, tracker, wayfinder | Each lets the tracker graph's readiness drive the work: tracker writes the genuine edges of stages, plan stages and decision tickets by returned ID, wayfinder picks a map's genuine prerequisites and works its ready frontier, and implement's spec scope runs a spec's tickets from the ready frontier, adding a blocking edge it finds missing; edge semantics stay in beads. |
 | `destination-protection` | create-verification-skill, migrate-claude-to-codex | Each writes a skill folder and never overwrites one already there: migrate-claude-to-codex a converted skill's destination, create-verification-skill an occupied verify-skill folder, where it stops blocked and asks the person (plan 82 misfit 6, critic-82d N1). |
-| `domain-vocabulary` | brief-me, improve-codebase-architecture, prototype, teach | Each writes for its reader in the project's own terms: brief-me in its re-pitches, teach in its lessons, prototype in its states, actions and labels, so an answer transfers to the real code, and improve-codebase-architecture in its candidates and their friction. |
+| `domain-vocabulary` | brief-me, create-formal-verification-skill, improve-codebase-architecture, prototype, teach | Each writes for its reader in the project's own terms: brief-me in its re-pitches, teach in its lessons, prototype in its states, actions and labels, so an answer transfers to the real code, and improve-codebase-architecture in its candidates and their friction. create-formal-verification-skill names the model, the property and everything the person reads as the project does (its adopted P2 row). |
 | `drift-scan` | harness-scan, harness-status | Both run the one drift command, scan for a single harness and status as a sweep of all of them; a pointer between them would add a hop to a one-line command. |
 | `dropout-proceeds-noted` | interrogate, model-council | A failed member and a failed adversary are handled alike, going on and reporting it, but what is left when too few remain differs: no pick for one, not run for the other. |
 | `dry-run-skips-observed` | create-verification-skill, maintain-verification-skill | The generator records what a generated skill's offline mode really skips, and the maintenance pass re-observes it on each drive (Q1). |
 | `empty-search-is-finding` | recall, review | Each reports what a search found to someone deciding on it: review's blast-radius assessment and recall's sweep of the shared record. A search that found nothing is an answer in both, so each says it. Batch P1 rows 2026-11-06-batch-p1:277 (review) and :194 (recall), owner-ruled 2026-11-06. |
 | `evidence-checked-after-cleanup` | create-verification-skill, maintain-verification-skill | Each unit's own run cleans up and must find its proof afterwards: the generator's proof run of the skill it writes, and the maintenance pass over an existing one (plan 82 §5). |
 | `finding-adjudication` | doc:.claude/skills/mvp-mode/playbooks/implement.md, review | Implement rules on findings inside its delivery loop and review owns the method; owner 2026-10-30: implement (then named execution) stays unchanged. |
-| `generated-skill-left-uncommitted` | create-verification-skill, maintain-verification-skill | The generator leaves the skill it writes uncommitted, and the maintenance pass leaves its fixes uncommitted; land commits either when the person asks (R10). |
-| `generator-started-by-person` | create-verification-skill, maintain-verification-skill | Both verification units start only when the person starts them: manual-only in frontmatter and sidecar, reached through an mvp-mode router line (R1). |
+| `generated-skill-left-uncommitted` | create-formal-verification-skill, create-verification-skill, maintain-verification-skill | The app generator leaves the skill it writes uncommitted, and the maintenance pass leaves its fixes uncommitted; land commits either when the person asks (R10). create-formal-verification-skill leaves the formal verify skill it writes uncommitted unless the person asks; land makes the commit (decision 10). |
+| `generated-skill-run-once` | create-formal-verification-skill, create-verification-skill | Each generator follows the skill it writes once, as its next reader, before handing it over: the app generator's proof drive and the formal generator's planted-break proof (decision 3, restated per unit). |
+| `generator-edits-own-output-only` | create-formal-verification-skill, create-verification-skill | Each generator edits only the skill folder it creates and the scaffolding it labels: the app generator's marked startup scaffolding, the formal generator's one reversible planted edit; a product-code fix is the person's call (decision 3). |
+| `generator-started-by-person` | create-formal-verification-skill, create-verification-skill, maintain-verification-skill | Both app verification units start only when the person starts them: manual-only in frontmatter and sidecar, reached through an mvp-mode router line (R1). create-formal-verification-skill starts the same way: manual-only in frontmatter and sidecar, reached through its mvp-mode router row (decision 1). |
 | `glossary-entry-template` | domain-modeling, teach | Each keeps a glossary of its own (project language, the learner's workspace) in one entry format, with its own admission rules. |
+| `handover-points-to-maintenance` | create-formal-verification-skill, create-verification-skill | Each create unit tells the person at hand-off that keeping its generated skill current is its maintenance unit's job: create-verification-skill names maintain-verification-skill, create-formal-verification-skill names maintain-formal-verification-skill (decision 11). |
 | `immaterial-ambiguity-reading` | how, why | Both take an ambiguous target and state the reading taken when the readings would not change the answer; adopted for both upstream how and why (2026-11-01-batch-1:237, :238), kept in each half of the split. |
 | `implement-against-sketch` | doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/feature.md, doc:.claude/skills/mvp-mode/playbooks/perf-issue.md, doc:.claude/skills/mvp-mode/playbooks/refactoring.md | Owner ruling 5 keeps the sketch design-only, so each playbook's own build step writes the code and holds this rule; a skill for it would bring back the implement branch the ruling removed (unit-kinds deviation log, St4). |
 | `independent-synthesis` | model-council, perspective-council | Two entrypoints with distinct triggers (named models with a judge, opposing lenses) each run a full council ending in a fresh synthesizer. |
@@ -16790,7 +17055,7 @@ Traits listed by two or more of our active skills (`doc:AGENTS.md` and playbooks
 | `material-risk-review` | harness-evaluate, to-spec | Each gates acceptance of its own output, a spec or a template adoption, on an independent critic; the critic itself belongs to review. |
 | `member-isolation` | model-council, perspective-council | Each council dispatches its own members in isolation. |
 | `minimal-visual-selection` | pr, show-me | show-me is manual, so a model writing a PR body cannot invoke it or read its file; pr carries the compact visual technique itself, as its upstream does, and names show-me for the person (plan 69 D3). |
-| `named-scope-first` | interrogate, no-comments | Each works on a scope a person may name, interrogate on the change it attacks and no-comments on the files it sweeps, and each defaults differently without one; a pointer between two unrelated jobs would add a hop to one sentence. |
+| `named-scope-first` | create-formal-verification-skill, interrogate, no-comments | Each works on a scope a person may name, interrogate on the change it attacks and no-comments on the files it sweeps, and each defaults differently without one; a pointer between two unrelated jobs would add a hop to one sentence. create-formal-verification-skill begins with the area, promise or bug the person names (its adopted P2 row). |
 | `neutral-framing` | model-council, perspective-council | Each council frames its own neutral brief. |
 | `no-cross-project-transcript-search` | decision-trail, reflect | decision-trail states it for an audit of a long run, reflect for reviewing past sessions; each reads transcripts on its own, and one line does not earn a pointer. |
 | `no-onward-delegation` | delegation, doc:AGENTS.md, mvp-mode | AGENTS.md holds it as policy every agent loads, so a delegate stops fanning out even when its brief was written by hand; the delegation skill writes it into each role block of the briefs it produces, so a delegate on a vendor or project without our AGENTS.md still receives it; the mvp-mode router states it beside its delegate-independent-by-default rule for plugin users who skip the optional AGENTS.md, so a router that tells them to delegate also tells their delegates not to fan out. |
@@ -16800,14 +17065,16 @@ Traits listed by two or more of our active skills (`doc:AGENTS.md` and playbooks
 | `optional-record-sections` | domain-modeling, teach | Each keeps its own record folder (ADRs, learning records) in one minimal format. |
 | `own-output-location` | interrogate, model-council | Council members and adversaries each run independently on shared work, so each needs its own place to write; one is a branch of a council and the other a review, and neither calls the other. |
 | `pin-preserving-fetch` | harness-scan, harness-status | Both run the fetching drift command themselves, so each must state that a fetch never moves pins and that --no-fetch skips the network. |
+| `pre-existing-edit-separation` | create-formal-verification-skill, review | review separates a task's changes from pre-existing ones by the task baseline; create-formal-verification-skill records the product checkout's baseline before its planted edit, never clears the person's changes, and proves the restoration against that baseline. |
 | `preserve-reproducers` | doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, systematic-debugging | Each cleans up after its own work: the diagnosis when called alone, the bug-fix playbook at its closeout on every exit. Both keep reproducers, so neither cleanup deletes the evidence the other relies on. |
 | `question-batching` | discovery, grilling | Discovery asks the owner questions inside its own exploration; grilling's rules live inside its interview loop, so pointing there would pull discovery into that loop. |
 | `read-only-closeout` | doc:.claude/skills/mvp-mode/playbooks/investigation.md, doc:.claude/skills/mvp-mode/playbooks/session-pickup.md | Each is a read-only run whose closeout belongs to its own exits and reply; logged under St4 in unit-kinds. |
 | `read-only-explanation` | how, why | Both answer a question about this project and change nothing while answering; one read-only rule, kept in each half of the split. |
 | `read-trail-first` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md | Each looping playbook reads its own trail before choosing the next change; each trail has its own columns and rows. |
-| `real-code-names` | create-verification-skill, show-me | Both write text that must name the real code it describes: show-me a visual of a change, create-verification-skill the commands, routes, ports and paths a generated skill gives (plan 77 §5). |
+| `real-code-names` | create-formal-verification-skill, create-verification-skill, show-me | Each writes text that must name the real code it describes: show-me a visual of a change, create-verification-skill the commands, routes, ports and paths a generated skill gives (plan 77 §5). create-formal-verification-skill applies generated-skill.md's "Writing rules", which require the real names from the code, to the formal skill it writes (decision 3). |
 | `recommended-answer` | discovery, grilling | As question-batching: a short rule each skill applies inside its own flow. |
 | `record-command` | doc:.claude/skills/mvp-mode/playbooks/skill-curation.md, harness-evaluate | harness-evaluate records its own ruling; the playbook's ruling step names the same command for every curation operation. A pointer would add a hop to one command line. |
+| `registering-generated-frontmatter` | create-formal-verification-skill, create-verification-skill | Both generators give the skill they write registering frontmatter by generated-skill.md's "Frontmatter"; create-formal-verification-skill uses the formal name <area>-verification and its own description (decision 3). |
 | `reply-is-the-deliverable` | recall, teach | Each skill's reply is its product, an explanation or a brief, so neither may hand back a report of having done it instead. Batch P1 rows 2026-11-06-batch-p1:053 (teach) and :207 (recall), owner-ruled 2026-11-06. |
 | `revert-ineffective-experiments` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, performance-optimization | Each runs its own loop of attempts, fix attempts in the bug-fix playbook and optimization experiments in performance-optimization, and removes its own failed edits before the next attempt. |
 | `row-then-checkpoint` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md | Each loop writes its own row and checkpoint in this order, around its own keep-or-discard step, so a closing return can trust them. |
@@ -16815,7 +17082,7 @@ Traits listed by two or more of our active skills (`doc:AGENTS.md` and playbooks
 | `self-serve-facts` | discovery, grilling | As question-batching: a short rule each skill applies inside its own flow. |
 | `sequential-record-numbering` | domain-modeling, teach | Each keeps its own record folder (ADRs, learning records) in one minimal format. |
 | `settled-stop` | discovery, grilling | As question-batching: each skill stops its own questioning when its decisions are settled. |
-| `single-source-of-truth` | authoring-for-agents, principle-subtract-before-you-add | Each applies one-owner-per-meaning to its own material: authoring-for-agents to agent instructions (search for an existing owner before adding one), the principle to code and data before an addition; neither unit loads the other on its path. |
+| `single-source-of-truth` | authoring-for-agents, create-formal-verification-skill, principle-subtract-before-you-add | Each applies one-owner-per-meaning to its own material: authoring-for-agents to agent instructions (search for an existing owner before adding one), the principle to code and data before an addition; neither unit loads the other on its path. create-formal-verification-skill's references/model-fidelity.md is the one home of the model-fidelity rules, which maintain-formal-verification-skill reads without restating (decision 4). |
 | `smallest-evidenced-change` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md | Each loop makes the smallest change the evidence justifies and checks its predicate on it: autonomous-run per iteration toward one condition, figure-it-out per designed unit. A skill of one sentence would be ceremony (unit-kinds deviation log, St4, 2026-11-12). |
 | `stated-unattended-gate` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md | The same one sentence tells each of these playbooks whether a run is away; each then takes its own branch or exit. |
 | `structural-diff` | pr, show-me | show-me is manual, so a model writing a PR body cannot invoke it or read its file; pr carries the compact visual technique itself, as its upstream does, and names show-me for the person (plan 69 D3). |
@@ -16824,6 +17091,7 @@ Traits listed by two or more of our active skills (`doc:AGENTS.md` and playbooks
 | `undriven-feature-marked` | create-verification-skill, maintain-verification-skill | The generator marks seeded features no run has driven, and the maintenance pass keeps the mark while a case stays undriven and replaces it with observed values once one is driven (ruling B). |
 | `unreachable-with-route-and-prerequisite` | create-verification-skill, maintain-verification-skill | The generator writes the rule into the map's skip reporting, and the maintenance pass applies it to its coverage report (plan 82 §5). |
 | `unreadable-change-unverified` | create-verification-skill, maintain-verification-skill | The generator writes the no-read-view disclosure into a feature file, and the maintenance pass adds it where it is missing and reports the change unverified (ruling C). |
+| `verification-only-edits` | create-formal-verification-skill, maintain-verification-skill | The maintenance pass edits only the verify skill's files, and the formal verify skill that create-formal-verification-skill writes tells its own verification pass to leave product code alone unless the person asks (decision 3). |
 | `verified-unit-sequence` | doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md, principle-sequence-verifiable-units | The principle owns the rule; figure-it-out's Run step states it in one sentence and cites the principle, as the owner ruled for row 2026-11-06-batch-p1:250, because the registry takes a delivered row only from the compared unit (unit-kinds St4). |
 | `visual-form-catalog` | pr, show-me | show-me is manual, so a model writing a PR body cannot invoke it or read its file; pr carries the compact visual technique itself, as its upstream does, and names show-me for the person (plan 69 D3). |
 | `visual-placement` | pr, show-me | show-me is manual, so a model writing a PR body cannot invoke it or read its file; pr carries the compact visual technique itself, as its upstream does, and names show-me for the person (plan 69 D3). |

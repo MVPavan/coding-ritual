@@ -1,0 +1,6 @@
+interface:
+  display_name: "Statechart"
+  short_description: "Check a TLA+ model with TLC and draw it as a statechart"
+  default_prompt: "Use $statechart to check a TLA+ model of this flow with TLC and draw it as a statechart, naming the shortest route to every broken rule."
+policy:
+  allow_implicit_invocation: true

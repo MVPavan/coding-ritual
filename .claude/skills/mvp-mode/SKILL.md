@@ -112,3 +112,5 @@ Only where a description alone would miss or collide.
 | An interaction or architecture with no precedent in the codebase, or a product decision whose experience depends on feel | `prototype`, competing-variants branch |
 | No scripted way to launch and drive the real app for proof | `/create-verification-skill` (the person starts it) |
 | A project's verify skill may have drifted from its app, or the person asks to audit it | `/maintain-verification-skill` (the person starts it) |
+| A flow, protocol or race to check across every ordering and draw, or a TLA+ result to read | `statechart` |
+| A high-harm promise that tests rarely reach needs a formal check kept as a project skill | `/create-formal-verification-skill` (the person starts it) |

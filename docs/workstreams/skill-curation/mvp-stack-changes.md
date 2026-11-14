@@ -1375,6 +1375,72 @@ Limits: one target app; browser and desktop branches are unproven. Publishing wa
 publish for all four). Two owner questions are open: a unit-level evidence hash and credential scan before
 final teardown, and driving a corrected documented command before it ships.
 
+## 32. The formal pair: `statechart` and `create-formal-verification-skill` (`cr-r2pa.2.28.3`, `.4`)
+
+Added 2026-11-14. Plan `scratchpad/mvp-stack/83/plan.md` (gitignored, with its Round 2 table), recorder
+`scratchpad/mvp-stack/83/record_formal.py`; round `2026-11-14-formal-pair`, 102 events (2 `add`, 99 completing
+adopts, 1 `update ours:mvp-mode`), trait-level, sealed. The third and fourth of the four verification units ruled
+in batch P2, built together.
+
+- **What was built:** `.claude/skills/statechart/`, a model-invocable skill with a tool of its own. It models
+  something that moves between states in TLA+, has TLC check every reachable state, and leaves a Mermaid
+  statechart with a report giving the shortest path to each broken rule; it changes no product code. The tool,
+  `.claude/skills/statechart/scripts/statechart.py` with its `statechart_lib/` modules, checks and draws in one
+  command, refuses bad input and bad views, reruns past each broken rule, publishes its folder atomically and
+  installs Java and TLC per user. Its references are `view.md`, `report.md`, `render.md` and `install.md`; its
+  tests are `tests/checks/test_statechart_*.py` with fixtures in `tests/fixtures/statechart/`. Placement:
+  engineering · Design · Architecture, family design-validation, secondary Diagnosis.
+  `.claude/skills/create-formal-verification-skill/` is a manual skill. It picks the promise whose breaking
+  harms users most and that tests reach least, checks one property with the tool its question needs (TLA+ with
+  TLC the default for orderings), and leaves `<area>-verification/` in the product's repository: a project skill
+  with fixed sections, `coverage.json`, the kept model and a standard-library `scripts/check.py`, proven by a
+  cold agent against one planted, reverted break. Its four references are `model-fidelity.md` (the shared
+  reference maintain-formal-verification-skill will read), `coverage-record.md`, `formal-verify-skill.md` and
+  `tool-branches.md`. Placement: engineering · Improvement · Codification, secondary Testing. The `mvp-mode`
+  router gains two rows, and the catalog lists `statechart` as model-invocable and
+  `/create-formal-verification-skill` as slash-only.
+- **Owner rulings of 2026-11-14** ("Maintain proof and formal pair"): item 2, install mise, Temurin and TLC per
+  user at plan 83 §6's pins with gpg checks of mise's `SHASUMS256.asc` and Adoptium's `.sig`; item 3, the Mermaid
+  command-line renderer pinned (`@mermaid-js/mermaid-cli@11.17.1`) but not installed, so `render.md` and its six
+  completions say rendering is unproven; item 4, `statechart` model-invocable; item 5, all 75 statechart traits
+  in one slice; item 6, the proof's generated skill stays uncommitted in equity-os. With the earlier
+  verification-unit decisions (manual-only generators, short guardrails restated, the model-fidelity reference
+  shared within the pair, the formal coverage record as a data file, edits left uncommitted, the pointer to the
+  maintain unit made true before publishing).
+- **Install:** per user under the home folder, no `sudo`: mise `2026.10.24`, Temurin `25.0.5+8` through mise
+  and TLC `1.7.4`, each of the three checked against its pinned checksum and, for mise and Temurin, its publisher's
+  signature under a pinned key fingerprint, with inventories before and after
+  (`scratchpad/mvp-stack/83/install.log`, `scratchpad/mvp-stack/83/pins/`).
+- **Traits:** `statechart` lists 78: 75 adopted (47 carried by the tool, 17 written for TLA+ with TLC, two fixed
+  wordings verbatim, six under their `into` IDs), `check-never-weakened-to-pass` held, and 2 of ours.
+  `create-formal-verification-skill` lists 41: 24 adopted (one fixed wording verbatim), 5 held
+  (`checker-install-approved-per-user`, `check-never-weakened-to-pass`, `generated-skill-run-once`,
+  `generator-edits-own-output-only` for the generator's own run, `verification-only-edits` for the generated
+  skill's verification pass), 8 reused (`generator-started-by-person`, `generated-skill-left-uncommitted`,
+  `handover-points-to-maintenance`, `single-source-of-truth`, `cold-agent-reader`, `real-code-names`,
+  `registering-generated-frontmatter`, `pre-existing-edit-separation`) and 4 of ours. The six new traits of ours,
+  each defined with `distinct_from`: `checker-install-approved-per-user`, `checker-install-signed-and-undoable`,
+  `formal-coverage-data-file`, `formal-skill-recognised-by-record`, `existing-formal-skill-stops` and
+  `verdict-from-exit-and-messages`. The last is the coordinator's ruling on the blind check, not the owner's,
+  and stays open to the owner's veto. `trait-sharing.yaml` gains 8 entries and 7 existing entries now name
+  every holder. Routine output rules the blind check found (a "regenerate, do not edit" marker, "rendering
+  unproven, check the first image", the generated check's exit codes) need no trait.
+
+Proof on equity-os's retention code, in its own worktree at `9eb1b61`, database-free
+(`scratchpad/mvp-stack/83/proof-report.md`, archive `scratchpad/mvp-stack/83/proof/2026-11-14-90a/`): PASS 17/17.
+The generated `retention-verification` held on the main configuration over 79,994 states, and its broken
+variant gave the 14-step shortest path through `statechart`. The planted removal of the lock at `purge.py:159`
+was caught, replayed on the code by reading and classed a real bug; after its removal the checkout's status,
+diff and the skill's hash list matched the baseline byte for byte and the check passed again. Review: critics
+87e, 87g, 87i, 87j, 87m, 87o, 87q, 87t and 87v on the tool, the text and the install, each REVISE and fixed in
+rounds; critic-90d on the proof (REVISE; its F1 revised the blind rulings); the blind check 87 with the
+coordinator's rulings. A rehearsal on a scratch clone, a match of the round against the recorder, and a build
+(no diff) and check in a fresh clone pass. Final worktree registry state: 57 rounds, 4045 events, 75 skill
+records; in the build worktree itself `check` reports seven stale reference pages for the same environment
+reason as in sections 29 and 31 (empty reference submodule folders), and the committed pages are kept.
+Limits: one target app and one tool branch proven, TLC. Mermaid rendering is unproven. The source-verifier,
+proof and generated-input branches are unproven. Publishing waits for `maintain-formal-verification-skill`.
+
 ## Regenerating
 
 From the worktree root:

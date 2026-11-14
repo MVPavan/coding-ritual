@@ -1,0 +1,19 @@
+{
+ "spec": "Swap.tla",
+ "bound": 100000,
+ "runs": [
+  {
+   "request": {
+    "invariants": [],
+    "properties": [],
+    "deadlock": true,
+    "keep_going": false,
+    "bounded": false,
+    "as_written": true
+   },
+   "code": 0,
+   "output": "@!@!@STARTMSG 2262:0 @!@!@\nTLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)\n@!@!@ENDMSG 2262 @!@!@\n@!@!@STARTMSG 2187:0 @!@!@\nRunning breadth-first search Model-Checking with fp 0 and seed 0 with 1 worker on 32 cores with 5957MB heap and 64MB offheap memory [pid: 0] (Linux 6.18.54.1-microsoft-standard-WSL2 amd64, Eclipse Adoptium 25.0.5 x86_64, MSBDiskFPSet, DiskStateQueue).\n@!@!@ENDMSG 2187 @!@!@\n@!@!@STARTMSG 2220:0 @!@!@\nStarting SANY...\n@!@!@ENDMSG 2220 @!@!@\nParsing file <models>/Swap.tla\nSemantic processing of module Swap\n@!@!@STARTMSG 2219:0 @!@!@\nSANY finished.\n@!@!@ENDMSG 2219 @!@!@\n@!@!@STARTMSG 2185:0 @!@!@\nStarting... (2026-11-14 14:26:50)\n@!@!@ENDMSG 2185 @!@!@\n@!@!@STARTMSG 2189:0 @!@!@\nComputing initial states...\n@!@!@ENDMSG 2189 @!@!@\n@!@!@STARTMSG 2190:0 @!@!@\nFinished computing initial states: 2 distinct states generated at 2026-11-14 14:26:50.\n@!@!@ENDMSG 2190 @!@!@\n@!@!@STARTMSG 2193:0 @!@!@\nModel checking completed. No error has been found.\n  Estimates of the probability that TLC did not check all reachable states\n  because two distinct states had the same fingerprint:\n  calculated (optimistic):  val = 2.2E-19\n@!@!@ENDMSG 2193 @!@!@\n@!@!@STARTMSG 2200:0 @!@!@\nProgress(1) at 2026-11-14 14:26:50: 4 states generated (631 s/min), 2 distinct states found (315 ds/min), 0 states left on queue.\n@!@!@ENDMSG 2200 @!@!@\n@!@!@STARTMSG 2199:0 @!@!@\n4 states generated, 2 distinct states found, 0 states left on queue.\n@!@!@ENDMSG 2199 @!@!@\n@!@!@STARTMSG 2194:0 @!@!@\nThe depth of the complete state graph search is 1.\n@!@!@ENDMSG 2194 @!@!@\n@!@!@STARTMSG 2268:0 @!@!@\nThe average outdegree of the complete state graph is 0 (minimum is 0, the maximum 0 and the 95th percentile is 0).\n@!@!@ENDMSG 2268 @!@!@\n@!@!@STARTMSG 2186:0 @!@!@\nFinished in 384ms at (2026-11-14 14:26:50)\n@!@!@ENDMSG 2186 @!@!@\n",
+   "dot": "strict digraph DiskGraph {\nnodesep=0.35;\nsubgraph cluster_graph {\ncolor=\"white\";\n3540095646597903010 [label=\"/\\\\ a = 0\\n/\\\\ b = 1\",style = filled]\n6980719983254260540 [label=\"/\\\\ a = 1\\n/\\\\ b = 0\",style = filled]\n3540095646597903010 -> 6980719983254260540 [label=\"Flip\",color=\"black\",fontcolor=\"black\"];\n6980719983254260540 -> 3540095646597903010 [label=\"Flip\",color=\"black\",fontcolor=\"black\"];\n{rank = same; 3540095646597903010;6980719983254260540;}\n}\n}"
+  }
+ ]
+}
