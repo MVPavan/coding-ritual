@@ -236,3 +236,11 @@ no-cross-project-transcript-search:
   skills: [decision-trail, reflect]
   why: "decision-trail states it for an audit of a long run, reflect for reviewing past sessions; each reads transcripts on its own, and one line does not earn a pointer."
   reviewed: "2026-11-13"
+real-code-names:
+  skills: [create-verification-skill, show-me]
+  why: "Both write text that must name the real code it describes: show-me a visual of a change, create-verification-skill the commands, routes, ports and paths a generated skill gives (plan 77 \u00a75)."
+  reviewed: "2026-11-14"
+artifact-contracts:
+  skills: [codebase-research, create-verification-skill]
+  why: "Each writes its own artifact type in a fixed section set and order, saying a section is empty or does not apply rather than dropping it: codebase-research its reports, create-verification-skill the verify skill it generates (critic-81b F1)."
+  reviewed: "2026-11-14"

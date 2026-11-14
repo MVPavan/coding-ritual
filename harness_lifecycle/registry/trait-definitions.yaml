@@ -10510,3 +10510,82 @@ fixed-match-regression-lead:
   placement: {domain: core, stage: Intake, substage: Triage}
   distinct_from: [closed-match-is-regression-lead, prior-rejection-check]
   note: "closed-match-is-regression-lead reads any long-closed match as a regression lead; prior-rejection-check surfaces earlier wontfix closes; this needs a match closed as fixed and evidence the behaviour returned."
+# ---- ours only, create-verification-skill (plan 77; owner rulings of 2026-11-14) ----
+install-scope-project-or-user:
+  definition: "Install a missing driving tool only after the person approves it, and then per project or per user, never system-wide."
+  placement: {domain: engineering, stage: U, substage: Tooling}
+  distinct_from: [guard-install-scope-choice, checker-install-pinned-or-pointed]
+  note: "guard-install-scope-choice asks the person to choose project or user scope for a command guard, and checker-install-pinned-or-pointed installs one pinned checker outside the repository. This asks first for any driving tool and rules out a system-wide install."
+dry-run-skips-observed:
+  definition: "When a generated skill relies on a dry-run or offline mode, record step by step what the proof run observed that mode skip, running without a network or tracing connections, never trusting the mode by its name."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [direct-observation]
+  note: "direct-observation is the general rule to check a result on the real thing; this names what a generated skill must observe about a mode that claims to skip work, and how."
+live-service-isolation:
+  definition: "When the product uses a live service, run every command of a generated skill from a clean environment holding only the run's own values, refuse a project env file, prove before the first write that the endpoint is the run's own (its address, data folder, a marker the run planted, a sign-in with credentials the run made), and run only the commands the skill lists."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [drive-only-own-instance, candidate-run-boundary]
+  note: "drive-only-own-instance declines a shared instance, and candidate-run-boundary sandboxes an evaluation candidate. This keeps every command of a generated skill off someone else's live service and proves the endpoint before any write."
+undriven-feature-marked:
+  definition: "Mark a seeded feature the proof run did not drive as not yet driven, in its file and on its index line, giving its results as what to assert, never as values nobody observed."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [seeded-feature-map]
+  note: "seeded-feature-map says what a starting map holds; this labels the entries no run has driven yet."
+unreadable-change-unverified:
+  definition: "When the product has no read-only way to read a change back, say so in the feature file and report the change as unverified, not proven."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [change-proven-by-second-read]
+  note: "change-proven-by-second-read proves a change through a separate read view; this covers a product that offers none."
+credentials-never-captured:
+  definition: "Never print, log or keep a credential a generated skill uses, one the run generated included, and parse tool output that can hold one (resolved service config, container inspection, a connection string) inside the helper without saving it."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [redact-secrets, no-secrets-in-yaml-git-logs, signal-lines-only]
+  note: "redact-secrets puts placeholders in what is shown, no-secrets-in-yaml-git-logs keeps secrets out of files and history, and signal-lines-only quotes chosen lines of captures. This keeps credentials out of proof altogether and handles output that holds them without saving it."
+generator-started-by-person:
+  definition: "Run the skill generator only when the person starts it: manual-only in its frontmatter and its sidecar, reached through setup, help or a router line, never by the model on its own."
+  placement: {domain: engineering, stage: Improvement, substage: Codification}
+  distinct_from: [invocation-mode]
+  note: "invocation-mode is the authoring choice between model-invoked and user-invoked activation; this fixes the generator's own activation as manual-only on every host."
+verify-generator-description:
+  definition: "Open the generator's description with its one case, a project with no scripted way to drive its real app, and its two nearest skips, an existing verify skill to update and a single change to prove, and say that what it generates drives the real app."
+  placement: {domain: engineering, stage: Improvement, substage: Codification}
+  distinct_from: [activation-boundary]
+  note: "activation-boundary is the general rule for any description; this fixes the generator's case, its two skips and the drives-the-real-app wording."
+existing-verify-skill-stops:
+  definition: "Before generating, search every skills folder the project's hosts read for a verify skill, recognised by its content, and stop when one or a feature map already exists, pointing to the maintenance unit, so a rerun never overwrites them."
+  placement: {domain: engineering, stage: Improvement, substage: Codification}
+  distinct_from: [target-found-by-content, no-target-points-to-create, destination-protection]
+  note: "target-found-by-content finds the skill a maintenance pass keeps current, and no-target-points-to-create stops maintenance when none exists; this is the generator's mirror, stopping when one does. destination-protection refuses to overwrite a skill destination; this also searches every host's folder and names who keeps the existing skill."
+feature-map-owns-shared-rule:
+  definition: "Where the generated-skill contract and the feature-map contract carry the same rule, the feature-map contract owns it and the generated-skill contract restates it for the section it lands in."
+  placement: {domain: engineering, stage: Improvement, substage: Codification}
+  distinct_from: [single-source-of-truth, shared-reference-home]
+  note: "single-source-of-truth keeps each meaning in one place with no second copy, and shared-reference-home puts reference several skills need in one skill; this lets two references of one skill both carry a rule and names which of them owns it."
+worked-example-feature-map:
+  definition: "Ship our own worked example of a feature map for a small fictional product, an index with one browser feature and one command-line feature, so the seeding run sees the shape it writes."
+  placement: {domain: engineering, stage: Improvement, substage: Codification}
+generated-skill-left-uncommitted:
+  definition: "Leave the generated skill and its map uncommitted unless the person asks for a commit, which the commit skill then makes."
+  placement: {domain: engineering, stage: Improvement, substage: Codification}
+  distinct_from: [commit-plan-without-authority, proposed-artifact-commit]
+  note: "commit-plan-without-authority reports planned commits when commit authority is missing, and proposed-artifact-commit keeps a tool in scratch and proposes committing it; this leaves a generated skill uncommitted in the product's repository by default."
+handover-points-to-maintenance:
+  definition: "At handover, tell the person that keeping the generated skill current as the product changes is the maintenance unit's job."
+  placement: {domain: engineering, stage: Improvement, substage: Codification}
+  distinct_from: [no-target-points-to-create]
+  note: "no-target-points-to-create sends a maintenance pass to the generator when nothing exists; this sends the person from the generator to maintenance once the skill exists."
+recognised-by-content-shape:
+  definition: "Define the shape a generated verify skill is recognised by, a skill file with Launch, Doctor, Drive, Evidence and Cleanup sections beside a feature-map index, so other units find it by content, not by name, in every skills folder the project's hosts read."
+  placement: {domain: engineering, stage: Improvement, substage: Codification}
+  distinct_from: [target-found-by-content]
+  note: "target-found-by-content is the maintenance pass's search; this defines the shape every unit searches for and where it looks."
+generator-edits-own-output-only:
+  definition: "Edit only the generated skill's folder and any scaffolding the run labels, leaving a fix to product code to the person's authority."
+  placement: {domain: engineering, stage: Improvement, substage: Codification}
+  distinct_from: [verification-only-edits]
+  note: "verification-only-edits bounds a maintenance pass to the verification skill's files; this bounds the generator's run to the folder it creates and the scaffolding it labels."
+generator-reply-fields:
+  definition: "Reply with the generated skill's path and the surfaces it covers and does not, the seeded features, the proof run's feature, entry points, evidence paths and doctor and cleanup results, what stays unverified, and for a failed base or proof the exact failure and that the skill is a draft."
+  placement: {domain: engineering, stage: X, substage: Communication}
+  distinct_from: [designed-run-reply-fields]
+  note: "designed-run-reply-fields is a designed playbook run's reply; this is the skill generator's."

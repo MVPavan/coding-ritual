@@ -66,6 +66,15 @@ codebase-research:
   aliases: []
   status: active
   boundary: "Durable, manually invoked reports on an external codebase; how this repository's own code works is how and why it has its shape is why, outside sources for a decision are research, and improvement proposals are improve-codebase-architecture."
+create-verification-skill:
+  domain: engineering
+  stage: Improvement
+  substage: Codification
+  secondary: [Testing]
+  family: null
+  aliases: []
+  status: active
+  boundary: "Generates a project skill that launches and drives the real app with a starter feature map, and proves it once; our own instructions are authoring-for-agents, running a project's invariant checks is check-invariants, and keeping a generated verify skill current is maintain-verification-skill."
 decision-trail:
   domain: core
   stage: X

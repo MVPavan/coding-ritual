@@ -42,6 +42,7 @@ Use at the start of every task to pick the playbook, principle or skill that fit
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-14` **update** (2026-11-14-create-verification-skill:090): Bead cr-r2pa.2.28.1, plan 77 §4 (R1): the router's "Skills by situation" table gains the row for /create-verification-skill (the person starts it), and the gen…
 - `2026-11-13` **adopt-merged** (2026-11-13-batch-p3:110): Checkpoint at 2776ddd for the owner's trait rulings: 8 adopt, 42 defer, 2 out-of-scope, 57 reject.
 - `2026-11-13` **adopt** (2026-11-13-batch-p3:059): Owner ruling 2026-11-13: A step that will not run stays in the list as `skip: <reason>`.
 - `2026-11-13` **adopt** (2026-11-13-batch-p3:058): Owner ruling 2026-11-13: The router copies a playbook's steps into the todo list first, before any task-specific todos.

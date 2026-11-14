@@ -1235,6 +1235,63 @@ are kept as review evidence only, not per-trait ledger state, so `status`, `TRAI
 them and no check brings a defer back; the two adopts are not delivered, and each `update` that delivers one
 cites the review.
 
+## 29. `create-verification-skill`: a generated skill that drives the real app (`cr-r2pa.2.28.1`)
+
+Added 2026-11-14. Plan `scratchpad/mvp-stack/77/plan.md` (gitignored), recorder
+`scratchpad/mvp-stack/81/record_cvs.py`; round `2026-11-14-create-verification-skill`, 92 events, trait-level,
+sealed. The first of the four verification units ruled in batch P2.
+
+- **What was built:** a new manual skill, `.claude/skills/create-verification-skill/`. It studies a project
+  and writes a project skill, `verify-<app>`, that launches the real product, drives a feature the way a user
+  reaches it and keeps proof, with a starter feature map. It then runs that skill once end to end; a skill
+  nobody has run is a draft. Its long writing rules are `.claude/skills/create-verification-skill/references/generated-skill.md` (fixed sections Launch,
+  Doctor, Drive, Evidence, Cleanup, Helpers, Use rules), shared with the other verification units. The map
+  contract is `.claude/skills/create-verification-skill/references/feature-map.md`, with a worked example for a small fictional product. Placement:
+  engineering · Improvement · Codification, secondary Testing. The `mvp-mode` router gains one row, and
+  `.claude/skills/mvp-mode/playbooks/feature.md` step 5 and `.claude/skills/mvp-mode/playbooks/bug-fix.md` step 4 each gain one line pointing to a project's verify skill when it
+  has one.
+- **Owner rulings of 2026-11-14:** decisions 1-11, 13 and 15 as recommended. The unit is manual-only, keeps the
+  upstream name, carries short guardrails itself with the long rules in one shared reference, puts the rules
+  for later work in the generated skill, and points to maintain-verification-skill. Installs need approval
+  first and go per project or per user. The proof target was equity-os, under four conditions: its own
+  worktree, its own throwaway Postgres, dry-run or offline commands only, browser and desktop left unproven.
+  Q1: generated skills also record what a dry run really skips. Q2: the generated `verify-eqos` stays
+  uncommitted. After the proof, four new mechanisms (A-D): isolation for a product with a live service,
+  features not yet driven marked so, a change with no read view reported unverified, and credentials never
+  captured.
+- **Traits:** 88 listed. 71 are adopted, completing all 88 pending adopts (69 from batch P2, 19 from P3; six
+  `into` adoptions keep their target and modification); each completion cites its trait's owner lines in the
+  current text. One existing trait is reused: `artifact-contracts` carries the generated skill's fixed
+  sections and order and its rule to say a section does not apply rather than drop it. 16 are ours: install
+  scope, dry-run skips observed, A-D, and 10 mechanisms the blind checks found (8 backed by the owner's
+  decisions, among them which of the two references owns a rule both carry; 2 routine scope and output
+  rules). Each has a definition with `distinct_from` where a near one exists. Two fixed wordings narrower than their definitions are T5 rows in
+  `.repo-context/unit-kinds.md` (`drive-shipped-surface`, `same-surface-agent-repro`). `real-code-names` is
+  shared with `show-me`, and `artifact-contracts` with `codebase-research`.
+- **Registry repairs:** `update ours:mvp-mode` with its refreshed hash clears the four stale-hash diagnostics on
+  older events without touching them; one `doc:` update for each of the two playbooks (no step
+  changes).
+
+Proof on equity-os (`scratchpad/mvp-stack/77/proof-report.md`, archive `scratchpad/mvp-stack/77/proof/79d/`): the generated
+`verify-eqos` launched its own Postgres, seeded it through supported commands, passed its doctor and proved
+the coverage-registry symbol-change feature with every asserted value observed. The run was offline, observed
+under a network namespace, and cleanup left the evidence in place. Three earlier attempts were cleaned up, and
+the skill (not the product) was fixed each time. Review: critic-77b and 77d on the plan; critic-78b on the
+build (REVISE, fixed); a blind extraction carried all 73 then-listed traits and found the 11 extras;
+critic-80b on the proof lessons (REVISE, fixed); a blind delta check matched the lessons to the four new
+traits; critic-81b on the recording (REVISE: reuse `artifact-contracts` and split out the ownership rule,
+fixed by re-recording the round). Registry check before (the seven expected hash errors) and after, a match of the round against the
+recorder, a rehearsal on a scratch clone, and a build (no diff) and check in a fresh clone pass. In the build
+worktree itself the final `check` fails with seven stale reference pages (The-Claude-Protocol, agent-skills,
+diagram-design, html-artifacts, humanlayer_skills, mattpocock_skills, superpowers). That comes from the
+environment: its reference submodule folders are empty, so a build there marks rows "Changed upstream since?
+unknown". The committed pages are kept; the fresh clone, which has the submodules, regenerates them unchanged
+and its `check` passes.
+Limits: browser and desktop branches are unproven until a second target. Publishing waits for
+maintain-verification-skill, so the handoff pointer is true when shipped. The plugin's asserted skill count
+changes only at that publish. The full publish gate still fails on 31 neutrality hits in 14 files that
+predate this unit; only the new lines were audited (0 hits).
+
 ## Regenerating
 
 From the worktree root:

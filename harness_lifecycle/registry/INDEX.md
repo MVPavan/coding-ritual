@@ -62,6 +62,7 @@ Domain → stage → sub-stage. Each active skill under its primary home.
 - **Maintenance**: improve-codebase-architecture
 
 ### Improvement
+- **Codification**: create-verification-skill
 - **Retrospective**: reflect
 
 ## Merge candidates

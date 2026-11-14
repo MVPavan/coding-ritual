@@ -87,6 +87,7 @@ small waives nothing.
    result, or a pass on another surface, is not a pass. A failure returns to step 4.
    When the matching surface is unavailable or the result stays inconclusive, say so
    and go to step 7.
+   When the project has a verify skill for this surface, drive the change through it; with none, suggest `/create-verification-skill` to the person.
 6. **Dispute.** When a dispute by the dispute test is open, invoke `interrogate`:
    adversaries try to break the design and only a run counts. A verified finding against
    the design returns to step 2, and one against the build to step 4. After a fix, rerun the

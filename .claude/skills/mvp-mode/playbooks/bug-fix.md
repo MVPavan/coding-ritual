@@ -75,6 +75,7 @@ A stated unattended request does not start: reply Not started, unattended.
    reproduction, and the repository checks the change touches. An
    inconclusive rerun is not a pass: report it as inconclusive. When the
    original scenario cannot be run, report it as unavailable.
+   When the project has a verify skill for the reported surface, reproduce and rerun through it; with none, suggest `/create-verification-skill`.
 5. **Attempts.** Around steps 3 and 4, record each attempt as hypothesis,
    change and result, and remove a failed attempt's own changes before the
    next. When a failure puts the cause in doubt, return to step 2 with the

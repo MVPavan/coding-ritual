@@ -1104,6 +1104,96 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `constraints-before-change`: When a change follows, turn the findings into preserve, change, avoid and risk lists.
 - `pr-discussion-pull`: For each substantive commit, read the pull request body, linked issues, comments and reviews.
 
+#### engineering · Improvement · Codification — create-verification-skill
+- `ask-only-unobservable`: Answer setup questions from the codebase and ask the person only what the code cannot show.
+- `primary-surface-chosen`: Identify every surface a user touches, choose the main one and note the others.
+- `documented-run-command-first`: Prefer the project's own documented development command when working out how to start it.
+- `run-prerequisite-inventory`: Record the ports, environment variables, seed data and sign-in a local run needs.
+- `existing-harness-then-recipe`: Use a driving harness the project already has, and only then a generic recipe matched to the surface.
+- `install-scope-project-or-user`: Install a missing driving tool only after the person approves it, and then per project or per user, never system-wide.
+- `evidence-inventory`: List the kinds of evidence the product can give, such as screenshots, transcripts, response bodies, logs, exit codes and stored state.
+- `instance-isolation-probe`: Establish whether two instances can run side by side through separate ports, data folders or profiles.
+- `working-base-first`: Make a broken checkout build and start, or report the failure exactly, before generating anything from it.
+- `marked-startup-scaffolding`: Allow a run to create an unrelated asset that blocks startup only if it is labelled as verification scaffolding and removed in cleanup.
+- `project-verification-skill`: Produce a skill kept in the project that launches the real product, drives a feature as a user would and captures evidence.
+- `cold-agent-reader`: Write a generated skill for an agent that meets the project cold, in the middle of a task, rather than for a person.
+- `generated-skill-run-once`: Follow a generated skill end to end once, as its next reader would, before handing it over, counting an unrun skill as a draft.
+- `single-feature-handover-proof`: Count one mapped feature, proven end to end, as enough for the handover proof, leaving the rest of the map to later runs.
+- `evidence-checked-after-cleanup`: After cleanup, confirm the captured evidence still exists where the skill says it is, and fail the step if it does not.
+- `cleanup-after-failed-attempt`: Run the cleanup after every failed attempt too, so no process or port is left stranded.
+- `stand-in-gap-disclosure`: When a proof ran in a substitute environment, list each setup step it did that the real target will not, keeping those steps marked unverified.
+- `check-never-weakened-to-pass`: When a check fails on the current product, report the failure and never weaken the check or its model to make it pass.
+- `map-defines-completeness`: Treat the feature map as the source of what must be proven, so proof through one entry point falls short while the map lists more, and a skipped one is never claimed through another route.
+- `registering-generated-frontmatter`: Give a generated skill frontmatter naming what it covers and when to use it, so it registers.
+- `real-code-names`: Use real names from the actual code, never invented placeholders.
+- `runnable-documented-helpers`: Make every shipped helper script executable and give its invocation in the skill body.
+- `launch-ready-means-usable`: State the exact start command and the concrete sign that the product is ready to use, not merely that a process or health check answers.
+- `launch-from-empty-data`: Require a launch to become usable starting from an empty data folder, migrations and seed data included.
+- `launch-with-teardown`: Pair the launch instructions with their teardown.
+- `short-lived-cli-launch`: For a short-lived command-line or terminal program, treat launch as one build or install followed by an isolated session per drive.
+- `read-only-doctor`: Provide one read-only check that the instance is alive, the right build, owns its port, has valid sign-in and matches the expected address, data folder and revision.
+- `doctor-when-suspicious`: Run the doctor check first whenever something looks wrong.
+- `drive-only-own-instance`: Drive only an instance this run started, declining a shared one that cannot be isolated.
+- `live-service-isolation`: When the product uses a live service, run every command of a generated skill from a clean environment holding only the run's own values, refuse a project env file, prove before the first write that the endpoint is the run's own (its address, data folder, a marker the run planted, a sign-in with credentials the run made), and run only the commands the skill lists.
+- `target-confirmed-for-surface`: Before acting, confirm by stable markers suited to the driven surface that the target is the checked app instance, workspace, account and data set rather than a look-alike or production instance and that the feature is in the expected state, and, when the run drives a window, that the window belongs to that target, never judged by window order or title alone.
+- `stable-handles`: Prefer durable handles such as accessible roles and names, data attributes, prompt strings and routes over coordinates, tab order or position.
+- `named-evidence-destination`: Say which evidence a proof captures and the place it is kept.
+- `real-user-path-proof`: Prove a feature through the path a real user takes, never internal setters or test-only endpoints.
+- `action-and-state-capture`: Capture both the action taken and the state that resulted, not only the final screen.
+- `side-effects-verified`: Verify side effects such as written files, inserted rows and sent messages, as well as what is visible.
+- `credentials-never-captured`: Never print, log or keep a credential a generated skill uses, one the run generated included, and parse tool output that can hold one (resolved service config, container inspection, a connection string) inside the helper without saving it.
+- `system-boundary-mocks-only`: Use test doubles only at system boundaries such as external services, time and the file system, never for modules you own.
+- `dry-run-skips-observed`: When a generated skill relies on a dry-run or offline mode, record step by step what the proof run observed that mode skip, running without a network or tracing connections, never trusting the mode by its name.
+- `repro-evidence-for-surface`: Keep a step note for a reproduction and, on a visual surface with capture tools, a whole-path recording that shows the broken final state, looking at every captured screenshot and recording before citing it and saying what stays unverified when proof cannot be captured.
+- `teardown-only-own-instances`: Stop only instances this run created, never by process name.
+- `cleanup-keeps-evidence`: Make cleanup remove instances and scratch state while proof files survive where the skill names.
+- `always-cleanup-keeping-user-work`: Make a run's cleanup stop the processes and sessions its driver created, remove its disposable profiles, temporary workspaces and the fixtures it created and any captures past their retention window, keeping captures still within it, report what was stopped, removed, kept or left, and never delete the person's own work.
+- `same-surface-agent-repro`: Reproduce a reported bug yourself on the same surface the user saw it on before fixing it, handing that to the user only under one narrow named exception.
+- `drive-shipped-surface`: Treat every change that ships interface, editor or command-line behaviour as not done until it has been run through the tool that drives that surface.
+- `translate-environment-before-blocking`: Before calling an environment a block, restate the defect without platform nouns and try a labelled translation that tests the same behaviour, accepting hardware, permission, device-only and account states as real blocks.
+- `driver-smoke-proof-for-surface`: Require the tool that drives an app to support every mapped feature through real input, inspection without changing state, the evidence capture its surface allows and cleanup, and to prove this on a harmless run of one mapped feature before any run relies on it, reporting a capability it lacks as incomplete and stopping only the work that needs it.
+- `feature-map-entry-required`: Drive an app only through its feature map, kept where a refresh does not overwrite it, with each feature's entry giving its reset, the states that apply and its preconditions, and block when the entry a run needs is missing.
+- `seeded-feature-map`: Start a feature map of an index with one line per feature and one file per user-facing feature, beginning with the main few found in routes, commands, menus or docs.
+- `undriven-feature-marked`: Mark a seeded feature the proof run did not drive as not yet driven, in its file and on its index line, giving its results as what to assert, never as values nobody observed.
+- `map-section-per-reproducible-feature`: Give the feature map a section for each user-facing feature that an automated run may reproduce.
+- `read-index-first`: Have the map send its reader to the index first and then to the feature file that matches, used as the recipe.
+- `baseline-preconditions-block`: Open the map index with the shared preconditions: launch address, seed data and tools on the path.
+- `per-run-disposable-data`: Give each run its own throwaway data folder keyed by a run id, so concurrent runs share no state.
+- `baseline-start-and-reset`: Start each recipe from the baseline state unless it says otherwise, and return to the required state before proving the next case when an earlier step changed it.
+- `literal-commands`: Treat each command as literal, keeping quoted names and flags unchanged.
+- `single-control-wrapper`: Route browser and terminal actions through one control command.
+- `restore-seed-after-mutation`: Put seeded data back after any change to it.
+- `coordinates-from-fresh-screenshot`: Drive an interface by screen coordinates only when they come from a screenshot taken right before the action.
+- `wait-on-condition-not-sleep`: Wait for a concrete result element or status rather than a fixed delay.
+- `structured-output-for-assertions`: Use a machine-readable output option for stable command-line assertions.
+- `ui-proof-screenshot-snapshot-where-offered`: For an interface, define proof as a screenshot showing the product's identity, plus an accessibility snapshot when the surface and the available tools provide one.
+- `identity-screenshot`: Capture a screenshot of the app's current state showing enough of its chrome to prove the right app is under test, returned with its path, capture time, app marker and what should be visible.
+- `cli-proof-command-output-exit`: For a command line, define proof as the command, its output, its errors and its exit code.
+- `change-proven-by-second-read`: Prove a change persisted by reading it back through a separate read-only view, such as reopening the item from the list, not by its save confirmation.
+- `unreadable-change-unverified`: When the product has no read-only way to read a change back, say so in the feature file and report the change as unverified, not proven.
+- `artifact-provenance`: Label every proof file with the feature, entry point, product, input used and expected item.
+- `rendered-value-asserted`: Assert the value the product displayed, not the value typed, since the product may normalise input.
+- `no-result-state-asserted`: Tell a true no-results state from an unavailable feature, waiting for the finished state, and on a command line assert the exact exit code and empty output.
+- `cancel-path-covered`: For a feature with a cancel action, include a journey that cancels and checks the product shows what it specifies a cancel leaves, such as no saved item.
+- `unreachable-with-route-and-prerequisite`: Report a feature as unreachable only with the route tried and the prerequisite that was missing.
+- `user-view-feature-file`: Have each feature file describe, from the user's side, what the feature does, the route to it, how to drive it and the visible end state that proves it.
+- `feature-file-template`: Open each feature file with a title and one paragraph of user-visible behaviour, then fixed sections for sub-features by short id, how to reach it, driving it as action, command and result lines, and gotchas.
+- `complete-entry-point-list`: List every way a user can reach a feature.
+- `user-terms-only-in-map`: Keep implementation detail out of the feature map, naming only the user's routes, durable handles, needed state, commands and visible proof.
+- `run-invalidating-gotchas`: Keep the gotchas section for traps that could waste a verification run or make its result invalid.
+- `missing-precondition-in-gotchas`: When seed data lacks a precondition a journey needs, record the missing precondition in that feature's gotchas.
+- `artifact-contracts`: Follow a fixed required-section set and order per artifact type, stating an empty section rather than dropping it.
+- `generator-started-by-person`: Run the skill generator only when the person starts it: manual-only in its frontmatter and its sidecar, reached through setup, help or a router line, never by the model on its own.
+- `verify-generator-description`: Open the generator's description with its one case, a project with no scripted way to drive its real app, and its two nearest skips, an existing verify skill to update and a single change to prove, and say that what it generates drives the real app.
+- `existing-verify-skill-stops`: Before generating, search every skills folder the project's hosts read for a verify skill, recognised by its content, and stop when one or a feature map already exists, pointing to the maintenance unit, so a rerun never overwrites them.
+- `feature-map-owns-shared-rule`: Where the generated-skill contract and the feature-map contract carry the same rule, the feature-map contract owns it and the generated-skill contract restates it for the section it lands in.
+- `worked-example-feature-map`: Ship our own worked example of a feature map for a small fictional product, an index with one browser feature and one command-line feature, so the seeding run sees the shape it writes.
+- `generated-skill-left-uncommitted`: Leave the generated skill and its map uncommitted unless the person asks for a commit, which the commit skill then makes.
+- `handover-points-to-maintenance`: At handover, tell the person that keeping the generated skill current as the product changes is the maintenance unit's job.
+- `recognised-by-content-shape`: Define the shape a generated verify skill is recognised by, a skill file with Launch, Doctor, Drive, Evidence and Cleanup sections beside a feature-map index, so other units find it by content, not by name, in every skills folder the project's hosts read.
+- `generator-edits-own-output-only`: Edit only the generated skill's folder and any scaffolding the run labels, leaving a fix to product code to the person's authority.
+- `generator-reply-fields`: Reply with the generated skill's path and the surfaces it covers and does not, the seeded features, the proof run's feature, entry points, evidence paths and doctor and cleanup results, what stays unverified, and for a failed base or proof the exact failure and that the skill is a draft.
+
 #### engineering · Improvement · Retrospective — reflect
 - `sampled-session-retros`: Retro a sample of about one in five delegated sessions, nested dispatches included, rather than every one.
 - `failures-first-retro-sample`: Fill a retro sample with the sessions where something went wrong before any others.
@@ -2216,8 +2306,8 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `design-before-cross-boundary-code`: Run a design exploration with parallel options before writing code that crosses a function boundary. — reject
 - `contested-design-multi-model-review`: Put a contested design through an adversarial review by several models before it ships. — reject
 - `checkpoint-for-all-multistep-work`: Write a throughput checkpoint before any nontrivial multi-step work, not only feature work. — reject
-- `same-surface-agent-repro`: Reproduce a reported bug yourself on the same surface the user saw it on before fixing it, handing that to the user only under one narrow named exception. — adopt, pending cr-r2pa.2.13.3 → create-verification-skill#same-surface-agent-repro
-- `drive-shipped-surface`: Treat every change that ships interface, editor or command-line behaviour as not done until it has been run through the tool that drives that surface. — adopt, pending cr-r2pa.2.13.3 → create-verification-skill#drive-shipped-surface
+- `same-surface-agent-repro`: Reproduce a reported bug yourself on the same surface the user saw it on before fixing it, handing that to the user only under one narrow named exception. — adopt → create-verification-skill#same-surface-agent-repro
+- `drive-shipped-surface`: Treat every change that ships interface, editor or command-line behaviour as not done until it has been run through the tool that drives that surface. — adopt → create-verification-skill#drive-shipped-surface
 - `finding-adjudication`: Verify each incoming review finding against requirements, code and primary evidence before acting, and give each a visible disposition: fix a confirmed in-scope defect, answer an incorrect one with a retained ruling, record an out-of-scope follow-up. — reject
 - `separate-fix-for-broken-skill`: Fix a skill found broken mid-task in its own separate pull request, without blocking the task and without a silent workaround. — reject
 - `read-principle-before-applying`: Read a principle's whole file, found by a fixed naming rule, before applying it. — reject
@@ -2668,8 +2758,8 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `report-fact-capture`: Collect a fixed set of facts from a bug report before deciding on it: the reporter's words, version and environment, expected and observed behaviour, frequency and trigger, error signatures, attachments, links and any claim that someone already owns it. — defer
 - `trace-with-competing-hypotheses`: Trace the reported action through the code, check its regression history, and form competing causes with the evidence that would separate them. — reject
 - `repro-budget-outcomes`: End a reproduction attempt within its budget as either cleanly not reproduced or blocked, naming the missing capability. — reject
-- `repro-capture-bundle`: Keep a step note and a whole-path recording that shows the broken final state for a reproduction, looking at every captured screenshot and recording before citing it. — adopt, pending cr-r2pa.2.13.3 → create-verification-skill#repro-evidence-for-surface
-- `identity-screenshot`: Capture a screenshot of the app's current state showing enough of its chrome to prove the right app is under test, returned with its path, capture time, app marker and what should be visible. — adopt, pending cr-r2pa.2.13.3 → create-verification-skill#identity-screenshot
+- `repro-capture-bundle`: Keep a step note and a whole-path recording that shows the broken final state for a reproduction, looking at every captured screenshot and recording before citing it. — adopt → create-verification-skill#repro-evidence-for-surface
+- `identity-screenshot`: Capture a screenshot of the app's current state showing enough of its chrome to prove the right app is under test, returned with its path, capture time, app marker and what should be visible. — adopt → create-verification-skill#identity-screenshot
 - `independent-media-review`: Have a separate read-only reviewer say whether the media visibly shows the broken state, treating no or unsure as unconfirmed. — reject
 - `trusted-verdict-marker`: Pass a report from triage to repair through a fixed one-line marker that repair accepts only from the configured triage identity, in the same thread, and only for a bug or performance verdict. — defer
 - `reread-thread-before-acting`: Re-read the whole report thread immediately before starting work on it. — defer
@@ -2695,18 +2785,18 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `run-artifacts-uncommitted`: Never commit a run's captures, recordings, logs or tokens to source control. — reject
 - `bounded-follow-up-window`: After the main reply, watch the thread for one bounded window, answering only direct questions, staying out of side chatter and stopping when asked. — defer
 - `follow-up-evidence-one-correction`: During a follow-up window, answer only from evidence already gathered and apply at most one concrete correction, with one rerun. — defer
-- `always-cleanup-keeping-user-work`: Make a run's cleanup stop the processes and sessions its driver created, remove its disposable profiles, temporary workspaces and the fixtures it created and any captures past their retention window, keeping captures still within it, report what was stopped, removed, kept or left, and never delete the person's own work. — adopt, pending cr-r2pa.2.13.3 → create-verification-skill#always-cleanup-keeping-user-work
-- `cleanup-after-failed-attempt`: Run the cleanup after every failed attempt too, so no process or port is left stranded. — adopt, pending cr-r2pa.2.13.3 → create-verification-skill#cleanup-after-failed-attempt
-- `feature-map-required`: Drive an app only through one maintained feature map kept outside any copied pack, with a section per feature giving how a user reaches it, the driving actions with their reset, stable selectors, the states that apply, its preconditions and its evidence, and block when the needed section is missing. — adopt, pending cr-r2pa.2.13.3 → create-verification-skill#feature-map-entry-required
-- `user-terms-only-in-map`: Keep implementation detail out of the feature map, naming only the user's routes, durable handles, needed state, commands and visible proof. — adopt, pending cr-r2pa.2.13.3 → create-verification-skill#user-terms-only-in-map
-- `control-adapter-capabilities`: Require the tool that drives an app to support every mapped feature through real input, inspection without changing state, screenshot and recording capture and cleanup, and to prove this on a harmless run of one mapped feature before any reproduction relies on it. — adopt, pending cr-r2pa.2.13.3 → create-verification-skill#driver-smoke-proof-for-surface
-- `single-feature-handover-proof`: Count one mapped feature, proven end to end, as enough for the handover proof, leaving the rest of the map to later runs. — adopt, pending cr-r2pa.2.13.3 → create-verification-skill#single-feature-handover-proof
-- `coordinates-from-fresh-screenshot`: Drive an interface by screen coordinates only when they come from a screenshot taken right before the action. — adopt, pending cr-r2pa.2.13.3 → create-verification-skill#coordinates-from-fresh-screenshot
-- `real-user-path-proof`: Prove a feature through the path a real user takes, never internal setters or test-only endpoints. — adopt, pending cr-r2pa.2.13.3 → create-verification-skill#real-user-path-proof
-- `action-and-state-capture`: Capture both the action taken and the state that resulted, not only the final screen. — adopt, pending cr-r2pa.2.13.3 → create-verification-skill#action-and-state-capture
-- `stable-handles`: Prefer durable handles such as accessible roles and names, data attributes, prompt strings and routes over coordinates, tab order or position. — adopt, pending cr-r2pa.2.13.3 → create-verification-skill#stable-handles
-- `target-confirmed-by-stable-markers`: Before acting, confirm by stable markers, not window order or a familiar title, that the target is the checked app, workspace, account and data set rather than a look-alike window, shell or production instance, and that the feature is in the expected state. — adopt, pending cr-r2pa.2.13.3 → create-verification-skill#target-confirmed-for-surface
-- `translate-environment-before-blocking`: Before calling an environment a block, restate the defect without platform nouns and try a labelled translation that tests the same behaviour, accepting hardware, permission, device-only and account states as real blocks. — adopt, pending cr-r2pa.2.13.3 → create-verification-skill#translate-environment-before-blocking
+- `always-cleanup-keeping-user-work`: Make a run's cleanup stop the processes and sessions its driver created, remove its disposable profiles, temporary workspaces and the fixtures it created and any captures past their retention window, keeping captures still within it, report what was stopped, removed, kept or left, and never delete the person's own work. — adopt → create-verification-skill#always-cleanup-keeping-user-work
+- `cleanup-after-failed-attempt`: Run the cleanup after every failed attempt too, so no process or port is left stranded. — adopt → create-verification-skill#cleanup-after-failed-attempt
+- `feature-map-required`: Drive an app only through one maintained feature map kept outside any copied pack, with a section per feature giving how a user reaches it, the driving actions with their reset, stable selectors, the states that apply, its preconditions and its evidence, and block when the needed section is missing. — adopt → create-verification-skill#feature-map-entry-required
+- `user-terms-only-in-map`: Keep implementation detail out of the feature map, naming only the user's routes, durable handles, needed state, commands and visible proof. — adopt → create-verification-skill#user-terms-only-in-map
+- `control-adapter-capabilities`: Require the tool that drives an app to support every mapped feature through real input, inspection without changing state, screenshot and recording capture and cleanup, and to prove this on a harmless run of one mapped feature before any reproduction relies on it. — adopt → create-verification-skill#driver-smoke-proof-for-surface
+- `single-feature-handover-proof`: Count one mapped feature, proven end to end, as enough for the handover proof, leaving the rest of the map to later runs. — adopt → create-verification-skill#single-feature-handover-proof
+- `coordinates-from-fresh-screenshot`: Drive an interface by screen coordinates only when they come from a screenshot taken right before the action. — adopt → create-verification-skill#coordinates-from-fresh-screenshot
+- `real-user-path-proof`: Prove a feature through the path a real user takes, never internal setters or test-only endpoints. — adopt → create-verification-skill#real-user-path-proof
+- `action-and-state-capture`: Capture both the action taken and the state that resulted, not only the final screen. — adopt → create-verification-skill#action-and-state-capture
+- `stable-handles`: Prefer durable handles such as accessible roles and names, data attributes, prompt strings and routes over coordinates, tab order or position. — adopt → create-verification-skill#stable-handles
+- `target-confirmed-by-stable-markers`: Before acting, confirm by stable markers, not window order or a familiar title, that the target is the checked app, workspace, account and data set rather than a look-alike window, shell or production instance, and that the feature is in the expected state. — adopt → create-verification-skill#target-confirmed-for-surface
+- `translate-environment-before-blocking`: Before calling an environment a block, restate the defect without platform nouns and try a labelled translation that tests the same behaviour, accepting hardware, permission, device-only and account states as real blocks. — adopt → create-verification-skill#translate-environment-before-blocking
 
 #### engineering · Building · Diagnosis — skill:pstack/skills/benchmark-checklist
 - `run-evidence-answers`: Settle every vetting question with data from an actual run, never from reasoning about the code. — adopt → performance-optimization#run-evidence-answers
@@ -2841,68 +2931,68 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `no-console-log-in-shipped-code`: Forbid console logging in code that ships. — defer
 
 #### engineering · Verification · Testing — skill:pstack/skills/create-verification-skill
-- `project-verification-skill`: Produce a skill kept in the project that launches the real product, drives a feature as a user would and captures evidence. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#project-verification-skill
-- `cold-agent-reader`: Write a generated skill for an agent that meets the project cold, in the middle of a task, rather than for a person. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#cold-agent-reader
-- `ask-only-unobservable`: Answer setup questions from the codebase and ask the person only what the code cannot show. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#ask-only-unobservable
-- `primary-surface-chosen`: Identify every surface a user touches, choose the main one and note the others. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#primary-surface-chosen
-- `documented-run-command-first`: Prefer the project's own documented development command when working out how to start it. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#documented-run-command-first
-- `run-prerequisite-inventory`: Record the ports, environment variables, seed data and sign-in a local run needs. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#run-prerequisite-inventory
-- `existing-harness-then-recipe`: Use a driving harness the project already has, and only then a generic recipe matched to the surface. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#existing-harness-then-recipe
-- `evidence-inventory`: List the kinds of evidence the product can give, such as screenshots, transcripts, response bodies, logs, exit codes and stored state. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#evidence-inventory
-- `instance-isolation-probe`: Establish whether two instances can run side by side through separate ports, data folders or profiles. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#instance-isolation-probe
-- `drive-only-own-instance`: Drive only an instance this run started, declining a shared one that cannot be isolated. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#drive-only-own-instance
-- `working-base-first`: Make a broken checkout build and start, or report the failure exactly, before generating anything from it. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#working-base-first
-- `marked-startup-scaffolding`: Allow a run to create an unrelated asset that blocks startup only if it is labelled as verification scaffolding and removed in cleanup. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#marked-startup-scaffolding
-- `registering-generated-frontmatter`: Give a generated skill frontmatter naming what it covers and when to use it, so it registers. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#registering-generated-frontmatter
-- `real-code-names`: Use real names from the actual code, never invented placeholders. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#real-code-names
-- `launch-ready-means-usable`: State the exact start command and the concrete sign that the product is ready to use, not merely that a process or health check answers. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#launch-ready-means-usable
-- `launch-from-empty-data`: Require a launch to become usable starting from an empty data folder, migrations and seed data included. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#launch-from-empty-data
-- `launch-with-teardown`: Pair the launch instructions with their teardown. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#launch-with-teardown
-- `short-lived-cli-launch`: For a short-lived command-line or terminal program, treat launch as one build or install followed by an isolated session per drive. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#short-lived-cli-launch
-- `read-only-doctor`: Provide one read-only check that the instance is alive, the right build, owns its port, has valid sign-in and matches the expected address, data folder and revision. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#read-only-doctor
-- `doctor-when-suspicious`: Run the doctor check first whenever something looks wrong. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#doctor-when-suspicious
-- `stable-handles`: Prefer durable handles such as accessible roles and names, data attributes, prompt strings and routes over coordinates, tab order or position. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#stable-handles
-- `named-evidence-destination`: Say which evidence a proof captures and the place it is kept. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#named-evidence-destination
-- `real-user-path-proof`: Prove a feature through the path a real user takes, never internal setters or test-only endpoints. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#real-user-path-proof
-- `action-and-state-capture`: Capture both the action taken and the state that resulted, not only the final screen. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#action-and-state-capture
-- `side-effects-verified`: Verify side effects such as written files, inserted rows and sent messages, as well as what is visible. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#side-effects-verified
-- `system-boundary-mocks-only`: Use test doubles only at system boundaries such as external services, time and the file system, never for modules you own. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#system-boundary-mocks-only
+- `project-verification-skill`: Produce a skill kept in the project that launches the real product, drives a feature as a user would and captures evidence. — adopt → create-verification-skill#project-verification-skill
+- `cold-agent-reader`: Write a generated skill for an agent that meets the project cold, in the middle of a task, rather than for a person. — adopt → create-verification-skill#cold-agent-reader
+- `ask-only-unobservable`: Answer setup questions from the codebase and ask the person only what the code cannot show. — adopt → create-verification-skill#ask-only-unobservable
+- `primary-surface-chosen`: Identify every surface a user touches, choose the main one and note the others. — adopt → create-verification-skill#primary-surface-chosen
+- `documented-run-command-first`: Prefer the project's own documented development command when working out how to start it. — adopt → create-verification-skill#documented-run-command-first
+- `run-prerequisite-inventory`: Record the ports, environment variables, seed data and sign-in a local run needs. — adopt → create-verification-skill#run-prerequisite-inventory
+- `existing-harness-then-recipe`: Use a driving harness the project already has, and only then a generic recipe matched to the surface. — adopt → create-verification-skill#existing-harness-then-recipe
+- `evidence-inventory`: List the kinds of evidence the product can give, such as screenshots, transcripts, response bodies, logs, exit codes and stored state. — adopt → create-verification-skill#evidence-inventory
+- `instance-isolation-probe`: Establish whether two instances can run side by side through separate ports, data folders or profiles. — adopt → create-verification-skill#instance-isolation-probe
+- `drive-only-own-instance`: Drive only an instance this run started, declining a shared one that cannot be isolated. — adopt → create-verification-skill#drive-only-own-instance
+- `working-base-first`: Make a broken checkout build and start, or report the failure exactly, before generating anything from it. — adopt → create-verification-skill#working-base-first
+- `marked-startup-scaffolding`: Allow a run to create an unrelated asset that blocks startup only if it is labelled as verification scaffolding and removed in cleanup. — adopt → create-verification-skill#marked-startup-scaffolding
+- `registering-generated-frontmatter`: Give a generated skill frontmatter naming what it covers and when to use it, so it registers. — adopt → create-verification-skill#registering-generated-frontmatter
+- `real-code-names`: Use real names from the actual code, never invented placeholders. — adopt → create-verification-skill#real-code-names
+- `launch-ready-means-usable`: State the exact start command and the concrete sign that the product is ready to use, not merely that a process or health check answers. — adopt → create-verification-skill#launch-ready-means-usable
+- `launch-from-empty-data`: Require a launch to become usable starting from an empty data folder, migrations and seed data included. — adopt → create-verification-skill#launch-from-empty-data
+- `launch-with-teardown`: Pair the launch instructions with their teardown. — adopt → create-verification-skill#launch-with-teardown
+- `short-lived-cli-launch`: For a short-lived command-line or terminal program, treat launch as one build or install followed by an isolated session per drive. — adopt → create-verification-skill#short-lived-cli-launch
+- `read-only-doctor`: Provide one read-only check that the instance is alive, the right build, owns its port, has valid sign-in and matches the expected address, data folder and revision. — adopt → create-verification-skill#read-only-doctor
+- `doctor-when-suspicious`: Run the doctor check first whenever something looks wrong. — adopt → create-verification-skill#doctor-when-suspicious
+- `stable-handles`: Prefer durable handles such as accessible roles and names, data attributes, prompt strings and routes over coordinates, tab order or position. — adopt → create-verification-skill#stable-handles
+- `named-evidence-destination`: Say which evidence a proof captures and the place it is kept. — adopt → create-verification-skill#named-evidence-destination
+- `real-user-path-proof`: Prove a feature through the path a real user takes, never internal setters or test-only endpoints. — adopt → create-verification-skill#real-user-path-proof
+- `action-and-state-capture`: Capture both the action taken and the state that resulted, not only the final screen. — adopt → create-verification-skill#action-and-state-capture
+- `side-effects-verified`: Verify side effects such as written files, inserted rows and sent messages, as well as what is visible. — adopt → create-verification-skill#side-effects-verified
+- `system-boundary-mocks-only`: Use test doubles only at system boundaries such as external services, time and the file system, never for modules you own. — adopt → create-verification-skill#system-boundary-mocks-only
 - `direct-observation`: Verify a result by observing the real thing (run it, read the actual value, check liveness directly), never a proxy, a cached view or a self-report. — adopt → doc:AGENTS.md
-- `teardown-only-own-instances`: Stop only instances this run created, never by process name. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#teardown-only-own-instances
-- `cleanup-keeps-evidence`: Make cleanup remove instances and scratch state while proof files survive where the skill names. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#cleanup-keeps-evidence
-- `runnable-documented-helpers`: Make every shipped helper script executable and give its invocation in the skill body. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#runnable-documented-helpers
-- `seeded-feature-map`: Start a feature map of an index with one line per feature and one file per user-facing feature, beginning with the main few found in routes, commands, menus or docs. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#seeded-feature-map
-- `user-view-feature-file`: Have each feature file describe, from the user's side, what the feature does, the route to it, how to drive it and the visible end state that proves it. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#user-view-feature-file
-- `feature-file-template`: Open each feature file with a title and one paragraph of user-visible behaviour, then fixed sections for sub-features by short id, how to reach it, driving it as action, command and result lines, and gotchas. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#feature-file-template
-- `check-never-weakened-to-pass`: When a check fails on the current product, report the failure and never weaken the check or its model to make it pass. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#check-never-weakened-to-pass
-- `missing-precondition-in-gotchas`: When seed data lacks a precondition a journey needs, record the missing precondition in that feature's gotchas. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#missing-precondition-in-gotchas
-- `map-defines-completeness`: Treat the feature map as the source of what must be proven, so proof through one entry point falls short while the map lists more, and a skipped one is never claimed through another route. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#map-defines-completeness
-- `generated-skill-run-once`: Follow a generated skill end to end once, as its next reader would, before handing it over, counting an unrun skill as a draft. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#generated-skill-run-once
-- `single-feature-handover-proof`: Count one mapped feature, proven end to end, as enough for the handover proof, leaving the rest of the map to later runs. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#single-feature-handover-proof
-- `evidence-checked-after-cleanup`: After cleanup, confirm the captured evidence still exists where the skill says it is, and fail the step if it does not. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#evidence-checked-after-cleanup
-- `cleanup-after-failed-attempt`: Run the cleanup after every failed attempt too, so no process or port is left stranded. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#cleanup-after-failed-attempt
-- `stand-in-gap-disclosure`: When a proof ran in a substitute environment, list each setup step it did that the real target will not, keeping those steps marked unverified. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#stand-in-gap-disclosure
+- `teardown-only-own-instances`: Stop only instances this run created, never by process name. — adopt → create-verification-skill#teardown-only-own-instances
+- `cleanup-keeps-evidence`: Make cleanup remove instances and scratch state while proof files survive where the skill names. — adopt → create-verification-skill#cleanup-keeps-evidence
+- `runnable-documented-helpers`: Make every shipped helper script executable and give its invocation in the skill body. — adopt → create-verification-skill#runnable-documented-helpers
+- `seeded-feature-map`: Start a feature map of an index with one line per feature and one file per user-facing feature, beginning with the main few found in routes, commands, menus or docs. — adopt → create-verification-skill#seeded-feature-map
+- `user-view-feature-file`: Have each feature file describe, from the user's side, what the feature does, the route to it, how to drive it and the visible end state that proves it. — adopt → create-verification-skill#user-view-feature-file
+- `feature-file-template`: Open each feature file with a title and one paragraph of user-visible behaviour, then fixed sections for sub-features by short id, how to reach it, driving it as action, command and result lines, and gotchas. — adopt → create-verification-skill#feature-file-template
+- `check-never-weakened-to-pass`: When a check fails on the current product, report the failure and never weaken the check or its model to make it pass. — adopt → create-verification-skill#check-never-weakened-to-pass
+- `missing-precondition-in-gotchas`: When seed data lacks a precondition a journey needs, record the missing precondition in that feature's gotchas. — adopt → create-verification-skill#missing-precondition-in-gotchas
+- `map-defines-completeness`: Treat the feature map as the source of what must be proven, so proof through one entry point falls short while the map lists more, and a skipped one is never claimed through another route. — adopt → create-verification-skill#map-defines-completeness
+- `generated-skill-run-once`: Follow a generated skill end to end once, as its next reader would, before handing it over, counting an unrun skill as a draft. — adopt → create-verification-skill#generated-skill-run-once
+- `single-feature-handover-proof`: Count one mapped feature, proven end to end, as enough for the handover proof, leaving the rest of the map to later runs. — adopt → create-verification-skill#single-feature-handover-proof
+- `evidence-checked-after-cleanup`: After cleanup, confirm the captured evidence still exists where the skill says it is, and fail the step if it does not. — adopt → create-verification-skill#evidence-checked-after-cleanup
+- `cleanup-after-failed-attempt`: Run the cleanup after every failed attempt too, so no process or port is left stranded. — adopt → create-verification-skill#cleanup-after-failed-attempt
+- `stand-in-gap-disclosure`: When a proof ran in a substitute environment, list each setup step it did that the real target will not, keeping those steps marked unverified. — adopt → create-verification-skill#stand-in-gap-disclosure
 - `cadence-only-on-request`: Suggest a maintenance schedule only when asked for one. — reject
-- `read-index-first`: Have the map send its reader to the index first and then to the feature file that matches, used as the recipe. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#read-index-first
-- `baseline-preconditions-block`: Open the map index with the shared preconditions: launch address, seed data and tools on the path. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#baseline-preconditions-block
-- `per-run-disposable-data`: Give each run its own throwaway data folder keyed by a run id, so concurrent runs share no state. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#per-run-disposable-data
-- `baseline-start-and-reset`: Start each recipe from the baseline state unless it says otherwise, and return to the required state before proving the next case when an earlier step changed it. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#baseline-start-and-reset
-- `literal-commands`: Treat each command as literal, keeping quoted names and flags unchanged. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#literal-commands
-- `single-control-wrapper`: Route browser and terminal actions through one control command. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#single-control-wrapper
-- `restore-seed-after-mutation`: Put seeded data back after any change to it. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#restore-seed-after-mutation
-- `ui-proof-snapshot-and-screenshot`: For an interface, define proof as an accessibility snapshot plus a screenshot showing the product's identity. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#ui-proof-screenshot-snapshot-where-offered
-- `cli-proof-command-output-exit`: For a command line, define proof as the command, its output, its errors and its exit code. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#cli-proof-command-output-exit
-- `change-proven-by-second-read`: Prove a change persisted by reading it back through a separate read-only view, such as reopening the item from the list, not by its save confirmation. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#change-proven-by-second-read
-- `artifact-provenance`: Label every proof file with the feature, entry point, product, input used and expected item. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#artifact-provenance
-- `unreachable-with-route-and-prerequisite`: Report a feature as unreachable only with the route tried and the prerequisite that was missing. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#unreachable-with-route-and-prerequisite
-- `run-invalidating-gotchas`: Keep the gotchas section for traps that could waste a verification run or make its result invalid. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#run-invalidating-gotchas
-- `complete-entry-point-list`: List every way a user can reach a feature. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#complete-entry-point-list
-- `user-terms-only-in-map`: Keep implementation detail out of the feature map, naming only the user's routes, durable handles, needed state, commands and visible proof. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#user-terms-only-in-map
-- `cancel-path-covered`: For a feature with a cancel action, include a journey that cancels and checks the product shows what it specifies a cancel leaves, such as no saved item. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#cancel-path-covered
-- `rendered-value-asserted`: Assert the value the product displayed, not the value typed, since the product may normalise input. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#rendered-value-asserted
-- `no-result-state-asserted`: Tell a true no-results state from an unavailable feature, waiting for the finished state, and on a command line assert the exact exit code and empty output. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#no-result-state-asserted
-- `wait-on-condition-not-sleep`: Wait for a concrete result element or status rather than a fixed delay. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#wait-on-condition-not-sleep
-- `structured-output-for-assertions`: Use a machine-readable output option for stable command-line assertions. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#structured-output-for-assertions
+- `read-index-first`: Have the map send its reader to the index first and then to the feature file that matches, used as the recipe. — adopt → create-verification-skill#read-index-first
+- `baseline-preconditions-block`: Open the map index with the shared preconditions: launch address, seed data and tools on the path. — adopt → create-verification-skill#baseline-preconditions-block
+- `per-run-disposable-data`: Give each run its own throwaway data folder keyed by a run id, so concurrent runs share no state. — adopt → create-verification-skill#per-run-disposable-data
+- `baseline-start-and-reset`: Start each recipe from the baseline state unless it says otherwise, and return to the required state before proving the next case when an earlier step changed it. — adopt → create-verification-skill#baseline-start-and-reset
+- `literal-commands`: Treat each command as literal, keeping quoted names and flags unchanged. — adopt → create-verification-skill#literal-commands
+- `single-control-wrapper`: Route browser and terminal actions through one control command. — adopt → create-verification-skill#single-control-wrapper
+- `restore-seed-after-mutation`: Put seeded data back after any change to it. — adopt → create-verification-skill#restore-seed-after-mutation
+- `ui-proof-snapshot-and-screenshot`: For an interface, define proof as an accessibility snapshot plus a screenshot showing the product's identity. — adopt → create-verification-skill#ui-proof-screenshot-snapshot-where-offered
+- `cli-proof-command-output-exit`: For a command line, define proof as the command, its output, its errors and its exit code. — adopt → create-verification-skill#cli-proof-command-output-exit
+- `change-proven-by-second-read`: Prove a change persisted by reading it back through a separate read-only view, such as reopening the item from the list, not by its save confirmation. — adopt → create-verification-skill#change-proven-by-second-read
+- `artifact-provenance`: Label every proof file with the feature, entry point, product, input used and expected item. — adopt → create-verification-skill#artifact-provenance
+- `unreachable-with-route-and-prerequisite`: Report a feature as unreachable only with the route tried and the prerequisite that was missing. — adopt → create-verification-skill#unreachable-with-route-and-prerequisite
+- `run-invalidating-gotchas`: Keep the gotchas section for traps that could waste a verification run or make its result invalid. — adopt → create-verification-skill#run-invalidating-gotchas
+- `complete-entry-point-list`: List every way a user can reach a feature. — adopt → create-verification-skill#complete-entry-point-list
+- `user-terms-only-in-map`: Keep implementation detail out of the feature map, naming only the user's routes, durable handles, needed state, commands and visible proof. — adopt → create-verification-skill#user-terms-only-in-map
+- `cancel-path-covered`: For a feature with a cancel action, include a journey that cancels and checks the product shows what it specifies a cancel leaves, such as no saved item. — adopt → create-verification-skill#cancel-path-covered
+- `rendered-value-asserted`: Assert the value the product displayed, not the value typed, since the product may normalise input. — adopt → create-verification-skill#rendered-value-asserted
+- `no-result-state-asserted`: Tell a true no-results state from an unavailable feature, waiting for the finished state, and on a command line assert the exact exit code and empty output. — adopt → create-verification-skill#no-result-state-asserted
+- `wait-on-condition-not-sleep`: Wait for a concrete result element or status rather than a fixed delay. — adopt → create-verification-skill#wait-on-condition-not-sleep
+- `structured-output-for-assertions`: Use a machine-readable output option for stable command-line assertions. — adopt → create-verification-skill#structured-output-for-assertions
 
 #### engineering · Verification · Testing — skill:pstack/skills/maintain-verification-skill
 - `every-feature-source-and-live`: Cover each feature both from its source and live at least once, even when the source reading looks clean, without testing every sentence. — adopt, pending cr-r2pa.2.13.2 → maintain-verification-skill#every-feature-source-and-live
@@ -2965,9 +3055,9 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 
 #### engineering · Verification · Validation — skill:pstack/skills/create-formal-verification-skill
 - `formal-check-left-as-skill`: Verify one property and leave a project skill that lets a later agent check changes against it. — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#formal-check-left-as-skill
-- `cold-agent-reader`: Write a generated skill for an agent that meets the project cold, in the middle of a task, rather than for a person. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#cold-agent-reader
+- `cold-agent-reader`: Write a generated skill for an agent that meets the project cold, in the middle of a task, rather than for a person. — adopt → create-verification-skill#cold-agent-reader
 - `result-trusted-without-the-language`: Make the result something the person can trust and act on without learning the verification language. — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#result-trusted-without-the-language
-- `ask-only-unobservable`: Answer setup questions from the codebase and ask the person only what the code cannot show. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#ask-only-unobservable
+- `ask-only-unobservable`: Answer setup questions from the codebase and ask the person only what the code cannot show. — adopt → create-verification-skill#ask-only-unobservable
 - `named-scope-first`: Use the scope the user names when one is given. — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#named-scope-first
 - `harmful-rarely-tested-promise`: Pick as the target a promise the code makes whose breaking harms users and that tests rarely reach. — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#harmful-rarely-tested-promise
 - `strongest-target-not-easiest`: Choose the strongest such target, not the easiest to verify. — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#strongest-target-not-easiest
@@ -2978,20 +3068,20 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `atomicity-fidelity`: Treat as one indivisible step in the verification only what is one indivisible step in the code. — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#atomicity-fidelity
 - `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write. — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#domain-vocabulary
 - `property-fails-on-broken-variant`: Show each property failing on a deliberately broken variant of the code it guards, after first writing it and after each update. — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#property-fails-on-broken-variant
-- `check-never-weakened-to-pass`: When a check fails on the current product, report the failure and never weaken the check or its model to make it pass. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#check-never-weakened-to-pass
+- `check-never-weakened-to-pass`: When a check fails on the current product, report the failure and never weaken the check or its model to make it pass. — adopt → create-verification-skill#check-never-weakened-to-pass
 - `verification-only-edits`: During a verification pass, edit only the verification skill's own files and never product code unless asked. — adopt, pending cr-r2pa.2.13.2 → maintain-verification-skill#verification-only-edits
 - `verified-scope-statement`: Say what the verification covers, the bounds and assumptions it holds under, and what it leaves out. — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#verified-scope-statement
 - `plain-property-and-harm`: State the property and the harm of breaking it in one plain sentence each. — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#plain-property-and-harm
 - `counterexample-as-code-steps`: Describe a counterexample as a few steps phrased in the code's own terms. — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#counterexample-as-code-steps
 - `cheap-rerun`: Make the check rerunnable with a single command, a pinned tool version and a short running time. — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#cheap-rerun
 - `coverage-and-sync-record`: Record, per check, the files and functions it guards and the last commit it was confirmed against, so drift shows. — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#coverage-and-sync-record
-- `registering-generated-frontmatter`: Give a generated skill frontmatter naming what it covers and when to use it, so it registers. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#registering-generated-frontmatter
+- `registering-generated-frontmatter`: Give a generated skill frontmatter naming what it covers and when to use it, so it registers. — adopt → create-verification-skill#registering-generated-frontmatter
 - `verify-skill-capabilities`: Let the next agent learn from the skill alone whether a change touches verified code, how to run the check, how to tell a real bug from a modelling error and how to update the verification for an intended change. — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#verify-skill-capabilities
 - `sync-commit-advanced-after-match`: Move the recorded sync commit forward only after confirming the verification matches the code at the new commit. — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#sync-commit-advanced-after-match
-- `real-code-names`: Use real names from the actual code, never invented placeholders. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#real-code-names
+- `real-code-names`: Use real names from the actual code, never invented placeholders. — adopt → create-verification-skill#real-code-names
 - `companion-tool-by-name`: When the check is a state-machine model, such as a TLA+ check, point the generated skill at a named companion tool for reading results, copying none of its commands, options or paths. — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#companion-tool-by-name
 - `generated-check-catches-planted-break`: Follow the generated skill once against a throwaway edit to real code that violates the property, confirm it catches the break, then remove the edit and confirm the check is back to its earlier state. — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#generated-check-catches-planted-break
-- `generated-skill-run-once`: Follow a generated skill end to end once, as its next reader would, before handing it over, counting an unrun skill as a draft. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#generated-skill-run-once
+- `generated-skill-run-once`: Follow a generated skill end to end once, as its next reader would, before handing it over, counting an unrun skill as a draft. — adopt → create-verification-skill#generated-skill-run-once
 - `fix-skill-not-scratch-break`: When the skill misses a planted break or a step fails, fix the skill or the verification, never the planted break. — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#fix-skill-not-scratch-break
 - `verification-handoff-report`: Tell the person what was verified, with which tool and why, the bounds, the findings in plain words, the command to run it and what it leaves uncovered. — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#verification-handoff-report
 - `adjacent-target-only-if-close`: Suggest a second target only when a close one turned up. — adopt, pending cr-r2pa.2.13.2 → create-formal-verification-skill#adjacent-target-only-if-close
@@ -2999,7 +3089,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 #### engineering · Verification · Validation — skill:pstack/skills/maintain-formal-verification-skill
 - `per-check-outcome`: Give each check one named outcome, in sync, updated, bug or blocked with the reason, allowing updated and bug together when an update restores fidelity and the property then fails. — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#per-check-outcome
 - `verification-only-edits`: During a verification pass, edit only the verification skill's own files and never product code unless asked. — adopt, pending cr-r2pa.2.13.2 → maintain-verification-skill#verification-only-edits
-- `check-never-weakened-to-pass`: When a check fails on the current product, report the failure and never weaken the check or its model to make it pass. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#check-never-weakened-to-pass
+- `check-never-weakened-to-pass`: When a check fails on the current product, report the failure and never weaken the check or its model to make it pass. — adopt → create-verification-skill#check-never-weakened-to-pass
 - `target-found-by-content`: Find the verification skill to maintain by what it does, not by a fixed name, or use the one the person named. — adopt, pending cr-r2pa.2.13.2 → maintain-verification-skill#target-found-by-content
 - `per-check-inventory`: Collect for each check its property, covered code, bounds and assumptions, run command and last sync commit. — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#per-check-inventory
 - `no-target-points-to-create`: When no verification skill exists, stop and point to the unit that creates one rather than inventing one. — adopt, pending cr-r2pa.2.13.2 → maintain-verification-skill#no-target-points-to-create
@@ -3021,7 +3111,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `uncommitted-repro-evidence`: Put a cheap test or reproduction showing the bug in the report as evidence without committing it to product code. — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#uncommitted-repro-evidence
 - `verify-skill-metadata-refresh`: Update each check's covered code, commands, bounds, assumptions and sync commit in the verification skill, setting the sync commit to the one checked. — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#verify-skill-metadata-refresh
 - `blocked-check-sync-freeze`: Leave a blocked check's sync commit where it was, and say so. — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#blocked-check-sync-freeze
-- `generated-skill-run-once`: Follow a generated skill end to end once, as its next reader would, before handing it over, counting an unrun skill as a draft. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#generated-skill-run-once
+- `generated-skill-run-once`: Follow a generated skill end to end once, as its next reader would, before handing it over, counting an unrun skill as a draft. — adopt → create-verification-skill#generated-skill-run-once
 - `per-check-report`: Report per check the outcome, commits read, each verification change with its reason, the rerun result and the break used, each bug in plain words with its commit and the coverage gaps left, saying outright which failures were drift and which were bugs. — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#per-check-report
 - `stale-pass-disclosure`: For a check that passed before an update and fails after, say the old pass was against a stale description. — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#stale-pass-disclosure
 - `separate-verification-change`: Keep verification updates in their own change, apart from any product fix. — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#separate-verification-change
@@ -3042,7 +3132,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `unnamed-break-is-error`: Stop with an error and the output tail when the checker fails without naming a broken rule, rather than guessing one. — adopt, pending cr-r2pa.2.13.2 → statechart#unnamed-break-is-error
 - `checker-error-excerpt`: When the checker stops on an error, report which rules it left unchecked and quote only its error messages, cut to a few dozen lines. — adopt, pending cr-r2pa.2.13.2 → statechart#checker-error-excerpt
 - `agreed-rules-as-invariants`: Write each rule the reader agrees to as an invariant over what they see, adding a model variable when a rule needs one. — adopt, pending cr-r2pa.2.13.2 → statechart#agreed-rules-as-invariants
-- `check-never-weakened-to-pass`: When a check fails on the current product, report the failure and never weaken the check or its model to make it pass. — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#check-never-weakened-to-pass
+- `check-never-weakened-to-pass`: When a check fails on the current product, report the failure and never weaken the check or its model to make it pass. — adopt → create-verification-skill#check-never-weakened-to-pass
 - `named-actions-in-next-state`: Write the next-state relation as a disjunction of named actions so each step carries its action's name. — adopt, pending cr-r2pa.2.13.2 → statechart#named-actions-in-next-state
 - `end-state-stutter-action`: Add a labelled action enabled only in correct end states that changes nothing, so they do not count as deadlocks. — adopt, pending cr-r2pa.2.13.2 → statechart#end-states-marked-not-deadlocks
 - `deadlock-rule-naming`: Report the deadlock rule under a fixed name, switching to another when an invariant already uses it. — adopt, pending cr-r2pa.2.13.2 → statechart#deadlock-rule-naming
@@ -3172,8 +3262,8 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `project-scope-dependency-check`: Require a fresh agent in the target repository to resolve every shared skill and principle the pack needs from project scope, and stop setup if any does not. — out-of-scope
 - `commit-before-enable-notice`: Tell the person that settings, pack and configuration must be committed before enabling, committing nothing unless asked. — out-of-scope
 - `committed-paths-for-automation-prompts`: Have a live automation prompt read committed, secret-free files by stable repository paths, never a plugin cache, paraphrasing values into the prompt only when no committed file exists. — out-of-scope
-- `map-section-per-reproducible-feature`: Give the feature map a section for each user-facing feature that an automated run may reproduce. — adopt, pending cr-r2pa.2.13.3 → create-verification-skill#map-section-per-reproducible-feature
-- `user-terms-only-in-map`: Keep implementation detail out of the feature map, naming only the user's routes, durable handles, needed state, commands and visible proof. — adopt, pending cr-r2pa.2.13.3 → create-verification-skill#user-terms-only-in-map
+- `map-section-per-reproducible-feature`: Give the feature map a section for each user-facing feature that an automated run may reproduce. — adopt → create-verification-skill#map-section-per-reproducible-feature
+- `user-terms-only-in-map`: Keep implementation detail out of the feature map, naming only the user's routes, durable handles, needed state, commands and visible proof. — adopt → create-verification-skill#user-terms-only-in-map
 - `explicit-required-setup-values`: Ask for every required setting by checklist and fail setup unless the critical ones are given explicitly. — out-of-scope
 - `confirmed-slugs-only`: Write or use a model name only after confirming it is selectable now, never guessing one or carrying it over from someone else's default. — reject
 - `integration-capability-checklist`: List the chat, tracker and repository capabilities each automation needs, and use no undocumented integration endpoint. — out-of-scope
@@ -3181,7 +3271,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `routing-map-preparation`: Copy the routing example outside the pack with every placeholder filled before reroutes or pings are used. — out-of-scope
 - `owner-ping-gate`: Keep owner pings off by default and allow one only to a configured feature owner who agreed or a confirmed regression author, never a broad on-call group or an unverified owner. — defer
 - `no-guessed-route`: Without a matching route, classify but name no destination or owner, and keep the fallback empty unless one team accepts everything unmatched. — defer
-- `control-adapter-capabilities`: Require the tool that drives an app to support every mapped feature through real input, inspection without changing state, screenshot and recording capture and cleanup, and to prove this on a harmless run of one mapped feature before any reproduction relies on it. — adopt, pending cr-r2pa.2.13.3 → create-verification-skill#driver-smoke-proof-for-surface
+- `control-adapter-capabilities`: Require the tool that drives an app to support every mapped feature through real input, inspection without changing state, screenshot and recording capture and cleanup, and to prove this on a harmless run of one mapped feature before any reproduction relies on it. — adopt → create-verification-skill#driver-smoke-proof-for-surface
 - `automation-creation-handoff`: Create automations one at a time through the platform's reviewed creation flow, assembling each request from the entry doc, the configuration and the template, and give a field checklist for existing ones instead of duplicates. — out-of-scope
 - `automation-intent-specs`: State what the triage and repair automations must each do, from trigger and scope to the rules they follow. — out-of-scope
 - `thread-safety-test-before-enable`: Enable no chat automation until a test on a harmless report, run after everything is committed, shows it keeps to its thread, its marker and its write limits. — defer
@@ -7560,9 +7650,10 @@ Rework borrowed material until the piece reads in a single voice rather than as 
 
 #### `real-code-names`
 Use real names from the actual code, never invented placeholders.
+- ours: `create-verification-skill`
 - ours: `show-me`
-- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#real-code-names
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#real-code-names
+- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt → create-verification-skill#real-code-names
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#real-code-names
 - `cursor_plugins:skill:pstack/skills/how` — reject
 
 #### `real-name-over-description`
@@ -10286,6 +10377,7 @@ Resolve workspace paths from the directory the skill was run in, resolving only 
 #### `artifact-contracts`
 Follow a fixed required-section set and order per artifact type, stating an empty section rather than dropping it.
 - ours: `codebase-research`
+- ours: `create-verification-skill`
 
 #### `registry-index`
 Keep a single index file as the artifact registry, updated in the same run that writes or invalidates an artifact, with dated immutable deep dives that supersede earlier ones by name.
@@ -12917,7 +13009,8 @@ Use a language or system profiler when hunting a limiter.
 
 #### `same-surface-agent-repro`
 Reproduce a reported bug yourself on the same surface the user saw it on before fixing it, handing that to the user only under one narrow named exception.
-- `cursor_plugins:skill:pstack/skills/poteto-mode` — adopt, pending cr-r2pa.2.13.3 → create-verification-skill#same-surface-agent-repro
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/skills/poteto-mode` — adopt → create-verification-skill#same-surface-agent-repro
 
 #### `scoped-instance-fix`
 Search for every instance of a confirmed fault, fix those inside the task's scope and report the rest.
@@ -14122,8 +14215,9 @@ Pair an assertion that something did not happen with a positive case showing the
 
 #### `action-and-state-capture`
 Capture both the action taken and the state that resulted, not only the final screen.
-- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — adopt, pending cr-r2pa.2.13.3 → create-verification-skill#action-and-state-capture
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#action-and-state-capture
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — adopt → create-verification-skill#action-and-state-capture
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#action-and-state-capture
 
 #### `after-proof-mirrors-baseline`
 Prove a fix with two runs on the unfixed build that show the fault and two on the fixed build that do not, in one environment, making no claim when the unfixed build never shows it.
@@ -14131,7 +14225,8 @@ Prove a fix with two runs on the unfixed build that show the fault and two on th
 
 #### `always-cleanup-keeping-user-work`
 Make a run's cleanup stop the processes and sessions its driver created, remove its disposable profiles, temporary workspaces and the fixtures it created and any captures past their retention window, keeping captures still within it, report what was stopped, removed, kept or left, and never delete the person's own work.
-- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — adopt, pending cr-r2pa.2.13.3 → create-verification-skill#always-cleanup-keeping-user-work
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — adopt → create-verification-skill#always-cleanup-keeping-user-work
 
 #### `applicable-checks-before-done`
 Run the applicable checks from the repository's verification file before claiming the work done.
@@ -14139,12 +14234,14 @@ Run the applicable checks from the repository's verification file before claimin
 
 #### `artifact-provenance`
 Label every proof file with the feature, entry point, product, input used and expected item.
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#artifact-provenance
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#artifact-provenance
 
 #### `ask-only-unobservable`
 Answer setup questions from the codebase and ask the person only what the code cannot show.
-- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#ask-only-unobservable
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#ask-only-unobservable
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt → create-verification-skill#ask-only-unobservable
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#ask-only-unobservable
 
 #### `assertion-strings-not-step-comments`
 Write verify and test scripts without comments narrating their steps, letting assertion and log strings say what each step checks.
@@ -14157,11 +14254,13 @@ Before the first change of multi-step work, run its checks on the starting base 
 
 #### `baseline-preconditions-block`
 Open the map index with the shared preconditions: launch address, seed data and tools on the path.
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#baseline-preconditions-block
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#baseline-preconditions-block
 
 #### `baseline-start-and-reset`
 Start each recipe from the baseline state unless it says otherwise, and return to the required state before proving the next case when an earlier step changed it.
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#baseline-start-and-reset
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#baseline-start-and-reset
 
 #### `before-after-proof-report`
 Name the check that failed before the fix with its failure, and the passing run after the fix with any nearby validation.
@@ -14200,7 +14299,8 @@ Suggest a maintenance schedule only when asked for one.
 
 #### `cancel-path-covered`
 For a feature with a cancel action, include a journey that cancels and checks the product shows what it specifies a cancel leaves, such as no saved item.
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#cancel-path-covered
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#cancel-path-covered
 
 #### `cast-search-in-tests`
 Find candidate casts by searching test and spec files for the cast pattern.
@@ -14212,7 +14312,8 @@ Avoid type casts in tests, since a cast must name its target type and needs a se
 
 #### `change-proven-by-second-read`
 Prove a change persisted by reading it back through a separate read-only view, such as reopening the item from the list, not by its save confirmation.
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#change-proven-by-second-read
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#change-proven-by-second-read
 
 #### `cheap-test-first-or-reason`
 Write the failing test first when a cheap local test target exists, otherwise state why none was written.
@@ -14220,10 +14321,11 @@ Write the failing test first when a cheap local test target exists, otherwise st
 
 #### `check-never-weakened-to-pass`
 When a check fails on the current product, report the failure and never weaken the check or its model to make it pass.
-- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#check-never-weakened-to-pass
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#check-never-weakened-to-pass
-- `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#check-never-weakened-to-pass
-- `cursor_plugins:skill:pstack/skills/statechart` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#check-never-weakened-to-pass
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt → create-verification-skill#check-never-weakened-to-pass
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#check-never-weakened-to-pass
+- `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt → create-verification-skill#check-never-weakened-to-pass
+- `cursor_plugins:skill:pstack/skills/statechart` — adopt → create-verification-skill#check-never-weakened-to-pass
 
 #### `checks-by-changed-material`
 Select the checks to run from a table keyed by the kind of material changed, classing each file by the component it exercises rather than the directory it sits in.
@@ -14235,16 +14337,19 @@ Sweep recent changes for user-facing surfaces the map lacks, and cite the source
 
 #### `cleanup-after-failed-attempt`
 Run the cleanup after every failed attempt too, so no process or port is left stranded.
-- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — adopt, pending cr-r2pa.2.13.3 → create-verification-skill#cleanup-after-failed-attempt
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#cleanup-after-failed-attempt
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — adopt → create-verification-skill#cleanup-after-failed-attempt
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#cleanup-after-failed-attempt
 
 #### `cleanup-keeps-evidence`
 Make cleanup remove instances and scratch state while proof files survive where the skill names.
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#cleanup-keeps-evidence
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#cleanup-keeps-evidence
 
 #### `cli-proof-command-output-exit`
 For a command line, define proof as the command, its output, its errors and its exit code.
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#cli-proof-command-output-exit
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#cli-proof-command-output-exit
 
 #### `closest-executable-fallback`
 When a failing test is impractical, substitute a targeted script, reproduction command, browser automation, snapshot diff, log assertion or narrow integration check.
@@ -14258,12 +14363,14 @@ Prefer the kind of test already used for that codepath.
 
 #### `cold-agent-reader`
 Write a generated skill for an agent that meets the project cold, in the middle of a task, rather than for a person.
-- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#cold-agent-reader
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#cold-agent-reader
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt → create-verification-skill#cold-agent-reader
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#cold-agent-reader
 
 #### `complete-entry-point-list`
 List every way a user can reach a feature.
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#complete-entry-point-list
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#complete-entry-point-list
 
 #### `contract-exact-assertion`
 Assert exactly what the contract promises, no less and no more, letting the contract decide whether a call, an absence, a payload or an error type is behaviour.
@@ -14276,16 +14383,21 @@ Make the smallest production change that gives the intended behaviour and preser
 
 #### `control-adapter-capabilities`
 Require the tool that drives an app to support every mapped feature through real input, inspection without changing state, screenshot and recording capture and cleanup, and to prove this on a harmless run of one mapped feature before any reproduction relies on it.
-- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — adopt, pending cr-r2pa.2.13.3 → create-verification-skill#driver-smoke-proof-for-surface
-- `cursor_plugins:skill:pstack/automations/benny/skills/setup-benny` — adopt, pending cr-r2pa.2.13.3 → create-verification-skill#driver-smoke-proof-for-surface
+- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — adopt → create-verification-skill#driver-smoke-proof-for-surface
+- `cursor_plugins:skill:pstack/automations/benny/skills/setup-benny` — adopt → create-verification-skill#driver-smoke-proof-for-surface
 
 #### `coordinates-from-fresh-screenshot`
 Drive an interface by screen coordinates only when they come from a screenshot taken right before the action.
-- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — adopt, pending cr-r2pa.2.13.3 → create-verification-skill#coordinates-from-fresh-screenshot
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — adopt → create-verification-skill#coordinates-from-fresh-screenshot
 
 #### `coordinator-only-driving`
 Leave all driving of the product to the coordinator.
 - `cursor_plugins:skill:pstack/skills/maintain-verification-skill` — adopt, pending cr-r2pa.2.13.2 → maintain-verification-skill#coordinator-only-driving
+
+#### `credentials-never-captured`
+Never print, log or keep a credential a generated skill uses, one the run generated included, and parse tool output that can hold one (resolved service config, container inspection, a connection string) inside the helper without saving it.
+- ours: `create-verification-skill`
 
 #### `deterministic-state`
 Prefer deterministic inputs and isolated state, controlling time, randomness and shared state that cause nondeterminism.
@@ -14309,11 +14421,13 @@ Run the doctor check before the first drive, on each fresh session and after any
 
 #### `doctor-when-suspicious`
 Run the doctor check first whenever something looks wrong.
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#doctor-when-suspicious
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#doctor-when-suspicious
 
 #### `documented-run-command-first`
 Prefer the project's own documented development command when working out how to start it.
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#documented-run-command-first
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#documented-run-command-first
 
 #### `drift-doctor-fix-retry-once`
 Treat a doctor failure caused by skill drift as drift: fix it within scope, restart only what the fix invalidated and retry once before declaring blocked.
@@ -14321,14 +14435,21 @@ Treat a doctor failure caused by skill drift as drift: fix it within scope, rest
 
 #### `drive-only-own-instance`
 Drive only an instance this run started, declining a shared one that cannot be isolated.
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#drive-only-own-instance
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#drive-only-own-instance
 
 #### `drive-shipped-surface`
 Treat every change that ships interface, editor or command-line behaviour as not done until it has been run through the tool that drives that surface.
-- `cursor_plugins:skill:pstack/skills/poteto-mode` — adopt, pending cr-r2pa.2.13.3 → create-verification-skill#drive-shipped-surface
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/skills/poteto-mode` — adopt → create-verification-skill#drive-shipped-surface
 
 #### `driver-smoke-proof-for-surface`
 Require the tool that drives an app to support every mapped feature through real input, inspection without changing state, the evidence capture its surface allows and cleanup, and to prove this on a harmless run of one mapped feature before any run relies on it, reporting a capability it lacks as incomplete and stopping only the work that needs it.
+- ours: `create-verification-skill`
+
+#### `dry-run-skips-observed`
+When a generated skill relies on a dry-run or offline mode, record step by step what the proof run observed that mode skip, running without a network or tracing connections, never trusting the mode by its name.
+- ours: `create-verification-skill`
 
 #### `every-feature-source-and-live`
 Cover each feature both from its source and live at least once, even when the source reading looks clean, without testing every sentence.
@@ -14336,12 +14457,14 @@ Cover each feature both from its source and live at least once, even when the so
 
 #### `evidence-checked-after-cleanup`
 After cleanup, confirm the captured evidence still exists where the skill says it is, and fail the step if it does not.
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#evidence-checked-after-cleanup
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#evidence-checked-after-cleanup
 - `cursor_plugins:skill:pstack/skills/maintain-verification-skill` — adopt, pending cr-r2pa.2.13.2 → maintain-verification-skill#evidence-checked-after-cleanup
 
 #### `evidence-inventory`
 List the kinds of evidence the product can give, such as screenshots, transcripts, response bodies, logs, exit codes and stored state.
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#evidence-inventory
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#evidence-inventory
 
 #### `evidence-tests`
 Test the material abuse path and legitimate use, verify authorization per resource rather than merely login, and check leakage, retries and failure behaviour.
@@ -14353,7 +14476,8 @@ When the failing check that showed the bug already fails for the reported reason
 
 #### `existing-harness-then-recipe`
 Use a driving harness the project already has, and only then a generic recipe matched to the surface.
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#existing-harness-then-recipe
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#existing-harness-then-recipe
 
 #### `failed-drive-residue-cleanup`
 Clean up what a failed drive left, whether its session hung, ended or is shared, taking only that residue from a shared instance.
@@ -14366,14 +14490,16 @@ Run a new test before fixing and, if it passes or fails for another reason, corr
 
 #### `feature-file-template`
 Open each feature file with a title and one paragraph of user-visible behaviour, then fixed sections for sub-features by short id, how to reach it, driving it as action, command and result lines, and gotchas.
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#feature-file-template
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#feature-file-template
 
 #### `feature-map-entry-required`
 Drive an app only through its feature map, kept where a refresh does not overwrite it, with each feature's entry giving its reset, the states that apply and its preconditions, and block when the entry a run needs is missing.
+- ours: `create-verification-skill`
 
 #### `feature-map-required`
 Drive an app only through one maintained feature map kept outside any copied pack, with a section per feature giving how a user reaches it, the driving actions with their reset, stable selectors, the states that apply, its preconditions and its evidence, and block when the needed section is missing.
-- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — adopt, pending cr-r2pa.2.13.3 → create-verification-skill#feature-map-entry-required
+- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — adopt → create-verification-skill#feature-map-entry-required
 
 #### `final-teardown-after-last-drive`
 Tear down only after the run's last drive, re-proofs included, leaving the evidence in place.
@@ -14401,9 +14527,10 @@ At the end of a planned migration or rewrite, run full static and runtime verifi
 
 #### `generated-skill-run-once`
 Follow a generated skill end to end once, as its next reader would, before handing it over, counting an unrun skill as a draft.
-- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#generated-skill-run-once
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#generated-skill-run-once
-- `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#generated-skill-run-once
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt → create-verification-skill#generated-skill-run-once
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#generated-skill-run-once
+- `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt → create-verification-skill#generated-skill-run-once
 
 #### `green-on-break-test-fixed`
 Repair or remove a test that stays green when its behaviour breaks.
@@ -14438,7 +14565,8 @@ Check a test for the usual hollow forms: an assertion looser than the contract, 
 
 #### `identity-screenshot`
 Capture a screenshot of the app's current state showing enough of its chrome to prove the right app is under test, returned with its path, capture time, app marker and what should be visible.
-- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — adopt, pending cr-r2pa.2.13.3 → create-verification-skill#identity-screenshot
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — adopt → create-verification-skill#identity-screenshot
 
 #### `implementation-test-deletion`
 When internals change, rewrite or delete tests that only protect the old implementation, asserting the current contract instead.
@@ -14459,11 +14587,13 @@ Compare the map index with its feature files and fix missing, extra, duplicate o
 
 #### `instance-isolation-probe`
 Establish whether two instances can run side by side through separate ports, data folders or profiles.
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#instance-isolation-probe
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#instance-isolation-probe
 
 #### `launch-from-empty-data`
 Require a launch to become usable starting from an empty data folder, migrations and seed data included.
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#launch-from-empty-data
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#launch-from-empty-data
 
 #### `launch-model-from-skill`
 Follow the target skill's launch section to choose one long-lived instance or a fresh isolated session per drive.
@@ -14471,19 +14601,27 @@ Follow the target skill's launch section to choose one long-lived instance or a 
 
 #### `launch-ready-means-usable`
 State the exact start command and the concrete sign that the product is ready to use, not merely that a process or health check answers.
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#launch-ready-means-usable
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#launch-ready-means-usable
 
 #### `launch-with-teardown`
 Pair the launch instructions with their teardown.
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#launch-with-teardown
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#launch-with-teardown
 
 #### `literal-commands`
 Treat each command as literal, keeping quoted names and flags unchanged.
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#literal-commands
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#literal-commands
+
+#### `live-service-isolation`
+When the product uses a live service, run every command of a generated skill from a clean environment holding only the run's own values, refuse a project env file, prove before the first write that the endpoint is the run's own (its address, data folder, a marker the run planted, a sign-in with credentials the run made), and run only the commands the skill lists.
+- ours: `create-verification-skill`
 
 #### `map-defines-completeness`
 Treat the feature map as the source of what must be proven, so proof through one entry point falls short while the map lists more, and a skipped one is never claimed through another route.
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#map-defines-completeness
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#map-defines-completeness
 
 #### `map-drift-or-regression`
 Classify a gap between map and product as doc drift to fix or a product regression to report outside the change, never hiding a regression in the docs.
@@ -14491,11 +14629,13 @@ Classify a gap between map and product as doc drift to fix or a product regressi
 
 #### `map-section-per-reproducible-feature`
 Give the feature map a section for each user-facing feature that an automated run may reproduce.
-- `cursor_plugins:skill:pstack/automations/benny/skills/setup-benny` — adopt, pending cr-r2pa.2.13.3 → create-verification-skill#map-section-per-reproducible-feature
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/automations/benny/skills/setup-benny` — adopt → create-verification-skill#map-section-per-reproducible-feature
 
 #### `marked-startup-scaffolding`
 Allow a run to create an unrelated asset that blocks startup only if it is labelled as verification scaffolding and removed in cleanup.
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#marked-startup-scaffolding
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#marked-startup-scaffolding
 
 #### `matching-surface-verify`
 Verify a change on the surface where it will be used, treating an inconclusive result or a pass on another surface as no pass.
@@ -14513,7 +14653,8 @@ Merge overlapping live recipes into as few product states as practical.
 
 #### `missing-precondition-in-gotchas`
 When seed data lacks a precondition a journey needs, record the missing precondition in that feature's gotchas.
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#missing-precondition-in-gotchas
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#missing-precondition-in-gotchas
 
 #### `missing-red-explained`
 If a failure before the fix could not be shown, say why and describe the substitute check.
@@ -14526,7 +14667,8 @@ Use test doubles only at boundaries, never in place of the behaviour under test.
 
 #### `named-evidence-destination`
 Say which evidence a proof captures and the place it is kept.
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#named-evidence-destination
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#named-evidence-destination
 
 #### `no-change-outcome-report`
 When a pass is clean or blocked, open no change and report the outcome and coverage honestly.
@@ -14544,7 +14686,8 @@ Mock only what cannot run locally, and avoid mocks for anything that can.
 
 #### `no-result-state-asserted`
 Tell a true no-results state from an unavailable feature, waiting for the finished state, and on a command line assert the exact exit code and empty output.
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#no-result-state-asserted
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#no-result-state-asserted
 
 #### `no-target-points-to-create`
 When no verification skill exists, stop and point to the unit that creates one rather than inventing one.
@@ -14606,7 +14749,8 @@ Launch one concurrent read-only helper per feature file to explain from source h
 
 #### `per-run-disposable-data`
 Give each run its own throwaway data folder keyed by a run id, so concurrent runs share no state.
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#per-run-disposable-data
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#per-run-disposable-data
 
 #### `perf-verify-four-boxes`
 Give performance verification exactly four boxes in order: metric, probe, baseline and rule.
@@ -14622,11 +14766,13 @@ Test only at seams agreed before the build starts, never choosing new ones durin
 
 #### `primary-surface-chosen`
 Identify every surface a user touches, choose the main one and note the others.
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#primary-surface-chosen
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#primary-surface-chosen
 
 #### `project-verification-skill`
 Produce a skill kept in the project that launches the real product, drives a feature as a user would and captures evidence.
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#project-verification-skill
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#project-verification-skill
 
 #### `prove-the-rules-bite`
 Before trusting the guardrail, observe it pass clean, fail on a deliberately planted violation, then pass again.
@@ -14640,11 +14786,13 @@ Exercise behaviour in tests through public interfaces.
 
 #### `read-index-first`
 Have the map send its reader to the index first and then to the feature file that matches, used as the recipe.
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#read-index-first
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#read-index-first
 
 #### `read-only-doctor`
 Provide one read-only check that the instance is alive, the right build, owns its port, has valid sign-in and matches the expected address, data folder and revision.
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#read-only-doctor
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#read-only-doctor
 
 #### `real-test-primitives-with-leak-checks`
 Prefer the framework's real test primitives along with leak and disposable checks.
@@ -14652,13 +14800,15 @@ Prefer the framework's real test primitives along with leak and disposable check
 
 #### `real-user-path-proof`
 Prove a feature through the path a real user takes, never internal setters or test-only endpoints.
-- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — adopt, pending cr-r2pa.2.13.3 → create-verification-skill#real-user-path-proof
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#real-user-path-proof
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — adopt → create-verification-skill#real-user-path-proof
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#real-user-path-proof
 
 #### `registering-generated-frontmatter`
 Give a generated skill frontmatter naming what it covers and when to use it, so it registers.
-- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#registering-generated-frontmatter
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#registering-generated-frontmatter
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt → create-verification-skill#registering-generated-frontmatter
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#registering-generated-frontmatter
 
 #### `registry-check-on-change`
 After changing registry data or any file the registry hashes, run the registry check, rebuilding its generated views first when it reports them stale.
@@ -14674,7 +14824,8 @@ Prove a fix with a regression check when one is feasible, then rerun the origina
 
 #### `rendered-value-asserted`
 Assert the value the product displayed, not the value typed, since the product may normalise input.
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#rendered-value-asserted
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#rendered-value-asserted
 
 #### `replace-dont-layer`
 Once the deepened interface is tested, delete the old shallow-module unit tests and assert only on observable outcomes that survive internal refactors.
@@ -14682,10 +14833,11 @@ Once the deepened interface is tested, delete the old shallow-module unit tests 
 
 #### `repro-capture-bundle`
 Keep a step note and a whole-path recording that shows the broken final state for a reproduction, looking at every captured screenshot and recording before citing it.
-- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — adopt, pending cr-r2pa.2.13.3 → create-verification-skill#repro-evidence-for-surface
+- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — adopt → create-verification-skill#repro-evidence-for-surface
 
 #### `repro-evidence-for-surface`
 Keep a step note for a reproduction and, on a visual surface with capture tools, a whole-path recording that shows the broken final state, looking at every captured screenshot and recording before citing it and saying what stays unverified when proof cannot be captured.
+- ours: `create-verification-skill`
 
 #### `reread-changed-files-whole`
 Read each changed file in full, not only its diff, before shipping the change.
@@ -14701,7 +14853,8 @@ Rerun the original scenario as reported and the touched checks, and report an in
 
 #### `restore-seed-after-mutation`
 Put seeded data back after any change to it.
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#restore-seed-after-mutation
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#restore-seed-after-mutation
 
 #### `reuse-test-fixtures`
 Reuse the repository's existing test fixtures and markers.
@@ -14717,19 +14870,23 @@ Add tests in proportion to behavioural risk, using the existing test tooling.
 
 #### `run-invalidating-gotchas`
 Keep the gotchas section for traps that could waste a verification run or make its result invalid.
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#run-invalidating-gotchas
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#run-invalidating-gotchas
 
 #### `run-prerequisite-inventory`
 Record the ports, environment variables, seed data and sign-in a local run needs.
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#run-prerequisite-inventory
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#run-prerequisite-inventory
 
 #### `runnable-documented-helpers`
 Make every shipped helper script executable and give its invocation in the skill body.
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#runnable-documented-helpers
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#runnable-documented-helpers
 
 #### `seeded-feature-map`
 Start a feature map of an index with one line per feature and one file per user-facing feature, beginning with the main few found in routes, commands, menus or docs.
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#seeded-feature-map
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#seeded-feature-map
 
 #### `shared-test-fixtures`
 Prefer shared fixtures to setup repeated across test bodies.
@@ -14741,20 +14898,24 @@ Lint each changed shell script with ShellCheck whenever it is installed.
 
 #### `short-lived-cli-launch`
 For a short-lived command-line or terminal program, treat launch as one build or install followed by an isolated session per drive.
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#short-lived-cli-launch
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#short-lived-cli-launch
 
 #### `side-effects-verified`
 Verify side effects such as written files, inserted rows and sent messages, as well as what is visible.
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#side-effects-verified
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#side-effects-verified
 
 #### `single-control-wrapper`
 Route browser and terminal actions through one control command.
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#single-control-wrapper
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#single-control-wrapper
 
 #### `single-feature-handover-proof`
 Count one mapped feature, proven end to end, as enough for the handover proof, leaving the rest of the map to later runs.
-- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — adopt, pending cr-r2pa.2.13.3 → create-verification-skill#single-feature-handover-proof
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#single-feature-handover-proof
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — adopt → create-verification-skill#single-feature-handover-proof
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#single-feature-handover-proof
 
 #### `skill-catalog-check`
 After changing a skill, run the catalog check that validates the generated catalog, its pointers and invocation metadata.
@@ -14778,16 +14939,19 @@ Check the drift readers cited, without re-proving what they reported clean.
 
 #### `stable-handles`
 Prefer durable handles such as accessible roles and names, data attributes, prompt strings and routes over coordinates, tab order or position.
-- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — adopt, pending cr-r2pa.2.13.3 → create-verification-skill#stable-handles
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#stable-handles
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — adopt → create-verification-skill#stable-handles
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#stable-handles
 
 #### `stand-in-gap-disclosure`
 When a proof ran in a substitute environment, list each setup step it did that the real target will not, keeping those steps marked unverified.
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#stand-in-gap-disclosure
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#stand-in-gap-disclosure
 
 #### `structured-output-for-assertions`
 Use a machine-readable output option for stable command-line assertions.
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#structured-output-for-assertions
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#structured-output-for-assertions
 
 #### `syntax-check-handoff`
 Syntax-check the script and make it executable, then tell the user how to run it instead of running it end-to-end yourself.
@@ -14799,16 +14963,18 @@ Parse each changed file with the checker for its type (shell, JSON, Python) befo
 
 #### `system-boundary-mocks-only`
 Use test doubles only at system boundaries such as external services, time and the file system, never for modules you own.
+- ours: `create-verification-skill`
 - `doc:.repo-context/coding-style.md`
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#system-boundary-mocks-only
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#system-boundary-mocks-only
 - `mattpocock_skills:skill:skills/engineering/tdd` — adopt → tdd#mock-boundaries
 
 #### `target-confirmed-by-stable-markers`
 Before acting, confirm by stable markers, not window order or a familiar title, that the target is the checked app, workspace, account and data set rather than a look-alike window, shell or production instance, and that the feature is in the expected state.
-- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — adopt, pending cr-r2pa.2.13.3 → create-verification-skill#target-confirmed-for-surface
+- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — adopt → create-verification-skill#target-confirmed-for-surface
 
 #### `target-confirmed-for-surface`
 Before acting, confirm by stable markers suited to the driven surface that the target is the checked app instance, workspace, account and data set rather than a look-alike or production instance and that the feature is in the expected state, and, when the run drives a window, that the window belongs to that target, never judged by window order or title alone.
+- ours: `create-verification-skill`
 
 #### `target-found-by-content`
 Find the verification skill to maintain by what it does, not by a fixed name, or use the one the person named.
@@ -14817,7 +14983,8 @@ Find the verification skill to maintain by what it does, not by a fixed name, or
 
 #### `teardown-only-own-instances`
 Stop only instances this run created, never by process name.
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#teardown-only-own-instances
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#teardown-only-own-instances
 
 #### `ten-lane-live-verify`
 Declare live verification as ten numbered lanes on a named worker model at the branch head, each naming a screenshot and a pass condition.
@@ -14858,7 +15025,8 @@ After a tracker change, confirm a read command against the tracker still succeed
 
 #### `translate-environment-before-blocking`
 Before calling an environment a block, restate the defect without platform nouns and try a labelled translation that tests the same behaviour, accepting hardware, permission, device-only and account states as real blocks.
-- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — adopt, pending cr-r2pa.2.13.3 → create-verification-skill#translate-environment-before-blocking
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — adopt → create-verification-skill#translate-environment-before-blocking
 
 #### `two-edit-test-judgement`
 Judge every test by two imagined edits: breaking the behaviour must fail it, and restructuring the internals must not.
@@ -14871,29 +15039,41 @@ Run the type checker to confirm a migration.
 
 #### `ui-proof-screenshot-snapshot-where-offered`
 For an interface, define proof as a screenshot showing the product's identity, plus an accessibility snapshot when the surface and the available tools provide one.
+- ours: `create-verification-skill`
 
 #### `ui-proof-snapshot-and-screenshot`
 For an interface, define proof as an accessibility snapshot plus a screenshot showing the product's identity.
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#ui-proof-screenshot-snapshot-where-offered
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#ui-proof-screenshot-snapshot-where-offered
 
 #### `uncommitted-run-notes`
 Keep short notes on features covered, unreachable prerequisites, confirmed drift and outcome in an uncommitted scratch place.
 - `cursor_plugins:skill:pstack/skills/maintain-verification-skill` — reject
 
+#### `undriven-feature-marked`
+Mark a seeded feature the proof run did not drive as not yet driven, in its file and on its index line, giving its results as what to assert, never as values nobody observed.
+- ours: `create-verification-skill`
+
 #### `unreachable-with-route-and-prerequisite`
 Report a feature as unreachable only with the route tried and the prerequisite that was missing.
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#unreachable-with-route-and-prerequisite
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#unreachable-with-route-and-prerequisite
 - `cursor_plugins:skill:pstack/skills/maintain-verification-skill` — adopt, pending cr-r2pa.2.13.2 → maintain-verification-skill#unreachable-with-route-and-prerequisite
+
+#### `unreadable-change-unverified`
+When the product has no read-only way to read a change back, say so in the feature file and report the change as unverified, not proven.
+- ours: `create-verification-skill`
 
 #### `user-terms-only-in-map`
 Keep implementation detail out of the feature map, naming only the user's routes, durable handles, needed state, commands and visible proof.
-- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — adopt, pending cr-r2pa.2.13.3 → create-verification-skill#user-terms-only-in-map
-- `cursor_plugins:skill:pstack/automations/benny/skills/setup-benny` — adopt, pending cr-r2pa.2.13.3 → create-verification-skill#user-terms-only-in-map
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#user-terms-only-in-map
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — adopt → create-verification-skill#user-terms-only-in-map
+- `cursor_plugins:skill:pstack/automations/benny/skills/setup-benny` — adopt → create-verification-skill#user-terms-only-in-map
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#user-terms-only-in-map
 
 #### `user-view-feature-file`
 Have each feature file describe, from the user's side, what the feature does, the route to it, how to drive it and the visible end state that proves it.
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#user-view-feature-file
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#user-view-feature-file
 
 #### `verification-only-edits`
 During a verification pass, edit only the verification skill's own files and never product code unless asked.
@@ -14907,11 +15087,13 @@ Confirm interface behaviour in an actual running build.
 
 #### `wait-on-condition-not-sleep`
 Wait for a concrete result element or status rather than a fixed delay.
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#wait-on-condition-not-sleep
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#wait-on-condition-not-sleep
 
 #### `working-base-first`
 Make a broken checkout build and start, or report the failure exactly, before generating anything from it.
-- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt, pending cr-r2pa.2.13.2 → create-verification-skill#working-base-first
+- ours: `create-verification-skill`
+- `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#working-base-first
 
 #### `wrong-data-helper`
 Build deliberately invalid test data through a helper that accepts any value, in place of a cast through an unknown type.
@@ -15707,6 +15889,30 @@ Default to building a deterministic check over writing a prose rule for any mech
 Document the boundary convention in a README beside the packages it governs.
 - `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules` — out-of-scope
 
+#### `existing-verify-skill-stops`
+Before generating, search every skills folder the project's hosts read for a verify skill, recognised by its content, and stop when one or a feature map already exists, pointing to the maintenance unit, so a rerun never overwrites them.
+- ours: `create-verification-skill`
+
+#### `feature-map-owns-shared-rule`
+Where the generated-skill contract and the feature-map contract carry the same rule, the feature-map contract owns it and the generated-skill contract restates it for the section it lands in.
+- ours: `create-verification-skill`
+
+#### `generated-skill-left-uncommitted`
+Leave the generated skill and its map uncommitted unless the person asks for a commit, which the commit skill then makes.
+- ours: `create-verification-skill`
+
+#### `generator-edits-own-output-only`
+Edit only the generated skill's folder and any scaffolding the run labels, leaving a fix to product code to the person's authority.
+- ours: `create-verification-skill`
+
+#### `generator-started-by-person`
+Run the skill generator only when the person starts it: manual-only in its frontmatter and its sidecar, reached through setup, help or a router line, never by the model on its own.
+- ours: `create-verification-skill`
+
+#### `handover-points-to-maintenance`
+At handover, tell the person that keeping the generated skill current as the product changes is the maintenance unit's job.
+- ours: `create-verification-skill`
+
 #### `link-convention-from-agents-file`
 Add a context pointer to that README from the repo's agent-instructions file so an agent discovers the rule.
 - `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules` — defer
@@ -15720,6 +15926,18 @@ Classify each finding as mechanical (a fixed syntactic pattern suiting a determi
 Read the repo's own lint and check commands before proposing one, treating an unwired or broken check, or the absence of any guardrail, as itself the finding.
 - ours: `reflect`
 - `mattpocock_skills:skill:skills/engineering/retro` — adopt → reflect#read-existing-check-first
+
+#### `recognised-by-content-shape`
+Define the shape a generated verify skill is recognised by, a skill file with Launch, Doctor, Drive, Evidence and Cleanup sections beside a feature-map index, so other units find it by content, not by name, in every skills folder the project's hosts read.
+- ours: `create-verification-skill`
+
+#### `verify-generator-description`
+Open the generator's description with its one case, a project with no scripted way to drive its real app, and its two nearest skips, an existing verify skill to update and a single change to prove, and say that what it generates drives the real app.
+- ours: `create-verification-skill`
+
+#### `worked-example-feature-map`
+Ship our own worked example of a feature map for a small fictional product, an index with one browser feature and one command-line feature, so the seeding run sees the shape it writes.
+- ours: `create-verification-skill`
 
 ### engineering · Improvement · Evaluation
 
@@ -16018,6 +16236,10 @@ Draw before/after architecture visuals from a catalogue of patterns (dependency 
 #### `final-report-contents`
 Make the final report state outcomes, the checks actually run and limitations, separating pre-existing failures from regressions.
 - `doc:AGENTS.md`
+
+#### `generator-reply-fields`
+Reply with the generated skill's path and the surfaces it covers and does not, the seeded features, the proof run's feature, entry points, evidence paths and doctor and cleanup results, what stays unverified, and for a failed base or proof the exact failure and that the skill is a draft.
+- ours: `create-verification-skill`
 
 #### `html-architecture-report`
 Write an architecture survey as a standalone HTML report in a file under the system's temporary directory, so nothing lands in the repository.
@@ -16344,6 +16566,10 @@ Read the hook payload from standard input and extract the command with a JSON to
 Install a git-hook manager, a staged-file runner and a formatter as development dependencies.
 - `mattpocock_skills:skill:skills/misc/setup-pre-commit` — reject
 
+#### `install-scope-project-or-user`
+Install a missing driving tool only after the person approves it, and then per project or per user, never system-wide.
+- ours: `create-verification-skill`
+
 #### `integration-capability-checklist`
 List the chat, tracker and repository capabilities each automation needs, and use no undocumented integration endpoint.
 - `cursor_plugins:skill:pstack/automations/benny/skills/setup-benny` — out-of-scope
@@ -16436,6 +16662,7 @@ Traits listed by two or more of our active skills (`doc:AGENTS.md` and playbooks
 |---|---|---|
 | `answer-before-next-round` | discovery, grilling | As question-batching: each skill waits for a round's answers inside its own question flow. |
 | `area-topic-filing` | discovery, research | Each files its own output under its own root by one rule: discovery its records under docs/discovery/, research its reports under docs/research/. |
+| `artifact-contracts` | codebase-research, create-verification-skill | Each writes its own artifact type in a fixed section set and order, saying a section is empty or does not apply rather than dropping it: codebase-research its reports, create-verification-skill the verify skill it generates (critic-81b F1). |
 | `attempt-log` | doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/implement.md | Each fixes a failure on its own path, the bug-fix playbook for a bug-fix request and the implement playbook inside a unit it coordinates, where a separate bug-fix request would leave its scope; both log each fix attempt so a stop hands back usable evidence. |
 | `authority-separation` | doc:.claude/skills/mvp-mode/playbooks/skill-curation.md, harness-publish | harness-publish confirms publish and commit authority separately at its own entry; the playbook's delivery step states the same split for the whole curation path. Each is read alone. |
 | `baseline` | performance-optimization, systematic-debugging | Each measures before a fix: performance-optimization for a resource target, systematic-debugging when the failure diagnosed is a performance regression, which it hands to the fixer. |
@@ -16472,6 +16699,7 @@ Traits listed by two or more of our active skills (`doc:AGENTS.md` and playbooks
 | `read-only-closeout` | doc:.claude/skills/mvp-mode/playbooks/investigation.md, doc:.claude/skills/mvp-mode/playbooks/session-pickup.md | Each is a read-only run whose closeout belongs to its own exits and reply; logged under St4 in unit-kinds. |
 | `read-only-explanation` | how, why | Both answer a question about this project and change nothing while answering; one read-only rule, kept in each half of the split. |
 | `read-trail-first` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md | Each looping playbook reads its own trail before choosing the next change; each trail has its own columns and rows. |
+| `real-code-names` | create-verification-skill, show-me | Both write text that must name the real code it describes: show-me a visual of a change, create-verification-skill the commands, routes, ports and paths a generated skill gives (plan 77 §5). |
 | `recommended-answer` | discovery, grilling | As question-batching: a short rule each skill applies inside its own flow. |
 | `record-command` | doc:.claude/skills/mvp-mode/playbooks/skill-curation.md, harness-evaluate | harness-evaluate records its own ruling; the playbook's ruling step names the same command for every curation operation. A pointer would add a hop to one command line. |
 | `reply-is-the-deliverable` | recall, teach | Each skill's reply is its product, an explanation or a brief, so neither may hand back a report of having done it instead. Batch P1 rows 2026-11-06-batch-p1:053 (teach) and :207 (recall), owner-ruled 2026-11-06. |

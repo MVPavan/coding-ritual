@@ -29,6 +29,7 @@ Principles are not skills, so they are not listed here; the router lists them.
 | `/check-invariants` | Run mechanically checkable invariants from the project overlay and report pass or fail. |
 | `/codebase-research` | Graduated research on an external codebase — survey its capabilities, map its architecture, or trace one mechanism — into durable reports under docs/research/codebases/. |
 | `/cost-estimate` | Legacy entrypoint; the uncalibrated code-volume and commit-based estimation method is retired. |
+| `/create-verification-skill` | Use for /create-verification-skill when a project has no scripted way to drive its real app; updating an existing verify skill is maintain-verification-skill, and proving one change on its surface needs no new skill. |
 | `/document-review` | Use when explicitly invoking the legacy document-review entrypoint; spec and plan review is owned by review. |
 | `/grill-me` | Start a decision interview using the shared grilling workflow. |
 | `/grill-with-docs` | Start a grilling interview and record authorized domain terminology and architectural decisions. |
