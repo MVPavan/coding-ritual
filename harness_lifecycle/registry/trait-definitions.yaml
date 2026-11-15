@@ -10643,3 +10643,19 @@ formal-contract-gaps-reported:
   placement: {domain: engineering, stage: Verification, substage: Testing}
   distinct_from: [contract-gaps-reported, coverage-and-sync-record]
   note: "contract-gaps-reported is the app pair's: it fixes a gap a drive proves and blocks on missing live-service isolation, neither of which exists for a formal check run offline on a model. coverage-and-sync-record is what the record holds; this is only the comparison with the contract and the one fix it allows. A runner change is regeneration-level, so each check's outcome stays about the code."
+# ---- ours only, maintain-verification-skill two rules (bead cr-r2pa.2.28.7; owner rulings of 2026-11-15, item 5) ----
+evidence-hashed-across-teardown:
+  definition: "Just before a maintenance pass's final teardown, hash every kept evidence file, and check the hashes after teardown; a changed hash blocks the pass, naming the file."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [evidence-checked-after-cleanup, final-teardown-after-last-drive, read-only-closeout]
+  note: "evidence-checked-after-cleanup confirms each evidence file is still where the skill names it, final-teardown-after-last-drive sets when teardown runs, and read-only-closeout checksums a read-only run's starting state to show nothing changed. This proves the kept evidence unchanged across the final teardown by its hashes (82/proof-report.md lesson 5; split from the credential scan, critic-93b F1)."
+generated-credentials-scanned-before-cleanup:
+  definition: "In a maintenance pass, before any cleanup or restart destroys a session's generated credentials, search every kept file for each of them through the helper, printing and saving no match; a match, or a session whose credentials can no longer be checked, blocks the pass, the reply naming the file and the kind of match, or the session, never the credential."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [credentials-never-captured, redact-secrets, failed-drive-residue-cleanup]
+  note: "credentials-never-captured keeps a credential out of everything the run writes, redact-secrets puts placeholders in what is shown or saved, and failed-drive-residue-cleanup clears what a failed drive left. This checks the kept files for each session's generated credentials while they still exist, so every cleanup and restart waits for it, and counts a session it can no longer check as an incomplete scan (82/proof-report-2.md: an earlier cleanup destroyed one session's credentials; critic-93b F2)."
+fixed-command-driven-as-written:
+  definition: "In a maintenance pass, drive every documented command the pass corrected or added exactly as written before the change ships, whether or not the helper changed; only a case left marked not yet driven is exempt."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [harness-fix-redriven, generated-skill-run-once, literal-commands]
+  note: "harness-fix-redriven re-drives changed helper code, its launch and seed steps included; generated-skill-run-once follows a whole generated skill once before hand-over; literal-commands keeps a command's names and flags unchanged when it runs. This drives each documented command the pass itself corrected or added, in its final text, even when no helper changed (critic-89b F1). maintain-formal-verification-skill holds it for every command its refresh changed or added."

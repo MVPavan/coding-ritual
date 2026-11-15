@@ -27,8 +27,9 @@ Every pass ends in exactly one, stated in the reply:
   needs fixing. A feature with one driven case is covered; its unreachable cases
   are reported, not blocking.
 - **changed:** one set of proven fixes to the skill, its helpers or its map.
-- **blocked:** some feature went uncovered, or a proven fix was not safe to
-  ship; say exactly what stopped it and the next action that would unblock it.
+- **blocked:** some feature went uncovered, a proven fix was not safe to ship,
+  or a credential scan or evidence hash check failed; say exactly what stopped
+  it and the next action that would unblock it.
 
 ## 1. Locate the target
 
@@ -84,6 +85,7 @@ Only you, the coordinator, drive the product; helpers never do.
 
 - **Launch model.** The target's Launch section decides: a single instance kept
   running and driven one step at a time, or a new isolated session for each drive.
+  Clean a session up only after its credential scan (Credentials).
 - **Through the helper.** Every product command goes through the target's own
   control helper. When the product uses a live service and the target lacks the
   controls of generated-skill Isolation (clean environment, refused env file,
@@ -94,13 +96,14 @@ Only you, the coordinator, drive the product; helpers never do.
   doctor cannot see the fault (a stuck screen on a live process), return the
   product to a known starting state, or launch it again.
 - **Failed drive:** one whose exit, output or state differs from its feature
-  file, or that errored. Clean up what it left, whether its session hung, ended
-  or is shared; on a shared instance take only this pass's residue, never the
-  instance. Only its residue check (a state delta) may precede the doctor.
+  file, or that errored. After its session's credential scan, clean up what it
+  left, whether its session hung, ended or is shared; on a shared instance take
+  only this pass's residue, never the instance. Only its residue check (a state
+  delta) may precede the doctor.
 - **Doctor fails from drift** in the skill: fix it within Scope, restart only
-  what the fix invalidated, retry once, then **blocked**. The fix restores what
-  source shows the product is now; it never drops or loosens a check such as an
-  identity, port or revision check.
+  what the fix invalidated, after that session's credential scan, retry once,
+  then **blocked**. The fix restores what source shows the product is now; it
+  never drops or loosens a check such as an identity, port or revision check.
 - **Offline modes.** Each drive re-observes what the skill records an offline or
   dry-run mode skipping (generated-skill Evidence); failing that, no proof.
 - **Unreachable** only with the route tried and the missing prerequisite
@@ -118,7 +121,12 @@ Only you, the coordinator, drive the product; helpers never do.
   saving it is a harness gap: fix and re-drive, or report it.
 - **Credentials.** Never print, log or keep one, generated ones included: none
   in evidence, notes, the reply or a helper diff. Output that can hold one is
-  parsed inside the helper and never saved (generated-skill Evidence).
+  parsed inside the helper and never saved (generated-skill Evidence). Before
+  any cleanup or restart destroys a session's generated credentials, search
+  every kept file for each of them through the helper, printing and saving no
+  match. A match, or a session whose credentials can no longer be checked (an
+  incomplete scan), ends the pass blocked; the reply names the file and the kind
+  of match, or the session, never the credential.
 - **Missing tool.** Install one only by the recipe the target records, project
   local or per user and pinned, never system-wide; with no recipe, mark the work
   that needs it blocked and name the tool.
@@ -142,13 +150,18 @@ Classify each gap between map and product:
 Fix a failing journey only when source proves the map wrong; never loosen the
 journey, its check or its expected value to make it pass. Re-drive every harness
 fix live before it ships, including the launch or seed steps that use the
-changed helper code.
+changed helper code. Drive every documented command the pass corrected or
+added exactly as written before it ships, whether or not the helper changed;
+only a case left marked not yet driven is exempt.
 
 ## 7. Teardown
 
 After every cleanup, confirm each evidence file is at the location the skill
 names; a missing one fails that step. Final teardown waits until the pass's last
-drive, re-drives of fixes included, and leaves the evidence in place.
+drive, re-drives of fixes included, and leaves the evidence in place. Just
+before it, run the last session's credential scan (step 5 Credentials), then
+hash every kept evidence file; after it, check the hashes. A changed hash ends
+the pass blocked, naming the file.
 
 ## 8. Ship or stop
 

@@ -1528,6 +1528,56 @@ fix worktree itself, `check` reports seven stale reference pages for the same en
 29 and 31-33, and the committed pages are kept. Limit: sealed adopt events of round `2026-11-14-formal-pair` cite
 the pre-fix line ranges, and they stay as recorded.
 
+## 35. `maintain-verification-skill`: the owner's two rules (`cr-r2pa.2.28.7`)
+
+Added 2026-11-15. Report `scratchpad/mvp-stack/93/report.md` (Rounds 1-3), recorder
+`scratchpad/mvp-stack/93/record_mvs.py`; round `2026-11-15-maintain-verification-two-rules`, 2 events
+(`update ours:maintain-verification-skill`, `update ours:maintain-formal-verification-skill`), trait-level, sealed.
+The owner said yes to both questions of decision bead `cr-r2pa.2.28.6` (rulings of 2026-11-15, item 5).
+
+- **What was added:** the first rule has two parts.
+  - Step 5 (Live), Credentials: before any cleanup or restart destroys a session's generated credentials, the pass
+    searches every kept file for each of them through the helper, printing and saving no match. The launch-model,
+    failed-drive and drift-restart cleanups wait for that scan. A match, or a session whose credentials can no
+    longer be checked (an incomplete scan), ends the pass blocked. The reply names the file and the kind of match,
+    or the session, never the credential.
+  - Step 7 (Teardown): just before final teardown, the pass runs the last session's scan, then hashes every kept
+    evidence file, and it checks the hashes after teardown. A changed hash ends the pass blocked, naming the file.
+  - The blocked outcome names both checks. Proof 82's first pass tore down by itself, so neither check was
+    possible (`82/proof-report.md` lesson 5). In the second pass an earlier cleanup destroyed one session's
+    credentials, which a final-only scan could not cover (critic-93b F2).
+  - Step 6 (Triage), the second rule: every documented command the pass corrected or added is driven exactly as
+    written before it ships, whether or not the helper changed, with a case left marked not yet driven exempt.
+    critic-89b F1 had removed this sentence as a separate mechanism from `harness-fix-redriven`, pending this
+    ruling.
+- **Traits:** three new traits of ours, all engineering · Verification · Testing like their nearest definitions;
+  no existing definition fits any of them unchanged. The first rule's hash and scan are separate traits, by the
+  registry's one-mechanism rule (critic-93b F1).
+  - `evidence-hashed-across-teardown`, with `distinct_from` `evidence-checked-after-cleanup`,
+    `final-teardown-after-last-drive` and `read-only-closeout`.
+  - `generated-credentials-scanned-before-cleanup`, with `distinct_from` `credentials-never-captured`,
+    `redact-secrets` and `failed-drive-residue-cleanup`.
+  - `fixed-command-driven-as-written`, with `distinct_from` `harness-fix-redriven`, `generated-skill-run-once` and
+    `literal-commands`. The sibling sentence in `create-verification-skill`'s generated-skill writing rules ("the
+    run that wrote it ran it") has no trait of its own to reuse.
+- **Holders:** `ours:maintain-verification-skill` lists 42 traits, with a refreshed tree hash and one holder note
+  for each new trait. By the coordinator's ruling, `maintain-formal-verification-skill` also holds
+  `fixed-command-driven-as-written`: its unchanged sentence "Every command the refresh changed or added runs as
+  written before hand-over" (`SKILL.md:174-175`) fits the definition, and its text and tree hash are unchanged. Its
+  `generated-skill-run-once` note no longer carries that clause, and neither does that trait's sharing why.
+  `trait-sharing.yaml` gains `fixed-command-driven-as-written` with both holders. Each rule is anchored in
+  `scratchpad/mvp-stack/93/row-map.tsv` (three owner rows, six restated rows and the held row), which is checked
+  strictly.
+
+Review: critic-93b (REVISE, two MAJOR findings, fixed in Round 3). The round was rehearsed on a scratch clone. The
+recorder's match of the round, a cite check of this round's file:line cites, the catalog check,
+`pytest tests/curation tests/checks`, the neutrality audit of added shipped lines, and a build (no diff) and check
+in a fresh clone all pass. Final worktree registry state: 60 rounds, 4074 events, 76 skill records. In the
+worktree itself, `check` reports seven stale reference pages for the same environment reason as in sections 29
+and 31-34, and the committed pages are kept. `SKILL.md` is 184 lines, 24 over plan 82's 160 (it was 171 before).
+Limit: sealed adopt events of round `2026-11-14-maintain-verification-skill` cite the line ranges from before this
+change, and they stay as recorded.
+
 ## Regenerating
 
 From the worktree root:

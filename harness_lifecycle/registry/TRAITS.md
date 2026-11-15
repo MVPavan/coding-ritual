@@ -1360,6 +1360,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `verify-skill-capabilities`: Let the next agent learn from the skill alone whether a change touches verified code, how to run the check, how to tell a real bug from a modelling error and how to update the verification for an intended change.
 - `verdict-from-exit-and-messages`: Count a checker run as a verdict only when its exit code and its own completion and violation messages agree, with every rule checked where the checker checks all reachable states and no option that hides a violation.
 - `formal-contract-gaps-reported`: In a maintenance pass over a formal verify skill, compare the skill with the formal contract as it is now (its sections, its runner's steps and its recorded install recipe) and report each gap as a follow-up, fixing none, except writing the coverage record for a skill that has none.
+- `fixed-command-driven-as-written`: In a maintenance pass, drive every documented command the pass corrected or added exactly as written before the change ships, whether or not the helper changed; only a case left marked not yet driven is exempt.
 
 #### engineering · Improvement · Codification — maintain-verification-skill
 - `target-found-by-content`: Find the verification skill to maintain by what it does, not by a fixed name, or use the one the person named.
@@ -1401,6 +1402,9 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `generator-started-by-person`: Run the skill generator only when the person starts it: manual-only in its frontmatter and its sidecar, reached through setup, help or a router line, never by the model on its own.
 - `installed-recipe-or-blocked`: In a maintenance pass, install a missing tool only by the recipe the target skill records, project-local or per user and pinned, never system-wide; with none recorded, mark the work that needs the tool blocked and name it.
 - `contract-gaps-reported`: In a maintenance pass, check the maintained skill against the current shared contracts and report each gap as a follow-up, fixing one only when a drive proves it; a missing live-service isolation control blocks the pass instead.
+- `evidence-hashed-across-teardown`: Just before a maintenance pass's final teardown, hash every kept evidence file, and check the hashes after teardown; a changed hash blocks the pass, naming the file.
+- `generated-credentials-scanned-before-cleanup`: In a maintenance pass, before any cleanup or restart destroys a session's generated credentials, search every kept file for each of them through the helper, printing and saving no match; a match, or a session whose credentials can no longer be checked, blocks the pass, the reply naming the file and the kind of match, or the session, never the credential.
+- `fixed-command-driven-as-written`: In a maintenance pass, drive every documented command the pass corrected or added exactly as written before the change ships, whether or not the helper changed; only a case left marked not yet driven is exempt.
 
 #### engineering · Improvement · Retrospective — reflect
 - `sampled-session-retros`: Retro a sample of about one in five delegated sessions, nested dispatches included, rather than every one.
@@ -14703,6 +14707,10 @@ After cleanup, confirm the captured evidence still exists where the skill says i
 - `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#evidence-checked-after-cleanup
 - `cursor_plugins:skill:pstack/skills/maintain-verification-skill` — adopt → maintain-verification-skill#evidence-checked-after-cleanup
 
+#### `evidence-hashed-across-teardown`
+Just before a maintenance pass's final teardown, hash every kept evidence file, and check the hashes after teardown; a changed hash blocks the pass, naming the file.
+- ours: `maintain-verification-skill`
+
 #### `evidence-inventory`
 List the kinds of evidence the product can give, such as screenshots, transcripts, response bodies, logs, exit codes and stored state.
 - ours: `create-verification-skill`
@@ -14749,6 +14757,11 @@ Tear down only after the run's last drive, re-proofs included, leaving the evide
 - ours: `maintain-verification-skill`
 - `cursor_plugins:skill:pstack/skills/maintain-verification-skill` — adopt → maintain-verification-skill#final-teardown-after-last-drive
 
+#### `fixed-command-driven-as-written`
+In a maintenance pass, drive every documented command the pass corrected or added exactly as written before the change ships, whether or not the helper changed; only a case left marked not yet driven is exempt.
+- ours: `maintain-formal-verification-skill`
+- ours: `maintain-verification-skill`
+
 #### `flaky-test-names-its-signal`
 For a flaky bug, remove nondeterminism from the test as far as possible and document which signal it pins.
 - ours: `tdd`
@@ -14772,6 +14785,10 @@ In a maintenance pass over a formal verify skill, compare the skill with the for
 At the end of a planned migration or rewrite, run full static and runtime verification, not only the checks the last change touched.
 - ours: `principle-migrate-without-shims`
 - `cursor_plugins:skill:pstack/skills/principle-outcome-oriented-execution` — adopt → principle-migrate-without-shims#full-verification-at-completion
+
+#### `generated-credentials-scanned-before-cleanup`
+In a maintenance pass, before any cleanup or restart destroys a session's generated credentials, search every kept file for each of them through the helper, printing and saving no match; a match, or a session whose credentials can no longer be checked, blocks the pass, the reply naming the file and the kind of match, or the session, never the credential.
+- ours: `maintain-verification-skill`
 
 #### `generated-skill-run-once`
 Follow a generated skill end to end once, as its next reader would, before handing it over, counting an unrun skill as a draft.
@@ -17131,9 +17148,10 @@ Traits listed by two or more of our active skills (`doc:AGENTS.md` and playbooks
 | `empty-search-is-finding` | recall, review | Each reports what a search found to someone deciding on it: review's blast-radius assessment and recall's sweep of the shared record. A search that found nothing is an answer in both, so each says it. Batch P1 rows 2026-11-06-batch-p1:277 (review) and :194 (recall), owner-ruled 2026-11-06. |
 | `evidence-checked-after-cleanup` | create-verification-skill, maintain-verification-skill | Each unit's own run cleans up and must find its proof afterwards: the generator's proof run of the skill it writes, and the maintenance pass over an existing one (plan 82 §5). |
 | `finding-adjudication` | doc:.claude/skills/mvp-mode/playbooks/implement.md, review | Implement rules on findings inside its delivery loop and review owns the method; owner 2026-10-30: implement (then named execution) stays unchanged. |
+| `fixed-command-driven-as-written` | maintain-formal-verification-skill, maintain-verification-skill | Both maintenance units drive or run every documented command the pass corrected or added exactly as written before the change ships, whether or not the helper or runner changed: maintain-verification-skill for the commands of the feature files and skill it fixed, a case left marked not yet driven exempt; maintain-formal-verification-skill for every command its refresh of the formal skill changed or added (owner rulings of 2026-11-15, item 5; coordinator's ruling, round 2026-11-15-maintain-verification-two-rules Round 2). |
 | `formal-coverage-data-file` | create-formal-verification-skill, maintain-formal-verification-skill | create-formal-verification-skill keeps that record as coverage.json, one data file beside the formal verify skill's SKILL.md; maintain-formal-verification-skill reads and refreshes the file, and writes it for an older skill that lacks it, never as prose (decision 7). |
 | `generated-skill-left-uncommitted` | create-formal-verification-skill, create-verification-skill, maintain-formal-verification-skill, maintain-verification-skill | The app generator leaves the skill it writes uncommitted, and the app maintenance pass leaves its fixes uncommitted; land commits either when the person asks (R10). create-formal-verification-skill leaves the formal verify skill it writes uncommitted unless the person asks; land makes the commit (decision 10). maintain-formal-verification-skill leaves its verification edits as one uncommitted change for land (decision 10). |
-| `generated-skill-run-once` | create-formal-verification-skill, create-verification-skill, maintain-formal-verification-skill | Each generator follows the skill it writes once, as its next reader, before handing it over: the app generator's proof drive and the formal generator's planted-break proof (decision 3, restated per unit). maintain-formal-verification-skill follows the formal skill it refreshed once the same way, its drift diff, Run command and exit code, and runs every command it changed before hand-over (decision 3). |
+| `generated-skill-run-once` | create-formal-verification-skill, create-verification-skill, maintain-formal-verification-skill | Each generator follows the skill it writes once, as its next reader, before handing it over: the app generator's proof drive and the formal generator's planted-break proof (decision 3, restated per unit). maintain-formal-verification-skill follows the formal skill it refreshed once the same way, its drift diff, Run command and exit code (decision 3). |
 | `generator-edits-own-output-only` | create-formal-verification-skill, create-verification-skill | Each generator edits only the skill folder it creates and the scaffolding it labels: the app generator's marked startup scaffolding, the formal generator's one reversible planted edit; a product-code fix is the person's call (decision 3). |
 | `generator-started-by-person` | create-formal-verification-skill, create-verification-skill, maintain-formal-verification-skill, maintain-verification-skill | Both app verification units start only when the person starts them: manual-only in frontmatter and sidecar, reached through an mvp-mode router line (R1). create-formal-verification-skill starts the same way: manual-only in frontmatter and sidecar, reached through its mvp-mode router row (decision 1). maintain-formal-verification-skill starts the same way: manual-only in frontmatter and sidecar, reached through its mvp-mode router row (decision 1). |
 | `glossary-entry-template` | domain-modeling, teach | Each keeps a glossary of its own (project language, the learner's workspace) in one entry format, with its own admission rules. |

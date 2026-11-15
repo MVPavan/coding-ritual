@@ -302,7 +302,7 @@ cold-agent-reader:
   reviewed: "2026-11-14"
 generated-skill-run-once:
   skills: [create-formal-verification-skill, create-verification-skill, maintain-formal-verification-skill]
-  why: "Each generator follows the skill it writes once, as its next reader, before handing it over: the app generator's proof drive and the formal generator's planted-break proof (decision 3, restated per unit). maintain-formal-verification-skill follows the formal skill it refreshed once the same way, its drift diff, Run command and exit code, and runs every command it changed before hand-over (decision 3)."
+  why: "Each generator follows the skill it writes once, as its next reader, before handing it over: the app generator's proof drive and the formal generator's planted-break proof (decision 3, restated per unit). maintain-formal-verification-skill follows the formal skill it refreshed once the same way, its drift diff, Run command and exit code (decision 3)."
   reviewed: "2026-11-15"
 generator-edits-own-output-only:
   skills: [create-formal-verification-skill, create-verification-skill]
@@ -379,4 +379,8 @@ verdict-from-exit-and-messages:
 verify-skill-capabilities:
   skills: [create-formal-verification-skill, maintain-formal-verification-skill]
   why: "create-formal-verification-skill gives the formal verify skill its fixed sections (references/formal-verify-skill.md \"Sections\"); maintain-formal-verification-skill keeps those sections through any fix and refreshes their table, Run output and sync mentions, so the next agent still learns all four from the skill alone."
+  reviewed: "2026-11-15"
+fixed-command-driven-as-written:
+  skills: [maintain-formal-verification-skill, maintain-verification-skill]
+  why: "Both maintenance units drive or run every documented command the pass corrected or added exactly as written before the change ships, whether or not the helper or runner changed: maintain-verification-skill for the commands of the feature files and skill it fixed, a case left marked not yet driven exempt; maintain-formal-verification-skill for every command its refresh of the formal skill changed or added (owner rulings of 2026-11-15, item 5; coordinator's ruling, round 2026-11-15-maintain-verification-two-rules Round 2)."
   reviewed: "2026-11-15"
