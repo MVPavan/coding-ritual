@@ -61,7 +61,9 @@ then how to read the drift diff: a covered path in it means the model needs a
 look before the change is called done.
 
 **Run.** The command from `coverage.json`, the expected output of a pass, the
-measured run time and the exit codes.
+measured run time and the exit codes. It names the per-user install recipe and
+pins of the tool and its runtime (TLC: the `statechart` skill's
+`references/install.md`), which a later pass follows with the person's approval.
 
 **Reading a failure.** First replay the counterexample on the code: follow its
 steps through the real functions, by reading or with a scratch test. If the
@@ -74,7 +76,8 @@ state dump. When the check is a state-machine model, point the generated skill a
 **Updating for an intended change.** Read the covered diff; update the model
 from the code, keeping `model-fidelity.md`'s rules; rerun the main
 configuration and every broken variant; then, and only after both match,
-advance `sync_commit` and the `covers` entries.
+advance `sync_commit` and the `covers` entries. A maintain pass that confirms
+a bug advances them too, with the faithful update (`coverage-record.md`).
 
 **Limits.** The bounds, the assumptions and what is not covered, matching
 `coverage.json`, plus what a pass does not say: it covers the model within its

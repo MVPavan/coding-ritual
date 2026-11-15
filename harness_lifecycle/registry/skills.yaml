@@ -255,6 +255,15 @@ maintain-verification-skill:
   aliases: []
   status: active
   boundary: "Keeps an existing verify skill and its feature map true to the real app by reading every feature from source and driving each live, fixing only proven drift; generating one is create-verification-skill, judging a change by reading is review, and running a project's invariant checks is check-invariants."
+maintain-formal-verification-skill:
+  domain: engineering
+  stage: Improvement
+  substage: Codification
+  secondary: [Testing]
+  family: null
+  aliases: []
+  status: active
+  boundary: "Brings an existing formal verify skill back in line with its code after changes that skipped it, sorting every covered change, updating the model from the code and rerunning, with one outcome per check; generating one is create-formal-verification-skill, an app-driving verify skill is maintain-verification-skill, and checking or drawing one TLA+ model is statechart."
 migrate-claude-to-codex:
   domain: core
   stage: Improvement

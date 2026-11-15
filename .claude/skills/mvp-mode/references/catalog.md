@@ -39,6 +39,7 @@ Principles are not skills, so they are not listed here; the router lists them.
 | `/harness-status` | Quick upstream-drift status across all reference_harnesses submodules — what changed since our pinned commits. |
 | `/implement` | Run settled, tracked work through the implement playbook: a bead, a plan, a roadmap phase, all remaining phases, or a spec. |
 | `/improve-codebase-architecture` | Find evidence-backed architecture improvements within a named area or requested codebase survey. |
+| `/maintain-formal-verification-skill` | Use for /maintain-formal-verification-skill when a project's formal verify skill may no longer describe its code after changes made without it; with none, /create-formal-verification-skill makes one, and checking your own change uses the verify skill itself. |
 | `/maintain-verification-skill` | Use for /maintain-verification-skill when a project's verify skill that drives its real app may have drifted from the product; with no verify skill, /create-verification-skill makes one, and proving one change uses the verify skill itself. |
 | `/migrate-claude-to-codex` | Adapt Claude harness assets for Codex while preserving shared AGENTS.md policy and canonical skills. |
 | `/no-comments` | Sweep a scope for comments that should go, judged by principle-no-comments, then fix what the sweep exposes and offer checks for real constraints. |

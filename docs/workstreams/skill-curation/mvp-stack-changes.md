@@ -1441,6 +1441,62 @@ reason as in sections 29 and 31 (empty reference submodule folders), and the com
 Limits: one target app and one tool branch proven, TLC. Mermaid rendering is unproven. The source-verifier,
 proof and generated-input branches are unproven. Publishing waits for `maintain-formal-verification-skill`.
 
+## 33. `maintain-formal-verification-skill`: keeping a formal check true to its code (`cr-r2pa.2.28.5`)
+
+Added 2026-11-15. Plan `scratchpad/mvp-stack/92/plan.md` (gitignored, with its Round 2 table), build report
+`scratchpad/mvp-stack/92/build-report.md` (Rounds 1-3), recorder `scratchpad/mvp-stack/92/record_mfvs.py`; round
+`2026-11-15-maintain-formal-verification-skill`, 26 events (1 `add`, 23 completing adopts, 1
+`update ours:create-formal-verification-skill`, 1 `update ours:mvp-mode`), trait-level, sealed. The last of the four
+verification units ruled in batch P2.
+
+- **What was built:** `.claude/skills/maintain-formal-verification-skill/`, a manual skill with no reference or
+  script of its own. One pass brings a project's formal verify skill back to its code after changes that skipped
+  its "Updating for an intended change". It takes stock from `coverage.json`, runs a baseline, reads every commit
+  since the sync commit that touches covered code, sorts each change into one of four classes (no effect,
+  verification out of date, promise changed on purpose, promise maybe broken), updates the model from the code,
+  reruns and judges each run by exit code and the checker's own messages, refreshes the record, follows the
+  refreshed skill once, and gives each check one outcome: in sync, updated, bug or blocked. It reads
+  create-formal-verification-skill's four references by pointer and restates none. Placement: engineering ·
+  Improvement · Codification, secondary Testing. create-formal-verification-skill's stop rule and hand-off now
+  name `/maintain-formal-verification-skill` as a slash pointer, which `skill-catalog.py --check` proves resolves;
+  the `mvp-mode` router gains one row and the catalog lists it as slash-only.
+- **Owner rulings of 2026-11-15** (last section of `scratchpad/mvp-stack/owner-rulings-2026-11-13.md`): item 1,
+  Q1 **move**: on a confirmed bug the faithful model update is kept and `sync_commit`, `covers`, the table and
+  the model's comments move to the checked commit, one sentence each in create-formal's `coverage-record.md`,
+  `formal-verify-skill.md` and `model-fidelity.md`; item 2, Q2 **report**: an older formal skill's contract gaps
+  are follow-ups, none fixed, except writing `coverage.json`; item 3, Q3 **clone** for the proof; item 4, Q4
+  **yes**: `formal-verify-skill.md` "Run" names the per-user install recipe and pins; item 5, bead
+  `cr-r2pa.2.28.6` yes to both (the re-drive of changed commands is carried; the evidence-hash half has no
+  counterpart in a formal pass); item 6, `verdict-from-exit-and-messages` kept, now owner-accepted.
+- **Traits:** `maintain-formal-verification-skill` lists 40: 23 adopted (three of them, `traceable-to-code`,
+  `atomicity-fidelity` and `property-fails-on-broken-variant`, applied by pointer from `model-fidelity.md`), 16
+  held (`verify-skill-capabilities` among them, by the coordinator's ruling on the blind check) and 1 of ours,
+  `formal-contract-gaps-reported`, defined with `distinct_from` `contract-gaps-reported` and
+  `coverage-and-sync-record`. `verdict-from-exit-and-messages`' note now records the owner's acceptance; its
+  definition is unchanged. create-formal-verification-skill's entry keeps its 41 traits, with a refreshed tree
+  hash, four holder notes brought up to date and one added. `trait-sharing.yaml` gains 14 entries and 7 existing
+  entries now name the new holder. Routine rules the blind check found (the description routing neighbours,
+  references read and not restated, asking when several skills match, the `statechart` pointer) need no trait.
+
+Proof on equity-os's `retention-verification` skill, in a scratch clone with no hooks
+(`scratchpad/mvp-stack/92/proof-report.md`, archive `scratchpad/mvp-stack/92/proof/2026-11-15-92/`, its
+`MANIFEST.sha256` sha256 `4db2b746811ac6c9a59d500314053529b6a58c7cf495aaa6cb3a1e091d7901dc`): PASS. Three
+planted commits, one fresh pass each, each sorted correctly against an oracle built before any pass: C1 (a
+read-only helper) in sync, with the model unchanged but its sync line; C2 (the expiry split into two
+transactions and a rename) updated, its model text-equal to the oracle's without comments and holding over 84,966 states; C3 (the
+retention lock moved past the run's commit) updated and bug, with its introducing commit, steps in the code's
+terms, a one-sentence harm and a kept scratch reproduction. Product code was never edited. The proof's lesson,
+replay every step a writer runs between the model's last modelled check and its commit, was applied to the unit
+in the build's round 3. Review: critics 92b (REVISE) and 92c (PASS) on the plan, 92f (REVISE) and 92g (PASS) on
+the build; the blind check 92 with the coordinator's rulings. `SKILL.md` is 202 lines, 37 over the plan's 165
+(the overage is named in the build report). A rehearsal on a scratch clone, a match of the round against the
+recorder, a cite check of every recorded file:line, and a build (no diff) and check in a fresh clone pass. Final
+worktree registry state: 58 rounds, 4071 events, 76 skill records; in the build worktree itself `check` reports
+seven stale reference pages for the same environment reason as in sections 29, 31 and 32 (empty reference
+submodule folders), and the committed pages are kept. Limits: one formal check and one tool branch (TLC)
+proven; the `statechart` crash found during the proof is fixed separately; publishing all four verification units
+waits for the owner's go-ahead.
+
 ## Regenerating
 
 From the worktree root:

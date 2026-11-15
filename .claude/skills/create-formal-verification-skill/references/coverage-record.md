@@ -52,7 +52,10 @@ stays a data file, never prose inside `SKILL.md`.
   matches the code as of the new commit: the covered diff read, the model
   updated from it, the main configuration and every broken variant giving their
   expected verdicts. A check that passes on a model nobody compared with the
-  new code does not move it.
+  new code does not move it. On a confirmed bug,
+  maintain-formal-verification-skill moves `sync_commit` and `covers` to the
+  checked commit with the faithful model update, and the check fails there
+  until a fix or an evidenced promise change.
 - `check.py` prints `git diff --stat <sync_commit> -- <covered paths>` first,
   working tree included, so drift shows before any verdict, and refuses to run
   when a key is missing.

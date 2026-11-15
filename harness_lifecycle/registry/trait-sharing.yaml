@@ -253,9 +253,9 @@ unreachable-with-route-and-prerequisite:
   why: "The generator writes the rule into the map's skip reporting, and the maintenance pass applies it to its coverage report (plan 82 §5)."
   reviewed: "2026-11-14"
 check-never-weakened-to-pass:
-  skills: [create-formal-verification-skill, create-verification-skill, maintain-verification-skill, statechart]
-  why: "The app generator writes the rule into a generated skill, and the maintenance pass applies it while fixing one: a failing journey is fixed only when source proves the map wrong (R3). statechart never loosens a rule, the model or its bounds so that a check passes, and create-formal-verification-skill never loosens the property, the model or the bounds (decision 3, restated per unit)."
-  reviewed: "2026-11-14"
+  skills: [create-formal-verification-skill, create-verification-skill, maintain-formal-verification-skill, maintain-verification-skill, statechart]
+  why: "The app generator writes the rule into a generated skill, and the app maintenance pass applies it while fixing one: a failing journey is fixed only when source proves the map wrong (R3). statechart never loosens a rule, the model or its bounds so that a check passes, and create-formal-verification-skill never loosens the property, the model or the bounds (decision 3, restated per unit). maintain-formal-verification-skill never loosens a property, the model or its bounds so that a rerun passes (decision 3)."
+  reviewed: "2026-11-15"
 live-service-isolation:
   skills: [create-verification-skill, maintain-verification-skill]
   why: "The generator writes the isolation controls into a generated skill, and the maintenance pass drives one only through them, stopping blocked when a control is missing (ruling A)."
@@ -281,29 +281,29 @@ credentials-never-captured:
   why: "The generator keeps credentials out of a generated skill's proof, and the maintenance pass keeps them out of its evidence, notes, reply and helper fixes (ruling D)."
   reviewed: "2026-11-14"
 generated-skill-left-uncommitted:
-  skills: [create-formal-verification-skill, create-verification-skill, maintain-verification-skill]
-  why: "The app generator leaves the skill it writes uncommitted, and the maintenance pass leaves its fixes uncommitted; land commits either when the person asks (R10). create-formal-verification-skill leaves the formal verify skill it writes uncommitted unless the person asks; land makes the commit (decision 10)."
-  reviewed: "2026-11-14"
+  skills: [create-formal-verification-skill, create-verification-skill, maintain-formal-verification-skill, maintain-verification-skill]
+  why: "The app generator leaves the skill it writes uncommitted, and the app maintenance pass leaves its fixes uncommitted; land commits either when the person asks (R10). create-formal-verification-skill leaves the formal verify skill it writes uncommitted unless the person asks; land makes the commit (decision 10). maintain-formal-verification-skill leaves its verification edits as one uncommitted change for land (decision 10)."
+  reviewed: "2026-11-15"
 generator-started-by-person:
-  skills: [create-formal-verification-skill, create-verification-skill, maintain-verification-skill]
-  why: "Both app verification units start only when the person starts them: manual-only in frontmatter and sidecar, reached through an mvp-mode router line (R1). create-formal-verification-skill starts the same way: manual-only in frontmatter and sidecar, reached through its mvp-mode router row (decision 1)."
-  reviewed: "2026-11-14"
+  skills: [create-formal-verification-skill, create-verification-skill, maintain-formal-verification-skill, maintain-verification-skill]
+  why: "Both app verification units start only when the person starts them: manual-only in frontmatter and sidecar, reached through an mvp-mode router line (R1). create-formal-verification-skill starts the same way: manual-only in frontmatter and sidecar, reached through its mvp-mode router row (decision 1). maintain-formal-verification-skill starts the same way: manual-only in frontmatter and sidecar, reached through its mvp-mode router row (decision 1)."
+  reviewed: "2026-11-15"
 destination-protection:
   skills: [create-verification-skill, migrate-claude-to-codex]
   why: "Each writes a skill folder and never overwrites one already there: migrate-claude-to-codex a converted skill's destination, create-verification-skill an occupied verify-skill folder, where it stops blocked and asks the person (plan 82 misfit 6, critic-82d N1)."
   reviewed: "2026-11-14"
 checker-install-approved-per-user:
-  skills: [create-formal-verification-skill, statechart]
-  why: "statechart owns the per-user checker install and asks first; create-formal-verification-skill follows the same approval and recipe for TLC by pointer to statechart's references/install.md (decision 6, owner item 2)."
-  reviewed: "2026-11-14"
+  skills: [create-formal-verification-skill, maintain-formal-verification-skill, statechart]
+  why: "statechart owns the per-user checker install and asks first; create-formal-verification-skill follows the same approval and recipe for TLC by pointer to statechart's references/install.md (decision 6, owner item 2). maintain-formal-verification-skill installs a missing checker only by the per-user recipe and pins the skill records, after the person approves, and otherwise blocks the check, naming what is missing (decision 6)."
+  reviewed: "2026-11-15"
 cold-agent-reader:
   skills: [create-formal-verification-skill, create-verification-skill]
   why: "create-verification-skill's references/generated-skill.md \"Writing rules\" state it, and create-formal-verification-skill applies those rules to the formal skill it writes, by pointer (decision 3, the one shared writing reference)."
   reviewed: "2026-11-14"
 generated-skill-run-once:
-  skills: [create-formal-verification-skill, create-verification-skill]
-  why: "Each generator follows the skill it writes once, as its next reader, before handing it over: the app generator's proof drive and the formal generator's planted-break proof (decision 3, restated per unit)."
-  reviewed: "2026-11-14"
+  skills: [create-formal-verification-skill, create-verification-skill, maintain-formal-verification-skill]
+  why: "Each generator follows the skill it writes once, as its next reader, before handing it over: the app generator's proof drive and the formal generator's planted-break proof (decision 3, restated per unit). maintain-formal-verification-skill follows the formal skill it refreshed once the same way, its drift diff, Run command and exit code, and runs every command it changed before hand-over (decision 3)."
+  reviewed: "2026-11-15"
 generator-edits-own-output-only:
   skills: [create-formal-verification-skill, create-verification-skill]
   why: "Each generator edits only the skill folder it creates and the scaffolding it labels: the app generator's marked startup scaffolding, the formal generator's one reversible planted edit; a product-code fix is the person's call (decision 3)."
@@ -313,14 +313,70 @@ handover-points-to-maintenance:
   why: "Each create unit tells the person at hand-off that keeping its generated skill current is its maintenance unit's job: create-verification-skill names maintain-verification-skill, create-formal-verification-skill names maintain-formal-verification-skill (decision 11)."
   reviewed: "2026-11-14"
 pre-existing-edit-separation:
-  skills: [create-formal-verification-skill, review]
-  why: "review separates a task's changes from pre-existing ones by the task baseline; create-formal-verification-skill records the product checkout's baseline before its planted edit, never clears the person's changes, and proves the restoration against that baseline."
-  reviewed: "2026-11-14"
+  skills: [create-formal-verification-skill, maintain-formal-verification-skill, review]
+  why: "review separates a task's changes from pre-existing ones by the task baseline; create-formal-verification-skill records the product checkout's baseline before its planted edit, never clears the person's changes, and proves the restoration against that baseline. maintain-formal-verification-skill records the checkout's status, diff and the target's hash list before any edit, so the person's own edits stay apart from the pass's."
+  reviewed: "2026-11-15"
 registering-generated-frontmatter:
   skills: [create-formal-verification-skill, create-verification-skill]
   why: "Both generators give the skill they write registering frontmatter by generated-skill.md's \"Frontmatter\"; create-formal-verification-skill uses the formal name <area>-verification and its own description (decision 3)."
   reviewed: "2026-11-14"
 verification-only-edits:
-  skills: [create-formal-verification-skill, maintain-verification-skill]
-  why: "The maintenance pass edits only the verify skill's files, and the formal verify skill that create-formal-verification-skill writes tells its own verification pass to leave product code alone unless the person asks (decision 3)."
-  reviewed: "2026-11-14"
+  skills: [create-formal-verification-skill, maintain-formal-verification-skill, maintain-verification-skill]
+  why: "The app maintenance pass edits only the verify skill's files, and the formal verify skill that create-formal-verification-skill writes tells its own verification pass to leave product code alone unless the person asks (decision 3). maintain-formal-verification-skill edits only the target formal skill's own folder, and product code only when the person asks (decision 3)."
+  reviewed: "2026-11-15"
+atomicity-fidelity:
+  skills: [create-formal-verification-skill, maintain-formal-verification-skill]
+  why: "create-formal-verification-skill owns the rule in references/model-fidelity.md (\"Indivisible steps\"); maintain-formal-verification-skill applies it to every model update, splitting an action the code now runs as two steps (decision 4)."
+  reviewed: "2026-11-15"
+baseline-check-before-change:
+  skills: [maintain-formal-verification-skill, principle-sequence-verifiable-units]
+  why: "principle-sequence-verifiable-units runs a multi-step change's checks on the starting base first; maintain-formal-verification-skill runs the formal skill's command once before any edit and keeps its output and exit code as the pass's baseline, classing a failure only after the update."
+  reviewed: "2026-11-15"
+counterexample-as-code-steps:
+  skills: [create-formal-verification-skill, maintain-formal-verification-skill]
+  why: "Both formal units tell a counterexample as a few numbered steps in the code's own terms: create-formal-verification-skill in its reply and in the generated skill's \"Reading a failure\", maintain-formal-verification-skill in each confirmed bug's report."
+  reviewed: "2026-11-15"
+counterexample-replayed-on-code:
+  skills: [maintain-formal-verification-skill, statechart]
+  why: "statechart's hand-off replays each counterexample against the real code where the model stands for it; maintain-formal-verification-skill replays a failing rerun's counterexample on the code before calling it a bug or a modelling error."
+  reviewed: "2026-11-15"
+coverage-and-sync-record:
+  skills: [create-formal-verification-skill, maintain-formal-verification-skill]
+  why: "create-formal-verification-skill writes the per-check record (guarded files and symbols, last confirmed commit) into the skill it generates; maintain-formal-verification-skill keeps it current at each pass and writes it for an older formal skill without one (decision 7)."
+  reviewed: "2026-11-15"
+formal-coverage-data-file:
+  skills: [create-formal-verification-skill, maintain-formal-verification-skill]
+  why: "create-formal-verification-skill keeps that record as coverage.json, one data file beside the formal verify skill's SKILL.md; maintain-formal-verification-skill reads and refreshes the file, and writes it for an older skill that lacks it, never as prose (decision 7)."
+  reviewed: "2026-11-15"
+installed-recipe-or-blocked:
+  skills: [maintain-formal-verification-skill, maintain-verification-skill]
+  why: "Each maintenance unit installs a missing tool only by the recipe the target records, per user or per project and pinned, never system-wide, and otherwise marks the work blocked: maintain-verification-skill for its driving tools, maintain-formal-verification-skill for the checker and its runtime (decision 6)."
+  reviewed: "2026-11-15"
+no-target-points-to-create:
+  skills: [maintain-formal-verification-skill, maintain-verification-skill]
+  why: "With no target, each maintenance unit stops and points to its generator: maintain-verification-skill to create-verification-skill, maintain-formal-verification-skill to /create-formal-verification-skill."
+  reviewed: "2026-11-15"
+property-fails-on-broken-variant:
+  skills: [create-formal-verification-skill, maintain-formal-verification-skill]
+  why: "create-formal-verification-skill owns references/model-fidelity.md \"Broken variants\" and proves each property failing on a kept variant; maintain-formal-verification-skill reruns every kept variant after an update, adds one for a guard no variant removes, and accepts variant verdicts only from a run whose main run holds (decision 4)."
+  reviewed: "2026-11-15"
+sync-commit-advanced-after-match:
+  skills: [create-formal-verification-skill, maintain-formal-verification-skill]
+  why: "create-formal-verification-skill's references/coverage-record.md states the rule for the skills it generates; maintain-formal-verification-skill moves sync_commit only once the covered diff is read, the model updated and the rerun gives its expected verdicts, and, by the owner's Q1 ruling (move, 2026-11-15), also on a confirmed bug with the faithful update, which still matches the code."
+  reviewed: "2026-11-15"
+target-found-by-content:
+  skills: [maintain-formal-verification-skill, maintain-verification-skill]
+  why: "Both maintenance units use the skill the person named or find the target by what it is, never by folder name: maintain-verification-skill by the app verify skill's shape, maintain-formal-verification-skill by a coverage.json of the formal format (formal-verify-skill.md, \"How other units recognise it\")."
+  reviewed: "2026-11-15"
+traceable-to-code:
+  skills: [create-formal-verification-skill, maintain-formal-verification-skill]
+  why: "create-formal-verification-skill owns the rule in references/model-fidelity.md (\"Traceability table\") and writes it into the skill it generates; maintain-formal-verification-skill applies the same section to every model update, each citation at the commit checked (decision 4)."
+  reviewed: "2026-11-15"
+verdict-from-exit-and-messages:
+  skills: [create-formal-verification-skill, maintain-formal-verification-skill]
+  why: "Both formal units read a checker run as a verdict only when its exit code and its own messages agree, by references/tool-branches.md and its TLC gate: create-formal-verification-skill for the check it generates, maintain-formal-verification-skill for each rerun and added variant (owner-accepted 2026-11-15, item 6)."
+  reviewed: "2026-11-15"
+verify-skill-capabilities:
+  skills: [create-formal-verification-skill, maintain-formal-verification-skill]
+  why: "create-formal-verification-skill gives the formal verify skill its fixed sections (references/formal-verify-skill.md \"Sections\"); maintain-formal-verification-skill keeps those sections through any fix and refreshes their table, Run output and sync mentions, so the next agent still learns all four from the skill alone."
+  reviewed: "2026-11-15"

@@ -1,0 +1,6 @@
+interface:
+  display_name: "Maintain Formal Verification Skill"
+  short_description: "Bring a project's formal check back in line with its code"
+  default_prompt: "Use $maintain-formal-verification-skill to sort the changes since this project's formal verify skill last matched its code, update its model and rerun it, optionally naming the verify skill to maintain."
+policy:
+  allow_implicit_invocation: false

@@ -1319,6 +1319,48 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `generator-reply-fields`: Reply with the generated skill's path and the surfaces it covers and does not, the seeded features, the proof run's feature, entry points, evidence paths and doctor and cleanup results, what stays unverified, and for a failed base or proof the exact failure and that the skill is a draft.
 - `destination-protection`: Never overwrite an existing skill destination even under force, which applies only to generated scaffolds.
 
+#### engineering · Improvement · Codification — maintain-formal-verification-skill
+- `per-check-outcome`: Give each check one named outcome, in sync, updated, bug or blocked with the reason, allowing updated and bug together when an update restores fidelity and the property then fails.
+- `per-check-inventory`: Collect for each check its property, covered code, bounds and assumptions, run command and last sync commit.
+- `inferred-sync-commit`: With no recorded sync commit, take the most recent commit that touched the verification files and say so.
+- `baseline-check-before-change`: Before the first change of multi-step work, run its checks on the starting base and record the results, so later failures are classed as pre-existing or as regressions.
+- `failure-classified-after-rerun`: Leave a baseline failure unclassified as drift or bug until the rerun-and-judge step.
+- `covered-change-sweep`: Diff the covered files since the sync commit and read each commit message, following renamed, split or moved code and new writers of the guarded state.
+- `four-way-change-classification`: Classify each change as no effect, verification out of date, promise changed on purpose or promise maybe broken, treating a changed promise without evidence as a bug candidate.
+- `no-effect-judged-by-model`: Judge that a change has no effect against the model or harness, not the commit message.
+- `intended-change-needs-evidence`: Count a promise as changed on purpose only with evidence cited from the change, such as a doc comment, tests, changelog or commit message.
+- `update-from-code-before-rerun`: Write a model update from the code before rerunning, never shaped by what makes the check pass.
+- `traceable-to-code`: Make every part of a verification model or proof point to code a reviewer can open.
+- `atomicity-fidelity`: Treat as one indivisible step in the verification only what is one indivisible step in the code.
+- `property-change-audit-trail`: Change a property only for a promise changed on purpose, recording its wording before and after and the evidence.
+- `keep-bounds`: Keep the bounds unless a change makes them wrong, and report any reduction.
+- `property-fails-on-broken-variant`: Show each property failing on a deliberately broken variant of the code it guards, after first writing it and after each update.
+- `counterexample-replayed-on-code`: Replay each counterexample step by step against the real code, presuming a step that cannot happen to be a model error until shown otherwise.
+- `bug-report-fields`: Give a confirmed bug the commit that introduced it, its counterexample told in the code's terms and its harm in one sentence.
+- `uncommitted-repro-evidence`: Put a cheap test or reproduction showing the bug in the report as evidence without committing it to product code.
+- `verify-skill-metadata-refresh`: Update each check's covered code, commands, bounds, assumptions and sync commit in the verification skill, setting the sync commit to the one checked.
+- `blocked-check-sync-freeze`: Leave a blocked check's sync commit where it was, and say so.
+- `per-check-report`: Report per check the outcome, commits read, each verification change with its reason, the rerun result and the break used, each bug in plain words with its commit and the coverage gaps left, saying outright which failures were drift and which were bugs.
+- `stale-pass-disclosure`: For a check that passed before an update and fails after, say the old pass was against a stale description.
+- `separate-verification-change`: Keep verification updates in their own change, apart from any product fix.
+- `verification-only-edits`: During a verification pass, edit only the verification skill's own files and never product code unless asked.
+- `target-found-by-content`: Find the verification skill to maintain by what it does, not by a fixed name, or use the one the person named.
+- `no-target-points-to-create`: When no verification skill exists, stop and point to the unit that creates one rather than inventing one.
+- `check-never-weakened-to-pass`: When a check fails on the current product, report the failure and never weaken the check or its model to make it pass.
+- `generated-skill-run-once`: Follow a generated skill end to end once, as its next reader would, before handing it over, counting an unrun skill as a draft.
+- `generated-skill-left-uncommitted`: Leave the generated skill and its map uncommitted unless the person asks for a commit, which the commit skill then makes.
+- `generator-started-by-person`: Run the skill generator only when the person starts it: manual-only in its frontmatter and its sidecar, reached through setup, help or a router line, never by the model on its own.
+- `installed-recipe-or-blocked`: In a maintenance pass, install a missing tool only by the recipe the target skill records, project-local or per user and pinned, never system-wide; with none recorded, mark the work that needs the tool blocked and name it.
+- `checker-install-approved-per-user`: Install a missing model checker or its runtime only after the person approves it, and then per user under their home folder, never system-wide, as root or through a shell-profile change; without approval, stop and name what is missing.
+- `sync-commit-advanced-after-match`: Move the recorded sync commit forward only after confirming the verification matches the code at the new commit.
+- `pre-existing-edit-separation`: Separate pre-existing edits from the task's own changes using the task baseline, not filenames.
+- `coverage-and-sync-record`: Record, per check, the files and functions it guards and the last commit it was confirmed against, so drift shows.
+- `formal-coverage-data-file`: Keep a formal verify skill's coverage and sync record in one small data file of a versioned format beside its skill file, never as prose inside the skill, so its check script, the maintenance unit and freshness checks read the same record.
+- `counterexample-as-code-steps`: Describe a counterexample as a few steps phrased in the code's own terms.
+- `verify-skill-capabilities`: Let the next agent learn from the skill alone whether a change touches verified code, how to run the check, how to tell a real bug from a modelling error and how to update the verification for an intended change.
+- `verdict-from-exit-and-messages`: Count a checker run as a verdict only when its exit code and its own completion and violation messages agree, with every rule checked where the checker checks all reachable states and no option that hides a violation.
+- `formal-contract-gaps-reported`: In a maintenance pass over a formal verify skill, compare the skill with the formal contract as it is now (its sections, its runner's steps and its recorded install recipe) and report each gap as a follow-up, fixing none, except writing the coverage record for a skill that has none.
+
 #### engineering · Improvement · Codification — maintain-verification-skill
 - `target-found-by-content`: Find the verification skill to maintain by what it does, not by a fixed name, or use the one the person named.
 - `no-target-points-to-create`: When no verification skill exists, stop and point to the unit that creates one rather than inventing one.
@@ -3255,34 +3297,34 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `adjacent-target-only-if-close`: Suggest a second target only when a close one turned up. — adopt → create-formal-verification-skill#adjacent-target-only-if-close
 
 #### engineering · Verification · Validation — skill:pstack/skills/maintain-formal-verification-skill
-- `per-check-outcome`: Give each check one named outcome, in sync, updated, bug or blocked with the reason, allowing updated and bug together when an update restores fidelity and the property then fails. — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#per-check-outcome
+- `per-check-outcome`: Give each check one named outcome, in sync, updated, bug or blocked with the reason, allowing updated and bug together when an update restores fidelity and the property then fails. — adopt → maintain-formal-verification-skill#per-check-outcome
 - `verification-only-edits`: During a verification pass, edit only the verification skill's own files and never product code unless asked. — adopt → maintain-verification-skill#verification-only-edits
 - `check-never-weakened-to-pass`: When a check fails on the current product, report the failure and never weaken the check or its model to make it pass. — adopt → create-verification-skill#check-never-weakened-to-pass
 - `target-found-by-content`: Find the verification skill to maintain by what it does, not by a fixed name, or use the one the person named. — adopt → maintain-verification-skill#target-found-by-content
-- `per-check-inventory`: Collect for each check its property, covered code, bounds and assumptions, run command and last sync commit. — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#per-check-inventory
+- `per-check-inventory`: Collect for each check its property, covered code, bounds and assumptions, run command and last sync commit. — adopt → maintain-formal-verification-skill#per-check-inventory
 - `no-target-points-to-create`: When no verification skill exists, stop and point to the unit that creates one rather than inventing one. — adopt → maintain-verification-skill#no-target-points-to-create
-- `inferred-sync-commit`: With no recorded sync commit, take the most recent commit that touched the verification files and say so. — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#inferred-sync-commit
-- `baseline-check-before-change`: Before the first change of multi-step work, run its checks on the starting base and record the results, so later failures are classed as pre-existing or as regressions. — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#baseline-check-before-change
-- `failure-classified-after-rerun`: Leave a baseline failure unclassified as drift or bug until the rerun-and-judge step. — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#failure-classified-after-rerun
-- `covered-change-sweep`: Diff the covered files since the sync commit and read each commit message, following renamed, split or moved code and new writers of the guarded state. — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#covered-change-sweep
-- `four-way-change-classification`: Classify each change as no effect, verification out of date, promise changed on purpose or promise maybe broken, treating a changed promise without evidence as a bug candidate. — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#four-way-change-classification
-- `no-effect-judged-by-model`: Judge that a change has no effect against the model or harness, not the commit message. — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#no-effect-judged-by-model
-- `intended-change-needs-evidence`: Count a promise as changed on purpose only with evidence cited from the change, such as a doc comment, tests, changelog or commit message. — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#intended-change-needs-evidence
-- `update-from-code-before-rerun`: Write a model update from the code before rerunning, never shaped by what makes the check pass. — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#update-from-code-before-rerun
-- `traceable-to-code`: Make every part of a verification model or proof point to code a reviewer can open. — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#traceable-to-code
-- `atomicity-fidelity`: Treat as one indivisible step in the verification only what is one indivisible step in the code. — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#atomicity-fidelity
-- `property-change-audit-trail`: Change a property only for a promise changed on purpose, recording its wording before and after and the evidence. — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#property-change-audit-trail
-- `keep-bounds`: Keep the bounds unless a change makes them wrong, and report any reduction. — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#keep-bounds
-- `property-fails-on-broken-variant`: Show each property failing on a deliberately broken variant of the code it guards, after first writing it and after each update. — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#property-fails-on-broken-variant
-- `counterexample-replayed-on-code`: Replay each counterexample step by step against the real code, presuming a step that cannot happen to be a model error until shown otherwise. — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#counterexample-replayed-on-code
-- `bug-report-fields`: Give a confirmed bug the commit that introduced it, its counterexample told in the code's terms and its harm in one sentence. — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#bug-report-fields
-- `uncommitted-repro-evidence`: Put a cheap test or reproduction showing the bug in the report as evidence without committing it to product code. — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#uncommitted-repro-evidence
-- `verify-skill-metadata-refresh`: Update each check's covered code, commands, bounds, assumptions and sync commit in the verification skill, setting the sync commit to the one checked. — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#verify-skill-metadata-refresh
-- `blocked-check-sync-freeze`: Leave a blocked check's sync commit where it was, and say so. — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#blocked-check-sync-freeze
+- `inferred-sync-commit`: With no recorded sync commit, take the most recent commit that touched the verification files and say so. — adopt → maintain-formal-verification-skill#inferred-sync-commit
+- `baseline-check-before-change`: Before the first change of multi-step work, run its checks on the starting base and record the results, so later failures are classed as pre-existing or as regressions. — adopt → maintain-formal-verification-skill#baseline-check-before-change
+- `failure-classified-after-rerun`: Leave a baseline failure unclassified as drift or bug until the rerun-and-judge step. — adopt → maintain-formal-verification-skill#failure-classified-after-rerun
+- `covered-change-sweep`: Diff the covered files since the sync commit and read each commit message, following renamed, split or moved code and new writers of the guarded state. — adopt → maintain-formal-verification-skill#covered-change-sweep
+- `four-way-change-classification`: Classify each change as no effect, verification out of date, promise changed on purpose or promise maybe broken, treating a changed promise without evidence as a bug candidate. — adopt → maintain-formal-verification-skill#four-way-change-classification
+- `no-effect-judged-by-model`: Judge that a change has no effect against the model or harness, not the commit message. — adopt → maintain-formal-verification-skill#no-effect-judged-by-model
+- `intended-change-needs-evidence`: Count a promise as changed on purpose only with evidence cited from the change, such as a doc comment, tests, changelog or commit message. — adopt → maintain-formal-verification-skill#intended-change-needs-evidence
+- `update-from-code-before-rerun`: Write a model update from the code before rerunning, never shaped by what makes the check pass. — adopt → maintain-formal-verification-skill#update-from-code-before-rerun
+- `traceable-to-code`: Make every part of a verification model or proof point to code a reviewer can open. — adopt → maintain-formal-verification-skill#traceable-to-code
+- `atomicity-fidelity`: Treat as one indivisible step in the verification only what is one indivisible step in the code. — adopt → maintain-formal-verification-skill#atomicity-fidelity
+- `property-change-audit-trail`: Change a property only for a promise changed on purpose, recording its wording before and after and the evidence. — adopt → maintain-formal-verification-skill#property-change-audit-trail
+- `keep-bounds`: Keep the bounds unless a change makes them wrong, and report any reduction. — adopt → maintain-formal-verification-skill#keep-bounds
+- `property-fails-on-broken-variant`: Show each property failing on a deliberately broken variant of the code it guards, after first writing it and after each update. — adopt → maintain-formal-verification-skill#property-fails-on-broken-variant
+- `counterexample-replayed-on-code`: Replay each counterexample step by step against the real code, presuming a step that cannot happen to be a model error until shown otherwise. — adopt → maintain-formal-verification-skill#counterexample-replayed-on-code
+- `bug-report-fields`: Give a confirmed bug the commit that introduced it, its counterexample told in the code's terms and its harm in one sentence. — adopt → maintain-formal-verification-skill#bug-report-fields
+- `uncommitted-repro-evidence`: Put a cheap test or reproduction showing the bug in the report as evidence without committing it to product code. — adopt → maintain-formal-verification-skill#uncommitted-repro-evidence
+- `verify-skill-metadata-refresh`: Update each check's covered code, commands, bounds, assumptions and sync commit in the verification skill, setting the sync commit to the one checked. — adopt → maintain-formal-verification-skill#verify-skill-metadata-refresh
+- `blocked-check-sync-freeze`: Leave a blocked check's sync commit where it was, and say so. — adopt → maintain-formal-verification-skill#blocked-check-sync-freeze
 - `generated-skill-run-once`: Follow a generated skill end to end once, as its next reader would, before handing it over, counting an unrun skill as a draft. — adopt → create-verification-skill#generated-skill-run-once
-- `per-check-report`: Report per check the outcome, commits read, each verification change with its reason, the rerun result and the break used, each bug in plain words with its commit and the coverage gaps left, saying outright which failures were drift and which were bugs. — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#per-check-report
-- `stale-pass-disclosure`: For a check that passed before an update and fails after, say the old pass was against a stale description. — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#stale-pass-disclosure
-- `separate-verification-change`: Keep verification updates in their own change, apart from any product fix. — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#separate-verification-change
+- `per-check-report`: Report per check the outcome, commits read, each verification change with its reason, the rerun result and the break used, each bug in plain words with its commit and the coverage gaps left, saying outright which failures were drift and which were bugs. — adopt → maintain-formal-verification-skill#per-check-report
+- `stale-pass-disclosure`: For a check that passed before an update and fails after, say the old pass was against a stale description. — adopt → maintain-formal-verification-skill#stale-pass-disclosure
+- `separate-verification-change`: Keep verification updates in their own change, apart from any product fix. — adopt → maintain-formal-verification-skill#separate-verification-change
 
 #### engineering · Verification · Validation — skill:pstack/skills/statechart
 - `model-files-outside-repo`: Write the state model and its configuration in a scratch folder outside the repository. — adopt → statechart#model-files-in-ignored-scratch
@@ -14279,6 +14321,7 @@ Close a multi-axis review with one line giving each axis's finding count and its
 #### `pre-existing-edit-separation`
 Separate pre-existing edits from the task's own changes using the task baseline, not filenames.
 - ours: `create-formal-verification-skill`
+- ours: `maintain-formal-verification-skill`
 - ours: `review`
 
 #### `re-review-finding-tracking`
@@ -14429,8 +14472,9 @@ Write verify and test scripts without comments narrating their steps, letting as
 
 #### `baseline-check-before-change`
 Before the first change of multi-step work, run its checks on the starting base and record the results, so later failures are classed as pre-existing or as regressions.
+- ours: `maintain-formal-verification-skill`
 - ours: `principle-sequence-verifiable-units`
-- `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#baseline-check-before-change
+- `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt → maintain-formal-verification-skill#baseline-check-before-change
 
 #### `baseline-preconditions-block`
 Open the map index with the shared preconditions: launch address, seed data and tools on the path.
@@ -14504,6 +14548,7 @@ Write the failing test first when a cheap local test target exists, otherwise st
 When a check fails on the current product, report the failure and never weaken the check or its model to make it pass.
 - ours: `create-formal-verification-skill`
 - ours: `create-verification-skill`
+- ours: `maintain-formal-verification-skill`
 - ours: `maintain-verification-skill`
 - ours: `statechart`
 - `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt → create-verification-skill#check-never-weakened-to-pass
@@ -14719,6 +14764,10 @@ Write the smallest test focused on this bug, without broad fixture changes or ad
 - ours: `tdd`
 - `cursor_plugins:skill:pstack/skills/tdd` — adopt → tdd#focused-regression-test
 
+#### `formal-contract-gaps-reported`
+In a maintenance pass over a formal verify skill, compare the skill with the formal contract as it is now (its sections, its runner's steps and its recorded install recipe) and report each gap as a follow-up, fixing none, except writing the coverage record for a skill that has none.
+- ours: `maintain-formal-verification-skill`
+
 #### `full-verification-at-completion`
 At the end of a planned migration or rewrite, run full static and runtime verification, not only the checks the last change touched.
 - ours: `principle-migrate-without-shims`
@@ -14728,6 +14777,7 @@ At the end of a planned migration or rewrite, run full static and runtime verifi
 Follow a generated skill end to end once, as its next reader would, before handing it over, counting an unrun skill as a draft.
 - ours: `create-formal-verification-skill`
 - ours: `create-verification-skill`
+- ours: `maintain-formal-verification-skill`
 - `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt → create-verification-skill#generated-skill-run-once
 - `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#generated-skill-run-once
 - `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt → create-verification-skill#generated-skill-run-once
@@ -14899,6 +14949,7 @@ Tell a true no-results state from an unavailable feature, waiting for the finish
 
 #### `no-target-points-to-create`
 When no verification skill exists, stop and point to the unit that creates one rather than inventing one.
+- ours: `maintain-formal-verification-skill`
 - ours: `maintain-verification-skill`
 - `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt → maintain-verification-skill#no-target-points-to-create
 - `cursor_plugins:skill:pstack/skills/maintain-verification-skill` — adopt → maintain-verification-skill#no-target-points-to-create
@@ -15196,6 +15247,7 @@ Before acting, confirm by stable markers suited to the driven surface that the t
 
 #### `target-found-by-content`
 Find the verification skill to maintain by what it does, not by a fixed name, or use the one the person named.
+- ours: `maintain-formal-verification-skill`
 - ours: `maintain-verification-skill`
 - `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt → maintain-verification-skill#target-found-by-content
 - `cursor_plugins:skill:pstack/skills/maintain-verification-skill` — adopt → maintain-verification-skill#target-found-by-content
@@ -15300,6 +15352,7 @@ Have each feature file describe, from the user's side, what the feature does, th
 #### `verification-only-edits`
 During a verification pass, edit only the verification skill's own files and never product code unless asked.
 - ours: `create-formal-verification-skill`
+- ours: `maintain-formal-verification-skill`
 - ours: `maintain-verification-skill`
 - `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt → maintain-verification-skill#verification-only-edits
 - `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt → maintain-verification-skill#verification-only-edits
@@ -15343,12 +15396,14 @@ Aim for about twenty arrows, first coarsening state labels and only then hiding 
 #### `atomicity-fidelity`
 Treat as one indivisible step in the verification only what is one indivisible step in the code.
 - ours: `create-formal-verification-skill`
+- ours: `maintain-formal-verification-skill`
 - `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt → create-formal-verification-skill#atomicity-fidelity
-- `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#atomicity-fidelity
+- `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt → maintain-formal-verification-skill#atomicity-fidelity
 
 #### `blocked-check-sync-freeze`
 Leave a blocked check's sync commit where it was, and say so.
-- `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#blocked-check-sync-freeze
+- ours: `maintain-formal-verification-skill`
+- `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt → maintain-formal-verification-skill#blocked-check-sync-freeze
 
 #### `bounded-state-space`
 Keep constants small or add a constraint so a model with an unbounded state space still finishes.
@@ -15362,7 +15417,8 @@ Mark a chart state as breaking when every model state under it breaks a rule and
 
 #### `bug-report-fields`
 Give a confirmed bug the commit that introduced it, its counterexample told in the code's terms and its harm in one sentence.
-- `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#bug-report-fields
+- ours: `maintain-formal-verification-skill`
+- `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt → maintain-formal-verification-skill#bug-report-fields
 
 #### `chart-shown-as-code-block`
 Show the chart to the person as a diagram code block.
@@ -15439,22 +15495,26 @@ Draw and count a failing path's final state or step beyond a constraint, leaving
 #### `counterexample-as-code-steps`
 Describe a counterexample as a few steps phrased in the code's own terms.
 - ours: `create-formal-verification-skill`
+- ours: `maintain-formal-verification-skill`
 - `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt → create-formal-verification-skill#counterexample-as-code-steps
 
 #### `counterexample-replayed-on-code`
 Replay each counterexample step by step against the real code, presuming a step that cannot happen to be a model error until shown otherwise.
+- ours: `maintain-formal-verification-skill`
 - ours: `statechart`
-- `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#counterexample-replayed-on-code
+- `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt → maintain-formal-verification-skill#counterexample-replayed-on-code
 - `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#counterexample-replayed-on-code
 
 #### `coverage-and-sync-record`
 Record, per check, the files and functions it guards and the last commit it was confirmed against, so drift shows.
 - ours: `create-formal-verification-skill`
+- ours: `maintain-formal-verification-skill`
 - `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt → create-formal-verification-skill#coverage-and-sync-record
 
 #### `covered-change-sweep`
 Diff the covered files since the sync commit and read each commit message, following renamed, split or moved code and new writers of the guarded state.
-- `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#covered-change-sweep
+- ours: `maintain-formal-verification-skill`
+- `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt → maintain-formal-verification-skill#covered-change-sweep
 
 #### `dead-end-deadlock-marking`
 Mark every state with no exit as a deadlock when there are no constraints, and otherwise only the deadlock reported, saying why.
@@ -15510,7 +15570,8 @@ Run only invariants that carry an explicit runnable command, leaving everything 
 
 #### `failure-classified-after-rerun`
 Leave a baseline failure unclassified as drift or bug until the rerun-and-judge step.
-- `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#failure-classified-after-rerun
+- ours: `maintain-formal-verification-skill`
+- `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt → maintain-formal-verification-skill#failure-classified-after-rerun
 
 #### `fix-skill-not-scratch-break`
 When the skill misses a planted break or a step fails, fix the skill or the verification, never the planted break.
@@ -15525,10 +15586,12 @@ Verify one property and leave a project skill that lets a later agent check chan
 #### `formal-coverage-data-file`
 Keep a formal verify skill's coverage and sync record in one small data file of a versioned format beside its skill file, never as prose inside the skill, so its check script, the maintenance unit and freshness checks read the same record.
 - ours: `create-formal-verification-skill`
+- ours: `maintain-formal-verification-skill`
 
 #### `four-way-change-classification`
 Classify each change as no effect, verification out of date, promise changed on purpose or promise maybe broken, treating a changed promise without evidence as a bug candidate.
-- `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#four-way-change-classification
+- ours: `maintain-formal-verification-skill`
+- `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt → maintain-formal-verification-skill#four-way-change-classification
 
 #### `fresh-output-published-atomically`
 Write only to a new or empty output folder, staging the results and moving them into place in one step, writing nothing if the folder changed meanwhile.
@@ -15572,7 +15635,8 @@ Write each rendered image beside its chart file under the same name and give it 
 
 #### `inferred-sync-commit`
 With no recorded sync commit, take the most recent commit that touched the verification files and say so.
-- `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#inferred-sync-commit
+- ours: `maintain-formal-verification-skill`
+- `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt → maintain-formal-verification-skill#inferred-sync-commit
 
 #### `initial-only-property-warning`
 Flag a property without a temporal operator as checked only in initial states, advising it be listed as an invariant.
@@ -15591,7 +15655,8 @@ Prefer a verification tool the project's developers are able to install and run,
 
 #### `intended-change-needs-evidence`
 Count a promise as changed on purpose only with evidence cited from the change, such as a doc comment, tests, changelog or commit message.
-- `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#intended-change-needs-evidence
+- ours: `maintain-formal-verification-skill`
+- `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt → maintain-formal-verification-skill#intended-change-needs-evidence
 
 #### `interrupt-leaves-nothing`
 On an interrupt, stop the whole check process group, remove temporary files and report that nothing was written.
@@ -15608,7 +15673,8 @@ Put wording, phases, colours and the title of a chart in a view module passed to
 
 #### `keep-bounds`
 Keep the bounds unless a change makes them wrong, and report any reduction.
-- `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#keep-bounds
+- ours: `maintain-formal-verification-skill`
+- `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt → maintain-formal-verification-skill#keep-bounds
 
 #### `legend-of-marks`
 Carry a legend naming the phase colours and, per mark, the rules it stands for.
@@ -15645,7 +15711,8 @@ Write the next-state relation as a disjunction of named actions so each step car
 
 #### `no-effect-judged-by-model`
 Judge that a change has no effect against the model or harness, not the commit message.
-- `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#no-effect-judged-by-model
+- ours: `maintain-formal-verification-skill`
+- `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt → maintain-formal-verification-skill#no-effect-judged-by-model
 
 #### `one-documented-value-shape`
 Hand the model's values to the view as data in one documented shape.
@@ -15676,15 +15743,18 @@ Give states on a shortest failing path and states a counterexample repeats their
 
 #### `per-check-inventory`
 Collect for each check its property, covered code, bounds and assumptions, run command and last sync commit.
-- `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#per-check-inventory
+- ours: `maintain-formal-verification-skill`
+- `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt → maintain-formal-verification-skill#per-check-inventory
 
 #### `per-check-outcome`
 Give each check one named outcome, in sync, updated, bug or blocked with the reason, allowing updated and bug together when an update restores fidelity and the property then fails.
-- `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#per-check-outcome
+- ours: `maintain-formal-verification-skill`
+- `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt → maintain-formal-verification-skill#per-check-outcome
 
 #### `per-check-report`
 Report per check the outcome, commits read, each verification change with its reason, the rerun result and the break used, each bug in plain words with its commit and the coverage gaps left, saying outright which failures were drift and which were bugs.
-- `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#per-check-report
+- ours: `maintain-formal-verification-skill`
+- `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt → maintain-formal-verification-skill#per-check-report
 
 #### `per-state-rule-attribution`
 When one mark stands for two rules, state in the hand-off which chart state violates which rule.
@@ -15727,13 +15797,15 @@ Keep every failing-path state and mark when coarsening, and never merge states t
 
 #### `property-change-audit-trail`
 Change a property only for a promise changed on purpose, recording its wording before and after and the evidence.
-- `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#property-change-audit-trail
+- ours: `maintain-formal-verification-skill`
+- `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt → maintain-formal-verification-skill#property-change-audit-trail
 
 #### `property-fails-on-broken-variant`
 Show each property failing on a deliberately broken variant of the code it guards, after first writing it and after each update.
 - ours: `create-formal-verification-skill`
+- ours: `maintain-formal-verification-skill`
 - `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt → create-formal-verification-skill#property-fails-on-broken-variant
-- `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#property-fails-on-broken-variant
+- `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt → maintain-formal-verification-skill#property-fails-on-broken-variant
 
 #### `pure-view-functions`
 Make view functions depend only on their arguments, since each is called at most once per state or step.
@@ -15818,7 +15890,8 @@ Leave out a step that stays within one chart label and count it, splitting the l
 
 #### `separate-verification-change`
 Keep verification updates in their own change, apart from any product fix.
-- `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#separate-verification-change
+- ours: `maintain-formal-verification-skill`
+- `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt → maintain-formal-verification-skill#separate-verification-change
 
 #### `shared-label-shared-arrow`
 Give actions with the same visible effect one label so they merge into one arrow, joining different labels between two states with or.
@@ -15851,7 +15924,8 @@ Order states by distance from a start and then by name, so the chart text is the
 
 #### `stale-pass-disclosure`
 For a check that passed before an update and fails after, say the old pass was against a stale description.
-- `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#stale-pass-disclosure
+- ours: `maintain-formal-verification-skill`
+- `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt → maintain-formal-verification-skill#stale-pass-disclosure
 
 #### `state-model-omissions`
 Say in the hand-off what the model leaves out.
@@ -15876,13 +15950,15 @@ Choose the strongest such target, not the easiest to verify.
 #### `sync-commit-advanced-after-match`
 Move the recorded sync commit forward only after confirming the verification matches the code at the new commit.
 - ours: `create-formal-verification-skill`
+- ours: `maintain-formal-verification-skill`
 - `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt → create-formal-verification-skill#sync-commit-advanced-after-match
 
 #### `traceable-to-code`
 Make every part of a verification model or proof point to code a reviewer can open.
 - ours: `create-formal-verification-skill`
+- ours: `maintain-formal-verification-skill`
 - `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt → create-formal-verification-skill#traceable-to-code
-- `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#traceable-to-code
+- `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt → maintain-formal-verification-skill#traceable-to-code
 
 #### `unchecked-rule-remedy`
 To check a rule listed as unchecked, remove the breaking rules from the configuration or shrink the model.
@@ -15891,7 +15967,8 @@ To check a rule listed as unchecked, remove the breaking rules from the configur
 
 #### `uncommitted-repro-evidence`
 Put a cheap test or reproduction showing the bug in the report as evidence without committing it to product code.
-- `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#uncommitted-repro-evidence
+- ours: `maintain-formal-verification-skill`
+- `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt → maintain-formal-verification-skill#uncommitted-repro-evidence
 
 #### `unnamed-break-is-error`
 Stop with an error and the output tail when the checker fails without naming a broken rule, rather than guessing one.
@@ -15900,7 +15977,8 @@ Stop with an error and the output tail when the checker fails without naming a b
 
 #### `update-from-code-before-rerun`
 Write a model update from the code before rerunning, never shaped by what makes the check pass.
-- `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#update-from-code-before-rerun
+- ours: `maintain-formal-verification-skill`
+- `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt → maintain-formal-verification-skill#update-from-code-before-rerun
 
 #### `user-event-step-labels`
 Label each arrow by the event as the user experiences it, never by code or action name.
@@ -15914,6 +15992,7 @@ Pass model values to the view as data, with sequences keyed from one and sets as
 #### `verdict-from-exit-and-messages`
 Count a checker run as a verdict only when its exit code and its own completion and violation messages agree, with every rule checked where the checker checks all reachable states and no option that hides a violation.
 - ours: `create-formal-verification-skill`
+- ours: `maintain-formal-verification-skill`
 
 #### `verification-handoff-report`
 Tell the person what was verified, with which tool and why, the bounds, the findings in plain words, the command to run it and what it leaves uncovered.
@@ -15933,11 +16012,13 @@ Say what the verification covers, the bounds and assumptions it holds under, and
 #### `verify-skill-capabilities`
 Let the next agent learn from the skill alone whether a change touches verified code, how to run the check, how to tell a real bug from a modelling error and how to update the verification for an intended change.
 - ours: `create-formal-verification-skill`
+- ours: `maintain-formal-verification-skill`
 - `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt → create-formal-verification-skill#verify-skill-capabilities
 
 #### `verify-skill-metadata-refresh`
 Update each check's covered code, commands, bounds, assumptions and sync commit in the verification skill, setting the sync commit to the one checked.
-- `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt, pending cr-r2pa.2.13.2 → maintain-formal-verification-skill#verify-skill-metadata-refresh
+- ours: `maintain-formal-verification-skill`
+- `cursor_plugins:skill:pstack/skills/maintain-formal-verification-skill` — adopt → maintain-formal-verification-skill#verify-skill-metadata-refresh
 
 #### `view-output-validated`
 Refuse a view with unknown or mistyped exports, colours outside the fixed palette, empty or broken labels, inconsistent region shapes, or a label used as both leaf and parent, naming the state.
@@ -16242,6 +16323,7 @@ Define the shape a formal verify skill is recognised by, a skill file beside a c
 Leave the generated skill and its map uncommitted unless the person asks for a commit, which the commit skill then makes.
 - ours: `create-formal-verification-skill`
 - ours: `create-verification-skill`
+- ours: `maintain-formal-verification-skill`
 - ours: `maintain-verification-skill`
 
 #### `generator-edits-own-output-only`
@@ -16253,6 +16335,7 @@ Edit only the generated skill's folder and any scaffolding the run labels, leavi
 Run the skill generator only when the person starts it: manual-only in its frontmatter and its sidecar, reached through setup, help or a router line, never by the model on its own.
 - ours: `create-formal-verification-skill`
 - ours: `create-verification-skill`
+- ours: `maintain-formal-verification-skill`
 - ours: `maintain-verification-skill`
 
 #### `handover-points-to-maintenance`
@@ -16865,6 +16948,7 @@ State what the triage and repair automations must each do, from trigger and scop
 #### `checker-install-approved-per-user`
 Install a missing model checker or its runtime only after the person approves it, and then per user under their home folder, never system-wide, as root or through a shell-profile change; without approval, stop and name what is missing.
 - ours: `create-formal-verification-skill`
+- ours: `maintain-formal-verification-skill`
 - ours: `statechart`
 
 #### `commit-before-enable-notice`
@@ -16925,6 +17009,7 @@ Install a missing driving tool only after the person approves it, and then per p
 
 #### `installed-recipe-or-blocked`
 In a maintenance pass, install a missing tool only by the recipe the target skill records, project-local or per user and pinned, never system-wide; with none recorded, mark the work that needs the tool blocked and name it.
+- ours: `maintain-formal-verification-skill`
 - ours: `maintain-verification-skill`
 
 #### `integration-capability-checklist`
@@ -17020,17 +17105,22 @@ Traits listed by two or more of our active skills (`doc:AGENTS.md` and playbooks
 | `answer-before-next-round` | discovery, grilling | As question-batching: each skill waits for a round's answers inside its own question flow. |
 | `area-topic-filing` | discovery, research | Each files its own output under its own root by one rule: discovery its records under docs/discovery/, research its reports under docs/research/. |
 | `artifact-contracts` | codebase-research, create-verification-skill | Each writes its own artifact type in a fixed section set and order, saying a section is empty or does not apply rather than dropping it: codebase-research its reports, create-verification-skill the verify skill it generates (critic-81b F1). |
+| `atomicity-fidelity` | create-formal-verification-skill, maintain-formal-verification-skill | create-formal-verification-skill owns the rule in references/model-fidelity.md ("Indivisible steps"); maintain-formal-verification-skill applies it to every model update, splitting an action the code now runs as two steps (decision 4). |
 | `attempt-log` | doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/implement.md | Each fixes a failure on its own path, the bug-fix playbook for a bug-fix request and the implement playbook inside a unit it coordinates, where a separate bug-fix request would leave its scope; both log each fix attempt so a stop hands back usable evidence. |
 | `authority-separation` | doc:.claude/skills/mvp-mode/playbooks/skill-curation.md, harness-publish | harness-publish confirms publish and commit authority separately at its own entry; the playbook's delivery step states the same split for the whole curation path. Each is read alone. |
 | `baseline` | performance-optimization, systematic-debugging | Each measures before a fix: performance-optimization for a resource target, systematic-debugging when the failure diagnosed is a performance regression, which it hands to the fixer. |
+| `baseline-check-before-change` | maintain-formal-verification-skill, principle-sequence-verifiable-units | principle-sequence-verifiable-units runs a multi-step change's checks on the starting base first; maintain-formal-verification-skill runs the formal skill's command once before any edit and keeps its output and exit code as the pass's baseline, classing a failure only after the update. |
 | `bounded-background-wait` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md | The same one sentence on waiting sits at each step that waits, with its own stopped exit; no skill is called for it. |
 | `build-closeout` | doc:.claude/skills/mvp-mode/playbooks/feature.md, doc:.claude/skills/mvp-mode/playbooks/perf-issue.md, doc:.claude/skills/mvp-mode/playbooks/refactoring.md | Each playbook's closeout runs on its own exits and feeds its own reply, and these three have the same three duties; a skill of three duties would be ceremony (unit-kinds deviation log, St4 and B4). |
 | `canonical-term-and-aliases` | domain-modeling, teach | Each keeps a glossary of its own (project language, the learner's workspace) in one entry format, with its own admission rules. |
 | `change-proven-by-second-read` | create-verification-skill, maintain-verification-skill | The generator's map contract proves a saved change through a separate read-only view, and the maintenance pass names that product command for each saved change it drives (ruling C). |
-| `check-never-weakened-to-pass` | create-formal-verification-skill, create-verification-skill, maintain-verification-skill, statechart | The app generator writes the rule into a generated skill, and the maintenance pass applies it while fixing one: a failing journey is fixed only when source proves the map wrong (R3). statechart never loosens a rule, the model or its bounds so that a check passes, and create-formal-verification-skill never loosens the property, the model or the bounds (decision 3, restated per unit). |
-| `checker-install-approved-per-user` | create-formal-verification-skill, statechart | statechart owns the per-user checker install and asks first; create-formal-verification-skill follows the same approval and recipe for TLC by pointer to statechart's references/install.md (decision 6, owner item 2). |
+| `check-never-weakened-to-pass` | create-formal-verification-skill, create-verification-skill, maintain-formal-verification-skill, maintain-verification-skill, statechart | The app generator writes the rule into a generated skill, and the app maintenance pass applies it while fixing one: a failing journey is fixed only when source proves the map wrong (R3). statechart never loosens a rule, the model or its bounds so that a check passes, and create-formal-verification-skill never loosens the property, the model or the bounds (decision 3, restated per unit). maintain-formal-verification-skill never loosens a property, the model or its bounds so that a rerun passes (decision 3). |
+| `checker-install-approved-per-user` | create-formal-verification-skill, maintain-formal-verification-skill, statechart | statechart owns the per-user checker install and asks first; create-formal-verification-skill follows the same approval and recipe for TLC by pointer to statechart's references/install.md (decision 6, owner item 2). maintain-formal-verification-skill installs a missing checker only by the per-user recipe and pins the skill records, after the person approves, and otherwise blocks the check, naming what is missing (decision 6). |
 | `cold-agent-reader` | create-formal-verification-skill, create-verification-skill | create-verification-skill's references/generated-skill.md "Writing rules" state it, and create-formal-verification-skill applies those rules to the formal skill it writes, by pointer (decision 3, the one shared writing reference). |
 | `confidence-language-kept` | teach, unslop | Each rewrites a finished answer for a reader: unslop edits prose, teach rewords cited findings for teaching; both must keep the hedges and confidence words, which are results. The owner's batch P1 ruling put it into teach (sealed row 2026-11-06-batch-p1:019). |
+| `counterexample-as-code-steps` | create-formal-verification-skill, maintain-formal-verification-skill | Both formal units tell a counterexample as a few numbered steps in the code's own terms: create-formal-verification-skill in its reply and in the generated skill's "Reading a failure", maintain-formal-verification-skill in each confirmed bug's report. |
+| `counterexample-replayed-on-code` | maintain-formal-verification-skill, statechart | statechart's hand-off replays each counterexample against the real code where the model stands for it; maintain-formal-verification-skill replays a failing rerun's counterexample on the code before calling it a bug or a modelling error. |
+| `coverage-and-sync-record` | create-formal-verification-skill, maintain-formal-verification-skill | create-formal-verification-skill writes the per-check record (guarded files and symbols, last confirmed commit) into the skill it generates; maintain-formal-verification-skill keeps it current at each pass and writes it for an older formal skill without one (decision 7). |
 | `credentials-never-captured` | create-verification-skill, maintain-verification-skill | The generator keeps credentials out of a generated skill's proof, and the maintenance pass keeps them out of its evidence, notes, reply and helper fixes (ruling D). |
 | `dependency-edges` | doc:.claude/skills/mvp-mode/playbooks/implement.md, tracker, wayfinder | Each lets the tracker graph's readiness drive the work: tracker writes the genuine edges of stages, plan stages and decision tickets by returned ID, wayfinder picks a map's genuine prerequisites and works its ready frontier, and implement's spec scope runs a spec's tickets from the ready frontier, adding a blocking edge it finds missing; edge semantics stay in beads. |
 | `destination-protection` | create-verification-skill, migrate-claude-to-codex | Each writes a skill folder and never overwrites one already there: migrate-claude-to-codex a converted skill's destination, create-verification-skill an occupied verify-skill folder, where it stops blocked and asks the person (plan 82 misfit 6, critic-82d N1). |
@@ -17041,15 +17131,17 @@ Traits listed by two or more of our active skills (`doc:AGENTS.md` and playbooks
 | `empty-search-is-finding` | recall, review | Each reports what a search found to someone deciding on it: review's blast-radius assessment and recall's sweep of the shared record. A search that found nothing is an answer in both, so each says it. Batch P1 rows 2026-11-06-batch-p1:277 (review) and :194 (recall), owner-ruled 2026-11-06. |
 | `evidence-checked-after-cleanup` | create-verification-skill, maintain-verification-skill | Each unit's own run cleans up and must find its proof afterwards: the generator's proof run of the skill it writes, and the maintenance pass over an existing one (plan 82 §5). |
 | `finding-adjudication` | doc:.claude/skills/mvp-mode/playbooks/implement.md, review | Implement rules on findings inside its delivery loop and review owns the method; owner 2026-10-30: implement (then named execution) stays unchanged. |
-| `generated-skill-left-uncommitted` | create-formal-verification-skill, create-verification-skill, maintain-verification-skill | The app generator leaves the skill it writes uncommitted, and the maintenance pass leaves its fixes uncommitted; land commits either when the person asks (R10). create-formal-verification-skill leaves the formal verify skill it writes uncommitted unless the person asks; land makes the commit (decision 10). |
-| `generated-skill-run-once` | create-formal-verification-skill, create-verification-skill | Each generator follows the skill it writes once, as its next reader, before handing it over: the app generator's proof drive and the formal generator's planted-break proof (decision 3, restated per unit). |
+| `formal-coverage-data-file` | create-formal-verification-skill, maintain-formal-verification-skill | create-formal-verification-skill keeps that record as coverage.json, one data file beside the formal verify skill's SKILL.md; maintain-formal-verification-skill reads and refreshes the file, and writes it for an older skill that lacks it, never as prose (decision 7). |
+| `generated-skill-left-uncommitted` | create-formal-verification-skill, create-verification-skill, maintain-formal-verification-skill, maintain-verification-skill | The app generator leaves the skill it writes uncommitted, and the app maintenance pass leaves its fixes uncommitted; land commits either when the person asks (R10). create-formal-verification-skill leaves the formal verify skill it writes uncommitted unless the person asks; land makes the commit (decision 10). maintain-formal-verification-skill leaves its verification edits as one uncommitted change for land (decision 10). |
+| `generated-skill-run-once` | create-formal-verification-skill, create-verification-skill, maintain-formal-verification-skill | Each generator follows the skill it writes once, as its next reader, before handing it over: the app generator's proof drive and the formal generator's planted-break proof (decision 3, restated per unit). maintain-formal-verification-skill follows the formal skill it refreshed once the same way, its drift diff, Run command and exit code, and runs every command it changed before hand-over (decision 3). |
 | `generator-edits-own-output-only` | create-formal-verification-skill, create-verification-skill | Each generator edits only the skill folder it creates and the scaffolding it labels: the app generator's marked startup scaffolding, the formal generator's one reversible planted edit; a product-code fix is the person's call (decision 3). |
-| `generator-started-by-person` | create-formal-verification-skill, create-verification-skill, maintain-verification-skill | Both app verification units start only when the person starts them: manual-only in frontmatter and sidecar, reached through an mvp-mode router line (R1). create-formal-verification-skill starts the same way: manual-only in frontmatter and sidecar, reached through its mvp-mode router row (decision 1). |
+| `generator-started-by-person` | create-formal-verification-skill, create-verification-skill, maintain-formal-verification-skill, maintain-verification-skill | Both app verification units start only when the person starts them: manual-only in frontmatter and sidecar, reached through an mvp-mode router line (R1). create-formal-verification-skill starts the same way: manual-only in frontmatter and sidecar, reached through its mvp-mode router row (decision 1). maintain-formal-verification-skill starts the same way: manual-only in frontmatter and sidecar, reached through its mvp-mode router row (decision 1). |
 | `glossary-entry-template` | domain-modeling, teach | Each keeps a glossary of its own (project language, the learner's workspace) in one entry format, with its own admission rules. |
 | `handover-points-to-maintenance` | create-formal-verification-skill, create-verification-skill | Each create unit tells the person at hand-off that keeping its generated skill current is its maintenance unit's job: create-verification-skill names maintain-verification-skill, create-formal-verification-skill names maintain-formal-verification-skill (decision 11). |
 | `immaterial-ambiguity-reading` | how, why | Both take an ambiguous target and state the reading taken when the readings would not change the answer; adopted for both upstream how and why (2026-11-01-batch-1:237, :238), kept in each half of the split. |
 | `implement-against-sketch` | doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/feature.md, doc:.claude/skills/mvp-mode/playbooks/perf-issue.md, doc:.claude/skills/mvp-mode/playbooks/refactoring.md | Owner ruling 5 keeps the sketch design-only, so each playbook's own build step writes the code and holds this rule; a skill for it would bring back the implement branch the ruling removed (unit-kinds deviation log, St4). |
 | `independent-synthesis` | model-council, perspective-council | Two entrypoints with distinct triggers (named models with a judge, opposing lenses) each run a full council ending in a fresh synthesizer. |
+| `installed-recipe-or-blocked` | maintain-formal-verification-skill, maintain-verification-skill | Each maintenance unit installs a missing tool only by the recipe the target records, per user or per project and pinned, never system-wide, and otherwise marks the work blocked: maintain-verification-skill for its driving tools, maintain-formal-verification-skill for the checker and its runtime (decision 6). |
 | `limit-bounded-hold` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md | Each long loop stops starting at its own limit with an idea left; the rule is one short sentence, and a skill for it would be ceremony. |
 | `live-service-isolation` | create-verification-skill, maintain-verification-skill | The generator writes the isolation controls into a generated skill, and the maintenance pass drives one only through them, stopping blocked when a control is missing (ruling A). |
 | `material-risk-review` | harness-evaluate, to-spec | Each gates acceptance of its own output, a spec or a template adoption, on an independent critic; the critic itself belongs to review. |
@@ -17062,11 +17154,13 @@ Traits listed by two or more of our active skills (`doc:AGENTS.md` and playbooks
 | `no-preamble` | brief-me, pr | brief-me states it for a status briefing, pr for a pull request body; each is read alone, and one line does not earn a pointer. |
 | `no-silent-substitution` | model-council, perspective-council | Either council can lose a member, and each must report the gap rather than fill it. |
 | `no-stale-code-snippets` | to-plan, to-spec | Each owns a different durable artifact, a spec or a plan, and its own template must keep code out. |
+| `no-target-points-to-create` | maintain-formal-verification-skill, maintain-verification-skill | With no target, each maintenance unit stops and points to its generator: maintain-verification-skill to create-verification-skill, maintain-formal-verification-skill to /create-formal-verification-skill. |
 | `optional-record-sections` | domain-modeling, teach | Each keeps its own record folder (ADRs, learning records) in one minimal format. |
 | `own-output-location` | interrogate, model-council | Council members and adversaries each run independently on shared work, so each needs its own place to write; one is a branch of a council and the other a review, and neither calls the other. |
 | `pin-preserving-fetch` | harness-scan, harness-status | Both run the fetching drift command themselves, so each must state that a fetch never moves pins and that --no-fetch skips the network. |
-| `pre-existing-edit-separation` | create-formal-verification-skill, review | review separates a task's changes from pre-existing ones by the task baseline; create-formal-verification-skill records the product checkout's baseline before its planted edit, never clears the person's changes, and proves the restoration against that baseline. |
+| `pre-existing-edit-separation` | create-formal-verification-skill, maintain-formal-verification-skill, review | review separates a task's changes from pre-existing ones by the task baseline; create-formal-verification-skill records the product checkout's baseline before its planted edit, never clears the person's changes, and proves the restoration against that baseline. maintain-formal-verification-skill records the checkout's status, diff and the target's hash list before any edit, so the person's own edits stay apart from the pass's. |
 | `preserve-reproducers` | doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, systematic-debugging | Each cleans up after its own work: the diagnosis when called alone, the bug-fix playbook at its closeout on every exit. Both keep reproducers, so neither cleanup deletes the evidence the other relies on. |
+| `property-fails-on-broken-variant` | create-formal-verification-skill, maintain-formal-verification-skill | create-formal-verification-skill owns references/model-fidelity.md "Broken variants" and proves each property failing on a kept variant; maintain-formal-verification-skill reruns every kept variant after an update, adds one for a guard no variant removes, and accepts variant verdicts only from a run whose main run holds (decision 4). |
 | `question-batching` | discovery, grilling | Discovery asks the owner questions inside its own exploration; grilling's rules live inside its interview loop, so pointing there would pull discovery into that loop. |
 | `read-only-closeout` | doc:.claude/skills/mvp-mode/playbooks/investigation.md, doc:.claude/skills/mvp-mode/playbooks/session-pickup.md | Each is a read-only run whose closeout belongs to its own exits and reply; logged under St4 in unit-kinds. |
 | `read-only-explanation` | how, why | Both answer a question about this project and change nothing while answering; one read-only rule, kept in each half of the split. |
@@ -17086,13 +17180,18 @@ Traits listed by two or more of our active skills (`doc:AGENTS.md` and playbooks
 | `smallest-evidenced-change` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md | Each loop makes the smallest change the evidence justifies and checks its predicate on it: autonomous-run per iteration toward one condition, figure-it-out per designed unit. A skill of one sentence would be ceremony (unit-kinds deviation log, St4, 2026-11-12). |
 | `stated-unattended-gate` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md | The same one sentence tells each of these playbooks whether a run is away; each then takes its own branch or exit. |
 | `structural-diff` | pr, show-me | show-me is manual, so a model writing a PR body cannot invoke it or read its file; pr carries the compact visual technique itself, as its upstream does, and names show-me for the person (plan 69 D3). |
+| `sync-commit-advanced-after-match` | create-formal-verification-skill, maintain-formal-verification-skill | create-formal-verification-skill's references/coverage-record.md states the rule for the skills it generates; maintain-formal-verification-skill moves sync_commit only once the covered diff is read, the model updated and the rerun gives its expected verdicts, and, by the owner's Q1 ruling (move, 2026-11-15), also on a confirmed bug with the faithful update, which still matches the code. |
+| `target-found-by-content` | maintain-formal-verification-skill, maintain-verification-skill | Both maintenance units use the skill the person named or find the target by what it is, never by folder name: maintain-verification-skill by the app verify skill's shape, maintain-formal-verification-skill by a coverage.json of the formal format (formal-verify-skill.md, "How other units recognise it"). |
 | `tight-concept-definitions` | domain-modeling, teach | Each keeps a glossary of its own (project language, the learner's workspace) in one entry format, with its own admission rules. |
+| `traceable-to-code` | create-formal-verification-skill, maintain-formal-verification-skill | create-formal-verification-skill owns the rule in references/model-fidelity.md ("Traceability table") and writes it into the skill it generates; maintain-formal-verification-skill applies the same section to every model update, each citation at the commit checked (decision 4). |
 | `two-failure-stop` | doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/implement.md | Each fixes a failure on its own path, the bug-fix playbook for a bug-fix request and the implement playbook inside a unit it coordinates, where a separate bug-fix request would leave its scope; both stop after two failed fixes and return the attempt log, the bug-fix playbook to the user and the implement playbook to whoever owns the unit. |
 | `undriven-feature-marked` | create-verification-skill, maintain-verification-skill | The generator marks seeded features no run has driven, and the maintenance pass keeps the mark while a case stays undriven and replaces it with observed values once one is driven (ruling B). |
 | `unreachable-with-route-and-prerequisite` | create-verification-skill, maintain-verification-skill | The generator writes the rule into the map's skip reporting, and the maintenance pass applies it to its coverage report (plan 82 §5). |
 | `unreadable-change-unverified` | create-verification-skill, maintain-verification-skill | The generator writes the no-read-view disclosure into a feature file, and the maintenance pass adds it where it is missing and reports the change unverified (ruling C). |
-| `verification-only-edits` | create-formal-verification-skill, maintain-verification-skill | The maintenance pass edits only the verify skill's files, and the formal verify skill that create-formal-verification-skill writes tells its own verification pass to leave product code alone unless the person asks (decision 3). |
+| `verdict-from-exit-and-messages` | create-formal-verification-skill, maintain-formal-verification-skill | Both formal units read a checker run as a verdict only when its exit code and its own messages agree, by references/tool-branches.md and its TLC gate: create-formal-verification-skill for the check it generates, maintain-formal-verification-skill for each rerun and added variant (owner-accepted 2026-11-15, item 6). |
+| `verification-only-edits` | create-formal-verification-skill, maintain-formal-verification-skill, maintain-verification-skill | The app maintenance pass edits only the verify skill's files, and the formal verify skill that create-formal-verification-skill writes tells its own verification pass to leave product code alone unless the person asks (decision 3). maintain-formal-verification-skill edits only the target formal skill's own folder, and product code only when the person asks (decision 3). |
 | `verified-unit-sequence` | doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md, principle-sequence-verifiable-units | The principle owns the rule; figure-it-out's Run step states it in one sentence and cites the principle, as the owner ruled for row 2026-11-06-batch-p1:250, because the registry takes a delivered row only from the compared unit (unit-kinds St4). |
+| `verify-skill-capabilities` | create-formal-verification-skill, maintain-formal-verification-skill | create-formal-verification-skill gives the formal verify skill its fixed sections (references/formal-verify-skill.md "Sections"); maintain-formal-verification-skill keeps those sections through any fix and refreshes their table, Run output and sync mentions, so the next agent still learns all four from the skill alone. |
 | `visual-form-catalog` | pr, show-me | show-me is manual, so a model writing a PR body cannot invoke it or read its file; pr carries the compact visual technique itself, as its upstream does, and names show-me for the person (plan 69 D3). |
 | `visual-placement` | pr, show-me | show-me is manual, so a model writing a PR body cannot invoke it or read its file; pr carries the compact visual technique itself, as its upstream does, and names show-me for the person (plan 69 D3). |
 | `worktree-environment-proof` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md | Each stated unattended loop proves its own command responds in its own worktree before starting; the check runs at each one's setup. |

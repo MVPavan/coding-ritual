@@ -25,7 +25,7 @@ formal verify skill: one with a `coverage.json`, an older one without it, or
 anything already at `<area>-verification/` (`references/formal-verify-skill.md`,
 "How other units recognise it"). If one covers this area, or you cannot rule
 that out, stop without writing into it: bringing it up to date is
-maintain-formal-verification-skill. This run writes the new skill folder and
+`/maintain-formal-verification-skill`. This run writes the new skill folder and
 only step 5's reversible planted edit besides; product code otherwise changes
 only when the person asks, even to fix a finding.
 
@@ -122,7 +122,7 @@ the model or the check, never the planted edit, then rerun from step 1.
 
 The generated skill stays uncommitted unless the person asks for a commit;
 `land` makes it. Tell the person that keeping it in step with the code as the
-product changes is maintain-formal-verification-skill. Suggest a second target
+product changes is `/maintain-formal-verification-skill`. Suggest a second target
 only when one close to this one turned up, in a line.
 
 ## Reply

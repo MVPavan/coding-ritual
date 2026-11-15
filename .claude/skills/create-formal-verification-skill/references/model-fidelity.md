@@ -62,4 +62,5 @@ the mechanism the guard exists for, not through a slip in the artifact.
 - **Step boundaries:** when writing each action, from the code's statements,
   transactions and locks.
 - **Broken variants:** once the property first holds, after every update, and
-  before the sync commit moves.
+  before the sync commit moves. When a confirmed bug moves the sync commit,
+  their verdicts are accepted only from a later run whose main run holds.
