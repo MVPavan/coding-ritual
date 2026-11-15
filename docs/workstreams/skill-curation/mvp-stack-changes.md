@@ -1497,6 +1497,37 @@ submodule folders), and the committed pages are kept. Limits: one formal check a
 proven; the `statechart` crash found during the proof is fixed separately; publishing all four verification units
 waits for the owner's go-ahead.
 
+## 34. `statechart`: a break with no printed path, and partial marks (`cr-r2pa.2.28.8`)
+
+Added 2026-11-15. Fix report `scratchpad/mvp-stack/92/fix/report.md` (Rounds 1-4), recorder
+`scratchpad/mvp-stack/92/fix/record_sc.py`; round `2026-11-15-statechart-partial-marks`, 1 event
+(`update ours:statechart`), trait-level, sealed. The crash found during section 33's proof.
+
+- **What was fixed:** the tool crashed with an `IndexError` when TLC, in a drawing run with `-continue`, named a
+  broken invariant and then failed while printing its path. Such a break is now named and counted, with no state
+  invented; the report keeps the rule's heading, says no path is drawn, names the `.out` file that holds TLC's
+  output, and notes the unprinted count. Three reporting defects were fixed with it. A stopped drawing run's marks
+  are partial per rule: the legend counts the marked, printed and not-in-graph states, and `mayBreak` means the
+  others are unknown, while a whole graph keeps its deadlock marks. When the graph or a rule's marks are
+  incomplete, the summary names the run the graph comes from and gives its own counts. The drawing-budget line no
+  longer says every rule was checked when some are listed as not checked, and the after-a-failure note appears
+  only when a drawn arrow leaves a breaking state. `references/report.md` says the same.
+- **Traits:** none added, removed or reworded. `ours:statechart` has a refreshed tree hash, and the 30 tool notes
+  whose cited lines moved are rewritten from the row map rebuilt against the fixed source
+  (`scratchpad/mvp-stack/92/fix/maps/`, 99 anchors, 3 of 3 wordings), by the formula that reproduces all 47
+  notes from the old map. By the coordinator's rulings, two current-state notes are added. `break-and-may-break-marks`: a
+  may-break state of a stopped run has the others unknown. `chart-state-budget`: a rule the rerun bound stops is listed as not
+  checked. No definition changed.
+
+Review: critics 92j and 92l (REVISE, fixed in rounds 3 and 4) and 92n (PASS). New real-TLC fixtures `Untraced`,
+`UntracedStart`, `UntracedPartial`, `UntracedDeadlock`, `PathExtra` and `Hidden` have tests in
+`tests/checks/test_statechart_chart.py` and `test_statechart_tlc.py`. The round was rehearsed on a scratch clone.
+A match of the round against the recorder, a cite check of this round's file:line cites, and a build (no diff)
+and check in a fresh clone pass. Final worktree registry state: 59 rounds, 4072 events, 76 skill records. In the
+fix worktree itself, `check` reports seven stale reference pages for the same environment reason as in sections
+29 and 31-33, and the committed pages are kept. Limit: sealed adopt events of round `2026-11-14-formal-pair` cite
+the pre-fix line ranges, and they stay as recorded.
+
 ## Regenerating
 
 From the worktree root:

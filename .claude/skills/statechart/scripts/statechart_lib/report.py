@@ -10,6 +10,10 @@ MARK_MEANING = {
     "breaks": "every model state under the chart state breaks the rule",
     "mayBreak": "some model states under the chart state break the rule, others do not",
 }
+# A rule whose drawing run stopped: an unmarked state is unknown, not passing.
+PARTIAL_MAY = (
+    "some model states under the chart state break the rule, the others are unknown"
+)
 
 
 def _path_lines(
@@ -27,7 +31,7 @@ def _path_lines(
     return lines
 
 
-def _legend(chart: Chart) -> list[str]:
+def _legend(chart: Chart, verdicts: tlc.Verdicts) -> list[str]:
     out = ["## Legend", ""]
     for mark in ("breaks", "mayBreak"):
         rules = sorted(
@@ -38,12 +42,26 @@ def _legend(chart: Chart) -> list[str]:
                 for r in chart.rules_at[node]
             }
         )
-        if rules:
-            out.append(f"- `{mark}`: {MARK_MEANING[mark]}: {', '.join(rules)}.")
-    if chart.marks:
-        drawn = ", drawn or not" if chart.over_budget else ""
+        known = [r for r in rules if r not in chart.coverage or mark == "breaks"]
+        if known:
+            out.append(f"- `{mark}`: {MARK_MEANING[mark]}: {', '.join(known)}.")
+        if len(known) < len(rules):
+            unknown = [r for r in rules if r not in known]
+            out.append(f"- `{mark}`: {PARTIAL_MAY}: {', '.join(unknown)}.")
+    drawn = ", drawn or not" if chart.over_budget else ""
+    states = chart.model_states
+    for rule, (marked, on_paths, printed, outside) in chart.coverage.items():
+        only = f" ({on_paths:,} only on a failing path)" if on_paths else ""
+        out.append(f"- Marks for {rule} are partial, as its run stopped on an error: {marked:,} of the "
+                   f"{states:,} model states marked{only}, the other {states - marked:,} unknown; "
+                   f"{printed:,} breaking state(s) printed, {outside:,} of them not in the graph.")  # fmt: skip
+    whole = sorted(
+        {r for n in chart.marks for r in chart.rules_at[n]} - set(chart.coverage)
+    )
+    if chart.marks and (whole or not chart.coverage):
+        which = f" for {', '.join(whole)}" if chart.coverage else ""
         out.append(
-            f"- Marks count all {chart.model_states:,} model states the check found{drawn}."
+            f"- Marks{which} count all {states:,} model states the check found{drawn}."
         )
     out.append("- `onPath`: on a shortest path to a broken rule. `repeats`: repeated forever by a "
                "counterexample to a property.")  # fmt: skip
@@ -64,14 +82,26 @@ def render(name: str, verdicts: tlc.Verdicts, chart: Chart, steps: dict[tuple[st
            config: tlc.Config, warnings: list[str]) -> str:  # fmt: skip
     arrows = len(chart.arrows)
     out = [f"# {chart.title or name}", ""]
+    if verdicts.graph_partial is None and not verdicts.marks_partial:
+        checked = f"Checked {verdicts.distinct:,} states and {chart.model_steps:,} steps with TLC"
+    else:  # say which run the counts come from
+        added = (
+            chart.model_states - chart.dot_states,
+            chart.model_steps - chart.dot_steps,
+        )
+        paths = f" (failing paths add {added[0]:,} state(s) and {added[1]:,} step(s))" if any(
+            added) else ""  # fmt: skip
+        checked = (f"The graph from {verdicts.graph_from} has {chart.dot_states:,} states and "
+                   f"{chart.dot_steps:,} steps{paths}")  # fmt: skip
     out.append(
-        f"Checked {verdicts.distinct:,} states and {chart.model_steps:,} steps with TLC; "
-        f"drew {len(chart.nodes):,} chart states and {arrows:,} arrows."
+        f"{checked}; drew {len(chart.nodes):,} chart states and {arrows:,} arrows."
     )
     if chart.over_budget:
+        checks = "Rules not checked are listed below." if verdicts.unchecked else (
+            "Every rule was still checked.")  # fmt: skip
         out.append(
             f"Drawing stopped early: the model is larger than the drawing budget, so only the failing "
-            f"paths are drawn ({len(chart.nodes)} chart states). Every rule was still checked."
+            f"paths are drawn ({len(chart.nodes)} chart states). {checks}"
         )
     if verdicts.graph_partial:
         out.append(f"The drawn graph is not complete: {verdicts.graph_partial}.")
@@ -127,6 +157,11 @@ def render(name: str, verdicts: tlc.Verdicts, chart: Chart, steps: dict[tuple[st
             else:
                 out.append(f"\nThe run stops at step {last} and stays there forever.")
         out.append("")
+    for rule, found in verdicts.broken.items():
+        if not found.trace.steps:
+            log = "tlc.out" if found.log == verdicts.first_log else f"tlc-{rule}.out"
+            out += [f"### {rule}", "", ("TLC reported it broken but printed no path to a state that "
+                    f"breaks it, so the chart draws none; {log} holds what TLC printed."), ""]  # fmt: skip
     if verdicts.unchecked:
         out += ["## Rules not checked", ""]
         out += [
@@ -135,14 +170,19 @@ def render(name: str, verdicts: tlc.Verdicts, chart: Chart, steps: dict[tuple[st
         ]
         out.append("")
     if chart.nodes:
-        out += _legend(chart)
+        out += _legend(chart, verdicts)
     notes = list(warnings) + chart.notes
     if verdicts.empty:
         notes.append(f"TLC explored no state: {verdicts.empty}.")
-    if any(b.kind != "property" for b in verdicts.broken.values()):
+    if chart.after_failure and any(
+        b.kind != "property" for b in verdicts.broken.values()
+    ):
         notes.append(
             "TLC keeps exploring after a broken rule, so the chart also draws what follows a failure."
         )
+    for rule, times in verdicts.unprinted.items():
+        notes.append(f"TLC reported {rule} broken {times} time(s) without printing the state that "
+                     "breaks it, so the chart marks no state for those reports.")  # fmt: skip
     if config.representative:
         notes.append("The configuration has a VIEW or SYMMETRY: TLC keeps one representative of the "
                      "states it makes equal, so an arrow may lead to that representative state rather "

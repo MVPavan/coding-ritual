@@ -305,6 +305,111 @@ def test_report_notes(tmp_path: Path) -> None:
     assert "## Rules that hold\n\n- TypeOK\n- EventuallyGreen\n- NoDeadlock" in words
 
 
+def test_break_with_no_path_printed_is_named_and_its_marks_disclosed(
+    tmp_path: Path,
+) -> None:
+    _, words = text_of("Untraced", tmp_path)
+    assert "### Low\n\nThe shortest path from a start" in words
+    assert "TLC reported Low broken 1 time(s) without printing the state" in words
+    assert "The drawn graph is not complete: the run drawing where Low breaks" in words
+    drawn, _, _, _ = draw("UntracedStart", tmp_path)
+    assert drawn.paths == [] and not drawn.marks
+    _, words = text_of("UntracedStart", tmp_path)
+    assert "## Rules that break\n\n### Low\n\nTLC reported it broken" in words
+    assert "tlc.out holds what TLC printed" in words
+
+
+def test_partial_marks_count_only_printed_states_the_graph_holds(
+    tmp_path: Path,
+) -> None:
+    # Untraced keeps the first run's graph; Low's drawing run printed two
+    # breaking states, one of them (x = 2) not in that graph, then stopped.
+    drawn, loaded, verdicts, config = draw("Untraced", tmp_path)
+    marked, on_paths, printed, outside = drawn.coverage["Low"]
+    assert on_paths == 0
+    assert verdicts.graph_from == "the first run" and drawn.model_states == 3
+    assert printed == len(set(verdicts.violations["Low"])) == 2
+    assert marked == sum("Low" in rules for rules in drawn.rules_at.values()) == 1
+    assert outside == printed - marked == 1
+    words = report.render("Untraced", verdicts, drawn, loaded.steps, config, [])
+    assert words.splitlines()[2].startswith("The graph from the first run has 3 states")
+    assert (f"{marked} of the 3 model states marked, the other {3 - marked} unknown; "
+            f"{printed} breaking state(s) printed, {outside} of them not in the graph") in words  # fmt: skip
+    assert "Marks count all" not in words and "Checked" not in words
+    assert "draws what follows a failure" not in words  # no drawn step leaves x = 1
+
+
+def test_partial_marks_never_claim_the_other_states_hold(tmp_path: Path) -> None:
+    # x = 1, 2, 3 with y = 0 all break Low; Low's run printed only x = 1, 2.
+    view = """
+        def state(v):
+            return "positive-y0" if v["x"] > 0 and v["y"] == 0 else "other"
+    """
+    drawn, loaded, verdicts, config = draw("UntracedPartial", tmp_path, view)
+    assert verdicts.graph_partial is None and drawn.model_states == 8
+    assert drawn.marks[("positive-y0",)] == "mayBreak"
+    assert drawn.coverage == {"Low": (2, 0, 2, 0)}
+    words = report.render("UntracedPartial", verdicts, drawn, loaded.steps, config, [])
+    assert "others do not" not in words
+    assert f"- `mayBreak`: {report.PARTIAL_MAY}: Low." in words
+    assert "2 of the 8 model states marked, the other 6 unknown" in words
+    assert "The drawn graph is not complete" not in words
+
+
+def test_a_stopped_drawing_run_leaves_the_whole_graph_deadlocks_marked(
+    tmp_path: Path,
+) -> None:
+    drawn, loaded, verdicts, config = draw("UntracedDeadlock", tmp_path)
+    assert verdicts.graph_partial is None and set(verdicts.marks_partial) == {"Low"}
+    assert verdicts.graph_from == "the rerun of the remaining rules"
+    dead = {node for node, rules in drawn.rules_at.items() if "NoDeadlock" in rules}
+    assert dead == {("x = 3, y = 0",), ("x = 3, y = 1",)}
+    words = report.render("UntracedDeadlock", verdicts, drawn, loaded.steps, config, [])
+    assert "- Marks for NoDeadlock count all 8 model states the check found." in words
+    assert "only the deadlock TLC reported is marked" not in words
+
+
+def test_provenance_counts_the_runs_own_graph_and_paths_apart(tmp_path: Path) -> None:
+    # The first run's graph stops at the constraint; Low's path adds x = 2, y = 0.
+    drawn, loaded, verdicts, config = draw("PathExtra", tmp_path)
+    assert (drawn.dot_states, drawn.dot_steps) == (4, 2)
+    assert drawn.model_states - drawn.dot_states == drawn.beyond == 1
+    assert drawn.model_steps - drawn.dot_steps == 1
+    marked, on_paths, printed, outside = drawn.coverage["Low"]
+    assert marked == on_paths == printed == outside == 1  # the path's state alone
+    words = report.render("PathExtra", verdicts, drawn, loaded.steps, config, [])
+    assert words.splitlines()[2] == (
+        "The graph from the first run has 4 states and 2 steps (failing paths add 1 "
+        "state(s) and 1 step(s)); drew 5 chart states and 3 arrows."
+    )
+    assert ("1 of the 5 model states marked (1 only on a failing path), the other 4 "
+            "unknown; 1 breaking state(s) printed, 1 of them not in the graph.") in words  # fmt: skip
+
+
+def test_only_a_drawn_arrow_out_of_a_break_shows_what_follows(tmp_path: Path) -> None:
+    # Safe breaks at x = 1 only; its one step out, After, goes to x = 2.
+    note = "draws what follows a failure"
+    drawn, loaded, verdicts, config = draw("Hidden", tmp_path)
+    assert drawn.after_failure
+    assert note in report.render("Hidden", verdicts, drawn, loaded.steps, config, [])
+    hide = """
+        def state(v):
+            return "mixed" if v["x"] in {1, 3} else str(v["x"])
+        def step(action, before, after):
+            return None if before["x"] == 1 else action
+    """
+    merge = """
+        def state(v):
+            return "after" if v["x"] > 0 else "start"
+    """
+    for view, kept in ((hide, "hidden"), (merge, "self_loops")):
+        drawn, loaded, verdicts, config = draw("Hidden", tmp_path, view)
+        assert drawn.hidden if kept == "hidden" else drawn.self_loops
+        assert not drawn.after_failure and drawn.arrows  # Return 3 -> 0 stays drawn
+        words = report.render("Hidden", verdicts, drawn, loaded.steps, config, [])
+        assert note not in words
+
+
 def test_dead_ends_inferred_only_from_a_complete_graph(tmp_path: Path) -> None:
     drawn, _, verdicts, _ = draw("Frontier", tmp_path)
     assert drawn.marks == {("n = 1",): "breaks"}  # 2 walks on to 3

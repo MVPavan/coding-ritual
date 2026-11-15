@@ -371,6 +371,7 @@ class Outcome:
     distinct: int = 0
     generated: int = 0
     violations: dict[str, list[str]] = field(default_factory=dict)
+    unprinted: dict[str, int] = field(default_factory=dict)  # breaks, no path printed
     excerpt: str = ""
     empty: str | None = None  # a completed run that explored no state, and why
 
@@ -404,7 +405,10 @@ def judge(result: Result, request: Request) -> Outcome:
                 trace = Trace([Step(None, state)])
             else:
                 trace = _trace(found, index + 1)
-            outcome.violations.setdefault(named[1], []).append(trace.steps[-1].text)
+            if trace.steps:
+                outcome.violations.setdefault(named[1], []).append(trace.steps[-1].text)
+            else:  # TLC failed while printing the path: counted, no state invented
+                outcome.unprinted[named[1]] = outcome.unprinted.get(named[1], 0) + 1
             if outcome.rule is None:
                 outcome.kind, outcome.rule, outcome.trace = "invariant", named[1], trace
         elif message.code == 2108 and at_start and outcome.rule is None:
@@ -461,10 +465,13 @@ class Verdicts:
     first_log: str = ""
     dot: str = ""
     violations: dict[str, list[str]] = field(default_factory=dict)
+    unprinted: dict[str, int] = field(default_factory=dict)  # breaks no mark can show
+    marks_partial: dict[str, str] = field(default_factory=dict)  # rule: why it stopped
     distinct: int = 0
     generated: int = 0
     empty: str | None = None  # why no state was explored
     graph_partial: str | None = None  # why the drawn graph is not complete
+    graph_from: str = "the first run"  # the run the drawn graph comes from
     logs: dict[str, str] = field(default_factory=dict)  # failed drawing runs' output
 
 
@@ -529,18 +536,23 @@ def check(config: Config, runner: Runner, bound: int = BOUND) -> Verdicts:
             f"{why}; unchecked: {', '.join(unchecked) or 'none'}", outcome.excerpt
         )
 
-    def draw_from(result: Result, found: Outcome) -> None:
+    whole = False  # the drawn graph's run expanded every state it found
+
+    def draw_from(result: Result, found: Outcome, run: str, why: str | None) -> None:
+        nonlocal whole
         verdicts.dot, verdicts.distinct = result.dot, found.distinct
         verdicts.generated, verdicts.empty = found.generated, found.empty
+        verdicts.graph_from, verdicts.graph_partial = run, why
+        whole = why is None
 
     def stopped(found: Outcome, run: str) -> str:
         return f"{run} stopped on an error: " + (found.excerpt.splitlines() or ["?"])[
             0
         ].rstrip(".")
 
-    draw_from(first, outcome)
+    draw_from(first, outcome, "the first run", None)
     # A run that stopped at a break did not expand every state it found.
-    complete = outcome.kind in ("holds", "property")
+    complete = whole = outcome.kind in ("holds", "property")
     if outcome.kind == "holds":
         verdicts.holds = invariants + properties + ([name] if deadlock else [])
         return verdicts
@@ -580,12 +592,13 @@ def check(config: Config, runner: Runner, bound: int = BOUND) -> Verdicts:
             request = Request(tuple(invariants), (), deadlock, bounded=True)
             result, found = rerun(request)
             pending = invariants + ([name] if deadlock else [])
+            partial: str | None = None  # why this run's graph is not complete
             if found.kind == "holds" and found.distinct < bound:
                 verdicts.holds += pending
                 complete = True
             elif found.kind == "holds":
+                partial = at_bound
                 verdicts.unchecked.update(dict.fromkeys(pending, at_bound))
-                verdicts.graph_partial = at_bound
             elif found.kind in ("invariant", "deadlock"):
                 record(found, result)
                 if found.kind == "invariant":
@@ -594,10 +607,9 @@ def check(config: Config, runner: Runner, bound: int = BOUND) -> Verdicts:
                     deadlock = False
                 continue
             else:
-                why = stopped(found, "the run")
-                verdicts.unchecked.update(dict.fromkeys(pending, why))
-                verdicts.graph_partial = why
-            draw_from(result, found)
+                partial = stopped(found, "the run")
+                verdicts.unchecked.update(dict.fromkeys(pending, partial))
+            draw_from(result, found, "the rerun of the remaining rules", partial)
             break
     for prop in properties:
         request = Request((), (prop,), False, bounded=True)
@@ -621,16 +633,20 @@ def check(config: Config, runner: Runner, bound: int = BOUND) -> Verdicts:
                           False, keep_going=True, bounded=True)  # fmt: skip
         result, found = rerun(request)
         verdicts.violations[rule] = found.violations.get(rule, [])
+        if found.unprinted.get(rule):
+            verdicts.unprinted[rule] = found.unprinted[rule]
+        run = f"the run drawing where {rule} breaks"
         if found.kind != "holds":  # -continue exits 0 unless the run failed
-            verdicts.graph_partial = stopped(
-                found, f"the run drawing where {rule} breaks"
-            )
+            # Its marks are partial; the graph only when no earlier run's is whole.
+            verdicts.marks_partial[rule] = stopped(found, run)
+            if not whole and verdicts.graph_partial is None:
+                verdicts.graph_partial = verdicts.marks_partial[rule]
             verdicts.logs[f"tlc-draw-{rule}.out"] = result.output
             continue
-        if found.distinct >= bound:
-            verdicts.graph_partial = at_bound
         if result.dot:
-            draw_from(result, found)
+            draw_from(result, found, run, at_bound if found.distinct >= bound else None)
+        elif found.distinct >= bound:
+            verdicts.graph_partial = at_bound
     if not drawing and not complete and verdicts.graph_partial is None:
         # Only a deadlock or an initial-state property broke: the drawn run
         # stopped there, so draw from one that checks nothing and goes on.
@@ -639,9 +655,8 @@ def check(config: Config, runner: Runner, bound: int = BOUND) -> Verdicts:
             verdicts.graph_partial = stopped(found, "the run drawing the graph")
             verdicts.logs["tlc-draw.out"] = result.output
         else:
-            if found.distinct >= bound:
-                verdicts.graph_partial = at_bound
-            draw_from(result, found)
+            at = at_bound if found.distinct >= bound else None
+            draw_from(result, found, "the run drawing the graph", at)
     return verdicts
 
 

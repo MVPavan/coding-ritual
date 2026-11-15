@@ -36,7 +36,8 @@ CASES: dict[str, tuple[str, int]] = {
         "RegionMarks", "Joint", "StartBad", "UnusedTemporal", "TrailingTheorem",
         "UnusedArgument", "Partial", "CompactInfix", "MultilineHead", "SameLine",
         "TopArgument", "Temporals", "InitSlowRepeat", "BoxFirst", "BoxLater",
-        "BoxManySolo",
+        "BoxManySolo", "Untraced", "UntracedStart", "UntracedPartial", "UntracedDeadlock",
+        "PathExtra", "Hidden",
     )
 } | {
     "UsesHelper": ("sib/UsesHelper.tla", tlc.BOUND),

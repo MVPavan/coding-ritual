@@ -60,6 +60,12 @@ class Chart:
     model_states: int = 0
     model_steps: int = 0
     beyond: int = 0  # failing-path states TLC's graph does not hold
+    dot_states: int = 0  # the drawn run's own graph, before failing paths add to it
+    dot_steps: int = 0
+    # A rule whose drawing run stopped: (model states marked, of them only on a
+    # failing path, printed breaking states, printed ones not in the run's graph).
+    coverage: dict[str, tuple[int, int, int, int]] = field(default_factory=dict)
+    after_failure: bool = False  # a drawn arrow leaves a breaking state
     over_budget: bool = False
 
 
@@ -68,6 +74,8 @@ def _add_traces(graph: Graph, verdicts: tlc.Verdicts, decoder: Decoder) -> list[
     known = {state: sid for sid, state in graph.states.items()}
     for rule, found in verdicts.broken.items():
         trace = found.trace
+        if not trace.steps:  # TLC named the break but printed no path: none drawn
+            continue
         path = Path(
             rule, found.kind, [], trace.back_to, trace.back_action, trace.stutters
         )
@@ -144,9 +152,17 @@ def words(label: Label, regions: tuple[str, ...] = ()) -> str:
 
 def build(graph: Graph, view: View, verdicts: tlc.Verdicts, constrained: bool,
           decoder: Decoder, budget: int = BUDGET) -> Chart:  # fmt: skip
+    dot_states, dot_steps = len(graph.states), len(graph.steps)
+    in_graph = set(graph.states.values())  # before the failing paths add states
     paths = _add_traces(graph, verdicts, decoder)
     rules = _breaking(graph, verdicts, paths, constrained, decoder)
     model_states, model_steps = len(graph.states), len(graph.steps)
+    coverage = {}
+    for rule in verdicts.marks_partial:
+        printed = {parse_state(t, decoder) for t in verdicts.violations.get(rule, [])}
+        marked = [sid for sid, found in rules.items() if rule in found]
+        on_paths = sum(sid in graph.extra for sid in marked)
+        coverage[rule] = (len(marked), on_paths, len(printed), len(printed - in_graph))
     over = len(graph.states) - len(graph.extra) > budget
     # Marks count every model state, drawn or not: a label of the whole graph.
     whole = {sid: view.label(sid, state) for sid, state in graph.states.items()}
@@ -177,6 +193,10 @@ def build(graph: Graph, view: View, verdicts: tlc.Verdicts, constrained: bool,
                           nest(whole), over)  # fmt: skip
             chart.notes.append(f"Drawn as nested states, not regions: {reason}.")
     chart.model_states, chart.model_steps = model_states, model_steps
+    chart.dot_states, chart.dot_steps = dot_states, dot_steps
+    chart.coverage = coverage
+    # Only a step a drawn arrow shows: not one the view hides or keeps in one state.
+    chart.after_failure = any(rules.get(s) for a in chart.arrows for s in a.sources)
     chart.over_budget, chart.beyond = over, len(graph.extra)
     _check_loop_exits(chart, paths)
     return chart

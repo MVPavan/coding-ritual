@@ -6,10 +6,13 @@ not apply are left out.
 ## Summary
 
 The first line counts the states and steps TLC checked and the chart states and
-arrows drawn. Lines after it, when they apply:
+arrows drawn; when the graph or a rule's marks are incomplete, it names the run
+the drawn graph comes from instead, its own counts, and what failing paths add.
+Lines after it, when they apply:
 
 - **Drawing stopped early.** The model has more than 500 states, so only the
-  failing paths are drawn; every rule was still checked.
+  failing paths are drawn; every rule was still checked, unless some are listed
+  under Rules not checked.
 - **The drawn graph is not complete.** The graph came from a run that hit the
   bound or an error, named in the line.
 - **The view hides N steps**, per action, and **N steps stay within one chart
@@ -25,6 +28,8 @@ arrows drawn. Lines after it, when they apply:
   For a temporal property it is a run that never satisfies it, ending with
   which steps repeat forever ("From step 6, ... returns to step 3") or where it
   stops and stays.
+  A rule TLC reported broken without printing a path keeps its heading, with a
+  line saying no path is drawn and which `.out` file holds what TLC printed.
 - **Rules not checked** names each rule a run could not finish and why: the run
   stopped at the bound of 100,000 distinct states, or on an error. Such a rule
   can hold or break, and it carries no mark in the chart. To check it, remove
@@ -48,8 +53,12 @@ invariant a run of its own to find every state that breaks it.
 The legend names the rules behind each mark, `onPath` (a state on a shortest
 path to a broken rule), `repeats` (a state a property's counterexample repeats
 forever) and each `phase_<colour>` with its phase. When a mark stands for more
-than one rule, "Which chart state breaks which rule" pairs them. With no chart
-state drawn there is no legend.
+than one rule, "Which chart state breaks which rule" pairs them.
+When a rule's drawing run stops on an error its marks are partial: the legend
+counts the graph states marked, the breaking states TLC printed and those not
+in the graph. Every other state is unknown for that rule, so its `mayBreak`
+means the others are unknown, not that they hold. With no chart state drawn
+there is no legend.
 
 With deadlock checked, no constraints and a complete graph, every state with no
 step out is marked as a deadlock; the graph then comes from a run that checks
@@ -68,8 +77,10 @@ note says so.
   budget, regions drawn without the conditions on their steps.
 - An empty model: no state meets the initial condition, or every initial state
   lies outside the constraints.
-- States after a failure: TLC explores past a broken rule, so the chart shows
-  where the behaviour goes next.
+- Breaks TLC reported without printing the breaking state, counted per rule:
+  the chart marks no state for them.
+- States after a failure: when a drawn arrow leaves a breaking state, the chart
+  shows where the behaviour goes next.
 - `VIEW` or `SYMMETRY`: TLC keeps one representative of states it treats as the
   same, so an arrow may point at that representative rather than the state the
   step reaches.

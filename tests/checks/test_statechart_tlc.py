@@ -275,6 +275,24 @@ def test_error_in_a_drawing_run_is_kept_and_the_graph_marked_incomplete() -> Non
     assert "\\div is 0" in verdicts.logs["tlc-draw-Small.out"]
 
 
+def test_break_tlc_prints_no_path_for_is_counted_and_named() -> None:
+    # Real TLC: "Invariant Low is violated." with no state after it, then
+    # "Evaluating invariant Low failed." and exit 255 in the -continue run.
+    verdicts = Replay("Untraced").check()
+    assert set(verdicts.broken) == {"Low"}
+    last = verdicts.broken["Low"].trace.steps[-1].text.strip()
+    assert last == "/\\ x = 1\n/\\ y = 0"
+    assert len(verdicts.violations["Low"]) == 2 and verdicts.unprinted == {"Low": 1}
+    assert verdicts.graph_partial == (
+        "the run drawing where Low breaks stopped on an error: Evaluating invariant Low failed"
+    )
+    assert "Evaluating invariant Low failed." in verdicts.logs["tlc-draw-Low.out"]
+    start = Replay("UntracedStart").check()  # the first run prints no path either
+    assert set(start.broken) == {"Low"} and start.broken["Low"].trace.steps == []
+    assert start.broken["Low"].kind == "invariant" and start.unprinted == {"Low": 1}
+    assert start.violations == {"Low": []}
+
+
 def test_configuration_strings_and_nested_comments_survive_first_run_and_reruns(
     tmp_path: Path,
 ) -> None:
