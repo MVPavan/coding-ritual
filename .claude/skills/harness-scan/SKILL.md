@@ -14,10 +14,13 @@ Resolve the named reference harness or path; ask only when ambiguous.
 3. Report material drift and useful candidates, considering existing equivalents.
    Use harness-evaluate for an authorized curation decision.
 4. When an authorized pin move happens, regenerate the catalog at the new pin;
-   `registry.py status <name>` then shows which skills need analysis. The
-   review follows `harness_lifecycle/playbook.md` §4: its report is
-   `harness_lifecycle/registry/reviews/<yyyy-mm-dd>-upstream-<name>-<version>.yaml`
-   (`registry.py report draft`), committed with the pointer.
+   `registry.py status <name>` then shows which skills need analysis. Hand
+   that review back through `mvp-mode` to the skill-curation playbook at top
+   level, or report that route to the parent inside a delegated task; do not
+   run the review here. Its method is
+   `.claude/skills/mvp-mode/playbooks/skill-curation/upstream-review.md`, and its report,
+   `harness_lifecycle/registry/reviews/<yyyy-mm-dd>-upstream-<name>-<version>.yaml`,
+   is committed with the pointer.
 
 Scanning does not authorize ledger records or adoption. When filing follow-up
 work is authorized, `registry.py gap <name> --beads` prints creation commands to

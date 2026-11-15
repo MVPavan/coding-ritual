@@ -54,6 +54,16 @@ class RegistryConfig(StrictModel):
         return self.skills_dir / "mvp-mode" / "playbooks"
 
     @property
+    def principles_dir(self) -> Path:
+        """Our principles, read by path through the router (unit-kinds P7)."""
+        return self.skills_dir / "mvp-mode" / "principles"
+
+    @property
+    def router_path(self) -> Path:
+        """The router, which holds each principle's situation (unit-kinds P1)."""
+        return self.skills_dir / "mvp-mode" / "SKILL.md"
+
+    @property
     def steps_md_path(self) -> Path:
         """The generated step index (unit-kinds St2)."""
         return self.registry_dir / "STEPS.md"

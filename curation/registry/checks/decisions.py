@@ -43,8 +43,10 @@ def decision_errors(
     `source` (3.4); outside `pre_trait_rounds`, any other event cites a
     sealed report's row and its target (3.2), reconsiders through a
     `reconsider` row (3.4) and obeys a `reword` verdict (3.4a). Each event
-    is classified with the rename/merge state preceding it, as `record` saw
-    it, so a later merge never rewrites an earlier classification."""
+    is judged against the latest live earlier event of its subject, so a
+    completion must still supersede the effective event; and it is classified
+    with the rename/merge state preceding it, as `record` saw it, so a later
+    merge never rewrites an earlier classification."""
     errors: list[str] = []
     dead: set[str] = set()
     history: dict[str, list[Event]] = {}

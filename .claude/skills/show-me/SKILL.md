@@ -26,7 +26,7 @@ The strongest device here: when the point is *what changes* and the surrounding 
 - Place each visual immediately after the sentence it supports; include only the calls, files, props, or states the current question needs.
 - Real names from the actual code — never invented placeholders.
 - Prefer the text forms over Mermaid when the reader is in a terminal; prefer a table over any of these when the content is a flat list or comparison.
-- Escalate to the **html-artifact** skill when its own "HTML when all hold" gate is met — never on a single criterion. Its `references/svg-craft.md` owns rendered figures; this skill never emits HTML.
+- Escalate to the **html-artifact** skill only when its own trigger holds (explicitly requested, or a standalone visual materially helps) — a report or plan alone is not one. Its `references/svg-craft.md` owns rendered figures; this skill never emits HTML.
 
 ## Discovery
 

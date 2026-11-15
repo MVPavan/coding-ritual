@@ -7,13 +7,15 @@ things that actually moved — never hundreds of files.
 
 Subcommands:
   catalog <repo-path> [--name NAME] [--out FILE]
-      Scan a harness working tree into a JSON capability catalog.
+      Scan a harness working tree into a JSON capability catalog; a sparse
+      checkout is scanned from a full export of its HEAD instead.
   diff <old.json> <new.json>
       Materiality-filtered change report between two catalogs.
   drift <submodule-path> [--no-fetch]
       Catalog the pinned commit vs upstream HEAD and report the drift.
 
-A "capability" is a skill / command / agent / rule / hook / MCP server / plugin.
+A "capability" is a skill / playbook / command / agent / rule / hook / MCP server /
+plugin.
 Capabilities are deduplicated to LOGICAL units: harnesses often mirror the same
 skill into several per-tool trees (.claude/, .cursor/, .kiro/, .agents/) and into
 translated docs/ copies. We collapse those by (kind, name), keep the canonical
@@ -40,6 +42,7 @@ from curation.scan.drift import (
     diff_catalogs,
     pinned_commit,
     render_diff,
+    scan_checkout,
     upstream_ref,
 )
 from curation.scan.models import Catalog
@@ -56,7 +59,7 @@ def cmd_catalog(args: argparse.Namespace) -> int:
             commit = pinned_commit(root)
         except subprocess.CalledProcessError:
             commit = None
-    catalog = scan_repo(root, repo, source="working-tree", source_commit=commit)
+    catalog = scan_checkout(root, repo, commit)
     if args.out:
         Path(args.out).parent.mkdir(parents=True, exist_ok=True)
         Path(args.out).write_text(

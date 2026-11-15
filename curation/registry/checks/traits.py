@@ -82,9 +82,10 @@ DocHolderKind = Literal["agents", "project-document", "playbook"]
 def doc_holder_kind(cfg: RegistryConfig, rel: str) -> DocHolderKind | None:
     """What a `doc:` holder's repository path names, or None when it may hold
     no traits: `AGENTS.md`, a flat `.repo-context/<file>` (stages-design 1.5)
-    or a playbook file (T1, T3)."""
+    or a playbook file (T1, T3). Only the normalised spelling names one, so a
+    file has one `doc:` subject."""
     parts = Path(rel).parts
-    if ".." in parts:
+    if ".." in parts or Path(rel).as_posix() != rel:
         return None
     if rel == "AGENTS.md":
         return "agents"
@@ -490,14 +491,14 @@ def _check_trait_level(
                     f"{tid!r} in its distinct_from"
                 )
         if event.kind == "adopt" and event.pending and event.skill:
-            dest = event.skill
+            # A skill merged into a playbook resolves to its `doc:` holder.
+            survivor = resolve_skill(event.skill, forward)
             listed: list[str] | None
-            if ":" not in dest:
-                survivor = resolve_skill(dest, forward)
+            if ":" not in survivor:
                 oentry = ours_traits.get(survivor)
                 listed = oentry.traits if oentry else None
             else:
-                survivor, listed = dest, doc_traits.get(dest)
+                listed = doc_traits.get(survivor)
             target_tid = event.into or tid
             if listed and target_tid in listed and event.rewording is None:
                 errors.append(
@@ -509,11 +510,14 @@ def _check_trait_level(
     # (C) Every adoption we still provide (last delivered adopt, not withdrawn)
     # must be listed by an active target skill in traits/ours.yaml — independently of
     # the trait's current upstream ruling (review #5, #6), per resolved target.
-    for (subject, _dest), adopt in retained_adoptions(events, forward).items():
-        target = adopt.skill
+    # The resolved destination, so a skill merged into a playbook is checked
+    # against that playbook's frontmatter (plan 40 §5a 3).
+    for (subject, target), adopt in retained_adoptions(events, forward).items():
         if target and target.startswith("doc:"):
             # A `doc:` holder lists it too (Acceptance 4); a missing inventory
-            # is an error, never a skip.
+            # is an error, never a skip. A playbook may withdraw it (§4b).
+            if (subject, target) in withdrawn:
+                continue
             tid = adopt.into or _trait_slug(subject) or ""
             doc = doc_traits.get(target)
             if doc is None:
@@ -524,9 +528,9 @@ def _check_trait_level(
             elif not _trait_satisfied(tid, set(doc), definitions):
                 errors.append(f"{adopt.id}: trait {tid!r} is not listed by {target!r}")
             continue
-        if not target or ":" in target:
+        if ":" in target:
             continue
-        survivor = resolve_skill(target, forward)
+        survivor = target
         if (subject, survivor) in withdrawn or survivor in retired:
             continue
         tid = adopt.into or _trait_slug(subject) or ""

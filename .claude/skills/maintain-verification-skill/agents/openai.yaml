@@ -1,0 +1,6 @@
+interface:
+  display_name: "Maintain Verification Skill"
+  short_description: "Keep a project's verify skill true to its real app"
+  default_prompt: "Use $maintain-verification-skill to check this project's verify skill and feature map against the real app, optionally naming the verify skill to maintain."
+policy:
+  allow_implicit_invocation: false

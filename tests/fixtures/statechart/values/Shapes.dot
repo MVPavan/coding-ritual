@@ -1,0 +1,9 @@
+strict digraph DiskGraph {
+nodesep=0.35;
+subgraph cluster_graph {
+color="white";
+1358316046027376831 [label="/\\ recfn = ([p |-> 1] :> \"one\" @@ [p |-> 2] :> \"two\")\n/\\ empties = <<{}, <<>>, << >>>>\n/\\ nested = [r |-> {<<1, \"z\">>}, t |-> [p |-> {}]]\n/\\ mixed = {a, b, \"x\"}\n/\\ onen = <<10, 20, 30>>\n/\\ scalars = <<-2, TRUE, \"q \\\"t\\\"\", a>>\n/\\ seqfn = (<<1>> :> 7 @@ <<2, 3>> :> 8)\n/\\ setfn = ({1} :> \"v\" @@ {1, 2} :> \"v\")",style = filled]
+1358316046027376831 -> 1358316046027376831 [label="Next",color="black",fontcolor="black"];
+{rank = same; 1358316046027376831;}
+}
+}

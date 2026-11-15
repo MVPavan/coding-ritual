@@ -4,23 +4,308 @@
 
 Every playbook's steps, read from the step lists in each playbook's frontmatter (`.repo-context/unit-kinds.md` St2). Traits are a step's own actions (T3); calls name the units it invokes; loads name the references it reads, by repository path (St1).
 
+## autonomous-run
+
+`.claude/skills/mvp-mode/playbooks/autonomous-run.md`
+
+Trigger: A request to keep working without further prompting until a stated, checkable condition holds, with no settled plan to execute.
+
+Playbook traits: `stated-unattended-gate`, `human-reads-before-merge`
+
+| Step | When | Traits | Calls | Loads |
+|---|---|---|---|---|
+| `autonomous-run#1` | always | `exit-predicate-first`, `run-limits-first`, `question-task-trigger`, `question-task-effects`, `question-task-successor`, `question-human-reentry`, `question-duplicate-runs`, `design-done-all-answered`, `question-source-dedupe` |  |  |
+| `autonomous-run#2` | autonomous-run#1 fixed a checkable predicate | `unattended-isolation`, `worktree-environment-proof` | `skill:decision-trail` (when: extra columns seq, predicate, branch, head, tree; the first row is the baseline, before any edit; this one whole call stays open through autonomous-run#6) |  |
+| `autonomous-run#3` | the trail holds its baseline row, and the request is stated unattended or names a limit |  | `skill:wake` (when: one whole call, opened once, stays open through autonomous-run#6) |  |
+| `autonomous-run#4` | once per iteration, entered from autonomous-run#2, autonomous-run#3 or autonomous-run#5 | `read-trail-first`, `unexplained-change-stop`, `bounded-background-wait`, `smallest-evidenced-change`, `deterministic-gates-every-run`, `revert-ineffective-experiments`, `row-then-checkpoint`, `discovery-scope-split` | `skill:delegation` (when: an attended run and the router's delegation rule sends the iteration to a subagent; told not to stage) |  |
+| `autonomous-run#5` | after each iteration; in this order, predicate met, a limit hit, or a dead end goes to autonomous-run#6, and anything else returns to autonomous-run#4 | `limit-bounded-hold`, `category-pivot` |  |  |
+| `autonomous-run#6` | every exit, including a closing return from the timer | `autonomous-closing-settle`, `autonomous-closeout`, `cold-automated-review-run` |  |  |
+| `autonomous-run#7` | an attended Met exit with this run's changes in the working tree, after autonomous-run#6 |  | `skill:land` |  |
+
 ## bug-fix
 
 `.claude/skills/mvp-mode/playbooks/bug-fix.md`
 
 Trigger: A reported defect, failing check or flaky test to diagnose and fix with proof.
 
-Playbook traits: `confirmed-cause-gate`
+Playbook traits: `confirmed-cause-gate`, `stated-unattended-gate`, `unattended-not-started`
 
 | Step | When | Traits | Calls | Loads |
 |---|---|---|---|---|
 | `bug-fix#1` | a deterministic failing command, run as reported, shows the failure and its output points at the cause; never a flaky failure, nor a cause found by reading code or rerunning in a loop | `obvious-cause-skip` |  |  |
-| `bug-fix#2` | bug-fix#1 did not skip it |  | `skill:systematic-debugging` |  |
-| `bug-fix#3` | the cause is confirmed | `existing-check-as-proof`, `report-missing-proof`, `scoped-instance-fix` | `skill:test-driven-development` (when: step 1's failing check does not already fail for the reported reason and a durable regression check is feasible) | `.claude/skills/mvp-mode/playbooks/bug-fix/timing-flakes.md` (when: the cause is a timing flake) |
+| `bug-fix#2` | bug-fix#1 did not skip it | `long-hunt-test`, `bounded-background-wait` | `skill:how` (when: the failing subsystem is unfamiliar); `skill:why` (when: the failure may be a regression); `skill:systematic-debugging` |  |
+| `bug-fix#3` | the cause is confirmed | `existing-check-as-proof`, `report-missing-proof`, `missing-seam-finding`, `scoped-instance-fix`, `implement-against-sketch` | `skill:codebase-design` (when: the fix crosses a function boundary); `skill:tdd` (when: step 1's failing check does not already fail for the reported reason and a durable regression check is feasible) | `.claude/skills/mvp-mode/playbooks/bug-fix/timing-flakes.md` (when: the cause is a timing flake) |
 | `bug-fix#4` | bug-fix#3 changed code | `rerun-original-repro` |  |  |
 | `bug-fix#5` | around bug-fix#3 and bug-fix#4 | `attempt-log`, `revert-ineffective-experiments`, `two-failure-stop` |  |  |
 | `bug-fix#6` | the confirmed defect reveals another boundary problem | `defense-in-depth-hardening` |  | `.claude/skills/mvp-mode/playbooks/bug-fix/hardening.md` |
 | `bug-fix#7` | every exit | `closeout`, `preserve-reproducers`, `always-on-signal` |  |  |
+| `bug-fix#8` | the Fixed exit, after bug-fix#7 |  | `skill:land` |  |
+
+## eval
+
+`.claude/skills/mvp-mode/playbooks/eval.md`
+
+Trigger: An instruction or routing variant to try on fresh Claude Code sessions and judge from what they actually did.
+
+Playbook traits: `candidate-blinding`, `judge-blinding`
+
+| Step | When | Traits | Calls | Loads |
+|---|---|---|---|---|
+| `eval#1` | always | `judge-only-rubric`, `eval-spend-go-ahead` |  |  |
+| `eval#2` | the go-ahead was given | `sandbox-template-per-variant` |  |  |
+| `eval#3` | the sandbox template is ready | `organic-prompt` |  |  |
+| `eval#4` | the prompt is written | `top-level-candidate-runs`, `candidate-run-boundary` |  | `.claude/skills/mvp-mode/playbooks/eval/run.sh` |
+| `eval#5` | every planned run has ended | `one-judge-one-scale` | `skill:delegation` |  |
+| `eval#6` | the candidates ran on Claude Code | `chain-from-tool-events` |  | `.claude/skills/mvp-mode/playbooks/eval/classify.py` |
+| `eval#7` | the judge has reported | `read-every-output` |  |  |
+| `eval#8` | every exit | `eval-closeout` |  |  |
+
+## feature
+
+`.claude/skills/mvp-mode/playbooks/feature.md`
+
+Trigger: New behaviour to design and build, with no settled plan to execute.
+
+Playbook traits: `lead-owns-design`, `contested-design-gate`
+
+| Step | When | Traits | Calls | Loads |
+|---|---|---|---|---|
+| `feature#1` | always |  | `skill:how` |  |
+| `feature#2` | the change crosses a function boundary, two shapes pass the two-shape test, or a person asked for a council |  | `skill:model-council` (when: a person asked for a council; its branch delivers the sketch); `skill:codebase-design` (when: no council was asked for; with two shapes it compares them by design-it-twice and recommends one) |  |
+| `feature#3` | always | `throughput-checkpoint` |  |  |
+| `feature#4` | always | `build-brief-shape`, `implement-against-sketch`, `shared-fix-ported` | `skill:delegation` (when: the router's delegation rule sends the code-writing to a subagent); `skill:review` (when: feature#2 ran) |  |
+| `feature#5` | feature#4 changed code | `matching-surface-verify` |  |  |
+| `feature#6` | a dispute by the dispute test is open after feature#5 |  | `skill:interrogate` needs `run-proven-finding` (when: a verified finding against the design returns to feature#2 and one against the build to feature#4) |  |
+| `feature#7` | every exit | `build-closeout` |  |  |
+| `feature#8` | finished and verified with no open dispute, after feature#7 |  | `skill:land` |  |
+
+## figure-it-out
+
+`.claude/skills/mvp-mode/playbooks/figure-it-out.md`
+
+Trigger: A large migration, an ambitious multi-part change or long work a person reviews after stepping away, to work out and carry through, that no narrower playbook fits.
+
+Playbook traits: `design-workflow-before-code`
+
+| Step | When | Traits | Calls | Loads |
+|---|---|---|---|---|
+| `figure-it-out#1` | always | `phase-todos`, `principles-first-todo` |  |  |
+| `figure-it-out#2` | always | `framing-before-run`, `falsifiable-done-predicate`, `quantified-scope-with-blockers`, `rigor-biased-high-by-reversibility`, `rigor-means-gates-and-artifacts`, `framing-and-tradeoffs-shown` |  |  |
+| `figure-it-out#3` | the framing is stated | `landable-units-or-named-group`, `riskiest-unknown-first`, `scaffold-first`, `harness-with-pre-change-baseline`, `alternatives-compared-on-one-way-doors`, `fan-out-across-seams-only`, `worktree-or-branch-per-worker`, `written-phase-list-for-review`, `designed-steps-as-todos` | `skill:codebase-design` (when: a design choice that cannot be undone, not mechanical and not already settled, has materially different alternatives) |  |
+| `figure-it-out#4` | the design is written; this one whole call stays open through figure-it-out#6 | `rolling-log-rows` | `skill:decision-trail` |  |
+| `figure-it-out#5` | once per designed unit, in the designed order | `one-checkpoint-unless-told-not-to`, `hypothesis-per-unit`, `smallest-evidenced-change`, `keep-or-revert-on-predicate`, `verified-unit-sequence`, `too-easy-pass-suspicion`, `judge-paired-with-delegation`, `bounded-gate-gaming-retry`, `fix-wrong-gate-separately`, `three-value-verdict`, `no-hidden-negatives` | `skill:delegation` (when: a unit goes to a worker); `skill:review` (when: a delegated unit's judge is a critic) |  |
+| `figure-it-out#6` | every exit | `whole-result-on-real-product`, `designed-run-reply-fields` |  |  |
+
+## hillclimb
+
+`.claude/skills/mvp-mode/playbooks/hillclimb.md`
+
+Trigger: Sustained improvement of one measurable metric against a stop predicate, attended or stated unattended, with no settled plan to execute.
+
+Playbook traits: `stated-unattended-gate`, `one-change-one-measurement`
+
+| Step | When | Traits | Calls | Loads |
+|---|---|---|---|---|
+| `hillclimb#1` | always | `repro-before-climb`, `stop-predicate-with-floor`, `unattended-target-from-request`, `run-limits-first` | `skill:how`; `skill:performance-optimization` (when: this one whole call stays open through hillclimb#5; the predicate is its stop condition) |  |
+| `hillclimb#2` | hillclimb#1 fixed the metric and predicate | `attempt-isolation-gate`, `climb-checkpoint`, `worktree-environment-proof`, `bounded-background-wait`, `sensitivity-proof-then-freeze`, `gate-green-baseline` | `skill:wake` (when: the request is stated unattended or names a limit; this one whole call stays open through hillclimb#7); `skill:build-a-lever` (when: no existing command emits the metric) | `.claude/skills/mvp-mode/playbooks/hillclimb/attempt.py`; `.claude/skills/mvp-mode/playbooks/hillclimb/unattended.md` (when: the run is stated unattended) |
+| `hillclimb#3` | the harness is frozen |  | `skill:decision-trail` (when: extra columns seq, before, after, delta, tests, tree, index, value; this one whole call stays open through hillclimb#7) |  |
+| `hillclimb#4` | once per attempt, entered from hillclimb#3, hillclimb#5 or hillclimb#6 | `read-trail-first`, `bounded-background-wait`, `row-then-checkpoint`, `keep-or-undo-rule`, `attempt-snapshot-undo` | `skill:delegation` (when: an attended climb and the router's delegation rule sends the attempt to a subagent; one factor per brief; told not to stage) |  |
+| `hillclimb#5` | after each attempt; in this order, predicate met, a limit hit, or no cheap untried idea left goes to hillclimb#7; several rejects in a row go to hillclimb#6; anything else returns to hillclimb#4 | `predicate-held-stop`, `limit-bounded-hold` |  |  |
+| `hillclimb#6` | hillclimb#5 found several rejects in a row with the predicate unmet; returns to hillclimb#4 | `plateau-pivot` |  |  |
+| `hillclimb#7` | every exit, including a closing return from the timer | `climb-closeout`, `climb-closing-settle`, `unattended-climb-closeout` |  | `.claude/skills/mvp-mode/playbooks/hillclimb/unattended.md` (when: the run is stated unattended) |
+| `hillclimb#8` | an attended climb finished with one or more attempts kept and in the working tree, after hillclimb#7 |  | `skill:land` |  |
+
+## implement
+
+`.claude/skills/mvp-mode/playbooks/implement.md`
+
+Trigger: Settled, tracked work to build: a bead with acceptance, a standalone plan, a roadmap phase, all remaining phases, or a spec whose tickets are in Beads with blocking edges.
+
+Playbook traits: `stop-on-failure`
+
+| Step | When | Traits | Calls | Loads |
+|---|---|---|---|---|
+| `implement#1` | always | `scope-selector`, `risk-sized-review` | `skill:discovery` (when: material scope or behaviour is unresolved; nothing else starts) |  |
+| `implement#2` | the units will span sessions and have no beads, or the scope is Phase or Workstream |  | `skill:tracker` (when: unit beads for units that will span sessions; each phase's epic by its lookup and defect rule) |  |
+| `implement#3` | Spec scope | `dependency-edges`, `single-integration-branch`, `worktree-per-significant-change`, `worktree-base-verify` |  | `.claude/skills/mvp-mode/playbooks/implement/spec-run.md` (when: its Setup, steps 1-4) |
+| `implement#4` | Task scope, each Spec ticket, and each coordinator-run stage from implement#6 | `task-loop`, `unit-bead-execution`, `confirmed-cause-fix`, `regression-proof-and-rerun`, `attempt-log`, `two-failure-stop`, `finding-adjudication`, `no-reused-implementer` | `skill:tdd` (when: risk calls for test-first or characterization); `skill:security` (when: a material boundary change); `skill:systematic-debugging` (when: a failure's cause is unclear); `skill:delegation` (when: the router's delegation rule sends a unit to a worker); `skill:tracker` (when: a one-phase epic: its stage mapping and close gate); `skill:land` (when: Spec scope: landing a ticket on the integration branch) | `.claude/skills/mvp-mode/playbooks/implement/task-engine.md` (when: delegated units or multi-round review); `.claude/skills/mvp-mode/playbooks/implement/spec-run.md` (when: Spec scope: each ticket, steps 5-7) |
+| `implement#5` | around each implement#4 run that delegates a unit or whose requirements or unresolved risk require independent review: a required brief review before it implements, the implementation review and fix rounds before it closes the unit or invokes land | `bounded-fix-loop`, `scope-base-review-package`, `delegated-report-recovery` | `skill:review` | `.claude/skills/mvp-mode/playbooks/implement/task-engine.md` |
+| `implement#6` | Phase scope, or each phase implement#8 selects | `phase-loop` | `skill:to-plan` (when: a deep phase whose packet needs a plan); `skill:tracker` (when: the phase's epic, rendering after a stage or before a contractor call that coordinator writes precede, and the close gate); `skill:land` (when: the handoff commits: a coordinator-run stage's, the bookkeeping after a contractor result, and any coordinator writes before a contractor call) |  |
+| `implement#7` | the coordinator runs independent graphs in parallel | `child-workflows` |  |  |
+| `implement#8` | Workstream scope, an explicit request or /implement all phases | `workstream-mode`, `context-recovery` | `skill:tracker` (when: render at each phase exit); `skill:land` (when: the per-phase commit, only when the invocation covers it; without it the walk stops at the phase end) | `.claude/skills/mvp-mode/playbooks/implement/workstream-mode.md` |
+| `implement#9` | Spec scope, after its tickets | `pre-report-base-merge`, `worktree-cleanup` |  | `.claude/skills/mvp-mode/playbooks/implement/spec-run.md` (when: steps 8-10) |
+| `implement#10` | every exit | `implement-closeout` |  |  |
+| `implement#11` | finished and verified, after implement#10, with this run's changes still uncommitted |  | `skill:land` |  |
+
+## investigation
+
+`.claude/skills/mvp-mode/playbooks/investigation.md`
+
+Trigger: A question about how anything in this project works, why it is the way it is, what was decided about it, or which design to pick.
+
+Playbook traits: `read-only-answer-gate`
+
+| Step | When | Traits | Calls | Loads |
+|---|---|---|---|---|
+| `investigation#1` | always |  | `skill:how` (when: the question asks how something works or which option fits); `skill:why` (when: the question asks why something is the way it is, what was decided about it, what motivated it or which change brought a regression) |  |
+| `investigation#2` | an answer was drafted |  | `skill:unslop` |  |
+| `investigation#3` | every exit | `read-only-closeout` |  |  |
+
+## pause-safely
+
+`.claude/skills/mvp-mode/playbooks/pause-safely.md`
+
+Trigger: An explicit request to stop work now so that a later session can resume it.
+
+Playbook traits: `explicit-pause-only`, `no-irreversible-pause`
+
+| Step | When | Traits | Calls | Loads |
+|---|---|---|---|---|
+| `pause-safely#1` | always | `safe-boundary-stop` |  |  |
+| `pause-safely#2` | a playbook run is open and pause-safely#1 reached a stop | `running-playbook-exit` |  |  |
+| `pause-safely#3` | this run left uncommitted edits, commit authority covers them, and nothing bars a commit | `authorized-wip-commit` |  |  |
+| `pause-safely#4` | there is work to resume | `resume-note-tree-state`, `checkpoint-by-work-identity`, `frozen-tree-checkpoint` |  |  |
+| `pause-safely#5` | every exit | `pause-closeout` |  |  |
+
+## perf-issue
+
+`.claude/skills/mvp-mode/playbooks/perf-issue.md`
+
+Trigger: A measured or reported slowness or resource cost to fix once against a target, with no settled plan to execute.
+
+Playbook traits: `measurement-tied-fix-gate`
+
+| Step | When | Traits | Calls | Loads |
+|---|---|---|---|---|
+| `perf-issue#1` | always |  | `skill:performance-optimization` (when: this one whole call stays open through perf-issue#4; its steps 1-3 and vetting run here) |  |
+| `perf-issue#2` | the vetted baseline misses the target |  | `skill:how` (when: the located cost's code is unfamiliar) |  |
+| `perf-issue#3` | the vetted baseline misses the target; this is the skill's step 4, one candidate at a time | `implement-against-sketch` | `skill:codebase-design` (when: the change crosses a function boundary); `skill:delegation` (when: the router's delegation rule sends the code-writing to a subagent; one brief per factor); `skill:review` (when: a sketch ran) |  |
+| `perf-issue#4` | perf-issue#3 attempted a change to code, configuration or runtime settings; this is the skill's step 5, and a candidate that misses returns to perf-issue#3 | `paired-artifact-diff` | `skill:delegation` (when: parsing the artifacts would flood this session's context) |  |
+| `perf-issue#5` | every exit | `build-closeout` |  |  |
+| `perf-issue#6` | finished, with a comparison past noise on the matching surface, after perf-issue#5 | `measurement-in-commit-body` | `skill:land` |  |
+
+## plan
+
+`.claude/skills/mvp-mode/playbooks/plan.md`
+
+Trigger: A request to get work ready to build without building it: plan a change or feature, settle its open questions first, split an approved spec into phases, or plan one phase, one change or a batch of units, ending in approved, tracked planning documents.
+
+Playbook traits: `planning-run-gate`
+
+| Step | When | Traits | Calls | Loads |
+|---|---|---|---|---|
+| `plan#1` | always | `small-change-plan-skip` |  |  |
+| `plan#2` | plan#1 did not skip |  | `skill:delegation` (when: the router's delegation rule sends the exploring to a subagent, in its explorer role) |  |
+| `plan#3` | exploring left a question whose answer changes the plan | `settle-by-observation` | `skill:discovery` (when: a material scope, behaviour, dependency or authority choice no run settles is open); `skill:prototype` (when: a run can observe the answer) |  |
+| `plan#4` | plan#1 did not skip and no open decision holds up every task | `plan-route-by-shape` |  |  |
+| `plan#5` | plan#4 needs a spec: a durable spec was asked for, or several phases have no approved multi-phase spec |  | `skill:to-spec` |  |
+| `plan#6` | plan#4 chose several phases, and the spec is approved |  | `skill:to-roadmap` (when: whole: its own approval of the structure, then its tracker seed) |  |
+| `plan#7` | plan#4 chose one piece: one phase, one change, or a batch of units |  | `skill:to-plan` (when: its Skeleton branch when the units run box by box with evidence per unit, otherwise Elaborate; this one whole call stays open through plan#9) |  |
+| `plan#8` | the roadmap or plan is approved (a recorded approval counts) and nothing has recorded it in Beads yet |  | `skill:tracker` |  |
+| `plan#9` | plan#5, plan#6 or plan#7 wrote a document, a draft spec awaiting approval included |  | `skill:unslop` (when: on the sections a person reads, leaving task fields, stage acceptance and requirement lines as they are) |  |
+| `plan#10` | every exit | `planning-run-closeout` |  |  |
+| `plan#11` | after plan#10, when this run wrote tracking files and the owner's commit authority covers them |  | `skill:land` (when: the tracker's export and renders only) |  |
+
+## refactoring
+
+`.claude/skills/mvp-mode/playbooks/refactoring.md`
+
+Trigger: A focused structure change that must keep behaviour unchanged, with no settled plan to execute.
+
+Playbook traits: `structure-only-gate`
+
+| Step | When | Traits | Calls | Loads |
+|---|---|---|---|---|
+| `refactoring#1` | always | `behaviour-pin-gate` | `skill:how`; `skill:tdd` (when: no existing check pins the behaviour) |  |
+| `refactoring#2` | always | `branch-deleting-reshape` |  |  |
+| `refactoring#3` | always | `named-target-shape` | `skill:codebase-design` (when: the target crosses a function boundary) |  |
+| `refactoring#4` | the pin holds | `pin-green-moves`, `rename-spot-check`, `implement-against-sketch` | `skill:delegation` (when: the edits are mechanical) |  |
+| `refactoring#5` | refactoring#4 changed code | `behaviour-equivalence-proof` |  |  |
+| `refactoring#6` | refactoring#5 passed | `reader-load-keep-or-revert` |  |  |
+| `refactoring#7` | every exit | `build-closeout` |  |  |
+| `refactoring#8` | finished, the proof held and the change was kept, after refactoring#7 |  | `skill:land` |  |
+
+## runtime-forensics
+
+`.claude/skills/mvp-mode/playbooks/runtime-forensics.md`
+
+Trigger: A symptom in a process running now (spinning, leaking, stuck) to diagnose from what it is doing, with no fix wanted.
+
+Playbook traits: `live-diagnosis-gate`
+
+| Step | When | Traits | Calls | Loads |
+|---|---|---|---|---|
+| `runtime-forensics#1` | always |  | `skill:performance-optimization` (when: its diagnosis-only branch for a caller's live capture; evidence only); `skill:delegation` (when: parsing the artifact would flood this session's context) |  |
+| `runtime-forensics#2` | runtime-forensics#1 located a candidate |  | `skill:systematic-debugging` |  |
+| `runtime-forensics#3` | every exit | `live-forensics-closeout` |  |  |
+
+## session-pickup
+
+`.claude/skills/mvp-mode/playbooks/session-pickup.md`
+
+Trigger: A request to resume work a prior session or agent left, where this conversation does not already hold its state.
+
+Playbook traits: `pickup-read-only-gate`
+
+| Step | When | Traits | Calls | Loads |
+|---|---|---|---|---|
+| `session-pickup#1` | always | `locate-prior-trail` | `skill:delegation` (when: the router's delegation rule sends reading a long trail to a subagent, in its explorer role) |  |
+| `session-pickup#2` | session-pickup#1 found one trail | `verify-inherited-state` |  |  |
+| `session-pickup#3` | session-pickup#2 found no contradiction | `skip-needs-proof`, `resume-point-named` |  |  |
+| `session-pickup#4` | session-pickup#3 named a resume point | `pickup-verdict`, `resumed-run-handover` |  |  |
+| `session-pickup#5` | every exit | `read-only-closeout` |  |  |
+
+## skill-curation
+
+`.claude/skills/mvp-mode/playbooks/skill-curation.md`
+
+Trigger: Adding, placing, reviewing, comparing, updating or retiring a skill of this repository, or reviewing an upstream harness release.
+
+Playbook traits: `curation-role-separation`
+
+| Step | When | Traits | Calls | Loads |
+|---|---|---|---|---|
+| `skill-curation#1` | always | `curation-intake-bead` |  |  |
+| `skill-curation#2` | always; read only the references the applicable branches need | `artifact-owned-placement`, `placement-vs-description`, `blind-extract-then-map`, `skill-entries-with-change`, `upstream-review-on-pin-move`, `append-only-trait-analysis`, `report-pairing-coverage`, `row-recommendation-rules`, `prompting-guide-check`, `failure-first-update`, `withdraw-on-local-update` | `skill:harness-scan` (when: an upstream release); `skill:harness-skill-compare` (when: Compare, Merge or split, or two skills in one sub-stage); `skill:harness-evaluate` (when: Add with an upstream source, or a new non-skill capability in an upstream release); `skill:authoring-for-agents` (when: an update from our own failure: picking the form of the fix) | `.claude/skills/mvp-mode/playbooks/skill-curation/placing.md` (when: Place, Add, or finding the owning skill of a failure); `.claude/skills/mvp-mode/playbooks/skill-curation/upstream-review.md` (when: an upstream release; for Place or Add, only its step 2 (extract blind, then map)); `.claude/skills/mvp-mode/playbooks/skill-curation/skill-review.md` (when: Compare, Merge or split, or placing.md step 4 finding two skills in one sub-stage); `.claude/skills/mvp-mode/playbooks/skill-curation/candidate-evaluation.md` (when: Add with an upstream source, or a new non-skill capability in an upstream release); `.claude/skills/mvp-mode/playbooks/skill-curation/failure-update.md` (when: an update from our own failure) |
+| `skill-curation#3` | the evidence is ready | `ruling-before-change`, `record-command`, `per-trait-ruling`, `mechanism-rule-policy-entry` |  |  |
+| `skill-curation#4` | a recorded ruling calls for a change | `isolated-skill-build`, `skill-entries-with-change`, `rewrite-borrowed-ideas`, `writing-idea-destination`, `merge-split-reference-fix`, `retire-stub-one-release`, `pending-adoption-completion` | `skill:authoring-for-agents` |  |
+| `skill-curation#5` | skill-curation#4 changed something | `skill-catalog-check`, `curation-verify` | `skill:authoring-for-agents` needs `verification` |  |
+| `skill-curation#6` | skill-curation#5 passed, each part only with the owner's approval for this change | `authority-separation`, `curation-delivery-order` | `skill:land`; `skill:harness-publish` (when: the owner approves the publish) |  |
+| `skill-curation#7` | every exit | `curation-closeout` |  |  |
+
+## trace-forensics
+
+`.claude/skills/mvp-mode/playbooks/trace-forensics.md`
+
+Trigger: An artifact captured earlier (trace, profile, heap dump, core) to explain, with no fix wanted.
+
+Playbook traits: `fixed-artifact-gate`, `no-fix-handback`
+
+| Step | When | Traits | Calls | Loads |
+|---|---|---|---|---|
+| `trace-forensics#1` | always | `artifact-format-load` | `skill:delegation` (when: parsing the artifact would flood this session's context) |  |
+| `trace-forensics#2` | the artifact is not already in a form that can be queried | `queryable-dump-first` |  |  |
+| `trace-forensics#3` | always | `narrow-by-artifact-shape` |  |  |
+| `trace-forensics#4` | a cause has been narrowed to a frame, object or thread | `source-attribution-or-gap` |  |  |
+| `trace-forensics#5` | a cause has been narrowed to a frame, object or thread | `paired-capture-confirmation` |  |  |
+| `trace-forensics#6` | every exit | `forensics-closeout` |  |  |
+
+## worktree-cleanup
+
+`.claude/skills/mvp-mode/playbooks/worktree-cleanup.md`
+
+Trigger: Stale Git worktrees to audit and prune.
+
+Playbook traits: `advisory-audit-bucket`, `prune-on-approval-gate`
+
+| Step | When | Traits | Calls | Loads |
+|---|---|---|---|---|
+| `worktree-cleanup#1` | always | `listed-worktree-audit` |  | `.claude/skills/mvp-mode/playbooks/worktree-cleanup/audit.py` |
+| `worktree-cleanup#2` | the audit ran | `pinned-set-cross-check` |  |  |
+| `worktree-cleanup#3` | a worktree has uncommitted work | `uncommitted-work-pause` |  |  |
+| `worktree-cleanup#4` | the audit left at least one candidate | `removal-proposal` |  |  |
+| `worktree-cleanup#5` | the owner approved named worktrees | `approved-worktree-prune` |  |  |
+| `worktree-cleanup#6` | every exit | `cleanup-closeout` |  |  |
 
 ## Recurrence
 
@@ -28,8 +313,39 @@ Traits and calls used by two or more playbooks. Repeating a step is fine; the sa
 
 ### Traits
 
-None.
+| Item | Playbooks |
+|---|---|
+| `attempt-log` | bug-fix: `bug-fix#5`; implement: `implement#4` |
+| `bounded-background-wait` | autonomous-run: `autonomous-run#4`; bug-fix: `bug-fix#2`; hillclimb: `hillclimb#2`, `hillclimb#4` |
+| `build-closeout` | feature: `feature#7`; perf-issue: `perf-issue#5`; refactoring: `refactoring#7` |
+| `implement-against-sketch` | bug-fix: `bug-fix#3`; feature: `feature#4`; perf-issue: `perf-issue#3`; refactoring: `refactoring#4` |
+| `limit-bounded-hold` | autonomous-run: `autonomous-run#5`; hillclimb: `hillclimb#5` |
+| `read-only-closeout` | investigation: `investigation#3`; session-pickup: `session-pickup#5` |
+| `read-trail-first` | autonomous-run: `autonomous-run#4`; hillclimb: `hillclimb#4` |
+| `revert-ineffective-experiments` | autonomous-run: `autonomous-run#4`; bug-fix: `bug-fix#5` |
+| `row-then-checkpoint` | autonomous-run: `autonomous-run#4`; hillclimb: `hillclimb#4` |
+| `run-limits-first` | autonomous-run: `autonomous-run#1`; hillclimb: `hillclimb#1` |
+| `smallest-evidenced-change` | autonomous-run: `autonomous-run#4`; figure-it-out: `figure-it-out#5` |
+| `stated-unattended-gate` | autonomous-run: `playbook`; bug-fix: `playbook`; hillclimb: `playbook` |
+| `two-failure-stop` | bug-fix: `bug-fix#5`; implement: `implement#4` |
+| `worktree-environment-proof` | autonomous-run: `autonomous-run#2`; hillclimb: `hillclimb#2` |
 
 ### Calls
 
-None.
+| Item | Playbooks |
+|---|---|
+| `skill:codebase-design` | bug-fix: `bug-fix#3`; feature: `feature#2`; figure-it-out: `figure-it-out#3`; perf-issue: `perf-issue#3`; refactoring: `refactoring#3` |
+| `skill:decision-trail` | autonomous-run: `autonomous-run#2`; figure-it-out: `figure-it-out#4`; hillclimb: `hillclimb#3` |
+| `skill:delegation` | autonomous-run: `autonomous-run#4`; eval: `eval#5`; feature: `feature#4`; figure-it-out: `figure-it-out#5`; hillclimb: `hillclimb#4`; implement: `implement#4`; perf-issue: `perf-issue#3`, `perf-issue#4`; plan: `plan#2`; refactoring: `refactoring#4`; runtime-forensics: `runtime-forensics#1`; session-pickup: `session-pickup#1`; trace-forensics: `trace-forensics#1` |
+| `skill:discovery` | implement: `implement#1`; plan: `plan#3` |
+| `skill:how` | bug-fix: `bug-fix#2`; feature: `feature#1`; hillclimb: `hillclimb#1`; investigation: `investigation#1`; perf-issue: `perf-issue#2`; refactoring: `refactoring#1` |
+| `skill:land` | autonomous-run: `autonomous-run#7`; bug-fix: `bug-fix#8`; feature: `feature#8`; hillclimb: `hillclimb#8`; implement: `implement#4`, `implement#6`, `implement#8`, `implement#11`; perf-issue: `perf-issue#6`; plan: `plan#11`; refactoring: `refactoring#8`; skill-curation: `skill-curation#6` |
+| `skill:performance-optimization` | hillclimb: `hillclimb#1`; perf-issue: `perf-issue#1`; runtime-forensics: `runtime-forensics#1` |
+| `skill:review` | feature: `feature#4`; figure-it-out: `figure-it-out#5`; implement: `implement#5`; perf-issue: `perf-issue#3` |
+| `skill:systematic-debugging` | bug-fix: `bug-fix#2`; implement: `implement#4`; runtime-forensics: `runtime-forensics#2` |
+| `skill:tdd` | bug-fix: `bug-fix#3`; implement: `implement#4`; refactoring: `refactoring#1` |
+| `skill:to-plan` | implement: `implement#6`; plan: `plan#7` |
+| `skill:tracker` | implement: `implement#2`, `implement#4`, `implement#6`, `implement#8`; plan: `plan#8` |
+| `skill:unslop` | investigation: `investigation#2`; plan: `plan#9` |
+| `skill:wake` | autonomous-run: `autonomous-run#3`; hillclimb: `hillclimb#2` |
+| `skill:why` | bug-fix: `bug-fix#2`; investigation: `investigation#1` |

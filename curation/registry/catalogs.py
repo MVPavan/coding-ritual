@@ -8,11 +8,23 @@ from typing import Any
 
 from curation.registry.config import RegistryConfig
 from curation.registry.ledger import _is_trait_subject
-from curation.registry.loaders import _catalog_files
+from curation.registry.loaders import (
+    _catalog_files,
+    principle_names,
+    skill_description,
+    unit_file,
+)
 from curation.registry.models import Event
-from curation.scan.catalog import UNIT_SUBFOLDERS, _is_test_script, scan_repo
-from curation.scan.drift import pinned_commit
-from curation.scan.models import Capability, Catalog
+from curation.scan.catalog import (
+    _is_test_script,
+    _raw_frontmatter,
+    hash_files,
+    normalize,
+    scan_repo,
+    sha1,
+)
+from curation.scan.drift import pinned_commit, scan_checkout
+from curation.scan.models import Capability, Catalog, Kind
 
 
 def _merge_capability(existing: Any, other: Any) -> Any:
@@ -74,11 +86,48 @@ def _drop_template_caps(catalog: Any) -> Any:
     )
 
 
+def _principles_catalog(cfg: RegistryConfig) -> Any:
+    """Each principle as the capability it was as a skill folder, so its logical
+    ID, `gap` matching and tree hash survive its file having no folder. The hash
+    covers its one file."""
+    caps = []
+    for name in sorted(principle_names(cfg)):
+        path = unit_file(cfg, name)
+        text = path.read_text(encoding="utf-8")
+        rel = str(path.relative_to(cfg.our_harness_root))
+        content_hash = sha1(normalize(text))
+        caps.append(
+            Capability(
+                kind=Kind.SKILL,
+                name=name,
+                category="skills",
+                logical_id=f"skill:skills/{name}",
+                canonical_path=rel,
+                paths=(rel,),
+                description=skill_description(cfg, name),
+                content_hash=content_hash,
+                signature_hash=sha1(_raw_frontmatter(text)),
+                variant_hashes=(content_hash,),
+                line_count=len(text.splitlines()),
+                tree_hash=hash_files(path.parent, [path]),
+            )
+        )
+    return Catalog(
+        repo="principles",
+        source="ours:principles",
+        source_commit=None,
+        counts={},
+        physical_scanned=len(caps),
+        excluded=0,
+        capabilities=tuple(caps),
+    )
+
+
 def build_ours(cfg: RegistryConfig) -> Any:
     roots = [cfg.our_harness_root, cfg.codex_root] + sorted(
         cfg.repo_root.glob(cfg.plugins_glob)
     )
-    catalogs: list[Any] = []
+    catalogs: list[Any] = [_principles_catalog(cfg)]
     for root in roots:
         if root.is_dir():
             cat = scan_repo(
@@ -86,7 +135,7 @@ def build_ours(cfg: RegistryConfig) -> Any:
                 root.name,
                 source=f"ours:{root.name}",
                 source_commit=None,
-                unit_subfolders=UNIT_SUBFOLDERS,
+                catalog_playbooks=False,
             )
             catalogs.append(_drop_template_caps(cat))
     return merge_catalogs("ours", "root .claude/.codex + plugins", catalogs)
@@ -163,10 +212,12 @@ def _scan_dir(root: Path) -> Any:
             commit = pinned_commit(root)
         except Exception:  # noqa: BLE001 - best-effort commit stamp, no network
             commit = None
-    return scan_repo(root, root.name, source="working-tree", source_commit=commit)
+    return scan_checkout(root, root.name, commit)
 
 
-_CAP_KINDS = frozenset({"skill", "agent", "command", "rule", "hook", "mcp", "plugin"})
+_CAP_KINDS = frozenset(
+    {"skill", "playbook", "agent", "command", "rule", "hook", "mcp", "plugin"}
+)
 
 
 def _is_genuine_capability_subject(subject: str) -> bool:

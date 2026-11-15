@@ -1,0 +1,37 @@
+{
+ "spec": "Retry.tla",
+ "bound": 100000,
+ "runs": [
+  {
+   "request": {
+    "invariants": [],
+    "properties": [
+     "EventuallyDone"
+    ],
+    "deadlock": true,
+    "keep_going": false,
+    "bounded": false,
+    "as_written": true
+   },
+   "code": 13,
+   "output": "@!@!@STARTMSG 2262:0 @!@!@\nTLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)\n@!@!@ENDMSG 2262 @!@!@\n@!@!@STARTMSG 2187:0 @!@!@\nRunning breadth-first search Model-Checking with fp 0 and seed 0 with 1 worker on 32 cores with 5957MB heap and 64MB offheap memory [pid: 0] (Linux 6.18.54.1-microsoft-standard-WSL2 amd64, Eclipse Adoptium 25.0.5 x86_64, MSBDiskFPSet, DiskStateQueue).\n@!@!@ENDMSG 2187 @!@!@\n@!@!@STARTMSG 2220:0 @!@!@\nStarting SANY...\n@!@!@ENDMSG 2220 @!@!@\nParsing file <models>/Retry.tla\nSemantic processing of module Retry\n@!@!@STARTMSG 2219:0 @!@!@\nSANY finished.\n@!@!@ENDMSG 2219 @!@!@\n@!@!@STARTMSG 2185:0 @!@!@\nStarting... (2026-11-14 16:37:03)\n@!@!@ENDMSG 2185 @!@!@\n@!@!@STARTMSG 2212:0 @!@!@\nImplied-temporal checking--satisfiability problem has 1 branches.\n@!@!@ENDMSG 2212 @!@!@\n@!@!@STARTMSG 2189:0 @!@!@\nComputing initial states...\n@!@!@ENDMSG 2189 @!@!@\n@!@!@STARTMSG 2190:0 @!@!@\nFinished computing initial states: 1 distinct state generated at 2026-11-14 16:37:03.\n@!@!@ENDMSG 2190 @!@!@\n@!@!@STARTMSG 2200:0 @!@!@\nProgress(3) at 2026-11-14 16:37:03: 6 states generated, 4 distinct states found, 0 states left on queue.\n@!@!@ENDMSG 2200 @!@!@\n@!@!@STARTMSG 2192:0 @!@!@\nChecking temporal properties for the complete state space with 4 total distinct states at (2026-11-14 16:37:03)\n@!@!@ENDMSG 2192 @!@!@\n@!@!@STARTMSG 2116:1 @!@!@\nTemporal properties were violated.\n\n@!@!@ENDMSG 2116 @!@!@\n@!@!@STARTMSG 2264:1 @!@!@\nThe following behavior constitutes a counter-example:\n\n@!@!@ENDMSG 2264 @!@!@\n@!@!@STARTMSG 2217:4 @!@!@\n1: <Initial predicate>\np = \"idle\"\n\n@!@!@ENDMSG 2217 @!@!@\n@!@!@STARTMSG 2217:4 @!@!@\n2: <Start line 5, col 10 to line 5, col 34 of module Retry>\np = \"busy\"\n\n@!@!@ENDMSG 2217 @!@!@\n@!@!@STARTMSG 2217:4 @!@!@\n3: <Fail line 7, col 10 to line 7, col 36 of module Retry>\np = \"failed\"\n\n@!@!@ENDMSG 2217 @!@!@\n@!@!@STARTMSG 2122:4 @!@!@\n2: Back to state: <Again line 8, col 10 to line 8, col 36 of module Retry>\n\n@!@!@ENDMSG 2122 @!@!@\n@!@!@STARTMSG 2267:0 @!@!@\nFinished checking temporal properties in 00s at 2026-11-14 16:37:03\n@!@!@ENDMSG 2267 @!@!@\n@!@!@STARTMSG 2200:0 @!@!@\nProgress(3) at 2026-11-14 16:37:03: 6 states generated (965 s/min), 4 distinct states found (643 ds/min), 0 states left on queue.\n@!@!@ENDMSG 2200 @!@!@\n@!@!@STARTMSG 2199:0 @!@!@\n6 states generated, 4 distinct states found, 0 states left on queue.\n@!@!@ENDMSG 2199 @!@!@\n@!@!@STARTMSG 2186:0 @!@!@\nFinished in 378ms at (2026-11-14 16:37:03)\n@!@!@ENDMSG 2186 @!@!@\n",
+   "dot": "strict digraph DiskGraph {\nnodesep=0.35;\nsubgraph cluster_graph {\ncolor=\"white\";\n-5756622611087027593 [label=\"p = \\\"idle\\\"\",style = filled]\n-5756622611087027593 -> -2083776945952093990 [label=\"Start\",color=\"black\",fontcolor=\"black\"];\n-2083776945952093990 [label=\"p = \\\"busy\\\"\"];\n-5756622611087027593 -> 128179120826146973 [label=\"Skip\",color=\"black\",fontcolor=\"black\"];\n128179120826146973 [label=\"p = \\\"done\\\"\"];\n-5756622611087027593 -> -5756622611087027593 [style=\"dashed\"];\n-2083776945952093990 -> -147207195786186852 [label=\"Fail\",color=\"black\",fontcolor=\"black\"];\n-147207195786186852 [label=\"p = \\\"failed\\\"\"];\n-2083776945952093990 -> -2083776945952093990 [style=\"dashed\"];\n128179120826146973 -> 128179120826146973 [label=\"Done\",color=\"black\",fontcolor=\"black\"];\n128179120826146973 -> 128179120826146973 [style=\"dashed\"];\n-147207195786186852 -> -2083776945952093990 [label=\"Again\",color=\"black\",fontcolor=\"black\"];\n-147207195786186852 -> -147207195786186852 [style=\"dashed\"];\n{rank = same; -5756622611087027593;}\n{rank = same; -2083776945952093990;128179120826146973;}\n{rank = same; -147207195786186852;}\n}\n}"
+  },
+  {
+   "request": {
+    "invariants": [
+     "EventuallyDone"
+    ],
+    "properties": [],
+    "deadlock": false,
+    "keep_going": false,
+    "bounded": true,
+    "as_written": false,
+    "probe": true
+   },
+   "code": 76,
+   "output": "@!@!@STARTMSG 2262:0 @!@!@\nTLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)\n@!@!@ENDMSG 2262 @!@!@\n@!@!@STARTMSG 2187:0 @!@!@\nRunning breadth-first search Model-Checking with fp 0 and seed 0 with 1 worker on 32 cores with 5957MB heap and 64MB offheap memory [pid: 0] (Linux 6.18.54.1-microsoft-standard-WSL2 amd64, Eclipse Adoptium 25.0.5 x86_64, MSBDiskFPSet, DiskStateQueue).\n@!@!@ENDMSG 2187 @!@!@\n@!@!@STARTMSG 2220:0 @!@!@\nStarting SANY...\n@!@!@ENDMSG 2220 @!@!@\nParsing file <work>/run-2/StatechartBound.tla\nParsing file <models>/Retry.tla\nParsing file <tmp>/Naturals.tla\nParsing file <tmp>/TLC.tla\nParsing file <tmp>/Sequences.tla\nParsing file <tmp>/FiniteSets.tla\nSemantic processing of module Retry\nSemantic processing of module Naturals\nSemantic processing of module Sequences\nSemantic processing of module FiniteSets\nSemantic processing of module TLC\nSemantic processing of module StatechartBound\n@!@!@STARTMSG 2219:0 @!@!@\nSANY finished.\n@!@!@ENDMSG 2219 @!@!@\n@!@!@STARTMSG 2185:0 @!@!@\nStarting... (2026-11-14 16:37:03)\n@!@!@ENDMSG 2185 @!@!@\n@!@!@STARTMSG 2146:1 @!@!@\nThe invariant EventuallyDone is not a state predicate (one with no primes or temporal operators).\n@!@!@ENDMSG 2146 @!@!@\n@!@!@STARTMSG 2186:0 @!@!@\nFinished in 266ms at (2026-11-14 16:37:03)\n@!@!@ENDMSG 2186 @!@!@\n",
+   "dot": ""
+  }
+ ]
+}

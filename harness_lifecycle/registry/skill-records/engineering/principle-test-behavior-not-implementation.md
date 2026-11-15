@@ -4,15 +4,15 @@ domain: engineering
 stage: Verification
 substage: Testing
 secondary: []
-family: 
+family:
 aliases: []
 status: active
 ---
 # principle-test-behavior-not-implementation
 
-Apply when writing, changing or keeping any test.
+writing, changing or keeping any test.
 
-**Boundary:** Judges what a test asserts and whether it earns its place; the test-first cycle is test-driven-development.
+**Boundary:** Judges what a test asserts and whether it earns its place; the test-first cycle is tdd.
 
 <!-- registry:generated traits -->
 - `two-edit-test-judgement`: Judge every test by two imagined edits: breaking the behaviour must fail it, and restructuring the internals must not.
@@ -22,6 +22,7 @@ Apply when writing, changing or keeping any test.
 - `hollow-test-forms`: Check a test for the usual hollow forms: an assertion looser than the contract, a restated constant the code never reads, or an assertion on data the test built itself.
 - `behaviour-and-edge-case-tests`: Judge tests by the behaviours and edge cases they exercise, not by line coverage.
 - `implementation-test-deletion`: When internals change, rewrite or delete tests that only protect the old implementation, asserting the current contract instead.
+- `green-on-break-test-fixed`: Repair or remove a test that stays green when its behaviour breaks.
 <!-- /registry:generated traits -->
 
 <!-- registry:generated lineage -->
@@ -33,9 +34,14 @@ Apply when writing, changing or keeping any test.
 - **cursor_plugins:skill:pstack/skills/principle-foundational-thinking#behaviour-and-edge-case-tests** `pstack/skills/principle-foundational-thinking/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
 - **cursor_plugins:skill:pstack/skills/principle-migrate-callers-then-delete-legacy-apis#implementation-test-deletion** `pstack/skills/principle-migrate-callers-then-delete-legacy-apis/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
 - **cursor_plugins:skill:pstack/skills/principle-test-behavior-not-implementation#implementation-test-deletion** `pstack/skills/principle-test-behavior-not-implementation/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/correct#green-on-break-test-fixed** `pstack/skills/correct/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-12` **adopt** (2026-11-12-batch-p1-existing:072): Completes pending 2026-11-06-batch-p1:155: green-on-break-test-fixed is written at .claude/skills/mvp-mode/principles/test-behavior-not-implementation.md:7-8, …
+- `2026-11-12` **update** (2026-11-12-batch-p1-existing:071): Bead cr-r2pa.2.18, plan 59 slice 1: delivers 1 pending adopts of round 2026-11-06-batch-p1 (:155) into principle-test-behavior-not-implementation, in their rul…
+- `2026-11-06` **adopt** (2026-11-06-batch-p1:155) *(superseded)*: Owner ruling 2026-11-06: Prevents: A test that cannot fail kept because its judgement was never acted on, so it gives false confidence. Lands in principle-test…
+- `2026-11-05` **update** (2026-11-05-principle-move:014): Owner ruling of 2026-11-05: moved from a skill folder to a file read by path; frontmatter and sidecar removed; the rule text is unchanged; the situation now li…
 - `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:200): Completes pending 2026-11-01-cursor_plugins-pstack-principles:124: the principles build (cr-r2pa.1.2) delivered implementation-test-deletion in principle-test-…
 - `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:199): Completes pending 2026-11-01-cursor_plugins-pstack-principles:072: the principles build (cr-r2pa.1.2) delivered implementation-test-deletion in principle-test-…
 - `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:198): Completes pending 2026-11-01-cursor_plugins-pstack-principles:051: the principles build (cr-r2pa.1.2) delivered behaviour-and-edge-case-tests in principle-test…
@@ -55,7 +61,7 @@ Apply when writing, changing or keeping any test.
 <!-- /registry:generated history -->
 
 <!-- registry:generated reviews -->
-None yet.
+- [2026-11-04-upstream-cursor_plugins-4dd1d05-batch-p1.md](../../reviews/2026-11-04-upstream-cursor_plugins-4dd1d05-batch-p1.md)
 <!-- /registry:generated reviews -->
 
 <!-- registry:generated sources -->
@@ -65,6 +71,8 @@ None yet.
   - `cursor_plugins:skill:pstack/skills/principle-foundational-thinking#behaviour-and-edge-case-tests` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `contract-exact-assertion`:
   - `cursor_plugins:skill:pstack/skills/principle-test-behavior-not-implementation#contract-exact-assertion` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `green-on-break-test-fixed`:
+  - `cursor_plugins:skill:pstack/skills/correct#green-on-break-test-fixed` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `hollow-test-forms`:
   - `cursor_plugins:skill:pstack/skills/principle-test-behavior-not-implementation#hollow-test-forms` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `implementation-test-deletion`:

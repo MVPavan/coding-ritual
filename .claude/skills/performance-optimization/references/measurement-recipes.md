@@ -1,7 +1,7 @@
 # Measurement recipes — Python-first
 
-Load condition: about to take a baseline, or run a profiler, EXPLAIN, or
-benchmark — and you need the invocation or the pitfalls that corrupt
+Load condition: about to take a baseline or a live capture, or run a profiler,
+EXPLAIN, or benchmark — and you need the invocation or the pitfalls that corrupt
 baselines. The method stays in SKILL.md; this file is tool mechanics.
 
 ## Timing harness
@@ -61,6 +61,18 @@ runtime before profiling code:
   `uv run memray flamegraph out.bin` — allocation attribution by call site.
 - `tracemalloc`: snapshot before and after N repeated cycles,
   `compare_to(before, 'lineno')` — the diff names the growing line.
+
+## Live capture
+
+For diagnosis only, by symptom. A missing tool or attach permission is a stated gap: stop.
+- Stuck or hung: repeated `py-spy dump`. Hot: `py-spy record --pid`, as above.
+- Resident memory over time: `pidstat -r -p <PID> 5`, RSS across cycles (see Memory).
+- Python allocations from now on: `memray attach -o /abs/allocs.bin --duration 30 <PID>`.
+  Never the existing heap: an existing-heap or retainer question stays a stated gap. It returns
+  after injection and the target writes the file, so wait out the duration before a reporter.
+  Needs Memray in the target's environment, attach rights and, below Python 3.14, gdb or lldb.
+- Any process on Linux: `pidstat -u -d -p <PID> 1`. Time going to the kernel or I/O: count syscalls
+  in a separate run you do not quote (`strace -c -f <command>`); slow, and may need permission.
 
 ## Database (PostgreSQL-first)
 

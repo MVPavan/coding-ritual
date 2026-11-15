@@ -14,13 +14,24 @@ import json
 import shutil
 import subprocess
 from pathlib import Path
+from typing import Any
 
 import pytest
 import yaml
 
-from curation.registry import catalogs, cli, config, ledger, loaders, models, vocab
+from curation.registry import (
+    catalogs,
+    cli,
+    config,
+    ledger,
+    loaders,
+    models,
+    vocab,
+)
 from curation.registry import traits as trait_facts
+from curation.registry.checks import ledger as checks_ledger
 from curation.registry.checks import records as record_checks
+from curation.registry.record import _target_hash
 from curation.registry.views import records as record_views
 from curation.scan import catalog as scan
 
@@ -245,6 +256,78 @@ def test_ours_catalogs_our_skills(tmp_path: Path) -> None:
     assert "skill:skills/planning" in catalogs.build_ours(cfg).by_logical_id()
 
 
+def test_principle_is_a_routed_file_not_a_skill_folder(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    cfg = _baseline(tmp_path)
+    name = "principle-example"
+    _write_record(cfg, name, "engineering", "Design", "Architecture")
+    playbook = cfg.playbooks_dir / "route.md"  # type: ignore[attr-defined]
+    playbook.parent.mkdir(parents=True)
+    playbook.write_text(
+        "---\ntrigger: Route it.\nsteps:\n  - id: route#1\n    when: always\n"
+        f'    calls: [{{to: "skill:{name}"}}]\n---\n# Route\n',
+        encoding="utf-8",
+    )
+
+    def check_output() -> str:
+        cli.cmd_check(cfg, _ns())
+        return capsys.readouterr().err
+
+    no_file = f"skills.yaml: {name}: no file"
+    unresolved = f"call 'skill:{name}'"
+    output = check_output()
+    assert no_file in output
+    assert unresolved in output
+
+    cfg.principles_dir.mkdir()  # type: ignore[attr-defined]
+    file = cfg.principles_dir / "example.md"  # type: ignore[attr-defined]
+    file.write_text("# Example\n", encoding="utf-8")
+    cfg.router_path.write_text(  # type: ignore[attr-defined]
+        "## Principles\n\n- `principles/example.md`: the example situation holds.\n",
+        encoding="utf-8",
+    )
+    output = check_output()
+    assert no_file not in output
+    assert unresolved not in output
+    assert loaders.skill_description(cfg, name) == "the example situation holds."
+
+    # A principle file with no entry.
+    (cfg.principles_dir / "unlisted.md").write_text("# Unlisted\n", encoding="utf-8")  # type: ignore[attr-defined]
+    assert "principle-unlisted: no skills.yaml entry" in check_output()
+
+    def tree_hash() -> str:
+        item = catalogs.build_ours(cfg).by_logical_id()[f"skill:skills/{name}"]
+        return item.tree_hash  # type: ignore[no-any-return]
+
+    before = tree_hash()
+    file.write_text("# Edited\n", encoding="utf-8")
+    assert tree_hash() != before
+
+
+LIVE_LINE = "- `principles/example.md`: live situation.\n"
+EXAMPLE_LINE = "- `principles/example.md`: example only.\n"
+
+
+@pytest.mark.parametrize(
+    "example",
+    [
+        f"<!--\n{EXAMPLE_LINE}-->\n",
+        f"```\n{EXAMPLE_LINE}```\n",
+        f"````markdown\n```\n{EXAMPLE_LINE}````\n",
+        f"~~~~\n~~~\n{EXAMPLE_LINE}~~~~\n",
+    ],
+    ids=["comment", "fence", "backticks-inside-longer", "tildes-inside-longer"],
+)
+def test_principle_situation_skips_examples(tmp_path: Path, example: str) -> None:
+    cfg = _make_cfg(tmp_path)
+    cfg.router_path.parent.mkdir(parents=True)  # type: ignore[attr-defined]
+    cfg.router_path.write_text(  # type: ignore[attr-defined]
+        f"## Principles\n\n{example}{LIVE_LINE}", encoding="utf-8"
+    )
+    assert loaders.skill_description(cfg, "principle-example") == "live situation."
+
+
 def test_build_ours_excludes_plugin_template(tmp_path: Path) -> None:
     cfg = _make_cfg(tmp_path)
     plugin = cfg.repo_root / "plugins" / "p"  # type: ignore[attr-defined]
@@ -392,6 +475,120 @@ def test_reviews_block_renders_both_citation_forms_and_empty(tmp_path: Path) -> 
         cfg.skill_records_dir / "engineering" / "foo.md"  # type: ignore[attr-defined]
     ).read_text()
     assert "None yet." in foo.split(record_views.REVIEWS_OPEN)[1]
+
+
+def test_renamed_skill_record_keeps_lineage_history_and_reviews(
+    tmp_path: Path,
+) -> None:
+    """A rename moves a record's lineage, history and reviews to the survivor;
+    an unrelated skill's record gains none of them."""
+    cfg = _make_cfg(tmp_path)
+    for name in ("slicing", "foo"):
+        _write_skill(cfg, name)
+    _write_record(cfg, "slicing", "engineering", "Design", "Decomposition")
+    _write_record(cfg, "foo", "engineering", "Building", "Diagnosis")
+    _write_round(
+        cfg,
+        "2026-10-14-r",
+        _ours_event(
+            "2026-10-14-r:1",
+            "add",
+            "planning",
+            evidence=[
+                "harness_lifecycle/registry/reviews/2026-10-14-upstream-x-1.0.md"
+            ],
+        ),
+        _ref_event(
+            "2026-10-14-r:2", "adopt", "refrepo", "skill:skills/x", skill="planning"
+        ),
+        {
+            **_ours_event("2026-10-14-r:3", "rename", "planning"),
+            "skill": "slicing",
+            "why": "renamed planning to slicing",
+        },
+        _ours_event("2026-10-14-r:4", "add", "foo"),
+    )
+    assert cli.cmd_build(cfg, _ns()) == 0
+
+    def blocks(skill: str) -> tuple[str, str, str]:
+        text = (
+            cfg.skill_records_dir / "engineering" / f"{skill}.md"  # type: ignore[attr-defined]
+        ).read_text()
+
+        def block(open_tag: str, close_tag: str) -> str:
+            return text.split(open_tag)[1].split(close_tag)[0]
+
+        return (
+            block(record_views.LINEAGE_OPEN, record_views.LINEAGE_CLOSE),
+            block(record_views.HISTORY_OPEN, record_views.HISTORY_CLOSE),
+            block(record_views.REVIEWS_OPEN, record_views.REVIEWS_CLOSE),
+        )
+
+    lineage, history, reviews = blocks("slicing")
+    assert "**refrepo:skill:skills/x**" in lineage
+    for eid in ("2026-10-14-r:1", "2026-10-14-r:2", "2026-10-14-r:3"):
+        assert f"({eid})" in history
+    assert "2026-10-14-r:4" not in history
+    assert "2026-10-14-upstream-x-1.0.md" in reviews
+
+    foo_lineage, foo_history, foo_reviews = blocks("foo")
+    assert "No adopted lineage recorded." in foo_lineage
+    assert "(2026-10-14-r:4)" in foo_history
+    assert "2026-10-14-r:1" not in foo_history
+    assert "None yet." in foo_reviews
+
+
+def test_reusing_a_renamed_name_is_refused(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Adding a name a live rename forwards would leak the new skill's events
+    into the survivor's record, so `record` and `check` refuse it; once the
+    rename is superseded, the name is free again."""
+    cfg = _make_cfg(tmp_path)
+    _write_skill(cfg, "slicing")
+    _write_record(cfg, "slicing", "engineering", "Design", "Decomposition")
+    retiring = [
+        _ours_event("2026-10-14-r:1", "add", "planning"),
+        _ref_event(
+            "2026-10-14-r:2", "adopt", "refrepo", "skill:skills/x", skill="planning"
+        ),
+        {
+            **_ours_event("2026-10-14-r:3", "rename", "planning"),
+            "skill": "slicing",
+            "why": "renamed planning to slicing",
+        },
+    ]
+    readd = _ours_event("2026-10-14-r:4", "add", "planning")
+    _write_round(cfg, "2026-10-14-r", *retiring, readd)
+    with pytest.raises(SystemExit, match="retired by rename 2026-10-14-r:3"):
+        cli.cmd_build(cfg, _ns())
+    _fails_with(
+        cfg,
+        capsys,
+        "2026-10-14-r:4: add reintroduces 'planning', retired by rename 2026-10-14-r:3",
+    )
+
+    # `record` refuses the same add before writing it.
+    path = _write_round(cfg, "2026-10-14-r", *retiring)
+    before = path.read_text()
+    with pytest.raises(SystemExit, match="retired by rename 2026-10-14-r:3"):
+        cli.cmd_record(
+            cfg, _rec_ns(kind="add", subject="ours:planning", why="w", skill="planning")
+        )
+    assert path.read_text() == before
+
+    # A superseded rename retires nothing.
+    undo = {
+        **_ours_event("2026-10-14-r:4", "update", "planning"),
+        "supersedes": ["2026-10-14-r:3"],
+    }
+    _write_round(cfg, "2026-10-14-r", *retiring, undo)
+    assert (
+        cli.cmd_record(
+            cfg, _rec_ns(kind="add", subject="ours:planning", why="w", skill="planning")
+        )
+        == 0
+    )
 
 
 def test_record_autofills_reference_source(tmp_path: Path) -> None:
@@ -621,6 +818,74 @@ def test_check_rejects_superseded_reject_then_adopt_with_bad_target(
     _fails_with(cfg, capsys, "invalid skill target")
 
 
+UNBUILT_PLAYBOOK = "doc:.claude/skills/mvp-mode/playbooks/feature.md"
+
+
+def test_check_accepts_pending_adopt_into_unbuilt_playbook(tmp_path: Path) -> None:
+    """The checkpoint may name it too, as it may a skill not yet built (§5b)."""
+    cfg = _pending_cfg(
+        tmp_path,
+        _trait(
+            "2026-10-14-r:2", "adopt", "seams", skill=UNBUILT_PLAYBOOK, pending="cr-9"
+        ),
+        ours_traits=[],
+        checkpoint_skill=UNBUILT_PLAYBOOK,
+    )
+    assert cli.cmd_build(cfg, _ns()) == 0
+    assert cli.cmd_check(cfg, _ns()) == 0
+
+
+@pytest.mark.parametrize(
+    ("target", "pending"),
+    [
+        ("doc:docs/unbuilt.md", "cr-9"),
+        ("doc:.claude/skills/mvp-mode/playbooks/feature/reference.md", "cr-9"),
+        (UNBUILT_PLAYBOOK, None),
+    ],
+    ids=["pending-outside-folder", "pending-playbook-reference", "delivered-playbook"],
+)
+def test_check_rejects_missing_doc_target_a_build_cannot_excuse(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], target: str, pending: str | None
+) -> None:
+    """Both the trait adopt and the checkpoint naming the same target fail."""
+    extra = {"pending": pending} if pending else {}
+    cfg = _pending_cfg(
+        tmp_path,
+        _trait("2026-10-14-r:2", "adopt", "seams", skill=target, **extra),
+        ours_traits=[],
+        checkpoint_skill=target,
+    )
+    cli.cmd_build(cfg, _ns())
+    assert cli.cmd_check(cfg, _ns()) == 1
+    err = capsys.readouterr().err
+    for eid in ("2026-10-14-r:1", "2026-10-14-r:2"):
+        assert f"{eid}: live adoption" in err and "invalid skill target" in err
+
+
+def test_check_rejects_pending_playbook_through_symlink_out_of_repo(
+    tmp_path: Path,
+    tmp_path_factory: pytest.TempPathFactory,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A missing target may be excused; one that escapes the repository may not."""
+    cfg = _pending_cfg(
+        tmp_path,
+        _trait(
+            "2026-10-14-r:2", "adopt", "seams", skill=UNBUILT_PLAYBOOK, pending="cr-9"
+        ),
+        ours_traits=[],
+        checkpoint_skill=UNBUILT_PLAYBOOK,
+    )
+    playbooks = cfg.repo_root / UNBUILT_PLAYBOOK[len("doc:") :].rsplit("/", 1)[0]
+    playbooks.parent.mkdir(parents=True, exist_ok=True)
+    playbooks.symlink_to(tmp_path_factory.mktemp("outside"), target_is_directory=True)
+    cli.cmd_build(cfg, _ns())
+    assert cli.cmd_check(cfg, _ns()) == 1
+    err = capsys.readouterr().err
+    for eid in ("2026-10-14-r:1", "2026-10-14-r:2"):
+        assert f"{eid}: live adoption" in err and "invalid skill target" in err
+
+
 def test_target_exists_accepts_only_real_kinds_and_shipped_caps(
     tmp_path: Path,
 ) -> None:
@@ -693,6 +958,20 @@ def test_check_rejects_supersession_cycle(
     )
     cli.cmd_build(cfg, _ns())
     _fails_with(cfg, capsys, "cyclic")
+
+
+def test_check_rejects_a_supersedes_edge_pointing_forward(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    cfg = _baseline(tmp_path)
+    _write_round(
+        cfg,
+        "2026-10-14-r",
+        _ours_event("2026-10-14-r:1", "add", "planning", supersedes=["2026-10-14-r:2"]),
+        _ours_event("2026-10-14-r:2", "add", "planning"),
+    )
+    cli.cmd_build(cfg, _ns())
+    _fails_with(cfg, capsys, "which comes later in ledger order")
 
 
 def test_check_rejects_cycle_on_non_first_edge(
@@ -818,6 +1097,106 @@ def test_seal_refuses_to_reseal_changed_round(tmp_path: Path) -> None:
         ledger.seal(cfg, "2026-10-14-r")
 
 
+def _two_sealed_against_filename_order(cfg: object) -> None:
+    """z is sealed before a, so recording order is not filename order."""
+    ledger.seal(cfg, "2026-10-14-r")
+    for round_id in ("2026-10-15-z", "2026-10-15-a"):
+        event = _ours_event(f"{round_id}:1", "add", "planning")
+        _write_round(cfg, round_id, event)
+        ledger.seal(cfg, round_id)
+    assert cli.cmd_build(cfg, _ns()) == 0
+
+
+def test_seal_appends_recording_order_and_the_loader_reads_it(tmp_path: Path) -> None:
+    cfg = _baseline(tmp_path)
+    _two_sealed_against_filename_order(cfg)
+    order = ["2026-10-14-r.jsonl", "2026-10-15-z.jsonl", "2026-10-15-a.jsonl"]
+    ledger.seal(cfg, "2026-10-15-z")  # already sealed: not listed twice
+    ledger.seal_report_digest(cfg, "reviews/x.yaml", "digest")  # keeps the list
+    manifest = json.loads(cfg.manifest_path.read_text())  # type: ignore[attr-defined]
+    assert manifest["round_order"] == order
+    _write_round(cfg, "2026-10-13-open", _ours_event("2026-10-13-open:1", "add", "x"))
+    names = [p.name for p in loaders._round_files(cfg)]  # type: ignore[arg-type]
+    assert names == [*order, "2026-10-13-open.jsonl"]
+    current = ledger.effective_by_subject(loaders.load_ledger(cfg)[1])
+    assert current["ours:planning"].id == "2026-10-15-a:1"
+    record = cfg.skill_records_dir / "engineering" / "planning.md"  # type: ignore[attr-defined]
+    text = record.read_text()
+    assert text.index("(2026-10-15-a:1)") < text.index(
+        "(2026-10-15-z:1)"
+    )  # newest first
+
+
+@pytest.mark.parametrize(
+    ("order", "needle"),
+    [
+        (
+            ["2026-10-15-z.jsonl", "2026-10-15-a.jsonl"],
+            "2026-10-14-r.jsonl: not listed",
+        ),
+        (
+            ["2026-10-14-r.jsonl", "2026-10-15-z.jsonl", "2026-10-15-a.jsonl"] * 2,
+            "2026-10-14-r.jsonl: listed more than once",
+        ),
+        (
+            [
+                "2026-10-14-r.jsonl",
+                "2026-10-15-z.jsonl",
+                "2026-10-15-a.jsonl",
+                "2026-10-16-gone.jsonl",
+            ],
+            "2026-10-16-gone.jsonl: listed but not sealed",
+        ),
+        ("2026-10-14-r.jsonl", "round_order must be a list"),
+        (None, "round_order must be a list"),
+    ],
+    ids=["missing", "duplicate", "unsealed", "string", "null"],
+)
+def test_check_refuses_a_bad_round_order(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], order: object, needle: str
+) -> None:
+    cfg = _baseline(tmp_path)
+    _two_sealed_against_filename_order(cfg)
+    path = cfg.manifest_path  # type: ignore[attr-defined]
+    manifest = json.loads(path.read_text())
+    manifest["round_order"] = order
+    path.write_text(json.dumps(manifest))
+    _fails_with(cfg, capsys, needle)
+
+
+@pytest.mark.parametrize(
+    "order",
+    [None, ["2026-10-14-r.jsonl", "2026-10-15-z.jsonl"]],
+    ids=["absent", "missing-a-sealed-round"],
+)
+def test_bad_round_order_refuses_record_build_and_seal(
+    tmp_path: Path, order: object
+) -> None:
+    cfg = _baseline(tmp_path)
+    _two_sealed_against_filename_order(cfg)
+    path = cfg.manifest_path  # type: ignore[attr-defined]
+    manifest = json.loads(path.read_text())
+    if order is None:
+        del manifest["round_order"]
+    else:
+        manifest["round_order"] = order
+    path.write_text(json.dumps(manifest))
+    _write_round(cfg, "2026-10-16-o", _ours_event("2026-10-16-o:1", "add", "x"))
+    tree = cfg.ledger_dir.parent  # type: ignore[attr-defined]
+    before = {p: p.read_bytes() for p in tree.rglob("*") if p.is_file()}
+
+    payload = json.dumps(_ours_event("2026-10-16-o:2", "add", "planning"))
+    for call in (
+        lambda: cli.cmd_record(cfg, _rec_ns(json=payload)),
+        lambda: cli.cmd_build(cfg, _ns()),
+        lambda: ledger.seal(cfg, "2026-10-16-o"),
+    ):
+        with pytest.raises(SystemExit, match="repair round_order"):
+            call()
+
+    assert {p: p.read_bytes() for p in tree.rglob("*") if p.is_file()} == before
+
+
 def test_more_than_one_open_round(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
@@ -868,6 +1247,9 @@ def test_skills_yaml_and_generated_records(
     assert text.startswith("---\nskill: planning\ndomain: engineering\n")
     assert "\n# planning\n\nA test skill.\n\n<!-- registry:generated traits -->" in text
     assert "## Capability" not in text
+    # A skill with no family renders a bare `family:` key, with no trailing space.
+    assert "\nfamily:\n" in text
+    assert [line for line in text.splitlines() if line != line.rstrip()] == []
 
     # (a) a hand edit to a record fails until `build`
     record.write_text(text.replace("A test skill.", "Edited."), encoding="utf-8")
@@ -1515,7 +1897,9 @@ def test_awaiting_trait_ruling(
 
 
 # Acceptance 4: the pending lifecycle.
-def _pending_cfg(base: Path, *events: dict, ours_traits: list[str]) -> object:
+def _pending_cfg(
+    base: Path, *events: dict, ours_traits: list[str], checkpoint_skill: str = "tdd"
+) -> object:
     cfg = _make_cfg(base)
     _write_skill(cfg, "tdd")
     _write_record(cfg, "tdd", "engineering", "Design", "Specification")
@@ -1528,7 +1912,7 @@ def _pending_cfg(base: Path, *events: dict, ours_traits: list[str]) -> object:
     _write_round(
         cfg,
         "2026-10-14-r",
-        _checkpoint("2026-10-14-r:1", "adopt", "tdd"),
+        _checkpoint("2026-10-14-r:1", "adopt", checkpoint_skill),
         *events,
         trait_level=True,
     )
@@ -2052,6 +2436,43 @@ def test_reference_page_traits_column(tmp_path: Path) -> None:
     assert "1 adopt" in page
 
 
+@pytest.mark.parametrize("with_traits", [False, True])
+def test_reference_page_names_the_renamed_skill(
+    tmp_path: Path, with_traits: bool
+) -> None:
+    """A whole-skill adoption into a skill we later renamed shows the survivor
+    under Into ours, whether or not the reference has trait analysis."""
+    cfg = _trait_cfg(tmp_path) if with_traits else _make_cfg(tmp_path)
+    _write_skill(cfg, "slicing")
+    _write_record(cfg, "slicing", "engineering", "Design", "Decomposition")
+    caps = [_cap("skill", "x", "skill:skills/x", "h")]
+    if with_traits:
+        caps.append(_cap("skill", "tdd", LOGICAL, "hcur"))
+    _catalog(cfg, "refrepo", caps)
+    _write_round(
+        cfg,
+        "2026-10-14-migration",
+        _ours_event("2026-10-14-migration:1", "add", "planning"),
+        _ref_event(
+            "2026-10-14-migration:2",
+            "adopt",
+            "refrepo",
+            "skill:skills/x",
+            skill="planning",
+        ),
+        {
+            **_ours_event("2026-10-14-migration:3", "rename", "planning"),
+            "skill": "slicing",
+            "why": "renamed planning to slicing",
+        },
+    )
+    assert cli.cmd_build(cfg, _ns()) == 0
+    page = (cfg.references_dir / "refrepo.md").read_text(encoding="utf-8")  # type: ignore[attr-defined]
+    row = next(line for line in page.splitlines() if "`skill:skills/x`" in line)
+    assert row.split(" | ")[3] == "slicing"
+    assert ("Traits" in page) is with_traits
+
+
 def test_build_refuses_invalid_trait_files(tmp_path: Path) -> None:
     """review r1 #10: a trait file that fails to load stops build before writing."""
     cfg = _trait_cfg(tmp_path)
@@ -2374,3 +2795,228 @@ def test_retained_adoption_may_target_doc_agents_md(tmp_path: Path) -> None:
     )
     assert cli.cmd_build(cfg, _ns()) == 0
     assert cli.cmd_check(cfg, _ns()) == 0
+
+
+# --- a playbook renamed (plan 45 §5b, P2 U0) ----------------------------------
+
+MEND_PATH = ".claude/skills/mvp-mode/playbooks/mend.md"
+
+
+def _steps() -> Any:
+    """The playbook fixtures live in `test_steps`, which imports this module,
+    so it is imported when a test runs."""
+    from tests.curation import test_steps
+
+    return test_steps
+
+
+def _rename(cfg: object, old: str, new: str) -> int:
+    fields = {"kind": "rename", "subject": old, "skill": new, "why": "renamed"}
+    return cli.cmd_record(cfg, _rec_ns(json=json.dumps(fields)))  # type: ignore[arg-type]
+
+
+def _renamed_playbook(base: Path, *, rename: bool = True) -> object:
+    """`fix` holds a whole-capability `adopt-merged` (shaped like
+    `2026-11-02-pilot-2:013`) and the adopted trait `gate`. Its file and
+    reference folder move to `mend`; `record` adds `mend`, then renames
+    `fix` into it."""
+    st = _steps()
+    old, new = f"doc:{st.FIX_PATH}", f"doc:{MEND_PATH}"
+    cfg = st._playbook_cfg(base)
+    caps = [_cap("skill", "tdd", LOGICAL, "hcur"), _cap("skill", "x", "skill:x", "h")]
+    _catalog(cfg, "refrepo", caps)
+    merged = _ref_event(
+        "2026-10-14-owner-review:1",
+        "adopt-merged",
+        "refrepo",
+        "skill:x",
+        skill=old,
+        adaptation={"merged_from": ["x"]},
+    )
+    _write_round(cfg, "2026-10-14-owner-review", merged)
+    ledger.seal(cfg, "2026-10-14-owner-review")  # type: ignore[arg-type]
+    _write_round(
+        cfg,
+        "2026-10-14-r",
+        _checkpoint("2026-10-14-r:1", "adopt", "tdd"),
+        _trait("2026-10-14-r:2", "adopt", "seams", skill="tdd"),
+        _trait("2026-10-14-r:3", "adopt", "gate", skill=old),
+        *st._baselines(cfg),
+        trait_level=True,
+    )
+    analysis = cfg.traits_dir / "refrepo.yaml"  # type: ignore[attr-defined]
+    analysis.write_text(analysis.read_text().replace("[seams]", "[seams, gate]"))
+    folder = cfg.playbooks_dir  # type: ignore[attr-defined]
+    (folder / "fix").rename(folder / "mend")
+    (folder / "fix.md").unlink()
+    mend = st.FIX.replace("fix#", "mend#").replace("fix/notes", "mend/notes")
+    st._write_playbook(cfg, "mend", mend)
+    assert st._record(cfg, "add", new) == 0
+    if rename:
+        assert _rename(cfg, old, new) == 0
+    assert cli.cmd_build(cfg, _ns()) == 0  # type: ignore[arg-type]
+    return cfg
+
+
+def test_a_renamed_playbook_keeps_its_adoptions(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Without the rename, the moved playbook's old event and adoptions fail;
+    with it, they follow the new path: the lifecycle, the target check, the
+    target hash and the reference page's current destination."""
+    st = _steps()
+    old, new = f"doc:{st.FIX_PATH}", f"doc:{MEND_PATH}"
+    stuck = _renamed_playbook(tmp_path / "stuck", rename=False)
+    assert cli.cmd_check(stuck, _ns()) == 1  # type: ignore[arg-type]
+    err = capsys.readouterr().err
+    assert f"{st.FIX_PATH}: no such playbook, but 2026-10-14-r:100" in err
+    assert f"has an invalid skill target {old!r}" in err
+
+    cfg = _renamed_playbook(tmp_path / "moved")
+    assert cli.cmd_check(cfg, _ns()) == 0, capsys.readouterr().err  # type: ignore[arg-type]
+    events = loaders.load_ledger(cfg)[1]  # type: ignore[arg-type]
+    forward, _ = ledger.build_lifecycle(ledger.live_events(events))
+    assert ledger.resolve_skill(old, forward) == new
+    want = st.steps.playbook_tree_hash(cfg, MEND_PATH)
+    assert _target_hash(cfg, old, events) == want  # type: ignore[arg-type]
+    page = (cfg.references_dir / "refrepo.md").read_text(encoding="utf-8")  # type: ignore[attr-defined]
+    row = next(line for line in page.splitlines() if "`skill:x`" in line)
+    assert row.split(" | ")[3] == new
+
+    # Status and a withdrawal under the new path see the adoption made under
+    # the old one.
+    gate = f"{SUBJECT}#gate"
+
+    def label() -> str:
+        context = st.reports.load_context(cfg)
+        return str(st.status.provisions(context)[gate])
+
+    assert label() == "delivered"
+    mend = (cfg.playbooks_dir / "mend.md").read_text()  # type: ignore[attr-defined]
+    st._write_playbook(cfg, "mend", mend.replace("[gate]", "[]"))
+    assert st._record(cfg, "update", new, withdraws=[gate]) == 0
+    assert cli.cmd_build(cfg, _ns()) == 0  # type: ignore[arg-type]
+    assert cli.cmd_check(cfg, _ns()) == 0, capsys.readouterr().err  # type: ignore[arg-type]
+    assert label() == "withdrawn"
+
+
+@pytest.mark.parametrize(
+    "new",
+    [
+        "doc:.claude/skills/mvp-mode/playbooks/gone.md",
+        "doc:.claude/skills/mvp-mode/playbooks/fix/notes.md",
+        "doc:AGENTS.md",
+        "tdd",
+    ],
+)
+def test_record_refuses_a_rename_onto_no_playbook(tmp_path: Path, new: str) -> None:
+    st = _steps()
+    cfg = st._playbook_cfg(tmp_path)
+    (cfg.repo_root / "AGENTS.md").write_text("x\n")  # type: ignore[attr-defined]
+    with pytest.raises(SystemExit, match="is not a playbook file"):
+        _rename(cfg, f"doc:{st.FIX_PATH}", new)
+
+
+def test_a_playbook_renames_only_onto_another_playbook_path() -> None:
+    """A hand-written rename cannot move a playbook onto a skill or itself."""
+    st = _steps()
+    old = f"doc:{st.FIX_PATH}"
+    base = {"type": "event", "id": "r:1", "date": "2026-10-14", "kind": "rename"}
+    for new in ("tdd", "ours:tdd", old):
+        with pytest.raises(ValueError, match="renamed only to another `doc:`"):
+            models.Event.model_validate(
+                base | {"subject": old, "skill": new, "why": "w"}
+            )
+
+
+def test_a_renamed_away_playbook_needs_its_survivor_add(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """A rename whose survivor has no `add` or `update` leaves no hashed
+    playbook behind, and one whose old path is no playbook would forward that
+    file's adoptions, so `check` fails."""
+    st = _steps()
+    cfg = st._playbook_cfg(tmp_path)
+    gone = "doc:.claude/skills/mvp-mode/playbooks/gone.md"
+    rename = st._baselines(cfg)[1] | {"id": "2026-10-14-r:102", "kind": "rename"}
+    (cfg.playbooks_dir / "ship.md").unlink()  # type: ignore[attr-defined]
+    del rename["target_tree_hash"]
+    path = cfg.ledger_dir / "2026-10-14-r.jsonl"  # type: ignore[attr-defined]
+    agents = rename | {"id": "2026-10-14-r:103", "subject": "doc:AGENTS.md"}
+    with path.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(rename | {"skill": gone}) + "\n")
+        handle.write(json.dumps(agents | {"skill": f"doc:{st.FIX_PATH}"}) + "\n")
+    assert cli.cmd_build(cfg, _ns()) == 0  # type: ignore[arg-type]
+    assert cli.cmd_check(cfg, _ns()) == 1  # type: ignore[arg-type]
+    err = capsys.readouterr().err
+    assert (
+        f"2026-10-14-r:102: doc:{st.SHIP_PATH} is renamed to {gone}, which has "
+        f"no effective `add` or `update`"
+    ) in err
+    assert "2026-10-14-r:103: doc:AGENTS.md names no playbook file" in err
+
+
+def test_adopt_target_follows_a_playbook_rename() -> None:
+    """A trait adopted into a renamed playbook renders under the new `doc:`
+    label; a `kind:name` target stays verbatim."""
+    st = _steps()
+    old, new = f"doc:{st.FIX_PATH}", f"doc:{MEND_PATH}"
+    forward = {old: new, "command:x": "command:y"}
+    for target, want in ((old, new), ("command:x", "command:x")):
+        adopt = models.Event.model_validate(
+            _trait("r:1", "adopt", "gate", skill=target)
+        )
+        assert ledger._adopt_target(adopt, forward) == want
+
+
+@pytest.mark.parametrize("kind", ["add", "update"])
+def test_a_renamed_away_playbook_path_is_not_reused(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], kind: str
+) -> None:
+    """`add` or `update` of a path a live rename forwards is refused by
+    `record` and `check`; once that rename is superseded, the path is free
+    again."""
+    st = _steps()
+    old = f"doc:{st.FIX_PATH}"
+    cfg = _renamed_playbook(tmp_path)
+    renamed = st._last_event(cfg)["id"]
+    st._write_playbook(cfg, "fix", st.FIX)
+    (cfg.playbooks_dir / "fix").mkdir()  # type: ignore[attr-defined]
+    (cfg.playbooks_dir / "fix" / "notes.md").write_text("Notes.\n")  # type: ignore[attr-defined]
+    with pytest.raises(SystemExit, match=f"retired by rename {renamed}"):
+        st._record(cfg, kind, old)
+    path = cfg.ledger_dir / "2026-10-14-r.jsonl"  # type: ignore[attr-defined]
+    before = path.read_text(encoding="utf-8")
+    readd = st._baselines(cfg)[0] | {"id": "2026-10-14-r:900", "kind": kind}
+    path.write_text(before + json.dumps(readd) + "\n", encoding="utf-8")
+    _fails_with(
+        cfg, capsys, f"2026-10-14-r:900: {kind} reintroduces {old!r}, retired by rename"
+    )
+    path.write_text(before, encoding="utf-8")
+    assert st._record(cfg, kind, old, supersedes=[renamed]) == 0
+    assert cli.cmd_build(cfg, _ns()) == 0  # type: ignore[arg-type]
+    assert cli.cmd_check(cfg, _ns()) == 0, capsys.readouterr().err  # type: ignore[arg-type]
+
+
+def test_plain_name_lifecycle_is_unchanged() -> None:
+    """Regression (unchanged code): a skill renamed, then merged into a
+    playbook, resolves to it under its plain names, renders with its trait
+    id, and its old name still cannot come back."""
+    st = _steps()
+    playbook = f"doc:{st.FIX_PATH}"
+    events = [
+        models.Event.model_validate(e)
+        for e in (
+            _ours_event("r:1", "add", "old"),
+            _ours_event("r:2", "rename", "mid", subject="ours:old"),
+            _ours_event("r:3", "merge", playbook, subject="ours:mid"),
+            _ours_event("r:4", "add", "old"),
+        )
+    ]
+    forward, _ = ledger.build_lifecycle(events)
+    assert forward == {"old": "mid", "mid": playbook}
+    adopt = models.Event.model_validate(_trait("r:5", "adopt", "seams", skill="old"))
+    assert ledger._adopt_target(adopt, forward) == f"{playbook}#seams"
+    assert checks_ledger.reuse_errors(events) == [
+        "r:4: add reintroduces 'old', retired by rename r:2"
+    ]

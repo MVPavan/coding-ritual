@@ -11,14 +11,17 @@ Domain → stage → sub-stage. Each active skill under its primary home.
 - **Research**: research
 
 ### Intake
-- **Clarification**: brainstorming, grilling
+- **Clarification**: discovery, grilling, restate, sharpen
 - **Triage**: triage
+
+### Design
+- **Specification**: to-spec
 
 ### Building
 - **Implementation**: build-a-lever
 
 ### Verification
-- **Review**: review
+- **Review**: interrogate, no-comments, review
 
 ### Delivery
 - **Release**: harness-publish
@@ -27,9 +30,9 @@ Domain → stage → sub-stage. Each active skill under its primary home.
 - **Codification**: authoring-for-agents, harness-evaluate, harness-scan, harness-skill-compare, harness-status, migrate-claude-to-codex
 
 ### X
-- **Communication**: html-artifact, i-have-adhd, show-me
-- **Continuity**: beads
-- **Coordination**: delegation, model-council, mvp-mode, perspective-council
+- **Communication**: brief-me, html-artifact, show-me, unslop
+- **Continuity**: beads, decision-trail, recall, wake
+- **Coordination**: delegation, model-council, mvp-mode, perspective-council, tracker
 
 ### U
 - **Tutoring**: teach
@@ -37,48 +40,52 @@ Domain → stage → sub-stage. Each active skill under its primary home.
 ## engineering
 
 ### Discovery
-- **Research**: codebase-research
+- **Research**: codebase-research, how, why
 
 ### Design
-- **Architecture**: codebase-design, design-evolve, domain-modeling, principle-boundary-discipline, principle-make-operations-idempotent, principle-minimize-reader-load, principle-model-the-domain, principle-redesign-from-first-principles, principle-separate-before-serializing-shared-state, principle-type-system-discipline, prototype
-- **Decomposition**: planning, principle-migrate-without-shims, principle-subtract-before-you-add
+- **Architecture**: codebase-design, design-evolve, domain-modeling, principle-boundary-discipline, principle-exhaust-the-design-space, principle-make-operations-idempotent, principle-minimize-reader-load, principle-model-the-domain, principle-redesign-from-first-principles, principle-separate-before-serializing-shared-state, principle-type-system-discipline, prototype, statechart
+- **Decomposition**: principle-migrate-without-shims, principle-subtract-before-you-add, to-plan, to-roadmap
 - **Specification**: principle-experience-first
 
 ### Building
-- **Diagnosis**: performance-optimization, principle-attack-the-premise, principle-explain-the-number, systematic-debugging
-- **Implementation**: principle-sequence-verifiable-units, test-driven-development
+- **Diagnosis**: performance-optimization, principle-attack-the-premise, principle-explain-the-number, principle-fix-root-causes, systematic-debugging
+- **Implementation**: principle-no-comments, principle-sequence-verifiable-units, tdd
 
 ### Verification
 - **Review**: security
 - **Testing**: check-invariants, principle-test-behavior-not-implementation
 
 ### Delivery
-- **Integration**: resolving-merge-conflicts
+- **Integration**: land, pr, resolving-merge-conflicts
 
 ### Operations
 - **Maintenance**: improve-codebase-architecture
 
-### X
-- **Coordination**: execution
+### Improvement
+- **Codification**: create-formal-verification-skill, create-verification-skill, maintain-formal-verification-skill, maintain-verification-skill
+- **Retrospective**: reflect
 
 ## Merge candidates
 
 Two or more active skills share one domain · sub-stage (README §2 rule 3):
 
-- core · Intake · Clarification: brainstorming, grilling
+- core · Intake · Clarification: discovery, grilling, restate, sharpen
+- core · Verification · Review: interrogate, no-comments, review
 - core · Improvement · Codification: authoring-for-agents, harness-evaluate, harness-scan, harness-skill-compare, harness-status, migrate-claude-to-codex
-- core · X · Communication: html-artifact, i-have-adhd, show-me
-- core · X · Coordination: delegation, model-council, mvp-mode, perspective-council
-- engineering · Design · Architecture: codebase-design, design-evolve, domain-modeling, principle-boundary-discipline, principle-make-operations-idempotent, principle-minimize-reader-load, principle-model-the-domain, principle-redesign-from-first-principles, principle-separate-before-serializing-shared-state, principle-type-system-discipline, prototype
-- engineering · Design · Decomposition: planning, principle-migrate-without-shims, principle-subtract-before-you-add
-- engineering · Building · Diagnosis: performance-optimization, principle-attack-the-premise, principle-explain-the-number, systematic-debugging
-- engineering · Building · Implementation: principle-sequence-verifiable-units, test-driven-development
+- core · X · Communication: brief-me, html-artifact, show-me, unslop
+- core · X · Continuity: beads, decision-trail, recall, wake
+- core · X · Coordination: delegation, model-council, mvp-mode, perspective-council, tracker
+- engineering · Discovery · Research: codebase-research, how, why
+- engineering · Design · Architecture: codebase-design, design-evolve, domain-modeling, principle-boundary-discipline, principle-exhaust-the-design-space, principle-make-operations-idempotent, principle-minimize-reader-load, principle-model-the-domain, principle-redesign-from-first-principles, principle-separate-before-serializing-shared-state, principle-type-system-discipline, prototype, statechart
+- engineering · Design · Decomposition: principle-migrate-without-shims, principle-subtract-before-you-add, to-plan, to-roadmap
+- engineering · Building · Diagnosis: performance-optimization, principle-attack-the-premise, principle-explain-the-number, principle-fix-root-causes, systematic-debugging
+- engineering · Building · Implementation: principle-no-comments, principle-sequence-verifiable-units, tdd
 - engineering · Verification · Testing: check-invariants, principle-test-behavior-not-implementation
+- engineering · Delivery · Integration: land, pr, resolving-merge-conflicts
+- engineering · Improvement · Codification: create-formal-verification-skill, create-verification-skill, maintain-formal-verification-skill, maintain-verification-skill
 
 ## Aliases
 
-- brainstorming: idea-refine
-- execution: phase-execution, run-phases
 - grilling: grill-me, grill-with-docs
 - review: document-review, receiving-code-review
 - teach: teach-session

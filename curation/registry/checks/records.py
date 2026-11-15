@@ -5,14 +5,16 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+from curation.registry.checks.traits import doc_holder_kind
 from curation.registry.config import RegistryConfig, _rel
 from curation.registry.ledger import (
     _trait_base,
     effective_by_subject,
     is_pending_adopt,
     resolve_skill,
+    tracks_adoption,
 )
-from curation.registry.loaders import record_paths
+from curation.registry.loaders import principle_names, record_paths, unit_file
 from curation.registry.models import Event, Frontmatter, SkillEntry
 from curation.registry.views.records import (
     DECLINED_CLOSE,
@@ -28,7 +30,7 @@ from curation.registry.views.records import (
     TRAITS_CLOSE,
     TRAITS_OPEN,
 )
-from curation.registry.vocab import IN_PROGRESS_DIR, STUB_SKILLS
+from curation.registry.vocab import IN_PROGRESS_DIR, PRINCIPLE_PREFIX, STUB_SKILLS
 
 # Non-skill target kinds a `kind:name` adoption target may name.
 NONSKILL_KINDS = frozenset({"agent", "command", "hook", "rule", "mcp", "plugin"})
@@ -78,6 +80,17 @@ def _target_exists(
     return False
 
 
+def _can_be_planned(cfg: RegistryConfig, target: str) -> bool:
+    """A target a delivering build may still create: a skill, or a playbook
+    whose prospective path stays inside repo_root, even through symlinks."""
+    if target.startswith("doc:"):
+        rel = target[len("doc:") :]
+        if doc_holder_kind(cfg, rel) != "playbook":
+            return False
+        return (cfg.repo_root / rel).resolve().is_relative_to(cfg.repo_root.resolve())
+    return ":" not in target
+
+
 def _check_effective_targets(
     cfg: RegistryConfig,
     events: list[Event],
@@ -90,14 +103,18 @@ def _check_effective_targets(
     """Every live adoption carries a source and a target that resolves today.
     A target is resolved through our rename/merge lifecycle (§3); a target that
     was retired is "adopted, no longer provided", not an error. An unresolved,
-    still-active target is an error. A pending trait adopt may name a skill
-    its delivering build will create, and so may its skill's checkpoint (§5b);
-    a delivered adopt needs the skill to exist."""
+    still-active target is an error. A pending trait adopt may name a skill or
+    playbook its delivering build will create, and so may its skill's checkpoint
+    (§5b); a delivered adopt needs the target to exist."""
     existing = records | aliases | STUB_SKILLS
     effective = effective_by_subject(events)
     planned: dict[str, set[str]] = {}
     for event in effective.values():
-        if is_pending_adopt(event) and event.skill and ":" not in event.skill:
+        if (
+            is_pending_adopt(event)
+            and event.skill
+            and _can_be_planned(cfg, event.skill)
+        ):
             planned.setdefault(_trait_base(event.subject), set()).add(event.skill)
     errors: list[str] = []
     for subject, event in effective.items():
@@ -106,9 +123,9 @@ def _check_effective_targets(
         if event.source is None:
             errors.append(f"{event.id}: live adoption of {subject} has no source")
         target = event.skill
-        # Plain skill targets follow rename/merge; kind:name and doc: targets do not.
+        # Skill and `doc:` targets follow rename/merge; kind:name targets do not.
         resolved = target
-        if target and ":" not in target:
+        if target and tracks_adoption(target):
             resolved = resolve_skill(target, forward)
         if resolved in retired:
             continue
@@ -156,10 +173,11 @@ def _check_block_pairing(cfg: RegistryConfig) -> list[str]:
 def _check_skill_coverage(
     cfg: RegistryConfig, records: dict[str, Frontmatter]
 ) -> list[str]:
-    """One `skills.yaml` entry per real skill folder: a folder with no entry
-    (and not an alias, stub or in-progress) fails, and so does an entry with no
-    folder (README §3 rule 5, check item 7). No skills folder at all fails
-    every entry."""
+    """One `skills.yaml` entry per real skill folder or principle file: a folder
+    or file with no entry (and not an alias, stub or in-progress) fails, and so
+    does an entry with neither (README §3 rule 5, check item 7). A principle's
+    entry needs its file; a `principle-*` folder does not count. No skills
+    folder at all fails every entry."""
     aliases = {alias for fm in records.values() for alias in fm.aliases}
     errors: list[str] = []
     folders = (
@@ -167,7 +185,8 @@ def _check_skill_coverage(
         if cfg.skills_dir.is_dir()
         else set()
     )
-    for name in sorted(folders):
+    principles = principle_names(cfg)
+    for name in sorted(folders | principles):
         if (
             name == IN_PROGRESS_DIR
             or name in records
@@ -179,8 +198,13 @@ def _check_skill_coverage(
             f".claude/skills/{name}: no skills.yaml entry, and not an alias, stub "
             f"or in-progress"
         )
-    for name in sorted(set(records) - folders):
-        errors.append(f"skills.yaml: {name}: no .claude/skills/{name} folder")
+    skill_folders = {n for n in folders if not n.startswith(PRINCIPLE_PREFIX)}
+    for name in sorted(set(records) - skill_folders - principles):
+        if name.startswith(PRINCIPLE_PREFIX):
+            rel = unit_file(cfg, name).relative_to(cfg.repo_root)
+            errors.append(f"skills.yaml: {name}: no file {rel}")
+        else:
+            errors.append(f"skills.yaml: {name}: no .claude/skills/{name} folder")
     return errors
 
 

@@ -67,9 +67,16 @@ Build and sharpen a project's domain model. Use when the user wants to pin down 
 - **mattpocock_skills:skill:skills/engineering/domain-modeling#tight-concept-definitions** `skills/engineering/domain-modeling/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/engineering/domain-modeling#topic-context-resolution** `skills/engineering/domain-modeling/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/in-progress/loop-me#sharpen-fuzzy** `skills/in-progress/loop-me/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills#scoped-decision-records** `skills/engineering/setup-matt-pocock-skills/SKILL.md` @ 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d
+- **mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills#context-map-lookup** `skills/engineering/setup-matt-pocock-skills/SKILL.md` @ 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d
+- **mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills#lazy-glossary-and-adr** `skills/engineering/setup-matt-pocock-skills/SKILL.md` @ 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-09` **adopt-merged** (2026-11-09-pocock-4ae2317:155): Checkpoint at 4ae2317 for the owner's trait rulings: 5 adopt, 6 defer, 43 reject.
+- `2026-11-09` **adopt** (2026-11-09-pocock-4ae2317:149): Owner ruling 2026-11-09: .claude/skills/domain-modeling/SKILL.md:18 creates the files lazily, only when there is something concrete to write.
+- `2026-11-09` **adopt** (2026-11-09-pocock-4ae2317:147): Owner ruling 2026-11-09: .claude/skills/domain-modeling/SKILL.md:15 follows the context map's per-context locations when one exists.
+- `2026-11-09` **adopt** (2026-11-09-pocock-4ae2317:119): Owner ruling 2026-11-09: .claude/skills/domain-modeling/CONTEXT-FORMAT.md:65 keeps context-specific decision records in the context and system-wide ones at the…
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:562): Checkpoint at 5beb35b for the owner's trait rulings: 21 adopt.
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:454): HELD: domain-modeling lists it; ours's grilling routes settled terms to domain-modeling when documentation is requested.
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:072): Ours infers the topic's context and asks when it is unclear.
@@ -99,7 +106,7 @@ Build and sharpen a project's domain model. Use when the user wants to pin down 
 <!-- /registry:generated history -->
 
 <!-- registry:generated reviews -->
-None yet.
+- [2026-11-06-upstream-mattpocock_skills-4ae2317.md](../../reviews/2026-11-06-upstream-mattpocock_skills-4ae2317.md)
 <!-- /registry:generated reviews -->
 
 <!-- registry:generated sources -->
@@ -119,6 +126,7 @@ None yet.
   - `mattpocock_skills:skill:skills/engineering/domain-modeling#context-map-artifact` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `context-map-lookup`:
   - `mattpocock_skills:skill:skills/engineering/domain-modeling#context-map-lookup` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+  - `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills#context-map-lookup` (adopted at 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d)
 - `context-specific-terms`:
   - `mattpocock_skills:skill:skills/engineering/domain-modeling#context-specific-terms` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `cross-reference-code`:
@@ -129,12 +137,14 @@ None yet.
   - `mattpocock_skills:skill:skills/engineering/domain-modeling#glossary-is-glossary` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `lazy-glossary-and-adr`:
   - `mattpocock_skills:skill:skills/engineering/domain-modeling#lazy-glossary-and-adr` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+  - `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills#lazy-glossary-and-adr` (adopted at 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d)
 - `minimal-decision-record`:
   - `mattpocock_skills:skill:skills/engineering/domain-modeling#minimal-decision-record` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `optional-record-sections`:
   - `mattpocock_skills:skill:skills/engineering/domain-modeling#optional-record-sections` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `scoped-decision-records`:
   - `mattpocock_skills:skill:skills/engineering/domain-modeling#scoped-decision-records` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+  - `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills#scoped-decision-records` (adopted at 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d)
 - `sequential-record-numbering`:
   - `mattpocock_skills:skill:skills/engineering/domain-modeling#sequential-record-numbering` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `sharpen-fuzzy`:

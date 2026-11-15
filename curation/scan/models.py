@@ -13,6 +13,7 @@ class Kind(str, Enum):
     """The kinds of capability a harness can ship."""
 
     SKILL = "skill"
+    PLAYBOOK = "playbook"
     COMMAND = "command"
     AGENT = "agent"
     RULE = "rule"
@@ -37,11 +38,13 @@ class Capability:
     variant_hashes: tuple[str, ...]
     line_count: int
     # Non-capability files bundled inside a skill's own folder (prompt templates
-    # handed to subagents, helper scripts). They are part of the skill, not
-    # separate capabilities, so they are recorded here rather than as own rows.
+    # handed to subagents, helper scripts), or a playbook's reference folder. They
+    # are part of it, not separate capabilities, so they are recorded here rather
+    # than as own rows.
     assets: tuple[str, ...] = ()
-    # sha256 over every file in a skill's folder (SKILL.md + assets); for other
-    # kinds it equals content_hash. Lets `gap` see asset-only changes (§4).
+    # sha256 over every file in a skill's folder (SKILL.md + assets) or over a
+    # playbook's file and reference folder; for other kinds it equals content_hash.
+    # Lets `gap` see asset-only changes (§4).
     tree_hash: str = ""
 
     def to_dict(self) -> dict[str, object]:
@@ -70,13 +73,13 @@ class Capability:
         raw_tree = data.get("tree_hash")
         if raw_tree:
             tree_hash = str(raw_tree)
-        elif kind is not Kind.SKILL:
-            # For non-skills the tree hash *is* the content hash (§4), so a legacy
-            # catalog without the field can safely reconstruct it.
+        elif kind not in (Kind.SKILL, Kind.PLAYBOOK):
+            # For single-file kinds the tree hash *is* the content hash (§4), so a
+            # legacy catalog without the field can safely reconstruct it.
             tree_hash = content_hash
         else:
-            # A legacy skill catalog has no real folder hash; leave it unknown
-            # rather than fabricating one from SKILL.md alone (review #12).
+            # A legacy skill or playbook catalog has no real folder hash; leave it
+            # unknown rather than fabricating one from the main file (review #12).
             tree_hash = ""
         return Capability(
             kind=kind,

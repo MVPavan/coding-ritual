@@ -38,6 +38,9 @@ STUB_SKILLS = frozenset({"cost-estimate", "verification-before-completion"})
 
 
 IN_PROGRESS_DIR = "in-progress"
+# `principle-<name>` is a unit's name in `skills.yaml` and the ledger; its file is
+# `<principles_dir>/<name>.md`, not a skill folder (unit-kinds P5, P7).
+PRINCIPLE_PREFIX = "principle-"
 
 
 REFERENCE_KINDS = frozenset(
@@ -46,6 +49,8 @@ REFERENCE_KINDS = frozenset(
 
 
 OURS_KINDS = frozenset({"add", "update", "merge", "split", "rename", "retire"})
+# The kinds a playbook subject (`doc:<path>`) may take (README §4b).
+PLAYBOOK_KINDS = frozenset({"add", "update"})
 
 
 EVENT_KINDS = REFERENCE_KINDS | OURS_KINDS

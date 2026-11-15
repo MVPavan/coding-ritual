@@ -10,7 +10,10 @@ from curation.registry.ledger import (
     _manifest_rounds,
     _round_of,
     _sha256,
+    live_events,
     resolve_skill,
+    superseded_ids,
+    tracks_adoption,
 )
 from curation.registry.loaders import _round_files
 from curation.registry.models import Event, RoundHeader
@@ -33,10 +36,11 @@ def check_immutable(cfg: RegistryConfig) -> list[str]:
 
 
 def _check_supersession(events: list[Event], seen: set[str]) -> list[str]:
-    """Targets exist, belong to the same subject, superseded at most once, and
-    chains are acyclic within a subject."""
+    """Targets exist, come earlier in ledger order, belong to the same subject,
+    are superseded at most once, and chains are acyclic within a subject."""
     errors: list[str] = []
     by_id = {e.id: e for e in events}
+    position = {e.id: i for i, e in enumerate(events)}
     superseded_by: dict[str, str] = {}
     for event in events:
         for target in event.supersedes:
@@ -45,6 +49,10 @@ def _check_supersession(events: list[Event], seen: set[str]) -> list[str]:
                 continue
             if target == event.id:
                 errors.append(f"{event.id}: supersedes itself")
+            elif position[target] > position[event.id]:
+                errors.append(
+                    f"{event.id}: supersedes {target}, which comes later in ledger order"
+                )
             tgt = by_id[target]
             if tgt.subject != event.subject:
                 errors.append(
@@ -144,12 +152,14 @@ def _check_carried_from(events: list[Event]) -> list[str]:
 
 
 def _check_withdraws(events: list[Event], forward: dict[str, str]) -> list[str]:
-    """An ours-side `update` withdraws only traits adopted into this skill (§5).
-    Reads raw events: an adoption superseded by an upstream reject is still a
-    live obligation and remains withdrawable (review r3)."""
+    """An ours-side `update` withdraws only traits adopted into this skill or
+    playbook (§5). A superseded `update` has no effect (§5b), so it is skipped.
+    Reads raw adoptions: one superseded by an upstream reject is still a live
+    obligation and remains withdrawable (review r3)."""
     errors: list[str] = []
+    dead = superseded_ids(events)
     for event in events:
-        if event.kind != "update" or not event.withdraws:
+        if event.kind != "update" or not event.withdraws or event.id in dead:
             continue
         skill = resolve_skill(event.skill or "", forward)
         for subject in event.withdraws:
@@ -157,7 +167,7 @@ def _check_withdraws(events: list[Event], forward: dict[str, str]) -> list[str]:
                 e.kind == "adopt"
                 and e.subject == subject
                 and e.skill
-                and ":" not in e.skill
+                and tracks_adoption(e.skill)
                 and resolve_skill(e.skill, forward) == skill
                 for e in events
             )
@@ -185,5 +195,35 @@ def _check_adopt_merged_adaptation(
         ):
             errors.append(
                 f"{event.id}: adopt-merged needs `adaptation` outside a trait-level round"
+            )
+    return errors
+
+
+def reuse_errors(events: list[Event]) -> list[str]:
+    """An `add` may not reintroduce a name an earlier live `rename`/`merge`
+    forwards: lifecycle resolution is one timeless name map, so the new skill's
+    events would land in the survivor's record, and a renamed-away playbook
+    path would forward its adoptions to the new one. A skill is tracked by its
+    plain name, a playbook by its `doc:` path; for a playbook an `update` is
+    refused too, since it would make the old path a hashed holder again. A
+    superseded lifecycle event retires nothing."""
+    errors: list[str] = []
+    retiring: dict[str, Event] = {}
+    for event in live_events(events):
+        if event.subject.startswith("ours:"):
+            name = event.subject[len("ours:") :]
+        elif event.subject.startswith("doc:"):
+            name = event.subject
+        else:
+            continue
+        if event.kind in {"rename", "merge"} and event.skill:
+            retiring.setdefault(name, event)
+        elif name in retiring and (
+            event.kind == "add" or (event.kind == "update" and name.startswith("doc:"))
+        ):
+            by = retiring[name]
+            errors.append(
+                f"{event.id}: {event.kind} reintroduces {name!r}, "
+                f"retired by {by.kind} {by.id}"
             )
     return errors

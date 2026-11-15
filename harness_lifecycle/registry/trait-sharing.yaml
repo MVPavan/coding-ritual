@@ -5,13 +5,9 @@
 # fails. Rules: docs/workstreams/skill-curation/stages-design.md §Shared traits.
 # Entries are justified by the owner (bead cr-talb).
 dependency-edges:
-  skills: [planning, wayfinder]
-  why: "Each builds its own tracker graph, planning for implementation stages and wayfinder for decision tickets, and lets readiness drive the work; edge semantics stay in beads."
-  reviewed: "2026-10-30"
-real-id-wiring:
-  skills: [planning, wayfinder]
-  why: "Both create beads and then wire edges between the IDs they just created, each inside its own seeding procedure."
-  reviewed: "2026-10-30"
+  skills: [doc:.claude/skills/mvp-mode/playbooks/implement.md, tracker, wayfinder]
+  why: "Each lets the tracker graph's readiness drive the work: tracker writes the genuine edges of stages, plan stages and decision tickets by returned ID, wayfinder picks a map's genuine prerequisites and works its ready frontier, and implement's spec scope runs a spec's tickets from the ready frontier, adding a blocking edge it finds missing; edge semantics stay in beads."
+  reviewed: "2026-11-11"
 drift-scan:
   skills: [harness-scan, harness-status]
   why: "Both run the one drift command, scan for a single harness and status as a sweep of all of them; a pointer between them would add a hop to a one-line command."
@@ -49,37 +45,53 @@ no-silent-substitution:
   why: "Either council can lose a member, and each must report the gap rather than fill it."
   reviewed: "2026-10-30"
 material-risk-review:
-  skills: [brainstorming, harness-evaluate]
+  skills: [harness-evaluate, to-spec]
   why: "Each gates acceptance of its own output, a spec or a template adoption, on an independent critic; the critic itself belongs to review."
   reviewed: "2026-10-30"
 no-stale-code-snippets:
-  skills: [brainstorming, planning]
+  skills: [to-plan, to-spec]
   why: "Each owns a different durable artifact, a spec or a plan, and its own template must keep code out."
   reviewed: "2026-10-30"
 question-batching:
-  skills: [brainstorming, grilling]
-  why: "Brainstorming asks the owner questions inside its own exploration; grilling's rules live inside its interview loop, so pointing there would pull brainstorming into that loop."
+  skills: [discovery, grilling]
+  why: "Discovery asks the owner questions inside its own exploration; grilling's rules live inside its interview loop, so pointing there would pull discovery into that loop."
   reviewed: "2026-10-30"
 recommended-answer:
-  skills: [brainstorming, grilling]
+  skills: [discovery, grilling]
   why: "As question-batching: a short rule each skill applies inside its own flow."
   reviewed: "2026-10-30"
 self-serve-facts:
-  skills: [brainstorming, grilling]
+  skills: [discovery, grilling]
   why: "As question-batching: a short rule each skill applies inside its own flow."
   reviewed: "2026-10-30"
 settled-stop:
-  skills: [brainstorming, grilling]
+  skills: [discovery, grilling]
   why: "As question-batching: each skill stops its own questioning when its decisions are settled."
   reviewed: "2026-10-30"
+answer-before-next-round:
+  skills: [discovery, grilling]
+  why: "As question-batching: each skill waits for a round's answers inside its own question flow."
+  reviewed: "2026-11-11"
+yes-accepts-recommendation:
+  skills: [discovery, grilling]
+  why: "As question-batching: each skill words its own questions so a yes accepts the recommendation."
+  reviewed: "2026-11-11"
+area-topic-filing:
+  skills: [discovery, research]
+  why: "Each files its own output under its own root by one rule: discovery its records under docs/discovery/, research its reports under docs/research/."
+  reviewed: "2026-11-11"
 finding-adjudication:
-  skills: [execution, review]
-  why: "Execution rules on findings inside its delivery loop and review owns the method; owner 2026-10-30: execution stays unchanged."
-  reviewed: "2026-10-30"
+  skills: [doc:.claude/skills/mvp-mode/playbooks/implement.md, review]
+  why: "Implement rules on findings inside its delivery loop and review owns the method; owner 2026-10-30: implement (then named execution) stays unchanged."
+  reviewed: "2026-11-11"
 domain-vocabulary:
-  skills: [i-have-adhd, teach]
-  why: "Each writes for its reader in the project's own terms, i-have-adhd in its re-pitches and teach in its lessons."
-  reviewed: "2026-10-30"
+  skills: [brief-me, create-formal-verification-skill, improve-codebase-architecture, prototype, teach]
+  why: "Each writes for its reader in the project's own terms: brief-me in its re-pitches, teach in its lessons, prototype in its states, actions and labels, so an answer transfers to the real code, and improve-codebase-architecture in its candidates and their friction. create-formal-verification-skill names the model, the property and everything the person reads as the project does (its adopted P2 row)."
+  reviewed: "2026-11-14"
+baseline:
+  skills: [performance-optimization, systematic-debugging]
+  why: "Each measures before a fix: performance-optimization for a resource target, systematic-debugging when the failure diagnosed is a performance regression, which it hands to the fixer."
+  reviewed: "2026-11-04"
 sequential-record-numbering:
   skills: [domain-modeling, teach]
   why: "Each keeps its own record folder (ADRs, learning records) in one minimal format."
@@ -93,22 +105,282 @@ preserve-reproducers:
   why: "Each cleans up after its own work: the diagnosis when called alone, the bug-fix playbook at its closeout on every exit. Both keep reproducers, so neither cleanup deletes the evidence the other relies on."
   reviewed: "2026-10-31"
 revert-ineffective-experiments:
-  skills: [doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, performance-optimization]
+  skills: [doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, performance-optimization]
   why: "Each runs its own loop of attempts, fix attempts in the bug-fix playbook and optimization experiments in performance-optimization, and removes its own failed edits before the next attempt."
   reviewed: "2026-10-31"
 attempt-log:
-  skills: [doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, execution]
-  why: "Each fixes a failure on its own path, the bug-fix playbook for a bug-fix request and execution inside a task it is running, often delegated, where it cannot start the playbook (R8); both log each fix attempt so a stop hands back usable evidence."
-  reviewed: "2026-10-31"
+  skills: [doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/implement.md]
+  why: "Each fixes a failure on its own path, the bug-fix playbook for a bug-fix request and the implement playbook inside a unit it coordinates, where a separate bug-fix request would leave its scope; both log each fix attempt so a stop hands back usable evidence."
+  reviewed: "2026-11-11"
 two-failure-stop:
-  skills: [doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, execution]
-  why: "Each fixes a failure on its own path, the bug-fix playbook for a bug-fix request and execution inside a task it is running, often delegated, where it cannot start the playbook (R8); both stop after two failed fixes and return the attempt log, the playbook to the user and execution to the task owner."
-  reviewed: "2026-10-31"
+  skills: [doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/implement.md]
+  why: "Each fixes a failure on its own path, the bug-fix playbook for a bug-fix request and the implement playbook inside a unit it coordinates, where a separate bug-fix request would leave its scope; both stop after two failed fixes and return the attempt log, the bug-fix playbook to the user and the implement playbook to whoever owns the unit."
+  reviewed: "2026-11-11"
 single-source-of-truth:
-  skills: [authoring-for-agents, principle-subtract-before-you-add]
-  why: "Each applies one-owner-per-meaning to its own material: authoring-for-agents to agent instructions (search for an existing owner before adding one), the principle to code and data before an addition; neither unit loads the other on its path."
-  reviewed: "2026-11-01"
+  skills: [authoring-for-agents, create-formal-verification-skill, principle-subtract-before-you-add]
+  why: "Each applies one-owner-per-meaning to its own material: authoring-for-agents to agent instructions (search for an existing owner before adding one), the principle to code and data before an addition; neither unit loads the other on its path. create-formal-verification-skill's references/model-fidelity.md is the one home of the model-fidelity rules, which maintain-formal-verification-skill reads without restating (decision 4)."
+  reviewed: "2026-11-14"
 no-onward-delegation:
   skills: [delegation, doc:AGENTS.md, mvp-mode]
   why: "AGENTS.md holds it as policy every agent loads, so a delegate stops fanning out even when its brief was written by hand; the delegation skill writes it into each role block of the briefs it produces, so a delegate on a vendor or project without our AGENTS.md still receives it; the mvp-mode router states it beside its delegate-independent-by-default rule for plugin users who skip the optional AGENTS.md, so a router that tells them to delegate also tells their delegates not to fan out."
   reviewed: "2026-11-01"
+implement-against-sketch:
+  skills: [doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/feature.md, doc:.claude/skills/mvp-mode/playbooks/perf-issue.md, doc:.claude/skills/mvp-mode/playbooks/refactoring.md]
+  why: "Owner ruling 5 keeps the sketch design-only, so each playbook's own build step writes the code and holds this rule; a skill for it would bring back the implement branch the ruling removed (unit-kinds deviation log, St4)."
+  reviewed: "2026-11-02"
+build-closeout:
+  skills: [doc:.claude/skills/mvp-mode/playbooks/feature.md, doc:.claude/skills/mvp-mode/playbooks/perf-issue.md, doc:.claude/skills/mvp-mode/playbooks/refactoring.md]
+  why: "Each playbook's closeout runs on its own exits and feeds its own reply, and these three have the same three duties; a skill of three duties would be ceremony (unit-kinds deviation log, St4 and B4)."
+  reviewed: "2026-11-02"
+read-only-closeout:
+  skills: ["doc:.claude/skills/mvp-mode/playbooks/investigation.md", "doc:.claude/skills/mvp-mode/playbooks/session-pickup.md"]
+  why: "Each is a read-only run whose closeout belongs to its own exits and reply; logged under St4 in unit-kinds."
+  reviewed: "2026-11-02"
+own-output-location:
+  skills: [interrogate, model-council]
+  why: "Council members and adversaries each run independently on shared work, so each needs its own place to write; one is a branch of a council and the other a review, and neither calls the other."
+  reviewed: "2026-11-03"
+dropout-proceeds-noted:
+  skills: [interrogate, model-council]
+  why: "A failed member and a failed adversary are handled alike, going on and reporting it, but what is left when too few remain differs: no pick for one, not run for the other."
+  reviewed: "2026-11-03"
+limit-bounded-hold:
+  skills: [doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md]
+  why: "Each long loop stops starting at its own limit with an idea left; the rule is one short sentence, and a skill for it would be ceremony."
+  reviewed: "2026-11-04"
+read-trail-first:
+  skills: [doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md]
+  why: "Each looping playbook reads its own trail before choosing the next change; each trail has its own columns and rows."
+  reviewed: "2026-11-04"
+row-then-checkpoint:
+  skills: [doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md]
+  why: "Each loop writes its own row and checkpoint in this order, around its own keep-or-discard step, so a closing return can trust them."
+  reviewed: "2026-11-04"
+run-limits-first:
+  skills: [doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md]
+  why: "Each long loop fixes its own limits before its first change, from the same stated defaults, and gives them to `wake`."
+  reviewed: "2026-11-04"
+stated-unattended-gate:
+  skills: [doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md]
+  why: "The same one sentence tells each of these playbooks whether a run is away; each then takes its own branch or exit."
+  reviewed: "2026-11-04"
+worktree-environment-proof:
+  skills: [doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md]
+  why: "Each stated unattended loop proves its own command responds in its own worktree before starting; the check runs at each one's setup."
+  reviewed: "2026-11-04"
+bounded-background-wait:
+  skills: [doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md]
+  why: "The same one sentence on waiting sits at each step that waits, with its own stopped exit; no skill is called for it."
+  reviewed: "2026-11-04"
+read-only-explanation:
+  skills: [how, why]
+  why: "Both answer a question about this project and change nothing while answering; one read-only rule, kept in each half of the split."
+  reviewed: "2026-11-10"
+immaterial-ambiguity-reading:
+  skills: [how, why]
+  why: "Both take an ambiguous target and state the reading taken when the readings would not change the answer; adopted for both upstream how and why (2026-11-01-batch-1:237, :238), kept in each half of the split."
+  reviewed: "2026-11-10"
+confidence-language-kept:
+  skills: [teach, unslop]
+  why: "Each rewrites a finished answer for a reader: unslop edits prose, teach rewords cited findings for teaching; both must keep the hedges and confidence words, which are results. The owner's batch P1 ruling put it into teach (sealed row 2026-11-06-batch-p1:019)."
+  reviewed: "2026-11-12"
+empty-search-is-finding:
+  skills: [recall, review]
+  why: "Each reports what a search found to someone deciding on it: review's blast-radius assessment and recall's sweep of the shared record. A search that found nothing is an answer in both, so each says it. Batch P1 rows 2026-11-06-batch-p1:277 (review) and :194 (recall), owner-ruled 2026-11-06."
+  reviewed: "2026-11-12"
+reply-is-the-deliverable:
+  skills: [recall, teach]
+  why: "Each skill's reply is its product, an explanation or a brief, so neither may hand back a report of having done it instead. Batch P1 rows 2026-11-06-batch-p1:053 (teach) and :207 (recall), owner-ruled 2026-11-06."
+  reviewed: "2026-11-12"
+smallest-evidenced-change:
+  skills: [doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md]
+  why: "Each loop makes the smallest change the evidence justifies and checks its predicate on it: autonomous-run per iteration toward one condition, figure-it-out per designed unit. A skill of one sentence would be ceremony (unit-kinds deviation log, St4, 2026-11-12)."
+  reviewed: "2026-11-12"
+verified-unit-sequence:
+  skills: [doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md, principle-sequence-verifiable-units]
+  why: "The principle owns the rule; figure-it-out's Run step states it in one sentence and cites the principle, as the owner ruled for row 2026-11-06-batch-p1:250, because the registry takes a delivered row only from the compared unit (unit-kinds St4)."
+  reviewed: "2026-11-12"
+named-scope-first:
+  skills: [create-formal-verification-skill, interrogate, no-comments]
+  why: "Each works on a scope a person may name, interrogate on the change it attacks and no-comments on the files it sweeps, and each defaults differently without one; a pointer between two unrelated jobs would add a hop to one sentence. create-formal-verification-skill begins with the area, promise or bug the person names (its adopted P2 row)."
+  reviewed: "2026-11-14"
+authority-separation:
+  skills: [harness-publish, doc:.claude/skills/mvp-mode/playbooks/skill-curation.md]
+  why: "harness-publish confirms publish and commit authority separately at its own entry; the playbook's delivery step states the same split for the whole curation path. Each is read alone."
+  reviewed: "2026-11-12"
+record-command:
+  skills: [harness-evaluate, doc:.claude/skills/mvp-mode/playbooks/skill-curation.md]
+  why: "harness-evaluate records its own ruling; the playbook's ruling step names the same command for every curation operation. A pointer would add a hop to one command line."
+  reviewed: "2026-11-12"
+no-preamble:
+  skills: [brief-me, pr]
+  why: "brief-me states it for a status briefing, pr for a pull request body; each is read alone, and one line does not earn a pointer."
+  reviewed: "2026-11-12"
+visual-form-catalog:
+  skills: [show-me, pr]
+  why: "show-me is manual, so a model writing a PR body cannot invoke it or read its file; pr carries the compact visual technique itself, as its upstream does, and names show-me for the person (plan 69 D3)."
+  reviewed: "2026-11-12"
+structural-diff:
+  skills: [show-me, pr]
+  why: "show-me is manual, so a model writing a PR body cannot invoke it or read its file; pr carries the compact visual technique itself, as its upstream does, and names show-me for the person (plan 69 D3)."
+  reviewed: "2026-11-12"
+visual-placement:
+  skills: [show-me, pr]
+  why: "show-me is manual, so a model writing a PR body cannot invoke it or read its file; pr carries the compact visual technique itself, as its upstream does, and names show-me for the person (plan 69 D3)."
+  reviewed: "2026-11-12"
+minimal-visual-selection:
+  skills: [show-me, pr]
+  why: "show-me is manual, so a model writing a PR body cannot invoke it or read its file; pr carries the compact visual technique itself, as its upstream does, and names show-me for the person (plan 69 D3)."
+  reviewed: "2026-11-12"
+no-cross-project-transcript-search:
+  skills: [decision-trail, reflect]
+  why: "decision-trail states it for an audit of a long run, reflect for reviewing past sessions; each reads transcripts on its own, and one line does not earn a pointer."
+  reviewed: "2026-11-13"
+real-code-names:
+  skills: [create-formal-verification-skill, create-verification-skill, show-me]
+  why: "Each writes text that must name the real code it describes: show-me a visual of a change, create-verification-skill the commands, routes, ports and paths a generated skill gives (plan 77 §5). create-formal-verification-skill applies generated-skill.md's \"Writing rules\", which require the real names from the code, to the formal skill it writes (decision 3)."
+  reviewed: "2026-11-14"
+artifact-contracts:
+  skills: [codebase-research, create-verification-skill]
+  why: "Each writes its own artifact type in a fixed section set and order, saying a section is empty or does not apply rather than dropping it: codebase-research its reports, create-verification-skill the verify skill it generates (critic-81b F1)."
+  reviewed: "2026-11-14"
+evidence-checked-after-cleanup:
+  skills: [create-verification-skill, maintain-verification-skill]
+  why: "Each unit's own run cleans up and must find its proof afterwards: the generator's proof run of the skill it writes, and the maintenance pass over an existing one (plan 82 §5)."
+  reviewed: "2026-11-14"
+unreachable-with-route-and-prerequisite:
+  skills: [create-verification-skill, maintain-verification-skill]
+  why: "The generator writes the rule into the map's skip reporting, and the maintenance pass applies it to its coverage report (plan 82 §5)."
+  reviewed: "2026-11-14"
+check-never-weakened-to-pass:
+  skills: [create-formal-verification-skill, create-verification-skill, maintain-formal-verification-skill, maintain-verification-skill, statechart]
+  why: "The app generator writes the rule into a generated skill, and the app maintenance pass applies it while fixing one: a failing journey is fixed only when source proves the map wrong (R3). statechart never loosens a rule, the model or its bounds so that a check passes, and create-formal-verification-skill never loosens the property, the model or the bounds (decision 3, restated per unit). maintain-formal-verification-skill never loosens a property, the model or its bounds so that a rerun passes (decision 3)."
+  reviewed: "2026-11-15"
+live-service-isolation:
+  skills: [create-verification-skill, maintain-verification-skill]
+  why: "The generator writes the isolation controls into a generated skill, and the maintenance pass drives one only through them, stopping blocked when a control is missing (ruling A)."
+  reviewed: "2026-11-14"
+dry-run-skips-observed:
+  skills: [create-verification-skill, maintain-verification-skill]
+  why: "The generator records what a generated skill's offline mode really skips, and the maintenance pass re-observes it on each drive (Q1)."
+  reviewed: "2026-11-14"
+undriven-feature-marked:
+  skills: [create-verification-skill, maintain-verification-skill]
+  why: "The generator marks seeded features no run has driven, and the maintenance pass keeps the mark while a case stays undriven and replaces it with observed values once one is driven (ruling B)."
+  reviewed: "2026-11-14"
+change-proven-by-second-read:
+  skills: [create-verification-skill, maintain-verification-skill]
+  why: "The generator's map contract proves a saved change through a separate read-only view, and the maintenance pass names that product command for each saved change it drives (ruling C)."
+  reviewed: "2026-11-14"
+unreadable-change-unverified:
+  skills: [create-verification-skill, maintain-verification-skill]
+  why: "The generator writes the no-read-view disclosure into a feature file, and the maintenance pass adds it where it is missing and reports the change unverified (ruling C)."
+  reviewed: "2026-11-14"
+credentials-never-captured:
+  skills: [create-verification-skill, maintain-verification-skill]
+  why: "The generator keeps credentials out of a generated skill's proof, and the maintenance pass keeps them out of its evidence, notes, reply and helper fixes (ruling D)."
+  reviewed: "2026-11-14"
+generated-skill-left-uncommitted:
+  skills: [create-formal-verification-skill, create-verification-skill, maintain-formal-verification-skill, maintain-verification-skill]
+  why: "The app generator leaves the skill it writes uncommitted, and the app maintenance pass leaves its fixes uncommitted; land commits either when the person asks (R10). create-formal-verification-skill leaves the formal verify skill it writes uncommitted unless the person asks; land makes the commit (decision 10). maintain-formal-verification-skill leaves its verification edits as one uncommitted change for land (decision 10)."
+  reviewed: "2026-11-15"
+generator-started-by-person:
+  skills: [create-formal-verification-skill, create-verification-skill, maintain-formal-verification-skill, maintain-verification-skill]
+  why: "Both app verification units start only when the person starts them: manual-only in frontmatter and sidecar, reached through an mvp-mode router line (R1). create-formal-verification-skill starts the same way: manual-only in frontmatter and sidecar, reached through its mvp-mode router row (decision 1). maintain-formal-verification-skill starts the same way: manual-only in frontmatter and sidecar, reached through its mvp-mode router row (decision 1)."
+  reviewed: "2026-11-15"
+destination-protection:
+  skills: [create-verification-skill, migrate-claude-to-codex]
+  why: "Each writes a skill folder and never overwrites one already there: migrate-claude-to-codex a converted skill's destination, create-verification-skill an occupied verify-skill folder, where it stops blocked and asks the person (plan 82 misfit 6, critic-82d N1)."
+  reviewed: "2026-11-14"
+checker-install-approved-per-user:
+  skills: [create-formal-verification-skill, maintain-formal-verification-skill, statechart]
+  why: "statechart owns the per-user checker install and asks first; create-formal-verification-skill follows the same approval and recipe for TLC by pointer to statechart's references/install.md (decision 6, owner item 2). maintain-formal-verification-skill installs a missing checker only by the per-user recipe and pins the skill records, after the person approves, and otherwise blocks the check, naming what is missing (decision 6)."
+  reviewed: "2026-11-15"
+cold-agent-reader:
+  skills: [create-formal-verification-skill, create-verification-skill]
+  why: "create-verification-skill's references/generated-skill.md \"Writing rules\" state it, and create-formal-verification-skill applies those rules to the formal skill it writes, by pointer (decision 3, the one shared writing reference)."
+  reviewed: "2026-11-14"
+generated-skill-run-once:
+  skills: [create-formal-verification-skill, create-verification-skill, maintain-formal-verification-skill]
+  why: "Each generator follows the skill it writes once, as its next reader, before handing it over: the app generator's proof drive and the formal generator's planted-break proof (decision 3, restated per unit). maintain-formal-verification-skill follows the formal skill it refreshed once the same way, its drift diff, Run command and exit code (decision 3)."
+  reviewed: "2026-11-15"
+generator-edits-own-output-only:
+  skills: [create-formal-verification-skill, create-verification-skill]
+  why: "Each generator edits only the skill folder it creates and the scaffolding it labels: the app generator's marked startup scaffolding, the formal generator's one reversible planted edit; a product-code fix is the person's call (decision 3)."
+  reviewed: "2026-11-14"
+handover-points-to-maintenance:
+  skills: [create-formal-verification-skill, create-verification-skill]
+  why: "Each create unit tells the person at hand-off that keeping its generated skill current is its maintenance unit's job: create-verification-skill names maintain-verification-skill, create-formal-verification-skill names maintain-formal-verification-skill (decision 11)."
+  reviewed: "2026-11-14"
+pre-existing-edit-separation:
+  skills: [create-formal-verification-skill, maintain-formal-verification-skill, review]
+  why: "review separates a task's changes from pre-existing ones by the task baseline; create-formal-verification-skill records the product checkout's baseline before its planted edit, never clears the person's changes, and proves the restoration against that baseline. maintain-formal-verification-skill records the checkout's status, diff and the target's hash list before any edit, so the person's own edits stay apart from the pass's."
+  reviewed: "2026-11-15"
+registering-generated-frontmatter:
+  skills: [create-formal-verification-skill, create-verification-skill]
+  why: "Both generators give the skill they write registering frontmatter by generated-skill.md's \"Frontmatter\"; create-formal-verification-skill uses the formal name <area>-verification and its own description (decision 3)."
+  reviewed: "2026-11-14"
+verification-only-edits:
+  skills: [create-formal-verification-skill, maintain-formal-verification-skill, maintain-verification-skill]
+  why: "The app maintenance pass edits only the verify skill's files, and the formal verify skill that create-formal-verification-skill writes tells its own verification pass to leave product code alone unless the person asks (decision 3). maintain-formal-verification-skill edits only the target formal skill's own folder, and product code only when the person asks (decision 3)."
+  reviewed: "2026-11-15"
+atomicity-fidelity:
+  skills: [create-formal-verification-skill, maintain-formal-verification-skill]
+  why: "create-formal-verification-skill owns the rule in references/model-fidelity.md (\"Indivisible steps\"); maintain-formal-verification-skill applies it to every model update, splitting an action the code now runs as two steps (decision 4)."
+  reviewed: "2026-11-15"
+baseline-check-before-change:
+  skills: [maintain-formal-verification-skill, principle-sequence-verifiable-units]
+  why: "principle-sequence-verifiable-units runs a multi-step change's checks on the starting base first; maintain-formal-verification-skill runs the formal skill's command once before any edit and keeps its output and exit code as the pass's baseline, classing a failure only after the update."
+  reviewed: "2026-11-15"
+counterexample-as-code-steps:
+  skills: [create-formal-verification-skill, maintain-formal-verification-skill]
+  why: "Both formal units tell a counterexample as a few numbered steps in the code's own terms: create-formal-verification-skill in its reply and in the generated skill's \"Reading a failure\", maintain-formal-verification-skill in each confirmed bug's report."
+  reviewed: "2026-11-15"
+counterexample-replayed-on-code:
+  skills: [maintain-formal-verification-skill, statechart]
+  why: "statechart's hand-off replays each counterexample against the real code where the model stands for it; maintain-formal-verification-skill replays a failing rerun's counterexample on the code before calling it a bug or a modelling error."
+  reviewed: "2026-11-15"
+coverage-and-sync-record:
+  skills: [create-formal-verification-skill, maintain-formal-verification-skill]
+  why: "create-formal-verification-skill writes the per-check record (guarded files and symbols, last confirmed commit) into the skill it generates; maintain-formal-verification-skill keeps it current at each pass and writes it for an older formal skill without one (decision 7)."
+  reviewed: "2026-11-15"
+formal-coverage-data-file:
+  skills: [create-formal-verification-skill, maintain-formal-verification-skill]
+  why: "create-formal-verification-skill keeps that record as coverage.json, one data file beside the formal verify skill's SKILL.md; maintain-formal-verification-skill reads and refreshes the file, and writes it for an older skill that lacks it, never as prose (decision 7)."
+  reviewed: "2026-11-15"
+installed-recipe-or-blocked:
+  skills: [maintain-formal-verification-skill, maintain-verification-skill]
+  why: "Each maintenance unit installs a missing tool only by the recipe the target records, per user or per project and pinned, never system-wide, and otherwise marks the work blocked: maintain-verification-skill for its driving tools, maintain-formal-verification-skill for the checker and its runtime (decision 6)."
+  reviewed: "2026-11-15"
+no-target-points-to-create:
+  skills: [maintain-formal-verification-skill, maintain-verification-skill]
+  why: "With no target, each maintenance unit stops and points to its generator: maintain-verification-skill to create-verification-skill, maintain-formal-verification-skill to /create-formal-verification-skill."
+  reviewed: "2026-11-15"
+property-fails-on-broken-variant:
+  skills: [create-formal-verification-skill, maintain-formal-verification-skill]
+  why: "create-formal-verification-skill owns references/model-fidelity.md \"Broken variants\" and proves each property failing on a kept variant; maintain-formal-verification-skill reruns every kept variant after an update, adds one for a guard no variant removes, and accepts variant verdicts only from a run whose main run holds (decision 4)."
+  reviewed: "2026-11-15"
+sync-commit-advanced-after-match:
+  skills: [create-formal-verification-skill, maintain-formal-verification-skill]
+  why: "create-formal-verification-skill's references/coverage-record.md states the rule for the skills it generates; maintain-formal-verification-skill moves sync_commit only once the covered diff is read, the model updated and the rerun gives its expected verdicts, and, by the owner's Q1 ruling (move, 2026-11-15), also on a confirmed bug with the faithful update, which still matches the code."
+  reviewed: "2026-11-15"
+target-found-by-content:
+  skills: [maintain-formal-verification-skill, maintain-verification-skill]
+  why: "Both maintenance units use the skill the person named or find the target by what it is, never by folder name: maintain-verification-skill by the app verify skill's shape, maintain-formal-verification-skill by a coverage.json of the formal format (formal-verify-skill.md, \"How other units recognise it\")."
+  reviewed: "2026-11-15"
+traceable-to-code:
+  skills: [create-formal-verification-skill, maintain-formal-verification-skill]
+  why: "create-formal-verification-skill owns the rule in references/model-fidelity.md (\"Traceability table\") and writes it into the skill it generates; maintain-formal-verification-skill applies the same section to every model update, each citation at the commit checked (decision 4)."
+  reviewed: "2026-11-15"
+verdict-from-exit-and-messages:
+  skills: [create-formal-verification-skill, maintain-formal-verification-skill]
+  why: "Both formal units read a checker run as a verdict only when its exit code and its own messages agree, by references/tool-branches.md and its TLC gate: create-formal-verification-skill for the check it generates, maintain-formal-verification-skill for each rerun and added variant (owner-accepted 2026-11-15, item 6)."
+  reviewed: "2026-11-15"
+verify-skill-capabilities:
+  skills: [create-formal-verification-skill, maintain-formal-verification-skill]
+  why: "create-formal-verification-skill gives the formal verify skill its fixed sections (references/formal-verify-skill.md \"Sections\"); maintain-formal-verification-skill keeps those sections through any fix and refreshes their table, Run output and sync mentions, so the next agent still learns all four from the skill alone."
+  reviewed: "2026-11-15"
+fixed-command-driven-as-written:
+  skills: [maintain-formal-verification-skill, maintain-verification-skill]
+  why: "Both maintenance units drive or run every documented command the pass corrected or added exactly as written before the change ships, whether or not the helper or runner changed: maintain-verification-skill for the commands of the feature files and skill it fixed, a case left marked not yet driven exempt; maintain-formal-verification-skill for every command its refresh of the formal skill changed or added (owner rulings of 2026-11-15, item 5; coordinator's ruling, round 2026-11-15-maintain-verification-two-rules Round 2)."
+  reviewed: "2026-11-15"

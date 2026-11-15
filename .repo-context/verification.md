@@ -1,12 +1,10 @@
 # Verification
 
-Select checks for the affected component. Harness documentation/configuration
-uses the applicable structural checks below; interpreter changes use the
-interpreter gate; plugin changes use their test harness. Documentation-only
-edits do not require the interpreter suite.
+Choose checks by what changed, from the table below. A file belongs to the
+component it exercises, not to its directory. Documentation-only edits do not
+require the interpreter suite.
 
-This checkout holds first-party `workflow_interpreter/` Python code. It has no
-CI; the five-stage host gate below is its local quality gate.
+This repository has no CI; these checks are its local gate.
 
 ## Claim → evidence
 
@@ -21,7 +19,7 @@ CI; the five-stage host gate below is its local quality gate.
 When an end-to-end check is out of reach, report `PARTIAL`: Verified / Needs
 human check / Why.
 
-## Structural checks
+## Checks by changed material
 
 | Changed material | Check |
 |---|---|
@@ -30,14 +28,17 @@ human check / Why.
 | Shell | `bash -n <file>`; `shellcheck <file>` when available |
 | JSON | `python3 -m json.tool <file> >/dev/null` |
 | Python hooks/scripts | `python3 -m py_compile <file>`; scoped lint/type checks from `.repo-context/coding-style.md` |
+| Curation code (`curation/`), skill scripts, or their tests (`tests/curation/`, and the `tests/checks/` files that exercise a skill script) | `uv run pytest -q tests/curation tests/checks` |
+| Registry data, or a file it hashes (a skill, playbook or principle, `AGENTS.md`, a `.repo-context/` file with a `doc:` entry) | `uv run python harness_lifecycle/registry/registry.py check`; when it reports a generated view stale, run `build` first |
 | Beads | `bd ready` or `bd list` succeeds; keep `.beads/issues.jsonl` current per the `beads` skill (`references/usage.md` §15) |
 | Skills | `python3 .claude/scripts/skill-catalog.py --check` validates catalog, pointers and invocation metadata; `--write` regenerates them |
+| Interpreter: `workflow_interpreter/`, anything that runs or verifies it (`scripts/verify-feature.sh`, `scripts/review-checks.sh`, `scripts/checks/`), and the tests of either | The five-stage host gate in `docs/usage/interpreter-gate.md`, which carries the repository's Ruff and mypy options. The per-language rows above still apply. |
 
-**Dangerous-commands hook** — after changing
-   `.claude/hooks/block-dangerous-commands.sh`, prove it still blocks, not
-   just parses: pipe a known-dangerous payload through it, e.g.
-   `echo '{"tool_input":{"command":"git push --force"}}' | bash .claude/hooks/block-dangerous-commands.sh`,
-   and confirm exit code 2 with a BLOCKED message on stderr.
+**Dangerous-commands hook.** After changing
+`.claude/hooks/block-dangerous-commands.sh`, prove it still blocks, not just
+parses: pipe a known-dangerous payload through it, e.g.
+`echo '{"tool_input":{"command":"git push --force"}}' | bash .claude/hooks/block-dangerous-commands.sh`,
+and confirm exit code 2 with a BLOCKED message on stderr.
 
 ## Plugin checks
 
@@ -51,33 +52,3 @@ plugin README for its current environment and prerequisites before running:
 Run the affected plugin's harness. If unavailable, report it as unverified.
 Distribution compatibility, including the outstanding context-path migration,
 is tracked in `docs/usage/mvp-plugin.md`.
-
-## Interpreter: full host gate
-
-Run all five stages from the repo root, outside a vendor sandbox:
-
-| Stage | Command | Prerequisite |
-|---|---|---|
-| Non-live suite | `uv run pytest -q -m "not bd and not live"` | Project dependencies; working sandbox facilities for `nested_sandbox` cases |
-| Beads integration | `uv run pytest -q -m bd` | Real `bd` binary and an isolated test database |
-| Process/sandbox suite | `uv run pytest -q -m proc` | Working `bwrap` for real mount-bound tests |
-| Lint/format | `uv run ruff check workflow_interpreter/ tests/` and `uv run ruff format --check workflow_interpreter/ tests/` | Project Ruff |
-| Types | `MYPYPATH=. uv run mypy --strict --explicit-package-bases workflow_interpreter/` | Project mypy |
-
-The pytest selections overlap. These are the existing gate stages; removing
-duplicate execution requires a separately validated gate change. The verifier's
-five-stage output is covered by `tests/checks/test_verify_feature_script.py`.
-
-Real sandbox tests may skip with the probe's reason; a skip does not verify the
-mount boundary. Refusal-path and `plan_for`/`wrap` unit tests need no real `bwrap`
-and must not skip. Changes to `workflow_interpreter/inspector/sandbox.py`,
-`workflow_interpreter/profiles/`, or Git-isolation tests
-require this host gate, including `nested_sandbox` coverage.
-
-## Interpreter: checks inside a vendor sandbox
-
-`scripts/verify-feature.sh` excludes `bd` and `nested_sandbox`; it does not replace
-the full host gate. The wrapper places `UV_CACHE_DIR` and
-`UV_PYTHON_INSTALL_DIR` under writable `uv-cache`. The pinned verifier may run
-through a file descriptor: use the checkout working directory, not `$0`, to
-locate the repo, and do not assume workflow protocol variables are supplied.

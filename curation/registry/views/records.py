@@ -64,14 +64,34 @@ _REVIEW_RE = re.compile(r"reviews/(\d{4}-\d{2}-\d{2}-[a-z]+-[A-Za-z0-9._-]+?\.md
 _COMPARISON_RE = re.compile(r"skill-comparisons/([A-Za-z0-9._-]+)")
 
 
-def _lineage_block(skill: str, events: list[Event]) -> str:
+def _names(skill: str, name: str | None, forward: dict[str, str]) -> bool:
+    """Whether `name` is `skill` itself or an earlier name `rename`/`merge`
+    carried into it, so a renamed record keeps its lineage and history. The
+    chain may run past `skill`: one merged into a playbook keeps its own."""
+    seen: set[str] = set()
+    while name is not None and name not in seen:
+        if name == skill:
+            return True
+        seen.add(name)
+        name = forward.get(name)
+    return False
+
+
+def _concerns(skill: str, event: Event, forward: dict[str, str]) -> bool:
+    """Whether the event belongs in `skill`'s history: it targets the skill
+    or is about it, under any name the skill has had."""
+    ours = event.subject[len("ours:") :] if event.subject.startswith("ours:") else None
+    return _names(skill, event.skill, forward) or _names(skill, ours, forward)
+
+
+def _lineage_block(skill: str, events: list[Event], forward: dict[str, str]) -> str:
     """Adopted lineage: one entry per adopted trait (the last delivered adopt,
     else the pending one, labelled), and a capability checkpoint only when no
     trait adopt into this skill stands for it (review r1 #12)."""
     adopts = [
         e
         for e in events
-        if e.skill == skill
+        if _names(skill, e.skill, forward)
         and e.kind in {"adopt", "adopt-merged"}
         and e.source is not None
     ]
@@ -112,14 +132,14 @@ def _lineage_block(skill: str, events: list[Event]) -> str:
     return "\n".join(lines)
 
 
-def _history_block(skill: str, events: list[Event], dead: set[str]) -> str:
-    rows = [e for e in events if e.skill == skill or e.subject == f"ours:{skill}"]
+def _history_block(
+    skill: str, events: list[Event], dead: set[str], forward: dict[str, str]
+) -> str:
+    rows = [e for e in events if _concerns(skill, e, forward)]
     if not rows:
         return "No ledger history recorded."
-    # Newest first, by date then id — a real chronological order, not file order.
-    ordered = sorted(rows, key=lambda e: (e.date, e.id), reverse=True)
     lines: list[str] = []
-    for event in ordered:
+    for event in reversed(rows):  # newest first: `events` is in recording order
         mark = " *(superseded)*" if event.id in dead else ""
         lines.append(
             f"- `{event.date}` **{event.kind}** ({event.id}){mark}: {_one_line(event.why, 160)}"
@@ -127,11 +147,11 @@ def _history_block(skill: str, events: list[Event], dead: set[str]) -> str:
     return "\n".join(lines)
 
 
-def _reviews_block(skill: str, events: list[Event]) -> str:
+def _reviews_block(skill: str, events: list[Event], forward: dict[str, str]) -> str:
     """Every review cited by the same events the history block lists. Registry
     reviews first (newest file name first), then archived comparisons
     (alphabetical). Deduplicated; empty renders a single sentinel line."""
-    rows = [e for e in events if e.skill == skill or e.subject == f"ours:{skill}"]
+    rows = [e for e in events if _concerns(skill, e, forward)]
     review_files: set[str] = set()
     comparisons: set[str] = set()
     for event in rows:
@@ -227,15 +247,20 @@ def _declined_block(
     skill: str, current: dict[str, Event], forward: dict[str, str]
 ) -> str:
     """Upstream traits whose effective ruling is reject/defer, considered for this
-    skill, with the reason (§7)."""
+    skill, with the reason (§7). A `doc:` survivor has no record, so a skill
+    merged into a playbook keeps the ones considered under its names."""
     lines: list[str] = []
     for subject, event in sorted(current.items()):
+        if not event.skill or ":" in event.skill:
+            continue
+        survivor = resolve_skill(event.skill, forward)
         if (
             _is_trait_subject(subject)
             and event.kind in {"reject", "defer"}
-            and event.skill
-            and ":" not in event.skill
-            and resolve_skill(event.skill, forward) == skill
+            and (
+                survivor == skill
+                or (survivor.startswith("doc:") and _names(skill, event.skill, forward))
+            )
         ):
             lines.append(f"- `{subject}` ({event.kind}): {_one_line(event.why, 160)}")
     return "\n".join(lines) if lines else "No declined traits recorded."
@@ -243,11 +268,11 @@ def _declined_block(
 
 def _frontmatter_text(skill: str, entry: SkillEntry) -> str:
     """The record frontmatter: today's keys and order (README §3)."""
-    family = entry.family or ""
+    family = f" {entry.family}" if entry.family else ""  # none: a bare `family:` (YAML null)
     return (
         f"---\nskill: {skill}\ndomain: {entry.domain}\nstage: {entry.stage}\n"
         f"substage: {entry.substage}\nsecondary: [{', '.join(entry.secondary)}]\n"
-        f"family: {family}\naliases: [{', '.join(entry.aliases)}]\n"
+        f"family:{family}\naliases: [{', '.join(entry.aliases)}]\n"
         f"status: {entry.status}\n---\n"
     )
 
@@ -262,7 +287,7 @@ def render_record(
     definitions: dict[str, TraitDefinition],
 ) -> str:
     """The whole record (stages-design §Skills file): frontmatter from
-    `skills.yaml`, the title, the `SKILL.md` description, the boundary when set,
+    `skills.yaml`, the title, the description (`skill_description`), the boundary when set,
     then every generated block."""
     live = live_events(events)
     current = effective_by_subject(live)
@@ -274,9 +299,9 @@ def render_record(
             _traits_record_block(skill, ours_traits, definitions),
             TRAITS_CLOSE,
         ),
-        (LINEAGE_OPEN, _lineage_block(skill, events), LINEAGE_CLOSE),
-        (HISTORY_OPEN, _history_block(skill, events, dead), HISTORY_CLOSE),
-        (REVIEWS_OPEN, _reviews_block(skill, events), REVIEWS_CLOSE),
+        (LINEAGE_OPEN, _lineage_block(skill, events, forward), LINEAGE_CLOSE),
+        (HISTORY_OPEN, _history_block(skill, events, dead, forward), HISTORY_CLOSE),
+        (REVIEWS_OPEN, _reviews_block(skill, events, forward), REVIEWS_CLOSE),
         (
             SOURCES_OPEN,
             _sources_block(

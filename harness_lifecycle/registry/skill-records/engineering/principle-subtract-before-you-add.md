@@ -4,15 +4,15 @@ domain: engineering
 stage: Design
 substage: Decomposition
 secondary: []
-family: 
+family:
 aliases: []
 status: active
 ---
 # principle-subtract-before-you-add
 
-Apply when sequencing an addition, refactor or rewrite.
+sequencing an addition, refactor or rewrite.
 
-**Boundary:** Removes what the change touches before adding; decomposing work into a plan is planning.
+**Boundary:** Removes what the change touches before adding; decomposing work into a plan is to-plan.
 
 <!-- registry:generated traits -->
 - `touched-scope-subtraction`: Before adding, remove the dead code, redundant validators and stubs that the change touches, and report other removals instead of making them.
@@ -32,6 +32,7 @@ Apply when sequencing an addition, refactor or rewrite.
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-05` **update** (2026-11-05-principle-move:013): Owner ruling of 2026-11-05: moved from a skill folder to a file read by path; frontmatter and sidecar removed; the rule text is unchanged; the situation now li…
 - `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:192): Completes pending 2026-11-01-cursor_plugins-pstack-principles:115: the principles build (cr-r2pa.1.2) delivered cut-before-polish in principle-subtract-before-…
 - `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:191): Completes pending 2026-11-01-cursor_plugins-pstack-principles:063: the principles build (cr-r2pa.1.2) delivered single-source-of-truth in principle-subtract-be…
 - `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:190): Completes pending 2026-11-01-cursor_plugins-pstack-principles:118: the principles build (cr-r2pa.1.2) delivered stub-deletion in principle-subtract-before-you-…

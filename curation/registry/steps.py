@@ -149,6 +149,10 @@ class Playbook(StrictModel):
 
 
 _FRONTMATTER_RE = re.compile(r"\A---\n(.*?\n)---\n", re.DOTALL)
+_PLAIN_WHEN_RE = re.compile(
+    r"""^[ \t]*(?:-[ \t]+)?(?:when|"when"|'when'):[ \t]+(?![ \t"'|>]).* #""",
+    re.MULTILINE,
+)
 
 
 def parse_playbook(name: str, path: str, text: str) -> Playbook:
@@ -156,6 +160,12 @@ def parse_playbook(name: str, path: str, text: str) -> Playbook:
     match = _FRONTMATTER_RE.match(text)
     if match is None:
         raise ValueError("no frontmatter (`---` block at the top)")
+    truncated = _PLAIN_WHEN_RE.search(match.group(1))
+    if truncated is not None:
+        raise ValueError(
+            f"YAML cuts a plain `when:` at ' #': quote it or write full step IDs: "
+            f"{truncated.group(0).strip()}"
+        )
     try:
         raw = yaml.load(match.group(1), Loader=_StrictYamlLoader)
     except yaml.YAMLError as exc:

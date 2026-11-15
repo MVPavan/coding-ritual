@@ -15,7 +15,7 @@ listed finding regardless of its original role.
 ```text
 Verdict: APPROVE | REVISE
 Unverified requirements: <items and needed evidence, or none>
-Issues: <severity, file:line, missing/extra/misunderstood requirement and impact>
+Issues: <severity, file:line, missing/extra/misunderstood requirement with the quoted requirement, and impact>
 Checks and limitations: <actual evidence>
 ```
 

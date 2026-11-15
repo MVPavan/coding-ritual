@@ -1,0 +1,36 @@
+{
+ "spec": "Hidden.tla",
+ "bound": 100000,
+ "runs": [
+  {
+   "request": {
+    "invariants": [
+     "Safe"
+    ],
+    "properties": [],
+    "deadlock": false,
+    "keep_going": false,
+    "bounded": false,
+    "as_written": true
+   },
+   "code": 12,
+   "output": "@!@!@STARTMSG 2262:0 @!@!@\nTLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)\n@!@!@ENDMSG 2262 @!@!@\n@!@!@STARTMSG 2187:0 @!@!@\nRunning breadth-first search Model-Checking with fp 0 and seed 0 with 1 worker on 32 cores with 5957MB heap and 64MB offheap memory [pid: 0] (Linux 6.18.54.1-microsoft-standard-WSL2 amd64, Eclipse Adoptium 25.0.5 x86_64, MSBDiskFPSet, DiskStateQueue).\n@!@!@ENDMSG 2187 @!@!@\n@!@!@STARTMSG 2220:0 @!@!@\nStarting SANY...\n@!@!@ENDMSG 2220 @!@!@\nParsing file <models>/Hidden.tla\nParsing file <tmp>/Naturals.tla\nSemantic processing of module Naturals\nSemantic processing of module Hidden\n@!@!@STARTMSG 2219:0 @!@!@\nSANY finished.\n@!@!@ENDMSG 2219 @!@!@\n@!@!@STARTMSG 2185:0 @!@!@\nStarting... (2026-11-15 02:37:23)\n@!@!@ENDMSG 2185 @!@!@\n@!@!@STARTMSG 2189:0 @!@!@\nComputing initial states...\n@!@!@ENDMSG 2189 @!@!@\n@!@!@STARTMSG 2190:0 @!@!@\nFinished computing initial states: 1 distinct state generated at 2026-11-15 02:37:23.\n@!@!@ENDMSG 2190 @!@!@\n@!@!@STARTMSG 2110:1 @!@!@\nInvariant Safe is violated.\n@!@!@ENDMSG 2110 @!@!@\n@!@!@STARTMSG 2121:1 @!@!@\nThe behavior up to this point is:\n@!@!@ENDMSG 2121 @!@!@\n@!@!@STARTMSG 2217:4 @!@!@\n1: <Initial predicate>\nx = 0\n\n@!@!@ENDMSG 2217 @!@!@\n@!@!@STARTMSG 2217:4 @!@!@\n2: <Choose line 8, col 11 to line 8, col 33 of module Hidden>\nx = 1\n\n@!@!@ENDMSG 2217 @!@!@\n@!@!@STARTMSG 2200:0 @!@!@\nProgress(2) at 2026-11-15 02:37:23: 2 states generated (301 s/min), 2 distinct states found (301 ds/min), 0 states left on queue.\n@!@!@ENDMSG 2200 @!@!@\n@!@!@STARTMSG 2199:0 @!@!@\n2 states generated, 2 distinct states found, 0 states left on queue.\n@!@!@ENDMSG 2199 @!@!@\n@!@!@STARTMSG 2194:0 @!@!@\nThe depth of the complete state graph search is 2.\n@!@!@ENDMSG 2194 @!@!@\n@!@!@STARTMSG 2186:0 @!@!@\nFinished in 404ms at (2026-11-15 02:37:23)\n@!@!@ENDMSG 2186 @!@!@\n",
+   "dot": ""
+  },
+  {
+   "request": {
+    "invariants": [
+     "Safe"
+    ],
+    "properties": [],
+    "deadlock": false,
+    "keep_going": true,
+    "bounded": true,
+    "as_written": false
+   },
+   "code": 0,
+   "output": "@!@!@STARTMSG 2262:0 @!@!@\nTLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)\n@!@!@ENDMSG 2262 @!@!@\n@!@!@STARTMSG 2187:0 @!@!@\nRunning breadth-first search Model-Checking with fp 0 and seed 0 with 1 worker on 32 cores with 5957MB heap and 64MB offheap memory [pid: 0] (Linux 6.18.54.1-microsoft-standard-WSL2 amd64, Eclipse Adoptium 25.0.5 x86_64, MSBDiskFPSet, DiskStateQueue).\n@!@!@ENDMSG 2187 @!@!@\n@!@!@STARTMSG 2220:0 @!@!@\nStarting SANY...\n@!@!@ENDMSG 2220 @!@!@\nParsing file <work>/run-2/StatechartBound.tla\nParsing file <models>/Hidden.tla\nParsing file <tmp>/Naturals.tla\nParsing file <tmp>/TLC.tla\nParsing file <tmp>/Sequences.tla\nParsing file <tmp>/FiniteSets.tla\nSemantic processing of module Naturals\nSemantic processing of module Hidden\nSemantic processing of module Sequences\nSemantic processing of module FiniteSets\nSemantic processing of module TLC\nSemantic processing of module StatechartBound\n@!@!@STARTMSG 2219:0 @!@!@\nSANY finished.\n@!@!@ENDMSG 2219 @!@!@\n@!@!@STARTMSG 2185:0 @!@!@\nStarting... (2026-11-15 02:37:24)\n@!@!@ENDMSG 2185 @!@!@\n@!@!@STARTMSG 2189:0 @!@!@\nComputing initial states...\n@!@!@ENDMSG 2189 @!@!@\n@!@!@STARTMSG 2190:0 @!@!@\nFinished computing initial states: 1 distinct state generated at 2026-11-15 02:37:24.\n@!@!@ENDMSG 2190 @!@!@\n@!@!@STARTMSG 2110:1 @!@!@\nInvariant Safe is violated.\n@!@!@ENDMSG 2110 @!@!@\n@!@!@STARTMSG 2121:1 @!@!@\nThe behavior up to this point is:\n@!@!@ENDMSG 2121 @!@!@\n@!@!@STARTMSG 2217:4 @!@!@\n1: <Initial predicate>\nx = 0\n\n@!@!@ENDMSG 2217 @!@!@\n@!@!@STARTMSG 2217:4 @!@!@\n2: <Choose line 8, col 11 to line 8, col 33 of module Hidden>\nx = 1\n\n@!@!@ENDMSG 2217 @!@!@\n@!@!@STARTMSG 2193:0 @!@!@\nModel checking completed. No error has been found.\n  Estimates of the probability that TLC did not check all reachable states\n  because two distinct states had the same fingerprint:\n  calculated (optimistic):  val = 6.5E-19\n@!@!@ENDMSG 2193 @!@!@\n@!@!@STARTMSG 2200:0 @!@!@\nProgress(2) at 2026-11-15 02:37:24: 7 states generated (981 s/min), 4 distinct states found (560 ds/min), 0 states left on queue.\n@!@!@ENDMSG 2200 @!@!@\n@!@!@STARTMSG 2199:0 @!@!@\n7 states generated, 4 distinct states found, 0 states left on queue.\n@!@!@ENDMSG 2199 @!@!@\n@!@!@STARTMSG 2194:0 @!@!@\nThe depth of the complete state graph search is 2.\n@!@!@ENDMSG 2194 @!@!@\n@!@!@STARTMSG 2268:0 @!@!@\nThe average outdegree of the complete state graph is 1 (minimum is 0, the maximum 3 and the 95th percentile is 3).\n@!@!@ENDMSG 2268 @!@!@\n@!@!@STARTMSG 2186:0 @!@!@\nFinished in 434ms at (2026-11-15 02:37:24)\n@!@!@ENDMSG 2186 @!@!@\n",
+   "dot": "strict digraph DiskGraph {\nnodesep=0.35;\nsubgraph cluster_graph {\ncolor=\"white\";\n-3406341414084290173 [label=\"x = 0\",style = filled]\n-3406341414084290173 -> -686636423115914061 [label=\"Choose\",color=\"black\",fontcolor=\"black\"];\n-686636423115914061 [label=\"x = 1\"];\n-3406341414084290173 -> -7115858903467826205 [label=\"Choose\",color=\"black\",fontcolor=\"black\"];\n-7115858903467826205 [label=\"x = 2\"];\n-3406341414084290173 -> -4900539538744082733 [label=\"Choose\",color=\"black\",fontcolor=\"black\"];\n-4900539538744082733 [label=\"x = 3\"];\n-686636423115914061 -> -7115858903467826205 [label=\"After\",color=\"black\",fontcolor=\"black\"];\n-7115858903467826205 -> -7115858903467826205 [label=\"Stay\",color=\"black\",fontcolor=\"black\"];\n-4900539538744082733 -> -3406341414084290173 [label=\"Return\",color=\"black\",fontcolor=\"black\"];\n{rank = same; -3406341414084290173;}\n{rank = same; -686636423115914061;-7115858903467826205;-4900539538744082733;}\n}\n}"
+  }
+ ]
+}

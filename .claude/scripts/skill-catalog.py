@@ -9,12 +9,14 @@ audit — so this script generates the mechanical part and lints the rest.
 
   --check (default)
       Exit 1 if the generated section is stale; if a backticked skill name in
-      the router's hand-owned text names no installed skill; if a principle
-      skill (principle-*) or a playbook file (mvp-mode/playbooks/*.md) has no
-      `target`: situation entry in the router's Playbooks or Principles
-      section, if an entry names nothing installed, or if the router does not
-      point at its catalog — comments and fenced examples excluded (unit-kinds
-      R3); if any /name reference in any
+      the router's hand-owned text names no installed skill; if a backticked
+      `principle-<name>` citation in any shipped text file under a skill folder
+      resolves to no mvp-mode/principles/<name>.md; if a principle file
+      (mvp-mode/principles/*.md) or a playbook file (mvp-mode/playbooks/*.md)
+      has no `target`: situation entry in the router's Playbooks or Principles
+      section, if an entry names nothing installed, if a skill folder is named
+      principle-*, or if the router does not point at its catalog — comments
+      and fenced examples excluded (unit-kinds R3); if any /name reference in any
       shipped text file under a skill folder (*.md, *.sh, *.py, *.yaml —
       references, scripts, assets included) resolves to no installed skill and
       no ALLOWED_SLASHES entry; if any `.claude/...` path token in those same
@@ -31,6 +33,9 @@ audit — so this script generates the mechanical part and lints the rest.
 Slash commands were folded into slash-only skills (2026-08-19): there is no
 .claude/commands directory; a user-run workflow is a skill with
 `disable-model-invocation: true`.
+
+Principles are not skills (owner ruling 2026-11-05; unit-kinds P7): the router
+lists them and the catalog does not, and a /principle-<name> reference is dead.
 
 Warnings (reported, never exit-code failures): a quoted trigger phrase claimed
 by two or more model-invocable skill descriptions; an ALLOWED_SLASHES entry no
@@ -53,6 +58,7 @@ ROUTER_DIR = Path("mvp-mode")  # relative to the skills dir
 ROUTER_REL = ROUTER_DIR / "SKILL.md"  # always loaded; hand-owned
 CATALOG_REL = ROUTER_DIR / "references" / "catalog.md"  # generated below MARKER
 PLAYBOOKS_REL = ROUTER_DIR / "playbooks"
+PRINCIPLES_REL = ROUTER_DIR / "principles"
 PRINCIPLE_PREFIX = "principle-"
 WRITE_CMD = "python3 .claude/scripts/skill-catalog.py --write"
 
@@ -101,6 +107,7 @@ PLACEHOLDER_MARKS = ("<", ">", "*", "{", "}", "…", "...")
 
 # A backticked bare skill/command name, as the hand-owned router table uses.
 BARE_NAME = re.compile(r"`([a-z][a-z0-9-]*)`")
+PRINCIPLE_CITATION = re.compile(r"`(principle-[a-z0-9][a-z0-9-]*)`")
 
 # A quoted trigger phrase inside a description: 'like this' or "like this",
 # opened after whitespace/punctuation so apostrophes ("project's") don't pair.
@@ -421,13 +428,44 @@ def unresolved_names(path: Path, text: str, known: set[str], root: Path) -> list
         " (hand-owned) — no installed skill"
         for lineno, line in enumerate(text.splitlines(), start=1)
         for name in (m.group(1) for m in BARE_NAME.finditer(line))
-        if name not in known
+        # principle_citation_failures lints these, in every shipped file.
+        if name not in known and not name.startswith(PRINCIPLE_PREFIX)
     ]
+
+
+def installed_principles(skills_dir: Path) -> set[str]:
+    """Each principle's file name; `principle-<stem>` is the unit's name."""
+    return {p.name for p in (skills_dir / PRINCIPLES_REL).glob("*.md")}
+
+
+def principle_citation_failures(
+    skills: list[Surface], skills_dir: Path, root: Path
+) -> tuple[list[str], int]:
+    """(failures, resolved count) for backticked `principle-<name>` citations."""
+    names = {
+        PRINCIPLE_PREFIX + Path(name).stem for name in installed_principles(skills_dir)
+    }
+    failures: list[str] = []
+    resolved = 0
+    for surface in skills:
+        for shipped in shipped_text_files(surface):
+            text = shipped.read_text(encoding="utf-8")
+            for lineno, line in enumerate(text.splitlines(), start=1):
+                for match in PRINCIPLE_CITATION.finditer(line):
+                    if match.group(1) in names:
+                        resolved += 1
+                    else:
+                        failures.append(
+                            f"unresolved principle `{match.group(1)}` at"
+                            f" {_rel(shipped, root)}:{lineno} — no"
+                            f" {PRINCIPLES_REL}/{match.group(1).removeprefix(PRINCIPLE_PREFIX)}.md"
+                        )
+    return failures, resolved
 
 
 # The router's Playbooks and Principles sections hold one list item per unit:
 #   - `playbooks/<name>.md`: <the request it fits>
-#   - `principle-<name>`: <the situation it applies in>
+#   - `principles/<name>.md`: <the situation it applies in>
 # Comments and fenced examples are stripped before parsing, so a mention there
 # routes nothing (unit-kinds R3).
 HTML_COMMENT = re.compile(r"<!--.*?-->", re.DOTALL)
@@ -440,7 +478,7 @@ SECTION_HEADING = re.compile(r"^## (.+?)\s*$", re.MULTILINE)
 ROUTE_ENTRY = re.compile(r"^- `([^`]+)`:\s*(.*?)\s*$")
 ROUTE_SECTIONS = {
     "Playbooks": re.compile(r"playbooks/[a-z0-9][a-z0-9-]*\.md"),
-    "Principles": re.compile(re.escape(PRINCIPLE_PREFIX) + r"[a-z0-9][a-z0-9-]*"),
+    "Principles": re.compile(r"principles/[a-z0-9][a-z0-9-]*\.md"),
 }
 
 
@@ -515,7 +553,18 @@ def unreachable_units(
         catalog_link = CATALOG_REL.relative_to(ROUTER_DIR)
         failures.append(f"{router} does not point at {catalog_link}")
 
-    principles = {s.name for s in skills if s.name.startswith(PRINCIPLE_PREFIX)}
+    # The folder's own name and the name it declares: a leftover may hold only a
+    # sidecar, or declare another name, and neither is what discovery reports.
+    stray = {
+        child.name
+        for child in skills_dir.iterdir()
+        if child.is_dir() and child.name.startswith(PRINCIPLE_PREFIX)
+    } | {s.name for s in skills if s.name.startswith(PRINCIPLE_PREFIX)}
+    failures.extend(
+        f"skill folder {name}: a principle is a file under {PRINCIPLES_REL}, not a skill"
+        for name in sorted(stray)
+    )
+    principles = {f"principles/{name}" for name in installed_principles(skills_dir)}
     playbooks_dir = skills_dir / PLAYBOOKS_REL
     playbooks = (
         {f"playbooks/{p.name}" for p in playbooks_dir.glob("*.md")}
@@ -574,6 +623,11 @@ def cmd_check(root: Path, skills_dir: Path) -> int:
             excerpt = "\n".join("    " + line for line in diff[:15])
             failures.append(f"stale generated section — run `{WRITE_CMD}`\n{excerpt}")
 
+    citation_failures, resolved_citations = principle_citation_failures(
+        skills, skills_dir, root
+    )
+    failures.extend(citation_failures)
+
     used_allowlist: set[str] = set()
     used_path_allowlist: set[str] = set()
     resolved = 0
@@ -631,6 +685,7 @@ def cmd_check(root: Path, skills_dir: Path) -> int:
             f"OK   {resolved_paths} shared path references resolve"
             f" ({len(used_path_allowlist)} allowlisted)"
         )
+        print(f"OK   {resolved_citations} principle citations resolve")
         print(f"OK   {len(skills)} agents/openai.yaml sidecars match their frontmatter")
     for warning in warnings:
         print(f"WARN {warning}")

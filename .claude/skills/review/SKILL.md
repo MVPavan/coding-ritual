@@ -1,6 +1,6 @@
 ---
 name: review
-description: Use for a critic review of any artifact, a substantive review of code or of a spec or plan, or to verify and act on review findings. Skip routine final diff inspection; to interrogate the author instead, use grilling.
+description: Use for a critic review of any artifact, a substantive review of code or of a spec or plan, or to verify and act on review findings. Skip routine final diff inspection; to question the author instead, use grilling.
 ---
 
 # Review
@@ -32,6 +32,7 @@ plan-mandated; the user decides.
 - `feedback`: verify and act on incoming findings within authorization, using
   `references/feedback.md`. Producing a review is read-only, whereas applying
   feedback requires implementation authority.
+- `blast-radius`, only when asked what a change could break: `references/blast-radius.md`.
 
 ## Document review
 

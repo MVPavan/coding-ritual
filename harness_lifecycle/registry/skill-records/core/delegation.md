@@ -4,7 +4,7 @@ domain: core
 stage: X
 substage: Coordination
 secondary: []
-family: 
+family:
 aliases: []
 status: active
 ---
@@ -31,24 +31,92 @@ Use when handing work to another agent or model (an explorer, implementer, revie
 - `codex-direct`: Call the Codex CLI directly rather than through the retired adapter plugin.
 - `closed-stdin`: Close standard input when running an agent CLI non-interactively so it cannot wait for input with no timeout.
 - `result-error-check`: Judge an agent CLI run by its structured result's error flag, never by its exit code alone.
+- `background-dispatch-for-dialogue`: Run subagents in the background so the coordinator stays in live dialogue with the user.
+- `brief-names-done-evidence`: A brief names what will show the work is finished, and a unit with nothing to name is scoped further or raised with the owner before dispatch.
+- `read-worker-output`: Open the diff or artifact a worker produced and hold it to the evidence its brief named, instead of relying on its summary.
+- `stalled-worker-by-output`: Stop or replace a worker that stalls or loops, judging it by what it has produced rather than its status text.
+- `retry-by-cause`: Retry a failed worker according to why it failed, with a narrower unit, the same brief or another model, and after two retries drop the unit and plan around it.
+- `fresh-context-subagent`: Start every subagent in a fresh context window rather than as a copy of the caller's conversation. (Delivers sealed rows 2026-11-09-pocock-4ae2317:156, :158, :160, :163, :165, :167, :170 and :179: a fresh window for each new worker, and a fork when the calling workflow asks for one, where the definition says every subagent; T5.)
+- `unenforced-read-only-brief-and-status-check`: When a read-only worker's tool access still lets it write, say in its brief not to edit files and, after it returns, check the checkout against a baseline the coordinator recorded before dispatch.
 <!-- /registry:generated traits -->
 
 <!-- registry:generated lineage -->
-- **mattpocock_skills:skill:skills/in-progress/chief-of-staff#background-dispatch-for-dialogue** `skills/in-progress/chief-of-staff/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.3)
+- **mattpocock_skills:skill:skills/in-progress/chief-of-staff#background-dispatch-for-dialogue** `skills/in-progress/chief-of-staff/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/engineering/code-review#fresh-context-subagent** `skills/engineering/code-review/SKILL.md` @ 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d
+- **mattpocock_skills:skill:skills/engineering/codebase-design#fresh-context-subagent** `skills/engineering/codebase-design/SKILL.md` @ 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d
+- **mattpocock_skills:skill:skills/engineering/implement-spec#fresh-context-subagent** `skills/engineering/implement-spec/SKILL.md` @ 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d
+- **mattpocock_skills:skill:skills/engineering/improve-codebase-architecture#fresh-context-subagent** `skills/engineering/improve-codebase-architecture/SKILL.md` @ 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d
+- **mattpocock_skills:skill:skills/engineering/research#fresh-context-subagent** `skills/engineering/research/SKILL.md` @ 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d
+- **mattpocock_skills:skill:skills/engineering/wayfinder#fresh-context-subagent** `skills/engineering/wayfinder/SKILL.md` @ 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d
+- **mattpocock_skills:skill:skills/in-progress/chief-of-staff#fresh-context-subagent** `skills/in-progress/chief-of-staff/SKILL.md` @ 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d
+- **mattpocock_skills:skill:skills/productivity/grilling#fresh-context-subagent** `skills/productivity/grilling/SKILL.md` @ 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d
+- **mattpocock_skills:skill:skills/in-progress/claude-handoff#brief-from-file** `skills/in-progress/claude-handoff/SKILL.md` @ 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d (pending cr-r2pa.2.13.1)
+- **mattpocock_skills:skill:skills/in-progress/claude-handoff#named-background-worker** `skills/in-progress/claude-handoff/SKILL.md` @ 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d (pending cr-r2pa.2.13.1)
+- **cursor_plugins:skill:pstack/skills/swarm#brief-names-done-evidence** `pstack/skills/swarm/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/swarm#exact-commit-briefs** `pstack/skills/swarm/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049 (pending cr-r2pa.2.13.2)
+- **cursor_plugins:skill:pstack/skills/swarm#measurement-method-in-brief** `pstack/skills/swarm/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049 (pending cr-r2pa.2.13.2)
+- **cursor_plugins:skill:pstack/skills/swarm#worker-records-commits-and-method** `pstack/skills/swarm/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049 (pending cr-r2pa.2.13.2)
+- **cursor_plugins:skill:pstack/skills/swarm#missing-result-not-pass** `pstack/skills/swarm/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049 (pending cr-r2pa.2.13.2)
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
-- `2026-10-30` **adopt-merged** (2026-10-30-mattpocock_skills-5beb35b:580): Checkpoint at 5beb35b for the owner's trait rulings: 1 adopt, 23 defer.
-- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:421): AGENTS.md has the lead continue independent work while waiting (AGENTS.md:9-10) but delegation never says to dispatch in the background; CF-09 asks for exactly…
+- `2026-11-14` **update** (2026-11-14-adapter-adopts:001): Bead cr-r2pa.2.27. Owner ruling 2026-11-14 ("All as recommended") on pstack's Claude Code adapter, kept by option D: adopts unenforced-read-only-brief-and-stat…
+- `2026-11-13` **adopt-merged** (2026-11-13-batch-p2:235): Checkpoint at 2776ddd for the owner's trait rulings: 6 adopt, 18 reject.
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:232): Owner ruling 2026-11-13: Prevents: Coverage reported as complete when some slices never came back. Lands in delegation, SKILL.md, the collect paragraph. Upstre…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:222): Owner ruling 2026-11-13: Prevents: A result that cannot be tied to what it tested, so a stale or misdirected run passes for a current one. Lands in delegation,…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:221): Owner ruling 2026-11-13: Prevents: Measurements no one can repeat or compare, because each worker chose its own samples. Lands in delegation, SKILL.md, the bri…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:220): Owner ruling 2026-11-13: Prevents: A worker that verifies or measures the wrong commit. Lands in delegation, SKILL.md, the brief paragraph. Upstream: SKILL.md:…
+- `2026-11-13` **adopt** (2026-11-13-batch-p2:212): Owner ruling 2026-11-13: delegation:47-50 has the brief name what will show the work is finished.
+- `2026-11-13` **adopt-merged** (2026-11-13-batch-m:020): Checkpoint at 4ae2317 for the owner's trait rulings: 2 adopt, 7 reject.
+- `2026-11-13` **adopt** (2026-11-13-batch-m:016): Owner ruling 2026-11-13: Prevents: Several background workers that a person or the coordinator cannot tell apart in the vendor's list, so the wrong one gets st…
+- `2026-11-13` **adopt** (2026-11-13-batch-m:015): Owner ruling 2026-11-13: Prevents: A brief holding backticks or `$` that the shell runs or expands before the worker reads it, so the worker gets a damaged bri…
+- `2026-11-12` **adopt** (2026-11-12-pocock-4ae2317-delivery:022): Completes pending 2026-11-09-pocock-4ae2317:179: fresh-context-subagent is written at .claude/skills/delegation/SKILL.md:51-54, .repo-context/unit-kinds.md:317…
+- `2026-11-12` **adopt** (2026-11-12-pocock-4ae2317-delivery:021): Completes pending 2026-11-09-pocock-4ae2317:170: fresh-context-subagent is written at .claude/skills/delegation/SKILL.md:51-54, .repo-context/unit-kinds.md:317…
+- `2026-11-12` **adopt** (2026-11-12-pocock-4ae2317-delivery:020): Completes pending 2026-11-09-pocock-4ae2317:167: fresh-context-subagent is written at .claude/skills/delegation/SKILL.md:51-54, .repo-context/unit-kinds.md:317…
+- `2026-11-12` **adopt** (2026-11-12-pocock-4ae2317-delivery:019): Completes pending 2026-11-09-pocock-4ae2317:165: fresh-context-subagent is written at .claude/skills/delegation/SKILL.md:51-54, .repo-context/unit-kinds.md:317…
+- `2026-11-12` **adopt** (2026-11-12-pocock-4ae2317-delivery:018): Completes pending 2026-11-09-pocock-4ae2317:163: fresh-context-subagent is written at .claude/skills/delegation/SKILL.md:51-54, .repo-context/unit-kinds.md:317…
+- `2026-11-12` **adopt** (2026-11-12-pocock-4ae2317-delivery:017): Completes pending 2026-11-09-pocock-4ae2317:160: fresh-context-subagent is written at .claude/skills/delegation/SKILL.md:51-54, .repo-context/unit-kinds.md:317…
+- `2026-11-12` **adopt** (2026-11-12-pocock-4ae2317-delivery:016): Completes pending 2026-11-09-pocock-4ae2317:158: fresh-context-subagent is written at .claude/skills/delegation/SKILL.md:51-54, .repo-context/unit-kinds.md:317…
+- `2026-11-12` **adopt** (2026-11-12-pocock-4ae2317-delivery:015): Completes pending 2026-11-09-pocock-4ae2317:156: fresh-context-subagent is written at .claude/skills/delegation/SKILL.md:51-54, .repo-context/unit-kinds.md:317…
+- `2026-11-12` **update** (2026-11-12-pocock-4ae2317-delivery:014): Bead cr-r2pa.2.19, plan 53: delivers the eight pending fresh-context-subagent adopts of round 2026-11-09-pocock-4ae2317 (:156 :158 :160 :163 :165 :167 :170 :17…
+- `2026-11-09` **adopt** (2026-11-09-pocock-4ae2317:179) *(superseded)*: Owner ruling 2026-11-09: Prevents: A worker that inherits the coordinator's whole conversation, so its result rests on context the brief never stated and a rev…
+- `2026-11-09` **adopt-merged** (2026-11-09-pocock-4ae2317:178): Checkpoint at 4ae2317 for the owner's trait rulings: 3 adopt, 4 defer, 2 reject.
+- `2026-11-09` **adopt** (2026-11-09-pocock-4ae2317:170) *(superseded)*: Owner ruling 2026-11-09: Prevents: A worker that inherits the coordinator's whole conversation, so its result rests on context the brief never stated and a rev…
+- `2026-11-09` **adopt** (2026-11-09-pocock-4ae2317:167) *(superseded)*: Owner ruling 2026-11-09: Prevents: A worker that inherits the coordinator's whole conversation, so its result rests on context the brief never stated and a rev…
+- `2026-11-09` **adopt** (2026-11-09-pocock-4ae2317:165) *(superseded)*: Owner ruling 2026-11-09: Prevents: A worker that inherits the coordinator's whole conversation, so its result rests on context the brief never stated and a rev…
+- `2026-11-09` **adopt** (2026-11-09-pocock-4ae2317:163) *(superseded)*: Owner ruling 2026-11-09: Prevents: A worker that inherits the coordinator's whole conversation, so its result rests on context the brief never stated and a rev…
+- `2026-11-09` **adopt** (2026-11-09-pocock-4ae2317:160) *(superseded)*: Owner ruling 2026-11-09: Prevents: A worker that inherits the coordinator's whole conversation, so its result rests on context the brief never stated and a rev…
+- `2026-11-09` **adopt** (2026-11-09-pocock-4ae2317:158) *(superseded)*: Owner ruling 2026-11-09: Prevents: A worker that inherits the coordinator's whole conversation, so its result rests on context the brief never stated and a rev…
+- `2026-11-09` **adopt** (2026-11-09-pocock-4ae2317:156) *(superseded)*: Owner ruling 2026-11-09: Prevents: A worker that inherits the coordinator's whole conversation, so its result rests on context the brief never stated and a rev…
+- `2026-11-05` **update** (2026-11-05-delegation-principles:001): Owner ruling of 2026-11-05. A search of past sessions found the router's principle lines rarely led to a read, even where a principle's situation held, and mos…
+- `2026-11-04` **update** (2026-11-04-pocock-pass:038): Owner ruling 17 (playbook map 2.17, 7.2): Orchestrate stays deferred and delegation grows by three rules from its Supervision section. A brief names what will …
+- `2026-11-04` **adopt** (2026-11-04-pocock-pass:009): Completes pending 2026-10-30-mattpocock_skills-5beb35b:421: background-dispatch-for-dialogue is written at .claude/skills/delegation/SKILL.md:49-51, in the sea…
+- `2026-10-30` **adopt-merged** (2026-10-30-mattpocock_skills-5beb35b:580) *(superseded)*: Checkpoint at 5beb35b for the owner's trait rulings: 1 adopt, 23 defer.
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:421) *(superseded)*: AGENTS.md has the lead continue independent work while waiting (AGENTS.md:9-10) but delegation never says to dispatch in the background; CF-09 asks for exactly…
 - `2026-10-30` **add** (2026-10-30-delegation:001): Owner 2026-10-30: one vendor-neutral skill for every handoff to another agent or model; roles in roles/, vendors in vendors/ (T3, Codex CLI, Claude CLI).
 <!-- /registry:generated history -->
 
 <!-- registry:generated reviews -->
-None yet.
+- [2026-11-14-skill-pstack-claude-code-adapter.md](../../reviews/2026-11-14-skill-pstack-claude-code-adapter.md)
+- [2026-11-12-upstream-mattpocock_skills-4ae2317-batch-m.md](../../reviews/2026-11-12-upstream-mattpocock_skills-4ae2317-batch-m.md)
+- [2026-11-12-upstream-cursor_plugins-2776ddd-batch-p2.md](../../reviews/2026-11-12-upstream-cursor_plugins-2776ddd-batch-p2.md)
+- [2026-11-06-upstream-mattpocock_skills-4ae2317.md](../../reviews/2026-11-06-upstream-mattpocock_skills-4ae2317.md)
 <!-- /registry:generated reviews -->
 
 <!-- registry:generated sources -->
-No adopted traits recorded.
+- `background-dispatch-for-dialogue`:
+  - `mattpocock_skills:skill:skills/in-progress/chief-of-staff#background-dispatch-for-dialogue` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `brief-names-done-evidence`:
+  - `cursor_plugins:skill:pstack/skills/swarm#brief-names-done-evidence` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `fresh-context-subagent`:
+  - `mattpocock_skills:skill:skills/engineering/code-review#fresh-context-subagent` (adopted at 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d)
+  - `mattpocock_skills:skill:skills/engineering/codebase-design#fresh-context-subagent` (adopted at 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d)
+  - `mattpocock_skills:skill:skills/engineering/implement-spec#fresh-context-subagent` (adopted at 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d)
+  - `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture#fresh-context-subagent` (adopted at 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d)
+  - `mattpocock_skills:skill:skills/engineering/research#fresh-context-subagent` (adopted at 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d)
+  - `mattpocock_skills:skill:skills/engineering/wayfinder#fresh-context-subagent` (adopted at 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d)
+  - `mattpocock_skills:skill:skills/in-progress/chief-of-staff#fresh-context-subagent` (adopted at 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d)
+  - `mattpocock_skills:skill:skills/productivity/grilling#fresh-context-subagent` (adopted at 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d)
 <!-- /registry:generated sources -->
 
 <!-- registry:generated declined -->

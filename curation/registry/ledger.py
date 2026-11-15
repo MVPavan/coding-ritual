@@ -8,7 +8,12 @@ from pathlib import Path
 from typing import Any
 
 from curation.registry.config import RegistryConfig
-from curation.registry.loaders import _round_files, load_ledger, load_traits
+from curation.registry.loaders import (
+    _round_files,
+    load_ledger,
+    load_traits,
+    read_manifest,
+)
 from curation.registry.models import (
     Analysis,
     Event,
@@ -208,9 +213,10 @@ def build_lifecycle(events: list[Event]) -> tuple[dict[str, str], set[str]]:
     """Our skill lifecycle, read in ledger order (§3, §5).
 
     Returns ``(forward, retired)``: a one-step ``old -> new`` map across
-    ``rename``/``merge`` and the set of retired skill names. Trait IDs are
-    global, so a merge needs no slug map (§5). Callers pass `live_events`, so
-    superseded lifecycle events are already excluded (review #8).
+    ``rename``/``merge`` and the set of retired skill names. A skill is keyed by
+    its plain name, a renamed playbook by its full ``doc:<path>`` (README §4b).
+    Trait IDs are global, so a merge needs no slug map (§5). Callers pass
+    `live_events`, so superseded lifecycle events are already excluded (review #8).
     """
     forward: dict[str, str] = {}
     retired: set[str] = set()
@@ -219,6 +225,9 @@ def build_lifecycle(events: list[Event]) -> tuple[dict[str, str], set[str]]:
             old = event.subject[len("ours:") :]
             if event.skill:
                 forward[old] = event.skill
+        elif event.kind == "rename" and event.subject.startswith("doc:"):
+            if event.skill:
+                forward[event.subject] = event.skill
         elif event.kind == "retire" and event.skill:
             retired.add(event.skill)
     return forward, retired
@@ -231,6 +240,13 @@ def resolve_skill(name: str, forward: dict[str, str]) -> str:
         seen.add(name)
         name = forward[name]
     return name
+
+
+def tracks_adoption(target: str) -> bool:
+    """Whether an adoption into `target` is an obligation the target keeps: a
+    skill or a `doc:` holder, never a `kind:name` capability. Only a playbook
+    has an `update` to withdraw one with (§4b)."""
+    return ":" not in target or target.startswith("doc:")
 
 
 def withdrawn_destinations(
@@ -263,7 +279,7 @@ def withdrawn_destinations(
             and not event.pending
             and _is_trait_subject(event.subject)
             and event.skill
-            and ":" not in event.skill
+            and tracks_adoption(event.skill)
         ):
             withdrawn.pop((event.subject, resolve_skill(event.skill, forward)), None)
     return withdrawn
@@ -294,7 +310,7 @@ def retained_adoptions(
             and not event.pending
             and _is_trait_subject(event.subject)
             and event.skill
-            and (":" not in event.skill or event.skill.startswith("doc:"))
+            and tracks_adoption(event.skill)
         ):
             dest = resolve_skill(event.skill, forward)
             out[(event.subject, dest)] = event
@@ -325,25 +341,60 @@ def _sha256(path: Path) -> str:
 _MANIFEST_KEYS = ("rounds", "reports", "analyses")
 
 
-def _manifest(cfg: RegistryConfig) -> dict[str, dict[str, str]]:
-    data: dict[str, Any] = {}
-    if cfg.manifest_path.is_file():
-        data = json.loads(cfg.manifest_path.read_text(encoding="utf-8"))
-    return {key: dict(data.get(key, {})) for key in _MANIFEST_KEYS}
+def _manifest(cfg: RegistryConfig) -> dict[str, Any]:
+    data = read_manifest(cfg)
+    manifest: dict[str, Any] = {key: dict(data.get(key, {})) for key in _MANIFEST_KEYS}
+    manifest["round_order"] = data.get("round_order", [])
+    return manifest
 
 
 def _manifest_rounds(cfg: RegistryConfig) -> dict[str, str]:
-    return _manifest(cfg)["rounds"]
+    rounds: dict[str, str] = _manifest(cfg)["rounds"]
+    return rounds
+
+
+def round_order_errors(cfg: RegistryConfig) -> list[str]:
+    """`round_order` names exactly the sealed rounds, each once."""
+    order = read_manifest(cfg).get("round_order", [])
+    if not isinstance(order, list):
+        return ["MANIFEST.json: round_order must be a list"]
+    recorded = _manifest_rounds(cfg)
+    names = [str(name) for name in order]
+    errors = [
+        f"MANIFEST.json: round_order: {name}: listed more than once"
+        for name in sorted({n for n in names if names.count(n) > 1})
+    ]
+    errors += [
+        f"MANIFEST.json: round_order: {name}: listed but not sealed"
+        for name in sorted(set(names) - set(recorded))
+    ]
+    errors += [
+        f"MANIFEST.json: round_order: {name}: not listed"
+        for name in sorted(set(recorded) - set(names))
+    ]
+    return errors
+
+
+def require_round_order(cfg: RegistryConfig) -> None:
+    """Refuse a write that depends on chronology while the order is invalid: with
+    a bad list the events load in an order `check` will not accept."""
+    errors = round_order_errors(cfg)
+    if errors:
+        raise SystemExit(
+            "; ".join(errors) + " — repair round_order in recording order first"
+        )
 
 
 def manifest_reports(cfg: RegistryConfig) -> dict[str, str]:
     """Sealed reports: repo-relative path → sha256 of the file."""
-    return _manifest(cfg)["reports"]
+    reports: dict[str, str] = _manifest(cfg)["reports"]
+    return reports
 
 
 def manifest_analyses(cfg: RegistryConfig) -> dict[str, str]:
     """Analyses cited by a sealed round: `<entry key>@<sha>` → content hash."""
-    return _manifest(cfg)["analyses"]
+    analyses: dict[str, str] = _manifest(cfg)["analyses"]
+    return analyses
 
 
 def analysis_digest(analysis: Analysis) -> str:
@@ -352,19 +403,23 @@ def analysis_digest(analysis: Analysis) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
-def _write_manifest(cfg: RegistryConfig, manifest: dict[str, dict[str, str]]) -> None:
-    """The manifest keeps sealed rounds under `rounds`; once any is recorded,
-    sealed reports under `reports` and cited analyses under `analyses`."""
+def _write_manifest(cfg: RegistryConfig, manifest: dict[str, Any]) -> None:
+    """The manifest keeps sealed rounds under `rounds` and their recording order
+    under `round_order`; once any is recorded, sealed reports under `reports` and
+    cited analyses under `analyses`."""
     data: dict[str, Any] = {
-        "_comment": "sha256 of every sealed round file. registry.py check fails "
-        "if a sealed file is modified or deleted. Never edit by hand.",
+        "_comment": "sha256 of every sealed round file, and in round_order the "
+        "sealed rounds in recording order. registry.py check fails if a sealed "
+        "file is modified or deleted. Never edit by hand.",
         "rounds": dict(sorted(manifest["rounds"].items())),
+        "round_order": manifest["round_order"],
     }
     if manifest["reports"] or manifest["analyses"]:
         data["_comment"] = (
             "sha256 of every sealed round file and report, and of every analysis "
-            "a sealed round cites. registry.py check fails if one is modified or "
-            "deleted. Never edit by hand."
+            "a sealed round cites; in round_order, the sealed rounds in recording "
+            "order. registry.py check fails if one is modified or deleted. Never "
+            "edit by hand."
         )
     for key in _MANIFEST_KEYS[1:]:
         if manifest[key]:
@@ -374,12 +429,14 @@ def _write_manifest(cfg: RegistryConfig, manifest: dict[str, dict[str, str]]) ->
 
 
 def seal(cfg: RegistryConfig, round_id: str) -> None:
-    """Record the sha256 of a round file. A sealed round is never re-digested; a
-    sealed round that has since changed is refused rather than overwritten, and
-    so is a round citing an analysis whose recorded digest it would replace."""
+    """Record the sha256 of a round file and append it to `round_order`. A sealed
+    round is never re-digested; a sealed round that has since changed is refused
+    rather than overwritten, and so is a round citing an analysis whose recorded
+    digest it would replace."""
     path = cfg.ledger_dir / f"{round_id}.jsonl"
     if not path.is_file():
         raise SystemExit(f"no round file to seal: {path}")
+    require_round_order(cfg)
     manifest = _manifest(cfg)
     recorded = manifest["rounds"]
     current = _sha256(path)
@@ -401,6 +458,7 @@ def seal(cfg: RegistryConfig, round_id: str) -> None:
             f"since a sealed round cited it — refusing to seal"
         )
     recorded[path.name] = current
+    manifest["round_order"].append(path.name)
     manifest["analyses"].update(cited)
     _write_manifest(cfg, manifest)
 
@@ -431,10 +489,13 @@ def seal_report_digest(cfg: RegistryConfig, key: str, digest: str) -> None:
 
 
 def _adopt_target(ruling: Event, forward: dict[str, str]) -> str:
-    """The rendered adoption target of a trait `adopt` ruling: a `doc:`/`kind:`
-    target verbatim, otherwise the survivor skill and the adopted trait id."""
+    """The rendered adoption target of a trait `adopt` ruling: a `kind:` target
+    verbatim, a `doc:` target as the path it was renamed to, otherwise the
+    survivor skill and the adopted trait id."""
     assert ruling.skill is not None
-    if ":" in ruling.skill:  # doc: or kind: target, no trait id, no lifecycle
+    if ruling.skill.startswith("doc:"):  # a playbook may be renamed; no trait id
+        return resolve_skill(ruling.skill, forward)
+    if ":" in ruling.skill:  # kind: target, no trait id, no lifecycle
         return ruling.skill
     survivor = resolve_skill(ruling.skill, forward)
     tid = ruling.into or _trait_slug(ruling.subject)

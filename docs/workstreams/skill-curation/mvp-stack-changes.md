@@ -128,9 +128,10 @@ Four edits; behaviour change after each.
 
 ### Principles (14 new units)
 
-Each is `.claude/skills/principle-<name>/SKILL.md` with
-`disable-model-invocation: true` and a Codex sidecar that disallows implicit
-invocation: reached only through the router (P7), invocable by slash name.
+Each is `.claude/skills/mvp-mode/principles/<name>.md` with no frontmatter,
+cited as `principle-<name>`: reached only through the router and read by path,
+not a skill and with no slash name (P7, owner ruling 2026-11-05). The file lists
+below predate that move.
 
 | Principle | Situation (router line) | Core line |
 |---|---|---|
@@ -142,7 +143,7 @@ invocation: reached only through the router (P7), invocable by slash name.
 | `principle-migrate-without-shims` | replacing an internal API with no external users, or a planned migration with phase boundaries | Converge on the target design instead of carrying compatibility code. |
 | `principle-minimize-reader-load` | reviewing or shaping code that is hard to trace | Judge maintainability by the layers and state a reader must hold, not line counts. |
 | `principle-model-the-domain` | stateful logic, a growing if/else chain, or a repeated shape assumption | Choose the structure before the logic; the right structure removes logic. |
-| `principle-redesign-from-first-principles` | integrating a new requirement into an existing design | Design as if the requirement had been there from the start. |
+| `principle-redesign-from-first-principles` | integrating a new requirement the existing design visibly cannot hold | Design as if the requirement had been there from the start. |
 | `principle-separate-before-serializing-shared-state` | concurrent actors in designed code or tooling may write the same file, branch, key or object | Remove the shared write before coordinating it (code and tooling only). |
 | `principle-sequence-verifiable-units` | multi-step work or stacking commits | Every step ends somewhere a check can confirm; record baseline results first. |
 | `principle-subtract-before-you-add` | sequencing an addition, refactor or rewrite | Remove the dead code the change touches before adding; report other removals. |
@@ -568,6 +569,1014 @@ its playbooks folder) and `cr-r2pa.1.8` (this report).
   - `cr-r2pa.3.1`: move `harness_lifecycle/playbook.md` into
     `.claude/skills/mvp-mode/playbooks/`, route it, and drop it from the shipped plugin.
   - Remove the `skill-router` pointer once the registry views follow merges.
+
+## 6. Renames-and-splits batch (phase 2, `cr-r2pa.2.20`)
+
+Added 2026-11-11, after the snapshot above. Plan `scratchpad/mvp-stack/14a/plan.md`
+(gitignored), owner rulings C, D, I, K, M and N of
+`scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md`; rounds `2026-11-06-renames`
+and `2026-11-10-renames-splits`, both sealed. The owner's list of every moved rule is
+`scratchpad/mvp-stack/14/relocations.md`. Clean break: no stubs for old names (ruling I1).
+
+- **Renames.** `test-driven-development` → `tdd` (`6763f83`), `prose-pass` → `unslop`
+  (`d7165bb`), `i-have-adhd` → `brief-me` (`c2bed14`), `execution` → `implement`
+  (`12df2d8`). Bodies changed only in names; a skill record keeps its history after a
+  rename (`97f597e`) and reference pages name the new skill (`8870acb`).
+- **Splits.** `to-spec` out of `brainstorming`, which now ends at decisions (`3ab290f`);
+  `to-tickets` out of `planning`, which keeps plan documents, its approval gate and its
+  own slicing rules (`e43371b`). The pending adopts they deliver were recorded first
+  (`b4740e4`).
+- **`implement` spec branch** (`560788a`). `.claude/skills/implement/references/spec-run.md`
+  runs a whole spec whose tickets are one epic with edges, in one worktree on one
+  integration branch, one ticket at a time; commits, merges and worktree removal each
+  need authority. Its pre-report merge is the new trait `pre-report-base-merge`.
+- **`how` and `why`** (`161be48`). `explain-code` is renamed `why`: why something in the
+  project is the way it is, or what was decided about it, from the project's own record.
+  `how` is new: how something works now, and which option fits. Six playbooks and the
+  router point to the new names.
+- **Two principles restored** (`fb84021`). `principle-fix-root-causes` holds the three
+  rules moved out of `systematic-debugging`, which now points to it;
+  `principle-exhaust-the-design-space` covers decisions with no precedent of any kind,
+  with the new trait `novel-decision-design-space`.
+- **The `AGENTS.md` line** (`43d0d07`). "When a check fails unexpectedly, test the way it
+  observes" moved from `systematic-debugging` to `AGENTS.md` §Verification.
+- **Planning family renames** (`0eafcea`). `planning` → `to-plan` (one phase, one change
+  or one batch of units) and `to-tickets` → `to-roadmap` (an approved multi-phase spec
+  into phases, stages and their order); the four ordering rules live once in
+  `principle-sequence-verifiable-units`.
+
+Left for the end-of-project sync (bead `cr-r2pa`): Codex skill links, the plugin's
+copy of the `AGENTS.md` line, the publish manifest's skill count and
+`harness_lifecycle/catalogs/ours.json`.
+
+## 7. Tracker batch (phase 2, `cr-r2pa.2.22`)
+
+Added 2026-11-11. Plan `scratchpad/mvp-stack/27/plan.md` (gitignored), owner rulings M2,
+N2 and N3 of `scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md`; round
+`2026-11-11-tracker`, sealed. The owner's list of every moved rule and trait is
+`scratchpad/mvp-stack/30/relocations.md`.
+
+- **`tracker` is new** (`4647b3a`). It holds our work structure on top of Beads: the
+  workstream layout, phase epics and finding them, seeding a new workstream's phases and
+  stages with acceptance and real edges, extending one, recording an approved one-phase plan
+  (its proposed stage names bound to real IDs only after approval), a standalone plan
+  record, an approved decision map and its tickets, flat operational work from a charter,
+  the phase close gate, and rendering the tracking files. The renderer moved here from
+  `beads` (`.claude/skills/tracker/scripts/bd-render-tracking.sh`). Create recipes capture
+  the new ID with `--silent` and check it before any dependent write.
+- **`beads` keeps the tool.** Core rules, types, fields, status, waits, claims, reviews,
+  closing, setup, recovery and commands. Workstreams, phase epics, plan-unit beads and
+  tracking files now point to `tracker`.
+- **`to-roadmap` is narrower.** It takes only an approved multi-phase spec and decides its
+  phases, stages and order; `tracker` seeds them. A one-phase spec goes to `to-plan`, then
+  `tracker`. Five adopted rules moved to `tracker`: four from `to-roadmap` and Pocock's
+  `wayfinder#real-id-wiring`.
+- **`to-plan` hands off to `tracker`.** A plan for a seeded phase names the existing stage;
+  a new one-phase plan names a proposed stage and writes no Beads until `tracker` binds it.
+  The plan note, field roles and the standalone record moved to `tracker`. `wayfinder` and
+  `triage` also create through `tracker`.
+- **Unit beads** (`1fc0992`). When an approved plan's units will span sessions, `tracker`
+  gives each unit a child task under the plan bead, the one-phase stage, the spec ticket or
+  the workstream stage, with acceptance from the plan and edges by returned ID.
+- **`implement`'s changes.** The close gate moved to `tracker`. `implement` finishes a bead's
+  open children one at a time before claiming the bead itself. In the Phase loop, a stage
+  with unit beads is run by the coordinator rather than the contractor: it checks the
+  read-only trace first, releases and later reclaims the phase claim, renders and refreshes
+  the Beads export before the handoff commit, and checks the checkout is clean before the
+  next contractor call; without commit authority it stops with a handoff.
+
+Follow-up: `cr-7c6i`, a pre-existing bug: rendering after a contractor stage dirties the
+checkout the next contractor admits from. Left for the end-of-project sync (bead `cr-r2pa`):
+the new skill's Codex link, the plugin copy and the files listed in
+`scratchpad/mvp-stack/26/sync-list.md` §6.
+
+## 8. Discovery batch (phase 2, `cr-r2pa.2.21`)
+
+Added 2026-11-11. Plan `scratchpad/mvp-stack/20/plan.md` (gitignored), owner ruling L of
+`scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md`; round `2026-11-11-discovery`, sealed. The
+owner's list of every moved rule, trait and mechanism is
+`scratchpad/mvp-stack/39/relocations.md`.
+
+- **`discovery` replaces `brainstorming` and `idea-refine`** (`5255bb0`). `brainstorming` is
+  renamed and `idea-refine`, its alias, merged in; idea-refine's lenses, criteria and examples
+  moved unchanged into `discovery/references/`. Clean break: `/brainstorming` and `/idea-refine`
+  no longer resolve. Callers (`to-spec`, `implement`, `how`, `model-council`, the catalog) name
+  `discovery`.
+- **Every run writes a record** (`43d6601`). A header and one table of the open questions, each
+  answer with its Source and Status. `discovery/scripts/check_record.py` checks it against
+  `discovery/templates/record.md`: only the owner can make a choice `decided`; `established`
+  needs code, outside or prototype evidence with a confidence; agent picks are `routine` or
+  `proposed`. `--next` gives the path to write and `--index` rebuilds `docs/discovery/INDEX.md`.
+- **The hub** (`3e9eb94`). `discovery` sorts each open question by who can answer it (the code,
+  outside evidence through `research`, a `prototype`, a routine agent pick, the owner) and asks the
+  owner last, one fixed block per question with a recommended answer, batching independent
+  questions in a round (Pocock
+  `grilling#round-format`, pending from D0 `5d92415` and completed here), and stops when settled.
+  The judgment frameworks and decision sequences 1, 4 and 6 moved from `research` into
+  `discovery/references/frameworks.md`.
+- **`research` is the evidence leaf** (`d636079`). It gathers, weighs and cites outside sources and
+  reports what the evidence favours without deciding; a decision with open questions is
+  `discovery`, which calls it. Dropped by the ruling: decision sequences 2, 3 and 5, the
+  positioning, segmentation, thesis, ripple-effect and regulatory-risk maps, and the investing,
+  product and policy examples. Its lens-selection rule stays, reworded to weigh evidence. Research
+  reports (`docs/research/<area>/<topic>/`) and discovery records (`docs/discovery/`) file by one
+  area/topic rule.
+- **Callers and routing** (`236340b`, `fe1228c`). `to-spec` writes up a record's decided,
+  established and routine rows and sends proposed and open rows back to `discovery`;
+  `wayfinder`'s `Research:` tickets call `research`; `how` gets outside evidence from `research`
+  and keeps the choice. The `mvp-mode` router sends a choice whose scope or criteria are still
+  open to `discovery`, and a settled one to the investigation playbook.
+
+Proof: a fresh session ran `discovery` on bead `cr-7c6i`; its record passed `check_record.py`
+(7 rows, 0 problems) with the owner's questions left `proposed`; it used code and routine
+answerers, not `research`, a prototype or an answered owner round. The routing trial, 16 requests
+in a fresh session with the answers withheld, scored 12 exact, 2 acceptable and 2 misses (one
+pattern) in round 1 and 16 of 16 in round 2 after the router fix. Limits: one session decided all
+16 requests per round, one judge scored both rounds, and these were routing choices, not executed
+runs. Follow-ups: `cr-7c6i` (the run's record is on it) and
+`cr-onr1` (four points the run found unclear in `discovery`). Left for the end-of-project sync
+(bead `cr-r2pa`): the new skill's Codex link and plugin copy, removing the old ones, and the
+files listed in `scratchpad/mvp-stack/26/sync-list.md` §7.
+
+## 9. Implement playbook batch (phase 2, `cr-r2pa.2.23`)
+
+Added 2026-11-11. Plan `scratchpad/mvp-stack/40/plan.md` (gitignored), owner ruling N4 of
+`scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md`; round `2026-11-11-implement-playbook`,
+sealed (events `:001`-`:008`).
+
+- **The registry follows a skill merged into a playbook** (`5bae85a`). Trait coverage, pending
+  fulfilment and the target hash resolve a merged skill to its `doc:` playbook, and the merged
+  skill's record keeps its lineage, history and declined traits (a playbook has no record of its
+  own).
+- **`implement` is a playbook** (`e721c56`): `mvp-mode/playbooks/implement.md`, eleven steps with
+  every former trait placed and a new `implement-closeout`. Its references and scripts moved to
+  `playbooks/implement/`, run through `"$implement_ref/..."`. The review step wraps each task run,
+  so a required review comes before a unit closes or lands, and the reply has a **Changed,
+  verification incomplete** exit. `implement/SKILL.md` is now the manual `/implement` alias,
+  carrying the authority rules of `/phase-execution` and `/run-phases`, which are removed. The
+  router lists the playbook; `unit-kinds.md` logs it as the sixth composite-test exception.
+- **Callers** (`0afc9fb`). `tracker`'s close gate stops and reports a due exit instead of sending
+  the work to `implement` (a skill never starts a playbook); `to-roadmap`'s decompose reference
+  states the three risk labels itself; `autonomous-run`, `pause-safely` and `AGENTS.md` name the
+  playbook. The three hand-offs into `implement` (`discovery`, `to-spec`, `to-roadmap`) are logged
+  as an open B11 deviation that P2 closes.
+
+Proof: a clone rehearsal showed the six coverage failures the plan predicted before the registry
+fix and a clean `check` after it. The six trait adoptions delivered into `implement` stay
+delivered at the playbook, and its capability adoptions follow the merge; the pending
+`no-reused-implementer` (`2026-11-09-pocock-4ae2317:161`) stays pending on `cr-r2pa.2.19`. Sol reviewed each unit (U0 and U1 each needed one fix round, U2 passed). The routing trial
+(`scratchpad/mvp-stack/40/routing.md`), 14 requests, each in its own fresh session with the
+answers withheld, scored 14 exact, every nearest negative holding. Limits: one judge, routing
+choices rather than executed runs. Not in this batch: `cr-7c6i` (rendering
+after a contractor stage dirties the next admission), which waits on the owner's answer on
+stopping without commit authority, and `.claude/agents/implementer.md:3` ("the implement
+skill"), the owner's file. Left for the end-of-project sync (bead `cr-r2pa`): `.codex` links and
+the plugin copy for the moved files and removed aliases.
+
+## 10. Plan playbook batch (phase 2, `cr-r2pa.2.24`)
+
+Added 2026-11-11. Plan `scratchpad/mvp-stack/45/plan.md` (gitignored), owner ruling N4 of
+`scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md`; round `2026-11-11-plan-playbook`, sealed
+(events `:001`-`:012`).
+
+- **The registry follows a playbook rename** (`93d313c`). A playbook may be renamed onto another
+  existing playbook file (`add` the new path, then `rename` the old `doc:` path onto it); its
+  adoptions, generated destinations and trait labels follow, and the old path cannot come back by
+  `add` or `update` while the rename stands.
+- **`plan` replaces `multi-phase-plan`** (`5d47d8c`), by a rename: `mvp-mode/playbooks/plan.md`,
+  eleven steps (skip, explore, settle through `discovery`, route by shape, spec and approval,
+  roadmap, plan, track, `unslop`, closeout, and a commit of tracking files only, with authority).
+  An approved, seeded roadmap or plan continues under `implement` at the scope actually
+  authorized, through `mvp-mode`; a draft spec or an unapproved roadmap does not. New traits
+  `planning-run-gate`, `planning-run-closeout` and `plan-route-by-shape` replace
+  `plan-only-gate` and `plan-only-closeout`. The router, `feature`, `refactoring` and the
+  `to-plan` description point to it. No `/plan` alias.
+- **Skills end at their deliverable** (`3b725d3`). `discovery`, `to-spec`, `to-roadmap` and
+  `to-plan` lose their "continue into" lines; at top level further work returns to `mvp-mode`,
+  and a delegated task reports the route. `wayfinder` routes a clear route back through
+  `mvp-mode`. The `tracker` calls in `to-roadmap` and `to-plan` stay (ruling N3). The B11
+  deviation row P1 opened is closed.
+
+Proof: a clone rehearsal of the rename showed the two predicted `check` errors before the registry
+fix and none after. Sol reviewed the plan (two rounds) and each unit (U0 and U1 each needed one fix
+round, U2 passed). The routing trial (`scratchpad/mvp-stack/45/routing.md`), 16 requests, each in its
+own fresh session with the answers withheld, scored 16 exact, every nearest negative holding.
+Limits: one judge, routing choices rather than executed runs. Left for the end-of-project sync
+(bead `cr-r2pa`): the `.codex` link and plugin copy for the renamed playbook.
+
+## 11. Commit before each contractor call (`cr-7c6i`, P1 U3)
+
+Added 2026-11-12. Plan `scratchpad/mvp-stack/51/plan.md` (gitignored), which pins plan 40 §7 and
+§8 U3 after the owner's answer of 2026-11-12: without commit authority, stop with a handoff, and an
+all-phases run that may not commit stops at the end of the current phase. Rounds
+`2026-11-12-implement-commit-gate` (`:001`) and `2026-11-12-implement-tracker-when` (`:001`, the
+review fix), both sealed.
+
+- **The bug:** after a contractor stage, the `implement` playbook rendered tracking and went on.
+  The rendered mirrors, the Beads export and the stage's `.wf/export/<stage>.jsonl` stayed
+  uncommitted, so the next contractor call refused a dirty checkout.
+- **The fix:** the Phase loop checks that `git status` is clean immediately before each contractor
+  call. After a contractor result, it renders where authorized, refreshes the export and commits
+  the bookkeeping through `land` by path. The same applies to coordinator writes made before a
+  call: a claim, a plan from `to-plan`, corrected mappings, a newly minted `.wf/repo-id`. Without
+  commit authority, the run keeps the work and stops with a handoff. The workstream walk commits
+  each phase's tracking and export paths through `land`. It stops at the phase end when the
+  invocation does not cover the commit, or forbids it. The `phase-loop` and `workstream-mode`
+  definitions say the same. No exemption is added to the contractor's dirty guard.
+- `.claude/agents/implementer.md:3` now names the implement playbook, with the owner's leave.
+
+Proof: an isolated probe used the real renderer and the real dirty guard
+(`execute_contractor` on the contractor test lab, with a sentinel right after the guard). In the
+old order, the next call is refused. After the new handoff, it passes the guard, including at a
+phase's entry. Without authority, HEAD and the dirty files are unchanged. Sol reviewed the plan and
+the build, which each needed one fix round, then the registry repair. Limits: the probe proves the
+checkout boundary, not admission or an agent following the text. Left for the end-of-project sync
+(bead `cr-r2pa`): the `.codex` link and the plugin copy.
+
+## 12. Four points the first `discovery` run found unclear (`cr-onr1`)
+
+Added 2026-11-12. Plan `scratchpad/mvp-stack/52/plan.md` (gitignored); rounds
+`2026-11-12-discovery-clarify`, `2026-11-12-discovery-clarify-options` and
+`2026-11-12-discovery-clarify-grading`, each one `update ours:discovery`, all sealed.
+
+- **Caller:** the record's field names who started the run: `user request`, the calling unit and
+  step, or `delegated:` with the brief path.
+- **Area and Topic** describe the question, so a caller-named path elsewhere does not change them.
+- **Prior decisions** carry forward only with the owner's authority (an answer, an approved spec,
+  plan or ADR, a delegation); an unconfirmed precedent is evidence, and its row stays `proposed`
+  unless code, sources or a run settle it.
+- **Confidence:** `high` only when the cited source shows the answer by itself; an answer put
+  together from several lines or from a search that found nothing is `medium` or `low`, naming
+  the rest and the inference. A fact and a choice made on it go in separate rows; lines that only
+  allow or favour an option leave the choice `proposed`.
+
+Proof: three fresh sessions ran `discovery` on real queued questions (`cr-5v7n`, then
+`cr-r2pa.3.3` twice). The first still found the several-lines rule unclear; the rule was tightened
+twice. The third reported none of the four points unclear, separated facts from choices, and graded
+its counted answers `medium`. Sol reviewed the plan, the build and two re-checks. It accepts the
+text, but found the third record still rated two combined answers `high` and compared two
+different populations in one row. Limit: a record has no source kind for a saved computation, so
+counted facts lean on code lines that cannot show them. That gap and four further unclear points
+are bead `cr-oiyn`. Left for the end-of-project sync (bead `cr-r2pa`): the `.codex` link and the
+plugin copy.
+
+## 13. A source for saved computations in `discovery` (`cr-oiyn`, acceptance not met)
+
+Added 2026-11-12. Plan `scratchpad/mvp-stack/57/plan.md` (gitignored); round
+`2026-11-12-discovery-computed`, one `update ours:discovery`, sealed.
+
+- **Computed source:** a record can cite `computed: <script path> -> <output path>`, a saved script
+  that reruns as is and its output. `check_record.py` checks both paths exist, like `prototype:`.
+  A computation is a method of the code answerer, not a sixth answerer. A computed answer names what
+  it selects, compared counts cover one population, and a saved output that shows its count can be
+  `high`.
+- **Four smaller points:** the Area when code spans several directories (the one the answer would
+  change; other `docs/` folders do not set it); what a cited prototype report holds; a consequence
+  of a proposed choice (established as "If row <n> is chosen", the choice stays proposed); a fact
+  that corrects a bead (reported to the caller).
+
+Proof: 76 checker tests (a valid record with a computed row fails the old checker and passes the
+new one). Two fresh sessions ran `discovery` on bead `cr-bes`; every script reran to the same
+output. Sol accepts the build, but the trials still graded answers assembled from several lines
+`high`, and one blurred two populations (211 stored events against 207 the change check actually
+evaluates).
+
+Follow-up (plan 58, round `2026-11-12-discovery-high-check`): `check_record.py` prints an advisory
+note, never a problem, on a `high` answer that names a file location other than its own source,
+and the skill asks the session to confirm the source shows the answer by itself or grade it
+`medium`. Over the five earlier trial records the note fires on 6 of the 8 rows Sol rejected and
+none it accepted. A third fresh run regraded both noted rows to `medium`, but Sol still failed it:
+two `high` answers rested on more than their source, the outcome counted 211 rulings where the
+change check evaluates 207, and it missed an existing commit-only baseline test. Trials stopped
+there; the bead stays open for the owner, since the remaining errors are research quality that no
+grading rule can catch.
+
+## 14. `verification.md` cleaned up and given its traits (`cr-k1b6`)
+
+Added 2026-11-12. Plan `scratchpad/mvp-stack/55/plan.md` (gitignored). No ledger round: a
+`doc:.repo-context/<file>` entry in `traits/ours.yaml` needs no event (registry README §4a).
+
+- `.repo-context/verification.md` is now one table that picks checks by the kind of material
+  changed, classing a file by the component it exercises. The claim and evidence table, the partial
+  report form and the plugin checks are kept word for word.
+- The interpreter's five-stage host gate and its sandbox notes moved, word for word, to
+  `docs/usage/interpreter-gate.md`; the interpreter row of the table points there.
+  `.repo-context/learnings.md` points at the new file in two lines.
+- 16 new trait definitions, one per mechanism of the file, listed under
+  `doc:.repo-context/verification.md`. Final-diff inspection and preserving others' edits stay out
+  as repetitions of AGENTS.md.
+
+Proof: a script compares the four kept or moved blocks with the previous version, in order, and
+they are identical. A fresh session given only `AGENTS.md` picked the right checks for four kinds of
+change (interpreter code, a skill and the registry, a curation test, a shell script). Sol reviewed
+the plan twice and the build, and judged each of the 16 definitions; two were reworded. Limits: the
+mechanism list was drawn up by a builder who had read the plan's candidate list, so it is not
+blind. The session also found gaps the rewrite did not create: no lint or type command for
+Python outside the interpreter, and no YAML row.
+
+## 15. The Pocock 4ae2317 update's pending adoptions (`cr-r2pa.2.19`)
+
+Added 2026-11-12. Plan `scratchpad/mvp-stack/53/plan.md` (gitignored); round
+`2026-11-12-pocock-4ae2317-delivery` (3 updates, 19 completions), sealed. The wordings are the
+owner's rulings of 2026-11-09, used verbatim except where noted.
+
+- **`autonomous-run`:** a person reads every change before it merges (The gates); step 1 states
+  what started the run and may bring it back, what it reads and writes, what each exit hands on to,
+  where a person comes back in and what keeps a second run off the same work, asking when attended
+  and Not started when unattended if any answer is missing, and searches for an open bead before
+  filing a discovery; step 4 keeps an iteration only when the checks its change touches pass, apart
+  from failures the baseline row names; step 6's critic also reads the whole diff cold. Supporting
+  clause: the baseline row names each check that already fails.
+- **`implement`:** on Spec scope a new implementer for each ticket and another for the final
+  review's fixes (`spec-run.md` step 5, "On this scope" for the ruled "On the spec branch", since
+  the unit moved), loaded per ticket by `implement#4`.
+- **`delegation`:** each new worker starts in a fresh context window, not a fork, unless the calling
+  workflow asks for one; a follow-up resumes the same worker. The fork exception is a T5 deviation
+  (`.repo-context/unit-kinds.md`), noted on the trait.
+
+Proof: ten fresh sessions each read one case and matched the expected answers held outside the
+checkout; T2's first run hit a missing `src/` in its own setup and was rerun on a valid predicate.
+Sol reviewed the plan twice, the build and the rerun. Limit: these are reading trials, not live
+runs. `:174` and `:175` (`sampled-session-retros`, `failures-first-retro-sample`) stay pending:
+their target skill `reflect` does not exist yet (`cr-r2pa.2.25`, which `cr-r2pa.2.19` now waits on).
+
+## 16. One owner per overlapping mechanism (`cr-talb`)
+
+Added 2026-11-12. Plan `scratchpad/mvp-stack/56/plan.md` (gitignored); round
+`2026-11-12-overlap-owners`, eight `update ours:` events, sealed. Closes the overlap-audit items the
+2026-10-30 sharing rulings left open; the audit file's Resolution section lists each.
+
+- **Tests (#1):** `tdd`'s `writing-good-tests.md` owns test retention (remove an old test only when
+  its behaviour is covered elsewhere or retired) and its seam rule. `codebase-design`, `review` and
+  `to-plan` point there. `covered-test-removal` moves from `codebase-design` to `tdd`.
+- **Visuals (#8, #7):** `discovery` decides when to draw during design and reads `show-me` for the
+  form, so it no longer defaults to Mermaid. Its on-request HTML file and `prototype`'s shared file
+  follow `html-artifact`'s contract. `discovery` drops `inline-diagrams` and gains the new
+  `structure-question-visual`.
+- **Show-me pointer:** `show-me` hands off to `html-artifact` only on that skill's real trigger.
+- **Failure loop (#15):** `brief-me`'s debug-spiral override stops when the work's owner calls the
+  stop (bug-fix's two failed fixes, or a parent's limit), and with no playbook routes through
+  `mvp-mode` to bug-fix.
+
+Proof: a structural check finds every conflicting phrase gone and every pointer's target present,
+and it catches four planted deletions. Eight fresh reading sessions matched the expected answers.
+Sol reviewed the plan three times and the build. Limit: reading trials, not live runs.
+
+## 17. Batch P1's adoptions into existing skills (`cr-r2pa.2.18`, slice 1)
+
+Added 2026-11-12. Plan `scratchpad/mvp-stack/59/plan.md` (gitignored); round
+`2026-11-12-batch-p1-existing`, 73 events, sealed. Delivers 65 of batch P1's 153 pending adoptions,
+those whose target already existed, after a re-check against the stack's changes since the 2026-11-06
+ruling (renames, principle move, `how`/`why` split).
+
+- **`teach`:** new `.claude/skills/teach/references/plain-explaining.md` (23 rows), read by the
+  one-concept and session shapes, not the course.
+- **`review`:** new `.claude/skills/review/references/blast-radius.md` (19 rows), a mode used only
+  when asked what a change could break.
+- **`tdd`:** nine rows on regression tests, substitutes and before/after proof; two were already there.
+- **`authoring-for-agents`** (4 rows on checks), **`brief-me`** (re-pitch explains project terms), and
+  the **type-system** (5) and **test-behaviour** (1) principles.
+- Owner-approved departures from the ruled words (2026-11-12): `explain-code` and `prose-pass` are
+  renamed to `how`/`why` and `unslop`; the type principle's own-type rule is replaced by one merged,
+  narrower rule. Four T5 deviation rows in `unit-kinds.md`; `confidence-language-kept` is shared by
+  `teach` and `unslop`.
+
+Proof: a script finds each row's words at its cited lines; Sol reviewed the plan (three recording
+fixes) and passed the build; registry check, catalog check and 600 tests pass. Limit: no reading
+trials for this slice.
+
+## 18. `sharpen` and `restate`, two manual skills (`cr-r2pa.2.18`, slice 2)
+
+Added 2026-11-12. Plan `scratchpad/mvp-stack/60/plan.md` (gitignored); round
+`2026-11-12-batch-p1-manual`, 13 events, sealed. Delivers batch P1 rows 005 and 007-013.
+
+- **`/sharpen`:** rewrites a person's task deeper, not bigger, after four questions (what a top
+  practitioner would add, the rawest material, the methods and tools, an outside signal of
+  correctness), leaving their own choices open as questions. It does not do the task.
+- **`/restate`:** says back what the agent takes the person's aim and problem to be, then stops.
+  Ruled as `in-your-own-words`; the owner renamed it on 2026-11-12, recorded as a `rename` plus a
+  checkpoint correction.
+- Both are slash-only, with no router line; their descriptions name `discovery` as the case to skip.
+
+Proof: Sol reviewed the plan (three fixes) and passed the build; registry check, catalog check and 600
+tests pass. Limit: neither skill has been run on a real prompt.
+
+## 19. `recall`, a manual skill (`cr-r2pa.2.18`, slice 3)
+
+Added 2026-11-12. Plan `scratchpad/mvp-stack/61/plan.md` (gitignored); round
+`2026-11-12-batch-p1-recall`, 31 events, sealed. Delivers batch P1's 28 `recall` rows.
+
+- **`/recall`** rebuilds recent work in this project (default the last 7 days, this workspace) from
+  past chats and the shared record (Beads, git, state files) into one brief: capsule, status-tagged
+  threads, recurring problems, a coverage line (each source searched, empty or unavailable), ending
+  on the single next move.
+- **Sources** (owner, 2026-11-12): this project's Claude Code and Codex chat logs, located by
+  `.claude/skills/recall/references/chat-logs.md`; the current chat is skipped by its session id, helper
+  chats by their metadata; a missing store is a coverage gap.
+- Slash-only; turns away resuming one known piece of work (`session-pickup`), turning habits into a
+  skill, and writing a work summary for a person. `why` now hands past agent sessions to `/recall`.
+- `empty-search-is-finding` (with `review`) and `reply-is-the-deliverable` (with `teach`) are shared traits.
+
+Proof: Sol reviewed the plan (six fixes) and the build (four fixes, then a pass); a metadata-only check
+against this machine's stores confirmed both layouts; registry check, catalog check and 600 tests pass.
+Limit: not run on a real request.
+
+## 20. `figure-it-out`, a playbook (`cr-r2pa.2.18`, slice 4)
+
+Added 2026-11-12. Plan `scratchpad/mvp-stack/62/plan.md` (gitignored); round
+`2026-11-12-batch-p1-figure-it-out`, 34 events, sealed. Delivers batch P1's 32 `figure-it-out` rows.
+
+- **`.claude/skills/mvp-mode/playbooks/figure-it-out.md`**: for a large migration, an ambitious
+  multi-part change or long work a person reviews after stepping away, which the person asks the agent
+  to work out and carry through and no narrower playbook fits. Six steps: Principles; Frame (a predicate
+  that could fail, scope with blockers, rigor starting high); Design (landable units or a named group,
+  riskiest unknown first, checks before features, `codebase-design` on one-way doors, parallel work only
+  across seams with a worktree each, the design written to a file); Trail (one `decision-trail` call);
+  Run (a hypothesis per unit, smallest change, keep or revert, a judge for delegated units, bounded
+  retry on gate gaming, three-value verdicts, no hidden negatives); Hand back (the whole checked on the
+  real product and logged before the trail's audit and review). One checkpoint with the person when the
+  run is estimated over an hour, unless the request waives it. Nothing commits.
+- The router lists it after `feature`. Its overlap with the other playbooks is reviewed later
+  (`cr-r2pa.3.4`), not here.
+- `.repo-context/unit-kinds.md` logs four deviations: a seventh named composite-test exception, a traited
+  reply format, `smallest-evidenced-change` shared with Autonomous run, and three frozen wordings narrower
+  than their definitions (rows 237, 239, 255).
+- `smallest-evidenced-change` (with Autonomous run) and `verified-unit-sequence` (with
+  `principle-sequence-verifiable-units`) are shared traits. Rows 231, 253 and 259 keep the guide conflict
+  the owner overrode (O-05, C-14, C-12).
+
+Proof: Sol reviewed the plan (two fixes) and the build (four fixes, then a re-check); registry check,
+catalog check and 600 tests pass. Limit: not run on a real request.
+
+## 21. `no-comments` and `principle-no-comments` (`cr-r2pa.2.18`, slice 5)
+
+Added 2026-11-12. Plan `scratchpad/mvp-stack/63/plan.md` (gitignored); round
+`2026-11-12-batch-p1-no-comments`, 23 events, sealed. Delivers batch P1's last 20 pending rows, so every
+row the bead held is now completed.
+
+- **`principle-no-comments`** (`.claude/skills/mvp-mode/principles/no-comments.md`) judges one comment.
+  A narrating comment goes. Five classes stay (owner, 2026-11-12, from pstack's comment-sicko): license
+  headers, behaviour forced by something we cannot reshape, formatter directives and suppressions whose
+  rule is faulty or style-only, public API contract docs, and issue or RFC links. Constraint comments
+  ("do not remove", "ask X first") are their own class; a suppression hiding a correctness or safety
+  check is a finding. When unsure, keep and flag. The router lists it.
+- **`/no-comments`** (`.claude/skills/no-comments/SKILL.md`, slash-only) runs the sweep: the named
+  scope, or this branch since it left `main` with the working tree; a pass that changes only comments,
+  suppressions included, using `how` and `why` before deciding on a comment marked important; then fixes
+  inside the scope, removing every named workaround; a check offered for each constraint we control,
+  applied only with approval; and a report of what went, what stayed and what is open.
+- Dropped from upstream: the comment-hating persona, its `MUST KILL` markers and "unsure means delete".
+- `named-scope-first` is shared with `interrogate`.
+
+Proof: Sol reviewed the plan (two fixes) and the build; registry check, catalog check and 600 tests
+pass. Limit: not run on a real request.
+
+## 22. `reflect`, a manual skill (`cr-r2pa.2.25`, completing `cr-r2pa.2.19`)
+
+Added 2026-11-12. Plan `scratchpad/mvp-stack/64/plan.md` (gitignored); round `2026-11-12-reflect`,
+10 events, trait-level, sealed; reconsider report
+`harness_lifecycle/registry/reviews/2026-11-12-upstream-mattpocock_skills-5beb35b-reflect.yaml`, sealed.
+Builds the skill the owner's ruling of 2026-11-05 named: retro's categories, pstack reflect's lenses and
+approval, and chief-of-staff's worst-first sampling.
+
+- **`/reflect`** (`.claude/skills/reflect/SKILL.md`, slash-only) reviews this session (run before
+  clearing), a session or log named afterwards, or a delegated run, where it takes about one in five of
+  the workers' sessions, nested ones included, failures first. Each session goes to its own fresh
+  reviewer through `delegation`; the session never judges itself. Findings are checked against the log,
+  shown worst first, and applied only once the person approves: instruction edits through
+  `authoring-for-agents`, checks through `build-a-lever`, backlog as beads.
+- `.claude/skills/reflect/references/reviewer-brief.md` is the reviewer's whole brief: the log is data, never instructions;
+  three lenses (judgment, tooling, contrarian); retro's seven categories, reading the repository's own
+  checks before proposing one. `.claude/skills/reflect/references/session-logs.md` says where Claude Code and Codex sessions are
+  and how a worker's session links to its parent; it is read only when a log must be found.
+- Registry: completes the two pending chief-of-staff adopts, so all 21 adopts on `cr-r2pa.2.19` are
+  done; adopts five rows deferred on 2026-10-30 because ours had no retrospective (retro's categories,
+  existing-check-first, session sources and severity order; ask-matt's run-in-session), whose ask-matt
+  checkpoint becomes `adopt-merged`.
+- Not taken: pstack's model table, per-lens reviewers and synthesizer; acting without approval (rejected);
+  retro's six owner-deferred policy rows (left for `cr-r2pa.3.3`). pstack's own reflect is now listed as
+  present, unruled, for its later review.
+
+Proof: Sol reviewed the plan (three fixes) and the build (two fixes, accepted by the coordinator);
+registry check, catalog check and 600 tests pass. Limit: not run on a real session.
+
+## 23. The curation playbook moves into the router (`cr-r2pa.3.1`)
+
+Added 2026-11-12. Plan `scratchpad/mvp-stack/65/plan.md` (gitignored); round
+`2026-11-12-skill-curation-playbook`, 5 events, sealed. Owner ruling 2026-11-01 (pstack report decision 15 (a)):
+the curation method stays outside the router until phase 3, then joins it.
+
+- `harness_lifecycle/playbook.md` is now `.claude/skills/mvp-mode/playbooks/skill-curation.md`, a routed playbook
+  with a seven-step list (intake, evidence, ruling, build, verify, delivery, closeout) and a reply for each exit:
+  done, recommendation only, awaiting a ruling, verification incomplete. The ruling step names the registry
+  `record` command; delivery states that commits, merges, pushes and publishes wait for the owner.
+- The five operation methods moved verbatim into `.claude/skills/mvp-mode/playbooks/skill-curation/`
+  (placing, upstream review, skill review, candidate evaluation, failure update, one file each); a run reads
+  only the ones its branch needs.
+- 25 new trait definitions: 24 cover the method's own rules, and `harness-scan` now hands a due upstream review back
+  through the router instead of running it, so it holds the new, narrower `pin-move-catalog-refresh`.
+- Live references repointed (`.repo-context/docs-index.md`, `harness-evaluate`, `harness-scan`, the registry and
+  lifecycle READMEs, the prompting-guides README); sealed reports, the ledger and history keep the old path. The
+  pstack "authoring a skill" adoption follows the file to its new path.
+- Not done here: the shipped plugin must drop this root-only playbook, its folder and its router line. That
+  change is in `mvp-harness/`, so it waits for the end-of-project sync as `cr-r2pa.3.5`; nothing publishes
+  before then.
+
+Proof: Sol reviewed the plan (four fixes) and the build twice (five fixes, then one); registry check, catalog
+check and 600 tests pass. Limit: not run on a real curation request.
+
+## 24. `pr`, a skill for pull request bodies (`cr-r2pa.2.13.5`)
+
+Added 2026-11-12. Plan `scratchpad/mvp-stack/69/plan.md` (gitignored); round `2026-11-12-pr`, 7 events,
+trait-level, sealed; reconsider report
+`harness_lifecycle/registry/reviews/2026-11-12-upstream-mattpocock_skills-5beb35b-pr.yaml`, sealed. Owner ruling
+2026-11-05 §E: a new `pr` skill with evidence and merge danger, citing `show-me` for visuals.
+
+- **`pr`** (`.claude/skills/pr/SKILL.md`, model-invocable) writes a pull request's body in three fixed
+  sections: Summary (why, what it leaves out when a reviewer would ask, then the smallest visual of the change),
+  Evidence (before and after from real runs: a screenshot when one can be taken, else the exact check and its
+  short output) and Merge danger (one-way or two-way door with the reason, and the blast radius). Opening or
+  editing the PR needs publish authority; without it the skill returns the text. Commits and titles stay with
+  `land`.
+- `show-me` is slash-only, so a model cannot use it from here: `pr` carries the compact visual forms itself and
+  names `show-me` for the person. The four visual traits and "no preamble" are recorded as shared.
+- Registry: adopts four Pocock `pr` rows deferred on 2026-10-30 for want of a PR template (the template,
+  before-and-after evidence, merge danger, no preamble), and records pstack's "Opening a PR" playbook as a source
+  for its description parts; the earlier adoption of that playbook's commit rules into `land` stays.
+- Not taken: the domain-vocabulary row (owner-deferred, `cr-r2pa.3.3`); the playbook's forge, PR tool, stack,
+  readiness and babysitting sections.
+
+Proof: Sol reviewed the plan (three fixes) and the build (pass); registry check, catalog check and 600 tests
+pass. Limit: not run on a real pull request.
+
+## 25. Batch M: nine Pocock skills ruled trait by trait (`cr-r2pa.2.13.1`)
+
+Added 2026-11-13. Mapping and sheet `scratchpad/mvp-stack/66/` (gitignored), recorder
+`scratchpad/mvp-stack/71/record_m.py`; round `2026-11-13-batch-m`, 138 events, trait-level, sealed;
+report `harness_lifecycle/registry/reviews/2026-11-12-upstream-mattpocock_skills-4ae2317-batch-m.yaml`,
+sealed. Ten skills earlier ruled whole were taken apart into 129 rows; 106 trait definitions are new.
+
+- **Counts:** 2 adopt (pending, into `delegation`: pass a worker's brief as a file, and name each
+  background worker), 1 already held (ask when a reference is ambiguous, `AGENTS.md`), 1 defer (merge into
+  a settings file rather than overwrite it), 116 reject, 9 out of scope.
+- **Owner rulings of 2026-11-13:** `claude-handoff` rejected whole except its two `delegation` adopts; the
+  three writing skills, `migrate-to-shoehorn` and `setup-pre-commit` rejected whole (their 91 deferred
+  rows became rejects); `scaffold-exercises` as recommended (2 reject, 9 out of scope); `implement` as
+  recommended. `git-guardrails-claude-code`: take what our guard hook lacks; its loose-phrase row is a
+  reject, held by the hook once bead `cr-oez0`'s fix lands, since the hook is not a registry unit.
+- **`grill-me`** has no traits (its body only hands off to grilling), and the registry cannot accept an
+  analysis with no trait rulings. By the owner's ruling it left the batch: its earlier whole reject
+  (`2026-10-14-migration:089`) stays, with no registry change.
+- Nine checkpoints at 4ae2317 supersede the skills' earlier whole rulings: `implement` and
+  `claude-handoff` become `adopt-merged`, the other seven `reject`. Their nine analyses are accepted.
+
+Proof: Sol reviewed the mapping and report (critic-66c, seven findings fixed; critic-66e, approve). Batch checks,
+registry check before and after, a row-by-row match of the round against the report, and a build and check
+in a fresh clone pass. Limit: the two `delegation` adopts are not yet delivered.
+
+## 26. Batch P2: ten pstack skills ruled trait by trait (`cr-r2pa.2.13.2`)
+
+Added 2026-11-13. Mapping and sheet `scratchpad/mvp-stack/67/` (gitignored), recorder
+`scratchpad/mvp-stack/72/record_p2.py`; round `2026-11-13-batch-p2`, 489 events, trait-level, sealed;
+report `harness_lifecycle/registry/reviews/2026-11-12-upstream-cursor_plugins-2776ddd-batch-p2.yaml`,
+sealed. Ten skills never ruled before were taken apart into 461 rows; 415 trait definitions are new.
+
+- **Counts:** 368 adopt pending, 14 already held (`unslop` 6, `AGENTS.md` 7, `delegation` 1), 78 reject,
+  1 out of scope. Of the pending adopts, 300 go to seven units still to be built: `statechart` 75,
+  `ketchup` 49, `ketchup-video` 28, `create-verification-skill` 69, `maintain-verification-skill` 32,
+  `create-formal-verification-skill` 24 and `maintain-formal-verification-skill` 23. The other 68 go to
+  `reflect` 47, `unslop` 15, `delegation` 4 and `pr` 2.
+- **Held rows:** 18 adopts (17 `reflect`, 1 `pr`) were already said by their unit. `traits/ours.yaml` now
+  lists them, and a completing adopt supersedes each pending one in the same round. One `reflect` row lands
+  as our variant `finding-with-evidence-and-destination`. 50 adopts into existing units stay pending.
+- **Owner rulings of 2026-11-13:** `technical-writing` rejected except its 15 `unslop` and 2 `pr` adopts (its
+  document-mode rows are rejects); `reflect` taken whole except six rows that break rules ours keeps on
+  purpose; `swarm` rejected except its four `delegation` adopts; `statechart`, `ketchup` and
+  `ketchup-video` taken as new units; the four verification units taken, with a detailed discussion before
+  delivery. `statechart`'s engine is TLA+ with the TLC checker: its 17 engine-dependent rows are written
+  for that engine, and 4 more adopt our engine-neutral variants.
+- Ten checkpoints at 2776ddd, none superseding anything: `adopt` for the five skills taken whole,
+  `adopt-merged` for the other five. Their ten analyses are accepted.
+
+Proof: Sol reviewed the mapping and report four times (critic-67c, 67e, 67g, 67i); the coordinator applied
+critic-67i's three fixes without a further round, so both critic fields read `accepted`. Batch checks,
+registry check before and after, a row-by-row match of the round against the report, and a build and check
+in a fresh clone pass. Limits: 350 adopts are not yet delivered, 300 of them into units not yet built.
+`no-cross-project-transcript-search` is now listed by `decision-trail` and `reflect` with no
+`trait-sharing.yaml` entry, so `check` warns until the owner justifies one.
+
+## 27. Batch P3: eight pstack skills ruled trait by trait (`cr-r2pa.2.13.3`)
+
+Added 2026-11-13. Mapping and sheet `scratchpad/mvp-stack/68/` (gitignored), carried onto this tip with the
+dedupe against batch P2 in `scratchpad/mvp-stack/73/`, recorder `scratchpad/mvp-stack/73/record_p3.py`; round
+`2026-11-13-batch-p3`, 311 events, trait-level, sealed; report
+`harness_lifecycle/registry/reviews/2026-11-12-upstream-cursor_plugins-2776ddd-batch-p3.yaml`, sealed. Eight
+skills never ruled before were taken apart into 303 rows; 258 trait definitions are new.
+
+- **Counts:** 57 adopt pending, 13 already held (`AGENTS.md` 9, `mvp-mode` 3, `reflect` 1), 105 reject, 104
+  defer, 24 out of scope. Of the pending adopts, 50 go to three units still to be built:
+  `create-verification-skill` 19, `mvp-help` 25 and `setup-mvp-stack` 6. The other 7 go to `triage` 3,
+  `AGENTS.md` 2, `systematic-debugging` 1 and `pr` 1.
+- **Owner rulings of 2026-11-13:** `poteto-mode` mapped onto `mvp-mode` (rejects for choices made differently
+  on purpose stay, what is not used yet stays deferred); `poteto-help` kept as the new unit `mvp-help`;
+  `setup-pstack` replaced by the new unit `setup-mvp-stack`; `automate-me` wanted, its shape still to settle
+  with the owner; `make-bot-ui` takes nothing; `reproduce-and-fix-issues` adopts what has a home, its
+  chat-intake rows stay deferred and its app-driving rows go to the verification units; `setup-benny`
+  rejected; `triage-issue-reports`' three rules go to `triage`.
+- **Dedupe against batch P2:** 7 rows restate a P2 `create-verification-skill` trait whole and use its ID with
+  P2's row (`reproduce-and-fix-issues` 6, `setup-benny` 1). Where the upstream contract differs from a P2
+  definition, P3 keeps a trait of its own that names the P2 traits in `distinct_from`, and no P2 definition
+  changed. These are the feature map (one map of sections, delivered through the variant
+  `feature-map-entry-required`, and `map-section-per-reproducible-feature`), target confirmation (the
+  look-alike-window check only when a window is driven, variant `target-confirmed-for-surface`), the
+  driving tool's smoke proof (`driver-smoke-proof-for-surface`), cleanup by retention, and
+  `identity-screenshot`. `real-user-actions-only` is renamed `coordinates-from-fresh-screenshot`.
+  `automate-me`'s `no-cross-project-transcript-search` is held, not rejected, since P2 listed it on `reflect`.
+- Eight checkpoints at 2776ddd, all `adopt-merged`, none superseding anything: none of the eight skills had an
+  earlier ruling. Their eight analyses are accepted.
+
+Proof: Sol reviewed the mapping and report four times (critic-68c, 68e, 68g, 68i); the coordinator applied
+critic-68i's two fixes without a further round, so both critic fields read `accepted`. The P2 dedupe was
+reviewed by critic-73b (REVISE) and re-recorded with its fixes; critic-73d passed that delta, and its two
+wording fixes were re-recorded before any commit. Batch checks, registry check
+before and after, a row-by-row match of the round against the report, and a build and check in a fresh clone
+pass. Limits: 57 adopts are not yet delivered, 50 of them into units not yet built.
+
+## 28. pstack's Claude Code copy ruled whole (`cr-r2pa.2.26`)
+
+Added 2026-11-14. Analysis, mapping and sheet `scratchpad/mvp-stack/74/` (gitignored), recorder
+`scratchpad/mvp-stack/75/record_cc.py`; round `2026-11-14-cc-copy`, 82 events, trait-level, sealed; review
+`harness_lifecycle/registry/reviews/2026-11-14-skill-pstack-claude-code-adapter.md`. pstack ships a generated
+Claude Code tree (upstream folder harness/pstack/claude-code at 2776ddd) beside its Cursor sources, and one
+adapter page that maps Cursor names to Claude Code.
+
+- **Copies:** 82 whole-capability `reject` events as redundant generated packaging at 2776ddd: 58 skill copies
+  (35 byte-identical to their canonical, 23 identical except one added line pointing at the adapter) and 23
+  `poteto-mode` playbook copies (all byte-identical). Each `why` names the canonical subject, its effective
+  event and its verdict (skills: 23 `adopt`, 34 `adopt-merged`, 1 `reject`; playbooks: 17 `adopt-merged`,
+  6 `defer`), so the content stays ruled on the canonical. The copy's plugin manifest is rejected as umbrella
+  packaging, as for the earlier umbrella plugins. The two agent copies stay unreviewed until their canonicals
+  are ruled.
+- **The adapter:** not a catalog capability, so its 27 traits are kept as one `skill`-type review named after
+  the adapter, which serves `delegation` and `reflect` (owner ruling: option D, and the departure from the
+  one-skill filename). As ruled: 2 adopt (`delegation`'s before-dispatch baseline and attribution check, for
+  every helper whose only read-only control is its brief, Claude CLI reviewers included; `reflect`'s
+  log-folder naming fix, `.` as well as `/` becomes `-`), 5 already have, 1 already ruled with delivery
+  pending, 7 defer, 12 reject. The review holds each row's upstream lines, our holder, the revisit conditions
+  and the pin with the adapter's blob id. The 23 pointer-only copies' `why` names it.
+- **README:** §5's mirror Limit now says a generated copy at its own path is not a mirror.
+
+Proof: critic-74b reviewed the mapping and the proposal (REVISE, five majors and three minors, all fixed);
+critic-74d passed the revision; the owner ruled it all as recommended on 2026-11-14. Before recording, the
+recorder re-compared every copy with its canonical through git objects at the pin and recomputed each
+canonical's effective event from the ledger. Registry check before and after, a match of the round and the
+review against the recorder, and a build (no diff) and check in a fresh clone pass. Limits: the adapter's rows
+are kept as review evidence only, not per-trait ledger state, so `status`, `TRAITS.md` and `gap` do not list
+them and no check brings a defer back; the two adopts are not delivered, and each `update` that delivers one
+cites the review.
+
+## 29. `create-verification-skill`: a generated skill that drives the real app (`cr-r2pa.2.28.1`)
+
+Added 2026-11-14. Plan `scratchpad/mvp-stack/77/plan.md` (gitignored), recorder
+`scratchpad/mvp-stack/81/record_cvs.py`; round `2026-11-14-create-verification-skill`, 92 events, trait-level,
+sealed. The first of the four verification units ruled in batch P2.
+
+- **What was built:** a new manual skill, `.claude/skills/create-verification-skill/`. It studies a project
+  and writes a project skill, `verify-<app>`, that launches the real product, drives a feature the way a user
+  reaches it and keeps proof, with a starter feature map. It then runs that skill once end to end; a skill
+  nobody has run is a draft. Its long writing rules are `.claude/skills/create-verification-skill/references/generated-skill.md` (fixed sections Launch,
+  Doctor, Drive, Evidence, Cleanup, Helpers, Use rules), shared with the other verification units. The map
+  contract is `.claude/skills/create-verification-skill/references/feature-map.md`, with a worked example for a small fictional product. Placement:
+  engineering · Improvement · Codification, secondary Testing. The `mvp-mode` router gains one row, and
+  `.claude/skills/mvp-mode/playbooks/feature.md` step 5 and `.claude/skills/mvp-mode/playbooks/bug-fix.md` step 4 each gain one line pointing to a project's verify skill when it
+  has one.
+- **Owner rulings of 2026-11-14:** decisions 1-11, 13 and 15 as recommended. The unit is manual-only, keeps the
+  upstream name, carries short guardrails itself with the long rules in one shared reference, puts the rules
+  for later work in the generated skill, and points to maintain-verification-skill. Installs need approval
+  first and go per project or per user. The proof target was equity-os, under four conditions: its own
+  worktree, its own throwaway Postgres, dry-run or offline commands only, browser and desktop left unproven.
+  Q1: generated skills also record what a dry run really skips. Q2: the generated `verify-eqos` stays
+  uncommitted. After the proof, four new mechanisms (A-D): isolation for a product with a live service,
+  features not yet driven marked so, a change with no read view reported unverified, and credentials never
+  captured.
+- **Traits:** 88 listed. 71 are adopted, completing all 88 pending adopts (69 from batch P2, 19 from P3; six
+  `into` adoptions keep their target and modification); each completion cites its trait's owner lines in the
+  current text. One existing trait is reused: `artifact-contracts` carries the generated skill's fixed
+  sections and order and its rule to say a section does not apply rather than drop it. 16 are ours: install
+  scope, dry-run skips observed, A-D, and 10 mechanisms the blind checks found (8 backed by the owner's
+  decisions, among them which of the two references owns a rule both carry; 2 routine scope and output
+  rules). Each has a definition with `distinct_from` where a near one exists. Two fixed wordings narrower than their definitions are T5 rows in
+  `.repo-context/unit-kinds.md` (`drive-shipped-surface`, `same-surface-agent-repro`). `real-code-names` is
+  shared with `show-me`, and `artifact-contracts` with `codebase-research`.
+- **Registry repairs:** `update ours:mvp-mode` with its refreshed hash clears the four stale-hash diagnostics on
+  older events without touching them; one `doc:` update for each of the two playbooks (no step
+  changes).
+
+Proof on equity-os (`scratchpad/mvp-stack/77/proof-report.md`, archive `scratchpad/mvp-stack/77/proof/79d/`): the generated
+`verify-eqos` launched its own Postgres, seeded it through supported commands, passed its doctor and proved
+the coverage-registry symbol-change feature with every asserted value observed. The run was offline, observed
+under a network namespace, and cleanup left the evidence in place. Three earlier attempts were cleaned up, and
+the skill (not the product) was fixed each time. Review: critic-77b and 77d on the plan; critic-78b on the
+build (REVISE, fixed); a blind extraction carried all 73 then-listed traits and found the 11 extras;
+critic-80b on the proof lessons (REVISE, fixed); a blind delta check matched the lessons to the four new
+traits; critic-81b on the recording (REVISE: reuse `artifact-contracts` and split out the ownership rule,
+fixed by re-recording the round). Registry check before (the seven expected hash errors) and after, a match of the round against the
+recorder, a rehearsal on a scratch clone, and a build (no diff) and check in a fresh clone pass. In the build
+worktree itself the final `check` fails with seven stale reference pages (The-Claude-Protocol, agent-skills,
+diagram-design, html-artifacts, humanlayer_skills, mattpocock_skills, superpowers). That comes from the
+environment: its reference submodule folders are empty, so a build there marks rows "Changed upstream since?
+unknown". The committed pages are kept; the fresh clone, which has the submodules, regenerates them unchanged
+and its `check` passes.
+Limits: browser and desktop branches are unproven until a second target. Publishing waits for
+maintain-verification-skill, so the handoff pointer is true when shipped. The plugin's asserted skill count
+changes only at that publish. The full publish gate still fails on 31 neutrality hits in 14 files that
+predate this unit; only the new lines were audited (0 hits).
+
+## 30. The Claude Code adapter's two adopts delivered (`cr-r2pa.2.27`)
+
+Added 2026-11-14. Recorder `scratchpad/mvp-stack/84/record_84.py` (gitignored); round
+`2026-11-14-adapter-adopts`, 3 events, trait-level, sealed. Delivers the two adopts ruled in
+`harness_lifecycle/registry/reviews/2026-11-14-skill-pstack-claude-code-adapter.md` (section 28, option D).
+
+- **`delegation`:** before dispatching a read-only worker whose only control is its brief (every T3 worker,
+  a Claude CLI worker given Bash), the coordinator records `git status --short` and a checksum of each path
+  already modified or untracked. At collect, a difference outside the worker's report file is a discrepancy
+  pending attribution: a breach when the worker made it, left in place when it cannot be attributed, and the
+  claim narrowed when other writers shared the checkout. Steps 4 and 6 of `.claude/skills/delegation/SKILL.md`; the
+  role contracts and vendor files stay true unchanged. New trait `unenforced-read-only-brief-and-status-check`,
+  defined with `distinct_from` its three nearest read-only traits.
+- **`reflect`:** `.claude/skills/reflect/references/session-logs.md` now says Claude Code's project-folder name
+  turns each `.` as well as each `/` into `-`, so a workspace under a dotted folder is found. With it, the
+  pending layout-probe adopt (`2026-11-13-batch-p2:159`) is delivered in its ruled rewording: a session with no
+  readable id is matched among this project's candidate logs only when its id, parent or run record identifies
+  it alone, else reported as a gap. `reflect` now lists `transcript-location-convention` and
+  `transcript-located-by-layout-probe`.
+- **Events:** two ours-side `update` events (`ours:delegation`, `ours:reflect`), each citing the adapter
+  review, so both skill records now link it; one `adopt` completing `2026-11-13-batch-p2:159` with
+  `--supersedes`, inheriting its source and report, guide `ok` (U-01).
+
+Proof: registry `check` before showed only the 35 stale-hash errors these edits cause, plus the two
+`harness_lifecycle/registry/traits/ours.yaml` entries; after recording, `build`, `check`, seal and `check` pass, and the recorder's
+`verify` matches the round, the definition and both entries. Limits: the other 35 pending adopts into
+`reflect` (29) and `delegation` (6) are not delivered here; no behavioural trial of the new wording was run.
+
+## 31. `maintain-verification-skill`: keeping a verify skill true to the real app (`cr-r2pa.2.28.2`)
+
+Added 2026-11-14. Plan `scratchpad/mvp-stack/82/plan.md` (gitignored), recorder
+`scratchpad/mvp-stack/82/record_mvs.py`; round `2026-11-14-maintain-verification-skill`, 35 events, trait-level,
+sealed. The second of the four verification units ruled in batch P2. Section 30 was already taken on this base.
+
+- **What was built:** a new manual skill, `.claude/skills/maintain-verification-skill/`. One pass keeps a
+  project's existing verify skill and its feature map true to the product. It finds the target by its content
+  in every skills folder the project's hosts read, checks the index, reads every feature from source (a
+  sizeable one through a read-only helper briefed by
+  `.claude/skills/maintain-verification-skill/references/source-reader.md`), drives each one live through the
+  target's own helper, fixes proven doc drift, omitted prerequisites and harness gaps, and ends clean, changed
+  or blocked. Its fixes stay uncommitted for `land`. It reuses the sibling's two references by pointer rather
+  than copying them. Placement: engineering · Improvement · Codification, secondary Testing. The `mvp-mode`
+  router gains one row. In `create-verification-skill`, the two handover pointers became checked slash
+  pointers, Scope gains a stop for an occupied folder without a verify skill's shape, and the feature-map's
+  "A saved change" bullet now names "a second product query that shows the saved item".
+- **Owner rulings of 2026-11-14:** the verification-unit decisions (manual only, the upstream name, short
+  guardrails restated, rules for later work in the generated skill, installs by recipe only, edits left
+  uncommitted, the sibling's pointer made true) and A-D, which the pass applies as the generator writes them.
+  "Maintain proof and formal pair" item 7 approved the proof setup. Item 9 (plan 82 Q1, option (a)): a pass
+  reports an older skill's gaps against the current contracts as follow-ups, fixes only those a drive proves,
+  and blocks when the missing piece is live-service isolation.
+- **Traits:** 39 listed. 28 are adopted, completing all 32 pending adopts of batch P2 (four of them come from the
+  formal units' rows and share an ID with this unit's; two `into` adoptions keep their target and
+  modification). 9 existing traits are reused, each with a holder note: `check-never-weakened-to-pass`,
+  `live-service-isolation`, `dry-run-skips-observed`, `undriven-feature-marked` (a feature keeps its mark while
+  any case is undriven), `change-proven-by-second-read`, `unreadable-change-unverified`,
+  `credentials-never-captured`, `generated-skill-left-uncommitted` and `generator-started-by-person`. 2 are ours:
+  `installed-recipe-or-blocked` and `contract-gaps-reported`, each defined with `distinct_from`. Eleven traits
+  are now shared by the two app units, each with a `trait-sharing.yaml` entry. `create-verification-skill` now
+  also lists `destination-protection`, shared with `migrate-claude-to-codex`. Two output rules the blind checks
+  found need no trait: asking which target when several match (`AGENTS.md` authority), and naming self-read
+  features in the reply (a restatement of `source-reader-per-sizeable-feature`).
+- **Registry updates:** `update ours:create-verification-skill` (the three changes above) and
+  `update ours:mvp-mode` (router row and catalog line), each with its tree hash refreshed.
+
+Proof on equity-os, on a copy of `verify-eqos` with one planted drift (a renamed flag), in its own worktree with
+its own throwaway Postgres, offline. The first pass (`scratchpad/mvp-stack/82/proof-report.md`, archive
+`scratchpad/mvp-stack/82/proof/82c/`) failed: it found and fixed the plant, but it did not mark the registry
+change as having no read-only view and claimed it verified. The unit's read-back rule was clarified with the
+other lessons. A fresh pass from a fresh copy and plant (`scratchpad/mvp-stack/82/proof-report-2.md`, archive
+`scratchpad/mvp-stack/82/proof/82e/`) passed with outcome changed. The plant was caught by both source and the
+live drive and fixed as doc drift. Every asserted value was re-observed unchanged, the change was reported
+unverified, and the inventory's missing identity prerequisite was added. Nothing was left running, and no
+credential appeared in a kept file. Its residual defects became further clarifications. Review: critic-82b and
+82d on the plan; critic-85b and 85e on the build; critic-89b on the later rounds (REVISE: a doc-command re-drive
+gate was taken out and held for the owner); blind checks 85 and 88. A rehearsal on a scratch clone, a match of
+the round against the recorder, and a build (no diff) and check in a fresh clone pass. In the build worktree
+itself the final `check` fails with seven stale reference pages, for the same environment reason as in section
+29 (empty reference submodule folders). The committed pages are kept.
+Limits: one target app; browser and desktop branches are unproven. Publishing waits for the formal pair (one
+publish for all four). Two owner questions are open: a unit-level evidence hash and credential scan before
+final teardown, and driving a corrected documented command before it ships.
+
+## 32. The formal pair: `statechart` and `create-formal-verification-skill` (`cr-r2pa.2.28.3`, `.4`)
+
+Added 2026-11-14. Plan `scratchpad/mvp-stack/83/plan.md` (gitignored, with its Round 2 table), recorder
+`scratchpad/mvp-stack/83/record_formal.py`; round `2026-11-14-formal-pair`, 102 events (2 `add`, 99 completing
+adopts, 1 `update ours:mvp-mode`), trait-level, sealed. The third and fourth of the four verification units ruled
+in batch P2, built together.
+
+- **What was built:** `.claude/skills/statechart/`, a model-invocable skill with a tool of its own. It models
+  something that moves between states in TLA+, has TLC check every reachable state, and leaves a Mermaid
+  statechart with a report giving the shortest path to each broken rule; it changes no product code. The tool,
+  `.claude/skills/statechart/scripts/statechart.py` with its `statechart_lib/` modules, checks and draws in one
+  command, refuses bad input and bad views, reruns past each broken rule, publishes its folder atomically and
+  installs Java and TLC per user. Its references are `view.md`, `report.md`, `render.md` and `install.md`; its
+  tests are `tests/checks/test_statechart_*.py` with fixtures in `tests/fixtures/statechart/`. Placement:
+  engineering · Design · Architecture, family design-validation, secondary Diagnosis.
+  `.claude/skills/create-formal-verification-skill/` is a manual skill. It picks the promise whose breaking
+  harms users most and that tests reach least, checks one property with the tool its question needs (TLA+ with
+  TLC the default for orderings), and leaves `<area>-verification/` in the product's repository: a project skill
+  with fixed sections, `coverage.json`, the kept model and a standard-library `scripts/check.py`, proven by a
+  cold agent against one planted, reverted break. Its four references are `model-fidelity.md` (the shared
+  reference maintain-formal-verification-skill will read), `coverage-record.md`, `formal-verify-skill.md` and
+  `tool-branches.md`. Placement: engineering · Improvement · Codification, secondary Testing. The `mvp-mode`
+  router gains two rows, and the catalog lists `statechart` as model-invocable and
+  `/create-formal-verification-skill` as slash-only.
+- **Owner rulings of 2026-11-14** ("Maintain proof and formal pair"): item 2, install mise, Temurin and TLC per
+  user at plan 83 §6's pins with gpg checks of mise's `SHASUMS256.asc` and Adoptium's `.sig`; item 3, the Mermaid
+  command-line renderer pinned (`@mermaid-js/mermaid-cli@11.17.1`) but not installed, so `render.md` and its six
+  completions say rendering is unproven; item 4, `statechart` model-invocable; item 5, all 75 statechart traits
+  in one slice; item 6, the proof's generated skill stays uncommitted in equity-os. With the earlier
+  verification-unit decisions (manual-only generators, short guardrails restated, the model-fidelity reference
+  shared within the pair, the formal coverage record as a data file, edits left uncommitted, the pointer to the
+  maintain unit made true before publishing).
+- **Install:** per user under the home folder, no `sudo`: mise `2026.10.24`, Temurin `25.0.5+8` through mise
+  and TLC `1.7.4`, each of the three checked against its pinned checksum and, for mise and Temurin, its publisher's
+  signature under a pinned key fingerprint, with inventories before and after
+  (`scratchpad/mvp-stack/83/install.log`, `scratchpad/mvp-stack/83/pins/`).
+- **Traits:** `statechart` lists 78: 75 adopted (47 carried by the tool, 17 written for TLA+ with TLC, two fixed
+  wordings verbatim, six under their `into` IDs), `check-never-weakened-to-pass` held, and 2 of ours.
+  `create-formal-verification-skill` lists 41: 24 adopted (one fixed wording verbatim), 5 held
+  (`checker-install-approved-per-user`, `check-never-weakened-to-pass`, `generated-skill-run-once`,
+  `generator-edits-own-output-only` for the generator's own run, `verification-only-edits` for the generated
+  skill's verification pass), 8 reused (`generator-started-by-person`, `generated-skill-left-uncommitted`,
+  `handover-points-to-maintenance`, `single-source-of-truth`, `cold-agent-reader`, `real-code-names`,
+  `registering-generated-frontmatter`, `pre-existing-edit-separation`) and 4 of ours. The six new traits of ours,
+  each defined with `distinct_from`: `checker-install-approved-per-user`, `checker-install-signed-and-undoable`,
+  `formal-coverage-data-file`, `formal-skill-recognised-by-record`, `existing-formal-skill-stops` and
+  `verdict-from-exit-and-messages`. The last is the coordinator's ruling on the blind check, not the owner's,
+  and stays open to the owner's veto. `trait-sharing.yaml` gains 8 entries and 7 existing entries now name
+  every holder. Routine output rules the blind check found (a "regenerate, do not edit" marker, "rendering
+  unproven, check the first image", the generated check's exit codes) need no trait.
+
+Proof on equity-os's retention code, in its own worktree at `9eb1b61`, database-free
+(`scratchpad/mvp-stack/83/proof-report.md`, archive `scratchpad/mvp-stack/83/proof/2026-11-14-90a/`): PASS 17/17.
+The generated `retention-verification` held on the main configuration over 79,994 states, and its broken
+variant gave the 14-step shortest path through `statechart`. The planted removal of the lock at `purge.py:159`
+was caught, replayed on the code by reading and classed a real bug; after its removal the checkout's status,
+diff and the skill's hash list matched the baseline byte for byte and the check passed again. Review: critics
+87e, 87g, 87i, 87j, 87m, 87o, 87q, 87t and 87v on the tool, the text and the install, each REVISE and fixed in
+rounds; critic-90d on the proof (REVISE; its F1 revised the blind rulings); the blind check 87 with the
+coordinator's rulings. A rehearsal on a scratch clone, a match of the round against the recorder, and a build
+(no diff) and check in a fresh clone pass. Final worktree registry state: 57 rounds, 4045 events, 75 skill
+records; in the build worktree itself `check` reports seven stale reference pages for the same environment
+reason as in sections 29 and 31 (empty reference submodule folders), and the committed pages are kept.
+Limits: one target app and one tool branch proven, TLC. Mermaid rendering is unproven. The source-verifier,
+proof and generated-input branches are unproven. Publishing waits for `maintain-formal-verification-skill`.
+
+## 33. `maintain-formal-verification-skill`: keeping a formal check true to its code (`cr-r2pa.2.28.5`)
+
+Added 2026-11-15. Plan `scratchpad/mvp-stack/92/plan.md` (gitignored, with its Round 2 table), build report
+`scratchpad/mvp-stack/92/build-report.md` (Rounds 1-3), recorder `scratchpad/mvp-stack/92/record_mfvs.py`; round
+`2026-11-15-maintain-formal-verification-skill`, 26 events (1 `add`, 23 completing adopts, 1
+`update ours:create-formal-verification-skill`, 1 `update ours:mvp-mode`), trait-level, sealed. The last of the four
+verification units ruled in batch P2.
+
+- **What was built:** `.claude/skills/maintain-formal-verification-skill/`, a manual skill with no reference or
+  script of its own. One pass brings a project's formal verify skill back to its code after changes that skipped
+  its "Updating for an intended change". It takes stock from `coverage.json`, runs a baseline, reads every commit
+  since the sync commit that touches covered code, sorts each change into one of four classes (no effect,
+  verification out of date, promise changed on purpose, promise maybe broken), updates the model from the code,
+  reruns and judges each run by exit code and the checker's own messages, refreshes the record, follows the
+  refreshed skill once, and gives each check one outcome: in sync, updated, bug or blocked. It reads
+  create-formal-verification-skill's four references by pointer and restates none. Placement: engineering ·
+  Improvement · Codification, secondary Testing. create-formal-verification-skill's stop rule and hand-off now
+  name `/maintain-formal-verification-skill` as a slash pointer, which `skill-catalog.py --check` proves resolves;
+  the `mvp-mode` router gains one row and the catalog lists it as slash-only.
+- **Owner rulings of 2026-11-15** (last section of `scratchpad/mvp-stack/owner-rulings-2026-11-13.md`): item 1,
+  Q1 **move**: on a confirmed bug the faithful model update is kept and `sync_commit`, `covers`, the table and
+  the model's comments move to the checked commit, one sentence each in create-formal's `coverage-record.md`,
+  `formal-verify-skill.md` and `model-fidelity.md`; item 2, Q2 **report**: an older formal skill's contract gaps
+  are follow-ups, none fixed, except writing `coverage.json`; item 3, Q3 **clone** for the proof; item 4, Q4
+  **yes**: `formal-verify-skill.md` "Run" names the per-user install recipe and pins; item 5, bead
+  `cr-r2pa.2.28.6` yes to both (the re-drive of changed commands is carried; the evidence-hash half has no
+  counterpart in a formal pass); item 6, `verdict-from-exit-and-messages` kept, now owner-accepted.
+- **Traits:** `maintain-formal-verification-skill` lists 40: 23 adopted (three of them, `traceable-to-code`,
+  `atomicity-fidelity` and `property-fails-on-broken-variant`, applied by pointer from `model-fidelity.md`), 16
+  held (`verify-skill-capabilities` among them, by the coordinator's ruling on the blind check) and 1 of ours,
+  `formal-contract-gaps-reported`, defined with `distinct_from` `contract-gaps-reported` and
+  `coverage-and-sync-record`. `verdict-from-exit-and-messages`' note now records the owner's acceptance; its
+  definition is unchanged. create-formal-verification-skill's entry keeps its 41 traits, with a refreshed tree
+  hash, four holder notes brought up to date and one added. `trait-sharing.yaml` gains 14 entries and 7 existing
+  entries now name the new holder. Routine rules the blind check found (the description routing neighbours,
+  references read and not restated, asking when several skills match, the `statechart` pointer) need no trait.
+
+Proof on equity-os's `retention-verification` skill, in a scratch clone with no hooks
+(`scratchpad/mvp-stack/92/proof-report.md`, archive `scratchpad/mvp-stack/92/proof/2026-11-15-92/`, its
+`MANIFEST.sha256` sha256 `4db2b746811ac6c9a59d500314053529b6a58c7cf495aaa6cb3a1e091d7901dc`): PASS. Three
+planted commits, one fresh pass each, each sorted correctly against an oracle built before any pass: C1 (a
+read-only helper) in sync, with the model unchanged but its sync line; C2 (the expiry split into two
+transactions and a rename) updated, its model text-equal to the oracle's without comments and holding over 84,966 states; C3 (the
+retention lock moved past the run's commit) updated and bug, with its introducing commit, steps in the code's
+terms, a one-sentence harm and a kept scratch reproduction. Product code was never edited. The proof's lesson,
+replay every step a writer runs between the model's last modelled check and its commit, was applied to the unit
+in the build's round 3. Review: critics 92b (REVISE) and 92c (PASS) on the plan, 92f (REVISE) and 92g (PASS) on
+the build; the blind check 92 with the coordinator's rulings. `SKILL.md` is 202 lines, 37 over the plan's 165
+(the overage is named in the build report). A rehearsal on a scratch clone, a match of the round against the
+recorder, a cite check of every recorded file:line, and a build (no diff) and check in a fresh clone pass. Final
+worktree registry state: 58 rounds, 4071 events, 76 skill records; in the build worktree itself `check` reports
+seven stale reference pages for the same environment reason as in sections 29, 31 and 32 (empty reference
+submodule folders), and the committed pages are kept. Limits: one formal check and one tool branch (TLC)
+proven; the `statechart` crash found during the proof is fixed separately; publishing all four verification units
+waits for the owner's go-ahead.
+
+## 34. `statechart`: a break with no printed path, and partial marks (`cr-r2pa.2.28.8`)
+
+Added 2026-11-15. Fix report `scratchpad/mvp-stack/92/fix/report.md` (Rounds 1-4), recorder
+`scratchpad/mvp-stack/92/fix/record_sc.py`; round `2026-11-15-statechart-partial-marks`, 1 event
+(`update ours:statechart`), trait-level, sealed. The crash found during section 33's proof.
+
+- **What was fixed:** the tool crashed with an `IndexError` when TLC, in a drawing run with `-continue`, named a
+  broken invariant and then failed while printing its path. Such a break is now named and counted, with no state
+  invented; the report keeps the rule's heading, says no path is drawn, names the `.out` file that holds TLC's
+  output, and notes the unprinted count. Three reporting defects were fixed with it. A stopped drawing run's marks
+  are partial per rule: the legend counts the marked, printed and not-in-graph states, and `mayBreak` means the
+  others are unknown, while a whole graph keeps its deadlock marks. When the graph or a rule's marks are
+  incomplete, the summary names the run the graph comes from and gives its own counts. The drawing-budget line no
+  longer says every rule was checked when some are listed as not checked, and the after-a-failure note appears
+  only when a drawn arrow leaves a breaking state. `references/report.md` says the same.
+- **Traits:** none added, removed or reworded. `ours:statechart` has a refreshed tree hash, and the 30 tool notes
+  whose cited lines moved are rewritten from the row map rebuilt against the fixed source
+  (`scratchpad/mvp-stack/92/fix/maps/`, 99 anchors, 3 of 3 wordings), by the formula that reproduces all 47
+  notes from the old map. By the coordinator's rulings, two current-state notes are added. `break-and-may-break-marks`: a
+  may-break state of a stopped run has the others unknown. `chart-state-budget`: a rule the rerun bound stops is listed as not
+  checked. No definition changed.
+
+Review: critics 92j and 92l (REVISE, fixed in rounds 3 and 4) and 92n (PASS). New real-TLC fixtures `Untraced`,
+`UntracedStart`, `UntracedPartial`, `UntracedDeadlock`, `PathExtra` and `Hidden` have tests in
+`tests/checks/test_statechart_chart.py` and `test_statechart_tlc.py`. The round was rehearsed on a scratch clone.
+A match of the round against the recorder, a cite check of this round's file:line cites, and a build (no diff)
+and check in a fresh clone pass. Final worktree registry state: 59 rounds, 4072 events, 76 skill records. In the
+fix worktree itself, `check` reports seven stale reference pages for the same environment reason as in sections
+29 and 31-33, and the committed pages are kept. Limit: sealed adopt events of round `2026-11-14-formal-pair` cite
+the pre-fix line ranges, and they stay as recorded.
+
+## 35. `maintain-verification-skill`: the owner's two rules (`cr-r2pa.2.28.7`)
+
+Added 2026-11-15. Report `scratchpad/mvp-stack/93/report.md` (Rounds 1-3), recorder
+`scratchpad/mvp-stack/93/record_mvs.py`; round `2026-11-15-maintain-verification-two-rules`, 2 events
+(`update ours:maintain-verification-skill`, `update ours:maintain-formal-verification-skill`), trait-level, sealed.
+The owner said yes to both questions of decision bead `cr-r2pa.2.28.6` (rulings of 2026-11-15, item 5).
+
+- **What was added:** the first rule has two parts.
+  - Step 5 (Live), Credentials: before any cleanup or restart destroys a session's generated credentials, the pass
+    searches every kept file for each of them through the helper, printing and saving no match. The launch-model,
+    failed-drive and drift-restart cleanups wait for that scan. A match, or a session whose credentials can no
+    longer be checked (an incomplete scan), ends the pass blocked. The reply names the file and the kind of match,
+    or the session, never the credential.
+  - Step 7 (Teardown): just before final teardown, the pass runs the last session's scan, then hashes every kept
+    evidence file, and it checks the hashes after teardown. A changed hash ends the pass blocked, naming the file.
+  - The blocked outcome names both checks. Proof 82's first pass tore down by itself, so neither check was
+    possible (`82/proof-report.md` lesson 5). In the second pass an earlier cleanup destroyed one session's
+    credentials, which a final-only scan could not cover (critic-93b F2).
+  - Step 6 (Triage), the second rule: every documented command the pass corrected or added is driven exactly as
+    written before it ships, whether or not the helper changed, with a case left marked not yet driven exempt.
+    critic-89b F1 had removed this sentence as a separate mechanism from `harness-fix-redriven`, pending this
+    ruling.
+- **Traits:** three new traits of ours, all engineering · Verification · Testing like their nearest definitions;
+  no existing definition fits any of them unchanged. The first rule's hash and scan are separate traits, by the
+  registry's one-mechanism rule (critic-93b F1).
+  - `evidence-hashed-across-teardown`, with `distinct_from` `evidence-checked-after-cleanup`,
+    `final-teardown-after-last-drive` and `read-only-closeout`.
+  - `generated-credentials-scanned-before-cleanup`, with `distinct_from` `credentials-never-captured`,
+    `redact-secrets` and `failed-drive-residue-cleanup`.
+  - `fixed-command-driven-as-written`, with `distinct_from` `harness-fix-redriven`, `generated-skill-run-once` and
+    `literal-commands`. The sibling sentence in `create-verification-skill`'s generated-skill writing rules ("the
+    run that wrote it ran it") has no trait of its own to reuse.
+- **Holders:** `ours:maintain-verification-skill` lists 42 traits, with a refreshed tree hash and one holder note
+  for each new trait. By the coordinator's ruling, `maintain-formal-verification-skill` also holds
+  `fixed-command-driven-as-written`: its unchanged sentence "Every command the refresh changed or added runs as
+  written before hand-over" (`SKILL.md:174-175`) fits the definition, and its text and tree hash are unchanged. Its
+  `generated-skill-run-once` note no longer carries that clause, and neither does that trait's sharing why.
+  `trait-sharing.yaml` gains `fixed-command-driven-as-written` with both holders. Each rule is anchored in
+  `scratchpad/mvp-stack/93/row-map.tsv` (three owner rows, six restated rows and the held row), which is checked
+  strictly.
+
+Review: critic-93b (REVISE, two MAJOR findings, fixed in Round 3). The round was rehearsed on a scratch clone. The
+recorder's match of the round, a cite check of this round's file:line cites, the catalog check,
+`pytest tests/curation tests/checks`, the neutrality audit of added shipped lines, and a build (no diff) and check
+in a fresh clone all pass. Final worktree registry state: 60 rounds, 4074 events, 76 skill records. In the
+worktree itself, `check` reports seven stale reference pages for the same environment reason as in sections 29
+and 31-34, and the committed pages are kept. `SKILL.md` is 184 lines, 24 over plan 82's 160 (it was 171 before).
+Limit: sealed adopt events of round `2026-11-14-maintain-verification-skill` cite the line ranges from before this
+change, and they stay as recorded.
 
 ## Regenerating
 

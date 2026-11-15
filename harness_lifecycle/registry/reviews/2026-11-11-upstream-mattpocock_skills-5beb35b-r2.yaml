@@ -1,0 +1,191 @@
+harness: mattpocock_skills
+from_sha: null
+to_sha: 5beb35b
+supersedes:
+- harness_lifecycle/registry/reviews/2026-11-11-upstream-mattpocock_skills-5beb35b-r1.yaml
+analysis_critic:
+  by: claude-opus-5-5 coordinator (plan 27, critic-27d fixes applied)
+  date: '2026-11-11'
+  verdict: accepted
+  last_critic:
+    by: gpt-6.1-sol high (critic-27d)
+    date: '2026-11-11'
+    verdict: fail
+comparison_critic:
+  by: claude-opus-5-5 coordinator (plan 27, critic-27d fixes applied)
+  date: '2026-11-11'
+  verdict: accepted
+  last_critic:
+    by: gpt-6.1-sol high (critic-27d)
+    date: '2026-11-11'
+    verdict: fail
+themes: Four reconsider rows moving the to-tickets workstream-seeding adoptions (dependency-edges,
+  publish-to-tracker, real-id-wiring, sub-issue-linkage) from to-roadmap into the new tracker
+  skill, under owner rulings M2 (2026-11-10) and N2, N3 (2026-11-11) (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md),
+  plan 27 T1a. Supersedes r1 per critic-27b; wayfinder's row is in the 4ae2317 report, because
+  wayfinder's newest analysis is 4ae2317.
+skills:
+  skill:skills/engineering/to-tickets:
+    upstream_tree_hash: 17496514c92954f68eacdf2b1221e2ddb39fa231b83f03c70bc7d4422f704b2d
+    accepted: 5beb35b
+    compared_with: tracker
+    pairing:
+      overlap:
+        beads: 1
+        brainstorming: 1
+        brief-me: 1
+        codebase-design: 1
+        doc:AGENTS.md: 1
+        implement: 1
+        improve-codebase-architecture: 3
+        principle-migrate-without-shims: 1
+        principle-redesign-from-first-principles: 1
+        principle-sequence-verifiable-units: 4
+        prototype: 1
+        teach: 1
+        to-plan: 4
+        to-roadmap: 1
+        to-spec: 3
+        tracker: 4
+        triage: 2
+        unslop: 1
+        wayfinder: 2
+        why: 1
+      placement_match:
+      - principle-migrate-without-shims
+      - principle-subtract-before-you-add
+      - to-plan
+      - to-roadmap
+      suggested: to-plan
+      purpose_match: tracker
+      purpose: Upstream to-tickets; these rows compare only its tracker-structure mechanisms
+        with tracker, which now delivers them for our skills.
+      flag: suggested differs
+      reason: Compared with tracker, which delivers these rows; the computed signals suggest
+        to-plan, and the skill's other rows keep their own rulings.
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      dependency-edges:
+        scope: reconsider
+        change: []
+        fact: present
+        provider: tracker
+        candidates: []
+        via: null
+        also_in:
+          beads: variant
+          implement: present
+          wayfinder: present
+        ours:
+        - .claude/skills/tracker/SKILL.md:8
+        - .claude/skills/tracker/SKILL.md:20-21
+        - .claude/skills/tracker/references/workstreams.md:41-45
+        recommendation: adopt
+        delivery: delivered
+        target: tracker
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-02
+          override: null
+        reason: 'Owner ruling N3 (2026-11-11), with M2: the tracker skill puts our work structure
+          on Beads, and to-roadmap, to-plan, implement, wayfinder and triage call it; the
+          workstream seeding text of to-roadmap''s decompose.md moves to tracker (SKILL.md
+          and references/workstreams.md). The live adopt into to-roadmap is withdrawn by its
+          update. The adopt citing this row supersedes 2026-11-10-renames-splits:090.'
+      publish-to-tracker:
+        scope: reconsider
+        change: []
+        fact: variant
+        provider: tracker
+        candidates:
+        - beads-native-tracking
+        via: beads-native-tracking
+        also_in: {}
+        ours:
+        - .claude/skills/tracker/SKILL.md:15-16
+        - .claude/skills/tracker/SKILL.md:72-78
+        - .claude/skills/tracker/references/workstreams.md:24-46
+        recommendation: adopt
+        delivery: delivered
+        target: tracker
+        modification: Ours seeds Beads epics and stages with the roadmap anchor and renders
+          tracking, instead of a generic tracker publish.
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-02
+          override: null
+        reason: 'Owner ruling N3 (2026-11-11), with M2: the tracker skill puts our work structure
+          on Beads, and to-roadmap, to-plan, implement, wayfinder and triage call it; the
+          workstream seeding text of to-roadmap''s decompose.md moves to tracker (SKILL.md
+          and references/workstreams.md). The live adopt into to-roadmap is withdrawn by its
+          update. The adopt citing this row supersedes 2026-11-10-renames-splits:092.'
+      real-id-wiring:
+        scope: reconsider
+        change: []
+        fact: present
+        provider: tracker
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/tracker/SKILL.md:20-21
+        - .claude/skills/tracker/SKILL.md:37-38
+        - .claude/skills/tracker/references/workstreams.md:41-42
+        recommendation: adopt
+        delivery: delivered
+        target: tracker
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-02
+          override: null
+        reason: 'Owner ruling N3 (2026-11-11), with M2: the tracker skill puts our work structure
+          on Beads, and to-roadmap, to-plan, implement, wayfinder and triage call it; the
+          workstream seeding text of to-roadmap''s decompose.md moves to tracker (SKILL.md
+          and references/workstreams.md). The live adopt into to-roadmap is withdrawn by its
+          update. The adopt citing this row supersedes 2026-11-10-renames-splits:093.'
+      sub-issue-linkage:
+        scope: reconsider
+        change: []
+        fact: variant
+        provider: tracker
+        candidates:
+        - beads-native-tracking
+        via: beads-native-tracking
+        also_in: {}
+        ours:
+        - .claude/skills/tracker/SKILL.md:60-63
+        - .claude/skills/tracker/references/workstreams.md:24-40
+        recommendation: adopt
+        delivery: delivered
+        target: tracker
+        modification: Ours makes stages children of phase epics and links the governing spec
+          through `--design`, rather than making tickets children of a source issue.
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-02
+          override: null
+        reason: 'Owner ruling N3 (2026-11-11), with M2: the tracker skill puts our work structure
+          on Beads, and to-roadmap, to-plan, implement, wayfinder and triage call it; the
+          workstream seeding text of to-roadmap''s decompose.md moves to tracker (SKILL.md
+          and references/workstreams.md). The live adopt into to-roadmap is withdrawn by its
+          update. The adopt citing this row supersedes 2026-11-10-renames-splits:094.'

@@ -1,0 +1,611 @@
+harness: mattpocock_skills
+from_sha: null
+to_sha: 5beb35b
+supersedes:
+- harness_lifecycle/registry/reviews/2026-10-30-upstream-mattpocock_skills-5beb35b.yaml
+analysis_critic:
+  by: gpt-6.1-sol high (critic-16b)
+  date: '2026-11-09'
+  verdict: pass
+  last_critic: null
+comparison_critic:
+  by: gpt-6.1-sol high (critic-16b)
+  date: '2026-11-09'
+  verdict: pass
+  last_critic: null
+themes: Rows the owner's ruling of 2026-11-05 moves into the new `to-spec` and `to-tickets`
+  units, at analysis 5beb35b, which is unchanged at pin 4ae2317. Each row moves a delivered
+  trait with its wording; `ground-in-codebase`, `no-stale-code-snippets` and `brief-behavioural`
+  of `to-tickets` have no row because the text delivering them stays in `planning`. The relocations
+  are recorded as a set under the 2026-11-06 ruling §I4.
+skills:
+  skill:skills/engineering/to-spec:
+    upstream_tree_hash: eb934b5eda9523c7853a2741544bd4721ee1bea471f5a04f8397827f67bdbdda
+    accepted: 5beb35b
+    compared_with: none
+    pairing:
+      overlap:
+        brainstorming: 10
+        brief-me: 1
+        codebase-design: 1
+        doc:AGENTS.md: 1
+        improve-codebase-architecture: 3
+        planning: 4
+        principle-experience-first: 1
+        prototype: 1
+        tdd: 1
+        teach: 1
+        unslop: 1
+      placement_match:
+      - principle-experience-first
+      suggested: brainstorming
+      purpose_match: none
+      purpose: Writes a settled decision up as a spec. Ours has no such unit until `to-spec`
+        is built out of `brainstorming`.
+      flag: suggested differs
+      reason: 'Compared with none: these rows are reopened for placement, each names its own
+        target, and no single skill of ours compares with all of them. Suggested brainstorming
+        by the computed signals only.'
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      synthesize-settled:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          brainstorming: present
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: to-spec
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-02
+          override: null
+        reason: 'Relocation: owner ruling 2026-11-05 §C splits `to-spec` out of `brainstorming`,
+          which ends at decisions; the spec section that delivers this moves whole. The trait
+          and its wording move unchanged. Pending bead: cr-r2pa.2.20.'
+      ground-in-codebase:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          brainstorming: variant
+          improve-codebase-architecture: variant
+          planning: present
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: to-spec
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-02
+          override: null
+        reason: 'Relocation: owner ruling 2026-11-05 §C splits `to-spec` out of `brainstorming`,
+          which ends at decisions; the spec section that delivers this moves whole. The trait
+          and its wording move unchanged. It is delivered as `scoped-context-read`, which
+          the adoption''s `into` keeps. Pending bead: cr-r2pa.2.20.'
+      testing-seam-decision:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          brainstorming: present
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: to-spec
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-02
+          override: null
+        reason: 'Relocation: owner ruling 2026-11-05 §C splits `to-spec` out of `brainstorming`,
+          which ends at decisions; the spec section that delivers this moves whole. The trait
+          and its wording move unchanged. Pending bead: cr-r2pa.2.20.'
+      spec-template:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          brainstorming: present
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: to-spec
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-02
+          override: null
+        reason: 'Relocation: owner ruling 2026-11-05 §C splits `to-spec` out of `brainstorming`,
+          which ends at decisions; the spec section that delivers this moves whole. The trait
+          and its wording move unchanged. Pending bead: cr-r2pa.2.20.'
+      no-stale-file-paths:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          brainstorming: present
+          planning: variant
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: to-spec
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-02
+          override: null
+        reason: 'Relocation: owner ruling 2026-11-05 §C splits `to-spec` out of `brainstorming`,
+          which ends at decisions; the spec section that delivers this moves whole. The trait
+          and its wording move unchanged. Pending bead: cr-r2pa.2.20.'
+      no-stale-code-snippets:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          brainstorming: present
+          planning: present
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: to-spec
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-02
+          override: null
+        reason: 'Relocation: owner ruling 2026-11-05 §C splits `to-spec` out of `brainstorming`,
+          which ends at decisions; the spec section that delivers this moves whole. The trait
+          and its wording move unchanged. Pending bead: cr-r2pa.2.20.'
+      prototype-snippet:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          brainstorming: present
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: to-spec
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-02
+          override: null
+        reason: 'Relocation: owner ruling 2026-11-05 §C splits `to-spec` out of `brainstorming`,
+          which ends at decisions; the spec section that delivers this moves whole. The trait
+          and its wording move unchanged. Pending bead: cr-r2pa.2.20.'
+      user-perspective-framing:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          brainstorming: present
+          principle-experience-first: variant
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: to-spec
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-02
+          override: null
+        reason: 'Relocation: owner ruling 2026-11-05 §C splits `to-spec` out of `brainstorming`,
+          which ends at decisions; the spec section that delivers this moves whole. The trait
+          and its wording move unchanged. Pending bead: cr-r2pa.2.20.'
+      implementation-decisions-scope:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          brainstorming: present
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: to-spec
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-02
+          override: null
+        reason: 'Relocation: owner ruling 2026-11-05 §C splits `to-spec` out of `brainstorming`,
+          which ends at decisions; the spec section that delivers this moves whole. The trait
+          and its wording move unchanged. Pending bead: cr-r2pa.2.20.'
+      testing-decisions-contents:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          brainstorming: present
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: to-spec
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-02
+          override: null
+        reason: 'Relocation: owner ruling 2026-11-05 §C splits `to-spec` out of `brainstorming`,
+          which ends at decisions; the spec section that delivers this moves whole. The trait
+          and its wording move unchanged. Pending bead: cr-r2pa.2.20.'
+  skill:skills/engineering/to-tickets:
+    upstream_tree_hash: 17496514c92954f68eacdf2b1221e2ddb39fa231b83f03c70bc7d4422f704b2d
+    accepted: 5beb35b
+    compared_with: none
+    pairing:
+      overlap:
+        beads: 1
+        brainstorming: 4
+        brief-me: 1
+        codebase-design: 1
+        doc:AGENTS.md: 1
+        explain-code: 1
+        improve-codebase-architecture: 3
+        planning: 13
+        principle-migrate-without-shims: 1
+        principle-redesign-from-first-principles: 1
+        principle-sequence-verifiable-units: 1
+        prototype: 1
+        teach: 1
+        triage: 2
+        unslop: 1
+        wayfinder: 3
+      placement_match:
+      - planning
+      - principle-migrate-without-shims
+      - principle-subtract-before-you-add
+      suggested: planning
+      purpose_match: none
+      purpose: Breaks a spec into dependent tickets. Ours has no such unit until `to-tickets`
+        is built out of `planning`.
+      flag: suggested differs
+      reason: 'Compared with none: these rows are reopened for placement, each names its own
+        target, and no single skill of ours compares with all of them. Suggested planning
+        by the computed signals only.'
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      prefactor-first:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          planning: present
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: to-tickets
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-02
+          override: null
+        reason: 'Relocation: owner ruling 2026-11-05 §C splits `to-tickets` out of `planning`,
+          which keeps the plan document, Skeleton and routing; the decomposition text that
+          delivers this moves whole. The trait and its wording move unchanged. Pending bead:
+          cr-r2pa.2.20.'
+      vertical-slices:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          planning: present
+          principle-redesign-from-first-principles: variant
+          principle-sequence-verifiable-units: variant
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: to-tickets
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-02
+          override: null
+        reason: 'Relocation: owner ruling 2026-11-05 §C splits `to-tickets` out of `planning`,
+          which keeps the plan document, Skeleton and routing; the decomposition text that
+          delivers this moves whole. The trait and its wording move unchanged. Pending bead:
+          cr-r2pa.2.20.'
+      dependency-edges:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          beads: variant
+          planning: present
+          wayfinder: present
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: to-tickets
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-02
+          override: null
+        reason: 'Relocation: owner ruling 2026-11-05 §C splits `to-tickets` out of `planning`,
+          which keeps the plan document, Skeleton and routing; the decomposition text that
+          delivers this moves whole. The trait and its wording move unchanged. Pending bead:
+          cr-r2pa.2.20.'
+      expand-contract:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          planning: present
+          principle-migrate-without-shims: variant
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: to-tickets
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-02
+          override: null
+        reason: 'Relocation: owner ruling 2026-11-05 §C splits `to-tickets` out of `planning`,
+          which keeps the plan document, Skeleton and routing; the decomposition text that
+          delivers this moves whole. The trait and its wording move unchanged. Pending bead:
+          cr-r2pa.2.20.'
+      publish-to-tracker:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          planning: variant
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: to-tickets
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-02
+          override: null
+        reason: 'Relocation: owner ruling 2026-11-05 §C splits `to-tickets` out of `planning`,
+          which keeps the plan document, Skeleton and routing; the decomposition text that
+          delivers this moves whole. The trait and its wording move unchanged. It is delivered
+          as `beads-native-tracking`, which the adoption''s `into` keeps. Pending bead: cr-r2pa.2.20.'
+      real-id-wiring:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          planning: present
+          wayfinder: present
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: to-tickets
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-02
+          override: null
+        reason: 'Relocation: owner ruling 2026-11-05 §C splits `to-tickets` out of `planning`,
+          which keeps the plan document, Skeleton and routing; the decomposition text that
+          delivers this moves whole. The trait and its wording move unchanged. Pending bead:
+          cr-r2pa.2.20.'
+      sub-issue-linkage:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          planning: variant
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: to-tickets
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-02
+          override: null
+        reason: 'Relocation: owner ruling 2026-11-05 §C splits `to-tickets` out of `planning`,
+          which keeps the plan document, Skeleton and routing; the decomposition text that
+          delivers this moves whole. The trait and its wording move unchanged. It is delivered
+          as `beads-native-tracking`, which the adoption''s `into` keeps. Pending bead: cr-r2pa.2.20.'
+      prototype-snippet:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          brainstorming: present
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: to-spec
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-02
+          override: null
+        reason: 'Relocation: owner ruling 2026-11-05 §C: its delivery already sits in the
+          spec template `brainstorming` hands to `to-spec`, so it follows that template rather
+          than `to-tickets`. The trait and its wording move unchanged. Pending bead: cr-r2pa.2.20.'
+      blast-radius-batches:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          planning: present
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: to-tickets
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-02
+          override: null
+        reason: 'Relocation: owner ruling 2026-11-05 §C splits `to-tickets` out of `planning`,
+          which keeps the plan document, Skeleton and routing; the decomposition text that
+          delivers this moves whole. The trait and its wording move unchanged. Pending bead:
+          cr-r2pa.2.20.'
+      breakdown-approval-before-publish:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          planning: present
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: to-tickets
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-02
+          override: null
+        reason: 'Relocation: owner ruling 2026-11-05 §C splits `to-tickets` out of `planning`,
+          which keeps the plan document, Skeleton and routing; the decomposition text that
+          delivers this moves whole. The trait and its wording move unchanged. Pending bead:
+          cr-r2pa.2.20.'

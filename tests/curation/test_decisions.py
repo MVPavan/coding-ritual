@@ -345,6 +345,164 @@ def test_completion(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     _fails(cfg, capsys, f"{ROUND}:8: completing adopt of")
 
 
+def test_completion_in_round_sorting_before_its_pending_passes_check(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Recording order, not filename order: a completion from a `reword` row is
+    judged against the pending event it supersedes."""
+
+    def reword(data: dict) -> None:
+        _judge(data)
+        data["supersedes"] = [key]
+        data["skills"][LOGICAL]["traits"]["mocks"].update(
+            recommendation="adopt",
+            delivery="pending",
+            rewording="Mock only at the boundary.",
+            guide={"verdict": "reword", "rules": ["U-01"]},
+        )
+
+    cfg, key = _decided(tmp_path)
+    ledger.seal(cfg, ROUND)
+    path = _draft(
+        cfg, report_path=Path("registry/reviews/re.yaml"), reconsider=["mocks"]
+    )
+    again = _seal(cfg, path, reword)
+    pending_round, completing_round = "2026-10-21-z", "2026-10-21-a"
+    pending = _ev(
+        f"{pending_round}:1",
+        "adopt",
+        "mocks",
+        skill="tdd",
+        report=again,
+        supersedes=[f"{ROUND}:4"],
+        pending="cr-2",
+        rewording="Mock only at the boundary.",
+        target_tree_hash=_tree_hash_of(cfg, "tdd"),
+    )
+    _write_round(cfg, pending_round, pending, trait_level=True, date="2026-10-21")
+    ledger.seal(cfg, pending_round)
+    done = _ev(
+        f"{completing_round}:1",
+        "adopt",
+        "mocks",
+        skill="tdd",
+        report=again,
+        supersedes=[pending["id"]],
+        guide={"verdict": "ok", "rules": ["U-01"]},
+    )
+    _write_round(cfg, completing_round, done, trait_level=True, date="2026-10-21")
+    _lists(cfg, "traits: [red-green, seams]", "traits: [red-green, seams, mocks]")
+    _ok(cfg, capsys)
+
+
+def test_first_time_pending_completed_in_a_round_sorting_before_it(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """cr-an42: on one date round z sorts after round a, but z was sealed first, so
+    its pending adopt with no `supersedes` precedes the completion in a."""
+    cfg = _cfg(tmp_path)
+    ledger.seal(cfg, "2026-10-14-r")
+    key = _seal(cfg, _draft(cfg))
+    _write_round(
+        cfg, ROUND, *_first_round(key)[:-1], trait_level=True, date="2026-10-20"
+    )
+    _point(cfg, SHA, None)
+    ledger.seal(cfg, ROUND)
+    pending = _ev("2026-10-21-z:1", "adopt", "novel", skill="tdd", report=key)
+    pending["pending"] = "cr-1"
+    _write_round(cfg, "2026-10-21-z", pending, trait_level=True, date="2026-10-21")
+    ledger.seal(cfg, "2026-10-21-z")
+    done = _ev("2026-10-21-a:1", "adopt", "novel", skill="tdd", report=key)
+    done["supersedes"] = [pending["id"]]
+    _write_round(cfg, "2026-10-21-a", done, trait_level=True, date="2026-10-21")
+    _lists(cfg, "traits: [red-green, seams]", "traits: [red-green, seams, novel]")
+    _ok(cfg, capsys)
+
+
+def _two_pending_and_completion(
+    base: Path, order: tuple[int, int], chained: bool
+) -> object:
+    """Rounds z and a sort a before z. z holds a pending adopt into tdd, then one
+    retargeted into debug's variant; a completes the first, superseding both."""
+
+    def reword(data: dict) -> None:
+        _judge(data)
+        data["supersedes"] = [key]
+        data["skills"][LOGICAL]["traits"]["mocks"].update(
+            recommendation="adopt",
+            delivery="pending",
+            rewording="Mock only at the boundary.",
+            guide={"verdict": "reword", "rules": ["U-01"]},
+        )
+
+    cfg, key = _decided(base)
+    ledger.seal(cfg, ROUND)
+    path = _draft(
+        cfg, report_path=Path("registry/reviews/re.yaml"), reconsider=["mocks"]
+    )
+    again = _seal(cfg, path, reword)
+    pending_round, completing_round = "2026-10-21-z", "2026-10-21-a"
+    first = _ev(
+        f"{pending_round}:1",
+        "adopt",
+        "mocks",
+        skill="tdd",
+        report=again,
+        supersedes=[f"{ROUND}:4"],
+        pending="cr-2",
+        rewording="Mock only at the boundary.",
+        target_tree_hash=_tree_hash_of(cfg, "tdd"),
+    )
+    second = _ev(
+        f"{pending_round}:2",
+        "adopt",
+        "mocks",
+        skill="debug",
+        report=again,
+        supersedes=[first["id"]] if chained else [],
+        pending="cr-3",
+        rewording="Mock only at the boundary.",
+        target_tree_hash=_tree_hash_of(cfg, "debug"),
+        into="mocks-strict",
+        modification="Use the strict-mock variant.",
+        retarget="The later pending ruling chooses the debugging holder.",
+    )
+    _write_round(cfg, pending_round, first, second, trait_level=True, date="2026-10-21")
+    ledger.seal(cfg, pending_round)
+    ids = (first["id"], second["id"])
+    done = _ev(
+        f"{completing_round}:1",
+        "adopt",
+        "mocks",
+        skill="tdd",
+        report=again,
+        supersedes=[ids[i] for i in order],
+        guide={"verdict": "ok", "rules": ["U-01"]},
+    )
+    _write_round(cfg, completing_round, done, trait_level=True, date="2026-10-21")
+    _lists(cfg, "traits: [red-green, seams]", "traits: [red-green, seams, mocks]")
+    return cfg
+
+
+@pytest.mark.parametrize("order", [(0, 1), (1, 0)], ids=["first-last", "last-first"])
+def test_completion_of_an_older_pending_is_refused_in_either_order(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], order: tuple[int, int]
+) -> None:
+    """The effective event is the retargeted pending, which the first's target does
+    not complete, so this is a new delivered adopt from a `reword` row."""
+    cfg = _two_pending_and_completion(tmp_path, order, chained=False)
+    _fails(cfg, capsys, "2026-10-21-a:1: a new delivered adopt from a `reword` row")
+
+
+@pytest.mark.parametrize("order", [(0, 1), (1, 0)], ids=["first-last", "last-first"])
+def test_superseded_predecessor_cannot_be_completed_in_either_order(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], order: tuple[int, int]
+) -> None:
+    """The later pending ruling replaced the first, so superseding both is refused."""
+    cfg = _two_pending_and_completion(tmp_path, order, chained=True)
+    _fails(cfg, capsys, "2026-10-21-z:1: superseded twice")
+
+
 def test_cancellation_and_reconsideration(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:

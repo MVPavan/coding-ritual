@@ -1,0 +1,6 @@
+interface:
+  display_name: "Create Formal Verification Skill"
+  short_description: "Generate a project skill that formally checks one promise"
+  default_prompt: "Use $create-formal-verification-skill to check one high-harm promise of this project with a formal tool and leave a skill that reruns it, optionally naming the area, promise or bug."
+policy:
+  allow_implicit_invocation: false

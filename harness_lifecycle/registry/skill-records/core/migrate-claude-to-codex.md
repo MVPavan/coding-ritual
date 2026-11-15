@@ -4,7 +4,7 @@ domain: core
 stage: Improvement
 substage: Codification
 secondary: []
-family: 
+family:
 aliases: []
 status: active
 ---

@@ -8,15 +8,17 @@ disable-model-invocation: true
 
 Map a multi-session effort whose material decisions are not yet settled. This is
 a decision graph, not an implementation backlog unless execution was explicitly
-included. If the route is already clear, use ordinary planning or execution.
+included. If the route is already clear, return to `mvp-mode`: a plan to write is
+the plan playbook, and work to build is the implement playbook.
 
 ## Map and tickets
 
-Use Beads: one map epic (`-t epic`, title starting `Map:`), with decision tickets
-as children and native prerequisite edges. The map contains Destination, Notes, Decisions so
-far, Not yet specified, and Out of scope. Keep resolution detail on the ticket;
-the map carries a named pointer and short gist. Reference names with IDs/links so
-readers can understand the map without opening every item.
+Record the map through `tracker`: one map epic (`-t epic`, title starting `Map:`),
+with decision tickets as children and native prerequisite edges. The map contains
+Destination, Notes, Decisions so far, Not yet specified, and Out of scope. Keep
+resolution detail on the ticket; the map carries a named pointer and short gist.
+Reference names with IDs/links so readers can understand the map without opening
+every item.
 
 A ticket asks one bounded question with a resolution criterion. Research,
 prototype and grilling tickets are type `spike`, with the kind first in the
@@ -24,10 +26,14 @@ title (`Research: …`); prerequisite work is type `task`. Record a settled
 architecture-level answer as a `decision` bead. Create no labels. Size by decision
 coherence and dependencies, not an assumed context-window size.
 
-- Research establishes missing facts; direct lookups are fine, delegation optional.
+- Research establishes missing facts: a `Research:` ticket calls the research
+  skill; direct lookups are fine, delegation optional.
 - Prototype raises fidelity for a decision; use the prototype skill when useful.
 - Grilling involves a live participant when an interview is requested.
-- Task performs authorized prerequisite work that unblocks a decision.
+- Task performs authorized prerequisite work that unblocks a decision. When a
+  prerequisite task needs the human, hand them a precise checklist. Record on a
+  prerequisite task the facts later tickets depend on, such as URLs or where
+  credentials live, never the secrets.
 
 Do not substitute the agent's answer for a required human decision. Documentation
 and memory follow task authority; domain-modeling is optional, not automatic.
@@ -36,14 +42,17 @@ do not silently create a competing Markdown tracker.
 
 ## Chart and resolve
 
-Settle the destination from supplied context and material questions. Create sharp
-questions as tickets even if blocked; leave only questions not yet expressible in
-Not yet specified. Create IDs before wiring genuine dependencies.
+Settle the destination from supplied context and material questions. Chart
+breadth-first: surface the open decisions across the whole effort before resolving
+any. Make sharp questions tickets even if blocked; leave only questions not yet
+expressible in Not yet specified. `tracker` creates them and wires genuine
+dependencies by returned ID.
 
 Choose the requested ticket or a ready unclaimed child; claim it before working.
 Load detail as needed. Record the answer and supporting artifacts, close with
 evidence, and append its resolution pointer to the map. Graduate newly expressible
-questions into tickets and update invalidated dependencies without deleting history.
+questions into tickets through `tracker` and update invalidated dependencies. Update
+or close the tickets a recorded decision invalidated, without deleting history.
 Out-of-scope tickets close with an explicit exclusion reason, not a claim of delivery.
 
 Continue through additional authorized ready tickets while useful; there is no

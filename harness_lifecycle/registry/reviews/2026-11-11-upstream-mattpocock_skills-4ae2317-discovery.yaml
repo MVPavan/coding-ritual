@@ -1,0 +1,78 @@
+harness: mattpocock_skills
+from_sha: null
+to_sha: 4ae2317
+supersedes: null
+analysis_critic:
+  by: claude-opus-5-5 coordinator (plan 20, critic-31b fixes applied)
+  date: '2026-11-11'
+  verdict: accepted
+  last_critic:
+    by: gpt-6.1-sol high (critic-31b)
+    date: '2026-11-11'
+    verdict: fail
+comparison_critic:
+  by: claude-opus-5-5 coordinator (plan 20, critic-31b fixes applied)
+  date: '2026-11-11'
+  verdict: accepted
+  last_critic:
+    by: gpt-6.1-sol high (critic-31b)
+    date: '2026-11-11'
+    verdict: fail
+themes: 'Report D of plan 20 (bead cr-r2pa.2.21): one reconsider row adopting Pocock grilling''s
+  round-format into brainstorming (renamed discovery in D1) as a pending rewording, under
+  owner ruling L1 of 2026-11-10 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md). Grilling''s
+  other rows keep their rulings.'
+skills:
+  skill:skills/productivity/grilling:
+    upstream_tree_hash: 485451958784497cd4c4dbea13cb5bbb579da58fac0d0e45f3bcb310fab68ac7
+    accepted: 4ae2317
+    compared_with: brainstorming
+    pairing:
+      overlap:
+        brainstorming: 5
+        doc:AGENTS.md: 1
+        grilling: 7
+      placement_match:
+      - brainstorming
+      - grilling
+      suggested: grilling
+      purpose_match: brainstorming
+      purpose: Upstream grilling; this row compares only its per-question round format with
+        brainstorming, the discovery hub after D1, which asks its open questions in rounds.
+      flag: suggested differs
+      reason: Compared with brainstorming, which takes this row under ruling L1; the computed
+        signals suggest grilling, and grilling's other rows keep their own rulings.
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      round-format:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: brainstorming
+        modification: null
+        rewording: 'Ask each question as one fixed block, with no emoji: `**Q<n>. <title>**:
+          <question; options if any>`, then `Recommended: <answer>. Reply yes to accept, or
+          give yours.`'
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - S-03
+          - U-09
+          override: null
+        reason: 'Owner ruling L1 of 2026-11-10 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md),
+          plan 20 D0: the discovery hub asks its open questions in rounds, each question one
+          fixed block with a recommended answer (plan 20 section 6). The block meets the frozen
+          round-format definition in our own layout, without emoji, which answers the S-03/U-09
+          reason of the defer 2026-10-30-mattpocock_skills-5beb35b:077. Pended against brainstorming,
+          which D1 renames discovery; D3 completes it with the block''s file:line.'

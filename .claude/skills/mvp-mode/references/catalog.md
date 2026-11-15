@@ -5,11 +5,13 @@ below is generated: it names every canonical skill, which is not proof that
 this harness exposes each one. Check actual runtime discovery before relying on
 a skill being available, and use the harness's own syntax for manual ones.
 
-Legacy entrypoints (`receiving-code-review`, `document-review`, `idea-refine`,
-`grill-me`, `grill-with-docs`, `teach-session`, `skill-router`) are thin
-pointers to the unit that owns the work. `verification-before-completion` and
+Legacy entrypoints (`receiving-code-review`, `document-review`, `grill-me`,
+`grill-with-docs`, `teach-session`, `skill-router`) are thin pointers to the
+unit that owns the work. `verification-before-completion` and
 `cost-estimate` keep only migration guidance; never suggest their retired
 workflows as steps.
+
+Principles are not skills, so they are not listed here; the router lists them.
 
 <!-- generated:skill-catalog -->
 
@@ -17,42 +19,35 @@ workflows as steps.
 
 ## Model-invocable skills
 
-`authoring-for-agents`, `beads`, `brainstorming`, `build-a-lever`, `codebase-design`, `delegation`, `design-evolve`, `domain-modeling`, `execution`, `grilling`, `harness-evaluate`, `harness-skill-compare`, `html-artifact`, `model-council`, `mvp-mode`, `performance-optimization`, `perspective-council`, `planning`, `prototype`, `research`, `resolving-merge-conflicts`, `review`, `security`, `systematic-debugging`, `test-driven-development`
+`authoring-for-agents`, `beads`, `build-a-lever`, `codebase-design`, `decision-trail`, `delegation`, `design-evolve`, `discovery`, `domain-modeling`, `grilling`, `harness-evaluate`, `harness-skill-compare`, `how`, `html-artifact`, `interrogate`, `land`, `model-council`, `mvp-mode`, `performance-optimization`, `perspective-council`, `pr`, `prototype`, `research`, `resolving-merge-conflicts`, `review`, `security`, `statechart`, `systematic-debugging`, `tdd`, `to-plan`, `to-roadmap`, `to-spec`, `tracker`, `unslop`, `wake`, `why`
 
 ## Slash-only workflows
 
 | Surface | Use |
 |---|---|
+| `/brief-me` | Use when the user invokes /brief-me. |
 | `/check-invariants` | Run mechanically checkable invariants from the project overlay and report pass or fail. |
-| `/codebase-research` | Graduated research on an external or unfamiliar codebase — survey its capabilities, map its architecture, or trace one mechanism — into durable reports under docs/research/codebases/. |
+| `/codebase-research` | Graduated research on an external codebase — survey its capabilities, map its architecture, or trace one mechanism — into durable reports under docs/research/codebases/. |
 | `/cost-estimate` | Legacy entrypoint; the uncalibrated code-volume and commit-based estimation method is retired. |
+| `/create-formal-verification-skill` | Use for /create-formal-verification-skill when a promise whose breaking harms users and that tests rarely reach needs checking across every case in a stated scope; keeping an existing formal check current is maintain-formal-verification-skill, and driving the real app is create-verification-skill. |
+| `/create-verification-skill` | Use for /create-verification-skill when a project has no scripted way to drive its real app; updating an existing verify skill is maintain-verification-skill, and proving one change on its surface needs no new skill. |
 | `/document-review` | Use when explicitly invoking the legacy document-review entrypoint; spec and plan review is owned by review. |
 | `/grill-me` | Start a decision interview using the shared grilling workflow. |
 | `/grill-with-docs` | Start a grilling interview and record authorized domain terminology and architectural decisions. |
 | `/harness-publish` | Publish this repo's harness into the mvp-plugin (the mvp-harness submodule) — copy the shippable skills and agents, run the provider-neutrality and leak audits, regenerate the shipped router and Codex sidecars, rebuild the residue template, validate both manifests, bump the version. |
 | `/harness-scan` | Scan a reference harness for material upstream drift and missing capabilities. |
 | `/harness-status` | Quick upstream-drift status across all reference_harnesses submodules — what changed since our pinned commits. |
-| `/i-have-adhd` | Use when the user invokes /i-have-adhd. |
-| `/idea-refine` | Explore a raw idea through brainstorming using the legacy idea-refine entrypoint. |
+| `/implement` | Run settled, tracked work through the implement playbook: a bead, a plan, a roadmap phase, all remaining phases, or a spec. |
 | `/improve-codebase-architecture` | Find evidence-backed architecture improvements within a named area or requested codebase survey. |
+| `/maintain-formal-verification-skill` | Use for /maintain-formal-verification-skill when a project's formal verify skill may no longer describe its code after changes made without it; with none, /create-formal-verification-skill makes one, and checking your own change uses the verify skill itself. |
+| `/maintain-verification-skill` | Use for /maintain-verification-skill when a project's verify skill that drives its real app may have drifted from the product; with no verify skill, /create-verification-skill makes one, and proving one change uses the verify skill itself. |
 | `/migrate-claude-to-codex` | Adapt Claude harness assets for Codex while preserving shared AGENTS.md policy and canonical skills. |
-| `/phase-execution` | Execute one phase of a workstream roadmap. |
-| `/principle-attack-the-premise` | Apply when two or more fixes resting on one belief have failed the same gate (a test, a review, an eval). |
-| `/principle-boundary-discipline` | Apply when wiring validation, error handling or a framework adapter. |
-| `/principle-experience-first` | Apply when weighing a product, UX or feature-scope tradeoff. |
-| `/principle-explain-the-number` | Apply when about to measure, or before trusting, reporting or acting on a measured number (performance or eval). |
-| `/principle-make-operations-idempotent` | Apply when designing a command, lifecycle step or loop that may crash, restart or retry. |
-| `/principle-migrate-without-shims` | Apply when replacing an internal API that no external user depends on, as part of a simplification in a project that can absorb a coordinated break; or when running a planned rewrite or migration with declared phase boundaries. |
-| `/principle-minimize-reader-load` | Apply when reviewing or shaping code that is hard to trace. |
-| `/principle-model-the-domain` | Apply when writing stateful logic, a growing if/else chain, or a shape assumption repeated across files. |
-| `/principle-redesign-from-first-principles` | Apply when integrating a new requirement into an existing design. |
-| `/principle-separate-before-serializing-shared-state` | Apply when concurrent actors (processes, agents, workers) in code or tooling you are designing might write the same file, branch, key or object. |
-| `/principle-sequence-verifiable-units` | Apply when doing multi-step work (a sweep, a migration, a run of similar edits) or stacking commits. |
-| `/principle-subtract-before-you-add` | Apply when sequencing an addition, refactor or rewrite. |
-| `/principle-test-behavior-not-implementation` | Apply when writing, changing or keeping any test. |
-| `/principle-type-system-discipline` | Apply when designing types or a function signature in a typed language. |
+| `/no-comments` | Sweep a scope for comments that should go, judged by principle-no-comments, then fix what the sweep exposes and offer checks for real constraints. |
+| `/recall` | Rebuild recent work in this project from past chats and the shared record (beads, commits) into one brief of where things stand and the next move. |
 | `/receiving-code-review` | Use when explicitly invoking the legacy receiving-code-review entrypoint; incoming feedback is owned by review. |
-| `/run-phases` | Run every remaining phase of a workstream unattended. |
+| `/reflect` | Review a session, or a sample of a delegated run's sessions, for changes to the agents' instructions, checks and tools that would have prevented its mistakes, and apply the ones the person approves. |
+| `/restate` | Restate what you take the person's aim and problem to be, then stop. |
+| `/sharpen` | Make a task deeper, not bigger: answer four questions about it, then rewrite the prompt. |
 | `/show-me` | Show the current topic visually, inline in the conversation. |
 | `/skill-router` | Legacy entrypoint; routing moved to mvp-mode. |
 | `/teach` | Teach a concept, walk through a session, or conduct an explicitly requested ongoing course. |

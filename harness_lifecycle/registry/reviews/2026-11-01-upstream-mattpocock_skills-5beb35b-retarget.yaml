@@ -1,0 +1,189 @@
+harness: mattpocock_skills
+from_sha: null
+to_sha: 5beb35b
+supersedes:
+- harness_lifecycle/registry/reviews/2026-10-30-upstream-mattpocock_skills-5beb35b.yaml
+analysis_critic:
+  by: gpt-6.1-sol (critic-2a)
+  date: '2026-11-01'
+  verdict: pass
+comparison_critic:
+  by: gpt-6.1-sol (critic-2a)
+  date: '2026-11-01'
+  verdict: pass
+themes: Owner-directed retarget (bead cr-r2pa.2.1, critic-phase1-final K3). The bug-fix split
+  moved fix, proof and closeout out of systematic-debugging. These rows reconsider five diagnosing-bugs
+  traits at 5beb35b; all other rows of the report it supersedes stand. placeholder-sensitive-data-redaction
+  and credential-env-indirection stay pending on systematic-debugging, so they have no row
+  here. Compared with systematic-debugging, as in the original; a report cannot compare with
+  a playbook, so the playbook rows name it as `target`.
+skills:
+  skill:skills/engineering/diagnosing-bugs:
+    upstream_tree_hash: 87c78ae966e591f9ceb177789cc5cc9de69277cd26679ffd36ca5300f430d513
+    accepted: 5beb35b
+    compared_with: systematic-debugging
+    pairing:
+      overlap:
+        brainstorming: 1
+        doc:.claude/skills/mvp-mode/playbooks/bug-fix.md: 4
+        doc:.claude/skills/mvp-mode/playbooks/trace-forensics.md: 1
+        doc:.repo-context/coding-style.md: 1
+        doc:AGENTS.md: 2
+        execution: 1
+        mvp-mode: 2
+        performance-optimization: 1
+        principle-test-behavior-not-implementation: 1
+        systematic-debugging: 13
+        test-driven-development: 1
+      placement_match:
+      - performance-optimization
+      - principle-attack-the-premise
+      - principle-explain-the-number
+      - systematic-debugging
+      suggested: systematic-debugging
+      purpose_match: systematic-debugging
+      purpose: 'Upstream is a diagnosis loop that runs on to the fix, its regression test
+        and cleanup. Ours splits that: systematic-debugging diagnoses, and the bug-fix playbook
+        orders the fix, its proof and the closeout.'
+      flag: null
+      reason: null
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      reproduction-first:
+        scope: reconsider
+        change: []
+        fact: variant
+        provider: systematic-debugging
+        candidates:
+        - reproduction-preferred
+        via: reproduction-preferred
+        also_in:
+          doc:AGENTS.md: variant
+        ours:
+        - .claude/skills/systematic-debugging/SKILL.md:14-18
+        - .claude/skills/systematic-debugging/SKILL.md:37-38
+        - .claude/skills/systematic-debugging/SKILL.md:40-42
+        recommendation: adopt
+        delivery: delivered
+        target: null
+        modification: 'Conditional where upstream is unconditional: the skill seeks a reproduction
+          first, but when none is obtainable it continues safe analysis and can confirm a
+          cause by independent evidence such as traces.'
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: &id001
+          verdict: ok
+          rules: []
+        reason: 'Withdrawn by 2026-10-31-mvp-mode:012 because the skill does not require the
+          reproduction. It still keeps the adopted part: reuse or build the smallest reproduction
+          and confirm the reported failure, not a nearby one.'
+      prove-the-red:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/test-driven-development/SKILL.md:30-31
+        recommendation: adopt
+        delivery: pending
+        target: test-driven-development
+        modification: null
+        rewording: If you force the failure by mutating code or a fixture, diff against a
+          pristine copy to confirm the mutation landed before trusting the red.
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-01
+        reason: Confirming the red is test-driven-development's step 2 (S3); a diagnosis no
+          longer writes the regression check, and bug-fix#3 calls this skill for it (B3).
+          Nothing there guards a forced red that never took effect.
+      regression-check:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          doc:.claude/skills/mvp-mode/playbooks/bug-fix.md: variant
+          doc:AGENTS.md: variant
+          execution: variant
+        ours:
+        - .claude/skills/mvp-mode/playbooks/bug-fix.md:16-18
+        - .claude/skills/mvp-mode/playbooks/bug-fix.md:60-63
+        recommendation: adopt
+        delivery: pending
+        target: doc:.claude/skills/mvp-mode/playbooks/bug-fix.md
+        modification: The rerun alone. The durable check that fails before the fix and passes
+          after it comes from bug-fix#3 (test-driven-development's test-first mode, or an
+          existing failing check), so the playbook holds only the rerun as its own action
+          (T3), and it adds the touched checks and reports an inconclusive or unavailable
+          rerun as never a pass.
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: *id001
+        reason: 'Withdrawn by 2026-10-31-mvp-mode:006: fixing and its proof moved to the bug-fix
+          playbook. Pending only because a report compares with a skill, never a playbook;
+          the trait is in place and it completes in the same round.'
+      missing-seam-finding:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/mvp-mode/playbooks/bug-fix.md:13
+        - .claude/skills/mvp-mode/playbooks/bug-fix.md:56-57
+        recommendation: adopt
+        delivery: pending
+        target: doc:.claude/skills/mvp-mode/playbooks/bug-fix.md
+        modification: null
+        rewording: When no seam can hold a regression check, record the missing seam as a
+          finding.
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-06
+        reason: It belongs on the branch where no regression check is feasible. That branch
+          is bug-fix#3's own action, report-missing-proof, and it never calls test-driven-development
+          (B4). Today it reports the gap but not the missing seam.
+      closeout:
+        scope: reconsider
+        change: []
+        fact: variant
+        provider: systematic-debugging
+        candidates:
+        - caller-deferrable-cleanup
+        via: caller-deferrable-cleanup
+        also_in:
+          doc:.claude/skills/mvp-mode/playbooks/bug-fix.md: present
+          doc:.claude/skills/mvp-mode/playbooks/trace-forensics.md: variant
+          mvp-mode: variant
+        ours:
+        - .claude/skills/mvp-mode/playbooks/bug-fix.md:26-28
+        - .claude/skills/mvp-mode/playbooks/bug-fix.md:71-76
+        recommendation: adopt
+        delivery: pending
+        target: doc:.claude/skills/mvp-mode/playbooks/bug-fix.md
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: *id001
+        reason: 'Withdrawn by 2026-10-31-mvp-mode:006: closeout moved to the bug-fix playbook,
+          step 7, which lists it, removes the instrumentation and records the cause. Pending
+          only because a report compares with a skill, never a playbook; it completes in the
+          same round.'

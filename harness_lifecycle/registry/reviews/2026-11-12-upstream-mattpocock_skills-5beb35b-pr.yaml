@@ -1,0 +1,179 @@
+harness: mattpocock_skills
+from_sha: null
+to_sha: 5beb35b
+supersedes:
+- harness_lifecycle/registry/reviews/2026-10-30-upstream-mattpocock_skills-5beb35b.yaml
+analysis_critic:
+  by: gpt-6.1-sol high (critic-69b)
+  date: '2026-11-12'
+  verdict: pass
+  last_critic: null
+comparison_critic:
+  by: gpt-6.1-sol high (critic-69b)
+  date: '2026-11-12'
+  verdict: pass
+  last_critic: null
+themes: Four rows of the pr skill deferred on 2026-10-30 because ours had no PR-body template
+  (the template, before-and-after evidence, merge danger, no preamble) adopted into the new
+  pr skill, under the owner's ruling of 2026-11-05 §E, plan 69. Its visual rows stay with
+  show-me.
+skills:
+  skill:skills/engineering/pr:
+    upstream_tree_hash: a66195583d0f9323004cdd4da169f93449071f29023671f3e31a916e740f6861
+    accepted: 5beb35b
+    compared_with: pr
+    pairing:
+      overlap:
+        brief-me: 2
+        codebase-design: 1
+        discovery: 1
+        improve-codebase-architecture: 1
+        pr: 8
+        prototype: 1
+        recall: 1
+        show-me: 4
+        tdd: 1
+        teach: 2
+        unslop: 2
+      placement_match:
+      - land
+      - pr
+      - resolving-merge-conflicts
+      suggested: pr
+      purpose_match: pr
+      purpose: Writes a pull request's body; these rows compare its template with pr.
+      flag: null
+      reason: null
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      pr-body-template:
+        scope: reconsider
+        change: []
+        fact: present
+        provider: pr
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/pr/SKILL.md:11-24
+        recommendation: adopt
+        delivery: delivered
+        target: pr
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-01
+          - U-04
+          - S-01
+          - S-06
+          - S-07
+          - S-08
+          override: null
+        reason: 'Owner ruling of 2026-11-05 §E (pr: new, with evidence and merge danger; cites
+          show-me for visuals) (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md:44), go-ahead
+          2026-11-12, plan 69: deferred because ours had no PR-body template; pr is that template,
+          so the row is adopted into it. Delivered at .claude/skills/pr/SKILL.md:11-24. The
+          adopt citing this row supersedes 2026-10-30-mattpocock_skills-5beb35b:265.'
+      evidence-before-after:
+        scope: reconsider
+        change: []
+        fact: present
+        provider: pr
+        candidates: []
+        via: null
+        also_in:
+          tdd: variant
+        ours:
+        - .claude/skills/pr/SKILL.md:44-49
+        recommendation: adopt
+        delivery: delivered
+        target: pr
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-01
+          - S-01
+          - S-07
+          - S-08
+          override: null
+        reason: 'Owner ruling of 2026-11-05 §E (pr: new, with evidence and merge danger; cites
+          show-me for visuals) (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md:44), go-ahead
+          2026-11-12, plan 69: deferred because ours had no PR-body template; pr is that template,
+          so the row is adopted into it. Delivered at .claude/skills/pr/SKILL.md:44-49. The
+          adopt citing this row supersedes 2026-10-30-mattpocock_skills-5beb35b:267.'
+      merge-danger:
+        scope: reconsider
+        change: []
+        fact: present
+        provider: pr
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/pr/SKILL.md:51-55
+        recommendation: adopt
+        delivery: delivered
+        target: pr
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-01
+          - S-01
+          - S-07
+          override: null
+        reason: 'Owner ruling of 2026-11-05 §E (pr: new, with evidence and merge danger; cites
+          show-me for visuals) (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md:44), go-ahead
+          2026-11-12, plan 69: deferred because ours had no PR-body template; pr is that template,
+          so the row is adopted into it. Delivered at .claude/skills/pr/SKILL.md:51-55. The
+          adopt citing this row supersedes 2026-10-30-mattpocock_skills-5beb35b:268.'
+      no-preamble:
+        scope: reconsider
+        change: []
+        fact: present
+        provider: pr
+        candidates: []
+        via: null
+        also_in:
+          brief-me: present
+          recall: variant
+          teach: variant
+          unslop: variant
+        ours:
+        - .claude/skills/pr/SKILL.md:57-60
+        recommendation: adopt
+        delivery: delivered
+        target: pr
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-01
+          - U-06
+          - S-01
+          - S-07
+          - S-08
+          - C-10
+          - CF-04
+          override: null
+        reason: 'Owner ruling of 2026-11-05 §E (pr: new, with evidence and merge danger; cites
+          show-me for visuals) (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md:44), go-ahead
+          2026-11-12, plan 69: deferred because ours had no PR-body template; pr is that template,
+          so the row is adopted into it. Delivered at .claude/skills/pr/SKILL.md:57-60. The
+          adopt citing this row supersedes 2026-10-30-mattpocock_skills-5beb35b:269.'

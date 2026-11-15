@@ -49,25 +49,49 @@ Teach a concept, walk through a session, or conduct an explicitly requested ongo
 - `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write.
 - `sequential-record-numbering`: Number a new record one above the highest existing number in its folder.
 - `optional-record-sections`: Add optional sections to a record, such as status or consequences, only when they carry real information.
+- `knowledge-skills-wisdom-frame`: Frame learning as knowledge from trusted sources, skills from interactive lessons and wisdom from communities. (Delivers sealed row 2026-10-30-mattpocock_skills-5beb35b:495: wisdom from learners and practitioners, where the definition says communities; T5.)
+- `mission-shift-handling`: When the mission shifts or goes stale, confirm with the learner, revise the mission and add a learning record. (Delivers sealed row 2026-10-30-mattpocock_skills-5beb35b:503: confirm only an inferred, materially ambiguous shift; the learning record is LEARNING-RECORD-FORMAT.md's own trigger; T5.)
+- `spacing`: Space practice over time to build long-term retention.
+- `storage-strength`: Favour long-term retention over in-the-moment fluency, which can give an illusory sense of mastery.
+- `vary-answer-position`: Vary which position holds the correct answer across questions so order gives nothing away.
+- `what-how-why-account`: Cover what a thing is, how it operates and why it has that design.
+- `single-blended-account`: Merge the findings of separate investigations into one continuous explanation, never separate reports.
+- `lead-with-what-matters`: Open an explanation on its central point and on what matters most to this reader.
+- `confidence-language-kept`: Keep the tier words and hedges that mark uncertainty when editing a finished answer.
+- `pick-few-takeaways`: Choose a small number of things the person should come away understanding before explaining anything.
+- `learner-context-from-conversation`: Work out why the person is asking and what they already know from the conversation, not by questioning them. (Delivers sealed row 2026-11-06-batch-p1:021: reads purpose and knowledge from the conversation and asks only if it is truly unclear, where the definition never asks; T5.)
+- `depth-where-asked`: Omit what the person evidently already knows and spend the depth on the area they asked about.
+- `orient-then-use-investigation`: Read a body of work only far enough to get oriented, and take the digging from a dedicated investigation rather than redoing it.
+- `plain-definition-first`: Begin by naming the thing and defining it in general terms, using its common name if one exists.
+- `general-tied-to-local-case`: After the general definition, connect it to how this codebase uses the idea.
+- `build-up-order`: Proceed from definition to mechanism, then deeper reasons, then edge cases.
+- `problem-and-mechanism-per-part`: For each part, explain the problem it addresses and how it actually operates.
+- `walkthrough-of-user-action`: When it helps the idea land, trace what happens step by step as someone performs the action.
+- `no-symbol-inventory`: Do not substitute a list of functions and constants for an explanation.
+- `no-labels-or-step-words`: Print no stock labels announcing the key idea, and never echo a skill's step wording as headers or phrases.
+- `requested-depth-first-answer`: In conversation, give a short complete answer first and stop, and give a requested walkthrough, lesson or full account whole in one reply.
+- `offer-depth-follow-lead`: Invite the person to go deeper or change topic, and let them steer.
+- `no-teaching-theatre`: Do not announce pauses, sentences to master, or that a part is hard or important; state it, and actually stop when a pause is wanted.
+- `show-the-real-artifact`: Bring up the actual diff, source or debugger when that conveys the point most quickly.
+- `figure-when-faster`: Add a figure when a picture would land faster than prose, and omit one for a single simple point.
+- `incremental-diagram-series`: For three or more moving parts, draw a sequence in which each figure repeats the last and adds exactly one part, and never rely on one complete figure, of whatever kind.
+- `plain-colleague-voice`: Write in plain spoken English as if to a coworker, removing filler and hedging while keeping the piece that makes the idea click. (Delivers sealed row 2026-11-06-batch-p1:045: cuts filler and keeps the part that makes it click; confidence hedges stay (row 019), where the definition removes hedging; T5.)
+- `reply-is-the-deliverable`: Return the deliverable itself as the reply, never an account of what was done to produce it.
+- `threads-to-chase`: Include the lines of inquiry worth pursuing further.
 <!-- /registry:generated traits -->
 
 <!-- registry:generated lineage -->
 - **mattpocock_skills:skill:skills/productivity/teach#teaching-workspace** `skills/productivity/teach/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/productivity/teach#mission-grounding** `skills/productivity/teach/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/productivity/teach#proximal-next-lesson** `skills/productivity/teach/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
-- **mattpocock_skills:skill:skills/productivity/teach#storage-strength** `skills/productivity/teach/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.10)
 - **mattpocock_skills:skill:skills/productivity/teach#retrieval-practice** `skills/productivity/teach/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
-- **mattpocock_skills:skill:skills/productivity/teach#spacing** `skills/productivity/teach/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.10)
 - **mattpocock_skills:skill:skills/productivity/teach#lesson-format** `skills/productivity/teach/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/productivity/teach#reusable-assets** `skills/productivity/teach/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/productivity/teach#glossary-admission-on-use** `skills/productivity/teach/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/productivity/teach#learning-records** `skills/productivity/teach/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
-- **mattpocock_skills:skill:skills/productivity/teach#vary-answer-position** `skills/productivity/teach/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.10)
 - **mattpocock_skills:skill:skills/productivity/teach#sourced-explanations** `skills/productivity/teach/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
-- **mattpocock_skills:skill:skills/productivity/teach#knowledge-skills-wisdom-frame** `skills/productivity/teach/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.10)
 - **mattpocock_skills:skill:skills/productivity/teach#cross-linked-lessons** `skills/productivity/teach/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/productivity/teach#mission-interview-first** `skills/productivity/teach/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
-- **mattpocock_skills:skill:skills/productivity/teach#mission-shift-handling** `skills/productivity/teach/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2 (pending cr-axdt.6.10)
 - **mattpocock_skills:skill:skills/productivity/teach#community-opt-out** `skills/productivity/teach/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/productivity/teach#learning-record-criteria** `skills/productivity/teach/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/productivity/teach#field-term-resolution** `skills/productivity/teach/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
@@ -88,9 +112,93 @@ Teach a concept, walk through a session, or conduct an explicitly requested ongo
 - **mattpocock_skills:skill:skills/productivity/teach#domain-vocabulary** `skills/productivity/teach/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/productivity/teach#sequential-record-numbering** `skills/productivity/teach/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/productivity/teach#optional-record-sections** `skills/productivity/teach/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/productivity/teach#knowledge-skills-wisdom-frame** `skills/productivity/teach/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/productivity/teach#mission-shift-handling** `skills/productivity/teach/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/productivity/teach#spacing** `skills/productivity/teach/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/productivity/teach#storage-strength** `skills/productivity/teach/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **mattpocock_skills:skill:skills/productivity/teach#vary-answer-position** `skills/productivity/teach/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **cursor_plugins:skill:pstack/skills/teach#what-how-why-account** `pstack/skills/teach/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/teach#single-blended-account** `pstack/skills/teach/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/teach#lead-with-what-matters** `pstack/skills/teach/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/teach#confidence-language-kept** `pstack/skills/teach/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/teach#pick-few-takeaways** `pstack/skills/teach/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/teach#learner-context-from-conversation** `pstack/skills/teach/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/teach#depth-where-asked** `pstack/skills/teach/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/teach#orient-then-use-investigation** `pstack/skills/teach/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/teach#plain-definition-first** `pstack/skills/teach/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/teach#general-tied-to-local-case** `pstack/skills/teach/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/teach#build-up-order** `pstack/skills/teach/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/teach#problem-and-mechanism-per-part** `pstack/skills/teach/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/teach#walkthrough-of-user-action** `pstack/skills/teach/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/teach#no-symbol-inventory** `pstack/skills/teach/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/teach#no-labels-or-step-words** `pstack/skills/teach/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/teach#smallest-complete-answer-first** `pstack/skills/teach/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/teach#offer-depth-follow-lead** `pstack/skills/teach/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/teach#no-teaching-theatre** `pstack/skills/teach/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/teach#show-the-real-artifact** `pstack/skills/teach/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/teach#figure-when-faster** `pstack/skills/teach/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/teach#incremental-diagram-series** `pstack/skills/teach/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/teach#plain-colleague-voice** `pstack/skills/teach/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/teach#reply-is-the-deliverable** `pstack/skills/teach/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/teach#threads-to-chase** `pstack/skills/teach/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-12` **adopt** (2026-11-12-batch-p1-existing:025): Completes pending 2026-11-06-batch-p1:054: threads-to-chase is written at .claude/skills/teach/references/plain-explaining.md:50, in its ruled words (plan 59).
+- `2026-11-12` **adopt** (2026-11-12-batch-p1-existing:024): Completes pending 2026-11-06-batch-p1:053: reply-is-the-deliverable is written at .claude/skills/teach/references/plain-explaining.md:49-50, in its ruled words…
+- `2026-11-12` **adopt** (2026-11-12-batch-p1-existing:023): Completes pending 2026-11-06-batch-p1:045: plain-colleague-voice is written at .claude/skills/teach/references/plain-explaining.md:45-46, in its ruled words (p…
+- `2026-11-12` **adopt** (2026-11-12-batch-p1-existing:022): Completes pending 2026-11-06-batch-p1:041: incremental-diagram-series is written at .claude/skills/teach/references/plain-explaining.md:40-41, in its ruled wor…
+- `2026-11-12` **adopt** (2026-11-12-batch-p1-existing:021): Completes pending 2026-11-06-batch-p1:040: figure-when-faster is written at .claude/skills/teach/references/plain-explaining.md:38-40, in its ruled words (plan…
+- `2026-11-12` **adopt** (2026-11-12-batch-p1-existing:020): Completes pending 2026-11-06-batch-p1:039: show-the-real-artifact is written at .claude/skills/teach/references/plain-explaining.md:38, in its ruled words (pla…
+- `2026-11-12` **adopt** (2026-11-12-batch-p1-existing:019): Completes pending 2026-11-06-batch-p1:037: no-teaching-theatre is written at .claude/skills/teach/references/plain-explaining.md:48-49, in its ruled words (pla…
+- `2026-11-12` **adopt** (2026-11-12-batch-p1-existing:018): Completes pending 2026-11-06-batch-p1:035: offer-depth-follow-lead was already written at .claude/skills/teach/SKILL.md:15, .claude/skills/teach/SKILL.md:27, a…
+- `2026-11-12` **adopt** (2026-11-12-batch-p1-existing:017): Completes pending 2026-11-06-batch-p1:034: requested-depth-first-answer is written at .claude/skills/teach/references/plain-explaining.md:30-34, in its ruled w…
+- `2026-11-12` **adopt** (2026-11-12-batch-p1-existing:016): Completes pending 2026-11-06-batch-p1:033: no-labels-or-step-words is written at .claude/skills/teach/references/plain-explaining.md:46-47, in its ruled words …
+- `2026-11-12` **adopt** (2026-11-12-batch-p1-existing:015): Completes pending 2026-11-06-batch-p1:032: no-symbol-inventory is written at .claude/skills/teach/references/plain-explaining.md:28, in its ruled words (plan 5…
+- `2026-11-12` **adopt** (2026-11-12-batch-p1-existing:014): Completes pending 2026-11-06-batch-p1:031: walkthrough-of-user-action is written at .claude/skills/teach/references/plain-explaining.md:21-22, in its ruled wor…
+- `2026-11-12` **adopt** (2026-11-12-batch-p1-existing:013): Completes pending 2026-11-06-batch-p1:030: problem-and-mechanism-per-part is written at .claude/skills/teach/references/plain-explaining.md:20-21, in its ruled…
+- `2026-11-12` **adopt** (2026-11-12-batch-p1-existing:012): Completes pending 2026-11-06-batch-p1:029: build-up-order is written at .claude/skills/teach/references/plain-explaining.md:19-20, in its ruled words (plan 59).
+- `2026-11-12` **adopt** (2026-11-12-batch-p1-existing:011): Completes pending 2026-11-06-batch-p1:028: general-tied-to-local-case is written at .claude/skills/teach/references/plain-explaining.md:19, in its ruled words …
+- `2026-11-12` **adopt** (2026-11-12-batch-p1-existing:010): Completes pending 2026-11-06-batch-p1:027: plain-definition-first is written at .claude/skills/teach/references/plain-explaining.md:18-19, in its ruled words (…
+- `2026-11-12` **adopt** (2026-11-12-batch-p1-existing:009): Completes pending 2026-11-06-batch-p1:023: orient-then-use-investigation is written at .claude/skills/teach/references/plain-explaining.md:13-14, in its ruled …
+- `2026-11-12` **adopt** (2026-11-12-batch-p1-existing:008): Completes pending 2026-11-06-batch-p1:022: depth-where-asked is written at .claude/skills/teach/references/plain-explaining.md:10-11, in its ruled words (plan …
+- `2026-11-12` **adopt** (2026-11-12-batch-p1-existing:007): Completes pending 2026-11-06-batch-p1:021: learner-context-from-conversation is written at .claude/skills/teach/references/plain-explaining.md:8-10, in its rul…
+- `2026-11-12` **adopt** (2026-11-12-batch-p1-existing:006): Completes pending 2026-11-06-batch-p1:020: pick-few-takeaways is written at .claude/skills/teach/references/plain-explaining.md:7-8, in its ruled words (plan 5…
+- `2026-11-12` **adopt** (2026-11-12-batch-p1-existing:005): Completes pending 2026-11-06-batch-p1:019: confidence-language-kept is written at .claude/skills/teach/references/plain-explaining.md:26-28, in its ruled words…
+- `2026-11-12` **adopt** (2026-11-12-batch-p1-existing:004): Completes pending 2026-11-06-batch-p1:018: lead-with-what-matters is written at .claude/skills/teach/references/plain-explaining.md:11, in its ruled words (pla…
+- `2026-11-12` **adopt** (2026-11-12-batch-p1-existing:003): Completes pending 2026-11-06-batch-p1:017: single-blended-account is written at .claude/skills/teach/references/plain-explaining.md:25-26, in its ruled words (…
+- `2026-11-12` **adopt** (2026-11-12-batch-p1-existing:002): Completes pending 2026-11-06-batch-p1:016: what-how-why-account is written at .claude/skills/teach/references/plain-explaining.md:24-25, in its ruled words (pl…
+- `2026-11-12` **update** (2026-11-12-batch-p1-existing:001): Bead cr-r2pa.2.18, plan 59 slice 1: delivers 24 pending adopts of round 2026-11-06-batch-p1 (:016, :017, :018, :019, :020, :021, :022, :023, :027, :028, :029, …
+- `2026-11-06` **adopt-merged** (2026-11-06-batch-p1:055): Checkpoint at 4dd1d05 for the owner's trait rulings: 25 adopt, 2 defer, 13 reject.
+- `2026-11-06` **adopt** (2026-11-06-batch-p1:054) *(superseded)*: Owner ruling 2026-11-06: Prevents: A person left with no idea what to ask next. Lands in teach, references/plain-explaining.md, a new reference the one-concept…
+- `2026-11-06` **adopt** (2026-11-06-batch-p1:053) *(superseded)*: Owner ruling 2026-11-06: Prevents: A report about having explained, in place of the explanation. Lands in teach, references/plain-explaining.md, a new referenc…
+- `2026-11-06` **adopt** (2026-11-06-batch-p1:045) *(superseded)*: Owner ruling 2026-11-06: Prevents: Prose either too stiff to follow or cut so hard the point is gone. Lands in teach, references/plain-explaining.md, a new ref…
+- `2026-11-06` **adopt** (2026-11-06-batch-p1:041) *(superseded)*: Owner ruling 2026-11-06: Prevents: One full diagram that works as a reference for someone who already understands and teaches nothing to someone who does not. …
+- `2026-11-06` **adopt** (2026-11-06-batch-p1:040) *(superseded)*: Owner ruling 2026-11-06: Prevents: Prose straining to describe a structure, or a figure decorating one simple point. Lands in teach, references/plain-explainin…
+- `2026-11-06` **adopt** (2026-11-06-batch-p1:039) *(superseded)*: Owner ruling 2026-11-06: Prevents: Prose about code the person could have been shown. Lands in teach, references/plain-explaining.md, a new reference the one-c…
+- `2026-11-06` **adopt** (2026-11-06-batch-p1:037) *(superseded)*: Owner ruling 2026-11-06: Prevents: Announcements about the explanation taking the place of the explanation. Lands in teach, references/plain-explaining.md, a n…
+- `2026-11-06` **adopt** (2026-11-06-batch-p1:035) *(superseded)*: Owner ruling 2026-11-06: Prevents: A fixed lecture the person cannot redirect. Lands in teach, references/plain-explaining.md, a new reference the one-concept …
+- `2026-11-06` **adopt** (2026-11-06-batch-p1:034) *(superseded)*: Owner ruling 2026-11-06: Prevents: A wall of text that loses the person before the part they needed. Lands in teach, references/plain-explaining.md, a new refe…
+- `2026-11-06` **adopt** (2026-11-06-batch-p1:033) *(superseded)*: Owner ruling 2026-11-06: Prevents: Replies carrying labels and instruction words that tell the reader nothing. Lands in teach, references/plain-explaining.md, …
+- `2026-11-06` **adopt** (2026-11-06-batch-p1:032) *(superseded)*: Owner ruling 2026-11-06: Prevents: A list of names that reads as complete and teaches nothing. Lands in teach, references/plain-explaining.md, a new reference …
+- `2026-11-06` **adopt** (2026-11-06-batch-p1:031) *(superseded)*: Owner ruling 2026-11-06: Prevents: A flow explained only in the abstract when one concrete run would make it clear. Lands in teach, references/plain-explaining…
+- `2026-11-06` **adopt** (2026-11-06-batch-p1:030) *(superseded)*: Owner ruling 2026-11-06: Prevents: Parts described by name and role, with no sense of why each exists. Lands in teach, references/plain-explaining.md, a new re…
+- `2026-11-06` **adopt** (2026-11-06-batch-p1:029) *(superseded)*: Owner ruling 2026-11-06: Prevents: Edge cases and reasons arriving before the reader has the mechanism to hang them on. Lands in teach, references/plain-explai…
+- `2026-11-06` **adopt** (2026-11-06-batch-p1:028) *(superseded)*: Owner ruling 2026-11-06: Prevents: A textbook definition the reader cannot connect to the work in front of them. Lands in teach, references/plain-explaining.md…
+- `2026-11-06` **adopt** (2026-11-06-batch-p1:027) *(superseded)*: Owner ruling 2026-11-06: Prevents: An explanation that starts in the local details before the reader knows what kind of thing it is. Lands in teach, references…
+- `2026-11-06` **adopt** (2026-11-06-batch-p1:023) *(superseded)*: Owner ruling 2026-11-06: Prevents: Teaching this repository's code from a shallow read, with claims nobody traced. Lands in teach, references/plain-explaining.…
+- `2026-11-06` **adopt** (2026-11-06-batch-p1:022) *(superseded)*: Owner ruling 2026-11-06: Prevents: Time spent on what the person knows while their actual question gets a line. Lands in teach, references/plain-explaining.md,…
+- `2026-11-06` **adopt** (2026-11-06-batch-p1:021) *(superseded)*: Owner ruling 2026-11-06: Prevents: Questions the conversation already answered, or an explanation pitched at the wrong purpose. Lands in teach, references/plai…
+- `2026-11-06` **adopt** (2026-11-06-batch-p1:020) *(superseded)*: Owner ruling 2026-11-06: Prevents: A complete tour of the subject that leaves the person with nothing they can hold on to. Lands in teach, references/plain-exp…
+- `2026-11-06` **adopt** (2026-11-06-batch-p1:019) *(superseded)*: Owner ruling 2026-11-06: Prevents: Teaching prose that turns an inferred reason into a stated fact. Lands in teach, references/plain-explaining.md, a new refer…
+- `2026-11-06` **adopt** (2026-11-06-batch-p1:018) *(superseded)*: Owner ruling 2026-11-06: Prevents: An explanation that makes the reader wait through background for the point. Lands in teach, references/plain-explaining.md, …
+- `2026-11-06` **adopt** (2026-11-06-batch-p1:017) *(superseded)*: Owner ruling 2026-11-06: Prevents: A person handed two reports to reconcile for themselves. Lands in teach, references/plain-explaining.md, a new reference the…
+- `2026-11-06` **adopt** (2026-11-06-batch-p1:016) *(superseded)*: Owner ruling 2026-11-06: Prevents: An explanation that says what a thing does and never why it has that shape. Lands in teach, references/plain-explaining.md, …
+- `2026-11-04` **adopt** (2026-11-04-pocock-pass:029): Completes pending 2026-10-30-mattpocock_skills-5beb35b:489: vary-answer-position is written at .claude/skills/teach/SKILL.md:22-24, in the sealed rewording's o…
+- `2026-11-04` **adopt** (2026-11-04-pocock-pass:028): Completes pending 2026-10-30-mattpocock_skills-5beb35b:479: storage-strength is written at .claude/skills/teach/SKILL.md:35-37, in the sealed rewording's own w…
+- `2026-11-04` **adopt** (2026-11-04-pocock-pass:027): Completes pending 2026-10-30-mattpocock_skills-5beb35b:481: spacing is written at .claude/skills/teach/SKILL.md:35-37, in the sealed rewording's own words.
+- `2026-11-04` **adopt** (2026-11-04-pocock-pass:026): Completes pending 2026-10-30-mattpocock_skills-5beb35b:503: mission-shift-handling is written at .claude/skills/teach/MISSION-FORMAT.md:30, in the sealed rewor…
+- `2026-11-04` **adopt** (2026-11-04-pocock-pass:025): Completes pending 2026-10-30-mattpocock_skills-5beb35b:495: knowledge-skills-wisdom-frame is written at .claude/skills/teach/SKILL.md:33-35, in the sealed rewo…
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:591): Owner 2026-10-30 approved the list fix: ours:teach now lists the trait with an approved trait-sharing entry.
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:590): Owner 2026-10-30 approved the list fix: ours:teach now lists the trait with an approved trait-sharing entry.
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:589): Owner 2026-10-30 approved the list fix: ours:teach now lists the trait with an approved trait-sharing entry.
@@ -117,7 +225,7 @@ Teach a concept, walk through a session, or conduct an explicitly requested ongo
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:507): Ours records a learner's community opt-out so later sessions stop proposing them.
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:506): Owner deferred the report's reject recommendation, to review the set later: Ours uses a small exercise or prediction question when useful (.claude/skills/teach…
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:504): Owner deferred the report's reject recommendation, to review the set later: Ours scopes each lesson to one observable objective (.claude/skills/teach/SKILL.md:…
-- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:503): Ours already updates the mission when the user's goal moves (.claude/skills/teach/MISSION-FORMAT.md:30), with the user's authority carried by AGENTS.md:7-12; t…
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:503) *(superseded)*: Ours already updates the mission when the user's goal moves (.claude/skills/teach/MISSION-FORMAT.md:30), with the user's authority carried by AGENTS.md:7-12; t…
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:502): Ours interviews the learner before writing a mission they cannot articulate.
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:501): Owner deferred the report's reject recommendation, to review the set later: Ours invites a focused question after an explanation (.claude/skills/teach/SKILL.md…
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:500): Owner deferred the report's reject recommendation, to review the set later: Ours cites the sources behind material claims (.claude/skills/teach/SKILL.md:24-25)…
@@ -125,13 +233,13 @@ Teach a concept, walk through a session, or conduct an explicitly requested ongo
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:498): Owner deferred the report's reject recommendation, to review the set later: HTML lessons are optional in ours and go through html-artifact (.claude/skills/teac…
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:497): Owner deferred the report's reject recommendation, to review the set later: HTML lessons are optional in ours and html-artifact owns their presentation when us…
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:496): Owner deferred the report's reject recommendation, to review the set later: Ours checks unfamiliar or changing facts against sources when they arise (.claude/s…
-- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:495): Ours has no course philosophy, so the resources grouping points to one that does not exist (.claude/skills/teach/RESOURCES-FORMAT.md:29); this line delivers th…
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:495) *(superseded)*: Ours has no course philosophy, so the resources grouping points to one that does not exist (.claude/skills/teach/RESOURCES-FORMAT.md:29); this line delivers th…
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:494): Owner deferred the report's reject recommendation, to review the set later: Ours gives feedback after each response (.claude/skills/teach/SKILL.md:21-22), alre…
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:493): Ours checks unfamiliar or changing facts and cites material external claims; a course draws explanations from its resources file.
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:492): Owner deferred the report's reject recommendation, to review the set later: Opposite stance: ours records persistent preferences or memory only on explicit req…
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:491): Owner deferred the report's reject recommendation, to review the set later: A course in ours keeps its glossary and resources file as reference (.claude/skills…
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:490): Owner deferred the report's reject recommendation, to review the set later: Ours answers from checked, cited sources (.claude/skills/teach/SKILL.md:24-25) and …
-- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:489): Ours bans giveaways in general but never names position; naming it is a concrete, cheap guard.
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:489) *(superseded)*: Ours bans giveaways in general but never names position; naming it is a concrete, cheap guard.
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:488): Owner deferred the report's reject recommendation, to review the set later: Opposite stance: ours keeps options plausible without matching exact character coun…
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:487): Ours's learning records are ADR-like and steer what to teach next.
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:486): Ours adds a term only once the learner can use it correctly.
@@ -139,9 +247,9 @@ Teach a concept, walk through a session, or conduct an explicitly requested ongo
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:484): Ours reuses existing assets.
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:483): Owner deferred the report's reject recommendation, to review the set later: Opposite stance: ours makes HTML lessons optional, through html-artifact when the f…
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:482): Ours keeps each lesson focused on one observable learning objective.
-- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:481): Carried by the same course-section line as storage-strength.
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:481) *(superseded)*: Carried by the same course-section line as storage-strength.
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:480): Ours uses retrieval questions and small exercises, with feedback after the learner responds.
-- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:479): Ours has retrieval questions (.claude/skills/teach/SKILL.md:16-17, .claude/skills/teach/SKILL.md:21-22) but never states the retention goal a multi-session cou…
+- `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:479) *(superseded)*: Ours has retrieval questions (.claude/skills/teach/SKILL.md:16-17, .claude/skills/teach/SKILL.md:21-22) but never states the retention goal a multi-session cou…
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:478): Deliberate: a course is optional in ours (.claude/skills/teach/SKILL.md:10-11, .claude/skills/teach/SKILL.md:18), so level comes from the conversation first.
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:477): Ours's mission file captures the real reason for learning and every teaching decision traces back to it.
 - `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:476): Owner deferred the report's reject recommendation, to review the set later: Opposite stance: ours uses a supplied, authorized location and never assumes the re…
@@ -151,20 +259,31 @@ Teach a concept, walk through a session, or conduct an explicitly requested ongo
 <!-- /registry:generated history -->
 
 <!-- registry:generated reviews -->
+- [2026-11-04-upstream-cursor_plugins-4dd1d05-batch-p1.md](../../reviews/2026-11-04-upstream-cursor_plugins-4dd1d05-batch-p1.md)
 - [skill-comparisons/interaction-utilities](../../../archive/skill-comparisons/interaction-utilities/)
 <!-- /registry:generated reviews -->
 
 <!-- registry:generated sources -->
+- `build-up-order`:
+  - `cursor_plugins:skill:pstack/skills/teach#build-up-order` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `canonical-term-and-aliases`:
   - `mattpocock_skills:skill:skills/productivity/teach#canonical-term-and-aliases` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `community-opt-out`:
   - `mattpocock_skills:skill:skills/productivity/teach#community-opt-out` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `confidence-language-kept`:
+  - `cursor_plugins:skill:pstack/skills/teach#confidence-language-kept` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `cross-linked-lessons`:
   - `mattpocock_skills:skill:skills/productivity/teach#cross-linked-lessons` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `depth-where-asked`:
+  - `cursor_plugins:skill:pstack/skills/teach#depth-where-asked` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `domain-vocabulary`:
   - `mattpocock_skills:skill:skills/productivity/teach#domain-vocabulary` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `field-term-resolution`:
   - `mattpocock_skills:skill:skills/productivity/teach#field-term-resolution` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `figure-when-faster`:
+  - `cursor_plugins:skill:pstack/skills/teach#figure-when-faster` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `general-tied-to-local-case`:
+  - `cursor_plugins:skill:pstack/skills/teach#general-tied-to-local-case` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `glossary-admission-on-use`:
   - `mattpocock_skills:skill:skills/productivity/teach#glossary-admission-on-use` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `glossary-entry-template`:
@@ -175,6 +294,14 @@ Teach a concept, walk through a session, or conduct an explicitly requested ongo
   - `mattpocock_skills:skill:skills/productivity/teach#high-trust-resource-filter` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `in-place-definition-revision`:
   - `mattpocock_skills:skill:skills/productivity/teach#in-place-definition-revision` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `incremental-diagram-series`:
+  - `cursor_plugins:skill:pstack/skills/teach#incremental-diagram-series` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `knowledge-skills-wisdom-frame`:
+  - `mattpocock_skills:skill:skills/productivity/teach#knowledge-skills-wisdom-frame` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `lead-with-what-matters`:
+  - `cursor_plugins:skill:pstack/skills/teach#lead-with-what-matters` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `learner-context-from-conversation`:
+  - `cursor_plugins:skill:pstack/skills/teach#learner-context-from-conversation` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `learning-record-criteria`:
   - `mattpocock_skills:skill:skills/productivity/teach#learning-record-criteria` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `learning-record-supersession`:
@@ -195,14 +322,38 @@ Teach a concept, walk through a session, or conduct an explicitly requested ongo
   - `mattpocock_skills:skill:skills/productivity/teach#mission-grounding` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `mission-interview-first`:
   - `mattpocock_skills:skill:skills/productivity/teach#mission-interview-first` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `mission-shift-handling`:
+  - `mattpocock_skills:skill:skills/productivity/teach#mission-shift-handling` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `no-labels-or-step-words`:
+  - `cursor_plugins:skill:pstack/skills/teach#no-labels-or-step-words` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `no-symbol-inventory`:
+  - `cursor_plugins:skill:pstack/skills/teach#no-symbol-inventory` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `no-teaching-theatre`:
+  - `cursor_plugins:skill:pstack/skills/teach#no-teaching-theatre` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `offer-depth-follow-lead`:
+  - `cursor_plugins:skill:pstack/skills/teach#offer-depth-follow-lead` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `one-mission-per-workspace`:
   - `mattpocock_skills:skill:skills/productivity/teach#one-mission-per-workspace` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `one-screen-mission`:
   - `mattpocock_skills:skill:skills/productivity/teach#one-screen-mission` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `optional-record-sections`:
   - `mattpocock_skills:skill:skills/productivity/teach#optional-record-sections` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `orient-then-use-investigation`:
+  - `cursor_plugins:skill:pstack/skills/teach#orient-then-use-investigation` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `pick-few-takeaways`:
+  - `cursor_plugins:skill:pstack/skills/teach#pick-few-takeaways` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `plain-colleague-voice`:
+  - `cursor_plugins:skill:pstack/skills/teach#plain-colleague-voice` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `plain-definition-first`:
+  - `cursor_plugins:skill:pstack/skills/teach#plain-definition-first` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `problem-and-mechanism-per-part`:
+  - `cursor_plugins:skill:pstack/skills/teach#problem-and-mechanism-per-part` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `prune-invalid-resources`:
   - `mattpocock_skills:skill:skills/productivity/teach#prune-invalid-resources` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `reply-is-the-deliverable`:
+  - `cursor_plugins:skill:pstack/skills/teach#reply-is-the-deliverable` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `requested-depth-first-answer`:
+  - `cursor_plugins:skill:pstack/skills/teach#smallest-complete-answer-first` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `resource-gap-register`:
   - `mattpocock_skills:skill:skills/productivity/teach#resource-gap-register` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `retrieval-practice`:
@@ -211,12 +362,28 @@ Teach a concept, walk through a session, or conduct an explicitly requested ongo
   - `mattpocock_skills:skill:skills/productivity/teach#reusable-assets` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `sequential-record-numbering`:
   - `mattpocock_skills:skill:skills/productivity/teach#sequential-record-numbering` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `show-the-real-artifact`:
+  - `cursor_plugins:skill:pstack/skills/teach#show-the-real-artifact` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `single-blended-account`:
+  - `cursor_plugins:skill:pstack/skills/teach#single-blended-account` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `sourced-explanations`:
   - `mattpocock_skills:skill:skills/productivity/teach#sourced-explanations` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `spacing`:
+  - `mattpocock_skills:skill:skills/productivity/teach#spacing` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `storage-strength`:
+  - `mattpocock_skills:skill:skills/productivity/teach#storage-strength` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `teaching-workspace`:
   - `mattpocock_skills:skill:skills/productivity/teach#teaching-workspace` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `threads-to-chase`:
+  - `cursor_plugins:skill:pstack/skills/teach#threads-to-chase` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `tight-concept-definitions`:
   - `mattpocock_skills:skill:skills/productivity/teach#tight-concept-definitions` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `vary-answer-position`:
+  - `mattpocock_skills:skill:skills/productivity/teach#vary-answer-position` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `walkthrough-of-user-action`:
+  - `cursor_plugins:skill:pstack/skills/teach#walkthrough-of-user-action` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `what-how-why-account`:
+  - `cursor_plugins:skill:pstack/skills/teach#what-how-why-account` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 <!-- /registry:generated sources -->
 
 <!-- registry:generated declined -->

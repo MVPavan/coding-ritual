@@ -11,7 +11,7 @@ implements a Python workflow interpreter. `AGENTS.md` owns policy;
 | Runtime integrations | `.claude/` hooks/settings; `.codex/` configuration, agents, hooks and skill symlinks; `.agents/` settings |
 | Interpreter and tests | `workflow_interpreter/`, `tests/` |
 | Graphs and runtime examples | `workflows/`, `config/` |
-| Specs and decisions | `docs/specs/`, `docs/adr/` |
+| Specs and decisions | `docs/specs/`, `docs/adr/`, `docs/discovery/` |
 | Verification and session tooling | `scripts/` |
 | Reference curation | `harness_lifecycle/`, `harness_learnings/` |
 | Task state and lifecycle | `.beads/` (data, config, hooks); policy in the `beads` skill |

@@ -1,0 +1,226 @@
+harness: mattpocock_skills
+from_sha: null
+to_sha: 5beb35b
+supersedes:
+- harness_lifecycle/registry/reviews/2026-10-30-upstream-mattpocock_skills-5beb35b.yaml
+analysis_critic:
+  by: claude-opus-5-5 coordinator (plan 64, critic-64b fixes applied)
+  date: '2026-11-12'
+  verdict: accepted
+  last_critic:
+    by: gpt-6.1-sol high (critic-64b)
+    date: '2026-11-12'
+    verdict: fail
+comparison_critic:
+  by: claude-opus-5-5 coordinator (plan 64, critic-64b fixes applied)
+  date: '2026-11-12'
+  verdict: accepted
+  last_critic:
+    by: gpt-6.1-sol high (critic-64b)
+    date: '2026-11-12'
+    verdict: fail
+themes: Five rows deferred on 2026-10-30 because ours had no session retrospective (retro's
+  categories, existing-check-first, session sources and severity order; ask-matt's run-in-session)
+  adopted into the new reflect manual skill, under the owner's ruling of 2026-11-05 §E and
+  answer R1 of 2026-11-12 (scratchpad/mvp-stack/64/decisions.md), plan 64.
+skills:
+  skill:skills/engineering/retro:
+    upstream_tree_hash: e260aefb7b75b3548a3ee9883afbf8808e521f2e86feec92399617894f83b7c2
+    accepted: 5beb35b
+    compared_with: reflect
+    pairing:
+      overlap:
+        authoring-for-agents: 3
+        doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md: 1
+        doc:AGENTS.md: 2
+        no-comments: 1
+        reflect: 4
+      placement_match:
+      - reflect
+      suggested: reflect
+      purpose_match: reflect
+      purpose: Reviews a session for changes to the agents' environment; these rows compare
+        only its retrospective steps with reflect, which delivers them.
+      flag: null
+      reason: null
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      environment-retro-categories:
+        scope: reconsider
+        change: []
+        fact: present
+        provider: reflect
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/reflect/references/reviewer-brief.md:26-43
+        recommendation: adopt
+        delivery: delivered
+        target: reflect
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-06
+          - S-07
+          - S-08
+          - C-11
+          override: null
+        reason: 'Owner ruling of 2026-11-05 §E (reflect: one skill combining retro''s categories,
+          reflect''s lenses and approval, and chief-of-staff''s worst-first sampling; approved
+          edits handed to authoring-for-agents) (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md:43)
+          and answers R1-R5 of 2026-11-12 (scratchpad/mvp-stack/64/decisions.md), R1: deferred
+          because ours had no session retrospective; reflect is that retrospective, so the
+          row is adopted into it. Delivered at .claude/skills/reflect/references/reviewer-brief.md:26-43.
+          The adopt citing this row supersedes 2026-10-30-mattpocock_skills-5beb35b:461.'
+      read-existing-check-first:
+        scope: reconsider
+        change: []
+        fact: present
+        provider: reflect
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/reflect/references/reviewer-brief.md:32-35
+        recommendation: adopt
+        delivery: delivered
+        target: reflect
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-06
+          - S-07
+          - S-08
+          - C-11
+          override: null
+        reason: 'Owner ruling of 2026-11-05 §E (reflect: one skill combining retro''s categories,
+          reflect''s lenses and approval, and chief-of-staff''s worst-first sampling; approved
+          edits handed to authoring-for-agents) (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md:43)
+          and answers R1-R5 of 2026-11-12 (scratchpad/mvp-stack/64/decisions.md), R1: deferred
+          because ours had no session retrospective; reflect is that retrospective, so the
+          row is adopted into it. Delivered at .claude/skills/reflect/references/reviewer-brief.md:32-35.
+          The adopt citing this row supersedes 2026-10-30-mattpocock_skills-5beb35b:464.'
+      read-session-sources:
+        scope: reconsider
+        change: []
+        fact: present
+        provider: reflect
+        candidates:
+        - retro-in-reviewed-session
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/reflect/SKILL.md:17-25
+        recommendation: adopt
+        delivery: delivered
+        target: reflect
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-01
+          - U-04
+          - C-06
+          override: null
+        reason: 'Owner ruling of 2026-11-05 §E (reflect: one skill combining retro''s categories,
+          reflect''s lenses and approval, and chief-of-staff''s worst-first sampling; approved
+          edits handed to authoring-for-agents) (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md:43)
+          and answers R1-R5 of 2026-11-12 (scratchpad/mvp-stack/64/decisions.md), R1: deferred
+          because ours had no session retrospective; reflect is that retrospective, so the
+          row is adopted into it. Delivered at .claude/skills/reflect/SKILL.md:17-25. The
+          adopt citing this row supersedes 2026-10-30-mattpocock_skills-5beb35b:465.'
+      severity-ordered-proposals:
+        scope: reconsider
+        change: []
+        fact: present
+        provider: reflect
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/reflect/SKILL.md:35-37
+        recommendation: adopt
+        delivery: delivered
+        target: reflect
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-06
+          - C-11
+          override: null
+        reason: 'Owner ruling of 2026-11-05 §E (reflect: one skill combining retro''s categories,
+          reflect''s lenses and approval, and chief-of-staff''s worst-first sampling; approved
+          edits handed to authoring-for-agents) (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md:43)
+          and answers R1-R5 of 2026-11-12 (scratchpad/mvp-stack/64/decisions.md), R1: deferred
+          because ours had no session retrospective; reflect is that retrospective, so the
+          row is adopted into it. Delivered at .claude/skills/reflect/SKILL.md:35-37. The
+          adopt citing this row supersedes 2026-10-30-mattpocock_skills-5beb35b:466.'
+  skill:skills/engineering/ask-matt:
+    upstream_tree_hash: 7ff2383b40fe9d8f3e753d267d964fb2b44d120a948fd2a57c3b26ddfc318370
+    accepted: 5beb35b
+    compared_with: reflect
+    pairing:
+      overlap:
+        doc:.claude/skills/mvp-mode/playbooks/implement.md: 3
+        reflect: 1
+        tracker: 1
+      placement_match: []
+      suggested: reflect
+      purpose_match: reflect
+      purpose: Reviews a session for changes to the agents' environment; these rows compare
+        only its retrospective steps with reflect, which delivers them.
+      flag: null
+      reason: null
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      retro-in-reviewed-session:
+        scope: reconsider
+        change: []
+        fact: present
+        provider: reflect
+        candidates:
+        - sampled-session-retros
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/reflect/SKILL.md:17-18
+        recommendation: adopt
+        delivery: delivered
+        target: reflect
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-01
+          - U-04
+          override: null
+        reason: 'Owner ruling of 2026-11-05 §E (reflect: one skill combining retro''s categories,
+          reflect''s lenses and approval, and chief-of-staff''s worst-first sampling; approved
+          edits handed to authoring-for-agents) (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md:43)
+          and answers R1-R5 of 2026-11-12 (scratchpad/mvp-stack/64/decisions.md), R1: deferred
+          because ours had no session retrospective; reflect is that retrospective, so the
+          row is adopted into it. Delivered at .claude/skills/reflect/SKILL.md:17-18. The
+          adopt citing this row supersedes 2026-10-30-mattpocock_skills-5beb35b:412.'

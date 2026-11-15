@@ -52,8 +52,9 @@ from curation.registry.checks.ledger import (
     _check_supersession,
     _check_withdraws,
     check_immutable,
+    reuse_errors,
 )
-from curation.registry.checks.playbooks import playbook_errors
+from curation.registry.checks.playbooks import playbook_errors, playbook_ledger_errors
 from curation.registry.checks.policy import policy_problems
 from curation.registry.checks.records import (
     _check_block_pairing,
@@ -83,7 +84,9 @@ from curation.registry.ledger import (
     manifest_reports,
     open_round,
     open_rounds,
+    require_round_order,
     round_header_by_id,
+    round_order_errors,
     seal,
 )
 from curation.registry.loaders import (
@@ -331,6 +334,7 @@ def cmd_round(cfg: RegistryConfig, args: argparse.Namespace) -> int:
 
 
 def cmd_record(cfg: RegistryConfig, args: argparse.Namespace) -> int:
+    require_round_order(cfg)
     path = open_round(cfg)
     if path is None:
         raise SystemExit("no open round — run `round open <slug>` first")
@@ -375,6 +379,10 @@ def _json_arg(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def cmd_build(cfg: RegistryConfig, args: argparse.Namespace) -> int:
+    require_round_order(cfg)
+    reused = reuse_errors(load_ledger(cfg)[1])
+    if reused:
+        raise SystemExit("refused:\n" + "\n".join(reused))
     outputs = build_outputs(cfg)
     cfg.references_dir.mkdir(parents=True, exist_ok=True)
     for path, content in outputs.items():
@@ -407,6 +415,7 @@ def cmd_check(cfg: RegistryConfig, args: argparse.Namespace) -> int:
             "more than one open round: " + ", ".join(p.name for p in open_now)
         )
     errors += check_immutable(cfg)
+    errors += round_order_errors(cfg)
 
     skills, skill_errors = load_skills(cfg)
     errors += skill_errors
@@ -430,6 +439,7 @@ def cmd_check(cfg: RegistryConfig, args: argparse.Namespace) -> int:
     playbooks, playbook_load_errors = load_playbooks(cfg)
     errors += playbook_load_errors
     errors += playbook_errors(cfg, playbooks, definitions)
+    errors += playbook_ledger_errors(cfg, events)
     # One live (non-superseded) event list feeds every lifecycle/withdrawal
     # consumer, so a correction takes effect everywhere at once (N2/N3). Coverage
     # obligations instead read raw events (an upstream reject never withdraws an
@@ -448,6 +458,7 @@ def cmd_check(cfg: RegistryConfig, args: argparse.Namespace) -> int:
         events, forward
     )  # raw: superseded adopt still withdrawable
     errors += _check_adopt_merged_adaptation(headers, live)
+    errors += reuse_errors(events)
     errors += _check_block_pairing(cfg)
     errors += _check_trait_definitions(definitions)
     errors += _check_traits_yaml(cfg, traits, definitions, set(records), ours, events)

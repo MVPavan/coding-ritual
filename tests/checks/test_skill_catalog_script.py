@@ -19,6 +19,7 @@ SCRIPT = (
 )
 
 PLAYBOOK_ENTRY = "- `playbooks/example.md`: a request to do the example."
+PRINCIPLE_ENTRY = "- `principles/example.md`: the example situation holds."
 
 ROUTER = f"""\
 ---
@@ -34,7 +35,7 @@ When unsure, read `references/catalog.md`.
 
 ## Principles
 
-- `principle-example`: the example situation holds.
+{PRINCIPLE_ENTRY}
 
 ## Skills by situation
 """
@@ -61,9 +62,9 @@ def _tree(root: Path, router: str) -> Path:
         f"# Catalog\n\n{catalog.MARKER}\n"
     )
     (skills / "mvp-mode" / "SKILL.md").write_text(router)
-    (skills / "principle-example").mkdir()
-    (skills / "principle-example" / "SKILL.md").write_text(
-        "---\nname: principle-example\ndescription: Apply when.\n---\n"
+    (skills / "mvp-mode" / "principles").mkdir()
+    (skills / "mvp-mode" / "principles" / "example.md").write_text(
+        "# Example\n\nCited as `principle-example`.\n"
     )
     catalog.cmd_write(root, skills)
     return skills
@@ -92,6 +93,32 @@ def _delete_playbook(skills: Path) -> None:
     (skills / "mvp-mode" / "playbooks" / "example.md").unlink()
 
 
+def _cite(text: str) -> Callable[[Path], None]:
+    def write(skills: Path) -> None:
+        (skills / "mvp-mode" / "playbooks" / "example.md").write_text(text)
+
+    return write
+
+
+def _add_principle_skill_folder(skills: Path) -> None:
+    (skills / "principle-stray").mkdir()
+    (skills / "principle-stray" / "SKILL.md").write_text(
+        "---\nname: principle-stray\ndescription: Stray.\n---\n"
+    )
+
+
+def _add_principle_folder_named_otherwise(skills: Path) -> None:
+    (skills / "principle-stray").mkdir()
+    (skills / "principle-stray" / "SKILL.md").write_text(
+        "---\nname: ordinary-name\ndescription: Stray.\n---\n"
+    )
+
+
+def _add_principle_folder_sidecar_only(skills: Path) -> None:
+    (skills / "principle-stray" / "agents").mkdir(parents=True)
+    (skills / "principle-stray" / "agents" / "openai.yaml").write_text("policy: {}\n")
+
+
 @pytest.mark.parametrize(
     ("router", "after", "expected"),
     [
@@ -103,12 +130,54 @@ def _delete_playbook(skills: Path) -> None:
         ),
         pytest.param(
             ROUTER.replace(
-                "- `principle-example`: the example situation holds.",
-                "<!-- - `principle-example`: the example situation holds. -->",
+                PRINCIPLE_ENTRY,
+                f"<!-- {PRINCIPLE_ENTRY} -->",
             ),
             None,
-            "principle principle-example has no entry",
+            "principle principles/example.md has no entry",
             id="comment-only-mention",
+        ),
+        pytest.param(
+            ROUTER.replace(f"{PRINCIPLE_ENTRY}\n", ""),
+            None,
+            "principle principles/example.md has no entry",
+            id="principle-without-entry",
+        ),
+        pytest.param(
+            ROUTER.replace("principles/example.md", "principles/ghost.md"),
+            None,
+            "entry `principles/ghost.md`",
+            id="principle-entry-names-nothing",
+        ),
+        pytest.param(
+            ROUTER,
+            _cite("Apply `principle-ghost`.\n"),
+            "unresolved principle `principle-ghost`",
+            id="cited-principle-without-file",
+        ),
+        pytest.param(
+            ROUTER,
+            _cite("Run /principle-example now.\n"),
+            "dead slash pointer /principle-example",
+            id="principle-slash-form",
+        ),
+        pytest.param(
+            ROUTER,
+            _add_principle_skill_folder,
+            "skill folder principle-stray",
+            id="principle-as-skill-folder",
+        ),
+        pytest.param(
+            ROUTER,
+            _add_principle_folder_named_otherwise,
+            "skill folder principle-stray",
+            id="principle-folder-declaring-another-name",
+        ),
+        pytest.param(
+            ROUTER,
+            _add_principle_folder_sidecar_only,
+            "skill folder principle-stray",
+            id="principle-folder-with-only-a-sidecar",
         ),
         pytest.param(
             ROUTER.replace(f"{PLAYBOOK_ENTRY}\n", ""),

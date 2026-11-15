@@ -20,16 +20,16 @@ beads:
   family: handoff
   aliases: []
   status: active
-  boundary: null
-brainstorming:
+  boundary: "Tracks durable work state in Beads, the tool (types, fields, waits, claims, closing, setup, recovery) and how to resume it; workstreams, phase epics, plan records and tracking files are tracker, and a reviewable log of one run's decisions is decision-trail, which a bead note may point at."
+discovery:
   domain: core
   stage: Intake
   substage: Clarification
-  secondary: [Specification]
-  family: spec-authoring
-  aliases: [idea-refine]
+  secondary: [Research]
+  family: requirements-elicitation
+  aliases: []
   status: active
-  boundary: "Explores and compares options when scope or behaviour is open; an explicitly requested interview that challenges the owner's own plan is grilling."
+  boundary: "Settles open scope or behaviour questions by who can answer them (this project's code, outside sources through research, a run through prototype, a routine pick, the owner last) and writes a checked record of the answers; a single lookup or routine detail needs no run, writing settled decisions up as a durable spec is to-spec, an explicitly requested interview that challenges the owner's own plan is grilling, and decisions charted across sessions are wayfinder."
 build-a-lever:
   domain: core
   stage: Building
@@ -38,7 +38,7 @@ build-a-lever:
   family: null
   aliases: []
   status: active
-  boundary: "Builds and proves a rerunnable tool (script, codemod, generator or check) that does or proves real work; a throwaway experiment answering a design question is prototype, and test-first proof of a behaviour change is test-driven-development."
+  boundary: "Builds and proves a rerunnable tool (script, codemod, generator or check) that does or proves real work; a throwaway experiment answering a design question is prototype, and test-first proof of a behaviour change is tdd."
 check-invariants:
   domain: engineering
   stage: Verification
@@ -65,7 +65,34 @@ codebase-research:
   family: null
   aliases: []
   status: active
-  boundary: null
+  boundary: "Durable, manually invoked reports on an external codebase; how this repository's own code works is how and why it has its shape is why, outside sources for a decision are research, and improvement proposals are improve-codebase-architecture."
+create-verification-skill:
+  domain: engineering
+  stage: Improvement
+  substage: Codification
+  secondary: [Testing]
+  family: null
+  aliases: []
+  status: active
+  boundary: "Generates a project skill that launches and drives the real app with a starter feature map, and proves it once; our own instructions are authoring-for-agents, running a project's invariant checks is check-invariants, and keeping a generated verify skill current is maintain-verification-skill."
+create-formal-verification-skill:
+  domain: engineering
+  stage: Improvement
+  substage: Codification
+  secondary: [Testing]
+  family: null
+  aliases: []
+  status: active
+  boundary: "Generates a project skill that checks one high-harm, rarely tested promise across every case in a stated scope with the formal tool its question needs, with a coverage and sync record, proven against a planted break; driving the real app is create-verification-skill, checking or drawing one TLA+ model is statechart, and keeping a formal check current is maintain-formal-verification-skill."
+decision-trail:
+  domain: core
+  stage: X
+  substage: Continuity
+  secondary: []
+  family: handoff
+  aliases: []
+  status: active
+  boundary: "Keeps one run's decisions as an append-only log, audits it and gets it independently reviewed; work state is beads, a plan's run is implement, a compact attempt record is performance-optimization, and reviewing other artifacts is review."
 delegation:
   domain: core
   stage: X
@@ -93,15 +120,33 @@ domain-modeling:
   aliases: []
   status: active
   boundary: "Owns domain terminology, the glossary and ADRs; module structure is codebase-design, and revising a design document is design-evolve."
-execution:
+implement:
   domain: engineering
   stage: X
   substage: Coordination
   secondary: []
   family: plan-execution
-  aliases: [phase-execution, run-phases]
+  aliases: []
+  status: retired
+  boundary: "Became the implement playbook; kept as the manual /implement entry so its lineage and history stay readable. It delivers none of its former traits."
+how:
+  domain: engineering
+  stage: Discovery
+  substage: Research
+  secondary: []
+  family: null
+  aliases: []
   status: active
-  boundary: null
+  boundary: "One cited, read-only answer about how something in this project works now, or which option fits once scope is settled. Why it has its shape is why, a report on an external codebase is codebase-research, a saved answer is the investigation playbook, outside sources are research, an unexplained failure is systematic-debugging, open scope is discovery, and a wanted change goes back through the router."
+why:
+  domain: engineering
+  stage: Discovery
+  substage: Research
+  secondary: []
+  family: null
+  aliases: []
+  status: active
+  boundary: "One cited, read-only answer about why something in this project is the way it is, or what was decided about it, from the project's own record (git, Beads, decision records, docs). How it works now is how, evidence from outside the project is research, past agent sessions are recall, an unexplained failure is systematic-debugging, and a saved answer is the investigation playbook."
 grilling:
   domain: core
   stage: Intake
@@ -110,7 +155,7 @@ grilling:
   family: grilling
   aliases: [grill-me, grill-with-docs]
   status: active
-  boundary: "Interrogates the owner's plan question by question, only on explicit request; open option exploration is brainstorming, and a written critique of an artifact is review."
+  boundary: "Interrogates the owner's plan question by question, only on explicit request; open option exploration is discovery, and a written critique of an artifact is review."
 harness-evaluate:
   domain: core
   stage: Improvement
@@ -164,8 +209,8 @@ html-artifact:
   family: visual-explanation
   aliases: []
   status: active
-  boundary: "Produces a standalone rendered HTML document; an inline sketch in the conversation is show-me, and shaping replies for an ADHD reader is i-have-adhd."
-i-have-adhd:
+  boundary: "Produces a standalone rendered HTML document; an inline sketch in the conversation is show-me, and shaping replies for an ADHD reader is brief-me."
+brief-me:
   domain: core
   stage: X
   substage: Communication
@@ -183,6 +228,42 @@ improve-codebase-architecture:
   aliases: []
   status: active
   boundary: null
+interrogate:
+  domain: core
+  stage: Verification
+  substage: Review
+  secondary: []
+  family: null
+  aliases: []
+  status: active
+  boundary: "Reports only what a run proved, where review judges by reading and reports every finding. grilling questions a person and runs nothing. prototype answers an open question before a choice, while this attacks a chosen change or design, and an adversary may build a throwaway probe without running that skill. systematic-debugging starts from a known failure and finds its cause, while this looks for failures and stops at the repro, and an unexplained finding goes back to the caller. model-council has members and a judge reach one answer or artifact, while this has no judge and no pick, and keeps every verified finding."
+land:
+  domain: engineering
+  stage: Delivery
+  substage: Integration
+  secondary: []
+  family: git-mechanics
+  aliases: []
+  status: active
+  boundary: "Turns verified changes into titled, ordered commits or a commit plan, only on finished work; a tree already in conflict is resolving-merge-conflicts, plugin releases are harness-publish, running the work is implement, and commit size and order come from principle-sequence-verifiable-units."
+maintain-verification-skill:
+  domain: engineering
+  stage: Improvement
+  substage: Codification
+  secondary: [Testing]
+  family: null
+  aliases: []
+  status: active
+  boundary: "Keeps an existing verify skill and its feature map true to the real app by reading every feature from source and driving each live, fixing only proven drift; generating one is create-verification-skill, judging a change by reading is review, and running a project's invariant checks is check-invariants."
+maintain-formal-verification-skill:
+  domain: engineering
+  stage: Improvement
+  substage: Codification
+  secondary: [Testing]
+  family: null
+  aliases: []
+  status: active
+  boundary: "Brings an existing formal verify skill back in line with its code after changes that skipped it, sorting every covered change, updating the model from the code and rerunning, with one outcome per check; generating one is create-formal-verification-skill, an app-driving verify skill is maintain-verification-skill, and checking or drawing one TLA+ model is statechart."
 migrate-claude-to-codex:
   domain: core
   stage: Improvement
@@ -200,7 +281,7 @@ model-council:
   family: null
   aliases: []
   status: active
-  boundary: "Runs an explicitly requested council of named models or agents with a judge; a council of perspectives or roles is perspective-council, and dispatching each member is delegation."
+  boundary: "Runs an explicitly requested council of named models or agents with a judge; a council of perspectives or roles is perspective-council, and dispatching each member is delegation; on request it also turns candidates into one artifact, which a build's playbook then uses."
 mvp-mode:
   domain: core
   stage: X
@@ -210,6 +291,15 @@ mvp-mode:
   aliases: []
   status: active
   boundary: "Routes a task to the playbook, principle or skill that fits and lists what exists; it holds no policy (AGENTS.md) or technique, spawns no agents (delegation) and convenes no council."
+no-comments:
+  domain: core
+  stage: Verification
+  substage: Review
+  secondary: []
+  family: null
+  aliases: []
+  status: active
+  boundary: "Sweeps a scope for comments that should go, fixes what the sweep exposes inside it and offers checks for real constraints; judging one comment is principle-no-comments, and reviewing a change for bugs or design is review."
 performance-optimization:
   domain: engineering
   stage: Building
@@ -218,7 +308,7 @@ performance-optimization:
   family: performance
   aliases: []
   status: active
-  boundary: "Handles measured resource problems: profile, change, re-measure against a target; an unexplained failure or flaky behaviour is systematic-debugging."
+  boundary: "Handles measured resource problems: locate a cost, or profile, change and re-measure against a target, vetting the numbers on the way; a caller may bring another measurable outcome. What makes a number evidence is principle-explain-the-number. A standalone causal investigation of a failure, flaky behaviour or a regression is systematic-debugging; a live capture a caller asks for gathers evidence even from a failing process and leaves the cause to the caller's debugging call. An artifact captured earlier is trace-forensics."
 perspective-council:
   domain: core
   stage: X
@@ -228,15 +318,15 @@ perspective-council:
   aliases: []
   status: active
   boundary: "Runs an explicitly requested council of perspectives or roles (a war room); a council of named models with a judge is model-council."
-planning:
+pr:
   domain: engineering
-  stage: Design
-  substage: Decomposition
+  stage: Delivery
+  substage: Integration
   secondary: []
-  family: plan-authoring
+  family: null
   aliases: []
   status: active
-  boundary: "Writes a durable implementation plan, dependency graph or workstream decomposition for settled work; what to remove before adding is principle-subtract-before-you-add, and migrating without shims is principle-migrate-without-shims."
+  boundary: "Writes a pull request's body (why, a visual, evidence, merge danger); the commits and their titles are land, and opening or merging the PR needs publish authority."
 principle-attack-the-premise:
   domain: engineering
   stage: Building
@@ -255,6 +345,15 @@ principle-boundary-discipline:
   aliases: []
   status: active
   boundary: "Where data is checked and trusted (boundary validation, parsing, internal trust, public types, pure core); interface shape and depth are codebase-design, and type-level rules are principle-type-system-discipline."
+principle-exhaust-the-design-space:
+  domain: engineering
+  stage: Design
+  substage: Architecture
+  secondary: []
+  family: null
+  aliases: []
+  status: active
+  boundary: "Lays out materially different ways to meet a decision with no precedent in this project, of any kind, and chooses with reasons; building running variants to compare by feel is prototype, and comparing interface designs for a consequential choice is codebase-design."
 principle-experience-first:
   domain: engineering
   stage: Design
@@ -263,7 +362,7 @@ principle-experience-first:
   family: null
   aliases: []
   status: active
-  boundary: "Weighs product, UX and scope tradeoffs from the consumer's side; writing the spec is brainstorming, and comparing variants by feel is prototype."
+  boundary: "Weighs product, UX and scope tradeoffs from the consumer's side; writing the spec is to-spec, and comparing variants by feel is prototype."
 principle-explain-the-number:
   domain: engineering
   stage: Building
@@ -273,6 +372,15 @@ principle-explain-the-number:
   aliases: []
   status: active
   boundary: "Decides when a measured number counts as evidence; running the optimisation loop is performance-optimization."
+principle-fix-root-causes:
+  domain: engineering
+  stage: Building
+  substage: Diagnosis
+  secondary: []
+  family: null
+  aliases: []
+  status: active
+  boundary: "Says where a failure's cause lies (the why-chain, the legitimate-state test, persisted state after a restart); the diagnosis procedure is systematic-debugging and fixing a reported bug end to end is the bug-fix playbook."
 principle-make-operations-idempotent:
   domain: engineering
   stage: Design
@@ -290,7 +398,7 @@ principle-migrate-without-shims:
   family: null
   aliases: []
   status: active
-  boundary: "Replaces an internal API or runs a declared migration without compatibility layers; ordinary unit sequencing is principle-sequence-verifiable-units, and the plan itself is planning."
+  boundary: "Replaces an internal API or runs a declared migration without compatibility layers; ordinary unit sequencing is principle-sequence-verifiable-units, and the plan itself is to-plan."
 principle-minimize-reader-load:
   domain: engineering
   stage: Design
@@ -309,6 +417,15 @@ principle-model-the-domain:
   aliases: []
   status: active
   boundary: "Chooses data structures and module boundaries around domain knowledge before logic; domain terms and ADRs are domain-modeling, and interface depth is codebase-design."
+principle-no-comments:
+  domain: engineering
+  stage: Building
+  substage: Implementation
+  secondary: []
+  family: null
+  aliases: []
+  status: active
+  boundary: "Decides whether one code comment is kept, deleted or kept and flagged, from its keep classes; running a sweep over a scope is no-comments."
 principle-redesign-from-first-principles:
   domain: engineering
   stage: Design
@@ -331,11 +448,11 @@ principle-sequence-verifiable-units:
   domain: engineering
   stage: Building
   substage: Implementation
-  secondary: []
+  secondary: [Decomposition]
   family: null
   aliases: []
   status: active
-  boundary: "Orders multi-step work into checked units and commits; test-first proof of one change is test-driven-development, and a declared migration group is principle-migrate-without-shims."
+  boundary: "Slices and orders multi-step work into checked units, and those units into commits: vertical slices, prefactoring first, expand, migrate then contract, and migration batches sized by blast radius; test-first proof of one change is tdd, a declared migration group is principle-migrate-without-shims, and writing the plan or the tracked stages that apply it is to-plan or to-roadmap."
 principle-subtract-before-you-add:
   domain: engineering
   stage: Design
@@ -344,7 +461,7 @@ principle-subtract-before-you-add:
   family: null
   aliases: []
   status: active
-  boundary: "Removes what the change touches before adding; decomposing work into a plan is planning."
+  boundary: "Removes what the change touches before adding; decomposing work into a plan is to-plan."
 principle-test-behavior-not-implementation:
   domain: engineering
   stage: Verification
@@ -353,7 +470,7 @@ principle-test-behavior-not-implementation:
   family: null
   aliases: []
   status: active
-  boundary: "Judges what a test asserts and whether it earns its place; the test-first cycle is test-driven-development."
+  boundary: "Judges what a test asserts and whether it earns its place; the test-first cycle is tdd."
 principle-type-system-discipline:
   domain: engineering
   stage: Design
@@ -363,6 +480,15 @@ principle-type-system-discipline:
   aliases: []
   status: active
   boundary: "Moves rules into the type checker in a typed language; where raw input becomes typed values is principle-boundary-discipline."
+unslop:
+  domain: core
+  stage: X
+  substage: Communication
+  secondary: []
+  family: null
+  aliases: []
+  status: active
+  boundary: "Edits a reply or document a person will read, keeping its meaning; agent-facing text is authoring-for-agents, a standalone rendered page is html-artifact, shaping replies for an ADHD reader is brief-me, and folding decisions into design documents is design-evolve."
 prototype:
   domain: engineering
   stage: Design
@@ -371,7 +497,25 @@ prototype:
   family: design-validation
   aliases: []
   status: active
-  boundary: "Builds a runnable throwaway experiment that answers one design question; the decision it informs belongs to codebase-design or domain-modeling."
+  boundary: "Builds a runnable throwaway experiment that answers one design question; the decision it informs belongs to its caller, such as discovery, codebase-design or domain-modeling. It recommends among variants it built; building the chosen one is separate work."
+recall:
+  domain: core
+  stage: X
+  substage: Continuity
+  secondary: []
+  family: null
+  aliases: []
+  status: active
+  boundary: "Rebuilds recent work in this project from past chats and the shared record into one brief of where it stands and the next move; resuming one identified piece of work is session-pickup, why something was decided is why, and how it works now is how."
+reflect:
+  domain: engineering
+  stage: Improvement
+  substage: Retrospective
+  secondary: []
+  family: null
+  aliases: []
+  status: active
+  boundary: "Reviews a session, or a sample of a delegated run's sessions, for changes to the agents' environment and applies the approved ones through their owners; the cause of one failure is systematic-debugging, and reviewing a change is review."
 research:
   domain: core
   stage: Discovery
@@ -380,7 +524,7 @@ research:
   family: source-research
   aliases: []
   status: active
-  boundary: null
+  boundary: "Gathers, weighs and cites outside evidence and reports what it favours and how strongly, without deciding; a single factual lookup needs no run, a decision with open questions is discovery (which calls research), why this project chose something is why, and a durable report on an external codebase is codebase-research."
 resolving-merge-conflicts:
   domain: engineering
   stage: Delivery
@@ -389,7 +533,16 @@ resolving-merge-conflicts:
   family: git-mechanics
   aliases: []
   status: active
-  boundary: null
+  boundary: "Resolves a merge, rebase or cherry-pick already in conflict and finishes that operation; turning ordinary verified changes into commits is land."
+restate:
+  domain: core
+  stage: Intake
+  substage: Clarification
+  secondary: []
+  family: null
+  aliases: []
+  status: active
+  boundary: "Says back what the agent takes the person's aim and problem to be, then stops; settling an open choice is discovery, and stating a change's intent before an attack is interrogate."
 review:
   domain: core
   stage: Verification
@@ -398,7 +551,7 @@ review:
   family: code-review
   aliases: [document-review, receiving-code-review]
   status: active
-  boundary: null
+  boundary: "An ordinary or critical look, judged by reading, reporting every finding; to break a change and keep only run-proven findings is interrogate."
 security:
   domain: engineering
   stage: Verification
@@ -408,6 +561,15 @@ security:
   aliases: []
   status: active
   boundary: null
+sharpen:
+  domain: core
+  stage: Intake
+  substage: Clarification
+  secondary: []
+  family: null
+  aliases: []
+  status: active
+  boundary: "Rewrites a person's own task prompt deeper, not bigger, after four questions, leaving their choices open; open scope or behaviour questions are discovery, human-facing prose wording is unslop, authoring agent instructions is authoring-for-agents, and an interview that challenges the person's plan is grilling."
 show-me:
   domain: core
   stage: X
@@ -426,6 +588,15 @@ skill-router:
   aliases: []
   status: retired
   boundary: "Retired into mvp-mode, which now routes every task; kept as a manual-only pointer so its lineage and history stay readable. It delivers none of its former traits."
+statechart:
+  domain: engineering
+  stage: Design
+  substage: Architecture
+  secondary: [Diagnosis]
+  family: design-validation
+  aliases: []
+  status: active
+  boundary: "Checks a TLA+ model with TLC and draws it as a statechart with the shortest path to each broken rule; a runnable experiment of chosen cases is prototype, the code's own structure is principle-model-the-domain, and a formal check kept as a project skill is create-formal-verification-skill."
 systematic-debugging:
   domain: engineering
   stage: Building
@@ -434,7 +605,7 @@ systematic-debugging:
   family: debugging
   aliases: []
   status: active
-  boundary: "Finds the cause of an unclear failure, a failed fix or flaky behaviour; slowness or resource use against a target is performance-optimization."
+  boundary: "Finds the cause of an unclear failure, a failed fix or flaky behaviour; slowness or resource use against a target is performance-optimization; a live capture a caller asks for, or where a resource goes with no failure, is performance-optimization's diagnosis-only branch."
 teach:
   domain: core
   stage: U
@@ -444,7 +615,7 @@ teach:
   aliases: [teach-session]
   status: active
   boundary: null
-test-driven-development:
+tdd:
   domain: engineering
   stage: Building
   substage: Implementation
@@ -453,6 +624,42 @@ test-driven-development:
   aliases: []
   status: active
   boundary: "Runs the test-first cycle for risky behaviour changes, regression proof and characterization; ordering multi-step work and commits into checked units is principle-sequence-verifiable-units."
+to-plan:
+  domain: engineering
+  stage: Design
+  substage: Decomposition
+  secondary: []
+  family: plan-authoring
+  aliases: []
+  status: active
+  boundary: "Writes a durable implementation plan for settled work: one roadmap phase, one standalone change or one batch of units, and no plan document when a bounded task or a roadmap row already says enough; turning an approved multi-phase spec into phases and their order is to-roadmap, a one-phase spec is planned here and recorded by tracker, ordering the units is principle-sequence-verifiable-units, what to remove before adding is principle-subtract-before-you-add, and migrating without shims is principle-migrate-without-shims. A plan in checked form names per-unit evidence and one `implement` scope; running it is `implement`."
+to-roadmap:
+  domain: engineering
+  stage: Design
+  substage: Decomposition
+  secondary: []
+  family: plan-authoring
+  aliases: []
+  status: active
+  boundary: "Turns an approved multi-phase spec into phases and stages with acceptance, their order and real dependency edges, for a new workstream or extending an existing one, approved before tracker seeds them; a one-phase spec is to-plan then tracker, ordering the stages is principle-sequence-verifiable-units, writing the implementation plan for one phase or one change is to-plan, and writing the spec itself is to-spec."
+to-spec:
+  domain: core
+  stage: Design
+  substage: Specification
+  secondary: []
+  family: spec-authoring
+  aliases: []
+  status: active
+  boundary: "Writes decisions already settled into a durable spec and gates its approval; exploring or comparing choices still open is discovery, turning an approved multi-phase spec into tracked phases and stages is to-roadmap, a one-phase spec is to-plan then tracker, and its implementation plan is to-plan."
+tracker:
+  domain: core
+  stage: X
+  substage: Coordination
+  secondary: [Decomposition, Continuity]
+  family: handoff
+  aliases: []
+  status: active
+  boundary: "Puts approved work structure on Beads: seeds or extends a workstream's phase epics and stages, records an approved plan, seeds flat operational work from a charter, records a wayfinder map, finds and closes a phase's epic and renders the tracking files; how bd works is beads, choosing a spec's phases is to-roadmap, writing the plan is to-plan, and running the work is implement."
 triage:
   domain: core
   stage: Intake
@@ -470,4 +677,13 @@ wayfinder:
   family: task-decomposition
   aliases: []
   status: active
-  boundary: null
+  boundary: "Maps and resolves the material decisions of a multi-session effort and records its map and tickets through tracker; open questions settled within one session are discovery, and a route already clear is to-plan or implement."
+wake:
+  domain: core
+  stage: X
+  substage: Continuity
+  secondary: []
+  family: handoff
+  aliases: []
+  status: active
+  boundary: "Holds a run's bounds and its one closing timer; what a return does is its caller's, a run's log is `decision-trail`, and a run the engine owns uses the engine's monitor."

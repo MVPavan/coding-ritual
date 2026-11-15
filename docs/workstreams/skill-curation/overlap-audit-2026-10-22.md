@@ -63,3 +63,21 @@ rules: a pruning candidate, not an ownership conflict.
 Draft ideas that target a non-owner should move to the owner when recorded:
 seam ideas to test-driven-development (#1), handoff and recovery ideas split per
 #2, prove-the-red and regression ideas per #4.
+
+## Resolution (2026-11-12, bead cr-talb, plan 56)
+
+Paths are relative to `.claude/skills/`; skills renamed since this audit are given by their current name.
+
+- #1 testing mechanics: owner `tdd`. Retention rule moved to `tdd/references/writing-good-tests.md:29-31`; `codebase-design/DEEPENING.md:16-17`, `to-plan/references/plan-format.md:48` and `review/references/code.md:44-45` now point to it. `to-spec/references/spec-template.md:75-77` stays: it is the adopted `testing-seam-decision`.
+- #2 continuity: resolved earlier. Implement became a playbook in `e721c56`; it uses beads' resume line (`beads/references/usage.md:253-254`) and keeps its own ledger and Git recovery.
+- #3 tracker contract: resolved earlier. `tracker/SKILL.md:84-99` owns the phase contract, beads the direct-child recipe, `to-roadmap` the decomposition.
+- #4 regression proof: resolved earlier. `systematic-debugging` is diagnosis-only; bug-fix calls `tdd` for the regression check.
+- #5, #6, #10-#14: settled by the owner's rulings of 2026-10-30 (bead comment `fe1a59d1`); each kept pair is justified in `trait-sharing.yaml`.
+- #7 HTML contract: owner `html-artifact`. `discovery/references/visuals.md:23-27` and `prototype/LOGIC.md:16-17` now point to its artifact contract instead of restating it.
+- #8 inline diagrams: owner `show-me` for form, size and medium; discovery keeps when to draw and the decision recording (`discovery/references/visuals.md:3-14`).
+- #9 JTBD: resolved earlier; only `discovery/references/frameworks.md` holds it (idea-refine merged, `5255bb0`).
+- #15 repeated failure: the work's owner (bug-fix's or implement's stop, or the parent in a delegated task) decides when to stop; brief-me only shapes how it is said and routes a no-playbook spiral through `mvp-mode` (`brief-me/SKILL.md:108`).
+- Stale show-me pointer: fixed; it now cites html-artifact's actual trigger.
+- triage-routing: resolved; only `ours:beads` lists it.
+- material-risk-review: a legitimate share (`harness-evaluate`, `to-spec`), justified in `trait-sharing.yaml`.
+- AGENTS.md repetition: out of scope; it stays a pruning candidate, not an ownership conflict.

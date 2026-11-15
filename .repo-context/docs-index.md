@@ -13,7 +13,8 @@ Archived research is evidence, not operating policy.
 | Checks and prerequisites | `.repo-context/verification.md` |
 | Architecture/contracts | `.repo-context/invariants.md`, `docs/adr/README.md` |
 | Investigation | Search `.repo-context/learnings.md`; open matching evidence |
-| Anything Beads: policy, setup, tracking, closeout, `bd` behavior and flags, upgrades | `beads` skill, `.claude/skills/beads/SKILL.md` (its table routes to the reference) |
+| Beads the tool: policy, setup, closeout, `bd` behavior and flags, upgrades | `beads` skill, `.claude/skills/beads/SKILL.md` (its table routes to the reference) |
+| Workstreams, phase epics, plan records, tracking files | `tracker` skill, `.claude/skills/tracker/SKILL.md` |
 
 ## Component work
 
@@ -26,7 +27,7 @@ Archived research is evidence, not operating policy.
 | Harness design | `harness_learnings/coding-harness-best-practices.md` |
 | Cross-runtime collaboration | `harness_learnings/claude-codex-collaboration.md` |
 | Reference curation; skill records and rulings | `harness_lifecycle/README.md`; `harness_lifecycle/registry/README.md` |
-| Adding, reviewing, comparing or updating a skill | `harness_lifecycle/playbook.md` |
+| Adding, reviewing, comparing or updating a skill | `.claude/skills/mvp-mode/playbooks/skill-curation.md` |
 | Principle, skill or playbook: which kind, its rules, traits and steps | `.repo-context/unit-kinds.md` |
 | Designing autonomy features or lifecycle-level skills | `harness_lifecycle/adlc/GUIDE.md` |
 | Reference adoption/updates | `harness_learnings/reference-harness-workflow.md` |
@@ -39,6 +40,8 @@ Archived research is evidence, not operating policy.
 | Ledger-only record store and tracker port decision | `docs/adr/0006-ledger-only-record-store.md` |
 | Orchestration reference research | `docs/research/codebases/cli-agent-orchestrator/luna-exploration.md`, `docs/research/codebases/metaswarm/luna-exploration.md` |
 | Herdr and Orca comparison | `docs/research/codebases/comparison-herdr-orca.md` |
+| Past decisions | `docs/discovery/INDEX.md` |
+| Outside answers | `docs/research/<area>/<topic>/` |
 | Model catalog design | `docs/workstreams/model-catalog/design.md` |
 
 External inventories for `/codebase-research` live in

@@ -14,6 +14,7 @@ from curation.registry.checks.decisions import (
     decision_errors,
     defer_errors,
 )
+from curation.registry.checks.ledger import reuse_errors
 from curation.registry.checks.traits import doc_holder_kind
 from curation.registry.config import RegistryConfig
 from curation.registry.ledger import (
@@ -30,6 +31,7 @@ from curation.registry.loaders import load_ledger
 from curation.registry.models import Event, Source
 from curation.registry.steps import playbook_tree_hash
 from curation.registry.traits import _doc_tree_hash, _our_tree_hashes
+from curation.registry.vocab import PLAYBOOK_KINDS
 
 WHOLE_SKILL_VERDICTS = ("defer", "reject", "out-of-scope")
 
@@ -66,7 +68,11 @@ def _single(cfg: RegistryConfig, data: dict[str, Any], events: list[Event]) -> E
     )
     if pending is not None:
         _inherit(data, pending)
-    elif "source" not in data and ":" in subject and not subject.startswith("ours:"):
+    elif (
+        "source" not in data
+        and ":" in subject
+        and not subject.startswith(("ours:", "doc:"))
+    ):
         # A trait subject carries a trailing #<slug>; the catalog is keyed by the
         # bare logical id, so strip it before autofilling the source.
         repo, _, logical = subject.partition(":")
@@ -81,13 +87,19 @@ def _single(cfg: RegistryConfig, data: dict[str, Any], events: list[Event]) -> E
         and data.get("skill")
     ):
         data["target_tree_hash"] = _target_hash(cfg, str(data["skill"]), events)
+    if subject.startswith("doc:") and data.get("kind") in PLAYBOOK_KINDS:
+        _fill_playbook_hash(cfg, data, subject, events)
+    elif subject.startswith("doc:") and data.get("kind") == "rename":
+        _check_playbook_rename(cfg, subject, data.get("skill"))
     ctx = report_files.load_context(cfg) if "#" in subject else None
     if ctx is not None:
         _set_policy_basis(data, subject, pending, ctx)
         if pending is None and data.get("kind") == "defer":
             _copy_revisit_when(data, subject, ctx)
     event = Event.model_validate(data)
-    late = defer_errors(cfg, [event])
+    late = defer_errors(cfg, [event]) + [
+        e for e in reuse_errors([*events, event]) if e.startswith(f"{event.id}:")
+    ]
     if late:
         raise SystemExit("refused:\n" + "\n".join(late))
     if ctx is None:
@@ -113,6 +125,56 @@ def _single(cfg: RegistryConfig, data: dict[str, Any], events: list[Event]) -> E
     if errors:
         raise SystemExit("refused:\n" + "\n".join(errors))
     return event
+
+
+def _fill_playbook_hash(
+    cfg: RegistryConfig, data: dict[str, Any], subject: str, events: list[Event]
+) -> None:
+    """A playbook event stores its hash (README §4b). Refuse a subject that is
+    not an existing playbook file, a supplied hash that is not today's, and an
+    event with nothing to record: its hash equals the effective event's. An
+    event with `supersedes` is a correction and skips that last refusal."""
+    rel = subject[len("doc:") :]
+    if doc_holder_kind(cfg, rel) != "playbook" or not (cfg.repo_root / rel).is_file():
+        folder = cfg.playbooks_dir.relative_to(cfg.repo_root)
+        raise SystemExit(
+            f"refused: {subject} is not a playbook file; a `doc:` subject on `add` "
+            f"or `update` names a file directly in {folder}/"
+        )
+    now = playbook_tree_hash(cfg, rel)
+    if data.setdefault("target_tree_hash", now) != now:
+        raise SystemExit(
+            f"refused: `target_tree_hash` is computed by `record`; it is {now}"
+        )
+    if data.get("supersedes"):
+        return
+    prior = effective_by_subject(live_events(events)).get(subject)
+    if prior is not None and prior.target_tree_hash == now:
+        raise SystemExit(
+            f"refused: {subject} is unchanged since {prior.id}; nothing to record"
+        )
+
+
+def _check_playbook_rename(cfg: RegistryConfig, subject: str, new: object) -> None:
+    """A playbook `rename` (README §4b): the old path names a playbook, whose
+    file may be gone, and the new path is an existing playbook file. No hash
+    is stored: the new path's own `add` holds it."""
+    folder = cfg.playbooks_dir.relative_to(cfg.repo_root)
+    if doc_holder_kind(cfg, subject[len("doc:") :]) != "playbook":
+        raise SystemExit(
+            f"refused: {subject} is not a playbook file; a renamed `doc:` subject "
+            f"names a file directly in {folder}/"
+        )
+    rel = new[len("doc:") :] if isinstance(new, str) and new.startswith("doc:") else ""
+    if (
+        not rel
+        or doc_holder_kind(cfg, rel) != "playbook"
+        or not (cfg.repo_root / rel).is_file()
+    ):
+        raise SystemExit(
+            f"refused: {new!r} is not a playbook file; a playbook `rename` names "
+            f"an existing file directly in {folder}/ as `skill`"
+        )
 
 
 def _inherit(data: dict[str, Any], pending: Event) -> None:
@@ -197,7 +259,11 @@ def _freshness_errors(event: Event, ctx: report_files.Context) -> list[str]:
 
 def _target_hash(cfg: RegistryConfig, target: str, events: list[Event]) -> str:
     """The target's current tree hash: a skill folder's, a playbook's (its
-    file and reference folder, F3), or another `doc:` file's."""
+    file and reference folder, F3), or another `doc:` file's. The target
+    resolves first, so a skill merged into a playbook, or a renamed playbook,
+    hashes the playbook it now is."""
+    forward, _ = build_lifecycle(live_events(events))
+    target = resolve_skill(target, forward)
     if target.startswith("doc:"):
         rel = target[len("doc:") :]
         file = cfg.repo_root / rel
@@ -206,9 +272,7 @@ def _target_hash(cfg: RegistryConfig, target: str, events: list[Event]) -> str:
         if doc_holder_kind(cfg, rel) == "playbook":
             return playbook_tree_hash(cfg, rel)
         return _doc_tree_hash(rel, file.read_bytes())
-    forward, _ = build_lifecycle(live_events(events))
-    survivor = resolve_skill(target, forward)
-    found = _our_tree_hashes(build_ours(cfg)).get(survivor)
+    found = _our_tree_hashes(build_ours(cfg)).get(target)
     if found is None:
         raise SystemExit(f"{target}: no skill folder to hash")
     return found

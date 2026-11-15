@@ -7,7 +7,7 @@ Inline the common contract. Avoid mandatory chains of references.
 ## Frontmatter and invocation
 
 Require `name` matching the directory and a concise `description` naming the
-activation boundary. Put important exclusions near the positive trigger. A short
+activation boundary, with one trigger per distinct case. Put important exclusions near the positive trigger. A short
 outcome phrase is acceptable when it improves selection; do not duplicate the
 whole workflow or assume any wording technique guarantees invocation behavior.
 

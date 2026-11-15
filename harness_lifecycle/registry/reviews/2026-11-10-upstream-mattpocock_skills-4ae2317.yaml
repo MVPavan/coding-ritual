@@ -1,0 +1,91 @@
+harness: mattpocock_skills
+from_sha: null
+to_sha: 4ae2317
+supersedes:
+- harness_lifecycle/registry/reviews/2026-11-09-upstream-mattpocock_skills-4ae2317.yaml
+analysis_critic:
+  by: claude-opus-5-5 coordinator (critic-19d F2 fix)
+  date: '2026-11-10'
+  verdict: accepted
+  last_critic:
+    by: gpt-6.1-sol high (critic-19d)
+    date: '2026-11-10'
+    verdict: fail
+comparison_critic:
+  by: claude-opus-5-5 coordinator (critic-19d F2 fix)
+  date: '2026-11-10'
+  verdict: accepted
+  last_critic:
+    by: gpt-6.1-sol high (critic-19d)
+    date: '2026-11-10'
+    verdict: fail
+themes: 'One row correcting the attribution of implement-spec#pre-report-tip-merge. critic-19d
+  F2: spec-run.md step 8 merges the base''s tip into the one integration branch, not the integration
+  branch''s tip into each implementer''s branch, so it does not deliver pre-report-tip-merge
+  and completion 2026-11-10-renames-splits:107 misattributed it; the coordinator''s 19c ruling
+  is withdrawn. The behaviour stays, delivered as pre-report-base-merge. Corrects the attribution
+  under owner ruling I3 of 2026-11-06, with no owner ruling of its own.'
+skills:
+  skill:skills/engineering/implement-spec:
+    upstream_tree_hash: c3474ef320861d793e8b30d41fbdd2cb0ceaa1081bb5c81b7f26c455eb776573
+    accepted: 4ae2317
+    compared_with: implement
+    pairing:
+      overlap:
+        beads: 1
+        doc:.claude/skills/mvp-mode/playbooks/worktree-cleanup.md: 1
+        doc:.repo-context/coding-style.md: 1
+        implement: 6
+        interrogate: 1
+        model-council: 1
+        tdd: 1
+        to-tickets: 1
+        wayfinder: 1
+      placement_match:
+      - implement
+      suggested: implement
+      purpose_match: implement
+      purpose: Runs a spec's tickets to completion; this row compares only its pre-report
+        merge with implement's spec scope, which delivers the base-tip form of it.
+      flag: null
+      reason: null
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      pre-report-tip-merge:
+        scope: reconsider
+        change: []
+        fact: variant
+        provider: implement
+        candidates:
+        - pre-report-base-merge
+        via: pre-report-base-merge
+        also_in: {}
+        ours:
+        - .claude/skills/implement/references/spec-run.md:58-60
+        recommendation: adopt
+        delivery: delivered
+        target: implement
+        modification: 'into `pre-report-base-merge`: upstream has each implementer merge the
+          integration branch''s tip into its own branch before reporting; ours runs a spec
+          on one integration branch with no implementer branch, so before reporting it merges
+          the base branch''s tip into the integration branch and reruns the checks, and without
+          commit authority reports that merge as due.'
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-02
+          - S-06
+          override: null
+        reason: 'critic-19d F2: spec-run.md step 8 merges the base''s tip into the one integration
+          branch, not the integration branch''s tip into each implementer''s branch, so it
+          does not deliver pre-report-tip-merge and completion 2026-11-10-renames-splits:107
+          misattributed it; the coordinator''s 19c ruling is withdrawn. The behaviour stays,
+          delivered as pre-report-base-merge. Corrects the attribution under owner ruling
+          I3 of 2026-11-06, with no owner ruling of its own. Pending 2026-11-10-renames-splits:025
+          and its completion 2026-11-10-renames-splits:107 stand as recorded; the adopt citing
+          this report supersedes the completion.'

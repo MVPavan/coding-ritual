@@ -1,0 +1,224 @@
+harness: mattpocock_skills
+from_sha: null
+to_sha: 4ae2317
+supersedes: null
+analysis_critic:
+  by: gpt-6.1-sol high (critic-16b)
+  date: '2026-11-09'
+  verdict: pass
+  last_critic: null
+comparison_critic:
+  by: gpt-6.1-sol high (critic-16b)
+  date: '2026-11-09'
+  verdict: pass
+  last_critic: null
+themes: Rows the owner's rulings of 2026-11-05 and 2026-11-06 reopen for `implement-spec`,
+  at pin 4ae2317 with the catalog regenerated in round 2026-11-09-pocock-4ae2317. One row
+  only moves a delivered trait; five bring deferred mechanisms into `implement`'s spec branch,
+  two of them as modified traits and two more narrowed so that nothing is reset, removed or
+  merged without authority. The `to-spec` and `to-tickets` rows are ruled at analysis 5beb35b,
+  unchanged at that pin, so they cannot sit in a report at 4ae2317. The recommendations are
+  meant to be ruled as one set, with any exceptions named; the two worktree modifications
+  and their limits are the owner's §I3.
+skills:
+  skill:skills/engineering/implement-spec:
+    upstream_tree_hash: c3474ef320861d793e8b30d41fbdd2cb0ceaa1081bb5c81b7f26c455eb776573
+    accepted: 4ae2317
+    compared_with: none
+    pairing:
+      overlap:
+        beads: 1
+        doc:.claude/skills/mvp-mode/playbooks/worktree-cleanup.md: 1
+        doc:.repo-context/coding-style.md: 1
+        interrogate: 1
+        model-council: 1
+        planning: 1
+        tdd: 1
+        wayfinder: 1
+      placement_match:
+      - implement
+      suggested: beads
+      purpose_match: none
+      purpose: Runs a spec's tickets to completion. It becomes a branch of `implement`, and
+        these rows are only the ones the rulings reopen.
+      flag: suggested differs
+      reason: 'Compared with none: these rows are reopened for placement, each names its own
+        target, and no single skill of ours compares with all of them. Suggested beads by
+        the computed signals only.'
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      single-integration-branch:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: implement
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-01
+          - S-08
+          override: null
+        reason: 'Prevents: a spec''s tickets ending on separate branches that nobody has integrated,
+          so the spec is never whole in one place. Lands in `implement`''s spec branch under
+          owner ruling 2026-11-05 §D; a landing that commits or merges still needs commit
+          authority, since that ruling keeps unconditional commit out. Pending bead: cr-r2pa.2.20.'
+      dependency-edges:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          beads: variant
+          planning: present
+          wayfinder: present
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: implement
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-02
+          override: null
+        reason: 'Relocation: owner ruling 2026-11-05 §D makes `implement-spec` a branch of
+          `implement`, and this is the ticket graph that branch reads; `to-tickets#dependency-edges`
+          keeps the authoring side. The trait and its wording move unchanged. Pending bead:
+          cr-r2pa.2.20.'
+      worktree-per-implementer:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          interrogate: variant
+          model-council: variant
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: implement
+        modification: 'into `worktree-per-significant-change`: upstream gives every implementer
+          its own worktree and branch; ours gives one worktree to a significant change and
+          none to a small ticket, with implementers run one at a time.'
+        rewording: Create a worktree only for a significant change. A spec's work usually
+          is one, and it runs in one worktree on the integration branch. Tickets inside it
+          get no worktree of their own, and implementers run one at a time.
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-02
+          - S-08
+          override: null
+        reason: 'Prevents: a spec running in the shared checkout beside other people''s edits,
+          and the opposite failure of one worktree per small ticket. Owner ruling 2026-11-06
+          §I3 limits §D: a worktree only for a significant change, none per small ticket,
+          no parallel implementers. Pending bead: cr-r2pa.2.20.'
+      worktree-base-check:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: implement
+        modification: 'into `worktree-base-verify`: upstream resets onto the base when it
+          is wrong; ours preserves the work, stops and reports, and resets only with explicit
+          reset authority.'
+        rewording: Confirm the worktree's base before work starts in it. On a mismatch, keep
+          the worktree's contents, stop and report the expected and actual base; reset only
+          when the request explicitly authorizes a reset.
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-02
+          - S-06
+          - CF-11
+          override: null
+        reason: 'Prevents: work done on the wrong base, and the worse failure of a reset discarding
+          work that was already in the worktree. Upstream resets unconditionally; a reset
+          is destructive, so `AGENTS.md` Safety and owner ruling 2026-11-06 §I3 keep it behind
+          explicit authority. Pending bead: cr-r2pa.2.20.'
+      pre-report-tip-merge:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: implement
+        modification: null
+        rewording: Before reporting done, merge the base's tip into the worktree's branch
+          if the request gives commit authority; without that authority, report that the merge
+          is due.
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-02
+          - S-06
+          override: null
+        reason: 'Prevents: work reported done that no longer applies to the tip it must land
+          on. A merge is a commit, so under `AGENTS.md` Safety and owner ruling 2026-11-06
+          §I3 it runs only with commit authority and is otherwise reported as due. Pending
+          bead: cr-r2pa.2.20.'
+      worktree-cleanup:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          doc:.claude/skills/mvp-mode/playbooks/worktree-cleanup.md: variant
+        ours: []
+        recommendation: adopt
+        delivery: pending
+        target: implement
+        modification: null
+        rewording: Remove the worktree only after its work is merged, or preserved and reported.
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: reword
+          rules:
+          - U-02
+          - S-06
+          - CF-11
+          override: null
+        reason: 'Prevents: finished worktrees piling up, and removal of a worktree whose work
+          exists nowhere else. Upstream removes every worktree when the build ends; owner
+          ruling 2026-11-06 §I3 takes the cleanup, and removal is held until the work is safe.
+          Pending bead: cr-r2pa.2.20.'

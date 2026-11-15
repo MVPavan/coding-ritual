@@ -4,15 +4,15 @@ domain: engineering
 stage: Design
 substage: Specification
 secondary: []
-family: 
+family:
 aliases: []
 status: active
 ---
 # principle-experience-first
 
-Apply when weighing a product, UX or feature-scope tradeoff.
+a product, UX or feature-scope tradeoff.
 
-**Boundary:** Weighs product, UX and scope tradeoffs from the consumer's side; writing the spec is brainstorming, and comparing variants by feel is prototype.
+**Boundary:** Weighs product, UX and scope tradeoffs from the consumer's side; writing the spec is to-spec, and comparing variants by feel is prototype.
 
 <!-- registry:generated traits -->
 - `consumer-as-user`: Treat whoever consumes the work (end user, importing colleague, next maintainer) as its user, and explain impact from their side.
@@ -31,6 +31,7 @@ Apply when weighing a product, UX or feature-scope tradeoff.
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-05` **update** (2026-11-05-principle-move:004): Owner ruling of 2026-11-05: moved from a skill folder to a file read by path; frontmatter and sidecar removed; the rule text is unchanged; the situation now li…
 - `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:151): Completes pending 2026-11-01-cursor_plugins-pstack-principles:029: the principles build (cr-r2pa.1.2) delivered detail-finish in principle-experience-first, ch…
 - `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:150): Completes pending 2026-11-01-cursor_plugins-pstack-principles:027: the principles build (cr-r2pa.1.2) delivered polish-over-breadth in principle-experience-fir…
 - `2026-11-01` **adopt** (2026-11-01-cursor_plugins-pstack-principles:149): Completes pending 2026-11-01-cursor_plugins-pstack-principles:026: the principles build (cr-r2pa.1.2) delivered justified-surface in principle-experience-first…
