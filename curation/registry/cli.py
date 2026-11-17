@@ -15,6 +15,7 @@ Commands (see README.md §6):
   status <harness> [--skill X] [--traits]  where each upstream skill stands
   build                                regenerate INDEX.md, references/*.md, records
   check                                validate the ledger, records and generated files
+  viewer [--out PATH]                  write the untracked HTML registry viewer
 """
 
 from __future__ import annotations
@@ -658,6 +659,19 @@ def cmd_steps(cfg: RegistryConfig, args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_viewer(cfg: RegistryConfig, args: argparse.Namespace) -> int:
+    """Write the self-contained registry viewer page (untracked; `build` and
+    `check` never read it)."""
+    from curation.registry.views import viewer
+
+    path, built = viewer.write(cfg, Path(args.out) if args.out else None)
+    print(
+        f"wrote {path}: {len(built.tiles)} upstream units from "
+        f"{len(built.sources)} sources, {len(built.ours)} of ours"
+    )
+    return 0
+
+
 def _add_json_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--json", help="a JSON object with the full/partial record")
     parser.add_argument(
@@ -752,6 +766,11 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser(
         "check", help="validate the ledger, records and generated files"
     ).set_defaults(func=cmd_check)
+    p_viewer = sub.add_parser("viewer", help="write the HTML registry viewer")
+    p_viewer.add_argument(
+        "--out", help="default: harness_lifecycle/registry/viewer/index.html"
+    )
+    p_viewer.set_defaults(func=cmd_viewer)
     return parser
 
 

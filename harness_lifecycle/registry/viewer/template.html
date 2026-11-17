@@ -1,0 +1,555 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Registry viewer</title>
+<style>
+:root{
+  --bg:#fbfbfa;--card:#ffffff;--fg:#1c1c1a;--muted:#62625d;--line:#dcdcd6;--soft:#f0f0ec;--accent:#2a5bd7;
+  --full:#2e7d32;--partial:#b26a00;--deferred:#6a3fb5;--rejected:#c62828;--oos:#7a7a74;--never:#7a7a74;
+  --full-bg:#e8f3e8;--partial-bg:#fbf0dc;--deferred-bg:#efe9f9;--rejected-bg:#fbe7e7;--oos-bg:#eeeeeb;--never-bg:transparent;
+  --s0:#0f6e8c;--s1:#a3456b;--s2:#5b6b16;--s3:#8a5a00;--s4:#3d5aa8;--s5:#7a3d99;--s6:#1f7a5c;--s7:#9c3b2e;--s8:#55606b;--s9:#6b4f2a;
+  color-scheme:light dark;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#161615;--card:#1f1f1d;--fg:#ececea;--muted:#a3a39c;--line:#3a3a36;--soft:#2a2a27;--accent:#7ea2ff;
+  --full:#6cc070;--partial:#f0a83a;--deferred:#b394f0;--rejected:#f07070;--oos:#a3a39c;--never:#a3a39c;
+  --full-bg:#1e3320;--partial-bg:#3a2c12;--deferred-bg:#2c2440;--rejected-bg:#3d1e1e;--oos-bg:#2a2a27;
+  --s0:#5fbfdc;--s1:#e58cb0;--s2:#b5c95a;--s3:#e0b050;--s4:#8fa8f0;--s5:#c99be0;--s6:#6cd0a8;--s7:#f09a8a;--s8:#aab4bf;--s9:#d0b088;
+}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body{overflow-x:hidden}
+button,input,select,textarea{font:inherit;color:inherit}
+code{font:12px ui-monospace,SFMono-Regular,Menlo,monospace;overflow-wrap:anywhere}
+a{color:var(--accent)}
+header.top{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding:8px 16px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+h1{font-size:17px;margin:0 12px 0 0}
+.tabs button{border:1px solid var(--line);background:var(--card);padding:3px 10px;border-radius:6px;cursor:pointer}
+.tabs button[aria-selected=true]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.chip{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:2px 9px;cursor:pointer;display:inline-flex;gap:5px;align-items:center}
+.chip[aria-pressed=true]{outline:2px solid currentColor;outline-offset:-1px}
+.chip .g{font-weight:700}
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg button{border:0;background:var(--card);padding:2px 9px;cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--fg);color:var(--bg)}
+.seg button .n{font-size:11px;opacity:.75;margin-left:3px}
+.hchip{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:1px 8px 1px 3px;cursor:pointer;display:inline-flex;gap:4px;align-items:center;font-size:12px}
+.hchip[aria-pressed=false]{opacity:.45}
+.hchip[aria-pressed=false] .dot{background:var(--muted)}
+input[type=search]{border:1px solid var(--line);background:var(--card);border-radius:6px;padding:3px 8px;min-width:0;width:200px;max-width:100%}
+.legend{color:var(--muted);font-size:12px}
+.progress{color:var(--muted);font-size:12px;margin-left:auto}
+.btn{border:1px solid var(--line);background:var(--card);border-radius:6px;padding:2px 9px;cursor:pointer}
+.lbl{font-size:12px;color:var(--muted)}
+#hlnote{font-size:12px;color:var(--accent);min-height:0}
+.insights{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;padding:8px 16px;border-bottom:1px solid var(--line)}
+.insights .filterpill{grid-column:1/-1}
+.insights button{border:1px solid var(--line);background:var(--card);border-radius:8px;padding:4px 10px;cursor:pointer;text-align:left}
+.insights button b{font-size:18px;display:block;line-height:1.1}
+.insights button span{font-size:12px;color:var(--muted)}
+.insights button[aria-pressed=true]{outline:2px solid var(--accent)}
+.filterpill{font-size:12px;color:var(--muted)}
+main{padding:12px 16px 80px}
+.v-full{--c:var(--full);--cb:var(--full-bg)}.v-partial{--c:var(--partial);--cb:var(--partial-bg)}.v-deferred{--c:var(--deferred);--cb:var(--deferred-bg)}
+.v-rejected{--c:var(--rejected);--cb:var(--rejected-bg)}.v-oos{--c:var(--oos);--cb:var(--oos-bg)}.v-never{--c:var(--never);--cb:var(--never-bg)}
+.lane{border:1px solid var(--line);border-radius:10px;background:var(--card);margin:0 0 12px}
+.lane>header{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;padding:8px 12px;border-bottom:1px solid var(--line)}
+.lane.collapsed>header{border-bottom:0}
+.lane.collapsed .cols{display:none}
+.lane h2{font-size:15px;margin:0}
+.lane .tog{border:0;background:none;cursor:pointer;padding:0 4px;font-size:14px}
+.lane .subs{color:var(--muted);font-size:12px}
+.lane .cnts{display:flex;gap:6px;font-size:12px}
+.lane .cnts span{color:var(--c);font-weight:600}
+.lane .gapnote{font-size:12px;color:var(--rejected)}
+.lane label.rev{margin-left:auto;font-size:12px;display:flex;gap:4px;align-items:center}
+.lane.reviewed>header h2::after{content:" ✓ reviewed";font-size:12px;color:var(--full);font-weight:400}
+.cols{display:grid;grid-template-columns:2fr 1fr;gap:0}
+.col{padding:8px;min-width:0}
+.col+.col{border-left:1px solid var(--line)}
+.col.ourscol{background:var(--soft)}
+.col h3{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 6px}
+.tiles{display:flex;flex-wrap:wrap;gap:6px}
+.tile{position:relative;display:flex;flex-direction:column;gap:2px;min-width:0;max-width:100%;border:1px solid var(--line);border-left:4px solid var(--c,var(--line));background:var(--cb,var(--card));border-radius:6px;padding:4px 7px 7px;cursor:pointer;text-align:left}
+.tile .t1{display:flex;gap:5px;align-items:baseline;flex-wrap:wrap}
+.tile .g{color:var(--c);font-weight:700}
+.tile .nm{font-weight:600;overflow-wrap:anywhere}
+.bd{font-size:10px;border:1px solid var(--line);border-radius:4px;padding:0 4px;color:var(--muted);background:var(--card)}
+.bd.gap{color:var(--rejected);border-color:var(--rejected)}
+.tile .cnt{font-size:11px;color:var(--muted)}
+.bar{display:flex;height:4px;border-radius:2px;overflow:hidden;position:absolute;left:0;right:0;bottom:0}
+.bar i{display:block}
+.b-adopt{background:var(--full)}.b-reject{background:var(--rejected)}.b-defer{background:var(--deferred)}.b-hold{background:repeating-linear-gradient(90deg,var(--deferred) 0 3px,transparent 3px 5px)}.b-oos{background:var(--oos)}.b-unruled{background:var(--line)}
+.tile.v-never{border-style:dashed;border-left-style:dashed}
+.tile.ours{--c:var(--fg);border-left:1px solid var(--line);background:var(--card)}
+.tile.ours.planned{border-style:dashed}
+.dot{display:inline-block;font-size:10px;font-weight:700;border-radius:999px;padding:0 4px;color:var(--bg);background:var(--sc,var(--muted))}
+.s0{--sc:var(--s0)}.s1{--sc:var(--s1)}.s2{--sc:var(--s2)}.s3{--sc:var(--s3)}.s4{--sc:var(--s4)}.s5{--sc:var(--s5)}.s6{--sc:var(--s6)}.s7{--sc:var(--s7)}.s8{--sc:var(--s8)}.s9{--sc:var(--s9)}
+.ov{font-size:10px;font-weight:700;border:1px solid var(--fg);border-radius:4px;padding:0 3px}
+body.hl-on #lanes .tile:not(.hl){opacity:.28}
+.tile.hl{box-shadow:0 0 0 2px var(--accent)}
+.tile.sel{box-shadow:0 0 0 3px var(--accent)}
+.tile:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.empty{color:var(--muted);font-size:12px}
+#drawer{position:fixed;top:0;right:0;bottom:0;width:min(480px,100vw);background:var(--card);border-left:1px solid var(--line);z-index:10;overflow:auto;padding:14px 16px 40px;transform:translateX(100%);transition:transform .15s;box-shadow:-8px 0 24px rgba(0,0,0,.12)}
+#drawer.open{transform:none}
+#drawer h2{margin:0 30px 2px 0;font-size:17px;overflow-wrap:anywhere}
+#drawer h3{font-size:13px;margin:12px 0 4px}
+#drawer .x{position:absolute;top:10px;right:12px;border:0;background:none;font-size:20px;cursor:pointer}
+.meta{color:var(--muted);font-size:12px;overflow-wrap:anywhere}
+.lines{list-style:none;padding:0;margin:10px 0}
+.lines li{margin:4px 0;padding-left:20px;text-indent:-20px}
+.lines li .g{display:inline-block;width:20px;text-indent:0;font-weight:700;color:var(--c)}
+.flag{font-size:12px;border-left:3px solid var(--partial);padding:2px 8px;margin:6px 0;background:var(--partial-bg)}
+.hidnote{font-size:12px;color:var(--accent)}
+details{margin:8px 0}
+details>summary{cursor:pointer}
+.tr{border-top:1px solid var(--line);padding:6px 0;font-size:13px}
+.tr .why{color:var(--muted);font-size:12px;margin:2px 0}
+.grp{font-weight:600;margin-top:10px;color:var(--c)}
+.dec{display:flex;flex-wrap:wrap;gap:6px;align-items:flex-start;margin:4px 0}
+.dec select{border:1px solid var(--line);background:var(--card);border-radius:4px;padding:1px 4px}
+.dec textarea{flex:1 1 180px;min-width:0;border:1px solid var(--line);background:var(--card);border-radius:4px;padding:2px 6px;height:28px;resize:vertical}
+.dec.made select{border-color:var(--accent);font-weight:600}
+.linkbtn{border:0;background:none;color:var(--accent);cursor:pointer;padding:0;text-align:left;overflow-wrap:anywhere}
+.linkbtn.off{color:var(--muted)}
+.decbox{border:1px solid var(--line);border-radius:8px;padding:8px;margin:10px 0;background:var(--soft)}
+.router{display:grid;grid-template-columns:1fr 1.3fr 1fr 1fr;gap:12px}
+.router section{border:1px solid var(--line);border-radius:10px;background:var(--card);padding:10px;min-width:0}
+.router h2{font-size:14px;margin:0 0 8px}
+.rn{border:1px solid transparent;border-radius:6px;padding:3px 6px;margin:2px 0;cursor:pointer;overflow-wrap:anywhere}
+.rn:hover,.rn.hl{border-color:var(--accent);background:var(--soft)}
+body.rhl-on .rn:not(.hl){opacity:.35}
+.rn .sub{font-size:12px;color:var(--muted)}
+.rn ol{margin:4px 0 0;padding-left:22px;font-size:12px}
+.rn ol li.hl{background:var(--soft);outline:1px solid var(--accent)}
+.rn .calls code{margin-right:4px}
+.orph{font-size:10px;border:1px dashed var(--muted);border-radius:4px;padding:0 4px;color:var(--muted)}
+.entry{font-weight:600}
+[hidden]{display:none!important}
+@media (max-width:1000px){.router{grid-template-columns:1fr 1fr}}
+@media (max-width:760px){
+  .cols{grid-template-columns:1fr}
+  .col+.col{border-left:0;border-top:1px solid var(--line)}
+  .router{grid-template-columns:1fr}
+  #drawer{top:auto;width:100vw;height:78vh;border-left:0;border-top:1px solid var(--line);border-radius:12px 12px 0 0;transform:translateY(100%)}
+  #drawer.open{transform:none}
+  input[type=search]{width:100%}
+  .progress{margin-left:0}
+  .insights{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+  .insights button{padding:3px 6px;font-size:12px}
+  .insights button b{font-size:15px}
+  .insights button span{display:none}
+  .legend{display:none}
+  #hchips{max-height:52px;overflow:auto}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="row">
+    <h1>Registry viewer</h1>
+    <div class="tabs row" role="tablist">
+      <button role="tab" id="tab-map" aria-selected="true">Map</button>
+      <button role="tab" id="tab-router" aria-selected="false">Router</button>
+    </div>
+    <span class="seg" id="kindseg" aria-label="Kind"></span>
+    <span class="progress" id="progress"></span>
+    <button class="btn" id="export">Export decisions</button>
+  </div>
+  <div class="row" id="hrow" style="margin-top:6px"><span class="lbl">Harnesses</span><span id="hchips" class="row"></span></div>
+  <div class="row" id="filters" style="margin-top:6px">
+    <span id="chips" class="row"></span>
+    <input type="search" id="q" placeholder="Search units, traits  ( / )" aria-label="Search">
+  </div>
+  <div id="hlnote" aria-live="polite"></div>
+  <div class="legend" style="margin-top:4px">Colour and glyph: the upstream unit's verdict. A chip also matches units with any trait ruled that way. Bar: the trait split (adopt, reject, defer, <span style="text-decoration:underline dotted">hold</span>, out of scope). Right column: our units, with a dot per harness their content came from and <span class="ov">×n</span> when fed by n upstream units. Keys: <code>/</code> search, <code>j</code>/<code>k</code> next/previous tile, <code>Esc</code> close.</div>
+</header>
+<div class="insights" id="insights"></div>
+<main>
+  <div id="view-map"><div id="lanes"></div></div>
+  <div id="view-router" hidden><div class="router" id="router"></div></div>
+</main>
+<aside id="drawer" aria-label="Details" tabindex="-1"><button class="x" id="dx" aria-label="Close">×</button><div id="dbody"></div></aside>
+<script id="data" type="application/json">/*__DATA__*/null</script>
+<script>
+(() => {
+const D = JSON.parse(document.getElementById('data').textContent);
+const T = new Map(D.tiles.map(t => [t.id, t]));
+const O = new Map(D.ours.map(u => [u.id, u]));
+const S = new Map(D.sources.map(s => [s.name, s]));
+const ORPH = new Set(D.orphans);
+const V = {full:['✓','Fully adopted'], partial:['◐','Partly adopted'], deferred:['⏸','Deferred or on hold'], rejected:['✕','Rejected'], oos:['–','Out of scope'], never:['?','Never analysed']};
+const BV = {adopt:'full', reject:'rejected', defer:'deferred', hold:'deferred', oos:'oos', unruled:'never'};
+const BL = {adopt:'Adopted', reject:'Rejected', defer:'Deferred', hold:'On hold', oos:'Out of scope', unruled:'Not ruled'};
+const BUCKETS = ['adopt','reject','defer','hold','oos','unruled'];
+const KINDS = [['skill','Skills'],['playbook','Playbooks'],['principle','Principles'],['all','All']];
+const PLURAL = k => ({skill:'skills', playbook:'playbooks', principle:'principles', planned:'planned units', retired:'retired units', doc:'documents'}[k] || k + 's');
+const CHOICES = [['','—'],['keep','keep as is'],['revise','revise'],['adopt','adopt'],['drop','drop']];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const md = s => esc(s).replace(/`([^`]+)`/g, '<code>$1</code>');
+const $ = id => document.getElementById(id);
+const store = {
+  get(k, def) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : def; } catch (e) { return def; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* storage unavailable */ } }
+};
+const KD = 'registryviewer.decisions.v1', KL = 'registryviewer.lanes.v1', KC = 'registryviewer.collapsed.v1';
+let dec = store.get(KD, {}), lanesDone = store.get(KL, {}), collapsed = store.get(KC, {});
+const st = {kind: 'all', harn: new Set(D.sources.map(s => s.name)), chips: new Set(), q: '', insight: null, sel: null};
+
+const stageLabel = s => (D.lanes.find(l => l.stage === s) || {}).label || s;
+const kindOk = k => st.kind === 'all' || k === st.kind;
+const allHarn = () => st.harn.size === D.sources.length;
+const inScope = t => kindOk(t.kind) && st.harn.has(t.source);
+const oursScope = u => kindOk(u.kind) && (allHarn() || !Object.keys(u.fed).length || Object.keys(u.fed).some(k => T.get(k) && st.harn.has(T.get(k).source)));
+const dot = name => { const s = S.get(name); return s ? `<span class="dot s${s.idx}" title="${esc(name)}">${esc(s.abbr)}</span>` : ''; };
+const unitKind = id => (T.get(id) || O.get(id) || {}).kind;
+const linksOf = id => {
+  const t = T.get(id); if (t) return [id, ...Object.keys(t.targets)];
+  const u = O.get(id); return u ? [id, ...Object.keys(u.fed), ...(u.links || [])] : [id];
+};
+const hasB = (t, b) => (t.mix[b] || 0) > 0;
+const chipMatch = (t, c) => t.verdict === c || (c === 'deferred' && (hasB(t,'defer') || hasB(t,'hold'))) || (c === 'rejected' && hasB(t,'reject')) || (c === 'oos' && hasB(t,'oos'));
+const deferredT = t => chipMatch(t, 'deferred');
+const scopeTiles = () => D.tiles.filter(inScope);
+const scopeOurs = () => D.ours.filter(oursScope);
+const INS = [
+  ['overlaps', 'Overlaps', 'our units fed by 2+ upstream', () => scopeOurs().filter(u => u.overlap).length],
+  ['gaps', 'Gaps', 'nothing adopted, no unit of ours in its substage', () => scopeTiles().filter(t => t.gap).length],
+  ['deferred', 'Deferred', 'units with deferred or held traits', () => scopeTiles().filter(deferredT).length],
+  ['orphans', 'Description only', 'our skills nothing routes to', () => scopeOurs().filter(u => ORPH.has(u.id)).length],
+  ['stale', 'Stale', 'upstream changed since the ruling', () => scopeTiles().filter(t => t.stale).length],
+  ['mismatch', 'Verdict mismatches', 'checkpoint vs trait rulings', () => scopeTiles().filter(t => t.mismatch).length],
+];
+const insPred = {
+  overlaps: t => Object.keys(t.targets).some(k => O.get(k) && O.get(k).overlap),
+  gaps: t => t.gap, deferred: deferredT, orphans: t => Object.keys(t.targets).some(k => ORPH.has(k)),
+  stale: t => t.stale, mismatch: t => t.mismatch,
+};
+const oursIns = {overlaps: u => u.overlap, orphans: u => ORPH.has(u.id)};
+
+function tileText(t) {
+  return [t.name, t.lid, t.source, ...t.traits.map(x => x.id), ...Object.keys(t.targets).map(k => (O.get(k) || {}).name || k)].join(' ').toLowerCase();
+}
+const TXT = new Map(D.tiles.map(t => [t.id, tileText(t)]));
+// Every filter but the kind switch: decides which upstream units count as
+// feeders of ours, whatever their kind (the switch applies to each side alone).
+function upPass(t) {
+  if (!st.harn.has(t.source)) return false;
+  if (st.chips.size && ![...st.chips].some(c => chipMatch(t, c))) return false;
+  if (st.q && !TXT.get(t.id).includes(st.q)) return false;
+  if (st.insight && insPred[st.insight] && !insPred[st.insight](t)) return false;
+  return true;
+}
+const upVisible = t => kindOk(t.kind) && upPass(t);
+function oursVisible(u, feeders) {
+  if (!oursScope(u)) return false;
+  if (st.insight && oursIns[st.insight]) return oursIns[st.insight](u) && (!st.q || u.name.toLowerCase().includes(st.q));
+  const filtered = st.chips.size || st.q || st.insight || !allHarn();
+  if (!filtered) return true;
+  if (st.q && u.name.toLowerCase().includes(st.q)) return true;
+  if (!st.chips.size && !st.q && !st.insight && !Object.keys(u.fed).length) return true;
+  return Object.keys(u.fed).some(k => feeders.has(k));
+}
+// The ids the map shows now, from the same predicates as renderLanes.
+function visibleIds() {
+  const up = D.tiles.filter(upVisible), feeders = new Set(D.tiles.filter(upPass).map(t => t.id));
+  return new Set([...up.map(t => t.id), ...D.ours.filter(u => oursVisible(u, feeders)).map(u => u.id)]);
+}
+
+// ---------------- render: kind switch, harness chips, verdict chips, insights, lanes
+function renderKinds() {
+  const n = k => k === 'all' ? D.tiles.length + D.ours.length : D.tiles.filter(t => t.kind === k).length + D.ours.filter(u => u.kind === k).length;
+  $('kindseg').innerHTML = KINDS.map(([k, l]) => `<button data-k="${k}" aria-pressed="${st.kind === k}">${l}<span class="n">${n(k)}</span></button>`).join('');
+}
+function renderHarn() {
+  $('hchips').innerHTML = `<button class="btn" data-h="*">${allHarn() ? 'None' : 'All'}</button>` + D.sources.map(s => {
+    const n = D.tiles.filter(t => t.source === s.name && kindOk(t.kind)).length;
+    return `<button class="hchip" data-h="${esc(s.name)}" aria-pressed="${st.harn.has(s.name)}" title="${esc(s.harness)}">${dot(s.name)}${esc(s.name)} <span class="lbl">${n}</span></button>`;
+  }).join('');
+}
+function renderChips() {
+  $('chips').innerHTML = Object.entries(V).map(([k, [g, l]]) => {
+    const n = scopeTiles().filter(t => chipMatch(t, k)).length;
+    return `<button class="chip v-${k}" data-c="${k}" aria-pressed="${st.chips.has(k)}" style="color:var(--c)"><span class="g">${g}</span><span style="color:var(--fg)">${l} ${n}</span></button>`;
+  }).join('');
+}
+function renderInsights() {
+  $('insights').innerHTML = INS.map(([k, l, s, f]) => `<button data-i="${k}" aria-pressed="${st.insight === k}"><b>${f()}</b>${l}<br><span>${s}</span></button>`).join('')
+    + `<span class="filterpill" id="fpill"></span>`;
+}
+function tileHTML(t) {
+  const n = t.n_traits, a = t.mix.adopt || 0;
+  const bar = n ? BUCKETS.filter(b => t.mix[b]).map(b => `<i class="b-${b}" style="flex:${t.mix[b]}"></i>`).join('') : `<i class="b-${{full:'adopt',partial:'adopt',deferred:'defer',rejected:'reject',oos:'oos',never:'unruled'}[t.verdict]}" style="flex:1"></i>`;
+  const badges = (t.kind !== 'skill' ? `<span class="bd">${esc(t.kind)}</span>` : '') + (t.copies.length ? `<span class="bd" title="packaging copy folded in">copy</span>` : '') + (t.gap ? `<span class="bd gap">gap</span>` : '') + (t.change === 'unknown' ? `<span class="bd" title="change since the ruling unknown">unknown, review</span>` : '');
+  return `<button class="tile v-${t.verdict}" data-id="${esc(t.id)}" title="${esc(V[t.verdict][1] + ' · ' + t.source + (t.substage ? ' · ' + t.substage : ''))}"><span class="t1"><span class="g" aria-label="${esc(V[t.verdict][1])}">${V[t.verdict][0]}</span>${dot(t.source)}<span class="nm">${esc(t.name)}</span>${badges}</span>${n ? `<span class="cnt">${a} / ${n} adopted</span>` : ''}<span class="bar" aria-hidden="true">${bar}</span></button>`;
+}
+function oursHTML(u) {
+  const nf = Object.keys(u.fed).length;
+  const kind = u.kind !== 'skill' ? `<span class="bd">${esc(u.kind)}</span>` : '';
+  return `<button class="tile ours${u.planned ? ' planned' : ''}" data-id="${esc(u.id)}" title="${esc(u.substage || '')}"><span class="t1"><span class="nm">${esc(u.name)}</span>${kind}${u.sources.map(dot).join('')}${nf >= 2 ? `<span class="ov" title="fed by ${nf} upstream units">×${nf}</span>` : ''}${ORPH.has(u.id) ? '<span class="orph">description only</span>' : ''}</span></button>`;
+}
+const bySub = (a, b) => (a.substage || '').localeCompare(b.substage || '') || a.name.localeCompare(b.name) || a.id.localeCompare(b.id);
+function renderLanes() {
+  const visUp = new Set(D.tiles.filter(upVisible).map(t => t.id));
+  const feeders = new Set(D.tiles.filter(upPass).map(t => t.id));
+  const filtered = st.chips.size || st.q || st.insight || st.kind !== 'all' || !allHarn();
+  let shownOurs = 0;
+  $('lanes').innerHTML = D.lanes.map(l => {
+    const ups = D.tiles.filter(t => t.stage === l.stage && inScope(t));
+    const cnt = Object.keys(V).map(k => [k, ups.filter(t => t.verdict === k).length]).filter(x => x[1]).map(([k, n]) => `<span class="v-${k}" title="${V[k][1]}">${V[k][0]} ${n}</span>`).join('');
+    const xs = ups.filter(t => visUp.has(t.id)).sort((a, b) => a.source.localeCompare(b.source) || bySub(a, b));
+    const os = D.ours.filter(u => u.stage === l.stage && oursVisible(u, feeders)).sort(bySub);
+    shownOurs += os.length;
+    const hid = filtered && !(xs.length + os.length);
+    return `<section class="lane${collapsed[l.stage] ? ' collapsed' : ''}${lanesDone[l.stage] ? ' reviewed' : ''}" data-stage="${l.stage}" ${hid ? 'hidden' : ''}>
+      <header><button class="tog" aria-expanded="${!collapsed[l.stage]}" aria-label="Collapse lane">${collapsed[l.stage] ? '▸' : '▾'}</button><h2>${esc(l.label)}</h2>
+      <span class="subs">${esc(l.subs.join(' · '))}</span><span class="cnts">${cnt}</span>
+      ${l.gaps.length ? `<span class="gapnote">no unit of ours: ${esc(l.gaps.join(', '))}</span>` : ''}
+      <label class="rev"><input type="checkbox" data-rev="${l.stage}" ${lanesDone[l.stage] ? 'checked' : ''}> Reviewed</label></header>
+      <div class="cols"><div class="col"><h3>Upstream</h3><div class="tiles">${xs.map(tileHTML).join('') || '<span class="empty">none</span>'}</div></div>
+      <div class="col ourscol"><h3>Ours</h3><div class="tiles">${os.map(oursHTML).join('') || '<span class="empty">none</span>'}</div></div></div></section>`;
+  }).join('');
+  const parts = [];
+  if (st.kind !== 'all') parts.push(KINDS.find(k => k[0] === st.kind)[1]);
+  if (!allHarn()) parts.push([...st.harn].sort().join(', ') || 'no harness');
+  if (st.insight) parts.push(INS.find(x => x[0] === st.insight)[1]);
+  if (st.chips.size) parts.push([...st.chips].map(c => V[c][1]).join(' or '));
+  if (st.q) parts.push(`“${st.q}”`);
+  $('fpill').innerHTML = parts.length ? `Showing ${visUp.size} upstream and ${shownOurs} of ours: ${esc(parts.join(' · '))} <button class="linkbtn" id="clear">clear</button>` : '';
+  if (st.sel) { markSel(st.sel); setHL(st.sel); if ($('drawer').classList.contains('open')) fillDrawer(st.sel); }
+  progress();
+}
+function progress() {
+  const n = Object.values(dec).filter(v => v.choice || v.note).length;
+  $('progress').textContent = `lanes reviewed ${D.lanes.filter(l => lanesDone[l.stage]).length}/${D.lanes.length} · decisions made ${n}`;
+}
+function renderAll() { renderKinds(); renderHarn(); renderChips(); renderInsights(); renderLanes(); renderRouter(); }
+
+// ---------------- highlight, with links the filters hide
+function hiddenNote(ids, shown) {
+  const c = {};
+  ids.forEach(i => { if (!shown.has(i)) { const k = unitKind(i); if (k) c[k] = (c[k] || 0) + 1; } });
+  const ks = Object.keys(c).sort();
+  return ks.length ? 'also linked: ' + ks.map(k => `${c[k]} ${c[k] === 1 ? k : PLURAL(k)}`).join(', ') + ' (hidden by the current filters)' : '';
+}
+function setHL(id) {
+  document.querySelectorAll('#lanes .tile.hl').forEach(e => e.classList.remove('hl'));
+  if (!id) { document.body.classList.remove('hl-on'); $('hlnote').textContent = ''; return; }
+  const ids = new Set(linksOf(id)), shown = new Set();
+  document.querySelectorAll('#lanes .lane:not([hidden]) .tile').forEach(e => { shown.add(e.dataset.id); if (ids.has(e.dataset.id)) e.classList.add('hl'); });
+  ids.delete(id);
+  document.body.classList.add('hl-on');
+  $('hlnote').textContent = hiddenNote(ids, shown);
+}
+function markSel(id) {
+  document.querySelectorAll('.tile.sel').forEach(e => e.classList.remove('sel'));
+  document.querySelectorAll('#lanes .tile').forEach(e => { if (e.dataset.id === id) e.classList.add('sel'); });
+}
+
+// ---------------- decisions
+function decHTML(subject, event, label) {
+  const v = dec[subject] || {};
+  return `<div class="dec${v.choice || v.note ? ' made' : ''}" data-subj="${esc(subject)}" data-ev="${esc(event || '')}" data-label="${esc(label || subject)}">
+    <select aria-label="Decision for ${esc(label || subject)}">${CHOICES.map(([k, l]) => `<option value="${k}" ${v.choice === k ? 'selected' : ''}>${l}</option>`).join('')}</select>
+    <textarea rows="1" placeholder="note" aria-label="Note">${esc(v.note || '')}</textarea></div>`;
+}
+function saveDec(box) {
+  const s = box.dataset.subj, choice = box.querySelector('select').value, note = box.querySelector('textarea').value;
+  if (!choice && !note.trim()) delete dec[s]; else dec[s] = {choice, note, event: box.dataset.ev, label: box.dataset.label};
+  box.classList.toggle('made', !!(choice || note.trim()));
+  store.set(KD, dec); progress();
+}
+function asJSON(d) {
+  return JSON.stringify({source: 'harness_lifecycle/registry/viewer/index.html', decisions: Object.keys(d).sort().map(k => ({subject: k, event: d[k].event || '', label: d[k].label || '', choice: d[k].choice || '', note: d[k].note || ''}))}, null, 2);
+}
+function asMarkdown(d) {
+  const rows = Object.keys(d).sort().map(k => `| \`${k}\` | ${d[k].event ? '`' + d[k].event + '`' : '—'} | ${d[k].choice || '—'} | ${(d[k].note || '').replace(/\|/g, '\\|').replace(/\n/g, ' ')} |`);
+  return ['# Registry viewer decisions', '', '| Registry subject | Event | Decision | Note |', '|---|---|---|---|', ...rows].join('\n');
+}
+function download(name, text, type) {
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], {type})); a.download = name;
+  document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 0);
+}
+window.__registryViewer = {decisions: () => store.get(KD, {}), asJSON, asMarkdown};
+
+// ---------------- drawer
+function evCite(ev, round) { return ev ? `<code>${esc(ev)}</code>${round ? ` · round <code>${esc(round)}</code>` : ''}` : 'no event'; }
+function unitBtn(id) {
+  const u = O.get(id), off = u && !visibleIds().has(id);
+  return `<button class="linkbtn${off ? ' off' : ''}" data-open="${esc(id)}"${off ? ' title="hidden by the current filters"' : ''}>${esc(u ? u.name : id)}</button>`;
+}
+function tileBtn(id) { const t = T.get(id); if (!t) return `<code>${esc(id)}</code>`; return `${dot(t.source)} <button class="linkbtn${visibleIds().has(id) ? '' : ' off'}" data-open="${esc(id)}">${esc(t.name)}</button> <span class="meta">${esc(t.kind)}</span>`; }
+function traitHTML(t, x) {
+  const land = x.to ? `<div>Landed in ${unitBtn(x.to)}${x.into ? ` as <code>${esc(x.into)}</code>` : ''}${x.pending ? ` · <b>pending</b> <code>${esc(x.pending)}</code>` : ''}</div>` : '';
+  return `<div class="tr v-${BV[x.b]}"><div><span style="color:var(--c);font-weight:700">${V[BV[x.b]][0]}</span> <code>${esc(x.id)}</code>${x.listed ? '' : ' <span class="bd">not in current analysis</span>'}${x.rec_reject ? ' <span class="bd">report recommended reject</span>' : ''}</div>
+    <div>${esc(x.def || 'no definition recorded')}</div>
+    ${x.why ? `<div class="why">Why: ${md(x.why)}</div>` : ''}${x.revisit ? `<div class="why">Revisit when: ${md(x.revisit)}</div>` : ''}${land}
+    <div class="meta">${evCite(x.event, x.round)}${x.bead ? ` · bead <code>${esc(x.bead)}</code>` : ''}</div>
+    ${decHTML(t.id + '#' + x.id, x.event, t.name + ' · ' + x.id)}</div>`;
+}
+function openTile(t) {
+  const cp = t.checkpoint;
+  const lines = t.lines.map(l => `<li class="v-${BV[l.b]}"><span class="g">${V[BV[l.b]][0]}</span>${md(l.text)}</li>`).join('');
+  const flags = [t.stale && 'Upstream content changed since this ruling (registry gap), so the reasons may describe an older version.',
+    t.change === 'unknown' && 'Change since the ruling: unknown, review. The registry has no usable baseline to compare the upstream content with.',
+    t.removed && 'Removed upstream: no catalog entry at the current pin.',
+    t.mismatch && `Checkpoint says ${cp.kind}; the trait rulings compute to ${t.computed}.`,
+    t.gap && `Gap: nothing adopted, and no unit of ours sits in ${stageLabel(t.stage)} · ${t.substage}.`].filter(Boolean).map(f => `<div class="flag">${esc(f)}</div>`).join('');
+  const tg = Object.entries(t.targets).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+  const ad = cp && cp.adaptation;
+  const adapt = ad ? `<details open><summary>What we took and left (adaptation)</summary>
+      ${(ad.merged_from || []).length ? `<div class="meta">Merged from</div><ul>${ad.merged_from.map(x => `<li>${md(x)}</li>`).join('')}</ul>` : ''}
+      ${(ad.modifications || []).length ? `<div class="meta">Changed</div><ul>${ad.modifications.map(x => `<li>${md(x)}</li>`).join('')}</ul>` : ''}
+      ${(ad.deliberately_dropped || []).length ? `<div class="meta">Left out</div><ul>${ad.deliberately_dropped.map(x => `<li>${md(x)}</li>`).join('')}</ul>` : ''}</details>` : '';
+  const groups = BUCKETS.map(b => [b, t.traits.filter(x => x.b === b)]).filter(g => g[1].length);
+  const openB = new Set([...st.chips].flatMap(c => Object.keys(BV).filter(b => BV[b] === c)));
+  const traits = t.traits.length ? `<details id="alltraits"${openB.size ? ' open' : ''}><summary>All ${t.traits.length} traits, by verdict</summary>${groups.map(([b, xs]) =>
+      `<details class="v-${BV[b]}"${openB.has(b) ? ' open' : ''}><summary class="grp">${V[BV[b]][0]} ${BL[b]} (${xs.length})</summary>${xs.map(x => traitHTML(t, x)).join('')}</details>`).join('')}</details>` : '';
+  const copies = t.copies.length ? `<details><summary>Packaging copies folded in (${t.copies.length})</summary>${t.copies.map(c => `<div class="tr"><code>${esc(c.id)}</code><div class="why">${esc(c.kind)}: ${md(c.why)}</div><div class="meta">${evCite(c.event, c.round)}</div>${decHTML(c.id, c.event, t.name + ' (copy)')}</div>`).join('')}</details>` : '';
+  const hid = hiddenNote(new Set(Object.keys(t.targets)), visibleIds());
+  $('dbody').innerHTML = `<h2>${esc(t.name)}</h2>
+    <div class="meta">${dot(t.source)} ${esc(t.source)} ${esc(t.kind)} · <code>${esc(t.lid)}</code><br>${esc(stageLabel(t.stage))}${t.substage ? ' · ' + esc(t.substage) : ''} (placement from ${esc(t.placement_from)})${t.analysis ? ` · analysis <code>${esc(t.analysis)}</code>` : ''} · status: ${esc(t.stage_status)}</div>
+    <p class="v-${t.verdict}"><b style="color:var(--c)">${V[t.verdict][0]} ${V[t.verdict][1]}</b>${t.n_traits ? ` · ${t.mix.adopt || 0} / ${t.n_traits} traits adopted` : ''}</p>
+    <p>${t.desc ? md(t.desc) : '<span class="meta">Description unavailable: neither the catalog nor the checked-out reference file has one.</span>'}</p>
+    <ul class="lines">${lines}</ul>${flags}
+    ${tg.length ? `<div class="meta">Content in our units (retained adoptions, delivered or pending)</div><div>${tg.map(([k, n]) => `${unitBtn(k)} (${n})`).join(', ')}</div>${hid ? `<div class="hidnote">${esc(hid)}</div>` : ''}` : ''}
+    ${cp ? `<details><summary>Unit-level ruling: ${esc(cp.kind)}</summary><div class="why">${md(cp.why)}</div>${cp.revisit_when ? `<div class="why">Revisit when: ${md(cp.revisit_when)}</div>` : ''}<div class="meta">${evCite(cp.id, cp.round)}${cp.bead ? ` · bead <code>${esc(cp.bead)}</code>` : ''}${cp.report ? ` · report <code>${esc(cp.report)}</code>` : ''}</div></details>` : ''}
+    ${adapt}
+    <div class="decbox"><b>Your decision on the whole ${esc(t.kind)}</b>${decHTML(t.id, cp ? cp.id : '', t.name)}</div>
+    ${traits}${copies}`;
+}
+function linkList(title, ids) {
+  if (!ids.length) return '';
+  return `<h3>${esc(title)}</h3><div>${ids.map(unitBtn).join(', ')}</div>`;
+}
+function openOurs(u) {
+  const byH = {};
+  (u.prov || []).forEach(r => { const s = T.get(r.tile) ? T.get(r.tile).source : r.tile.split(':')[0]; ((byH[s] = byH[s] || {})[r.tile] = byH[s][r.tile] || []).push(r); });
+  const R = D.router;
+  const links = u.links || [];
+  const pb = links.filter(i => unitKind(i) === 'playbook'), sk = links.filter(i => unitKind(i) === 'skill'), pr = links.filter(i => unitKind(i) === 'principle');
+  let rel = '';
+  if (u.kind === 'playbook') {
+    const p = R.playbooks.find(p => p.unit === u.id);
+    rel = linkList('Skills its steps call', sk) + linkList('Playbooks it calls or that call it', pb) + linkList('Principles it names', pr)
+      + (p && p.line ? `<h3>Router line</h3><p>${md(p.line)}</p>` : '');
+  } else if (u.kind === 'skill') {
+    const r = R.skills.find(s => s.name === u.id);
+    const reach = r ? (r.orphan ? 'Description only: no playbook step calls it and no router line names it.' : `Named by ${r.named_by.map(x => '<code>' + esc(x) + '</code>').join(', ') || 'no router line'}.`) : '';
+    rel = linkList('Playbooks that call it', pb) + linkList('Principles it names', pr) + (reach ? `<p class="meta">${reach}</p>` : '');
+  } else if (u.kind === 'principle') {
+    rel = `<h3>Router situation</h3><p>${u.desc ? md(u.desc) : '<span class="meta">none in the router</span>'}</p>` + linkList('Named by', u.named_by || []);
+  }
+  const hid = hiddenNote(new Set([...links, ...Object.keys(u.fed)]), visibleIds());
+  $('dbody').innerHTML = `<h2>${esc(u.name)}</h2><div class="meta">ours ${esc(u.kind)}${u.planned ? ' (planned: a pending adoption names it, not built yet)' : ''}${u.path ? ` · <code>${esc(u.path)}</code>` : ''}<br>${esc(stageLabel(u.stage))}${u.substage ? ' · ' + esc(u.substage) : ''}${u.placement_from ? ` (placement from ${esc(u.placement_from)})` : ' (skills.yaml)'}</div>
+    ${u.kind !== 'principle' && u.desc ? `<h3>Description</h3><p>${md(u.desc)}</p>` : ''}
+    ${u.boundary ? `<h3>Boundary</h3><p>${md(u.boundary)}</p>` : ''}
+    ${u.summary ? `<h3>Record summary</h3><p>${md(u.summary)}</p>` : ''}${u.record ? `<div class="meta">Record <code>${esc(u.record)}</code></div>` : ''}
+    ${rel}${hid ? `<div class="hidnote">${esc(hid)}</div>` : ''}
+    <h3>Where its content came from</h3>
+    <div class="meta">Retained adoptions (README §5b), with what we provide now.</div>
+    ${Object.keys(byH).sort().map(s => { const units = Object.keys(byH[s]).sort(); return `<div class="meta" style="margin-top:6px">${dot(s)} ${esc(s)}: ${units.length} upstream ${units.length === 1 ? 'unit' : 'units'}</div>${units.map(k => { const c = {}; byH[s][k].forEach(r => c[r.state] = (c[r.state] || 0) + 1); return `<div>${tileBtn(k)} · ${Object.keys(c).sort().map(x => `${c[x]} ${esc(x)}`).join(', ')}</div>`; }).join('')}`; }).join('') || '<span class="meta">no upstream adoption recorded</span>'}`;
+}
+function fillDrawer(id) { const t = T.get(id), u = O.get(id); if (t) openTile(t); else if (u) openOurs(u); return !!(t || u); }
+function openDrawer(id) {
+  st.sel = id;
+  if (!fillDrawer(id)) return;
+  $('drawer').classList.add('open'); markSel(id); setHL(id);
+}
+function closeDrawer() { $('drawer').classList.remove('open'); st.sel = null; markSel(null); setHL(null); }
+
+// ---------------- router view
+const RID = id => { const u = O.get(id); if (!u) return null; if (u.kind === 'skill') return 'sk:' + id; if (u.kind === 'principle') return 'pr:' + id.replace(/^principle-/, ''); if (u.kind === 'playbook') return 'pb:' + u.name; return null; };
+const RUNIT = r => { const [k, n] = [r.slice(0, r.indexOf(':')), r.slice(r.indexOf(':') + 1)]; if (k === 'sk') return n; if (k === 'pr') return 'principle-' + n; if (k === 'pb') { const p = D.router.playbooks.find(p => p.name === n); return p && p.unit; } return null; };
+const RCOL = {pb: 'playbook', sk: 'skill', pr: 'principle'};
+function renderRouter() {
+  const R = D.router, dots = n => (O.get(n) || {sources: []}).sources.map(dot).join('');
+  const show = k => kindOk(k) ? '' : 'hidden';
+  const c1 = `<section><h2>1 · Entry</h2>
+    <div class="rn entry" data-r="agents"><code>AGENTS.md</code> → <code>mvp-mode</code><div class="sub">always loaded; names ${R.agents_names.map(n => '<code>' + esc(n) + '</code>').join(', ')}</div></div>
+    <h2 style="margin-top:10px">Skills by situation</h2>${R.situations.map((s, i) => `<div class="rn" data-r="sit:${i}">${md(s.text)}<div class="sub">→ ${md(s.route)}</div></div>`).join('')}</section>`;
+  const c2 = `<section data-col="playbook" ${show('playbook')}><h2>2 · Playbooks</h2>${R.playbooks.map(p => `<details class="rn" data-r="pb:${p.name}"><summary><b>${esc(p.name)}</b> ${dots(p.unit)} <span class="sub">${p.steps.length} steps</span></summary><div class="sub">${md(p.line)}</div>
+    <ol>${p.steps.map(s => `<li data-calls="${esc(s.calls.join(' '))}"><span class="sub">${esc(s.when)}</span>${s.calls.length ? `<div class="calls">${s.calls.map(c => '<code>' + esc(c) + '</code>').join('')}</div>` : ''}</li>`).join('')}</ol></details>`).join('')}</section>`;
+  const c3 = `<section data-col="skill" ${show('skill')}><h2>3 · Skills</h2>${R.skills.map(s => `<div class="rn" data-r="sk:${s.name}"><code>${esc(s.name)}</code> ${dots(s.name)} ${s.orphan ? '<span class="orph">description only</span>' : ''}<div class="sub">${esc(stageLabel(s.stage))} · ${esc(s.substage)}</div></div>`).join('')}</section>`;
+  const c4 = `<section data-col="principle" ${show('principle')}><h2>Principles</h2>${R.principles.map(p => `<div class="rn" data-r="pr:${p.name}"><code>${esc(p.name)}</code> ${dots(p.unit)}<div class="sub">${md(p.text)}</div>${p.named_by.length ? `<div class="sub">named by ${p.named_by.map(x => '<code>' + esc((O.get(x) || {}).name || x) + '</code>').join(', ')}</div>` : ''}</div>`).join('')}</section>`;
+  $('router').innerHTML = c1 + c2 + c3 + c4;
+  if (rsel) rHL(rsel);
+}
+function routerLinks(r) {
+  const R = D.router, out = new Set([r]);
+  const [k, n] = [r.slice(0, r.indexOf(':')), r.slice(r.indexOf(':') + 1)];
+  if (r === 'agents') { R.agents_names.forEach(x => out.add('sk:' + x)); }
+  else if (k === 'pb') { const p = R.playbooks.find(p => p.name === n); p.steps.forEach(s => s.calls.forEach(c => out.add(c.replace(/^skill:/, 'sk:').replace(/^playbook:/, 'pb:')))); R.skills.forEach(s => { if (s.named_by.includes('pbline:' + n)) out.add('sk:' + s.name); }); }
+  else if (k === 'sit') { R.situations[+n].skills.forEach(x => out.add('sk:' + x)); }
+  else if (k === 'pr') { R.skills.forEach(s => { if (s.named_by.includes('pr:' + n)) out.add('sk:' + s.name); }); }
+  else if (k === 'sk') { const s = R.skills.find(s => s.name === n); s.called_by.forEach(x => out.add(x)); s.named_by.forEach(x => out.add(x === 'agents' ? 'agents' : x.replace(/^pbline:/, 'pb:'))); }
+  const unit = RUNIT(r), u = unit && O.get(unit);
+  if (u) (u.links || []).forEach(x => { const rid = RID(x); if (rid) out.add(rid); });
+  return [out, k === 'sk' ? 'skill:' + n : null];
+}
+let rsel = null;
+function rHL(r) {
+  document.querySelectorAll('#router .hl').forEach(e => e.classList.remove('hl'));
+  if (!r) { document.body.classList.remove('rhl-on'); $('hlnote').textContent = ''; return; }
+  const [ids, call] = routerLinks(r);
+  document.querySelectorAll('#router .rn').forEach(e => { if (ids.has(e.dataset.r)) e.classList.add('hl'); });
+  document.querySelectorAll('#router li[data-calls]').forEach(li => {
+    const cs = li.dataset.calls.split(' ');
+    if ((call && cs.includes(call)) || (r.startsWith('pb:') && li.closest('.rn').dataset.r === r && li.dataset.calls)) li.classList.add('hl');
+  });
+  document.body.classList.add('rhl-on');
+  const c = {};
+  ids.forEach(x => { const k = RCOL[x.slice(0, x.indexOf(':'))]; if (k && x !== r && !kindOk(k)) c[k] = (c[k] || 0) + 1; });
+  const ks = Object.keys(c).sort();
+  $('hlnote').textContent = ks.length ? 'also linked: ' + ks.map(k => `${c[k]} ${c[k] === 1 ? k : PLURAL(k)}`).join(', ') + ' (hidden by the kind switch)' : '';
+}
+
+// ---------------- events
+function visibleTilesIn(lane) { return [...lane.querySelectorAll('.tile')]; }
+const onRouter = () => !$('view-router').hidden;
+document.addEventListener('click', e => {
+  const kb = e.target.closest('#kindseg button'); if (kb) { st.kind = kb.dataset.k; renderAll(); if (onRouter()) rHL(rsel); else if (st.sel) setHL(st.sel); return; }
+  const hb = e.target.closest('#hchips button'); if (hb) { const h = hb.dataset.h; if (h === '*') { if (allHarn()) st.harn.clear(); else D.sources.forEach(s => st.harn.add(s.name)); } else if (st.harn.has(h)) st.harn.delete(h); else st.harn.add(h); renderHarn(); renderChips(); renderInsights(); renderLanes(); return; }
+  const c = e.target.closest('.chip'); if (c) { const k = c.dataset.c; st.chips.has(k) ? st.chips.delete(k) : st.chips.add(k); renderChips(); renderLanes(); return; }
+  const ib = e.target.closest('#insights button[data-i]'); if (ib) { st.insight = st.insight === ib.dataset.i ? null : ib.dataset.i; renderInsights(); renderLanes(); return; }
+  if (e.target.id === 'clear') { st.chips.clear(); st.insight = null; st.q = ''; st.kind = 'all'; D.sources.forEach(s => st.harn.add(s.name)); $('q').value = ''; renderAll(); return; }
+  const tog = e.target.closest('.lane .tog'); if (tog) { const s = tog.closest('.lane').dataset.stage; collapsed[s] = !collapsed[s]; if (!collapsed[s]) delete collapsed[s]; store.set(KC, collapsed); renderLanes(); return; }
+  const op = e.target.closest('[data-open]'); if (op) { openDrawer(op.dataset.open); return; }
+  const tile = e.target.closest('#lanes .tile'); if (tile) { openDrawer(tile.dataset.id); return; }
+  if (e.target.id === 'dx') { closeDrawer(); return; }
+  if (e.target.id === 'export') { const d = store.get(KD, {}); download('registry-viewer-decisions.json', asJSON(d), 'application/json'); download('registry-viewer-decisions.md', asMarkdown(d), 'text/markdown'); return; }
+  const tab = e.target.closest('[role=tab]'); if (tab) { const r = tab.id === 'tab-router'; $('tab-map').setAttribute('aria-selected', !r); $('tab-router').setAttribute('aria-selected', r); $('view-map').hidden = r; $('view-router').hidden = !r; $('filters').hidden = r; $('hrow').hidden = r; $('insights').hidden = r; $('hlnote').textContent = ''; return; }
+  const rn = e.target.closest('#router .rn'); if (rn && !e.target.closest('summary')) { rsel = rsel === rn.dataset.r ? null : rn.dataset.r; rHL(rsel); return; }
+  if (rn) { rsel = rn.dataset.r; rHL(rsel); }
+});
+document.addEventListener('change', e => {
+  const box = e.target.closest('.dec'); if (box) { saveDec(box); return; }
+  if (e.target.dataset.rev) { const s = e.target.dataset.rev; if (e.target.checked) lanesDone[s] = true; else delete lanesDone[s]; store.set(KL, lanesDone); e.target.closest('.lane').classList.toggle('reviewed', e.target.checked); progress(); }
+});
+document.addEventListener('input', e => { const box = e.target.closest('.dec'); if (box && e.target.tagName === 'TEXTAREA') saveDec(box); if (e.target.id === 'q') { st.q = e.target.value.trim().toLowerCase(); renderLanes(); } });
+document.addEventListener('mouseover', e => { const t = e.target.closest('#lanes .tile'); if (t) setHL(t.dataset.id); const r = e.target.closest('#router .rn'); if (r && !rsel) rHL(r.dataset.r); });
+document.addEventListener('mouseout', e => { const t = e.target.closest('#lanes .tile'); if (t && !t.contains(e.relatedTarget)) setHL(st.sel); const r = e.target.closest('#router .rn'); if (r && !r.contains(e.relatedTarget) && !rsel) rHL(null); });
+document.addEventListener('focusin', e => { const t = e.target.closest('#lanes .tile'); if (t) setHL(t.dataset.id); });
+document.addEventListener('keydown', e => {
+  const typing = /INPUT|TEXTAREA|SELECT/.test(e.target.tagName);
+  if (e.key === 'Escape') { if ($('drawer').classList.contains('open')) closeDrawer(); else if (typing) e.target.blur(); return; }
+  if (typing) return;
+  if (e.key === '/') { e.preventDefault(); $('q').focus(); return; }
+  if (e.key === 'j' || e.key === 'k') {
+    const cur = document.activeElement.closest && document.activeElement.closest('#lanes .tile') || document.querySelector('#lanes .tile.sel');
+    const lane = cur ? cur.closest('.lane') : document.querySelector('#lanes .lane:not([hidden]):not(.collapsed)');
+    if (!lane) return;
+    const xs = visibleTilesIn(lane); let i = cur ? xs.indexOf(cur) : -1;
+    i = e.key === 'j' ? Math.min(xs.length - 1, i + 1) : Math.max(0, i - 1);
+    if (xs[i]) { xs[i].focus(); if ($('drawer').classList.contains('open')) openDrawer(xs[i].dataset.id); }
+  }
+});
+renderAll();
+})();
+</script>
+</body>
+</html>
