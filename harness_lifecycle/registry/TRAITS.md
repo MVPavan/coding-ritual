@@ -1184,6 +1184,28 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `sources-consulted-line`: List each source searched, empty or skipped, with the reason.
 - `constraints-before-change`: When a change follows, turn the findings into preserve, change, avoid and risk lists.
 - `pr-discussion-pull`: For each substantive commit, read the pull request body, linked issues, comments and reviews.
+- `incident-source-playbook`: When the target looks defensive, add a search of incident records, incident-labelled tickets and incident channels around the date it was added.
+- `warehouse-evidence-inventory`: Look for warehouse evidence in product events, usage and billing events, experiment data, system tables and pipeline lineage.
+- `typed-models-over-raw`: Query a warehouse's deduplicated typed models, dropping to raw events only where no model serves.
+- `probe-schema-before-query`: Confirm table and column names with listing and describe statements before querying a warehouse, and never report from an unverified table.
+- `schema-drift-check`: Check that a field existed when the target was written, since older data may lack it or hold it only in raw form.
+- `refresh-lag-fallback`: For events newer than a model's last refresh, query the raw table and deduplicate by id.
+- `timeline-against-ship-date`: Compare when a runtime or usage signal rose, fell, first appeared or stopped, and the releases it touched, with the date the target shipped.
+- `constant-origin-signal`: Treat a recorded distribution or monitor threshold that matches a constant in the code as evidence of where the number came from.
+- `warehouse-motive-signals`: Read an experiment's exposure counts and decision rows, and the expensive queries behind a migration, as warehouse evidence of motive.
+- `warehouse-finding-record`: Record each warehouse finding with its type, table, exact query, window, a compact numeric summary with no raw rows, its ship-date correlation and its strength.
+- `telemetry-evidence-inventory`: Look for telemetry evidence in metrics, monitors, dashboards, traces, logs, incidents and notebooks, where a metric's or monitor's existence itself shows concern.
+- `owning-service-first`: Find the services that own the target, and their dependencies, before searching telemetry.
+- `curated-views-before-raw`: Read the dashboards and monitors covering the target, noting their queries and thresholds, before raw telemetry.
+- `span-and-trace-inspection`: Use span statistics and specific traces for questions about timeouts, retries, slow paths and cross-service behaviour.
+- `narrow-log-lookups`: Narrow log searches by service, tag, text and a window around the change, aggregating in place of dumping raw logs.
+- `telemetry-motive-signals`: Read a dashboard by the target's author, an incident naming the code and a pre-change log pattern the guard would prevent as telemetry evidence of motive.
+- `telemetry-finding-record`: Record each telemetry item with its type, name, identifier, owner, dates, the condition or query that bears on the question and the strength of the connection.
+- `ticket-search-procedure`: Search an external ticket tracker's issues, comments, status updates, project documents, labels and milestones for business motive.
+- `document-store-search-procedure`: Search a document store's requirement docs, specs, decision records, meeting notes, postmortems and runbooks with broad keywords for unlinked pages, following backlinks, child pages, meeting-note databases and authors' personal spaces.
+- `error-trace-relevance`: Open a full error event to see whether its trace crosses the target and its tags and breadcrumbs match the guarded condition.
+- `error-finding-record`: Record each error issue with its id, title, project, seen timestamps, event count with sampling, releases, a verbatim trace excerpt, ship-date correlation, link and author notes.
+- `chat-search-procedure`: Search team chat for deliberation by the author's messages around the merge date and by the pull request's link.
 
 #### engineering · Improvement · Codification — create-formal-verification-skill
 - `formal-check-left-as-skill`: Verify one property and leave a project skill that lets a later agent check changes against it.
@@ -2742,7 +2764,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `repo-evidence-inventory`: Look through commits, pull request threads, inline markers, decision records, changelogs, ticket ids, tests and co-changed files for a repository's history. — adopt → why#local-evidence-sources
 - `pickaxe-history-search`: Search history for commits whose diffs add, remove or match a string or pattern. — adopt → why#pickaxe-history-search
 - `source-control-trust-ranking`: Rate repository history as the most trustworthy source because it ties directly to the code. — reject
-- `incident-source-playbook`: When the target looks defensive, add a search of incident records, incident-labelled tickets and incident channels around the date it was added. — defer
+- `incident-source-playbook`: When the target looks defensive, add a search of incident records, incident-labelled tickets and incident channels around the date it was added. — adopt → why#incident-source-playbook
 - `incident-commit-signals`: Read commit messages about incidents, added guards or a revert followed by re-application as strong signals of motive. — adopt → why#local-evidence-sources
 - `category-strength-map`: State which shape of motivation each evidence category reveals and when it is strongest. — reject
 - `provable-irrelevance-bar`: Skip a source for irrelevance only on proof, since probable irrelevance does not qualify. — reject
@@ -2787,25 +2809,25 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `history-answer-frame`: Open a history answer by restating the question and orienting a cold reader to the code, and close it with confidence rated by sub-claim. — reject
 - `competing-hypotheses-section`: When the record fits several stories, give each its evidence for and against, with no forced winner. — adopt → why#competing-hypotheses-section
 - `one-reference-per-shared-source`: Give an item cited more than once a single authoritative reference. — reject
-- `warehouse-evidence-inventory`: Look for warehouse evidence in product events, usage and billing events, experiment data, system tables and pipeline lineage. — defer
-- `typed-models-over-raw`: Query a warehouse's deduplicated typed models, dropping to raw events only where no model serves. — defer
+- `warehouse-evidence-inventory`: Look for warehouse evidence in product events, usage and billing events, experiment data, system tables and pipeline lineage. — adopt → why#warehouse-evidence-inventory
+- `typed-models-over-raw`: Query a warehouse's deduplicated typed models, dropping to raw events only where no model serves. — adopt → why#typed-models-over-raw
 - `dbt-column-conventions`: Use the dbt model fields directly, the standard `_timestamp`, `_id`, `_auth_id`, `_request_id` and `event_name`, typed `properties_<name>` event properties and pre-extracted `context_` client fields, to save a describe round-trip. — reject
 - `poll-running-query`: Poll a long-running query's handle for its result in place of running it again. — reject
-- `probe-schema-before-query`: Confirm table and column names with listing and describe statements before querying a warehouse, and never report from an unverified table. — defer
-- `schema-drift-check`: Check that a field existed when the target was written, since older data may lack it or hold it only in raw form. — defer
-- `refresh-lag-fallback`: For events newer than a model's last refresh, query the raw table and deduplicate by id. — defer
-- `timeline-against-ship-date`: Compare when a runtime or usage signal rose, fell, first appeared or stopped, and the releases it touched, with the date the target shipped. — defer
-- `constant-origin-signal`: Treat a recorded distribution or monitor threshold that matches a constant in the code as evidence of where the number came from. — defer
-- `warehouse-motive-signals`: Read an experiment's exposure counts and decision rows, and the expensive queries behind a migration, as warehouse evidence of motive. — defer
-- `warehouse-finding-record`: Record each warehouse finding with its type, table, exact query, window, a compact numeric summary with no raw rows, its ship-date correlation and its strength. — defer
-- `telemetry-evidence-inventory`: Look for telemetry evidence in metrics, monitors, dashboards, traces, logs, incidents and notebooks, where a metric's or monitor's existence itself shows concern. — defer
-- `owning-service-first`: Find the services that own the target, and their dependencies, before searching telemetry. — defer
-- `curated-views-before-raw`: Read the dashboards and monitors covering the target, noting their queries and thresholds, before raw telemetry. — defer
-- `span-and-trace-inspection`: Use span statistics and specific traces for questions about timeouts, retries, slow paths and cross-service behaviour. — defer
-- `narrow-log-lookups`: Narrow log searches by service, tag, text and a window around the change, aggregating in place of dumping raw logs. — defer
-- `telemetry-motive-signals`: Read a dashboard by the target's author, an incident naming the code and a pre-change log pattern the guard would prevent as telemetry evidence of motive. — defer
-- `telemetry-finding-record`: Record each telemetry item with its type, name, identifier, owner, dates, the condition or query that bears on the question and the strength of the connection. — defer
-- `ticket-search-procedure`: Search an external ticket tracker's issues, comments, status updates, project documents, labels and milestones for business motive. — defer
+- `probe-schema-before-query`: Confirm table and column names with listing and describe statements before querying a warehouse, and never report from an unverified table. — adopt → why#probe-schema-before-query
+- `schema-drift-check`: Check that a field existed when the target was written, since older data may lack it or hold it only in raw form. — adopt → why#schema-drift-check
+- `refresh-lag-fallback`: For events newer than a model's last refresh, query the raw table and deduplicate by id. — adopt → why#refresh-lag-fallback
+- `timeline-against-ship-date`: Compare when a runtime or usage signal rose, fell, first appeared or stopped, and the releases it touched, with the date the target shipped. — adopt → why#timeline-against-ship-date
+- `constant-origin-signal`: Treat a recorded distribution or monitor threshold that matches a constant in the code as evidence of where the number came from. — adopt → why#constant-origin-signal
+- `warehouse-motive-signals`: Read an experiment's exposure counts and decision rows, and the expensive queries behind a migration, as warehouse evidence of motive. — adopt → why#warehouse-motive-signals
+- `warehouse-finding-record`: Record each warehouse finding with its type, table, exact query, window, a compact numeric summary with no raw rows, its ship-date correlation and its strength. — adopt → why#warehouse-finding-record
+- `telemetry-evidence-inventory`: Look for telemetry evidence in metrics, monitors, dashboards, traces, logs, incidents and notebooks, where a metric's or monitor's existence itself shows concern. — adopt → why#telemetry-evidence-inventory
+- `owning-service-first`: Find the services that own the target, and their dependencies, before searching telemetry. — adopt → why#owning-service-first
+- `curated-views-before-raw`: Read the dashboards and monitors covering the target, noting their queries and thresholds, before raw telemetry. — adopt → why#curated-views-before-raw
+- `span-and-trace-inspection`: Use span statistics and specific traces for questions about timeouts, retries, slow paths and cross-service behaviour. — adopt → why#span-and-trace-inspection
+- `narrow-log-lookups`: Narrow log searches by service, tag, text and a window around the change, aggregating in place of dumping raw logs. — adopt → why#narrow-log-lookups
+- `telemetry-motive-signals`: Read a dashboard by the target's author, an incident naming the code and a pre-change log pattern the guard would prevent as telemetry evidence of motive. — adopt → why#telemetry-motive-signals
+- `telemetry-finding-record`: Record each telemetry item with its type, name, identifier, owner, dates, the condition or query that bears on the question and the strength of the connection. — adopt → why#telemetry-finding-record
+- `ticket-search-procedure`: Search an external ticket tracker's issues, comments, status updates, project documents, labels and milestones for business motive. — adopt → why#ticket-search-procedure
 - `named-record-first`: Fetch the records a seed commit names, with their comments, before searching by keyword. — adopt → why#named-record-first
 - `target-derived-search-terms`: Build search terms from the target's feature name or business term, symbols, author, error strings and path, trying several wordings. — adopt → why#target-derived-search-terms
 - `ship-window-bound`: Bound a search of a large source to a window around the date the target shipped. — reject
@@ -2813,14 +2835,14 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `ticket-motive-signals`: Read a stated business problem, a decision comment, an initiative-named parent, an attached spec and motive-bearing labels as tracker evidence of motive. — reject
 - `record-finding-fields`: Record each evidence record with its identity, the exact motive quote and its location, its author, its dates and its linked records. — reject
 - `ticket-external-metadata`: Record a ticket's labels, project and link with its finding. — reject
-- `document-store-search-procedure`: Search a document store's requirement docs, specs, decision records, meeting notes, postmortems and runbooks with broad keywords for unlinked pages, following backlinks, child pages, meeting-note databases and authors' personal spaces. — defer
+- `document-store-search-procedure`: Search a document store's requirement docs, specs, decision records, meeting notes, postmortems and runbooks with broad keywords for unlinked pages, following backlinks, child pages, meeting-note databases and authors' personal spaces. — adopt → why#document-store-search-procedure
 - `final-draft-preference`: Among several documents on a topic, use the finalized or most recently updated one. — reject
 - `document-motive-signals`: Read a matching problem section, rejected approaches, a postmortem naming the fix, dated decision notes and a filled decision record as evidence of motive. — reject
 - `document-external-metadata`: Record a document's URL and its final or draft status with its finding. — reject
-- `error-trace-relevance`: Open a full error event to see whether its trace crosses the target and its tags and breadcrumbs match the guarded condition. — defer
+- `error-trace-relevance`: Open a full error event to see whether its trace crosses the target and its tags and breadcrumbs match the guarded condition. — adopt → why#error-trace-relevance
 - `orient-org-and-project`: When an error tracker's organization and project are unknown, look them up before searching. — reject
-- `error-finding-record`: Record each error issue with its id, title, project, seen timestamps, event count with sampling, releases, a verbatim trace excerpt, ship-date correlation, link and author notes. — defer
-- `chat-search-procedure`: Search team chat for deliberation by the author's messages around the merge date and by the pull request's link. — defer
+- `error-finding-record`: Record each error issue with its id, title, project, seen timestamps, event count with sampling, releases, a verbatim trace excerpt, ship-date correlation, link and author notes. — adopt → why#error-finding-record
+- `chat-search-procedure`: Search team chat for deliberation by the author's messages around the merge date and by the pull request's link. — adopt → why#chat-search-procedure
 - `inspect-chat-tool-schema-first`: Check which chat tool exists, its schema and whether it needs authentication before searching it. — reject
 
 #### engineering · Design · Architecture — skill:pstack/skills/architect
@@ -3512,32 +3534,32 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `map-as-index`: Keep resolution detail on each ticket while the map holds only a named pointer and a gist. — adopt → wayfinder#map-as-index
 - `map-body-sections`: Structure the map body as Destination, Notes, Decisions so far, Not yet specified, and Out of scope. — adopt → wayfinder#map-body-sections
 - `bounded-decision-ticket`: Make each ticket one bounded question whose answer is a decision. — adopt → wayfinder#bounded-decision-ticket
-- `session-sized-tickets`: Size each ticket to fit one agent session's context window. — defer
+- `session-sized-tickets`: Size each ticket to fit one agent session's context window. — reject
 - `claim-before-work`: Choose the requested or a ready unclaimed child and claim it before working on it. — adopt → wayfinder#claim-before-work
 - `dependency-edges`: Encode real blocking edges in the tracker and let the ready frontier drive execution rather than listing order. — adopt → wayfinder#dependency-edges
 - `ticket-type-set`: A fixed set of ticket kinds: research for facts, prototype for fidelity, grilling for a live interview, and task for prerequisite work that unblocks a decision. — adopt → wayfinder#ticket-type-set
 - `live-human-resolution`: Resolve a human-in-the-loop item only through a live exchange with the human, never answering the human's side yourself. — adopt → wayfinder#human-decision-gate
 - `question-graduation`: Ticket a question once it is sharp enough to state, even while blocked, and hold not-yet-specifiable work aside until earlier answers make it expressible. — adopt → wayfinder#question-graduation
 - `out-of-scope-close`: Close an out-of-scope ticket with an explicit exclusion reason rather than a claim of delivery. — adopt → wayfinder#out-of-scope-close
-- `one-ticket-per-session`: Resolve no more than one ticket per session, except research tickets. — defer
-- `research-subagent-branch`: Resolve research tickets with subagents that capture findings on a throwaway research branch. — defer
+- `one-ticket-per-session`: Resolve no more than one ticket per session, except research tickets. — reject
+- `research-subagent-branch`: Resolve research tickets with subagents that capture findings on a throwaway research branch. — reject
 - `real-id-wiring`: Wire cross-references and dependencies with real identifiers, never placeholders. — adopt → tracker#real-id-wiring
 - `no-triage-labels`: Carry only wayfinder-type labels on a map and its tickets, never a triage label. — adopt → wayfinder#label-free-typing
-- `research-branch-pr-policy`: Push the research branch but open no pull request from it, and never merge it. — defer
+- `research-branch-pr-policy`: Push the research branch but open no pull request from it, and never merge it. — reject
 - `type-directed-resolution`: Resolve each ticket as the type its label names, reading the label rather than inferring from the body. — adopt → wayfinder#ticket-type-set
 - `destination-first`: Name the destination first, since it fixes the scope and shapes every ticket. — adopt → wayfinder#destination-first
-- `no-map-without-fog`: If breadth-first charting surfaces no fog, stop and ask how to proceed rather than building a map. — defer
+- `no-map-without-fog`: If breadth-first charting surfaces no fog, stop and ask how to proceed rather than building a map. — reject
 - `record-resolution`: On resolving a ticket, record the answer on it, close it, and add a pointer to the map's decisions so far. — adopt → wayfinder#record-resolution
-- `local-tracker-default`: Default to a local markdown tracker when no tracker is configured. — defer
+- `local-tracker-default`: Default to a local markdown tracker when no tracker is configured. — reject
 - `prototype-ticket-asset`: Resolve a prototype ticket by building a rough artifact and linking it from the ticket as an asset. — adopt → wayfinder#prototype-ticket-asset
-- `grilling-default-type`: Make a live interview the default ticket type. — defer
+- `grilling-default-type`: Make a live interview the default ticket type. — reject
 - `fog-hygiene`: Keep decided, ticketed and out-of-scope items out of the map's section of not-yet-specified questions. — adopt → wayfinder#fog-hygiene
-- `out-of-scope-final`: Never graduate an out-of-scope item back into the map; it returns only as a fresh effort if the destination changes. — defer
+- `out-of-scope-final`: Never graduate an out-of-scope item back into the map; it returns only as a fresh effort if the destination changes. — reject
 - `breadth-first-charting`: Chart by questioning breadth-first across the whole space to surface the open decisions and first steps before going deep on any. — adopt → wayfinder#breadth-first-charting
-- `map-initial-state`: Create a new map with destination and notes filled, decisions empty and the unspecified questions sketched. — defer
-- `chart-only-session`: End the charting session without resolving any ticket. — defer
+- `map-initial-state`: Create a new map with destination and notes filled, decisions empty and the unspecified questions sketched. — reject
+- `chart-only-session`: End the charting session without resolving any ticket. — reject
 - `low-res-map-load`: When working a map, load only its low-resolution body and open related tickets only on demand. — adopt → wayfinder#low-res-map-load
-- `ticket-asset-pointers`: Link assets created while resolving a ticket from the tracker rather than pasting them into it. — defer
+- `ticket-asset-pointers`: Link assets created while resolving a ticket from the tracker rather than pasting them into it. — reject
 - `prerequisite-task-human-checklist`: Do prerequisite task work alone where possible, otherwise hand the human a precise checklist. — adopt → wayfinder#prerequisite-task-human-checklist
 - `prerequisite-task-result-facts`: Record on a prerequisite task the resulting facts later tickets depend on, such as URLs or where credentials live. — adopt → wayfinder#prerequisite-task-result-facts
 - `invalidated-ticket-reconciliation`: Update or delete the other tickets that a recorded decision invalidated. — adopt → wayfinder#invalidated-ticket-reconciliation
@@ -3548,7 +3570,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `cited-artifact`: Bind citations to the claims they support in the research output. — adopt → research#cited-artifact
 - `findings-file`: Always write the findings to one Markdown file saved where the repository keeps such notes. — adopt → research#scaled-report
 - `primary-source-only-research`: Research only from primary sources such as official docs, source code and specs, never from a secondary write-up of them. — adopt → research#primary-source-preference
-- `claim-source-tracing`: Follow every claim back to the primary source that owns it. — defer
+- `claim-source-tracing`: Follow every claim back to the primary source that owns it. — reject
 - `fresh-context-subagent`: Start every subagent in a fresh context window rather than as a copy of the caller's conversation. — adopt → delegation#fresh-context-subagent
 
 #### core · Intake · Clarification — skill:skills/engineering/grill-with-docs
@@ -4458,7 +4480,7 @@ Chart by questioning breadth-first across the whole space to surface the open de
 
 #### `chart-only-session`
 End the charting session without resolving any ticket.
-- `mattpocock_skills:skill:skills/engineering/wayfinder` — defer
+- `mattpocock_skills:skill:skills/engineering/wayfinder` — reject
 
 #### `claim-before-work`
 Choose the requested or a ready unclaimed child and claim it before working on it.
@@ -4496,7 +4518,7 @@ Keep decided, ticketed and out-of-scope items out of the map's section of not-ye
 
 #### `grilling-default-type`
 Make a live interview the default ticket type.
-- `mattpocock_skills:skill:skills/engineering/wayfinder` — defer
+- `mattpocock_skills:skill:skills/engineering/wayfinder` — reject
 
 #### `human-decision-gate`
 Stop at a required human decision and prepare concrete options before requesting the final gate.
@@ -4517,7 +4539,7 @@ Resolve a human-in-the-loop item only through a live exchange with the human, ne
 
 #### `local-tracker-default`
 Default to a local markdown tracker when no tracker is configured.
-- `mattpocock_skills:skill:skills/engineering/wayfinder` — defer
+- `mattpocock_skills:skill:skills/engineering/wayfinder` — reject
 
 #### `low-res-map-load`
 When working a map, load only its low-resolution body and open related tickets only on demand.
@@ -4536,7 +4558,7 @@ Structure the map body as Destination, Notes, Decisions so far, Not yet specifie
 
 #### `map-initial-state`
 Create a new map with destination and notes filled, decisions empty and the unspecified questions sketched.
-- `mattpocock_skills:skill:skills/engineering/wayfinder` — defer
+- `mattpocock_skills:skill:skills/engineering/wayfinder` — reject
 
 #### `map-order-frontier-pick`
 Take the first ready, unclaimed child in the map's own order.
@@ -4548,7 +4570,7 @@ Continue through additional authorized ready tickets with no one-ticket-per-sess
 
 #### `no-map-without-fog`
 If breadth-first charting surfaces no fog, stop and ask how to proceed rather than building a map.
-- `mattpocock_skills:skill:skills/engineering/wayfinder` — defer
+- `mattpocock_skills:skill:skills/engineering/wayfinder` — reject
 
 #### `no-triage-labels`
 Carry only wayfinder-type labels on a map and its tickets, never a triage label.
@@ -4556,7 +4578,7 @@ Carry only wayfinder-type labels on a map and its tickets, never a triage label.
 
 #### `one-ticket-per-session`
 Resolve no more than one ticket per session, except research tickets.
-- `mattpocock_skills:skill:skills/engineering/wayfinder` — defer
+- `mattpocock_skills:skill:skills/engineering/wayfinder` — reject
 
 #### `out-of-scope-close`
 Close an out-of-scope ticket with an explicit exclusion reason rather than a claim of delivery.
@@ -4565,7 +4587,7 @@ Close an out-of-scope ticket with an explicit exclusion reason rather than a cla
 
 #### `out-of-scope-final`
 Never graduate an out-of-scope item back into the map; it returns only as a fresh effort if the destination changes.
-- `mattpocock_skills:skill:skills/engineering/wayfinder` — defer
+- `mattpocock_skills:skill:skills/engineering/wayfinder` — reject
 
 #### `plan-not-do`
 Keep the map to planning: each ticket resolves a decision rather than executing a build slice.
@@ -4612,7 +4634,7 @@ Reference tickets by name with identifiers and links so the map reads without op
 #### `session-sized-tickets`
 Size each ticket to fit one agent session's context window.
 - `mattpocock_skills:skill:skills/engineering/to-tickets` — defer
-- `mattpocock_skills:skill:skills/engineering/wayfinder` — defer
+- `mattpocock_skills:skill:skills/engineering/wayfinder` — reject
 
 #### `three-section-map-body`
 Structure the map body as Notes, Decisions so far and Fog.
@@ -4620,7 +4642,7 @@ Structure the map body as Notes, Decisions so far and Fog.
 
 #### `ticket-asset-pointers`
 Link assets created while resolving a ticket from the tracker rather than pasting them into it.
-- `mattpocock_skills:skill:skills/engineering/wayfinder` — defer
+- `mattpocock_skills:skill:skills/engineering/wayfinder` — reject
 
 #### `ticket-type-set`
 A fixed set of ticket kinds: research for facts, prototype for fidelity, grilling for a live interview, and task for prerequisite work that unblocks a decision.
@@ -4640,7 +4662,7 @@ Bind citations to the claims they support in the research output.
 
 #### `claim-source-tracing`
 Follow every claim back to the primary source that owns it.
-- `mattpocock_skills:skill:skills/engineering/research` — defer
+- `mattpocock_skills:skill:skills/engineering/research` — reject
 
 #### `decision-framing`
 State the decision, scope, constraints and material unknowns, and choose sources by what would change the answer.
@@ -10642,7 +10664,8 @@ State which shape of motivation each evidence category reveals and when it is st
 
 #### `chat-search-procedure`
 Search team chat for deliberation by the author's messages around the merge date and by the pull request's link.
-- `cursor_plugins:skill:pstack/skills/why` — defer
+- ours: `why`
+- `cursor_plugins:skill:pstack/skills/why` — adopt → why#chat-search-procedure
 
 #### `cited-flow-walkthrough`
 Walk the flow in prose from trigger to result, naming the files and functions at each step.
@@ -10684,7 +10707,8 @@ Do not read a repeated pattern as a deliberate choice, since it may be copying.
 
 #### `constant-origin-signal`
 Treat a recorded distribution or monitor threshold that matches a constant in the code as evidence of where the number came from.
-- `cursor_plugins:skill:pstack/skills/why` — defer
+- ours: `why`
+- `cursor_plugins:skill:pstack/skills/why` — adopt → why#constant-origin-signal
 
 #### `constraints-before-change`
 When a change follows, turn the findings into preserve, change, avoid and risk lists.
@@ -10706,7 +10730,8 @@ Before rating a finding strong, ask whether it would still appear under a false 
 
 #### `curated-views-before-raw`
 Read the dashboards and monitors covering the target, noting their queries and thresholds, before raw telemetry.
-- `cursor_plugins:skill:pstack/skills/why` — defer
+- ours: `why`
+- `cursor_plugins:skill:pstack/skills/why` — adopt → why#curated-views-before-raw
 
 #### `dated-survey-as-orientation`
 Use a dated product survey only for orientation, and research what is on offer now yourself.
@@ -10726,7 +10751,8 @@ Read a matching problem section, rejected approaches, a postmortem naming the fi
 
 #### `document-store-search-procedure`
 Search a document store's requirement docs, specs, decision records, meeting notes, postmortems and runbooks with broad keywords for unlinked pages, following backlinks, child pages, meeting-note databases and authors' personal spaces.
-- `cursor_plugins:skill:pstack/skills/why` — defer
+- ours: `why`
+- `cursor_plugins:skill:pstack/skills/why` — adopt → why#document-store-search-procedure
 
 #### `doubt-takes-simple-path`
 Resolve an uncertain size call to the cheaper one-pass path.
@@ -10747,11 +10773,13 @@ Ban words that imply self-evidence or triviality and statements of personal beli
 
 #### `error-finding-record`
 Record each error issue with its id, title, project, seen timestamps, event count with sampling, releases, a verbatim trace excerpt, ship-date correlation, link and author notes.
-- `cursor_plugins:skill:pstack/skills/why` — defer
+- ours: `why`
+- `cursor_plugins:skill:pstack/skills/why` — adopt → why#error-finding-record
 
 #### `error-trace-relevance`
 Open a full error event to see whether its trace crosses the target and its tags and breadcrumbs match the guarded condition.
-- `cursor_plugins:skill:pstack/skills/why` — defer
+- ours: `why`
+- `cursor_plugins:skill:pstack/skills/why` — adopt → why#error-trace-relevance
 
 #### `evidence-flags`
 Record two independent claim flags per capability — whether prose documents it and whether a manifest or config declares it.
@@ -10822,7 +10850,8 @@ Read commit messages about incidents, added guards or a revert followed by re-ap
 
 #### `incident-source-playbook`
 When the target looks defensive, add a search of incident records, incident-labelled tickets and incident channels around the date it was added.
-- `cursor_plugins:skill:pstack/skills/why` — defer
+- ours: `why`
+- `cursor_plugins:skill:pstack/skills/why` — adopt → why#incident-source-playbook
 
 #### `inline-for-bounded`
 Answer a bounded explanatory question inline with source pointers, without standing up a research registry.
@@ -10850,7 +10879,8 @@ Fetch the records a seed commit names, with their comments, before searching by 
 
 #### `narrow-log-lookups`
 Narrow log searches by service, tag, text and a window around the change, aggregating in place of dumping raw logs.
-- `cursor_plugins:skill:pstack/skills/why` — defer
+- ours: `why`
+- `cursor_plugins:skill:pstack/skills/why` — adopt → why#narrow-log-lookups
 
 #### `neighbor-evidence-substitution`
 Do not offer evidence about a neighbouring feature as though it answers the question asked.
@@ -10883,7 +10913,8 @@ Report a documented-and-PRESENT but never-WIRED capability as an explicit findin
 
 #### `owning-service-first`
 Find the services that own the target, and their dependencies, before searching telemetry.
-- `cursor_plugins:skill:pstack/skills/why` — defer
+- ours: `why`
+- `cursor_plugins:skill:pstack/skills/why` — adopt → why#owning-service-first
 
 #### `pickaxe-history-search`
 Search history for commits whose diffs add, remove or match a string or pattern.
@@ -10909,7 +10940,8 @@ Before delivery, check each claim for a citation or demote it, and check that it
 
 #### `probe-schema-before-query`
 Confirm table and column names with listing and describe statements before querying a warehouse, and never report from an unverified table.
-- `cursor_plugins:skill:pstack/skills/why` — defer
+- ours: `why`
+- `cursor_plugins:skill:pstack/skills/why` — adopt → why#probe-schema-before-query
 
 #### `provable-irrelevance-bar`
 Skip a source for irrelevance only on proof, since probable irrelevance does not qualify.
@@ -10966,7 +10998,8 @@ From a record, follow its parent and duplicate links to the item that carries th
 
 #### `refresh-lag-fallback`
 For events newer than a model's last refresh, query the raw table and deduplicate by id.
-- `cursor_plugins:skill:pstack/skills/why` — defer
+- ours: `why`
+- `cursor_plugins:skill:pstack/skills/why` — adopt → why#refresh-lag-fallback
 
 #### `repo-evidence-inventory`
 Look through commits, pull request threads, inline markers, decision records, changelogs, ticket ids, tests and co-changed files for a repository's history.
@@ -10974,15 +11007,16 @@ Look through commits, pull request threads, inline markers, decision records, ch
 
 #### `research-branch-pr-policy`
 Push the research branch but open no pull request from it, and never merge it.
-- `mattpocock_skills:skill:skills/engineering/wayfinder` — defer
+- `mattpocock_skills:skill:skills/engineering/wayfinder` — reject
 
 #### `research-subagent-branch`
 Resolve research tickets with subagents that capture findings on a throwaway research branch.
-- `mattpocock_skills:skill:skills/engineering/wayfinder` — defer
+- `mattpocock_skills:skill:skills/engineering/wayfinder` — reject
 
 #### `schema-drift-check`
 Check that a field existed when the target was written, since older data may lack it or hold it only in raw form.
-- `cursor_plugins:skill:pstack/skills/why` — defer
+- ours: `why`
+- `cursor_plugins:skill:pstack/skills/why` — adopt → why#schema-drift-check
 
 #### `scope-authorization`
 Map the invocation to the highest explicitly authorized scope, never exceed it, and escalate only when the user widens scope.
@@ -11016,7 +11050,8 @@ List each source searched, empty or skipped, with the reason.
 
 #### `span-and-trace-inspection`
 Use span statistics and specific traces for questions about timeouts, retries, slow paths and cross-service behaviour.
-- `cursor_plugins:skill:pstack/skills/why` — defer
+- ours: `why`
+- `cursor_plugins:skill:pstack/skills/why` — adopt → why#span-and-trace-inspection
 
 #### `stated-scope-reading`
 State your reading of an ambiguous target and proceed, so the user can redirect afterward.
@@ -11038,15 +11073,18 @@ Let the writer read the code to confirm a detail or fill a gap without redoing t
 
 #### `telemetry-evidence-inventory`
 Look for telemetry evidence in metrics, monitors, dashboards, traces, logs, incidents and notebooks, where a metric's or monitor's existence itself shows concern.
-- `cursor_plugins:skill:pstack/skills/why` — defer
+- ours: `why`
+- `cursor_plugins:skill:pstack/skills/why` — adopt → why#telemetry-evidence-inventory
 
 #### `telemetry-finding-record`
 Record each telemetry item with its type, name, identifier, owner, dates, the condition or query that bears on the question and the strength of the connection.
-- `cursor_plugins:skill:pstack/skills/why` — defer
+- ours: `why`
+- `cursor_plugins:skill:pstack/skills/why` — adopt → why#telemetry-finding-record
 
 #### `telemetry-motive-signals`
 Read a dashboard by the target's author, an incident naming the code and a pre-change log pattern the guard would prevent as telemetry evidence of motive.
-- `cursor_plugins:skill:pstack/skills/why` — defer
+- ours: `why`
+- `cursor_plugins:skill:pstack/skills/why` — adopt → why#telemetry-motive-signals
 
 #### `template-filler-discount`
 Discount generic text in a mandatory rationale or template section and look for specific content.
@@ -11066,7 +11104,8 @@ Read a stated business problem, a decision comment, an initiative-named parent, 
 
 #### `ticket-search-procedure`
 Search an external ticket tracker's issues, comments, status updates, project documents, labels and milestones for business motive.
-- `cursor_plugins:skill:pstack/skills/why` — defer
+- ours: `why`
+- `cursor_plugins:skill:pstack/skills/why` — adopt → why#ticket-search-procedure
 
 #### `tier-tagged-sections`
 Lay out an answer with one section per evidence class and an explicit tier tag on each bullet, omitting an empty section.
@@ -11074,7 +11113,8 @@ Lay out an answer with one section per evidence class and an explicit tier tag o
 
 #### `timeline-against-ship-date`
 Compare when a runtime or usage signal rose, fell, first appeared or stopped, and the releases it touched, with the date the target shipped.
-- `cursor_plugins:skill:pstack/skills/why` — defer
+- ours: `why`
+- `cursor_plugins:skill:pstack/skills/why` — adopt → why#timeline-against-ship-date
 
 #### `trivial-target-inline-exception`
 Answer a single-commit target directly when its pull request text answers fully, after confirming every other search would be redundant.
@@ -11090,7 +11130,8 @@ Trust the slowly changing traits of a product type over any figure a survey quot
 
 #### `typed-models-over-raw`
 Query a warehouse's deduplicated typed models, dropping to raw events only where no model serves.
-- `cursor_plugins:skill:pstack/skills/why` — defer
+- ours: `why`
+- `cursor_plugins:skill:pstack/skills/why` — adopt → why#typed-models-over-raw
 
 #### `unreachable-data-is-gap`
 Report data you could not reach, through a missing tool, denied access, retention or deletion, as a coverage gap and never as a null result.
@@ -11104,15 +11145,18 @@ Before reporting, confirm the registry matches disk, every row carries its flags
 
 #### `warehouse-evidence-inventory`
 Look for warehouse evidence in product events, usage and billing events, experiment data, system tables and pipeline lineage.
-- `cursor_plugins:skill:pstack/skills/why` — defer
+- ours: `why`
+- `cursor_plugins:skill:pstack/skills/why` — adopt → why#warehouse-evidence-inventory
 
 #### `warehouse-finding-record`
 Record each warehouse finding with its type, table, exact query, window, a compact numeric summary with no raw rows, its ship-date correlation and its strength.
-- `cursor_plugins:skill:pstack/skills/why` — defer
+- ours: `why`
+- `cursor_plugins:skill:pstack/skills/why` — adopt → why#warehouse-finding-record
 
 #### `warehouse-motive-signals`
 Read an experiment's exposure counts and decision rows, and the expensive queries behind a migration, as warehouse evidence of motive.
-- `cursor_plugins:skill:pstack/skills/why` — defer
+- ours: `why`
+- `cursor_plugins:skill:pstack/skills/why` — adopt → why#warehouse-motive-signals
 
 #### `wide-then-narrow-search`
 Begin a search with a broad sweep and focus on specific items only afterward.

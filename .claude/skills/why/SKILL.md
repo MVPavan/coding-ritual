@@ -35,9 +35,15 @@ pick no side while gathering.
 3. **Search terms.** Build them from the target's feature or business term, its
    symbols, its author, its error strings and its path. Try several wordings.
 4. **Sources.** Search for motivation in commit messages (always), Beads, decision
-   records, docs, inline markers, changelogs, tests and co-changed files. Add another
-   source only if it is available. When a commit you trace links a pull request,
-   read `references/pull-requests.md` and follow it.
+   records, docs, inline markers, changelogs, tests and co-changed files. When a
+   commit you trace links a pull request, read `references/pull-requests.md` and
+   follow it. Then read `.repo-context/evidence-sources.md`: for each outside source
+   marked `have`, follow its section of `references/outside-sources.md`; for each
+   `alternative`, search the alternative instead; each `not here` is a known coverage
+   gap. When a warehouse, observability or error tracker is `have` or `alternative`,
+   also apply that reference's "Runtime signals across sources". If the file is
+   missing, do not stop: list the outside sources that reference names as not
+   checked, and suggest creating the file from its format.
 5. **Strings in history.** Find commits whose diffs add, remove or match a string or
    pattern with `git log -S` and `git log -G`.
 6. **Whole records.** Before relying on an anchor or an excerpt, read the complete
@@ -82,6 +88,7 @@ Four readings do not count as evidence:
 - **Unknown:** report it with exactly what was searched, where and with which terms.
 - **Out of reach:** data you could not get, through a missing tool, denied access,
   retention or deletion, is a coverage gap. Report it as that, never as a null result.
-- **Sources line:** list each source searched, empty or skipped, with the reason.
+- **Sources line:** list each source searched, empty or skipped, with the reason,
+  including each outside source that is `not here` or not checked.
 - **Change to follow:** if one does, turn the findings into four lists: preserve,
   change, avoid and risk.
