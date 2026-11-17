@@ -1,6 +1,6 @@
 ---
 name: restate
-description: "Restate what you take the person's aim and problem to be, then stop. Use for /restate; resolving an open choice is discovery."
+description: "Restate what you take the person's aim and problem to be, then stop. Use for /restate; resolving an open choice is settle-open-questions."
 disable-model-invocation: true
 ---
 

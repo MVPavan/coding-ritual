@@ -125,7 +125,7 @@ Playbook traits: `stop-on-failure`
 
 | Step | When | Traits | Calls | Loads |
 |---|---|---|---|---|
-| `implement#1` | always | `scope-selector`, `risk-sized-review` | `skill:discovery` (when: material scope or behaviour is unresolved; nothing else starts) |  |
+| `implement#1` | always | `scope-selector`, `risk-sized-review` | `skill:settle-open-questions` (when: material scope or behaviour is unresolved; nothing else starts) |  |
 | `implement#2` | the units will span sessions and have no beads, or the scope is Phase or Workstream |  | `skill:tracker` (when: unit beads for units that will span sessions; each phase's epic by its lookup and defect rule) |  |
 | `implement#3` | Spec scope | `dependency-edges`, `single-integration-branch`, `worktree-per-significant-change`, `worktree-base-verify` |  | `.claude/skills/mvp-mode/playbooks/implement/spec-run.md` (when: its Setup, steps 1-4) |
 | `implement#4` | Task scope, each Spec ticket, and each coordinator-run stage from implement#6 | `task-loop`, `unit-bead-execution`, `confirmed-cause-fix`, `regression-proof-and-rerun`, `attempt-log`, `two-failure-stop`, `finding-adjudication`, `no-reused-implementer` | `skill:tdd` (when: risk calls for test-first or characterization); `skill:security` (when: a material boundary change); `skill:systematic-debugging` (when: a failure's cause is unclear); `skill:delegation` (when: the router's delegation rule sends a unit to a worker); `skill:tracker` (when: a one-phase epic: its stage mapping and close gate); `skill:land` (when: Spec scope: landing a ticket on the integration branch) | `.claude/skills/mvp-mode/playbooks/implement/task-engine.md` (when: delegated units or multi-round review); `.claude/skills/mvp-mode/playbooks/implement/spec-run.md` (when: Spec scope: each ticket, steps 5-7) |
@@ -196,7 +196,7 @@ Playbook traits: `planning-run-gate`
 |---|---|---|---|---|
 | `plan#1` | always | `small-change-plan-skip` |  |  |
 | `plan#2` | plan#1 did not skip |  | `skill:delegation` (when: the router's delegation rule sends the exploring to a subagent, in its explorer role) |  |
-| `plan#3` | exploring left a question whose answer changes the plan | `settle-by-observation` | `skill:discovery` (when: a material scope, behaviour, dependency or authority choice no run settles is open); `skill:prototype` (when: a run can observe the answer) |  |
+| `plan#3` | exploring left a question whose answer changes the plan | `settle-by-observation` | `skill:settle-open-questions` (when: a material scope, behaviour, dependency or authority choice no run settles is open); `skill:prototype` (when: a run can observe the answer) |  |
 | `plan#4` | plan#1 did not skip and no open decision holds up every task | `plan-route-by-shape` |  |  |
 | `plan#5` | plan#4 needs a spec: a durable spec was asked for, or several phases have no approved multi-phase spec |  | `skill:to-spec` |  |
 | `plan#6` | plan#4 chose several phases, and the spec is approved |  | `skill:to-roadmap` (when: whole: its own approval of the structure, then its tracker seed) |  |
@@ -337,11 +337,11 @@ Traits and calls used by two or more playbooks. Repeating a step is fine; the sa
 | `skill:codebase-design` | bug-fix: `bug-fix#3`; feature: `feature#2`; figure-it-out: `figure-it-out#3`; perf-issue: `perf-issue#3`; refactoring: `refactoring#3` |
 | `skill:decision-trail` | autonomous-run: `autonomous-run#2`; figure-it-out: `figure-it-out#4`; hillclimb: `hillclimb#3` |
 | `skill:delegation` | autonomous-run: `autonomous-run#4`; eval: `eval#5`; feature: `feature#4`; figure-it-out: `figure-it-out#5`; hillclimb: `hillclimb#4`; implement: `implement#4`; perf-issue: `perf-issue#3`, `perf-issue#4`; plan: `plan#2`; refactoring: `refactoring#4`; runtime-forensics: `runtime-forensics#1`; session-pickup: `session-pickup#1`; trace-forensics: `trace-forensics#1` |
-| `skill:discovery` | implement: `implement#1`; plan: `plan#3` |
 | `skill:how` | bug-fix: `bug-fix#2`; feature: `feature#1`; hillclimb: `hillclimb#1`; investigation: `investigation#1`; perf-issue: `perf-issue#2`; refactoring: `refactoring#1` |
 | `skill:land` | autonomous-run: `autonomous-run#7`; bug-fix: `bug-fix#8`; feature: `feature#8`; hillclimb: `hillclimb#8`; implement: `implement#4`, `implement#6`, `implement#8`, `implement#11`; perf-issue: `perf-issue#6`; plan: `plan#11`; refactoring: `refactoring#8`; skill-curation: `skill-curation#6` |
 | `skill:performance-optimization` | hillclimb: `hillclimb#1`; perf-issue: `perf-issue#1`; runtime-forensics: `runtime-forensics#1` |
 | `skill:review` | feature: `feature#4`; figure-it-out: `figure-it-out#5`; implement: `implement#5`; perf-issue: `perf-issue#3` |
+| `skill:settle-open-questions` | implement: `implement#1`; plan: `plan#3` |
 | `skill:systematic-debugging` | bug-fix: `bug-fix#2`; implement: `implement#4`; runtime-forensics: `runtime-forensics#2` |
 | `skill:tdd` | bug-fix: `bug-fix#3`; implement: `implement#4`; refactoring: `refactoring#1` |
 | `skill:to-plan` | implement: `implement#6`; plan: `plan#7` |

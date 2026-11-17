@@ -1,5 +1,5 @@
 ---
-skill: discovery
+skill: settle-open-questions
 domain: core
 stage: Intake
 substage: Clarification
@@ -8,7 +8,7 @@ family: requirements-elicitation
 aliases: []
 status: active
 ---
-# discovery
+# settle-open-questions
 
 Use when material scope or behavior decisions are still open and need settling, or the user requests a brainstorm. Skip a single factual lookup or one routine detail, which need no run; writing settled decisions up as a spec is to-spec; settling them on the way to a plan is the plan playbook, which calls this.
 
@@ -76,6 +76,7 @@ Use when material scope or behavior decisions are still open and need settling, 
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-17` **rename** (2026-11-17-settle-open-questions:001): Owner ruling of 2026-11-17 (conversation), bead cr-r2pa.4. The skill discovery is renamed settle-open-questions: it settles the open questions of one admitted …
 - `2026-11-12` **update** (2026-11-12-discovery-high-check:001): Bead cr-oiyn, plan 58 (scratchpad/mvp-stack/58/plan.md), from Sol critic-57c F1: five fresh trials graded answers assembled from several lines high after three…
 - `2026-11-12` **update** (2026-11-12-overlap-owners:005): Overlap audit #8 (inline diagrams) and #7 (HTML contract): discovery keeps when to draw during design and reads show-me's forms and rules for how, so it no lon…
 - `2026-11-12` **update** (2026-11-12-discovery-computed:001): Bead cr-oiyn, plan 57 (scratchpad/mvp-stack/57/plan.md), from critic 52g R1/R2: a discovery record had no source kind for a saved computation, so counts leaned…

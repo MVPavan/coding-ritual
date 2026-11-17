@@ -1339,7 +1339,7 @@ structure-question-visual:
   placement: {domain: core, stage: X, substage: Communication}
   secondary: [Clarification]
   distinct_from: [inline-diagrams, medium-appropriate-form, visual-form-catalog]
-  note: "Overlap audit #8: discovery owns when to draw during design; show-me owns how."
+  note: "Overlap audit #8: settle-open-questions owns when to draw during design; show-me owns how."
 matter-of-fact-errors:
   definition: "State an error's cause and fix plainly with no alarm language."
   placement: {domain: core, stage: X, substage: Communication}
@@ -2974,7 +2974,7 @@ risk-sized-review:
   definition: "Size work small, standard or deep and match inline work, delegation and independent review to that size."
   placement: {domain: engineering, stage: X, substage: Coordination}
 scope-selector:
-  definition: "Pick task, phase or workstream scope from the request and route unresolved material scope back to to-plan or discovery."
+  definition: "Pick task, phase or workstream scope from the request and route unresolved material scope back to to-plan or settle-open-questions."
   placement: {domain: engineering, stage: X, substage: Coordination}
 stop-on-failure:
   definition: "Let a failed gate, exit criterion or material blocker stop advancement and diagnose instead of re-dispatching without new evidence."
@@ -9764,7 +9764,7 @@ run-checks-yourself:
   definition: "Run any check you are able to run instead of asking the user to run it."
   placement: {domain: core, stage: X, substage: Governance}
   distinct_from: [self-serve-facts]
-  note: "self-serve-facts looks facts up instead of asking, inside discovery only; running a check is not covered."
+  note: "self-serve-facts looks facts up instead of asking, inside settle-open-questions only; running a check is not covered."
 full-pr-url:
   definition: "Give each pull request link as its full web address in the forge's public form."
   placement: {domain: core, stage: X, substage: Communication}

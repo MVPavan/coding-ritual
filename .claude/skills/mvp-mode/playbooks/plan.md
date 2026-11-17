@@ -11,7 +11,7 @@ steps:
   - id: plan#3
     when: exploring left a question whose answer changes the plan
     actions: [{trait: settle-by-observation}]
-    calls: [{to: "skill:discovery", when: "a material scope, behaviour, dependency or authority choice no run settles is open"}, {to: "skill:prototype", when: a run can observe the answer}]
+    calls: [{to: "skill:settle-open-questions", when: "a material scope, behaviour, dependency or authority choice no run settles is open"}, {to: "skill:prototype", when: a run can observe the answer}]
   - id: plan#4
     when: plan#1 did not skip and no open decision holds up every task
     actions: [{trait: plan-route-by-shape}]   # new
@@ -44,14 +44,14 @@ For a request to get work ready to build without building it: plan a change or
 feature, settle its open questions first, split an approved spec into phases, or plan
 one phase, one change or a batch of units. A build with no plan needed is the feature
 playbook (or refactoring, bug-fix); settled, tracked work to run is `implement`. A
-request for only a spec is `to-spec`, and for only decisions `discovery`; decisions
+request for only a spec is `to-spec`, and for only decisions `settle-open-questions`; decisions
 that depend on each other across sessions are `/wayfinder`.
 
 **The gate:** the run ends at its planning documents and implements nothing. It
 writes only:
-- the documents its steps produce: a discovery record, a spec, a roadmap or a plan;
-- `docs/discovery/INDEX.md`, when step 3's `discovery` call writes its record under
-  `docs/discovery/` and so regenerates that index;
+- the documents its steps produce: a decision record, a spec, a roadmap or a plan;
+- `docs/decisions/INDEX.md`, when step 3's `settle-open-questions` call writes its record under
+  `docs/decisions/` and so regenerates that index;
 - gitignored scratch;
 - tracker writes made under approval, with their export and renders.
 
@@ -71,7 +71,7 @@ changed it.
      routine and ask when it is material.
    - A routine choice no run settles: decide it and record it in Appendix B.
    - A material scope, behaviour, dependency or authority choice no run settles, or an
-     inconclusive prototype on one: invoke `discovery`, which asks the owner with
+     inconclusive prototype on one: invoke `settle-open-questions`, which asks the owner with
      options and a recommendation.
 
    Asking does not stop the plan. Tasks that do not depend on the answer are written,
@@ -107,7 +107,7 @@ changed it.
    lines as they are. The Skeleton branch's lint then reruns.
 10. **Close out**, on every exit. Compare `git status --short` with the start, and for a
     path already dirty its checksum with the one you noted. Only the documents this run
-    wrote (a discovery record's index included), the tracker's export and renders, and
+    wrote (a decision record's index included), the tracker's export and renders, and
     ignored scratch may differ; name anything else in the reply. This run commits
     nothing except through step 11: committing the planning documents is the next
     request.
@@ -120,7 +120,7 @@ changed it.
 - **Skipped** (step 1, or `to-plan`'s no-document branch): no plan, why, and the change
   named as the next request, with the path of any spec step 5 wrote in this run. With implementation already authorized, it ends with the
   continuation below.
-- **Stopped, decisions open:** the discovery record's path, and the index if written;
+- **Stopped, decisions open:** the decision record's path, and the index if written;
   each open question with its options and recommendation; the reply needed.
 - **Spec written, awaiting approval:** the spec's path, `Status: draft`, the blocking
   questions, and the approval that lets the run go on. No continuation, whatever build

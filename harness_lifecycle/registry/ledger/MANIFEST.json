@@ -60,7 +60,8 @@
     "2026-11-14-maintain-verification-skill.jsonl": "75744eb5db653ff2f438eeb065f6662b121e8637c5aaed2b2ee964049250514c",
     "2026-11-15-maintain-formal-verification-skill.jsonl": "cdd6b491eac8e0ecd2c42b49b329b02310748557a3b68e71e0a185b3c838fe3c",
     "2026-11-15-maintain-verification-two-rules.jsonl": "88b4fea7d7f31eee462def980b93b3abe853ec9c787ea7dbcb532bab35dfc18a",
-    "2026-11-15-statechart-partial-marks.jsonl": "b0dcfae8a7da36fc7c3ac55fecc501aa31fb98119b55869dbe1a1a8f013ef2d3"
+    "2026-11-15-statechart-partial-marks.jsonl": "b0dcfae8a7da36fc7c3ac55fecc501aa31fb98119b55869dbe1a1a8f013ef2d3",
+    "2026-11-17-settle-open-questions.jsonl": "50c5fb1bf689968e1bcf85cc7a015600b088de0e82871c80d117dec8584b0229"
   },
   "round_order": [
     "2026-10-14-migration.jsonl",
@@ -122,7 +123,8 @@
     "2026-11-14-formal-pair.jsonl",
     "2026-11-15-maintain-formal-verification-skill.jsonl",
     "2026-11-15-statechart-partial-marks.jsonl",
-    "2026-11-15-maintain-verification-two-rules.jsonl"
+    "2026-11-15-maintain-verification-two-rules.jsonl",
+    "2026-11-17-settle-open-questions.jsonl"
   ],
   "reports": {
     "harness_lifecycle/registry/reviews/2026-10-30-upstream-mattpocock_skills-5beb35b.yaml": "fb413772a75f116bd9baeaa06b6e414fe59978c654a951cb53345f17459d7597",

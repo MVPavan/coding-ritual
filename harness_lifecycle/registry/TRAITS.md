@@ -174,7 +174,28 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `non-destructive`: Never delete, stage or commit the source assets.
 - `test-before-reliance`: Run the migrator's own tests and trial it in a disposable target before relying on changed behavior.
 
-#### core · Intake · Clarification — discovery
+#### core · Intake · Clarification — grilling
+- `map-decisions`: Map the material decisions and their prerequisites before questioning.
+- `question-batching`: Batch independent questions whose prerequisites are settled and defer each dependent question until its prerequisites are answered.
+- `recommended-answer`: Attach a recommended answer to each question, letting the respondent disagree.
+- `self-serve-facts`: Look up available facts yourself rather than asking, leaving only the decisions to the live participant.
+- `settled-stop`: Recompute the unresolved choices after each answer and stop once the needed ones are settled, deferred or blocked, without exhausting every branch.
+- `absent-respondent`: When the needed respondent is absent, prepare a questionnaire for them instead of interviewing the present user about the subject.
+- `grill-the-send`: Ask the present user only about the send (who it goes to and what they need back), never about the subject the recipient knows.
+- `gap-targeted-questions`: Aim a questionnaire's questions at the gap between what the recipient knows and what the sender needs.
+- `interview-not-authority`: Treat conducting an interview or drafting a questionnaire as neither implementation authority nor permission to send it.
+- `optional-docs`: When requested, record settled domain terms and qualifying architectural decisions through domain-modeling, not as an automatic by-product of the interview.
+- `decision-summary`: Produce the durable decision log in a fixed template — context, a decision table with rationale and implications, open items, a dependency map and a risk register.
+- `answer-before-next-round`: Wait for the respondent's answers to a round before asking the next one.
+- `yes-accepts-recommendation`: Word each question so that a yes accepts your recommended answer.
+- `importance-ordered-questions`: Order a questionnaire's questions most important first.
+- `needed-item-coverage`: Finish a questionnaire only when every needed decision or fact is covered by at least one question.
+- `single-idea-questions`: Make each question a single idea, never a compound one.
+
+#### core · Intake · Clarification — restate
+- `goal-and-problem-restatement`: Say in your own wording what you believe the user is aiming for and which problem they are trying to solve.
+
+#### core · Intake · Clarification — settle-open-questions
 - `match-interaction-to-ambiguity`: Match the interaction depth to the ambiguity — return to the task, ask one focused question, or run a structured exploration — rather than over- or under-investigating.
 - `scoped-context-read`: Read only the existing code, authoritative docs and constraints needed to distinguish the live choices.
 - `reuse-before-new`: Name the closest existing solution before proposing a new one.
@@ -202,27 +223,6 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `area-topic-filing`: Without a path from the caller, file the output under one root by the work's area and topic, reusing an existing folder before creating one, two levels at most, and never replacing an earlier run's file without authority to revise it.
 - `generated-record-index`: Regenerate one index line per record (date, question, outcome) from the files themselves, never by hand.
 - `structure-question-visual`: During design, answer a structure, flow, sequence or state question with an inline visual rather than prose, keeping prose for requirements, scope and trade-offs; the visual's form, size and medium come from the show-me skill's rules.
-
-#### core · Intake · Clarification — grilling
-- `map-decisions`: Map the material decisions and their prerequisites before questioning.
-- `question-batching`: Batch independent questions whose prerequisites are settled and defer each dependent question until its prerequisites are answered.
-- `recommended-answer`: Attach a recommended answer to each question, letting the respondent disagree.
-- `self-serve-facts`: Look up available facts yourself rather than asking, leaving only the decisions to the live participant.
-- `settled-stop`: Recompute the unresolved choices after each answer and stop once the needed ones are settled, deferred or blocked, without exhausting every branch.
-- `absent-respondent`: When the needed respondent is absent, prepare a questionnaire for them instead of interviewing the present user about the subject.
-- `grill-the-send`: Ask the present user only about the send (who it goes to and what they need back), never about the subject the recipient knows.
-- `gap-targeted-questions`: Aim a questionnaire's questions at the gap between what the recipient knows and what the sender needs.
-- `interview-not-authority`: Treat conducting an interview or drafting a questionnaire as neither implementation authority nor permission to send it.
-- `optional-docs`: When requested, record settled domain terms and qualifying architectural decisions through domain-modeling, not as an automatic by-product of the interview.
-- `decision-summary`: Produce the durable decision log in a fixed template — context, a decision table with rationale and implications, open items, a dependency map and a risk register.
-- `answer-before-next-round`: Wait for the respondent's answers to a round before asking the next one.
-- `yes-accepts-recommendation`: Word each question so that a yes accepts your recommended answer.
-- `importance-ordered-questions`: Order a questionnaire's questions most important first.
-- `needed-item-coverage`: Finish a questionnaire only when every needed decision or fact is covered by at least one question.
-- `single-idea-questions`: Make each question a single idea, never a compound one.
-
-#### core · Intake · Clarification — restate
-- `goal-and-problem-restatement`: Say in your own wording what you believe the user is aiming for and which problem they are trying to solve.
 
 #### core · Intake · Clarification — sharpen
 - `depth-not-scope-rewrite`: Treat improving a task as making it deeper, and refuse to make it merely larger.
@@ -1747,7 +1747,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 
 #### implement — `doc:.claude/skills/mvp-mode/playbooks/implement.md`
 - `stop-on-failure`: Let a failed gate, exit criterion or material blocker stop advancement and diagnose instead of re-dispatching without new evidence.
-- `scope-selector`: Pick task, phase or workstream scope from the request and route unresolved material scope back to to-plan or discovery.
+- `scope-selector`: Pick task, phase or workstream scope from the request and route unresolved material scope back to to-plan or settle-open-questions.
 - `risk-sized-review`: Size work small, standard or deep and match inline work, delegation and independent review to that size.
 - `dependency-edges`: Encode real blocking edges in the tracker and let the ready frontier drive execution rather than listing order.
 - `single-integration-branch`: Land every ticket of a multi-ticket build on one integration branch.
@@ -3575,7 +3575,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `question-batching`: Batch independent questions whose prerequisites are settled and defer each dependent question until its prerequisites are answered. — adopt → grilling#question-batching
 - `recommended-answer`: Attach a recommended answer to each question, letting the respondent disagree. — adopt → grilling#recommended-answer
 - `yes-accepts-recommendation`: Word each question so that a yes accepts your recommended answer. — adopt → grilling#yes-accepts-recommendation
-- `round-format`: Lay out each round in a fixed question-and-recommendation markdown format, one block per question. — adopt → discovery#round-format
+- `round-format`: Lay out each round in a fixed question-and-recommendation markdown format, one block per question. — adopt → settle-open-questions#round-format
 - `self-serve-facts`: Look up available facts yourself rather than asking, leaving only the decisions to the live participant. — adopt → grilling#self-serve-facts
 - `exhaustive-completion`: End the session only when the frontier is empty and every branch of the tree has been visited, with nothing silently assumed. — defer
 - `reconfirm-before-action`: Do not act until the user confirms a shared understanding has been reached. — defer
@@ -4198,7 +4198,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 
 #### engineering · Design · Specification — skill:skills/engineering/to-spec
 - `synthesize-settled`: When the decisions are already settled, synthesize them into a spec without reopening the discussion. — adopt → to-spec#synthesize-settled
-- `ground-in-codebase`: Explore the current state of the code before writing, so the artifact targets what actually exists. — adopt → discovery#scoped-context-read
+- `ground-in-codebase`: Explore the current state of the code before writing, so the artifact targets what actually exists. — adopt → settle-open-questions#scoped-context-read
 - `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write. — defer
 - `respect-area-adrs`: Honour the recorded architectural decisions that govern the area being changed. — defer
 - `testing-seam-decision`: Record in the spec which seam the feature is tested at, preferring an existing and the highest useful seam and the fewest seams. — adopt → to-spec#testing-seam-decision
@@ -4672,7 +4672,7 @@ Always write the findings to one Markdown file saved where the repository keeps 
 
 #### `judgment-frameworks`
 Apply one to three comparison frameworks to sharpen a choice rather than to decorate the report.
-- ours: `discovery`
+- ours: `settle-open-questions`
 
 #### `primary-evidence-check`
 Check consequential claims from summaries, memory and agent reports against primary evidence before relying on them.
@@ -4731,23 +4731,23 @@ When the needed respondent is absent, prepare a questionnaire for them instead o
 
 #### `answer-before-next-round`
 Wait for the respondent's answers to a round before asking the next one.
-- ours: `discovery`
 - ours: `grilling`
+- ours: `settle-open-questions`
 - `mattpocock_skills:skill:skills/in-progress/loop-me` — adopt → grilling#answer-before-next-round
 - `mattpocock_skills:skill:skills/productivity/grilling` — adopt → grilling#answer-before-next-round
 
 #### `answerer-triage`
 Sort each open question by who can answer it (this project's code, cited by file and line; outside sources; a run; a routine pick; the owner) and put to the owner only what the others cannot settle.
-- ours: `discovery`
+- ours: `settle-open-questions`
 - `cursor_plugins:skill:pstack/skills/poteto-mode` — reject
 
 #### `approval-interpretation`
 Treat a clear acceptance of a concrete proposal or an explicit delegation of routine choices as usable authority, and silence as not approval.
-- ours: `discovery`
+- ours: `settle-open-questions`
 
 #### `assumption-audit`
 For each candidate direction, list its assumptions as must be true (dealbreakers that kill it if wrong), should be true (important but the approach can adjust) or might be true (secondary), validate the dealbreakers before building, and leave the might-be-true ones until the core is proven.
-- ours: `discovery`
+- ours: `settle-open-questions`
 
 #### `away-notice-stops-questions`
 Treat a person saying they are stepping away as a signal to stop asking questions.
@@ -4759,11 +4759,11 @@ Before migrating, ask which test files hold problem casts, whether large objects
 
 #### `decision-frame`
 Establish the outcome, intended user, success criteria, constraints and exclusions before committing to an approach.
-- ours: `discovery`
+- ours: `settle-open-questions`
 
 #### `decision-sequences`
 Follow a decision sequence matched to the question's domain, handing its fact-finding steps to `research`.
-- ours: `discovery`
+- ours: `settle-open-questions`
 
 #### `decision-summary`
 Produce the durable decision log in a fixed template — context, a decision table with rationale and implications, open items, a dependency map and a risk register.
@@ -4808,7 +4808,7 @@ Explain a question in one line only when its choice genuinely branches.
 
 #### `exploration-lenses`
 Apply ideation lenses such as SCAMPER or Jobs-to-Be-Done selectively to unlock options, never as a mandatory quota or sequence.
-- ours: `discovery`
+- ours: `settle-open-questions`
 
 #### `findings-summary-before-questions`
 Summarise what exists and what is missing before asking the user anything.
@@ -4821,7 +4821,7 @@ Aim a questionnaire's questions at the gap between what the recipient knows and 
 
 #### `generated-record-index`
 Regenerate one index line per record (date, question, outcome) from the files themselves, never by hand.
-- ours: `discovery`
+- ours: `settle-open-questions`
 
 #### `goal-and-problem-restatement`
 Say in your own wording what you believe the user is aiming for and which problem they are trying to solve.
@@ -4853,7 +4853,7 @@ Map the material decisions and their prerequisites before questioning.
 
 #### `match-interaction-to-ambiguity`
 Match the interaction depth to the ambiguity — return to the task, ask one focused question, or run a structured exploration — rather than over- or under-investigating.
-- ours: `discovery`
+- ours: `settle-open-questions`
 
 #### `material-ambiguity-ask`
 Decide routine details yourself and ask only when an ambiguity materially affects correctness, scope or authority.
@@ -4863,7 +4863,7 @@ Decide routine details yourself and ask only when an ambiguity materially affect
 
 #### `mvp-scope`
 Scope the first version of a chosen direction to one user job done well, sized by what can be built and tested in a time box rather than by a feature list, aimed at the riskiest assumption, with a mandatory list of what it is not doing and why, and expect it to feel incomplete to the builder.
-- ours: `discovery`
+- ours: `settle-open-questions`
 
 #### `needed-item-coverage`
 Finish a questionnaire only when every needed decision or fact is covered by at least one question.
@@ -4876,7 +4876,7 @@ Run a fact lookup without blocking the interview, holding back only the question
 
 #### `observable-outcomes`
 Translate vague goals such as scalable or simple into observable outcomes only when the distinction affects the design.
-- ours: `discovery`
+- ours: `settle-open-questions`
 
 #### `one-question-at-a-time`
 Take the questions in a fixed order and get one answer before asking the next.
@@ -4884,7 +4884,7 @@ Take the questions in a fixed order and get one answer before asking the next.
 
 #### `options-with-tradeoffs`
 Present materially different options with their tradeoffs when alternatives remain.
-- ours: `discovery`
+- ours: `settle-open-questions`
 
 #### `outside-correctness-signal`
 Name something outside both the agent and the user that would show the result is correct.
@@ -4902,8 +4902,8 @@ Invite partial and don't-know answers, asking the respondent to flag uncertainty
 
 #### `question-batching`
 Batch independent questions whose prerequisites are settled and defer each dependent question until its prerequisites are answered.
-- ours: `discovery`
 - ours: `grilling`
+- ours: `settle-open-questions`
 - `mattpocock_skills:skill:skills/productivity/grilling` — adopt → grilling#question-batching
 
 #### `questionnaire-artifact`
@@ -4925,8 +4925,8 @@ Name the least processed material a practitioner would begin from in place of th
 
 #### `recommended-answer`
 Attach a recommended answer to each question, letting the respondent disagree.
-- ours: `discovery`
 - ours: `grilling`
+- ours: `settle-open-questions`
 - `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
 - `mattpocock_skills:skill:skills/in-progress/loop-me` — adopt → grilling#recommended-answer
 - `mattpocock_skills:skill:skills/productivity/grilling` — adopt → grilling#recommended-answer
@@ -4949,16 +4949,16 @@ Before acting on a noisy report, put its underlying problem in plain words so a 
 
 #### `reuse-before-new`
 Name the closest existing solution before proposing a new one.
-- ours: `discovery`
+- ours: `settle-open-questions`
 
 #### `round-format`
 Lay out each round in a fixed question-and-recommendation markdown format, one block per question.
-- ours: `discovery`
-- `mattpocock_skills:skill:skills/productivity/grilling` — adopt → discovery#round-format
+- ours: `settle-open-questions`
+- `mattpocock_skills:skill:skills/productivity/grilling` — adopt → settle-open-questions#round-format
 
 #### `scoped-context-read`
 Read only the existing code, authoritative docs and constraints needed to distinguish the live choices.
-- ours: `discovery`
+- ours: `settle-open-questions`
 
 #### `selective-why-lines`
 Add a one-line reason a question matters only where it could be misread or invite a throwaway answer.
@@ -4966,15 +4966,15 @@ Add a one-line reason a question matters only where it could be misread or invit
 
 #### `self-serve-facts`
 Look up available facts yourself rather than asking, leaving only the decisions to the live participant.
-- ours: `discovery`
 - ours: `grilling`
+- ours: `settle-open-questions`
 - `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — reject
 - `mattpocock_skills:skill:skills/productivity/grilling` — adopt → grilling#self-serve-facts
 
 #### `settled-stop`
 Recompute the unresolved choices after each answer and stop once the needed ones are settled, deferred or blocked, without exhausting every branch.
-- ours: `discovery`
 - ours: `grilling`
+- ours: `settle-open-questions`
 
 #### `single-idea-questions`
 Make each question a single idea, never a compound one.
@@ -4987,7 +4987,7 @@ Skip a question that what you already found has settled, such as one about a ski
 
 #### `sourced-status-record`
 Write one file per run with a row per question giving its answer, its source, a confidence for each established fact and a status (established, decided, routine, proposed, open), marking a material choice decided only on the owner's quoted, dated word or a recorded delegation, and check the file with a script.
-- ours: `discovery`
+- ours: `settle-open-questions`
 
 #### `steer-by-principle-name`
 Steer a drifting run by naming the principle it should apply, which works because the reply names the decision each principle changed.
@@ -5003,7 +5003,7 @@ Ask the person one or two structured questions with four to six options, broad b
 
 #### `structured-divergence`
 Generate only enough distinct options to expose the tradeoff, compare them on value, feasibility, cost and reversibility, test the assumption most likely to reverse the choice first, and keep rejected options with their reasons.
-- ours: `discovery`
+- ours: `settle-open-questions`
 
 #### `synthesize-settled`
 When the decisions are already settled, synthesize them into a spec without reopening the discussion.
@@ -5040,8 +5040,8 @@ Capture the user's world, tools, channels and terminology in a notes file, inter
 
 #### `yes-accepts-recommendation`
 Word each question so that a yes accepts your recommended answer.
-- ours: `discovery`
 - ours: `grilling`
+- ours: `settle-open-questions`
 - `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
 - `mattpocock_skills:skill:skills/productivity/grilling` — adopt → grilling#yes-accepts-recommendation
 
@@ -5296,7 +5296,7 @@ Capture the spec in a fixed skeleton: problem, solution, user stories, implement
 
 #### `visuals-into-spec`
 Re-express an approved diagram inside the durable spec as a Mermaid block, or record what a mockup showed and decided, rather than linking disposable scratch files.
-- ours: `discovery`
+- ours: `settle-open-questions`
 
 #### `workflow-spec-artifact`
 Keep each workflow's spec in its own markdown file as the single source of truth.
@@ -7365,7 +7365,7 @@ Escalate to the dedicated HTML-artifact skill only under its full gate, and neve
 
 #### `html-mockup-on-request`
 On explicit request only, produce one self-contained offline HTML mockup under the scratch directory for what a diagram cannot carry.
-- ours: `discovery`
+- ours: `settle-open-questions`
 
 #### `identifiers-only-when-needed`
 Omit hashes, paths, commands, build numbers and test counts except where the person needs one to act.
@@ -8108,7 +8108,7 @@ Show a change as a diff against the structure the reader already holds rather th
 
 #### `structure-question-visual`
 During design, answer a structure, flow, sequence or state question with an inline visual rather than prose, keeping prose for requirements, scope and trade-offs; the visual's form, size and medium come from the show-me skill's rules.
-- ours: `discovery`
+- ours: `settle-open-questions`
 
 #### `svg-accessibility`
 Give each inline SVG a role, figure-prefixed title and description IDs, carry meaning in both shape and colour, and mark direction on every edge.
@@ -8313,8 +8313,8 @@ Write the header and rows only in append mode, so a false empty-file test costs 
 
 #### `area-topic-filing`
 Without a path from the caller, file the output under one root by the work's area and topic, reusing an existing folder before creating one, two levels at most, and never replacing an earlier run's file without authority to revise it.
-- ours: `discovery`
 - ours: `research`
+- ours: `settle-open-questions`
 
 #### `audit-own-stretches`
 Limit an audit to this run's row stretches, each from one of its `start` rows or the log's first row to the next `start` row of another run.
@@ -12516,7 +12516,7 @@ Keep the glossary free of implementation details and never treat it as a spec or
 #### `ground-in-codebase`
 Explore the current state of the code before writing, so the artifact targets what actually exists.
 - ours: `to-plan`
-- `mattpocock_skills:skill:skills/engineering/to-spec` — adopt → discovery#scoped-context-read
+- `mattpocock_skills:skill:skills/engineering/to-spec` — adopt → settle-open-questions#scoped-context-read
 - `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → to-plan#ground-in-codebase
 - `mattpocock_skills:skill:skills/engineering/triage` — defer
 
@@ -16858,7 +16858,7 @@ Choose the runner per task, so review and implementation runs may run on differe
 - `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
 
 #### `scope-selector`
-Pick task, phase or workstream scope from the request and route unresolved material scope back to to-plan or discovery.
+Pick task, phase or workstream scope from the request and route unresolved material scope back to to-plan or settle-open-questions.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/implement.md`
 
 #### `self-chaining-implementer`
@@ -17119,8 +17119,8 @@ Traits listed by two or more of our active skills (`doc:AGENTS.md` and playbooks
 
 | Trait | Holders | Why |
 |---|---|---|
-| `answer-before-next-round` | discovery, grilling | As question-batching: each skill waits for a round's answers inside its own question flow. |
-| `area-topic-filing` | discovery, research | Each files its own output under its own root by one rule: discovery its records under docs/discovery/, research its reports under docs/research/. |
+| `answer-before-next-round` | grilling, settle-open-questions | As question-batching: each skill waits for a round's answers inside its own question flow. |
+| `area-topic-filing` | research, settle-open-questions | Each files its own output under its own root by one rule: settle-open-questions its records under docs/decisions/, research its reports under docs/research/. |
 | `artifact-contracts` | codebase-research, create-verification-skill | Each writes its own artifact type in a fixed section set and order, saying a section is empty or does not apply rather than dropping it: codebase-research its reports, create-verification-skill the verify skill it generates (critic-81b F1). |
 | `atomicity-fidelity` | create-formal-verification-skill, maintain-formal-verification-skill | create-formal-verification-skill owns the rule in references/model-fidelity.md ("Indivisible steps"); maintain-formal-verification-skill applies it to every model update, splitting an action the code now runs as two steps (decision 4). |
 | `attempt-log` | doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/implement.md | Each fixes a failure on its own path, the bug-fix playbook for a bug-fix request and the implement playbook inside a unit it coordinates, where a separate bug-fix request would leave its scope; both log each fix attempt so a stop hands back usable evidence. |
@@ -17179,21 +17179,21 @@ Traits listed by two or more of our active skills (`doc:AGENTS.md` and playbooks
 | `pre-existing-edit-separation` | create-formal-verification-skill, maintain-formal-verification-skill, review | review separates a task's changes from pre-existing ones by the task baseline; create-formal-verification-skill records the product checkout's baseline before its planted edit, never clears the person's changes, and proves the restoration against that baseline. maintain-formal-verification-skill records the checkout's status, diff and the target's hash list before any edit, so the person's own edits stay apart from the pass's. |
 | `preserve-reproducers` | doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, systematic-debugging | Each cleans up after its own work: the diagnosis when called alone, the bug-fix playbook at its closeout on every exit. Both keep reproducers, so neither cleanup deletes the evidence the other relies on. |
 | `property-fails-on-broken-variant` | create-formal-verification-skill, maintain-formal-verification-skill | create-formal-verification-skill owns references/model-fidelity.md "Broken variants" and proves each property failing on a kept variant; maintain-formal-verification-skill reruns every kept variant after an update, adds one for a guard no variant removes, and accepts variant verdicts only from a run whose main run holds (decision 4). |
-| `question-batching` | discovery, grilling | Discovery asks the owner questions inside its own exploration; grilling's rules live inside its interview loop, so pointing there would pull discovery into that loop. |
+| `question-batching` | grilling, settle-open-questions | settle-open-questions asks the owner questions inside its own exploration; grilling's rules live inside its interview loop, so pointing there would pull settle-open-questions into that loop. |
 | `read-only-closeout` | doc:.claude/skills/mvp-mode/playbooks/investigation.md, doc:.claude/skills/mvp-mode/playbooks/session-pickup.md | Each is a read-only run whose closeout belongs to its own exits and reply; logged under St4 in unit-kinds. |
 | `read-only-explanation` | how, why | Both answer a question about this project and change nothing while answering; one read-only rule, kept in each half of the split. |
 | `read-trail-first` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md | Each looping playbook reads its own trail before choosing the next change; each trail has its own columns and rows. |
 | `real-code-names` | create-formal-verification-skill, create-verification-skill, show-me | Each writes text that must name the real code it describes: show-me a visual of a change, create-verification-skill the commands, routes, ports and paths a generated skill gives (plan 77 §5). create-formal-verification-skill applies generated-skill.md's "Writing rules", which require the real names from the code, to the formal skill it writes (decision 3). |
-| `recommended-answer` | discovery, grilling | As question-batching: a short rule each skill applies inside its own flow. |
+| `recommended-answer` | grilling, settle-open-questions | As question-batching: a short rule each skill applies inside its own flow. |
 | `record-command` | doc:.claude/skills/mvp-mode/playbooks/skill-curation.md, harness-evaluate | harness-evaluate records its own ruling; the playbook's ruling step names the same command for every curation operation. A pointer would add a hop to one command line. |
 | `registering-generated-frontmatter` | create-formal-verification-skill, create-verification-skill | Both generators give the skill they write registering frontmatter by generated-skill.md's "Frontmatter"; create-formal-verification-skill uses the formal name <area>-verification and its own description (decision 3). |
 | `reply-is-the-deliverable` | recall, teach | Each skill's reply is its product, an explanation or a brief, so neither may hand back a report of having done it instead. Batch P1 rows 2026-11-06-batch-p1:053 (teach) and :207 (recall), owner-ruled 2026-11-06. |
 | `revert-ineffective-experiments` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, performance-optimization | Each runs its own loop of attempts, fix attempts in the bug-fix playbook and optimization experiments in performance-optimization, and removes its own failed edits before the next attempt. |
 | `row-then-checkpoint` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md | Each loop writes its own row and checkpoint in this order, around its own keep-or-discard step, so a closing return can trust them. |
 | `run-limits-first` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md | Each long loop fixes its own limits before its first change, from the same stated defaults, and gives them to `wake`. |
-| `self-serve-facts` | discovery, grilling | As question-batching: a short rule each skill applies inside its own flow. |
+| `self-serve-facts` | grilling, settle-open-questions | As question-batching: a short rule each skill applies inside its own flow. |
 | `sequential-record-numbering` | domain-modeling, teach | Each keeps its own record folder (ADRs, learning records) in one minimal format. |
-| `settled-stop` | discovery, grilling | As question-batching: each skill stops its own questioning when its decisions are settled. |
+| `settled-stop` | grilling, settle-open-questions | As question-batching: each skill stops its own questioning when its decisions are settled. |
 | `single-source-of-truth` | authoring-for-agents, create-formal-verification-skill, principle-subtract-before-you-add | Each applies one-owner-per-meaning to its own material: authoring-for-agents to agent instructions (search for an existing owner before adding one), the principle to code and data before an addition; neither unit loads the other on its path. create-formal-verification-skill's references/model-fidelity.md is the one home of the model-fidelity rules, which maintain-formal-verification-skill reads without restating (decision 4). |
 | `smallest-evidenced-change` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md | Each loop makes the smallest change the evidence justifies and checks its predicate on it: autonomous-run per iteration toward one condition, figure-it-out per designed unit. A skill of one sentence would be ceremony (unit-kinds deviation log, St4, 2026-11-12). |
 | `stated-unattended-gate` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md | The same one sentence tells each of these playbooks whether a run is away; each then takes its own branch or exit. |
@@ -17213,4 +17213,4 @@ Traits listed by two or more of our active skills (`doc:AGENTS.md` and playbooks
 | `visual-form-catalog` | pr, show-me | show-me is manual, so a model writing a PR body cannot invoke it or read its file; pr carries the compact visual technique itself, as its upstream does, and names show-me for the person (plan 69 D3). |
 | `visual-placement` | pr, show-me | show-me is manual, so a model writing a PR body cannot invoke it or read its file; pr carries the compact visual technique itself, as its upstream does, and names show-me for the person (plan 69 D3). |
 | `worktree-environment-proof` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md | Each stated unattended loop proves its own command responds in its own worktree before starting; the check runs at each one's setup. |
-| `yes-accepts-recommendation` | discovery, grilling | As question-batching: each skill words its own questions so a yes accepts the recommendation. |
+| `yes-accepts-recommendation` | grilling, settle-open-questions | As question-batching: each skill words its own questions so a yes accepts the recommendation. |

@@ -1,4 +1,4 @@
-"""The discovery record checker: plan 20 section 6's rules, `--next` and `--index`."""
+"""The decision record checker: plan 20 section 6's rules, `--next` and `--index`."""
 
 import re
 import subprocess
@@ -7,11 +7,11 @@ from pathlib import Path
 
 import pytest
 
-SKILL = Path(__file__).parents[2] / ".claude/skills/discovery"
+SKILL = Path(__file__).parents[2] / ".claude/skills/settle-open-questions"
 SCRIPT = SKILL / "scripts/check_record.py"
 TEMPLATE = SKILL / "templates/record.md"
 HEADER_FIELDS = ["Question", "Area", "Topic", "Date", "Run", "Caller", "Outcome"]
-HEAD = """# Discovery record
+HEAD = """# Decision record
 
 **Question:** How should run state be stored?
 **Area:** general
@@ -110,7 +110,7 @@ PASSES = [
     GOOD.replace("src/store.py:2", "src/space name.py:1"),
     GOOD + "Notes right after the last row.\n",
 ]
-# Not anchored by the `# Discovery record` title: a full valid record inside a comment.
+# Not anchored by the `# Decision record` title: a full valid record inside a comment.
 COMMENTED_NOTES = "# Notes\n\nExample <!--\n" + GOOD + "\n-->\n"
 
 
@@ -260,7 +260,7 @@ def next_path(path: Path, run_id: str) -> Path:
 
 @pytest.mark.parametrize("area", ["skill-curation", "general"])
 def test_free_default_path_is_used_as_is(tmp_path: Path, area: str) -> None:
-    path = tmp_path / f"docs/discovery/{area}/run-state/2026-11-11-store.md"
+    path = tmp_path / f"docs/decisions/{area}/run-state/2026-11-11-store.md"
     assert next_path(path, "s1-a") == path
 
 
@@ -291,7 +291,7 @@ def test_commented_example_and_dangling_link_are_occupied(tmp_path: Path) -> Non
 
 
 def test_index_lists_records_by_date_and_follows_a_move(tmp_path: Path) -> None:
-    base = tmp_path / "docs/discovery"
+    base = tmp_path / "docs/decisions"
     late = base / "general/run-state/2026-11-12-store.md"
     early = base / "skill-curation/naming/2026-11-10-name.md"
     for path, text in (
@@ -321,7 +321,7 @@ def test_index_lists_records_by_date_and_follows_a_move(tmp_path: Path) -> None:
 
 
 def test_index_of_a_root_not_yet_created_writes_an_empty_index(tmp_path: Path) -> None:
-    base = tmp_path / "docs/discovery"
+    base = tmp_path / "docs/decisions"
     assert run("--index", base)[0] == 0
     assert not (base / "INDEX.md").read_text().endswith("\n\n")
 

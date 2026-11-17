@@ -47,7 +47,7 @@ Use these sections, and drop any that does not apply:
 ## Branch: decision
 
 **Condition:** the question is a choice between alternatives for this project, and
-the scope is settled. Open scope is `discovery`. When the choice needs outside
+the scope is settled. Open scope is `settle-open-questions`. When the choice needs outside
 sources, get that evidence from `research` and keep the choice here.
 
 Read what each alternative would touch, then recommend one, with a table of the

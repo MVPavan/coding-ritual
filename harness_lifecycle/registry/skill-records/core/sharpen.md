@@ -10,9 +10,9 @@ status: active
 ---
 # sharpen
 
-Make a task deeper, not bigger: answer four questions about it, then rewrite the prompt. Use for /sharpen to deepen a task prompt within its scope; settling open scope or behaviour choices is discovery.
+Make a task deeper, not bigger: answer four questions about it, then rewrite the prompt. Use for /sharpen to deepen a task prompt within its scope; settling open scope or behaviour choices is settle-open-questions.
 
-**Boundary:** Rewrites a person's own task prompt deeper, not bigger, after four questions, leaving their choices open; open scope or behaviour questions are discovery, human-facing prose wording is unslop, authoring agent instructions is authoring-for-agents, and an interview that challenges the person's plan is grilling.
+**Boundary:** Rewrites a person's own task prompt deeper, not bigger, after four questions, leaving their choices open; open scope or behaviour questions are settle-open-questions, human-facing prose wording is unslop, authoring agent instructions is authoring-for-agents, and an interview that challenges the person's plan is grilling.
 
 <!-- registry:generated traits -->
 - `depth-not-scope-rewrite`: Treat improving a task as making it deeper, and refuse to make it merely larger.
@@ -35,6 +35,7 @@ Make a task deeper, not bigger: answer four questions about it, then rewrite the
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-17` **update** (2026-11-17-settle-open-questions:008): Owner ruling of 2026-11-17 (conversation), bead cr-r2pa.4. Its description routes open scope or behaviour choices to settle-open-questions.
 - `2026-11-12` **adopt** (2026-11-12-batch-p1-manual:012): Completes pending 2026-11-06-batch-p1:013: owner-choices-left-open is written at .claude/skills/sharpen/SKILL.md:24-25 (plan 60; a new unit, so no frozen wordi…
 - `2026-11-12` **adopt** (2026-11-12-batch-p1-manual:011): Completes pending 2026-11-06-batch-p1:012: outside-correctness-signal is written at .claude/skills/sharpen/SKILL.md:20 (plan 60; a new unit, so no frozen wordi…
 - `2026-11-12` **adopt** (2026-11-12-batch-p1-manual:010): Completes pending 2026-11-06-batch-p1:011: expert-methods-question is written at .claude/skills/sharpen/SKILL.md:19 (plan 60; a new unit, so no frozen wording).

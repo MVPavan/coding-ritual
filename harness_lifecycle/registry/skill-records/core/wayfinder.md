@@ -12,7 +12,7 @@ status: active
 
 Map and resolve material decision dependencies across a multi-session effort.
 
-**Boundary:** Maps and resolves the material decisions of a multi-session effort and records its map and tickets through tracker; open questions settled within one session are discovery, and a route already clear is to-plan or implement.
+**Boundary:** Maps and resolves the material decisions of a multi-session effort and records its map and tickets through tracker; open questions settled within one session are settle-open-questions, and a route already clear is to-plan or implement.
 
 <!-- registry:generated traits -->
 - `decision-map-epic`: Chart a large effort as one map item on the tracker whose children are decision tickets. (A Beads epic whose title starts with Map:.)

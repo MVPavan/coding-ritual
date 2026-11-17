@@ -1,9 +1,9 @@
 ---
-name: discovery
+name: settle-open-questions
 description: Use when material scope or behavior decisions are still open and need settling, or the user requests a brainstorm. Skip a single factual lookup or one routine detail, which need no run; writing settled decisions up as a spec is to-spec; settling them on the way to a plan is the plan playbook, which calls this.
 ---
 
-# Discovery
+# Settle open questions
 
 Settle open scope or behavior questions before committing to an approach: sort
 each by who can answer it, answer what code, sources or a run can, ask the owner
@@ -83,7 +83,7 @@ Always write the record, from `templates/record.md`; presenting options may stay
 in chat. A filled example is `references/record-example.md`.
 
 1. Path: the one a calling skill or playbook names; otherwise
-   `docs/discovery/<area>/<topic>/<YYYY-MM-DD>-<slug>.md`. `<area>` is the
+   `docs/decisions/<area>/<topic>/<YYYY-MM-DD>-<slug>.md`. `<area>` is the
    `docs/workstreams/<name>` folder the work belongs to, else the top-level
    directory the question is about, kebab-cased (when it spans several, the one
    holding the code the answer would change; still several, `general`), else
@@ -100,15 +100,15 @@ in chat. A filled example is `references/record-example.md`.
    earlier run's record without the owner or the caller naming it to revise,
    noted as `Revises: <authority>`.
 4. Run `scripts/check_record.py <file>` and fix every line it prints; for a record
-   under `docs/discovery/`, then run `scripts/check_record.py --index docs/discovery`.
+   under `docs/decisions/`, then run `scripts/check_record.py --index docs/decisions`.
 
 ## End
 
 Report an unresolved direction as a blocker to whoever started the run. The run
 ends at the record and its report; a caller sequences what follows. At top level,
 work that goes on to a spec or a plan returns to `mvp-mode`; in a delegated task,
-report that route. A discovery-only request does not authorize code changes.
-Discovery writes no Beads and never calls `tracker`; a decision bead or ADR
+report that route. A settle-open-questions-only request does not authorize code changes.
+This skill writes no Beads and never calls `tracker`; a decision bead or ADR
 follows only where existing rules require one, and links the record. A fact
 that corrects a bead goes in a row and in the report, naming the bead, for
 whoever started the run to correct.

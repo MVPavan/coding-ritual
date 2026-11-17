@@ -1,4 +1,4 @@
-# Discovery record
+# Decision record
 
 **Question:** <the question this run settles>
 **Area:** <area>
@@ -33,5 +33,5 @@ several lines or a search that found nothing: medium or low, naming the rest and
 A fact and a choice made on it go in separate rows; the choice stays proposed.
 A computed answer names what it counts; compared counts cover one population. A consequence
 of a proposed choice may be established, starting `If row <n> is chosen,`.
-Then run `scripts/check_record.py <file>` and `scripts/check_record.py --index docs/discovery`.
+Then run `scripts/check_record.py <file>` and `scripts/check_record.py --index docs/decisions`.
 -->
