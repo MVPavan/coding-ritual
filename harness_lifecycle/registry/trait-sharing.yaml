@@ -200,6 +200,10 @@ verified-unit-sequence:
   skills: [doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md, principle-sequence-verifiable-units]
   why: "The principle owns the rule; figure-it-out's Run step states it in one sentence and cites the principle, as the owner ruled for row 2026-11-06-batch-p1:250, because the registry takes a delivered row only from the compared unit (unit-kinds St4)."
   reviewed: "2026-11-12"
+scaffold-first:
+  skills: [doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md, principle-sequence-verifiable-units]
+  why: "The principle states the rule for every unit that orders work by it, as the owner ruled on 2026-11-18 (deferred review, bead cr-r2pa.3.3); figure-it-out's Design step keeps its own one-line form, adopted 2026-11-06, because that playbook sequences the units it designs, including their verification."
+  reviewed: "2026-11-18"
 named-scope-first:
   skills: [create-formal-verification-skill, interrogate, no-comments]
   why: "Each works on a scope a person may name, interrogate on the change it attacks and no-comments on the files it sweeps, and each defaults differently without one; a pointer between two unrelated jobs would add a hop to one sentence. create-formal-verification-skill begins with the area, promise or bug the person names (its adopted P2 row)."

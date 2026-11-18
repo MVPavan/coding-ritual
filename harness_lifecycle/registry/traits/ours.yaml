@@ -30,8 +30,8 @@ ours:check-invariants:
   tree_hash: "323f807bdd498bdc3e560d5c7fd83faa8384181506bfc61e6474a64c6227b2ab"
   traits: [read-overlay, explicit-commands-only, pass-fail-report, skip-aspirational, repo-relative-paths]
 ours:codebase-design:
-  tree_hash: "0a53e74dd1cbd70391422ae06c94dd2a72dbda19f677dbc5f6c39d62c14e51ea"
-  traits: [module-vocabulary, project-term-allowance, interface-is-everything, depth-as-leverage, deletion-test, inject-dependencies, return-not-mutate, single-adapter-justified, internal-seams, dependency-categories, design-it-twice, design-proposal-contents, interface-design-recommendation, design-axes-comparison, grounded-sketch, ownership-change-rationale, caller-usage-first, stub-body-sketch, design-red-flag-screen, shallow-module-signs, leaked-decision-flag, pass-through-flag, split-ownership-flag, one-way-per-task, unreachable-internals, derived-or-checked-lists, next-agent-test, sketch-rationale]
+  tree_hash: "b281a7ce7fdca217d6aea3e1281f26a373f05a40556c6e4f428e2e0d72e359cc"
+  traits: [module-vocabulary, project-term-allowance, interface-is-everything, depth-as-leverage, policy-at-edge, deletion-test, inject-dependencies, return-not-mutate, single-adapter-justified, internal-seams, dependency-categories, design-it-twice, design-proposal-contents, interface-design-recommendation, design-axes-comparison, grounded-sketch, ownership-change-rationale, caller-usage-first, stub-body-sketch, design-red-flag-screen, shallow-module-signs, leaked-decision-flag, pass-through-flag, split-ownership-flag, one-way-per-task, unreachable-internals, derived-or-checked-lists, next-agent-test, sketch-rationale]
   notes:
     inject-dependencies: "Where it clarifies behaviour, not as a blanket rule."
     return-not-mutate: "Pure calculations where they clarify behaviour, isolating legitimate side effects."
@@ -111,10 +111,10 @@ ours:migrate-claude-to-codex:
   tree_hash: "27734a27265888408eca426706a7ad173b0f62709667cda6de5fa77afb3597ca"
   traits: [dry-run-default, skill-symlinking, destination-protection, command-conversion, agent-conversion, hook-conversion, config-scaffold, shared-policy-untouched, structural-verify, non-destructive, test-before-reliance]
 ours:model-council:
-  tree_hash: "e44b6813f81b5cf7292d78ab94b1118b4b68bc77f7e26a9c2e3a3420c73b257d"
-  traits: [member-resolution, runtime-capability-check, neutral-framing, member-isolation, report-preservation, independent-synthesis, consolidated-delivery, identity-recording, failed-member-recovery, no-silent-substitution, artifact-named-up-front, task-rubric-criteria, rubric-withheld-from-candidates, own-output-location, rationale-names-rejected, dropout-proceeds-noted, read-only-judge, judge-other-family-or-stated, rubric-given-to-judge, path-labelled-candidates, judge-criterion-scores, judge-recommends-base, full-read-before-pick, picker-criterion-scores, pick-compared-with-judge, disagreement-rereads-rationales, base-chosen-for-extensibility, near-tie-smaller-surface, loser-graft-pass, sparse-grafts, hand-folded-grafts, converged-shape-no-graft, divergence-reframes-once, graft-change-rerun, verify-miss-returns-once, single-synthesized-artifact, synthesis-decision-record, note-judge-status, note-convergence-dropouts, note-verification-result, no-judge-no-pick]
+  tree_hash: "924c702a75b471cbfa3a3aed97e1860adb5a41740233bb0c192b705b9bd49876"
+  traits: [member-resolution, runtime-capability-check, neutral-framing, member-isolation, report-preservation, independent-synthesis, consolidated-delivery, identity-recording, failed-member-recovery, no-silent-substitution, artifact-named-up-front, task-rubric-criteria, rubric-withheld-from-candidates, own-output-location, rationale-names-rejected, dropout-proceeds-noted, read-only-judge, judge-other-family-or-stated, rubric-given-to-judge, path-labelled-candidates, judge-criterion-scores, judge-recommends-base, full-read-before-pick, picker-criterion-scores, pick-compared-with-judge, disagreement-rereads-rationales, base-chosen-for-extensibility, near-tie-smaller-surface, loser-graft-pass, sparse-grafts, hand-folded-grafts, converged-shape-no-graft, divergence-reframes-once, graft-change-rerun, verify-miss-returns-once, single-synthesized-artifact, synthesis-decision-record, note-judge-status, note-convergence-dropouts, note-verification-result, no-judge-no-pick, sketch-by-parallel-runners]
 ours:mvp-mode:
-  tree_hash: "9089ce321534bc8596b377c9fb63243423d8a0d9315938d0fccc2fbab45da9a4"
+  tree_hash: "c7bdf60d98812a3c341404ae9c56b26fe013f278335da54c3e3792240e752556"
   traits: [unit-kind-lines, playbook-pick, need-to-skill-routing, overlap-arbitration, layered-catalog, platform-skill-invocation, no-playbook-in-delegate, delegate-independent-by-default, no-onward-delegation, playbook-steps-as-todos, recorded-step-skip, whole-callee, playbook-exit, legacy-entrypoint-flagging, catalog-trust-boundary]
 ours:performance-optimization:
   tree_hash: "8e393535c7e06691afca39ef9df84040ce4752a29a8cc58610b8522ce951c4da"
@@ -161,8 +161,8 @@ ours:principle-separate-before-serializing-shared-state:
   tree_hash: "ba25adb2431b8645c62cd2c6ead36d64db5551ba1afb2d535fa7ce203e3edb00"
   traits: [concurrent-modification-test, eliminate-shared-writes, structural-serialization]
 ours:principle-sequence-verifiable-units:
-  tree_hash: "94d66dc84b255642af04d3d5884aa4f70bf0f0a623c301b8d6dde94db43d5e1d"
-  traits: [baseline-check-before-change, verified-unit-sequence, small-single-purpose-commits, argument-order-commits, vertical-slices, prefactor-first, expand-contract, blast-radius-batches]
+  tree_hash: "4b25efdb965c69e018a82e0f2164ab3824fb647eaa82dff6856cd943bbee6f12"
+  traits: [baseline-check-before-change, verified-unit-sequence, small-single-purpose-commits, argument-order-commits, vertical-slices, prefactor-first, scaffold-first, expand-contract, blast-radius-batches]
 ours:principle-subtract-before-you-add:
   tree_hash: "76cd8d8c91d71be284e0570ffd72b4b747cd88b1fef6fd518c744fee37f7d1d8"
   traits: [touched-scope-subtraction, deletion-bias, stub-deletion, single-source-of-truth, cut-before-polish]

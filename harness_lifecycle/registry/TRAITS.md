@@ -647,6 +647,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `note-convergence-dropouts`: Record any convergence or dropped candidates in the synthesis note.
 - `note-verification-result`: Record the verification result in the synthesis note.
 - `no-judge-no-pick`: With no judge reachable, count no completed council: stop, say so and return the candidates with no pick.
+- `sketch-by-parallel-runners`: Produce candidates through parallel runners on different models, each in its own workspace and told not to hedge, then pick a base on named design axes.
 
 #### core · X · Coordination — mvp-mode
 - `unit-kind-lines`: Define each unit kind in one line inside the router, so a copy shipped without the repository's rules still distinguishes them.
@@ -800,6 +801,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `argument-order-commits`: Order commits so the history proves the work (failing test before fix, removal before reshape, baseline before treatment, scaffold before feature), each commit standing alone.
 - `vertical-slices`: Prefer independently verifiable vertical slices over horizontal layers.
 - `prefactor-first`: Find prefactoring that makes the change easy and sequence it before the feature slices.
+- `scaffold-first`: Sequence first the work every later phase benefits from (CI, linting, test infrastructure, shared types) before features.
 - `expand-contract`: For a broad refactor use expand, migrate then contract with genuine dependencies, naming one integration boundary when intermediate tasks cannot stay green.
 - `blast-radius-batches`: Size migration batches by blast radius and keep the build green between them.
 
@@ -865,6 +867,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `project-term-allowance`: Let the project's own precise terms, such as API, service or boundary, stand beside the design glossary rather than banning them.
 - `interface-is-everything`: Treat an interface as every fact a caller must know — invariants, ordering, errors, configuration and performance — not just the type signature.
 - `depth-as-leverage`: Prefer modules whose manageable interface hides a large amount of useful behaviour.
+- `policy-at-edge`: Keep general-purpose mechanism inside a module and special-purpose policy at its edge.
 - `deletion-test`: Question a layer that only forwards and keep one whose removal would spread complexity across callers.
 - `inject-dependencies`: Pass a module's external dependencies in as arguments rather than constructing them inside it, so callers and tests can substitute them.
 - `return-not-mutate`: Design functions to return results rather than cause side effects, so behaviour can be observed directly.
@@ -2856,7 +2859,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `phase-todos`: Open a task list with one item per phase before beginning. — reject
 - `grounded-sketch`: Before sketching, build a working model of what the design touches and write its architectural explanation, since naming a file is not grounding, skipping this only for true greenfield work. — adopt → codebase-design#grounded-sketch
 - `ownership-change-rationale`: When a design changes who owns what or how layers divide, also investigate why the existing shape exists so that its reason becomes a constraint. — adopt → codebase-design#ownership-change-rationale
-- `sketch-by-parallel-runners`: Produce candidates through parallel runners on different models, each in its own workspace and told not to hedge, then pick a base on named design axes. — defer
+- `sketch-by-parallel-runners`: Produce candidates through parallel runners on different models, each in its own workspace and told not to hedge, then pick a base on named design axes. — adopt → model-council#sketch-by-parallel-runners
 - `role-model-config-line`: Read each spawned role's model from a named line of a shared configuration, falling back to a fixed default and leaving the field unset for an alias. — reject
 - `sketch-required-twice`: Require two or more structurally different whole-shape candidates before synthesis, even when the first looks adequate. — reject
 - `design-red-flag-screen`: Screen every candidate shape against a named list of design flaws before choosing it, treating any hit as grounds to revise or reject the shape. — adopt → codebase-design#design-red-flag-screen
@@ -2898,7 +2901,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `boundary-validation`: Concentrate validation, narrowing and error handling where data crosses a system boundary such as CLI arguments, configuration, the network or an external API. — adopt → principle-boundary-discipline#boundary-validation
 - `trust-internal-types`: Inside the system, trust data that a boundary already validated into types and propagate errors instead of re-checking it in every layer. — adopt → principle-boundary-discipline#scoped-internal-trust
 - `domain-not-wire-types`: Expose domain concepts across a public surface, never the transport, storage or framework types behind it. — adopt → principle-boundary-discipline#domain-not-wire-types
-- `policy-at-edge`: Keep general-purpose mechanism inside a module and special-purpose policy at its edge. — defer
+- `policy-at-edge`: Keep general-purpose mechanism inside a module and special-purpose policy at its edge. — adopt → codebase-design#policy-at-edge
 - `parse-at-boundary`: Turn raw external input into typed domain values with a parse function at the boundary where it enters. — adopt → principle-boundary-discipline#parse-at-boundary
 - `pure-core-thin-shell`: Keep business logic in pure functions free of framework dependencies, leaving a thin mechanical shell that calls them. — adopt → principle-boundary-discipline#pure-core-thin-shell
 
@@ -2910,7 +2913,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `structural-dry`: Deduplicate structure such as types and data models, but tolerate a few similar statements rather than a premature abstraction. — adopt → principle-model-the-domain#structural-dry
 - `behaviour-and-edge-case-tests`: Judge tests by the behaviours and edge cases they exercise, not by line coverage. — adopt → principle-test-behavior-not-implementation#behaviour-and-edge-case-tests
 - `concurrent-modification-test`: Before sharing state between actors, ask what a concurrent modification would do, and isolate the state unless the answer is nothing. — adopt → principle-separate-before-serializing-shared-state#concurrent-modification-test
-- `scaffold-first`: Sequence first the work every later phase benefits from (CI, linting, test infrastructure, shared types) before features. — defer
+- `scaffold-first`: Sequence first the work every later phase benefits from (CI, linting, test infrastructure, shared types) before features. — adopt → principle-sequence-verifiable-units#scaffold-first
 - `test-before-fix`: Sequence the test that will check a fix before the fix itself. — reject
 - `small-single-purpose-commits`: Keep each commit small and about one thing. — adopt → principle-sequence-verifiable-units#small-single-purpose-commits
 - `coherent-increment`: Make each increment land or deepen one coherent abstraction instead of spreading a new capability across callers as special-case coordination. — adopt → principle-model-the-domain#coherent-increment
@@ -3958,23 +3961,23 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 
 #### engineering · Design · Architecture — skill:skills/engineering/codebase-design
 - `module-vocabulary`: Reason about design with a shared deep-module glossary: module, interface, depth, seam, adapter and locality. — adopt → codebase-design#module-vocabulary
-- `vocabulary-ban`: Use the design vocabulary exactly and never substitute looser words like component, service, API, or boundary. — defer
+- `vocabulary-ban`: Use the design vocabulary exactly and never substitute looser words like component, service, API, or boundary. — reject
 - `interface-is-everything`: Treat an interface as every fact a caller must know — invariants, ordering, errors, configuration and performance — not just the type signature. — adopt → codebase-design#interface-is-everything
 - `depth-as-leverage`: Prefer modules whose manageable interface hides a large amount of useful behaviour. — adopt → codebase-design#depth-as-leverage
 - `deletion-test`: Question a layer that only forwards and keep one whose removal would spread complexity across callers. — adopt → codebase-design#deletion-test
-- `interface-is-test-surface`: Treat the interface as the surface both callers and tests cross, so needing to test past it signals the module is the wrong shape. — defer
-- `two-adapters-rule`: Introduce a seam only when behaviour actually varies across it — one adapter is a hypothetical seam, two is a real one. — defer
+- `interface-is-test-surface`: Treat the interface as the surface both callers and tests cross, so needing to test past it signals the module is the wrong shape. — reject
+- `two-adapters-rule`: Introduce a seam only when behaviour actually varies across it — one adapter is a hypothetical seam, two is a real one. — reject
 - `internal-seams`: Allow internal seams and focused internal tests without exposing internals through the public interface merely to satisfy a testing rule. — adopt → codebase-design#internal-seams
 - `inject-dependencies`: Pass a module's external dependencies in as arguments rather than constructing them inside it, so callers and tests can substitute them. — adopt → codebase-design#inject-dependencies
 - `return-not-mutate`: Design functions to return results rather than cause side effects, so behaviour can be observed directly. — adopt → codebase-design#return-not-mutate
 - `small-interface-surface`: Keep a module's interface surface small — fewer methods and simpler parameters — to reduce what callers and tests must learn. — adopt → codebase-design#depth-as-leverage
 - `dependency-categories`: Classify a module's dependencies as in-process, locally substitutable, owned remote or true external to choose how it is tested across its seam. — adopt → codebase-design#dependency-categories
-- `replace-dont-layer`: Once the deepened interface is tested, delete the old shallow-module unit tests and assert only on observable outcomes that survive internal refactors. — defer
-- `local-stand-in-testing`: Test a module whose dependency has a local stand-in by running the stand-in in the suite, keeping that seam internal. — defer
-- `port-with-memory-adapter`: For a remote service you own, define a port with a production transport adapter and an in-memory adapter for tests. — defer
-- `external-port-mock-adapter`: Inject a third-party service as a port and use a mock adapter for it in tests. — defer
-- `problem-space-framing`: Before exploring alternative designs, show the user the constraints, dependency categories and an illustrative sketch, then continue without waiting. — defer
-- `design-brief-vocabulary`: Give each design subagent both the design vocabulary and the project's domain glossary in its brief. — defer
+- `replace-dont-layer`: Once the deepened interface is tested, delete the old shallow-module unit tests and assert only on observable outcomes that survive internal refactors. — reject
+- `local-stand-in-testing`: Test a module whose dependency has a local stand-in by running the stand-in in the suite, keeping that seam internal. — reject
+- `port-with-memory-adapter`: For a remote service you own, define a port with a production transport adapter and an in-memory adapter for tests. — reject
+- `external-port-mock-adapter`: Inject a third-party service as a port and use a mock adapter for it in tests. — reject
+- `problem-space-framing`: Before exploring alternative designs, show the user the constraints, dependency categories and an illustrative sketch, then continue without waiting. — reject
+- `design-brief-vocabulary`: Give each design subagent both the design vocabulary and the project's domain glossary in its brief. — reject
 - `design-proposal-contents`: Have each design proposal return its interface, a usage example, the hidden internals, its dependency strategy and its trade-offs. — adopt → codebase-design#design-proposal-contents
 - `parallel-interface-generation`: Generate several radically different interfaces through parallel designers, each working under a different constraint brief. — adopt → codebase-design#design-it-twice
 - `depth-locality-seam-comparison`: Present alternative designs one at a time, then compare them on depth, locality and seam placement. — adopt → codebase-design#design-axes-comparison
@@ -4008,32 +4011,32 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `scope-by-evidence`: Scope the audit to a named module or pain point, otherwise to the hot spots in recent change history. — adopt → improve-codebase-architecture#scope-by-evidence
 - `friction-signals`: Surface architectural friction that current code actually supports rather than speculative smells. — adopt → improve-codebase-architecture#friction-signals
 - `deletion-test`: Question a layer that only forwards and keep one whose removal would spread complexity across callers. — adopt → codebase-design#deletion-test
-- `diagram-patterns`: Draw before/after architecture visuals from a catalogue of patterns (dependency graph, hand-built boxes, cross-section, mass diagram, call-graph collapse) rather than one generic style. — defer
+- `diagram-patterns`: Draw before/after architecture visuals from a catalogue of patterns (dependency graph, hand-built boxes, cross-section, mass diagram, call-graph collapse) rather than one generic style. — reject
 - `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write. — adopt → improve-codebase-architecture#domain-vocabulary
-- `vocabulary-ban`: Use the design vocabulary exactly and never substitute looser words like component, service, API, or boundary. — defer
+- `vocabulary-ban`: Use the design vocabulary exactly and never substitute looser words like component, service, API, or boundary. — reject
 - `adr-conflict-callout`: When a candidate conflicts with a decision record, explain the new evidence that might justify revisiting it. — adopt → improve-codebase-architecture#adr-conflict-callout
-- `no-interfaces-yet`: Keep the survey free of proposed interfaces and instead ask the user which candidate to explore. — defer
+- `no-interfaces-yet`: Keep the survey free of proposed interfaces and instead ask the user which candidate to explore. — reject
 - `module-vocabulary`: Reason about design with a shared deep-module glossary: module, interface, depth, seam, adapter and locality. — adopt → codebase-design#module-vocabulary
 - `respect-area-adrs`: Honour the recorded architectural decisions that govern the area being changed. — adopt → improve-codebase-architecture#respect-area-adrs
 - `read-domain-docs-first`: Read the domain glossary and the decision records near the code before exploring it. — adopt → improve-codebase-architecture#read-domain-docs-first
-- `delegated-codebase-walk`: Delegate the codebase walk to a subagent that explores organically for friction. — defer
-- `open-artifact-for-user`: Open a generated artifact for the user with the platform's opener and give its path. — defer
-- `cdn-only-scripts`: Load only CDN-hosted styling and diagram libraries as scripts, keeping the document otherwise static. — defer
+- `delegated-codebase-walk`: Delegate the codebase walk to a subagent that explores organically for friction. — reject
+- `open-artifact-for-user`: Open a generated artifact for the user with the platform's opener and give its path. — reject
+- `cdn-only-scripts`: Load only CDN-hosted styling and diagram libraries as scripts, keeping the document otherwise static. — reject
 - `dependency-categories`: Classify a module's dependencies as in-process, locally substitutable, owned remote or true external to choose how it is tested across its seam. — adopt → codebase-design#dependency-categories
-- `document-during-interview`: Pair a clarifying interview with live documentation so the glossary and decision records are produced as the interview settles each question. — defer
+- `document-during-interview`: Pair a clarifying interview with live documentation so the glossary and decision records are produced as the interview settles each question. — reject
 - `rejection-decision-record`: When the user rejects an improvement candidate for a durable reason, offer a decision record so later reviews do not suggest it again, skipping ephemeral or self-evident reasons. — adopt → improve-codebase-architecture#rejection-decision-record
-- `report-header-legend`: Open a visual report with a header of repository name, date and a visual legend, and no intro paragraph. — defer
-- `terse-card-prose`: Hold each report card to a one-sentence problem and solution and wins bullets of six words or fewer. — defer
-- `redraw-not-explain`: Redraw a diagram that needs a paragraph to be understood rather than explaining it. — defer
-- `visual-restraint`: Keep visuals restrained, with muted colour and no decorative animation, so the content carries the attention. — defer
+- `report-header-legend`: Open a visual report with a header of repository name, date and a visual legend, and no intro paragraph. — reject
+- `terse-card-prose`: Hold each report card to a one-sentence problem and solution and wins bullets of six words or fewer. — reject
+- `redraw-not-explain`: Redraw a diagram that needs a paragraph to be understood rather than explaining it. — reject
+- `visual-restraint`: Keep visuals restrained, with muted colour and no decorative animation, so the content carries the attention. — reject
 - `concrete-benefit-claims`: Phrase a candidate's benefits in the design vocabulary rather than generic claims such as easier to maintain. — adopt → improve-codebase-architecture#concrete-benefit-claims
-- `compress-to-bullets`: Strip hedging, turn sentences into bullets and cut bullets wherever possible. — defer
+- `compress-to-bullets`: Strip hedging, turn sentences into bullets and cut bullets wherever possible. — reject
 - `html-architecture-report`: Write an architecture survey as a standalone HTML report in a file under the system's temporary directory, so nothing lands in the repository. — adopt → improve-codebase-architecture#optional-report
-- `candidate-before-after-visual`: Give every architecture candidate a before-and-after diagram of its structural change. — defer
+- `candidate-before-after-visual`: Give every architecture candidate a before-and-after diagram of its structural change. — reject
 - `architecture-candidate-card`: Give each architecture candidate a card of files, problem, solution, benefits and a recommendation-strength badge. — adopt → improve-codebase-architecture#candidate-comparison
-- `candidate-dependency-tag`: Tag each architecture candidate with the dependency category of what it touches. — defer
+- `candidate-dependency-tag`: Tag each architecture candidate with the dependency category of what it touches. — reject
 - `top-candidate-recommendation`: End a candidate survey with a single top recommendation. — adopt → improve-codebase-architecture#top-candidate-recommendation
-- `candidate-constraint-interview`: Once the user picks an architecture candidate, interview them on its constraints, dependencies, module shape, hidden internals and the tests that survive. — defer
+- `candidate-constraint-interview`: Once the user picks an architecture candidate, interview them on its constraints, dependencies, module shape, hidden internals and the tests that survive. — reject
 - `fresh-context-subagent`: Start every subagent in a fresh context window rather than as a copy of the caller's conversation. — adopt → delegation#fresh-context-subagent
 
 #### engineering · Design · Architecture — skill:skills/engineering/prototype
@@ -4044,38 +4047,38 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `trivial-to-run`: Make the prototype trivial to run: one command, or a single HTML file the user opens directly. — adopt → prototype#trivial-to-run
 - `persistence-when-needed`: Bring persistence into a prototype only when the question needs it. — adopt → prototype#persistence-when-needed
 - `skip-polish`: Add no error handling beyond runnability and no abstractions, so the prototype only serves fast learning. — adopt → prototype#skip-polish
-- `no-tests-ban`: Add no tests to a prototype; one that needs tests is no longer a prototype. — defer
+- `no-tests-ban`: Add no tests to a prototype; one that needs tests is no longer a prototype. — reject
 - `surface-state`: Surface the relevant state and the invalid transitions the design might mishandle. — adopt → prototype#surface-state
 - `capture-outcome`: Record the prototype's verdict and the question it settled, with a pointer to the preserved artifact. — adopt → prototype#capture-outcome
-- `rewrite-not-promote`: Rewrite prototype code to production standards when folding the winning decision in, never promoting the throwaway code directly. — defer
+- `rewrite-not-promote`: Rewrite prototype code to production standards when folding the winning decision in, never promoting the throwaway code directly. — reject
 - `structural-variants`: Make UI variants differ in meaningful structure and layout, not just colour or styling. — adopt → prototype#structural-variants
 - `ui-variants-one-route`: For a UI prototype, generate several structurally different variants (default three, capped at five) on one route switchable by a search param. — adopt → prototype#variants-when-comparing
-- `host-in-existing-page`: Host UI variants inside an existing page with its real data and layout, using a new throwaway route only when no page can host them. — defer
+- `host-in-existing-page`: Host UI variants inside an existing page with its real data and layout, using a new throwaway route only when no page can host them. — reject
 - `ui-keyboard-safety`: Keep a prototype's keyboard shortcuts from intercepting input while an editable field is focused. — adopt → prototype#ui-keyboard-safety
 - `variant-switcher`: Provide a labelled control for switching between UI variants. — adopt → prototype#variant-switcher
-- `default-form-by-context`: When the prototype's question is ambiguous and the user is unreachable, choose its form from the surrounding code and state the assumption at the top. — defer
+- `default-form-by-context`: When the prototype's question is ambiguous and the user is unreachable, choose its form from the surrounding code and state the assumption at the top. — reject
 - `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write. — adopt → prototype#domain-vocabulary
-- `scenario-coverage-triad`: Give a logic prototype guided scenarios covering the happy path, a tricky edge case and an attempted illegal action. — defer
-- `visual-restraint`: Keep visuals restrained, with muted colour and no decorative animation, so the content carries the attention. — defer
-- `keep-logic-discard-shell`: Keep only the pure logic module of a logic prototype and never ship its demo shell to production. — defer
-- `variant-plan-line`: Before building UI variants, write a one-line plan of variant count, switching method and route at the prototype's location. — defer
-- `fetch-above-switcher`: Keep existing data fetching above a single variant switcher so only the rendered subtree changes between variants. — defer
+- `scenario-coverage-triad`: Give a logic prototype guided scenarios covering the happy path, a tricky edge case and an attempted illegal action. — reject
+- `visual-restraint`: Keep visuals restrained, with muted colour and no decorative animation, so the content carries the attention. — reject
+- `keep-logic-discard-shell`: Keep only the pure logic module of a logic prototype and never ship its demo shell to production. — reject
+- `variant-plan-line`: Before building UI variants, write a one-line plan of variant count, switching method and route at the prototype's location. — reject
+- `fetch-above-switcher`: Keep existing data fetching above a single variant switcher so only the rendered subtree changes between variants. — reject
 - `production-hidden-switcher`: Hide a prototype's variant switcher from production builds. — adopt → prototype#production-hidden-switcher
 - `handover-url-keys`: Hand the user the prototype's URL and its variant keys when it is ready. — adopt → prototype#handover-url-keys
-- `losing-variant-cleanup`: After a winner is chosen, remove the losing variants and the switcher from the main line. — defer
-- `no-shared-variant-layout`: Keep layout code unshared between UI variants so each can differ freely. — defer
+- `losing-variant-cleanup`: After a winner is chosen, remove the losing variants and the switcher from the main line. — reject
+- `no-shared-variant-layout`: Keep layout code unshared between UI variants so each can differ freely. — reject
 - `stubbed-mutations`: Point UI variants that need mutations at stubs rather than real backends. — adopt → prototype#stubbed-mutations
-- `automatic-decision-integration`: Fold a prototype's validated decision into the real code as part of finishing the prototype. — defer
-- `prototype-branch-archive`: Keep the prototype as a primary source by committing it to a throwaway branch out of the main line and pointing to it from the implementation issue. — defer
+- `automatic-decision-integration`: Fold a prototype's validated decision into the real code as part of finishing the prototype. — reject
+- `prototype-branch-archive`: Keep the prototype as a primary source by committing it to a throwaway branch out of the main line and pointing to it from the implementation issue. — reject
 - `portable-single-file-demo`: Package an interactive demo as one self-contained HTML file that opens directly, with no framework, bundler or server. — adopt → prototype#self-contained-html-demo
 - `dom-free-portable-logic`: Isolate a prototype's logic in a pure module that never touches the page, which calls into it while nothing reaches inside, so the module lifts into the real code unchanged. — adopt → prototype#logic-pure-module
 - `readable-state-panel`: Show a demo's current state in a readable panel. — adopt → prototype#readable-state-panel
 - `always-available-free-play`: Keep free-play controls available beside any guided scenarios so the user can drive the state directly. — adopt → prototype#always-available-free-play
 - `resettable-guided-scenarios`: Give a demo guided scenarios that each reset to a known initial state and step through the real controls. — adopt → prototype#resettable-guided-scenarios
-- `helpful-state-change-highlighting`: Highlight what just changed in a prototype's state display where that helps the reader. — defer
-- `variant-purpose-data-fidelity`: Hold every UI variant to the page's real purpose and data. — defer
+- `helpful-state-change-highlighting`: Highlight what just changed in a prototype's state display where that helps the reader. — reject
+- `variant-purpose-data-fidelity`: Hold every UI variant to the page's real purpose and data. — reject
 - `existing-variant-styling-system`: Build UI variants with the project's existing styling system. — adopt → prototype#existing-variant-styling-system
-- `named-variant-components`: Export each UI variant as a clearly named component. — defer
+- `named-variant-components`: Export each UI variant as a clearly named component. — reject
 
 #### engineering · Design · Architecture — skill:skills/in-progress/software-factory
 - `closed-term-set`: Discuss and sketch a design only in a fixed set of defined terms. — defer
@@ -4180,8 +4183,8 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 
 #### engineering · Design · Decomposition — skill:skills/engineering/to-tickets
 - `ground-in-codebase`: Explore the current state of the code before writing, so the artifact targets what actually exists. — adopt → to-plan#ground-in-codebase
-- `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write. — defer
-- `respect-area-adrs`: Honour the recorded architectural decisions that govern the area being changed. — defer
+- `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write. — reject
+- `respect-area-adrs`: Honour the recorded architectural decisions that govern the area being changed. — reject
 - `prefactor-first`: Find prefactoring that makes the change easy and sequence it before the feature slices. — adopt → principle-sequence-verifiable-units#prefactor-first
 - `vertical-slices`: Prefer independently verifiable vertical slices over horizontal layers. — adopt → principle-sequence-verifiable-units#vertical-slices
 - `dependency-edges`: Encode real blocking edges in the tracker and let the ready frontier drive execution rather than listing order. — adopt → tracker#dependency-edges
@@ -4189,56 +4192,56 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `publish-to-tracker`: Publish the finished artifact to the configured issue tracker. — adopt → tracker#beads-native-tracking
 - `real-id-wiring`: Wire cross-references and dependencies with real identifiers, never placeholders. — adopt → tracker#real-id-wiring
 - `sub-issue-linkage`: Make each ticket a child of its source issue and never close or modify that parent. — adopt → tracker#beads-native-tracking
-- `ready-for-agent-label`: Tag the published work with the ready-for-agent triage label so it needs no further triage. — defer
-- `ticket-template`: Fill a fixed ticket template of behavioural what-to-build, blocked-by, and checkable acceptance criteria. — defer
-- `no-stale-file-paths`: Keep concrete file paths out of a durable spec, ticket or brief, describing interfaces and behaviour that survive code drift. — defer
+- `ready-for-agent-label`: Tag the published work with the ready-for-agent triage label so it needs no further triage. — reject
+- `ticket-template`: Fill a fixed ticket template of behavioural what-to-build, blocked-by, and checkable acceptance criteria. — reject
+- `no-stale-file-paths`: Keep concrete file paths out of a durable spec, ticket or brief, describing interfaces and behaviour that survive code drift. — reject
 - `no-stale-code-snippets`: Keep code snippets out of a durable spec or ticket because they go stale. — adopt → to-plan#no-stale-code-snippets
 - `prototype-snippet`: Inline a prototype snippet in the spec only when it encodes a decision more precisely than prose can. — adopt → to-spec#prototype-snippet
-- `read-full-source-issue`: Read the full body, comments and, for a pull request, the diff of any referenced spec, issue or pull request before working from it. — defer
-- `session-sized-tickets`: Size each ticket to fit one agent session's context window. — defer
+- `read-full-source-issue`: Read the full body, comments and, for a pull request, the diff of any referenced spec, issue or pull request before working from it. — reject
+- `session-sized-tickets`: Size each ticket to fit one agent session's context window. — reject
 - `blast-radius-batches`: Size migration batches by blast radius and keep the build green between them. — adopt → principle-sequence-verifiable-units#blast-radius-batches
-- `file-per-ticket`: Without a tracker, write one numbered file per ticket in dependency order, never one combined file. — defer
+- `file-per-ticket`: Without a tracker, write one numbered file per ticket in dependency order, never one combined file. — reject
 - `brief-behavioural`: Describe what the system should do, not how to implement it, leaving implementation choices to the executing agent. — adopt → to-plan#plan-evidence-bound
-- `ticket-breakdown-preview`: Show the proposed ticket breakdown as a numbered list of title, blockers and delivered behaviour before publishing it. — defer
-- `ticket-breakdown-feedback`: Ask the user about the breakdown's granularity, its blocking edges, and tickets to merge or split. — defer
+- `ticket-breakdown-preview`: Show the proposed ticket breakdown as a numbered list of title, blockers and delivered behaviour before publishing it. — reject
+- `ticket-breakdown-feedback`: Ask the user about the breakdown's granularity, its blocking edges, and tickets to merge or split. — reject
 - `breakdown-approval-before-publish`: Iterate on the ticket breakdown until the user approves it, publishing nothing before approval. — adopt → to-roadmap#breakdown-approval-before-publish
 
 #### engineering · Design · Specification — skill:skills/engineering/tdd
 - `meaningful-behaviour-assertion`: Assert meaningful results, state or boundary interactions at a stable boundary rather than internal call choreography. — adopt → tdd#meaningful-behaviour-assertion
 - `no-implementation-coupling`: Avoid tests coupled to the implementation's internal structure, so they survive behaviour-preserving refactors. — adopt → tdd#no-implementation-coupling
-- `public-only-seams`: Test only at public boundaries, never against internals. — defer
-- `seam-preconfirmation`: Write down the seams under test and confirm them with the user before writing any test. — defer
+- `public-only-seams`: Test only at public boundaries, never against internals. — reject
+- `seam-preconfirmation`: Write down the seams under test and confirm them with the user before writing any test. — reject
 - `per-seam-note`: Give each proposed seam a one-line note on what it catches and what it misses. — adopt → tdd#per-seam-note
 - `independent-expectation`: Derive expected values from an independent source such as a spec, worked example or trusted fixture, never computing both sides with the implementation under test. — adopt → tdd#independent-expectation
 - `one-test-per-cycle`: Alternate one test and its implementation at a time instead of writing all tests before any implementation. — adopt → tdd#one-test-per-cycle
 - `red-green`: Make one test fail before implementing the change that makes it pass. — adopt → tdd#red-green
-- `refactor-outside-loop`: Refactor only after the red-green cycles end, never inside them. — defer
+- `refactor-outside-loop`: Refactor only after the red-green cycles end, never inside them. — reject
 - `system-boundary-mocks-only`: Use test doubles only at system boundaries such as external services, time and the file system, never for modules you own. — adopt → tdd#mock-boundaries
 - `inject-dependencies`: Pass a module's external dependencies in as arguments rather than constructing them inside it, so callers and tests can substitute them. — adopt → codebase-design#inject-dependencies
-- `sdk-interfaces`: Prefer specific per-operation interface functions over one generic fetcher so each mock returns a single shape. — defer
-- `rules-during-cycle`: Consult the testing rules before and during every red-green cycle rather than after it. — defer
-- `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write. — defer
-- `respect-area-adrs`: Honour the recorded architectural decisions that govern the area being changed. — defer
+- `sdk-interfaces`: Prefer specific per-operation interface functions over one generic fetcher so each mock returns a single shape. — reject
+- `rules-during-cycle`: Consult the testing rules before and during every red-green cycle rather than after it. — reject
+- `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write. — reject
+- `respect-area-adrs`: Honour the recorded architectural decisions that govern the area being changed. — reject
 - `module-vocabulary`: Reason about design with a shared deep-module glossary: module, interface, depth, seam, adapter and locality. — adopt → codebase-design#module-vocabulary
-- `one-assertion-per-test`: Keep one logical assertion per test. — defer
+- `one-assertion-per-test`: Keep one logical assertion per test. — reject
 - `behaviour-test-names`: Name each test for the behaviour that exists, not how it is achieved. — adopt → tdd#behaviour-test-names
-- `test-database-over-mock`: Prefer a test database to mocking the database. — defer
+- `test-database-over-mock`: Prefer a test database to mocking the database. — reject
 
 #### engineering · Design · Specification — skill:skills/engineering/to-spec
 - `synthesize-settled`: When the decisions are already settled, synthesize them into a spec without reopening the discussion. — adopt → to-spec#synthesize-settled
 - `ground-in-codebase`: Explore the current state of the code before writing, so the artifact targets what actually exists. — adopt → settle-open-questions#scoped-context-read
-- `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write. — defer
-- `respect-area-adrs`: Honour the recorded architectural decisions that govern the area being changed. — defer
+- `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write. — reject
+- `respect-area-adrs`: Honour the recorded architectural decisions that govern the area being changed. — reject
 - `testing-seam-decision`: Record in the spec which seam the feature is tested at, preferring an existing and the highest useful seam and the fewest seams. — adopt → to-spec#testing-seam-decision
-- `seam-preconfirmation`: Write down the seams under test and confirm them with the user before writing any test. — defer
+- `seam-preconfirmation`: Write down the seams under test and confirm them with the user before writing any test. — reject
 - `spec-template`: Capture the spec in a fixed skeleton: problem, solution, user stories, implementation decisions, testing decisions, out of scope and further notes. — adopt → to-spec#spec-template
 - `no-stale-file-paths`: Keep concrete file paths out of a durable spec, ticket or brief, describing interfaces and behaviour that survive code drift. — adopt → to-spec#no-stale-file-paths
 - `no-stale-code-snippets`: Keep code snippets out of a durable spec or ticket because they go stale. — adopt → to-spec#no-stale-code-snippets
 - `prototype-snippet`: Inline a prototype snippet in the spec only when it encodes a decision more precisely than prose can. — adopt → to-spec#prototype-snippet
-- `publish-to-tracker`: Publish the finished artifact to the configured issue tracker. — defer
-- `ready-for-agent-label`: Tag the published work with the ready-for-agent triage label so it needs no further triage. — defer
+- `publish-to-tracker`: Publish the finished artifact to the configured issue tracker. — reject
+- `ready-for-agent-label`: Tag the published work with the ready-for-agent triage label so it needs no further triage. — reject
 - `user-perspective-framing`: Write a spec's problem and solution from the user's perspective. — adopt → to-spec#user-perspective-framing
-- `exhaustive-user-stories`: Write a long, exhaustive numbered list of actor-feature-benefit user stories. — defer
+- `exhaustive-user-stories`: Write a long, exhaustive numbered list of actor-feature-benefit user stories. — reject
 - `implementation-decisions-scope`: List a spec's implementation decisions across modules, interfaces, clarifications, architecture, schema, contracts and interactions. — adopt → to-spec#implementation-decisions-scope
 - `testing-decisions-contents`: Record a spec's testing decisions as what makes a good test, which modules are tested and the prior-art tests to follow. — adopt → to-spec#testing-decisions-contents
 
@@ -4639,7 +4642,7 @@ Reference tickets by name with identifiers and links so the map reads without op
 
 #### `session-sized-tickets`
 Size each ticket to fit one agent session's context window.
-- `mattpocock_skills:skill:skills/engineering/to-tickets` — defer
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — reject
 - `mattpocock_skills:skill:skills/engineering/wayfinder` — reject
 
 #### `three-section-map-body`
@@ -4810,7 +4813,7 @@ Answer a fixed set of diagnostic questions first, then rewrite the prompt to ask
 #### `document-during-interview`
 Pair a clarifying interview with live documentation so the glossary and decision records are produced as the interview settles each question.
 - `mattpocock_skills:skill:skills/engineering/grill-with-docs` — adopt → grilling#optional-docs
-- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — defer
+- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — reject
 - `mattpocock_skills:skill:skills/engineering/triage` — reject
 
 #### `document-structure` *(retired)*
@@ -5234,15 +5237,15 @@ Present the breakdown as a numbered list of title, blocked-by and what it delive
 
 #### `ticket-breakdown-feedback`
 Ask the user about the breakdown's granularity, its blocking edges, and tickets to merge or split.
-- `mattpocock_skills:skill:skills/engineering/to-tickets` — defer
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — reject
 
 #### `ticket-breakdown-preview`
 Show the proposed ticket breakdown as a numbered list of title, blockers and delivered behaviour before publishing it.
-- `mattpocock_skills:skill:skills/engineering/to-tickets` — defer
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — reject
 
 #### `ticket-template`
 Fill a fixed ticket template of behavioural what-to-build, blocked-by, and checkable acceptance criteria.
-- `mattpocock_skills:skill:skills/engineering/to-tickets` — defer
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — reject
 
 ### core · Design · Grounding
 
@@ -5296,7 +5299,7 @@ Keep code snippets out of a durable spec or ticket because they go stale.
 Keep concrete file paths out of a durable spec, ticket or brief, describing interfaces and behaviour that survive code drift.
 - ours: `to-spec`
 - `mattpocock_skills:skill:skills/engineering/to-spec` — adopt → to-spec#no-stale-file-paths
-- `mattpocock_skills:skill:skills/engineering/to-tickets` — defer
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — reject
 - `mattpocock_skills:skill:skills/engineering/triage` — reject
 
 #### `none-keeps-heading`
@@ -7048,7 +7051,7 @@ Cover what changed since the person's last message, counting notifications and h
 
 #### `cdn-only-scripts`
 Load only CDN-hosted styling and diagram libraries as scripts, keeping the document otherwise static.
-- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — defer
+- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — reject
 
 #### `certainty-labelling`
 Distinguish certain knowledge from inference and speculation, and say when unsure.
@@ -7093,7 +7096,7 @@ Lay content out from a small set of components — KPI tiles, numbered section h
 
 #### `compress-to-bullets`
 Strip hedging, turn sentences into bullets and cut bullets wherever possible.
-- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — defer
+- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — reject
 
 #### `concrete-time-estimates`
 Give estimates in concrete units as agent execution plus review time rather than human workdays.
@@ -7180,9 +7183,9 @@ Use the project's established domain vocabulary throughout what you write.
 - `mattpocock_skills:skill:skills/engineering/pr` — defer
 - `mattpocock_skills:skill:skills/engineering/prototype` — adopt → prototype#domain-vocabulary
 - `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
-- `mattpocock_skills:skill:skills/engineering/tdd` — defer
-- `mattpocock_skills:skill:skills/engineering/to-spec` — defer
-- `mattpocock_skills:skill:skills/engineering/to-tickets` — defer
+- `mattpocock_skills:skill:skills/engineering/tdd` — reject
+- `mattpocock_skills:skill:skills/engineering/to-spec` — reject
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — reject
 - `mattpocock_skills:skill:skills/engineering/triage` — reject
 - `mattpocock_skills:skill:skills/productivity/teach` — adopt → teach#domain-vocabulary
 - `mattpocock_skills:skill:skills/productivity/wait-what` — adopt → brief-me#domain-vocabulary
@@ -7693,7 +7696,7 @@ Link or cite only artifacts produced or read in this session.
 
 #### `open-artifact-for-user`
 Open a generated artifact for the user with the platform's opener and give its path.
-- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — defer
+- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — reject
 - `mattpocock_skills:skill:skills/productivity/teach` — defer
 
 #### `opening-drift-repair`
@@ -7919,7 +7922,7 @@ Write real paths in documentation.
 
 #### `redraw-not-explain`
 Redraw a diagram that needs a paragraph to be understood rather than explaining it.
-- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — defer
+- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — reject
 
 #### `reference-complete-and-dry`
 State every fact, option, limit and error in reference completely, plainly and without hedging.
@@ -7987,7 +7990,7 @@ List in each playbook's reply section only what is unique to it, letting a share
 
 #### `report-header-legend`
 Open a visual report with a header of repository name, date and a visual legend, and no intro paragraph.
-- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — defer
+- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — reject
 
 #### `reread-before-write-keep-edits`
 Read the file again before every write and keep every change the person made to it.
@@ -8198,7 +8201,7 @@ Introduce a named concept's idea and its name in the same place.
 
 #### `terse-card-prose`
 Hold each report card to a one-sentence problem and solution and wins bullets of six words or fewer.
-- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — defer
+- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — reject
 
 #### `three-takeaways-cap`
 Under the summary, add no more than three short lines, each changing what the person knows or has to do.
@@ -8288,8 +8291,8 @@ Place each visual immediately after the sentence it supports and include only th
 
 #### `visual-restraint`
 Keep visuals restrained, with muted colour and no decorative animation, so the content carries the attention.
-- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — defer
-- `mattpocock_skills:skill:skills/engineering/prototype` — defer
+- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — reject
+- `mattpocock_skills:skill:skills/engineering/prototype` — reject
 
 #### `waiting-cost-if-material`
 Mention the cost of waiting only when it is worse than a delay, for example a missed deadline or data that would be lost.
@@ -11298,13 +11301,13 @@ File each in-app report as a ticket already labelled for the triage run.
 #### `read-full-source-issue`
 Read the full body, comments and, for a pull request, the diff of any referenced spec, issue or pull request before working from it.
 - ours: `triage`
-- `mattpocock_skills:skill:skills/engineering/to-tickets` — defer
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — reject
 - `mattpocock_skills:skill:skills/engineering/triage` — adopt → triage#read-full-source-issue
 
 #### `ready-for-agent-label`
 Tag the published work with the ready-for-agent triage label so it needs no further triage.
-- `mattpocock_skills:skill:skills/engineering/to-spec` — defer
-- `mattpocock_skills:skill:skills/engineering/to-tickets` — defer
+- `mattpocock_skills:skill:skills/engineering/to-spec` — reject
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — reject
 
 #### `ready-for-human-rationale`
 When an item is ready for a human rather than an agent, use the same brief structure but record why it cannot be delegated.
@@ -11396,7 +11399,7 @@ Fold the validated decision into real code and commit the prototype to a throwaw
 
 #### `automatic-decision-integration`
 Fold a prototype's validated decision into the real code as part of finishing the prototype.
-- `mattpocock_skills:skill:skills/engineering/prototype` — defer
+- `mattpocock_skills:skill:skills/engineering/prototype` — reject
 
 #### `bot-identity-rate-budget`
 Choose the bot's identity type with its rate budget in mind, since limits apply per identity.
@@ -11441,15 +11444,15 @@ Write callers' usage first and derive the types from it, reconciling any diverge
 
 #### `candidate-before-after-visual`
 Give every architecture candidate a before-and-after diagram of its structural change.
-- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — defer
+- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — reject
 
 #### `candidate-constraint-interview`
 Once the user picks an architecture candidate, interview them on its constraints, dependencies, module shape, hidden internals and the tests that survive.
-- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — defer
+- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — reject
 
 #### `candidate-dependency-tag`
 Tag each architecture candidate with the dependency category of what it touches.
-- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — defer
+- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — reject
 
 #### `capture-outcome`
 Record the prototype's verdict and the question it settled, with a pointer to the preserved artifact.
@@ -11520,7 +11523,7 @@ Make every package a deep module whose behaviour hides in subfolders and is reac
 
 #### `default-form-by-context`
 When the prototype's question is ambiguous and the user is unreachable, choose its form from the surrounding code and state the assumption at the top.
-- `mattpocock_skills:skill:skills/engineering/prototype` — defer
+- `mattpocock_skills:skill:skills/engineering/prototype` — reject
 
 #### `deletion-test`
 Question a layer that only forwards and keep one whose removal would spread complexity across callers.
@@ -11570,7 +11573,7 @@ Run a design exploration with parallel options before writing code that crosses 
 
 #### `design-brief-vocabulary`
 Give each design subagent both the design vocabulary and the project's domain glossary in its brief.
-- `mattpocock_skills:skill:skills/engineering/codebase-design` — defer
+- `mattpocock_skills:skill:skills/engineering/codebase-design` — reject
 
 #### `design-it-twice`
 Optionally compare a few materially different interface designs before a consequential choice, without forcing a multi-agent exercise on a clear one.
@@ -11629,11 +11632,11 @@ Build UI variants with the project's existing styling system.
 
 #### `external-port-mock-adapter`
 Inject a third-party service as a port and use a mock adapter for it in tests.
-- `mattpocock_skills:skill:skills/engineering/codebase-design` — defer
+- `mattpocock_skills:skill:skills/engineering/codebase-design` — reject
 
 #### `fetch-above-switcher`
 Keep existing data fetching above a single variant switcher so only the rendered subtree changes between variants.
-- `mattpocock_skills:skill:skills/engineering/prototype` — defer
+- `mattpocock_skills:skill:skills/engineering/prototype` — reject
 
 #### `flat-packages`
 Keep packages flat, one tier of children under the root, so a package never contains another package.
@@ -11679,11 +11682,11 @@ Hand the user the prototype's URL and its variant keys when it is ready.
 
 #### `helpful-state-change-highlighting`
 Highlight what just changed in a prototype's state display where that helps the reader.
-- `mattpocock_skills:skill:skills/engineering/prototype` — defer
+- `mattpocock_skills:skill:skills/engineering/prototype` — reject
 
 #### `host-in-existing-page`
 Host UI variants inside an existing page with its real data and layout, using a new throwaway route only when no page can host them.
-- `mattpocock_skills:skill:skills/engineering/prototype` — defer
+- `mattpocock_skills:skill:skills/engineering/prototype` — reject
 
 #### `host-operating-costs`
 Count the upgrades, backups and uptime a self-hosted git host adds for each slot it fills, and the extra glue a host whose review model departs from branches and pull requests needs.
@@ -11707,7 +11710,7 @@ Treat an interface as every fact a caller must know — invariants, ordering, er
 
 #### `interface-is-test-surface`
 Treat the interface as the surface both callers and tests cross, so needing to test past it signals the module is the wrong shape.
-- `mattpocock_skills:skill:skills/engineering/codebase-design` — defer
+- `mattpocock_skills:skill:skills/engineering/codebase-design` — reject
 
 #### `internal-seams`
 Allow internal seams and focused internal tests without exposing internals through the public interface merely to satisfy a testing rule.
@@ -11734,7 +11737,7 @@ Make everything a run leaves behind (locks, temporary files, partial records, cl
 
 #### `keep-logic-discard-shell`
 Keep only the pure logic module of a logic prototype and never ship its demo shell to production.
-- `mattpocock_skills:skill:skills/engineering/prototype` — defer
+- `mattpocock_skills:skill:skills/engineering/prototype` — reject
 
 #### `knowledge-not-phase-modules`
 Organise modules around one body of domain knowledge, not around execution phases such as load, validate, transform and save.
@@ -11757,7 +11760,7 @@ Reject a design in which one internal decision appears in several modules, so th
 
 #### `local-stand-in-testing`
 Test a module whose dependency has a local stand-in by running the stand-in in the suite, keeping that seam internal.
-- `mattpocock_skills:skill:skills/engineering/codebase-design` — defer
+- `mattpocock_skills:skill:skills/engineering/codebase-design` — reject
 
 #### `logic-pure-module`
 Keep domain logic readable apart from presentation as a reducer, state machine, pure functions or small stateful module.
@@ -11768,7 +11771,7 @@ Offer a self-contained HTML demo with the question, a readable state panel, cont
 
 #### `losing-variant-cleanup`
 After a winner is chosen, remove the losing variants and the switcher from the main line.
-- `mattpocock_skills:skill:skills/engineering/prototype` — defer
+- `mattpocock_skills:skill:skills/engineering/prototype` — reject
 
 #### `minimal-decision-record`
 Write a decision record as a title and one to three sentences of context, decision and reason.
@@ -11789,7 +11792,7 @@ Before moving code, state the module layout, types and call graph as if built to
 
 #### `named-variant-components`
 Export each UI variant as a clearly named component.
-- `mattpocock_skills:skill:skills/engineering/prototype` — defer
+- `mattpocock_skills:skill:skills/engineering/prototype` — reject
 
 #### `next-agent-test`
 Prefer a design where an edit that looks right from one file is right everywhere, assuming the next editor sees only the files it opened and copies the nearest example.
@@ -11816,7 +11819,7 @@ Keep boring code that is clear, local and unlikely to grow, adding indirection o
 
 #### `no-interfaces-yet`
 Keep the survey free of proposed interfaces and instead ask the user which candidate to explore.
-- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — defer
+- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — reject
 
 #### `no-later-index-gate`
 Treat a structure that answers an access pattern with a map, index or cache to be added later as wrong.
@@ -11824,11 +11827,11 @@ Treat a structure that answers an access pattern with a map, index or cache to b
 
 #### `no-shared-variant-layout`
 Keep layout code unshared between UI variants so each can differ freely.
-- `mattpocock_skills:skill:skills/engineering/prototype` — defer
+- `mattpocock_skills:skill:skills/engineering/prototype` — reject
 
 #### `no-tests-ban`
 Add no tests to a prototype; one that needs tests is no longer a prototype.
-- `mattpocock_skills:skill:skills/engineering/prototype` — defer
+- `mattpocock_skills:skill:skills/engineering/prototype` — reject
 
 #### `novel-decision-design-space`
 Before settling a decision with no precedent in the project, of any kind, lay out the materially different ways to meet it (not variations of one), say what each costs and gives up, and choose with stated reasons; no artifact is required, and running variants are built only when prototype's condition holds.
@@ -11880,11 +11883,12 @@ Let the question being answered pick the prototype's form, such as a state demo 
 
 #### `policy-at-edge`
 Keep general-purpose mechanism inside a module and special-purpose policy at its edge.
-- `cursor_plugins:skill:pstack/skills/principle-boundary-discipline` — defer
+- ours: `codebase-design`
+- `cursor_plugins:skill:pstack/skills/principle-boundary-discipline` — adopt → codebase-design#policy-at-edge
 
 #### `port-with-memory-adapter`
 For a remote service you own, define a port with a production transport adapter and an in-memory adapter for tests.
-- `mattpocock_skills:skill:skills/engineering/codebase-design` — defer
+- `mattpocock_skills:skill:skills/engineering/codebase-design` — reject
 
 #### `portable-single-file-demo`
 Package an interactive demo as one self-contained HTML file that opens directly, with no framework, bundler or server.
@@ -11901,7 +11905,7 @@ Keep example tasks indexed by the problem each solves, each naming its trigger, 
 
 #### `problem-space-framing`
 Before exploring alternative designs, show the user the constraints, dependency categories and an illustrative sketch, then continue without waiting.
-- `mattpocock_skills:skill:skills/engineering/codebase-design` — defer
+- `mattpocock_skills:skill:skills/engineering/codebase-design` — reject
 
 #### `production-hidden-switcher`
 Hide a prototype's variant switcher from production builds.
@@ -11918,7 +11922,7 @@ When integrating a new requirement, work out the design as if it had been a foun
 
 #### `prototype-branch-archive`
 Keep the prototype as a primary source by committing it to a throwaway branch out of the main line and pointing to it from the implementation issue.
-- `mattpocock_skills:skill:skills/engineering/prototype` — defer
+- `mattpocock_skills:skill:skills/engineering/prototype` — reject
 
 #### `prototype-detour`
 Leave the main flow for a throwaway prototype when a question needs a runnable answer, then return to the flow with the answer.
@@ -11983,9 +11987,9 @@ Give a demo guided scenarios that each reset to a known initial state and step t
 Honour the recorded architectural decisions that govern the area being changed.
 - ours: `improve-codebase-architecture`
 - `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — adopt → improve-codebase-architecture#respect-area-adrs
-- `mattpocock_skills:skill:skills/engineering/tdd` — defer
-- `mattpocock_skills:skill:skills/engineering/to-spec` — defer
-- `mattpocock_skills:skill:skills/engineering/to-tickets` — defer
+- `mattpocock_skills:skill:skills/engineering/tdd` — reject
+- `mattpocock_skills:skill:skills/engineering/to-spec` — reject
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — reject
 - `mattpocock_skills:skill:skills/engineering/triage` — reject
 
 #### `return-not-mutate`
@@ -11996,7 +12000,7 @@ Design functions to return results rather than cause side effects, so behaviour 
 
 #### `rewrite-not-promote`
 Rewrite prototype code to production standards when folding the winning decision in, never promoting the throwaway code directly.
-- `mattpocock_skills:skill:skills/engineering/prototype` — defer
+- `mattpocock_skills:skill:skills/engineering/prototype` — reject
 
 #### `runner-slot-questions`
 Decide the runner by a fixed question list: how the orchestrator starts a run, timeouts and concurrency against the longest run and busiest burst, the billing unit with whether model-wait time is billed and model tokens included, and how disposability is achieved.
@@ -12008,7 +12012,7 @@ Classify runners by who owns the agent loop and the machine and choose the type 
 
 #### `scenario-coverage-triad`
 Give a logic prototype guided scenarios covering the happy path, a tricky edge case and an attempted illegal action.
-- `mattpocock_skills:skill:skills/engineering/prototype` — defer
+- `mattpocock_skills:skill:skills/engineering/prototype` — reject
 
 #### `schema-derived-types`
 Derive types from the authoritative schema that owns a shape instead of hand-writing a parallel type.
@@ -12044,7 +12048,7 @@ After scrapping, re-explain what exists, redesign as if the new constraints were
 
 #### `sdk-interfaces`
 Prefer specific per-operation interface functions over one generic fetcher so each mock returns a single shape.
-- `mattpocock_skills:skill:skills/engineering/tdd` — defer
+- `mattpocock_skills:skill:skills/engineering/tdd` — reject
 
 #### `self-contained-html-demo`
 Offer an interactive demo as one self-contained HTML file that works offline.
@@ -12073,7 +12077,8 @@ Accept an interface justified by encapsulation, ownership or a present testing n
 
 #### `sketch-by-parallel-runners`
 Produce candidates through parallel runners on different models, each in its own workspace and told not to hedge, then pick a base on named design axes.
-- `cursor_plugins:skill:pstack/skills/architect` — defer
+- ours: `model-council`
+- `cursor_plugins:skill:pstack/skills/architect` — adopt → model-council#sketch-by-parallel-runners
 
 #### `sketch-opt-in-checkpoint`
 Proceed from the sketch without a human stop unless the invoker asks for one.
@@ -12190,7 +12195,7 @@ Inside the system, trust data that a boundary already validated into types and p
 
 #### `two-adapters-rule`
 Introduce a seam only when behaviour actually varies across it — one adapter is a hypothetical seam, two is a real one.
-- `mattpocock_skills:skill:skills/engineering/codebase-design` — defer
+- `mattpocock_skills:skill:skills/engineering/codebase-design` — reject
 
 #### `two-folder-package-layout`
 Give each package a conventional shape of root entry points over an implementation subfolder and a tests subfolder.
@@ -12232,11 +12237,11 @@ Shape types so the checker rejects impossible states, defining special cases out
 
 #### `variant-plan-line`
 Before building UI variants, write a one-line plan of variant count, switching method and route at the prototype's location.
-- `mattpocock_skills:skill:skills/engineering/prototype` — defer
+- `mattpocock_skills:skill:skills/engineering/prototype` — reject
 
 #### `variant-purpose-data-fidelity`
 Hold every UI variant to the page's real purpose and data.
-- `mattpocock_skills:skill:skills/engineering/prototype` — defer
+- `mattpocock_skills:skill:skills/engineering/prototype` — reject
 
 #### `variant-recommendation-tradeoffs`
 Finish a comparison of built variants with their tradeoffs and one recommendation, leaving the decision with whoever owns it.
@@ -12257,8 +12262,8 @@ Decide whether a platform's own agents compete with your runs or become one of y
 
 #### `vocabulary-ban`
 Use the design vocabulary exactly and never substitute looser words like component, service, API, or boundary.
-- `mattpocock_skills:skill:skills/engineering/codebase-design` — defer
-- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — defer
+- `mattpocock_skills:skill:skills/engineering/codebase-design` — reject
+- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — reject
 
 ### engineering · Design · Decomposition
 
@@ -12317,7 +12322,7 @@ Skip front matter and ignore text inside properly opened and closed code fences 
 
 #### `file-per-ticket`
 Without a tracker, write one numbered file per ticket in dependency order, never one combined file.
-- `mattpocock_skills:skill:skills/engineering/to-tickets` — defer
+- `mattpocock_skills:skill:skills/engineering/to-tickets` — reject
 
 #### `harness-with-pre-change-baseline`
 Build the verification harness first and capture a baseline before changing anything, so results read as old against new.
@@ -12417,7 +12422,7 @@ Require a program plan to carry an ordered program checklist (arming, owners, pu
 
 #### `publish-to-tracker`
 Publish the finished artifact to the configured issue tracker.
-- `mattpocock_skills:skill:skills/engineering/to-spec` — defer
+- `mattpocock_skills:skill:skills/engineering/to-spec` — reject
 - `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → tracker#beads-native-tracking
 
 #### `quantified-scope-with-blockers`
@@ -12453,9 +12458,10 @@ When an internal API with no external dependants is replaced as part of a simpli
 
 #### `scaffold-first`
 Sequence first the work every later phase benefits from (CI, linting, test infrastructure, shared types) before features.
+- ours: `principle-sequence-verifiable-units`
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md`
 - `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
-- `cursor_plugins:skill:pstack/skills/principle-foundational-thinking` — defer
+- `cursor_plugins:skill:pstack/skills/principle-foundational-thinking` — adopt → principle-sequence-verifiable-units#scaffold-first
 
 #### `session-spanning-unit-beads`
 After a plan is approved, when its units will span sessions, give each unit a child bead under the work it belongs to, with acceptance from the unit's own evidence and edges from its dependencies by returned IDs, recording each ID beside its unit in the plan and reusing a bead that already is the unit.
@@ -12558,7 +12564,7 @@ Use the glossary location declared by project instructions, reusing an existing 
 
 #### `delegated-codebase-walk`
 Delegate the codebase walk to a subagent that explores organically for friction.
-- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — defer
+- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — reject
 
 #### `detect-package-conventions`
 Detect the package manager and packages root before configuring, confirming with the user when the repo already has a different convention.
@@ -12654,7 +12660,7 @@ Read the actual discussion and affected core sections before a consequential cha
 
 #### `exhaustive-user-stories`
 Write a long, exhaustive numbered list of actor-feature-benefit user stories.
-- `mattpocock_skills:skill:skills/engineering/to-spec` — defer
+- `mattpocock_skills:skill:skills/engineering/to-spec` — reject
 
 #### `experience-over-convenience`
 When implementation convenience conflicts with the consumer's experience, choose the experience.
@@ -12726,7 +12732,7 @@ Inline a prototype snippet in the spec only when it encodes a decision more prec
 
 #### `public-only-seams`
 Test only at public boundaries, never against internals.
-- `mattpocock_skills:skill:skills/engineering/tdd` — defer
+- `mattpocock_skills:skill:skills/engineering/tdd` — reject
 
 #### `report-provenance`
 Report integrated concepts, files, decisions and deferred items with source pointers, never labelling unresolved scratchpad proposals as approved design.
@@ -12738,8 +12744,8 @@ Resolve source version, target path and included discussion files from the reque
 
 #### `seam-preconfirmation`
 Write down the seams under test and confirm them with the user before writing any test.
-- `mattpocock_skills:skill:skills/engineering/tdd` — defer
-- `mattpocock_skills:skill:skills/engineering/to-spec` — defer
+- `mattpocock_skills:skill:skills/engineering/tdd` — reject
+- `mattpocock_skills:skill:skills/engineering/to-spec` — reject
 
 #### `seam-selection`
 Choose the test boundary that exercises the real contract without reaching inside.
@@ -13961,7 +13967,7 @@ Refactor after each passing test, preserving behaviour and rerunning the affecte
 
 #### `refactor-outside-loop`
 Refactor only after the red-green cycles end, never inside them.
-- `mattpocock_skills:skill:skills/engineering/tdd` — defer
+- `mattpocock_skills:skill:skills/engineering/tdd` — reject
 
 #### `rename-spot-check`
 Read every rename against the real files, strings and prose included.
@@ -14006,7 +14012,7 @@ Lint Python with ruff check under the repository's configuration.
 
 #### `rules-during-cycle`
 Consult the testing rules before and during every red-green cycle rather than after it.
-- `mattpocock_skills:skill:skills/engineering/tdd` — defer
+- `mattpocock_skills:skill:skills/engineering/tdd` — reject
 
 #### `run-limits-first`
 Fix a deadline and an attempt limit before the first change when the request names a limit or is stated unattended, from its words or the stated defaults.
@@ -15052,7 +15058,7 @@ Count a prerequisite the map fails to mention as drift.
 
 #### `one-assertion-per-test`
 Keep one logical assertion per test.
-- `mattpocock_skills:skill:skills/engineering/tdd` — defer
+- `mattpocock_skills:skill:skills/engineering/tdd` — reject
 
 #### `one-change-of-proven-fixes`
 Gather a pass's proven fixes to docs, harness and map into one change, opening a pull request for it only with authority to do so.
@@ -15166,7 +15172,7 @@ Assert the value the product displayed, not the value typed, since the product m
 
 #### `replace-dont-layer`
 Once the deepened interface is tested, delete the old shallow-module unit tests and assert only on observable outcomes that survive internal refactors.
-- `mattpocock_skills:skill:skills/engineering/codebase-design` — defer
+- `mattpocock_skills:skill:skills/engineering/codebase-design` — reject
 
 #### `repro-capture-bundle`
 Keep a step note and a whole-path recording that shows the broken final state for a reproduction, looking at every captured screenshot and recording before citing it.
@@ -15344,7 +15350,7 @@ Use a partial test-data helper library in test code only, never in production co
 
 #### `test-database-over-mock`
 Prefer a test database to mocking the database.
-- `mattpocock_skills:skill:skills/engineering/tdd` — defer
+- `mattpocock_skills:skill:skills/engineering/tdd` — reject
 
 #### `test-first-where-possible`
 Build test-first wherever a test can be written first.
@@ -16735,7 +16741,7 @@ Run a skill-file validator on every changed skill before declaring done.
 
 #### `diagram-patterns`
 Draw before/after architecture visuals from a catalogue of patterns (dependency graph, hand-built boxes, cross-section, mass diagram, call-graph collapse) rather than one generic style.
-- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — defer
+- `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — reject
 
 #### `final-report-contents`
 Make the final report state outcomes, the checks actually run and limitations, separating pre-existing failures from regressions.
@@ -17247,6 +17253,7 @@ Traits listed by two or more of our active skills (`doc:AGENTS.md` and playbooks
 | `revert-ineffective-experiments` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, performance-optimization | Each runs its own loop of attempts, fix attempts in the bug-fix playbook and optimization experiments in performance-optimization, and removes its own failed edits before the next attempt. |
 | `row-then-checkpoint` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md | Each loop writes its own row and checkpoint in this order, around its own keep-or-discard step, so a closing return can trust them. |
 | `run-limits-first` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md | Each long loop fixes its own limits before its first change, from the same stated defaults, and gives them to `wake`. |
+| `scaffold-first` | doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md, principle-sequence-verifiable-units | The principle states the rule for every unit that orders work by it, as the owner ruled on 2026-11-18 (deferred review, bead cr-r2pa.3.3); figure-it-out's Design step keeps its own one-line form, adopted 2026-11-06, because that playbook sequences the units it designs, including their verification. |
 | `self-serve-facts` | grilling, settle-open-questions | As question-batching: a short rule each skill applies inside its own flow. |
 | `sequential-record-numbering` | domain-modeling, teach | Each keeps its own record folder (ADRs, learning records) in one minimal format. |
 | `settled-stop` | grilling, settle-open-questions | As question-batching: each skill stops its own questioning when its decisions are settled. |

@@ -17,6 +17,8 @@ through the `delegation` skill.
 
 1. Write one common brief: question, relevant source pointers, constraints,
    acceptance and report format. Use a neutral brief without preferred conclusions.
+   Ask each member for its strongest answer, not a hedge toward what a panel might
+   favour: differences between members are the evidence.
 2. Give each member that brief independently. Parallelism is useful but optional;
    isolation means members do not see one another's answers. Save full attributed
    reports under the supplied run directory or `scratchpad/council/<topic>/`.

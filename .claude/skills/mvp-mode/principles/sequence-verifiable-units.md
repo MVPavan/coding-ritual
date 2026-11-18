@@ -11,6 +11,8 @@ Every step ends somewhere a check can confirm.
 - Prefer independently verifiable vertical slices over horizontal layers.
 - Find prefactoring that makes the change easy and sequence it before the
   feature slices.
+- Put first the work every later unit needs, such as test setup, CI, lint and
+  shared types.
 - For a broad refactor, use expand, migrate then contract with genuine
   dependencies; when intermediate units cannot stay green, name one
   integration boundary or atomic group.
