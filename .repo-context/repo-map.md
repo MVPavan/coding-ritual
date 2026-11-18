@@ -12,6 +12,7 @@ implements a Python workflow interpreter. `AGENTS.md` owns policy;
 | Interpreter and tests | `workflow_interpreter/`, `tests/` |
 | Graphs and runtime examples | `workflows/`, `config/` |
 | Specs and decisions | `docs/specs/`, `docs/adr/`, `docs/decisions/` |
+| Interview outputs (`grilling`) | `docs/interviews/` |
 | Verification and session tooling | `scripts/` |
 | Reference curation | `harness_lifecycle/`, `harness_learnings/` |
 | Task state and lifecycle | `.beads/` (data, config, hooks); policy in the `beads` skill |

@@ -191,6 +191,12 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `importance-ordered-questions`: Order a questionnaire's questions most important first.
 - `needed-item-coverage`: Finish a questionnaire only when every needed decision or fact is covered by at least one question.
 - `single-idea-questions`: Make each question a single idea, never a compound one.
+- `exhaustive-completion`: End the session only when the frontier is empty and every branch of the tree has been visited, with nothing silently assumed.
+- `questionnaire-artifact`: Write the questionnaire to a slug-named markdown file in the current directory and report its path.
+- `selective-why-lines`: Add a one-line reason a question matters only where it could be misread or invite a throwaway answer.
+- `questionnaire-document-template`: Fill a questionnaire template of purpose, a from-to-use line, a context section, how to answer, themed question sections with answer stubs, and a closing catch-all.
+- `questionnaire-response-expectations`: Tell the respondent the deadline and the rough effort answering will take.
+- `partial-uncertain-answers-welcome`: Invite partial and don't-know answers, asking the respondent to flag uncertainty rather than skip the question.
 
 #### core · Intake · Clarification — restate
 - `goal-and-problem-restatement`: Say in your own wording what you believe the user is aiming for and which problem they are trying to solve.
@@ -1915,37 +1921,37 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 
 #### core · Intake · Triage — skill:pstack/automations/benny/skills/triage-issue-reports
 - `triage-never-reproduces`: Limit triage to classifying one report, posting one verdict and filing only clear new bugs, never reproducing or fixing. — reject
-- `fail-closed-run-config`: Stop a run before any write when its configuration or a required tool or map is missing, malformed or incomplete. — defer
-- `frozen-source-coordinates`: Read and check the source channel and thread of a report once, before any work list or delegation, and never change or replace them for the rest of the run. — defer
-- `no-root-post-in-source`: Post in the source channel only as a reply inside the report's thread, never as a new top-level message. — defer
-- `no-cross-post`: Never post to another channel, broadcast, message privately or start a new thread, and point a misdirected reporter to the right place inside their own thread. — defer
-- `thread-parent-preflight`: Before each write tied to a report thread, re-read the thread to confirm its parent message still exists in the same channel, and after posting confirm the reply landed, never falling back to another place. — defer
-- `single-verdict-reply`: Post one verdict and no progress messages, leading with the outcome, linking any issue, naming a reroute or one missing fact, with at most one allowed ping and one marker line. — defer
-- `coordinator-only-chat-writes`: Let only the coordinating agent write to chat, telling every worker in its brief that chat writes are forbidden and giving it no means to make them. — defer
-- `findings-only-read-only-workers`: Give each delegated analysis worker one narrow question, no write access and no chat credentials, and take back findings only. — defer
-- `worker-isolation-or-coordinator`: Hand work to a worker only where its environment provably enforces the run's write limits, and otherwise have the coordinator do that work itself. — defer
-- `strict-issue-create-gate`: File an issue only for a clearly broken, still-live bug or performance report with no live match, a passing preflight, resolved fields and a link back to the source, preferring no ticket to a guessed or duplicate one. — defer
-- `whole-report-thread-read`: Read a report's opening message and every reply so far before deciding on it. — defer
-- `report-fact-capture`: Collect a fixed set of facts from a bug report before deciding on it: the reporter's words, version and environment, expected and observed behaviour, frequency and trigger, error signatures, attachments, links and any claim that someone already owns it. — defer
-- `inspect-attachments-admit-unreadable`: Read every relevant screenshot, video and log closely, and name an attachment that could not be read rather than guess at it. — defer
+- `fail-closed-run-config`: Stop a run before any write when its configuration or a required tool or map is missing, malformed or incomplete. — out-of-scope
+- `frozen-source-coordinates`: Read and check the source channel and thread of a report once, before any work list or delegation, and never change or replace them for the rest of the run. — out-of-scope
+- `no-root-post-in-source`: Post in the source channel only as a reply inside the report's thread, never as a new top-level message. — out-of-scope
+- `no-cross-post`: Never post to another channel, broadcast, message privately or start a new thread, and point a misdirected reporter to the right place inside their own thread. — out-of-scope
+- `thread-parent-preflight`: Before each write tied to a report thread, re-read the thread to confirm its parent message still exists in the same channel, and after posting confirm the reply landed, never falling back to another place. — out-of-scope
+- `single-verdict-reply`: Post one verdict and no progress messages, leading with the outcome, linking any issue, naming a reroute or one missing fact, with at most one allowed ping and one marker line. — out-of-scope
+- `coordinator-only-chat-writes`: Let only the coordinating agent write to chat, telling every worker in its brief that chat writes are forbidden and giving it no means to make them. — out-of-scope
+- `findings-only-read-only-workers`: Give each delegated analysis worker one narrow question, no write access and no chat credentials, and take back findings only. — out-of-scope
+- `worker-isolation-or-coordinator`: Hand work to a worker only where its environment provably enforces the run's write limits, and otherwise have the coordinator do that work itself. — out-of-scope
+- `strict-issue-create-gate`: File an issue only for a clearly broken, still-live bug or performance report with no live match, a passing preflight, resolved fields and a link back to the source, preferring no ticket to a guessed or duplicate one. — out-of-scope
+- `whole-report-thread-read`: Read a report's opening message and every reply so far before deciding on it. — out-of-scope
+- `report-fact-capture`: Collect a fixed set of facts from a bug report before deciding on it: the reporter's words, version and environment, expected and observed behaviour, frequency and trigger, error signatures, attachments, links and any claim that someone already owns it. — out-of-scope
+- `inspect-attachments-admit-unreadable`: Read every relevant screenshot, video and log closely, and name an attachment that could not be read rather than guess at it. — out-of-scope
 - `self-serve-facts`: Look up available facts yourself rather than asking, leaving only the decisions to the live participant. — reject
-- `routing-cause-trace`: Before routing, run a bounded trace from action to result that checks where the symptom belongs, recent changes and existing fixes, deep enough to avoid misrouting but not a full root cause, and say tracing was unavailable when the code cannot be read. — defer
+- `routing-cause-trace`: Before routing, run a bounded trace from action to result that checks where the symptom belongs, recent changes and existing fixes, deep enough to avoid misrouting but not a full root cause, and say tracing was unavailable when the code cannot be read. — out-of-scope
 - `five-way-report-classes`: Give each report exactly one class: bug, performance (kept as a bug with its measurements), feature request, question or feedback, or reroute, filing nothing when bug versus feature is unclear. — reject
-- `evidence-based-routing`: Match a report to a route only on evidence of its product area, code path or error signature, using stable keys and never the visible symptom or a keyword alone. — defer
-- `no-guessed-route`: Without a matching route, classify but name no destination or owner, and keep the fallback empty unless one team accepts everything unmatched. — defer
-- `route-map-schema`: Describe each route by name, match lists, destination, owners and whether its feature owner may be pinged. — defer
-- `owner-ping-gate`: Keep owner pings off by default and allow one only to a configured feature owner who agreed or a confirmed regression author, never a broad on-call group or an unverified owner. — defer
-- `tracker-adapter-contract`: Require a tracker adapter that searches, reads, creates, updates without clobbering, adds links and recurrence notes and undoes its own issue, failing closed per missing operation and inventing no field value. — defer
-- `already-handled-check`: Post and create nothing when the report's link is already tied to an issue or a prior triage reply. — defer
+- `evidence-based-routing`: Match a report to a route only on evidence of its product area, code path or error signature, using stable keys and never the visible symptom or a keyword alone. — out-of-scope
+- `no-guessed-route`: Without a matching route, classify but name no destination or owner, and keep the fallback empty unless one team accepts everything unmatched. — out-of-scope
+- `route-map-schema`: Describe each route by name, match lists, destination, owners and whether its feature owner may be pinged. — out-of-scope
+- `owner-ping-gate`: Keep owner pings off by default and allow one only to a configured feature owner who agreed or a confirmed regression author, never a broad on-call group or an unverified owner. — out-of-scope
+- `tracker-adapter-contract`: Require a tracker adapter that searches, reads, creates, updates without clobbering, adds links and recurrence notes and undoes its own issue, failing closed per missing operation and inventing no field value. — out-of-scope
+- `already-handled-check`: Post and create nothing when the report's link is already tied to an issue or a prior triage reply. — out-of-scope
 - `tracker-duplicate-search`: Search the tracker for an existing issue that describes the same fault before deciding on a bug report. — adopt, pending cr-r2pa.2.13.3 → triage#tracker-duplicate-search
 - `duplicate-search-key-list`: Run the duplicate search over a fixed list of keys, among them the error signature, the area, the trigger, the symptom, a version window, the suspected commit and the source link. — reject
 - `graded-duplicate-match`: Grade each search hit as a confident duplicate, possibly related or no match, marking only a confident one as a duplicate and linking a possible one without acting on it. — adopt, pending cr-r2pa.2.13.3 → triage#graded-duplicate-match
 - `closed-match-is-regression-lead`: Treat a long-closed issue that matches a new report as a lead to a regression, not as a live duplicate. — adopt, pending cr-r2pa.2.13.3 → triage#fixed-match-regression-lead
 - `issue-template-and-title`: Write a new issue as a self-contained record with a plain area-and-symptom title that never states a guessed cause, the reporter's words, expected and observed behaviour, version, trigger, frequency, link, labelled hypotheses and media. — reject
-- `trusted-verdict-marker`: Pass a report from triage to repair through a fixed one-line marker that repair accepts only from the configured triage identity, in the same thread, and only for a bug or performance verdict. — defer
-- `compensate-orphan-issue`: If the run created an issue and its verdict did not land, cancel or remove that issue and confirm it, reporting any unconfirmed undo in the run output. — defer
-- `bounded-follow-up-window`: After the main reply, watch the thread for one bounded window, answering only direct questions, staying out of side chatter and stopping when asked. — defer
-- `follow-up-safe-issue-corrections`: During a follow-up window, safely correct the existing or new tracker issue linked to the report, emit no second marker, extend the window at most once and leave new reports to new runs. — defer
+- `trusted-verdict-marker`: Pass a report from triage to repair through a fixed one-line marker that repair accepts only from the configured triage identity, in the same thread, and only for a bug or performance verdict. — out-of-scope
+- `compensate-orphan-issue`: If the run created an issue and its verdict did not land, cancel or remove that issue and confirm it, reporting any unconfirmed undo in the run output. — out-of-scope
+- `bounded-follow-up-window`: After the main reply, watch the thread for one bounded window, answering only direct questions, staying out of side chatter and stopping when asked. — out-of-scope
+- `follow-up-safe-issue-corrections`: During a follow-up window, safely correct the existing or new tracker issue linked to the report, emit no second marker, extend the window at most once and leave new reports to new runs. — out-of-scope
 - `secret-containment`: Keep secrets and private data out of any destination not authorized to hold them. — adopt → doc:AGENTS.md
 
 #### core · Building · Implementation — skill:pstack/skills/principle-build-the-lever
@@ -3579,7 +3585,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 #### core · Intake · Clarification — skill:skills/in-progress/loop-me
 - `loop-lens`: See the user's life as loops within loops to find recurring activities worth delegating, proposing ones they have not noticed. — defer
 - `workflow-spec-artifact`: Keep each workflow's spec in its own markdown file as the single source of truth. — defer
-- `spec-done-when-buildable`: Treat a spec as done only when an implementer could build it without asking a single question. — defer
+- `spec-done-when-buildable`: Treat a spec as done only when an implementer could build it without asking a single question. — reject
 - `world-notes`: Capture the user's world, tools, channels and terminology in a notes file, interviewing them first when it is thin. — defer
 - `workflow-vocabulary`: Describe a workflow with a shared vocabulary of Trigger, an event or schedule, and Checkpoint. — defer
 - `mandate-nothing-structural`: Impose no structure such as AI, a checkpoint or a schedule on a workflow unless the interview shows it is needed. — defer
@@ -3588,7 +3594,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `spec-files-only-output`: Run a stateful interview whose only output is the specification files. — defer
 - `answer-before-next-round`: Wait for the respondent's answers to a round before asking the next one. — adopt → grilling#answer-before-next-round
 - `recommended-answer`: Attach a recommended answer to each question, letting the respondent disagree. — adopt → grilling#recommended-answer
-- `live-spec-edits`: Create, edit and delete specification files as the interview resolves each point. — defer
+- `live-spec-edits`: Create, edit and delete specification files as the interview resolves each point. — reject
 - `prefer-event-triggers`: Prefer an event trigger to a schedule, as usually the more efficient of the two. — defer
 - `sharpen-fuzzy`: Propose one precise canonical term for a vague or overloaded one. — adopt → domain-modeling#sharpen-fuzzy
 
@@ -3599,24 +3605,24 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `yes-accepts-recommendation`: Word each question so that a yes accepts your recommended answer. — adopt → grilling#yes-accepts-recommendation
 - `round-format`: Lay out each round in a fixed question-and-recommendation markdown format, one block per question. — adopt → settle-open-questions#round-format
 - `self-serve-facts`: Look up available facts yourself rather than asking, leaving only the decisions to the live participant. — adopt → grilling#self-serve-facts
-- `exhaustive-completion`: End the session only when the frontier is empty and every branch of the tree has been visited, with nothing silently assumed. — defer
-- `reconfirm-before-action`: Do not act until the user confirms a shared understanding has been reached. — defer
+- `exhaustive-completion`: End the session only when the frontier is empty and every branch of the tree has been visited, with nothing silently assumed. — adopt → grilling#exhaustive-completion
+- `reconfirm-before-action`: Do not act until the user confirms a shared understanding has been reached. — reject
 - `answer-before-next-round`: Wait for the respondent's answers to a round before asking the next one. — adopt → grilling#answer-before-next-round
-- `non-blocking-lookup`: Run a fact lookup without blocking the interview, holding back only the questions downstream of it. — defer
+- `non-blocking-lookup`: Run a fact lookup without blocking the interview, holding back only the questions downstream of it. — reject
 - `fresh-context-subagent`: Start every subagent in a fresh context window rather than as a copy of the caller's conversation. — adopt → delegation#fresh-context-subagent
 
 #### core · Intake · Clarification — skill:skills/productivity/to-questionnaire
 - `grill-the-send`: Ask the present user only about the send (who it goes to and what they need back), never about the subject the recipient knows. — adopt → grilling#grill-the-send
-- `two-exchange-interview`: Run the interview as two bounded exchanges, the recipient and what the user needs back. — defer
+- `two-exchange-interview`: Run the interview as two bounded exchanges, the recipient and what the user needs back. — reject
 - `gap-targeted-questions`: Aim a questionnaire's questions at the gap between what the recipient knows and what the sender needs. — adopt → grilling#gap-targeted-questions
-- `questionnaire-artifact`: Write the questionnaire to a slug-named markdown file in the current directory and report its path. — defer
+- `questionnaire-artifact`: Write the questionnaire to a slug-named markdown file in the current directory and report its path. — adopt → grilling#questionnaire-artifact
 - `absent-respondent`: When the needed respondent is absent, prepare a questionnaire for them instead of interviewing the present user about the subject. — adopt → grilling#absent-respondent
 - `needed-item-coverage`: Finish a questionnaire only when every needed decision or fact is covered by at least one question. — adopt → grilling#needed-item-coverage
-- `selective-why-lines`: Add a one-line reason a question matters only where it could be misread or invite a throwaway answer. — defer
+- `selective-why-lines`: Add a one-line reason a question matters only where it could be misread or invite a throwaway answer. — adopt → grilling#selective-why-lines
 - `importance-ordered-questions`: Order a questionnaire's questions most important first. — adopt → grilling#importance-ordered-questions
-- `questionnaire-document-template`: Fill a questionnaire template of purpose, a from-to-use line, a context section, how to answer, themed question sections with answer stubs, and a closing catch-all. — defer
-- `questionnaire-response-expectations`: Tell the respondent the deadline and the rough effort answering will take. — defer
-- `partial-uncertain-answers-welcome`: Invite partial and don't-know answers, asking the respondent to flag uncertainty rather than skip the question. — defer
+- `questionnaire-document-template`: Fill a questionnaire template of purpose, a from-to-use line, a context section, how to answer, themed question sections with answer stubs, and a closing catch-all. — adopt → grilling#questionnaire-document-template
+- `questionnaire-response-expectations`: Tell the respondent the deadline and the rough effort answering will take. — adopt → grilling#questionnaire-response-expectations
+- `partial-uncertain-answers-welcome`: Invite partial and don't-know answers, asking the respondent to flag uncertainty rather than skip the question. — adopt → grilling#partial-uncertain-answers-welcome
 - `single-idea-questions`: Make each question a single idea, never a compound one. — adopt → grilling#single-idea-questions
 
 #### core · Improvement · Codification — skill:skills/engineering/setup-matt-pocock-skills
@@ -3910,20 +3916,20 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 
 #### engineering · Intake · Triage — skill:skills/engineering/triage
 - `ai-disclaimer`: Open every comment or issue posted during the work with an AI-generated-during-triage disclaimer. — out-of-scope
-- `category-state-roles`: Assign each item exactly one category role of bug or enhancement and one state role from a fixed set. — defer
-- `state-transitions`: Move items along defined state transitions, flagging unusual moves and letting the maintainer override at any time. — defer
+- `category-state-roles`: Assign each item exactly one category role of bug or enhancement and one state role from a fixed set. — reject
+- `state-transitions`: Move items along defined state transitions, flagging unusual moves and letting the maintainer override at any time. — reject
 - `attention-buckets`: Present the items needing triage attention as named buckets, oldest first. — adopt → triage#attention-buckets
-- `recommend-then-wait`: Recommend a category and state with reasoning and a short codebase summary, then wait for the maintainer's direction before acting. — defer
+- `recommend-then-wait`: Recommend a category and state with reasoning and a short codebase summary, then wait for the maintainer's direction before acting. — reject
 - `claim-verification`: Verify a reported claim before acting on it, reproducing a bug or recording exactly why it could not be reproduced. — adopt → triage#claim-verification
 - `needs-info-notes`: Post structured triage notes recording what is established so far and the specific, actionable questions still needed from the reporter. — adopt → triage#established-notes
-- `document-during-interview`: Pair a clarifying interview with live documentation so the glossary and decision records are produced as the interview settles each question. — defer
+- `document-during-interview`: Pair a clarifying interview with live documentation so the glossary and decision records are produced as the interview settles each question. — reject
 - `redundancy-check`: Search the codebase by domain concept for an existing implementation and report where you looked before deciding. — adopt → triage#redundancy-check
 - `prior-rejection-check`: Check earlier rejections for one resembling the request and surface any match before deciding. — adopt → triage#prior-rejection-check
-- `ground-in-codebase`: Explore the current state of the code before writing, so the artifact targets what actually exists. — defer
-- `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write. — defer
-- `respect-area-adrs`: Honour the recorded architectural decisions that govern the area being changed. — defer
+- `ground-in-codebase`: Explore the current state of the code before writing, so the artifact targets what actually exists. — reject
+- `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write. — reject
+- `respect-area-adrs`: Honour the recorded architectural decisions that govern the area being changed. — reject
 - `agent-brief-contract`: Treat the posted agent brief as the authoritative contract the downstream agent works from, over the original body and discussion. — adopt → triage#agent-ready-gate
-- `no-stale-file-paths`: Keep concrete file paths out of a durable spec, ticket or brief, describing interfaces and behaviour that survive code drift. — defer
+- `no-stale-file-paths`: Keep concrete file paths out of a durable spec, ticket or brief, describing interfaces and behaviour that survive code drift. — reject
 - `brief-behavioural`: Describe what the system should do, not how to implement it, leaving implementation choices to the executing agent. — adopt → triage#agent-ready-gate
 - `brief-acceptance-criteria`: Give every brief concrete, independently testable acceptance criteria. — adopt → triage#brief-acceptance-criteria
 - `brief-scope-boundaries`: State explicitly what is out of scope so the agent does not gold-plate. — adopt → triage#agent-ready-gate
@@ -3931,24 +3937,24 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `pr-as-issue`: Treat an external pull request as an issue with attached code, running it through the same roles and state machine. — out-of-scope
 - `external-pr-discovery-filter`: In discovery, surface only external-author pull requests, while still triaging any explicitly named one. — out-of-scope
 - `triage-resume-notes`: Resume triage from the notes of earlier passes, never re-asking a question already answered. — adopt → triage#triage-resume-notes
-- `label-name-mapping`: Map the canonical triage role names onto the repository's actual label strings. — defer
-- `natural-language-commands`: Interpret the maintainer's natural-language triage requests into the matching triage actions. — defer
+- `label-name-mapping`: Map the canonical triage role names onto the repository's actual label strings. — reject
+- `natural-language-commands`: Interpret the maintainer's natural-language triage requests into the matching triage actions. — reject
 - `pick-from-summary`: Show the count and a one-line summary of each waiting item and let the maintainer pick which to triage. — adopt → triage#pick-from-summary
 - `read-full-source-issue`: Read the full body, comments and, for a pull request, the diff of any referenced spec, issue or pull request before working from it. — adopt → triage#read-full-source-issue
-- `agent-brief-comment`: Post an agent brief as a comment on an item when it becomes ready for an agent. — defer
+- `agent-brief-comment`: Post an agent brief as a comment on an item when it becomes ready for an agent. — reject
 - `already-built-close`: Close a request that is already implemented by pointing to where it lives, recording no rejection. — adopt → triage#already-built-close
 - `polite-bug-rejection`: Close a rejected bug report with a polite explanation of why. — out-of-scope
-- `direct-move-shortcut`: On a direct instruction to move an item's state, confirm the actions and apply them without an interview. — defer
-- `brief-offer-on-shortcut`: When moving an item to agent-ready without an interview, ask whether to write its agent brief. — defer
+- `direct-move-shortcut`: On a direct instruction to move an item's state, confirm the actions and apply them without an interview. — reject
+- `brief-offer-on-shortcut`: When moving an item to agent-ready without an interview, ask whether to write its agent brief. — reject
 - `pr-remaining-work-brief`: For a pull request, make the agent brief describe what remains to be done to the existing diff. — out-of-scope
-- `agent-brief-template`: Fill a fixed agent-brief template of category, summary, current behaviour, desired behaviour, key interfaces, acceptance criteria and out of scope. — defer
-- `rejection-record-format`: Write each rejection record as a short readable design note with the decision, a substantive reason and the list of prior requests. — defer
+- `agent-brief-template`: Fill a fixed agent-brief template of category, summary, current behaviour, desired behaviour, key interfaces, acceptance criteria and out of scope. — reject
+- `rejection-record-format`: Write each rejection record as a short readable design note with the decision, a substantive reason and the list of prior requests. — reject
 - `durable-rejection-reasons`: Reject only for durable reasons of scope, technical constraint or strategy, treating a temporary reason as a deferral. — adopt → triage#durable-rejection-reasons
-- `rejection-match-outcomes`: When a request matches a prior rejection, append it to the record and close on the maintainer's confirmation, update or delete the record on reconsideration, and proceed on disagreement. — defer
-- `rejection-reversal`: Reverse a rejection by deleting its record without reopening the old requests. — defer
-- `rejected-enhancement-only-records`: Write to the rejection store only for rejected enhancements, never for rejected bugs or requests closed as already built. — defer
-- `rejection-record-closeout`: When rejecting an enhancement as out of scope, append it to the matching rejection record or create one, comment on the request with the record's link, then close it as won't-fix. — defer
-- `concept-keyed-rejection-store`: Keep rejected requests in a store of one file per concept, not per request, so later requests can be deduplicated against it. — defer
+- `rejection-match-outcomes`: When a request matches a prior rejection, append it to the record and close on the maintainer's confirmation, update or delete the record on reconsideration, and proceed on disagreement. — reject
+- `rejection-reversal`: Reverse a rejection by deleting its record without reopening the old requests. — reject
+- `rejected-enhancement-only-records`: Write to the rejection store only for rejected enhancements, never for rejected bugs or requests closed as already built. — reject
+- `rejection-record-closeout`: When rejecting an enhancement as out of scope, append it to the matching rejection record or create one, comment on the request with the record's link, then close it as won't-fix. — reject
+- `concept-keyed-rejection-store`: Keep rejected requests in a store of one file per concept, not per request, so later requests can be deduplicated against it. — reject
 
 #### engineering · Design · Architecture — skill:skills/engineering/codebase-design
 - `module-vocabulary`: Reason about design with a shared deep-module glossary: module, interface, depth, seam, adapter and locality. — adopt → codebase-design#module-vocabulary
@@ -4805,14 +4811,15 @@ Answer a fixed set of diagnostic questions first, then rewrite the prompt to ask
 Pair a clarifying interview with live documentation so the glossary and decision records are produced as the interview settles each question.
 - `mattpocock_skills:skill:skills/engineering/grill-with-docs` — adopt → grilling#optional-docs
 - `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — defer
-- `mattpocock_skills:skill:skills/engineering/triage` — defer
+- `mattpocock_skills:skill:skills/engineering/triage` — reject
 
 #### `document-structure` *(retired)*
 Fill a fixed questionnaire template, ordered most-important-first, of purpose, from/to/use, context, how-to-answer, themed sections of one-idea questions with answer stubs, and a closing catch-all.
 
 #### `exhaustive-completion`
 End the session only when the frontier is empty and every branch of the tree has been visited, with nothing silently assumed.
-- `mattpocock_skills:skill:skills/productivity/grilling` — defer
+- ours: `grilling`
+- `mattpocock_skills:skill:skills/productivity/grilling` — adopt → grilling#exhaustive-completion
 
 #### `expert-gap-question`
 Say what a leading practitioner would do here that the request leaves out.
@@ -4894,7 +4901,7 @@ Finish a questionnaire only when every needed decision or fact is covered by at 
 
 #### `non-blocking-lookup`
 Run a fact lookup without blocking the interview, holding back only the questions downstream of it.
-- `mattpocock_skills:skill:skills/productivity/grilling` — defer
+- `mattpocock_skills:skill:skills/productivity/grilling` — reject
 
 #### `observable-outcomes`
 Translate vague goals such as scalable or simple into observable outcomes only when the distinction affects the design.
@@ -4920,7 +4927,8 @@ Keep decisions that belong to the user unresolved when rewriting their request.
 
 #### `partial-uncertain-answers-welcome`
 Invite partial and don't-know answers, asking the respondent to flag uncertainty rather than skip the question.
-- `mattpocock_skills:skill:skills/productivity/to-questionnaire` — defer
+- ours: `grilling`
+- `mattpocock_skills:skill:skills/productivity/to-questionnaire` — adopt → grilling#partial-uncertain-answers-welcome
 
 #### `question-batching`
 Batch independent questions whose prerequisites are settled and defer each dependent question until its prerequisites are answered.
@@ -4930,15 +4938,18 @@ Batch independent questions whose prerequisites are settled and defer each depen
 
 #### `questionnaire-artifact`
 Write the questionnaire to a slug-named markdown file in the current directory and report its path.
-- `mattpocock_skills:skill:skills/productivity/to-questionnaire` — defer
+- ours: `grilling`
+- `mattpocock_skills:skill:skills/productivity/to-questionnaire` — adopt → grilling#questionnaire-artifact
 
 #### `questionnaire-document-template`
 Fill a questionnaire template of purpose, a from-to-use line, a context section, how to answer, themed question sections with answer stubs, and a closing catch-all.
-- `mattpocock_skills:skill:skills/productivity/to-questionnaire` — defer
+- ours: `grilling`
+- `mattpocock_skills:skill:skills/productivity/to-questionnaire` — adopt → grilling#questionnaire-document-template
 
 #### `questionnaire-response-expectations`
 Tell the respondent the deadline and the rough effort answering will take.
-- `mattpocock_skills:skill:skills/productivity/to-questionnaire` — defer
+- ours: `grilling`
+- `mattpocock_skills:skill:skills/productivity/to-questionnaire` — adopt → grilling#questionnaire-response-expectations
 
 #### `rawest-source-question`
 Name the least processed material a practitioner would begin from in place of the summarized input.
@@ -4955,7 +4966,7 @@ Attach a recommended answer to each question, letting the respondent disagree.
 
 #### `reconfirm-before-action`
 Do not act until the user confirms a shared understanding has been reached.
-- `mattpocock_skills:skill:skills/productivity/grilling` — defer
+- `mattpocock_skills:skill:skills/productivity/grilling` — reject
 
 #### `request-omits-method`
 Advise a person to say what to achieve and not how, listing no skills or steps except to override one choice.
@@ -4984,7 +4995,8 @@ Read only the existing code, authoritative docs and constraints needed to distin
 
 #### `selective-why-lines`
 Add a one-line reason a question matters only where it could be misread or invite a throwaway answer.
-- `mattpocock_skills:skill:skills/productivity/to-questionnaire` — defer
+- ours: `grilling`
+- `mattpocock_skills:skill:skills/productivity/to-questionnaire` — adopt → grilling#selective-why-lines
 
 #### `self-serve-facts`
 Look up available facts yourself rather than asking, leaving only the decisions to the live participant.
@@ -5046,7 +5058,7 @@ When given a ticket reference, fetch the ticket and state its title before start
 
 #### `two-exchange-interview`
 Run the interview as two bounded exchanges, the recipient and what the user needs back.
-- `mattpocock_skills:skill:skills/productivity/to-questionnaire` — defer
+- `mattpocock_skills:skill:skills/productivity/to-questionnaire` — reject
 
 #### `unclear-need-one-choice-question`
 Infer the person's need from context and, only if it stays unclear, ask one multiple-choice question with fixed options and answer only the chosen part.
@@ -5079,7 +5091,7 @@ Open every comment or issue posted during the work with an AI-generated-during-t
 
 #### `already-handled-check`
 Post and create nothing when the report's link is already tied to an issue or a prior triage reply.
-- `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — defer
+- `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — out-of-scope
 
 #### `attention-buckets`
 Present the items needing triage attention as named buckets, oldest first.
@@ -5097,7 +5109,7 @@ Treat a long-closed issue that matches a new report as a lead to a regression, n
 
 #### `compensate-orphan-issue`
 If the run created an issue and its verdict did not land, cancel or remove that issue and confirm it, reporting any unconfirmed undo in the run output.
-- `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — defer
+- `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — out-of-scope
 
 #### `duplicate-search-key-list`
 Run the duplicate search over a fixed list of keys, among them the error signature, the area, the trigger, the symptom, a version window, the suspected commit and the source link.
@@ -5113,7 +5125,7 @@ Record what each triage pass settled as a note on the item itself, so the next p
 
 #### `evidence-based-routing`
 Match a report to a route only on evidence of its product area, code path or error signature, using stable keys and never the visible symptom or a keyword alone.
-- `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — defer
+- `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — out-of-scope
 
 #### `five-way-report-classes`
 Give each report exactly one class: bug, performance (kept as a bug with its measurements), feature request, question or feedback, or reroute, filing nothing when bug versus feature is unclear.
@@ -5128,7 +5140,7 @@ Grade each search hit as a confident duplicate, possibly related or no match, ma
 
 #### `inspect-attachments-admit-unreadable`
 Read every relevant screenshot, video and log closely, and name an attachment that could not be read rather than guess at it.
-- `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — defer
+- `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — out-of-scope
 
 #### `issue-template-and-title`
 Write a new issue as a self-contained record with a plain area-and-symptom title that never states a guessed cause, the reporter's words, expected and observed behaviour, version, trigger, frequency, link, labelled hypotheses and media.
@@ -5137,7 +5149,7 @@ Write a new issue as a self-contained record with a plain area-and-symptom title
 #### `no-guessed-route`
 Without a matching route, classify but name no destination or owner, and keep the fallback empty unless one team accepts everything unmatched.
 - `cursor_plugins:skill:pstack/automations/benny/skills/setup-benny` — defer
-- `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — defer
+- `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — out-of-scope
 
 #### `prior-rejection-check`
 Check earlier rejections for one resembling the request and surface any match before deciding.
@@ -5152,7 +5164,7 @@ Search the codebase by domain concept for an existing implementation and report 
 #### `report-fact-capture`
 Collect a fixed set of facts from a bug report before deciding on it: the reporter's words, version and environment, expected and observed behaviour, frequency and trigger, error signatures, attachments, links and any claim that someone already owns it.
 - `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — defer
-- `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — defer
+- `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — out-of-scope
 
 #### `reread-thread-before-acting`
 Re-read the whole report thread immediately before starting work on it.
@@ -5160,19 +5172,19 @@ Re-read the whole report thread immediately before starting work on it.
 
 #### `route-map-schema`
 Describe each route by name, match lists, destination, owners and whether its feature owner may be pinged.
-- `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — defer
+- `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — out-of-scope
 
 #### `routing-cause-trace`
 Before routing, run a bounded trace from action to result that checks where the symptom belongs, recent changes and existing fixes, deep enough to avoid misrouting but not a full root cause, and say tracing was unavailable when the code cannot be read.
-- `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — defer
+- `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — out-of-scope
 
 #### `strict-issue-create-gate`
 File an issue only for a clearly broken, still-live bug or performance report with no live match, a passing preflight, resolved fields and a link back to the source, preferring no ticket to a guessed or duplicate one.
-- `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — defer
+- `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — out-of-scope
 
 #### `tracker-adapter-contract`
 Require a tracker adapter that searches, reads, creates, updates without clobbering, adds links and recurrence notes and undoes its own issue, failing closed per missing operation and inventing no field value.
-- `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — defer
+- `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — out-of-scope
 
 #### `tracker-duplicate-search`
 Search the tracker for an existing issue that describes the same fault before deciding on a bug report.
@@ -5197,7 +5209,7 @@ Route each triaged item to one outcome expressed in the tracker's native fields 
 
 #### `whole-report-thread-read`
 Read a report's opening message and every reply so far before deciding on it.
-- `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — defer
+- `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — out-of-scope
 
 ### core · Design · Architecture
 
@@ -5267,7 +5279,7 @@ Define each glossary term tightly by what it is, not what it does.
 
 #### `live-spec-edits`
 Create, edit and delete specification files as the interview resolves each point.
-- `mattpocock_skills:skill:skills/in-progress/loop-me` — defer
+- `mattpocock_skills:skill:skills/in-progress/loop-me` — reject
 
 #### `mandate-nothing-structural`
 Impose no structure such as AI, a checkpoint or a schedule on a workflow unless the interview shows it is needed.
@@ -5285,7 +5297,7 @@ Keep concrete file paths out of a durable spec, ticket or brief, describing inte
 - ours: `to-spec`
 - `mattpocock_skills:skill:skills/engineering/to-spec` — adopt → to-spec#no-stale-file-paths
 - `mattpocock_skills:skill:skills/engineering/to-tickets` — defer
-- `mattpocock_skills:skill:skills/engineering/triage` — defer
+- `mattpocock_skills:skill:skills/engineering/triage` — reject
 
 #### `none-keeps-heading`
 Keep every spec heading, writing None in an empty section so its absence reads as a decision.
@@ -5305,7 +5317,7 @@ Add success-criteria and open-questions sections to the spec skeleton.
 
 #### `spec-done-when-buildable`
 Treat a spec as done only when an implementer could build it without asking a single question.
-- `mattpocock_skills:skill:skills/in-progress/loop-me` — defer
+- `mattpocock_skills:skill:skills/in-progress/loop-me` — reject
 
 #### `spec-files-only-output`
 Run a stateful interview whose only output is the specification files.
@@ -6002,7 +6014,7 @@ Record with each CI state whether any earlier commit of the pull request passed.
 #### `fail-closed-run-config`
 Stop a run before any write when its configuration or a required tool or map is missing, malformed or incomplete.
 - `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — defer
-- `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — defer
+- `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — out-of-scope
 
 #### `forge-refusal-outranks-checks`
 Treat a blocked merge with a failing head-commit rollup as failing CI even when every visible check is clean.
@@ -6011,7 +6023,7 @@ Treat a blocked merge with a failing head-commit rollup as failing CI even when 
 #### `frozen-source-coordinates`
 Read and check the source channel and thread of a report once, before any work list or delegation, and never change or replace them for the rest of the run.
 - `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — defer
-- `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — defer
+- `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — out-of-scope
 
 #### `gateway-plus-tracing`
 Pair a logging proxy for model calls with a tracing or monitoring product so tool calls are captured too.
@@ -6122,7 +6134,7 @@ Summarise the result as a table of repo, added, removed, material-changed and mi
 #### `thread-parent-preflight`
 Before each write tied to a report thread, re-read the thread to confirm its parent message still exists in the same channel, and after posting confirm the reply landed, never falling back to another place.
 - `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — defer
-- `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — defer
+- `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — out-of-scope
 
 #### `thread-safety-test-before-enable`
 Enable no chat automation until a test on a harmless report, run after everything is committed, shows it keeps to its thread, its marker and its write limits.
@@ -6131,7 +6143,7 @@ Enable no chat automation until a test on a harmless report, run after everythin
 #### `trusted-verdict-marker`
 Pass a report from triage to repair through a fixed one-line marker that repair accepts only from the configured triage identity, in the same thread, and only for a bug or performance verdict.
 - `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — defer
-- `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — defer
+- `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — out-of-scope
 
 #### `unknown-check-state-fails`
 Count an unknown or unexpected check state as failed and an unfinished one as pending.
@@ -6984,7 +6996,7 @@ Do not bold every proper noun or acronym.
 #### `bounded-follow-up-window`
 After the main reply, watch the thread for one bounded window, answering only direct questions, staying out of side chatter and stopping when asked.
 - `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — defer
-- `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — defer
+- `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — out-of-scope
 
 #### `brevity-keeps-required-sections`
 Never let brevity drop a section the reply contract requires, such as details, trade-offs, choices or open decisions.
@@ -7171,7 +7183,7 @@ Use the project's established domain vocabulary throughout what you write.
 - `mattpocock_skills:skill:skills/engineering/tdd` — defer
 - `mattpocock_skills:skill:skills/engineering/to-spec` — defer
 - `mattpocock_skills:skill:skills/engineering/to-tickets` — defer
-- `mattpocock_skills:skill:skills/engineering/triage` — defer
+- `mattpocock_skills:skill:skills/engineering/triage` — reject
 - `mattpocock_skills:skill:skills/productivity/teach` — adopt → teach#domain-vocabulary
 - `mattpocock_skills:skill:skills/productivity/wait-what` — adopt → brief-me#domain-vocabulary
 
@@ -7268,7 +7280,7 @@ During a follow-up window, answer only from evidence already gathered and apply 
 
 #### `follow-up-safe-issue-corrections`
 During a follow-up window, safely correct the existing or new tracker issue linked to the report, emit no second marker, extend the window at most once and leave new reports to new runs.
-- `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — defer
+- `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — out-of-scope
 
 #### `forced-triplet-cut`
 List as many items as naturally exist, never forcing a group of three.
@@ -7537,7 +7549,7 @@ Use the words a developer would say aloud rather than a coined term, keeping a n
 
 #### `no-cross-post`
 Never post to another channel, broadcast, message privately or start a new thread, and point a misdirected reporter to the right place inside their own thread.
-- `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — defer
+- `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — out-of-scope
 
 #### `no-decorative-emoji`
 Remove ornamental emoji from headings and bullets.
@@ -7603,7 +7615,7 @@ Leave platform formatting, publishing and any frontmatter nobody asked for out o
 #### `no-root-post-in-source`
 Post in the source channel only as a reply inside the report's thread, never as a new top-level message.
 - `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — defer
-- `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — defer
+- `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — out-of-scope
 
 #### `no-screenshot-said`
 When a visible change lacks a screenshot, say that it lacks one and describe the change on screen.
@@ -7733,7 +7745,7 @@ Count as an action item only a decision the person alone can take, never work th
 #### `owner-ping-gate`
 Keep owner pings off by default and allow one only to a configured feature owner who agreed or a confirmed regression author, never a broad on-call group or an unverified owner.
 - `cursor_plugins:skill:pstack/automations/benny/skills/setup-benny` — defer
-- `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — defer
+- `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — out-of-scope
 
 #### `parallel-list-items`
 Keep the items of a list grammatically parallel.
@@ -8051,7 +8063,7 @@ Close with exactly one concrete next action the reader can do in under two minut
 
 #### `single-verdict-reply`
 Post one verdict and no progress messages, leading with the outcome, linking any issue, naming a reroute or one missing fact, with at most one allowed ping and one marker line.
-- `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — defer
+- `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — out-of-scope
 
 #### `slide-count-cap`
 Use ten slides at most, and fewer by preference.
@@ -9139,7 +9151,7 @@ Do all work in subagents so the coordinator's context stays free for coordinatio
 #### `coordinator-only-chat-writes`
 Let only the coordinating agent write to chat, telling every worker in its brief that chat writes are forbidden and giving it no means to make them.
 - `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — defer
-- `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — defer
+- `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — out-of-scope
 
 #### `coordinator-ownership`
 The coordinator collects every worker result and owns integration, the disposition of findings and final verification.
@@ -9318,7 +9330,7 @@ Decide what runs in parallel, parallelizing only where the work has seams and no
 #### `findings-only-read-only-workers`
 Give each delegated analysis worker one narrow question, no write access and no chat credentials, and take back findings only.
 - `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — defer
-- `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — defer
+- `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — out-of-scope
 
 #### `finished-results-only`
 Merge only results that have finished.
@@ -9991,7 +10003,7 @@ Give each worker a brief stating the outcome, owned paths, constraints, acceptan
 #### `worker-isolation-or-coordinator`
 Hand work to a worker only where its environment provably enforces the run's write limits, and otherwise have the coordinator do that work itself.
 - `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — defer
-- `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — defer
+- `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — out-of-scope
 
 #### `worker-records-commits-and-method`
 Have a worker record in its result the commits and method it actually used.
@@ -11166,7 +11178,7 @@ Begin a search with a broad sweep and focus on specific items only afterward.
 
 #### `agent-brief-comment`
 Post an agent brief as a comment on an item when it becomes ready for an agent.
-- `mattpocock_skills:skill:skills/engineering/triage` — defer
+- `mattpocock_skills:skill:skills/engineering/triage` — reject
 
 #### `agent-brief-contract`
 Treat the posted agent brief as the authoritative contract the downstream agent works from, over the original body and discussion.
@@ -11174,7 +11186,7 @@ Treat the posted agent brief as the authoritative contract the downstream agent 
 
 #### `agent-brief-template`
 Fill a fixed agent-brief template of category, summary, current behaviour, desired behaviour, key interfaces, acceptance criteria and out of scope.
-- `mattpocock_skills:skill:skills/engineering/triage` — defer
+- `mattpocock_skills:skill:skills/engineering/triage` — reject
 
 #### `brief-behavioural`
 Describe what the system should do, not how to implement it, leaving implementation choices to the executing agent.
@@ -11206,11 +11218,11 @@ Resolve a bare ticket number by how the host numbers issues and pull requests, t
 
 #### `brief-offer-on-shortcut`
 When moving an item to agent-ready without an interview, ask whether to write its agent brief.
-- `mattpocock_skills:skill:skills/engineering/triage` — defer
+- `mattpocock_skills:skill:skills/engineering/triage` — reject
 
 #### `category-state-roles`
 Assign each item exactly one category role of bug or enhancement and one state role from a fixed set.
-- `mattpocock_skills:skill:skills/engineering/triage` — defer
+- `mattpocock_skills:skill:skills/engineering/triage` — reject
 
 #### `comment-before-close`
 Post the explanation as its own comment before closing, because a comment attached to the close can be lost.
@@ -11218,7 +11230,7 @@ Post the explanation as its own comment before closing, because a comment attach
 
 #### `concept-keyed-rejection-store`
 Keep rejected requests in a store of one file per concept, not per request, so later requests can be deduplicated against it.
-- `mattpocock_skills:skill:skills/engineering/triage` — defer
+- `mattpocock_skills:skill:skills/engineering/triage` — reject
 
 #### `create-missing-labels`
 Create each configured label the hosted tracker lacks.
@@ -11230,7 +11242,7 @@ Ask one yes-or-no question about keeping label strings equal to the role names, 
 
 #### `direct-move-shortcut`
 On a direct instruction to move an item's state, confirm the actions and apply them without an interview.
-- `mattpocock_skills:skill:skills/engineering/triage` — defer
+- `mattpocock_skills:skill:skills/engineering/triage` — reject
 
 #### `durable-rejection-reasons`
 Reject only for durable reasons of scope, technical constraint or strategy, treating a temporary reason as a deferral.
@@ -11252,11 +11264,11 @@ In discovery, surface only external-author pull requests, while still triaging a
 #### `label-name-mapping`
 Map the canonical triage role names onto the repository's actual label strings.
 - `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
-- `mattpocock_skills:skill:skills/engineering/triage` — defer
+- `mattpocock_skills:skill:skills/engineering/triage` — reject
 
 #### `natural-language-commands`
 Interpret the maintainer's natural-language triage requests into the matching triage actions.
-- `mattpocock_skills:skill:skills/engineering/triage` — defer
+- `mattpocock_skills:skill:skills/engineering/triage` — reject
 
 #### `out-of-scope-kb` *(retired)*
 Keep a concept-keyed knowledge base of rejected enhancements for deduplication, writing to it only for rejected enhancements and never for already-built features.
@@ -11301,27 +11313,27 @@ When an item is ready for a human rather than an agent, use the same brief struc
 
 #### `recommend-then-wait`
 Recommend a category and state with reasoning and a short codebase summary, then wait for the maintainer's direction before acting.
-- `mattpocock_skills:skill:skills/engineering/triage` — defer
+- `mattpocock_skills:skill:skills/engineering/triage` — reject
 
 #### `rejected-enhancement-only-records`
 Write to the rejection store only for rejected enhancements, never for rejected bugs or requests closed as already built.
-- `mattpocock_skills:skill:skills/engineering/triage` — defer
+- `mattpocock_skills:skill:skills/engineering/triage` — reject
 
 #### `rejection-match-outcomes`
 When a request matches a prior rejection, append it to the record and close on the maintainer's confirmation, update or delete the record on reconsideration, and proceed on disagreement.
-- `mattpocock_skills:skill:skills/engineering/triage` — defer
+- `mattpocock_skills:skill:skills/engineering/triage` — reject
 
 #### `rejection-record-closeout`
 When rejecting an enhancement as out of scope, append it to the matching rejection record or create one, comment on the request with the record's link, then close it as won't-fix.
-- `mattpocock_skills:skill:skills/engineering/triage` — defer
+- `mattpocock_skills:skill:skills/engineering/triage` — reject
 
 #### `rejection-record-format`
 Write each rejection record as a short readable design note with the decision, a substantive reason and the list of prior requests.
-- `mattpocock_skills:skill:skills/engineering/triage` — defer
+- `mattpocock_skills:skill:skills/engineering/triage` — reject
 
 #### `rejection-reversal`
 Reverse a rejection by deleting its record without reopening the old requests.
-- `mattpocock_skills:skill:skills/engineering/triage` — defer
+- `mattpocock_skills:skill:skills/engineering/triage` — reject
 
 #### `split-pr-read-steps`
 Read a pull request's body, comments and diff as separate steps, because one combined command can omit the body.
@@ -11329,7 +11341,7 @@ Read a pull request's body, comments and diff as separate steps, because one com
 
 #### `state-transitions`
 Move items along defined state transitions, flagging unusual moves and letting the maintainer override at any time.
-- `mattpocock_skills:skill:skills/engineering/triage` — defer
+- `mattpocock_skills:skill:skills/engineering/triage` — reject
 
 #### `triage-external-only`
 Triage only items the user did not author, since tickets the ticketing step produced are already agent-ready.
@@ -11974,7 +11986,7 @@ Honour the recorded architectural decisions that govern the area being changed.
 - `mattpocock_skills:skill:skills/engineering/tdd` — defer
 - `mattpocock_skills:skill:skills/engineering/to-spec` — defer
 - `mattpocock_skills:skill:skills/engineering/to-tickets` — defer
-- `mattpocock_skills:skill:skills/engineering/triage` — defer
+- `mattpocock_skills:skill:skills/engineering/triage` — reject
 
 #### `return-not-mutate`
 Design functions to return results rather than cause side effects, so behaviour can be observed directly.
@@ -12562,7 +12574,7 @@ Explore the current state of the code before writing, so the artifact targets wh
 - ours: `to-plan`
 - `mattpocock_skills:skill:skills/engineering/to-spec` — adopt → settle-open-questions#scoped-context-read
 - `mattpocock_skills:skill:skills/engineering/to-tickets` — adopt → to-plan#ground-in-codebase
-- `mattpocock_skills:skill:skills/engineering/triage` — defer
+- `mattpocock_skills:skill:skills/engineering/triage` — reject
 
 #### `lazy-glossary-and-adr`
 Create glossary and decision-record files lazily, only when there is something concrete to write.

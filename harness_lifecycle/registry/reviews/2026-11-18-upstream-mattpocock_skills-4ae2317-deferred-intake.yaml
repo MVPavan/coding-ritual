@@ -1,0 +1,127 @@
+harness: mattpocock_skills
+from_sha: null
+to_sha: 4ae2317
+supersedes: null
+analysis_critic:
+  by: codex gpt-6.1-sol high (critic-100)
+  date: '2026-11-18'
+  verdict: pass
+  last_critic: null
+comparison_critic:
+  by: codex gpt-6.1-sol high (critic-100)
+  date: '2026-11-18'
+  verdict: pass
+  last_critic: null
+themes: 'Three grilling rows reopened by the owner. Owner ruling 2026-11-18 (conversation),
+  deferred review, bead cr-r2pa.3.3: exhaustive-completion is adopted as an option offered
+  after the settled stop; reconfirm-before-action and non-blocking-lookup are rejected, accepting
+  the report''s reject recommendation.'
+skills:
+  skill:skills/productivity/grilling:
+    upstream_tree_hash: 485451958784497cd4c4dbea13cb5bbb579da58fac0d0e45f3bcb310fab68ac7
+    accepted: 4ae2317
+    compared_with: grilling
+    pairing:
+      overlap:
+        create-verification-skill: 1
+        delegation: 1
+        doc:AGENTS.md: 1
+        grilling: 7
+        research: 1
+        restate: 1
+        settle-open-questions: 7
+      placement_match:
+      - grilling
+      - restate
+      - settle-open-questions
+      - sharpen
+      suggested: grilling
+      purpose_match: grilling
+      purpose: Upstream runs a round-by-round interview on request; our grilling is the same
+        interview.
+      flag: null
+      reason: null
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      exhaustive-completion:
+        scope: reconsider
+        change: []
+        fact: present
+        provider: grilling
+        candidates:
+        - settled-stop
+        via: null
+        also_in:
+          settle-open-questions: variant
+        ours:
+        - .claude/skills/grilling/SKILL.md:23-27
+        recommendation: adopt
+        delivery: delivered
+        target: grilling
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-02
+          - S-08
+          override: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3.
+          Adopted as an option: by default grilling still stops once the needed decisions
+          are settled, deferred or blocked, then offers to continue through every remaining
+          branch until none is left and nothing is silently assumed, and does so only if the
+          user says yes (.claude/skills/grilling/SKILL.md:23-27). It is in the always-loaded
+          stop paragraph, so every interview reaches it; the default is unchanged (U-02: one
+          yes-or-no offer, not a forced run) and the rule is not absolute (S-08).'
+      reconfirm-before-action:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          restate: variant
+        ours:
+        - .claude/skills/grilling/SKILL.md:28-30
+        - AGENTS.md:11-12
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. Ours carries authorization forward
+          for a step already requested and never treats the interview as implementation authority;
+          a blanket reconfirmation conflicts with U-02 and AGENTS.md's retained approvals
+          (.claude/skills/grilling/SKILL.md:28-30; AGENTS.md:11-12).
+      non-blocking-lookup:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - AGENTS.md:9-10
+        - .claude/skills/grilling/SKILL.md:19-21
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. AGENTS.md already says to continue
+          independent work while a blocking answer is pending (U-02), and grilling looks facts
+          up itself; a grilling-specific copy repeats it (S-05) (AGENTS.md:9-10; .claude/skills/grilling/SKILL.md:19-21).

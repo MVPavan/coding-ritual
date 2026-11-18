@@ -14,6 +14,7 @@ Archived research is evidence, not operating policy.
 | Architecture/contracts | `.repo-context/invariants.md`, `docs/adr/README.md` |
 | Investigation | Search `.repo-context/learnings.md`; open matching evidence |
 | Answering why with the `why` skill, or adding an outside system | `.repo-context/evidence-sources.md` |
+| Grilling summaries and questionnaires, saved or looked up | `docs/interviews/` (`README.md`) |
 | Beads the tool: policy, setup, closeout, `bd` behavior and flags, upgrades | `beads` skill, `.claude/skills/beads/SKILL.md` (its table routes to the reference) |
 | Workstreams, phase epics, plan records, tracking files | `tracker` skill, `.claude/skills/tracker/SKILL.md` |
 

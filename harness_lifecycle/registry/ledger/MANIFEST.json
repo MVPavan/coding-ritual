@@ -62,7 +62,8 @@
     "2026-11-15-maintain-verification-two-rules.jsonl": "88b4fea7d7f31eee462def980b93b3abe853ec9c787ea7dbcb532bab35dfc18a",
     "2026-11-15-statechart-partial-marks.jsonl": "b0dcfae8a7da36fc7c3ac55fecc501aa31fb98119b55869dbe1a1a8f013ef2d3",
     "2026-11-17-deferred-discovery.jsonl": "d99c443a51c278cf8bcf3b12ebea478297ac6b09b64be5d6a0ebf5c2c1abd687",
-    "2026-11-17-settle-open-questions.jsonl": "50c5fb1bf689968e1bcf85cc7a015600b088de0e82871c80d117dec8584b0229"
+    "2026-11-17-settle-open-questions.jsonl": "50c5fb1bf689968e1bcf85cc7a015600b088de0e82871c80d117dec8584b0229",
+    "2026-11-18-deferred-intake.jsonl": "e06858d03b0b40021f1621b50fff7be0f1a628ece7feee9fab1fddaa71c58bb6"
   },
   "round_order": [
     "2026-10-14-migration.jsonl",
@@ -126,7 +127,8 @@
     "2026-11-15-statechart-partial-marks.jsonl",
     "2026-11-15-maintain-verification-two-rules.jsonl",
     "2026-11-17-settle-open-questions.jsonl",
-    "2026-11-17-deferred-discovery.jsonl"
+    "2026-11-17-deferred-discovery.jsonl",
+    "2026-11-18-deferred-intake.jsonl"
   ],
   "reports": {
     "harness_lifecycle/registry/reviews/2026-10-30-upstream-mattpocock_skills-5beb35b.yaml": "fb413772a75f116bd9baeaa06b6e414fe59978c654a951cb53345f17459d7597",
@@ -157,7 +159,10 @@
     "harness_lifecycle/registry/reviews/2026-11-12-upstream-mattpocock_skills-5beb35b-pr.yaml": "55dd4836aca525848b0a428ea66c2638133758b7667ed2a679668945a1c34ab0",
     "harness_lifecycle/registry/reviews/2026-11-12-upstream-mattpocock_skills-5beb35b-reflect.yaml": "1966178a82b85b8681a90d44311fe322021b9db760942c698a89c5e6eb73c833",
     "harness_lifecycle/registry/reviews/2026-11-17-upstream-cursor_plugins-4dd1d05-deferred-discovery.yaml": "2de6fec192e5054fa2ce037ba41adc28df6e1401c9c4ba42a5b8617dcc1bd8f8",
-    "harness_lifecycle/registry/reviews/2026-11-17-upstream-mattpocock_skills-4ae2317-deferred-discovery.yaml": "b883c331e77f8fe73094b8db3c8b924c372efbf0a6eab1422ce1742a042f10c1"
+    "harness_lifecycle/registry/reviews/2026-11-17-upstream-mattpocock_skills-4ae2317-deferred-discovery.yaml": "b883c331e77f8fe73094b8db3c8b924c372efbf0a6eab1422ce1742a042f10c1",
+    "harness_lifecycle/registry/reviews/2026-11-18-upstream-cursor_plugins-2776ddd-deferred-intake.yaml": "b37c692150247a8ac76bf28987b29a408a552b052cc52953e18432d16c4515d4",
+    "harness_lifecycle/registry/reviews/2026-11-18-upstream-mattpocock_skills-4ae2317-deferred-intake.yaml": "1e66f9d0621bf757502b2212847a6a843c119c35c3a8bf89679bd2a4b28d7f76",
+    "harness_lifecycle/registry/reviews/2026-11-18-upstream-mattpocock_skills-5beb35b-deferred-intake.yaml": "850729097a2e64cbdb7032662e1f301a6d54a04bf7402dc21be2e2c952ee80a4"
   },
   "analyses": {
     "cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues@2776ddd": "fc812fe2862360b96af3af540dc32d236357f0b439d0fe81001e718890696a6d",

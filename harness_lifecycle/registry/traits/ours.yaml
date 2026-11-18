@@ -64,12 +64,14 @@ ours:why:
   tree_hash: "d6de9b6af08a1922e880ccc86e662f44d3b590cbec6ee9df3f88d190878a6b72"
   traits: [read-only-explanation, immaterial-ambiguity-reading, gather-without-concluding, code-anchor-first, named-record-first, target-derived-search-terms, local-evidence-sources, pickaxe-history-search, full-record-reading, record-lineage-walk, recency-bias-check, embedded-hypothesis-check, confidence-tiers, adjacent-citation-gate, code-not-intent-evidence, no-retrofitted-rationale, consistency-is-not-intent, absence-is-not-evidence, contradiction-shown, competing-hypotheses-section, searched-and-unknown, unreachable-data-is-gap, sources-consulted-line, constraints-before-change, pr-discussion-pull, incident-source-playbook, warehouse-evidence-inventory, typed-models-over-raw, probe-schema-before-query, schema-drift-check, refresh-lag-fallback, timeline-against-ship-date, constant-origin-signal, warehouse-motive-signals, warehouse-finding-record, telemetry-evidence-inventory, owning-service-first, curated-views-before-raw, span-and-trace-inspection, narrow-log-lookups, telemetry-motive-signals, telemetry-finding-record, ticket-search-procedure, document-store-search-procedure, error-trace-relevance, error-finding-record, chat-search-procedure]
 ours:grilling:
-  tree_hash: "3f9df72abc79355fead616ca0db983426b1d0f532537e8e95bfdd6e568288907"
-  traits: [map-decisions, question-batching, recommended-answer, self-serve-facts, settled-stop, absent-respondent, grill-the-send, gap-targeted-questions, interview-not-authority, optional-docs, decision-summary, answer-before-next-round, yes-accepts-recommendation, importance-ordered-questions, needed-item-coverage, single-idea-questions]
+  tree_hash: "16f23805b2223452ee570aef5a4b36d06dcf7467794eac8c51d047631f184e78"
+  traits: [map-decisions, question-batching, recommended-answer, self-serve-facts, settled-stop, absent-respondent, grill-the-send, gap-targeted-questions, interview-not-authority, optional-docs, decision-summary, answer-before-next-round, yes-accepts-recommendation, importance-ordered-questions, needed-item-coverage, single-idea-questions, exhaustive-completion, questionnaire-artifact, selective-why-lines, questionnaire-document-template, questionnaire-response-expectations, partial-uncertain-answers-welcome]
   notes:
     yes-accepts-recommendation: "Delivers sealed row 2026-10-30-mattpocock_skills-5beb35b:076 whole, for a question offering a recommendation; a question after a fact stays an ordinary question; T5."
     recommended-answer: "Labels the recommendation's assumptions."
     self-serve-facts: "Ordinary lookups stay inline; only bounded work is delegated."
+    exhaustive-completion: "An option, not the default: after the settled stop, grilling offers to visit every remaining branch and does so only if the user says yes."
+    questionnaire-artifact: "Saved to the interview folder (docs/interviews/ unless the project names another) with a dated, slug and kind name, not the current directory; the closing summary is saved there too."
 ours:harness-evaluate:
   tree_hash: "4ba41d978d395a33869c64cb5ea450fe6edf766e814da8c96ba997025995a290"
   traits: [read-first, decision-dimensions, disposition-choice, recommendation-vs-record, record-command, edit-canonical-source, template-adoption-gate, material-risk-review, adopt-after-state-exists]
