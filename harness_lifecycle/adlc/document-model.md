@@ -190,7 +190,7 @@ code. Integration happens in git and the pull request. Governance lives in
 1. **The area file is `README.md`:** the area's charter. The order of work
    lives in dependency edges between epics, not in this file.
 2. **The epic's file is `plan.md`, not `roadmap.md`** (recommended). It is
-   what the planning skill already produces, `CONTEXT.md` defines "Roadmap"
+   what the planning skill already produces, `GLOSSARY.md` defines "Roadmap"
    as a workstream's phased plan, and this model has no phases inside an
    epic.
 3. **Existing folders stay as they are.** `dws/` and `agent-bridge/` become

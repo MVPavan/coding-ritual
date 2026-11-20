@@ -19,7 +19,7 @@ workflow interpreter and its tests.
 - `harness_lifecycle/` — curation tooling for the reference harnesses: capability
   scanner, gap report, and the adoption ledger.
 - `.claude/` + `.codex/` — shared skills, agent definitions, and runtime integrations.
-- `.repo-context/` — shared repository guidance and `CONTEXT.md` domain vocabulary;
+- `.repo-context/` — shared repository guidance and `GLOSSARY.md` domain vocabulary;
   `AGENTS.md` defines when agents read it.
 - `.beads/` — Beads issue tracker store; the policy is in the `beads` skill (`.claude/skills/beads/`).
 

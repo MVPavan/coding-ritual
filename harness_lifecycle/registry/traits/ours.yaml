@@ -52,7 +52,7 @@ ours:design-evolve:
   tree_hash: "65c51587d97ed3bdcbc3d614f3e7cdf377b089c4cb116709c5a747cff2f1d079"
   traits: [integration-not-redesign, resolve-scope, classify-maturity, evidence-before-edit, start-from-source, no-gap-filling, version-rekey, consistency-check, concept-map, layout-mirror, preserve-structure, report-provenance]
 ours:domain-modeling:
-  tree_hash: "eaba589ce980200b239446b3b66d083e7260ea64096175106ceefec2c178bd4d"
+  tree_hash: "db1389e6f38369acde49c4f547e6013a0ee90b3e57c04a88f7a8d8efda267bcd"
   traits: [active-discipline, declared-glossary-location, lazy-glossary-and-adr, challenge-glossary, sharpen-fuzzy, concrete-scenarios, cross-reference-code, update-inline, authorized-model-writes, glossary-is-glossary, glossary-entry-template, canonical-term-and-aliases, tight-concept-definitions, context-specific-terms, context-map-artifact, context-map-lookup, topic-context-resolution, adr-three-gate, minimal-decision-record, sequential-record-numbering, optional-record-sections, adr-what-qualifies, adr-match-convention, adr-supersede-lifecycle, adr-code-gotcha-link, scoped-decision-records]
   notes:
     glossary-entry-template: "Lays the file out as a title and a one-or-two-sentence description, then each term in bold followed by its definition and an Avoid line."
@@ -93,7 +93,7 @@ ours:html-artifact:
   tree_hash: "1c4c952e6555f09f0e4f54275d42feb19856c315ba0b0e52251ac86493d2eee9"
   traits: [self-contained-contract, accessibility-contract, progressive-enhancement, honest-content, preset-report, preset-dashboard, preset-explainer, preset-editor, tokens-first-style, component-vocabulary, svg-figure-grammar, svg-complexity-budget, svg-accessibility, honest-data-encoding, deliver-verify]
 ours:brief-me:
-  tree_hash: "ba314a374e3c96bd9b3a909a745e496ffd192a2d4b662f2963afec6b85125f32"
+  tree_hash: "b08f805f5dc53e61a6ca924c15f229e77ecb1194c15f632e8d5a0c986a5f1c40"
   traits: [next-action-first, numbered-steps, single-next-action, tangent-suppression, state-restatement, concrete-time-estimates, visible-progress, matter-of-fact-errors, capped-lists, no-preamble, explain-on-request, debug-spiral-reset, repitch-trigger, controlled-language, domain-vocabulary, pre-send-check, repitch-explains-project-terms]
 ours:improve-codebase-architecture:
   tree_hash: "616472db7e4fff6ae7d259fa5e7dc4c7cd3c05222a2a33072db1f18b3bae0042"
@@ -108,7 +108,7 @@ ours:land:
   tree_hash: "b440a07e143375a487076626d00cae2de6ba79310b62035e24f6089a3ca9a1e1"
   traits: [verified-work-only, own-path-partition, conventional-commit-title, commit-body-adds, commit-plan-without-authority]
 ours:migrate-claude-to-codex:
-  tree_hash: "27734a27265888408eca426706a7ad173b0f62709667cda6de5fa77afb3597ca"
+  tree_hash: "cf4adcb8725e0df89d88b2e2950b9d279212b1f32b32a7c6af23f2c23318106b"
   traits: [dry-run-default, skill-symlinking, destination-protection, command-conversion, agent-conversion, hook-conversion, config-scaffold, shared-policy-untouched, structural-verify, non-destructive, test-before-reliance]
 ours:model-council:
   tree_hash: "924c702a75b471cbfa3a3aed97e1860adb5a41740233bb0c192b705b9bd49876"
@@ -277,7 +277,7 @@ ours:wayfinder:
     decision-map-epic: "A Beads epic whose title starts with Map:."
     record-resolution: "Updates invalidated dependencies without deleting history."
 doc:AGENTS.md:
-  tree_hash: "ea807472364357161d86cb2a60854e6020abe5cbba3f2bd51db539c05f409f0d"
+  tree_hash: "d0b43bac6509a78f9e465f7cfa33c9968e4fbeeaa9b69db0c96c674e45f65e68"
   traits: [smallest-sufficient-change, implementation-authority-carry, inspection-only-authority, material-ambiguity-ask, work-while-waiting, consequential-action-authorization, approval-persistence, accuracy-over-agreement, no-grade-inflation, certainty-labelling, no-fabrication, scoped-reading, logs-behind-references, untrusted-content-no-authority, primary-evidence-check, volatile-fact-verification, decision-conflict-surfacing, handoff-contents, learnings-capture, memory-on-request, reuse-existing-first, present-requirement-only, no-unrelated-cleanup, owning-layer-fix, caller-impact-check, limitation-with-revisit, proportional-effort, explicit-workflow-adherence, configured-model-use, independence-batching, no-evidence-pivot, no-onward-delegation, worker-brief-contents, preserve-others-edits, no-duplicate-delegated-work, coordinator-ownership, applicable-checks-before-done, risk-proportional-tests, original-failure-check, rerun-on-change-only, final-diff-inspection, final-report-contents, secret-containment, simplification-preserves-safeguards, safe-retry-only, no-guard-bypass, explicit-path-staging, destructive-git-guard, commit-push-authority, merge-base-selection, merged-result-verification, unmerged-work-protection, repo-relative-committed-paths, scratch-artifact-location, read-only-references, minimal-borrowing, plugin-subset-invariant, resume-bead-and-handoff, generated-mirror-read-only, plain-path-references, durable-work-tracking, router-at-task-start, recurring-lesson-to-check, tool-when-it-pays, script-over-fanout, direct-observation, suspect-the-observation]
 doc:.repo-context/coding-style.md:
   tree_hash: "69c61c0c79bafd364f463e9a7e38bf023d39bc10223490f94d72523f29cd0868"

@@ -101,7 +101,7 @@ work, also recover the active Bead and handoff.
 
 - Python or ledger changes: `.repo-context/coding-style.md`.
 - Handing work to another agent or model: the `delegation` skill.
-- Domain/repo terminology: `.repo-context/CONTEXT.md`. Architecture/contracts: relevant `docs/adr/`
+- Domain/repo terminology: `.repo-context/GLOSSARY.md`. Architecture/contracts: relevant `docs/adr/`
   and `.repo-context/invariants.md`.
 - Phase/workstream execution: the implement playbook (through `mvp-mode`) and
   relevant `docs/workstreams/<name>/roadmap.md`. Generated tracking mirrors are read-only.

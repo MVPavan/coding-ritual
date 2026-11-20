@@ -1,4 +1,4 @@
-# CONTEXT.md Format
+# GLOSSARY.md Format
 
 ## Structure
 
@@ -32,19 +32,19 @@ _Avoid_: Client, buyer, account
 ## Single vs multi-context repos
 
 **Single context:** One glossary at the location declared by `AGENTS.md`,
-defaulting to `.repo-context/CONTEXT.md`. Preserve an existing root `CONTEXT.md`
+defaulting to `.repo-context/GLOSSARY.md`. Preserve an existing root `GLOSSARY.md`
 when adopting another repo unless relocation is authorized.
 
-**Multiple contexts:** A `CONTEXT-MAP.md` at the repo root lists the contexts, where they live, and how they relate to each other:
+**Multiple contexts:** A `GLOSSARY-MAP.md` at the repo root lists the contexts, where they live, and how they relate to each other:
 
 ```md
-# Context Map
+# Glossary Map
 
 ## Contexts
 
-- [Ordering](./src/ordering/CONTEXT.md) — receives and tracks customer orders
-- [Billing](./src/billing/CONTEXT.md) — generates invoices and processes payments
-- [Fulfillment](./src/fulfillment/CONTEXT.md) — manages warehouse picking and shipping
+- [Ordering](./src/ordering/GLOSSARY.md) — receives and tracks customer orders
+- [Billing](./src/billing/GLOSSARY.md) — generates invoices and processes payments
+- [Fulfillment](./src/fulfillment/GLOSSARY.md) — manages warehouse picking and shipping
 
 ## Relationships
 
@@ -53,13 +53,15 @@ when adopting another repo unless relocation is authorized.
 - **Ordering ↔ Billing**: Shared types for `CustomerId` and `Money`
 ```
 
-The skill infers which structure applies:
+Select the glossary in this order; the first that applies wins, for reading and
+for creating the file:
 
-- Follow explicit repository routing first; otherwise use `CONTEXT-MAP.md` if present.
-- For a single context, use `.repo-context/CONTEXT.md` or an existing root glossary.
-- If both exist without a declared owner, resolve ownership before editing; do not
-  maintain duplicate glossaries.
-- If none exists, create `.repo-context/CONTEXT.md` lazily when the first term is
-  resolved and documentation work is authorized.
+1. The location the project's instructions declare (such as `AGENTS.md`).
+2. A root `GLOSSARY-MAP.md`: the glossary it lists for the current context, at
+   that path even if the file does not exist yet.
+3. An existing root `GLOSSARY.md` or `.repo-context/GLOSSARY.md`. If both exist,
+   resolve which one owns the terms before editing; do not maintain duplicates.
+4. Otherwise `.repo-context/GLOSSARY.md`, created lazily when the first term is
+   resolved and documentation work is authorized.
 
 When multiple contexts exist, infer which one the current topic relates to. If unclear, ask. Context-specific ADRs live in `<context>/docs/adr/`; system-wide ones stay in the root `docs/adr/`.

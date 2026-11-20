@@ -46,7 +46,7 @@ repeats once per increment, together with Building and Verification.
 Stages are phases, and sub-stages are activities listed in the order they
 happen. Paths such as a hotfix, a rejection or a cancellation skip stages; they
 are not sub-stages. No word appears twice in the names below. An ADLC "stage"
-is unrelated to the tracker's **Stage** (a child task, `.repo-context/CONTEXT.md`).
+is unrelated to the tracker's **Stage** (a child task, `.repo-context/GLOSSARY.md`).
 
 Each stage works on one unit, and the unit shrinks as work moves down:
 

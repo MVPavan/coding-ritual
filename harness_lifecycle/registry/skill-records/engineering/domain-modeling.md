@@ -73,6 +73,7 @@ Build and sharpen a project's domain model. Use when the user wants to pin down 
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-20` **update** (2026-11-20-glossary-rename:001): Owner ruling 2026-11-20 (conversation), glossary rename, bead cr-r2pa.3.3, following upstream mattpocock_skills #1120 (commit d80fa0f): the project glossary is…
 - `2026-11-09` **adopt-merged** (2026-11-09-pocock-4ae2317:155): Checkpoint at 4ae2317 for the owner's trait rulings: 5 adopt, 6 defer, 43 reject.
 - `2026-11-09` **adopt** (2026-11-09-pocock-4ae2317:149): Owner ruling 2026-11-09: .claude/skills/domain-modeling/SKILL.md:18 creates the files lazily, only when there is something concrete to write.
 - `2026-11-09` **adopt** (2026-11-09-pocock-4ae2317:147): Owner ruling 2026-11-09: .claude/skills/domain-modeling/SKILL.md:15 follows the context map's per-context locations when one exists.

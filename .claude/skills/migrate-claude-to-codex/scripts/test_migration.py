@@ -85,7 +85,7 @@ class SharedMigrationTests(unittest.TestCase):
             ):
                 repo = Path(directory)
                 skill = self.make_source(repo, project_dir)
-                glossary = repo / project_dir / "CONTEXT.md"
+                glossary = repo / project_dir / "GLOSSARY.md"
                 glossary.write_text("Domain vocabulary.\n")
                 before = skill.read_bytes()
                 self.run_migration(repo, "--apply")

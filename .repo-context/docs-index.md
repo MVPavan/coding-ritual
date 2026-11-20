@@ -8,7 +8,7 @@ Archived research is evidence, not operating policy.
 | Need | Source |
 |---|---|
 | Orientation | `.repo-context/repo-map.md` |
-| Domain terminology | `.repo-context/CONTEXT.md` |
+| Domain terminology | `.repo-context/GLOSSARY.md` |
 | Python conventions; ledger format | `.repo-context/coding-style.md` |
 | Checks and prerequisites | `.repo-context/verification.md` |
 | Architecture/contracts | `.repo-context/invariants.md`, `docs/adr/README.md` |
