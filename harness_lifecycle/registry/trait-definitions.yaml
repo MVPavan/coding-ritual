@@ -5475,6 +5475,11 @@ inconclusive-names-gap:
 one-number-pr-body:
   definition: "Keep a pull request body to one primary number, with the supporting evidence linked from it."
   placement: {domain: engineering, stage: Building, substage: Diagnosis}
+lead-number-pr-body:
+  definition: "Lead a performance change's pull request body with one primary number and link its supporting evidence."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+  distinct_from: [one-number-pr-body]
+  note: "one-number-pr-body keeps the body to a single primary number; this only has the body lead with one, so further results may follow it."
 vet-at-flow-gates:
   definition: "In a performance flow, vet the baseline before planning from it, every later number, and a harness before it is frozen."
   placement: {domain: engineering, stage: Building, substage: Diagnosis}

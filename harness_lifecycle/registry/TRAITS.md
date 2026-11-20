@@ -599,6 +599,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `result-error-check`: Judge an agent CLI run by its structured result's error flag, never by its exit code alone.
 - `background-dispatch-for-dialogue`: Run subagents in the background so the coordinator stays in live dialogue with the user.
 - `brief-names-done-evidence`: A brief names what will show the work is finished, and a unit with nothing to name is scoped further or raised with the owner before dispatch.
+- `shared-delegate-contract`: When fanning work out, give every delegate one shared artifact with the recipe, the verification contract and the fences, kept outside their write scope.
 - `read-worker-output`: Open the diff or artifact a worker produced and hold it to the evidence its brief named, instead of relying on its summary.
 - `stalled-worker-by-output`: Stop or replace a worker that stalls or loops, judging it by what it has produced rather than its status text.
 - `retry-by-cause`: Retry a failed worker according to why it failed, with a narrower unit, the same brief or another model, and after two retries drop the unit and plan around it.
@@ -764,6 +765,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `why-chain`: Ask why at each step of a failure until the answer is a wrong decision in the code rather than a consequence of an earlier one.
 - `legitimate-state-test`: Before guarding where a symptom surfaced, decide whether the triggering state is legitimate: handle a legitimate state there, and trace an illegitimate one to what produced it.
 - `persisted-state-suspect`: When a failure appears only after a restart, suspect persisted state (configuration, caches, lock files, serialized state) first.
+- `workaround-comment-smell`: Treat a workaround that needs a long justifying comment as a sign the code is wrong, and fix the code instead.
 
 #### engineering · Building · Diagnosis — systematic-debugging
 - `reproduction-preferred`: Seek a reproduction that shows the reported failure, not a nearby one, before diagnosing, but when none is obtainable confirm a cause by independent evidence such as traces instead.
@@ -786,6 +788,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `falsifiable-hypotheses`: State each hypothesis as a falsifiable prediction that changing its cause changes the result, discarding any that cannot be stated so.
 - `one-variable-at-a-time`: Change exactly one variable per probe, each mapped to a specific prediction.
 - `placeholder-sensitive-data-redaction`: Replace secrets and personal data with placeholders in anything shown or saved.
+- `signal-lines-only`: Quote only the signal-carrying lines from captured artifacts that may hold credentials.
 
 #### engineering · Building · Implementation — principle-no-comments
 - `exact-proof-settles-a-protected-keep`: Refuse deleting a comment a stated exception protects, and count a comment as a settled protected keep only with that exact exception and proof within scope, proof a provisional keep of a doubtful comment does not need.
@@ -845,6 +848,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 #### engineering · Delivery · Integration — pr
 - `pr-body-template`: Fill a fixed PR-body skeleton with Summary, Evidence, and Merge Danger sections.
 - `evidence-before-after`: Show concrete before/after evidence that the change works, preferring screenshots, then execution-based test or console output.
+- `lead-number-pr-body`: Lead a performance change's pull request body with one primary number and link its supporting evidence.
 - `merge-danger`: State the merge's one-way or two-way door and its blast radius.
 - `no-preamble`: Open with the answer and stop when it is done, with no preamble, recap or closing pleasantry.
 - `visual-form-catalog`: Offer a set of inline visual forms — pseudocode, call, component and file trees, Mermaid and whole-block — each with its own shape rules.
@@ -1962,7 +1966,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `hand-first-recipe`: Do the first unit by hand, then build the tool and show it reproduces the hand result before running it on the rest. — adopt → build-a-lever#hand-first-recipe
 - `rerun-safe-tool`: Make a work tool safe to rerun on input it has already changed. — adopt → build-a-lever#rerun-safe-tool
 - `script-over-fanout`: When one deterministic pass can process every unit, run a script rather than fanning the units out to delegates. — adopt → doc:AGENTS.md
-- `shared-delegate-contract`: When fanning work out, give every delegate one shared artifact with the recipe, the verification contract and the fences, kept outside their write scope. — defer
+- `shared-delegate-contract`: When fanning work out, give every delegate one shared artifact with the recipe, the verification contract and the fences, kept outside their write scope. — adopt → delegation#shared-delegate-contract
 - `outliving-tool-commit`: Commit a work tool when the work it does outlives the session. — adopt → build-a-lever#proposed-artifact-commit
 - `minimal-tool`: Build the smallest script that does or proves the job, never a framework. — adopt → build-a-lever#minimal-tool
 
@@ -2984,35 +2988,35 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `consumer-as-user`: Treat whoever consumes the work (end user, importing colleague, next maintainer) as its user, and explain impact from their side. — adopt → principle-experience-first#consumer-as-user
 
 #### engineering · Building · Diagnosis — skill:pstack/automations/benny/skills/reproduce-and-fix-issues
-- `fail-closed-run-config`: Stop a run before any write when its configuration or a required tool or map is missing, malformed or incomplete. — defer
-- `frozen-source-coordinates`: Read and check the source channel and thread of a report once, before any work list or delegation, and never change or replace them for the rest of the run. — defer
-- `no-root-post-in-source`: Post in the source channel only as a reply inside the report's thread, never as a new top-level message. — defer
-- `thread-parent-preflight`: Before each write tied to a report thread, re-read the thread to confirm its parent message still exists in the same channel, and after posting confirm the reply landed, never falling back to another place. — defer
-- `coordinator-only-chat-writes`: Let only the coordinating agent write to chat, telling every worker in its brief that chat writes are forbidden and giving it no means to make them. — defer
-- `findings-only-read-only-workers`: Give each delegated analysis worker one narrow question, no write access and no chat credentials, and take back findings only. — defer
-- `worker-isolation-or-coordinator`: Hand work to a worker only where its environment provably enforces the run's write limits, and otherwise have the coordinator do that work itself. — defer
+- `fail-closed-run-config`: Stop a run before any write when its configuration or a required tool or map is missing, malformed or incomplete. — out-of-scope
+- `frozen-source-coordinates`: Read and check the source channel and thread of a report once, before any work list or delegation, and never change or replace them for the rest of the run. — out-of-scope
+- `no-root-post-in-source`: Post in the source channel only as a reply inside the report's thread, never as a new top-level message. — out-of-scope
+- `thread-parent-preflight`: Before each write tied to a report thread, re-read the thread to confirm its parent message still exists in the same channel, and after posting confirm the reply landed, never falling back to another place. — out-of-scope
+- `coordinator-only-chat-writes`: Let only the coordinating agent write to chat, telling every worker in its brief that chat writes are forbidden and giving it no means to make them. — out-of-scope
+- `findings-only-read-only-workers`: Give each delegated analysis worker one narrow question, no write access and no chat credentials, and take back findings only. — out-of-scope
+- `worker-isolation-or-coordinator`: Hand work to a worker only where its environment provably enforces the run's write limits, and otherwise have the coordinator do that work itself. — out-of-scope
 - `coordinator-checks-worker-edit`: Have the coordinator review every edit a worker made and run or check the tests it requires. — reject
 - `coordinator-owns-landing`: Let only the coordinator do the final diff review, the commits and the pull request. — reject
-- `yield-to-human-fix-owner`: Stop when a person claims the fix, gives a concrete plan or asks another agent to build it, counting diagnosis requests, bot summaries and unaccepted hypotheses as no claim, and never racing an owner who has no artifact yet. — defer
-- `concrete-fix-artifact`: Count as an existing fix only an open pull request with relevant code, a merged one or a matching merged commit, never a claim, a ticket status, a branch name or a hypothesis. — defer
-- `verify-existing-fix-mode`: When a fix already exists, verify it instead of authoring another: pick the linked artifact, record both revisions and the shared inputs, take the right baseline, and report confirmed, insufficient or inconclusive with no competing change. — defer
+- `yield-to-human-fix-owner`: Stop when a person claims the fix, gives a concrete plan or asks another agent to build it, counting diagnosis requests, bot summaries and unaccepted hypotheses as no claim, and never racing an owner who has no artifact yet. — out-of-scope
+- `concrete-fix-artifact`: Count as an existing fix only an open pull request with relevant code, a merged one or a matching merged commit, never a claim, a ticket status, a branch name or a hypothesis. — out-of-scope
+- `verify-existing-fix-mode`: When a fix already exists, verify it instead of authoring another: pick the linked artifact, record both revisions and the shared inputs, take the right baseline, and report confirmed, insufficient or inconclusive with no competing change. — out-of-scope
 - `symptom-twice-through-real-ui`: Count a reproduction only when the exact distinguishing symptom shows twice through real interface use, with the state reset between attempts and a real state value cross-checked. — reject
 - `no-symptom-injection`: Make a reproduction arise from the reported actions alone, never writing state, calling hidden methods or injecting into the page to make the symptom appear, and inspect state only to confirm what was seen. — adopt, pending cr-r2pa.2.13.3 → systematic-debugging#no-symptom-injection
 - `no-proxy-ui-repro`: Never count a screenshot, unit test, state change or source reading as a reproduction of an interface bug. — reject
 - `named-end-states`: Before calling a reproduction, name the correct and the broken final state, reach the point where they diverge, and never count expected setup steps as the bug. — reject
-- `report-fact-capture`: Collect a fixed set of facts from a bug report before deciding on it: the reporter's words, version and environment, expected and observed behaviour, frequency and trigger, error signatures, attachments, links and any claim that someone already owns it. — defer
+- `report-fact-capture`: Collect a fixed set of facts from a bug report before deciding on it: the reporter's words, version and environment, expected and observed behaviour, frequency and trigger, error signatures, attachments, links and any claim that someone already owns it. — out-of-scope
 - `trace-with-competing-hypotheses`: Trace the reported action through the code, check its regression history, and form competing causes with the evidence that would separate them. — reject
 - `repro-budget-outcomes`: End a reproduction attempt within its budget as either cleanly not reproduced or blocked, naming the missing capability. — reject
 - `repro-capture-bundle`: Keep a step note and a whole-path recording that shows the broken final state for a reproduction, looking at every captured screenshot and recording before citing it. — adopt → create-verification-skill#repro-evidence-for-surface
 - `identity-screenshot`: Capture a screenshot of the app's current state showing enough of its chrome to prove the right app is under test, returned with its path, capture time, app marker and what should be visible. — adopt → create-verification-skill#identity-screenshot
 - `independent-media-review`: Have a separate read-only reviewer say whether the media visibly shows the broken state, treating no or unsure as unconfirmed. — reject
-- `trusted-verdict-marker`: Pass a report from triage to repair through a fixed one-line marker that repair accepts only from the configured triage identity, in the same thread, and only for a bug or performance verdict. — defer
-- `reread-thread-before-acting`: Re-read the whole report thread immediately before starting work on it. — defer
-- `ops-thread-status`: Keep detailed status in one operations thread, updated before any source reply, using a fixed short vocabulary, and fall back to the run output when no such thread is configured. — defer
-- `quiet-source-thread`: Post nothing to the reporter's thread on failure, at most one short reply on a confirmed reproduction with no default ping, and attachments only where retention allows. — defer
-- `narrow-bot-token`: Prefer the platform's built-in chat actions, use a separate bot token only for a named gap, keep it in a secret store, and never pass it to a worker. — defer
-- `correction-window-before-fix`: Wait out a configured window for corrections before the fix phase, and rerun the reproduction once on one valid correction. — defer
-- `bounded-fix-gate`: Attempt a fix only when the reproduction and its media review are confirmed, no fix or owner appeared, runtime evidence names the cause, and the change fits the effort and risk budget, stopping if it outgrows it. — defer
+- `trusted-verdict-marker`: Pass a report from triage to repair through a fixed one-line marker that repair accepts only from the configured triage identity, in the same thread, and only for a bug or performance verdict. — out-of-scope
+- `reread-thread-before-acting`: Re-read the whole report thread immediately before starting work on it. — out-of-scope
+- `ops-thread-status`: Keep detailed status in one operations thread, updated before any source reply, using a fixed short vocabulary, and fall back to the run output when no such thread is configured. — out-of-scope
+- `quiet-source-thread`: Post nothing to the reporter's thread on failure, at most one short reply on a confirmed reproduction with no default ping, and attachments only where retention allows. — out-of-scope
+- `narrow-bot-token`: Prefer the platform's built-in chat actions, use a separate bot token only for a named gap, keep it in a secret store, and never pass it to a worker. — out-of-scope
+- `correction-window-before-fix`: Wait out a configured window for corrections before the fix phase, and rerun the reproduction once on one valid correction. — out-of-scope
+- `bounded-fix-gate`: Attempt a fix only when the reproduction and its media review are confirmed, no fix or owner appeared, runtime evidence names the cause, and the change fits the effort and risk budget, stopping if it outgrows it. — out-of-scope
 - `no-fix-without-repro`: Author no fix until a reproduction is confirmed. — reject
 - `runtime-confirmed-mechanism`: Confirm the mechanism with runtime evidence and eliminate the competing causes before editing. — reject
 - `smallest-root-cause-fix`: Fix the root cause with the smallest change that justifies itself. — reject
@@ -3028,8 +3032,8 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `full-pr-url`: Give each pull request link as its full web address in the forge's public form. — reject
 - `honest-pr-failure`: When opening the pull request fails, claim no success, put the branch state in the run output and report that the fix did not land. — reject
 - `run-artifacts-uncommitted`: Never commit a run's captures, recordings, logs or tokens to source control. — reject
-- `bounded-follow-up-window`: After the main reply, watch the thread for one bounded window, answering only direct questions, staying out of side chatter and stopping when asked. — defer
-- `follow-up-evidence-one-correction`: During a follow-up window, answer only from evidence already gathered and apply at most one concrete correction, with one rerun. — defer
+- `bounded-follow-up-window`: After the main reply, watch the thread for one bounded window, answering only direct questions, staying out of side chatter and stopping when asked. — out-of-scope
+- `follow-up-evidence-one-correction`: During a follow-up window, answer only from evidence already gathered and apply at most one concrete correction, with one rerun. — out-of-scope
 - `always-cleanup-keeping-user-work`: Make a run's cleanup stop the processes and sessions its driver created, remove its disposable profiles, temporary workspaces and the fixtures it created and any captures past their retention window, keeping captures still within it, report what was stopped, removed, kept or left, and never delete the person's own work. — adopt → create-verification-skill#always-cleanup-keeping-user-work
 - `cleanup-after-failed-attempt`: Run the cleanup after every failed attempt too, so no process or port is left stranded. — adopt → create-verification-skill#cleanup-after-failed-attempt
 - `feature-map-required`: Drive an app only through one maintained feature map kept outside any copied pack, with a section per feature giving how a user reaches it, the driving actions with their reset, stable selectors, the states that apply, its preconditions and its evidence, and block when the needed section is missing. — adopt → create-verification-skill#feature-map-entry-required
@@ -3083,7 +3087,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `untuned-side-inconclusive`: Call a verdict inconclusive when a side ran untuned. — adopt → performance-optimization#tuned-claim-gate
 - `unchecked-run-inconclusive`: Call a verdict inconclusive when the error or work check could not be done. — adopt → performance-optimization#unchecked-run-inconclusive
 - `inconclusive-names-gap`: Have an inconclusive verdict state which check or condition caused it. — adopt → performance-optimization#inconclusive-names-gap
-- `one-number-pr-body`: Keep a pull request body to one primary number, with the supporting evidence linked from it. — defer
+- `one-number-pr-body`: Keep a pull request body to one primary number, with the supporting evidence linked from it. — adopt → pr#lead-number-pr-body
 - `vet-at-flow-gates`: In a performance flow, vet the baseline before planning from it, every later number, and a harness before it is frozen. — reject
 - `harness-prints-counts`: Make a frozen harness emit error and work counts, which hands each keep-or-revert decision those two checks. — adopt → performance-optimization#harness-prints-counts
 
@@ -3107,7 +3111,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `legitimate-state-test`: Before guarding where a symptom surfaced, decide whether the triggering state is legitimate: handle a legitimate state there, and trace an illegitimate one to what produced it. — adopt → principle-fix-root-causes#legitimate-state-test
 - `persisted-state-suspect`: When a failure appears only after a restart, suspect persisted state (configuration, caches, lock files, serialized state) first. — adopt → principle-fix-root-causes#persisted-state-suspect
 - `fix-every-instance`: Search for every place with the same fault and fix them all, not only the reported instance. — adopt → doc:.claude/skills/mvp-mode/playbooks/bug-fix.md
-- `workaround-comment-smell`: Treat a workaround that needs a long justifying comment as a sign the code is wrong, and fix the code instead. — defer
+- `workaround-comment-smell`: Treat a workaround that needs a long justifying comment as a sign the code is wrong, and fix the code instead. — adopt → principle-fix-root-causes#workaround-comment-smell
 - `always-on-signal`: After a fact took a deep investigation to find, propose the cheap always-on signal that would have shown it at first look. — adopt → doc:.claude/skills/mvp-mode/playbooks/bug-fix.md
 
 #### engineering · Building · Implementation — skill:pstack/skills/principle-laziness-protocol
@@ -4249,25 +4253,25 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `reproduction-first`: Obtain a reproduction that shows the reported failure, not a nearby one, before diagnosing it. — adopt → systematic-debugging#reproduction-preferred
 - `tighten-loop`: Treat the loop as a product and keep making it faster, sharper, and more deterministic, raising the reproduction rate for flaky bugs until it is debuggable. — adopt → systematic-debugging#flake-reproduction
 - `reproduce-and-minimize`: Shrink the reproduction one element at a time until every remaining part is load-bearing — removing any one makes it pass. — adopt → systematic-debugging#minimize-to-discriminate
-- `phase1-completion-criterion`: Forbid any hypothesis until one named command, already run once, is proven red-capable, deterministic, fast, and agent-runnable. — defer
-- `fixed-hypothesis-count`: Generate three to five hypotheses before testing any, to avoid anchoring on the first idea. — defer
-- `hypothesis-ranking-presentation`: Rank the hypotheses and show the ranked list to the user before testing, without blocking if they are away. — defer
+- `phase1-completion-criterion`: Forbid any hypothesis until one named command, already run once, is proven red-capable, deterministic, fast, and agent-runnable. — reject
+- `fixed-hypothesis-count`: Generate three to five hypotheses before testing any, to avoid anchoring on the first idea. — reject
+- `hypothesis-ranking-presentation`: Rank the hypotheses and show the ranked list to the user before testing, without blocking if they are away. — reject
 - `one-variable-at-a-time`: Change exactly one variable per probe, each mapped to a specific prediction. — adopt → systematic-debugging#one-variable-at-a-time
 - `tagged-debug-logs`: Tag every debug log with a unique prefix so cleanup is a single search. — adopt → systematic-debugging#tagged-debug-logs
 - `baseline`: Capture a baseline measurement before attempting a performance fix. — adopt → systematic-debugging#baseline
 - `perf-bisection`: Locate a performance regression by bisecting between known-good and known-bad states rather than by adding logs. — adopt → systematic-debugging#localized-probing
-- `debugger-first`: Prefer a debugger or REPL breakpoint over targeted logs, and never log everything and grep. — defer
+- `debugger-first`: Prefer a debugger or REPL breakpoint over targeted logs, and never log everything and grep. — reject
 - `prove-the-red`: When forcing the red by mutating code or a fixture, diff against a pristine copy to prove the mutation landed before trusting it. — adopt → tdd#prove-the-red
 - `regression-check`: Turn the failure into a durable regression check when feasible, showing failure before the fix and success after, then rerun the original scenario. — adopt → doc:.claude/skills/mvp-mode/playbooks/bug-fix.md
 - `missing-seam-finding`: When no correct seam exists to lock down the bug, treat that architectural absence as itself the finding and flag it. — adopt → doc:.claude/skills/mvp-mode/playbooks/bug-fix.md
 - `closeout`: Before declaring done, remove temporary instrumentation and record the confirmed cause. — adopt → doc:.claude/skills/mvp-mode/playbooks/bug-fix.md
-- `delete-debug-prototypes`: Delete throwaway debugging prototypes before declaring done, or move them to a clearly marked debug location. — defer
+- `delete-debug-prototypes`: Delete throwaway debugging prototypes before declaring done, or move them to a clearly marked debug location. — reject
 - `hitl-loop-script`: Drive a required human step through a structured human-in-the-loop script as the last-resort loop so it stays repeatable. — defer
-- `escalate-unreproducible`: When no loop can be built, stop, list what was tried, and ask for environment access, a redacted artifact, or instrumentation rather than hypothesising. — defer
-- `justified-phase-skip`: Skip a phase of the diagnosis only with an explicit justification. — defer
-- `read-domain-docs-first`: Read the domain glossary and the decision records near the code before exploring it. — defer
-- `signal-lines-only`: Quote only the signal-carrying lines from captured artifacts that may hold credentials. — defer
-- `ask-when-redaction-blinds`: Ask the user for help when redacted output is too thin to diagnose from. — defer
+- `escalate-unreproducible`: When no loop can be built, stop, list what was tried, and ask for environment access, a redacted artifact, or instrumentation rather than hypothesising. — reject
+- `justified-phase-skip`: Skip a phase of the diagnosis only with an explicit justification. — reject
+- `read-domain-docs-first`: Read the domain glossary and the decision records near the code before exploring it. — reject
+- `signal-lines-only`: Quote only the signal-carrying lines from captured artifacts that may hold credentials. — adopt → systematic-debugging#signal-lines-only
+- `ask-when-redaction-blinds`: Ask the user for help when redacted output is too thin to diagnose from. — reject
 - `falsifiable-hypotheses`: State each hypothesis as a falsifiable prediction that changing its cause changes the result, discarding any that cannot be stated so. — adopt → systematic-debugging#falsifiable-hypotheses
 - `seam-selection`: Choose the test boundary that exercises the real contract without reaching inside. — adopt → tdd#seam-selection
 - `parseable-hitl-output`: Have a human-in-the-loop script print its captured values as key=value lines the agent can parse. — defer
@@ -4322,7 +4326,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `discourage-barrels`: Discourage barrel files that re-export a whole subtree, favouring several small entry points. — out-of-scope
 - `prove-the-rules-bite`: Before trusting the guardrail, observe it pass clean, fail on a deliberately planted violation, then pass again. — defer
 - `document-boundary-readme`: Document the boundary convention in a README beside the packages it governs. — out-of-scope
-- `link-convention-from-agents-file`: Add a context pointer to that README from the repo's agent-instructions file so an agent discovers the rule. — defer
+- `link-convention-from-agents-file`: Add a context pointer to that README from the repo's agent-instructions file so an agent discovers the rule. — reject
 - `preserve-existing-config`: Never overwrite an existing dependency-cruiser config; merge the rules in and tell the user what was added. — out-of-scope
 - `wire-umbrella-check`: Add a boundary-lint script and fold it into the repo's umbrella check command alongside typecheck. — out-of-scope
 - `scaffold-example`: Commit an example package with an entry point delegating to an internal file and a test through the entry point, as a copy-me template. — out-of-scope
@@ -5166,12 +5170,12 @@ Search the codebase by domain concept for an existing implementation and report 
 
 #### `report-fact-capture`
 Collect a fixed set of facts from a bug report before deciding on it: the reporter's words, version and environment, expected and observed behaviour, frequency and trigger, error signatures, attachments, links and any claim that someone already owns it.
-- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — defer
+- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — out-of-scope
 - `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — out-of-scope
 
 #### `reread-thread-before-acting`
 Re-read the whole report thread immediately before starting work on it.
-- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — defer
+- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — out-of-scope
 
 #### `route-map-schema`
 Describe each route by name, match lists, destination, owners and whether its feature owner may be pinged.
@@ -6000,7 +6004,7 @@ Keep status output to the table plus a one-line recommendation, never dumping fu
 
 #### `correction-window-before-fix`
 Wait out a configured window for corrections before the fix phase, and rerun the reproduction once on one valid correction.
-- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — defer
+- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — out-of-scope
 
 #### `deliberate-none-observability`
 Allow an explicit choice of no observability product, for that slot alone, when the runner or orchestrator already shows enough.
@@ -6016,7 +6020,7 @@ Record with each CI state whether any earlier commit of the pull request passed.
 
 #### `fail-closed-run-config`
 Stop a run before any write when its configuration or a required tool or map is missing, malformed or incomplete.
-- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — defer
+- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — out-of-scope
 - `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — out-of-scope
 
 #### `forge-refusal-outranks-checks`
@@ -6025,7 +6029,7 @@ Treat a blocked merge with a failing head-commit rollup as failing CI even when 
 
 #### `frozen-source-coordinates`
 Read and check the source channel and thread of a report once, before any work list or delegation, and never change or replace them for the rest of the run.
-- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — defer
+- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — out-of-scope
 - `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — out-of-scope
 
 #### `gateway-plus-tracing`
@@ -6046,7 +6050,7 @@ Have a monitor file one ticket per problem, comment on it when the problem recur
 
 #### `narrow-bot-token`
 Prefer the platform's built-in chat actions, use a separate bot token only for a named gap, keep it in a secret store, and never pass it to a worker.
-- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — defer
+- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — out-of-scope
 - `cursor_plugins:skill:pstack/automations/benny/skills/setup-benny` — defer
 
 #### `nest-run-in-caller-trace`
@@ -6075,7 +6079,7 @@ On a failed fetch, note it and continue with the remaining repos.
 
 #### `ops-thread-status`
 Keep detailed status in one operations thread, updated before any source reply, using a fixed short vocabulary, and fall back to the run output when no such thread is configured.
-- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — defer
+- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — out-of-scope
 
 #### `otel-as-common-transport`
 Treat OpenTelemetry as the common transport for run telemetry and expect agent span names to drift.
@@ -6136,7 +6140,7 @@ Summarise the result as a table of repo, added, removed, material-changed and mi
 
 #### `thread-parent-preflight`
 Before each write tied to a report thread, re-read the thread to confirm its parent message still exists in the same channel, and after posting confirm the reply landed, never falling back to another place.
-- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — defer
+- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — out-of-scope
 - `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — out-of-scope
 
 #### `thread-safety-test-before-enable`
@@ -6145,7 +6149,7 @@ Enable no chat automation until a test on a harmless report, run after everythin
 
 #### `trusted-verdict-marker`
 Pass a report from triage to repair through a fixed one-line marker that repair accepts only from the configured triage identity, in the same thread, and only for a bug or performance verdict.
-- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — defer
+- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — out-of-scope
 - `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — out-of-scope
 
 #### `unknown-check-state-fails`
@@ -6998,7 +7002,7 @@ Do not bold every proper noun or acronym.
 
 #### `bounded-follow-up-window`
 After the main reply, watch the thread for one bounded window, answering only direct questions, staying out of side chatter and stopping when asked.
-- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — defer
+- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — out-of-scope
 - `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — out-of-scope
 
 #### `brevity-keeps-required-sections`
@@ -7279,7 +7283,7 @@ Separate fragments with horizontal rules, with no headings, tags or order other 
 
 #### `follow-up-evidence-one-correction`
 During a follow-up window, answer only from evidence already gathered and apply at most one concrete correction, with one rerun.
-- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — defer
+- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — out-of-scope
 
 #### `follow-up-safe-issue-corrections`
 During a follow-up window, safely correct the existing or new tracker issue linked to the report, emit no second marker, extend the window at most once and leave new reports to new runs.
@@ -7617,7 +7621,7 @@ Leave platform formatting, publishing and any frontmatter nobody asked for out o
 
 #### `no-root-post-in-source`
 Post in the source channel only as a reply inside the report's thread, never as a new top-level message.
-- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — defer
+- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — out-of-scope
 - `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — out-of-scope
 
 #### `no-screenshot-said`
@@ -7873,7 +7877,7 @@ Write an argument as prose and keep lists for items that are truly parallel.
 
 #### `quiet-source-thread`
 Post nothing to the reporter's thread on failure, at most one short reply on a confirmed reproduction with no default ping, and attachments only where retention allows.
-- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — defer
+- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — out-of-scope
 
 #### `quote-when-wording-matters`
 Quote a source only when its exact words are the point, and paraphrase otherwise.
@@ -9153,7 +9157,7 @@ Do all work in subagents so the coordinator's context stays free for coordinatio
 
 #### `coordinator-only-chat-writes`
 Let only the coordinating agent write to chat, telling every worker in its brief that chat writes are forbidden and giving it no means to make them.
-- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — defer
+- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — out-of-scope
 - `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — out-of-scope
 
 #### `coordinator-ownership`
@@ -9332,7 +9336,7 @@ Decide what runs in parallel, parallelizing only where the work has seams and no
 
 #### `findings-only-read-only-workers`
 Give each delegated analysis worker one narrow question, no write access and no chat credentials, and take back findings only.
-- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — defer
+- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — out-of-scope
 - `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — out-of-scope
 
 #### `finished-results-only`
@@ -9873,7 +9877,8 @@ Send a follow-up to a worker by resuming its own session rather than starting a 
 
 #### `shared-delegate-contract`
 When fanning work out, give every delegate one shared artifact with the recipe, the verification contract and the fences, kept outside their write scope.
-- `cursor_plugins:skill:pstack/skills/principle-build-the-lever` — defer
+- ours: `delegation`
+- `cursor_plugins:skill:pstack/skills/principle-build-the-lever` — adopt → delegation#shared-delegate-contract
 
 #### `show-roles-and-confirm`
 Show every role with its model, flag undetected ones, and let the person accept or change roles from the detected models.
@@ -10005,7 +10010,7 @@ Give each worker a brief stating the outcome, owned paths, constraints, acceptan
 
 #### `worker-isolation-or-coordinator`
 Hand work to a worker only where its environment provably enforces the run's write limits, and otherwise have the coordinator do that work itself.
-- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — defer
+- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — out-of-scope
 - `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — out-of-scope
 
 #### `worker-records-commits-and-method`
@@ -10035,7 +10040,7 @@ Keep approvals already given in force for the rest of the work instead of asking
 
 #### `ask-when-redaction-blinds`
 Ask the user for help when redacted output is too thin to diagnose from.
-- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — defer
+- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — reject
 
 #### `authority-separation`
 Confirm publication and commit authority separately, treating a no-commit instruction as binding.
@@ -10174,7 +10179,8 @@ Keep secrets and private data out of any destination not authorized to hold them
 
 #### `signal-lines-only`
 Quote only the signal-carrying lines from captured artifacts that may hold credentials.
-- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — defer
+- ours: `systematic-debugging`
+- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt → systematic-debugging#signal-lines-only
 
 #### `simplification-preserves-safeguards`
 When simplifying, preserve trust boundaries, data integrity and accessibility.
@@ -12598,7 +12604,7 @@ Maintain a root context map listing contexts, their locations and relationships,
 #### `read-domain-docs-first`
 Read the domain glossary and the decision records near the code before exploring it.
 - ours: `improve-codebase-architecture`
-- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — defer
+- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — reject
 - `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — adopt → improve-codebase-architecture#read-domain-docs-first
 - `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
 
@@ -12817,7 +12823,7 @@ Keep a performance change only when its measured benefit justifies the complexit
 
 #### `bounded-fix-gate`
 Attempt a fix only when the reproduction and its media review are confirmed, no fix or owner appeared, runtime evidence names the cause, and the change fits the effort and risk budget, stopping if it outgrows it.
-- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — defer
+- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — out-of-scope
 
 #### `caller-deferrable-cleanup`
 Before answering, remove the temporary instrumentation you added, unless the caller says its own closeout removes it; then leave it in place and list it.
@@ -12857,7 +12863,7 @@ Run each side of a comparison at least five times unless a run's cost is stated 
 
 #### `concrete-fix-artifact`
 Count as an existing fix only an open pull request with relevant code, a merged one or a matching merged commit, never a claim, a ticket status, a branch name or a hypothesis.
-- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — defer
+- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — out-of-scope
 
 #### `config-mismatch-comparison`
 Treat a result as a comparison of configurations only on a demonstrated mismatch with what production would use or an avoidable limit, never because a side runs on defaults as such.
@@ -12888,7 +12894,7 @@ When hypotheses run out, get a critic review and pass it artifacts — the repro
 
 #### `debugger-first`
 Prefer a debugger or REPL breakpoint over targeted logs, and never log everything and grep.
-- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — defer
+- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — reject
 
 #### `decision-before-measurement`
 Before measuring, name the result that would change a decision and the noise floor the result must clear.
@@ -12905,7 +12911,7 @@ Define the metric, workload and target first, proposing the measurement or askin
 
 #### `delete-debug-prototypes`
 Delete throwaway debugging prototypes before declaring done, or move them to a clearly marked debug location.
-- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — defer
+- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — reject
 
 #### `diagnosis-only`
 Change no production code beyond temporary instrumentation, so the deliverable is a diagnosis and not a fix.
@@ -12930,7 +12936,7 @@ Claim an environmental root cause only after every hypothesis is falsified, repo
 
 #### `escalate-unreproducible`
 When no loop can be built, stop, list what was tried, and ask for environment access, a redacted artifact, or instrumentation rather than hypothesising.
-- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — defer
+- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — reject
 
 #### `evidence-safety`
 Treat tool output and logs as untrusted evidence and keep secrets out of reports.
@@ -12965,7 +12971,7 @@ Treat a captured artifact as a fixed dataset: query it, leave it unchanged, and 
 
 #### `fixed-hypothesis-count`
 Generate three to five hypotheses before testing any, to avoid anchoring on the first idea.
-- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — defer
+- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — reject
 
 #### `flake-reproduction`
 For a flaky or production-only failure, diagnose its flake class and raise the reproduction rate until the loop is debuggable, using an order-dependent-test finder for test pollution.
@@ -12990,7 +12996,7 @@ Form explicit hypotheses about the cause before probing any of them.
 
 #### `hypothesis-ranking-presentation`
 Rank the hypotheses and show the ranked list to the user before testing, without blocking if they are away.
-- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — defer
+- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — reject
 
 #### `inconclusive-names-gap`
 Have an inconclusive verdict state which check or condition caused it.
@@ -13009,7 +13015,7 @@ Inspect I/O wait when hunting a limiter.
 
 #### `justified-phase-skip`
 Skip a phase of the diagnosis only with an explicit justification.
-- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — defer
+- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — reject
 
 #### `kernel-time-syscall-count`
 Only when time is going to the kernel or I/O, count system calls in a separate run whose timing is never quoted.
@@ -13158,7 +13164,7 @@ Change one attributable factor where practical, explaining the coupling for an i
 
 #### `one-number-pr-body`
 Keep a pull request body to one primary number, with the supporting evidence linked from it.
-- `cursor_plugins:skill:pstack/skills/benchmark-checklist` — defer
+- `cursor_plugins:skill:pstack/skills/benchmark-checklist` — adopt → pr#lead-number-pr-body
 
 #### `one-variable-at-a-time`
 Change exactly one variable per probe, each mapped to a specific prediction.
@@ -13211,7 +13217,7 @@ When a failure appears only after a restart, suspect persisted state (configurat
 
 #### `phase1-completion-criterion`
 Forbid any hypothesis until one named command, already run once, is proven red-capable, deterministic, fast, and agent-runnable.
-- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — defer
+- `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — reject
 
 #### `preferred-reproduction-order`
 Try reproduction techniques roughly in a preference order, starting from a failing test and leaving a human-driven script for last.
@@ -13393,7 +13399,7 @@ Call a verdict inconclusive when a side ran untuned.
 
 #### `verify-existing-fix-mode`
 When a fix already exists, verify it instead of authoring another: pick the linked artifact, record both revisions and the shared inputs, take the right baseline, and report confirmed, insufficient or inconclusive with no competing change.
-- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — defer
+- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — out-of-scope
 
 #### `vet-at-flow-gates`
 In a performance flow, vet the baseline before planning from it, every later number, and a harness before it is frozen.
@@ -13415,7 +13421,7 @@ Prove the work happened inside the timed span and the code used its result, sinc
 
 #### `yield-to-human-fix-owner`
 Stop when a person claims the fix, gives a concrete plan or asks another agent to build it, counting diagnosis requests, bot summaries and unaccepted hypotheses as no claim, and never racing an owner who has no artifact yet.
-- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — defer
+- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — out-of-scope
 
 ### engineering · Building · Implementation
 
@@ -14232,7 +14238,8 @@ Close an interactive setup script with a summary of the values written, the secr
 
 #### `workaround-comment-smell`
 Treat a workaround that needs a long justifying comment as a sign the code is wrong, and fix the code instead.
-- `cursor_plugins:skill:pstack/skills/principle-fix-root-causes` — defer
+- ours: `principle-fix-root-causes`
+- `cursor_plugins:skill:pstack/skills/principle-fix-root-causes` — adopt → principle-fix-root-causes#workaround-comment-smell
 
 #### `worktree-environment-proof`
 At setup establish the command's environment without the parent's source and prove the command responds to a small real change in the worktree, with the tree proved back; otherwise do not start.
@@ -16228,6 +16235,10 @@ After setting up a commit hook, check that the hook file exists and is executabl
 Date a worktree's last activity from the newest chat transcript naming its exact path, counting four days as recent.
 - `cursor_plugins:skill:pstack/skills/poteto-mode` — reject
 
+#### `lead-number-pr-body`
+Lead a performance change's pull request body with one primary number and link its supporting evidence.
+- ours: `pr`
+
 #### `listed-worktree-audit`
 Audit worktrees from the paths Git lists, never typed ones, classifying each read-only by uncommitted work, last activity, prunable record and merge state against one base commit resolved once for all of them.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/worktree-cleanup.md`
@@ -16424,7 +16435,7 @@ At handover, tell the person that keeping the generated skill current as the pro
 
 #### `link-convention-from-agents-file`
 Add a context pointer to that README from the repo's agent-instructions file so an agent discovers the rule.
-- `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules` — defer
+- `mattpocock_skills:skill:skills/in-progress/setup-ts-deep-modules` — reject
 
 #### `mechanical-vs-judgement`
 Classify each finding as mechanical (a fixed syntactic pattern suiting a deterministic check) or judgement (cross-file consistency suiting a standards doc).

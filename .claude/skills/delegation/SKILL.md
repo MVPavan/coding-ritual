@@ -47,7 +47,9 @@ same family, ask the owner to approve that explicitly before dispatching.
    checkout preserve others' edits. Name what will show the work is finished: a
    command with its expected output, an artifact to inspect, or a report citing
    its sources. A unit with nothing to name is not scoped yet: narrow it or ask
-   the owner, and dispatch nothing until then.
+   the owner, and dispatch nothing until then. When several workers follow one
+   recipe, give them one shared read-only contract (the recipe, its verification
+   and its limits) outside their write scope, not a diverging copy in each brief.
 4. Dispatch through the vendor. Start each new worker in a fresh context window,
    not a fork of your conversation, so the brief carries everything it needs;
    fork only when the calling workflow asks for one, and send a follow-up to the

@@ -64,7 +64,8 @@
     "2026-11-17-deferred-discovery.jsonl": "d99c443a51c278cf8bcf3b12ebea478297ac6b09b64be5d6a0ebf5c2c1abd687",
     "2026-11-17-settle-open-questions.jsonl": "50c5fb1bf689968e1bcf85cc7a015600b088de0e82871c80d117dec8584b0229",
     "2026-11-18-deferred-design.jsonl": "bbc5fecc77e3989d433fa7ce62d7cdcef75d9e83476897d201bd3eb513393798",
-    "2026-11-18-deferred-intake.jsonl": "e06858d03b0b40021f1621b50fff7be0f1a628ece7feee9fab1fddaa71c58bb6"
+    "2026-11-18-deferred-intake.jsonl": "e06858d03b0b40021f1621b50fff7be0f1a628ece7feee9fab1fddaa71c58bb6",
+    "2026-11-20-deferred-building.jsonl": "79b0cda363b4221d294036e3fc29845e7009e2bef96050b5e04eca28ff8e11d3"
   },
   "round_order": [
     "2026-10-14-migration.jsonl",
@@ -130,7 +131,8 @@
     "2026-11-17-settle-open-questions.jsonl",
     "2026-11-17-deferred-discovery.jsonl",
     "2026-11-18-deferred-intake.jsonl",
-    "2026-11-18-deferred-design.jsonl"
+    "2026-11-18-deferred-design.jsonl",
+    "2026-11-20-deferred-building.jsonl"
   ],
   "reports": {
     "harness_lifecycle/registry/reviews/2026-10-30-upstream-mattpocock_skills-5beb35b.yaml": "fb413772a75f116bd9baeaa06b6e414fe59978c654a951cb53345f17459d7597",
@@ -167,7 +169,10 @@
     "harness_lifecycle/registry/reviews/2026-11-18-upstream-mattpocock_skills-4ae2317-deferred-design.yaml": "035ae7ecc42ceed7f0bcd959ae1862de8b3c830f5dcf362f900f3af676ef55f9",
     "harness_lifecycle/registry/reviews/2026-11-18-upstream-mattpocock_skills-4ae2317-deferred-intake.yaml": "1e66f9d0621bf757502b2212847a6a843c119c35c3a8bf89679bd2a4b28d7f76",
     "harness_lifecycle/registry/reviews/2026-11-18-upstream-mattpocock_skills-5beb35b-deferred-design.yaml": "1845b474629fb696ce8e269f6cfc7f2bf0151228116038315430ac6136ac751b",
-    "harness_lifecycle/registry/reviews/2026-11-18-upstream-mattpocock_skills-5beb35b-deferred-intake.yaml": "850729097a2e64cbdb7032662e1f301a6d54a04bf7402dc21be2e2c952ee80a4"
+    "harness_lifecycle/registry/reviews/2026-11-18-upstream-mattpocock_skills-5beb35b-deferred-intake.yaml": "850729097a2e64cbdb7032662e1f301a6d54a04bf7402dc21be2e2c952ee80a4",
+    "harness_lifecycle/registry/reviews/2026-11-20-upstream-cursor_plugins-2776ddd-deferred-building.yaml": "2957ecf6cf50b0d26354c97e756cd98139a27839ed48be8a1f8c1be61a298dd9",
+    "harness_lifecycle/registry/reviews/2026-11-20-upstream-cursor_plugins-4dd1d05-deferred-building.yaml": "f02e8c6f6835dcf6c40e7eb199a415114232bfe7c09d62de399b108bdc23139d",
+    "harness_lifecycle/registry/reviews/2026-11-20-upstream-mattpocock_skills-5beb35b-deferred-building.yaml": "db214ec2ad8b4b07afe1706e479927529bce92dfa4858a85396b19ecf37b4c25"
   },
   "analyses": {
     "cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues@2776ddd": "fc812fe2862360b96af3af540dc32d236357f0b439d0fe81001e718890696a6d",

@@ -19,6 +19,8 @@ instrumentation. Fixing belongs to the caller, usually the bug-fix playbook.
    If fixes were already tried, take their attempt log as evidence. Replace
    secrets and personal data with placeholders in anything shown or saved; build
    commands on environment variables so credentials never appear in shown text.
+   From a captured artifact that may hold credentials, quote only the lines
+   that carry the signal.
 2. Read `principle-fix-root-causes` (`mvp-mode/principles/fix-root-causes.md`)
    and apply it through steps 2-4. Form provisional hypotheses from code and
    evidence, each stating what result would confirm or refute it. Choose a

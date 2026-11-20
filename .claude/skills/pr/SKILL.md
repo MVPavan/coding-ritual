@@ -46,7 +46,8 @@ For the same forms on request, the person can call `show-me`.
 Show before and after from real runs. Prefer a screenshot when the change is visible and
 the environment can capture one; otherwise give the exact check with its short output,
 failing before and passing after. If a check was not run, say which; never describe
-evidence that does not exist.
+evidence that does not exist. For a performance change, lead with one primary number and
+link its supporting evidence.
 
 ## Merge danger
 

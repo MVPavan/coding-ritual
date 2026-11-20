@@ -1,0 +1,209 @@
+harness: cursor_plugins
+from_sha: null
+to_sha: 4dd1d05
+supersedes:
+- harness_lifecycle/registry/reviews/2026-11-02-upstream-cursor_plugins-4dd1d05-reconsider.yaml
+- harness_lifecycle/registry/reviews/2026-11-09-upstream-cursor_plugins-4dd1d05.yaml
+analysis_critic:
+  by: codex gpt-6.2-sol high (critic-102)
+  date: '2026-11-20'
+  verdict: pass
+  last_critic: null
+comparison_critic:
+  by: coordinator (cc:940ec94d)
+  date: '2026-11-20'
+  verdict: accepted
+  last_critic:
+    by: codex gpt-6.2-sol high (critic-102)
+    date: '2026-11-20'
+    verdict: fail
+themes: 'Three pstack rows reopened by the owner at the Building stage. Owner ruling 2026-11-20
+  (conversation), deferred review, bead cr-r2pa.3.3: all three are adopted, each as one line.
+  one-number-pr-body is adopted as the narrower variant lead-number-pr-body in the pr skill''s
+  Evidence guidance, now that a pull-request skill exists: a performance change''s body leads
+  with one primary number rather than holding only one; shared-delegate-contract goes into
+  the delegation skill''s brief step; workaround-comment-smell into the fix-root-causes principle.'
+skills:
+  skill:pstack/skills/benchmark-checklist:
+    upstream_tree_hash: 2eaf797ecf11c132329a252ab286cdebbd4c83277910eecf260cc6b28f2a3162
+    accepted: 4dd1d05
+    compared_with: pr
+    pairing:
+      overlap:
+        doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md: 1
+        performance-optimization: 40
+        pr: 1
+        principle-explain-the-number: 3
+      placement_match:
+      - performance-optimization
+      - principle-attack-the-premise
+      - principle-explain-the-number
+      - principle-fix-root-causes
+      - systematic-debugging
+      suggested: performance-optimization
+      purpose_match: performance-optimization
+      purpose: 'Upstream is a checklist for benchmarking a performance change: comparable
+        runs, the limiter, the reported number and how a pull request presents it. Our performance-optimization
+        owns measured performance work.'
+      flag: suggested differs
+      reason: 'Compared with pr: the only reopened row is about the pull request body, which
+        the pr skill writes. The computed pick, performance-optimization, holds the benchmarking
+        rows already adopted.'
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      one-number-pr-body:
+        scope: reconsider
+        change: []
+        fact: variant
+        provider: pr
+        candidates:
+        - lead-number-pr-body
+        via: lead-number-pr-body
+        also_in: {}
+        ours:
+        - .claude/skills/pr/SKILL.md:46-50
+        - .claude/skills/pr/SKILL.md:60-61
+        recommendation: adopt
+        delivery: delivered
+        target: pr
+        modification: 'Adopted as lead-number-pr-body: a performance change''s body leads
+          with one primary number and links its supporting evidence. Upstream keeps the body
+          to one primary number; ours lets further results follow the lead number, as the
+          owner worded it.'
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-06
+          override: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3.
+          Adopted as the narrower variant lead-number-pr-body: the pr skill''s Evidence guidance
+          now says that a performance change leads with one primary number and links its supporting
+          evidence (.claude/skills/pr/SKILL.md:46-50), beside the skill''s rule that full
+          run logs go in a linked artifact (.claude/skills/pr/SKILL.md:60-61). It is in the
+          always-loaded body, so writing any pull request body reaches it. The old reason,
+          that we had no pull request flow, is stale now the pr skill exists. Upstream keeps
+          the body to one primary number; the owner''s wording only has it lead with one,
+          so a body may still report further results after it (U-06).'
+  skill:pstack/skills/principle-build-the-lever:
+    upstream_tree_hash: b421b8a71bd87599bf5946031c10923ef301a99206bd52be83e50ad81e315fe6
+    accepted: 4dd1d05
+    compared_with: delegation
+    pairing:
+      overlap:
+        build-a-lever: 4
+        delegation: 1
+        doc:AGENTS.md: 2
+      placement_match:
+      - build-a-lever
+      suggested: build-a-lever
+      purpose_match: build-a-lever
+      purpose: Upstream is a principle lens for replacing repeated hand work with a rerunnable
+        tool, including the contract delegates share. Our build-a-lever owns the tool; delegation
+        owns how workers are briefed, where this row lands.
+      flag: suggested differs
+      reason: 'Compared with delegation: the only reopened row is about briefing several workers,
+        which the delegation skill''s Dispatch step owns. The computed pick, build-a-lever,
+        holds the tool-building rows already adopted.'
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      shared-delegate-contract:
+        scope: reconsider
+        change: []
+        fact: present
+        provider: delegation
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/delegation/SKILL.md:43
+        - .claude/skills/delegation/SKILL.md:50-52
+        - .claude/skills/delegation/SKILL.md:8-9
+        - AGENTS.md:103
+        recommendation: adopt
+        delivery: delivered
+        target: delegation
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-01
+          - U-07
+          override: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3.
+          Adopted: delegation''s brief step now says that when several workers follow one
+          recipe, the coordinator gives them one shared read-only contract (the recipe, its
+          verification and its limits) outside their write scope, not a diverging copy in
+          each brief (.claude/skills/delegation/SKILL.md:50-52). Every handoff goes through
+          this skill (.claude/skills/delegation/SKILL.md:8-9), which AGENTS.md routes for
+          handing work to another agent (AGENTS.md:103), and step 3 (.claude/skills/delegation/SKILL.md:43)
+          is part of every dispatch. The old deferral waited for a fan-out branch; the owner
+          placed the rule in the brief step instead, where several workers are briefed (U-01,
+          U-07).'
+  skill:pstack/skills/principle-fix-root-causes:
+    upstream_tree_hash: e7a1fcb2a1050ad9bd3f29150448c64d4ab44ba497b3c4aeb62754a08dbab19a
+    accepted: 4dd1d05
+    compared_with: principle-fix-root-causes
+    pairing:
+      overlap:
+        doc:.claude/skills/mvp-mode/playbooks/bug-fix.md: 2
+        doc:.claude/skills/mvp-mode/playbooks/skill-curation.md: 1
+        doc:AGENTS.md: 2
+        principle-fix-root-causes: 4
+        systematic-debugging: 1
+      placement_match:
+      - performance-optimization
+      - principle-attack-the-premise
+      - principle-explain-the-number
+      - principle-fix-root-causes
+      - systematic-debugging
+      suggested: principle-fix-root-causes
+      purpose_match: principle-fix-root-causes
+      purpose: Upstream is a principle lens for fixing the cause, not the symptom. Our principle-fix-root-causes
+        is the same lens.
+      flag: null
+      reason: null
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      workaround-comment-smell:
+        scope: reconsider
+        change: []
+        fact: present
+        provider: principle-fix-root-causes
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/mvp-mode/principles/fix-root-causes.md:15-16
+        - .claude/skills/mvp-mode/SKILL.md:85
+        - .claude/skills/systematic-debugging/SKILL.md:24-25
+        recommendation: adopt
+        delivery: delivered
+        target: principle-fix-root-causes
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-06
+          override: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3.
+          Adopted: the principle now has a bullet saying that a workaround needing a long
+          comment to justify it is a sign the code is wrong, so fix the code instead (.claude/skills/mvp-mode/principles/fix-root-causes.md:15-16).
+          It is reached through mvp-mode''s Principles list whenever a failure is diagnosed
+          or fixed (.claude/skills/mvp-mode/SKILL.md:85) and through systematic-debugging,
+          which reads the principle at step 2 (.claude/skills/systematic-debugging/SKILL.md:24-25).
+          The concrete sign makes the rule checkable (U-06).'

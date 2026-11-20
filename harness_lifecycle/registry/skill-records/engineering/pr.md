@@ -17,6 +17,7 @@ Use when writing or revising a pull request's body: why, a visual of the change,
 <!-- registry:generated traits -->
 - `pr-body-template`: Fill a fixed PR-body skeleton with Summary, Evidence, and Merge Danger sections.
 - `evidence-before-after`: Show concrete before/after evidence that the change works, preferring screenshots, then execution-based test or console output.
+- `lead-number-pr-body`: Lead a performance change's pull request body with one primary number and link its supporting evidence.
 - `merge-danger`: State the merge's one-way or two-way door and its blast radius.
 - `no-preamble`: Open with the answer and stop when it is done, with no preamble, recap or closing pleasantry.
 - `visual-form-catalog`: Offer a set of inline visual forms — pseudocode, call, component and file trees, Mermaid and whole-block — each with its own shape rules.
@@ -41,9 +42,12 @@ Use when writing or revising a pull request's body: why, a visual of the change,
 - **cursor_plugins:skill:pstack/skills/technical-writing#writing-rules-cover-pr-bodies** `pstack/skills/technical-writing/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049 (pending cr-r2pa.2.13.2)
 - **cursor_plugins:skill:pstack/skills/technical-writing#link-bulk-evidence** `pstack/skills/technical-writing/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
 - **cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues#bug-pr-contents** `pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049 (pending cr-r2pa.2.13.3)
+- **cursor_plugins:skill:pstack/skills/benchmark-checklist#one-number-pr-body** `pstack/skills/benchmark-checklist/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-20` **adopt** (2026-11-20-deferred-building:018): Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3. Adopted as the narrower variant lead-number-pr-body: the pr skill's Evidence guidanc…
+- `2026-11-20` **update** (2026-11-20-deferred-building:002): Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3. The Evidence guidance gains one sentence: a performance change leads with one primar…
 - `2026-11-13` **adopt** (2026-11-13-batch-p3:234): Owner ruling 2026-11-13: Prevents: A bug-fix pull request whose reviewer cannot tell what broke, why, or which tracked item it closes, so the fix is checked ag…
 - `2026-11-13` **adopt** (2026-11-13-batch-p2:472): Owner ruling 2026-11-13: completes the held row's pending adopt. pr already says this at pr/SKILL.md:59-60; traits/ours.yaml now lists `link-bulk-evidence` on …
 - `2026-11-13` **adopt** (2026-11-13-batch-p2:073) *(superseded)*: Owner ruling 2026-11-13: Prevents: A body buried under pasted logs and commit lists that a reviewer has to scroll past. Lands in pr, SKILL.md:59-60. It already…
@@ -64,6 +68,8 @@ Use when writing or revising a pull request's body: why, a visual of the change,
 <!-- registry:generated sources -->
 - `evidence-before-after`:
   - `mattpocock_skills:skill:skills/engineering/pr#evidence-before-after` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `lead-number-pr-body`:
+  - `cursor_plugins:skill:pstack/skills/benchmark-checklist#one-number-pr-body` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `link-bulk-evidence`:
   - `cursor_plugins:skill:pstack/skills/technical-writing#link-bulk-evidence` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
 - `merge-danger`:
