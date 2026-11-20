@@ -9,7 +9,9 @@ structured re-reviews also use `review-contract.md`.
 ## Establish scope and evidence
 
 Use the supplied diff/package and requirements. Infer an obvious supplied base or
-working-tree scope; ask only when the choice changes what should be reviewed. For
+working-tree scope; ask only when the choice changes what should be reviewed. With no
+base named or recorded, default to the branch's merge-base with its base branch, through
+the working tree, committed and uncommitted. For
 uncommitted work, use `git diff <base> -- <owned paths>` and inspect in-scope untracked
 files separately. `BASE..HEAD` covers committed work only. Distinguish pre-existing edits
 using the task baseline; filenames alone do not establish ownership. Before dispatching

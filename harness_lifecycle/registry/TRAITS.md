@@ -409,6 +409,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `handback-safety-fact-with-grade`: State the safety fact, its ladder level and its proof, or mark it unproven.
 - `handback-risk-fields`: For each risk give how it breaks, the actual file and line, likelihood and severity, how to check it, and the proof for those that matter.
 - `handback-pre-merge-check`: Give the cheapest test or reproduction able to expose the actual bug, along with any script written.
+- `merge-base-default-scope`: When no base is named, obviously supplied or recorded for the task, review the branch from its merge-base with its base branch through the working tree, committed and uncommitted.
 
 #### core · X · Communication — brief-me
 - `next-action-first`: Lead with the next concrete action — a command, path or snippet — before any prose.
@@ -605,6 +606,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `retry-by-cause`: Retry a failed worker according to why it failed, with a narrower unit, the same brief or another model, and after two retries drop the unit and plan around it.
 - `fresh-context-subagent`: Start every subagent in a fresh context window rather than as a copy of the caller's conversation.
 - `unenforced-read-only-brief-and-status-check`: When a read-only worker's tool access still lets it write, say in its brief not to edit files and, after it returns, check the checkout against a baseline the coordinator recorded before dispatch.
+- `self-contained-subagent-brief`: Paste into a subagent's brief any reference material it needs that it cannot otherwise reach.
 
 #### core · X · Coordination — model-council
 - `member-resolution`: Resolve the members and judge from the request's explicit selections, asking only for missing choices or unreachable members.
@@ -1999,7 +2001,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `run-proven-finding`: Let a finding stand only when a run executed in the review shows it, so a claim nobody ran is no finding. — adopt → interrogate#run-proven-finding
 - `inspection-only-authority`: Treat a review or analysis request as authority to inspect and report only, never to change the work. — adopt → doc:AGENTS.md
 - `named-scope-first`: Use the scope the user names when one is given. — adopt → interrogate#named-scope-first
-- `merge-base-through-tree-scope`: When no scope is named, review the branch from where it left the base branch up to and including the working tree. — defer
+- `merge-base-through-tree-scope`: When no scope is named, review the branch from where it left the base branch up to and including the working tree. — adopt → review#merge-base-default-scope
 - `intent-restated-first`: Restate the change's intent in your own words before sending out adversaries. — adopt → interrogate#intent-restated-first
 - `intent-from-request-commits-pr`: Derive the intent from the request, the commits and the pull request description. — adopt → interrogate#intent-from-stated-sources
 - `ask-when-intent-unclear`: Ask the user when the intent cannot be established. — adopt → interrogate#ask-or-not-run-on-intent
@@ -3125,59 +3127,59 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `argument-order-commits`: Order commits so the history proves the work (failing test before fix, removal before reshape, baseline before treatment, scaffold before feature), each commit standing alone. — adopt → principle-sequence-verifiable-units#argument-order-commits
 
 #### engineering · Building · Implementation — skill:pstack/skills/typescript-best-practices
-- `literal-discriminant-unions`: Represent variants as a union tagged by a literal field so contradictory states cannot be written. — defer
-- `no-optional-field-bags`: Do not model variant state with booleans plus optional fields. — defer
-- `one-discriminant-name`: Settle on a single tag field name and use it consistently. — defer
+- `literal-discriminant-unions`: Represent variants as a union tagged by a literal field so contradictory states cannot be written. — out-of-scope
+- `no-optional-field-bags`: Do not model variant state with booleans plus optional fields. — out-of-scope
+- `one-discriminant-name`: Settle on a single tag field name and use it consistently. — out-of-scope
 - `branded-primitives`: Give semantically distinct values that share a primitive type their own types, validated once at creation and trusted afterwards. — adopt → principle-type-system-discipline#branded-primitives
-- `reuse-existing-brand-shape`: Follow the established brand property shape and invent no other convention. — defer
-- `brand-only-through-verifying-guard`: Obtain a brand only from a type guard that truly checks the value, never from a cast. — defer
+- `reuse-existing-brand-shape`: Follow the established brand property shape and invent no other convention. — out-of-scope
+- `brand-only-through-verifying-guard`: Obtain a brand only from a type guard that truly checks the value, never from a cast. — out-of-scope
 - `unrepresentable-invalid-states`: Shape types so the checker rejects impossible states, defining special cases out of existence instead of handling them. — adopt → principle-type-system-discipline#unrepresentable-invalid-states
-- `nonempty-variadic-tuple`: Express a non-empty list as a tuple of one element plus a rest element. — defer
-- `single-narrowing-guard`: Where an ordinary array arrives, narrow it once with a guard so the fact travels in the type. — defer
-- `even-length-as-pairs`: Express an even-length list as an array of two-element tuples. — defer
-- `range-as-start-plus-duration`: Express a time range as a start and a duration in place of two endpoints. — defer
+- `nonempty-variadic-tuple`: Express a non-empty list as a tuple of one element plus a rest element. — out-of-scope
+- `single-narrowing-guard`: Where an ordinary array arrives, narrow it once with a guard so the fact travels in the type. — out-of-scope
+- `even-length-as-pairs`: Express an even-length list as an array of two-element tuples. — out-of-scope
+- `range-as-start-plus-duration`: Express a time range as a start and a duration in place of two endpoints. — out-of-scope
 - `brand-only-on-confusion-risk`: Leave a number unbranded unless a raw number could actually be passed in its place. — adopt → principle-type-system-discipline#brand-only-on-confusion-risk
-- `readings-over-representation`: Expose other views of the data through helpers or derivations on top of the chosen representation. — defer
+- `readings-over-representation`: Expose other views of the data through helpers or derivations on top of the chosen representation. — out-of-scope
 - `simplest-total-type`: Keep a loose type while every operation on it is defined for all inputs, tightening it only where it forces an assertion, a cast or an impossible-case throw. — adopt → principle-type-system-discipline#simplest-total-type
 - `weaken-result-alternative`: Return a possibly absent result as the other way of making a signature total. — adopt → principle-type-system-discipline#weaken-result-alternative
-- `external-data-is-unknown`: Type all outside data as unknown and never as any. — defer
-- `narrow-before-use`: Narrow unknown values before accessing them so the compiler checks the access. — defer
-- `external-source-enumeration`: Count remote payloads, parsed text, posted messages, process messages, file contents, environment variables and database results as external. — defer
-- `check-for-schema-library-first`: Before hand-writing a field-by-field guard, find out which runtime schema library the repository uses and which schemas already exist. — defer
+- `external-data-is-unknown`: Type all outside data as unknown and never as any. — out-of-scope
+- `narrow-before-use`: Narrow unknown values before accessing them so the compiler checks the access. — out-of-scope
+- `external-source-enumeration`: Count remote payloads, parsed text, posted messages, process messages, file contents, environment variables and database results as external. — out-of-scope
+- `check-for-schema-library-first`: Before hand-writing a field-by-field guard, find out which runtime schema library the repository uses and which schemas already exist. — out-of-scope
 - `one-schema-validates-and-types`: Let one schema own validation and infer the static type from it, never keeping a schema, a parallel type and a guard that can disagree. — adopt → principle-type-system-discipline#one-schema-validates-and-types
-- `safe-parse-for-expected-failure`: Use the non-throwing parse variant when failure is an ordinary branch. — defer
-- `repo-schema-helper-equivalent`: Use the matching inference helper when the repository has a different schema library. — defer
-- `no-new-schema-dependency-for-one-guard`: Do not add a schema dependency for the sake of a single guard. — defer
-- `no-unverified-casts`: Disallow type assertions except after validation has established the claim. — defer
-- `no-partial-property-guard`: Reject a guard that checks only some fields while claiming the full type. — defer
-- `validator-annotated-with-type`: When the type is written first, annotate the validator with it so the compiler rejects a validator proving less. — defer
-- `diagnose-cast-before-removing`: When removing a cast, first find out why inference falls short. — defer
-- `cast-fix-add-discriminant`: When a cast hides a missing discriminant, add one and move to a tagged union. — defer
-- `cast-fix-narrow-source`: When a cast hides an overly broad source type, narrow that type. — defer
-- `cast-fix-parse-boundary`: When a cast sits at an untyped boundary, parse with the schema responsible for that shape, adding one only where none exists. — defer
-- `cast-fix-brand-or-satisfies`: When a type truly cannot be expressed, use a brand or a checking operator in place of a cast. — defer
-- `narrowing-preference-order`: Prefer discriminant checks, then property-presence checks, then runtime type checks, then a user-defined guard, with a cast last and only after validation. — defer
+- `safe-parse-for-expected-failure`: Use the non-throwing parse variant when failure is an ordinary branch. — out-of-scope
+- `repo-schema-helper-equivalent`: Use the matching inference helper when the repository has a different schema library. — out-of-scope
+- `no-new-schema-dependency-for-one-guard`: Do not add a schema dependency for the sake of a single guard. — out-of-scope
+- `no-unverified-casts`: Disallow type assertions except after validation has established the claim. — out-of-scope
+- `no-partial-property-guard`: Reject a guard that checks only some fields while claiming the full type. — out-of-scope
+- `validator-annotated-with-type`: When the type is written first, annotate the validator with it so the compiler rejects a validator proving less. — out-of-scope
+- `diagnose-cast-before-removing`: When removing a cast, first find out why inference falls short. — out-of-scope
+- `cast-fix-add-discriminant`: When a cast hides a missing discriminant, add one and move to a tagged union. — out-of-scope
+- `cast-fix-narrow-source`: When a cast hides an overly broad source type, narrow that type. — out-of-scope
+- `cast-fix-parse-boundary`: When a cast sits at an untyped boundary, parse with the schema responsible for that shape, adding one only where none exists. — out-of-scope
+- `cast-fix-brand-or-satisfies`: When a type truly cannot be expressed, use a brand or a checking operator in place of a cast. — out-of-scope
+- `narrowing-preference-order`: Prefer discriminant checks, then property-presence checks, then runtime type checks, then a user-defined guard, with a cast last and only after validation. — out-of-scope
 - `guards-must-verify`: Require a type guard to really prove what it asserts, treating a false guard as worse than a cast. — adopt → principle-type-system-discipline#guards-must-verify
-- `guard-naming-convention`: Name guards with an is or has prefix. — defer
-- `discriminant-over-guard`: Use discriminant narrowing instead of a guard when it is available. — defer
+- `guard-naming-convention`: Name guards with an is or has prefix. — out-of-scope
+- `discriminant-over-guard`: Use discriminant narrowing instead of a guard when it is available. — out-of-scope
 - `exhaustive-variant-handling`: Handle every variant of a closed type so the checker reports a variant left unhandled. — adopt → principle-type-system-discipline#exhaustive-variant-handling
-- `exhaustiveness-arm-by-switch-kind`: Return the never value in value-producing switches and discard it in statement switches. — defer
-- `satisfies-over-cast`: Check a value against a type with an operator that keeps its literal types, in place of a cast. — defer
+- `exhaustiveness-arm-by-switch-kind`: Return the never value in value-producing switches and discard it in statement switches. — out-of-scope
+- `satisfies-over-cast`: Check a value against a type with an operator that keeps its literal types, in place of a cast. — out-of-scope
 - `parse-at-boundary`: Turn raw external input into typed domain values with a parse function at the boundary where it enters. — reject
-- `loose-record-stops-at-parse`: Allow a string-keyed unknown record, under any alias, to exist only up to the parse. — defer
+- `loose-record-stops-at-parse`: Allow a string-keyed unknown record, under any alias, to exist only up to the parse. — out-of-scope
 - `trust-internal-types`: Inside the system, trust data that a boundary already validated into types and propagate errors instead of re-checking it in every layer. — reject
-- `wire-parse-ignores-unknown-fields`: Parse wire formats with unknown fields ignored so forward-compatible changes do not break old clients. — defer
-- `persisted-json-versioned`: Store persisted JSON as a versioned blob. — defer
-- `persisted-json-guarded-parse`: Surround the parse of persisted JSON with an error handler. — defer
+- `wire-parse-ignores-unknown-fields`: Parse wire formats with unknown fields ignored so forward-compatible changes do not break old clients. — out-of-scope
+- `persisted-json-versioned`: Store persisted JSON as a versioned blob. — out-of-scope
+- `persisted-json-guarded-parse`: Surround the parse of persisted JSON with an error handler. — out-of-scope
 - `schema-derived-types`: Derive types from the authoritative schema that owns a shape instead of hand-writing a parallel type. — adopt → principle-type-system-discipline#schema-derived-types
-- `type-utilities-before-new-interface`: Try the language's type utilities before declaring a new interface. — defer
-- `object-arguments`: Pass a single object in place of positional arguments so order is irrelevant and calls read clearly. — defer
-- `hot-path-positional-exception`: Skip object arguments on per-frame rendering, tokenizers, parsers and other tight loops where allocation matters. — defer
+- `type-utilities-before-new-interface`: Try the language's type utilities before declaring a new interface. — out-of-scope
+- `object-arguments`: Pass a single object in place of positional arguments so order is irrelevant and calls read clearly. — out-of-scope
+- `hot-path-positional-exception`: Skip object arguments on per-frame rendering, tokenizers, parsers and other tight loops where allocation matters. — out-of-scope
 - `no-mocking-what-can-run`: Mock only what cannot run locally, and avoid mocks for anything that can. — reject
-- `real-test-primitives-with-leak-checks`: Prefer the framework's real test primitives along with leak and disposable checks. — defer
-- `verify-ui-in-running-build`: Confirm interface behaviour in an actual running build. — defer
-- `diagnostics-traceable-from-id`: Emit diagnostics through a structured logger carrying enough detail to trace a problem starting from an id. — defer
-- `no-console-log-in-shipped-code`: Forbid console logging in code that ships. — defer
+- `real-test-primitives-with-leak-checks`: Prefer the framework's real test primitives along with leak and disposable checks. — out-of-scope
+- `verify-ui-in-running-build`: Confirm interface behaviour in an actual running build. — out-of-scope
+- `diagnostics-traceable-from-id`: Emit diagnostics through a structured logger carrying enough detail to trace a problem starting from an id. — out-of-scope
+- `no-console-log-in-shipped-code`: Forbid console logging in code that ships. — out-of-scope
 
 #### engineering · Verification · Testing — skill:pstack/skills/create-verification-skill
 - `project-verification-skill`: Produce a skill kept in the project that launches the real product, drives a feature as a user would and captures evidence. — adopt → create-verification-skill#project-verification-skill
@@ -4348,23 +4350,23 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 #### engineering · Verification · Review — skill:skills/engineering/code-review
 - `two-axis-review`: Review a diff along two separate axes — conformance to the repo's documented standards and faithfulness to the originating spec. — adopt → review#two-axis-review
 - `distinct-axis-verdicts`: Report each review axis's verdict separately so one axis passing never masks another failing. — adopt → review#distinct-axis-verdicts
-- `no-cross-axis-rerank`: Never merge or rerank findings across review axes or pick a single overall winner. — defer
+- `no-cross-axis-rerank`: Never merge or rerank findings across review axes or pick a single overall winner. — reject
 - `scope-establishment`: Fix the diff and the base it is measured from before reviewing. — adopt → review#scope-establishment
 - `fixed-point-preflight`: Confirm the review ref resolves and the diff is non-empty before fanning out, failing fast rather than inside sub-agents. — adopt → review#fixed-point-preflight
-- `three-dot-merge-base`: Compare against the merge-base using a three-dot git diff so unrelated upstream changes are excluded. — defer
+- `three-dot-merge-base`: Compare against the merge-base using a three-dot git diff so unrelated upstream changes are excluded. — adopt → review#merge-base-default-scope
 - `spec-source-discovery`: Find the originating spec in a fixed order — commit issue references, a user-supplied path, conventional spec directories — and ask only as a last resort. — adopt → review#spec-source-discovery
 - `standards-source-discovery`: Search the repo for every file documenting how code should be written, always including the conventional standards and contributing files. — adopt → review#standards-source-discovery
-- `parallel-subagents`: Run the review axes as parallel foreground sub-agents so their contexts do not pollute each other. — defer
+- `parallel-subagents`: Run the review axes as parallel foreground sub-agents so their contexts do not pollute each other. — reject
 - `missing-spec-axis-skip`: When the user confirms no spec exists, skip the spec review axis and report that no spec was available. — adopt → review#missing-spec-axis-skip
 - `skip-tool-enforced`: Skip any review finding that existing tooling already enforces. — adopt → review#actionable-defects-only
-- `self-contained-subagent-brief`: Paste into a subagent's brief any reference material it needs that it cannot otherwise reach. — defer
+- `self-contained-subagent-brief`: Paste into a subagent's brief any reference material it needs that it cannot otherwise reach. — adopt → delegation#self-contained-subagent-brief
 - `cited-standard-findings`: Cite the standard's file and rule for every violation and quote the hunk for every smell. — adopt → review#cited-standard-findings
 - `spec-conformance-findings`: Report spec findings as missing or partial requirements, unrequested behaviour and wrongly implemented requirements, quoting the spec line for each. — adopt → review#spec-conformance-findings
-- `capped-reviewer-report`: Cap each reviewer subagent's report at a fixed word budget. — defer
-- `per-axis-summary-line`: Close a multi-axis review with one line giving each axis's finding count and its worst issue. — defer
-- `code-smell-catalog`: Check changes against a fixed catalogue of named code smells, each with a description and a fix, whether or not the repository documents standards. — defer
-- `repo-standards-over-smells`: Let a documented repository standard override and suppress a conflicting catalogue smell. — defer
-- `smells-as-heuristics`: Report a catalogue smell only as a labelled possible judgement call, never as a hard violation. — defer
+- `capped-reviewer-report`: Cap each reviewer subagent's report at a fixed word budget. — reject
+- `per-axis-summary-line`: Close a multi-axis review with one line giving each axis's finding count and its worst issue. — reject
+- `code-smell-catalog`: Check changes against a fixed catalogue of named code smells, each with a description and a fix, whether or not the repository documents standards. — reject
+- `repo-standards-over-smells`: Let a documented repository standard override and suppress a conflicting catalogue smell. — reject
+- `smells-as-heuristics`: Report a catalogue smell only as a labelled possible judgement call, never as a hard violation. — reject
 - `fresh-context-subagent`: Start every subagent in a fresh context window rather than as a copy of the caller's conversation. — adopt → delegation#fresh-context-subagent
 
 #### engineering · Verification · Testing — skill:skills/misc/migrate-to-shoehorn
@@ -4384,7 +4386,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `evidence-before-after`: Show concrete before/after evidence that the change works, preferring screenshots, then execution-based test or console output. — adopt → pr#evidence-before-after
 - `merge-danger`: State the merge's one-way or two-way door and its blast radius. — adopt → pr#merge-danger
 - `no-preamble`: Open with the answer and stop when it is done, with no preamble, recap or closing pleasantry. — adopt → pr#no-preamble
-- `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write. — defer
+- `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write. — reject
 - `structural-diff`: Show a change as a diff against the structure the reader already holds rather than against raw source. — adopt → show-me#structural-diff
 - `visual-placement`: Place each visual immediately after the sentence it supports and include only the detail the current question needs. — adopt → show-me#visual-placement
 - `minimal-visual-selection`: Use the fewest and smallest visuals that make the point, never a gallery. — adopt → show-me#minimal-visual-selection
@@ -5640,10 +5642,14 @@ Route an artifact or change with material risk or a broad blast radius through a
 - ours: `harness-evaluate`
 - ours: `to-spec`
 
+#### `merge-base-default-scope`
+When no base is named, obviously supplied or recorded for the task, review the branch from its merge-base with its base branch through the working tree, committed and uncommitted.
+- ours: `review`
+
 #### `merge-base-through-tree-scope`
 When no scope is named, review the branch from where it left the base branch up to and including the working tree.
 - ours: `no-comments`
-- `cursor_plugins:skill:pstack/skills/interrogate` — defer
+- `cursor_plugins:skill:pstack/skills/interrogate` — adopt → review#merge-base-default-scope
 - `cursor_plugins:skill:pstack/skills/no-comments` — adopt → no-comments#merge-base-through-tree-scope
 
 #### `merge-by-root-cause`
@@ -7184,7 +7190,7 @@ Use the project's established domain vocabulary throughout what you write.
 - ours: `teach`
 - `cursor_plugins:skill:pstack/skills/create-formal-verification-skill` — adopt → create-formal-verification-skill#domain-vocabulary
 - `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — adopt → improve-codebase-architecture#domain-vocabulary
-- `mattpocock_skills:skill:skills/engineering/pr` — defer
+- `mattpocock_skills:skill:skills/engineering/pr` — reject
 - `mattpocock_skills:skill:skills/engineering/prototype` — adopt → prototype#domain-vocabulary
 - `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
 - `mattpocock_skills:skill:skills/engineering/tdd` — reject
@@ -9869,7 +9875,8 @@ When dropped seats leave too few runners, add runners up to a floor on a survivi
 
 #### `self-contained-subagent-brief`
 Paste into a subagent's brief any reference material it needs that it cannot otherwise reach.
-- `mattpocock_skills:skill:skills/engineering/code-review` — defer
+- ours: `delegation`
+- `mattpocock_skills:skill:skills/engineering/code-review` — adopt → delegation#self-contained-subagent-brief
 
 #### `session-resume-followup`
 Send a follow-up to a worker by resuming its own session rather than starting a fresh one.
@@ -13483,7 +13490,7 @@ Leave a number unbranded unless a raw number could actually be passed in its pla
 
 #### `brand-only-through-verifying-guard`
 Obtain a brand only from a type guard that truly checks the value, never from a cast.
-- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — out-of-scope
 
 #### `build-brief-shape`
 Before code is written, state the paths, the data shape and the success criteria in the build brief.
@@ -13505,19 +13512,19 @@ When fixing, inspect the affected callers and preserve their legitimate differen
 
 #### `cast-fix-add-discriminant`
 When a cast hides a missing discriminant, add one and move to a tagged union.
-- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — out-of-scope
 
 #### `cast-fix-brand-or-satisfies`
 When a type truly cannot be expressed, use a brand or a checking operator in place of a cast.
-- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — out-of-scope
 
 #### `cast-fix-narrow-source`
 When a cast hides an overly broad source type, narrow that type.
-- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — out-of-scope
 
 #### `cast-fix-parse-boundary`
 When a cast sits at an untyped boundary, parse with the schema responsible for that shape, adding one only where none exists.
-- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — out-of-scope
 
 #### `category-pivot`
 A plateau is not a stop: change category and reread the source; a dead end is three iterations with no movement after that, and no further approach statable in one sentence.
@@ -13525,7 +13532,7 @@ A plateau is not a stop: change category and reread the source; a dead end is th
 
 #### `check-for-schema-library-first`
 Before hand-writing a field-by-field guard, find out which runtime schema library the repository uses and which schemas already exist.
-- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — out-of-scope
 
 #### `ci-fallback-instruction`
 Without an umbrella check command, add the lint script alone and tell the user to put it in CI.
@@ -13605,11 +13612,11 @@ Finish interaction details such as transitions, alignment, spacing, feedback and
 
 #### `diagnose-cast-before-removing`
 When removing a cast, first find out why inference falls short.
-- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — out-of-scope
 
 #### `diagnostics-traceable-from-id`
 Emit diagnostics through a structured logger carrying enough detail to trace a problem starting from an id.
-- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — out-of-scope
 
 #### `discovery-scope-split`
 Fix a discovery only when the predicate cannot be met without it or the request names it; record the rest as a linked bead or in the reply, unfixed, granting no standing scope.
@@ -13617,7 +13624,7 @@ Fix a discovery only when the predicate cannot be met without it or the request 
 
 #### `discriminant-over-guard`
 Use discriminant narrowing instead of a guard when it is available.
-- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — out-of-scope
 
 #### `enforce-in-code`
 Enforce access, tenant isolation, validation, safe sink handling and resource limits in code, since external documents, logs and model output cannot grant permissions and prompt secrecy is no control.
@@ -13633,7 +13640,7 @@ Set every module-boundary lint rule to error severity.
 
 #### `even-length-as-pairs`
 Express an even-length list as an array of two-element tuples.
-- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — out-of-scope
 
 #### `exact-proof-settles-a-protected-keep`
 Refuse deleting a comment a stated exception protects, and count a comment as a settled protected keep only with that exact exception and proof within scope, proof a provisional keep of a doubtful comment does not need.
@@ -13647,7 +13654,7 @@ Handle every variant of a closed type so the checker reports a variant left unha
 
 #### `exhaustiveness-arm-by-switch-kind`
 Return the never value in value-producing switches and discard it in statement switches.
-- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — out-of-scope
 
 #### `exit-predicate-first`
 State the exit condition as a command and the result it must give before the first change; with none, ask when attended and do not start when stated unattended.
@@ -13659,11 +13666,11 @@ Write explicit type signatures for functions.
 
 #### `external-data-is-unknown`
 Type all outside data as unknown and never as any.
-- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — out-of-scope
 
 #### `external-source-enumeration`
 Count remote payloads, parsed text, posted messages, process messages, file contents, environment variables and database results as external.
-- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — out-of-scope
 
 #### `fill-in-breakage`
 Accept scoped, planned breakage while filling in a sketch.
@@ -13699,7 +13706,7 @@ Keep the boundary config's group back-references rather than flattening them int
 
 #### `guard-naming-convention`
 Name guards with an is or has prefix.
-- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — out-of-scope
 
 #### `guards-must-verify`
 Require a type guard to really prove what it asserts, treating a false guard as worse than a cast.
@@ -13708,7 +13715,7 @@ Require a type guard to really prove what it asserts, treating a false guard as 
 
 #### `hot-path-positional-exception`
 Skip object arguments on per-frame rendering, tokenizers, parsers and other tight loops where allocation matters.
-- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — out-of-scope
 
 #### `human-step-wizard`
 Generate an interactive script that walks a person through the setup steps only they can perform.
@@ -13765,7 +13772,7 @@ Never relax the predicate; a limit stops new work even with an idea left, and th
 
 #### `literal-discriminant-unions`
 Represent variants as a union tagged by a literal field so contradictory states cannot be written.
-- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — out-of-scope
 
 #### `long-hunt-test`
 Call a hunt long only when its next evidence cannot arrive within one foreground command; a stubborn hunt with something to run now keeps running.
@@ -13773,7 +13780,7 @@ Call a hunt long only when its next evidence cannot arrive within one foreground
 
 #### `loose-record-stops-at-parse`
 Allow a string-keyed unknown record, under any alias, to exist only up to the parse.
-- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — out-of-scope
 
 #### `manifest-lock-consistency`
 Keep pyproject.toml and uv.lock consistent with each other.
@@ -13797,7 +13804,7 @@ Choose test-first, characterization, or test-quality-only by the task rather tha
 
 #### `narrow-before-use`
 Narrow unknown values before accessing them so the compiler checks the access.
-- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — out-of-scope
 
 #### `narrowest-state-scope`
 Give state the narrowest scope that works: locals over fields over module state over globals.
@@ -13806,7 +13813,7 @@ Give state the narrowest scope that works: locals over fields over module state 
 
 #### `narrowing-preference-order`
 Prefer discriminant checks, then property-presence checks, then runtime type checks, then a user-defined guard, with a cast last and only after validation.
-- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — out-of-scope
 
 #### `no-bare-except`
 Avoid bare except clauses.
@@ -13818,7 +13825,7 @@ Keep blocking I/O out of async code, moving it to a thread when needed.
 
 #### `no-console-log-in-shipped-code`
 Forbid console logging in code that ships.
-- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — out-of-scope
 
 #### `no-dynamic-execution`
 Never evaluate, execute or unsafely deserialize untrusted input.
@@ -13830,15 +13837,15 @@ Apply the model-library preference to new models only, never rewriting existing 
 
 #### `no-new-schema-dependency-for-one-guard`
 Do not add a schema dependency for the sake of a single guard.
-- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — out-of-scope
 
 #### `no-optional-field-bags`
 Do not model variant state with booleans plus optional fields.
-- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — out-of-scope
 
 #### `no-partial-property-guard`
 Reject a guard that checks only some fields while claiming the full type.
-- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — out-of-scope
 
 #### `no-secrets-in-yaml-git-logs`
 Never put secrets in YAML files, Git or logs.
@@ -13852,15 +13859,15 @@ Avoid cleanup unrelated to the requested work.
 
 #### `no-unverified-casts`
 Disallow type assertions except after validation has established the claim.
-- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — out-of-scope
 
 #### `nonempty-variadic-tuple`
 Express a non-empty list as a tuple of one element plus a rest element.
-- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — out-of-scope
 
 #### `object-arguments`
 Pass a single object in place of positional arguments so order is irrelevant and calls read clearly.
-- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — out-of-scope
 
 #### `one-change-one-measurement`
 Make one change, take one measurement, then keep or undo it, never stacking untested changes.
@@ -13868,7 +13875,7 @@ Make one change, take one measurement, then keep or undo it, never stacking unte
 
 #### `one-discriminant-name`
 Settle on a single tag field name and use it consistently.
-- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — out-of-scope
 
 #### `one-schema-validates-and-types`
 Let one schema own validation and infer the static type from it, never keeping a schema, a parallel type and a guard that can disagree.
@@ -13898,11 +13905,11 @@ Keep one ledger file per round, named by date and slug in the ledger directory.
 
 #### `persisted-json-guarded-parse`
 Surround the parse of persisted JSON with an error handler.
-- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — out-of-scope
 
 #### `persisted-json-versioned`
 Store persisted JSON as a versioned blob.
-- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — out-of-scope
 
 #### `pin-green-moves`
 Move structure in small steps that each keep the behaviour check green.
@@ -13945,7 +13952,7 @@ Prefer Pydantic v2 models to dataclasses or untyped dicts for new structured dom
 
 #### `range-as-start-plus-duration`
 Express a time range as a start and a duration in place of two endpoints.
-- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — out-of-scope
 
 #### `read-trail-first`
 Read the trail before each attempt and retry nothing it already rejected.
@@ -13958,7 +13965,7 @@ Keep a finished restructuring only if reader load dropped, and otherwise revert 
 
 #### `readings-over-representation`
 Expose other views of the data through helpers or derivations on top of the chosen representation.
-- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — out-of-scope
 
 #### `red-green`
 Make one test fail before implementing the change that makes it pass.
@@ -13981,7 +13988,7 @@ Read every rename against the real files, strings and prose included.
 
 #### `repo-schema-helper-equivalent`
 Use the matching inference helper when the repository has a different schema library.
-- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — out-of-scope
 
 #### `report-missing-proof`
 When no regression check is feasible for a confirmed cause, make the fix anyway and report that its proof is missing.
@@ -13993,7 +14000,7 @@ Offer each value already captured as the default on a re-run so the script can b
 
 #### `reuse-existing-brand-shape`
 Follow the established brand property shape and invent no other convention.
-- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — out-of-scope
 
 #### `reuse-existing-first`
 Prefer existing code, standard-library or platform features and installed dependencies before writing new code.
@@ -14031,7 +14038,7 @@ Handle the environment file safely: create it private, keep an existing file's m
 
 #### `safe-parse-for-expected-failure`
 Use the non-throwing parse variant when failure is an ordinary branch.
-- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — out-of-scope
 
 #### `safety-suppressions-removed`
 Treat suppressions bearing on correctness or safety as findings that must be removed.
@@ -14040,7 +14047,7 @@ Treat suppressions bearing on correctness or safety as findings that must be rem
 
 #### `satisfies-over-cast`
 Check a value against a type with an operator that keeps its literal types, in place of a cast.
-- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — out-of-scope
 
 #### `scaffold-example`
 Commit an example package with an entry point delegating to an internal file and a test through the entry point, as a copy-me template.
@@ -14073,7 +14080,7 @@ Keep a loose type while every operation on it is defined for all inputs, tighten
 
 #### `single-narrowing-guard`
 Where an ordinary array arrives, narrow it once with a guard so the fact travels in the type.
-- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — out-of-scope
 
 #### `sketch-commit-first`
 Commit the agreed sketch separately before implementing it.
@@ -14149,7 +14156,7 @@ Work build tickets one per fresh context window, clearing between them and takin
 
 #### `type-utilities-before-new-interface`
 Try the language's type utilities before declaring a new interface.
-- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — out-of-scope
 
 #### `unattended-climb-closeout`
 On every exit of a stated unattended climb, write nothing to the main tree: keep the worktree, write the patch from the first tree to the checkpoint's tree, and name both.
@@ -14202,7 +14209,7 @@ Build and update the Python environment with uv sync.
 
 #### `validator-annotated-with-type`
 When the type is written first, annotate the validator with it so the compiler rejects a validator proving less.
-- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — out-of-scope
 
 #### `value-provenance-gate`
 Finish scoping only when every captured value's source, destination and secrecy are known.
@@ -14226,7 +14233,7 @@ Keep a code comment only for a non-obvious reason the code cannot show.
 
 #### `wire-parse-ignores-unknown-fields`
 Parse wire formats with unknown fields ignored so forward-compatible changes do not break old clients.
-- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — out-of-scope
 
 #### `wire-umbrella-check`
 Add a boundary-lint script and fold it into the repo's umbrella check command alongside typecheck.
@@ -14286,7 +14293,7 @@ Read enough surrounding code and affected callers, treating implementer and revi
 
 #### `capped-reviewer-report`
 Cap each reviewer subagent's report at a fixed word budget.
-- `mattpocock_skills:skill:skills/engineering/code-review` — defer
+- `mattpocock_skills:skill:skills/engineering/code-review` — reject
 
 #### `cited-standard-findings`
 Cite the standard's file and rule for every violation and quote the hunk for every smell.
@@ -14295,7 +14302,7 @@ Cite the standard's file and rule for every violation and quote the hunk for eve
 
 #### `code-smell-catalog`
 Check changes against a fixed catalogue of named code smells, each with a description and a fix, whether or not the repository documents standards.
-- `mattpocock_skills:skill:skills/engineering/code-review` — defer
+- `mattpocock_skills:skill:skills/engineering/code-review` — reject
 
 #### `cold-automated-review-run`
 Have a separate run read the diff without the author's context, against the codebase's standards and the originating ticket.
@@ -14381,15 +14388,15 @@ Never skip a review finding automatically when it concerns security, privacy, mo
 
 #### `no-cross-axis-rerank`
 Never merge or rerank findings across review axes or pick a single overall winner.
-- `mattpocock_skills:skill:skills/engineering/code-review` — defer
+- `mattpocock_skills:skill:skills/engineering/code-review` — reject
 
 #### `parallel-subagents`
 Run the review axes as parallel foreground sub-agents so their contexts do not pollute each other.
-- `mattpocock_skills:skill:skills/engineering/code-review` — defer
+- `mattpocock_skills:skill:skills/engineering/code-review` — reject
 
 #### `per-axis-summary-line`
 Close a multi-axis review with one line giving each axis's finding count and its worst issue.
-- `mattpocock_skills:skill:skills/engineering/code-review` — defer
+- `mattpocock_skills:skill:skills/engineering/code-review` — reject
 
 #### `pre-existing-edit-separation`
 Separate pre-existing edits from the task's own changes using the task baseline, not filenames.
@@ -14408,7 +14415,7 @@ Judge maintainability by the layers a reader must trace and the state they must 
 
 #### `repo-standards-over-smells`
 Let a documented repository standard override and suppress a conflicting catalogue smell.
-- `mattpocock_skills:skill:skills/engineering/code-review` — defer
+- `mattpocock_skills:skill:skills/engineering/code-review` — reject
 
 #### `review-after-every-build`
 Run a code review over the work every time a build finishes.
@@ -14452,7 +14459,7 @@ Carry a fixed code-smell baseline as labelled judgement calls that documented re
 
 #### `smells-as-heuristics`
 Report a catalogue smell only as a labelled possible judgement call, never as a hard violation.
-- `mattpocock_skills:skill:skills/engineering/code-review` — defer
+- `mattpocock_skills:skill:skills/engineering/code-review` — reject
 
 #### `spec-conformance-findings`
 Report spec findings as missing or partial requirements, unrequested behaviour and wrongly implemented requirements, quoting the spec line for each.
@@ -14487,7 +14494,7 @@ Check that a new reader can say where a value comes from and what can change it 
 
 #### `three-dot-merge-base`
 Compare against the merge-base using a three-dot git diff so unrelated upstream changes are excluded.
-- `mattpocock_skills:skill:skills/engineering/code-review` — defer
+- `mattpocock_skills:skill:skills/engineering/code-review` — adopt → review#merge-base-default-scope
 
 #### `two-axis-review`
 Review a diff along two separate axes — conformance to the repo's documented standards and faithfulness to the originating spec.
@@ -15145,7 +15152,7 @@ Provide one read-only check that the instance is alive, the right build, owns it
 
 #### `real-test-primitives-with-leak-checks`
 Prefer the framework's real test primitives along with leak and disposable checks.
-- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — out-of-scope
 
 #### `real-user-path-proof`
 Prove a feature through the path a real user takes, never internal setters or test-only endpoints.
@@ -15446,7 +15453,7 @@ During a verification pass, edit only the verification skill's own files and nev
 
 #### `verify-ui-in-running-build`
 Confirm interface behaviour in an actual running build.
-- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — defer
+- `cursor_plugins:skill:pstack/skills/typescript-best-practices` — out-of-scope
 
 #### `wait-on-condition-not-sleep`
 Wait for a concrete result element or status rather than a fixed delay.

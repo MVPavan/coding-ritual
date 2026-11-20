@@ -1,0 +1,1314 @@
+harness: cursor_plugins
+from_sha: null
+to_sha: 4dd1d05
+supersedes:
+- harness_lifecycle/registry/reviews/2026-11-03-upstream-cursor_plugins-4dd1d05-batch-3.yaml
+- harness_lifecycle/registry/reviews/2026-11-04-upstream-cursor_plugins-4dd1d05-batch-p1.yaml
+analysis_critic:
+  by: codex gpt-6.2-sol high (critic-103)
+  date: '2026-11-20'
+  verdict: pass
+  last_critic: null
+comparison_critic:
+  by: codex gpt-6.2-sol high (critic-103)
+  date: '2026-11-20'
+  verdict: pass
+  last_critic: null
+themes: 'Forty-two pstack rows reopened by the owner. Owner ruling 2026-11-20 (conversation),
+  deferred review, bead cr-r2pa.3.3: interrogate''s merge-base-through-tree-scope (Verification)
+  is adopted into review as the narrower variant merge-base-default-scope, the same line that
+  adopts Pocock''s three-dot-merge-base; the 41 typescript-best-practices rows (Building)
+  are out of scope for now, replacing the 2026-11-06 defer, until the owner asks for TypeScript
+  rules.'
+skills:
+  skill:pstack/skills/interrogate:
+    upstream_tree_hash: 45b67702b12e70485937b5efb0f1217d198ee2bbc8393b70877a3fb496102bdd
+    accepted: 4dd1d05
+    compared_with: review
+    pairing:
+      overlap:
+        create-formal-verification-skill: 1
+        doc:AGENTS.md: 1
+        interrogate: 24
+        model-council: 2
+        no-comments: 2
+        restate: 1
+        review: 2
+      placement_match:
+      - interrogate
+      - no-comments
+      - review
+      suggested: interrogate
+      purpose_match: interrogate
+      purpose: Upstream sends adversaries to break a change and keeps only the findings a
+        run proves. Our interrogate is the same job; review owns how a code change's scope
+        is fixed for an ordinary review, where this row lands.
+      flag: suggested differs
+      reason: 'Compared with review: the owner placed the default scope in code review''s
+        scope paragraph. The computed pick, interrogate, keeps its own default (the named
+        scope, else an obvious supplied base or the working tree), which this ruling does
+        not change.'
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      merge-base-through-tree-scope:
+        scope: reconsider
+        change: []
+        fact: variant
+        provider: review
+        candidates:
+        - merge-base-default-scope
+        via: merge-base-default-scope
+        also_in:
+          no-comments: present
+        ours:
+        - .claude/skills/review/references/code.md:11-14
+        - .claude/skills/review/SKILL.md:29-30
+        - .claude/skills/review/references/review-contract.md:5-7
+        - .claude/skills/mvp-mode/playbooks/implement/task-engine.md:69-72
+        - .claude/skills/mvp-mode/playbooks/implement/task-engine.md:14
+        - .claude/skills/mvp-mode/playbooks/implement/task-engine.md:22-27
+        - .claude/skills/interrogate/SKILL.md:13-14
+        recommendation: adopt
+        delivery: delivered
+        target: review
+        modification: 'Adopted as merge-base-default-scope in review: a base the task obviously
+          supplies or records wins before the merge-base default. Upstream defaults to the
+          merge-base through the working tree whenever no scope is named.'
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-02
+          - U-06
+          override: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3.
+          Adopted into review as the narrower variant merge-base-default-scope: with no base
+          named or recorded, code review now defaults to the branch''s merge-base with its
+          base branch, through the working tree, committed and uncommitted. The sentence is
+          in code review''s scope paragraph (.claude/skills/review/references/code.md:11-14),
+          which the review skill loads for every code mode (.claude/skills/review/SKILL.md:29-30),
+          dispatched reviewers follow (.claude/skills/review/references/review-contract.md:5-7)
+          and the implement playbook''s full review path uses (.claude/skills/mvp-mode/playbooks/implement/task-engine.md:69-72).
+          A recorded base is, for example, the implement playbook''s SCOPE_BASE, recorded
+          once in its ledger and passed to every review package (.claude/skills/mvp-mode/playbooks/implement/task-engine.md:14;
+          .claude/skills/mvp-mode/playbooks/implement/task-engine.md:22-27). Upstream takes
+          the merge-base default whenever the user names no scope; ours first takes a base
+          the task obviously supplies or records. Our interrogate keeps its own default (.claude/skills/interrogate/SKILL.md:13-14);
+          this adoption is review''s (U-02, U-06).'
+  skill:pstack/skills/typescript-best-practices:
+    upstream_tree_hash: fb35e49d1b6a48fa42d81fff0e4e9834b8f98e0ebcf188203680f1f4265df690
+    accepted: 4dd1d05
+    compared_with: principle-type-system-discipline
+    pairing:
+      overlap:
+        principle-boundary-discipline: 2
+        principle-model-the-domain: 1
+        principle-type-system-discipline: 9
+      placement_match:
+      - principle-no-comments
+      - principle-sequence-verifiable-units
+      - tdd
+      suggested: principle-type-system-discipline
+      purpose_match: principle-type-system-discipline
+      purpose: 'Upstream is a TypeScript style guide: discriminated unions, branded types,
+        exhaustive handling and related language rules. Our principle-type-system-discipline
+        holds the language-neutral type rules adopted from it.'
+      flag: null
+      reason: null
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      literal-discriminant-unions:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .repo-context/coding-style.md:1-4
+        - .claude/skills/mvp-mode/principles/type-system-discipline.md:3-19
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now, replacing the 2026-11-06 defer. This row comes from pstack''s
+          TypeScript style guide. The owner holds TypeScript rules out of scope until they
+          ask for them, judging that no project this harness serves needs a TypeScript style
+          yet; this repository''s documented language-specific style is its Python conventions
+          (.repo-context/coding-style.md:1-4). The language-neutral type rules already adopted
+          stay in principle-type-system-discipline, including schema-derived types and honest
+          type guards (.claude/skills/mvp-mode/principles/type-system-discipline.md:3-19),
+          which this ruling does not change. The owner''s revisit trigger: when the owner
+          asks for TypeScript rules.'
+      no-optional-field-bags:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .repo-context/coding-style.md:1-4
+        - .claude/skills/mvp-mode/principles/type-system-discipline.md:3-19
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now, replacing the 2026-11-06 defer. This row comes from pstack''s
+          TypeScript style guide. The owner holds TypeScript rules out of scope until they
+          ask for them, judging that no project this harness serves needs a TypeScript style
+          yet; this repository''s documented language-specific style is its Python conventions
+          (.repo-context/coding-style.md:1-4). The language-neutral type rules already adopted
+          stay in principle-type-system-discipline, including schema-derived types and honest
+          type guards (.claude/skills/mvp-mode/principles/type-system-discipline.md:3-19),
+          which this ruling does not change. The owner''s revisit trigger: when the owner
+          asks for TypeScript rules.'
+      one-discriminant-name:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .repo-context/coding-style.md:1-4
+        - .claude/skills/mvp-mode/principles/type-system-discipline.md:3-19
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now, replacing the 2026-11-06 defer. This row comes from pstack''s
+          TypeScript style guide. The owner holds TypeScript rules out of scope until they
+          ask for them, judging that no project this harness serves needs a TypeScript style
+          yet; this repository''s documented language-specific style is its Python conventions
+          (.repo-context/coding-style.md:1-4). The language-neutral type rules already adopted
+          stay in principle-type-system-discipline, including schema-derived types and honest
+          type guards (.claude/skills/mvp-mode/principles/type-system-discipline.md:3-19),
+          which this ruling does not change. The owner''s revisit trigger: when the owner
+          asks for TypeScript rules.'
+      reuse-existing-brand-shape:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .repo-context/coding-style.md:1-4
+        - .claude/skills/mvp-mode/principles/type-system-discipline.md:3-19
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now, replacing the 2026-11-06 defer. This row comes from pstack''s
+          TypeScript style guide. The owner holds TypeScript rules out of scope until they
+          ask for them, judging that no project this harness serves needs a TypeScript style
+          yet; this repository''s documented language-specific style is its Python conventions
+          (.repo-context/coding-style.md:1-4). The language-neutral type rules already adopted
+          stay in principle-type-system-discipline, including schema-derived types and honest
+          type guards (.claude/skills/mvp-mode/principles/type-system-discipline.md:3-19),
+          which this ruling does not change. The owner''s revisit trigger: when the owner
+          asks for TypeScript rules.'
+      brand-only-through-verifying-guard:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .repo-context/coding-style.md:1-4
+        - .claude/skills/mvp-mode/principles/type-system-discipline.md:3-19
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now, replacing the 2026-11-06 defer. This row comes from pstack''s
+          TypeScript style guide. The owner holds TypeScript rules out of scope until they
+          ask for them, judging that no project this harness serves needs a TypeScript style
+          yet; this repository''s documented language-specific style is its Python conventions
+          (.repo-context/coding-style.md:1-4). The language-neutral type rules already adopted
+          stay in principle-type-system-discipline, including schema-derived types and honest
+          type guards (.claude/skills/mvp-mode/principles/type-system-discipline.md:3-19),
+          which this ruling does not change. The owner''s revisit trigger: when the owner
+          asks for TypeScript rules.'
+      nonempty-variadic-tuple:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .repo-context/coding-style.md:1-4
+        - .claude/skills/mvp-mode/principles/type-system-discipline.md:3-19
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now, replacing the 2026-11-06 defer. This row comes from pstack''s
+          TypeScript style guide. The owner holds TypeScript rules out of scope until they
+          ask for them, judging that no project this harness serves needs a TypeScript style
+          yet; this repository''s documented language-specific style is its Python conventions
+          (.repo-context/coding-style.md:1-4). The language-neutral type rules already adopted
+          stay in principle-type-system-discipline, including schema-derived types and honest
+          type guards (.claude/skills/mvp-mode/principles/type-system-discipline.md:3-19),
+          which this ruling does not change. The owner''s revisit trigger: when the owner
+          asks for TypeScript rules.'
+      single-narrowing-guard:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .repo-context/coding-style.md:1-4
+        - .claude/skills/mvp-mode/principles/type-system-discipline.md:3-19
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now, replacing the 2026-11-06 defer. This row comes from pstack''s
+          TypeScript style guide. The owner holds TypeScript rules out of scope until they
+          ask for them, judging that no project this harness serves needs a TypeScript style
+          yet; this repository''s documented language-specific style is its Python conventions
+          (.repo-context/coding-style.md:1-4). The language-neutral type rules already adopted
+          stay in principle-type-system-discipline, including schema-derived types and honest
+          type guards (.claude/skills/mvp-mode/principles/type-system-discipline.md:3-19),
+          which this ruling does not change. The owner''s revisit trigger: when the owner
+          asks for TypeScript rules.'
+      even-length-as-pairs:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .repo-context/coding-style.md:1-4
+        - .claude/skills/mvp-mode/principles/type-system-discipline.md:3-19
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now, replacing the 2026-11-06 defer. This row comes from pstack''s
+          TypeScript style guide. The owner holds TypeScript rules out of scope until they
+          ask for them, judging that no project this harness serves needs a TypeScript style
+          yet; this repository''s documented language-specific style is its Python conventions
+          (.repo-context/coding-style.md:1-4). The language-neutral type rules already adopted
+          stay in principle-type-system-discipline, including schema-derived types and honest
+          type guards (.claude/skills/mvp-mode/principles/type-system-discipline.md:3-19),
+          which this ruling does not change. The owner''s revisit trigger: when the owner
+          asks for TypeScript rules.'
+      range-as-start-plus-duration:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .repo-context/coding-style.md:1-4
+        - .claude/skills/mvp-mode/principles/type-system-discipline.md:3-19
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now, replacing the 2026-11-06 defer. This row comes from pstack''s
+          TypeScript style guide. The owner holds TypeScript rules out of scope until they
+          ask for them, judging that no project this harness serves needs a TypeScript style
+          yet; this repository''s documented language-specific style is its Python conventions
+          (.repo-context/coding-style.md:1-4). The language-neutral type rules already adopted
+          stay in principle-type-system-discipline, including schema-derived types and honest
+          type guards (.claude/skills/mvp-mode/principles/type-system-discipline.md:3-19),
+          which this ruling does not change. The owner''s revisit trigger: when the owner
+          asks for TypeScript rules.'
+      readings-over-representation:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .repo-context/coding-style.md:1-4
+        - .claude/skills/mvp-mode/principles/type-system-discipline.md:3-19
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now, replacing the 2026-11-06 defer. This row comes from pstack''s
+          TypeScript style guide. The owner holds TypeScript rules out of scope until they
+          ask for them, judging that no project this harness serves needs a TypeScript style
+          yet; this repository''s documented language-specific style is its Python conventions
+          (.repo-context/coding-style.md:1-4). The language-neutral type rules already adopted
+          stay in principle-type-system-discipline, including schema-derived types and honest
+          type guards (.claude/skills/mvp-mode/principles/type-system-discipline.md:3-19),
+          which this ruling does not change. The owner''s revisit trigger: when the owner
+          asks for TypeScript rules.'
+      external-data-is-unknown:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .repo-context/coding-style.md:1-4
+        - .claude/skills/mvp-mode/principles/type-system-discipline.md:3-19
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now, replacing the 2026-11-06 defer. This row comes from pstack''s
+          TypeScript style guide. The owner holds TypeScript rules out of scope until they
+          ask for them, judging that no project this harness serves needs a TypeScript style
+          yet; this repository''s documented language-specific style is its Python conventions
+          (.repo-context/coding-style.md:1-4). The language-neutral type rules already adopted
+          stay in principle-type-system-discipline, including schema-derived types and honest
+          type guards (.claude/skills/mvp-mode/principles/type-system-discipline.md:3-19),
+          which this ruling does not change. The owner''s revisit trigger: when the owner
+          asks for TypeScript rules.'
+      narrow-before-use:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .repo-context/coding-style.md:1-4
+        - .claude/skills/mvp-mode/principles/type-system-discipline.md:3-19
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now, replacing the 2026-11-06 defer. This row comes from pstack''s
+          TypeScript style guide. The owner holds TypeScript rules out of scope until they
+          ask for them, judging that no project this harness serves needs a TypeScript style
+          yet; this repository''s documented language-specific style is its Python conventions
+          (.repo-context/coding-style.md:1-4). The language-neutral type rules already adopted
+          stay in principle-type-system-discipline, including schema-derived types and honest
+          type guards (.claude/skills/mvp-mode/principles/type-system-discipline.md:3-19),
+          which this ruling does not change. The owner''s revisit trigger: when the owner
+          asks for TypeScript rules.'
+      external-source-enumeration:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .repo-context/coding-style.md:1-4
+        - .claude/skills/mvp-mode/principles/type-system-discipline.md:3-19
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now, replacing the 2026-11-06 defer. This row comes from pstack''s
+          TypeScript style guide. The owner holds TypeScript rules out of scope until they
+          ask for them, judging that no project this harness serves needs a TypeScript style
+          yet; this repository''s documented language-specific style is its Python conventions
+          (.repo-context/coding-style.md:1-4). The language-neutral type rules already adopted
+          stay in principle-type-system-discipline, including schema-derived types and honest
+          type guards (.claude/skills/mvp-mode/principles/type-system-discipline.md:3-19),
+          which this ruling does not change. The owner''s revisit trigger: when the owner
+          asks for TypeScript rules.'
+      check-for-schema-library-first:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .repo-context/coding-style.md:1-4
+        - .claude/skills/mvp-mode/principles/type-system-discipline.md:3-19
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now, replacing the 2026-11-06 defer. This row comes from pstack''s
+          TypeScript style guide. The owner holds TypeScript rules out of scope until they
+          ask for them, judging that no project this harness serves needs a TypeScript style
+          yet; this repository''s documented language-specific style is its Python conventions
+          (.repo-context/coding-style.md:1-4). The language-neutral type rules already adopted
+          stay in principle-type-system-discipline, including schema-derived types and honest
+          type guards (.claude/skills/mvp-mode/principles/type-system-discipline.md:3-19),
+          which this ruling does not change. The owner''s revisit trigger: when the owner
+          asks for TypeScript rules.'
+      safe-parse-for-expected-failure:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .repo-context/coding-style.md:1-4
+        - .claude/skills/mvp-mode/principles/type-system-discipline.md:3-19
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now, replacing the 2026-11-06 defer. This row comes from pstack''s
+          TypeScript style guide. The owner holds TypeScript rules out of scope until they
+          ask for them, judging that no project this harness serves needs a TypeScript style
+          yet; this repository''s documented language-specific style is its Python conventions
+          (.repo-context/coding-style.md:1-4). The language-neutral type rules already adopted
+          stay in principle-type-system-discipline, including schema-derived types and honest
+          type guards (.claude/skills/mvp-mode/principles/type-system-discipline.md:3-19),
+          which this ruling does not change. The owner''s revisit trigger: when the owner
+          asks for TypeScript rules.'
+      repo-schema-helper-equivalent:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .repo-context/coding-style.md:1-4
+        - .claude/skills/mvp-mode/principles/type-system-discipline.md:3-19
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now, replacing the 2026-11-06 defer. This row comes from pstack''s
+          TypeScript style guide. The owner holds TypeScript rules out of scope until they
+          ask for them, judging that no project this harness serves needs a TypeScript style
+          yet; this repository''s documented language-specific style is its Python conventions
+          (.repo-context/coding-style.md:1-4). The language-neutral type rules already adopted
+          stay in principle-type-system-discipline, including schema-derived types and honest
+          type guards (.claude/skills/mvp-mode/principles/type-system-discipline.md:3-19),
+          which this ruling does not change. The owner''s revisit trigger: when the owner
+          asks for TypeScript rules.'
+      no-new-schema-dependency-for-one-guard:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .repo-context/coding-style.md:1-4
+        - .claude/skills/mvp-mode/principles/type-system-discipline.md:3-19
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now, replacing the 2026-11-06 defer. This row comes from pstack''s
+          TypeScript style guide. The owner holds TypeScript rules out of scope until they
+          ask for them, judging that no project this harness serves needs a TypeScript style
+          yet; this repository''s documented language-specific style is its Python conventions
+          (.repo-context/coding-style.md:1-4). The language-neutral type rules already adopted
+          stay in principle-type-system-discipline, including schema-derived types and honest
+          type guards (.claude/skills/mvp-mode/principles/type-system-discipline.md:3-19),
+          which this ruling does not change. The owner''s revisit trigger: when the owner
+          asks for TypeScript rules.'
+      no-unverified-casts:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .repo-context/coding-style.md:1-4
+        - .claude/skills/mvp-mode/principles/type-system-discipline.md:3-19
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now, replacing the 2026-11-06 defer. This row comes from pstack''s
+          TypeScript style guide. The owner holds TypeScript rules out of scope until they
+          ask for them, judging that no project this harness serves needs a TypeScript style
+          yet; this repository''s documented language-specific style is its Python conventions
+          (.repo-context/coding-style.md:1-4). The language-neutral type rules already adopted
+          stay in principle-type-system-discipline, including schema-derived types and honest
+          type guards (.claude/skills/mvp-mode/principles/type-system-discipline.md:3-19),
+          which this ruling does not change. The owner''s revisit trigger: when the owner
+          asks for TypeScript rules.'
+      no-partial-property-guard:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .repo-context/coding-style.md:1-4
+        - .claude/skills/mvp-mode/principles/type-system-discipline.md:3-19
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now, replacing the 2026-11-06 defer. This row comes from pstack''s
+          TypeScript style guide. The owner holds TypeScript rules out of scope until they
+          ask for them, judging that no project this harness serves needs a TypeScript style
+          yet; this repository''s documented language-specific style is its Python conventions
+          (.repo-context/coding-style.md:1-4). The language-neutral type rules already adopted
+          stay in principle-type-system-discipline, including schema-derived types and honest
+          type guards (.claude/skills/mvp-mode/principles/type-system-discipline.md:3-19),
+          which this ruling does not change. The owner''s revisit trigger: when the owner
+          asks for TypeScript rules.'
+      validator-annotated-with-type:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .repo-context/coding-style.md:1-4
+        - .claude/skills/mvp-mode/principles/type-system-discipline.md:3-19
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now, replacing the 2026-11-06 defer. This row comes from pstack''s
+          TypeScript style guide. The owner holds TypeScript rules out of scope until they
+          ask for them, judging that no project this harness serves needs a TypeScript style
+          yet; this repository''s documented language-specific style is its Python conventions
+          (.repo-context/coding-style.md:1-4). The language-neutral type rules already adopted
+          stay in principle-type-system-discipline, including schema-derived types and honest
+          type guards (.claude/skills/mvp-mode/principles/type-system-discipline.md:3-19),
+          which this ruling does not change. The owner''s revisit trigger: when the owner
+          asks for TypeScript rules.'
+      diagnose-cast-before-removing:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .repo-context/coding-style.md:1-4
+        - .claude/skills/mvp-mode/principles/type-system-discipline.md:3-19
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now, replacing the 2026-11-06 defer. This row comes from pstack''s
+          TypeScript style guide. The owner holds TypeScript rules out of scope until they
+          ask for them, judging that no project this harness serves needs a TypeScript style
+          yet; this repository''s documented language-specific style is its Python conventions
+          (.repo-context/coding-style.md:1-4). The language-neutral type rules already adopted
+          stay in principle-type-system-discipline, including schema-derived types and honest
+          type guards (.claude/skills/mvp-mode/principles/type-system-discipline.md:3-19),
+          which this ruling does not change. The owner''s revisit trigger: when the owner
+          asks for TypeScript rules.'
+      cast-fix-add-discriminant:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .repo-context/coding-style.md:1-4
+        - .claude/skills/mvp-mode/principles/type-system-discipline.md:3-19
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now, replacing the 2026-11-06 defer. This row comes from pstack''s
+          TypeScript style guide. The owner holds TypeScript rules out of scope until they
+          ask for them, judging that no project this harness serves needs a TypeScript style
+          yet; this repository''s documented language-specific style is its Python conventions
+          (.repo-context/coding-style.md:1-4). The language-neutral type rules already adopted
+          stay in principle-type-system-discipline, including schema-derived types and honest
+          type guards (.claude/skills/mvp-mode/principles/type-system-discipline.md:3-19),
+          which this ruling does not change. The owner''s revisit trigger: when the owner
+          asks for TypeScript rules.'
+      cast-fix-narrow-source:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .repo-context/coding-style.md:1-4
+        - .claude/skills/mvp-mode/principles/type-system-discipline.md:3-19
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now, replacing the 2026-11-06 defer. This row comes from pstack''s
+          TypeScript style guide. The owner holds TypeScript rules out of scope until they
+          ask for them, judging that no project this harness serves needs a TypeScript style
+          yet; this repository''s documented language-specific style is its Python conventions
+          (.repo-context/coding-style.md:1-4). The language-neutral type rules already adopted
+          stay in principle-type-system-discipline, including schema-derived types and honest
+          type guards (.claude/skills/mvp-mode/principles/type-system-discipline.md:3-19),
+          which this ruling does not change. The owner''s revisit trigger: when the owner
+          asks for TypeScript rules.'
+      cast-fix-parse-boundary:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .repo-context/coding-style.md:1-4
+        - .claude/skills/mvp-mode/principles/type-system-discipline.md:3-19
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now, replacing the 2026-11-06 defer. This row comes from pstack''s
+          TypeScript style guide. The owner holds TypeScript rules out of scope until they
+          ask for them, judging that no project this harness serves needs a TypeScript style
+          yet; this repository''s documented language-specific style is its Python conventions
+          (.repo-context/coding-style.md:1-4). The language-neutral type rules already adopted
+          stay in principle-type-system-discipline, including schema-derived types and honest
+          type guards (.claude/skills/mvp-mode/principles/type-system-discipline.md:3-19),
+          which this ruling does not change. The owner''s revisit trigger: when the owner
+          asks for TypeScript rules.'
+      cast-fix-brand-or-satisfies:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .repo-context/coding-style.md:1-4
+        - .claude/skills/mvp-mode/principles/type-system-discipline.md:3-19
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now, replacing the 2026-11-06 defer. This row comes from pstack''s
+          TypeScript style guide. The owner holds TypeScript rules out of scope until they
+          ask for them, judging that no project this harness serves needs a TypeScript style
+          yet; this repository''s documented language-specific style is its Python conventions
+          (.repo-context/coding-style.md:1-4). The language-neutral type rules already adopted
+          stay in principle-type-system-discipline, including schema-derived types and honest
+          type guards (.claude/skills/mvp-mode/principles/type-system-discipline.md:3-19),
+          which this ruling does not change. The owner''s revisit trigger: when the owner
+          asks for TypeScript rules.'
+      narrowing-preference-order:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .repo-context/coding-style.md:1-4
+        - .claude/skills/mvp-mode/principles/type-system-discipline.md:3-19
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now, replacing the 2026-11-06 defer. This row comes from pstack''s
+          TypeScript style guide. The owner holds TypeScript rules out of scope until they
+          ask for them, judging that no project this harness serves needs a TypeScript style
+          yet; this repository''s documented language-specific style is its Python conventions
+          (.repo-context/coding-style.md:1-4). The language-neutral type rules already adopted
+          stay in principle-type-system-discipline, including schema-derived types and honest
+          type guards (.claude/skills/mvp-mode/principles/type-system-discipline.md:3-19),
+          which this ruling does not change. The owner''s revisit trigger: when the owner
+          asks for TypeScript rules.'
+      guard-naming-convention:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .repo-context/coding-style.md:1-4
+        - .claude/skills/mvp-mode/principles/type-system-discipline.md:3-19
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now, replacing the 2026-11-06 defer. This row comes from pstack''s
+          TypeScript style guide. The owner holds TypeScript rules out of scope until they
+          ask for them, judging that no project this harness serves needs a TypeScript style
+          yet; this repository''s documented language-specific style is its Python conventions
+          (.repo-context/coding-style.md:1-4). The language-neutral type rules already adopted
+          stay in principle-type-system-discipline, including schema-derived types and honest
+          type guards (.claude/skills/mvp-mode/principles/type-system-discipline.md:3-19),
+          which this ruling does not change. The owner''s revisit trigger: when the owner
+          asks for TypeScript rules.'
+      discriminant-over-guard:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .repo-context/coding-style.md:1-4
+        - .claude/skills/mvp-mode/principles/type-system-discipline.md:3-19
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now, replacing the 2026-11-06 defer. This row comes from pstack''s
+          TypeScript style guide. The owner holds TypeScript rules out of scope until they
+          ask for them, judging that no project this harness serves needs a TypeScript style
+          yet; this repository''s documented language-specific style is its Python conventions
+          (.repo-context/coding-style.md:1-4). The language-neutral type rules already adopted
+          stay in principle-type-system-discipline, including schema-derived types and honest
+          type guards (.claude/skills/mvp-mode/principles/type-system-discipline.md:3-19),
+          which this ruling does not change. The owner''s revisit trigger: when the owner
+          asks for TypeScript rules.'
+      exhaustiveness-arm-by-switch-kind:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .repo-context/coding-style.md:1-4
+        - .claude/skills/mvp-mode/principles/type-system-discipline.md:3-19
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now, replacing the 2026-11-06 defer. This row comes from pstack''s
+          TypeScript style guide. The owner holds TypeScript rules out of scope until they
+          ask for them, judging that no project this harness serves needs a TypeScript style
+          yet; this repository''s documented language-specific style is its Python conventions
+          (.repo-context/coding-style.md:1-4). The language-neutral type rules already adopted
+          stay in principle-type-system-discipline, including schema-derived types and honest
+          type guards (.claude/skills/mvp-mode/principles/type-system-discipline.md:3-19),
+          which this ruling does not change. The owner''s revisit trigger: when the owner
+          asks for TypeScript rules.'
+      satisfies-over-cast:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .repo-context/coding-style.md:1-4
+        - .claude/skills/mvp-mode/principles/type-system-discipline.md:3-19
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now, replacing the 2026-11-06 defer. This row comes from pstack''s
+          TypeScript style guide. The owner holds TypeScript rules out of scope until they
+          ask for them, judging that no project this harness serves needs a TypeScript style
+          yet; this repository''s documented language-specific style is its Python conventions
+          (.repo-context/coding-style.md:1-4). The language-neutral type rules already adopted
+          stay in principle-type-system-discipline, including schema-derived types and honest
+          type guards (.claude/skills/mvp-mode/principles/type-system-discipline.md:3-19),
+          which this ruling does not change. The owner''s revisit trigger: when the owner
+          asks for TypeScript rules.'
+      loose-record-stops-at-parse:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .repo-context/coding-style.md:1-4
+        - .claude/skills/mvp-mode/principles/type-system-discipline.md:3-19
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now, replacing the 2026-11-06 defer. This row comes from pstack''s
+          TypeScript style guide. The owner holds TypeScript rules out of scope until they
+          ask for them, judging that no project this harness serves needs a TypeScript style
+          yet; this repository''s documented language-specific style is its Python conventions
+          (.repo-context/coding-style.md:1-4). The language-neutral type rules already adopted
+          stay in principle-type-system-discipline, including schema-derived types and honest
+          type guards (.claude/skills/mvp-mode/principles/type-system-discipline.md:3-19),
+          which this ruling does not change. The owner''s revisit trigger: when the owner
+          asks for TypeScript rules.'
+      wire-parse-ignores-unknown-fields:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .repo-context/coding-style.md:1-4
+        - .claude/skills/mvp-mode/principles/type-system-discipline.md:3-19
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now, replacing the 2026-11-06 defer. This row comes from pstack''s
+          TypeScript style guide. The owner holds TypeScript rules out of scope until they
+          ask for them, judging that no project this harness serves needs a TypeScript style
+          yet; this repository''s documented language-specific style is its Python conventions
+          (.repo-context/coding-style.md:1-4). The language-neutral type rules already adopted
+          stay in principle-type-system-discipline, including schema-derived types and honest
+          type guards (.claude/skills/mvp-mode/principles/type-system-discipline.md:3-19),
+          which this ruling does not change. The owner''s revisit trigger: when the owner
+          asks for TypeScript rules.'
+      persisted-json-versioned:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .repo-context/coding-style.md:1-4
+        - .claude/skills/mvp-mode/principles/type-system-discipline.md:3-19
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now, replacing the 2026-11-06 defer. This row comes from pstack''s
+          TypeScript style guide. The owner holds TypeScript rules out of scope until they
+          ask for them, judging that no project this harness serves needs a TypeScript style
+          yet; this repository''s documented language-specific style is its Python conventions
+          (.repo-context/coding-style.md:1-4). The language-neutral type rules already adopted
+          stay in principle-type-system-discipline, including schema-derived types and honest
+          type guards (.claude/skills/mvp-mode/principles/type-system-discipline.md:3-19),
+          which this ruling does not change. The owner''s revisit trigger: when the owner
+          asks for TypeScript rules.'
+      persisted-json-guarded-parse:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .repo-context/coding-style.md:1-4
+        - .claude/skills/mvp-mode/principles/type-system-discipline.md:3-19
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now, replacing the 2026-11-06 defer. This row comes from pstack''s
+          TypeScript style guide. The owner holds TypeScript rules out of scope until they
+          ask for them, judging that no project this harness serves needs a TypeScript style
+          yet; this repository''s documented language-specific style is its Python conventions
+          (.repo-context/coding-style.md:1-4). The language-neutral type rules already adopted
+          stay in principle-type-system-discipline, including schema-derived types and honest
+          type guards (.claude/skills/mvp-mode/principles/type-system-discipline.md:3-19),
+          which this ruling does not change. The owner''s revisit trigger: when the owner
+          asks for TypeScript rules.'
+      type-utilities-before-new-interface:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .repo-context/coding-style.md:1-4
+        - .claude/skills/mvp-mode/principles/type-system-discipline.md:3-19
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now, replacing the 2026-11-06 defer. This row comes from pstack''s
+          TypeScript style guide. The owner holds TypeScript rules out of scope until they
+          ask for them, judging that no project this harness serves needs a TypeScript style
+          yet; this repository''s documented language-specific style is its Python conventions
+          (.repo-context/coding-style.md:1-4). The language-neutral type rules already adopted
+          stay in principle-type-system-discipline, including schema-derived types and honest
+          type guards (.claude/skills/mvp-mode/principles/type-system-discipline.md:3-19),
+          which this ruling does not change. The owner''s revisit trigger: when the owner
+          asks for TypeScript rules.'
+      object-arguments:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .repo-context/coding-style.md:1-4
+        - .claude/skills/mvp-mode/principles/type-system-discipline.md:3-19
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now, replacing the 2026-11-06 defer. This row comes from pstack''s
+          TypeScript style guide. The owner holds TypeScript rules out of scope until they
+          ask for them, judging that no project this harness serves needs a TypeScript style
+          yet; this repository''s documented language-specific style is its Python conventions
+          (.repo-context/coding-style.md:1-4). The language-neutral type rules already adopted
+          stay in principle-type-system-discipline, including schema-derived types and honest
+          type guards (.claude/skills/mvp-mode/principles/type-system-discipline.md:3-19),
+          which this ruling does not change. The owner''s revisit trigger: when the owner
+          asks for TypeScript rules.'
+      hot-path-positional-exception:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .repo-context/coding-style.md:1-4
+        - .claude/skills/mvp-mode/principles/type-system-discipline.md:3-19
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now, replacing the 2026-11-06 defer. This row comes from pstack''s
+          TypeScript style guide. The owner holds TypeScript rules out of scope until they
+          ask for them, judging that no project this harness serves needs a TypeScript style
+          yet; this repository''s documented language-specific style is its Python conventions
+          (.repo-context/coding-style.md:1-4). The language-neutral type rules already adopted
+          stay in principle-type-system-discipline, including schema-derived types and honest
+          type guards (.claude/skills/mvp-mode/principles/type-system-discipline.md:3-19),
+          which this ruling does not change. The owner''s revisit trigger: when the owner
+          asks for TypeScript rules.'
+      real-test-primitives-with-leak-checks:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .repo-context/coding-style.md:1-4
+        - .claude/skills/mvp-mode/principles/type-system-discipline.md:3-19
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now, replacing the 2026-11-06 defer. This row comes from pstack''s
+          TypeScript style guide. The owner holds TypeScript rules out of scope until they
+          ask for them, judging that no project this harness serves needs a TypeScript style
+          yet; this repository''s documented language-specific style is its Python conventions
+          (.repo-context/coding-style.md:1-4). The language-neutral type rules already adopted
+          stay in principle-type-system-discipline, including schema-derived types and honest
+          type guards (.claude/skills/mvp-mode/principles/type-system-discipline.md:3-19),
+          which this ruling does not change. The owner''s revisit trigger: when the owner
+          asks for TypeScript rules.'
+      verify-ui-in-running-build:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .repo-context/coding-style.md:1-4
+        - .claude/skills/mvp-mode/principles/type-system-discipline.md:3-19
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now, replacing the 2026-11-06 defer. This row comes from pstack''s
+          TypeScript style guide. The owner holds TypeScript rules out of scope until they
+          ask for them, judging that no project this harness serves needs a TypeScript style
+          yet; this repository''s documented language-specific style is its Python conventions
+          (.repo-context/coding-style.md:1-4). The language-neutral type rules already adopted
+          stay in principle-type-system-discipline, including schema-derived types and honest
+          type guards (.claude/skills/mvp-mode/principles/type-system-discipline.md:3-19),
+          which this ruling does not change. The owner''s revisit trigger: when the owner
+          asks for TypeScript rules.'
+      diagnostics-traceable-from-id:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .repo-context/coding-style.md:1-4
+        - .claude/skills/mvp-mode/principles/type-system-discipline.md:3-19
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now, replacing the 2026-11-06 defer. This row comes from pstack''s
+          TypeScript style guide. The owner holds TypeScript rules out of scope until they
+          ask for them, judging that no project this harness serves needs a TypeScript style
+          yet; this repository''s documented language-specific style is its Python conventions
+          (.repo-context/coding-style.md:1-4). The language-neutral type rules already adopted
+          stay in principle-type-system-discipline, including schema-derived types and honest
+          type guards (.claude/skills/mvp-mode/principles/type-system-discipline.md:3-19),
+          which this ruling does not change. The owner''s revisit trigger: when the owner
+          asks for TypeScript rules.'
+      no-console-log-in-shipped-code:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .repo-context/coding-style.md:1-4
+        - .claude/skills/mvp-mode/principles/type-system-discipline.md:3-19
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now, replacing the 2026-11-06 defer. This row comes from pstack''s
+          TypeScript style guide. The owner holds TypeScript rules out of scope until they
+          ask for them, judging that no project this harness serves needs a TypeScript style
+          yet; this repository''s documented language-specific style is its Python conventions
+          (.repo-context/coding-style.md:1-4). The language-neutral type rules already adopted
+          stay in principle-type-system-discipline, including schema-derived types and honest
+          type guards (.claude/skills/mvp-mode/principles/type-system-discipline.md:3-19),
+          which this ruling does not change. The owner''s revisit trigger: when the owner
+          asks for TypeScript rules.'

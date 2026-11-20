@@ -41,7 +41,9 @@ same family, ask the owner to approve that explicitly before dispatching.
    says. A value not on the list stops the dispatch: report it, never substitute
    a nearby one.
 3. Brief: the role contract, outcome, owned paths or read-only, constraints,
-   acceptance checks, context pointers and report format. Name the path of each
+   acceptance checks, context pointers and report format. Copy into the brief any
+   reference material the worker needs but cannot otherwise reach; point to the
+   rest. Name the path of each
    principle whose situation holds for the work (`mvp-mode`'s Principles list);
    a reviewer or critic gets those the change falls under. Writers in a shared
    checkout preserve others' edits. Name what will show the work is finished: a

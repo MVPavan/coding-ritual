@@ -6104,6 +6104,11 @@ merge-base-through-tree-scope:
   placement: {domain: core, stage: Verification, substage: Review}
   distinct_from: [three-dot-merge-base]
   note: "three-dot-merge-base covers committed work only and excludes the working tree."
+merge-base-default-scope:
+  definition: "When no base is named, obviously supplied or recorded for the task, review the branch from its merge-base with its base branch through the working tree, committed and uncommitted."
+  placement: {domain: core, stage: Verification, substage: Review}
+  distinct_from: [merge-base-through-tree-scope, three-dot-merge-base]
+  note: "merge-base-through-tree-scope applies whenever no scope is named; this one yields first to a base the task supplies or records. three-dot-merge-base diffs committed work against the merge-base even from a named fixed point, and excludes the working tree."
 intent-restated-first:
   definition: "Restate the change's intent in your own words before sending out adversaries."
   placement: {domain: core, stage: Verification, substage: Review}

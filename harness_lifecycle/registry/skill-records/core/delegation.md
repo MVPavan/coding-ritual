@@ -39,6 +39,7 @@ Use when handing work to another agent or model (an explorer, implementer, revie
 - `retry-by-cause`: Retry a failed worker according to why it failed, with a narrower unit, the same brief or another model, and after two retries drop the unit and plan around it.
 - `fresh-context-subagent`: Start every subagent in a fresh context window rather than as a copy of the caller's conversation. (Delivers sealed rows 2026-11-09-pocock-4ae2317:156, :158, :160, :163, :165, :167, :170 and :179: a fresh window for each new worker, and a fork when the calling workflow asks for one, where the definition says every subagent; T5.)
 - `unenforced-read-only-brief-and-status-check`: When a read-only worker's tool access still lets it write, say in its brief not to edit files and, after it returns, check the checkout against a baseline the coordinator recorded before dispatch.
+- `self-contained-subagent-brief`: Paste into a subagent's brief any reference material it needs that it cannot otherwise reach.
 <!-- /registry:generated traits -->
 
 <!-- registry:generated lineage -->
@@ -59,9 +60,12 @@ Use when handing work to another agent or model (an explorer, implementer, revie
 - **cursor_plugins:skill:pstack/skills/swarm#worker-records-commits-and-method** `pstack/skills/swarm/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049 (pending cr-r2pa.2.13.2)
 - **cursor_plugins:skill:pstack/skills/swarm#missing-result-not-pass** `pstack/skills/swarm/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049 (pending cr-r2pa.2.13.2)
 - **cursor_plugins:skill:pstack/skills/principle-build-the-lever#shared-delegate-contract** `pstack/skills/principle-build-the-lever/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **mattpocock_skills:skill:skills/engineering/code-review#self-contained-subagent-brief** `skills/engineering/code-review/SKILL.md` @ 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-20` **adopt** (2026-11-20-deferred-verification-delivery:054): Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3. Adopted: delegation's brief step now says to copy into the brief any reference mater…
+- `2026-11-20` **update** (2026-11-20-deferred-verification-delivery:002): Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3. The brief step (Dispatch step 3) gains one sentence: copy into the brief any referen…
 - `2026-11-20` **adopt** (2026-11-20-deferred-building:019): Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3. Adopted: delegation's brief step now says that when several workers follow one recip…
 - `2026-11-20` **update** (2026-11-20-deferred-building:003): Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3. The brief step (Dispatch step 3) gains one sentence: when several workers follow one…
 - `2026-11-14` **update** (2026-11-14-adapter-adopts:001): Bead cr-r2pa.2.27. Owner ruling 2026-11-14 ("All as recommended") on pstack's Claude Code adapter, kept by option D: adopts unenforced-read-only-brief-and-stat…
@@ -121,6 +125,8 @@ Use when handing work to another agent or model (an explorer, implementer, revie
   - `mattpocock_skills:skill:skills/engineering/wayfinder#fresh-context-subagent` (adopted at 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d)
   - `mattpocock_skills:skill:skills/in-progress/chief-of-staff#fresh-context-subagent` (adopted at 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d)
   - `mattpocock_skills:skill:skills/productivity/grilling#fresh-context-subagent` (adopted at 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d)
+- `self-contained-subagent-brief`:
+  - `mattpocock_skills:skill:skills/engineering/code-review#self-contained-subagent-brief` (adopted at 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d)
 - `shared-delegate-contract`:
   - `cursor_plugins:skill:pstack/skills/principle-build-the-lever#shared-delegate-contract` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 <!-- /registry:generated sources -->

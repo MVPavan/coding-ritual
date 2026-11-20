@@ -1,0 +1,82 @@
+harness: mattpocock_skills
+from_sha: null
+to_sha: 5beb35b
+supersedes:
+- harness_lifecycle/registry/reviews/2026-10-30-upstream-mattpocock_skills-5beb35b.yaml
+analysis_critic:
+  by: codex gpt-6.2-sol high (critic-103)
+  date: '2026-11-20'
+  verdict: pass
+  last_critic: null
+comparison_critic:
+  by: codex gpt-6.2-sol high (critic-103)
+  date: '2026-11-20'
+  verdict: pass
+  last_critic: null
+themes: 'One pr row reopened by the owner at the Delivery stage. Owner ruling 2026-11-20 (conversation),
+  deferred review, bead cr-r2pa.3.3: domain-vocabulary, deferred on 2026-10-30 only so the
+  owner could review the report''s reject recommendation, is rejected as routed: AGENTS.md
+  routes domain terminology to the project glossary.'
+skills:
+  skill:skills/engineering/pr:
+    upstream_tree_hash: a66195583d0f9323004cdd4da169f93449071f29023671f3e31a916e740f6861
+    accepted: 5beb35b
+    compared_with: pr
+    pairing:
+      overlap:
+        brief-me: 2
+        codebase-design: 1
+        create-formal-verification-skill: 1
+        improve-codebase-architecture: 1
+        pr: 8
+        prototype: 1
+        recall: 1
+        settle-open-questions: 1
+        show-me: 4
+        tdd: 1
+        teach: 2
+        unslop: 2
+      placement_match:
+      - land
+      - pr
+      - resolving-merge-conflicts
+      suggested: pr
+      purpose_match: pr
+      purpose: Upstream writes a pull request body. Our pr skill writes or revises one.
+      flag: null
+      reason: null
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      domain-vocabulary:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          brief-me: present
+          codebase-design: variant
+          create-formal-verification-skill: present
+          improve-codebase-architecture: present
+          prototype: present
+          teach: present
+          unslop: variant
+        ours:
+        - AGENTS.md:104-105
+        - AGENTS.md:25-26
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report''s reject recommendation. ROUTED: AGENTS.md routes domain terminology
+          to the project glossary (.repo-context/CONTEXT.md) and architecture records when
+          needed, and surfaces conflicts with recorded decisions; a per-skill copy in the
+          pull request skill repeats that owner (S-05) (AGENTS.md:104-105; AGENTS.md:25-26).'
