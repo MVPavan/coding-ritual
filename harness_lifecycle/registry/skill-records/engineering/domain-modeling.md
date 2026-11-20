@@ -41,6 +41,8 @@ Build and sharpen a project's domain model. Use when the user wants to pin down 
 - `adr-supersede-lifecycle`: Never delete a decision record; supersede it with a new one and mark the old one superseded.
 - `adr-code-gotcha-link`: Leave a short comment at a code trap or constraint linking the decision record that explains it.
 - `scoped-decision-records`: Keep system-wide decision records at the repository root and context-specific ones inside each context.
+- `avoid-ruled-out-synonyms`: Avoid in your output any synonym the glossary explicitly rules out. (Carried by the glossary itself: the template header in GLOSSARY-FORMAT.md, so each glossary made from it tells its readers to avoid the words its terms list under Avoid.)
+- `missing-term-as-signal`: Treat a concept missing from the glossary either as invented language to reconsider or as a real gap to note. (Carried by the glossary template header beside avoid-ruled-out-synonyms.)
 <!-- /registry:generated traits -->
 
 <!-- registry:generated lineage -->
@@ -70,9 +72,16 @@ Build and sharpen a project's domain model. Use when the user wants to pin down 
 - **mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills#scoped-decision-records** `skills/engineering/setup-matt-pocock-skills/SKILL.md` @ 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d
 - **mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills#context-map-lookup** `skills/engineering/setup-matt-pocock-skills/SKILL.md` @ 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d
 - **mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills#lazy-glossary-and-adr** `skills/engineering/setup-matt-pocock-skills/SKILL.md` @ 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d
+- **mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills#avoid-ruled-out-synonyms** `skills/engineering/setup-matt-pocock-skills/SKILL.md` @ 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d
+- **mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills#missing-term-as-signal** `skills/engineering/setup-matt-pocock-skills/SKILL.md` @ 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-20` **adopt** (2026-11-20-deferred-improvement:019): Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3. Adopted into the glossary: its header tells the reader to treat a concept the glossa…
+- `2026-11-20` **adopt** (2026-11-20-deferred-improvement:018): Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3. Adopted into the glossary: its header tells the reader to use its terms, never a wor…
+- `2026-11-20` **defer** (2026-11-20-deferred-improvement:017): Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3: re-deferred with a new revisit condition, replacing the 2026-11-09 defer. The curren…
+- `2026-11-20` **defer** (2026-11-20-deferred-improvement:016): Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3: re-deferred with a new revisit condition, replacing the 2026-11-09 defer. The curren…
+- `2026-11-20` **update** (2026-11-20-deferred-improvement:004): Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3. The glossary template header in GLOSSARY-FORMAT.md gains one line, so every glossary…
 - `2026-11-20` **update** (2026-11-20-glossary-rename:001): Owner ruling 2026-11-20 (conversation), glossary rename, bead cr-r2pa.3.3, following upstream mattpocock_skills #1120 (commit d80fa0f): the project glossary is…
 - `2026-11-09` **adopt-merged** (2026-11-09-pocock-4ae2317:155): Checkpoint at 4ae2317 for the owner's trait rulings: 5 adopt, 6 defer, 43 reject.
 - `2026-11-09` **adopt** (2026-11-09-pocock-4ae2317:149): Owner ruling 2026-11-09: .claude/skills/domain-modeling/SKILL.md:18 creates the files lazily, only when there is something concrete to write.
@@ -117,6 +126,8 @@ Build and sharpen a project's domain model. Use when the user wants to pin down 
   - `mattpocock_skills:skill:skills/engineering/domain-modeling#adr-three-gate` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `adr-what-qualifies`:
   - `mattpocock_skills:skill:skills/engineering/domain-modeling#adr-what-qualifies` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `avoid-ruled-out-synonyms`:
+  - `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills#avoid-ruled-out-synonyms` (adopted at 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d)
 - `canonical-term-and-aliases`:
   - `mattpocock_skills:skill:skills/engineering/domain-modeling#canonical-term-and-aliases` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `challenge-glossary`:
@@ -141,6 +152,8 @@ Build and sharpen a project's domain model. Use when the user wants to pin down 
   - `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills#lazy-glossary-and-adr` (adopted at 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d)
 - `minimal-decision-record`:
   - `mattpocock_skills:skill:skills/engineering/domain-modeling#minimal-decision-record` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `missing-term-as-signal`:
+  - `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills#missing-term-as-signal` (adopted at 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d)
 - `optional-record-sections`:
   - `mattpocock_skills:skill:skills/engineering/domain-modeling#optional-record-sections` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `scoped-decision-records`:
@@ -160,5 +173,6 @@ Build and sharpen a project's domain model. Use when the user wants to pin down 
 <!-- /registry:generated sources -->
 
 <!-- registry:generated declined -->
-No declined traits recorded.
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills#edit-existing-instruction-file` (defer): Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3: re-deferred with a new revisit condition, replacing the 2026-11-09 defer. The curren…
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills#update-block-in-place` (defer): Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3: re-deferred with a new revisit condition, replacing the 2026-11-09 defer. The curren…
 <!-- /registry:generated declined -->

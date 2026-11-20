@@ -1,0 +1,216 @@
+harness: mattpocock_skills
+from_sha: null
+to_sha: 4ae2317
+supersedes:
+- harness_lifecycle/registry/reviews/2026-11-06-upstream-mattpocock_skills-4ae2317.yaml
+analysis_critic:
+  by: codex gpt-6.2-sol high (critic-105)
+  date: '2026-11-20'
+  verdict: pass
+  last_critic: null
+comparison_critic:
+  by: codex gpt-6.2-sol high (critic-105)
+  date: '2026-11-20'
+  verdict: pass
+  last_critic: null
+themes: 'Four setup-matt-pocock-skills rows reopened by the owner at the Improvement stage.
+  Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3: avoid-ruled-out-synonyms
+  and missing-term-as-signal are adopted into the glossary itself, through domain-modeling''s
+  glossary template header and this repository''s glossary header, not into AGENTS.md; edit-existing-instruction-file
+  and update-block-in-place are re-deferred to the plugin installer''s review at the end-of-project
+  plugin sync. split-pr-read-steps is in the companion report compared with triage.'
+skills:
+  skill:skills/engineering/setup-matt-pocock-skills:
+    upstream_tree_hash: 9659e7025d4cf1c0a0b40ddff32ed4b8debb87a4b20d7a52ff89c506a638df69
+    accepted: 4ae2317
+    compared_with: domain-modeling
+    pairing:
+      overlap:
+        beads: 1
+        brief-me: 1
+        codebase-design: 1
+        create-formal-verification-skill: 1
+        doc:.claude/skills/mvp-mode/playbooks/implement.md: 1
+        doc:AGENTS.md: 3
+        domain-modeling: 5
+        grilling: 2
+        improve-codebase-architecture: 3
+        prototype: 1
+        research: 1
+        settle-open-questions: 2
+        teach: 1
+        tracker: 1
+        triage: 1
+        unslop: 1
+        wayfinder: 4
+      placement_match:
+      - authoring-for-agents
+      - harness-evaluate
+      - harness-scan
+      - harness-skill-compare
+      - harness-status
+      - migrate-claude-to-codex
+      suggested: domain-modeling
+      purpose_match: none
+      purpose: Upstream scaffolds per-repository configuration (tracker, triage labels, domain-doc
+        locations) that its other skills read. We have no setup skill; domain-modeling holds
+        the glossary rules these rows land in.
+      flag: purpose differs
+      reason: 'Compared with domain-modeling, which is also the computed suggestion: its glossary
+        template and consumer rules hold the rows of this report; the pull-request reading
+        row is compared with triage in the companion report, and no skill of ours matches
+        the setup purpose.'
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      edit-existing-instruction-file:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - mvp-harness/plugins/mvp-plugin/scripts/install-harness.sh:96-128
+        - mvp-harness/plugins/mvp-plugin/scripts/lib/common.sh:31-35
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: 'At the end-of-project plugin sync, when the plugin installer is reviewed:
+          if it writes sections into another repository''s instruction file, adopt there.'
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          re-deferred with a new revisit condition, replacing the 2026-11-09 defer. The current
+          plugin installer writes no sections into another repository''s instruction file:
+          its payload copy, root instruction files included (mvp-harness/plugins/mvp-plugin/scripts/install-harness.sh:96-100;
+          mvp-harness/plugins/mvp-plugin/scripts/install-harness.sh:126-128), runs copy_one
+          per file, which compares file hashes and either copies the whole template file when
+          the target is missing (mvp-harness/plugins/mvp-plugin/scripts/install-harness.sh:107-108)
+          or locally untouched (mvp-harness/plugins/mvp-plugin/scripts/install-harness.sh:115-117),
+          keeps a local edit when the template is unchanged (mvp-harness/plugins/mvp-plugin/scripts/install-harness.sh:119-120),
+          or keeps a conflicting local file and writes the template beside it as .template-new
+          (mvp-harness/plugins/mvp-plugin/scripts/install-harness.sh:122-124). The old trigger
+          waited for a skill of ours to start writing such sections; the place this can arise
+          is the installer, so the owner moves the revisit to its review at the end-of-project
+          plugin sync.'
+      update-block-in-place:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - mvp-harness/plugins/mvp-plugin/scripts/install-harness.sh:96-128
+        - mvp-harness/plugins/mvp-plugin/scripts/lib/common.sh:31-35
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: 'At the end-of-project plugin sync, when the plugin installer is reviewed:
+          if it writes sections into another repository''s instruction file, adopt there.'
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          re-deferred with a new revisit condition, replacing the 2026-11-09 defer. The current
+          plugin installer writes no sections into another repository''s instruction file:
+          its payload copy, root instruction files included (mvp-harness/plugins/mvp-plugin/scripts/install-harness.sh:96-100;
+          mvp-harness/plugins/mvp-plugin/scripts/install-harness.sh:126-128), runs copy_one
+          per file, which compares file hashes and either copies the whole template file when
+          the target is missing (mvp-harness/plugins/mvp-plugin/scripts/install-harness.sh:107-108)
+          or locally untouched (mvp-harness/plugins/mvp-plugin/scripts/install-harness.sh:115-117),
+          keeps a local edit when the template is unchanged (mvp-harness/plugins/mvp-plugin/scripts/install-harness.sh:119-120),
+          or keeps a conflicting local file and writes the template beside it as .template-new
+          (mvp-harness/plugins/mvp-plugin/scripts/install-harness.sh:122-124). The old trigger
+          waited for a skill of ours to start writing such sections; the place this can arise
+          is the installer, so the owner moves the revisit to its review at the end-of-project
+          plugin sync.'
+      avoid-ruled-out-synonyms:
+        scope: reconsider
+        change: []
+        fact: present
+        provider: domain-modeling
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/domain-modeling/GLOSSARY-FORMAT.md:5-12
+        - .repo-context/GLOSSARY.md:3-6
+        - AGENTS.md:104
+        - .claude/skills/domain-modeling/SKILL.md:41-43
+        - .claude/skills/domain-modeling/GLOSSARY-FORMAT.md:60-63
+        recommendation: adopt
+        delivery: delivered
+        target: domain-modeling
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-04
+          - U-06
+          override: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3.
+          Adopted into the glossary: its header tells the reader to use its terms, never a
+          word a term lists under _Avoid_ for that meaning (.claude/skills/domain-modeling/GLOSSARY-FORMAT.md:10;
+          .repo-context/GLOSSARY.md:3-4). The line sits in the glossary itself, which a writer
+          reads whenever terminology matters: in this repository AGENTS.md routes domain terminology
+          to it (AGENTS.md:104; .repo-context/docs-index.md:11) and its header carries the
+          line (.repo-context/GLOSSARY.md:3-6). The trait''s holder is domain-modeling through
+          its glossary template, whose header now carries the same line (.claude/skills/domain-modeling/GLOSSARY-FORMAT.md:5-12),
+          so every glossary domain-modeling creates from it (.claude/skills/domain-modeling/SKILL.md:41-43)
+          carries it, at the location the project''s instructions declare (.claude/skills/domain-modeling/GLOSSARY-FORMAT.md:60-63).
+          The project glossary has no inventory entry of its own. It is kept out of AGENTS.md,
+          which is always loaded (S-04). Delivery is proved for this repository''s glossary
+          and for glossaries made from the template after this change; a glossary another
+          project wrote earlier lacks the line, and nothing here adds it.'
+      missing-term-as-signal:
+        scope: reconsider
+        change: []
+        fact: present
+        provider: domain-modeling
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/domain-modeling/GLOSSARY-FORMAT.md:5-12
+        - .repo-context/GLOSSARY.md:3-6
+        - AGENTS.md:104
+        - .claude/skills/domain-modeling/SKILL.md:41-43
+        - .claude/skills/domain-modeling/GLOSSARY-FORMAT.md:60-63
+        recommendation: adopt
+        delivery: delivered
+        target: domain-modeling
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-04
+          - U-06
+          override: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3.
+          Adopted into the glossary: its header tells the reader to treat a concept the glossary
+          lacks as either coined language to reconsider or a real gap to note (.claude/skills/domain-modeling/GLOSSARY-FORMAT.md:10-12;
+          .repo-context/GLOSSARY.md:5-6). The line sits in the glossary itself, which a writer
+          reads whenever terminology matters: in this repository AGENTS.md routes domain terminology
+          to it (AGENTS.md:104; .repo-context/docs-index.md:11) and its header carries the
+          line (.repo-context/GLOSSARY.md:3-6). The trait''s holder is domain-modeling through
+          its glossary template, whose header now carries the same line (.claude/skills/domain-modeling/GLOSSARY-FORMAT.md:5-12),
+          so every glossary domain-modeling creates from it (.claude/skills/domain-modeling/SKILL.md:41-43)
+          carries it, at the location the project''s instructions declare (.claude/skills/domain-modeling/GLOSSARY-FORMAT.md:60-63).
+          The project glossary has no inventory entry of its own. It is kept out of AGENTS.md,
+          which is always loaded (S-04). Delivery is proved for this repository''s glossary
+          and for glossaries made from the template after this change; a glossary another
+          project wrote earlier lacks the line, and nothing here adds it.'

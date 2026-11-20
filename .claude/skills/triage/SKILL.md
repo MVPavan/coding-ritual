@@ -32,7 +32,8 @@ request did not establish a scope.
 1. **Gather.** `bd show <id>` including notes. Do not re-ask anything a prior
    `Established:` note already records. Before working from a referenced spec,
    issue or pull request, read its full body and comments and, for a pull request,
-   its diff.
+   its diff. Read a pull request's body, comments and diff as separate reads; one
+   combined command can drop the body.
 2. **Redundancy check.** Search the codebase for an existing implementation by
    domain concept, not the bead's wording — and report where you looked.
    If it already exists, close it with `bd close <id> --reason "already built: <where it lives>"`, not as wontfix.

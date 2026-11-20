@@ -23,6 +23,12 @@ done by hand.
    in the tool or the recipe: fix it and compare again until they match.
 5. **Run it on the rest** and keep its output beside the tool.
 
+## When the tool is a check
+
+A check runs as the same command on a developer machine and in CI. When it must
+allow exceptions, each exception needs a person's approval and is marked on the
+offending line with its reason, an expiry date and who approved it.
+
 ## Keeping it
 
 Keep the tool and its proof with the task's temporary artifacts. When the

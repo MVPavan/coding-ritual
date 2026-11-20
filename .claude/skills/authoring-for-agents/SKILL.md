@@ -47,7 +47,8 @@ integration mechanics. Preserve scope restrictions on which files may change.
 - Prefer one effective instruction over repeated prohibitions or ritual steps.
   Treat wording techniques as hypotheses to evaluate, not psychological laws.
 
-For structural choices, consult `references/writing-principles.md`; for skill
+For structural choices, including an agent that ends a step early because later
+steps are in view, consult `references/writing-principles.md`; for skill
 metadata, aliases and sidecars, consult `references/skill-anatomy.md`.
 
 ## Verify

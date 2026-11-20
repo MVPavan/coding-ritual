@@ -27,6 +27,7 @@ Evaluate untriaged beads and decide each one — agent-ready under a parent, own
 - `brief-acceptance-criteria`: Give every brief concrete, independently testable acceptance criteria. (Delivers sealed row 2026-10-30-mattpocock_skills-5beb35b:304: independently checkable acceptance on the agent-ready gate, where the definition requires it of every brief, a separate writing rule; T5.)
 - `read-full-source-issue`: Read the full body, comments and, for a pull request, the diff of any referenced spec, issue or pull request before working from it.
 - `ready-for-human-rationale`: When an item is ready for a human rather than an agent, use the same brief structure but record why it cannot be delegated. (Delivers sealed row 2026-10-30-mattpocock_skills-5beb35b:306: a label and a note with the reason, with no separate brief structure; T5.)
+- `split-pr-read-steps`: Read a pull request's body, comments and diff as separate steps, because one combined command can omit the body.
 <!-- /registry:generated traits -->
 
 <!-- registry:generated lineage -->
@@ -48,9 +49,12 @@ Evaluate untriaged beads and decide each one — agent-ready under a parent, own
 - **cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports#tracker-duplicate-search** `pstack/automations/benny/skills/triage-issue-reports/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049 (pending cr-r2pa.2.13.3)
 - **cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports#graded-duplicate-match** `pstack/automations/benny/skills/triage-issue-reports/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049 (pending cr-r2pa.2.13.3)
 - **cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports#closed-match-is-regression-lead** `pstack/automations/benny/skills/triage-issue-reports/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049 (pending cr-r2pa.2.13.3)
+- **mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills#split-pr-read-steps** `skills/engineering/setup-matt-pocock-skills/SKILL.md` @ 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-20` **adopt** (2026-11-20-deferred-improvement:020): Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3. Adopted into triage: its gather step, which reads a referenced pull request's full b…
+- `2026-11-20` **update** (2026-11-20-deferred-improvement:003): Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3. triage's gather step reads a pull request's body, comments and diff as separate read…
 - `2026-11-18` **out-of-scope** (2026-11-18-deferred-intake:065): Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3: out of scope for now. This is a rule for an agent that takes bug reports from a team…
 - `2026-11-18` **out-of-scope** (2026-11-18-deferred-intake:064): Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3: out of scope for now. This is a rule for an agent that takes bug reports from a team…
 - `2026-11-18` **out-of-scope** (2026-11-18-deferred-intake:063): Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3: out of scope for now. This is a rule for an agent that takes bug reports from a team…
@@ -176,6 +180,8 @@ Evaluate untriaged beads and decide each one — agent-ready under a parent, own
   - `mattpocock_skills:skill:skills/engineering/triage#ready-for-human-rationale` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `redundancy-check`:
   - `mattpocock_skills:skill:skills/engineering/triage#redundancy-check` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `split-pr-read-steps`:
+  - `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills#split-pr-read-steps` (adopted at 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d)
 - `triage-resume-notes`:
   - `mattpocock_skills:skill:skills/engineering/triage#triage-resume-notes` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 <!-- /registry:generated sources -->

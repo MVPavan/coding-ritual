@@ -1,0 +1,484 @@
+harness: mattpocock_skills
+from_sha: null
+to_sha: 5beb35b
+supersedes:
+- harness_lifecycle/registry/reviews/2026-11-12-upstream-mattpocock_skills-5beb35b-reflect.yaml
+analysis_critic:
+  by: codex gpt-6.2-sol high (critic-105)
+  date: '2026-11-20'
+  verdict: pass
+  last_critic: null
+comparison_critic:
+  by: codex gpt-6.2-sol high (critic-105)
+  date: '2026-11-20'
+  verdict: pass
+  last_critic: null
+themes: 'Fourteen rows reopened by the owner at the Improvement stage. Owner ruling 2026-11-20
+  (conversation), deferred review, bead cr-r2pa.3.3: retro''s six rows, deferred on 2026-10-30
+  only so the owner could review the report''s reject recommendation, are rejected with reasons
+  re-checked against today''s files. writing-for-agents: sequence-isolation, criterion-before-isolation
+  and observed-rushing-context-isolation are adopted as one conditional remedy in authoring-for-agents''
+  writing principles (sequence-isolation as the narrower variant observed-rushing-context-isolation);
+  leading-words, negation-avoidance, shared-reference-home, router-skills and triad-collapse
+  are rejected, router-skills re-cited to today''s router, mvp-mode.'
+skills:
+  skill:skills/engineering/retro:
+    upstream_tree_hash: e260aefb7b75b3548a3ee9883afbf8808e521f2e86feec92399617894f83b7c2
+    accepted: 5beb35b
+    compared_with: reflect
+    pairing:
+      overlap:
+        authoring-for-agents: 3
+        doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md: 1
+        doc:AGENTS.md: 2
+        no-comments: 1
+        reflect: 4
+      placement_match:
+      - reflect
+      suggested: reflect
+      purpose_match: reflect
+      purpose: Upstream retro reviews a finished session and proposes, by severity, changes
+        to the agent's environment. Our reflect reviews a session, or on request the project's
+        history, for the same kind of change.
+      flag: null
+      reason: null
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      separate-review-stage:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md: variant
+        ours:
+        - AGENTS.md:39-40
+        - .claude/skills/mvp-mode/playbooks/implement/task-engine.md:65-72
+        - .claude/skills/mvp-mode/playbooks/autonomous-run.md:123-126
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report''s reject recommendation. Ours sizes review to risk: AGENTS.md
+          matches review to uncertainty and consequences, and the implement playbook''s light
+          path has the coordinator check acceptance, verification and the diff, invoking substantive
+          review only when needed, while its full path uses independent review. An autonomous
+          run attempts a closeout critic that reads the run''s whole diff cold, and reports
+          `not reviewed` with a reason when the critic is unreachable. A separate review stage
+          for every implementation is an absolute rule for a choice that depends on the work
+          (S-08) (AGENTS.md:39-40; .claude/skills/mvp-mode/playbooks/implement/task-engine.md:65-72;
+          .claude/skills/mvp-mode/playbooks/autonomous-run.md:123-126).'
+      reviewer-owns-standards:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - AGENTS.md:102
+        - AGENTS.md:56-58
+        - .claude/skills/review/references/code.md:41-45
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report''s reject recommendation. Ours gives the coding standards to
+          both sides: the implementer reads the repository''s style document for Python or
+          ledger changes and runs the applicable checks, and code review checks departures
+          from the documented standards. Moving enforcement to the reviewer alone would drop
+          the implementer''s part (AGENTS.md:102; AGENTS.md:56-58; .claude/skills/review/references/code.md:41-45).'
+      load-writing-guide-first:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/authoring-for-agents/SKILL.md:3
+        - .claude/skills/reflect/SKILL.md:38-42
+        - .claude/skills/authoring-for-agents/references/writing-principles.md:10-11
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report''s reject recommendation. The difference is timing: upstream
+          loads the writing guide at the opening, before any suggestion is written; ours writes
+          and presents findings first and loads authoring-for-agents when an approved instruction
+          edit is applied, which its description also selects whenever agent instructions
+          change. The owner declined an unconditional opening load, which the writing principles''
+          preference for conditional reads over mandatory ones supports (.claude/skills/authoring-for-agents/SKILL.md:3;
+          .claude/skills/reflect/SKILL.md:38-42; .claude/skills/authoring-for-agents/references/writing-principles.md:10-11).'
+      sparse-always-loaded-file:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/authoring-for-agents/SKILL.md:15-16
+        - AGENTS.md:100-109
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. Ours deliberately keeps policy needed
+          on every task in AGENTS.md and routes conventions for particular work through conditional
+          pointers, so the file is not pointers only (S-04) (.claude/skills/authoring-for-agents/SKILL.md:15-16;
+          AGENTS.md:100-109).
+      review-time-standards-file:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - AGENTS.md:102
+        - .claude/skills/authoring-for-agents/references/writing-principles.md:39-40
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. Ours reads the standards document
+          when making the change, not only at review, and the thousand-line split is an invented
+          numerical threshold, which the writing principles prune (AGENTS.md:102; .claude/skills/authoring-for-agents/references/writing-principles.md:39-40).
+      skill-when-description-needed:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/authoring-for-agents/SKILL.md:15-18
+        - .claude/skills/authoring-for-agents/SKILL.md:32-34
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report''s reject recommendation. Ours picks the surface by need: a
+          skill for a repeated specialist workflow, a manual skill or alias for an explicit
+          human entrypoint, a project document for a convention needed for particular work;
+          and it splits off a model-invoked skill only when it has a distinct trigger or another
+          skill must reach it, weighing that each description costs discovery context. The
+          owner keeps that criterion rather than upstream''s single test of whether the description
+          should sit in context (.claude/skills/authoring-for-agents/SKILL.md:15-18; .claude/skills/authoring-for-agents/SKILL.md:32-34).'
+  skill:skills/productivity/writing-for-agents:
+    upstream_tree_hash: e79a2476b2417b228922453478d9505a6b9af19f3a412e560728ce62ed3555ca
+    accepted: 5beb35b
+    compared_with: authoring-for-agents
+    pairing:
+      overlap:
+        authoring-for-agents: 21
+        create-formal-verification-skill: 2
+        create-verification-skill: 3
+        doc:AGENTS.md: 1
+        maintain-formal-verification-skill: 1
+        maintain-verification-skill: 1
+        principle-minimize-reader-load: 1
+        principle-subtract-before-you-add: 1
+        principle-type-system-discipline: 1
+      placement_match:
+      - authoring-for-agents
+      - harness-evaluate
+      - harness-scan
+      - harness-skill-compare
+      - harness-status
+      - migrate-claude-to-codex
+      suggested: authoring-for-agents
+      purpose_match: authoring-for-agents
+      purpose: Upstream writing-for-agents is the reference for writing anything an agent
+        consumes. Our authoring-for-agents is the same reference for the same edits.
+      flag: null
+      reason: null
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      sequence-isolation:
+        scope: reconsider
+        change: []
+        fact: variant
+        provider: authoring-for-agents
+        candidates:
+        - criterion-before-isolation
+        - observed-rushing-context-isolation
+        via: observed-rushing-context-isolation
+        also_in: {}
+        ours:
+        - .claude/skills/authoring-for-agents/references/writing-principles.md:17-19
+        - .claude/skills/authoring-for-agents/SKILL.md:50-52
+        - .claude/skills/authoring-for-agents/SKILL.md:3
+        recommendation: adopt
+        delivery: delivered
+        target: authoring-for-agents
+        modification: 'Adopted as observed-rushing-context-isolation: hiding later steps is
+          a remedy for observed rushing, tried only after a sharper completion criterion fails
+          and only across a real context boundary. Upstream splits a run of steps to keep
+          later steps out of view as a general move to drive more work on the step in front.'
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-08
+          override: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3.
+          Adopted as the narrower variant observed-rushing-context-isolation: later steps
+          are hidden only when an agent ends a step early because they are in view, only after
+          sharpening its completion criterion has failed, and only behind a real context boundary
+          (.claude/skills/authoring-for-agents/references/writing-principles.md:17-19). The
+          remedy is one conditional paragraph in authoring-for-agents'' writing principles
+          (.claude/skills/authoring-for-agents/references/writing-principles.md:17-19), which
+          the skill routes to for structural choices, naming this case (.claude/skills/authoring-for-agents/SKILL.md:50-52).
+          The skill fires whenever agent instructions are created or changed (.claude/skills/authoring-for-agents/SKILL.md:3),
+          and its verify step revises the smallest implicated instruction after a failed case
+          (.claude/skills/authoring-for-agents/SKILL.md:63-64).'
+      leading-words:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/authoring-for-agents/references/writing-principles.md:40-41
+        - .claude/skills/authoring-for-agents/SKILL.md:47-48
+        - .claude/skills/authoring-for-agents/references/writing-principles.md:39-40
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. Ours keeps the compression point (familiar
+          terms compress; coined labels need definitions and maintenance) but treats the token-anchoring
+          claim as a hypothesis to evaluate, not a law, and prunes unsupported psychological
+          claims (.claude/skills/authoring-for-agents/references/writing-principles.md:40-41;
+          .claude/skills/authoring-for-agents/SKILL.md:47-48; .claude/skills/authoring-for-agents/references/writing-principles.md:39-40).
+      negation-avoidance:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/authoring-for-agents/references/writing-principles.md:30-32
+        - .claude/skills/authoring-for-agents/SKILL.md:47-48
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report''s reject recommendation. Ours imposes no universal positive-first,
+          prohibition-last-resort order: positive target behaviour often helps, explicit prohibitions
+          remain right for consequential boundaries, and neither form is universally superior;
+          wording techniques are hypotheses, and the priming claim is not taken as law (.claude/skills/authoring-for-agents/references/writing-principles.md:30-32;
+          .claude/skills/authoring-for-agents/SKILL.md:47-48).'
+      shared-reference-home:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          create-verification-skill: variant
+        ours:
+        - .claude/skills/authoring-for-agents/SKILL.md:16
+        - .claude/skills/authoring-for-agents/SKILL.md:19
+        - .claude/skills/authoring-for-agents/SKILL.md:32-34
+        - .claude/skills/authoring-for-agents/references/writing-principles.md:5-8
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. Ours sends a convention needed for
+          particular work to a project document with a conditional pointer and substantial
+          branch material to a conditional reference, and splits off a model-invoked skill
+          only for a distinct trigger or reach, since each description costs discovery context;
+          a reference-only skill would add that cost (.claude/skills/authoring-for-agents/SKILL.md:16;
+          .claude/skills/authoring-for-agents/SKILL.md:19; .claude/skills/authoring-for-agents/SKILL.md:32-34;
+          .claude/skills/authoring-for-agents/references/writing-principles.md:5-8).
+      router-skills:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - AGENTS.md:93-94
+        - .claude/skills/mvp-mode/SKILL.md:28-32
+        - .claude/skills/mvp-mode/references/catalog.md:24-57
+        - .claude/skills/mvp-mode/references/catalog.md:52
+        - .claude/skills/authoring-for-agents/SKILL.md:8-9
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report''s reject recommendation. Discovery is already covered here:
+          mvp-mode is invoked at the start of every task, maps the situation to its unit and,
+          when unsure or asked what exists, reads the generated catalog, whose slash-only
+          table names every manual workflow with a line on when to use it; mvp-mode suggests
+          those rather than starting them, and the legacy /skill-router entry points to it.
+          A separate user-invoked router would repeat that list for the person to start by
+          hand, and authoring guidance to build one would change no behaviour in this harness
+          (AGENTS.md:93-94; .claude/skills/mvp-mode/SKILL.md:28-32; .claude/skills/mvp-mode/references/catalog.md:24-57;
+          .claude/skills/mvp-mode/references/catalog.md:52; .claude/skills/authoring-for-agents/SKILL.md:8-9).'
+      criterion-before-isolation:
+        scope: reconsider
+        change: []
+        fact: present
+        provider: authoring-for-agents
+        candidates:
+        - observed-rushing-context-isolation
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/authoring-for-agents/references/writing-principles.md:17-19
+        - .claude/skills/authoring-for-agents/SKILL.md:50-52
+        - .claude/skills/authoring-for-agents/SKILL.md:3
+        recommendation: adopt
+        delivery: delivered
+        target: authoring-for-agents
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-08
+          override: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3.
+          Adopted: if an agent ends a step early because later steps are in view, first sharpen
+          that step''s completion criterion (.claude/skills/authoring-for-agents/references/writing-principles.md:17-18).
+          The remedy is one conditional paragraph in authoring-for-agents'' writing principles
+          (.claude/skills/authoring-for-agents/references/writing-principles.md:17-19), which
+          the skill routes to for structural choices, naming this case (.claude/skills/authoring-for-agents/SKILL.md:50-52).
+          The skill fires whenever agent instructions are created or changed (.claude/skills/authoring-for-agents/SKILL.md:3),
+          and its verify step revises the smallest implicated instruction after a failed case
+          (.claude/skills/authoring-for-agents/SKILL.md:63-64).'
+      triad-collapse:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/authoring-for-agents/references/writing-principles.md:40-41
+        - .claude/skills/authoring-for-agents/SKILL.md:47-48
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. Ours lets familiar terms compress;
+          hunting every document for triads is a ritual step, which ours avoids in favour
+          of one effective instruction, resting on the anchoring claim ours treats as a hypothesis
+          (.claude/skills/authoring-for-agents/references/writing-principles.md:40-41; .claude/skills/authoring-for-agents/SKILL.md:47-48).
+      observed-rushing-context-isolation:
+        scope: reconsider
+        change: []
+        fact: present
+        provider: authoring-for-agents
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/authoring-for-agents/references/writing-principles.md:17-19
+        - .claude/skills/authoring-for-agents/SKILL.md:50-52
+        - .claude/skills/authoring-for-agents/SKILL.md:3
+        recommendation: adopt
+        delivery: delivered
+        target: authoring-for-agents
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-08
+          override: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3.
+          Adopted: only after an agent has been seen ending a step early because later steps
+          are in view, and sharpening the criterion has failed, hide the later steps behind
+          a real context boundary, such as a handoff or a subagent (.claude/skills/authoring-for-agents/references/writing-principles.md:17-19).
+          The remedy is one conditional paragraph in authoring-for-agents'' writing principles
+          (.claude/skills/authoring-for-agents/references/writing-principles.md:17-19), which
+          the skill routes to for structural choices, naming this case (.claude/skills/authoring-for-agents/SKILL.md:50-52).
+          The skill fires whenever agent instructions are created or changed (.claude/skills/authoring-for-agents/SKILL.md:3),
+          and its verify step revises the smallest implicated instruction after a failed case
+          (.claude/skills/authoring-for-agents/SKILL.md:63-64).'

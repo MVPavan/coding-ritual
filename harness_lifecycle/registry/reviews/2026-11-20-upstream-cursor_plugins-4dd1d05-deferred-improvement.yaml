@@ -1,0 +1,210 @@
+harness: cursor_plugins
+from_sha: null
+to_sha: 4dd1d05
+supersedes:
+- harness_lifecycle/registry/reviews/2026-11-04-upstream-cursor_plugins-4dd1d05-batch-p1.yaml
+analysis_critic:
+  by: codex gpt-6.2-sol high (critic-105)
+  date: '2026-11-20'
+  verdict: pass
+  last_critic: null
+comparison_critic:
+  by: coordinator (cc:940ec94d)
+  date: '2026-11-20'
+  verdict: accepted
+  last_critic:
+    by: codex gpt-6.2-sol high (critic-105)
+    date: '2026-11-20'
+    verdict: fail
+themes: 'Four pstack correct rows reopened by the owner at the Improvement stage. Owner ruling
+  2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3: the owner merged correct''s
+  repository audit into reflect as an optional second scope, across history, with a reference
+  of its own, rather than a new skill. mine-and-group-mistakes, two-occurrence-threshold,
+  most-frequent-classes-first and class-evidence-level-report are adopted there. The four
+  check-exception and CI rows are in the companion report compared with build-a-lever.'
+skills:
+  skill:pstack/skills/correct:
+    upstream_tree_hash: 63f55b279f1298d3cabe91999063920cdc2a2f16a671cb8fbd87ddecc7fde216
+    accepted: 4dd1d05
+    compared_with: reflect
+    pairing:
+      overlap:
+        authoring-for-agents: 6
+        build-a-lever: 4
+        codebase-design: 5
+        doc:AGENTS.md: 2
+        no-comments: 1
+        principle-model-the-domain: 1
+        principle-sequence-verifiable-units: 1
+        principle-test-behavior-not-implementation: 2
+        principle-type-system-discipline: 1
+        reflect: 4
+      placement_match:
+      - authoring-for-agents
+      - harness-evaluate
+      - harness-scan
+      - harness-skill-compare
+      - harness-status
+      - migrate-claude-to-codex
+      suggested: authoring-for-agents
+      purpose_match: reflect
+      purpose: 'Upstream changes a repository so a repeated agent mistake cannot recur: it
+        mines the history for classes of mistake and fixes each at the strongest level that
+        works. Our reflect now has that audit as its across-history scope; build-a-lever builds
+        the checks such an audit asks for.'
+      flag: suggested differs
+      reason: 'Compared with reflect: the owner placed the audit rows in reflect''s across-history
+        scope, which holds them. Suggested authoring-for-agents by the computed signals, which
+        holds the check-over-prose ladder this audit uses.'
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      mine-and-group-mistakes:
+        scope: reconsider
+        change: []
+        fact: present
+        provider: reflect
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/reflect/references/across-history.md:10-20
+        - .claude/skills/reflect/references/across-history.md:30-31
+        - .claude/skills/reflect/SKILL.md:22-24
+        recommendation: adopt
+        delivery: delivered
+        target: reflect
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-01
+          - S-02
+          override: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3.
+          Adopted into reflect''s across-history scope: it reads, read-only, version-control
+          history, reverts and fix-up commits, review and critic findings, tracker comments,
+          the project''s lessons file, the instruction files and workaround comments, and
+          groups the mistakes into classes (.claude/skills/reflect/references/across-history.md:10-20;
+          .claude/skills/reflect/references/across-history.md:30-31). The across-history scope
+          is reflect''s optional second scope: step 1 loads references/across-history.md only
+          when the person asks to review the project''s history instead of sessions (.claude/skills/reflect/SKILL.md:22-24),
+          and the default session path never loads it; the description names the scope (.claude/skills/reflect/SKILL.md:3).
+          Each class then goes through reflect''s shared disposition, approval and apply steps,
+          adapted per step for this scope (.claude/skills/reflect/references/across-history.md:39-65;
+          .claude/skills/reflect/SKILL.md:33-46).'
+      two-occurrence-threshold:
+        scope: reconsider
+        change: []
+        fact: present
+        provider: reflect
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/reflect/references/across-history.md:32-33
+        - .claude/skills/reflect/references/across-history.md:41-46
+        - .claude/skills/reflect/SKILL.md:22-24
+        recommendation: adopt
+        delivery: delivered
+        target: reflect
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-01
+          - S-02
+          override: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3.
+          Adopted into reflect''s across-history scope: a class is kept only with at least
+          two occurrences (.claude/skills/reflect/references/across-history.md:32-33), and
+          the check against the record drops a class left with fewer than two confirmed occurrences
+          (.claude/skills/reflect/references/across-history.md:41-46). The across-history
+          scope is reflect''s optional second scope: step 1 loads references/across-history.md
+          only when the person asks to review the project''s history instead of sessions (.claude/skills/reflect/SKILL.md:22-24),
+          and the default session path never loads it; the description names the scope (.claude/skills/reflect/SKILL.md:3).
+          Each class then goes through reflect''s shared disposition, approval and apply steps,
+          adapted per step for this scope (.claude/skills/reflect/references/across-history.md:39-65;
+          .claude/skills/reflect/SKILL.md:33-46).'
+      most-frequent-classes-first:
+        scope: reconsider
+        change: []
+        fact: present
+        provider: reflect
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/reflect/references/across-history.md:50-53
+        - .claude/skills/reflect/references/across-history.md:57-59
+        - .claude/skills/reflect/SKILL.md:22-24
+        recommendation: adopt
+        delivery: delivered
+        target: reflect
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-01
+          - S-02
+          override: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3.
+          Adopted into reflect''s across-history scope: classes are presented most frequent
+          first, in place of the session scope''s worst first (.claude/skills/reflect/references/across-history.md:50-53),
+          and the approved subset is applied in that order, most frequent first, so the pass
+          fixes the most frequent classes (.claude/skills/reflect/references/across-history.md:57-59).
+          The across-history scope is reflect''s optional second scope: step 1 loads references/across-history.md
+          only when the person asks to review the project''s history instead of sessions (.claude/skills/reflect/SKILL.md:22-24),
+          and the default session path never loads it; the description names the scope (.claude/skills/reflect/SKILL.md:3).
+          Each class then goes through reflect''s shared disposition, approval and apply steps,
+          adapted per step for this scope (.claude/skills/reflect/references/across-history.md:39-65;
+          .claude/skills/reflect/SKILL.md:33-46).'
+      class-evidence-level-report:
+        scope: reconsider
+        change: []
+        fact: present
+        provider: reflect
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/reflect/references/across-history.md:34-37
+        - .claude/skills/reflect/references/across-history.md:50-53
+        - .claude/skills/authoring-for-agents/SKILL.md:25-27
+        - .claude/skills/reflect/SKILL.md:22-24
+        recommendation: adopt
+        delivery: delivered
+        target: reflect
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-01
+          - S-02
+          override: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3.
+          Adopted into reflect''s across-history scope: the reviewer returns each class with
+          its occurrences and pointers, the enforcement level chosen and why no stronger level
+          works, choosing a check before a test before a written rule (.claude/skills/reflect/references/across-history.md:34-37;
+          the full order is authoring-for-agents'', .claude/skills/authoring-for-agents/SKILL.md:25-27),
+          and the classes presented to the person carry the confirmed occurrences, the level,
+          why no stronger level works and the destination (.claude/skills/reflect/references/across-history.md:50-53).
+          The across-history scope is reflect''s optional second scope: step 1 loads references/across-history.md
+          only when the person asks to review the project''s history instead of sessions (.claude/skills/reflect/SKILL.md:22-24),
+          and the default session path never loads it; the description names the scope (.claude/skills/reflect/SKILL.md:3).
+          Each class then goes through reflect''s shared disposition, approval and apply steps,
+          adapted per step for this scope (.claude/skills/reflect/references/across-history.md:39-65;
+          .claude/skills/reflect/SKILL.md:33-46).'

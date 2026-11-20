@@ -7,6 +7,10 @@
 
 {One or two sentence description of what this context is and why it exists.}
 
+Use these terms, never a word a term lists under _Avoid_ for that meaning. Treat a
+concept this glossary lacks as either coined language to reconsider or a real gap
+to note.
+
 ## Language
 
 **Order**:

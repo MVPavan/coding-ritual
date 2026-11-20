@@ -1,7 +1,9 @@
 # Project Vocabulary
 
-Use these terms for the domain concepts below. Ordinary words remain valid
-outside these meanings; this glossary does not prescribe a skill or workflow.
+Use these terms for the domain concepts below, never a word a term lists under
+_Avoid_ for that meaning. Ordinary words remain valid outside these meanings;
+this glossary does not prescribe a skill or workflow. Treat a concept this
+glossary lacks as either coined language to reconsider or a real gap to note.
 
 ## Harness anatomy
 

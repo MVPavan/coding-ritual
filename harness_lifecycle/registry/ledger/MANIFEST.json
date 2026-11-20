@@ -66,6 +66,7 @@
     "2026-11-18-deferred-design.jsonl": "bbc5fecc77e3989d433fa7ce62d7cdcef75d9e83476897d201bd3eb513393798",
     "2026-11-18-deferred-intake.jsonl": "e06858d03b0b40021f1621b50fff7be0f1a628ece7feee9fab1fddaa71c58bb6",
     "2026-11-20-deferred-building.jsonl": "79b0cda363b4221d294036e3fc29845e7009e2bef96050b5e04eca28ff8e11d3",
+    "2026-11-20-deferred-improvement.jsonl": "8c8c9daaecf44cf3e9f879324b80d1f23e33ee30be0fff793852c6da9976898e",
     "2026-11-20-deferred-verification-delivery.jsonl": "8d782f22ea70ba786463b67952d232812392059b830189403ee30779b318774a",
     "2026-11-20-glossary-rename.jsonl": "8d74e0b8d5634f28a6a246538673ddad26754aa117897c3464b2496fbde9d51f"
   },
@@ -136,7 +137,8 @@
     "2026-11-18-deferred-design.jsonl",
     "2026-11-20-deferred-building.jsonl",
     "2026-11-20-deferred-verification-delivery.jsonl",
-    "2026-11-20-glossary-rename.jsonl"
+    "2026-11-20-glossary-rename.jsonl",
+    "2026-11-20-deferred-improvement.jsonl"
   ],
   "reports": {
     "harness_lifecycle/registry/reviews/2026-10-30-upstream-mattpocock_skills-5beb35b.yaml": "fb413772a75f116bd9baeaa06b6e414fe59978c654a951cb53345f17459d7597",
@@ -176,10 +178,15 @@
     "harness_lifecycle/registry/reviews/2026-11-18-upstream-mattpocock_skills-5beb35b-deferred-intake.yaml": "850729097a2e64cbdb7032662e1f301a6d54a04bf7402dc21be2e2c952ee80a4",
     "harness_lifecycle/registry/reviews/2026-11-20-upstream-cursor_plugins-2776ddd-deferred-building.yaml": "2957ecf6cf50b0d26354c97e756cd98139a27839ed48be8a1f8c1be61a298dd9",
     "harness_lifecycle/registry/reviews/2026-11-20-upstream-cursor_plugins-4dd1d05-deferred-building.yaml": "f02e8c6f6835dcf6c40e7eb199a415114232bfe7c09d62de399b108bdc23139d",
+    "harness_lifecycle/registry/reviews/2026-11-20-upstream-cursor_plugins-4dd1d05-deferred-improvement-build-a-lever.yaml": "4b6ea2b93072ff146c1263de717f277761989da40a78ede82b25a1dc9aea27a9",
+    "harness_lifecycle/registry/reviews/2026-11-20-upstream-cursor_plugins-4dd1d05-deferred-improvement.yaml": "8dd8198c87a0fce488cbdb29321b4938be8af2c1de7b18398a99ebcb03659d5c",
     "harness_lifecycle/registry/reviews/2026-11-20-upstream-cursor_plugins-4dd1d05-deferred-verification-delivery.yaml": "1d78149f0b5573ae720662bcd45b69bb8310113c60b66391d655f0dc9a92535d",
+    "harness_lifecycle/registry/reviews/2026-11-20-upstream-mattpocock_skills-4ae2317-deferred-improvement-triage.yaml": "6cdeb119f45d3640ee525b0af5d185321dac1cd10df91290777195f73b937b2a",
+    "harness_lifecycle/registry/reviews/2026-11-20-upstream-mattpocock_skills-4ae2317-deferred-improvement.yaml": "08f2fc7e71198958127d3b32d8e42aea1a23079b440a8d9b5fe7af5aa5eb2adb",
     "harness_lifecycle/registry/reviews/2026-11-20-upstream-mattpocock_skills-4ae2317-deferred-verification-delivery-delegation.yaml": "479230d5afa184dc32581aa4d2fabfcad3ef66cfa80fd5c873e80af1917b1c9d",
     "harness_lifecycle/registry/reviews/2026-11-20-upstream-mattpocock_skills-4ae2317-deferred-verification-delivery.yaml": "3a2669ff4cbfaada3aa24e735789ff3daa0353d3758d1cd39e0dddd9b9d08e29",
     "harness_lifecycle/registry/reviews/2026-11-20-upstream-mattpocock_skills-5beb35b-deferred-building.yaml": "db214ec2ad8b4b07afe1706e479927529bce92dfa4858a85396b19ecf37b4c25",
+    "harness_lifecycle/registry/reviews/2026-11-20-upstream-mattpocock_skills-5beb35b-deferred-improvement.yaml": "055d53a972b5b770c74c47c522d0f4d4b5005daf033f5ffe3e743ba61d0126f1",
     "harness_lifecycle/registry/reviews/2026-11-20-upstream-mattpocock_skills-5beb35b-deferred-verification-delivery.yaml": "b9ffc4ab15ea7737bbd7625d10fa5735774969a78377cd1578045f1c6e10e52c"
   },
   "analyses": {

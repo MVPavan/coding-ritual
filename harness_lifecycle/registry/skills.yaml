@@ -515,7 +515,7 @@ reflect:
   family: null
   aliases: []
   status: active
-  boundary: "Reviews a session, or a sample of a delegated run's sessions, for changes to the agents' environment and applies the approved ones through their owners; the cause of one failure is systematic-debugging, and reviewing a change is review."
+  boundary: "Reviews a session, a sample of a delegated run's sessions, or on request the project's history for mistakes that recur, for changes to the agents' environment, and applies the approved ones through their owners; the cause of one failure is systematic-debugging, and reviewing a change is review."
 research:
   domain: core
   stage: Discovery

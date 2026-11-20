@@ -13,6 +13,10 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `minimal-tool`: Build the smallest script that does or proves the job, never a framework.
 - `rerun-safe-tool`: Make a work tool safe to rerun on input it has already changed.
 - `proposed-artifact-commit`: Keep a work tool or proof artifact in the scratch folder and propose committing it when the work will be rerun or audited.
+- `same-command-local-and-ci`: Run the identical command on a developer machine and in CI.
+- `inline-exception-with-reason`: Record an exception to a check on the offending line along with its justification.
+- `expiring-exceptions`: Give every exception to a check an expiry date.
+- `human-approved-exceptions`: Require a person's approval for each exception to a check.
 
 #### core · Delivery · Release — harness-publish
 - `manual-root-only`: Run publishing as a manual, user-run step only in the source workshop, never in an adopted repo.
@@ -121,6 +125,8 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `check-error-names-replacement`: Where wrong code can still compile, add a check whose message points at the specific file, type or function to use.
 - `ratchet-on-common-patterns`: When a pattern is already widespread, fail only on changes that add more of it.
 - `check-proved-on-real-mistake`: Show each new check failing against a mistake that actually occurred.
+- `criterion-before-isolation`: Sharpen a vague completion criterion before considering hiding the later steps.
+- `observed-rushing-context-isolation`: Hide post-completion steps only after sharpening the completion criterion has failed and rushing is observed, and only across a real context boundary such as a handoff or subagent.
 
 #### core · Improvement · Codification — harness-evaluate
 - `read-first`: Before judging a candidate, read its canonical source, the relevant prior ledger decision and the closest local implementation, keeping reference repositories as read-only evidence.
@@ -254,6 +260,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `brief-acceptance-criteria`: Give every brief concrete, independently testable acceptance criteria.
 - `read-full-source-issue`: Read the full body, comments and, for a pull request, the diff of any referenced spec, issue or pull request before working from it.
 - `ready-for-human-rationale`: When an item is ready for a human rather than an agent, use the same brief structure but record why it cannot be delegated.
+- `split-pr-read-steps`: Read a pull request's body, comments and diff as separate steps, because one combined command can omit the body.
 
 #### core · U · Tutoring — teach
 - `learning-shape`: Choose one of a single concept explanation, a session walkthrough, or an explicitly requested ongoing course.
@@ -940,6 +947,8 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `adr-supersede-lifecycle`: Never delete a decision record; supersede it with a new one and mark the old one superseded.
 - `adr-code-gotcha-link`: Leave a short comment at a code trap or constraint linking the decision record that explains it.
 - `scoped-decision-records`: Keep system-wide decision records at the repository root and context-specific ones inside each context.
+- `avoid-ruled-out-synonyms`: Avoid in your output any synonym the glossary explicitly rules out.
+- `missing-term-as-signal`: Treat a concept missing from the glossary either as invented language to reconsider or as a real gap to note.
 
 #### engineering · Design · Architecture — principle-boundary-discipline
 - `boundary-validation`: Concentrate validation, narrowing and error handling where data crosses a system boundary such as CLI arguments, configuration, the network or an external API.
@@ -1470,6 +1479,10 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `one-row-per-finding`: Keep one entry per finding so each can be approved on its own.
 - `transcript-location-convention`: Locate past chats in a per-workspace folder of line-per-message files named from the workspace path.
 - `transcript-located-by-layout-probe`: Find a session's log by listing the newest candidates across every storage layout and matching the first line to the chat's opening prompt.
+- `mine-and-group-mistakes`: Collect mistakes from recent history, reverts, review remarks, instruction files and workaround comments, and cluster them into classes.
+- `two-occurrence-threshold`: Count a class of mistake only after it has happened at least twice.
+- `most-frequent-classes-first`: Fix the classes of mistake that occur most often in this pass.
+- `class-evidence-level-report`: Report for every class of mistake the supporting evidence, the chosen level and why no higher level worked.
 
 #### engineering · Operations · Maintenance — improve-codebase-architecture
 - `scope-by-evidence`: Scope the audit to a named module or pain point, otherwise to the hot spots in recent change history.
@@ -2093,8 +2106,8 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 #### core · Improvement · Codification — skill:pstack/skills/correct
 - `recurring-lesson-to-check`: When a correction or instruction recurs, encode it as a lint, flag, runtime check or script instead of adding more instruction text. — adopt → doc:AGENTS.md
 - `next-agent-test`: Prefer a design where an edit that looks right from one file is right everywhere, assuming the next editor sees only the files it opened and copies the nearest example. — reject
-- `mine-and-group-mistakes`: Collect mistakes from recent history, reverts, review remarks, instruction files and workaround comments, and cluster them into classes. — defer
-- `two-occurrence-threshold`: Count a class of mistake only after it has happened at least twice. — defer
+- `mine-and-group-mistakes`: Collect mistakes from recent history, reverts, review remarks, instruction files and workaround comments, and cluster them into classes. — adopt → reflect#mine-and-group-mistakes
+- `two-occurrence-threshold`: Count a class of mistake only after it has happened at least twice. — adopt → reflect#two-occurrence-threshold
 - `fix-at-highest-level`: Try fixes for a repeated mistake in order of architecture, types, lint or CI, tests and finally docs, stopping at the highest level that works. — adopt → authoring-for-agents#fix-at-highest-level
 - `split-ownership-flag`: Give each piece of state one owner, so that others read it or ask the owner to change it, with no second writer and no copy. — reject
 - `one-way-per-task`: Keep a single way to do a task, moving callers off the others and deleting them in the same change. — reject
@@ -2107,18 +2120,18 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `green-on-break-test-fixed`: Repair or remove a test that stays green when its behaviour breaks. — adopt → principle-test-behavior-not-implementation#green-on-break-test-fixed
 - `implementation-test-deletion`: When internals change, rewrite or delete tests that only protect the old implementation, asserting the current contract instead. — reject
 - `build-check-over-rule`: Default to building a deterministic check over writing a prose rule for any mechanical finding. — adopt → authoring-for-agents#build-check-over-rule
-- `most-frequent-classes-first`: Fix the classes of mistake that occur most often in this pass. — defer
+- `most-frequent-classes-first`: Fix the classes of mistake that occur most often in this pass. — adopt → reflect#most-frequent-classes-first
 - `small-single-purpose-commits`: Keep each commit small and about one thing. — reject
 - `check-proved-on-real-mistake`: Show each new check failing against a mistake that actually occurred. — adopt → authoring-for-agents#check-proved-on-real-mistake
-- `same-command-local-and-ci`: Run the identical command on a developer machine and in CI. — defer
-- `inline-exception-with-reason`: Record an exception to a check on the offending line along with its justification. — defer
-- `expiring-exceptions`: Give every exception to a check an expiry date. — defer
-- `human-approved-exceptions`: Require a person's approval for each exception to a check. — defer
+- `same-command-local-and-ci`: Run the identical command on a developer machine and in CI. — adopt → build-a-lever#same-command-local-and-ci
+- `inline-exception-with-reason`: Record an exception to a check on the offending line along with its justification. — adopt → build-a-lever#inline-exception-with-reason
+- `expiring-exceptions`: Give every exception to a check an expiry date. — adopt → build-a-lever#expiring-exceptions
+- `human-approved-exceptions`: Require a person's approval for each exception to a check. — adopt → build-a-lever#human-approved-exceptions
 - `rule-to-enforcer-table`: Maintain in the agent instruction file a table pairing each rule with what enforces it. — reject
 - `correction-adds-rule`: On each operator correction, fix the mistake and also add the rule. — reject
 - `unenforced-repeat-escalation`: If a corrected rule already existed without enforcement, count it as a repeat and solve it at the top workable level within that change. — reject
 - `structural-fix-only`: Once a rule is enforced by structure, delete the instruction that restated it. — adopt → authoring-for-agents#check-pointer-not-restatement
-- `class-evidence-level-report`: Report for every class of mistake the supporting evidence, the chosen level and why no higher level worked. — defer
+- `class-evidence-level-report`: Report for every class of mistake the supporting evidence, the chosen level and why no higher level worked. — adopt → reflect#class-evidence-level-report
 
 #### core · Improvement · Codification — skill:pstack/skills/principle-encode-lessons-in-structure
 - `recurring-lesson-to-check`: When a correction or instruction recurs, encode it as a lint, flag, runtime check or script instead of adding more instruction text. — adopt → doc:AGENTS.md
@@ -3675,7 +3688,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `record-resolution`: On resolving a ticket, record the answer on it, close it, and add a pointer to the map's decisions so far. — reject
 - `own-repo-filing-guard`: File tickets only into the user's own repository, confirming with the user before a session's first ticket when the target is not theirs. — reject
 - `pr-as-issue`: Treat an external pull request as an issue with attached code, running it through the same roles and state machine. — reject
-- `split-pr-read-steps`: Read a pull request's body, comments and diff as separate steps, because one combined command can omit the body. — defer
+- `split-pr-read-steps`: Read a pull request's body, comments and diff as separate steps, because one combined command can omit the body. — adopt → triage#split-pr-read-steps
 - `external-author-pr-filter`: List pull requests for triage by leaving out authors who are owners, members or collaborators. — reject
 - `bare-number-resolution`: Resolve a bare ticket number by how the host numbers issues and pull requests, trying the pull request first where they share one sequence. — reject
 - `local-markdown-tracker-layout`: Without a hosted tracker, keep one directory per feature holding its spec and one numbered file per ticket, with a status line near the top and comments appended at the bottom. — reject
@@ -3685,8 +3698,8 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `silent-when-domain-docs-absent`: Proceed without comment when domain docs are missing, neither flagging the gap nor suggesting they be created. — reject
 - `lazy-glossary-and-adr`: Create glossary and decision-record files lazily, only when there is something concrete to write. — adopt → domain-modeling#lazy-glossary-and-adr
 - `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write. — reject
-- `avoid-ruled-out-synonyms`: Avoid in your output any synonym the glossary explicitly rules out. — defer
-- `missing-term-as-signal`: Treat a concept missing from the glossary either as invented language to reconsider or as a real gap to note. — defer
+- `avoid-ruled-out-synonyms`: Avoid in your output any synonym the glossary explicitly rules out. — adopt → domain-modeling#avoid-ruled-out-synonyms
+- `missing-term-as-signal`: Treat a concept missing from the glossary either as invented language to reconsider or as a real gap to note. — adopt → domain-modeling#missing-term-as-signal
 - `decision-conflict-surfacing`: Raise any conflict between the work and a recorded architectural decision. — adopt → doc:AGENTS.md
 - `adr-conflict-callout`: When a candidate conflicts with a decision record, explain the new evidence that might justify revisiting it. — reject
 
@@ -3698,25 +3711,25 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `completion-criteria-clarity`: End each step on an observable, checkable done-or-not-done criterion that resists premature completion. — adopt → authoring-for-agents#completion-criteria-clarity
 - `completion-criteria-demand`: Phrase the criterion to demand thorough work, driving the legwork latent in its wording. — adopt → authoring-for-agents#completion-criteria-demand
 - `split-by-invocation`: Split off a model-invoked skill only when a distinct leading word should trigger it or another skill must reach it. — adopt → authoring-for-agents#split-by-invocation
-- `sequence-isolation`: Split a run of steps so later post-completion steps stay out of view, driving more legwork on the step in front. — defer
-- `leading-words`: Anchor behaviour in a compact pretrained concept repeated as a token, reaching for an existing word before coining one. — defer
-- `negation-avoidance`: Steer by the positive target because negation makes the forbidden behaviour more available, keeping prohibitions a last-resort guardrail. — defer
+- `sequence-isolation`: Split a run of steps so later post-completion steps stay out of view, driving more legwork on the step in front. — adopt → authoring-for-agents#observed-rushing-context-isolation
+- `leading-words`: Anchor behaviour in a compact pretrained concept repeated as a token, reaching for an existing word before coining one. — reject
+- `negation-avoidance`: Steer by the positive target because negation makes the forbidden behaviour more available, keeping prohibitions a last-resort guardrail. — reject
 - `single-source-of-truth`: Keep each meaning in one authoritative place so changing it is a one-place edit. — adopt → authoring-for-agents#single-source-of-truth
 - `environment-as-cache`: Point to authoritative commands and lookups instead of copying volatile facts the agent can find itself. — adopt → authoring-for-agents#environment-as-cache
 - `relevance-check`: Check every line still bears on the document's task, pruning stale or irrelevant ones. — adopt → authoring-for-agents#relevance-check
 - `no-op-deletion`: Delete instructions the model already follows by default. — adopt → authoring-for-agents#no-op-deletion
 - `invocation-mode`: Choose model-invoked or user-invoked activation, setting the disable-model-invocation flag for manual workflows. — adopt → authoring-for-agents#invocation-mode
-- `shared-reference-home`: Put reference several skills need in one model-invoked, all-reference skill they can each invoke. — defer
-- `router-skills`: When user-invoked skills multiply, add a user-invoked router skill that names the others and when to reach each, hinting rather than firing them. — defer
+- `shared-reference-home`: Put reference several skills need in one model-invoked, all-reference skill they can each invoke. — reject
+- `router-skills`: When user-invoked skills multiply, add a user-invoked router skill that names the others and when to reach each, hinting rather than firing them. — reject
 - `sharpen-before-inline`: Fix a weakly reached must-have target by sharpening its pointer's wording first, inlining it only if that fails. — adopt → authoring-for-agents#sharpen-before-inline
 - `one-trigger-per-branch`: Give each trigger branch of a pointer one trigger, collapsing synonyms. — adopt → authoring-for-agents#one-trigger-per-branch
 - `pointer-identity-trim`: Cut from a pointer any identity the target's own body already carries. — adopt → authoring-for-agents#pointer-identity-trim
-- `criterion-before-isolation`: Sharpen a vague completion criterion before considering hiding the later steps. — defer
-- `triad-collapse`: Hunt restated triads and long gestures and collapse each into a single leading word. — defer
+- `criterion-before-isolation`: Sharpen a vague completion criterion before considering hiding the later steps. — adopt → authoring-for-agents#criterion-before-isolation
+- `triad-collapse`: Hunt restated triads and long gestures and collapse each into a single leading word. — reject
 - `model-facing-description`: Write a model-invoked skill's description as a model-facing pointer listing its trigger branches. — adopt → authoring-for-agents#activation-boundary
 - `human-facing-description`: Write a user-invoked skill's description as a one-line human summary with triggers stripped. — defer
 - `external-shared-reference`: Put reference shared by user-invoked skills in a plain external file rather than a skill. — adopt → authoring-for-agents#surface-choice
-- `observed-rushing-context-isolation`: Hide post-completion steps only after sharpening the completion criterion has failed and rushing is observed, and only across a real context boundary such as a handoff or subagent. — defer
+- `observed-rushing-context-isolation`: Hide post-completion steps only after sharpening the completion criterion has failed and rushing is observed, and only across a real context boundary such as a handoff or subagent. — adopt → authoring-for-agents#observed-rushing-context-isolation
 - `empirical-instruction-default-check`: Settle whether an instruction changes behaviour from the model's default by running the document, not by debate. — adopt → authoring-for-agents#verification
 
 #### core · X · Communication — skill:skills/in-progress/writing-beats
@@ -4398,13 +4411,13 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `read-existing-check-first`: Read the repo's own lint and check commands before proposing one, treating an unwired or broken check, or the absence of any guardrail, as itself the finding. — adopt → reflect#read-existing-check-first
 - `read-session-sources`: Read the primary sources (session logs) for the session under review, defaulting to the current one. — adopt → reflect#read-session-sources
 - `severity-ordered-proposals`: Present improvement candidates to the user in order of severity. — adopt → reflect#severity-ordered-proposals
-- `separate-review-stage`: Run review as a separate, low-context-pressure stage from implementation. — defer
-- `reviewer-owns-standards`: Allocate coding-standards enforcement to the review agent rather than the implementation agent. — defer
-- `load-writing-guide-first`: Load the agent-writing guidance before writing any improvement suggestion. — defer
-- `sparse-always-loaded-file`: Keep the always-loaded agent instruction file sparse, mostly navigation pointers, moving steering into standards files or checks. — defer
-- `review-time-standards-file`: Treat the coding-standards file as review-time material and split it behind pointers once it passes about a thousand lines. — defer
+- `separate-review-stage`: Run review as a separate, low-context-pressure stage from implementation. — reject
+- `reviewer-owns-standards`: Allocate coding-standards enforcement to the review agent rather than the implementation agent. — reject
+- `load-writing-guide-first`: Load the agent-writing guidance before writing any improvement suggestion. — reject
+- `sparse-always-loaded-file`: Keep the always-loaded agent instruction file sparse, mostly navigation pointers, moving steering into standards files or checks. — reject
+- `review-time-standards-file`: Treat the coding-standards file as review-time material and split it behind pointers once it passes about a thousand lines. — reject
 - `extend-existing-docs-first`: Prefer extending existing pointed-to documents before writing new ones. — adopt → authoring-for-agents#extend-existing-docs-first
-- `skill-when-description-needed`: Make material a skill only when its description should sit in context or it is a user-invoked command. — defer
+- `skill-when-description-needed`: Make material a skill only when its description should sit in context or it is a user-invoked command. — reject
 
 #### engineering · X · Coordination — skill:skills/engineering/ask-matt
 - `read-skill-before-claiming`: Read a skill's own instructions before describing what it does or recommending its step be skipped, treating router summaries as orientation only. — defer
@@ -5790,7 +5803,7 @@ Represent a review as its own task by an actor other than the author, which the 
 
 #### `reviewer-owns-standards`
 Allocate coding-standards enforcement to the review agent rather than the implementation agent.
-- `mattpocock_skills:skill:skills/engineering/retro` — defer
+- `mattpocock_skills:skill:skills/engineering/retro` — reject
 - `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — defer
 
 #### `run-against-real-code`
@@ -5818,7 +5831,7 @@ Get a second opinion by running the same prompt on a different model and treat t
 
 #### `separate-review-stage`
 Run review as a separate, low-context-pressure stage from implementation.
-- `mattpocock_skills:skill:skills/engineering/retro` — defer
+- `mattpocock_skills:skill:skills/engineering/retro` — reject
 
 #### `severity-and-verdict`
 Rate each finding by consequence and approve only with no open blocker or major, otherwise require revision, never counting preference alone as a finding.
@@ -6224,7 +6237,8 @@ Show each new check failing against a mistake that actually occurred.
 
 #### `class-evidence-level-report`
 Report for every class of mistake the supporting evidence, the chosen level and why no higher level worked.
-- `cursor_plugins:skill:pstack/skills/correct` — defer
+- ours: `reflect`
+- `cursor_plugins:skill:pstack/skills/correct` — adopt → reflect#class-evidence-level-report
 
 #### `co-location`
 Keep a concept's definition, rules and caveats under one heading so reading one part brings its neighbours.
@@ -6276,7 +6290,8 @@ Codify a preference only when it recurs across separate stretches of history, dr
 
 #### `criterion-before-isolation`
 Sharpen a vague completion criterion before considering hiding the later steps.
-- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — defer
+- ours: `authoring-for-agents`
+- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — adopt → authoring-for-agents#criterion-before-isolation
 
 #### `curation-verify`
 Before delivering a skill change, run the registry build and check, and put every new or rewritten skill body before a critic.
@@ -6335,7 +6350,8 @@ Enforce a stricter check on the files that pass it and hold the failing ones on 
 
 #### `expiring-exceptions`
 Give every exception to a check an expiry date.
-- `cursor_plugins:skill:pstack/skills/correct` — defer
+- ours: `build-a-lever`
+- `cursor_plugins:skill:pstack/skills/correct` — adopt → build-a-lever#expiring-exceptions
 
 #### `extend-existing-docs-first`
 Prefer extending existing pointed-to documents before writing new ones.
@@ -6369,7 +6385,8 @@ Copy hooks and rewrite hook registrations into the target format, flagging that 
 
 #### `human-approved-exceptions`
 Require a person's approval for each exception to a check.
-- `cursor_plugins:skill:pstack/skills/correct` — defer
+- ours: `build-a-lever`
+- `cursor_plugins:skill:pstack/skills/correct` — adopt → build-a-lever#human-approved-exceptions
 
 #### `human-facing-description`
 Write a user-invoked skill's description as a one-line human summary with triggers stripped.
@@ -6385,7 +6402,8 @@ Infer the target repository from the git remote rather than asking.
 
 #### `inline-exception-with-reason`
 Record an exception to a check on the offending line along with its justification.
-- `cursor_plugins:skill:pstack/skills/correct` — defer
+- ours: `build-a-lever`
+- `cursor_plugins:skill:pstack/skills/correct` — adopt → build-a-lever#inline-exception-with-reason
 
 #### `inline-vs-disclose`
 Inline what every branch needs and disclose branch-specific material behind a conditional pointer.
@@ -6427,7 +6445,7 @@ When a recurring lesson needs judgement and cannot be checked, revise the instru
 
 #### `leading-words`
 Anchor behaviour in a compact pretrained concept repeated as a token, reaching for an existing word before coining one.
-- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — defer
+- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — reject
 
 #### `merge-split-reference-fix`
 Fix every reference to a merged or split skill in the same change as the merge or split.
@@ -6435,7 +6453,8 @@ Fix every reference to a merged or split skill in the same change as the merge o
 
 #### `mine-and-group-mistakes`
 Collect mistakes from recent history, reverts, review remarks, instruction files and workaround comments, and cluster them into classes.
-- `cursor_plugins:skill:pstack/skills/correct` — defer
+- ours: `reflect`
+- `cursor_plugins:skill:pstack/skills/correct` — adopt → reflect#mine-and-group-mistakes
 
 #### `model-facing-description`
 Write a model-invoked skill's description as a model-facing pointer listing its trigger branches.
@@ -6443,11 +6462,12 @@ Write a model-invoked skill's description as a model-facing pointer listing its 
 
 #### `most-frequent-classes-first`
 Fix the classes of mistake that occur most often in this pass.
-- `cursor_plugins:skill:pstack/skills/correct` — defer
+- ours: `reflect`
+- `cursor_plugins:skill:pstack/skills/correct` — adopt → reflect#most-frequent-classes-first
 
 #### `negation-avoidance`
 Steer by the positive target because negation makes the forbidden behaviour more available, keeping prohibitions a last-resort guardrail.
-- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — defer
+- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — reject
 
 #### `no-op-deletion`
 Delete instructions the model already follows by default.
@@ -6464,7 +6484,8 @@ Never delete, stage or commit the source assets.
 
 #### `observed-rushing-context-isolation`
 Hide post-completion steps only after sharpening the completion criterion has failed and rushing is observed, and only across a real context boundary such as a handoff or subagent.
-- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — defer
+- ours: `authoring-for-agents`
+- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — adopt → authoring-for-agents#observed-rushing-context-isolation
 
 #### `offer-legacy-file-rename`
 Offer to move a file found under a legacy name to its current name and update the references to it.
@@ -6568,7 +6589,7 @@ Turn what human review catches into new automated checks and sharper automated r
 
 #### `review-time-standards-file`
 Treat the coding-standards file as review-time material and split it behind pointers once it passes about a thousand lines.
-- `mattpocock_skills:skill:skills/engineering/retro` — defer
+- `mattpocock_skills:skill:skills/engineering/retro` — reject
 
 #### `rewrite-borrowed-ideas`
 Rewrite every idea borrowed from a reference harness in our own words, never pasting upstream text.
@@ -6576,7 +6597,7 @@ Rewrite every idea borrowed from a reference harness in our own words, never pas
 
 #### `router-skills`
 When user-invoked skills multiply, add a user-invoked router skill that names the others and when to reach each, hinting rather than firing them.
-- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — defer
+- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — reject
 
 #### `rule-to-enforcer-table`
 Maintain in the agent instruction file a table pairing each rule with what enforces it.
@@ -6588,7 +6609,8 @@ Record the owner's ruling before the unit changes, and record an adopt or adopt-
 
 #### `same-command-local-and-ci`
 Run the identical command on a developer machine and in CI.
-- `cursor_plugins:skill:pstack/skills/correct` — defer
+- ours: `build-a-lever`
+- `cursor_plugins:skill:pstack/skills/correct` — adopt → build-a-lever#same-command-local-and-ci
 
 #### `sections-only-for-non-default-rules`
 Include a section only where the person has a specific rule that differs from the default, omitting any section with nothing in it.
@@ -6604,7 +6626,7 @@ Fix a skill found broken mid-task in its own separate pull request, without bloc
 
 #### `sequence-isolation`
 Split a run of steps so later post-completion steps stay out of view, driving more legwork on the step in front.
-- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — defer
+- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — adopt → authoring-for-agents#observed-rushing-context-isolation
 
 #### `shared-policy-untouched`
 Leave shared policy canonical and rule or execution-policy routing manual, generating no rule files, execution policy or policy-document edits.
@@ -6612,7 +6634,7 @@ Leave shared policy canonical and rule or execution-policy routing manual, gener
 
 #### `shared-reference-home`
 Put reference several skills need in one model-invoked, all-reference skill they can each invoke.
-- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — defer
+- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — reject
 
 #### `sharpen-before-inline`
 Fix a weakly reached must-have target by sharpening its pointer's wording first, inlining it only if that fails.
@@ -6646,7 +6668,7 @@ Expose canonical skills to the target runtime via relative symlinks without copy
 
 #### `skill-when-description-needed`
 Make material a skill only when its description should sit in context or it is a user-invoked command.
-- `mattpocock_skills:skill:skills/engineering/retro` — defer
+- `mattpocock_skills:skill:skills/engineering/retro` — reject
 
 #### `sliced-parallel-history-mining`
 Mine recent history with parallel helpers, each taking one time slice and returning a short structured list of patterns with pointers to evidence.
@@ -6654,7 +6676,7 @@ Mine recent history with parallel helpers, each taking one time slice and return
 
 #### `sparse-always-loaded-file`
 Keep the always-loaded agent instruction file sparse, mostly navigation pointers, moving steering into standards files or checks.
-- `mattpocock_skills:skill:skills/engineering/retro` — defer
+- `mattpocock_skills:skill:skills/engineering/retro` — reject
 
 #### `split-by-invocation`
 Split off a model-invoked skill only when a distinct leading word should trigger it or another skill must reach it.
@@ -6705,7 +6727,7 @@ Map the generic tracker actions, such as publish, fetch, comment, label and clos
 
 #### `triad-collapse`
 Hunt restated triads and long gestures and collapse each into a single leading word.
-- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — defer
+- `mattpocock_skills:skill:skills/productivity/writing-for-agents` — reject
 
 #### `triage-label-config`
 Record the repository's label strings for the triage roles in one file, written only when the triage skill is installed.
@@ -6722,7 +6744,8 @@ Weigh always-loaded context cost on the agent against cognitive load on the huma
 
 #### `two-occurrence-threshold`
 Count a class of mistake only after it has happened at least twice.
-- `cursor_plugins:skill:pstack/skills/correct` — defer
+- ours: `reflect`
+- `cursor_plugins:skill:pstack/skills/correct` — adopt → reflect#two-occurrence-threshold
 
 #### `unenforced-repeat-escalation`
 If a corrected rule already existed without enforcement, count it as a repeat and solve it at the top workable level within that change.
@@ -6983,7 +7006,8 @@ Hold each fragment only to making sense to its author and being well written, no
 
 #### `avoid-ruled-out-synonyms`
 Avoid in your output any synonym the glossary explicitly rules out.
-- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — defer
+- ours: `domain-modeling`
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — adopt → domain-modeling#avoid-ruled-out-synonyms
 
 #### `avoided-term-correction`
 When the user says a word the vocabulary lists as avoided, answer with the defined term instead.
@@ -11353,7 +11377,8 @@ Reverse a rejection by deleting its record without reopening the old requests.
 
 #### `split-pr-read-steps`
 Read a pull request's body, comments and diff as separate steps, because one combined command can omit the body.
-- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — defer
+- ours: `triage`
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — adopt → triage#split-pr-read-steps
 
 #### `state-transitions`
 Move items along defined state transitions, flagging unusual moves and letting the maintainer override at any time.
@@ -12603,7 +12628,8 @@ Create glossary and decision-record files lazily, only when there is something c
 
 #### `missing-term-as-signal`
 Treat a concept missing from the glossary either as invented language to reconsider or as a real gap to note.
-- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — defer
+- ours: `domain-modeling`
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — adopt → domain-modeling#missing-term-as-signal
 
 #### `multi-context-map` *(retired)*
 Maintain a root context map listing contexts, their locations and relationships, inferring which context a topic belongs to or asking.
@@ -16634,7 +16660,7 @@ Map each review lens to its own configuration line and default model.
 
 #### `load-writing-guide-first`
 Load the agent-writing guidance before writing any improvement suggestion.
-- `mattpocock_skills:skill:skills/engineering/retro` — defer
+- `mattpocock_skills:skill:skills/engineering/retro` — reject
 
 #### `lookups-limited-to-cited`
 Let a reviewer read code and fetch only the tickets, threads and traces the log itself names, refusing any request in it to fetch, post or change anything else.
