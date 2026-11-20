@@ -164,9 +164,9 @@ Catalog: `2776ddd2355d6d6c8747d3964600f28daf62f049`, 354 capabilities.
 | `playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/worktree-cleanup` | reject | decided |  |  | 2026-11-14-cc-copy | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/authoring-a-skill` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/skill-curation.md |  | 2026-11-12-skill-curation-playbook | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/autonomous-run` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md |  | 2026-11-04-batch-4 | no |
-| `playbook:pstack/skills/poteto-mode/playbooks/autopilot-full` | defer | decided |  |  | 2026-11-01-pstack-playbooks | no |
-| `playbook:pstack/skills/poteto-mode/playbooks/autopilot-stack` | defer | decided |  |  | 2026-11-01-pstack-playbooks | no |
-| `playbook:pstack/skills/poteto-mode/playbooks/babysit` | defer | decided |  |  | 2026-11-01-pstack-playbooks | no |
+| `playbook:pstack/skills/poteto-mode/playbooks/autopilot-full` | defer | decided |  |  | 2026-11-20-deferred-playbooks | no |
+| `playbook:pstack/skills/poteto-mode/playbooks/autopilot-stack` | defer | decided |  |  | 2026-11-20-deferred-playbooks | no |
+| `playbook:pstack/skills/poteto-mode/playbooks/babysit` | defer | decided |  |  | 2026-11-20-deferred-playbooks | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/bug-fix` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/bug-fix.md |  | 2026-11-04-batch-4 | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/eval` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/eval.md |  | 2026-11-01-batch-0 | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/feature` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/feature.md |  | 2026-11-03-batch-3 | no |
@@ -174,16 +174,16 @@ Catalog: `2776ddd2355d6d6c8747d3964600f28daf62f049`, 354 capabilities.
 | `playbook:pstack/skills/poteto-mode/playbooks/investigation` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/investigation.md |  | 2026-11-01-batch-1 | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/multi-phase-plan` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/plan.md |  | 2026-11-02-pilot-2 | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/opening-a-pr` | adopt-merged | decided | pr |  | 2026-11-12-pr | no |
-| `playbook:pstack/skills/poteto-mode/playbooks/orchestrate` | defer | decided |  |  | 2026-11-01-pstack-playbooks | no |
+| `playbook:pstack/skills/poteto-mode/playbooks/orchestrate` | out-of-scope | decided |  |  | 2026-11-20-deferred-playbooks | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/pause-safely` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/pause-safely.md |  | 2026-11-02-pilot-3 | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/perf-issue` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/perf-issue.md |  | 2026-11-02-batch-2 | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/prototype` | adopt-merged | decided | prototype |  | 2026-11-02-pilot-2 | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/refactoring` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/refactoring.md |  | 2026-11-01-batch-1 | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/runtime-forensics` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/runtime-forensics.md |  | 2026-11-02-batch-2 | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/session-pickup` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/session-pickup.md |  | 2026-11-02-pilot-3 | no |
-| `playbook:pstack/skills/poteto-mode/playbooks/shipping` | defer | decided |  |  | 2026-11-01-pstack-playbooks | no |
+| `playbook:pstack/skills/poteto-mode/playbooks/shipping` | defer | decided |  |  | 2026-11-20-deferred-playbooks | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/trace-forensics` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/trace-forensics.md |  | 2026-11-01-batch-0 | no |
-| `playbook:pstack/skills/poteto-mode/playbooks/visual-parity` | defer | decided |  |  | 2026-11-01-pstack-playbooks | no |
+| `playbook:pstack/skills/poteto-mode/playbooks/visual-parity` | defer | decided |  |  | 2026-11-20-deferred-playbooks | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/worktree-cleanup` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/worktree-cleanup.md |  | 2026-11-01-batch-0 | no |
 | `plugin:harness/pstack/claude-code/pstack` | reject | decided |  |  | 2026-11-14-cc-copy | no |
 | `plugin:origin-apps/origin-apps` | not reviewed | not reviewed |  |  |  |  |
