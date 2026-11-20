@@ -1,0 +1,928 @@
+harness: mattpocock_skills
+from_sha: null
+to_sha: 4ae2317
+supersedes:
+- harness_lifecycle/registry/reviews/2026-11-06-upstream-mattpocock_skills-4ae2317.yaml
+- harness_lifecycle/registry/reviews/2026-11-12-upstream-mattpocock_skills-4ae2317-batch-m.yaml
+analysis_critic:
+  by: codex gpt-6.2-sol high (critic-106)
+  date: '2026-11-20'
+  verdict: pass
+  last_critic: null
+comparison_critic:
+  by: coordinator (cc:940ec94d)
+  date: '2026-11-20'
+  verdict: accepted
+  last_critic:
+    by: codex gpt-6.2-sol high (critic-106)
+    date: '2026-11-20'
+    verdict: fail
+themes: 'Thirty-four rows reopened by the owner at the Cross-cutting and Utilities stages.
+  Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3. implement-spec:
+  six rows, deferred on 2026-10-30 only so the owner could review the report''s reject recommendation,
+  are rejected, re-cited to the implement playbook (the execution skill no longer exists);
+  parallel-frontier-implementers is re-deferred with ask-matt''s trigger. chief-of-staff:
+  all 26 deferred rows are deferred with a new reason: upstream still has it in skills/in-progress/.
+  git-guardrails-claude-code: settings-merge-not-overwrite is re-deferred to the installer''s
+  review at the end-of-project plugin sync. The earlier 5beb35b defers of implement-spec and
+  chief-of-staff move to this analysis.'
+skills:
+  skill:skills/engineering/implement-spec:
+    upstream_tree_hash: c3474ef320861d793e8b30d41fbdd2cb0ceaa1081bb5c81b7f26c455eb776573
+    accepted: 4ae2317
+    compared_with: mvp-mode
+    pairing:
+      overlap:
+        beads: 1
+        delegation: 2
+        doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md: 1
+        doc:.claude/skills/mvp-mode/playbooks/implement.md: 7
+        doc:.claude/skills/mvp-mode/playbooks/worktree-cleanup.md: 1
+        doc:.repo-context/coding-style.md: 1
+        interrogate: 1
+        model-council: 1
+        tdd: 1
+        tracker: 1
+        wayfinder: 1
+      placement_match: []
+      suggested: delegation
+      purpose_match: mvp-mode
+      purpose: Upstream drives implementer subagents over a spec's ticket graph to one integration
+        branch. Ours runs that work as the implement playbook's Spec scope, which mvp-mode
+        routes; the implement skill became that playbook.
+      flag: suggested differs
+      reason: 'Compared with mvp-mode, which holds the router and its playbooks: a report
+        cannot compare with the implement playbook itself, and the implement skill of the
+        last comparison became that playbook. Suggested delegation by the computed signals
+        only, which holds the brief rows.'
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      pointer-only-subagent-briefs:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          delegation: variant
+        ours:
+        - .claude/skills/delegation/SKILL.md:43-47
+        - AGENTS.md:49-50
+        - .claude/skills/mvp-mode/playbooks/implement/task-engine.md:42-44
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report''s reject recommendation. Opposite stance: a brief carries
+          the role contract, outcome and goal, owned paths, constraints, acceptance checks
+          and report format beside its context pointers, and copies in any reference material
+          the worker needs but cannot otherwise reach (self-contained-subagent-brief, which
+          delegation holds); a pointers-only rule would drop that contract (.claude/skills/delegation/SKILL.md:43-47;
+          AGENTS.md:49-50; .claude/skills/mvp-mode/playbooks/implement/task-engine.md:42-44).'
+      parallel-frontier-implementers:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/mvp-mode/playbooks/implement/spec-run.md:42-47
+        - .claude/skills/mvp-mode/playbooks/implement.md:226-239
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: When the implement playbook gains a dispatcher that runs parallel workers
+          over a ready task graph.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          re-deferred with the same trait and trigger as ask-matt''s parallel-frontier-implementers
+          row, replacing the 2026-10-30 defer that waited on a review of the reject list.
+          A spec run takes tickets from the ready frontier one at a time, with one implementer
+          at a time and none in parallel (.claude/skills/mvp-mode/playbooks/implement/spec-run.md:42-47);
+          parallel independent graphs run as admitted child workflows, not a frontier dispatcher
+          (.claude/skills/mvp-mode/playbooks/implement.md:226-239).'
+      exploration-notes-subagent:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - AGENTS.md:84-85
+        - .claude/skills/delegation/SKILL.md:17
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. Notes saved outside the repository
+          conflict with AGENTS.md's rule that temporary artifacts go in scratchpad/, and an
+          explorer already returns its findings in its report through delegation (AGENTS.md:84-85;
+          .claude/skills/delegation/SKILL.md:17).
+      draft-closing-pr:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/mvp-mode/playbooks/implement.md:137-138
+        - .claude/skills/mvp-mode/playbooks/implement.md:258-260
+        - AGENTS.md:11-12
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. Ours closes each bead with its evidence
+          in Beads and treats publishing as needing its own authorization; a pull request
+          opened to close tickets has no counterpart (.claude/skills/mvp-mode/playbooks/implement.md:137-138;
+          .claude/skills/mvp-mode/playbooks/implement.md:258-260; AGENTS.md:11-12).
+      dedicated-merger-agent:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/mvp-mode/playbooks/implement/spec-run.md:51-54
+        - .claude/skills/mvp-mode/playbooks/implement/spec-run.md:61-63
+        - AGENTS.md:51-52
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. Ours lands each ticket on the integration
+          branch as a commit through land and makes the tip merge as the coordinator's own
+          step, under commit authority; the coordinator owns integration, not a merger subagent
+          (.claude/skills/mvp-mode/playbooks/implement/spec-run.md:51-54; .claude/skills/mvp-mode/playbooks/implement/spec-run.md:61-63;
+          AGENTS.md:51-52).
+      final-branch-review:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/mvp-mode/playbooks/implement.md:148-159
+        - .claude/skills/mvp-mode/playbooks/implement/spec-run.md:59-65
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. Ours reviews each Spec ticket, sized
+          to its risk, through the review loop before it lands, and the spec finish merges
+          the base branch's tip into the integration branch, reruns the checks the tickets
+          named and reports; there is no review of the whole integration branch once every
+          ticket has landed, and the owner declines adding a mandatory one with a single fixer
+          (.claude/skills/mvp-mode/playbooks/implement.md:148-159; .claude/skills/mvp-mode/playbooks/implement/spec-run.md:59-65).
+      delivery-closeout:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/mvp-mode/playbooks/implement/spec-run.md:64-65
+        - .claude/skills/mvp-mode/playbooks/implement.md:258-264
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. Ours already reports the integration
+          branch, its last revision and the tickets closed with evidence, and the closeout
+          closes finished beads; the half left, marking a draft pull request ready, depends
+          on draft-closing-pr, rejected here (.claude/skills/mvp-mode/playbooks/implement/spec-run.md:64-65;
+          .claude/skills/mvp-mode/playbooks/implement.md:258-264).
+  skill:skills/in-progress/chief-of-staff:
+    upstream_tree_hash: dc3348d0f641956ea78dafa037aea745154c516a286ed4156b0c2ec0cbcf581b
+    accepted: 4ae2317
+    compared_with: none
+    pairing:
+      overlap:
+        authoring-for-agents: 1
+        delegation: 3
+        reflect: 2
+        settle-open-questions: 1
+      placement_match:
+      - delegation
+      - model-council
+      - mvp-mode
+      - perspective-council
+      - tracker
+      suggested: delegation
+      purpose_match: none
+      purpose: Upstream turns one long session into a coordinator that delegates all work
+        and keeps a wiki as memory. No skill of ours runs a long-lived coordinator; delegation
+        dispatches single workers.
+      flag: suggested differs
+      reason: 'Unchanged from the last review: placement suggests delegation, which dispatches
+        one worker and coordinates no goal over time. Suggested delegation by the computed
+        signals only.'
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      single-coordinator-session:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream chief-of-staff leaves skills/in-progress/ for a released skills
+          folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred with a new reason, replacing the earlier defer. Upstream chief-of-staff
+          is still in progress (skills/in-progress/), so its design may change before release;
+          review it fresh when it leaves in-progress, as for loop-me, software-factory and
+          setup-ts-deep-modules.'
+      dual-track-thinking:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream chief-of-staff leaves skills/in-progress/ for a released skills
+          folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred with a new reason, replacing the earlier defer. Upstream chief-of-staff
+          is still in progress (skills/in-progress/), so its design may change before release;
+          review it fresh when it leaves in-progress, as for loop-me, software-factory and
+          setup-ts-deep-modules.'
+      suggest-schedules:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream chief-of-staff leaves skills/in-progress/ for a released skills
+          folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred with a new reason, replacing the earlier defer. Upstream chief-of-staff
+          is still in progress (skills/in-progress/), so its design may change before release;
+          review it fresh when it leaves in-progress, as for loop-me, software-factory and
+          setup-ts-deep-modules.'
+      coordinator-delegates-all:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream chief-of-staff leaves skills/in-progress/ for a released skills
+          folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred with a new reason, replacing the earlier defer. Upstream chief-of-staff
+          is still in progress (skills/in-progress/), so its design may change before release;
+          review it fresh when it leaves in-progress, as for loop-me, software-factory and
+          setup-ts-deep-modules.'
+      pointer-only-subagent-briefs:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          delegation: variant
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream chief-of-staff leaves skills/in-progress/ for a released skills
+          folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred with a new reason, replacing the earlier defer. Upstream chief-of-staff
+          is still in progress (skills/in-progress/), so its design may change before release;
+          review it fresh when it leaves in-progress, as for loop-me, software-factory and
+          setup-ts-deep-modules.'
+      persistent-wiki-memory:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream chief-of-staff leaves skills/in-progress/ for a released skills
+          folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred with a new reason, replacing the earlier defer. Upstream chief-of-staff
+          is still in progress (skills/in-progress/), so its design may change before release;
+          review it fresh when it leaves in-progress, as for loop-me, software-factory and
+          setup-ts-deep-modules.'
+      agreed-wiki-location:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream chief-of-staff leaves skills/in-progress/ for a released skills
+          folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred with a new reason, replacing the earlier defer. Upstream chief-of-staff
+          is still in progress (skills/in-progress/), so its design may change before release;
+          review it fresh when it leaves in-progress, as for loop-me, software-factory and
+          setup-ts-deep-modules.'
+      wiki-index:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          settle-open-questions: variant
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream chief-of-staff leaves skills/in-progress/ for a released skills
+          folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred with a new reason, replacing the earlier defer. Upstream chief-of-staff
+          is still in progress (skills/in-progress/), so its design may change before release;
+          review it fresh when it leaves in-progress, as for loop-me, software-factory and
+          setup-ts-deep-modules.'
+      single-subject-pages:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream chief-of-staff leaves skills/in-progress/ for a released skills
+          folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred with a new reason, replacing the earlier defer. Upstream chief-of-staff
+          is still in progress (skills/in-progress/), so its design may change before release;
+          review it fresh when it leaves in-progress, as for loop-me, software-factory and
+          setup-ts-deep-modules.'
+      cite-not-copy-sources:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream chief-of-staff leaves skills/in-progress/ for a released skills
+          folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred with a new reason, replacing the earlier defer. Upstream chief-of-staff
+          is still in progress (skills/in-progress/), so its design may change before release;
+          review it fresh when it leaves in-progress, as for loop-me, software-factory and
+          setup-ts-deep-modules.'
+      wiki-propagation:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream chief-of-staff leaves skills/in-progress/ for a released skills
+          folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred with a new reason, replacing the earlier defer. Upstream chief-of-staff
+          is still in progress (skills/in-progress/), so its design may change before release;
+          review it fresh when it leaves in-progress, as for loop-me, software-factory and
+          setup-ts-deep-modules.'
+      wiki-consult-first:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream chief-of-staff leaves skills/in-progress/ for a released skills
+          folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred with a new reason, replacing the earlier defer. Upstream chief-of-staff
+          is still in progress (skills/in-progress/), so its design may change before release;
+          review it fresh when it leaves in-progress, as for loop-me, software-factory and
+          setup-ts-deep-modules.'
+      file-answers-as-pages:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream chief-of-staff leaves skills/in-progress/ for a released skills
+          folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred with a new reason, replacing the earlier defer. Upstream chief-of-staff
+          is still in progress (skills/in-progress/), so its design may change before release;
+          review it fresh when it leaves in-progress, as for loop-me, software-factory and
+          setup-ts-deep-modules.'
+      wiki-lint:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream chief-of-staff leaves skills/in-progress/ for a released skills
+          folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred with a new reason, replacing the earlier defer. Upstream chief-of-staff
+          is still in progress (skills/in-progress/), so its design may change before release;
+          review it fresh when it leaves in-progress, as for loop-me, software-factory and
+          setup-ts-deep-modules.'
+      dated-history-entries:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream chief-of-staff leaves skills/in-progress/ for a released skills
+          folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred with a new reason, replacing the earlier defer. Upstream chief-of-staff
+          is still in progress (skills/in-progress/), so its design may change before release;
+          review it fresh when it leaves in-progress, as for loop-me, software-factory and
+          setup-ts-deep-modules.'
+      commit-pinned-claims:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream chief-of-staff leaves skills/in-progress/ for a released skills
+          folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred with a new reason, replacing the earlier defer. Upstream chief-of-staff
+          is still in progress (skills/in-progress/), so its design may change before release;
+          review it fresh when it leaves in-progress, as for loop-me, software-factory and
+          setup-ts-deep-modules.'
+      supersede-wiki-claims:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream chief-of-staff leaves skills/in-progress/ for a released skills
+          folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred with a new reason, replacing the earlier defer. Upstream chief-of-staff
+          is still in progress (skills/in-progress/), so its design may change before release;
+          review it fresh when it leaves in-progress, as for loop-me, software-factory and
+          setup-ts-deep-modules.'
+      environment-improvement-lens:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream chief-of-staff leaves skills/in-progress/ for a released skills
+          folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred with a new reason, replacing the earlier defer. Upstream chief-of-staff
+          is still in progress (skills/in-progress/), so its design may change before release;
+          review it fresh when it leaves in-progress, as for loop-me, software-factory and
+          setup-ts-deep-modules.'
+      agent-data-access:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream chief-of-staff leaves skills/in-progress/ for a released skills
+          folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred with a new reason, replacing the earlier defer. Upstream chief-of-staff
+          is still in progress (skills/in-progress/), so its design may change before release;
+          review it fresh when it leaves in-progress, as for loop-me, software-factory and
+          setup-ts-deep-modules.'
+      no-workarounds-rule:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream chief-of-staff leaves skills/in-progress/ for a released skills
+          folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred with a new reason, replacing the earlier defer. Upstream chief-of-staff
+          is still in progress (skills/in-progress/), so its design may change before release;
+          review it fresh when it leaves in-progress, as for loop-me, software-factory and
+          setup-ts-deep-modules.'
+      constrained-agent-interfaces:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream chief-of-staff leaves skills/in-progress/ for a released skills
+          folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred with a new reason, replacing the earlier defer. Upstream chief-of-staff
+          is still in progress (skills/in-progress/), so its design may change before release;
+          review it fresh when it leaves in-progress, as for loop-me, software-factory and
+          setup-ts-deep-modules.'
+      correctness-enforcing-lint:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          authoring-for-agents: variant
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream chief-of-staff leaves skills/in-progress/ for a released skills
+          folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred with a new reason, replacing the earlier defer. Upstream chief-of-staff
+          is still in progress (skills/in-progress/), so its design may change before release;
+          review it fresh when it leaves in-progress, as for loop-me, software-factory and
+          setup-ts-deep-modules.'
+      reviewer-owns-standards:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream chief-of-staff leaves skills/in-progress/ for a released skills
+          folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred with a new reason, replacing the earlier defer. Upstream chief-of-staff
+          is still in progress (skills/in-progress/), so its design may change before release;
+          review it fresh when it leaves in-progress, as for loop-me, software-factory and
+          setup-ts-deep-modules.'
+      shared-wiki-first:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream chief-of-staff leaves skills/in-progress/ for a released skills
+          folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred with a new reason, replacing the earlier defer. Upstream chief-of-staff
+          is still in progress (skills/in-progress/), so its design may change before release;
+          review it fresh when it leaves in-progress, as for loop-me, software-factory and
+          setup-ts-deep-modules.'
+      host-wiki-conventions-win:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream chief-of-staff leaves skills/in-progress/ for a released skills
+          folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred with a new reason, replacing the earlier defer. Upstream chief-of-staff
+          is still in progress (skills/in-progress/), so its design may change before release;
+          review it fresh when it leaves in-progress, as for loop-me, software-factory and
+          setup-ts-deep-modules.'
+      spec-tickets-implement-pipeline:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream chief-of-staff leaves skills/in-progress/ for a released skills
+          folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred with a new reason, replacing the earlier defer. Upstream chief-of-staff
+          is still in progress (skills/in-progress/), so its design may change before release;
+          review it fresh when it leaves in-progress, as for loop-me, software-factory and
+          setup-ts-deep-modules.'
+  skill:skills/misc/git-guardrails-claude-code:
+    upstream_tree_hash: 7aa92e9d469c6cd0b24ed8accb2e4be681c44c1524d71604c06b4055b7b56482
+    accepted: 4ae2317
+    compared_with: none
+    pairing:
+      overlap:
+        create-verification-skill: 1
+        doc:.repo-context/verification.md: 1
+      placement_match: []
+      suggested: create-verification-skill
+      purpose_match: none
+      purpose: Upstream installs a hook that blocks dangerous git commands and wires it into
+        a settings file. Ours already ships such a hook as project configuration, and the
+        plugin installer merges our hooks into a repository's settings file; a hook is not
+        a skill and cannot be compared.
+      flag: suggested differs
+      reason: 'Compared with none, as on 2026-11-12: our equivalent is a hook, outside the
+        registry''s skill comparison. Suggested create-verification-skill by the computed
+        signals only.'
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      settings-merge-not-overwrite:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - mvp-harness/plugins/mvp-plugin/scripts/install-harness.sh:218-252
+        - .claude/skills/beads/references/setup.md:73-77
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: 'At the end-of-project plugin sync, when the plugin installer is reviewed:
+          if it should merge into an existing settings array, adopt there.'
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          re-deferred with a new revisit condition, replacing the 2026-11-13 defer. The rule
+          matters where a harness hook is wired into an existing settings file. Beads setup
+          checks that its session hook is wired there (.claude/skills/beads/references/setup.md:73-77);
+          the plugin installer writes it: it copies the template settings file when the repository
+          has none (mvp-harness/plugins/mvp-plugin/scripts/install-harness.sh:218-220) and
+          otherwise merges it as JSON, adding the harness hooks block only when the file has
+          no hooks block and the marketplace entry only when missing, and leaving every other
+          setting as it was (mvp-harness/plugins/mvp-plugin/scripts/install-harness.sh:221-244).
+          An existing hooks block is kept and reported for a hand merge, not merged into (mvp-harness/plugins/mvp-plugin/scripts/install-harness.sh:252).
+          Whether to merge into that block''s arrays is a question for the installer''s review
+          at the end-of-project plugin sync, as for the two instruction-file rows of round
+          2026-11-20-deferred-improvement.'

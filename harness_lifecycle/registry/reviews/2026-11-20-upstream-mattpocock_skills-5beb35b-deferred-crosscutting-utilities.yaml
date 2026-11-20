@@ -1,0 +1,1223 @@
+harness: mattpocock_skills
+from_sha: null
+to_sha: 5beb35b
+supersedes:
+- harness_lifecycle/registry/reviews/2026-10-30-upstream-mattpocock_skills-5beb35b.yaml
+analysis_critic:
+  by: codex gpt-6.2-sol high (critic-106)
+  date: '2026-11-20'
+  verdict: pass
+  last_critic: null
+comparison_critic:
+  by: coordinator (cc:940ec94d)
+  date: '2026-11-20'
+  verdict: accepted
+  last_critic:
+    by: codex gpt-6.2-sol high (critic-106)
+    date: '2026-11-20'
+    verdict: fail
+themes: 'Forty-four rows reopened by the owner at the Cross-cutting and Utilities stages.
+  Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3. ask-matt: post-fix-retro
+  is adopted into the bug-fix playbook''s closeout as the variant post-fix-prevention, and
+  single-integration-branch is adopted as already delivered, with no edit, by the implement
+  playbook''s spec scope (each pending only because a report compares with a skill, never
+  a playbook; the playbook lists it and the adoption completes in the same round); its 19
+  other reopened rows, deferred on 2026-10-30 only so the owner could review the report''s
+  reject recommendation, are rejected, re-cited to today''s router (mvp-mode), the implement
+  playbook and AGENTS.md, since skill-router and execution no longer exist. handoff''s six
+  rows and teach''s sixteen are rejected on the same terms, and wait-what''s context-map-lookup
+  is rejected because the glossary route already does it. ask-matt''s parallel-frontier-implementers
+  and three teach pedagogy rows stay deferred.'
+skills:
+  skill:skills/engineering/ask-matt:
+    upstream_tree_hash: 7ff2383b40fe9d8f3e753d267d964fb2b44d120a948fd2a57c3b26ddfc318370
+    accepted: 5beb35b
+    compared_with: mvp-mode
+    pairing:
+      overlap:
+        doc:.claude/skills/mvp-mode/playbooks/bug-fix.md: 1
+        doc:.claude/skills/mvp-mode/playbooks/implement.md: 3
+        reflect: 1
+        tracker: 1
+      placement_match: []
+      suggested: reflect
+      purpose_match: mvp-mode
+      purpose: Upstream ask-matt is a user-invoked router that maps the harness's flows and
+        a phase-boundary decision tree for context moves. Our mvp-mode is the router that
+        maps a situation to its playbook, principle or skill; skill-router retired into it.
+      flag: suggested differs
+      reason: Compared with mvp-mode, the router that replaced skill-router, the 2026-10-30
+        comparison. The adopted row lands in the bug-fix playbook, which a report cannot compare
+        with, and so does single-integration-branch, delivered by the implement playbook.
+        Suggested reflect by the computed signals only, which holds the one earlier adoption.
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      read-skill-before-claiming:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - AGENTS.md:22-24
+        - .claude/skills/mvp-mode/SKILL.md:28-31
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report''s reject recommendation. Upstream asks for the skill''s own
+          body to be read before any description of the skill or any recommendation to skip
+          its step. Ours splits this: the router selects a skill from its description or the
+          catalog and invokes it, which loads its body, and AGENTS.md requires a consequential
+          claim drawn from a summary to be verified against primary evidence. The owner declines
+          the broader standing read; a consequential claim about what a skill does is already
+          one that rule covers (AGENTS.md:22-24; .claude/skills/mvp-mode/SKILL.md:28-31).'
+      unbroken-planning-window:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - AGENTS.md:27-30
+        - .claude/skills/mvp-mode/playbooks/implement/workstream-mode.md:34-40
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report''s reject recommendation. Ours carries planning across sessions
+          in durable records: handoffs keep scope, decisions, references, verification and
+          unresolved work, and a long run persists them to Beads and its ledger and rebuilds
+          from them, rather than keeping the planning stages in one unbroken window (AGENTS.md:27-30;
+          .claude/skills/mvp-mode/playbooks/implement/workstream-mode.md:34-40).'
+      smart-zone-budget:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/authoring-for-agents/references/writing-principles.md:39-41
+        - AGENTS.md:25-26
+        - .claude/skills/mvp-mode/playbooks/implement/workstream-mode.md:36-38
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. A ~150k-token zone is an invented
+          threshold that varies by model, and changing provider facts are verified, not fixed
+          in prose; ours leaves the context when the runtime supports it and context pressure
+          warrants it (.claude/skills/authoring-for-agents/references/writing-principles.md:39-41;
+          AGENTS.md:25-26; .claude/skills/mvp-mode/playbooks/implement/workstream-mode.md:36-38).
+      boundary-only-context-decisions:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/mvp-mode/playbooks/implement/workstream-mode.md:34-40
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. Ours stays in the current context
+          while useful and compacts or hands off when the runtime supports it and context
+          pressure warrants it, after persisting state, not only at a phase boundary (.claude/skills/mvp-mode/playbooks/implement/workstream-mode.md:34-40).
+      rule-out-continue-first:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          doc:.claude/skills/mvp-mode/playbooks/implement.md: variant
+        ours:
+        - .claude/skills/mvp-mode/SKILL.md:8-9
+        - .claude/skills/mvp-mode/playbooks/implement/workstream-mode.md:36-38
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. The router maps a situation to the
+          unit that handles it, and a context move is not a routing need; the long-run rule
+          already stays in the current context while it is useful, without an ordered first
+          branch (.claude/skills/mvp-mode/SKILL.md:8-9; .claude/skills/mvp-mode/playbooks/implement/workstream-mode.md:36-38).
+      clear-disposable-context:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/mvp-mode/playbooks/implement/workstream-mode.md:34-40
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report''s reject recommendation. Ours keeps context moves provider-neutral:
+          no unconditional slash command applies across providers, and state is persisted
+          to Beads and the ledger before any move (.claude/skills/mvp-mode/playbooks/implement/workstream-mode.md:34-40).'
+      handoff-for-portability:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - AGENTS.md:27-28
+        - AGENTS.md:96-98
+        - .claude/skills/mvp-mode/playbooks/implement/workstream-mode.md:34-40
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. Ours hands work on through Beads and
+          the run's ledger, which a later session recovers, so a portable file reserved for
+          travel has no role (AGENTS.md:27-28; AGENTS.md:96-98; .claude/skills/mvp-mode/playbooks/implement/workstream-mode.md:34-40).
+      delegate-afk-work:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/mvp-mode/SKILL.md:36-40
+        - AGENTS.md:47-48
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. Ours already delegates independent
+          work by default at top level and keeps local only work with a clear advantage, a
+          broader rule than upstream's no-steering criterion; a context-move branch with its
+          own narrower trigger would compete with it (.claude/skills/mvp-mode/SKILL.md:36-40;
+          AGENTS.md:47-48).
+      compact-last:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/mvp-mode/playbooks/implement/workstream-mode.md:34-40
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report''s reject recommendation. Ours keeps context moves provider-neutral:
+          no unconditional slash command applies across providers, and state is persisted
+          to Beads and the ledger before any move; an ordering of moves with compaction last
+          adds a ritual (.claude/skills/mvp-mode/playbooks/implement/workstream-mode.md:34-40).'
+      compact-with-instruction:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/mvp-mode/playbooks/implement/workstream-mode.md:34-40
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. Ours persists scope, decisions, source
+          pointers, checks, next work and unresolved findings to Beads and the ledger before
+          compacting and rebuilds from them, rather than steering the summary (.claude/skills/mvp-mode/playbooks/implement/workstream-mode.md:34-40).
+      primary-vs-secondary-source:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/authoring-for-agents/references/writing-principles.md:36-37
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. Exposition behind the context-move
+          tree, which ours declines; on its own it changes no decision, and the writing principles
+          keep only what changes decisions (.claude/skills/authoring-for-agents/references/writing-principles.md:36-37).
+      staged-delivery-flow:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/mvp-mode/SKILL.md:21-27
+        - .claude/skills/mvp-mode/SKILL.md:54-74
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report''s reject recommendation. Opposite stance: the router picks
+          the playbook whose request fits, or none, rather than walking a fixed interview-to-retrospective
+          flow (.claude/skills/mvp-mode/SKILL.md:21-27; .claude/skills/mvp-mode/SKILL.md:54-74).'
+      interview-mode-by-workspace:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/mvp-mode/SKILL.md:105
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report''s reject recommendation. Opposite stance: ours runs the document-writing
+          interview only when asked and otherwise the plain interview, not whenever a working
+          directory exists (.claude/skills/mvp-mode/SKILL.md:105).'
+      prototype-detour:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/prototype/SKILL.md:3
+        - .claude/skills/mvp-mode/SKILL.md:112
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. prototype's own description fires
+          when a runnable experiment can resolve a question, and the router names it for interactions
+          without precedent; a second router row would compete with that trigger (S-01) (.claude/skills/prototype/SKILL.md:3;
+          .claude/skills/mvp-mode/SKILL.md:112).
+      multi-session-split:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          tracker: variant
+        ours:
+        - .claude/skills/mvp-mode/SKILL.md:64
+        - .claude/skills/mvp-mode/SKILL.md:68
+        - .claude/skills/mvp-mode/playbooks/implement.md:95-97
+        - .claude/skills/tracker/SKILL.md:58-59
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report''s reject recommendation. Ours routes by the request: work
+          to get ready is the plan playbook and settled tracked work is implement. Whether
+          units will span sessions decides only whether they get unit beads, through tracker,
+          not whether a spec and tickets are written (.claude/skills/mvp-mode/SKILL.md:64;
+          .claude/skills/mvp-mode/SKILL.md:68; .claude/skills/mvp-mode/playbooks/implement.md:95-97;
+          .claude/skills/tracker/SKILL.md:58-59).'
+      ticket-per-fresh-context:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          doc:.claude/skills/mvp-mode/playbooks/implement.md: variant
+        ours:
+        - .claude/skills/mvp-mode/playbooks/implement/spec-run.md:42-47
+        - .claude/skills/mvp-mode/playbooks/implement/workstream-mode.md:36-40
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. Ours gives each ticket of a spec run
+          a new implementer, while the coordinator stays in its context while useful and rebuilds
+          from Beads and the ledger when it leaves; clearing the coordinator per ticket is
+          not taken (.claude/skills/mvp-mode/playbooks/implement/spec-run.md:42-47; .claude/skills/mvp-mode/playbooks/implement/workstream-mode.md:36-40).
+      single-integration-branch:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          doc:.claude/skills/mvp-mode/playbooks/implement.md: present
+        ours:
+        - .claude/skills/mvp-mode/playbooks/implement.md:14
+        - .claude/skills/mvp-mode/playbooks/implement/spec-run.md:20-21
+        - .claude/skills/mvp-mode/SKILL.md:64
+        recommendation: adopt
+        delivery: pending
+        target: doc:.claude/skills/mvp-mode/playbooks/implement.md
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-01
+          - S-08
+          override: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          adopted, already delivered, no edit. The implement playbook''s spec scope lists
+          the trait (.claude/skills/mvp-mode/playbooks/implement.md:14) and its spec run uses
+          one integration branch for the whole spec, on which every ticket lands and nowhere
+          else (.claude/skills/mvp-mode/playbooks/implement/spec-run.md:20-21); mvp-mode routes
+          a spec whose tickets are in Beads to that playbook (.claude/skills/mvp-mode/SKILL.md:64).
+          The same trait from implement-spec was adopted there on 2026-11-10 (2026-11-10-renames-splits:103,
+          completing :021). The old defer tied this row to the parallel frontier build, which
+          stays deferred; one integration branch does not depend on it. Pending only because
+          a report compares with a skill, never a playbook; the playbook lists the trait,
+          and the adoption completes in the same round.'
+      triage-external-only:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/triage/SKILL.md:19-20
+        - .claude/skills/triage/SKILL.md:27-28
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. Ours's default untriaged bucket lists
+          only open beads with no parent, so the children a plan creates do not appear there;
+          a bead the person supplies, or an authorized batch, is triaged whoever wrote it,
+          because the person chose it. An authorship rule adds nothing to either (.claude/skills/triage/SKILL.md:19-20;
+          .claude/skills/triage/SKILL.md:27-28).
+      post-fix-retro:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          doc:.claude/skills/mvp-mode/playbooks/bug-fix.md: variant
+        ours:
+        - .claude/skills/mvp-mode/playbooks/bug-fix.md:93-99
+        - .claude/skills/mvp-mode/playbooks/bug-fix.md:29-30
+        - .claude/skills/mvp-mode/playbooks/bug-fix.md:126-128
+        - .claude/skills/mvp-mode/SKILL.md:59
+        recommendation: adopt
+        delivery: pending
+        target: doc:.claude/skills/mvp-mode/playbooks/bug-fix.md
+        modification: 'Adopted as post-fix-prevention: after a confirmed cause, the playbook
+          proposes from the run''s own cause and attempt log what would have stopped the defect
+          (a type or check, an instruction the agent lacked, or a lesson) and applies only
+          what the person approves. Upstream also escalates to architecture work when no good
+          seam exists; ours does not: bug-fix step 3 records a missing seam as a finding (missing-seam-finding).'
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-01
+          - U-04
+          - S-06
+          override: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3.
+          Adopted into the bug-fix playbook''s closeout, step 7, as the narrower variant post-fix-prevention
+          (.claude/skills/mvp-mode/playbooks/bug-fix.md:93-99; .claude/skills/mvp-mode/playbooks/bug-fix.md:29):
+          when the cause was confirmed, the playbook names, from the confirmed cause and the
+          attempt log alone, what would have stopped the defect (a type or check through build-a-lever,
+          an instruction the agent lacked through authoring-for-agents, or a lesson where
+          AGENTS.md sends lessons), proposes only what would change future work, applies only
+          what the person approves, and suggests /reflect across history when this run''s
+          findings show the defect class recurring. It loads no reflect, reads no session
+          log and dispatches no reviewer. Every reply after a confirmed cause gives the proposal
+          and reports what was not approved as proposed, not applied (.claude/skills/mvp-mode/playbooks/bug-fix.md:126-128).
+          mvp-mode routes a reported defect to this playbook (.claude/skills/mvp-mode/SKILL.md:59).
+          Pending only because a report compares with a skill, never a playbook; the playbook
+          lists the variant, and the adoption completes in the same round. The old defer waited
+          for a session-retrospective workflow; the owner scoped the prevention question into
+          the bug-fix closeout instead.'
+      decision-map-for-large-efforts:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/mvp-mode/SKILL.md:106
+        - .claude/skills/mvp-mode/SKILL.md:68
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. Ours routes decisions that depend
+          on each other across sessions to wayfinder, and what a settled map feeds next is
+          the plan playbook's; the router stays a small table (S-02) (.claude/skills/mvp-mode/SKILL.md:106;
+          .claude/skills/mvp-mode/SKILL.md:68).
+      ordered-context-decision-tree:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/mvp-mode/playbooks/implement/workstream-mode.md:34-40
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report''s reject recommendation. Ours keeps context moves provider-neutral:
+          no unconditional slash command applies across providers, and state is persisted
+          to Beads and the ledger before any move; the move itself is a judgement for the
+          runtime and the pressure, not a fixed tree (.claude/skills/mvp-mode/playbooks/implement/workstream-mode.md:34-40).'
+  skill:skills/productivity/handoff:
+    upstream_tree_hash: f60a2c3688379b7a306b3a7b8dd4120eab39da44c74fa2cb62d6424935f04aa7
+    accepted: 5beb35b
+    compared_with: none
+    pairing:
+      overlap:
+        beads: 1
+        doc:AGENTS.md: 3
+        systematic-debugging: 1
+      placement_match:
+      - beads
+      - decision-trail
+      - recall
+      - wake
+      suggested: beads
+      purpose_match: none
+      purpose: 'Upstream handoff is a user-invoked command that writes a summary document
+        for a fresh agent to continue the work. Ours has no handoff command: work is handed
+        on through Beads notes and the run''s ledger under AGENTS.md''s handoff rule.'
+      flag: suggested differs
+      reason: Compared with none, as on 2026-10-30. Overlap and placement suggest beads through
+        its resume line, but beads tracks durable work and writes no handoff document.
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      handoff-doc:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          doc:AGENTS.md: variant
+        ours:
+        - AGENTS.md:27-28
+        - AGENTS.md:96-98
+        - .claude/skills/beads/references/usage.md:253-254
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. Ours hands work on through Beads notes
+          and the run's ledger, which keep scope, decisions, source references, verification
+          and unresolved work and which a resumed session recovers, not an untracked summary
+          file (AGENTS.md:27-28; AGENTS.md:96-98; .claude/skills/beads/references/usage.md:253-254).
+      temp-dir-destination:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          doc:AGENTS.md: variant
+        ours:
+        - AGENTS.md:84-85
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report''s reject recommendation. Opposite stance: ours puts temporary
+          artifacts in the gitignored scratchpad/ folder (AGENTS.md:84-85).'
+      suggested-skills:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          beads: variant
+        ours:
+        - .claude/skills/beads/references/usage.md:253-254
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. Ours's resume line already names the
+          skills or approach to resume with; with no handoff document there is no section
+          to add (.claude/skills/beads/references/usage.md:253-254).
+      link-dont-copy:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          doc:AGENTS.md: variant
+        ours:
+        - AGENTS.md:20-21
+        - AGENTS.md:27-28
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. AGENTS.md handoffs carry source references
+          and keep large logs and histories behind references; another always-loaded line
+          costs every turn (S-04) (AGENTS.md:20-21; AGENTS.md:27-28).
+      tailor-to-next-focus:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/beads/references/usage.md:253-254
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. Depends on the handoff document, which
+          ours declines (handoff-doc); the resume line already says where the work stands
+          and how to resume (.claude/skills/beads/references/usage.md:253-254).
+      placeholder-sensitive-data-redaction:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          systematic-debugging: present
+        ours:
+        - AGENTS.md:67
+        - .claude/skills/systematic-debugging/SKILL.md:20-23
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. AGENTS.md keeps secrets and private
+          data out of unauthorized destinations, and systematic-debugging, which holds this
+          trait, replaces them with placeholders in what a diagnosis shows or saves; with
+          no handoff document there is nothing more to redact (AGENTS.md:67; .claude/skills/systematic-debugging/SKILL.md:20-23).
+  skill:skills/productivity/wait-what:
+    upstream_tree_hash: 70c9bf9f5a84b6849760f9492f569d5aa12307a0310323fde5f583144730c26c
+    accepted: 5beb35b
+    compared_with: brief-me
+    pairing:
+      overlap:
+        brief-me: 3
+        codebase-design: 1
+        create-formal-verification-skill: 1
+        domain-modeling: 1
+        improve-codebase-architecture: 1
+        prototype: 1
+        teach: 1
+        unslop: 1
+      placement_match:
+      - brief-me
+      - html-artifact
+      - show-me
+      - unslop
+      suggested: brief-me
+      purpose_match: brief-me
+      purpose: Upstream wait-what is a user-invoked corrective that re-pitches the last message
+        with context, in ASD-STE100 and the project glossary. Our brief-me (formerly i-have-adhd)
+        does the same when the user says a message did not land.
+      flag: null
+      reason: null
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      context-map-lookup:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          domain-modeling: present
+        ours:
+        - AGENTS.md:104
+        - .claude/skills/domain-modeling/SKILL.md:12-14
+        - .claude/skills/domain-modeling/GLOSSARY-FORMAT.md:60-71
+        - .claude/skills/brief-me/SKILL.md:110
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report''s reject recommendation. Routed: AGENTS.md routes domain terminology
+          to the glossary, and domain-modeling, which holds this trait, selects the glossary
+          by an order that reads a root GLOSSARY-MAP.md for the current context after any
+          location the project''s instructions declare. brief-me''s re-pitch keeps the project''s
+          terms from GLOSSARY.md and consults no map itself, so in a repository whose glossaries
+          are listed only in a map the right one is reached through that selection order,
+          not through the re-pitch. The owner declines a lookup step of brief-me''s own (AGENTS.md:104;
+          .claude/skills/domain-modeling/SKILL.md:12-14; .claude/skills/domain-modeling/GLOSSARY-FORMAT.md:60-71;
+          .claude/skills/brief-me/SKILL.md:110).'
+  skill:skills/productivity/teach:
+    upstream_tree_hash: 31bb3eed09dd2787e290e933def99fbf7d65044a29119c224af47c01404ab228
+    accepted: 5beb35b
+    compared_with: teach
+    pairing:
+      overlap:
+        brief-me: 1
+        codebase-design: 1
+        create-formal-verification-skill: 1
+        doc:AGENTS.md: 1
+        domain-modeling: 5
+        improve-codebase-architecture: 1
+        prototype: 1
+        teach: 36
+        unslop: 1
+      placement_match:
+      - teach
+      suggested: teach
+      purpose_match: teach
+      purpose: Upstream teach runs every request as a stateful multi-session course in the
+        current directory. Our teach explains a concept or a session and runs a course only
+        when one is requested.
+      flag: null
+      reason: null
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      always-stateful-course:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/teach/SKILL.md:10-11
+        - .claude/skills/teach/SKILL.md:18
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report''s reject recommendation. Opposite stance: ours keeps a single
+          explanation or walkthrough stateless and opens a course only on explicit request
+          (.claude/skills/teach/SKILL.md:10-11; .claude/skills/teach/SKILL.md:18).'
+      workspace-from-run-dir:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/teach/SKILL.md:32-33
+        - .claude/skills/teach/SKILL.md:44-45
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report''s reject recommendation. Opposite stance: ours uses the supplied,
+          authorized location and never assumes the repository root is a teaching workspace
+          (.claude/skills/teach/SKILL.md:32-33; .claude/skills/teach/SKILL.md:44-45).'
+      html-lessons:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/teach/SKILL.md:41-42
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report''s reject recommendation. Opposite stance: ours makes HTML
+          lessons optional, through html-artifact when the format helps (.claude/skills/teach/SKILL.md:41-42).'
+      shared-component-extraction:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/teach/SKILL.md:42-43
+        - AGENTS.md:34-36
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report''s reject recommendation. Opposite stance: ours reuses existing
+          assets but does not invent a component library for a single lesson, in line with
+          AGENTS.md''s present-requirement rule (.claude/skills/teach/SKILL.md:42-43; AGENTS.md:34-36).'
+      quiz-equal-length:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/teach/SKILL.md:24-26
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report''s reject recommendation. Opposite stance: ours keeps options
+          plausible and free of giveaways without matching exact character counts; an exact-length
+          rule is absolute for a context-dependent choice (S-08) (.claude/skills/teach/SKILL.md:24-26).'
+      wisdom-community-referral:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/teach/SKILL.md:27-28
+        - .claude/skills/teach/SKILL.md:35-37
+        - .claude/skills/teach/RESOURCES-FORMAT.md:17-22
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. Ours checks unfamiliar facts against
+          sources and cites them, a course draws wisdom from learners and practitioners, and
+          a course's resources file already lists communities; a default referral posture
+          adds no decision (.claude/skills/teach/SKILL.md:27-28; .claude/skills/teach/SKILL.md:35-37;
+          .claude/skills/teach/RESOURCES-FORMAT.md:17-22).
+      reference-sheets:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/teach/SKILL.md:32-35
+        - AGENTS.md:34-36
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. A course in ours keeps its glossary
+          and resources file as reference and links useful prior material; another artifact
+          type has no present requirement (.claude/skills/teach/SKILL.md:32-35; AGENTS.md:34-36).
+      preference-notes:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/teach/SKILL.md:43-44
+        - AGENTS.md:30
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report''s reject recommendation. Opposite stance: ours records persistent
+          preferences or memory only on explicit request (.claude/skills/teach/SKILL.md:43-44;
+          AGENTS.md:30).'
+      tight-feedback-loop:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/teach/SKILL.md:23-24
+        - .claude/skills/teach/SKILL.md:41-42
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. Ours gives feedback after each response,
+          already immediate in a conversation; automatic feedback needs interactive HTML,
+          which ours keeps optional (.claude/skills/teach/SKILL.md:23-24; .claude/skills/teach/SKILL.md:41-42).
+      resource-gathering-priority:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/teach/SKILL.md:27-28
+        - .claude/skills/teach/SKILL.md:35-36
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. Ours checks unfamiliar or changing
+          facts against sources when they arise and grounds a course's knowledge in trusted
+          sources, instead of front-loading resource search; 'never trust parametric knowledge'
+          is absolute for a context-dependent choice (S-08) (.claude/skills/teach/SKILL.md:27-28;
+          .claude/skills/teach/SKILL.md:35-36).
+      polished-lesson-typography:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/teach/SKILL.md:41-42
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. HTML lessons are optional in ours,
+          and html-artifact owns their presentation when used (.claude/skills/teach/SKILL.md:41-42).
+      open-artifact-for-user:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/teach/SKILL.md:41-42
+        - .claude/skills/html-artifact/SKILL.md:43-44
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. HTML lessons are optional in ours
+          and go through html-artifact, whose delivery gives the person a link or path to
+          the file rather than its source; opening the file with the platform's opener is
+          not part of that contract (.claude/skills/teach/SKILL.md:41-42; .claude/skills/html-artifact/SKILL.md:43-44).
+      lesson-primary-source:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/teach/SKILL.md:27-28
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. Ours cites the sources behind material
+          external claims instead of naming one recommended source per lesson (.claude/skills/teach/SKILL.md:27-28).
+      follow-up-prompt:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/teach/SKILL.md:15
+        - .claude/skills/teach/SKILL.md:41-42
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. Ours's one-concept shape invites a
+          focused question after the explanation, in the conversation. Upstream also writes
+          a reminder to ask follow-up questions into each lesson, where a learner reading
+          it later would see it; the owner declines that per-lesson requirement for our optional
+          lesson files (.claude/skills/teach/SKILL.md:15; .claude/skills/teach/SKILL.md:41-42).
+      just-enough-knowledge:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/teach/SKILL.md:34-35
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. Ours keeps each lesson focused on
+          an observable learning objective, which bounds its knowledge; the knowledge-then-practice
+          order is a recipe ours leaves to judgment (S-03) (.claude/skills/teach/SKILL.md:34-35).
+      skill-practice-forms:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/teach/SKILL.md:23-24
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. Ours uses a small exercise or prediction
+          question when useful; listing practice forms constrains judgment (S-03) (.claude/skills/teach/SKILL.md:23-24).

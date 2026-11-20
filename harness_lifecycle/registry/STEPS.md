@@ -38,7 +38,7 @@ Playbook traits: `confirmed-cause-gate`, `stated-unattended-gate`, `unattended-n
 | `bug-fix#4` | bug-fix#3 changed code | `rerun-original-repro` |  |  |
 | `bug-fix#5` | around bug-fix#3 and bug-fix#4 | `attempt-log`, `revert-ineffective-experiments`, `two-failure-stop` |  |  |
 | `bug-fix#6` | the confirmed defect reveals another boundary problem | `defense-in-depth-hardening` |  | `.claude/skills/mvp-mode/playbooks/bug-fix/hardening.md` |
-| `bug-fix#7` | every exit | `closeout`, `preserve-reproducers`, `always-on-signal` |  |  |
+| `bug-fix#7` | every exit | `closeout`, `preserve-reproducers`, `always-on-signal`, `post-fix-prevention` | `skill:build-a-lever` (when: the person approves a proposed type or check); `skill:authoring-for-agents` (when: the person approves a proposed instruction) |  |
 | `bug-fix#8` | the Fixed exit, after bug-fix#7 |  | `skill:land` |  |
 
 ## eval
@@ -334,6 +334,8 @@ Traits and calls used by two or more playbooks. Repeating a step is fine; the sa
 
 | Item | Playbooks |
 |---|---|
+| `skill:authoring-for-agents` | bug-fix: `bug-fix#7`; skill-curation: `skill-curation#2`, `skill-curation#4`, `skill-curation#5` |
+| `skill:build-a-lever` | bug-fix: `bug-fix#7`; hillclimb: `hillclimb#2` |
 | `skill:codebase-design` | bug-fix: `bug-fix#3`; feature: `feature#2`; figure-it-out: `figure-it-out#3`; perf-issue: `perf-issue#3`; refactoring: `refactoring#3` |
 | `skill:decision-trail` | autonomous-run: `autonomous-run#2`; figure-it-out: `figure-it-out#4`; hillclimb: `hillclimb#3` |
 | `skill:delegation` | autonomous-run: `autonomous-run#4`; eval: `eval#5`; feature: `feature#4`; figure-it-out: `figure-it-out#5`; hillclimb: `hillclimb#4`; implement: `implement#4`; perf-issue: `perf-issue#3`, `perf-issue#4`; plan: `plan#2`; refactoring: `refactoring#4`; runtime-forensics: `runtime-forensics#1`; session-pickup: `session-pickup#1`; trace-forensics: `trace-forensics#1` |

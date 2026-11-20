@@ -3415,6 +3415,11 @@ post-fix-retro:
   placement: {domain: engineering, stage: Improvement, substage: Retrospective}
   distinct_from: [missing-seam-finding]
   note: "missing-seam-finding flags the absent seam during diagnosis; this is the prevention question asked after the fix."
+post-fix-prevention:
+  definition: "After a defect's cause is confirmed, propose from the run's own cause and attempt log what would have stopped it (a type or check, a missing instruction, or a lesson), and apply only what the person approves."
+  placement: {domain: engineering, stage: Improvement, substage: Retrospective}
+  distinct_from: [post-fix-retro, always-on-signal, missing-seam-finding]
+  note: "post-fix-retro also escalates to architecture work when no good seam exists; this proposes only, from evidence the run holds. always-on-signal proposes detection of the next unknown defect, this prevention of this one; missing-seam-finding reports an absent seam during the fix."
 load-writing-guide-first:
   definition: "Load the agent-writing guidance before writing any improvement suggestion."
   placement: {domain: engineering, stage: Improvement, substage: Retrospective}

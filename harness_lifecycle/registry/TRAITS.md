@@ -614,6 +614,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `fresh-context-subagent`: Start every subagent in a fresh context window rather than as a copy of the caller's conversation.
 - `unenforced-read-only-brief-and-status-check`: When a read-only worker's tool access still lets it write, say in its brief not to edit files and, after it returns, check the checkout against a baseline the coordinator recorded before dispatch.
 - `self-contained-subagent-brief`: Paste into a subagent's brief any reference material it needs that it cannot otherwise reach.
+- `goal-in-every-brief`: Restate the user's own goal in every brief given to a helper.
 
 #### core · X · Coordination — model-council
 - `member-resolution`: Resolve the members and judge from the request's explicit selections, asking only for missing choices or unreachable members.
@@ -1712,6 +1713,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `closeout`: Before declaring done, remove temporary instrumentation and record the confirmed cause.
 - `preserve-reproducers`: Keep useful reproducers and user artifacts when cleaning up after a fix.
 - `always-on-signal`: After a fact took a deep investigation to find, propose the cheap always-on signal that would have shown it at first look.
+- `post-fix-prevention`: After a defect's cause is confirmed, propose from the run's own cause and attempt log what would have stopped it (a type or check, a missing instruction, or a lesson), and apply only what the person approves.
 
 #### eval — `doc:.claude/skills/mvp-mode/playbooks/eval.md`
 - `candidate-blinding`: Keep every name, path and prompt a candidate session can see free of any sign that it is being measured or that other candidates exist.
@@ -2377,7 +2379,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 
 #### core · X · Continuity — skill:pstack/skills/principle-guard-the-context-window
 - `bulk-to-subagents`: Send bulk reading and large outputs to subagents and keep only their summaries in the main thread. — adopt → mvp-mode#delegate-independent-by-default
-- `phase-scope-caps`: Cap each phase's scope with file limits and turn budgets, counting the context cost of the mechanisms used. — defer
+- `phase-scope-caps`: Cap each phase's scope with file limits and turn budgets, counting the context cost of the mechanisms used. — reject
 
 #### core · X · Continuity — skill:pstack/skills/recall
 - `current-state-capsule-goal`: Rebuild recent working context into a compact statement of the present position and what comes next. — adopt → recall#current-state-capsule-goal
@@ -2557,7 +2559,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `principle-citation-in-reply`: Cite in the reply every principle behind a decision, with the choice it altered, and cite only principles whose file this session has read. — defer
 - `task-start-goal-restatement`: Open the first message on every task by restating the user's goal, the problem behind it and the smallest change expected to meet it, then carry on without waiting for a confirmation. — defer
 - `evidence-veto-stop`: When evidence shows the change the user asked for cannot meet their goal or would do harm, show that evidence and ask before making it. — adopt, pending cr-r2pa.2.13.3 → doc:AGENTS.md
-- `goal-in-every-brief`: Restate the user's own goal in every brief given to a helper. — defer
+- `goal-in-every-brief`: Restate the user's own goal in every brief given to a helper. — adopt → delegation#goal-in-every-brief
 - `goal-opens-pr-why`: Open a pull request's reasons section with the user's goal. — reject
 - `goal-opens-final-report`: Start every final report and closing reply by stating the goal, skipping it only for a one-line edit given in full. — defer
 - `answerer-triage`: Sort each open question by who can answer it (this project's code, cited by file and line; outside sources; a run; a routine pick; the owner) and put to the owner only what the others cannot settle. — reject
@@ -2584,7 +2586,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `no-playbook-in-delegate`: Inside a delegated task, route only to skills and principles and never start a playbook: the parent runs it, and the brief is its step. — adopt → mvp-mode#no-playbook-in-delegate
 - `background-every-dispatch`: Run every helper call in the background, steers and resumes included, so no call holds the turn. — reject
 - `writable-helper-mode`: Spawn helpers in a writable mode because the read-only mode removes the tool access they need. — reject
-- `pointer-only-subagent-briefs`: Keep subagent communication sparse by passing pointers to the spec, tickets, notes and commits rather than copying their content. — defer
+- `pointer-only-subagent-briefs`: Keep subagent communication sparse by passing pointers to the spec, tickets, notes and commits rather than copying their content. — reject
 - `role-model-config-line`: Read each spawned role's model from a named line of a shared configuration, falling back to a fixed default and leaving the field unset for an alias. — reject
 - `vendor-default-role-models`: Ship fixed default model names per role, one for code roles and one for judgement roles. — reject
 - `difficulty-tiered-model-choice`: Send the hardest code changes to the strongest judgement model and trivial mechanical edits to the fast code model. — reject
@@ -3531,14 +3533,14 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `explicit-required-setup-values`: Ask for every required setting by checklist and fail setup unless the critical ones are given explicitly. — out-of-scope
 - `confirmed-slugs-only`: Write or use a model name only after confirming it is selectable now, never guessing one or carrying it over from someone else's default. — reject
 - `integration-capability-checklist`: List the chat, tracker and repository capabilities each automation needs, and use no undocumented integration endpoint. — out-of-scope
-- `narrow-bot-token`: Prefer the platform's built-in chat actions, use a separate bot token only for a named gap, keep it in a secret store, and never pass it to a worker. — defer
+- `narrow-bot-token`: Prefer the platform's built-in chat actions, use a separate bot token only for a named gap, keep it in a secret store, and never pass it to a worker. — out-of-scope
 - `routing-map-preparation`: Copy the routing example outside the pack with every placeholder filled before reroutes or pings are used. — out-of-scope
-- `owner-ping-gate`: Keep owner pings off by default and allow one only to a configured feature owner who agreed or a confirmed regression author, never a broad on-call group or an unverified owner. — defer
-- `no-guessed-route`: Without a matching route, classify but name no destination or owner, and keep the fallback empty unless one team accepts everything unmatched. — defer
+- `owner-ping-gate`: Keep owner pings off by default and allow one only to a configured feature owner who agreed or a confirmed regression author, never a broad on-call group or an unverified owner. — out-of-scope
+- `no-guessed-route`: Without a matching route, classify but name no destination or owner, and keep the fallback empty unless one team accepts everything unmatched. — out-of-scope
 - `control-adapter-capabilities`: Require the tool that drives an app to support every mapped feature through real input, inspection without changing state, screenshot and recording capture and cleanup, and to prove this on a harmless run of one mapped feature before any reproduction relies on it. — adopt → create-verification-skill#driver-smoke-proof-for-surface
 - `automation-creation-handoff`: Create automations one at a time through the platform's reviewed creation flow, assembling each request from the entry doc, the configuration and the template, and give a field checklist for existing ones instead of duplicates. — out-of-scope
 - `automation-intent-specs`: State what the triage and repair automations must each do, from trigger and scope to the rules they follow. — out-of-scope
-- `thread-safety-test-before-enable`: Enable no chat automation until a test on a harmless report, run after everything is committed, shows it keeps to its thread, its marker and its write limits. — defer
+- `thread-safety-test-before-enable`: Enable no chat automation until a test on a harmless report, run after everything is committed, shows it keeps to its thread, its marker and its write limits. — out-of-scope
 
 #### engineering · U · Tooling — skill:pstack/skills/make-bot-ui
 - `credential-holding-relay`: Let a browser page reach an outside service only through a server of ours that alone holds the sender credential, keeping it out of the page, chat and instructions. — reject
@@ -3810,7 +3812,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 #### core · X · Communication — skill:skills/productivity/wait-what
 - `repitch-trigger`: When a message did not land, stop and re-pitch it rather than adding more. — adopt → brief-me#repitch-trigger
 - `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write. — adopt → brief-me#domain-vocabulary
-- `context-map-lookup`: Follow the context map to the right context's glossary when the repository has several. — defer
+- `context-map-lookup`: Follow the context map to the right context's glossary when the repository has several. — reject
 - `standard-controlled-language`: Re-pitch in ASD-STE100 Simplified Technical English. — adopt → brief-me#controlled-language
 
 #### core · X · Continuity — skill:skills/in-progress/claude-handoff
@@ -3825,12 +3827,12 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `handoff-sensitive-data-removal`: Take secrets, passwords and personal data out of a handoff summary, since the summary becomes the next session's prompt. — reject
 
 #### core · X · Continuity — skill:skills/productivity/handoff
-- `handoff-doc`: Write a handoff document summarising the current conversation so a fresh agent can continue the work. — defer
-- `temp-dir-destination`: Save the handoff to the operating system's temporary directory rather than the workspace. — defer
-- `suggested-skills`: Name in the handoff which skills the next agent should reach for. — defer
-- `link-dont-copy`: Reference existing artifacts by path or URL rather than copying their content into a handoff. — defer
-- `tailor-to-next-focus`: Treat any passed arguments as the next session's focus and tailor the handoff to it. — defer
-- `placeholder-sensitive-data-redaction`: Replace secrets and personal data with placeholders in anything shown or saved. — defer
+- `handoff-doc`: Write a handoff document summarising the current conversation so a fresh agent can continue the work. — reject
+- `temp-dir-destination`: Save the handoff to the operating system's temporary directory rather than the workspace. — reject
+- `suggested-skills`: Name in the handoff which skills the next agent should reach for. — reject
+- `link-dont-copy`: Reference existing artifacts by path or URL rather than copying their content into a handoff. — reject
+- `tailor-to-next-focus`: Treat any passed arguments as the next session's focus and tailor the handoff to it. — reject
+- `placeholder-sensitive-data-redaction`: Replace secrets and personal data with placeholders in anything shown or saved. — reject
 
 #### core · X · Coordination — skill:skills/in-progress/chief-of-staff
 - `single-coordinator-session`: Act as the single accountable coordinator for a long-running goal within one session. — defer
@@ -3881,38 +3883,38 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 
 #### core · U · Tutoring — skill:skills/productivity/teach
 - `teaching-workspace`: Keep a multi-session course's state (mission, resources, learning records, glossary and lessons) as files in one course workspace. — adopt → teach#teaching-workspace
-- `always-stateful-course`: Treat every teaching request as a stateful multi-session course kept in the workspace. — defer
-- `workspace-from-run-dir`: Resolve workspace paths from the directory the skill was run in, resolving only the format-template links from the skill folder. — defer
+- `always-stateful-course`: Treat every teaching request as a stateful multi-session course kept in the workspace. — reject
+- `workspace-from-run-dir`: Resolve workspace paths from the directory the skill was run in, resolving only the format-template links from the skill folder. — reject
 - `mission-grounding`: A mission document capturing the concrete real-world reason for learning that anchors every teaching choice. — adopt → teach#mission-grounding
 - `proximal-next-lesson`: When the learner names no target, choose the next lesson from the learning records and mission so it challenges them just enough. — adopt → teach#level-adaptation
 - `storage-strength`: Favour long-term retention over in-the-moment fluency, which can give an illusory sense of mastery. — adopt → teach#storage-strength
 - `retrieval-practice`: Have the learner retrieve answers from memory through exercises or questions. — adopt → teach#retrieval-practice
 - `spacing`: Space practice over time to build long-term retention. — adopt → teach#spacing
 - `lesson-format`: Make each lesson short and self-contained, teaching one tightly scoped objective tied to the learner's goal. — adopt → teach#lesson-format
-- `html-lessons`: Deliver every lesson as one self-contained HTML file. — defer
+- `html-lessons`: Deliver every lesson as one self-contained HTML file. — reject
 - `reusable-assets`: Reuse existing lesson assets before creating new ones. — adopt → teach#reusable-assets
-- `shared-component-extraction`: Write each new reusable lesson piece as a shared component and link to it, never inlining code a later lesson would duplicate. — defer
+- `shared-component-extraction`: Write each new reusable lesson piece as a shared component and link to it, never inlining code a later lesson would duplicate. — reject
 - `glossary-admission-on-use`: Add a term to the learner's glossary only once the learner can use it correctly. — adopt → teach#glossary-admission-on-use
 - `learning-records`: ADR-like records of lessons and established prior knowledge that steer what to teach next. — adopt → teach#learning-records
-- `quiz-equal-length`: Make every quiz answer the same number of words, and characters where possible, so formatting gives nothing away. — defer
+- `quiz-equal-length`: Make every quiz answer the same number of words, and characters where possible, so formatting gives nothing away. — reject
 - `vary-answer-position`: Vary which position holds the correct answer across questions so order gives nothing away. — adopt → teach#vary-answer-position
-- `wisdom-community-referral`: For questions needing real-world wisdom, attempt an answer but ultimately refer the learner to a high-reputation community. — defer
-- `reference-sheets`: Build durable quick-reference documents that outlive the lessons that spawned them. — defer
-- `preference-notes`: Record the learner's stated teaching preferences in a notes file to steer future lessons. — defer
+- `wisdom-community-referral`: For questions needing real-world wisdom, attempt an answer but ultimately refer the learner to a high-reputation community. — reject
+- `reference-sheets`: Build durable quick-reference documents that outlive the lessons that spawned them. — reject
+- `preference-notes`: Record the learner's stated teaching preferences in a notes file to steer future lessons. — reject
 - `sourced-explanations`: Draw explanations from trusted, cited sources and check unfamiliar or changing facts rather than relying on unverified recall. — adopt → teach#sourced-explanations
-- `tight-feedback-loop`: Teach skills through an interactive feedback loop that is as tight and immediate, ideally automatic, as possible. — defer
+- `tight-feedback-loop`: Teach skills through an interactive feedback loop that is as tight and immediate, ideally automatic, as possible. — reject
 - `knowledge-skills-wisdom-frame`: Frame learning as knowledge from trusted sources, skills from interactive lessons and wisdom from communities. — adopt → teach#knowledge-skills-wisdom-frame
-- `resource-gathering-priority`: Prioritise finding high-quality resources until the resources file is well populated. — defer
-- `polished-lesson-typography`: Make lessons visually polished with clean typography so they serve later review. — defer
-- `open-artifact-for-user`: Open a generated artifact for the user with the platform's opener and give its path. — defer
+- `resource-gathering-priority`: Prioritise finding high-quality resources until the resources file is well populated. — reject
+- `polished-lesson-typography`: Make lessons visually polished with clean typography so they serve later review. — reject
+- `open-artifact-for-user`: Open a generated artifact for the user with the platform's opener and give its path. — reject
 - `cross-linked-lessons`: Cross-link lessons to other lessons and reference documents. — adopt → teach#cross-linked-lessons
-- `lesson-primary-source`: Recommend one top primary source with each lesson. — defer
-- `follow-up-prompt`: Remind the learner in each lesson to ask follow-up questions. — defer
+- `lesson-primary-source`: Recommend one top primary source with each lesson. — reject
+- `follow-up-prompt`: Remind the learner in each lesson to ask follow-up questions. — reject
 - `mission-interview-first`: When the learning mission is unclear or empty, ask the learner why they want to learn before teaching. — adopt → teach#mission-interview-first
 - `mission-shift-handling`: When the mission shifts or goes stale, confirm with the learner, revise the mission and add a learning record. — adopt → teach#mission-shift-handling
-- `just-enough-knowledge`: Include only the knowledge a lesson's target skill needs, teaching it first and then practising. — defer
+- `just-enough-knowledge`: Include only the knowledge a lesson's target skill needs, teaching it first and then practising. — reject
 - `difficulty-by-kind`: Minimise difficulty when conveying knowledge but make retrieval effortful when building skills. — defer
-- `skill-practice-forms`: Teach skills through quizzes, in-browser tasks or guided real-world step lists. — defer
+- `skill-practice-forms`: Teach skills through quizzes, in-browser tasks or guided real-world step lists. — reject
 - `community-opt-out`: Respect the learner's choice not to join communities and record it. — adopt → teach#community-opt-out
 - `domain-vocabulary`: Use the project's established domain vocabulary throughout what you write. — adopt → teach#domain-vocabulary
 - `learning-record-criteria`: Write a learning record only for demonstrated understanding, disclosed prior knowledge, a corrected misconception or a mission shift, never for coverage, glossary duplicates or activity logs. — adopt → teach#learning-record-criteria
@@ -4420,44 +4422,44 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `skill-when-description-needed`: Make material a skill only when its description should sit in context or it is a user-invoked command. — reject
 
 #### engineering · X · Coordination — skill:skills/engineering/ask-matt
-- `read-skill-before-claiming`: Read a skill's own instructions before describing what it does or recommending its step be skipped, treating router summaries as orientation only. — defer
-- `unbroken-planning-window`: Keep the stages that build on each other's reasoning in one unbroken context window until the planning artifact is produced, so each stage builds on the same thinking. — defer
-- `smart-zone-budget`: Treat the window in which the model still reasons sharply (~150k tokens) as a budget, compacting at the nearest phase boundary rather than pushing on degraded. — defer
-- `boundary-only-context-decisions`: Make context-management choices only at the fuzzy boundary between two phases of work, never mid-phase where they lose the thread. — defer
-- `rule-out-continue-first`: Rule out simply continuing in the current session, which costs and loses nothing, before any lossy context move. — defer
-- `clear-disposable-context`: Clear the window outright when everything in the session is irrelevant to what comes next. — defer
-- `handoff-for-portability`: Write a portable handoff file only when the work must travel to another harness, directory, person, or a forked side task. — defer
-- `delegate-afk-work`: Send a tightly scoped task needing no steering to a subagent and leave the current session untouched. — defer
-- `compact-last`: Treat compaction as the default fallback chosen only after the cheaper context moves are ruled out, not the first reach. — defer
-- `compact-with-instruction`: Pass compaction an explicit instruction so the summary keeps what the next phase needs. — defer
-- `primary-vs-secondary-source`: Recognise that every context move but continuing replaces the live session (a primary source) with a lossy summary that restores facts but not reasoning. — defer
-- `staged-delivery-flow`: Order the work as interview, optional prototype, spec, tickets, implementation, review and retrospective. — defer
-- `interview-mode-by-workspace`: Choose the stateful, document-writing interview when a working directory exists and the stateless one when it does not. — defer
-- `prototype-detour`: Leave the main flow for a throwaway prototype when a question needs a runnable answer, then return to the flow with the answer. — defer
-- `multi-session-split`: Write a spec and split it into tickets only when the build spans several sessions, otherwise implement in the current window. — defer
-- `ticket-per-fresh-context`: Work build tickets one per fresh context window, clearing between them and taking blockers first. — defer
+- `read-skill-before-claiming`: Read a skill's own instructions before describing what it does or recommending its step be skipped, treating router summaries as orientation only. — reject
+- `unbroken-planning-window`: Keep the stages that build on each other's reasoning in one unbroken context window until the planning artifact is produced, so each stage builds on the same thinking. — reject
+- `smart-zone-budget`: Treat the window in which the model still reasons sharply (~150k tokens) as a budget, compacting at the nearest phase boundary rather than pushing on degraded. — reject
+- `boundary-only-context-decisions`: Make context-management choices only at the fuzzy boundary between two phases of work, never mid-phase where they lose the thread. — reject
+- `rule-out-continue-first`: Rule out simply continuing in the current session, which costs and loses nothing, before any lossy context move. — reject
+- `clear-disposable-context`: Clear the window outright when everything in the session is irrelevant to what comes next. — reject
+- `handoff-for-portability`: Write a portable handoff file only when the work must travel to another harness, directory, person, or a forked side task. — reject
+- `delegate-afk-work`: Send a tightly scoped task needing no steering to a subagent and leave the current session untouched. — reject
+- `compact-last`: Treat compaction as the default fallback chosen only after the cheaper context moves are ruled out, not the first reach. — reject
+- `compact-with-instruction`: Pass compaction an explicit instruction so the summary keeps what the next phase needs. — reject
+- `primary-vs-secondary-source`: Recognise that every context move but continuing replaces the live session (a primary source) with a lossy summary that restores facts but not reasoning. — reject
+- `staged-delivery-flow`: Order the work as interview, optional prototype, spec, tickets, implementation, review and retrospective. — reject
+- `interview-mode-by-workspace`: Choose the stateful, document-writing interview when a working directory exists and the stateless one when it does not. — reject
+- `prototype-detour`: Leave the main flow for a throwaway prototype when a question needs a runnable answer, then return to the flow with the answer. — reject
+- `multi-session-split`: Write a spec and split it into tickets only when the build spans several sessions, otherwise implement in the current window. — reject
+- `ticket-per-fresh-context`: Work build tickets one per fresh context window, clearing between them and taking blockers first. — reject
 - `parallel-frontier-implementers`: Run implementer subagents concurrently over the ready frontier of a ticket graph, dispatching new ones whenever a merge opens more tickets. — defer
-- `single-integration-branch`: Land every ticket of a multi-ticket build on one integration branch. — defer
+- `single-integration-branch`: Land every ticket of a multi-ticket build on one integration branch. — adopt → doc:.claude/skills/mvp-mode/playbooks/implement.md
 - `retro-in-reviewed-session`: Run a retrospective inside the session it reviews before clearing, or point it at that session's log afterwards. — adopt → reflect#retro-in-reviewed-session
-- `triage-external-only`: Triage only items the user did not author, since tickets the ticketing step produced are already agent-ready. — defer
-- `post-fix-retro`: After a bug fix, ask in the same session what would have prevented it, escalating to architecture work when no good seam exists. — defer
-- `decision-map-for-large-efforts`: Chart a decision map only for an effort too large for one session, feeding its result into spec writing rather than straight into implementation unless the effort proved small. — defer
-- `ordered-context-decision-tree`: Walk the context moves at a phase boundary as an ordered decision tree in which the first yes wins. — defer
+- `triage-external-only`: Triage only items the user did not author, since tickets the ticketing step produced are already agent-ready. — reject
+- `post-fix-retro`: After a bug fix, ask in the same session what would have prevented it, escalating to architecture work when no good seam exists. — adopt → doc:.claude/skills/mvp-mode/playbooks/bug-fix.md
+- `decision-map-for-large-efforts`: Chart a decision map only for an effort too large for one session, feeding its result into spec writing rather than straight into implementation unless the effort proved small. — reject
+- `ordered-context-decision-tree`: Walk the context moves at a phase boundary as an ordered decision tree in which the first yes wins. — reject
 
 #### engineering · X · Coordination — skill:skills/engineering/implement-spec
 - `single-integration-branch`: Land every ticket of a multi-ticket build on one integration branch. — adopt → doc:.claude/skills/mvp-mode/playbooks/implement.md#single-integration-branch
 - `dependency-edges`: Encode real blocking edges in the tracker and let the ready frontier drive execution rather than listing order. — adopt → doc:.claude/skills/mvp-mode/playbooks/implement.md#dependency-edges
-- `pointer-only-subagent-briefs`: Keep subagent communication sparse by passing pointers to the spec, tickets, notes and commits rather than copying their content. — defer
+- `pointer-only-subagent-briefs`: Keep subagent communication sparse by passing pointers to the spec, tickets, notes and commits rather than copying their content. — reject
 - `parallel-frontier-implementers`: Run implementer subagents concurrently over the ready frontier of a ticket graph, dispatching new ones whenever a merge opens more tickets. — defer
-- `exploration-notes-subagent`: Optionally run an exploration subagent that saves markdown notes outside the repository for later subagents to read. — defer
-- `draft-closing-pr`: After the first merge, open a draft pull request marked as closing the spec and tickets when the tracker closes work through pull requests or the user asks. — defer
+- `exploration-notes-subagent`: Optionally run an exploration subagent that saves markdown notes outside the repository for later subagents to read. — reject
+- `draft-closing-pr`: After the first merge, open a draft pull request marked as closing the spec and tickets when the tracker closes work through pull requests or the user asks. — reject
 - `worktree-per-implementer`: Give each implementer subagent its own worktree and branch. — adopt → doc:.claude/skills/mvp-mode/playbooks/implement.md#worktree-per-significant-change
 - `worktree-base-check`: Have each implementer confirm its worktree is based on the integration branch and reset onto it if not. — adopt → doc:.claude/skills/mvp-mode/playbooks/implement.md#worktree-base-verify
 - `red-green`: Make one test fail before implementing the change that makes it pass. — adopt → tdd#red-green
 - `pre-report-tip-merge`: Have each implementer merge the integration branch's tip into its own branch before reporting done. — adopt → doc:.claude/skills/mvp-mode/playbooks/implement.md#pre-report-base-merge
-- `dedicated-merger-agent`: Merge completed work into the integration branch through a dedicated merger subagent. — defer
-- `final-branch-review`: Once all tickets have landed, review the integration branch a single time and fix all findings through a single implementer. — defer
-- `delivery-closeout`: Finish a multi-ticket build by marking the draft pull request ready or closing the tickets, and report the branch. — defer
+- `dedicated-merger-agent`: Merge completed work into the integration branch through a dedicated merger subagent. — reject
+- `final-branch-review`: Once all tickets have landed, review the integration branch a single time and fix all findings through a single implementer. — reject
+- `delivery-closeout`: Finish a multi-ticket build by marking the draft pull request ready or closing the tickets, and report the branch. — reject
 - `worktree-cleanup`: Remove every implementer worktree when the build ends. — adopt → doc:.claude/skills/mvp-mode/playbooks/implement.md#worktree-cleanup
 - `fresh-context-subagent`: Start every subagent in a fresh context window rather than as a copy of the caller's conversation. — adopt → delegation#fresh-context-subagent
 - `no-reused-implementer`: Give each ticket, and the closing round of review fixes, a newly started implementer rather than one that already finished other work. — adopt → doc:.claude/skills/mvp-mode/playbooks/implement.md#no-reused-implementer
@@ -4532,7 +4534,7 @@ Chart a large effort as one map item on the tracker whose children are decision 
 
 #### `decision-map-for-large-efforts`
 Chart a decision map only for an effort too large for one session, feeding its result into spec writing rather than straight into implementation unless the effort proved small.
-- `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
+- `mattpocock_skills:skill:skills/engineering/ask-matt` — reject
 
 #### `destination-first`
 Name the destination first, since it fixes the scope and shapes every ticket.
@@ -4891,7 +4893,7 @@ Order a questionnaire's questions most important first.
 
 #### `interview-mode-by-workspace`
 Choose the stateful, document-writing interview when a working directory exists and the stateless one when it does not.
-- `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
+- `mattpocock_skills:skill:skills/engineering/ask-matt` — reject
 
 #### `loop-lens`
 See the user's life as loops within loops to find recurring activities worth delegating, proposing ones they have not noticed.
@@ -5170,7 +5172,7 @@ Write a new issue as a self-contained record with a plain area-and-symptom title
 
 #### `no-guessed-route`
 Without a matching route, classify but name no destination or owner, and keep the fallback empty unless one team accepts everything unmatched.
-- `cursor_plugins:skill:pstack/automations/benny/skills/setup-benny` — defer
+- `cursor_plugins:skill:pstack/automations/benny/skills/setup-benny` — out-of-scope
 - `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — out-of-scope
 
 #### `prior-rejection-check`
@@ -6070,7 +6072,7 @@ Have a monitor file one ticket per problem, comment on it when the problem recur
 #### `narrow-bot-token`
 Prefer the platform's built-in chat actions, use a separate bot token only for a named gap, keep it in a secret store, and never pass it to a worker.
 - `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — out-of-scope
-- `cursor_plugins:skill:pstack/automations/benny/skills/setup-benny` — defer
+- `cursor_plugins:skill:pstack/automations/benny/skills/setup-benny` — out-of-scope
 
 #### `nest-run-in-caller-trace`
 Propagate trace context so each run appears inside the trace of whatever called it.
@@ -6164,7 +6166,7 @@ Before each write tied to a report thread, re-read the thread to confirm its par
 
 #### `thread-safety-test-before-enable`
 Enable no chat automation until a test on a harmless report, run after everything is committed, shows it keeps to its thread, its marker and its write limits.
-- `cursor_plugins:skill:pstack/automations/benny/skills/setup-benny` — defer
+- `cursor_plugins:skill:pstack/automations/benny/skills/setup-benny` — out-of-scope
 
 #### `trusted-verdict-marker`
 Pass a report from triage to repair through a fixed one-line marker that repair accepts only from the configured triage identity, in the same thread, and only for a bug or performance verdict.
@@ -7731,7 +7733,7 @@ Link or cite only artifacts produced or read in this session.
 #### `open-artifact-for-user`
 Open a generated artifact for the user with the platform's opener and give its path.
 - `mattpocock_skills:skill:skills/engineering/improve-codebase-architecture` — reject
-- `mattpocock_skills:skill:skills/productivity/teach` — defer
+- `mattpocock_skills:skill:skills/productivity/teach` — reject
 
 #### `opening-drift-repair`
 When the piece has drifted from what its opening promised, either bring it back to that promise or change the opening.
@@ -7781,7 +7783,7 @@ Count as an action item only a decision the person alone can take, never work th
 
 #### `owner-ping-gate`
 Keep owner pings off by default and allow one only to a configured feature owner who agreed or a confirmed regression author, never a broad on-call group or an unverified owner.
-- `cursor_plugins:skill:pstack/automations/benny/skills/setup-benny` — defer
+- `cursor_plugins:skill:pstack/automations/benny/skills/setup-benny` — out-of-scope
 - `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — out-of-scope
 
 #### `parallel-list-items`
@@ -8416,7 +8418,7 @@ Use only the six bead types (epic, feature, task, bug, spike, decision) and the 
 
 #### `boundary-only-context-decisions`
 Make context-management choices only at the fuzzy boundary between two phases of work, never mid-phase where they lose the thread.
-- `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
+- `mattpocock_skills:skill:skills/engineering/ask-matt` — reject
 
 #### `brief-grouped-by-thread`
 Organize a recall brief by thread and stay on the named topic.
@@ -8462,7 +8464,7 @@ Cite sources from wiki pages without copying or editing the sources.
 
 #### `clear-disposable-context`
 Clear the window outright when everything in the session is irrelevant to what comes next.
-- `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
+- `mattpocock_skills:skill:skills/engineering/ask-matt` — reject
 
 #### `commit-on-reviewer-need`
 Leave the log out of Git unless the work is large enough that a reviewer could not trust the outcome without it.
@@ -8475,11 +8477,11 @@ Pin every recorded claim about code to a repository and commit.
 
 #### `compact-last`
 Treat compaction as the default fallback chosen only after the cheaper context moves are ruled out, not the first reach.
-- `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
+- `mattpocock_skills:skill:skills/engineering/ask-matt` — reject
 
 #### `compact-with-instruction`
 Pass compaction an explicit instruction so the summary keeps what the next phase needs.
-- `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
+- `mattpocock_skills:skill:skills/engineering/ask-matt` — reject
 
 #### `creates-log-parent`
 Have the log helper create a missing parent directory.
@@ -8598,11 +8600,11 @@ Make a handoff carry the scope, decisions, source references, verification done 
 #### `handoff-doc`
 Write a handoff document summarising the current conversation so a fresh agent can continue the work.
 - `mattpocock_skills:skill:skills/in-progress/claude-handoff` — reject
-- `mattpocock_skills:skill:skills/productivity/handoff` — defer
+- `mattpocock_skills:skill:skills/productivity/handoff` — reject
 
 #### `handoff-for-portability`
 Write a portable handoff file only when the work must travel to another harness, directory, person, or a forked side task.
-- `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
+- `mattpocock_skills:skill:skills/engineering/ask-matt` — reject
 
 #### `handoff-sensitive-data-removal`
 Take secrets, passwords and personal data out of a handoff summary, since the summary becomes the next session's prompt.
@@ -8635,7 +8637,7 @@ Record verified patterns likely to recur in the shared learnings file.
 #### `link-dont-copy`
 Reference existing artifacts by path or URL rather than copying their content into a handoff.
 - `mattpocock_skills:skill:skills/in-progress/claude-handoff` — reject
-- `mattpocock_skills:skill:skills/productivity/handoff` — defer
+- `mattpocock_skills:skill:skills/productivity/handoff` — reject
 
 #### `local-log-default`
 Keep the log as an uncommitted working file at a fixed name in the work directory, or under a hidden audit folder by task slug when several efforts run at once.
@@ -8717,7 +8719,7 @@ Sort candidates by actual modification time, never by identifier name.
 
 #### `ordered-context-decision-tree`
 Walk the context moves at a phase boundary as an ordered decision tree in which the first yes wins.
-- `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
+- `mattpocock_skills:skill:skills/engineering/ask-matt` — reject
 
 #### `outliving-tool-commit`
 Commit a work tool when the work it does outlives the session.
@@ -8737,7 +8739,7 @@ Shape a phase epic to the status-renderer contract — a bracketed phase-id titl
 
 #### `phase-scope-caps`
 Cap each phase's scope with file limits and turn budgets, counting the context cost of the mechanisms used.
-- `cursor_plugins:skill:pstack/skills/principle-guard-the-context-window` — defer
+- `cursor_plugins:skill:pstack/skills/principle-guard-the-context-window` — reject
 
 #### `pickup-read-only-gate`
 End a resume request at a named resume point, changing nothing, tracker included, and treating a note as a claim that authorizes nothing.
@@ -8758,7 +8760,7 @@ Append rows through a script that takes the log path and exactly five positional
 
 #### `primary-vs-secondary-source`
 Recognise that every context move but continuing replaces the live session (a primary source) with a lossy summary that restores facts but not reasoning.
-- `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
+- `mattpocock_skills:skill:skills/engineering/ask-matt` — reject
 
 #### `proposed-artifact-commit`
 Keep a work tool or proof artifact in the scratch folder and propose committing it when the work will be rerun or audited.
@@ -8822,7 +8824,7 @@ Have a looping run write one row for each iteration.
 
 #### `rule-out-continue-first`
 Rule out simply continuing in the current session, which costs and loses nothing, before any lossy context move.
-- `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
+- `mattpocock_skills:skill:skills/engineering/ask-matt` — reject
 
 #### `run-artifacts-uncommitted`
 Never commit a run's captures, recordings, logs or tokens to source control.
@@ -8912,7 +8914,7 @@ Count a step a note calls finished as done only after opening its supporting art
 
 #### `smart-zone-budget`
 Treat the window in which the model still reasons sharply (~150k tokens) as a budget, compacting at the nearest phase boundary rather than pushing on degraded.
-- `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
+- `mattpocock_skills:skill:skills/engineering/ask-matt` — reject
 
 #### `start-row-contents`
 Have a `start` row name the timestamp range of the rows this run did not write and identify this run in its evidence, using the `start` phase for nothing else.
@@ -8939,7 +8941,7 @@ Give each thread one line with one tag from merged, open pull request, in flight
 #### `suggested-skills`
 Name in the handoff which skills the next agent should reach for.
 - `mattpocock_skills:skill:skills/in-progress/claude-handoff` — reject
-- `mattpocock_skills:skill:skills/productivity/handoff` — defer
+- `mattpocock_skills:skill:skills/productivity/handoff` — reject
 
 #### `supersede-wiki-claims`
 Supersede a changed wiki claim with a new dated entry instead of rewriting the old one.
@@ -8952,12 +8954,12 @@ Run the shared-record sweep at the same time as chat-history mining.
 #### `tailor-to-next-focus`
 Treat any passed arguments as the next session's focus and tailor the handoff to it.
 - `mattpocock_skills:skill:skills/in-progress/claude-handoff` — reject
-- `mattpocock_skills:skill:skills/productivity/handoff` — defer
+- `mattpocock_skills:skill:skills/productivity/handoff` — reject
 
 #### `temp-dir-destination`
 Save the handoff to the operating system's temporary directory rather than the workspace.
 - `mattpocock_skills:skill:skills/in-progress/claude-handoff` — reject
-- `mattpocock_skills:skill:skills/productivity/handoff` — defer
+- `mattpocock_skills:skill:skills/productivity/handoff` — reject
 
 #### `timer-close-cancels`
 Close the card and cancel the timer on every exit, naming a cancel that failed.
@@ -9020,7 +9022,7 @@ Advise a person sending unattended work to name a fresh worktree off a base, pre
 
 #### `unbroken-planning-window`
 Keep the stages that build on each other's reasoning in one unbroken context window until the planning artifact is produced, so each stage builds on the same thinking.
-- `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
+- `mattpocock_skills:skill:skills/engineering/ask-matt` — reject
 
 #### `uniform-per-chat-schema`
 Require from each subagent one block per chat recording topic, goal, decisions, unresolved threads, difficulties, corrections and produced artifacts.
@@ -9224,7 +9226,7 @@ Recommend the main router by default and name a specific skill only when the per
 
 #### `delegate-afk-work`
 Send a tightly scoped task needing no steering to a subagent and leave the current session untouched.
-- `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
+- `mattpocock_skills:skill:skills/engineering/ask-matt` — reject
 
 #### `delegate-by-default`
 At top level, hand most work to subagents and keep the main context for coordination, integration and verification; work locally only when that has a clear advantage.
@@ -9336,7 +9338,7 @@ Follow the workflows and budgets the user sets explicitly.
 
 #### `exploration-notes-subagent`
 Optionally run an exploration subagent that saves markdown notes outside the repository for later subagents to read.
-- `mattpocock_skills:skill:skills/engineering/implement-spec` — defer
+- `mattpocock_skills:skill:skills/engineering/implement-spec` — reject
 
 #### `explorer-report-template`
 Have each explorer report a component inventory, an ordered step trace, the files it read, the boundaries and the non-obvious behaviour.
@@ -9428,7 +9430,8 @@ Read every candidate in full before choosing a base.
 
 #### `goal-in-every-brief`
 Restate the user's own goal in every brief given to a helper.
-- `cursor_plugins:skill:pstack/skills/poteto-mode` — defer
+- ours: `delegation`
+- `cursor_plugins:skill:pstack/skills/poteto-mode` — adopt → delegation#goal-in-every-brief
 
 #### `graft-change-rerun`
 After grafting, rerun the acceptance check of any previously checked behaviour the graft changed, reuse evidence for the rest and name what stays unchecked.
@@ -9721,8 +9724,8 @@ Copy a playbook's steps into the todo list before any task-specific todos.
 
 #### `pointer-only-subagent-briefs`
 Keep subagent communication sparse by passing pointers to the spec, tickets, notes and commits rather than copying their content.
-- `cursor_plugins:skill:pstack/skills/poteto-mode` — defer
-- `mattpocock_skills:skill:skills/engineering/implement-spec` — defer
+- `cursor_plugins:skill:pstack/skills/poteto-mode` — reject
+- `mattpocock_skills:skill:skills/engineering/implement-spec` — reject
 - `mattpocock_skills:skill:skills/in-progress/chief-of-staff` — defer
 
 #### `preserve-others-edits`
@@ -9775,7 +9778,7 @@ Give the judge read-only access.
 
 #### `read-skill-before-claiming`
 Read a skill's own instructions before describing what it does or recommending its step be skipped, treating router summaries as orientation only.
-- `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
+- `mattpocock_skills:skill:skills/engineering/ask-matt` — reject
 
 #### `read-worker-output`
 Open the diff or artifact a worker produced and hold it to the evidence its brief named, instead of relying on its summary.
@@ -10178,7 +10181,7 @@ Mint short-lived, single-repository tokens for each run.
 Replace secrets and personal data with placeholders in anything shown or saved.
 - ours: `systematic-debugging`
 - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs` — adopt → systematic-debugging#placeholder-sensitive-data-redaction
-- `mattpocock_skills:skill:skills/productivity/handoff` — defer
+- `mattpocock_skills:skill:skills/productivity/handoff` — reject
 
 #### `read-principle-before-applying`
 Read a principle's whole file, found by a fixed naming rule, before applying it.
@@ -10241,7 +10244,7 @@ Judge an agent CLI run by its structured result's error flag, never by its exit 
 
 #### `always-stateful-course`
 Treat every teaching request as a stateful multi-session course kept in the workspace.
-- `mattpocock_skills:skill:skills/productivity/teach` — defer
+- `mattpocock_skills:skill:skills/productivity/teach` — reject
 
 #### `authorized-course-location`
 Open a course workspace only for an explicitly requested ongoing course, in an authorized supplied location, creating its files lazily.
@@ -10312,7 +10315,7 @@ Add a figure when a picture would land faster than prose, and omit one for a sin
 
 #### `follow-up-prompt`
 Remind the learner in each lesson to ask follow-up questions.
-- `mattpocock_skills:skill:skills/productivity/teach` — defer
+- `mattpocock_skills:skill:skills/productivity/teach` — reject
 
 #### `general-tied-to-local-case`
 After the general definition, connect it to how this codebase uses the idea.
@@ -10335,7 +10338,7 @@ Admit only high-trust sources to the resources file, leaving out marketing posin
 
 #### `html-lessons`
 Deliver every lesson as one self-contained HTML file.
-- `mattpocock_skills:skill:skills/productivity/teach` — defer
+- `mattpocock_skills:skill:skills/productivity/teach` — reject
 
 #### `in-place-definition-revision`
 Revise glossary definitions in place as understanding deepens.
@@ -10356,7 +10359,7 @@ Run both investigations for a subsystem and possibly only one for a small change
 
 #### `just-enough-knowledge`
 Include only the knowledge a lesson's target skill needs, teaching it first and then practising.
-- `mattpocock_skills:skill:skills/productivity/teach` — defer
+- `mattpocock_skills:skill:skills/productivity/teach` — reject
 
 #### `knowledge-skills-wisdom-frame`
 Frame learning as knowledge from trusted sources, skills from interactive lessons and wisdom from communities.
@@ -10404,7 +10407,7 @@ Make each lesson short and self-contained, teaching one tightly scoped objective
 
 #### `lesson-primary-source`
 Recommend one top primary source with each lesson.
-- `mattpocock_skills:skill:skills/productivity/teach` — defer
+- `mattpocock_skills:skill:skills/productivity/teach` — reject
 
 #### `level-adaptation`
 Infer the learner's level from the conversation and adjust from their responses.
@@ -10511,11 +10514,11 @@ Read sections, exercises and variants from the plan, then create every folder an
 
 #### `polished-lesson-typography`
 Make lessons visually polished with clean typography so they serve later review.
-- `mattpocock_skills:skill:skills/productivity/teach` — defer
+- `mattpocock_skills:skill:skills/productivity/teach` — reject
 
 #### `preference-notes`
 Record the learner's stated teaching preferences in a notes file to steer future lessons.
-- `mattpocock_skills:skill:skills/productivity/teach` — defer
+- `mattpocock_skills:skill:skills/productivity/teach` — reject
 
 #### `problem-and-mechanism-per-part`
 For each part, explain the problem it addresses and how it actually operates.
@@ -10537,11 +10540,11 @@ Keep quiz options plausible and free of giveaways, never matched to exact answer
 
 #### `quiz-equal-length`
 Make every quiz answer the same number of words, and characters where possible, so formatting gives nothing away.
-- `mattpocock_skills:skill:skills/productivity/teach` — defer
+- `mattpocock_skills:skill:skills/productivity/teach` — reject
 
 #### `reference-sheets`
 Build durable quick-reference documents that outlive the lessons that spawned them.
-- `mattpocock_skills:skill:skills/productivity/teach` — defer
+- `mattpocock_skills:skill:skills/productivity/teach` — reject
 
 #### `renumber-on-move`
 Update numeric prefixes after a move so the order stays right.
@@ -10558,7 +10561,7 @@ List the areas the learning goal needs but no good resource covers in a gaps sec
 
 #### `resource-gathering-priority`
 Prioritise finding high-quality resources until the resources file is well populated.
-- `mattpocock_skills:skill:skills/productivity/teach` — defer
+- `mattpocock_skills:skill:skills/productivity/teach` — reject
 
 #### `resources-curation` *(retired)*
 A curated, annotated set of high-trust knowledge and community sources, with gaps surfaced explicitly.
@@ -10579,7 +10582,7 @@ Record progress only within course scope and never treat the repository root as 
 
 #### `shared-component-extraction`
 Write each new reusable lesson piece as a shared component and link to it, never inlining code a later lesson would duplicate.
-- `mattpocock_skills:skill:skills/productivity/teach` — defer
+- `mattpocock_skills:skill:skills/productivity/teach` — reject
 
 #### `show-the-real-artifact`
 Bring up the actual diff, source or debugger when that conveys the point most quickly.
@@ -10593,7 +10596,7 @@ Merge the findings of separate investigations into one continuous explanation, n
 
 #### `skill-practice-forms`
 Teach skills through quizzes, in-browser tasks or guided real-world step lists.
-- `mattpocock_skills:skill:skills/productivity/teach` — defer
+- `mattpocock_skills:skill:skills/productivity/teach` — reject
 
 #### `skills-only-interleaving`
 Interleave related topics only when practising skills, not when conveying knowledge.
@@ -10630,7 +10633,7 @@ Include the lines of inquiry worth pursuing further.
 
 #### `tight-feedback-loop`
 Teach skills through an interactive feedback loop that is as tight and immediate, ideally automatic, as possible.
-- `mattpocock_skills:skill:skills/productivity/teach` — defer
+- `mattpocock_skills:skill:skills/productivity/teach` — reject
 
 #### `topic-dependent-learning-balance`
 Vary the balance between knowledge teaching and skills practice with the topic.
@@ -10665,11 +10668,11 @@ Separate what happened from why it was chosen when explaining.
 
 #### `wisdom-community-referral`
 For questions needing real-world wisdom, attempt an answer but ultimately refer the learner to a high-reputation community.
-- `mattpocock_skills:skill:skills/productivity/teach` — defer
+- `mattpocock_skills:skill:skills/productivity/teach` — reject
 
 #### `workspace-from-run-dir`
 Resolve workspace paths from the directory the skill was run in, resolving only the format-template links from the skill folder.
-- `mattpocock_skills:skill:skills/productivity/teach` — defer
+- `mattpocock_skills:skill:skills/productivity/teach` — reject
 
 ### engineering · Discovery · Charting
 
@@ -11386,7 +11389,7 @@ Move items along defined state transitions, flagging unusual moves and letting t
 
 #### `triage-external-only`
 Triage only items the user did not author, since tickets the ticketing step produced are already agent-ready.
-- `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
+- `mattpocock_skills:skill:skills/engineering/ask-matt` — reject
 
 ### engineering · Design · Architecture
 
@@ -11964,7 +11967,7 @@ Keep the prototype as a primary source by committing it to a throwaway branch ou
 
 #### `prototype-detour`
 Leave the main flow for a throwaway prototype when a question needs a runnable answer, then return to the flow with the answer.
-- `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
+- `mattpocock_skills:skill:skills/engineering/ask-matt` — reject
 
 #### `prototype-settles-observable-fork`
 Settle a design fork whose answer can be observed by running something with a throwaway prototype instead of a question.
@@ -12385,7 +12388,7 @@ Treat an authorized migration group as one verifiable unit: only its declared in
 
 #### `multi-session-split`
 Write a spec and split it into tickets only when the build spans several sessions, otherwise implement in the current window.
-- `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
+- `mattpocock_skills:skill:skills/engineering/ask-matt` — reject
 
 #### `named-execution-scope`
 Name in the plan which one execution scope runs it, task, phase or workstream, chosen by how the work is held, and leave how that scope runs to execution.
@@ -12584,7 +12587,7 @@ Follow the context map to the right context's glossary when the repository has s
 - ours: `domain-modeling`
 - `mattpocock_skills:skill:skills/engineering/domain-modeling` — adopt → domain-modeling#context-map-lookup
 - `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — adopt → domain-modeling#context-map-lookup
-- `mattpocock_skills:skill:skills/productivity/wait-what` — defer
+- `mattpocock_skills:skill:skills/productivity/wait-what` — reject
 
 #### `context-specific-terms`
 Admit only terms specific to the project's context to the glossary, leaving general programming concepts out.
@@ -14178,7 +14181,7 @@ Before building, write blocking steps, independent work, shared state and the sm
 
 #### `ticket-per-fresh-context`
 Work build tickets one per fresh context window, clearing between them and taking blockers first.
-- `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
+- `mattpocock_skills:skill:skills/engineering/ask-matt` — reject
 
 #### `type-utilities-before-new-interface`
 Try the language's type utilities before declaring a new interface.
@@ -14350,7 +14353,7 @@ Dismiss a review comment only when it fits a recorded low-risk pattern and the c
 
 #### `final-branch-review`
 Once all tickets have landed, review the integration branch a single time and fix all findings through a single implementer.
-- `mattpocock_skills:skill:skills/engineering/implement-spec` — defer
+- `mattpocock_skills:skill:skills/engineering/implement-spec` — reject
 
 #### `final-diff-inspection`
 Inspect the final diff and Git status before finishing.
@@ -16225,11 +16228,11 @@ Let a browser page reach an outside service only through a server of ours that a
 
 #### `dedicated-merger-agent`
 Merge completed work into the integration branch through a dedicated merger subagent.
-- `mattpocock_skills:skill:skills/engineering/implement-spec` — defer
+- `mattpocock_skills:skill:skills/engineering/implement-spec` — reject
 
 #### `delivery-closeout`
 Finish a multi-ticket build by marking the draft pull request ready or closing the tickets, and report the branch.
-- `mattpocock_skills:skill:skills/engineering/implement-spec` — defer
+- `mattpocock_skills:skill:skills/engineering/implement-spec` — reject
 
 #### `destructive-git-guard`
 Without explicit approval, never skip hooks, force-push, hard-reset, clean, or rewrite history or the tree.
@@ -16237,7 +16240,7 @@ Without explicit approval, never skip hooks, force-push, hard-reset, clean, or r
 
 #### `draft-closing-pr`
 After the first merge, open a draft pull request marked as closing the spec and tickets when the tracker closes work through pull requests or the user asks.
-- `mattpocock_skills:skill:skills/engineering/implement-spec` — defer
+- `mattpocock_skills:skill:skills/engineering/implement-spec` — reject
 
 #### `evidence-before-after`
 Show concrete before/after evidence that the change works, preferring screenshots, then execution-based test or console output.
@@ -16365,7 +16368,7 @@ Commit the setup itself so the new hook runs on its own installation.
 #### `single-integration-branch`
 Land every ticket of a multi-ticket build on one integration branch.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/implement.md`
-- `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
+- `mattpocock_skills:skill:skills/engineering/ask-matt` — adopt → doc:.claude/skills/mvp-mode/playbooks/implement.md
 - `mattpocock_skills:skill:skills/engineering/implement-spec` — adopt → doc:.claude/skills/mvp-mode/playbooks/implement.md#single-integration-branch
 
 #### `skill-lands-via-branch-and-pr`
@@ -16692,9 +16695,13 @@ Keep one entry per finding so each can be approved on its own.
 Give each lens its own list of things to scan for.
 - `cursor_plugins:skill:pstack/skills/reflect` — adopt, pending cr-r2pa.2.13.2 → reflect#per-lens-scan-lists
 
+#### `post-fix-prevention`
+After a defect's cause is confirmed, propose from the run's own cause and attempt log what would have stopped it (a type or check, a missing instruction, or a lesson), and apply only what the person approves.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/bug-fix.md`
+
 #### `post-fix-retro`
 After a bug fix, ask in the same session what would have prevented it, escalating to architecture work when no good seam exists.
-- `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
+- `mattpocock_skills:skill:skills/engineering/ask-matt` — adopt → doc:.claude/skills/mvp-mode/playbooks/bug-fix.md
 
 #### `read-session-sources`
 Read the primary sources (session logs) for the session under review, defaulting to the current one.
@@ -16977,7 +16984,7 @@ Send large work through a spec, then tickets, then publishing both to the tracke
 
 #### `staged-delivery-flow`
 Order the work as interview, optional prototype, spec, tickets, implementation, review and retrospective.
-- `mattpocock_skills:skill:skills/engineering/ask-matt` — defer
+- `mattpocock_skills:skill:skills/engineering/ask-matt` — reject
 
 #### `stop-on-failure`
 Let a failed gate, exit criterion or material blocker stop advancement and diagnose instead of re-dispatching without new evidence.
