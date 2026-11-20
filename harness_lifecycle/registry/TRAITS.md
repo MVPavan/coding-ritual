@@ -1693,6 +1693,26 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `autonomous-closeout`: On every exit close the card and timer, write the patch from the base tree to the checkpoint's tree and keep the folder when stated unattended, run the trail's audit and review, and name what changed, what was discarded, each deferred discovery and what still runs.
 - `cold-automated-review-run`: Have a separate run read the diff without the author's context, against the codebase's standards and the originating ticket.
 
+#### babysit — `doc:.claude/skills/mvp-mode/playbooks/babysit.md`
+- `declared-watch-mode`: Declare one watch mode before the first read of a pull request (drive to merge-ready, background without pushing, threads-only, or a one-pass check, which small or documentation-only pull requests get), defaulting to drive.
+- `merge-frontier-only`: Work only the lowest unmerged pull request of a stack, reading and batching upstack threads but never fixing upstack at the cost of restarting the frontier's checks.
+- `stack-topology-frozen`: While watching pull requests, never retarget a base, rebase or force-push, and report a conflict, a stale base or a fix whose owner merged, with the branch that needs it.
+- `babysit-push-reply-grant`: In a watch that drives to merge-ready or answers threads, push fix commits to the pull request's own branch and reply on its review threads without asking each time, and nothing more.
+- `babysit-never-merges`: Treat a watch as granting no merge, queued or automatic, and send a request to merge to the landing playbook as the next step.
+- `stack-wide-claim`: Lock a watched stack with one claim on the bead the stack implements, found the same way from any entry pull request, stopping a run that would change anything when it finds no bead or another actor holds the claim, and releasing only a claim this run took.
+- `positive-readiness-predicate`: Call a pull request ready only when it reads open and not a draft, approved or needing no review, with required checks passing, a clean merge state and every review thread resolved across all pages, counting unknown or unavailable data as not ready.
+- `conflicts-threads-ci-order`: Work a pull request's blockers as conflicts, then review threads, then checks, batching every known fix into one push.
+- `conflicted-frontier-stop`: Stop work on a conflicted frontier pull request after naming the branch to rebase and the sweep of trunk for new callers that the rebase must include.
+- `owning-pr-red-first-fix`: Fix a confirmed review finding with a failing check first, in the lowest pull request whose code it concerns, never at the tip, and report one whose owning pull request has merged.
+- `high-impact-finding-escalation`: Send a review finding that plausibly touches security, authentication, billing, data or migrations, or that stays materially ambiguous, to the owner instead of dismissing it.
+- `ci-classified-before-rerun`: Classify a failing check before any rerun: flake or infrastructure earns one fresh run, an identical second failure is read in its logs, a failure outside the diff is checked as a stale base, and only a failure in the diff's own code gets a fix.
+- `full-workflow-rerun-grant`: Allow one fresh full run of a failing workflow per failure classified as flake or infrastructure, never a single-job retry, and only in a watch that may change the forge.
+- `reply-from-file`: Write every published reply or comment body to a file and publish it from that file, never interpolating its text into a command.
+- `thread-replies-confirmed`: Reply on each review thread through the forge's thread-reply endpoint, then read the threads back and record which received replies and which still await resolution.
+- `bounded-background-wait`: Wait on a command in the background with a finite lifetime and its completion notice, or in the foreground; with neither available take the stopped-waiting exit.
+- `event-wait-with-fresh-read`: Wait on running checks with the forge's checks watch and on any other forge event with a fixed-interval bounded wait, reading the forge afresh on every notice or timeout before acting.
+- `babysit-closeout`: On every exit of a pull-request watch, release the claim unless the watch continues, and sweep the run's thread decisions once, proposing any recurring dismissal pattern as a lesson.
+
 #### bug-fix — `doc:.claude/skills/mvp-mode/playbooks/bug-fix.md`
 - `confirmed-cause-gate`: Change production code only for a confirmed cause, and reject any change that merely hides the symptom.
 - `stated-unattended-gate`: Treat a run as unattended only when the request's own words say so; otherwise it is attended, whatever its length.
@@ -1879,6 +1899,24 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `resumed-run-handover`: Tell the run taking resumed work on how to list its steps: a proved step as a skip with evidence, an open call invoked again whole, a gate held as new, and that it owns the work's checkpoint file.
 - `read-only-closeout`: On every exit of a read-only run, confirm against the starting state, by a checksum for a path already dirty, that nothing changed but an explicitly requested reply artifact, and name the scratch files kept.
 
+#### shipping — `doc:.claude/skills/mvp-mode/playbooks/shipping.md`
+- `shipping-merge-grant`: Read a request to ship or land as authority to merge the verified run and, for a stack, to retarget the next pull request to trunk and force-push with lease on its own branch once its parent lands, and nothing else.
+- `contiguous-verified-run`: Land only the unbroken run of verified pull requests from the bottom of a stack, stopping at the first without a covering verdict and going past it only through new verdicts.
+- `hands-off-while-landing`: While a verified run lands, change no branch or base beyond the landing's own moves, and find out why a merge stalls before changing anything.
+- `stack-wide-claim`: Lock a watched stack with one claim on the bead the stack implements, found the same way from any entry pull request, stopping a run that would change anything when it finds no bead or another actor holds the claim, and releasing only a claim this run took.
+- `stack-snapshot-before-writes`: Before any landing write, record the stack from the bottom up with each pull request's head SHA, base ref and old parent tip, and merge only an open pull request whose base is trunk.
+- `verdict-reuse-on-tree`: Reuse an earlier verdict only when its record names the tree it ran on and the independent reviewer, and that tree equals the current head's tree, and otherwise verify again.
+- `independent-user-run-verdict`: Before a pull request lands, have a verifier that did not write it run the change as a user would against its base and return PASS, PASS+NOTES or FAIL bound to the tree and head SHA it ran on, counting green checks or an approving bot review as no verdict.
+- `verdict-on-pr-and-bead`: Post each verifier verdict, from a file, both as a comment on the pull request and as a comment on its bead.
+- `verdict-receipts-before-merge`: Before merging a pull request, confirm that its verdict's keyed post exists both on the pull request and on its bead, whether the verdict is fresh or reused, posting a missing one from the record or stopping.
+- `trunk-ancestor-before-merge`: Immediately before merging, fetch trunk and stop when its tip is not an ancestor of the verified head, which then needs updating and a fresh verdict.
+- `direct-merge-mutation-at-verified-head`: Merge only through a direct merge call pinned to the verified head SHA that merges at once or fails, never queuing or arming auto-merge, and stop when the forge requires a merge queue.
+- `bottom-up-merge-read-back`: Merge a stack's lowest unmerged pull request one at a time and read each back as merged with trunk as its base, counting a queued merge or a requested auto-merge as no merge.
+- `pinned-lease-child-move`: After a parent lands, move only the child's own commits onto trunk from the recorded old parent tip, push with a lease pinned to the observed old head SHA, verify the head and base afterwards, and stop with the observed state on any failed or mismatched write.
+- `bounded-background-wait`: Wait on a command in the background with a finite lifetime and its completion notice, or in the foreground; with neither available take the stopped-waiting exit.
+- `event-wait-with-fresh-read`: Wait on running checks with the forge's checks watch and on any other forge event with a fixed-interval bounded wait, reading the forge afresh on every notice or timeout before acting.
+- `merge-evidence-bead-close`: After reading a merge back, close the pull request's bead with that evidence when its acceptance holds, and otherwise comment the evidence and leave it open.
+
 #### skill-curation — `doc:.claude/skills/mvp-mode/playbooks/skill-curation.md`
 - `curation-role-separation`: Split curation into an owner who decides every ruling and approves delivery, an author who gathers evidence and drafts but never approves its own work, and a critic who reviews from a separate context and never edits during review.
 - `curation-intake-bead`: Open each curation change as one bead typed by its origin: a spike for an upstream review, a bug for an observed failure, a feature for a new capability.
@@ -1918,6 +1956,18 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `source-attribution-or-gap`: Map a finding to a file, symbol and line through the artifact's own symbols, or state that the artifact does not carry them; an unmapped frame is not a diagnosis.
 - `paired-capture-confirmation`: Confirm a finding by diffing a before and an after capture, and without a pair label it the strongest hypothesis the artifact supports.
 - `forensics-closeout`: On every exit of an artifact reading, leave the artifact unchanged, name the derived files kept and delete the rest.
+
+#### visual-parity — `doc:.claude/skills/mvp-mode/playbooks/visual-parity.md`
+- `frozen-baseline-no-shortcuts`: Treat a visual baseline as the specification: never edit the harness, the baseline images or a component's structure to make a diff pass, and stop and ask the owner when the baseline looks wrong.
+- `visual-pass-predicate`: Judge every visual diff of a migration by one pass predicate, exact equality unless the request gives a metric and a limit, and report each measured delta beside the limit.
+- `harness-with-pre-change-baseline`: Build the verification harness first and capture a baseline before changing anything, so results read as old against new.
+- `shared-primitives-first`: Migrate the primitives other components share first, as a blocking phase, and show every dependent component unchanged before any other component moves.
+- `one-component-at-a-time`: Migrate one component, then prove it against its baseline before the next one moves.
+- `baseline-surface-image-diff`: Compare a migrated component with its baseline by image diff on the surface the baseline was captured on, never by eye.
+- `parallel-components-on-request`: Split a migration across parallel worktrees, one owner per component, only when the owner asks for it.
+- `integrated-tree-rediff`: Before committing migrated components, rerun on the exact tree to be committed every state the batch could affect, or every in-scope state when that set is unclear, and judge it against the baseline.
+- `publish-requested-pr`: When the request authorizes it, push the verified commits and open the pull request, and report its URL or the exact reason it was not published.
+- `visual-migration-closeout`: On every exit of a visual migration, keep the harness, the baseline and each failing diff's images or the command that reproduces them, remove other scratch captures, and record each component's measured delta and limit and the components left.
 
 #### worktree-cleanup — `doc:.claude/skills/mvp-mode/playbooks/worktree-cleanup.md`
 - `advisory-audit-bucket`: Treat an audit's cleanup bucket as advice that the owner's list of pinned work overrides.
@@ -6011,6 +6061,10 @@ Verify the plugin-owned template, installer, updater and doctor use the shared r
 Classify a check that stands for a human approval as its own kind, never pending or failed, so the watcher never waits on it.
 - `cursor_plugins:skill:pstack/skills/poteto-mode` — defer
 
+#### `babysit-closeout`
+On every exit of a pull-request watch, release the claim unless the watch continues, and sweep the run's thread decisions once, proposing any recurring dismissal pattern as a lesson.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/babysit.md`
+
 #### `blocker-priority`
 Rank blockers as conflicts, open threads, failing checks, merge gates, then pending checks, scanning each tier across the whole stack first and naming the pull request a wait is really on.
 - `cursor_plugins:skill:pstack/skills/poteto-mode` — defer
@@ -6023,9 +6077,17 @@ Read checks by a fast path with a paginated fallback and page review threads to 
 Keep status output to the table plus a one-line recommendation, never dumping full diffs.
 - ours: `harness-status`
 
+#### `conflicts-threads-ci-order`
+Work a pull request's blockers as conflicts, then review threads, then checks, batching every known fix into one push.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/babysit.md`
+
 #### `correction-window-before-fix`
 Wait out a configured window for corrections before the fix phase, and rerun the reproduction once on one valid correction.
 - `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — out-of-scope
+
+#### `declared-watch-mode`
+Declare one watch mode before the first read of a pull request (drive to merge-ready, background without pushing, threads-only, or a one-pass check, which small or documentation-only pull requests get), defaulting to drive.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/babysit.md`
 
 #### `deliberate-none-observability`
 Allow an explicit choice of no observability product, for that slot alone, when the runner or orchestrator already shows enough.
@@ -6038,6 +6100,11 @@ Let an opt-in flag stop a draft from blocking, wait for checks before reporting 
 #### `earlier-pass-flag`
 Record with each CI state whether any earlier commit of the pull request passed.
 - `cursor_plugins:skill:pstack/skills/poteto-mode` — defer
+
+#### `event-wait-with-fresh-read`
+Wait on running checks with the forge's checks watch and on any other forge event with a fixed-interval bounded wait, reading the forge afresh on every notice or timeout before acting.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/babysit.md`
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/shipping.md`
 
 #### `fail-closed-run-config`
 Stop a run before any write when its configuration or a required tool or map is missing, malformed or incomplete.
@@ -6060,6 +6127,10 @@ Pair a logging proxy for model calls with a tracing or monitoring product so too
 #### `human-status-rendering`
 Render a table of each pull request's checks, review and merge state with full links, and give each blocker a next action.
 - `cursor_plugins:skill:pstack/skills/poteto-mode` — defer
+
+#### `merge-frontier-only`
+Work only the lowest unmerged pull request of a stack, reading and batching upstack threads but never fixing upstack at the cost of restarting the frontier's checks.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/babysit.md`
 
 #### `merge-queue-frontier-polling`
 In a merge queue, sweep every unmerged pull request at intervals and otherwise poll only the lowest, resuming a sweep at a failed read and waiting on the queue whatever upstream checks are pending.
@@ -6114,6 +6185,10 @@ Budget tracing per run rather than per request, estimating one span per tool cal
 Fetching upstream refs updates only the local cache and never moves pinned submodule commits, with a no-fetch option to skip the network when offline.
 - ours: `harness-scan`
 - ours: `harness-status`
+
+#### `positive-readiness-predicate`
+Call a pull request ready only when it reads open and not a draft, approved or needing no review, with required checks passing, a clean merge state and every review thread resolved across all pages, counting unknown or unavailable data as not ready.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/babysit.md`
 
 #### `pr-context-resolution`
 Resolve repository and pull request from flags, then the local remote, then the branch's pull request, accepting only canonical forge addresses.
@@ -9674,6 +9749,10 @@ Name the single owner when two skills or commands appear to overlap.
 Take each role's vendor, model and settings from the owner's roster, let a model the owner names override it for one dispatch, and ask the owner when neither exists rather than choosing.
 - ours: `delegation`
 
+#### `parallel-components-on-request`
+Split a migration across parallel worktrees, one owner per component, only when the owner asks for it.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/visual-parity.md`
+
 #### `partition-or-race-shape`
 Choose whether workers split the work into slices, race on identical briefs or both.
 - `cursor_plugins:skill:pstack/skills/swarm` — reject
@@ -9952,6 +10031,11 @@ Expect only one or two grafts from a losing candidate, not the bulk of it.
 - ours: `model-council`
 - `cursor_plugins:skill:pstack/skills/arena` — adopt → model-council#sparse-grafts
 
+#### `stack-wide-claim`
+Lock a watched stack with one claim on the bead the stack implements, found the same way from any entry pull request, stopping a run that would change anything when it finds no bead or another actor holds the claim, and releasing only a claim this run took.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/babysit.md`
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/shipping.md`
+
 #### `stalled-worker-by-output`
 Stop or replace a worker that stalls or loops, judging it by what it has produced rather than its status text.
 - ours: `delegation`
@@ -10089,6 +10173,10 @@ Under a full-autonomy grant, make every decision within its reach yourself, carr
 Treat phrases such as "don't stop" or "going to bed" as switching the session to continue without stopping.
 - `cursor_plugins:skill:pstack/skills/poteto-mode` — defer
 
+#### `babysit-push-reply-grant`
+In a watch that drives to merge-ready or answers threads, push fix commits to the pull request's own branch and reply on its review threads without asking each time, and nothing more.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/babysit.md`
+
 #### `consequential-action-authorization`
 Require authorization before publishing, deploying, sending messages, taking destructive actions or expanding scope.
 - `doc:AGENTS.md`
@@ -10190,6 +10278,10 @@ Read a principle's whole file, found by a fixed naming rule, before applying it.
 #### `redact-secrets` *(retired)*
 Redact secrets and personal data as placeholders in anything shown or saved, driving commands from environment variables so credentials never appear.
 
+#### `reply-from-file`
+Write every published reply or comment body to a file and publish it from that file, never interpolating its text into a command.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/babysit.md`
+
 #### `run-checks-yourself`
 Run any check you are able to run instead of asking the user to run it.
 - `cursor_plugins:skill:pstack/skills/poteto-mode` — adopt, pending cr-r2pa.2.13.3 → doc:AGENTS.md
@@ -10210,6 +10302,10 @@ Keep secrets and private data out of any destination not authorized to hold them
 - `cursor_plugins:skill:pstack/skills/blast-radius` — adopt → doc:AGENTS.md
 - `cursor_plugins:skill:pstack/skills/make-bot-ui` — adopt → doc:AGENTS.md
 - `cursor_plugins:skill:pstack/skills/recall` — adopt → doc:AGENTS.md
+
+#### `shipping-merge-grant`
+Read a request to ship or land as authority to merge the verified run and, for a stack, to retarget the next pull request to trunk and force-push with lease on its own branch once its parent lands, and nothing else.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/shipping.md`
 
 #### `signal-lines-only`
 Quote only the signal-carrying lines from captured artifacts that may hold credentials.
@@ -12368,6 +12464,7 @@ Without a tracker, write one numbered file per ticket in dependency order, never
 #### `harness-with-pre-change-baseline`
 Build the verification harness first and capture a baseline before changing anything, so results read as old against new.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md`
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/visual-parity.md`
 - `cursor_plugins:skill:pstack/skills/figure-it-out` — adopt → doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md
 
 #### `independently-landable-units`
@@ -13501,8 +13598,10 @@ Capture current behaviour in a check before moving structure, where a type check
 #### `bounded-background-wait`
 Wait on a command in the background with a finite lifetime and its completion notice, or in the foreground; with neither available take the stopped-waiting exit.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md`
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/babysit.md`
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/bug-fix.md`
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/hillclimb.md`
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/shipping.md`
 
 #### `bounded-concurrency`
 Bound the concurrency of parallel async calls.
@@ -13902,6 +14001,10 @@ Pass a single object in place of positional arguments so order is irrelevant and
 Make one change, take one measurement, then keep or undo it, never stacking untested changes.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/hillclimb.md`
 
+#### `one-component-at-a-time`
+Migrate one component, then prove it against its baseline before the next one moves.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/visual-parity.md`
+
 #### `one-discriminant-name`
 Settle on a single tag field name and use it consistently.
 - `cursor_plugins:skill:pstack/skills/typescript-best-practices` — out-of-scope
@@ -14101,6 +14204,10 @@ Seal a finished round's ledger file so the validator fails if it changes.
 #### `shared-fix-ported`
 Port a fix to shared code to every consumer and verify each one.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/feature.md`
+
+#### `shared-primitives-first`
+Migrate the primitives other components share first, as a blocking phase, and show every dependent component unchanged before any other component moves.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/visual-parity.md`
 
 #### `simplest-total-type`
 Keep a loose type while every operation on it is defined for all inputs, tightening it only where it forces an assertion, a cast or an impossible-case throw.
@@ -14368,6 +14475,10 @@ Confirm the review ref resolves and the diff is non-empty before fanning out, fa
 - ours: `review`
 - `mattpocock_skills:skill:skills/engineering/code-review` — adopt → review#fixed-point-preflight
 
+#### `high-impact-finding-escalation`
+Send a review finding that plausibly touches security, authentication, billing, data or migrations, or that stays materially ambiguous, to the owner instead of dismissing it.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/babysit.md`
+
 #### `historical-vs-active-guidance`
 When editing documentation, keep historical evidence clearly distinguishable from guidance that is still in force.
 - `doc:.repo-context/verification.md`
@@ -14418,6 +14529,10 @@ Never skip a review finding automatically when it concerns security, privacy, mo
 #### `no-cross-axis-rerank`
 Never merge or rerank findings across review axes or pick a single overall winner.
 - `mattpocock_skills:skill:skills/engineering/code-review` — reject
+
+#### `owning-pr-red-first-fix`
+Fix a confirmed review finding with a failing check first, in the lowest pull request whose code it concerns, never at the tip, and report one whose owning pull request has merged.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/babysit.md`
 
 #### `parallel-subagents`
 Run the review axes as parallel foreground sub-agents so their contexts do not pollute each other.
@@ -14521,6 +14636,10 @@ Judge tests by whether they detect meaningful failures with independent expectat
 Check that a new reader can say where a value comes from and what can change it in under thirty seconds.
 - `cursor_plugins:skill:pstack/skills/principle-minimize-reader-load` — reject
 
+#### `thread-replies-confirmed`
+Reply on each review thread through the forge's thread-reply endpoint, then read the threads back and record which received replies and which still await resolution.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/babysit.md`
+
 #### `three-dot-merge-base`
 Compare against the merge-base using a three-dot git diff so unrelated upstream changes are excluded.
 - `mattpocock_skills:skill:skills/engineering/code-review` — adopt → review#merge-base-default-scope
@@ -14594,6 +14713,10 @@ Open the map index with the shared preconditions: launch address, seed data and 
 Start each recipe from the baseline state unless it says otherwise, and return to the required state before proving the next case when an earlier step changed it.
 - ours: `create-verification-skill`
 - `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#baseline-start-and-reset
+
+#### `baseline-surface-image-diff`
+Compare a migrated component with its baseline by image diff on the surface the baseline was captured on, never by eye.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/visual-parity.md`
 
 #### `before-after-proof-report`
 Name the check that failed before the fix with its failure, and the passing run after the fix with any nearby validation.
@@ -14886,6 +15009,10 @@ Write the smallest test focused on this bug, without broad fixture changes or ad
 In a maintenance pass over a formal verify skill, compare the skill with the formal contract as it is now (its sections, its runner's steps and its recorded install recipe) and report each gap as a follow-up, fixing none, except writing the coverage record for a skill that has none.
 - ours: `maintain-formal-verification-skill`
 
+#### `frozen-baseline-no-shortcuts`
+Treat a visual baseline as the specification: never edit the harness, the baseline images or a component's structure to make a diff pass, and stop and ask the owner when the baseline looks wrong.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/visual-parity.md`
+
 #### `full-verification-at-completion`
 At the end of a planned migration or rewrite, run full static and runtime verification, not only the checks the last change touched.
 - ours: `principle-migrate-without-shims`
@@ -14964,6 +15091,10 @@ Compare the map index with its feature files and fix missing, extra, duplicate o
 Establish whether two instances can run side by side through separate ports, data folders or profiles.
 - ours: `create-verification-skill`
 - `cursor_plugins:skill:pstack/skills/create-verification-skill` — adopt → create-verification-skill#instance-isolation-probe
+
+#### `integrated-tree-rediff`
+Before committing migrated components, rerun on the exact tree to be committed every state the batch could affect, or every in-scope state when that set is unclear, and judge it against the baseline.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/visual-parity.md`
 
 #### `launch-from-empty-data`
 Require a launch to become usable starting from an empty data folder, migrations and seed data included.
@@ -15484,6 +15615,14 @@ During a verification pass, edit only the verification skill's own files and nev
 Confirm interface behaviour in an actual running build.
 - `cursor_plugins:skill:pstack/skills/typescript-best-practices` — out-of-scope
 
+#### `visual-migration-closeout`
+On every exit of a visual migration, keep the harness, the baseline and each failing diff's images or the command that reproduces them, remove other scratch captures, and record each component's measured delta and limit and the components left.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/visual-parity.md`
+
+#### `visual-pass-predicate`
+Judge every visual diff of a migration by one pass predicate, exact equality unless the request gives a metric and a limit, and report each measured delta beside the limit.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/visual-parity.md`
+
 #### `wait-on-condition-not-sleep`
 Wait for a concrete result element or status rather than a fixed delay.
 - ours: `create-verification-skill`
@@ -15589,6 +15728,10 @@ On first use, install a pinned, checksum-verified checker outside the repository
 #### `checker-install-signed-and-undoable`
 Before a per-user checker install changes anything, verify each tool it downloads against a pinned checksum and, where the publisher signs its release, against that publisher's signature under a pinned key fingerprint (mise and the Temurin Java build; the TLC jar has no signature and is checked by its checksums alone); record an inventory and an ownership manifest of what the install creates, and on failure or removal undo only what it created and still owns unchanged.
 - ours: `statechart`
+
+#### `ci-classified-before-rerun`
+Classify a failing check before any rerun: flake or infrastructure earns one fresh run, an identical second failure is read in its logs, a failure outside the diff is checked as a stale base, and only a failure in the diff's own code gets a fix.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/babysit.md`
 
 #### `claim-evidence-table`
 Hold each kind of completion claim to a fixed table naming the evidence that proves it and the tempting proxy that does not.
@@ -15720,6 +15863,10 @@ Write only to a new or empty output folder, staging the results and moving them 
 - ours: `statechart`
 - `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#fresh-output-published-atomically
 
+#### `full-workflow-rerun-grant`
+Allow one fresh full run of a failing workflow per failure classified as flake or infrastructure, never a single-job retry, and only in a watch that may change the forge.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/babysit.md`
+
 #### `generated-check-catches-planted-break`
 Follow the generated skill once against a throwaway edit to real code that violates the property, confirm it catches the break, then remove the edit and confirm the check is back to its earlier state.
 - ours: `create-formal-verification-skill`
@@ -15754,6 +15901,10 @@ List the rules that hold.
 Write each rendered image beside its chart file under the same name and give it to the person.
 - ours: `statechart`
 - `cursor_plugins:skill:pstack/skills/statechart` — adopt → statechart#image-beside-chart
+
+#### `independent-user-run-verdict`
+Before a pull request lands, have a verifier that did not write it run the change as a user would against its base and return PASS, PASS+NOTES or FAIL bound to the tree and head SHA it ran on, counting green checks or an approving bot review as no verdict.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/shipping.md`
 
 #### `inferred-sync-commit`
 With no recorded sync commit, take the most recent commit that touched the verification files and say so.
@@ -16162,9 +16313,17 @@ Order commits so the history proves the work (failing test before fix, removal b
 - ours: `principle-sequence-verifiable-units`
 - `cursor_plugins:skill:pstack/skills/principle-sequence-verifiable-units` — adopt → principle-sequence-verifiable-units#argument-order-commits
 
+#### `babysit-never-merges`
+Treat a watch as granting no merge, queued or automatic, and send a request to merge to the landing playbook as the next step.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/babysit.md`
+
 #### `base-ref-fallback-and-fetch`
 Judge merge state against a ref given by flag, else the remote default, main or master with a warning, fetching it first and only warning if the fetch fails.
 - `cursor_plugins:skill:pstack/skills/poteto-mode` — reject
+
+#### `bottom-up-merge-read-back`
+Merge a stack's lowest unmerged pull request one at a time and read each back as merged with trunk as its base, counting a queued merge or a requested auto-merge as no merge.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/shipping.md`
 
 #### `bucketed-worktree-report`
 List every non-main worktree read-only with its size, age, merge, dirty, remote, pull request and last-chat columns, a suggested bucket by fixed precedence, largest first.
@@ -16214,6 +16373,14 @@ Commit or push only when authorized, and amend only when asked.
 Run formatting of staged files, then the type check, then the tests in a pre-commit hook.
 - `mattpocock_skills:skill:skills/misc/setup-pre-commit` — reject
 
+#### `conflicted-frontier-stop`
+Stop work on a conflicted frontier pull request after naming the branch to rebase and the sweep of trunk for new callers that the rebase must include.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/babysit.md`
+
+#### `contiguous-verified-run`
+Land only the unbroken run of verified pull requests from the bottom of a stack, stopping at the first without a covering verdict and going past it only through new verdicts.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/shipping.md`
+
 #### `conventional-commit-title`
 Title a commit type(scope): imperative subject, no trailing period, naming the real symbol that carries the change.
 - ours: `land`
@@ -16238,6 +16405,10 @@ Finish a multi-ticket build by marking the draft pull request ready or closing t
 Without explicit approval, never skip hooks, force-push, hard-reset, clean, or rewrite history or the tree.
 - `doc:AGENTS.md`
 
+#### `direct-merge-mutation-at-verified-head`
+Merge only through a direct merge call pinned to the verified head SHA that merges at once or fails, never queuing or arming auto-merge, and stop when the forge requires a merge queue.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/shipping.md`
+
 #### `draft-closing-pr`
 After the first merge, open a draft pull request marked as closing the spec and tickets when the tracker closes work through pull requests or the user asks.
 - `mattpocock_skills:skill:skills/engineering/implement-spec` — reject
@@ -16258,6 +16429,10 @@ Stage only the resolved files from the captured conflict set by explicit path.
 #### `failed-post-outbox`
 When a post can fail, append the same record to a local log that the receiver drains, rather than relying on polling.
 - `cursor_plugins:skill:pstack/skills/make-bot-ui` — reject
+
+#### `hands-off-while-landing`
+While a verified run lands, change no branch or base beyond the landing's own moves, and find out why a merge stalls before changing anything.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/shipping.md`
 
 #### `history-preserving-moves`
 Rename or move tracked files with git's own move command rather than a plain move.
@@ -16288,6 +16463,10 @@ State the merge's one-way or two-way door and its blast radius.
 - ours: `pr`
 - `mattpocock_skills:skill:skills/engineering/pr` — adopt → pr#merge-danger
 
+#### `merge-evidence-bead-close`
+After reading a merge back, close the pull request's bead with that evidence when its acceptance holds, and otherwise comment the evidence and leave it open.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/shipping.md`
+
 #### `merged-result-verification`
 Verify the merged result after merging.
 - `doc:AGENTS.md`
@@ -16303,6 +16482,10 @@ Assign only the task's changed paths to commits, leaving and naming every other 
 #### `pilot-on-mirror-with-fallback`
 Try a new host on a mirror of one repository while the existing host stays as the fallback.
 - `mattpocock_skills:skill:skills/in-progress/software-factory` — defer
+
+#### `pinned-lease-child-move`
+After a parent lands, move only the child's own commits onto trunk from the recorded old parent tip, push with a lease pinned to the observed old head SHA, verify the head and base afterwards, and stop with the observed state on any failed or mismatched write.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/shipping.md`
 
 #### `pinned-set-cross-check`
 Cross-check every cleanup candidate against the owner's list of pinned or in-use worktrees, holding a recently active one to ask.
@@ -16332,6 +16515,10 @@ Have each implementer merge the integration branch's tip into its own branch bef
 #### `prune-on-approval-gate`
 Remove a worktree only after the owner approves that exact worktree, even when it is clean and merged.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/worktree-cleanup.md`
+
+#### `publish-requested-pr`
+When the request authorizes it, push the verified commits and open the pull request, and report its URL or the exact reason it was not published.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/visual-parity.md`
 
 #### `remote-push-state`
 Report each worktree branch as detached, pushed, ahead by a count, or with no remote branch.
@@ -16385,6 +16572,14 @@ Keep each commit small and about one thing.
 - `cursor_plugins:skill:pstack/skills/correct` — reject
 - `cursor_plugins:skill:pstack/skills/principle-foundational-thinking` — adopt → principle-sequence-verifiable-units#small-single-purpose-commits
 
+#### `stack-snapshot-before-writes`
+Before any landing write, record the stack from the bottom up with each pull request's head SHA, base ref and old parent tip, and merge only an open pull request whose base is trunk.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/shipping.md`
+
+#### `stack-topology-frozen`
+While watching pull requests, never retarget a base, rebase or force-push, and report a conflict, a stale base or a fix whose owner merged, with the branch that needs it.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/babysit.md`
+
 #### `staged-only-formatting`
 Format only the staged files at commit time, skipping file types the formatter cannot read.
 - `mattpocock_skills:skill:skills/misc/setup-pre-commit` — reject
@@ -16397,6 +16592,10 @@ Find the primary source of each conflict via commit messages and requirements fi
 Count tracked edits as work in progress and untracked files alone as disposable scratch.
 - `cursor_plugins:skill:pstack/skills/poteto-mode` — reject
 
+#### `trunk-ancestor-before-merge`
+Immediately before merging, fetch trunk and stop when its tip is not an ancestor of the verified head, which then needs updating and a fresh verdict.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/shipping.md`
+
 #### `uncommitted-work-pause`
 Pause on a worktree with uncommitted work, show its diff or name its untracked files, and wait for the owner's decision.
 - playbook: `doc:.claude/skills/mvp-mode/playbooks/worktree-cleanup.md`
@@ -16404,6 +16603,18 @@ Pause on a worktree with uncommitted work, show its diff or name its untracked f
 #### `unmerged-work-protection`
 On a failed merge preserve the work, and before destroying unmerged work show what would be lost and get explicit confirmation.
 - `doc:AGENTS.md`
+
+#### `verdict-on-pr-and-bead`
+Post each verifier verdict, from a file, both as a comment on the pull request and as a comment on its bead.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/shipping.md`
+
+#### `verdict-receipts-before-merge`
+Before merging a pull request, confirm that its verdict's keyed post exists both on the pull request and on its bead, whether the verdict is fresh or reused, posting a missing one from the record or stopping.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/shipping.md`
+
+#### `verdict-reuse-on-tree`
+Reuse an earlier verdict only when its record names the tree it ran on and the independent reviewer, and that tree equals the current head's tree, and otherwise verify again.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/shipping.md`
 
 #### `verified-work-only`
 Refuse to land work not verified on its final form, rechecking behaviour if a closeout changed executable content, and report the gap.
@@ -17240,7 +17451,7 @@ Traits listed by two or more of our active skills (`doc:AGENTS.md` and playbooks
 | `authority-separation` | doc:.claude/skills/mvp-mode/playbooks/skill-curation.md, harness-publish | harness-publish confirms publish and commit authority separately at its own entry; the playbook's delivery step states the same split for the whole curation path. Each is read alone. |
 | `baseline` | performance-optimization, systematic-debugging | Each measures before a fix: performance-optimization for a resource target, systematic-debugging when the failure diagnosed is a performance regression, which it hands to the fixer. |
 | `baseline-check-before-change` | maintain-formal-verification-skill, principle-sequence-verifiable-units | principle-sequence-verifiable-units runs a multi-step change's checks on the starting base first; maintain-formal-verification-skill runs the formal skill's command once before any edit and keeps its output and exit code as the pass's baseline, classing a failure only after the update. |
-| `bounded-background-wait` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md | The same one sentence on waiting sits at each step that waits, with its own stopped exit; no skill is called for it. |
+| `bounded-background-wait` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/babysit.md, doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md, doc:.claude/skills/mvp-mode/playbooks/shipping.md | The same one sentence on waiting sits at each step that waits, with its own stopped exit; no skill is called for it. |
 | `build-closeout` | doc:.claude/skills/mvp-mode/playbooks/feature.md, doc:.claude/skills/mvp-mode/playbooks/perf-issue.md, doc:.claude/skills/mvp-mode/playbooks/refactoring.md | Each playbook's closeout runs on its own exits and feeds its own reply, and these three have the same three duties; a skill of three duties would be ceremony (unit-kinds deviation log, St4 and B4). |
 | `canonical-term-and-aliases` | domain-modeling, teach | Each keeps a glossary of its own (project language, the learner's workspace) in one entry format, with its own admission rules. |
 | `change-proven-by-second-read` | create-verification-skill, maintain-verification-skill | The generator's map contract proves a saved change through a separate read-only view, and the maintenance pass names that product command for each saved change it drives (ruling C). |
@@ -17259,6 +17470,7 @@ Traits listed by two or more of our active skills (`doc:AGENTS.md` and playbooks
 | `dropout-proceeds-noted` | interrogate, model-council | A failed member and a failed adversary are handled alike, going on and reporting it, but what is left when too few remain differs: no pick for one, not run for the other. |
 | `dry-run-skips-observed` | create-verification-skill, maintain-verification-skill | The generator records what a generated skill's offline mode really skips, and the maintenance pass re-observes it on each drive (Q1). |
 | `empty-search-is-finding` | recall, review | Each reports what a search found to someone deciding on it: review's blast-radius assessment and recall's sweep of the shared record. A search that found nothing is an answer in both, so each says it. Batch P1 rows 2026-11-06-batch-p1:277 (review) and :194 (recall), owner-ruled 2026-11-06. |
+| `event-wait-with-fresh-read` | doc:.claude/skills/mvp-mode/playbooks/babysit.md, doc:.claude/skills/mvp-mode/playbooks/shipping.md | Owner approved 2026-11-20: both playbooks wait on the same forge events (running checks, reviews, merges) and must reread the forge after each wait; a skill for two sentences would add a hop. |
 | `evidence-checked-after-cleanup` | create-verification-skill, maintain-verification-skill | Each unit's own run cleans up and must find its proof afterwards: the generator's proof run of the skill it writes, and the maintenance pass over an existing one (plan 82 §5). |
 | `finding-adjudication` | doc:.claude/skills/mvp-mode/playbooks/implement.md, review | Implement rules on findings inside its delivery loop and review owns the method; owner 2026-10-30: implement (then named execution) stays unchanged. |
 | `fixed-command-driven-as-written` | maintain-formal-verification-skill, maintain-verification-skill | Both maintenance units drive or run every documented command the pass corrected or added exactly as written before the change ships, whether or not the helper or runner changed: maintain-verification-skill for the commands of the feature files and skill it fixed, a case left marked not yet driven exempt; maintain-formal-verification-skill for every command its refresh of the formal skill changed or added (owner rulings of 2026-11-15, item 5; coordinator's ruling, round 2026-11-15-maintain-verification-two-rules Round 2). |
@@ -17269,6 +17481,7 @@ Traits listed by two or more of our active skills (`doc:AGENTS.md` and playbooks
 | `generator-started-by-person` | create-formal-verification-skill, create-verification-skill, maintain-formal-verification-skill, maintain-verification-skill | Both app verification units start only when the person starts them: manual-only in frontmatter and sidecar, reached through an mvp-mode router line (R1). create-formal-verification-skill starts the same way: manual-only in frontmatter and sidecar, reached through its mvp-mode router row (decision 1). maintain-formal-verification-skill starts the same way: manual-only in frontmatter and sidecar, reached through its mvp-mode router row (decision 1). |
 | `glossary-entry-template` | domain-modeling, teach | Each keeps a glossary of its own (project language, the learner's workspace) in one entry format, with its own admission rules. |
 | `handover-points-to-maintenance` | create-formal-verification-skill, create-verification-skill | Each create unit tells the person at hand-off that keeping its generated skill current is its maintenance unit's job: create-verification-skill names maintain-verification-skill, create-formal-verification-skill names maintain-formal-verification-skill (decision 11). |
+| `harness-with-pre-change-baseline` | doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md, doc:.claude/skills/mvp-mode/playbooks/visual-parity.md | Owner approved 2026-11-20: each builds its own proof harness before changing anything, for different proofs (a migration's checks, a visual baseline); the step is one sentence in each. |
 | `immaterial-ambiguity-reading` | how, why | Both take an ambiguous target and state the reading taken when the readings would not change the answer; adopted for both upstream how and why (2026-11-01-batch-1:237, :238), kept in each half of the split. |
 | `implement-against-sketch` | doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/feature.md, doc:.claude/skills/mvp-mode/playbooks/perf-issue.md, doc:.claude/skills/mvp-mode/playbooks/refactoring.md | Owner ruling 5 keeps the sketch design-only, so each playbook's own build step writes the code and holds this rule; a skill for it would bring back the implement branch the ruling removed (unit-kinds deviation log, St4). |
 | `independent-synthesis` | model-council, perspective-council | Two entrypoints with distinct triggers (named models with a judge, opposing lenses) each run a full council ending in a fresh synthesizer. |
@@ -17310,6 +17523,7 @@ Traits listed by two or more of our active skills (`doc:AGENTS.md` and playbooks
 | `settled-stop` | grilling, settle-open-questions | As question-batching: each skill stops its own questioning when its decisions are settled. |
 | `single-source-of-truth` | authoring-for-agents, create-formal-verification-skill, principle-subtract-before-you-add | Each applies one-owner-per-meaning to its own material: authoring-for-agents to agent instructions (search for an existing owner before adding one), the principle to code and data before an addition; neither unit loads the other on its path. create-formal-verification-skill's references/model-fidelity.md is the one home of the model-fidelity rules, which maintain-formal-verification-skill reads without restating (decision 4). |
 | `smallest-evidenced-change` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md | Each loop makes the smallest change the evidence justifies and checks its predicate on it: autonomous-run per iteration toward one condition, figure-it-out per designed unit. A skill of one sentence would be ceremony (unit-kinds deviation log, St4, 2026-11-12). |
+| `stack-wide-claim` | doc:.claude/skills/mvp-mode/playbooks/babysit.md, doc:.claude/skills/mvp-mode/playbooks/shipping.md | Owner approved 2026-11-20: both change the same stack and must hold one claim on its shared bead, so a watcher and a lander never act on it at once. |
 | `stated-unattended-gate` | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md | The same one sentence tells each of these playbooks whether a run is away; each then takes its own branch or exit. |
 | `structural-diff` | pr, show-me | show-me is manual, so a model writing a PR body cannot invoke it or read its file; pr carries the compact visual technique itself, as its upstream does, and names show-me for the person (plan 69 D3). |
 | `sync-commit-advanced-after-match` | create-formal-verification-skill, maintain-formal-verification-skill | create-formal-verification-skill's references/coverage-record.md states the rule for the skills it generates; maintain-formal-verification-skill moves sync_commit only once the covered diff is read, the model updated and the rerun gives its expected verdicts, and, by the owner's Q1 ruling (move, 2026-11-15), also on a confirmed bug with the faithful update, which still matches the code. |

@@ -56,6 +56,7 @@ only; `AGENTS.md` holds policy and wins if the two disagree.
 One line per playbook: `` - `playbooks/<name>.md`: <the request it fits> ``.
 
 - `playbooks/autonomous-run.md`: a request to keep working by yourself until a stated, checkable condition holds ("keep going until no call site uses the old API"); one metric from one command is hillclimb, a failing check or reported defect is bug-fix, a plan or roadmap to run is implement, and "stop for today" is pause-safely.
+- `playbooks/babysit.md`: open pull requests (one or a stack) to watch until merge-ready, their review threads to answer, or a check on whether they are green ("babysit this", "get it green"); it never merges: a request to merge, land or ship them is shipping.
 - `playbooks/bug-fix.md`: a reported defect, failing check or flaky test to fix with proof.
 - `playbooks/eval.md`: an instruction or routing variant to try on fresh Claude Code sessions and judge from what they did, not a reference capability to weigh for adoption.
 - `playbooks/feature.md`: new behaviour to design and build, with no settled plan to execute; a build whose units or questions are unsettled goes to plan first, as does settled work that needs a plan written.
@@ -69,8 +70,10 @@ One line per playbook: `` - `playbooks/<name>.md`: <the request it fits> ``.
 - `playbooks/refactoring.md`: a focused structure change that must keep behaviour unchanged, with no settled plan to execute, including a focused redesign of internals; changed behaviour is a feature; staged work across many modules goes to plan first, whether or not its units are settled.
 - `playbooks/runtime-forensics.md`: a process running now (spinning, leaking, stuck) to diagnose from a live capture, with no fix wanted; an artifact captured earlier is trace-forensics.
 - `playbooks/session-pickup.md`: a request to resume work a prior session or agent left, where this conversation does not hold its state ("where were we", "pick up cr-abc"); a "continue" that it does hold just goes on, and a settled plan to run is implement.
+- `playbooks/shipping.md`: open pull requests (one or a stack) to merge, land or ship, each verified by a reviewer that did not write it; getting them merge-ready is babysit, and committing working-tree changes is `land`.
 - `playbooks/skill-curation.md`: adding, placing, reviewing, comparing, updating or retiring a skill of this repository, or reviewing an upstream harness release.
 - `playbooks/trace-forensics.md`: an artifact captured earlier (trace, profile, heap dump, core) to explain, with no fix wanted and nothing new to measure.
+- `playbooks/visual-parity.md`: a user-interface migration whose components must look the same afterwards, proven by image diff against a baseline; a UI idea to try out is `prototype`, and a structure change with nothing visible at stake is refactoring.
 - `playbooks/worktree-cleanup.md`: stale Git worktrees to audit and prune.
 
 ## Principles

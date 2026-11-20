@@ -10674,3 +10674,164 @@ fixed-command-driven-as-written:
   placement: {domain: engineering, stage: Verification, substage: Testing}
   distinct_from: [harness-fix-redriven, generated-skill-run-once, literal-commands]
   note: "harness-fix-redriven re-drives changed helper code, its launch and seed steps included; generated-skill-run-once follows a whole generated skill once before hand-over; literal-commands keeps a command's names and flags unchanged when it runs. This drives each documented command the pass itself corrected or added, in its final text, even when no helper changed (critic-89b F1). maintain-formal-verification-skill holds it for every command its refresh changed or added."
+# ---- ours, delivery playbooks: Visual parity, Babysit, Shipping (epic cr-p3em; owner rulings of 2026-11-20) ----
+frozen-baseline-no-shortcuts:
+  definition: "Treat a visual baseline as the specification: never edit the harness, the baseline images or a component's structure to make a diff pass, and stop and ask the owner when the baseline looks wrong."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+shared-primitives-first:
+  definition: "Migrate the primitives other components share first, as a blocking phase, and show every dependent component unchanged before any other component moves."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+one-component-at-a-time:
+  definition: "Migrate one component, then prove it against its baseline before the next one moves."
+  placement: {domain: engineering, stage: Building, substage: Implementation}
+  distinct_from: [one-change-one-measurement]
+  note: "one-change-one-measurement keeps or undoes each change by a metric; this orders a migration by component, each proven before the next moves."
+baseline-surface-image-diff:
+  definition: "Compare a migrated component with its baseline by image diff on the surface the baseline was captured on, never by eye."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [matching-surface-verify]
+  note: "matching-surface-verify fixes which surface counts for any change; this proves visual equivalence by image diff against a captured baseline on that baseline's surface."
+parallel-components-on-request:
+  definition: "Split a migration across parallel worktrees, one owner per component, only when the owner asks for it."
+  placement: {domain: core, stage: X, substage: Coordination}
+declared-watch-mode:
+  definition: "Declare one watch mode before the first read of a pull request (drive to merge-ready, background without pushing, threads-only, or a one-pass check, which small or documentation-only pull requests get), defaulting to drive."
+  placement: {domain: core, stage: Operations, substage: Monitoring}
+  distinct_from: [pr-watcher-modes]
+  note: "pr-watcher-modes is a watcher tool's scope (one pull request, a stack or a queue); this is the agent's own authority and effort for the watch."
+merge-frontier-only:
+  definition: "Work only the lowest unmerged pull request of a stack, reading and batching upstack threads but never fixing upstack at the cost of restarting the frontier's checks."
+  placement: {domain: core, stage: Operations, substage: Monitoring}
+  distinct_from: [merge-queue-frontier-polling]
+  note: "merge-queue-frontier-polling is how a watcher polls a queue; this is which pull request the agent's fixes may touch."
+stack-topology-frozen:
+  definition: "While watching pull requests, never retarget a base, rebase or force-push, and report a conflict, a stale base or a fix whose owner merged, with the branch that needs it."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+  distinct_from: [destructive-git-guard]
+  note: "destructive-git-guard forbids history rewrites without approval; this forbids topology changes inside a watch even with push authority, and reports them instead."
+babysit-push-reply-grant:
+  definition: "In a watch that drives to merge-ready or answers threads, push fix commits to the pull request's own branch and reply on its review threads without asking each time, and nothing more."
+  placement: {domain: core, stage: X, substage: Governance}
+babysit-never-merges:
+  definition: "Treat a watch as granting no merge, queued or automatic, and send a request to merge to the landing playbook as the next step."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+conflicts-threads-ci-order:
+  definition: "Work a pull request's blockers as conflicts, then review threads, then checks, batching every known fix into one push."
+  placement: {domain: core, stage: Operations, substage: Monitoring}
+  distinct_from: [blocker-priority]
+  note: "blocker-priority ranks blockers across a whole stack for a watcher's report; this orders the agent's own fixes and batches them into one push."
+ci-classified-before-rerun:
+  definition: "Classify a failing check before any rerun: flake or infrastructure earns one fresh run, an identical second failure is read in its logs, a failure outside the diff is checked as a stale base, and only a failure in the diff's own code gets a fix."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+  distinct_from: [retry-by-cause, failure-classified-after-rerun]
+  note: "retry-by-cause chooses what changes when a worker is retried, and failure-classified-after-rerun defers a baseline failure's class; this classifies a pull request's failing check before its single rerun."
+owning-pr-red-first-fix:
+  definition: "Fix a confirmed review finding with a failing check first, in the lowest pull request whose code it concerns, never at the tip, and report one whose owning pull request has merged."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+  distinct_from: [fix-in-owning-pr-with-sha-reply]
+  note: "fix-in-owning-pr-with-sha-reply also resolves the thread; this needs the failing check first and reports, rather than fixes, a finding whose owner has merged."
+reply-from-file:
+  definition: "Write every published reply or comment body to a file and publish it from that file, never interpolating its text into a command."
+  placement: {domain: core, stage: X, substage: Governance}
+babysit-closeout:
+  definition: "On every exit of a pull-request watch, release the claim unless the watch continues, and sweep the run's thread decisions once, proposing any recurring dismissal pattern as a lesson."
+  placement: {domain: core, stage: Operations, substage: Monitoring}
+shipping-merge-grant:
+  definition: "Read a request to ship or land as authority to merge the verified run and, for a stack, to retarget the next pull request to trunk and force-push with lease on its own branch once its parent lands, and nothing else."
+  placement: {domain: core, stage: X, substage: Governance}
+verdict-on-pr-and-bead:
+  definition: "Post each verifier verdict, from a file, both as a comment on the pull request and as a comment on its bead."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+contiguous-verified-run:
+  definition: "Land only the unbroken run of verified pull requests from the bottom of a stack, stopping at the first without a covering verdict and going past it only through new verdicts."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+bottom-up-merge-read-back:
+  definition: "Merge a stack's lowest unmerged pull request one at a time and read each back as merged with trunk as its base, counting a queued merge or a requested auto-merge as no merge."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+  distinct_from: [pr-state-as-merge-signal]
+  note: "pr-state-as-merge-signal picks the merged state over ancestry for squash merges; this also checks the base and orders the merges bottom-up."
+hands-off-while-landing:
+  definition: "While a verified run lands, change no branch or base beyond the landing's own moves, and find out why a merge stalls before changing anything."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+merge-evidence-bead-close:
+  definition: "After reading a merge back, close the pull request's bead with that evidence when its acceptance holds, and otherwise comment the evidence and leave it open."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+# ---- ours, delivery playbooks round 2 (critic-107; coordinator rulings of 2026-11-20) ----
+visual-pass-predicate:
+  definition: "Judge every visual diff of a migration by one pass predicate, exact equality unless the request gives a metric and a limit, and report each measured delta beside the limit."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+integrated-tree-rediff:
+  definition: "Before committing migrated components, rerun on the exact tree to be committed every state the batch could affect, or every in-scope state when that set is unclear, and judge it against the baseline."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [baseline-surface-image-diff]
+  note: "baseline-surface-image-diff proves one component on its own; this catches one component changing another once they are combined."
+publish-requested-pr:
+  definition: "When the request authorizes it, push the verified commits and open the pull request, and report its URL or the exact reason it was not published."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+visual-migration-closeout:
+  definition: "On every exit of a visual migration, keep the harness, the baseline and each failing diff's images or the command that reproduces them, remove other scratch captures, and record each component's measured delta and limit and the components left."
+  placement: {domain: engineering, stage: Verification, substage: Testing}
+  distinct_from: [build-closeout]
+  note: "build-closeout removes scaffolding and lists open decisions; this keeps the visual proof and the evidence of any failure."
+stack-wide-claim:
+  definition: "Lock a watched stack with one claim on the bead the stack implements, found the same way from any entry pull request, stopping a run that would change anything when it finds no bead or another actor holds the claim, and releasing only a claim this run took."
+  placement: {domain: core, stage: X, substage: Coordination}
+positive-readiness-predicate:
+  definition: "Call a pull request ready only when it reads open and not a draft, approved or needing no review, with required checks passing, a clean merge state and every review thread resolved across all pages, counting unknown or unavailable data as not ready."
+  placement: {domain: core, stage: Operations, substage: Monitoring}
+  distinct_from: [ready-needs-positive-proof]
+  note: "ready-needs-positive-proof enforces a ready verdict with types in a watcher tool; this is the agent's own reading of the forge, item by item."
+conflicted-frontier-stop:
+  definition: "Stop work on a conflicted frontier pull request after naming the branch to rebase and the sweep of trunk for new callers that the rebase must include."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+  distinct_from: [stack-topology-frozen]
+  note: "stack-topology-frozen forbids the agent's own rebases; this also stops reruns and fixes on a frontier that cannot merge."
+high-impact-finding-escalation:
+  definition: "Send a review finding that plausibly touches security, authentication, billing, data or migrations, or that stays materially ambiguous, to the owner instead of dismissing it."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+  distinct_from: [ask-on-risky-or-doubtful-comment]
+  note: "ask-on-risky-or-doubtful-comment also asks on novel comments and whenever in doubt; this escalates only the high-impact and the materially ambiguous."
+full-workflow-rerun-grant:
+  definition: "Allow one fresh full run of a failing workflow per failure classified as flake or infrastructure, never a single-job retry, and only in a watch that may change the forge."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+  distinct_from: [ci-classified-before-rerun]
+  note: "ci-classified-before-rerun decides whether a rerun is warranted; this is the authority for it and its form."
+thread-replies-confirmed:
+  definition: "Reply on each review thread through the forge's thread-reply endpoint, then read the threads back and record which received replies and which still await resolution."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+  distinct_from: [reply-from-file]
+  note: "reply-from-file keeps reply text out of commands; this posts to the right thread and confirms delivery."
+event-wait-with-fresh-read:
+  definition: "Wait on running checks with the forge's checks watch and on any other forge event with a fixed-interval bounded wait, reading the forge afresh on every notice or timeout before acting."
+  placement: {domain: core, stage: Operations, substage: Monitoring}
+  distinct_from: [bounded-background-wait]
+  note: "bounded-background-wait is how any command is waited on; this says which forge events need which wait and that state is reread after each."
+stack-snapshot-before-writes:
+  definition: "Before any landing write, record the stack from the bottom up with each pull request's head SHA, base ref and old parent tip, and merge only an open pull request whose base is trunk."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+pinned-lease-child-move:
+  definition: "After a parent lands, move only the child's own commits onto trunk from the recorded old parent tip, push with a lease pinned to the observed old head SHA, verify the head and base afterwards, and stop with the observed state on any failed or mismatched write."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+  distinct_from: [destructive-git-guard]
+  note: "destructive-git-guard forbids force pushes without approval; this is the one granted force push and the checks that keep it from losing work."
+# ---- ours, delivery playbooks round 3 (critic-107 round 2; coordinator rulings of 2026-11-20) ----
+verdict-reuse-on-tree:
+  definition: "Reuse an earlier verdict only when its record names the tree it ran on and the independent reviewer, and that tree equals the current head's tree, and otherwise verify again."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+independent-user-run-verdict:
+  definition: "Before a pull request lands, have a verifier that did not write it run the change as a user would against its base and return PASS, PASS+NOTES or FAIL bound to the tree and head SHA it ran on, counting green checks or an approving bot review as no verdict."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+  distinct_from: [independent-critic-verdict]
+  note: "independent-critic-verdict is a reviewer's findings on any work; this is a run of the change as a user would, per pull request, tied to the tree it covers."
+verdict-receipts-before-merge:
+  definition: "Before merging a pull request, confirm that its verdict's keyed post exists both on the pull request and on its bead, whether the verdict is fresh or reused, posting a missing one from the record or stopping."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+  distinct_from: [verdict-on-pr-and-bead]
+  note: "verdict-on-pr-and-bead names the two destinations; this checks both posts exist before each merge, on every path."
+direct-merge-mutation-at-verified-head:
+  definition: "Merge only through a direct merge call pinned to the verified head SHA that merges at once or fails, never queuing or arming auto-merge, and stop when the forge requires a merge queue."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+# ---- ours, delivery playbooks round 4 (critic-107 round 3; coordinator rulings of 2026-11-20) ----
+trunk-ancestor-before-merge:
+  definition: "Immediately before merging, fetch trunk and stop when its tip is not an ancestor of the verified head, which then needs updating and a fresh verdict."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}

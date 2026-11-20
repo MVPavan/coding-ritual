@@ -169,7 +169,7 @@ worktree-environment-proof:
   why: "Each stated unattended loop proves its own command responds in its own worktree before starting; the check runs at each one's setup."
   reviewed: "2026-11-04"
 bounded-background-wait:
-  skills: [doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md]
+  skills: [doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md, doc:.claude/skills/mvp-mode/playbooks/babysit.md, doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/hillclimb.md, doc:.claude/skills/mvp-mode/playbooks/shipping.md]
   why: "The same one sentence on waiting sits at each step that waits, with its own stopped exit; no skill is called for it."
   reviewed: "2026-11-04"
 read-only-explanation:
@@ -388,3 +388,15 @@ fixed-command-driven-as-written:
   skills: [maintain-formal-verification-skill, maintain-verification-skill]
   why: "Both maintenance units drive or run every documented command the pass corrected or added exactly as written before the change ships, whether or not the helper or runner changed: maintain-verification-skill for the commands of the feature files and skill it fixed, a case left marked not yet driven exempt; maintain-formal-verification-skill for every command its refresh of the formal skill changed or added (owner rulings of 2026-11-15, item 5; coordinator's ruling, round 2026-11-15-maintain-verification-two-rules Round 2)."
   reviewed: "2026-11-15"
+event-wait-with-fresh-read:
+  skills: [doc:.claude/skills/mvp-mode/playbooks/babysit.md, doc:.claude/skills/mvp-mode/playbooks/shipping.md]
+  why: "Owner approved 2026-11-20: both playbooks wait on the same forge events (running checks, reviews, merges) and must reread the forge after each wait; a skill for two sentences would add a hop."
+  reviewed: "2026-11-20"
+harness-with-pre-change-baseline:
+  skills: [doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md, doc:.claude/skills/mvp-mode/playbooks/visual-parity.md]
+  why: "Owner approved 2026-11-20: each builds its own proof harness before changing anything, for different proofs (a migration's checks, a visual baseline); the step is one sentence in each."
+  reviewed: "2026-11-20"
+stack-wide-claim:
+  skills: [doc:.claude/skills/mvp-mode/playbooks/babysit.md, doc:.claude/skills/mvp-mode/playbooks/shipping.md]
+  why: "Owner approved 2026-11-20: both change the same stack and must hold one claim on its shared bead, so a watcher and a lander never act on it at once."
+  reviewed: "2026-11-20"

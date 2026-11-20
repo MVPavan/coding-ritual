@@ -70,6 +70,10 @@
     "2026-11-20-deferred-improvement.jsonl": "8c8c9daaecf44cf3e9f879324b80d1f23e33ee30be0fff793852c6da9976898e",
     "2026-11-20-deferred-playbooks.jsonl": "1016e1d0655e5b5b867b83efbb7b0b2caf1bde1efcce9df089a5c6683b425095",
     "2026-11-20-deferred-verification-delivery.jsonl": "8d782f22ea70ba786463b67952d232812392059b830189403ee30779b318774a",
+    "2026-11-20-delivery-playbooks-r2.jsonl": "f2522bd2aba9d811373c368f0d1e2d242766bc2ca93a1972d1bc3c7b25c3895f",
+    "2026-11-20-delivery-playbooks-r3.jsonl": "d273dca78caffefc7f3a0faf9b2be9135428b645a53586b4e540b03dd36a47c5",
+    "2026-11-20-delivery-playbooks-r4.jsonl": "e20336c222bae8b1db7a01362843d27cd745b3ca1176e1411732879580eb0606",
+    "2026-11-20-delivery-playbooks.jsonl": "ad73135599bce4cdc47390e87c6cdcf504dd36f772cd82f3865363eacdf10876",
     "2026-11-20-glossary-rename.jsonl": "8d74e0b8d5634f28a6a246538673ddad26754aa117897c3464b2496fbde9d51f"
   },
   "round_order": [
@@ -142,7 +146,11 @@
     "2026-11-20-glossary-rename.jsonl",
     "2026-11-20-deferred-improvement.jsonl",
     "2026-11-20-deferred-crosscutting-utilities.jsonl",
-    "2026-11-20-deferred-playbooks.jsonl"
+    "2026-11-20-deferred-playbooks.jsonl",
+    "2026-11-20-delivery-playbooks.jsonl",
+    "2026-11-20-delivery-playbooks-r2.jsonl",
+    "2026-11-20-delivery-playbooks-r3.jsonl",
+    "2026-11-20-delivery-playbooks-r4.jsonl"
   ],
   "reports": {
     "harness_lifecycle/registry/reviews/2026-10-30-upstream-mattpocock_skills-5beb35b.yaml": "fb413772a75f116bd9baeaa06b6e414fe59978c654a951cb53345f17459d7597",
