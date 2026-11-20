@@ -6,7 +6,7 @@ Read the contracts affected by the change. Authority and Git safety live in
 - **Valid manifests:** plugin and marketplace manifests must parse as JSON.
 - **Shared skill catalog:** generated routing and `agents/openai.yaml` invocation
   policies match canonical skills; slash and shared-context references resolve.
-  Check: `python3 .claude/scripts/skill-catalog.py --check`.
+  Check: `uv run python .claude/scripts/skill-catalog.py --check`.
 - **Canonical workflow pins:** `content_hash` is SHA-256 of `canonical_bytes()`
   from `workflow_interpreter/schema/loader.py`, never authored TOML. The resolved
   model uses sorted JSON keys, aliases, omitted nulls and `wf-canon-json/1`.

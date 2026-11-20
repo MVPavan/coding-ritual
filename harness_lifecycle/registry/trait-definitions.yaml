@@ -579,7 +579,7 @@ activation-boundary:
   distinct_from: [model-facing-description]
   note: "model-facing-description lists only the trigger branches; this adds the nearest misleading case to skip."
 adopt-after-state-exists:
-  definition: "Record an adopt or adopt-merged event only after the adopted state exists, passing the adaptation as JSON for a merge, then update the skill's record."
+  definition: "Record the event that delivers an adoption only after the adopted state exists (a trait adopt's completing event, or a whole capability's one adopt or adopt-merged), passing the adaptation as JSON for a merge, then update the skill's record."
   placement: {domain: core, stage: Improvement, substage: Codification}
 agent-conversion:
   definition: "Convert source agents into conservative target config scaffolds, inferring a sandbox mode and flagging that model identifiers do not carry over."

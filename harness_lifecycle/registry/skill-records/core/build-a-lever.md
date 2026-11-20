@@ -10,7 +10,7 @@ status: active
 ---
 # build-a-lever
 
-No description.
+Use when a rerunnable tool (script, codemod, generator or check) would materially reduce repeated work, such as bulk or repeated edits or a migration, or supply proof a reviewer needs that no existing tool or check gives. Not a default for every analysis or change: skip work existing checks already prove; a throwaway experiment that answers a design question is prototype.
 
 **Boundary:** Builds and proves a rerunnable tool (script, codemod, generator or check) that does or proves real work; a throwaway experiment answering a design question is prototype, and test-first proof of a behaviour change is tdd.
 
@@ -38,6 +38,7 @@ No description.
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-20` **update** (2026-11-20-lifecycle-bug-fixes:001): Harness review defect: the description held an unquoted colon and space, so strict YAML rejected the frontmatter while the catalog line parser accepted it. The…
 - `2026-11-20` **adopt** (2026-11-20-deferred-improvement:015): Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3. Adopted into build-a-lever: each exception to a check needs a person's approval and …
 - `2026-11-20` **adopt** (2026-11-20-deferred-improvement:014): Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3. Adopted into build-a-lever: each exception to a check is marked with an expiry date …
 - `2026-11-20` **adopt** (2026-11-20-deferred-improvement:013): Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3. Adopted into build-a-lever: when a check must allow exceptions, each exception is ma…

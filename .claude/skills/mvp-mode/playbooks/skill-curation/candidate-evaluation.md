@@ -12,3 +12,6 @@ references and scripts, and our nearest skill (`placing.md` step 4). Judge:
 Outcomes: `adopt` (taken whole), `adopt-merged` (parts into one of ours, with
 the adaptation), `reject` (not taken, on merit), `defer` (not now, with what
 would bring it back), `out-of-scope` (not our kind of work).
+An upstream skill's adoption is ruled trait by trait and recorded pending
+before the build; a whole capability's `adopt` or `adopt-merged` is one event,
+recorded once the adopted state exists. Both branches are in `../skill-curation.md` §2.

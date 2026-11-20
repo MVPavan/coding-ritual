@@ -37,6 +37,7 @@ Publish this repo's harness into the mvp-plugin (the mvp-harness submodule) — 
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-20` **update** (2026-11-20-lifecycle-bug-fixes-r2:002): Critic round 1, finding 8: skill-catalog.py now needs PyYAML, which the project environment declares, so the publish preflight runs it as uv run python instead…
 - `2026-10-14` **adopt-merged** (2026-10-14-owner-review:001): Owner ruling: the 2026-08-11 merge target was never built, and the 2026-07-15 objections still hold (commit cadence, trunk and Conventional Commit defaults, de…
 <!-- /registry:generated history -->
 

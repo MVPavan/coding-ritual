@@ -14,6 +14,7 @@ from pydantic import ValidationError
 
 from curation.registry import cli, ledger, reports
 from curation.registry import traits as trait_facts
+from curation.registry.checks import reports as check_reports_module
 from curation.registry.loaders import load_skills
 from curation.registry.models import CriticVerdict, Report
 from tests.curation.test_registry import (
@@ -118,9 +119,12 @@ def _judge(data: dict[str, Any]) -> None:
     data["comparison_critic"] = dict(critic)
     data["themes"] = "Test release."
     skill = data["skills"][LOGICAL]
+    tids = list(skill["traits"])
     skill["analysis"] = {
-        "blind": ["Writes a failing test first."],
-        "mapping": [{"line": 1, "to": ["red-green"], "mark": "match"}],
+        "blind": [f"Does {tid}." for tid in tids],
+        "mapping": [
+            {"line": n, "to": [tid], "mark": "match"} for n, tid in enumerate(tids, 1)
+        ],
     }
     pairing = skill["pairing"]
     pairing["purpose_match"] = "tdd"
@@ -340,6 +344,7 @@ def test_seal_needs_evidence(tmp_path: Path) -> None:
         "pairing.purpose is empty",
         "blind line 2 is not mapped",
         "mapping line 1: mocks-strict is not a trait of the analysis",
+        f"{LOGICAL}#red-green: a new row maps from no blind line",
     ):
         assert needle in errors, errors
     _edit(
@@ -349,6 +354,36 @@ def test_seal_needs_evidence(tmp_path: Path) -> None:
     errors = "\n".join(reports.seal(cfg, path))
     assert "new or changed rows need `analysis.blind` and `mapping`" in errors
     assert not cfg.manifest_path.exists()
+
+
+def test_check_holds_sealed_rows_to_the_backward_mapping(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # astra review: a sealed new row with no mapped blind line fails `check`
+    # unless the row is on the listed exception.
+    cfg = _cfg(tmp_path)
+    path = _sealed(cfg)
+
+    def unmap(data: dict[str, Any]) -> None:
+        analysis = data["skills"][LOGICAL]["analysis"]
+        analysis["mapping"] = [
+            m for m in analysis["mapping"] if m["to"] != ["red-green"]
+        ]
+        analysis["blind"] = analysis["blind"][: len(analysis["mapping"])]
+        for n, item in enumerate(analysis["mapping"], 1):
+            item["line"] = n
+
+    _edit(path, unmap)
+    needle = f"{LOGICAL}#red-green: a new row maps from no blind line"
+    _fails(cfg, capsys, needle)
+    key = "registry/reviews/" + path.name
+    monkeypatch.setattr(
+        check_reports_module,
+        "UNMAPPED_SEALED_ROWS",
+        frozenset({(key, LOGICAL, "red-green")}),
+    )
+    assert cli.cmd_check(cfg, _ns()) == 1
+    assert needle not in capsys.readouterr().err
 
 
 # --- seal, immutability, currency (Acceptance 5) --------------------------------------

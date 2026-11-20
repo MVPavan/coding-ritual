@@ -24,7 +24,7 @@ ours:settle-open-questions:
     round-format: "Delivers report D's row (pending 2026-11-11-discovery:001) as one fixed block per question, in our own layout with no emoji."
     self-serve-facts: "Through the answerer triage: code is read, outside facts go to research, a run to prototype."
 ours:build-a-lever:
-  tree_hash: "d1e4e0cc76119a476e6cd25c051c4fa339120e5e8e4c3ce8c3e13eb720bfd45c"
+  tree_hash: "079ed02fc6e83b85d4a8c9168e9968beb6f891465558be20f4625348f53c9ac8"
   traits: [hand-first-recipe, minimal-tool, rerun-safe-tool, proposed-artifact-commit, same-command-local-and-ci, inline-exception-with-reason, expiring-exceptions, human-approved-exceptions]
 ours:check-invariants:
   tree_hash: "323f807bdd498bdc3e560d5c7fd83faa8384181506bfc61e6474a64c6227b2ab"
@@ -75,10 +75,10 @@ ours:grilling:
     exhaustive-completion: "An option, not the default: after the settled stop, grilling offers to visit every remaining branch and does so only if the user says yes."
     questionnaire-artifact: "Saved to the interview folder (docs/interviews/ unless the project names another) with a dated, slug and kind name, not the current directory; the closing summary is saved there too."
 ours:harness-evaluate:
-  tree_hash: "4ba41d978d395a33869c64cb5ea450fe6edf766e814da8c96ba997025995a290"
+  tree_hash: "34949a55f193a6b5b6245e0df298991cddc1a3b34e98d4e496edc65eed5170a3"
   traits: [read-first, decision-dimensions, disposition-choice, recommendation-vs-record, record-command, edit-canonical-source, template-adoption-gate, material-risk-review, adopt-after-state-exists]
 ours:harness-publish:
-  tree_hash: "cf40e127d248854f39a320f0c28e57245177df21c830437284a3354f84805e14"
+  tree_hash: "a6c5bac26b2f94b7a8f50b40c3ca9e7ca43c6912e3b2633f2fd44f11ae0452a3"
   traits: [manual-root-only, prerequisites-scope, repo-context-check, authority-separation, preflight-gates, dry-run, publish-bump, plugin-repo-review, submodule-pointer, failure-table, never-edit-build-output]
 ours:harness-scan:
   tree_hash: "4f9ea1d107731642b20f793149a36c23cb3a4cda3b010b15eda781ce532659e6"
@@ -287,7 +287,7 @@ doc:.repo-context/coding-style.md:
   notes:
     strict-mypy: "ty is optional feedback and never replaces the mypy gate."
 doc:.repo-context/verification.md:
-  tree_hash: "7840a0551b7d0b9e9e5c94e6c209f300736029c399dbe6d80ffcf5a9590c92d3"
+  tree_hash: "b0c96b27410a2aba4a125997d56b5f25be1adc4444cbd272bd7a4e76946048f8"
   traits: [checks-by-changed-material, docs-only-suite-exemption, claim-evidence-table, partial-verification-report, diff-whitespace-check, doc-link-validation, historical-vs-active-guidance, syntax-checks-by-file-type, shell-lint-when-available, harness-code-suite, registry-check-on-change, tracker-cli-health, tracker-export-current, skill-catalog-check, guard-hook-block-proof, plugin-harness-or-unverified]
 ours:wake:
   tree_hash: "c75ab0ca50f5de35a9607e148c2c7090a3131b200e00c978278a862e9d083af8"

@@ -37,8 +37,13 @@ and inspect neutrality/leak results. Obtain independent review when the broad
 blast radius warrants it under shared delegation policy. New/existing plugin
 implementation also requires authorization for that submodule work.
 
-Record `adopt` or `adopt-merged` with `--skill <our-skill>` only after the
-adopted state exists. For `adopt-merged`, pass the adaptation (`merged_from`,
+An adoption takes the curation playbook's branch for its kind (§2). A trait
+adopt: owner ruling, pending `adopt` (`pending: <bead>`), build and behaviour
+checks, then the completing `adopt` with `--skill <our-skill>`, superseding the
+pending one, before the final `registry.py build` and `check`. A
+whole-capability `adopt` or `adopt-merged`: owner ruling, build and behaviour
+checks, then one event with `--skill <our-skill>` once the adopted state
+exists; it has no pending form. For `adopt-merged`, pass the adaptation (`merged_from`,
 `modifications`, `deliberately_dropped`) with `--json`. The source commit and
 content hash are filled from the catalog. Then run `registry.py build`; skill
 records are generated, never edited. Publication,

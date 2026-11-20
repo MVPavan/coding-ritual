@@ -118,7 +118,7 @@ Root-only skill (`.claude/skills/harness-publish/`) wrapping
 `mvp-harness/plugins/mvp-plugin/scripts/publish-plugin.sh`:
 
 ```bash
-python3 .claude/scripts/skill-catalog.py --check                                  # root gates green
+uv run python .claude/scripts/skill-catalog.py --check                                  # root gates green
 bash mvp-harness/plugins/mvp-plugin/scripts/publish-plugin.sh --check              # dry run
 bash mvp-harness/plugins/mvp-plugin/scripts/publish-plugin.sh --bump patch --smoke # publish
 git -C mvp-harness add … && git -C mvp-harness commit …                            # plugin repo commit (its own branch)

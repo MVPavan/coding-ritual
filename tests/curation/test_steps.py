@@ -164,6 +164,16 @@ def test_check_fails_when_steps_md_is_stale(
         ("needs: [seams]", "needs: [nope]", "call skill:tdd: trait 'nope'"),
         (
             "needs: [seams]",
+            "needs: [gate]",
+            "fix#1: call skill:tdd: needs 'gate', which the callee does not hold",
+        ),
+        (
+            '{to: "playbook:ship"}',
+            '{to: "playbook:ship", needs: [gate]}',
+            "fix#2: call playbook:ship: needs 'gate', which the callee does not hold",
+        ),
+        (
+            "needs: [seams]",
             "needs: [seams, seams]",
             "fix#1: call skill:tdd: a needs trait is listed twice",
         ),
@@ -587,8 +597,10 @@ MERGED = f"doc:{FIX_PATH}"
 
 def _merged_into_fix(base: Path, *extra: dict[str, object]) -> object:
     """`tdd-old` adopted `seams`, was renamed `tdd` and then merged into the
-    `fix` playbook, which lists `seams`: the adoption follows the merge."""
-    cfg = _playbook_cfg(base, FIX.replace("traits: [gate]", "traits: [gate, seams]"))
+    `fix` playbook, which lists `seams`: the adoption follows the merge. The
+    merged `tdd` keeps no trait list, so `fix` no longer `needs` one of it."""
+    fix = FIX.replace("traits: [gate]", "traits: [gate, seams]")
+    cfg = _playbook_cfg(base, fix.replace(", needs: [seams]", ""))
     _write_round(
         cfg,
         "2026-10-14-r",

@@ -1,6 +1,6 @@
 ---
 name: build-a-lever
-description: Use when a rerunnable tool (script, codemod, generator or check) would materially reduce repeated work, such as bulk or repeated edits or a migration, or supply proof a reviewer needs that no existing tool or check gives. Not a default for every analysis or change: skip work existing checks already prove; a throwaway experiment that answers a design question is prototype.
+description: "Use when a rerunnable tool (script, codemod, generator or check) would materially reduce repeated work, such as bulk or repeated edits or a migration, or supply proof a reviewer needs that no existing tool or check gives. Not a default for every analysis or change: skip work existing checks already prove; a throwaway experiment that answers a design question is prototype."
 ---
 
 # Build a lever

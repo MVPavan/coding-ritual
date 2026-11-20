@@ -137,7 +137,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `edit-canonical-source`: Make an authorized adoption edit the one canonical source, placing shared policy in the shared files without duplicating it across provider directories.
 - `template-adoption-gate`: For template adoption, verify the initialized template tools, run the sync and template-build scripts, and inspect the neutrality and leak results.
 - `material-risk-review`: Route an artifact or change with material risk or a broad blast radius through an independent critic review before it is accepted.
-- `adopt-after-state-exists`: Record an adopt or adopt-merged event only after the adopted state exists, passing the adaptation as JSON for a merge, then update the skill's record.
+- `adopt-after-state-exists`: Record the event that delivers an adoption only after the adopted state exists (a trait adopt's completing event, or a whole capability's one adopt or adopt-merged), passing the adaptation as JSON for a merge, then update the skill's record.
 
 #### core · Improvement · Codification — harness-scan
 - `resolve-target`: Resolve the named reference harness or path, asking only when it is ambiguous.
@@ -6271,7 +6271,7 @@ Put the activation boundary first — positive cases and the nearest misleading 
 - ours: `authoring-for-agents`
 
 #### `adopt-after-state-exists`
-Record an adopt or adopt-merged event only after the adopted state exists, passing the adaptation as JSON for a merge, then update the skill's record.
+Record the event that delivers an adoption only after the adopted state exists (a trait adopt's completing event, or a whole capability's one adopt or adopt-merged), passing the adaptation as JSON for a merge, then update the skill's record.
 - ours: `harness-evaluate`
 
 #### `agent-conversion`

@@ -42,7 +42,13 @@ by two or more model-invocable skill descriptions; an ALLOWED_SLASHES entry no
 longer referenced anywhere; a commented-out disable-model-invocation key the
 loader ignores.
 
-Pure standard library; mirrors harness_lifecycle/scan.py conventions.
+Every skill's frontmatter must parse as YAML (PyYAML) with string `name` and
+`description`, a string `argument-hint` and a boolean `disable-model-invocation`
+when present: both modes refuse to build entries otherwise, because a skill a
+YAML consumer cannot load must not appear in a green catalog. Entries and
+sidecar expectations are built from those YAML values. Run it with the project
+environment, which declares PyYAML (`uv run python .claude/scripts/...`);
+otherwise standard library, mirroring harness_lifecycle/scan.py conventions.
 """
 
 from __future__ import annotations
@@ -60,7 +66,7 @@ CATALOG_REL = ROUTER_DIR / "references" / "catalog.md"  # generated below MARKER
 PLAYBOOKS_REL = ROUTER_DIR / "playbooks"
 PRINCIPLES_REL = ROUTER_DIR / "principles"
 PRINCIPLE_PREFIX = "principle-"
-WRITE_CMD = "python3 .claude/scripts/skill-catalog.py --write"
+WRITE_CMD = "uv run python .claude/scripts/skill-catalog.py --write"
 
 # Slash tokens that legitimately resolve outside .claude/skills. One-word
 # reason each; --check warns when an entry stops
@@ -115,7 +121,6 @@ QUOTED_PHRASE = re.compile(
     r"(?:(?<=[\s(/:—-])|^)(?:'([^']{2,80}?)'|\"([^\"]{2,80}?)\")(?=[\s,.;:)!?]|$)"
 )
 
-FRONTMATTER_KEY = re.compile(r"^([A-Za-z][\w-]*):\s*(.*)$")
 SENTENCE_END = re.compile(r"(.*?[.!?])(?:\s|$)")
 
 
@@ -136,40 +141,6 @@ class Surface:
 # --- Parsing ------------------------------------------------------------------
 
 
-def parse_frontmatter(text: str) -> dict[str, str]:
-    """Parse the YAML-subset frontmatter this harness uses: plain scalars,
-    quoted scalars, and '>' / '|' block scalars. Unknown lines are skipped."""
-    lines = text.splitlines()
-    if not lines or lines[0].strip() != "---":
-        return {}
-    fields: dict[str, str] = {}
-    i = 1
-    while i < len(lines):
-        line = lines[i]
-        if line.strip() == "---":
-            break
-        match = FRONTMATTER_KEY.match(line)
-        if not match:
-            i += 1
-            continue
-        key, value = match.group(1), match.group(2).strip()
-        if value in {">", "|", ">-", "|-"}:
-            block: list[str] = []
-            i += 1
-            while i < len(lines) and (
-                lines[i].startswith((" ", "\t")) or not lines[i].strip()
-            ):
-                block.append(lines[i].strip())
-                i += 1
-            fields[key] = " ".join(part for part in block if part)
-            continue
-        if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
-            value = value[1:-1]
-        fields[key] = value
-        i += 1
-    return fields
-
-
 def _frontmatter_block(text: str) -> str:
     """The raw lines between the opening and closing frontmatter fences."""
     lines = text.splitlines()
@@ -183,22 +154,72 @@ def _frontmatter_block(text: str) -> str:
     return "\n".join(block)
 
 
+FRONTMATTER_TYPES: dict[str, tuple[type, str]] = {
+    "name": (str, "a string"),
+    "description": (str, "a string"),
+    "argument-hint": (str, "a string"),
+    "disable-model-invocation": (bool, "a boolean"),
+}
+REQUIRED_FRONTMATTER = ("name", "description")
+
+
+def _yaml_frontmatter(raw: str) -> tuple[dict[str, object] | None, str | None]:
+    """The frontmatter parsed as YAML, or None and why it cannot be."""
+    import yaml  # PyYAML: the project environment declares it
+
+    if not raw.startswith("---"):
+        return None, "no frontmatter"
+    try:
+        fields = yaml.safe_load(_frontmatter_block(raw))
+    except yaml.YAMLError as error:
+        return None, "frontmatter is not valid YAML — " + " ".join(str(error).split())
+    if not isinstance(fields, dict):
+        return None, "frontmatter is not a mapping"
+    return fields, None
+
+
+def frontmatter_failures(root: Path, skills_dir: Path) -> list[str]:
+    """Skills whose frontmatter is not valid YAML or whose known fields have the
+    wrong type. Both modes refuse before building any entry."""
+    try:
+        import yaml  # noqa: F401
+    except ImportError:
+        need = "PyYAML is required to validate skill frontmatter"
+        return [f"{need} — run this script with `uv run python`"]
+    failures: list[str] = []
+    for skill_md in sorted(skills_dir.glob("*/SKILL.md")):
+        where = _rel(skill_md, root)
+        fields, error = _yaml_frontmatter(skill_md.read_text(encoding="utf-8"))
+        if fields is None:
+            failures.append(f"{where}: {error}")
+            continue
+        for key in REQUIRED_FRONTMATTER:
+            if key not in fields:
+                failures.append(f"{where}: frontmatter lacks `{key}`")
+        for key, (kind, label) in FRONTMATTER_TYPES.items():
+            if key in fields and not isinstance(fields[key], kind):
+                failures.append(f"{where}: frontmatter `{key}` must be {label}")
+    return failures
+
+
 def load_skills(skills_dir: Path) -> list[Surface]:
-    """Every .claude/skills/*/SKILL.md, classified by invocation mode. Only an
-    uncommented `disable-model-invocation: true` key blocks model invocation —
-    matching the loader's observed behaviour; a commented-out key is flagged
-    (warning) but never changes classification."""
+    """Every .claude/skills/*/SKILL.md, classified by invocation mode from the
+    validated YAML values (`frontmatter_failures` runs first). Only a YAML
+    `disable-model-invocation: true` blocks model invocation; a commented-out
+    key is flagged (warning) but never changes classification."""
     surfaces: list[Surface] = []
     for skill_md in sorted(skills_dir.glob("*/SKILL.md")):
         raw = skill_md.read_text(encoding="utf-8")
-        fields = parse_frontmatter(raw)
+        fields = _yaml_frontmatter(raw)[0] or {}
+        name = fields.get("name")
+        description = fields.get("description")
         block = _frontmatter_block(raw)
         surfaces.append(
             Surface(
-                name=fields.get("name", skill_md.parent.name),
+                name=name if isinstance(name, str) else skill_md.parent.name,
                 kind="skill",
-                slash_only=fields.get("disable-model-invocation") == "true",
-                description=fields.get("description", ""),
+                slash_only=fields.get("disable-model-invocation") is True,
+                description=description if isinstance(description, str) else "",
                 path=skill_md,
                 commented_disable=(
                     "disable-model-invocation" in block
@@ -587,6 +608,12 @@ def unreachable_units(
 
 
 def cmd_check(root: Path, skills_dir: Path) -> int:
+    malformed = frontmatter_failures(root, skills_dir)
+    if malformed:
+        print(f"## skill-catalog check: {skills_dir}")
+        for failure in malformed:
+            print(f"FAIL {failure}")
+        return 1
     skills = load_skills(skills_dir)
     failures: list[str] = []
     warnings: list[str] = []
@@ -704,6 +731,9 @@ def cmd_write(root: Path, skills_dir: Path) -> int:
             f"refusing: marker {MARKER} missing from {_rel(catalog, root)}"
             " — everything above it is hand-owned; add the marker where the generated section starts"
         )
+    malformed = frontmatter_failures(root, skills_dir)
+    if malformed:
+        raise SystemExit("refusing: " + "; ".join(malformed))
     skills = load_skills(skills_dir)
     updated = parts[0] + render_catalog(skills)
     if updated == parts[0] + parts[1]:

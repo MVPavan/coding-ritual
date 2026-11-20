@@ -31,7 +31,7 @@ human check / Why.
 | Curation code (`curation/`), skill scripts, or their tests (`tests/curation/`, and the `tests/checks/` files that exercise a skill script) | `uv run pytest -q tests/curation tests/checks` |
 | Registry data, or a file it hashes (a skill, playbook or principle, `AGENTS.md`, a `.repo-context/` file with a `doc:` entry) | `uv run python harness_lifecycle/registry/registry.py check`; when it reports a generated view stale, run `build` first |
 | Beads | `bd ready` or `bd list` succeeds; keep `.beads/issues.jsonl` current per the `beads` skill (`references/usage.md` §15) |
-| Skills | `python3 .claude/scripts/skill-catalog.py --check` validates catalog, pointers and invocation metadata; `--write` regenerates them |
+| Skills | `uv run python .claude/scripts/skill-catalog.py --check` validates catalog, pointers and invocation metadata; `--write` regenerates them |
 | Interpreter: `workflow_interpreter/`, anything that runs or verifies it (`scripts/verify-feature.sh`, `scripts/review-checks.sh`, `scripts/checks/`), and the tests of either | The five-stage host gate in `docs/usage/interpreter-gate.md`, which carries the repository's Ruff and mypy options. The per-language rows above still apply. |
 
 **Dangerous-commands hook.** After changing

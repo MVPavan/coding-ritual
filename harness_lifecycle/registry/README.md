@@ -265,7 +265,13 @@ kinds keep one ruling per capability, with no analysis and no report row.
 agent listing a skill's traits reads only the skill folder, never these two
 files; a separate pass maps each extracted trait to an existing ID (same
 mechanism), splits it (partial match) or defines a new one. The review keeps
-both lists, so a critic can see nothing was forced.
+both lists, so a critic can see nothing was forced. The mapping runs both
+ways: every blind line is mapped, and every `new` or `changed` report row
+maps back from a blind line. A trait the critic finds missing is added to the
+blind list as its own line, citing where in the folder it is, and mapped like
+the others; a report has no other route for it. `report seal` and `check`
+enforce both directions; the three rows sealed before the backward check are
+listed in `curation/registry/checks/reports.py`.
 
 **Retirement.** A retired definition is never deleted and always resolves,
 so old events stay valid. A new subject may not use it; a ruling continuing
