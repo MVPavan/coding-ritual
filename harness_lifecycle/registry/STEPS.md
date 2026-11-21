@@ -39,7 +39,7 @@ Playbook traits: `declared-watch-mode`, `merge-frontier-only`, `stack-topology-f
 | `babysit#5` | the frontier has a failing check, in drive or background | `ci-classified-before-rerun`, `full-workflow-rerun-grant` | `skill:systematic-debugging` (when: the failure is in the diff's own code and its cause is unclear); `skill:tdd` (when: in drive, that failure needs a fix and a regression check is feasible) |  |
 | `babysit#6` | in drive or threads-only, a fix is verified or any thread disposition is ready to publish | `reply-from-file`, `thread-replies-confirmed` | `skill:land` (when: a fix is verified) |  |
 | `babysit#7` | drive or background, until the frontier is ready, the stack is complete, the run waits on a person, or the person stops it | `bounded-background-wait`, `event-wait-with-fresh-read` |  |  |
-| `babysit#8` | every exit | `babysit-closeout` |  |  |
+| `babysit#8` | every exit | `babysit-closeout` | `skill:tracker` (when: in drive, the run read a pull request back as merged) |  |
 
 ## bug-fix
 
@@ -288,7 +288,7 @@ Playbook traits: `shipping-merge-grant`, `contiguous-verified-run`, `hands-off-w
 | `shipping#2` | a pull request has an earlier verdict | `verdict-reuse-on-tree` |  |  |
 | `shipping#3` | each unmerged pull request from the bottom that shipping#2 left without a usable verdict | `independent-user-run-verdict`, `verdict-on-pr-and-bead` | `skill:delegation` (when: the reviewer role, briefed to run the change as a user would, against its base) |  |
 | `shipping#4` | the verified run holds at least one pull request | `verdict-receipts-before-merge`, `trunk-ancestor-before-merge`, `direct-merge-mutation-at-verified-head`, `bottom-up-merge-read-back`, `pinned-lease-child-move`, `bounded-background-wait`, `event-wait-with-fresh-read` |  |  |
-| `shipping#5` | every exit | `merge-evidence-bead-close` |  |  |
+| `shipping#5` | every exit | `merge-evidence-bead-close` | `skill:tracker` (when: a pull request was read back as merged) |  |
 
 ## skill-curation
 
@@ -401,7 +401,7 @@ Traits and calls used by two or more playbooks. Repeating a step is fine; the sa
 | `skill:systematic-debugging` | babysit: `babysit#5`; bug-fix: `bug-fix#2`; implement: `implement#4`; runtime-forensics: `runtime-forensics#2`; visual-parity: `visual-parity#3` |
 | `skill:tdd` | babysit: `babysit#4`, `babysit#5`; bug-fix: `bug-fix#3`; implement: `implement#4`; refactoring: `refactoring#1` |
 | `skill:to-plan` | implement: `implement#6`; plan: `plan#7` |
-| `skill:tracker` | implement: `implement#2`, `implement#4`, `implement#6`, `implement#8`; plan: `plan#8` |
+| `skill:tracker` | babysit: `babysit#8`; implement: `implement#2`, `implement#4`, `implement#6`, `implement#8`; plan: `plan#8`; shipping: `shipping#5` |
 | `skill:unslop` | investigation: `investigation#2`; plan: `plan#9` |
 | `skill:wake` | autonomous-run: `autonomous-run#3`; babysit: `babysit#1`; hillclimb: `hillclimb#2` |
 | `skill:why` | bug-fix: `bug-fix#2`; investigation: `investigation#1` |

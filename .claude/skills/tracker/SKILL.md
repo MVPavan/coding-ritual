@@ -1,6 +1,6 @@
 ---
 name: tracker
-description: "Use to put Beads structure on approved work: seed or extend a workstream's phase epics and stages, record an approved plan (one-phase work, or units that will span sessions) or an approved decision map and its tickets, seed flat operational work from a charter, find or close a phase's epic, or render the tracking files. How a bd command, field or gate works is beads; choosing a spec's phases is to-roadmap; writing the plan is to-plan."
+description: "Use to put Beads structure on approved work: seed or extend a workstream's phase epics and stages, record an approved plan (one-phase work, or units that will span sessions) or an approved decision map and its tickets, seed flat operational work from a charter, find or close a phase's epic, close a bead on merge evidence, act on a bead-mirror digest row, or render the tracking files. How a bd command, field or gate works is beads; choosing a spec's phases is to-roadmap; writing the plan is to-plan."
 ---
 
 # Tracker
@@ -38,6 +38,7 @@ close gate. bd itself (types, fields, waits, claims) is the `beads` skill.
 | Decision map: an approved map and its tickets, supplied or handed over by `wayfinder` | Decision map, below |
 | Flat operational work: a charter with recurring or plain tasks, no phases | Flat work, below |
 | A phase's epic to find, close or render | Phase epics, below |
+| A bead to close on a merge, a mirror digest row, or beads just closed or seeded | GitHub mirror, below |
 
 **One-phase plan.** Create or reuse one epic: `--spec-id` the governing spec, its
 acceptance the spec's success criteria, a `plan: <path>` note. Create one stage
@@ -102,6 +103,40 @@ acceptance; no phases, no roadmap.
   deferred spikes, the backlog board every other deferred bead. `README.md`,
   `roadmap.md` and `plans/*.md` stay hand-written. A missing renderer is a reported
   gap, never permission to write those files by hand.
+
+## GitHub mirror
+
+Some projects mirror beads to GitHub issues from one *writer clone*. Tell the
+project state before closing or seeding beads:
+
+| State | How to tell | Do |
+|---|---|---|
+| Writer clone | `.claude/hooks/bead-mirror.py` exists and `python3 .claude/hooks/bead-mirror.py map` prints anything or exits non-zero | All of the below |
+| Opted in, not the writer | Otherwise, and the workflow is committed: `git cat-file -e HEAD:.github/workflows/bead-reference-check.yml` succeeds (a staged copy does not count) | Close beads by the rule below; after closing or seeding, say in one line that outbound is skipped because this clone is not the writer |
+| Not opted in | Neither | Close beads by the rule below; no mirror step |
+
+- **Close on merge evidence**, in every state, for a merge that Babysit or
+  Shipping read back and for a digest row saying a linked issue closed while its
+  bead is open. Close the bead with the evidence (pull request, merge commit,
+  merger) as `--reason` and as a comment only when its acceptance holds, its
+  reviews are done and no owner decision is outstanding; otherwise comment the
+  evidence and leave it open. A phase epic also needs the Close gate above. A
+  digest row reading "closed on GitHub, no pull request" or "cause unknown" is
+  evidence by the same rule, cited as the row says.
+- **Outbound.** In the writer clone, after closing or seeding beads, run
+  `python3 .claude/hooks/bead-mirror.py outbound` (it creates issues). For a
+  merge that Babysit or Shipping handed over, run instead `python3
+  .claude/hooks/bead-mirror.py outbound --bead <id>` for each bead this step
+  closed, never the full run; a bead left open runs nothing. Report the holds it
+  prints. On a non-zero exit, report its message and that beads it did not
+  publish still need a foreground outbound: the background run creates no
+  issues.
+- **The other digest rows** (the session-start summary names the full digest):
+  untracked issues and pull requests, and tracking-only issues still open after
+  their bead closed, are `triage`'s; a count of unpublished beads
+  is an outbound run; holds, reopened issues, and missing or doubled links are
+  the owner's. Report those; `overwrite`, `retire`, `resolve` and `reset-state`
+  run only on the owner's word.
 
 ## Deliverable
 

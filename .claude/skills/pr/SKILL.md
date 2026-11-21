@@ -19,9 +19,42 @@ editing the PR needs publish authority; without it, return the body as text.
 ## Merge danger
 **Door:** <one-way or two-way>, because <reason>
 **Blast radius:** <who or what this can break>
+
+<Refs|Closes> #<issue>
 ```
 
 Keep all three sections, in this order. A section with nothing real says so in one line.
+The reference line appears only where the project mirrors beads (Issue reference).
+
+## Issue reference
+
+Where the project mirrors beads to GitHub issues, the reference line names the
+issue of the bead this pull request delivers. Tell the state first:
+
+- **Writer clone:** `.claude/hooks/bead-mirror.py` exists and `python3
+  .claude/hooks/bead-mirror.py map` prints anything or exits non-zero.
+- **Opted in, not the writer:** otherwise, and the workflow is committed in
+  `HEAD` or in the branch the pull request targets: `git cat-file -e
+  <ref>:.github/workflows/bead-reference-check.yml` succeeds for either (a
+  staged copy does not count).
+- **Not opted in:** neither. Write no reference line.
+
+Find the issue before writing the body. A bead's issue is its `external_ref` when that
+names an issue in this repository. Read the bead and its ancestors from `bd list
+--all -n 0 --json --brief` (its `external_ref` and `parent` fields), not `bd
+show`, which writes. Take the bead's own issue; with none, walk `parent` upward
+and take the nearest ancestor's.
+With none on the whole chain, and only when you hold the authority to open or edit
+the pull request, in the writer clone run `python3 .claude/hooks/bead-mirror.py
+outbound --bead <id>`, which creates a public issue: its last line is the new
+issue's URL, and a non-zero exit is reported with its message as a stop. When you
+only return the body as text, keep `<Refs|Closes> #<issue>` as a placeholder and
+say the bead has no issue yet. In any other clone, stop with "ask the writer clone
+to mirror this bead". No bead for the work: ask which one.
+
+Write `Closes #<n>` only when `#<n>` is the bead's own issue and this pull request
+completes the bead; every other case, an ancestor's issue included, is `Refs #<n>`,
+because merging closes whatever a closing keyword names.
 
 ## Summary
 

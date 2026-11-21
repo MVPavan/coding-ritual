@@ -29,6 +29,7 @@ steps:
   - id: babysit#8
     when: every exit
     actions: [{trait: babysit-closeout}]
+    calls: [{to: "skill:tracker", when: "in drive, the run read a pull request back as merged"}]
 ---
 
 # Babysit
@@ -56,8 +57,9 @@ one ends. Commits from a working tree are `land`, and a pull request's body is
 - **Grant.** In `drive` and `threads-only`, push fix commits to the pull
   request's own branch and reply on its review threads without asking each
   time. In `drive`, also start one fresh full run of a failing workflow per
-  failure classified as flake or infrastructure (step 5). Nothing more: no
-  merge, rebase or force-push. `background` and `check` change nothing remote.
+  failure classified as flake or infrastructure (step 5), and for a pull
+  request read back as merged, close its bead and mirror that bead alone
+  (step 8). Nothing more: no merge, rebase or force-push. `background` and `check` change nothing remote.
   Under an open `wake` card, push and reply only when the request's own words
   name those acts.
 - **Never merge.** Babysitting authorizes no merge, queued or automatic. A
@@ -145,8 +147,12 @@ one ends. Commits from a working tree are `land`, and a pull request's body is
    A question from the person mid-run is answered and the run goes on. A
    pending approval from a person is something to wait for; there is nothing
    to fix.
-8. **Close out**, on every exit. Release the claim only when this run took
-   it and is not handing the watch on. Sweep the run's thread decisions once:
+8. **Close out**, on every exit. In `drive`, for each pull request this run
+   read back as merged, invoke `tracker` to close its bead on that merge
+   evidence; only a bead it closed is then mirrored, by itself (`tracker`'s
+   single-bead outbound), and a bead left open runs nothing. Outside `drive`,
+   report the merge and leave the bead open. Release the claim only when this
+   run took it and is not handing the watch on. Sweep the run's thread decisions once:
    a dismissal pattern likely to recur is proposed as a lesson where
    `AGENTS.md` sends lessons, never kept privately. With a `wake` card open,
    close it and cancel its timer, as `wake` says; the reply gives the result.
@@ -163,7 +169,7 @@ one ends. Commits from a working tree are `land`, and a pull request's body is
 - **In queue:** the frontier's queue entry as read; this run merges nothing
   and waits on no queue.
 - **Stack complete:** every pull request read as merged, who merged the last
-  one, and what this run pushed and replied.
+  one, what this run pushed and replied, and each bead closed or left open.
 - **Waiting on a person:** what each pull request waits on (an approval, a
   rebase, a conflict and its drift sweep, an escalated finding, a merged
   owner) and which branch needs it.

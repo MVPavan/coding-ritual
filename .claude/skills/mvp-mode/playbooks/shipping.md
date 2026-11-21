@@ -19,6 +19,7 @@ steps:
   - id: shipping#5
     when: every exit
     actions: [{trait: merge-evidence-bead-close}]
+    calls: [{to: "skill:tracker", when: "a pull request was read back as merged"}]
 ---
 
 # Shipping
@@ -34,7 +35,9 @@ the forge command line.
 - **Grant.** A request to ship or land authorizes merging the verified run
   and, for a stack, two acts on the next pull request once its parent lands:
   pointing its base at trunk, and a lease-pinned force push of its own branch
-  (step 4). Nothing else: no other branch, no merge past the run.
+  (step 4), and for each pull request read back as merged, closing its bead
+  and mirroring that bead alone (step 5). Nothing else: no other branch, no
+  merge past the run.
 - **Verified run only.** From the lowest unmerged pull request upward, the run
   ends before the first one without `PASS` or `PASS+NOTES` that covers its
   current tree. That one is the ceiling. A verified pull request above the
@@ -44,7 +47,7 @@ the forge command line.
 - **Direct merges only.** This version never queues a pull request and never
   arms auto-merge.
 - **Hands off.** The run holds the stack's claim, and nobody else edits the
-  stack while it runs. It writes nothing but step 4's own moves. When a merge
+  stack while it runs. It writes nothing but step 4's own moves and step 5's close-out. When a merge
   fails or stalls, read why before changing anything. Limit: run one
   babysitter or shipper per stack; the claim guards the common case.
 - **Scope.** Shipping handles stacks built from branches in this repository. A
@@ -119,9 +122,10 @@ the forge command line.
    anything else with a background wait of a fixed interval, and read the
    forge afresh on every notice or timeout.
 5. **Close out**, on every exit. For each pull request read back as merged,
-   close its bead with the read-back as evidence when its acceptance holds;
-   otherwise comment the evidence on the bead and leave it open. Release the
-   claim this run took.
+   invoke `tracker`: it closes the bead with the read-back as evidence when its
+   acceptance holds, and otherwise comments the evidence and leaves it open.
+   Only a bead it closed is then mirrored, by itself (`tracker`'s single-bead
+   outbound); a bead left open runs nothing. Release the claim this run took.
 
 ## Reply
 

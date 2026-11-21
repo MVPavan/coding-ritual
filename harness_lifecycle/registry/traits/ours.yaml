@@ -253,14 +253,14 @@ ours:to-spec:
   tree_hash: "b5c65663574e18bdb07472ddec3fb6a7669586ea38ce21d66e8f398504e883d6"
   traits: [synthesize-settled, spec-template, spec-criteria-and-questions, none-keeps-heading, testing-seam-decision, no-stale-file-paths, no-stale-code-snippets, prototype-snippet, spec-approval-gate, material-risk-review, user-perspective-framing, implementation-decisions-scope, testing-decisions-contents]
 ours:tracker:
-  tree_hash: "36cf8a2622dc5be2c79e1b6663a7a637009db7db2fd6cd78c4279da94854b424"
+  tree_hash: "13a2fc0c01126ba945e778d35a17b29e08acbbac9353ed6928dcec14e1ecc2f8"
   traits: [phase-epic-contract, phase-epic-lookup, workstream-layout, beads-native-tracking, workstream-extension, dependency-edges, real-id-wiring, one-phase-plan-tracking, flat-operational-tracking, close-gate, workstream-render, session-spanning-unit-beads]
   notes:
     beads-native-tracking: "The roadmap anchor is the --spec-id and the governing spec is --design; the renderer derives the workstream from the anchor, so a plan path never goes in --design."
     close-gate: "Also closes a one-phase epic, whose exit evidence is the epic's acceptance rather than a roadmap exit criterion."
     real-id-wiring: "Creates every bead first, then wires edges and binds a plan's proposed stage names by the returned IDs."
 ours:triage:
-  tree_hash: "9948b18fdfb9b79b828882e8c10f8ae0c39b69b960c503bb0c2cd06a557f80ff"
+  tree_hash: "f498d3a0be45b614319cda573d43bd447f64af390e25e2c09b07b9308dfd51b9"
   traits: [attention-buckets, triage-decision, established-notes, triage-resume-notes, redundancy-check, prior-rejection-check, claim-verification, agent-ready-gate, pick-from-summary, durable-rejection-reasons, already-built-close, brief-acceptance-criteria, read-full-source-issue, ready-for-human-rationale, split-pr-read-steps]
   notes:
     brief-acceptance-criteria: "Delivers sealed row 2026-10-30-mattpocock_skills-5beb35b:304: independently checkable acceptance on the agent-ready gate, where the definition requires it of every brief, a separate writing rule; T5."
@@ -311,7 +311,7 @@ ours:reflect:
   tree_hash: "fbdb48c4fa528a86f974946084f3d2d58d01a760f7a24640dfa53e1ce3224d7e"
   traits: [sampled-session-retros, failures-first-retro-sample, environment-retro-categories, read-existing-check-first, read-session-sources, severity-ordered-proposals, retro-in-reviewed-session, one-offs-not-lessons, no-cross-project-transcript-search, brief-sent-as-written, findings-in-the-reply, three-way-finding-disposition, approval-before-applying-findings, approved-routing-followed, used-or-missed-unit-scope, closing-summary-parts, durable-principle-lens, brief-only-read-only, finding-with-evidence-and-destination, rule-not-label, skip-drifting-details, concrete-tooling-lens, decision-changing-finding, one-row-per-finding, transcript-location-convention, transcript-located-by-layout-probe, mine-and-group-mistakes, two-occurrence-threshold, most-frequent-classes-first, class-evidence-level-report]
 ours:pr:
-  tree_hash: "2c14fb357da68488ca35486017e5e89b3701707bcba2265fb4d90abd9ac721c8"
+  tree_hash: "c356587527c5a169c4a03fde84a366a29aea29a6999c56a8a2ce7fb8fa5fa557"
   traits: [pr-body-template, evidence-before-after, lead-number-pr-body, merge-danger, no-preamble, visual-form-catalog, structural-diff, visual-placement, minimal-visual-selection, link-bulk-evidence]
 ours:create-verification-skill:
   tree_hash: "259422a86c732b16979a83dfe4ee1b26cde8fdf840f1e1b49d4e4eddff62de9d"
