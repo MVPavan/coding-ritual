@@ -538,20 +538,35 @@ def test_where_it_runs_the_session_checkout_not_the_one_git_selectors_name(
         assert (proc.returncode, proc.stdout, proc.stderr) == (0, "", "")
 
 
-def slow_wrapper(path: Path, real: str, match: str, sentinel: Path) -> None:
+def slow_wrapper(
+    path: Path,
+    real: str,
+    match: str,
+    sentinel: Path,
+    worker_only: bool = False,
+    ignore_term: bool = False,
+) -> None:
     """Replace ``path`` with a script that, for argument lists containing ``match``,
-    leaves a descendant that writes ``sentinel`` after 3 s and itself sleeps 30 s;
-    anything else runs ``real``."""
+    leaves a descendant that writes ``sentinel`` after 3 s (ignoring SIGTERM when
+    ``ignore_term``) and itself sleeps 30 s; anything else runs ``real``.
+    ``worker_only``: only when its parent is the background worker."""
     sleep = real_tool("sleep")
+    trap = "trap '' TERM; " if ignore_term else ""
+    guard = (
+        f'[ "$("{real_tool("tr")}" "\\0" "\\n" < /proc/$PPID/cmdline'
+        f' | "{real_tool("tail")}" -n 1)" = worker ] || exec "{real}" "$@"\n'
+        if worker_only
+        else ""
+    )
     path.unlink()
-    path.write_text(
-        "#!/bin/sh\n"
+    slow = (
         f'case " $* " in *" {match} "*)\n'
-        f'  ( "{sleep}" 3; : > "{sentinel}" ) &\n'
+        f'  ( {trap}"{sleep}" 3; : > "{sentinel}" ) &\n'
         f'  exec "{sleep}" 30 ;;\n'
         "esac\n"
         f'exec "{real}" "$@"\n'
     )
+    path.write_text("#!/bin/sh\n" + guard + slow)
     path.chmod(0o755)
 
 
@@ -593,6 +608,61 @@ def test_lock_worker_deadline_bounds_every_child_and_stops_its_descendants(
     assert not group_alive(rec["worker"])
     assert "the worker's deadline passed" in (hooked.mirror_dir / "log").read_text()
     assert hooked.fake.writes() == []
+
+
+def test_lock_worker_deadline_covers_its_first_git_discovery(hooked: Mirror) -> None:
+    """With the supervisor killed while the worker's first git call (the common
+    directory lookup) stalls, the worker still stops by its own deadline plus the
+    grace, and the stalled call's descendant never runs on."""
+    hooked.write_switch()
+    sentinel = hooked.clone.parent / "discovery-descendant-ran"
+    slow_wrapper(
+        hooked.tools_dir / "git",
+        real_tool("git"),
+        "--git-common-dir",
+        sentinel,
+        worker_only=True,
+    )
+    start_session(hooked, "claude", {DEADLINES: "worker=1,supervisor=60"})
+    wait_for(lambda: "worker" in background(hooked), 10, "the worker to start")
+    seen = time.monotonic()
+    rec = background(hooked)
+    os.kill(rec["supervisor"], signal.SIGKILL)
+
+    wait_for(lambda: not alive(rec["worker"]), 3.0, "the worker to exit")
+    time.sleep(max(0.0, seen + 4.5 - time.monotonic()))
+    assert not sentinel.exists(), "the stalled git call's descendant never ran on"
+    assert not group_alive(rec["worker"])
+    assert "the worker's deadline passed" in (hooked.mirror_dir / "log").read_text()
+    assert hooked.fake.calls() == []
+
+
+def test_hook_supervisor_stops_what_the_worker_left_without_proc(
+    hooked: Mirror,
+) -> None:
+    """Where the worker cannot read /proc, a descendant that ignores SIGTERM survives
+    the worker's own deadline cleanup; the supervisor stops it once the worker exits,
+    long before the supervisor's deadline."""
+    command = hooked.clone / ".claude/hooks/bead-mirror.py"
+    text = command.read_text()
+    assert text.count('os.listdir("/proc")') == 1
+    command.write_text(text.replace('os.listdir("/proc")', 'os.listdir("/no-proc")'))
+    hooked.write_switch()
+    sentinel = hooked.clone.parent / "term-ignoring-descendant-ran"
+    gh = hooked.bin_dir / "gh"
+    kept = hooked.bin_dir.parent / "gh-fake"
+    shutil.copy2(gh, kept)
+    slow_wrapper(gh, str(kept), "user", sentinel, ignore_term=True)
+    began = time.monotonic()
+    start_session(hooked, "claude", {DEADLINES: "worker=1,supervisor=60,grace=1"})
+
+    rec = wait_background(hooked, timeout=10)
+    assert time.monotonic() - began < 8, "recorded at once, not at its own deadline"
+    assert rec["outcome"] == "worker-deadline"
+    assert not group_alive(rec["worker"]), "nothing is left in the worker's group"
+    time.sleep(max(0.0, began + 5.0 - time.monotonic()))
+    assert not sentinel.exists(), "the SIGTERM-ignoring descendant never ran on"
+    assert hooked.fake.calls() == []
 
 
 def test_failures_rate_limit_during_retirement_is_backed_off(hooked: Mirror) -> None:

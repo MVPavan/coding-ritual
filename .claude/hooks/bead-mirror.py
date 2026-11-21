@@ -36,13 +36,17 @@ and no rate-limit back-off is running, and reserves the run in the same step (el
 exits); it then has a session and process group of its own, input from /dev/null and
 output to ``log`` beside the switch, and runs ``worker`` as a child in its own process
 group; at its deadline it SIGTERMs the whole group, SIGKILLs what is left after a
-grace period, reaps the worker and records the outcome in its own reservation only,
-never over a newer run's record. ``worker`` is ``both --no-create`` that takes the
-lock without waiting (busy: it exits), gives every git, bd and gh child at most its
-remaining budget, and at its own deadline stops its children and their descendants
-(its process group, itself aside) before it releases the lock as it exits; it
-outlives a killed supervisor and still stops at its own deadline. A rate limit met
-anywhere, including a write whose reply was partial, backs the next run off.
+grace period, reaps the worker; when the worker exits first, for any reason, it stops
+what is left of the worker's group the same way; then it records the outcome in its own
+reservation only, never over a newer run's record. ``worker`` is ``both --no-create``
+that takes the lock without waiting (busy: it exits), starts its budget before its
+first git call, gives every git, bd and gh child at most its remaining budget, and at
+its own deadline stops its children and their descendants (its process group, itself
+aside) before it releases the lock as it exits; it outlives a killed supervisor and
+still stops at its own deadline. A rate limit met anywhere, including a write whose
+reply was partial, backs the next run off. Stated limit: Codex's hook entry finds the
+checkout with git before any deadline starts; git discovery is local, and Codex's hook
+runner bounds the entry.
 
 The reference grammar (``REFERENCE_PATTERN``, ``references``) is shared by the digest
 and the pull-request check. ``install-check`` writes the check's workflow to
@@ -495,9 +499,10 @@ def stop_own_children(grace: float = 1.0) -> None:
     """The worker's deadline cleanup: SIGTERM its process group except itself (every
     child and descendant still there), then SIGKILL what is left after ``grace``. Only
     in the worker, which leads its own group; never a caller's group. Stated limit:
-    finding what is left reads /proc, so without it (macOS) a child that ignores
-    SIGTERM survives this step; the supervisor's group kill at its deadline still
-    stops it."""
+    finding what is left reads /proc, so without it (macOS) a descendant that ignores
+    SIGTERM survives this step; the supervisor stops what is left of the group once
+    the worker exits (or at its own deadline), so it does not outlive a live
+    supervisor; with the supervisor killed as well, it can."""
     if WORKER_DEADLINE_AT is None or os.getpgid(0) != os.getpid():
         return
     pgid = os.getpid()
@@ -558,14 +563,7 @@ def git_common_dir() -> str | None:
     """The absolute git common directory of the clone the command runs in (its current
     directory, whatever Git's selectors say), or None outside one."""
     try:
-        proc = subprocess.run(
-            ["git", "rev-parse", "--git-common-dir"],
-            env=child_env(),
-            capture_output=True,
-            text=True,
-            timeout=CHILD_TIMEOUT,
-            check=False,
-        )
+        proc = run_child(["git", "rev-parse", "--git-common-dir"], None, child_env())
     except (OSError, subprocess.SubprocessError):
         return None
     # Relative to the current directory when it is one; ``--path-format`` (git 2.31)
@@ -4776,19 +4774,26 @@ def detach(mirror_dir: str) -> None:
     os.close(log)
 
 
+def signal_group(pgid: int, sig: int) -> bool:
+    """Send ``sig`` to process group ``pgid``; whether the group still has a member."""
+    try:
+        os.killpg(pgid, sig)
+    except (ProcessLookupError, PermissionError):
+        return False
+    return True
+
+
 def stop_group(worker: subprocess.Popen[bytes], grace: float) -> None:
     """SIGTERM the worker's whole process group, SIGKILL whatever is left after
-    ``grace``, and reap the worker."""
-    for sig in (signal.SIGTERM, signal.SIGKILL):
-        try:
-            os.killpg(worker.pid, sig)
-        except (ProcessLookupError, PermissionError):
-            pass
-        if sig == signal.SIGTERM:
-            try:
-                worker.wait(timeout=grace)
-            except subprocess.TimeoutExpired:
-                pass
+    ``grace``, and reap the worker. Also after the worker has exited: the group keeps
+    its ID while any descendant is in it, and an empty group costs nothing."""
+    end = time.monotonic() + grace
+    if signal_group(worker.pid, signal.SIGTERM):
+        while time.monotonic() < end:
+            if worker.poll() is not None and not signal_group(worker.pid, 0):
+                break
+            time.sleep(0.05)
+        signal_group(worker.pid, signal.SIGKILL)
     worker.wait()
 
 
@@ -4893,6 +4898,7 @@ def cmd_supervise(ctx: Context, args: argparse.Namespace) -> int:
     try:
         code = worker.wait(timeout=limits["supervisor"])
         outcome = outcome_of(code)
+        stop_group(worker, limits["grace"])  # whatever the worker left in its group
     except subprocess.TimeoutExpired:
         note("supervisor", "deadline reached; stopping the worker's process group")
         stop_group(worker, limits["grace"])
@@ -4923,12 +4929,18 @@ def terminated(signum: int, frame: Any) -> NoReturn:
     raise SystemExit(128 + signum)
 
 
-def cmd_worker(ctx: Context, args: argparse.Namespace) -> int:
-    """The background run (``both --no-create``): takes the lock itself or exits busy,
-    stops at its own deadline before a GitHub call, releases the lock as it exits."""
+def start_worker_budget() -> None:
+    """The worker's deadline, set before its first child (git discovery included)."""
     global WORKER_DEADLINE_AT
     signal.signal(signal.SIGTERM, terminated)
     WORKER_DEADLINE_AT = time.monotonic() + deadlines()["worker"]
+
+
+def cmd_worker(ctx: Context, args: argparse.Namespace) -> int:
+    """The background run (``both --no-create``): takes the lock itself or exits busy,
+    stops at its own deadline before a GitHub call, releases the lock as it exits."""
+    if WORKER_DEADLINE_AT is None:
+        start_worker_budget()
     ctx.lock_wait = 0.0
     note("worker", "inbound, then outbound without creates")
     try:
@@ -5045,7 +5057,13 @@ def main(argv: Sequence[str] | None = None) -> int:
     if session:  # a short deadline of its own, whatever the launcher's timeout
         signal.signal(signal.SIGALRM, session_deadline_passed)
         signal.setitimer(signal.ITIMER_REAL, deadlines()["session"])
-    common = git_common_dir()
+    if argv[-1:] == ["worker"]:
+        start_worker_budget()
+    try:
+        common = git_common_dir()
+    except DeadlineReached as exc:  # only in the worker, which has a budget
+        note("worker", str(exc))
+        return EXIT_DEADLINE
     mirror_dir = os.path.join(common, MIRROR_DIRNAME) if common else ""
     try:
         switch = load_switch(mirror_dir) if common else None
