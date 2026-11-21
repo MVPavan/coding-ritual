@@ -15,11 +15,6 @@ from tests.mirror._harness import ACCOUNT, COMMAND, HOST, REPO_NODE_ID, Mirror
 pytestmark = pytest.mark.bd
 
 LATER_STAGES = [
-    "inbound",
-    "both",
-    "full",
-    "dismiss",
-    "install-check",
     "supervise",
     "worker",
 ]

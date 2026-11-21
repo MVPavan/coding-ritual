@@ -1,0 +1,13 @@
+{
+  "_provisional": "the newest issue and pull request (issues(last: 1), pullRequests(last: 1)) reached through node(id:); replaced in M4",
+  "data": {
+    "node": {
+      "issues": {
+        "nodes": "$issue_nodes"
+      },
+      "pullRequests": {
+        "nodes": "$pull_nodes"
+      }
+    }
+  }
+}

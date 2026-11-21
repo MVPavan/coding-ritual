@@ -1,6 +1,6 @@
 <!-- BD:GENERATED START -->
 # Backlog (parked, vetted)
-_generated from bd @ 2026-11-20T21:03:53Z — DO NOT EDIT (run: BD_RENDER=1 bash <tracker-skill-dir>/scripts/bd-render-tracking.sh)_
+_generated from bd @ 2026-11-21T04:12:02Z — DO NOT EDIT (run: BD_RENDER=1 bash <tracker-skill-dir>/scripts/bd-render-tracking.sh)_
 - `cr-70qs` Build trigger evals for skills
 - `cr-dp83` Port agent-skills shared references used by adopted skills
 - `cr-02ze` live run feedback

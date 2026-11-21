@@ -1,0 +1,16 @@
+{
+  "_provisional": "a PullRequest node with the fields inbound selects (docs.github.com/graphql/reference/objects#pullrequest; state is OPEN, CLOSED or MERGED, mergedBy and mergeCommit are null until it merges); replaced in M4",
+  "__typename": "PullRequest",
+  "id": "$pull_node_id",
+  "number": "$pull_number",
+  "state": "$pull_state",
+  "merged": "$merged",
+  "mergedAt": "$merged_at",
+  "updatedAt": "$updated_at",
+  "body": "$pull_body",
+  "author": {
+    "login": "$author"
+  },
+  "mergedBy": "$merged_by",
+  "mergeCommit": "$merge_commit"
+}

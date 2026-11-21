@@ -1,0 +1,14 @@
+{
+  "_provisional": "Repository.pullRequests(orderBy: UPDATED_AT DESC) reached through node(id:), modelled on docs.github.com/graphql/reference/objects#pullrequestconnection; replaced in M4",
+  "data": {
+    "node": {
+      "pullRequests": {
+        "nodes": "$nodes",
+        "pageInfo": {
+          "hasNextPage": "$has_next",
+          "endCursor": "$end_cursor"
+        }
+      }
+    }
+  }
+}

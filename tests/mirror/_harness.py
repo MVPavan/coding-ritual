@@ -49,6 +49,10 @@ GIT_ISOLATION = {
 }
 
 
+def now() -> str:
+    return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+
+
 def scrubbed_env(extra: dict[str, str] | None = None) -> dict[str, str]:
     env = {
         k: v
@@ -165,9 +169,15 @@ class Fake:
         return issues
 
     def add_issue(
-        self, author: str, body: str, state: str = "OPEN", title: str = "seeded"
+        self,
+        author: str,
+        body: str,
+        state: str = "OPEN",
+        title: str = "seeded",
+        updated_at: str | None = None,
     ) -> int:
-        """Seed an issue straight into the repository, as another author or tool would."""
+        """Seed an issue straight into the repository, as another author or tool would.
+        Without ``updated_at`` it carries none, so only a full listing sees it."""
         data = self.load()
         repo = next(r for r in data["repos"] if r["node_id"] == REPO_NODE_ID)
         taken = [i["number"] for i in repo["issues"]] + [
@@ -187,8 +197,60 @@ class Fake:
                 "closing_events": [],
             }
         )
+        if updated_at:
+            repo["issues"][-1]["updated_at"] = updated_at
+        if state == "CLOSED":
+            repo["issues"][-1]["closed_at"] = updated_at or now()
         self.save(data)
         return number
+
+    def outside_issue(self, author: str = "alice", title: str = "A report") -> int:
+        """An open issue someone outside the mirror opens now."""
+        return self.add_issue(
+            author, "Seen in the wild.", title=title, updated_at=now()
+        )
+
+    def merge_pull(
+        self, pull: int, closes: tuple[int, ...] = (), merger: str = "maintainer"
+    ) -> str:
+        """Merge a pull request now; GitHub closes each issue in ``closes`` with a
+        closing event naming it. Returns the merge commit's SHA."""
+        data = self.load()
+        repo = next(r for r in data["repos"] if r["node_id"] == REPO_NODE_ID)
+        stamp = now()
+        sha = f"{pull:07d}".replace("0", "a") + "c0ffee" * 5 + "0f"
+        found = next(p for p in repo["pulls"] if p["number"] == pull)
+        found.update(
+            state="MERGED",
+            merged_at=stamp,
+            merged_by=merger,
+            merge_commit=sha,
+            updated_at=stamp,
+        )
+        for number in closes:
+            issue = next(i for i in repo["issues"] if i["number"] == number)
+            issue.update(state="CLOSED", closed_at=stamp, updated_at=stamp)
+            issue.setdefault("closing_events", []).append(
+                {"at": stamp, "closer": {"pull": pull}}
+            )
+        self.save(data)
+        return sha
+
+    def close_issue(self, number: int, commit: str | None = None) -> None:
+        """Close an issue now, by hand (or by a pushed commit)."""
+        stamp = now()
+        closer = {"commit": commit} if commit else None
+        events = self.issue(number).get("closing_events") or []
+        self.edit_issue(
+            number,
+            updated_at=stamp,
+            state="CLOSED",
+            closed_at=stamp,
+            closing_events=[*events, {"at": stamp, "closer": closer}],
+        )
+
+    def reopen_issue(self, number: int) -> None:
+        self.edit_issue(number, state="OPEN", closed_at=None)
 
     def issue(self, number: int) -> dict[str, Any]:
         return next(i for i in self.issues() if i["number"] == number)
@@ -217,14 +279,29 @@ class Fake:
         comments: list[dict[str, Any]] = self.issue(number).get("comments", [])
         return comments
 
-    def add_pull(self) -> int:
+    def add_pull(
+        self,
+        author: str = "contributor",
+        body: str | None = None,
+        state: str = "OPEN",
+    ) -> int:
+        """Open a pull request now (``state`` CLOSED: one closed unmerged)."""
         data = self.load()
         repo = next(r for r in data["repos"] if r["node_id"] == REPO_NODE_ID)
         taken = [i["number"] for i in repo["issues"]] + [
             p["number"] for p in repo["pulls"]
         ]
         number = max(taken, default=0) + 1
-        repo["pulls"].append({"node_id": f"PR_kwDOseeded{number}", "number": number})
+        repo["pulls"].append(
+            {
+                "node_id": f"PR_kwDOseeded{number}",
+                "number": number,
+                "author": author,
+                "body": body,
+                "state": state,
+                "updated_at": now(),
+            }
+        )
         self.save(data)
         return number
 

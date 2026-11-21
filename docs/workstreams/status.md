@@ -1,6 +1,6 @@
 <!-- BD:GENERATED START -->
 # Workstream Status (global)
-_generated from bd @ 2026-11-20T21:03:53Z — DO NOT EDIT (run: BD_RENDER=1 bash <tracker-skill-dir>/scripts/bd-render-tracking.sh)_
+_generated from bd @ 2026-11-21T04:12:02Z — DO NOT EDIT (run: BD_RENDER=1 bash <tracker-skill-dir>/scripts/bd-render-tracking.sh)_
 
 ### (no anchor)
 - **Adapt five deferred pstack playbooks: Visual parity, Babysit, Shipping, Autopilot-full, Autopilot-stack** — 3/5  ⏳
@@ -23,7 +23,7 @@ _generated from bd @ 2026-11-20T21:03:53Z — DO NOT EDIT (run: BD_RENDER=1 bash
 - **phase-7 epic: build-loop as the second live graph** — 4/4  ✅ DONE
 
 ### docs/specs/2026-11-20-beads-github-mirror.md
-- **Beads → GitHub mirror** — 0/4  ⏳
+- **Beads → GitHub mirror** — 1/4  ⏳
 
 ### docs/workstreams/agent-bridge/roadmap.md
 - **[P0] Baseline and contracts** — 1/1  ✅ DONE
@@ -34,9 +34,9 @@ _generated from bd @ 2026-11-20T21:03:53Z — DO NOT EDIT (run: BD_RENDER=1 bash
 - **[P5] Normal workflow and live proof** — 1/1  ✅ DONE
 
 ### docs/workstreams/beads-github-mirror/roadmap.md
-- **[M1] Outbound command** — 0/3  ⏳
+- **[M1] Outbound command** — 3/3  ✅ DONE
 - **[M2] Digest and pull-request check** — 0/2  ⏳
-- **[M3] Hooks and skill guidance** — 0/2  ⏳
+- **[M3] Hooks and skill guidance** — 1/2  ⏳
 - **[M4] Live trial and activation guide** — 0/3  ⏳
 
 ### docs/workstreams/skill-curation/idea-level-design.md
@@ -64,7 +64,7 @@ _generated from bd @ 2026-11-20T21:03:53Z — DO NOT EDIT (run: BD_RENDER=1 bash
 - `cr-vmgq` Ledger follow-up: sessions/artifacts/usage tables have no writer; verify the cross-version-import item
 - `cr-o85.44` Legacy uncoordinated roots: execution band keyed on wrapper_home, not repo
 - `cr-q8fv` Let adopted projects return a failure as a reproducer
-- `cr-k88k.1.1` M1.1 Test seam, skeleton, authority and lock
+- `cr-k88k.2.1` M2.1 Reference grammar and check workflow
 - `cr-r2pa.2` Phase 2: skills merged across ours, Pocock and pstack
 - `cr-r2pa.3` Phase 3: the finished mechanism
 - `cr-7wi` Phase 5: collapse the workflows/ vs package fixture duplication

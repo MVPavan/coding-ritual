@@ -20,7 +20,19 @@ offline or failing, or the issues listing incomplete; also when that happens lat
 run, which keeps what it already recorded and leaves the rest pending); 6 Beads
 unavailable; 7 busy
 (another run holds the clone-wide lock past the wait bound); 8 not implemented;
-9 refused (the ``pr`` path, ``link`` or ``resolve`` declined, with the reason).
+9 refused (the ``pr`` path, ``link``, ``resolve`` or ``install-check`` declined, with
+the reason).
+
+The reference grammar (``REFERENCE_PATTERN``, ``references``) is shared by the digest
+and the pull-request check. ``install-check`` writes the check's workflow to
+``.github/workflows/bead-reference-check.yml`` at the clone's top level (no ``gh`` or
+``bd`` call), prints the path, and refuses to replace a differing file without
+``--force``. The workflow runs on ``pull_request_target`` (opened, edited, reopened,
+synchronize) with only ``pull-requests: read``, one concurrency group per pull request
+and no checkout; it reads the current body through the API and runs the same pattern
+and function, rendered from this file. Exempt authors come from the repository
+variable ``BEAD_REF_EXEMPT`` (comma-separated logins). The workflow names no
+repository: it takes the host and repository from the runner.
 
 The banner. Every issue body starts with two lines::
 
@@ -98,8 +110,13 @@ outbound checkpoint, the mirror's issues GitHub reports updated since it (the
 ``MirrorUpdated`` listing, filtered by creator and ``since``), beads never synced,
 beads held open-or-closed and closed beads whose closing comment is not yet recorded.
 The checkpoint is the previous full run's start, recorded only when the run finished,
-and read back ``CHECKPOINT_MARGIN`` earlier; ``--bead`` runs never move it. (Inbound,
-M2.2, will share it.) A touched issue is read fresh by node ID, then each component
+and read back ``CHECKPOINT_MARGIN`` earlier; ``--bead`` runs never move it. In
+``both`` and ``full`` outbound does not list again: it takes the mirror's issues from
+inbound's listing of everything updated since the inbound checkpoint, when that
+checkpoint is no later than the outbound one (so the listing reaches back far enough);
+otherwise, and in a stand-alone run, it lists from its own checkpoint, since the inbound
+checkpoint may have moved past edits outbound has not yet repaired. After a full
+comparison it touches every enrolled issue. A touched issue is read fresh by node ID, then each component
 converges on the bead: title (compared trimmed), body (line endings normalised,
 trailing whitespace removed), and the ``bead-type:`` label (compared without case;
 the missing one added and every other ``bead-type:`` label removed, one call each;
@@ -143,10 +160,45 @@ every (or only the named) component, ignoring holds and not-storable marks; the
 closing comment goes with ``state``. ``map`` prints
 bead, issue, link and kind from the state and the links, with no GitHub call.
 
+Inbound (``inbound``; ``both`` runs inbound then outbound, ``both --no-create`` is the
+background run; ``full`` is ``both`` with the full comparison) writes nothing to Beads
+or GitHub. It reads, by GraphQL: every issue (any author) GitHub reports updated since
+the inbound checkpoint minus ``CHECKPOINT_MARGIN``, and the pull requests most
+recently updated since then; the old and new issue of every bead whose link or status
+differs from the last run's Beads snapshot (the Beads-side checkpoint); every linked
+issue it has no facts for; and the latest closing event of each closed issue a row
+needs (``MirrorClosedBy``: a merged pull request with its merge commit and merger, a
+commit, none, or unknown when it cannot be read or attributed). It keeps *facts*
+(numbers, states, times, validated logins, SHAs, a pull request's references), never a
+title, body or comment, for the issues a bead links and the items in a row, and builds
+the rows from those facts and Beads every run, so a row clears on the next run once
+Beads agrees even if nothing changed on GitHub. Rows (``ROW_TYPES``): a linked issue
+closed while its bead is open; an enrolled issue reopened while its bead is closed (it
+was confirmed closed, or is held); a tracking-only issue still open while its bead is
+closed; holds, not-storable and screened components; an open issue no bead links; an
+unlinked issue closed since opt-in by a merged pull request; an open pull request, or
+one merged since opt-in, none of whose references is a linked issue (each reference
+listed as missing, a pull request or not linked); an issue named by several beads or
+enrolled for a bead missing from Beads; and the count of beads outbound would create.
+Every row passes the field allow-list (``allowed_row``). The facts, rows, Beads
+snapshot and both checkpoints land in one atomic state replacement when inbound ends;
+then ``digest.json`` (time, full, counts, rows) and ``digest.md`` are rendered from it.
+A run that cannot finish (a failed listing page, a failed read) writes none of them:
+the previous digest stays, with its time. "Since opt-in" is ``opted_in``, the time the
+writer's first run made the state. The full comparison lists every issue and pull
+request up to the highest number when it starts (``MirrorHighWater``); it runs when the
+last completed one is more than a week old, and a failed one is repeated next run.
+``dismiss <number>`` (under the lock) records the number as acknowledged; the
+untracked issue, untracked pull request or tracking-only rows naming it clear, now and
+on later runs. ``map`` adds the pull requests that reference or closed each issue.
+
 Enrolled records in the state also carry ``confirmed`` (``OPEN``, ``CLOSED`` or
 null), ``not_storable`` ({component: hash}), ``screened`` ({component: why}),
-``comment_key``, ``sent_state`` and ``synced``; ``checkpoints`` holds ``{"outbound": ISO time}``, and
-an open-or-closed hold has kind ``open-closed``.
+``comment_key``, ``sent_state`` and ``synced``; ``checkpoints`` holds ISO times for
+``outbound``, ``inbound``, ``beads`` and ``full``; ``inbound`` holds ``time``, ``full``,
+``rows``, ``facts`` ({number: facts}), ``beads`` ({bead: [issue, status]}), ``pulls``
+({issue: [pull requests]}) and ``dismissed`` ({number: ISO time}); and an
+open-or-closed hold has kind ``open-closed``.
 """
 
 from __future__ import annotations
@@ -158,6 +210,7 @@ import calendar
 import errno
 import fcntl
 import hashlib
+import inspect
 import json
 import os
 import re
@@ -166,7 +219,7 @@ import subprocess
 import sys
 import tempfile
 import time
-from collections.abc import Mapping, Sequence
+from collections.abc import Container, Mapping, Sequence
 from typing import Any, NoReturn
 
 EXIT_OK = 0
@@ -223,11 +276,6 @@ WRITE_MUTATIONS: dict[str, tuple[str, str]] = {
 }
 
 LATER_STAGES = (
-    "inbound",
-    "both",
-    "full",
-    "dismiss",
-    "install-check",
     "supervise",
     "worker",
 )
@@ -758,12 +806,17 @@ def load_state(mirror_dir: str, switch: Mapping[str, Any]) -> dict[str, Any] | N
 
 
 def write_json_atomic(path: str, data: Any) -> None:
+    write_text_atomic(path, json.dumps(data, indent=2, sort_keys=True) + "\n")
+
+
+def write_text_atomic(path: str, text: str) -> None:
+    """Replace ``path`` with ``text``: a temporary file in the same directory, flushed,
+    synced and renamed over it, then the directory synced."""
     directory = os.path.dirname(path)
     fd, tmp = tempfile.mkstemp(prefix=".state-", dir=directory)
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as fh:
-            json.dump(data, fh, indent=2, sort_keys=True)
-            fh.write("\n")
+            fh.write(text)
             fh.flush()
             os.fsync(fh.fileno())
         os.replace(tmp, path)
@@ -1317,6 +1370,181 @@ def issue_number_in(ref: str, switch: Mapping[str, Any]) -> int | None:
     return int(m.group(4))
 
 
+# The reference grammar, shared by the pull-request check and the digest. A reference is
+# a keyword (any case, starting at a non-word character or the start of the text), an
+# optional colon, whitespace, then ``#`` and a positive decimal number, or the full URL
+# of an issue in the repository, ending at a non-word character or the end of the text.
+# ``install-check`` renders this pattern and ``references`` (its source, read from this
+# file) into the workflow, so the check and the digest run the same code.
+REFERENCE_KEYWORDS = (
+    "close",
+    "closes",
+    "closed",
+    "fix",
+    "fixes",
+    "fixed",
+    "resolve",
+    "resolves",
+    "resolved",
+    "ref",
+    "refs",
+)
+REFERENCE_PATTERN = (
+    r"(?<!\w)(?:"
+    + "|".join(REFERENCE_KEYWORDS)
+    + r"):?\s+(?:#(?P<short>[0-9]{1,10})"
+    + r"|https://(?P<host>[^/\s]+)/(?P<owner>[^/\s]+)/(?P<name>[^/\s]+)/issues/(?P<long>[0-9]{1,10}))"
+    + r"(?!\w)"
+)
+REFERENCE_RE = re.compile(REFERENCE_PATTERN, re.IGNORECASE)
+
+
+def references(text: str, host: str, repo: str) -> list[int]:
+    """The issue numbers ``text`` references in ``host``/``repo``, first-seen order."""
+    found: list[int] = []
+    for m in REFERENCE_RE.finditer(text):
+        if m.group("short") is not None:
+            number = int(m.group("short"))
+        else:
+            named = m.group("owner") + "/" + m.group("name")
+            if m.group("host").lower() != host.lower() or named.lower() != repo.lower():
+                continue
+            number = int(m.group("long"))
+        if number > 0 and number not in found:
+            found.append(number)
+    return found
+
+
+def tracked(found: Sequence[int], linked: Container[int]) -> bool:
+    """A pull request is tracked when one reference is an issue a bead links to."""
+    return any(number in linked for number in found)
+
+
+WORKFLOW_PATH = os.path.join(".github", "workflows", "bead-reference-check.yml")
+CHECK_JOB = "bead-reference"
+# The check's script, run by ``python3`` on the runner. It reads the pull request's
+# current body through the API (never the event's copy) and fails closed.
+CHECK_SCRIPT = """import json
+import os
+import re
+import subprocess
+import sys
+
+{grammar}
+
+FIX = (
+    "Fix: add a reference to an issue in this repository to the pull request's "
+    "description, for example 'Refs #42' (or 'Closes #42' when it completes the "
+    "issue), then save the description to run the check again."
+)
+
+
+def fail(why):
+    print("::error title=No bead reference::" + why + " " + FIX)
+    sys.exit(1)
+
+
+server = os.environ.get("GITHUB_SERVER_URL", "")
+repo = os.environ.get("GITHUB_REPOSITORY", "")
+number = os.environ.get("PR_NUMBER", "")
+host = server.split("://", 1)[-1].strip("/")
+if not (
+    re.fullmatch(r"[0-9]+", number)
+    and re.fullmatch(r"[^/\\s]+/[^/\\s]+", repo)
+    and re.fullmatch(r"[^/\\s]+", host)
+):
+    fail("The run did not name a pull request in this repository.")
+try:
+    proc = subprocess.run(
+        ["gh", "api", "--hostname", host, "repos/" + repo + "/pulls/" + number],
+        stdin=subprocess.DEVNULL,
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
+except (OSError, subprocess.SubprocessError):
+    proc = None
+if proc is None or proc.returncode != 0:
+    fail("The pull request could not be read through the API.")
+try:
+    pull = json.loads(proc.stdout)
+except ValueError:
+    pull = None
+user = pull.get("user") if isinstance(pull, dict) else None
+body = pull.get("body") if isinstance(pull, dict) else None
+if (
+    not isinstance(user, dict)
+    or not isinstance(user.get("login"), str)
+    or not (body is None or isinstance(body, str))
+):
+    fail("The API returned a malformed pull request.")
+exempt = {{
+    name.strip().lower()
+    for name in os.environ.get("BEAD_REF_EXEMPT", "").split(",")
+    if name.strip()
+}}
+if user["login"].lower() in exempt:
+    print("The author is exempt (repository variable BEAD_REF_EXEMPT).")
+    sys.exit(0)
+if not (body or "").strip():
+    fail("The pull request's description is empty.")
+found = references(body, host, repo)
+if not found:
+    fail("The description has no reference to an issue.")
+print("Bead reference found: " + ", ".join("#" + str(n) for n in found))
+"""
+WORKFLOW_HEAD = """\
+# Written by `bead-mirror install-check`; edit the command, not this file.
+# Required check: the job below. It runs from the default branch, never checks out
+# code, and reads the pull request's current description through the API.
+name: Bead reference check
+
+on:
+  pull_request_target:
+    types: [opened, edited, reopened, synchronize]
+
+permissions:
+  pull-requests: read
+
+concurrency:
+  group: bead-reference-check-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  bead-reference:
+    name: bead-reference
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check the description for an issue reference
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_ENTERPRISE_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          BEAD_REF_EXEMPT: ${{ vars.BEAD_REF_EXEMPT }}
+        run: |
+          python3 - <<'BEAD_REFERENCE_CHECK'
+"""
+WORKFLOW_TAIL = "          BEAD_REFERENCE_CHECK\n"
+
+
+def check_grammar_source() -> str:
+    """The grammar as the workflow carries it: the pattern and ``references`` itself."""
+    source = inspect.getsource(references)
+    return (
+        f"REFERENCE_RE = re.compile({REFERENCE_PATTERN!r}, re.IGNORECASE)\n\n\n{source}"
+    )
+
+
+def workflow_text() -> str:
+    script = CHECK_SCRIPT.format(grammar=check_grammar_source())
+    indented = "".join(
+        ("          " + line) if line.strip() else "\n"
+        for line in script.splitlines(keepends=True)
+    )
+    return WORKFLOW_HEAD + indented + WORKFLOW_TAIL
+
+
 def write_link(
     ctx: Context, bead_id: str, url: str, number: int, actor: str
 ) -> tuple[str, str]:
@@ -1669,6 +1897,7 @@ STATE_MAPS = (
     "retired",
     "ignored",
     "checkpoints",
+    "inbound",
 )
 
 
@@ -1679,6 +1908,8 @@ def new_state(switch: Mapping[str, Any]) -> dict[str, Any]:
         "version": STATE_VERSION,
         "binding": binding_of(switch),
         "rebuild": True,
+        # "Since opt-in": the writer's first run, which made this state.
+        "opted_in": now_iso(),
     }
     for key in STATE_MAPS:
         state[key] = {}
@@ -1746,9 +1977,16 @@ class Outbound:
         ctx: Context,
         state: dict[str, Any],
         args: argparse.Namespace,
+        updated: set[int] | None = None,
+        full: bool = False,
     ) -> None:
         self.ctx = ctx
         self.state = state
+        # From `both`: the mirror's issues inbound's listing just reported updated, when
+        # that listing reached back at least to the outbound checkpoint (one listing per
+        # run). ``full``: the weekly full comparison, which touches every enrolled issue.
+        self.updated_hint = updated
+        self.full = full
         # A state rebuilt from nothing: the listing runs even if no bead is eligible for
         # a create, so an issue whose run died before linking it is still found (its
         # bead may have closed since), until one full run completes that pass.
@@ -1853,10 +2091,14 @@ class Outbound:
                 )
         work = [b for b in targets if b in enrolled and b in beads]
         stamp = parse_iso(self.state["checkpoints"].get("outbound"))
-        since = None if stamp is None else stamp - CHECKPOINT_MARGIN
+        since = None if stamp is None or self.full else stamp - CHECKPOINT_MARGIN
         updated: set[int] = set()
         if since is not None and work and not self.only:
-            updated = self.updated_since(since)
+            updated = (
+                self.updated_hint
+                if self.updated_hint is not None
+                else self.updated_since(since)
+            )
         for bead_id in work:
             bead, record = beads[bead_id], enrolled[bead_id]
             holds = self.state["holds"]
@@ -2718,6 +2960,1027 @@ class Outbound:
         raise Stop(EXIT_REFUSED, f"{self.only} is not published: {reason}")
 
 
+# ---------------------------------------------------------------------------
+# Inbound: GitHub -> the digest. Reads only; writes only the state and the digest.
+
+FULL_INTERVAL = 7 * 24 * 3600
+EPOCH = "1970-01-01T00:00:00Z"
+REFS_KEPT = 50  # failing references a pull request's row lists
+INT_MAX = 2**31 - 1  # GraphQL's Int is 32-bit: no larger number names an item
+LOGIN_RE = re.compile(r"[A-Za-z0-9](?:-?[A-Za-z0-9]){0,38}(?:\[bot\])?")
+SHA_RE = re.compile(r"[0-9a-f]{7,64}")
+BEAD_ID_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}")
+# Digest row types, in the order the digest shows them.
+ROW_TYPES = (
+    "linked-closed",
+    "reopened",
+    "tracking-open",
+    "held",
+    "untracked-issue",
+    "untracked-closed",
+    "untracked-pull",
+    "link-problem",
+    "unpublished",
+)
+# The rows `dismiss <number>` clears, and the field holding the number it names.
+DISMISSABLE = {
+    "untracked-issue": "issue",
+    "untracked-closed": "issue",
+    "untracked-pull": "pull",
+    "tracking-open": "issue",
+}
+# A dismissal holds for its row's family only: acknowledging an untracked issue does
+# not hide the tracking-only row it may raise once a bead links it.
+DISMISS_FAMILY = {
+    "untracked-issue": "untracked",
+    "untracked-closed": "untracked",
+    "untracked-pull": "untracked",
+    "tracking-open": "tracking-open",
+}
+
+
+def dismiss_key(row: Mapping[str, Any]) -> str | None:
+    """The dismissal that clears ``row``, or None when no dismissal can."""
+    kind = str(row.get("type"))
+    number = row.get(DISMISSABLE.get(kind, ""))
+    if not isinstance(number, int) or kind not in DISMISS_FAMILY:
+        return None
+    return f"{DISMISS_FAMILY[kind]}:{number}"
+
+
+HOLD_COMPONENT = {
+    "open-closed": "state",
+    "link-conflict": "link",
+    "bad-link": "link",
+    "retire": "retire",
+}
+# The field allow-list: every value a digest row may carry, by field.
+ROW_WORDS = {
+    "type": set(ROW_TYPES),
+    "state": {"open", "closed", "merged"},
+    "cause": {"pull", "none", "commit", "unknown"},
+    "component": {"title", "body", "label", "state", "create", "link", "retire"},
+    "why": {
+        "screen",
+        "candidates",
+        "pending",
+        "refused",
+        "link-conflict",
+        "bad-link",
+        "open-closed",
+        "retire",
+        "not-storable",
+        "screened",
+        "shared",
+        "bead-missing",
+    },
+}
+REF_WHY = {"missing", "pull-request", "not-linked"}
+
+INBOUND_ISSUE_FIELDS = "__typename id number state closedAt updatedAt author { login }"
+PULL_FIELDS = (
+    "__typename id number state merged mergedAt updatedAt body author { login }"
+    " mergedBy { login } mergeCommit { oid }"
+)
+INBOUND_ISSUES_QUERY = (
+    "query MirrorInboundIssues($id: ID!, $since: DateTime!, $first: Int!,"
+    " $after: String) { node(id: $id) { ... on Repository {"
+    " issues(first: $first, after: $after, filterBy: {since: $since},"
+    " states: [OPEN, CLOSED], orderBy: {field: CREATED_AT, direction: ASC}) {"
+    f" nodes {{ {INBOUND_ISSUE_FIELDS} }} pageInfo {{ hasNextPage endCursor }} }} }} }} }}"
+)
+INBOUND_PULLS_QUERY = (
+    "query MirrorInboundPulls($id: ID!, $first: Int!, $after: String) {"
+    " node(id: $id) { ... on Repository {"
+    " pullRequests(first: $first, after: $after, states: [OPEN, CLOSED, MERGED],"
+    " orderBy: {field: UPDATED_AT, direction: DESC}) {"
+    f" nodes {{ {PULL_FIELDS} }} pageInfo {{ hasNextPage endCursor }} }} }} }} }}"
+)
+HIGH_WATER_QUERY = (
+    "query MirrorHighWater($id: ID!) { node(id: $id) { ... on Repository {"
+    " issues(last: 1) { nodes { number } } pullRequests(last: 1) { nodes { number } }"
+    " } } }"
+)
+ITEM_QUERY = (
+    "query MirrorItem($id: ID!, $number: Int!) {"
+    " node(id: $id) { ... on Repository { issueOrPullRequest(number: $number) {"
+    f" ... on Issue {{ {INBOUND_ISSUE_FIELDS} }} ... on PullRequest {{ {PULL_FIELDS} }}"
+    " } } } }"
+)
+CLOSED_BY_QUERY = (
+    "query MirrorClosedBy($id: ID!) { node(id: $id) { ... on Issue {"
+    " timelineItems(itemTypes: [CLOSED_EVENT], last: 1) { nodes { ... on ClosedEvent {"
+    " createdAt closer { __typename ... on PullRequest { number merged"
+    " mergedBy { login } mergeCommit { oid } } ... on Commit { oid } } } } } } } }"
+)
+
+
+def login_of(node: Any) -> str | None:
+    """A GitHub login checked against GitHub's character set (``[bot]`` allowed), or None."""
+    login = node.get("login") if isinstance(node, dict) else None
+    if (
+        isinstance(login, str)
+        and LOGIN_RE.fullmatch(login)
+        and len(login.replace("[bot]", "")) <= 39
+    ):
+        return login
+    return None
+
+
+def sha_of(node: Any) -> str | None:
+    oid = node.get("oid") if isinstance(node, dict) else None
+    return oid if isinstance(oid, str) and SHA_RE.fullmatch(oid) else None
+
+
+def stamp_of(value: Any) -> str | None:
+    seconds = parse_iso(value)
+    return None if seconds is None else iso_of(seconds)
+
+
+def fact_of(node: Any, switch: Mapping[str, Any]) -> dict[str, Any] | None:
+    """What inbound keeps of an issue or pull request: numbers, states, times, logins,
+    SHAs and a pull request's references. Never a title, body or comment."""
+    if not isinstance(node, dict):
+        return None
+    number = node.get("number")
+    if not isinstance(number, int) or isinstance(number, bool) or number <= 0:
+        return None
+    kind, state = node.get("__typename"), node.get("state")
+    fact: dict[str, Any]
+    if kind == "Issue":
+        if state not in ("OPEN", "CLOSED"):
+            return None
+        fact = {
+            "kind": "issue",
+            "state": state,
+            "closed_at": stamp_of(node.get("closedAt")) if state == "CLOSED" else None,
+            "author": login_of(node.get("author")),
+        }
+        if looks_like_node_id(node.get("id")):
+            fact["node_id"] = node["id"]
+        return fact
+    if kind == "PullRequest":
+        if node.get("merged") is True:
+            state = "MERGED"
+        if state not in ("OPEN", "CLOSED", "MERGED"):
+            return None
+        body = node.get("body")
+        found = (
+            references(body, str(switch["host"]), str(switch["repo"]))
+            if isinstance(body, str)
+            else []
+        )
+        return {
+            "kind": "pull",
+            "state": state,
+            "merged_at": stamp_of(node.get("mergedAt")) if state == "MERGED" else None,
+            "author": login_of(node.get("author")),
+            "merger": login_of(node.get("mergedBy")) if state == "MERGED" else None,
+            "commit": sha_of(node.get("mergeCommit")) if state == "MERGED" else None,
+            "refs": found,
+        }
+    return None
+
+
+def allowed_row(row: Mapping[str, Any]) -> dict[str, Any]:
+    """The row with only allow-listed fields and values (anything else is dropped)."""
+    out: dict[str, Any] = {}
+    for key, value in row.items():
+        if key in ROW_WORDS:
+            ok = value in ROW_WORDS[key]
+        elif key in ("issue", "pull", "count"):
+            ok = isinstance(value, int) and not isinstance(value, bool) and value >= 0
+        elif key == "bead":
+            ok = isinstance(value, str) and BEAD_ID_RE.fullmatch(value) is not None
+        elif key == "beads":
+            ok = isinstance(value, list) and all(
+                isinstance(v, str) and BEAD_ID_RE.fullmatch(v) for v in value
+            )
+        elif key == "commit":
+            ok = isinstance(value, str) and SHA_RE.fullmatch(value) is not None
+        elif key in ("merger", "author"):
+            ok = isinstance(value, str) and login_of({"login": value}) == value
+        elif key == "refs":
+            ok = isinstance(value, list) and all(
+                isinstance(r, dict)
+                and set(r) == {"number", "why"}
+                and isinstance(r["number"], int)
+                and r["why"] in REF_WHY
+                for r in value
+            )
+        elif key == "link":
+            ok = (
+                isinstance(value, str)
+                and re.fullmatch(
+                    r"https://[A-Za-z0-9.:-]+/[A-Za-z0-9._/-]+/(?:issues|pull)/[0-9]+",
+                    value,
+                )
+                is not None
+            )
+        else:
+            ok = False
+        if ok:
+            out[key] = value
+    return out
+
+
+def row_text(row: Mapping[str, Any]) -> str:
+    """One digest row as a line, built only from its allow-listed fields."""
+    kind = row.get("type")
+    issue, pull, bead = row.get("issue"), row.get("pull"), row.get("bead", "?")
+    by = (
+        f"merged pull request #{pull} (merge commit {row.get('commit', 'unknown')}, "
+        f"merged by {row.get('merger', 'unknown')})"
+    )
+    if kind == "linked-closed":
+        cause = row.get("cause")
+        if cause == "pull":
+            how = f"closed by {by}"
+        elif cause == "commit":
+            how = f"closed on GitHub, no pull request (by commit {row.get('commit')})"
+        elif cause == "none":
+            how = "closed on GitHub, no pull request"
+        else:
+            how = "closed on GitHub, cause unknown"
+        text = f"#{issue} {how}; bead {bead} is open"
+    elif kind == "reopened":
+        text = f"#{issue} was reopened on GitHub; bead {bead} is closed"
+    elif kind == "tracking-open":
+        text = f"#{issue} (tracking-only) is still open; bead {bead} is closed"
+    elif kind == "held":
+        on = f" (#{issue})" if issue is not None else ""
+        text = f"bead {bead}{on}: {row.get('component')} held ({row.get('why')})"
+    elif kind == "untracked-issue":
+        text = (
+            f"#{issue} is open and no bead links it "
+            f"(opened by {row.get('author', 'unknown')})"
+        )
+    elif kind == "untracked-closed":
+        text = f"#{issue} was closed by {by} and no bead links it"
+    elif kind == "untracked-pull":
+        refs = row.get("refs") or []
+        why = (
+            ", ".join(f"#{r['number']} {r['why']}" for r in refs)
+            if refs
+            else "no reference"
+        )
+        text = (
+            f"pull request #{pull} ({row.get('state')}, by "
+            f"{row.get('author', 'unknown')}) is untracked: {why}"
+        )
+    elif kind == "link-problem":
+        if row.get("why") == "shared":
+            text = f"#{issue} is named by beads {', '.join(row.get('beads') or [])}"
+        else:
+            text = f"#{issue} is enrolled for bead {bead}, which is missing from Beads"
+    elif kind == "unpublished":
+        text = (
+            f"{row.get('count')} eligible bead(s) not yet published; "
+            "run outbound in the foreground"
+        )
+    else:
+        text = "?"
+    link = row.get("link")
+    return f"{kind}: {text}" + (f" {link}" if link else "")
+
+
+def digest_of(state: Mapping[str, Any]) -> dict[str, Any]:
+    inbound = state.get("inbound") or {}
+    rows = [allowed_row(r) for r in inbound.get("rows") or [] if isinstance(r, dict)]
+    counts: dict[str, int] = {}
+    for row in rows:
+        counts[row.get("type", "?")] = counts.get(row.get("type", "?"), 0) + 1
+    return {
+        "time": inbound.get("time"),
+        "full": bool(inbound.get("full")),
+        "counts": counts,
+        "rows": rows,
+    }
+
+
+def digest_lines(digest: Mapping[str, Any]) -> list[str]:
+    counts = digest["counts"]
+    summary = ", ".join(f"{k} {counts[k]}" for k in ROW_TYPES if k in counts)
+    out = [
+        (
+            f"Time: {digest['time']} "
+            f"({'full comparison' if digest['full'] else 'incremental'})"
+        ),
+        f"Rows: {len(digest['rows'])}" + (f" ({summary})" if summary else ""),
+    ]
+    return out + ["- " + row_text(r) for r in digest["rows"]]
+
+
+def write_digest(ctx: Context, state: Mapping[str, Any]) -> str:
+    """Render ``digest.json`` and ``digest.md`` beside the switch from the state."""
+    digest = digest_of(state)
+    write_json_atomic(os.path.join(ctx.mirror_dir, "digest.json"), digest)
+    md = os.path.join(ctx.mirror_dir, "digest.md")
+    lines = digest_lines(digest)
+    if not digest["rows"]:
+        lines.append("No differences.")
+    write_text_atomic(md, "# bead-mirror digest\n\n" + "\n".join(lines) + "\n")
+    return md
+
+
+def each_page(
+    ctx: Context,
+    query: str,
+    variables: Mapping[str, Any],
+    path: Sequence[str],
+    what: str,
+) -> Any:
+    """Yield each page's nodes of a paginated connection; Stop when a page fails."""
+    after: str | None = None
+    while True:
+        try:
+            data: Any = ctx.gh.graphql(
+                query, dict(variables, first=LISTING_PAGE, after=after)
+            )
+        except Unavailable:
+            raise
+        except Stop as exc:
+            raise Stop(
+                EXIT_GITHUB, f"{what} is incomplete ({exc}); inbound did not finish"
+            ) from exc
+        for key in path:
+            data = data.get(key) if isinstance(data, dict) else None
+        nodes = data.get("nodes") if isinstance(data, dict) else None
+        if not isinstance(nodes, list):
+            raise Stop(EXIT_GITHUB, f"{what} is incomplete; inbound did not finish")
+        yield nodes
+        more, after = next_page(data, after)
+        if not more:
+            return
+        if after is None:
+            raise Stop(EXIT_GITHUB, f"{what} is incomplete; inbound did not finish")
+
+
+def unpublished_count(
+    ctx: Context, state: Mapping[str, Any], beads: Mapping[str, Mapping[str, Any]]
+) -> int:
+    """Beads a foreground outbound run would create an issue for."""
+    taken = set(state["enrolled"]) | set(state["pending"]) | set(state["holds"])
+    taken |= set(state["tracking"])
+    count = 0
+    for bead_id, bead in beads.items():
+        if (
+            bead_id not in taken
+            and bead.get("status") in ELIGIBLE_STATUSES
+            and bead.get("issue_type") in ctx.switch["scope"]
+            and (bead.get("metadata") or {}).get("mirror") != "never"
+            and not str(bead.get("external_ref") or "").strip()
+            and screen_bead(bead) is None
+        ):
+            count += 1
+    return count
+
+
+class Inbound:
+    """One inbound run: compare GitHub with Beads and build the digest's rows.
+
+    Nothing in ``state`` changes until ``commit``, which writes the new facts, rows,
+    Beads snapshot and both checkpoints in one atomic replacement of the state file."""
+
+    def __init__(self, ctx: Context, state: dict[str, Any], full: bool) -> None:
+        self.ctx = ctx
+        self.state = state
+        self.switch = ctx.switch
+        self.started = time.time()
+        old = state.get("inbound")
+        self.old: dict[str, Any] = old if isinstance(old, dict) else {}
+        facts = self.old.get("facts")
+        self.facts: dict[int, dict[str, Any]] = {
+            int(k): dict(v)
+            for k, v in (facts.items() if isinstance(facts, dict) else [])
+            if str(k).isdigit() and isinstance(v, dict) and v.get("kind")
+        }
+        self.fresh: set[int] = set()  # read from GitHub this run
+        self.missing: set[int] = set()  # no such issue or pull request, this run
+        self.mirror_updated: set[int] = set()  # the mirror's issues listed as updated
+        cps = state["checkpoints"]
+        last_full = parse_iso(cps.get("full"))
+        self.since_stamp = parse_iso(cps.get("inbound"))
+        self.full = (
+            full
+            or self.since_stamp is None
+            or last_full is None
+            or self.started - last_full > FULL_INTERVAL
+        )
+        opted = parse_iso(state.get("opted_in"))
+        self.opted_in = self.started if opted is None else opted
+        self.named: dict[int, set[str]] = {}
+        self.snapshot: dict[str, list[Any]] = {}
+        self.rows: list[dict[str, Any]] = []
+
+    def url(self, kind: str, number: int) -> str:
+        return f"https://{self.switch['host']}/{self.switch['repo']}/{kind}/{number}"
+
+    # -- reads
+
+    def take(self, node: Any, mark: int | None = None) -> None:
+        fact = fact_of(node, self.switch)
+        if fact is None:
+            return
+        number = int(node["number"])
+        if mark is not None and number > mark:
+            return  # newer than the full pass's start: the incremental read covers it
+        self.facts[number] = fact
+        self.fresh.add(number)
+        self.missing.discard(number)
+        author = node.get("author")
+        if fact["kind"] == "issue" and login_of(author) == self.switch["account"]:
+            self.mirror_updated.add(number)
+
+    def read_full(self) -> None:
+        """Every issue and pull request up to the highest number when the pass starts."""
+        repo = self.switch["repo_node_id"]
+        try:
+            data = self.ctx.gh.graphql(HIGH_WATER_QUERY, {"id": repo})
+        except Unavailable:
+            raise
+        except Stop as exc:
+            raise Stop(
+                EXIT_GITHUB, f"the full comparison could not start ({exc})"
+            ) from exc
+        node = data.get("node") if isinstance(data, dict) else None
+        mark = 0
+        for conn in ("issues", "pullRequests"):
+            nodes = ((node or {}).get(conn) or {}).get("nodes")
+            if not isinstance(nodes, list):
+                raise Stop(EXIT_GITHUB, "the full comparison could not start")
+            for n in nodes:
+                if isinstance(n, dict) and isinstance(n.get("number"), int):
+                    mark = max(mark, n["number"])
+        variables = {"id": repo, "since": EPOCH}
+        for nodes in each_page(
+            self.ctx,
+            INBOUND_ISSUES_QUERY,
+            variables,
+            ("node", "issues"),
+            "the issues listing",
+        ):
+            for n in nodes:
+                self.take(n, mark)
+        for nodes in each_page(
+            self.ctx,
+            INBOUND_PULLS_QUERY,
+            {"id": repo},
+            ("node", "pullRequests"),
+            "the pull-request listing",
+        ):
+            for n in nodes:
+                self.take(n, mark)
+        for number in list(self.facts):
+            if number <= mark and number not in self.fresh:
+                del self.facts[
+                    number
+                ]  # gone from the repository (deleted, transferred)
+
+    def read_since(self) -> None:
+        """Issues and pull requests GitHub reports updated since the last inbound start."""
+        assert self.since_stamp is not None
+        since = self.since_stamp - CHECKPOINT_MARGIN
+        repo = self.switch["repo_node_id"]
+        variables = {"id": repo, "since": iso_of(since)}
+        for nodes in each_page(
+            self.ctx,
+            INBOUND_ISSUES_QUERY,
+            variables,
+            ("node", "issues"),
+            "the issues listing",
+        ):
+            for n in nodes:
+                self.take(n)
+        for nodes in each_page(
+            self.ctx,
+            INBOUND_PULLS_QUERY,
+            {"id": repo},
+            ("node", "pullRequests"),
+            "the pull-request listing",
+        ):
+            done = False
+            for n in nodes:
+                updated = parse_iso(n.get("updatedAt")) if isinstance(n, dict) else None
+                if updated is not None and updated < since:
+                    done = True  # newest first: the rest are older still
+                    break
+                self.take(n)
+            if done:
+                break
+
+    def fetch(self, number: int) -> dict[str, Any] | None:
+        """Issue or pull request ``number``, read fresh once per run; None if missing."""
+        if number in self.fresh:
+            return self.facts.get(number)
+        if number in self.missing:
+            return None
+        if number > INT_MAX:
+            self.missing.add(number)  # GitHub refuses such a variable: nothing has it
+            self.facts.pop(number, None)
+            return None
+        try:
+            data = self.ctx.gh.graphql(
+                ITEM_QUERY, {"id": self.switch["repo_node_id"], "number": number}
+            )
+        except Unavailable:
+            raise
+        except Stop as exc:
+            if "could not resolve to an issue or pull request" in str(exc).lower():
+                self.missing.add(number)
+                self.facts.pop(number, None)
+                return None
+            raise Stop(
+                EXIT_GITHUB, f"reading #{number} failed ({exc}); inbound did not finish"
+            ) from exc
+        node = ((data.get("node") or {}) if isinstance(data, dict) else {}).get(
+            "issueOrPullRequest"
+        )
+        if node is None:
+            self.missing.add(number)
+            self.facts.pop(number, None)
+            return None
+        self.take(node)
+        if number not in self.fresh:
+            raise Stop(
+                EXIT_GITHUB, f"#{number} could not be read; inbound did not finish"
+            )
+        return self.facts.get(number)
+
+    def recheck_beads(self, beads: Mapping[str, Mapping[str, Any]]) -> None:
+        """The Beads side: every bead whose link or status changed since the last
+        inbound (its snapshot) has its old and new issue read fresh, with the pull
+        requests last recorded against them (a link dropped can leave one untracked),
+        as has every linked issue inbound has no facts for."""
+        prev = self.old.get("beads")
+        prev = prev if isinstance(prev, dict) else {}
+        now: dict[str, list[Any]] = {}
+        for bead_id, bead in beads.items():
+            number = issue_number_in(str(bead.get("external_ref") or ""), self.switch)
+            if number is not None:
+                now[bead_id] = [number, bead.get("status")]
+        pulls = self.old.get("pulls")
+        pulls = pulls if isinstance(pulls, dict) else {}
+        want: set[int] = set()
+        for bead_id in set(prev) | set(now):
+            if prev.get(bead_id) != now.get(bead_id):
+                for entry in (prev.get(bead_id), now.get(bead_id)):
+                    if isinstance(entry, list) and entry and isinstance(entry[0], int):
+                        want.add(entry[0])
+                        recorded = pulls.get(str(entry[0]))
+                        if isinstance(recorded, list):
+                            want |= {n for n in recorded if isinstance(n, int)}
+        want |= {n for n in self.named if n not in self.facts}
+        for number in sorted(want - self.fresh):
+            self.fetch(number)
+        self.snapshot = now
+
+    def closed_by(self, fact: Mapping[str, Any]) -> dict[str, Any]:
+        """What closed an issue, from its latest closing event: a merged pull request
+        (with its merge commit and merger), a commit, nothing (closed by hand), or
+        unknown when the timeline cannot be read or attributed."""
+        unknown: dict[str, Any] = {"cause": "unknown"}
+        node_id = fact.get("node_id")
+        if not node_id:
+            return unknown
+        try:
+            data = self.ctx.gh.graphql(CLOSED_BY_QUERY, {"id": node_id})
+        except Unavailable:
+            raise
+        except Stop:
+            return unknown
+        node = data.get("node") if isinstance(data, dict) else None
+        events = ((node or {}).get("timelineItems") or {}).get("nodes")
+        if not isinstance(events, list) or not events:
+            return unknown
+        event = events[-1]
+        if not isinstance(event, dict) or "closer" not in event:
+            return unknown
+        closer = event["closer"]
+        if closer is None:
+            return {"cause": "none"}
+        kind = closer.get("__typename") if isinstance(closer, dict) else None
+        if kind == "PullRequest":
+            number = closer.get("number")
+            if closer.get("merged") is True and isinstance(number, int):
+                cause: dict[str, Any] = {"cause": "pull", "pull": number}
+                commit, merger = (
+                    sha_of(closer.get("mergeCommit")),
+                    login_of(closer.get("mergedBy")),
+                )
+                if commit:
+                    cause["commit"] = commit
+                if merger:
+                    cause["merger"] = merger
+                return cause
+            return unknown
+        if kind == "Commit" and sha_of(closer):
+            return {"cause": "commit", "commit": sha_of(closer)}
+        return unknown
+
+    def since_opt_in(self, stamp: Any) -> bool:
+        seconds = parse_iso(stamp)
+        return seconds is None or seconds >= self.opted_in
+
+    def read_causes(self, beads: Mapping[str, Mapping[str, Any]]) -> None:
+        """Read the closing event of every closed issue a row may need: linked to an
+        open bead, or unlinked and closed since opt-in. An issue read fresh has no
+        cause yet (``take`` replaces its facts), so the latest close decides; an unknown
+        cause is read again every run."""
+        for number, fact in sorted(self.facts.items()):
+            if fact["kind"] != "issue" or fact["state"] != "CLOSED":
+                fact.pop("close", None)
+                continue
+            names = self.named.get(number)
+            if names:
+                matters = any(
+                    (beads.get(b) or {}).get("status") not in (None, "closed")
+                    for b in names
+                )
+            else:
+                matters = self.since_opt_in(fact.get("closed_at"))
+            if not matters:
+                continue
+            close = fact.get("close")
+            if not isinstance(close, dict) or close.get("cause") == "unknown":
+                fact["close"] = self.closed_by(fact)
+
+    # -- rows
+
+    def build_rows(
+        self, beads: Mapping[str, Mapping[str, Any]]
+    ) -> list[dict[str, Any]]:
+        st = self.state
+        enrolled, holds = st["enrolled"], st["holds"]
+        dismissed = self.old.get("dismissed")
+        dismissed = dismissed if isinstance(dismissed, dict) else {}
+        rows: list[dict[str, Any]] = []
+        for number in sorted(self.named):
+            names = sorted(self.named[number])
+            link = self.url("issues", number)
+            if len(names) > 1:
+                rows.append(
+                    {
+                        "type": "link-problem",
+                        "issue": number,
+                        "beads": names,
+                        "why": "shared",
+                        "link": link,
+                    }
+                )
+                continue
+            bead_id = names[0]
+            bead = beads.get(bead_id)
+            if bead is None:
+                if bead_id in enrolled:
+                    rows.append(
+                        {
+                            "type": "link-problem",
+                            "issue": number,
+                            "bead": bead_id,
+                            "why": "bead-missing",
+                            "link": link,
+                        }
+                    )
+                continue
+            fact = self.facts.get(number)
+            if not fact or fact["kind"] != "issue":
+                continue
+            closed = bead.get("status") == "closed"
+            if fact["state"] == "CLOSED" and not closed:
+                close = fact.get("close") or {"cause": "unknown"}
+                row = {"type": "linked-closed", "issue": number, "bead": bead_id}
+                row.update(close)
+                row["link"] = link
+                rows.append(row)
+            elif fact["state"] == "OPEN" and closed:
+                record = enrolled.get(bead_id)
+                if record is None:
+                    rows.append(
+                        {
+                            "type": "tracking-open",
+                            "issue": number,
+                            "bead": bead_id,
+                            "link": link,
+                        }
+                    )
+                elif (
+                    record.get("confirmed") == "CLOSED"
+                    or (holds.get(bead_id) or {}).get("kind") == "open-closed"
+                ):
+                    rows.append(
+                        {
+                            "type": "reopened",
+                            "issue": number,
+                            "bead": bead_id,
+                            "link": link,
+                        }
+                    )
+        rows += self.held_rows()
+        for number, fact in sorted(self.facts.items()):
+            if number in self.named:
+                continue
+            if fact["kind"] == "issue":
+                link = self.url("issues", number)
+                if fact["state"] == "OPEN":
+                    rows.append(
+                        {
+                            "type": "untracked-issue",
+                            "issue": number,
+                            "author": fact.get("author"),
+                            "link": link,
+                        }
+                    )
+                    continue
+                close = fact.get("close") or {}
+                if close.get("cause") == "pull" and self.since_opt_in(
+                    fact.get("closed_at")
+                ):
+                    row = {"type": "untracked-closed", "issue": number}
+                    row.update({k: v for k, v in close.items() if k != "cause"})
+                    row["link"] = link
+                    rows.append(row)
+            # A dismissed pull request is never read, so its references cannot fail.
+            elif f"untracked:{number}" not in dismissed:
+                pulled = self.pull_row(number, fact, beads)
+                if pulled:
+                    rows.append(pulled)
+        count = unpublished_count(self.ctx, st, beads)
+        if count:
+            rows.append({"type": "unpublished", "count": count})
+        rows = [r for r in rows if dismiss_key(r) not in dismissed]
+        order = {kind: i for i, kind in enumerate(ROW_TYPES)}
+        rows.sort(
+            key=lambda r: (
+                order[r["type"]],
+                r.get("issue") or r.get("pull") or 0,
+                str(r.get("bead") or ""),
+            )
+        )
+        return [allowed_row(r) for r in rows]
+
+    def held_rows(self) -> list[dict[str, Any]]:
+        st = self.state
+        rows: list[dict[str, Any]] = []
+        for bead_id, hold in sorted(st["holds"].items()):
+            kind = str((hold or {}).get("kind") or "")
+            number = (st["enrolled"].get(bead_id) or {}).get("number")
+            if number is None:
+                number = st["tracking"].get(bead_id)
+            row: dict[str, Any] = {
+                "type": "held",
+                "bead": bead_id,
+                "component": HOLD_COMPONENT.get(kind, "create"),
+                "why": kind,
+            }
+            if isinstance(number, int):
+                row.update(issue=number, link=self.url("issues", number))
+            rows.append(row)
+        for bead_id, record in sorted(st["enrolled"].items()):
+            if not isinstance(record, dict) or not isinstance(
+                record.get("number"), int
+            ):
+                continue
+            for key, why in (
+                ("not_storable", "not-storable"),
+                ("screened", "screened"),
+            ):
+                for comp in sorted(record.get(key) or {}):
+                    rows.append(
+                        {
+                            "type": "held",
+                            "bead": bead_id,
+                            "issue": record["number"],
+                            "component": comp,
+                            "why": why,
+                            "link": self.url("issues", record["number"]),
+                        }
+                    )
+        return rows
+
+    def pull_row(
+        self,
+        number: int,
+        fact: Mapping[str, Any],
+        beads: Mapping[str, Mapping[str, Any]],
+    ) -> dict[str, Any] | None:
+        """The row of an open pull request, or one merged since opt-in, that no
+        reference ties to an existing issue a bead in Beads links; None when it is
+        tracked or out of the digest's reach. Tracking is decided on every
+        reference; the row lists the first ``REFS_KEPT``."""
+        state = fact["state"]
+        if state == "CLOSED" or (
+            state == "MERGED" and not self.since_opt_in(fact.get("merged_at"))
+        ):
+            return None
+        refs = [r for r in fact.get("refs") or [] if isinstance(r, int)]
+        linked = {
+            n
+            for n, names in self.named.items()
+            if any(b in beads for b in names)
+            and (self.facts.get(n) or {}).get("kind") == "issue"
+        }
+        if tracked(refs, linked):
+            return None
+        failing = []
+        for ref in refs[:REFS_KEPT]:
+            other = self.facts.get(ref) if ref in self.facts else self.fetch(ref)
+            why = (
+                "missing"
+                if other is None
+                else "pull-request"
+                if other["kind"] == "pull"
+                else "not-linked"
+            )
+            failing.append({"number": ref, "why": why})
+        return {
+            "type": "untracked-pull",
+            "pull": number,
+            "state": state.lower(),
+            "author": fact.get("author"),
+            "refs": failing,
+            "link": self.url("pull", number),
+        }
+
+    # -- the run
+
+    def run(self) -> None:
+        beads = read_beads(self.ctx.toplevel, self.ctx.env)
+        self.named = issues_named(beads, self.state, self.switch)
+        if self.full:
+            self.read_full()
+        else:
+            self.read_since()
+        self.recheck_beads(beads)
+        self.read_causes(beads)
+        self.rows = self.build_rows(beads)
+
+    def commit(self) -> str:
+        """Facts, rows, the Beads snapshot and both checkpoints in one atomic state
+        replacement; then the digest files, rendered from it."""
+        st = self.state
+        keep = set(self.named)
+        for row in self.rows:
+            for key in ("issue", "pull"):
+                if isinstance(row.get(key), int):
+                    keep.add(row[key])
+            keep |= {r["number"] for r in row.get("refs") or []}
+        for number, fact in self.facts.items():
+            # An unlinked issue closed since opt-in whose cause is still unknown: its
+            # facts stay so that the next run reads its closing event again.
+            if (
+                fact["kind"] == "issue"
+                and fact["state"] == "CLOSED"
+                and (fact.get("close") or {}).get("cause") in (None, "unknown")
+                and self.since_opt_in(fact.get("closed_at"))
+            ):
+                keep.add(number)
+        pulls_old = self.old.get("pulls")
+        pulls: dict[str, set[int]] = {
+            str(k): set(v)
+            for k, v in (pulls_old.items() if isinstance(pulls_old, dict) else [])
+            if isinstance(v, list)
+        }
+        for number, fact in self.facts.items():
+            if fact["kind"] == "pull":
+                for ref in fact.get("refs") or []:
+                    pulls.setdefault(str(ref), set()).add(number)
+            elif (fact.get("close") or {}).get("cause") == "pull":
+                pulls.setdefault(str(number), set()).add(int(fact["close"]["pull"]))
+        dismissed = self.old.get("dismissed")
+        stamp = iso_of(self.started)
+        st["inbound"] = {
+            "time": stamp,
+            "full": self.full,
+            "rows": self.rows,
+            "facts": {str(n): f for n, f in sorted(self.facts.items()) if n in keep},
+            "beads": self.snapshot,
+            "pulls": {
+                k: sorted(v) for k, v in sorted(pulls.items()) if int(k) in self.named
+            },
+            "dismissed": dismissed if isinstance(dismissed, dict) else {},
+        }
+        st["checkpoints"]["inbound"] = stamp
+        st["checkpoints"]["beads"] = stamp
+        if self.full:
+            st["checkpoints"]["full"] = stamp
+        st.setdefault("opted_in", iso_of(self.opted_in))
+        self.ctx.save(st)
+        return write_digest(self.ctx, st)
+
+    def report(self, path: str) -> None:
+        digest = digest_of(self.state)
+        out = ["bead-mirror: inbound: checks passed"]
+        out += ["  " + line for line in digest_lines(digest)]
+        out.append(f"  digest: {path}")
+        print("\n".join(out))
+
+
+def run_inbound(ctx: Context, state: dict[str, Any], full: bool) -> Inbound:
+    run = Inbound(ctx, state, full)
+    run.run()
+    run.report(run.commit())
+    return run
+
+
+def cmd_inbound(ctx: Context, args: argparse.Namespace) -> int:
+    with CloneLock(ctx.mirror_dir, ctx.lock_wait):
+        state = ctx.run_checks() or new_state(ctx.switch)
+        run_inbound(ctx, state, full=False)
+    return EXIT_OK
+
+
+def cmd_both(ctx: Context, args: argparse.Namespace) -> int:
+    """Inbound, then outbound (``--no-create``: the background run). An inbound that
+    cannot finish changes nothing and is reported; outbound still runs, and the exit
+    status is inbound's."""
+    full = args.command == "full"
+    with CloneLock(ctx.mirror_dir, ctx.lock_wait):
+        state = ctx.run_checks()
+        if state is None:
+            state = new_state(ctx.switch)
+            ctx.save(state)
+        cps = state["checkpoints"]
+        in_old, out_old = parse_iso(cps.get("inbound")), parse_iso(cps.get("outbound"))
+        code = EXIT_OK
+        hint: set[int] | None = None
+        full_out = False
+        try:
+            run = run_inbound(ctx, state, full)
+        except Unavailable:
+            raise
+        except Stop as exc:
+            print(f"bead-mirror: inbound did not finish: {exc}", file=sys.stderr)
+            code = exc.code
+        else:
+            full_out = run.full
+            if in_old is not None and out_old is not None and in_old <= out_old:
+                hint = run.mirror_updated
+        out_args = argparse.Namespace(
+            dry_run=False, bead=None, no_create=bool(args.no_create)
+        )
+        result = Outbound(ctx, state, out_args, updated=hint, full=full_out).run()
+        if code == EXIT_OK:
+            refresh_unpublished(ctx, state)
+    return code or result
+
+
+def refresh_unpublished(ctx: Context, state: dict[str, Any]) -> None:
+    """Recount the digest's unpublished row after outbound has created issues."""
+    try:
+        beads = read_beads(ctx.toplevel, ctx.env)
+    except Stop:
+        return  # the count stays as inbound left it; the next run recounts
+    inbound = state["inbound"]
+    rows = [
+        r
+        for r in inbound.get("rows") or []
+        if isinstance(r, dict) and r.get("type") != "unpublished"
+    ]
+    count = unpublished_count(ctx, state, beads)
+    if count:
+        rows.append({"type": "unpublished", "count": count})
+    if rows != inbound.get("rows"):
+        inbound["rows"] = rows
+        ctx.save(state)
+        write_digest(ctx, state)
+
+
+def cmd_dismiss(ctx: Context, args: argparse.Namespace) -> int:
+    """Acknowledge an issue or pull request: its untracked or tracking-only row clears."""
+    number = args.number
+    if number <= 0:
+        raise Stop(
+            EXIT_REFUSED, "dismiss needs a positive issue or pull-request number"
+        )
+    with CloneLock(ctx.mirror_dir, ctx.lock_wait):
+        state = load_state(ctx.mirror_dir, ctx.switch)
+        if state is None:
+            raise Stop(EXIT_REFUSED, "there is no digest yet; run inbound first")
+        state = shaped(state)
+        inbound = state["inbound"]
+        rows = [r for r in inbound.get("rows") or [] if isinstance(r, dict)]
+        hit = [
+            r for r in rows if r.get(DISMISSABLE.get(str(r.get("type")), "")) == number
+        ]
+        if not hit:
+            raise Stop(
+                EXIT_REFUSED,
+                f"#{number} has no digest row dismiss clears (an untracked issue or "
+                "pull request, or a tracking-only issue still open)",
+            )
+        dismissed = inbound.get("dismissed")
+        dismissed = dict(dismissed) if isinstance(dismissed, dict) else {}
+        for r in hit:
+            dismissed[str(dismiss_key(r))] = now_iso()
+        inbound["dismissed"] = dismissed
+        inbound["rows"] = [r for r in rows if r not in hit]
+        ctx.save(state)
+        write_digest(ctx, state)
+    print(f"bead-mirror: dismissed #{number}; {len(hit)} digest row(s) cleared")
+    return EXIT_OK
+
+
 def cmd_outbound(ctx: Context, args: argparse.Namespace) -> int:
     if args.dry_run:
         state = ctx.run_checks()
@@ -2980,14 +4243,63 @@ def cmd_map(ctx: Context, args: argparse.Namespace) -> int:
         rows[bead_id] = (record["number"], str(record["url"]), kind)
     for bead_id in state["pending"]:
         rows.setdefault(bead_id, ("?", "", "create pending"))
-    print("bead-mirror: map (bead, issue, link, kind)")
+    # Pull requests that reference or closed each issue, as inbound last saw them.
+    pulls = (
+        (state["inbound"].get("pulls") or {})
+        if isinstance(state["inbound"], dict)
+        else {}
+    )
+    print("bead-mirror: map (bead, issue, link, kind, pull requests)")
     for bead_id in sorted(rows):
         number, url, kind = rows[bead_id]
-        print(f"  {bead_id}\t#{number}\t{url or '-'}\t{kind}")
+        prs = pulls.get(str(number)) if isinstance(pulls, dict) else None
+        shown = ",".join(f"#{p}" for p in prs if isinstance(p, int)) if prs else ""
+        print(f"  {bead_id}\t#{number}\t{url or '-'}\t{kind}\t{shown or '-'}")
+    return EXIT_OK
+
+
+def cmd_install_check(ctx: Context, args: argparse.Namespace) -> int:
+    """Write the check's workflow; a differing file is replaced only with --force."""
+    path = os.path.join(git_toplevel(), WORKFLOW_PATH)
+    text = workflow_text()
+    try:
+        with open(path, encoding="utf-8", newline="") as fh:
+            current: str | None = fh.read()
+    except FileNotFoundError:
+        current = None
+    except (OSError, UnicodeDecodeError) as exc:
+        raise Stop(EXIT_REFUSED, f"install-check: cannot read {path}: {exc}") from exc
+    if current == text:
+        print(f"unchanged: {path}")
+        return EXIT_OK
+    if current is not None and not args.force:
+        raise Stop(
+            EXIT_REFUSED,
+            f"install-check: {path} differs from this command's workflow; "
+            "pass --force to replace it",
+        )
+    directory = os.path.dirname(path)
+    os.makedirs(directory, exist_ok=True)
+    fd, tmp = tempfile.mkstemp(prefix=".bead-reference-check.", dir=directory)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8", newline="") as fh:
+            fh.write(text)
+            fh.flush()
+            os.fsync(fh.fileno())
+        os.chmod(tmp, 0o644)
+        os.replace(tmp, path)
+    except BaseException:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        raise
+    print(f"{'replaced' if current is not None else 'wrote'}: {path}")
     return EXIT_OK
 
 
 COMMANDS = {
+    "install-check": cmd_install_check,
     "outbound": cmd_outbound,
     "link": cmd_link,
     "resolve": cmd_resolve,
@@ -2995,6 +4307,10 @@ COMMANDS = {
     "overwrite": cmd_overwrite,
     "retire": cmd_retire,
     "map": cmd_map,
+    "inbound": cmd_inbound,
+    "both": cmd_both,
+    "full": cmd_both,
+    "dismiss": cmd_dismiss,
 }
 
 
@@ -3040,7 +4356,28 @@ def build_parser() -> argparse.ArgumentParser:
         "retire", help="stop managing a bead's issue, marked on GitHub"
     )
     ret.add_argument("bead")
-    sub.add_parser("map", help="print bead <-> issue from the state and the links")
+    sub.add_parser(
+        "map", help="print bead <-> issue <-> pull request from the state and the links"
+    )
+    sub.add_parser("inbound", help="compare GitHub with Beads and write the digest")
+    for name, what in (
+        ("both", "inbound, then outbound"),
+        ("full", "the full comparison: inbound over every item, then outbound"),
+    ):
+        both = sub.add_parser(name, help=what)
+        both.add_argument(
+            "--no-create", action="store_true", help="never create an issue"
+        )
+    dismiss = sub.add_parser(
+        "dismiss", help="acknowledge an issue or pull request so its digest row clears"
+    )
+    dismiss.add_argument("number", type=int)
+    check = sub.add_parser(
+        "install-check", help="write the pull-request check's workflow"
+    )
+    check.add_argument(
+        "--force", action="store_true", help="replace a differing workflow file"
+    )
     for name in LATER_STAGES:
         sub.add_parser(name, help="(not implemented yet)")
     return parser

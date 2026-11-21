@@ -7,7 +7,8 @@ call is appended to ``calls`` and every call this fake does not recognise to
 ``unrecognised`` (it then fails loudly with exit 99). Responses are shaped by the
 provisional fixtures beside this file. It never touches the network.
 
-Routes: ``GET user``; ``GET repos/OWNER/NAME``; GraphQL queries ``MirrorIssues`` (the
+Routes: ``GET user``; ``GET repos/OWNER/NAME``; ``GET repos/OWNER/NAME/pulls/N`` (a
+pull request's author and current body, as the check's workflow reads it); GraphQL queries ``MirrorIssues`` (the
 repository's issues filtered by creator and by the query's ``states``, as GitHub filters
 them; every state when it names none; paginated), ``MirrorLabel`` and ``MirrorIssue``
 (one issue or pull request by number), ``MirrorUpdated`` (the creator's issues updated
@@ -19,6 +20,16 @@ the issue's node ID; the mutations ``createIssue``, ``createLabel``, ``updateIss
 Each query's text must have the shape ``QUERY_SHAPES`` records (its argument bindings
 and the names it uses), and each mutation its input type, input fields and selection
 (``MUTATION_SHAPES``); anything else is unrecognised, as GitHub would reject it.
+
+Inbound routes, by the repository's node ID: ``MirrorInboundIssues`` (every author's
+issues updated at or after ``since``, by number, paginated), ``MirrorInboundPulls``
+(every pull request, most recently updated first, paginated), ``MirrorHighWater`` (the
+newest issue and pull request) and ``MirrorItem`` (one issue or pull request by number,
+with the fields inbound reads); ``MirrorClosedBy`` (an issue's latest closing event:
+the merged pull request or commit that closed it, or none when closed by hand), by the
+issue's node ID. Issues keep ``closed_at`` and ``closing_events`` ([{"at", "closer":
+{"pull": N} | {"commit": SHA} | null}]); pull requests keep ``state`` (OPEN, CLOSED,
+MERGED), ``merged_at``, ``merged_by``, ``merge_commit`` and ``updated_at``.
 
 Faults (``state["faults"]``): ``unauthenticated``; ``rate_limited`` (403 or 429, with
 the rate headers under ``--include``); ``offline``; ``delay`` (seconds slept before
@@ -47,8 +58,15 @@ stores every body with ``old`` replaced by ``new``); ``fail_write`` ({mutation: 
 ``errors.json`` name}); ``failed_comments_page`` and ``comments_page_size``; ``malformed_page`` ({"page": N,
 "kind": "no_has_next" | "stuck_cursor"}: that issues-listing page omits
 ``hasNextPage``, or says another page follows with the cursor it was asked from) and
-``malformed_comments_page`` (that comments page omits ``hasNextPage``); ``fail_query``
-({operation: an ``errors.json`` name}: that query fails that way, after the checks). A comment
+``malformed_comments_page`` (that comments page omits ``hasNextPage``); ``malformed_pull``
+(``not_json`` or ``no_user``: the pull-request read returns no JSON, or no author); ``fail_query``
+({operation: an ``errors.json`` name}: that query fails that way, after the checks);
+``failed_inbound_page`` ({"op": an inbound listing, "page": N}: that page fails with
+HTTP 502, after the earlier pages answered); ``failed_timeline`` (issue numbers whose
+closing-event read fails with HTTP 502); ``open_after_high_water`` (a login that opens
+an issue right after the high-water read); ``instruction_titles`` (text served as every
+inbound issue's and pull request's ``title``, unasked, and appended to pull-request
+bodies). A comment
 carrying a copied key is seeded with ``Fake.add_comment``. Titles over 256 characters are always rejected,
 as GitHub does. A wrong login is just a
 different ``login``; ``gh`` missing is a PATH without this fake. Issues copied by
@@ -80,6 +98,11 @@ QUERIES = {
     "MirrorIssueNode": {"id"},
     "MirrorUpdated": {"id", "creator", "first", "since"},
     "MirrorComments": {"id", "first"},
+    "MirrorInboundIssues": {"id", "since", "first"},
+    "MirrorInboundPulls": {"id", "first"},
+    "MirrorHighWater": {"id"},
+    "MirrorItem": {"id", "number"},
+    "MirrorClosedBy": {"id"},
 }
 # The query shape each operation must have, as GitHub would accept and the fake answers
 # it: argument -> the variable bound to it, and every other name the text uses (fields,
@@ -126,6 +149,43 @@ QUERY_SHAPES: dict[str, tuple[dict[str, str], str]] = {
         (
             "ID String Int node id Issue comments first after nodes author login body"
             " pageInfo hasNextPage endCursor"
+        ),
+    ),
+    "MirrorInboundIssues": (
+        {"id": "id", "first": "first", "after": "after", "since": "since"},
+        (
+            "ID DateTime Int String node id Repository issues first after filterBy since"
+            " states OPEN CLOSED orderBy field CREATED_AT direction ASC nodes __typename"
+            " number state closedAt updatedAt author login pageInfo hasNextPage endCursor"
+        ),
+    ),
+    "MirrorInboundPulls": (
+        {"id": "id", "first": "first", "after": "after"},
+        (
+            "ID Int String node id Repository pullRequests first after states OPEN CLOSED"
+            " MERGED orderBy field UPDATED_AT direction DESC nodes __typename number state"
+            " merged mergedAt updatedAt body author login mergedBy mergeCommit oid"
+            " pageInfo hasNextPage endCursor"
+        ),
+    ),
+    "MirrorHighWater": (
+        {"id": "id"},
+        "ID node id Repository issues last nodes number pullRequests",
+    ),
+    "MirrorItem": (
+        {"id": "id", "number": "number"},
+        (
+            "ID Int node id Repository issueOrPullRequest number Issue __typename state"
+            " closedAt updatedAt author login PullRequest merged mergedAt body mergedBy"
+            " mergeCommit oid"
+        ),
+    ),
+    "MirrorClosedBy": (
+        {"id": "id"},
+        (
+            "ID node id Issue timelineItems itemTypes CLOSED_EVENT last nodes ClosedEvent"
+            " createdAt closer __typename PullRequest number merged mergedBy login"
+            " mergeCommit oid Commit"
         ),
     ),
 }
@@ -365,6 +425,11 @@ def serve(
         record["route"] = "GET user"
     elif re.fullmatch(r"repos/[^/?]+/[^/?]+", endpoint) and "--input" not in opts:
         record["route"] = "GET repos/OWNER/NAME"
+    elif (
+        re.fullmatch(r"repos/[^/?]+/[^/?]+/pulls/[0-9]+", endpoint)
+        and "--input" not in opts
+    ):
+        record["route"] = "GET repos/OWNER/NAME/pulls/N"
     elif endpoint == "graphql" and opts.get("--input") == "-":
         body = json.loads(stdin)
         query = body.get("query", "")
@@ -411,6 +476,8 @@ def serve(
         )
     if route == "GET repos/OWNER/NAME":
         return get_repo(state, endpoint, faults, include, record)
+    if route == "GET repos/OWNER/NAME/pulls/N":
+        return get_pull(state, endpoint, faults, include)
     variables = body.get("variables") or {}
     if route == "graphql MirrorIssues":
         return list_issues(state, body.get("query", ""), variables, faults, record)
@@ -435,12 +502,51 @@ def serve(
         return list_updated(state, variables, record)
     if route == "graphql MirrorComments":
         return list_comments(state, variables, faults, record)
+    if route == "graphql MirrorInboundIssues":
+        return list_inbound_issues(state, variables, faults, record)
+    if route == "graphql MirrorInboundPulls":
+        return list_inbound_pulls(state, variables, faults, record)
+    if route == "graphql MirrorHighWater":
+        return high_water(state, variables, faults, record)
+    if route == "graphql MirrorItem":
+        return get_item(state, variables, faults, record)
+    if route == "graphql MirrorClosedBy":
+        return closed_by(state, variables, faults, record)
     fields = variables.get("input", {})
     if route == "graphql createLabel":
         return create_label(state, fields, record)
     if route == "graphql createIssue":
         return create_issue(state, fields, faults, record)
     return write_issue(state, route.split()[1], fields, faults, record)
+
+
+def get_pull(
+    state: dict[str, Any], endpoint: str, faults: dict[str, Any], include: bool
+) -> str:
+    _, owner, name, _, number = endpoint.split("/")
+    repo = find_repo(state, owner, name)
+    pull = next(
+        (p for p in (repo or {}).get("pulls", []) if p["number"] == int(number)),
+        None,
+    )
+    if repo is None or pull is None:
+        raise error_reply("not_found", state, include)
+    malformed = faults.get("malformed_pull")
+    if malformed == "not_json":
+        return "<html>unexpected</html>"
+    reply = fill(
+        fixture("rest_pull.json"),
+        {
+            "pull_node_id": pull["node_id"],
+            "pull_number": pull["number"],
+            "pull_url": url_of(state, repo, "pull", pull["number"]),
+            "pull_body": pull.get("body"),
+            "author": pull.get("author", "contributor"),
+        },
+    )
+    if malformed == "no_user":
+        reply.pop("user", None)
+    return json.dumps(reply)
 
 
 def get_repo(
@@ -653,6 +759,244 @@ def list_comments(
     return json.dumps(reply)
 
 
+EPOCH = "1970-01-01T00:00:00Z"
+
+
+def inbound_issue(
+    repo: dict[str, Any], issue: dict[str, Any], faults: dict[str, Any]
+) -> Any:
+    node = fill(
+        fixture("graphql_inbound_issue.json"),
+        {
+            "issue_node_id": issue["node_id"],
+            "issue_number": issue["number"],
+            "issue_state": issue["state"],
+            "closed_at": issue.get("closed_at") if issue["state"] == "CLOSED" else None,
+            "updated_at": issue.get("updated_at", EPOCH),
+            "author": issue["author"],
+        },
+    )
+    if faults.get("instruction_titles"):  # served although no title was asked for
+        node["title"] = faults["instruction_titles"]
+    return node
+
+
+def merge_fields(pull: dict[str, Any]) -> dict[str, Any]:
+    merged = pull.get("state") == "MERGED"
+    return {
+        "merged": merged,
+        "mergedBy": {"login": pull.get("merged_by")} if merged else None,
+        "mergeCommit": {"oid": pull.get("merge_commit")} if merged else None,
+    }
+
+
+def inbound_pull(pull: dict[str, Any], faults: dict[str, Any]) -> Any:
+    body = pull.get("body")
+    text = faults.get("instruction_titles")
+    if text and isinstance(body, str):
+        body = body + "\n\n" + text
+    merge = merge_fields(pull)
+    node = fill(
+        fixture("graphql_inbound_pull.json"),
+        {
+            "pull_node_id": pull["node_id"],
+            "pull_number": pull["number"],
+            "pull_state": pull.get("state", "OPEN"),
+            "merged": merge["merged"],
+            "merged_at": pull.get("merged_at"),
+            "updated_at": pull.get("updated_at", EPOCH),
+            "pull_body": body,
+            "author": pull.get("author", "contributor"),
+            "merged_by": merge["mergedBy"],
+            "merge_commit": merge["mergeCommit"],
+        },
+    )
+    if text:
+        node["title"] = text
+    return node
+
+
+def page_of(
+    items: list[Any],
+    variables: dict[str, Any],
+    faults: dict[str, Any],
+    record: dict[str, Any],
+    operation: str,
+) -> tuple[list[Any], bool, str | None]:
+    """One page of ``items`` by the ``cursor:N`` convention; ``failed_inbound_page``
+    ({"op", "page"}) fails that page of that listing with HTTP 502."""
+    size = min(int(variables["first"]), int(faults.get("page_size", 100)), 100)
+    after = variables.get("after")
+    start = int(after.split(":")[1]) if after else 0
+    page = start // size + 1
+    record["page"] = page
+    failing = faults.get("failed_inbound_page") or {}
+    if failing.get("op") == operation and failing.get("page") == page:
+        record["fault"] = "failed_inbound_page"
+        raise Reply(
+            1, json.dumps({"message": "Server Error"}), "gh: HTTP 502: Bad Gateway\n"
+        )
+    chunk = items[start : start + size]
+    end = f"cursor:{start + len(chunk)}" if chunk else None
+    return chunk, start + size < len(items), end
+
+
+def list_inbound_issues(
+    state: dict[str, Any],
+    variables: dict[str, Any],
+    faults: dict[str, Any],
+    record: dict[str, Any],
+) -> str:
+    """Every author's issues updated at or after ``since``, oldest number first."""
+    repo = repo_by_node(state, variables["id"])
+    record["repo_node_id"] = repo["node_id"]
+    since = str(variables["since"])
+    visible = sorted(
+        (i for i in repo["issues"] if i.get("updated_at", EPOCH) >= since),
+        key=lambda i: i["number"],
+    )
+    chunk, more, end = page_of(
+        visible, variables, faults, record, "MirrorInboundIssues"
+    )
+    reply = fill(
+        fixture("graphql_issues_page.json"),
+        {
+            "nodes": [inbound_issue(repo, i, faults) for i in chunk],
+            "has_next": more,
+            "end_cursor": end,
+        },
+    )
+    return json.dumps(reply)
+
+
+def list_inbound_pulls(
+    state: dict[str, Any],
+    variables: dict[str, Any],
+    faults: dict[str, Any],
+    record: dict[str, Any],
+) -> str:
+    """Every pull request, most recently updated first."""
+    repo = repo_by_node(state, variables["id"])
+    record["repo_node_id"] = repo["node_id"]
+    pulls = sorted(
+        repo.setdefault("pulls", []),
+        key=lambda p: (p.get("updated_at", EPOCH), p["number"]),
+        reverse=True,
+    )
+    chunk, more, end = page_of(pulls, variables, faults, record, "MirrorInboundPulls")
+    reply = fill(
+        fixture("graphql_pulls_page.json"),
+        {
+            "nodes": [inbound_pull(p, faults) for p in chunk],
+            "has_next": more,
+            "end_cursor": end,
+        },
+    )
+    return json.dumps(reply)
+
+
+def high_water(
+    state: dict[str, Any],
+    variables: dict[str, Any],
+    faults: dict[str, Any],
+    record: dict[str, Any],
+) -> str:
+    """The newest issue and pull request; ``open_after_high_water`` (a login): that
+    author opens an issue right after this answer, as if during the full pass."""
+    repo = repo_by_node(state, variables["id"])
+    record["repo_node_id"] = repo["node_id"]
+
+    def newest(items: list[dict[str, Any]]) -> list[dict[str, int]]:
+        return [{"number": max(i["number"] for i in items)}] if items else []
+
+    reply = fill(
+        fixture("graphql_high_water.json"),
+        {
+            "issue_nodes": newest(repo["issues"]),
+            "pull_nodes": newest(repo.setdefault("pulls", [])),
+        },
+    )
+    author = faults.get("open_after_high_water")
+    if author:
+        taken = [i["number"] for i in repo["issues"]] + [
+            p["number"] for p in repo["pulls"]
+        ]
+        number = max(taken, default=0) + 1
+        repo["issues"].append(
+            {
+                "node_id": f"I_kwDOlate{number}",
+                "number": number,
+                "author": author,
+                "title": "late",
+                "body": "late",
+                "labels": [],
+                "state": "OPEN",
+                "comments": [],
+                "closing_events": [],
+                "updated_at": now_iso(),
+            }
+        )
+    return json.dumps(reply)
+
+
+def get_item(
+    state: dict[str, Any],
+    variables: dict[str, Any],
+    faults: dict[str, Any],
+    record: dict[str, Any],
+) -> str:
+    repo = repo_by_node(state, variables["id"])
+    record["repo_node_id"] = repo["node_id"]
+    number = int(variables["number"])
+    if not -(2**31) <= number < 2**31:
+        # GraphQL's Int is 32-bit: GitHub refuses the variable itself (provisional).
+        raise graphql_error(
+            "Variable $number of type Int! was provided invalid value", "INVALID_VALUE"
+        )
+    issue = next((i for i in repo["issues"] if i["number"] == number), None)
+    pull = next(
+        (p for p in repo.setdefault("pulls", []) if p["number"] == number), None
+    )
+    if issue is not None:
+        node = inbound_issue(repo, issue, faults)
+    elif pull is not None:
+        node = inbound_pull(pull, faults)
+    else:
+        raise graphql_error(
+            f"Could not resolve to an issue or pull request with the number of {number}."
+        )
+    return json.dumps(fill(fixture("graphql_issue.json"), {"node": node}))
+
+
+def closed_by(
+    state: dict[str, Any],
+    variables: dict[str, Any],
+    faults: dict[str, Any],
+    record: dict[str, Any],
+) -> str:
+    """The issue's latest closing event; ``failed_timeline`` (issue numbers) fails it."""
+    repo, issue = issue_by_node(state, str(variables["id"]))
+    record["repo_node_id"] = repo["node_id"]
+    if issue["number"] in (faults.get("failed_timeline") or []):
+        record["fault"] = "failed_timeline"
+        raise error_reply("bad_gateway", state, False)
+    events = issue.get("closing_events") or []
+    nodes: list[dict[str, Any]] = []
+    if events:
+        last = events[-1]
+        closer = last.get("closer")
+        node: Any = None
+        if closer and "pull" in closer:
+            pull = next(p for p in repo["pulls"] if p["number"] == closer["pull"])
+            node = {"__typename": "PullRequest", "number": pull["number"]}
+            node.update(merge_fields(pull))
+        elif closer and "commit" in closer:
+            node = {"__typename": "Commit", "oid": closer["commit"]}
+        nodes = [{"createdAt": last["at"], "closer": node}]
+    reply = fill(fixture("graphql_closed_by.json"), {"events": nodes})
+    return json.dumps(reply)
+
+
 def stored_body(body: str, faults: dict[str, Any]) -> str:
     """The body as GitHub stores it; ``stores_body_as`` [old, new] alters it."""
     alter = faults.get("stores_body_as")
@@ -683,8 +1027,11 @@ def write_issue(
             issue["title"] = str(fields["title"])
         if "body" in fields:
             issue["body"] = stored_body(str(fields["body"]), faults)
-    elif mutation in ("closeIssue", "reopenIssue"):
-        issue["state"] = "CLOSED" if mutation == "closeIssue" else "OPEN"
+    elif mutation == "closeIssue":
+        issue["state"], issue["closed_at"] = "CLOSED", now_iso()
+        issue.setdefault("closing_events", []).append({"at": now_iso(), "closer": None})
+    elif mutation == "reopenIssue":
+        issue["state"], issue["closed_at"] = "OPEN", None
     elif mutation == "addComment":
         issue.setdefault("comments", []).append(
             {"author": state["login"], "body": str(fields.get("body", ""))}
