@@ -18,6 +18,7 @@ import subprocess
 import sys
 import time
 from collections.abc import Iterator
+from pathlib import Path
 from typing import Any
 
 import pytest
@@ -73,18 +74,19 @@ def run_hook(
     command: str,
     env_extra: dict[str, str] | None = None,
     gh_on_path: bool = True,
+    cwd: Path | None = None,
 ) -> tuple[subprocess.CompletedProcess[str], float]:
     """One session-start command as the tool runs it: through bash, in the project."""
     env = m.env({"CLAUDE_PROJECT_DIR": str(m.clone), **(env_extra or {})}, gh_on_path)
     began = time.monotonic()
     proc = subprocess.run(
         [real_tool("bash"), "-c", command],
-        cwd=m.clone,
+        cwd=cwd or m.clone,
         env=env,
         capture_output=True,
         text=True,
         stdin=subprocess.DEVNULL,
-        timeout=60,
+        timeout=20,
         check=False,
     )
     return proc, time.monotonic() - began
@@ -135,12 +137,29 @@ def wait_for(check: Any, timeout: float, what: str) -> None:
     raise AssertionError(f"timed out waiting for {what}")
 
 
+def wait_started(
+    m: Mirror, before: Any = None, timeout: float = 10.0
+) -> dict[str, Any]:
+    """The record of a run the supervisor reserved (one other than ``before``)."""
+    wait_for(
+        lambda: background(m).get("run") not in (None, before),
+        timeout,
+        "the supervisor to reserve a run",
+    )
+    return background(m)
+
+
 def wait_background(m: Mirror, timeout: float = 60.0) -> dict[str, Any]:
-    """The recorded outcome, once the supervisor has written it and exited."""
+    """The outcome of the latest reserved run, once its supervisor wrote it and exited
+    (a record no supervisor reserved, such as ``age_background``'s, does not count)."""
 
     def ended() -> bool:
         rec = background(m)
-        return rec.get("outcome") is not None and not alive(rec.get("supervisor"))
+        return (
+            rec.get("run") is not None
+            and rec.get("outcome") is not None
+            and not alive(rec.get("supervisor"))
+        )
 
     wait_for(ended, timeout, "the background run's outcome")
     return background(m)
@@ -160,6 +179,12 @@ def age_background(m: Mirror, seconds: float, **fields: Any) -> None:
     stamp = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(time.time() - seconds))
     rec = {"started": stamp, "outcome": "done", **fields}
     (m.mirror_dir / "background.json").write_text(json.dumps(rec))
+
+
+def settle() -> None:
+    """Give a supervisor the session just started the time to reserve a run, so a
+    test that expects none can see that it reserved nothing."""
+    time.sleep(1.0)
 
 
 def lock_free(m: Mirror) -> bool:
@@ -210,7 +235,7 @@ def test_hook_returns_at_once_and_background_run_creates_nothing(
     assert proc.returncode == 0 and proc.stderr == ""
     assert took < 3.0, f"the hook waited {took:.1f}s"
     assert "no digest yet" in proc.stdout
-    assert background(hooked)["outcome"] is None, "the background run is still going"
+    assert wait_started(hooked)["outcome"] is None, "the background run is going"
     rec = wait_background(hooked)
     assert rec["outcome"] == "done" and rec["exit"] == 0
     assert hooked.fake.creates() == 0 and hooked.fake.writes() == []
@@ -222,12 +247,15 @@ def test_hook_returns_at_once_and_background_run_creates_nothing(
     assert again.returncode == 0 and took < 3.0
     assert again.stdout.startswith("bead-mirror digest of ")
     assert "1 row(s): unpublished 1" in again.stdout
+    settle()
     assert background(hooked) == rec, "started under fifteen minutes ago: no relaunch"
 
     age_background(hooked, 16 * 60)
     calls = len(hooked.fake.calls())
     start_session(hooked, tool)
-    assert background(hooked)["outcome"] is None, "older than fifteen minutes: relaunch"
+    assert wait_started(hooked)["outcome"] is None, (
+        "older than fifteen minutes: relaunch"
+    )
     assert wait_background(hooked)["outcome"] == "done"
     assert len(hooked.fake.calls()) > calls
 
@@ -275,6 +303,7 @@ def test_failures_hook_prints_the_last_digest_and_exits_0(
         age_background(hooked, 16 * 60, backoff_until=rec["backoff_until"])
         quiet = background(hooked)
         start_session(hooked, tool, gh_on_path=on_path)
+        settle()
         assert background(hooked) == quiet
 
 
@@ -469,3 +498,210 @@ def test_where_it_runs_a_run_that_cannot_write_beside_the_switch_reports_it(
         assert "next background run" in proc.stderr
         assert "Traceback" not in proc.stderr
     assert mirror.fake.writes() == []
+
+
+GIT_SELECTOR_ENV = ("GIT_DIR", "GIT_WORK_TREE")
+
+
+@pytest.mark.parametrize("tool", TOOLS)
+def test_where_it_runs_the_session_checkout_not_the_one_git_selectors_name(
+    hooked: Mirror, tool: str, tmp_path: Path
+) -> None:
+    """Run from a checkout without a switch while Git's selectors name the writer
+    clone: nothing runs there. Where no checkout is found, the entry stays silent."""
+    hooked.write_switch()
+    here = tmp_path / "other-checkout"
+    here.mkdir()
+    subprocess.run(
+        [real_tool("git"), "init", "-q"], cwd=here, env=hooked.env(), check=True
+    )
+    for rel in HOOK_FILES:
+        (here / rel).parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(REPO_ROOT / rel, here / rel)
+    (command,) = [c for c in session_commands(hooked, tool) if NEW_ENTRY in c]
+    selectors = {
+        "GIT_DIR": str(hooked.clone / ".git"),
+        "GIT_WORK_TREE": str(hooked.clone),
+        "CLAUDE_PROJECT_DIR": str(here),
+    }
+    proc, _ = run_hook(hooked, command, selectors, cwd=here)
+    assert (proc.returncode, proc.stdout, proc.stderr) == (0, "", "")
+    settle()
+    assert not (hooked.mirror_dir / "background.json").exists()
+    assert hooked.fake.calls() == []
+    assert not (here / ".git" / "bead-mirror").exists()
+
+    if tool == "codex":  # Claude Code names the project; Codex's entry discovers it
+        plain = tmp_path / "not-a-checkout"
+        plain.mkdir()
+        proc, _ = run_hook(hooked, command, cwd=plain)
+        assert (proc.returncode, proc.stdout, proc.stderr) == (0, "", "")
+
+
+def slow_wrapper(path: Path, real: str, match: str, sentinel: Path) -> None:
+    """Replace ``path`` with a script that, for argument lists containing ``match``,
+    leaves a descendant that writes ``sentinel`` after 3 s and itself sleeps 30 s;
+    anything else runs ``real``."""
+    sleep = real_tool("sleep")
+    path.unlink()
+    path.write_text(
+        "#!/bin/sh\n"
+        f'case " $* " in *" {match} "*)\n'
+        f'  ( "{sleep}" 3; : > "{sentinel}" ) &\n'
+        f'  exec "{sleep}" 30 ;;\n'
+        "esac\n"
+        f'exec "{real}" "$@"\n'
+    )
+    path.chmod(0o755)
+
+
+@pytest.mark.parametrize("kind", ["git", "bd", "gh"])
+def test_lock_worker_deadline_bounds_every_child_and_stops_its_descendants(
+    hooked: Mirror, kind: str
+) -> None:
+    """With the supervisor killed, a slow git, bd or gh child (which left a descendant
+    behind) is cut at the worker's own budget; the descendant is stopped before the
+    lock is released."""
+    hooked.write_switch()
+    sentinel = hooked.clone.parent / f"{kind}-descendant-ran"
+    if kind == "git":
+        slow_wrapper(
+            hooked.tools_dir / "git", real_tool("git"), "--show-toplevel", sentinel
+        )
+    elif kind == "bd":
+        shim = hooked.tools_dir / "bd"
+        kept = hooked.tools_dir / "bd-shim"
+        shutil.copy2(shim, kept)
+        slow_wrapper(shim, str(kept), "context", sentinel)
+    else:
+        gh = hooked.bin_dir / "gh"
+        kept = hooked.bin_dir.parent / "gh-fake"
+        shutil.copy2(gh, kept)
+        slow_wrapper(gh, str(kept), "user", sentinel)
+    start_session(hooked, "claude", {DEADLINES: "worker=1,supervisor=60"})
+    wait_for(lambda: "worker" in background(hooked), 10, "the worker to start")
+    seen = time.monotonic()
+    wait_until_locked(hooked)
+    rec = background(hooked)
+    os.kill(rec["supervisor"], signal.SIGKILL)
+
+    wait_for(lambda: lock_free(hooked), 3.0, "the worker to release the lock")
+    assert not sentinel.exists(), "the descendant was stopped before the lock went"
+    wait_for(lambda: not alive(rec["worker"]), 5, "the worker to exit")
+    time.sleep(max(0.0, seen + 4.5 - time.monotonic()))
+    assert not sentinel.exists(), "the slow child's descendant never ran on"
+    assert not group_alive(rec["worker"])
+    assert "the worker's deadline passed" in (hooked.mirror_dir / "log").read_text()
+    assert hooked.fake.writes() == []
+
+
+def test_failures_rate_limit_during_retirement_is_backed_off(hooked: Mirror) -> None:
+    hooked.write_switch()
+    bead = hooked.create_bead("Excluded later")
+    assert hooked.run("outbound").returncode == 0
+    hooked.bd("update", bead, "--set-metadata", "mirror=never")
+    for fault, value in (
+        ("fail_write", {"updateIssue": "rate_limited_429"}),
+        ("interrupt_readback", "rate_limited_429"),
+    ):
+        hooked.fake.set("faults", {fault: value})
+        proc = hooked.run("worker")
+        assert proc.returncode == 10, (fault, proc.returncode, proc.stdout)
+        assert bead in hooked.state()["enrolled"], "it stays managed"
+
+
+@pytest.mark.parametrize(
+    "reply", ["graphql_rate_limited_partial", "graphql_rate_limited_partial_exit_0"]
+)
+def test_failures_rate_limit_in_an_ambiguous_write_reply_is_backed_off(
+    hooked: Mirror, reply: str
+) -> None:
+    hooked.write_switch()
+    bead = hooked.create_bead("Old title")
+    assert hooked.run("outbound").returncode == 0
+    number = int(hooked.beads()[bead]["external_ref"].rsplit("/", 1)[1])
+    hooked.bd("update", bead, "--title", "New title")
+    hooked.fake.set_fault("fail_write", {"updateIssue": reply})
+    proc = hooked.run("worker")
+    assert proc.returncode == 10, proc.stdout
+    assert "the outcome is unknown" in proc.stdout
+    hooked.fake.set("faults", {})
+    assert hooked.run("outbound").returncode == 0
+    assert hooked.fake.issue(number)["title"] == "New title", "reconciled next run"
+
+
+@pytest.mark.parametrize("tool", TOOLS)
+def test_hook_no_run_starts_while_another_launch_holds_the_claim(
+    hooked: Mirror, tool: str
+) -> None:
+    hooked.write_switch()
+    age_background(hooked, 16 * 60)
+    quiet = background(hooked)
+    fd = os.open(hooked.mirror_dir / "launch", os.O_RDWR | os.O_CREAT, 0o600)
+    fcntl.flock(fd, fcntl.LOCK_EX)
+    try:
+        proc, took = start_session(hooked, tool)
+        assert proc.returncode == 0 and took < 3.0
+        settle()
+        assert background(hooked) == quiet, "the other launch decides; none started"
+        assert hooked.fake.calls() == []
+    finally:
+        os.close(fd)
+    start_session(hooked, tool)
+    assert wait_background(hooked)["outcome"] == "done"
+
+
+@pytest.mark.parametrize("tool", TOOLS)
+def test_hook_a_supervisor_never_replaces_a_newer_runs_record(
+    hooked: Mirror, tool: str
+) -> None:
+    hooked.write_switch()
+    hooked.fake.set_fault("delay", 0.5)
+    start_session(hooked, tool)
+    wait_for(lambda: "worker" in background(hooked), 10, "the worker to start")
+    rec = background(hooked)
+    stamp = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    newer = {
+        "started": stamp,
+        "outcome": "rate-limited",
+        "run": "a-newer-run",
+        "backoff_until": "2999-01-01T00:00:00Z",
+    }
+    (hooked.mirror_dir / "background.json").write_text(json.dumps(newer))
+    wait_for(lambda: not alive(rec["supervisor"]), 60, "the supervisor to end")
+    assert background(hooked) == newer, "the newer back-off is kept"
+    assert "a newer run's record is kept" in (hooked.mirror_dir / "log").read_text()
+
+
+@pytest.mark.parametrize("tool", TOOLS)
+def test_hook_returns_by_its_own_deadline_without_a_timeout_tool(
+    hooked: Mirror, tool: str
+) -> None:
+    hooked.write_switch()
+    age_background(hooked, 0)
+    (hooked.tools_dir / "timeout").unlink()
+    os.mkfifo(hooked.mirror_dir / "digest.json")  # a read that never returns
+    proc, took = start_session(hooked, tool)
+    assert proc.returncode == 0 and proc.stderr == ""
+    assert took < 4.5, f"the hook waited {took:.1f}s"
+
+
+@pytest.mark.parametrize("tool", TOOLS)
+def test_harness_shell_startup_files_cannot_replace_the_fake_gh(
+    hooked: Mirror, tool: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    hooked.write_switch()
+    decoy_dir = tmp_path / "decoy"
+    decoy_dir.mkdir()
+    sentinel = tmp_path / "decoy-gh-ran"
+    decoy = decoy_dir / "gh"
+    decoy.write_text(f'#!/bin/sh\n: > "{sentinel}"\nexit 1\n')
+    decoy.chmod(0o755)
+    startup = tmp_path / "startup.sh"
+    startup.write_text(f'PATH="{decoy_dir}:$PATH"; export PATH\n')
+    monkeypatch.setenv("BASH_ENV", str(startup))
+    monkeypatch.setenv("ENV", str(startup))
+    start_session(hooked, tool)
+    assert wait_background(hooked)["outcome"] == "done"
+    assert not sentinel.exists(), "the stand-in gh never ran"
+    assert hooked.fake.calls(), "the fake gh served the run"

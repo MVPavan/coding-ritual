@@ -53,11 +53,18 @@ def now() -> str:
     return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
 
 
+# A shell reads these at startup (or imports functions from them): inherited, they
+# could put another directory first on PATH, or replace a command, before the
+# configured hook command runs, so the fake gh would no longer be the gh found.
+SHELL_STARTUP = ("BASH_ENV", "ENV", "SHELLOPTS", "BASHOPTS", "CDPATH", "PROMPT_COMMAND")
+
+
 def scrubbed_env(extra: dict[str, str] | None = None) -> dict[str, str]:
     env = {
         k: v
         for k, v in os.environ.items()
-        if not k.startswith(("BEADS_", "GH_", "GIT_"))
+        if not k.startswith(("BEADS_", "GH_", "GIT_", "BASH_FUNC_"))
+        and k not in SHELL_STARTUP
     }
     env.update(GIT_ISOLATION)
     env.update(extra or {})

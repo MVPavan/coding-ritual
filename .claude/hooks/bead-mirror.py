@@ -24,19 +24,25 @@ path, ``link``, ``resolve`` or ``install-check`` declined, with the reason). The
 background ``worker`` also exits 10 (rate-limited) and 11 (its own deadline passed).
 
 Session start (``session``, run by each tool's hook launcher) makes no network call,
-takes no lock and never waits; it always exits 0. In the writer clone it prints the
+takes no lock and never waits: it exits 0 within its own deadline (``SESSION_DEADLINE``,
+enforced in Python, so no ``timeout`` tool is needed). In the writer clone it prints the
 latest ``digest.json``'s time, its counts by row type, at most five rows (allow-listed
 fields only) and the path to the rest, then the last background run's outcome when it
 did not finish cleanly, all within ``SESSION_CAP`` characters; then it starts the
-background run, detached, when the last one (``background.json``) started more than
-fifteen minutes ago and no rate-limit back-off is running. The background run:
-``supervise`` takes a session and process group of its own, input from /dev/null and
+supervisor, detached, which writes nothing in the foreground's place. The background
+run: ``supervise`` first checks, under a nonblocking flock on ``launch`` beside the
+switch, that the last run (``background.json``) started more than fifteen minutes ago
+and no rate-limit back-off is running, and reserves the run in the same step (else it
+exits); it then has a session and process group of its own, input from /dev/null and
 output to ``log`` beside the switch, and runs ``worker`` as a child in its own process
 group; at its deadline it SIGTERMs the whole group, SIGKILLs what is left after a
-grace period, reaps the worker and records the outcome. ``worker`` is ``both
---no-create`` that takes the lock without waiting (busy: it exits), checks its own
-deadline before every GitHub call (no call runs past it) and releases the lock as it
-exits; it outlives a killed supervisor and still stops at its own deadline.
+grace period, reaps the worker and records the outcome in its own reservation only,
+never over a newer run's record. ``worker`` is ``both --no-create`` that takes the
+lock without waiting (busy: it exits), gives every git, bd and gh child at most its
+remaining budget, and at its own deadline stops its children and their descendants
+(its process group, itself aside) before it releases the lock as it exits; it
+outlives a killed supervisor and still stops at its own deadline. A rate limit met
+anywhere, including a write whose reply was partial, backs the next run off.
 
 The reference grammar (``REFERENCE_PATTERN``, ``references``) is shared by the digest
 and the pull-request check. ``install-check`` writes the check's workflow to
@@ -330,10 +336,13 @@ class DeadlineReached(Unavailable):
 
 
 class WriteUnknown(Stop):
-    """A write whose outcome is unknown: GitHub may or may not have applied it."""
+    """A write whose outcome is unknown: GitHub may or may not have applied it.
+    ``rate_limited``: the reply also reported GitHub's rate limit, so the background
+    run backs off (the write is still reconciled by the next run)."""
 
-    def __init__(self, message: str) -> None:
+    def __init__(self, message: str, rate_limited: bool = False) -> None:
         super().__init__(EXIT_GITHUB, message)
+        self.rate_limited = rate_limited
 
 
 class RetireFailed(Stop):
@@ -441,26 +450,108 @@ def child_env(base: Mapping[str, str] | None = None) -> dict[str, str]:
     return env
 
 
+# The background worker's deadline (``time.monotonic``), or None outside the worker.
+# Every git, bd and gh child the worker runs gets at most the budget left.
+WORKER_DEADLINE_AT: float | None = None
+
+
+def child_timeout(default: float = CHILD_TIMEOUT) -> float:
+    """``default``, cut to the worker's remaining budget; DeadlineReached once it is
+    spent."""
+    if WORKER_DEADLINE_AT is None:
+        return default
+    left = WORKER_DEADLINE_AT - time.monotonic()
+    if left <= 0:
+        raise DeadlineReached()
+    return min(default, left)
+
+
+def past_deadline() -> bool:
+    return WORKER_DEADLINE_AT is not None and time.monotonic() >= WORKER_DEADLINE_AT
+
+
+def group_members(pgid: int) -> list[int]:
+    """The processes in process group ``pgid`` other than this one, read from /proc
+    (empty where there is none)."""
+    found = []
+    try:
+        names = os.listdir("/proc")
+    except OSError:
+        return []
+    for name in names:
+        if not name.isdigit() or int(name) == os.getpid():
+            continue
+        try:
+            with open(f"/proc/{name}/stat", encoding="utf-8") as fh:
+                fields = fh.read().rsplit(")", 1)[1].split()
+        except (OSError, IndexError):
+            continue
+        if len(fields) > 2 and fields[2] == str(pgid):
+            found.append(int(name))
+    return found
+
+
+def stop_own_children(grace: float = 1.0) -> None:
+    """The worker's deadline cleanup: SIGTERM its process group except itself (every
+    child and descendant still there), then SIGKILL what is left after ``grace``. Only
+    in the worker, which leads its own group; never a caller's group. Stated limit:
+    finding what is left reads /proc, so without it (macOS) a child that ignores
+    SIGTERM survives this step; the supervisor's group kill at its deadline still
+    stops it."""
+    if WORKER_DEADLINE_AT is None or os.getpgid(0) != os.getpid():
+        return
+    pgid = os.getpid()
+    previous = signal.signal(signal.SIGTERM, signal.SIG_IGN)
+    try:
+        os.killpg(pgid, signal.SIGTERM)
+    except OSError:
+        pass
+    finally:
+        signal.signal(signal.SIGTERM, previous)
+    end = time.monotonic() + grace
+    while time.monotonic() < end:
+        left = group_members(pgid)
+        if not left:
+            return
+        time.sleep(0.05)
+    for pid in group_members(pgid):
+        try:
+            os.kill(pid, signal.SIGKILL)
+        except OSError:
+            pass
+
+
 def run_child(
     argv: Sequence[str],
     cwd: str | None,
     env: Mapping[str, str],
     stdin_text: str | None = None,
     timeout: float = CHILD_TIMEOUT,
+    deadline_error: bool = True,
 ) -> subprocess.CompletedProcess[str]:
+    """Run one child, for at most ``timeout`` and the worker's remaining budget. In
+    the worker a child cut short has its descendants stopped too, before the caller
+    (and the lock) sees the timeout; ``deadline_error``: a cut at the worker's deadline
+    raises DeadlineReached instead of ``subprocess.TimeoutExpired``."""
     feed: dict[str, Any] = (
         {"stdin": subprocess.DEVNULL} if stdin_text is None else {"input": stdin_text}
     )
-    return subprocess.run(
-        list(argv),
-        cwd=cwd,
-        env=dict(env),
-        capture_output=True,
-        text=True,
-        timeout=timeout,
-        check=False,
-        **feed,
-    )
+    try:
+        return subprocess.run(
+            list(argv),
+            cwd=cwd,
+            env=dict(env),
+            capture_output=True,
+            text=True,
+            timeout=child_timeout(timeout),
+            check=False,
+            **feed,
+        )
+    except subprocess.TimeoutExpired as exc:
+        stop_own_children()
+        if deadline_error and past_deadline():
+            raise DeadlineReached() from exc
+        raise
 
 
 def git_common_dir() -> str | None:
@@ -487,14 +578,10 @@ def git_common_dir() -> str | None:
 
 
 def git_toplevel() -> str:
-    proc = subprocess.run(
-        ["git", "rev-parse", "--show-toplevel"],
-        env=child_env(),
-        capture_output=True,
-        text=True,
-        timeout=CHILD_TIMEOUT,
-        check=False,
-    )
+    try:
+        proc = run_child(["git", "rev-parse", "--show-toplevel"], None, child_env())
+    except (OSError, subprocess.SubprocessError) as exc:
+        raise Stop(EXIT_BEADS, f"git rev-parse failed: {exc}") from exc
     top = proc.stdout.strip()
     if proc.returncode != 0 or not top:
         raise Stop(
@@ -612,25 +699,18 @@ class Gh:
     def __init__(self, host: str, env: Mapping[str, str]) -> None:
         self.host = host
         self.env = dict(env)
-        # The background worker's deadline (``time.monotonic``): checked before every
-        # call, and no call may run past it.
-        self.deadline: float | None = None
 
     def _run(
         self, args: Sequence[str], stdin_text: str | None = None
     ) -> subprocess.CompletedProcess[str]:
-        """Run gh; a timeout raises ``subprocess.TimeoutExpired`` for the caller to judge."""
-        timeout = CHILD_TIMEOUT
-        if self.deadline is not None:
-            left = self.deadline - time.monotonic()
-            if left <= 0:
-                raise DeadlineReached()
-            timeout = min(timeout, left)
+        """Run gh; a timeout raises ``subprocess.TimeoutExpired`` for the caller to judge.
+        In the worker no call starts once its deadline passed, and none runs past it."""
+        child_timeout()
         if shutil.which("gh", path=self.env.get("PATH")) is None:
             raise Unavailable("gh not found on PATH")
         argv = ["gh", "api", "--hostname", self.host] + list(args)
         try:
-            return run_child(argv, None, self.env, stdin_text, timeout)
+            return run_child(argv, None, self.env, stdin_text, deadline_error=False)
         except OSError as exc:
             raise Unavailable(f"gh could not run: {exc}") from exc
 
@@ -638,7 +718,7 @@ class Gh:
         try:
             proc = self._run(args, stdin_text)
         except subprocess.TimeoutExpired as exc:
-            if self.deadline is not None and time.monotonic() >= self.deadline:
+            if past_deadline():
                 raise DeadlineReached() from exc  # cut short to keep the deadline
             raise Unavailable(f"gh timed out reaching {self.host} (offline?)") from exc
         if proc.returncode != 0:
@@ -765,7 +845,10 @@ class Gh:
                 else (json.dumps(errors), "refused" if kind else None)
             )
             if proof is None:
-                raise WriteUnknown(f"{mutation}: {cause}; the outcome is unknown")
+                raise WriteUnknown(
+                    f"{mutation}: {cause}; the outcome is unknown",
+                    rate_limited=reports_rate_limit(result),
+                )
             if proof == "rate-limited":
                 raise RateLimited(f"{mutation} was not sent: {cause}")
             if proof == "unavailable":
@@ -2663,6 +2746,12 @@ class Outbound:
             raise RetireFailed(
                 f"retiring #{number} for {bead_id} failed: {exc}; it stays managed"
             ) from exc
+        except RateLimited as exc:  # keeps its type: the background run backs off
+            raise RateLimited(
+                f"retiring #{number} for {bead_id} failed: {exc}; it stays managed"
+            ) from exc
+        except DeadlineReached:  # keeps its type: the worker records a deadline stop
+            raise
         except Stop as exc:
             raise Stop(
                 exc.code,
@@ -4507,7 +4596,8 @@ RATE_BACKOFF = 3600  # after a rate limit, no background run for this long
 WORKER_DEADLINE = 10 * 60
 SUPERVISOR_DEADLINE = 12 * 60
 STOP_GRACE = 10.0  # between the supervisor's SIGTERM and SIGKILL to the worker's group
-# Read only by the tests, to shorten the deadlines: "worker=S,supervisor=S,grace=S".
+SESSION_DEADLINE = 3.0  # the session-start hook exits 0 by then, whatever it is doing
+# Read only by the tests, to shorten the deadlines: "worker=S,supervisor=S,grace=S,session=S".
 TEST_DEADLINES = "BEAD_MIRROR_TEST_DEADLINES"
 SESSION_ROWS = 5
 SESSION_LINE = 400  # characters per line of the session-start summary
@@ -4533,6 +4623,7 @@ def deadlines() -> dict[str, float]:
         "worker": float(WORKER_DEADLINE),
         "supervisor": float(SUPERVISOR_DEADLINE),
         "grace": STOP_GRACE,
+        "session": SESSION_DEADLINE,
     }
     for part in os.environ.get(TEST_DEADLINES, "").split(","):
         name, _, value = part.partition("=")
@@ -4632,50 +4723,32 @@ def session_summary(
     return "\n".join(head + shown + tail)
 
 
-def launch_background(mirror_dir: str) -> str | None:
-    """Start the supervisor detached unless the last background run started less than
-    ``RELAUNCH_AFTER`` ago or a rate-limit back-off is running; a line to report when
-    it cannot start."""
-    now = time.time()
-    last = background_record(mirror_dir)
-    started = parse_iso(last.get("started"))
-    if started is not None and now - started < RELAUNCH_AFTER:
-        return None
-    until = parse_iso(last.get("backoff_until"))
-    if until is not None and now < until:
-        return None
-    log = os.path.join(mirror_dir, "log")
+def launch_background() -> str | None:
+    """Start the supervisor detached; it decides, atomically, whether a run is due. A
+    line to report when it cannot start. Nothing here opens, writes or waits on a file
+    beside the switch: that bookkeeping is the supervisor's."""
     try:
-        if os.path.getsize(log) > LOG_LIMIT:
-            os.replace(log, log + ".1")
-    except OSError:
-        pass
-    record: dict[str, Any] = {"started": iso_of(now), "outcome": None}
-    try:
-        save_background(mirror_dir, record)
-        with open(log, "a", encoding="utf-8") as out:
-            subprocess.Popen(
-                [sys.executable, os.path.abspath(__file__), "supervise"],
-                stdin=subprocess.DEVNULL,
-                stdout=out,
-                stderr=subprocess.STDOUT,
-                start_new_session=True,
-                close_fds=True,
-            )
+        subprocess.Popen(
+            [sys.executable, os.path.abspath(__file__), "supervise"],
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            start_new_session=True,
+            close_fds=True,
+        )
     except OSError as exc:
-        try:
-            record.update(finished=now_iso(), outcome="not-started")
-            save_background(mirror_dir, record)
-        except OSError:
-            pass
         return f"bead-mirror: cannot start the background run: {exc.strerror or exc}"
     return None
+
+
+def session_deadline_passed(signum: int, frame: Any) -> NoReturn:
+    os._exit(EXIT_OK)  # the hook never blocks the session: whatever is left is dropped
 
 
 def cmd_session(ctx: Context, args: argparse.Namespace) -> int:
     """The session-start hook: no network call, no lock, no wait."""
     last = background_record(ctx.mirror_dir)  # the outcome before this launch
-    problem = launch_background(ctx.mirror_dir)
+    problem = launch_background()
     print(session_summary(ctx.mirror_dir, last, problem))
     return EXIT_OK
 
@@ -4719,17 +4792,90 @@ def stop_group(worker: subprocess.Popen[bytes], grace: float) -> None:
     worker.wait()
 
 
+class LaunchClaim:
+    """The launch file beside the switch, flocked without waiting: whoever holds it
+    reads and writes ``background.json``; anyone else leaves it alone."""
+
+    def __init__(self, mirror_dir: str, wait: bool) -> None:
+        self.path = os.path.join(mirror_dir, "launch")
+        self.wait = wait
+        self.fd: int | None = None
+
+    def __enter__(self) -> bool:
+        self.fd = os.open(self.path, os.O_RDWR | os.O_CREAT, 0o600)
+        try:
+            fcntl.flock(self.fd, fcntl.LOCK_EX | (0 if self.wait else fcntl.LOCK_NB))
+        except OSError:
+            os.close(self.fd)
+            self.fd = None
+            return False
+        return True
+
+    def __exit__(self, *exc: object) -> None:
+        if self.fd is not None:
+            os.close(self.fd)  # closing the descriptor releases the flock
+            self.fd = None
+
+
+def reserve_launch(mirror_dir: str) -> dict[str, Any] | None:
+    """Check whether a background run is due and reserve it, as one step under the
+    launch claim: None when another launch holds the claim, the last run started less
+    than ``RELAUNCH_AFTER`` ago or a rate-limit back-off is running; else the new
+    record, already saved."""
+    with LaunchClaim(mirror_dir, wait=False) as claimed:
+        if not claimed:
+            return None
+        now = time.time()
+        last = background_record(mirror_dir)
+        started = parse_iso(last.get("started"))
+        if started is not None and now - started < RELAUNCH_AFTER:
+            return None
+        until = parse_iso(last.get("backoff_until"))
+        if until is not None and now < until:
+            return None
+        token = hashlib.sha256(f"{os.getpid()} {time.time_ns()}".encode()).hexdigest()
+        record: dict[str, Any] = {
+            "started": iso_of(now),
+            "supervisor": os.getpid(),
+            "outcome": None,
+            "run": token[:16],
+        }
+        save_background(mirror_dir, record)
+        return record
+
+
+def update_own_record(mirror_dir: str, record: Mapping[str, Any]) -> bool:
+    """Write ``record`` only while ``background.json`` is still this run's own
+    reservation; a newer run's record (and its back-off) is never replaced."""
+    with LaunchClaim(mirror_dir, wait=True):
+        if background_record(mirror_dir).get("run") != record.get("run"):
+            return False
+        save_background(mirror_dir, record)
+        return True
+
+
+def rotate_log(mirror_dir: str) -> None:
+    log = os.path.join(mirror_dir, "log")
+    try:
+        if os.path.getsize(log) > LOG_LIMIT:
+            os.replace(log, log + ".1")
+    except OSError:
+        pass
+
+
 def cmd_supervise(ctx: Context, args: argparse.Namespace) -> int:
-    """Run the worker as a child in its own process group; stop the whole group at the
-    supervisor's deadline, reap it and record the outcome in ``background.json``."""
+    """Reserve the run (or exit when none is due), run the worker as a child in its own
+    process group, stop the whole group at the supervisor's deadline, reap it and
+    record the outcome in its own ``background.json`` record."""
+    try:
+        record = reserve_launch(ctx.mirror_dir)
+    except OSError:
+        return EXIT_OK  # nothing can be recorded beside the switch: no run
+    if record is None:
+        return EXIT_OK
+    rotate_log(ctx.mirror_dir)
     detach(ctx.mirror_dir)
     limits = deadlines()
-    started = background_record(ctx.mirror_dir).get("started")
-    record: dict[str, Any] = {
-        "started": started if parse_iso(started) is not None else now_iso(),
-        "supervisor": os.getpid(),
-        "outcome": None,
-    }
     try:
         worker = subprocess.Popen(
             [sys.executable, os.path.abspath(__file__), "worker"],
@@ -4739,10 +4885,10 @@ def cmd_supervise(ctx: Context, args: argparse.Namespace) -> int:
     except OSError as exc:
         note("supervisor", f"cannot start the worker: {exc}")
         record.update(finished=now_iso(), outcome="not-started")
-        save_background(ctx.mirror_dir, record)
+        update_own_record(ctx.mirror_dir, record)
         return EXIT_OK
     record["worker"] = worker.pid
-    save_background(ctx.mirror_dir, record)
+    update_own_record(ctx.mirror_dir, record)
     note("supervisor", f"started worker {worker.pid}")
     try:
         code = worker.wait(timeout=limits["supervisor"])
@@ -4754,9 +4900,23 @@ def cmd_supervise(ctx: Context, args: argparse.Namespace) -> int:
     record.update(finished=now_iso(), outcome=outcome, exit=code)
     if outcome == "rate-limited":
         record["backoff_until"] = iso_of(time.time() + RATE_BACKOFF)
-    save_background(ctx.mirror_dir, record)
+    if not update_own_record(ctx.mirror_dir, record):
+        note("supervisor", "a newer run's record is kept; this outcome is only logged")
     note("supervisor", f"worker {worker.pid} ended: {outcome} (exit {code})")
     return EXIT_OK
+
+
+def hit_rate_limit(exc: BaseException) -> bool:
+    """Whether GitHub's rate limit is behind ``exc`` or any exception it wraps: a
+    ``RateLimited``, or a write of unknown outcome whose reply reported the limit."""
+    seen: set[int] = set()
+    found: BaseException | None = exc
+    while found is not None and id(found) not in seen:
+        if isinstance(found, RateLimited) or getattr(found, "rate_limited", False):
+            return True
+        seen.add(id(found))
+        found = found.__cause__ or found.__context__
+    return False
 
 
 def terminated(signum: int, frame: Any) -> NoReturn:
@@ -4766,8 +4926,9 @@ def terminated(signum: int, frame: Any) -> NoReturn:
 def cmd_worker(ctx: Context, args: argparse.Namespace) -> int:
     """The background run (``both --no-create``): takes the lock itself or exits busy,
     stops at its own deadline before a GitHub call, releases the lock as it exits."""
+    global WORKER_DEADLINE_AT
     signal.signal(signal.SIGTERM, terminated)
-    ctx.gh.deadline = time.monotonic() + deadlines()["worker"]
+    WORKER_DEADLINE_AT = time.monotonic() + deadlines()["worker"]
     ctx.lock_wait = 0.0
     note("worker", "inbound, then outbound without creates")
     try:
@@ -4775,12 +4936,9 @@ def cmd_worker(ctx: Context, args: argparse.Namespace) -> int:
     except DeadlineReached as exc:
         note("worker", str(exc))
         return EXIT_DEADLINE
-    except RateLimited as exc:
-        note("worker", str(exc))
-        return EXIT_RATE_LIMITED
     except Stop as exc:
         note("worker", str(exc))
-        return exc.code
+        return EXIT_RATE_LIMITED if hit_rate_limit(exc) else exc.code
     note("worker", f"ended with exit {code}")
     return code
 
@@ -4883,9 +5041,12 @@ def fail(code: int, message: str) -> NoReturn:
 
 def main(argv: Sequence[str] | None = None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
+    session = argv[-1:] == ["session"]
+    if session:  # a short deadline of its own, whatever the launcher's timeout
+        signal.signal(signal.SIGALRM, session_deadline_passed)
+        signal.setitimer(signal.ITIMER_REAL, deadlines()["session"])
     common = git_common_dir()
     mirror_dir = os.path.join(common, MIRROR_DIRNAME) if common else ""
-    session = argv[-1:] == ["session"]
     try:
         switch = load_switch(mirror_dir) if common else None
         # No switch is silent even for malformed arguments; only help still answers.
