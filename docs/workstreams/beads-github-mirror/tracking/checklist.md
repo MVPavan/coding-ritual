@@ -1,6 +1,6 @@
 <!-- BD:GENERATED START -->
 # Checklist — beads-github-mirror
-_generated from bd @ 2026-11-21T10:04:12Z — DO NOT EDIT (run: BD_RENDER=1 bash <tracker-skill-dir>/scripts/bd-render-tracking.sh)_
+_generated from bd @ 2026-11-21T15:44:20Z — DO NOT EDIT (run: BD_RENDER=1 bash <tracker-skill-dir>/scripts/bd-render-tracking.sh)_
 _Roadmap: [roadmap.md](../roadmap.md) · Brainstorm: [2026-11-20-beads-github-mirror.md](../../../../docs/specs/2026-11-20-beads-github-mirror.md)_
 ## [M1] Outbound command
 - [x] `cr-k88k.1.1` M1.1 Test seam, skeleton, authority and lock
@@ -16,10 +16,14 @@ _Roadmap: [roadmap.md](../roadmap.md) · Brainstorm: [2026-11-20-beads-github-mi
 - [x] `cr-k88k.3.2` M3.2 Skill guidance for each project state
 
 ## [M4] Live trial and activation guide
-- [ ] `cr-k88k.4.1` M4.1 Trial checklist and owner gate  ← ready
+- [x] `cr-k88k.4.1` M4.1 Trial checklist and owner gate
   - 📝 Checklist committed be8bf48 (trial.md). Open until the owner records the go-ahead (gate G0) and creates the throwaway repository.
-- [ ] `cr-k88k.4.2` M4.2 Run the live trial  (blocked)
-- [ ] `cr-k88k.4.3` M4.3 Replay and hand-over  (blocked)
+- [x] `cr-k88k.4.2` M4.2 Run the live trial
+  - 📝 running: workflow wf_61d4a3a9-a1f; brief scratchpad/mvp-stack/mirror/trial/BRIEF.md; state scratchpad/mvp-stack/mirror/trial/state.md; repo MVPavan/bead-mirror-trial
+- [x] `cr-k88k.4.3` M4.3 Replay and hand-over
+  - 📝 activation guide drafted: docs/usage/bead-mirror.md (79b93f9); finalize after the live trial  /  running: workflow wf_954e8fc4-12a, brief scratchpad/mvp-stack/mirror/build/M4.3.md
+- [ ] `cr-k88k.4.4` Second GitHub account for the mirror's fork cases, or a ruling to activate without them  ← ready
+- [ ] `cr-k88k.4.5` M4.5 Run fork cases F1 and F2 on the trial repository  (blocked)
 
 
 <!-- BD:GENERATED END -->

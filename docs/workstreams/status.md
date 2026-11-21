@@ -1,6 +1,6 @@
 <!-- BD:GENERATED START -->
 # Workstream Status (global)
-_generated from bd @ 2026-11-21T10:04:12Z — DO NOT EDIT (run: BD_RENDER=1 bash <tracker-skill-dir>/scripts/bd-render-tracking.sh)_
+_generated from bd @ 2026-11-21T15:44:20Z — DO NOT EDIT (run: BD_RENDER=1 bash <tracker-skill-dir>/scripts/bd-render-tracking.sh)_
 
 ### (no anchor)
 - **Adapt five deferred pstack playbooks: Visual parity, Babysit, Shipping, Autopilot-full, Autopilot-stack** — 3/5  ⏳
@@ -37,7 +37,7 @@ _generated from bd @ 2026-11-21T10:04:12Z — DO NOT EDIT (run: BD_RENDER=1 bash
 - **[M1] Outbound command** — 3/3  ✅ DONE
 - **[M2] Digest and pull-request check** — 2/2  ✅ DONE
 - **[M3] Hooks and skill guidance** — 2/2  ✅ DONE
-- **[M4] Live trial and activation guide** — 0/3  ⏳
+- **[M4] Live trial and activation guide** — 3/5  ⏳
 
 ### docs/workstreams/skill-curation/idea-level-design.md
 - **Idea-level rulings for upstream skills** — 7/7  ✅ stages done (close epic)
@@ -64,11 +64,11 @@ _generated from bd @ 2026-11-21T10:04:12Z — DO NOT EDIT (run: BD_RENDER=1 bash
 - `cr-vmgq` Ledger follow-up: sessions/artifacts/usage tables have no writer; verify the cross-version-import item
 - `cr-o85.44` Legacy uncoordinated roots: execution band keyed on wrapper_home, not repo
 - `cr-q8fv` Let adopted projects return a failure as a reproducer
-- `cr-k88k.4.1` M4.1 Trial checklist and owner gate
 - `cr-r2pa.2` Phase 2: skills merged across ours, Pocock and pstack
 - `cr-r2pa.3` Phase 3: the finished mechanism
 - `cr-7wi` Phase 5: collapse the workflows/ vs package fixture duplication
 - `cr-1clr` Pilot unit-first rulings on the next upstream release
+- `cr-3ss` Plugin distribution of the workflow engine (contractor/inspector/graphs) via /harness-publish
 <!-- BD:GENERATED END -->
 
 <!-- Human notes below this line are preserved across renders. Everything above is bd-generated; do not hand-edit it. -->

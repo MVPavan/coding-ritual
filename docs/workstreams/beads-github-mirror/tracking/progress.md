@@ -1,6 +1,6 @@
 <!-- BD:GENERATED START -->
 # Progress — beads-github-mirror
-_generated from bd @ 2026-11-21T10:04:12Z — DO NOT EDIT (run: BD_RENDER=1 bash <tracker-skill-dir>/scripts/bd-render-tracking.sh)_
+_generated from bd @ 2026-11-21T15:44:20Z — DO NOT EDIT (run: BD_RENDER=1 bash <tracker-skill-dir>/scripts/bd-render-tracking.sh)_
 _Roadmap: [roadmap.md](../roadmap.md) · Brainstorm: [2026-11-20-beads-github-mirror.md](../../../../docs/specs/2026-11-20-beads-github-mirror.md)_
 ## [M1] Outbound command
 - `cr-k88k.1.1` M1.1 Test seam, skeleton, authority and lock — 877ad3e: tests/mirror 165 passed offline (pytest -q -p no:cacheprovider tests/mirror); ruff, mypy --strict clean; 3 verifier lenses per stage + 3 Sol rounds, last finding fixed red/green.  (2026-11-21T03:59:36Z)
@@ -16,7 +16,9 @@ _Roadmap: [roadmap.md](../roadmap.md) · Brainstorm: [2026-11-20-beads-github-mi
 - `cr-k88k.3.2` M3.2 Skill guidance for each project state — be8bf48: skill-catalog --check and registry check pass; state x skill map in scratchpad M3.2/state-skill-map.md; Sol REVISE findings fixed and verified.  (2026-11-21T04:11:50Z)
 
 ## [M4] Live trial and activation guide
-
+- `cr-k88k.4.1` M4.1 Trial checklist and owner gate — Checklist committed (be8bf48, docs/workstreams/beads-github-mirror/trial.md); G0 recorded 2026-11-21T11:34Z (owner go-ahead, comment on this bead); setup delegated to the operator  (2026-11-21T11:36:44Z)
+- `cr-k88k.4.2` M4.2 Run the live trial — Trial run 2026-11-21 on MVPavan/bead-mirror-trial; results and evidence in trial.md (4bd3e23); all one-account cases pass, S10/F1/F2 deferred; raw recordings in scratchpad/mvp-stack/mirror/trial/recordings (sanitised into fixtures in M4.3); hook-trust: none in Claude print mode, Codex skips untrusted hooks silently (noted in H2); 2 verify rounds, no open blocker/major  (2026-11-21T14:03:32Z)
+- `cr-k88k.4.3` M4.3 Replay and hand-over — Recorded fixtures replace provisional (c25543d); tests/mirror 255 passed on recorded fixtures only; reverse-order half proven offline (test_check_two_edits_whose_runs_finish_in_reverse_order_end_with_the_latest_bodys_verdict); server merge decisions recorded live (541e9d6, dd21ecb); guide lists the 8 activation steps in order, each the owner's, and waits for F1/F2. Sol M4 r1 REVISE (4 findings) -> all fixed; r2 left one (server decision right after the flipping run) -> closed by fresh live sequences PR 19-22 in dd21ecb.  (2026-11-21T15:44:04Z)
 
 
 <!-- BD:GENERATED END -->
