@@ -70,6 +70,7 @@ class Check:
         self.mirror = mirror
         self.script = tmp_path / "step.sh"
         self.script.write_text(step_script(install(mirror)), encoding="utf-8")
+        self.installed = len(mirror.fake.calls())  # the authority checks' reads
         runtime = tmp_path / "runner-bin"
         runtime.mkdir()
         (runtime / "python3").symlink_to(real_tool("python3"))
@@ -123,7 +124,7 @@ def test_references_fixture_table_gives_the_same_answer_in_the_digest_parser_and
     for row, number in zip(TABLE["rows"], pulls):
         assert parse(row["text"], HOST, REPO) == expected(row), row["text"]
         assert found_by_check(check.run(number)) == expected(row), row["text"]
-    reads = [c["argv"] for c in mirror.fake.calls()]
+    reads = [c["argv"] for c in mirror.fake.calls()[check.installed :]]
     assert reads == [
         ["api", "--hostname", HOST, f"repos/{REPO}/pulls/{n}"] for n in pulls
     ]
@@ -196,6 +197,17 @@ def test_check_a_malformed_or_unreadable_payload_fails(
     assert "Fix: add a reference" in result.stdout
 
 
+def test_check_a_response_without_a_body_fails_even_for_an_exempt_author(
+    mirror: Mirror, check: Check
+) -> None:
+    number = mirror.fake.add_pull(author="release-bot", body=None)
+    assert check.run(number, "release-bot").returncode == 0, "an explicit null body"
+    mirror.fake.set_fault("malformed_pull", "no_body")
+    result = check.run(number, "release-bot")
+    assert result.returncode != 0
+    assert "malformed pull request" in result.stdout
+
+
 def test_check_a_missing_pull_request_number_fails(check: Check) -> None:
     result = check.run(404)
     assert result.returncode != 0
@@ -258,8 +270,19 @@ def test_install_check_writes_once_refuses_a_differing_file_and_force_replaces(
     forced = mirror.run("install-check", "--force")
     assert forced.returncode == 0 and str(path) in forced.stdout
     assert path.read_text(encoding="utf-8") == written
-    assert mirror.fake.calls() == [] and mirror.bd_calls() == []
+    assert mirror.fake.writes() == []
+    assert not [c for c in mirror.bd_calls() if c.startswith("update")]
     assert mirror.mirror_files() == ["switch.json"]
+
+
+def test_install_check_with_an_authority_mismatch_writes_no_workflow(
+    mirror: Mirror,
+) -> None:
+    mirror.write_switch()
+    mirror.fake.set("login", "intruder")
+    result = mirror.run("install-check")
+    assert result.returncode == 4, result.stderr
+    assert not (mirror.clone / WORKFLOW).exists()
 
 
 def test_install_check_without_the_switch_is_silent_and_writes_nothing(

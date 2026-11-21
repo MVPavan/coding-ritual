@@ -28,7 +28,7 @@ newest issue and pull request) and ``MirrorItem`` (one issue or pull request by 
 with the fields inbound reads); ``MirrorClosedBy`` (an issue's latest closing event:
 the merged pull request or commit that closed it, or none when closed by hand), by the
 issue's node ID. Issues keep ``closed_at`` and ``closing_events`` ([{"at", "closer":
-{"pull": N} | {"commit": SHA} | null}]); pull requests keep ``state`` (OPEN, CLOSED,
+{"pull": N, "repo"?: "owner/name" of another repository} | {"commit": SHA} | null}]); pull requests keep ``state`` (OPEN, CLOSED,
 MERGED), ``merged_at``, ``merged_by``, ``merge_commit`` and ``updated_at``.
 
 Faults (``state["faults"]``): ``unauthenticated``; ``rate_limited`` (403 or 429, with
@@ -60,7 +60,8 @@ stores every body with ``old`` replaced by ``new``); ``fail_write`` ({mutation: 
 "kind": "no_has_next" | "stuck_cursor"}: that issues-listing page omits
 ``hasNextPage``, or says another page follows with the cursor it was asked from) and
 ``malformed_comments_page`` (that comments page omits ``hasNextPage``); ``malformed_pull``
-(``not_json`` or ``no_user``: the pull-request read returns no JSON, or no author); ``fail_query``
+(``not_json``, ``no_user`` or ``no_body``: the pull-request read returns no JSON, no
+author, or no ``body`` key); ``fail_query``
 ({operation: an ``errors.json`` name}: that query fails that way, after the checks);
 ``failed_inbound_page`` ({"op": an inbound listing, "page": N}: that page fails with
 HTTP 502, after the earlier pages answered); ``failed_timeline`` (issue numbers whose
@@ -185,7 +186,7 @@ QUERY_SHAPES: dict[str, tuple[dict[str, str], str]] = {
         {"id": "id"},
         (
             "ID node id Issue timelineItems itemTypes CLOSED_EVENT last nodes ClosedEvent"
-            " createdAt closer __typename PullRequest number merged mergedBy login"
+            " createdAt closer __typename PullRequest number url merged mergedBy login"
             " mergeCommit oid Commit"
         ),
     ),
@@ -547,6 +548,8 @@ def get_pull(
     )
     if malformed == "no_user":
         reply.pop("user", None)
+    if malformed == "no_body":
+        reply.pop("body", None)
     return json.dumps(reply)
 
 
@@ -990,8 +993,17 @@ def closed_by(
         closer = last.get("closer")
         node: Any = None
         if closer and "pull" in closer:
-            pull = next(p for p in repo["pulls"] if p["number"] == closer["pull"])
-            node = {"__typename": "PullRequest", "number": pull["number"]}
+            # ``repo``: a pull request in another of the fake's repositories (by name).
+            home = repo
+            if closer.get("repo"):
+                owner, name = str(closer["repo"]).split("/")
+                home = find_repo(state, owner, name) or repo
+            pull = next(p for p in home["pulls"] if p["number"] == closer["pull"])
+            node = {
+                "__typename": "PullRequest",
+                "number": pull["number"],
+                "url": url_of(state, home, "pull", pull["number"]),
+            }
             node.update(merge_fields(pull))
         elif closer and "commit" in closer:
             node = {"__typename": "Commit", "oid": closer["commit"]}

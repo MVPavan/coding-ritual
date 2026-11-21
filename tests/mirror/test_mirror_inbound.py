@@ -6,12 +6,16 @@ leaves the previous digest and checkpoints unchanged."""
 
 from __future__ import annotations
 
+import importlib.util
 import json
+import os
+import time
+from types import SimpleNamespace
 from typing import Any
 
 import pytest
 
-from tests.mirror._harness import REPO_NODE_ID, Mirror
+from tests.mirror._harness import COMMAND, REPO_NODE_ID, Mirror, now
 
 pytestmark = pytest.mark.bd
 
@@ -32,6 +36,8 @@ ROW_KEYS = {
     "component",
     "why",
     "count",
+    "more",
+    "pull_url",
     "link",
 }
 
@@ -67,6 +73,28 @@ def publish(
 def link(m: Mirror, bead: str, number: int) -> None:
     proc = m.run("link", bead, str(number), "--actor", TRIAGE)
     assert proc.returncode == 0, proc.stderr
+
+
+def edit_pull(m: Mirror, number: int, **fields: Any) -> None:
+    """Change a pull request as its author would; GitHub stamps ``updated_at``."""
+    data = m.fake.load()
+    repo = next(r for r in data["repos"] if r["node_id"] == REPO_NODE_ID)
+    pull = next(p for p in repo["pulls"] if p["number"] == number)
+    pull.update(fields, updated_at=now())
+    m.fake.save(data)
+
+
+def map_line(m: Mirror, number: int) -> str:
+    proc = m.run("map")
+    assert proc.returncode == 0, proc.stderr
+    return next(x for x in str(proc.stdout).splitlines() if f"\t#{number}\t" in x)
+
+
+def files(m: Mirror) -> dict[str, bytes]:
+    return {
+        name: (m.mirror_dir / name).read_bytes()
+        for name in ("state.json", "digest.json", "digest.md")
+    }
 
 
 def age(m: Mirror, number: int, stamp: str = OLD) -> None:
@@ -573,3 +601,207 @@ def test_both_with_creates_recounts_unpublished_after_outbound(mirror: Mirror) -
     assert mirror.run("both").returncode == 0
     assert rows(mirror, "unpublished") == []
     assert "unpublished" not in digest(mirror)["counts"]
+
+
+def test_merge_reported_stale_closing_event_behind_a_newer_close_is_cause_unknown(
+    mirror: Mirror,
+) -> None:
+    mirror.write_switch()
+    bead, number = publish(mirror)
+    pull = mirror.fake.add_pull("contributor", f"Fixes #{number}")
+    mirror.fake.merge_pull(pull, closes=(number,))
+    inbound(mirror)
+    assert rows(mirror, "linked-closed")[0]["pull"] == pull
+
+    # Reopened and closed again by hand; the timeline read still shows the merge.
+    later = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(time.time() + 7200))
+    mirror.fake.edit_issue(number, state="CLOSED", closed_at=later)
+    out = inbound(mirror)
+    (row,) = rows(mirror, "linked-closed")
+    assert row["cause"] == "unknown" and "pull" not in row and "commit" not in row
+    assert f"#{number} closed on GitHub, cause unknown; bead {bead} is open" in out
+
+
+def test_merge_reported_closing_pull_request_in_another_repository_is_named_by_url(
+    mirror: Mirror,
+) -> None:
+    mirror.write_switch()
+    bead, number = publish(mirror)
+    stamp, sha = now(), "ab" * 20
+    data = mirror.fake.load()
+    data["repos"].append(
+        {
+            "node_id": "R_kgDOother",
+            "owner": "acme",
+            "name": "other",
+            "labels": [],
+            "issues": [],
+            "pulls": [
+                {
+                    "node_id": "PR_kwDOother27",
+                    "number": 27,
+                    "author": "bob",
+                    "body": None,
+                    "state": "MERGED",
+                    "merged_at": stamp,
+                    "merged_by": "maintainer",
+                    "merge_commit": sha,
+                    "updated_at": stamp,
+                }
+            ],
+        }
+    )
+    mirror.fake.save(data)
+    mirror.fake.edit_issue(
+        number,
+        state="CLOSED",
+        closed_at=stamp,
+        closing_events=[{"at": stamp, "closer": {"pull": 27, "repo": "acme/other"}}],
+    )
+    out = inbound(mirror)
+    (row,) = rows(mirror, "linked-closed")
+    other = "https://github.com/acme/other/pull/27"
+    assert row["cause"] == "pull" and row["pull_url"] == other and "pull" not in row
+    assert f"closed by merged pull request {other} (merge commit {sha}" in out
+    assert map_line(mirror, number).endswith("\tenrolled\t-"), (
+        "another repository's pull request is not indexed as this one's #27"
+    )
+    assert mirror.beads()[bead]["status"] == "open"
+
+
+def test_untracked_pull_request_lists_fifty_failing_references_and_counts_the_rest(
+    mirror: Mirror,
+) -> None:
+    mirror.write_switch()
+    inbound(mirror)
+    pull = mirror.fake.add_pull("bob", " ".join(f"Refs #{900 + i}" for i in range(53)))
+    out = inbound(mirror)
+    (row,) = rows(mirror, "untracked-pull")
+    assert row["pull"] == pull and row["more"] == 3
+    assert row["refs"] == [{"number": 900 + i, "why": "missing"} for i in range(50)]
+    assert "#949 missing, and 3 more" in out
+
+
+def test_untracked_pull_request_referencing_an_enrolled_issue_with_no_link_yet_is_untracked(
+    mirror: Mirror,
+) -> None:
+    mirror.write_switch()
+    bead, number = publish(mirror)
+    # Publication recorded the enrolment, then stopped before writing the link.
+    mirror.bd("update", bead, "--external-ref", "")
+    assert bead in mirror.state()["enrolled"]
+    pull = mirror.fake.add_pull("bob", f"Refs #{number}")
+    inbound(mirror)
+    (row,) = rows(mirror, "untracked-pull")
+    assert (row["pull"], row["refs"]) == (
+        pull,
+        [{"number": number, "why": "not-linked"}],
+    )
+
+
+def test_map_drops_a_reference_removed_from_a_pull_request_and_keeps_its_closer(
+    mirror: Mirror,
+) -> None:
+    mirror.write_switch()
+    outside = mirror.fake.outside_issue("alice")
+    bead = mirror.create_bead("Fix the export", "bug")
+    link(mirror, bead, outside)
+    referring = mirror.fake.add_pull("bob", f"Refs #{outside}")
+    closing = mirror.fake.add_pull("carol", f"Fixes #{outside}")
+    mirror.fake.merge_pull(closing, closes=(outside,))
+    inbound(mirror)
+    assert map_line(mirror, outside).endswith(f"\t#{referring},#{closing}")
+
+    for pull in (referring, closing):
+        edit_pull(mirror, pull, body="Tidies the docs.")
+    inbound(mirror)
+    assert referring in {r["pull"] for r in rows(mirror, "untracked-pull")}
+    assert map_line(mirror, outside).endswith(f"\t#{closing}"), (
+        "the merge that closed the issue stays; the dropped reference goes"
+    )
+
+
+def test_dismiss_with_an_authority_mismatch_changes_no_state_or_digest(
+    mirror: Mirror,
+) -> None:
+    mirror.write_switch()
+    outside = mirror.fake.outside_issue("alice")
+    inbound(mirror)
+    before = files(mirror)
+    mirror.fake.set("login", "intruder")
+    proc = mirror.run("dismiss", str(outside))
+    assert proc.returncode == 4, proc.stderr
+    assert files(mirror) == before
+
+
+def test_inbound_whose_digest_cannot_be_replaced_keeps_state_digest_and_checkpoints(
+    mirror: Mirror,
+) -> None:
+    mirror.write_switch()
+    inbound(mirror)
+    before = files(mirror)
+    md = mirror.mirror_dir / "digest.md"
+    md.unlink()
+    md.mkdir()  # a directory at the Markdown destination: its replacement fails
+    mirror.fake.outside_issue("alice")
+
+    proc = mirror.run("inbound")
+    assert proc.returncode != 0
+    for name in ("state.json", "digest.json"):
+        assert (mirror.mirror_dir / name).read_bytes() == before[name], name
+
+    old = json.loads(before["state.json"])
+    proc = mirror.run("both", "--no-create")
+    assert proc.returncode != 0 and "inbound did not finish" in proc.stderr
+    state = mirror.state()
+    assert state["inbound"] == old["inbound"], "outbound saved no inbound generation"
+    for key in ("inbound", "beads", "full"):
+        assert state["checkpoints"].get(key) == old["checkpoints"].get(key), key
+    assert (mirror.mirror_dir / "digest.json").read_bytes() == before["digest.json"]
+    assert [p.name for p in mirror.mirror_dir.iterdir() if p.name.startswith(".")] == []
+
+
+def test_inbound_whose_state_cannot_be_replaced_restores_the_replaced_digest(
+    mirror: Mirror, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    mirror.write_switch()
+    inbound(mirror)
+    before = files(mirror)
+    spec = importlib.util.spec_from_file_location("bead_mirror", COMMAND)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    real = os.replace
+
+    def replace(src: str, dst: str) -> None:
+        if os.path.basename(dst) == "state.json":
+            raise OSError("state.json cannot be replaced")
+        real(src, dst)
+
+    monkeypatch.setattr(module.os, "replace", replace)
+    state = json.loads(before["state.json"])
+    state["inbound"] = {"rows": [{"type": "untracked", "issue": 999}]}
+    ctx = SimpleNamespace(
+        mirror_dir=str(mirror.mirror_dir),
+        state_path=str(mirror.mirror_dir / "state.json"),
+    )
+    with pytest.raises(module.Stop):
+        module.publish(ctx, state)
+    monkeypatch.undo()
+    for name in ("state.json", "digest.json", "digest.md"):
+        assert (mirror.mirror_dir / name).read_bytes() == before[name], name
+    assert [p.name for p in mirror.mirror_dir.iterdir() if p.name.startswith(".")] == []
+
+
+def test_both_after_an_inbound_full_comparison_still_runs_outbound_full_comparison(
+    mirror: Mirror,
+) -> None:
+    mirror.write_switch()
+    _, number = publish(mirror)
+    inbound(mirror)  # the first inbound: its full comparison
+    assert mirror.state()["checkpoints"]["full"]
+    mirror.fake.edit_issue(number, updated_at=OLD, title="Vandalised")
+    proc = mirror.run("both", "--no-create")
+    assert proc.returncode == 0, proc.stderr
+    assert mirror.fake.issue(number)["title"] == "Export widgets"
+    assert mirror.state()["checkpoints"]["outbound_full"]

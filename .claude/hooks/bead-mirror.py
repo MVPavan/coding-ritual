@@ -40,14 +40,15 @@ exits; it outlives a killed supervisor and still stops at its own deadline.
 
 The reference grammar (``REFERENCE_PATTERN``, ``references``) is shared by the digest
 and the pull-request check. ``install-check`` writes the check's workflow to
-``.github/workflows/bead-reference-check.yml`` at the clone's top level (no ``gh`` or
-``bd`` call), prints the path, and refuses to replace a differing file without
-``--force``. The workflow runs on ``pull_request_target`` (opened, edited, reopened,
-synchronize) with only ``pull-requests: read``, one concurrency group per pull request
-and no checkout; it reads the current body through the API and runs the same pattern
-and function, rendered from this file. Exempt authors come from the repository
-variable ``BEAD_REF_EXEMPT`` (comma-separated logins). The workflow names no
-repository: it takes the host and repository from the runner.
+``.github/workflows/bead-reference-check.yml`` at the clone's top level (after the
+authority checks, like every write), prints the path, and refuses to replace a
+differing file without ``--force``. The workflow runs on ``pull_request_target``
+(opened, edited, reopened, synchronize) with only ``pull-requests: read``, one
+concurrency group per pull request and no checkout; it reads the current body through
+the API and runs the same pattern and function, rendered from this file. Exempt
+authors come from the repository variable ``BEAD_REF_EXEMPT`` (comma-separated
+logins). The workflow names no repository: it takes the host and repository from the
+runner.
 
 The banner. Every issue body starts with two lines::
 
@@ -196,11 +197,16 @@ one merged since opt-in, none of whose references is a linked issue (each refere
 listed as missing, a pull request or not linked); an issue named by several beads or
 enrolled for a bead missing from Beads; and the count of beads outbound would create.
 Every row passes the field allow-list (``allowed_row``). The facts, rows, Beads
-snapshot and both checkpoints land in one atomic state replacement when inbound ends;
-then ``digest.json`` (time, full, counts, rows) and ``digest.md`` are rendered from it.
-A run that cannot finish (a failed listing page, a failed read) writes none of them:
-the previous digest stays, with its time. "Since opt-in" is ``opted_in``, the time the
-writer's first run made the state. The full comparison lists every issue and pull
+snapshot and both checkpoints land in one atomic state replacement when inbound ends,
+published with ``digest.json`` (time, full, counts, rows) and ``digest.md`` rendered
+from it as one generation (``publish``). A run that cannot finish (a failed listing
+page, a failed read, a digest file that cannot be replaced) writes none of them: the
+previous digest stays, with its time and checkpoints. A pull request row lists its
+first ``REFS_KEPT`` failing references and counts the rest. A closing event is taken
+as the cause only when its time matches the issue's ``closedAt``; a pull request in
+another repository is named by its URL. Stated limit: a deleted issue's digest row
+stays until dismissed. "Since opt-in" is ``opted_in``, the time the writer's first run
+made the state. The full comparison lists every issue and pull
 request up to the highest number when it starts (``MirrorHighWater``); it runs when the
 last completed one is more than a week old, and a failed one is repeated next run.
 ``dismiss <number>`` (under the lock) records the number as acknowledged; the
@@ -210,10 +216,13 @@ on later runs. ``map`` adds the pull requests that reference or closed each issu
 Enrolled records in the state also carry ``confirmed`` (``OPEN``, ``CLOSED`` or
 null), ``not_storable`` ({component: hash}), ``screened`` ({component: why}),
 ``comment_key``, ``sent_state`` and ``synced``; ``checkpoints`` holds ISO times for
-``outbound``, ``inbound``, ``beads`` and ``full``; ``inbound`` holds ``time``, ``full``,
-``rows``, ``facts`` ({number: facts}), ``beads`` ({bead: [issue, status]}), ``pulls``
-({issue: [pull requests]}) and ``dismissed`` ({number: ISO time}); and an
-open-or-closed hold has kind ``open-closed``.
+``outbound``, ``inbound``, ``beads``, ``full`` (inbound's last full comparison) and
+``outbound_full`` (outbound's, in ``both`` or ``full``, due weekly on its own);
+``inbound`` holds ``time``, ``full``, ``rows``, ``facts`` ({number: facts}), ``beads``
+({bead: [issue, status]}), ``pulls`` ({issue: [pull requests whose description
+references it]}), ``closers`` ({issue: [pull requests in the repository whose merge
+closed it]}) and ``dismissed`` ({number: ISO time}); and an open-or-closed hold has
+kind ``open-closed``.
 """
 
 from __future__ import annotations
@@ -849,6 +858,23 @@ def write_json_atomic(path: str, data: Any) -> None:
     write_text_atomic(path, json.dumps(data, indent=2, sort_keys=True) + "\n")
 
 
+def stage_text(path: str, data: bytes) -> str:
+    """A synced temporary file holding ``data`` beside ``path``; returns its path."""
+    fd, tmp = tempfile.mkstemp(prefix=".state-", dir=os.path.dirname(path))
+    try:
+        with os.fdopen(fd, "wb") as fh:
+            fh.write(data)
+            fh.flush()
+            os.fsync(fh.fileno())
+    except BaseException:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        raise
+    return tmp
+
+
 def write_text_atomic(path: str, text: str) -> None:
     """Replace ``path`` with ``text``: a temporary file in the same directory, flushed,
     synced and renamed over it, then the directory synced."""
@@ -1422,8 +1448,12 @@ def issue_number_in(ref: str, switch: Mapping[str, Any]) -> int | None:
 
 # The reference grammar, shared by the pull-request check and the digest. A reference is
 # a keyword (any case, starting at a non-word character or the start of the text), an
-# optional colon, whitespace, then ``#`` and a positive decimal number, or the full URL
-# of an issue in the repository, ending at a non-word character or the end of the text.
+# optional colon, whitespace, then ``#`` and a positive decimal number ending at a
+# non-word character or the end of the text, or the full URL of an issue in the
+# repository: its path ends at the number (an optional ``/``, then a fragment, a query,
+# whitespace, the end, or sentence punctuation before whitespace or the end). A number
+# is read after stripping its leading zeros and has at most ``REFERENCE_DIGITS``
+# digits (at most 64 with the zeros); a longer one is no reference.
 # ``install-check`` renders this pattern and ``references`` (its source, read from this
 # file) into the workflow, so the check and the digest run the same code.
 REFERENCE_KEYWORDS = (
@@ -1442,11 +1472,12 @@ REFERENCE_KEYWORDS = (
 REFERENCE_PATTERN = (
     r"(?<!\w)(?:"
     + "|".join(REFERENCE_KEYWORDS)
-    + r"):?\s+(?:#(?P<short>[0-9]{1,10})"
-    + r"|https://(?P<host>[^/\s]+)/(?P<owner>[^/\s]+)/(?P<name>[^/\s]+)/issues/(?P<long>[0-9]{1,10}))"
-    + r"(?!\w)"
+    + r"):?\s+(?:#(?P<short>[0-9]{1,64})(?!\w)"
+    + r"|https://(?P<host>[^/\s]+)/(?P<owner>[^/\s]+)/(?P<name>[^/\s]+)/issues/(?P<long>[0-9]{1,64})"
+    + r"/?(?=[#?<]|[.,;:!)\]'\"]*(?:\s|$)))"
 )
 REFERENCE_RE = re.compile(REFERENCE_PATTERN, re.IGNORECASE)
+REFERENCE_DIGITS = 10  # significant digits of a reference's number, at most
 
 
 def references(text: str, host: str, repo: str) -> list[int]:
@@ -1454,13 +1485,17 @@ def references(text: str, host: str, repo: str) -> list[int]:
     found: list[int] = []
     for m in REFERENCE_RE.finditer(text):
         if m.group("short") is not None:
-            number = int(m.group("short"))
+            digits = m.group("short")
         else:
             named = m.group("owner") + "/" + m.group("name")
             if m.group("host").lower() != host.lower() or named.lower() != repo.lower():
                 continue
-            number = int(m.group("long"))
-        if number > 0 and number not in found:
+            digits = m.group("long")
+        digits = digits.lstrip("0")
+        if not digits or len(digits) > 10:
+            continue  # zero, or longer than any issue number (REFERENCE_DIGITS)
+        number = int(digits)
+        if number not in found:
             found.append(number)
     return found
 
@@ -1525,6 +1560,7 @@ body = pull.get("body") if isinstance(pull, dict) else None
 if (
     not isinstance(user, dict)
     or not isinstance(user.get("login"), str)
+    or "body" not in pull
     or not (body is None or isinstance(body, str))
 ):
     fail("The API returned a malformed pull request.")
@@ -2127,6 +2163,8 @@ class Outbound:
         self.update_enrolled(beads, targets)
         if not self.only and not self.dry:
             self.state["checkpoints"]["outbound"] = iso_of(self.started)
+            if self.full:
+                self.state["checkpoints"]["outbound_full"] = iso_of(self.started)
         self.save()
         return self.finish(beads)
 
@@ -3094,6 +3132,11 @@ ROW_WORDS = {
     },
 }
 REF_WHY = {"missing", "pull-request", "not-linked"}
+PULL_URL_RE = re.compile(
+    r"https://[A-Za-z0-9.:-]+/[A-Za-z0-9._-]+/[A-Za-z0-9._-]+/pull/[0-9]+"
+)
+# A closing event and the issue's ``closedAt`` this far apart are different closes.
+CLOSE_SKEW = 60.0
 
 INBOUND_ISSUE_FIELDS = "__typename id number state closedAt updatedAt author { login }"
 PULL_FIELDS = (
@@ -3128,7 +3171,7 @@ ITEM_QUERY = (
 CLOSED_BY_QUERY = (
     "query MirrorClosedBy($id: ID!) { node(id: $id) { ... on Issue {"
     " timelineItems(itemTypes: [CLOSED_EVENT], last: 1) { nodes { ... on ClosedEvent {"
-    " createdAt closer { __typename ... on PullRequest { number merged"
+    " createdAt closer { __typename ... on PullRequest { number url merged"
     " mergedBy { login } mergeCommit { oid } } ... on Commit { oid } } } } } } } }"
 )
 
@@ -3206,7 +3249,7 @@ def allowed_row(row: Mapping[str, Any]) -> dict[str, Any]:
     for key, value in row.items():
         if key in ROW_WORDS:
             ok = value in ROW_WORDS[key]
-        elif key in ("issue", "pull", "count"):
+        elif key in ("issue", "pull", "count", "more"):
             ok = isinstance(value, int) and not isinstance(value, bool) and value >= 0
         elif key == "bead":
             ok = isinstance(value, str) and BEAD_ID_RE.fullmatch(value) is not None
@@ -3226,6 +3269,8 @@ def allowed_row(row: Mapping[str, Any]) -> dict[str, Any]:
                 and r["why"] in REF_WHY
                 for r in value
             )
+        elif key == "pull_url":
+            ok = isinstance(value, str) and PULL_URL_RE.fullmatch(value) is not None
         elif key == "link":
             ok = (
                 isinstance(value, str)
@@ -3246,8 +3291,9 @@ def row_text(row: Mapping[str, Any]) -> str:
     """One digest row as a line, built only from its allow-listed fields."""
     kind = row.get("type")
     issue, pull, bead = row.get("issue"), row.get("pull"), row.get("bead", "?")
+    which = row.get("pull_url") or f"#{pull}"
     by = (
-        f"merged pull request #{pull} (merge commit {row.get('commit', 'unknown')}, "
+        f"merged pull request {which} (merge commit {row.get('commit', 'unknown')}, "
         f"merged by {row.get('merger', 'unknown')})"
     )
     if kind == "linked-closed":
@@ -3282,6 +3328,8 @@ def row_text(row: Mapping[str, Any]) -> str:
             if refs
             else "no reference"
         )
+        if row.get("more"):
+            why += f", and {row['more']} more"
         text = (
             f"pull request #{pull} ({row.get('state')}, by "
             f"{row.get('author', 'unknown')}) is untracked: {why}"
@@ -3329,15 +3377,60 @@ def digest_lines(digest: Mapping[str, Any]) -> list[str]:
     return out + ["- " + row_text(r) for r in digest["rows"]]
 
 
-def write_digest(ctx: Context, state: Mapping[str, Any]) -> str:
-    """Render ``digest.json`` and ``digest.md`` beside the switch from the state."""
+def publish(ctx: Context, state: Mapping[str, Any]) -> str:
+    """Write the state and the digest rendered from it as one generation; returns the
+    Markdown digest's path. All three files are staged first (written and synced beside
+    their destinations); then ``digest.md``, ``digest.json`` and, last, ``state.json``
+    replace the old ones. When a replacement fails, those already replaced get their
+    previous contents back, so the previous state, checkpoints and digest stay together
+    (a crash between replacements can leave the digest a generation ahead of the state;
+    the next run renders it again)."""
     digest = digest_of(state)
-    write_json_atomic(os.path.join(ctx.mirror_dir, "digest.json"), digest)
-    md = os.path.join(ctx.mirror_dir, "digest.md")
     lines = digest_lines(digest)
     if not digest["rows"]:
         lines.append("No differences.")
-    write_text_atomic(md, "# bead-mirror digest\n\n" + "\n".join(lines) + "\n")
+    md = os.path.join(ctx.mirror_dir, "digest.md")
+    targets = [
+        (md, "# bead-mirror digest\n\n" + "\n".join(lines) + "\n"),
+        (
+            os.path.join(ctx.mirror_dir, "digest.json"),
+            json.dumps(digest, indent=2, sort_keys=True) + "\n",
+        ),
+        (ctx.state_path, json.dumps(state, indent=2, sort_keys=True) + "\n"),
+    ]
+    staged: list[tuple[str, str]] = []
+    replaced: list[tuple[str, bytes | None]] = []
+    try:
+        try:
+            for path, text in targets:
+                staged.append((path, stage_text(path, text.encode("utf-8"))))
+            for path, tmp in staged:
+                try:
+                    with open(path, "rb") as fh:
+                        old: bytes | None = fh.read()
+                except FileNotFoundError:
+                    old = None
+                os.replace(tmp, path)
+                replaced.append((path, old))
+            fsync_dir(ctx.mirror_dir)
+        except OSError:
+            for path, old in reversed(replaced):
+                try:
+                    if old is None:
+                        os.unlink(path)
+                    else:
+                        os.replace(stage_text(path, old), path)
+                except OSError:
+                    pass
+            raise
+        finally:
+            for _, tmp in staged:
+                try:
+                    os.unlink(tmp)
+                except OSError:
+                    pass
+    except OSError as exc:
+        raise Stop(EXIT_SWITCH, cannot_write(exc)) from exc
     return md
 
 
@@ -3577,17 +3670,16 @@ class Inbound:
             number = issue_number_in(str(bead.get("external_ref") or ""), self.switch)
             if number is not None:
                 now[bead_id] = [number, bead.get("status")]
-        pulls = self.old.get("pulls")
-        pulls = pulls if isinstance(pulls, dict) else {}
+        pulls = self.index("pulls")
+        for k, v in self.index("closers").items():
+            pulls.setdefault(k, set()).update(v)
         want: set[int] = set()
         for bead_id in set(prev) | set(now):
             if prev.get(bead_id) != now.get(bead_id):
                 for entry in (prev.get(bead_id), now.get(bead_id)):
                     if isinstance(entry, list) and entry and isinstance(entry[0], int):
                         want.add(entry[0])
-                        recorded = pulls.get(str(entry[0]))
-                        if isinstance(recorded, list):
-                            want |= {n for n in recorded if isinstance(n, int)}
+                        want |= pulls.get(str(entry[0]), set())
         want |= {n for n in self.named if n not in self.facts}
         for number in sorted(want - self.fresh):
             self.fetch(number)
@@ -3614,14 +3706,33 @@ class Inbound:
         event = events[-1]
         if not isinstance(event, dict) or "closer" not in event:
             return unknown
+        # The event must be the close the issue read saw: a timeline that lags a newer
+        # close (a re-close by hand after a merge) would name the old closer.
+        at, closed = parse_iso(event.get("createdAt")), parse_iso(fact.get("closed_at"))
+        if at is None or closed is None or abs(at - closed) > CLOSE_SKEW:
+            return unknown
         closer = event["closer"]
         if closer is None:
             return {"cause": "none"}
         kind = closer.get("__typename") if isinstance(closer, dict) else None
         if kind == "PullRequest":
-            number = closer.get("number")
-            if closer.get("merged") is True and isinstance(number, int):
-                cause: dict[str, Any] = {"cause": "pull", "pull": number}
+            number, url = closer.get("number"), closer.get("url")
+            if (
+                closer.get("merged") is True
+                and isinstance(number, int)
+                and not isinstance(number, bool)
+                and number > 0
+                and isinstance(url, str)
+                and PULL_URL_RE.fullmatch(url)
+                and url.rsplit("/", 1)[1] == str(number)
+            ):
+                # A pull request in another repository is named by its URL only, so
+                # its number is never taken for one of this repository's.
+                cause: dict[str, Any] = (
+                    {"cause": "pull", "pull": number}
+                    if url.lower() == self.url("pull", number).lower()
+                    else {"cause": "pull", "pull_url": url}
+                )
                 commit, merger = (
                     sha_of(closer.get("mergeCommit")),
                     login_of(closer.get("mergedBy")),
@@ -3825,7 +3936,9 @@ class Inbound:
         """The row of an open pull request, or one merged since opt-in, that no
         reference ties to an existing issue a bead in Beads links; None when it is
         tracked or out of the digest's reach. Tracking is decided on every
-        reference; the row lists the first ``REFS_KEPT``."""
+        reference to an issue a bead's ``external_ref`` links (an enrolment alone,
+        with no link written yet, does not track it); the row lists the first
+        ``REFS_KEPT`` failing references with why, and counts the rest."""
         state = fact["state"]
         if state == "CLOSED" or (
             state == "MERGED" and not self.since_opt_in(fact.get("merged_at"))
@@ -3834,13 +3947,15 @@ class Inbound:
         refs = [r for r in fact.get("refs") or [] if isinstance(r, int)]
         linked = {
             n
-            for n, names in self.named.items()
-            if any(b in beads for b in names)
-            and (self.facts.get(n) or {}).get("kind") == "issue"
+            for n in (
+                issue_number_in(str(b.get("external_ref") or ""), self.switch)
+                for b in beads.values()
+            )
+            if n is not None and (self.facts.get(n) or {}).get("kind") == "issue"
         }
         if tracked(refs, linked):
             return None
-        failing = []
+        failing: list[dict[str, Any]] = []
         for ref in refs[:REFS_KEPT]:
             other = self.facts.get(ref) if ref in self.facts else self.fetch(ref)
             why = (
@@ -3851,7 +3966,7 @@ class Inbound:
                 else "not-linked"
             )
             failing.append({"number": ref, "why": why})
-        return {
+        row = {
             "type": "untracked-pull",
             "pull": number,
             "state": state.lower(),
@@ -3859,6 +3974,9 @@ class Inbound:
             "refs": failing,
             "link": self.url("pull", number),
         }
+        if len(refs) > REFS_KEPT:
+            row["more"] = len(refs) - REFS_KEPT
+        return row
 
     # -- the run
 
@@ -3875,8 +3993,8 @@ class Inbound:
 
     def commit(self) -> str:
         """Facts, rows, the Beads snapshot and both checkpoints in one atomic state
-        replacement; then the digest files, rendered from it."""
-        st = self.state
+        replacement, published with the digest files rendered from it (``publish``);
+        ``state`` takes the new generation only once all of it is written."""
         keep = set(self.named)
         for row in self.rows:
             for key in ("issue", "pull"):
@@ -3893,20 +4011,26 @@ class Inbound:
                 and self.since_opt_in(fact.get("closed_at"))
             ):
                 keep.add(number)
-        pulls_old = self.old.get("pulls")
-        pulls: dict[str, set[int]] = {
-            str(k): set(v)
-            for k, v in (pulls_old.items() if isinstance(pulls_old, dict) else [])
-            if isinstance(v, list)
-        }
+        # The pull requests each issue's references name, and those whose merge closed
+        # it (pull requests in this repository only). A pull request read this run
+        # replaces its reference associations; a closing association stays.
+        pulls = self.index("pulls")
+        closers = self.index("closers")
+        for number in self.fresh:
+            if (self.facts.get(number) or {}).get("kind") == "pull":
+                for refs in pulls.values():
+                    refs.discard(number)
         for number, fact in self.facts.items():
             if fact["kind"] == "pull":
                 for ref in fact.get("refs") or []:
                     pulls.setdefault(str(ref), set()).add(number)
-            elif (fact.get("close") or {}).get("cause") == "pull":
-                pulls.setdefault(str(number), set()).add(int(fact["close"]["pull"]))
+            else:
+                closer = (fact.get("close") or {}).get("pull")
+                if isinstance(closer, int):
+                    closers.setdefault(str(number), set()).add(closer)
         dismissed = self.old.get("dismissed")
         stamp = iso_of(self.started)
+        st = dict(self.state)
         st["inbound"] = {
             "time": stamp,
             "full": self.full,
@@ -3914,17 +4038,32 @@ class Inbound:
             "facts": {str(n): f for n, f in sorted(self.facts.items()) if n in keep},
             "beads": self.snapshot,
             "pulls": {
-                k: sorted(v) for k, v in sorted(pulls.items()) if int(k) in self.named
+                k: sorted(v)
+                for k, v in sorted(pulls.items())
+                if v and int(k) in self.named
+            },
+            "closers": {
+                k: sorted(v)
+                for k, v in sorted(closers.items())
+                if v and int(k) in self.named
             },
             "dismissed": dismissed if isinstance(dismissed, dict) else {},
         }
-        st["checkpoints"]["inbound"] = stamp
-        st["checkpoints"]["beads"] = stamp
+        st["checkpoints"] = dict(self.state["checkpoints"], inbound=stamp, beads=stamp)
         if self.full:
             st["checkpoints"]["full"] = stamp
         st.setdefault("opted_in", iso_of(self.opted_in))
-        self.ctx.save(st)
-        return write_digest(self.ctx, st)
+        path = publish(self.ctx, st)
+        self.state.update(st)  # only once the generation is written
+        return path
+
+    def index(self, key: str) -> dict[str, set[int]]:
+        saved = self.old.get(key)
+        return {
+            str(k): {n for n in v if isinstance(n, int)}
+            for k, v in (saved.items() if isinstance(saved, dict) else [])
+            if str(k).isdigit() and isinstance(v, list)
+        }
 
     def report(self, path: str) -> None:
         digest = digest_of(self.state)
@@ -3962,7 +4101,10 @@ def cmd_both(ctx: Context, args: argparse.Namespace) -> int:
         in_old, out_old = parse_iso(cps.get("inbound")), parse_iso(cps.get("outbound"))
         code = EXIT_OK
         hint: set[int] | None = None
-        full_out = False
+        # Outbound's weekly comparison is due on its own checkpoint, so an inbound one
+        # (run alone, or followed by an outbound that failed) never uses it up.
+        last_out = parse_iso(cps.get("outbound_full"))
+        full_out = full or last_out is None or time.time() - last_out > FULL_INTERVAL
         try:
             run = run_inbound(ctx, state, full)
         except Unavailable:
@@ -3971,7 +4113,6 @@ def cmd_both(ctx: Context, args: argparse.Namespace) -> int:
             print(f"bead-mirror: inbound did not finish: {exc}", file=sys.stderr)
             code = exc.code
         else:
-            full_out = run.full
             if in_old is not None and out_old is not None and in_old <= out_old:
                 hint = run.mirror_updated
         out_args = argparse.Namespace(
@@ -3999,9 +4140,8 @@ def refresh_unpublished(ctx: Context, state: dict[str, Any]) -> None:
     if count:
         rows.append({"type": "unpublished", "count": count})
     if rows != inbound.get("rows"):
+        publish(ctx, dict(state, inbound=dict(inbound, rows=rows)))
         inbound["rows"] = rows
-        ctx.save(state)
-        write_digest(ctx, state)
 
 
 def cmd_dismiss(ctx: Context, args: argparse.Namespace) -> int:
@@ -4012,10 +4152,9 @@ def cmd_dismiss(ctx: Context, args: argparse.Namespace) -> int:
             EXIT_REFUSED, "dismiss needs a positive issue or pull-request number"
         )
     with CloneLock(ctx.mirror_dir, ctx.lock_wait):
-        state = load_state(ctx.mirror_dir, ctx.switch)
+        state = ctx.run_checks()
         if state is None:
             raise Stop(EXIT_REFUSED, "there is no digest yet; run inbound first")
-        state = shaped(state)
         inbound = state["inbound"]
         rows = [r for r in inbound.get("rows") or [] if isinstance(r, dict)]
         hit = [
@@ -4033,8 +4172,7 @@ def cmd_dismiss(ctx: Context, args: argparse.Namespace) -> int:
             dismissed[str(dismiss_key(r))] = now_iso()
         inbound["dismissed"] = dismissed
         inbound["rows"] = [r for r in rows if r not in hit]
-        ctx.save(state)
-        write_digest(ctx, state)
+        publish(ctx, state)
     print(f"bead-mirror: dismissed #{number}; {len(hit)} digest row(s) cleared")
     return EXIT_OK
 
@@ -4302,23 +4440,28 @@ def cmd_map(ctx: Context, args: argparse.Namespace) -> int:
     for bead_id in state["pending"]:
         rows.setdefault(bead_id, ("?", "", "create pending"))
     # Pull requests that reference or closed each issue, as inbound last saw them.
-    pulls = (
-        (state["inbound"].get("pulls") or {})
-        if isinstance(state["inbound"], dict)
-        else {}
-    )
+    inbound = state["inbound"] if isinstance(state["inbound"], dict) else {}
+    pulls: dict[str, set[int]] = {}
+    for key in ("pulls", "closers"):
+        saved = inbound.get(key)
+        for k, v in saved.items() if isinstance(saved, dict) else []:
+            if isinstance(v, list):
+                pulls.setdefault(str(k), set()).update(
+                    n for n in v if isinstance(n, int) and not isinstance(n, bool)
+                )
     print("bead-mirror: map (bead, issue, link, kind, pull requests)")
     for bead_id in sorted(rows):
         number, url, kind = rows[bead_id]
-        prs = pulls.get(str(number)) if isinstance(pulls, dict) else None
-        shown = ",".join(f"#{p}" for p in prs if isinstance(p, int)) if prs else ""
+        shown = ",".join(f"#{p}" for p in sorted(pulls.get(str(number), ())))
         print(f"  {bead_id}\t#{number}\t{url or '-'}\t{kind}\t{shown or '-'}")
     return EXIT_OK
 
 
 def cmd_install_check(ctx: Context, args: argparse.Namespace) -> int:
-    """Write the check's workflow; a differing file is replaced only with --force."""
-    path = os.path.join(git_toplevel(), WORKFLOW_PATH)
+    """Write the check's workflow; a differing file is replaced only with --force.
+    Every authority check runs first, as before any write."""
+    ctx.run_checks()
+    path = os.path.join(ctx.toplevel, WORKFLOW_PATH)
     text = workflow_text()
     try:
         with open(path, encoding="utf-8", newline="") as fh:
