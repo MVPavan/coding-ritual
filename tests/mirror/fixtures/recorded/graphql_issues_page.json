@@ -1,5 +1,5 @@
 {
-  "_provisional": "Repository.issues(filterBy: {createdBy}) reached through node(id:), modelled on docs.github.com/graphql/reference/objects#repository; replaced in M4",
+  "_recorded": "M4.2 live trial, 2026-11-21, gh 2.103.0, residue at commit 79b93f9; case T8, MirrorIssues; sanitised",
   "data": {
     "node": {
       "issues": {

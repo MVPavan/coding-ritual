@@ -312,6 +312,14 @@ class Fake:
         self.save(data)
         return number
 
+    def edit_pull(self, number: int, body: str | None) -> None:
+        """Save a new pull-request description, as its author would; ``updated_at`` moves."""
+        data = self.load()
+        repo = next(r for r in data["repos"] if r["node_id"] == REPO_NODE_ID)
+        pull = next(p for p in repo["pulls"] if p["number"] == number)
+        pull.update(body=body, updated_at=now())
+        self.save(data)
+
 
 @dataclass
 class Mirror:

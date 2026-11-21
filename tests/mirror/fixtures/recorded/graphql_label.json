@@ -1,0 +1,8 @@
+{
+  "_recorded": "M4.2 live trial, 2026-11-21, gh 2.103.0, residue at commit 79b93f9; case T8, MirrorLabel; sanitised",
+  "data": {
+    "node": {
+      "label": "$label"
+    }
+  }
+}

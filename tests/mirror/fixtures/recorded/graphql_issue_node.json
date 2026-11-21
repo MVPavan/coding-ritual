@@ -1,5 +1,5 @@
 {
-  "_provisional": "an Issue node with the fields the mirror selects (docs.github.com/graphql/reference/objects#issue); replaced in M4",
+  "_recorded": "M4.2 live trial, 2026-11-21, gh 2.103.0, residue at commit 79b93f9; case T6, MirrorIssueNode; sanitised",
   "__typename": "Issue",
   "id": "$issue_node_id",
   "number": "$issue_number",
@@ -7,6 +7,7 @@
   "state": "$issue_state",
   "title": "$issue_title",
   "body": "$issue_body",
+  "updatedAt": "$updated_at",
   "author": {
     "login": "$author"
   },
@@ -15,6 +16,5 @@
   },
   "labels": {
     "nodes": "$labels"
-  },
-  "updatedAt": "$updated_at"
+  }
 }

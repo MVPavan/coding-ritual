@@ -1,0 +1,126 @@
+{
+  "_recorded": "M4.2 live trial, 2026-11-21, gh 2.103.0, residue at commit 79b93f9; case T9; sanitised",
+  "case": "T9",
+  "bead": "trial-qyg",
+  "issue_number": 3,
+  "bead_description": "T9 line one.\r\nT9 line two.\r\n\r\nT9 paragraph two.\r\n",
+  "bead_acceptance": "T9 acceptance line one.\r\nT9 acceptance line two.\r\n",
+  "path": "both. (1) bd keeps CRLF and the trailing newline, so the bead was given them and the command wrote the body; the command renders canonically before sending (LF, trailing newline dropped), so this path never sends CRLF. (2) To exercise GitHub's storage of CRLF, the command's rendered body converted to CRLF with a trailing CRLF was then written directly with updateIssue; the two later runs follow the direct write.",
+  "command_write": {
+    "updateIssue": {
+      "input": {
+        "query": "mutation($input: UpdateIssueInput!) { updateIssue(input: $input) { issue { id } } }",
+        "variables": {
+          "input": {
+            "body": "<!-- bead-mirror v1 store=00000000-0000-4000-8000-000000000000 bead=trial-qyg -->\n> Generated from bead `trial-qyg` in Beads. Its text follows the bead, so please comment instead of editing: edits to this title or text are replaced.\n\nT9 line one.\nT9 line two.\n\nT9 paragraph two.\n\n## Acceptance\n\nT9 acceptance line one.\nT9 acceptance line two.",
+            "id": "I_kwDOdummy0002"
+          }
+        }
+      },
+      "response": {
+        "data": {
+          "updateIssue": {
+            "issue": {
+              "id": "I_kwDOdummy0002"
+            }
+          }
+        }
+      },
+      "ts": "2026-11-21T11:46:32.668+00:00"
+    },
+    "readback": {
+      "input": {
+        "query": "query MirrorIssueNode($id: ID!) { node(id: $id) { ... on Issue { __typename id number url state title body updatedAt author { login } repository { id } labels(first: 100) { nodes { id name } } } } }",
+        "variables": {
+          "id": "I_kwDOdummy0002"
+        }
+      },
+      "response": {
+        "data": {
+          "node": {
+            "__typename": "Issue",
+            "id": "I_kwDOdummy0002",
+            "number": 3,
+            "url": "https://github.com/OWNER/TRIAL/issues/3",
+            "state": "OPEN",
+            "title": "Trial T9: CRLF body with a trailing newline",
+            "body": "<!-- bead-mirror v1 store=00000000-0000-4000-8000-000000000000 bead=trial-qyg -->\n> Generated from bead `trial-qyg` in Beads. Its text follows the bead, so please comment instead of editing: edits to this title or text are replaced.\n\nT9 line one.\nT9 line two.\n\nT9 paragraph two.\n\n## Acceptance\n\nT9 acceptance line one.\nT9 acceptance line two.",
+            "updatedAt": "2026-11-21T11:46:32Z",
+            "author": {
+              "login": "OWNER"
+            },
+            "repository": {
+              "id": "R_kwDOdummy0003"
+            },
+            "labels": {
+              "nodes": [
+                {
+                  "id": "LA_kwDOdummy0004",
+                  "name": "bead-type:feature"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "ts": "2026-11-21T11:46:33.812+00:00"
+    }
+  },
+  "direct_write": {
+    "updateIssue": {
+      "input": {
+        "query": "mutation($id:ID!,$body:String!){updateIssue(input:{id:$id,body:$body}){issue{id number body updatedAt}}}",
+        "variables": {
+          "id": "I_kwDOdummy0002",
+          "body": "<!-- bead-mirror v1 store=00000000-0000-4000-8000-000000000000 bead=trial-qyg -->\r\n> Generated from bead `trial-qyg` in Beads. Its text follows the bead, so please comment instead of editing: edits to this title or text are replaced.\r\n\r\nT9 line one.\r\nT9 line two.\r\n\r\nT9 paragraph two.\r\n\r\n## Acceptance\r\n\r\nT9 acceptance line one.\r\nT9 acceptance line two.\r\n"
+        }
+      },
+      "response": {
+        "data": {
+          "updateIssue": {
+            "issue": {
+              "id": "I_kwDOdummy0002",
+              "number": 3,
+              "body": "<!-- bead-mirror v1 store=00000000-0000-4000-8000-000000000000 bead=trial-qyg -->\r\n> Generated from bead `trial-qyg` in Beads. Its text follows the bead, so please comment instead of editing: edits to this title or text are replaced.\r\n\r\nT9 line one.\r\nT9 line two.\r\n\r\nT9 paragraph two.\r\n\r\n## Acceptance\r\n\r\nT9 acceptance line one.\r\nT9 acceptance line two.\r\n",
+              "updatedAt": "2026-11-21T11:46:49Z"
+            }
+          }
+        }
+      },
+      "ts": "2026-11-21T11:46:49.339+00:00"
+    },
+    "readback": {
+      "argv": [
+        "api",
+        "graphql",
+        "-f",
+        "query=query{repository(owner:\"OWNER\",name:\"TRIAL\"){issue(number:3){id body updatedAt}}}"
+      ],
+      "response": {
+        "data": {
+          "repository": {
+            "issue": {
+              "id": "I_kwDOdummy0002",
+              "body": "<!-- bead-mirror v1 store=00000000-0000-4000-8000-000000000000 bead=trial-qyg -->\r\n> Generated from bead `trial-qyg` in Beads. Its text follows the bead, so please comment instead of editing: edits to this title or text are replaced.\r\n\r\nT9 line one.\r\nT9 line two.\r\n\r\nT9 paragraph two.\r\n\r\n## Acceptance\r\n\r\nT9 acceptance line one.\r\nT9 acceptance line two.\r\n",
+              "updatedAt": "2026-11-21T11:46:49Z"
+            }
+          }
+        }
+      },
+      "ts": "2026-11-21T11:46:50.444+00:00"
+    }
+  },
+  "stored_equals_sent_direct": true,
+  "later_runs": [
+    {
+      "ts": "2026-11-21T11:46:56Z",
+      "report": "checks passed + unrelated T7 hold line",
+      "writes": "none"
+    },
+    {
+      "ts": "2026-11-21T11:47:01Z",
+      "report": "same",
+      "writes": "none"
+    }
+  ]
+}

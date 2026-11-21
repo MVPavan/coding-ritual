@@ -1,0 +1,60 @@
+{
+  "_recorded": "M4.2 live trial, 2026-11-21, gh 2.103.0, residue at commit 79b93f9; read after the trial: gh api repos/OWNER/TRIAL/pulls/11 (case C2's pull request, merged); sanitised",
+  "id": 3000001,
+  "node_id": "$pull_node_id",
+  "html_url": "$pull_url",
+  "number": "$pull_number",
+  "state": "closed",
+  "locked": false,
+  "title": "Trial C2: one reference",
+  "user": {
+    "login": "$author",
+    "id": 1000001,
+    "node_id": "U_kgDOAAAAAQ",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+  },
+  "body": "$pull_body",
+  "labels": [],
+  "milestone": null,
+  "active_lock_reason": null,
+  "created_at": "2026-11-21T11:54:24Z",
+  "updated_at": "2026-11-21T11:56:16Z",
+  "closed_at": "2026-11-21T11:56:15Z",
+  "merged_at": "2026-11-21T11:56:15Z",
+  "assignee": null,
+  "assignees": [],
+  "requested_reviewers": [],
+  "requested_teams": [],
+  "head": {
+    "label": "OWNER:trial/c2-ref",
+    "ref": "trial/c2-ref"
+  },
+  "base": {
+    "label": "OWNER:main",
+    "ref": "main"
+  },
+  "author_association": "OWNER",
+  "auto_merge": null,
+  "draft": false,
+  "merged": true,
+  "mergeable": null,
+  "rebaseable": null,
+  "mergeable_state": "unknown",
+  "merged_by": {
+    "login": "OWNER",
+    "id": 1000001,
+    "node_id": "U_kgDOAAAAAQ",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+  },
+  "comments": 0,
+  "review_comments": 0,
+  "maintainer_can_modify": false,
+  "commits": 1,
+  "additions": 1,
+  "deletions": 0,
+  "changed_files": 1
+}

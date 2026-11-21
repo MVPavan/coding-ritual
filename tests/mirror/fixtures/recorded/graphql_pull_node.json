@@ -1,0 +1,7 @@
+{
+  "_recorded": "M4.2 live trial, 2026-11-21, gh 2.103.0, residue at commit 79b93f9; case link-step1, MirrorIssue; sanitised",
+  "__typename": "PullRequest",
+  "id": "$pull_node_id",
+  "number": "$pull_number",
+  "url": "$pull_url"
+}

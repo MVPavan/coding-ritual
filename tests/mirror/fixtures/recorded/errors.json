@@ -1,10 +1,12 @@
 {
-  "_provisional": "what gh 2.x prints and exits with for each fault, from its source and docs; replaced in M4",
+  "_recorded": "M4.2 live trial, 2026-11-21, gh 2.103.0, residue at commit 79b93f9; keys marked _recorded were caused safely in the trial (evidence/errors.md); the rest are documented, not recorded: they keep GitHub's documented bodies and the exit status and error format the safe recordings show (exit 1, the body on stdout, `gh: <message>` on stderr)",
   "unauthenticated": {
+    "_recorded": "case err-unauthenticated",
     "exit": 4,
     "stderr": "To get started with GitHub CLI, please run:  gh auth login\nAlternatively, populate the GH_TOKEN environment variable with a GitHub API authentication token.\n"
   },
   "rate_limited_403": {
+    "_documented": "cannot be caused on purpose",
     "exit": 1,
     "status": "HTTP/2.0 403 Forbidden",
     "headers": {
@@ -21,6 +23,7 @@
     "stderr": "gh: API rate limit exceeded for user ID 1000001. (HTTP 403)\n"
   },
   "rate_limited_429": {
+    "_documented": "cannot be caused on purpose",
     "exit": 1,
     "status": "HTTP/2.0 429 Too Many Requests",
     "headers": {
@@ -36,10 +39,12 @@
     "stderr": "gh: You have exceeded a secondary rate limit. Please wait a few minutes before you try again. (HTTP 429)\n"
   },
   "offline": {
+    "_recorded": "case err-offline",
     "exit": 1,
     "stderr": "error connecting to api.$host\ncheck your internet connection or https://githubstatus.com\n"
   },
   "not_found": {
+    "_recorded": "case err-not_found",
     "exit": 1,
     "body": {
       "message": "Not Found",
@@ -49,6 +54,7 @@
     "stderr": "gh: Not Found (HTTP 404)\n"
   },
   "bad_gateway": {
+    "_documented": "cannot be caused on purpose",
     "exit": 1,
     "body": {
       "message": "Server Error"
@@ -56,6 +62,7 @@
     "stderr": "gh: HTTP 502: Bad Gateway (https://api.$host/graphql)\n"
   },
   "error_after_write": {
+    "_documented": "cannot be caused on purpose",
     "exit": 1,
     "body": {
       "data": null,
@@ -68,7 +75,7 @@
     "stderr": "gh: Something went wrong while executing your query. This may be the result of a timeout, or it could be a GitHub bug.\n"
   },
   "field_error_after_write": {
-    "_note": "the mutation ran, then a selected field failed: partial data, an error path and a code; nothing proves the write did not happen",
+    "_documented": "cannot be caused on purpose",
     "exit": 1,
     "body": {
       "data": {
@@ -97,7 +104,7 @@
     "stderr": "gh: Could not resolve the author of the new issue.\n"
   },
   "internal_error_after_write": {
-    "_note": "a pathless error with a code that names no parse or validation failure: the mutation may have run",
+    "_documented": "cannot be caused on purpose",
     "exit": 1,
     "body": {
       "data": null,
@@ -113,7 +120,7 @@
     "stderr": "gh: Something went wrong while executing your query.\n"
   },
   "graphql_rate_limited": {
-    "_note": "GraphQL's rate limit: HTTP 200 with an error of type RATE_LIMITED; gh exits 1 and names no HTTP status",
+    "_documented": "cannot be caused on purpose",
     "exit": 1,
     "body": {
       "data": null,
@@ -127,7 +134,7 @@
     "stderr": "gh: API rate limit exceeded for user ID 1000001.\n"
   },
   "graphql_rate_limited_exit_0": {
-    "_note": "the same reply, as a gh that exits 0 on a GraphQL error body would pass it on",
+    "_documented": "cannot be caused on purpose",
     "exit": 0,
     "body": {
       "data": null,
@@ -143,11 +150,12 @@
     "stderr": ""
   },
   "lost_response": {
+    "_documented": "lost_response comes from the T11 fault wrapper",
     "exit": 1,
     "stderr": "Post \"https://api.$host/graphql\": unexpected EOF\n"
   },
   "graphql_rate_limited_partial": {
-    "_note": "GraphQL's rate limit on a field, with partial data and a path; gh exit 1",
+    "_documented": "cannot be caused on purpose",
     "exit": 1,
     "body": {
       "data": {
@@ -167,7 +175,7 @@
     "stderr": "gh: API rate limit exceeded for user ID 1000001.\n"
   },
   "graphql_rate_limited_partial_exit_0": {
-    "_note": "GraphQL's rate limit on a field, with partial data and a path; gh exit 0",
+    "_documented": "cannot be caused on purpose",
     "exit": 0,
     "body": {
       "data": {

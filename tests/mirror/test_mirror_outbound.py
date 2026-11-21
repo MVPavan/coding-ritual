@@ -217,6 +217,11 @@ def test_private_each_screen_category_is_held_and_reported_by_label(
             "Reviewers: team-@alice, docs/@alice now",
             "Reviewers: team-`@alice`, docs/`@alice` now",
         ),
+        # GitHub also autolinks GH-N to issue N, in any case; not inside a word.
+        (
+            "Dup of GH-12 and gh-3 (AGH-4, GH-5x)",
+            "Dup of `GH-12` and `gh-3` (AGH-4, GH-5x)",
+        ),
         # An HTML block is raw: no code spans or fences, so <code> tags; tags untouched.
         (
             (

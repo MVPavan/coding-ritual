@@ -3,6 +3,10 @@ case: a GitHub-only text edit repaired on the next incremental run."""
 
 from __future__ import annotations
 
+import json
+from pathlib import Path
+from typing import Any
+
 import pytest
 
 from tests.mirror._harness import ACCOUNT, REPO_NODE_ID, Mirror, banner
@@ -247,3 +251,54 @@ def test_converge_cached_enrolment_is_linked_only_once_the_issue_is_found_in_the
     assert f"{bead}: issue #{number} cannot be read as an issue" in proc.stdout
     assert mirror.beads()[bead].get("external_ref") is None
     assert mirror.fake.writes() == []
+
+
+def recorded(name: str) -> Any:
+    path = Path(__file__).resolve().parent / "fixtures" / "recorded" / name
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def test_converge_recorded_round_trips_github_stores_as_sent_and_later_runs_are_quiet(
+    mirror: Mirror,
+) -> None:
+    """The trial's T8-T10 round trips: GitHub stored each title and body exactly as
+    sent (surrounding spaces, CRLF with a trailing newline, 60,000 characters of
+    multi-byte text), as this fake does; the stored forms that differ from the bead's
+    only canonically leave both later runs without a write."""
+    title = recorded("roundtrip_title.json")
+    stored_title = title["readback"]["response"]["data"]["repository"]["issue"]["title"]
+    assert stored_title == title["sent_title"] == f" {title['bead_title']} "
+
+    crlf = recorded("roundtrip_crlf_body.json")
+    sent = crlf["command_write"]["updateIssue"]["input"]["variables"]["input"]["body"]
+    direct = crlf["direct_write"]["updateIssue"]["input"]["variables"]["body"]
+    stored = crlf["direct_write"]["readback"]["response"]["data"]["repository"]
+    assert "\r" not in sent and "\r" in crlf["bead_description"]
+    assert stored["issue"]["body"] == direct == sent.replace("\n", "\r\n") + "\r\n"
+
+    for item in recorded("roundtrip_budget_body.json")["items"]:
+        body = item["createIssue"]["input"]["variables"]["input"]["body"]
+        back = item["readback"]["response"]["data"]["repository"]["issue"]["body"]
+        assert body["chars"] == back["chars"] == 60_000
+        assert body["sha256"] == back["sha256"] and body["utf8_bytes"] > 60_000
+        assert ("_Truncated:" in body["tail"]) == item["truncation_note"]
+
+    mirror.write_switch()
+    bead = mirror.create_bead(
+        title["bead_title"],
+        "feature",
+        "-d",
+        crlf["bead_description"],
+        "--acceptance",
+        crlf["bead_acceptance"],
+    )
+    assert mirror.run("outbound").returncode == 0
+    number = int(mirror.beads()[bead]["external_ref"].rsplit("/", 1)[1])
+    body = mirror.fake.issue(number)["body"]
+    assert "\r" not in body, "the command sends the canonical form"
+    mirror.fake.edit_issue(
+        number,
+        title=f" {title['bead_title']} ",
+        body=body.replace("\n", "\r\n") + "\r\n",
+    )
+    assert run_writes(mirror) == [] and run_writes(mirror) == []

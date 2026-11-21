@@ -1,7 +1,9 @@
 # Beads → GitHub mirror
 
-> Draft: the live trial (`docs/workstreams/beads-github-mirror/trial.md`) confirms these steps; until it
-> passes, do not activate in a real project.
+> The one-account live trial (`docs/workstreams/beads-github-mirror/trial.md`) passed on 2026-11-21.
+> Activation still waits for the fork cases F1 and F2, which need a second GitHub account. Until they
+> pass, the trial has not passed. Activating sooner or more narrowly is the owner's decision; this
+> guide does not make it.
 
 This is the owner's guide to the mirror. The design is in
 `docs/specs/2026-11-20-beads-github-mirror.md`. The command is `.claude/hooks/bead-mirror.py`, and
@@ -81,7 +83,8 @@ Activation is owner-controlled and goes in this order. Every step is the owner's
 does not take any of them on its own.
 
 1. **The live trial passes** (owner). `docs/workstreams/beads-github-mirror/trial.md` is the
-   checklist. The trial has not passed while its fork cases (F1, F2) are deferred.
+   checklist. Every one-account case passed on 2026-11-21. The trial has not passed while its fork
+   cases (F1, F2) are deferred.
 2. **Set the exempt-authors variable** (owner). The workflow reads the repository variable
    `BEAD_REF_EXEMPT`, a comma-separated list of logins whose pull requests pass without a
    reference. Leave it absent or empty to exempt no one, or set it, for example with
@@ -91,7 +94,9 @@ does not take any of them on its own.
    `store_project_id`, `gh api repos/OWNER/REPO --jq .node_id` for `repo_node_id`, `host` as the
    GitHub host, and `account` as the mirror account's login. Log `gh` in as the mirror account;
    `account` must be the same login `gh auth status` shows. Write the JSON above to `bead-mirror/switch.json` under the git common
-   directory. Only one clone per repository holds a switch.
+   directory by hand. No subcommand writes it. Only one clone per repository holds a switch. In a
+   new clone that has no Beads store yet, `bd init` makes its own git commit. Check `git log`
+   before pushing.
 4. **Dry run** (owner): `python3 .claude/hooks/bead-mirror.py outbound --dry-run`. It runs every
    authority check (the store's identity, the `gh` login, the repository's node ID, the state's
    binding), reports what it would do, and writes nothing.
@@ -114,11 +119,29 @@ does not take any of them on its own.
    requests from forks. Require approval before workflows run for outside contributors' pull
    requests, so a workflow a pull request adds does not run unseen. Protect the default branch with a
    branch protection rule or a ruleset; a ruleset must be enforcing (`active`, not `evaluate`) with no
-   bypass actors, and a branch protection rule must apply to administrators.
+   bypass actors, and a branch protection rule must apply to administrators. The trial, on a
+   personal repository, used a ruleset.
 8. **Make the check required** (owner). Require the job `bead-reference` from GitHub Actions. Where the
    plan offers a ruleset that requires a specific workflow, require the workflow instead, since a
-   name-based requirement can be met by a same-name check from another workflow. A private repository
-   needs a plan that allows required checks there; without one the check runs but cannot block.
+   name-based requirement can be met by a same-name check from another workflow. The trial's
+   personal repository used a required-status-check rule in its ruleset: the check
+   `bead-reference` with the GitHub Actions app as its source, enforcement `active` and no bypass
+   actors. It did not try a workflow rule, which it understood to be offered only in organization
+   rulesets. A private repository needs a plan that allows required checks there; without one the
+   check runs but cannot block.
+
+   In the trial, a pull request from a branch in the repository added a workflow with a job of the
+   same name that always passed. The merge was still blocked, because the real check also ran on
+   that head and failed (case C6b). The trial did not cover a head on which the real workflow leaves
+   no check run of its own, for example because it was cancelled before its job's check run existed.
+
+### Codex hooks need trust
+
+Codex runs a project's hook only after the user trusts both the project and that hook entry. It
+skips an untrusted hook silently and prints no prompt or message, so in Codex the mirror's session
+start does nothing until both are trusted. The hook's trust is tied to the hook file's contents, so
+trust it again after `.codex/hooks.json` changes. In the trial, Claude Code in print mode (`-p`)
+ran the hook without a trust prompt.
 
 ## Daily use
 

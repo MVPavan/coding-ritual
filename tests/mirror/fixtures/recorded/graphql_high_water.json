@@ -1,5 +1,5 @@
 {
-  "_provisional": "the newest issue and pull request (issues(last: 1), pullRequests(last: 1)) reached through node(id:); replaced in M4",
+  "_recorded": "M4.2 live trial, 2026-11-21, gh 2.103.0, residue at commit 79b93f9; case T12-14-inbound, MirrorHighWater; sanitised",
   "data": {
     "node": {
       "issues": {

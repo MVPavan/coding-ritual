@@ -125,6 +125,20 @@ body" stays unproven live. M4.3 takes it, with evidence such as a run deliberate
 temporary delay so the later edit's run finishes first, or a replay of C4's two recorded event
 payloads in reverse order, showing the final verdict is the latest body's.
 
+**M4.3 result (2026-11-21): the reverse-order half is evidenced offline.** The test
+`tests/mirror/test_mirror_references.py::test_check_two_edits_whose_runs_finish_in_reverse_order_end_with_the_latest_bodys_verdict`
+replays C4's four recorded edits (`tests/mirror/fixtures/recorded/c4_edits.json`) against the
+check's own step, extracted from the workflow `install-check` writes and run the way the runner
+runs it. For each pull request, both edits are saved first. The newer edit's run then finishes
+first and the older edit's run finishes last. Each run gets its own `edited` event payload, and
+the older payload carries the older body. The verdict left last is the latest body's: the first
+pull request ends failing and the second passing, as C4 ended live. The older body alone would have
+given the other verdict. A mutation probe, a copy of the check that takes the body from the event
+payload, fails this test (M4.3 evidence). What this proof does not cover is a run that read the body
+before the later edit and still finished last. Only a cancellation that never happened allows that:
+the workflow's concurrency group cancels the older run when the newer one is queued, and C4 showed
+that cancellation live in both pairs.
+
 ### Session start (hooks)
 
 | # | Case | Steps | Evidence to capture | Pass | Result | Evidence |
@@ -191,3 +205,24 @@ as documented, not recorded. At its start M4.2 re-derives this list from the key
 The closing-event and pull-request replies from T12 to T14, and any provisional fixture M2 or M3 adds
 after this checklist, are recorded the same way. M4.2 lists the provisional directory again before it
 starts.
+
+### M4.3 replay
+
+M4.3 (2026-11-21) built `tests/mirror/fixtures/recorded/` from M4.2's recordings, sanitised as
+above, and deleted `tests/mirror/fixtures/provisional/`. `tests/mirror` now runs on the recorded
+fixtures only. Its README lists the source of each file.
+
+- **Recorded:** every provisional file. This includes the six that M2 and M3 added
+  (`graphql_closed_by`, `graphql_high_water`, `graphql_inbound_issue`, `graphql_inbound_pull`,
+  `graphql_pulls_page`, and `rest_pull`, read after the trial from C2's merged pull request,
+  because the check's own read ran on GitHub's runner, outside the wrapper), the three round
+  trips, C4's edits, the exact
+  query text of every operation sent (`queries.json`, which the fake now enforces), and the
+  `errors.json` keys `unauthenticated`, `not_found` and `offline`.
+- **Documented, not recorded:** the other `errors.json` keys (the rate limits, the server-side
+  faults and `lost_response`); and the `reopenIssue` reply, because the trial sent none.
+- **Fake changes:** each mutation now returns its own recorded payload. Before, every write
+  returned one shared shape, `addComment` returned a comment edge the command never selects, and
+  `createIssue` returned the whole issue-node shape (labels, repository, `updatedAt`).
+  Recorded operations must also send the recorded query text exactly. No recorded shape exposed a
+  bug in the command.

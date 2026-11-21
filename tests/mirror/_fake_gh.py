@@ -5,7 +5,8 @@ and runs this script. The state holds the host, the authenticated login, reposit
 (node ID, owner, name, labels, issues, pull requests) and the fault switches; every
 call is appended to ``calls`` and every call this fake does not recognise to
 ``unrecognised`` (it then fails loudly with exit 99). Responses are shaped by the
-provisional fixtures beside this file. It never touches the network.
+fixtures recorded in the live trial (``fixtures/recorded/``, sanitised; its README says
+which parts are documented rather than recorded). It never touches the network.
 
 Routes: ``GET user``; ``GET repos/OWNER/NAME``; ``GET repos/OWNER/NAME/pulls/N`` (a
 pull request's author and current body, as the check's workflow reads it); GraphQL queries ``MirrorIssues`` (the
@@ -19,7 +20,9 @@ the issue's node ID; the mutations ``createIssue``, ``createLabel``, ``updateIss
 ``removeLabelsFromLabelable``. Every issue keeps ``updated_at``, stamped by each write.
 Each query's text must have the shape ``QUERY_SHAPES`` records (its argument bindings
 and the names it uses), and each mutation its input type, input fields and selection
-(``MUTATION_SHAPES``); anything else is unrecognised, as GitHub would reject it.
+(``MUTATION_SHAPES``); an operation the trial sent must also be the exact text GitHub
+accepted then (``fixtures/recorded/queries.json``), so a selection moved into another
+fragment fails too. Anything else is unrecognised, as GitHub would reject it.
 
 Inbound routes, by the repository's node ID: ``MirrorInboundIssues`` (every author's
 issues updated at or after ``since``, by number, paginated), ``MirrorInboundPulls``
@@ -87,7 +90,7 @@ import time
 from pathlib import Path
 from typing import Any
 
-FIXTURES = Path(__file__).resolve().parent / "fixtures" / "provisional"
+FIXTURES = Path(__file__).resolve().parent / "fixtures" / "recorded"
 UNRECOGNISED_EXIT = 99
 KNOWN_FLAGS_WITH_VALUE = {"--hostname", "--input"}
 KNOWN_BOOL_FLAGS = {"-i", "--include"}
@@ -225,6 +228,13 @@ MUTATION_HEAD_RE = re.compile(
     r"\s*\{(.*)\}\s*\}\s*$",
     re.DOTALL,
 )
+
+
+def check_recorded(name: str, query: str) -> None:
+    """Fail loudly when the trial recorded ``name`` and ``query`` is not that text."""
+    recorded = fixture("queries.json").get(name)
+    if recorded is not None and query != recorded:
+        raise Unrecognised(f"{name}: not the query text recorded in the live trial")
 
 
 def check_query(name: str, query: str) -> None:
@@ -382,24 +392,27 @@ def url_of(state: dict[str, Any], repo: dict[str, Any], kind: str, number: int) 
     return f"https://{state['host']}/{repo['owner']}/{repo['name']}/{kind}/{number}"
 
 
+def issue_values(
+    state: dict[str, Any], repo: dict[str, Any], issue: dict[str, Any]
+) -> dict[str, Any]:
+    return {
+        "issue_node_id": issue["node_id"],
+        "issue_number": issue["number"],
+        "issue_url": url_of(state, repo, "issues", issue["number"]),
+        "issue_state": issue["state"],
+        "issue_title": issue["title"],
+        "issue_body": issue["body"],
+        "author": issue["author"],
+        "repo_node_id": repo["node_id"],
+        "updated_at": issue.get("updated_at", "1970-01-01T00:00:00Z"),
+        "labels": [{"id": label_id(repo, n), "name": n} for n in issue["labels"]],
+    }
+
+
 def issue_node(
     state: dict[str, Any], repo: dict[str, Any], issue: dict[str, Any]
 ) -> Any:
-    return fill(
-        fixture("graphql_issue_node.json"),
-        {
-            "issue_node_id": issue["node_id"],
-            "issue_number": issue["number"],
-            "issue_url": url_of(state, repo, "issues", issue["number"]),
-            "issue_state": issue["state"],
-            "issue_title": issue["title"],
-            "issue_body": issue["body"],
-            "author": issue["author"],
-            "repo_node_id": repo["node_id"],
-            "updated_at": issue.get("updated_at", "1970-01-01T00:00:00Z"),
-            "labels": [{"id": label_id(repo, n), "name": n} for n in issue["labels"]],
-        },
-    )
+    return fill(fixture("graphql_issue_node.json"), issue_values(state, repo, issue))
 
 
 def label_id(repo: dict[str, Any], name: str) -> str:
@@ -439,12 +452,14 @@ def serve(
         mutation, named = MUTATION_RE.match(query), QUERY_RE.match(query)
         if mutation and mutation.group(1) in MUTATIONS:
             check_mutation(mutation.group(1), query, variables.get("input"))
+            check_recorded(mutation.group(1), query)
             record["route"] = f"graphql {mutation.group(1)}"
         elif named and named.group(1) in QUERIES:
             missing = QUERIES[named.group(1)] - set(variables)
             if missing:
                 raise Unrecognised(f"{named.group(1)} without {sorted(missing)}")
             check_query(named.group(1), query)
+            check_recorded(named.group(1), query)
             record["route"] = f"graphql {named.group(1)}"
         else:
             raise Unrecognised(f"graphql operation not served: {query!r}")
@@ -955,7 +970,7 @@ def get_item(
     record["repo_node_id"] = repo["node_id"]
     number = int(variables["number"])
     if not -(2**31) <= number < 2**31:
-        # GraphQL's Int is 32-bit: GitHub refuses the variable itself (provisional).
+        # GraphQL's Int is 32-bit: GitHub refuses the variable itself (documented).
         raise graphql_error(
             "Variable $number of type Int! was provided invalid value", "INVALID_VALUE"
         )
@@ -1076,15 +1091,9 @@ def write_issue(
     name = (
         "graphql_addComment.json" if mutation == "addComment" else "graphql_write.json"
     )
-    reply = fill(
-        fixture(name),
-        {
-            "mutation": mutation,
-            "node_id": issue["node_id"],
-            "issue_number": issue["number"],
-        },
-    )
-    return json.dumps({"data": {mutation: reply["data"]["$mutation"]}})
+    # Each mutation's own recorded payload: exactly what its selection asks for.
+    reply = fill(fixture(name)["data"][mutation], {"node_id": issue["node_id"]})
+    return json.dumps({"data": {mutation: reply}})
 
 
 def create_label(
@@ -1160,11 +1169,9 @@ def create_issue(
         raise error_reply(
             named if isinstance(named, str) else "error_after_write", state, False
         )
+    # The recorded reply's own fields, which are what CREATE_SELECTION asks for.
     return json.dumps(
-        fill(
-            fixture("graphql_createIssue.json"),
-            {"issue": issue_node(state, repo, issue)},
-        )
+        fill(fixture("graphql_createIssue.json"), issue_values(state, repo, issue))
     )
 
 

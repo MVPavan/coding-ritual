@@ -1,5 +1,5 @@
 {
-  "_provisional": "an Issue node with the fields inbound selects (docs.github.com/graphql/reference/objects#issue); no title or body is selected; replaced in M4",
+  "_recorded": "M4.2 live trial, 2026-11-21, gh 2.103.0, residue at commit 79b93f9; case T12-14-inbound, MirrorInboundIssues; sanitised",
   "__typename": "Issue",
   "id": "$issue_node_id",
   "number": "$issue_number",

@@ -1,0 +1,25 @@
+{
+  "_recorded": "M4.2 live trial, 2026-11-21, gh 2.103.0, residue at commit 79b93f9; case C4-edits (gh api -X PATCH repos/OWNER/TRIAL/pulls/N -f body=...); both pull requests started at `Refs #5` and passing; the edits were sent back to back on the same head; sanitised",
+  "edits": [
+    {
+      "pull": "first",
+      "body": "Refs #6",
+      "updated_at": "2026-11-21T11:57:27Z"
+    },
+    {
+      "pull": "first",
+      "body": "No reference now.",
+      "updated_at": "2026-11-21T11:57:28Z"
+    },
+    {
+      "pull": "second",
+      "body": "No reference for a moment.",
+      "updated_at": "2026-11-21T11:57:30Z"
+    },
+    {
+      "pull": "second",
+      "body": "Refs #5",
+      "updated_at": "2026-11-21T11:57:31Z"
+    }
+  ]
+}

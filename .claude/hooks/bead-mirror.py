@@ -76,10 +76,10 @@ added a line above it). Banners count only on issues authored by the mirror acco
 an issue whose banner was deleted outright is not recognised.
 
 The body. The banner, a blank line, the description, then ``## Acceptance`` and the
-acceptance criteria. ``@name`` and ``#N`` (also ``owner/repo#N``) outside existing
-code are wrapped in code spans, in the title too; inside an HTML block, where Markdown
-makes no code spans, in ``<code>`` tags. At most 60,000 characters: when the text is
-longer it is cut so the banner and a truncation note naming the bead fit.
+acceptance criteria. ``@name`` and ``#N`` (also ``owner/repo#N`` and ``GH-N``) outside
+existing code are wrapped in code spans, in the title too; inside an HTML block, where
+Markdown makes no code spans, in ``<code>`` tags. At most 60,000 characters: when the
+text is longer it is cut so the banner and a truncation note naming the bead fit.
 
 Eligibility to be created: type in the switch's ``scope``, status ``open``,
 ``in_progress``, ``review`` or ``blocked``, no ``mirror=never`` metadata and no
@@ -1061,11 +1061,12 @@ ESCAPABLE = set("!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~")
 # GitHub mentions ``@name`` after the start or any non-word character. ``_`` and ``*``
 # are emphasis delimiters, not part of a name (``_@alice_`` still mentions alice once
 # rendered), so a mention is wrapped after anything but a letter or digit: ``@@alice``,
-# ``team-@alice`` and ``docs/@alice`` too. A reference (``#N``, ``owner/repo#N``) keeps
-# the narrower boundary, so a URL fragment such as ``example.com/page#12`` stays a link.
+# ``team-@alice`` and ``docs/@alice`` too. A reference (``#N``, ``owner/repo#N``, and
+# ``GH-N`` in any case) keeps the narrower boundary, so a URL fragment such as
+# ``example.com/page#12`` stays a link.
 MENTION_RE = re.compile(
     r"(?:(?<![A-Za-z0-9])@[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?(?:/[A-Za-z0-9_.-]+)?"
-    r"|(?<![A-Za-z0-9@/.&-])(?:[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)?#[0-9]+)"
+    r"|(?<![A-Za-z0-9@/.&-])(?:(?:[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)?#|[Gg][Hh]-)[0-9]+)"
     r"(?![A-Za-z0-9])"
 )
 # A CommonMark HTML block leaves its text raw (no code spans, no fences), so a mention
@@ -1384,7 +1385,7 @@ def neutral_tokens(text: str, blocks: bool = True) -> list[tuple[str, str]]:
 
 
 def neutralise(text: str) -> str:
-    """Wrap ``@name`` and ``#N`` outside existing code in code spans."""
+    """Wrap ``@name``, ``#N`` and ``GH-N`` outside existing code in code spans."""
     return "".join(piece for _, piece in neutral_tokens(text))
 
 

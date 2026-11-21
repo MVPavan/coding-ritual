@@ -89,7 +89,7 @@ def test_rename_writes_reach_the_renamed_repository_and_not_the_squatter(
     mod.check_github(switch, gh)  # the checks pass; the repository is then renamed
 
     created = gh.graphql_write(
-        "createIssue", REPO_NODE_ID, {"title": "t"}, "issue { id url }"
+        "createIssue", REPO_NODE_ID, {"title": "t"}, mod.CREATE_SELECTION
     )
     assert created["issue"]["url"].endswith("/acme/widgets-renamed/issues/1")
     assert [i["title"] for i in mirror.fake.repo(REPO_NODE_ID)["issues"]] == ["t"]

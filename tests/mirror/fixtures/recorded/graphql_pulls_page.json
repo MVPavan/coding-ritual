@@ -1,5 +1,5 @@
 {
-  "_provisional": "Repository.pullRequests(orderBy: UPDATED_AT DESC) reached through node(id:), modelled on docs.github.com/graphql/reference/objects#pullrequestconnection; replaced in M4",
+  "_recorded": "M4.2 live trial, 2026-11-21, gh 2.103.0, residue at commit 79b93f9; case T12-14-inbound, MirrorInboundPulls; sanitised",
   "data": {
     "node": {
       "pullRequests": {

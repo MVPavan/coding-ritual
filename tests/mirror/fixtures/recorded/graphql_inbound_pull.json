@@ -1,5 +1,5 @@
 {
-  "_provisional": "a PullRequest node with the fields inbound selects (docs.github.com/graphql/reference/objects#pullrequest; state is OPEN, CLOSED or MERGED, mergedBy and mergeCommit are null until it merges); replaced in M4",
+  "_recorded": "M4.2 live trial, 2026-11-21, gh 2.103.0, residue at commit 79b93f9; case T12-14-inbound, MirrorInboundPulls; sanitised",
   "__typename": "PullRequest",
   "id": "$pull_node_id",
   "number": "$pull_number",

@@ -1,0 +1,19 @@
+{
+  "_recorded": "M4.2 live trial, 2026-11-21, gh 2.103.0, residue at commit 79b93f9; case T1, createIssue; sanitised",
+  "data": {
+    "createIssue": {
+      "issue": {
+        "__typename": "Issue",
+        "id": "$issue_node_id",
+        "number": "$issue_number",
+        "url": "$issue_url",
+        "state": "$issue_state",
+        "author": {
+          "login": "$author"
+        },
+        "body": "$issue_body",
+        "title": "$issue_title"
+      }
+    }
+  }
+}

@@ -1,0 +1,173 @@
+{
+  "_recorded": "M4.2 live trial, 2026-11-21, gh 2.103.0, residue at commit 79b93f9; case T10; sanitised",
+  "case": "T10",
+  "path": "both bodies written by the command (createIssue); no direct write",
+  "items": [
+    {
+      "bead": "trial-9kf",
+      "issue_number": 4,
+      "description_chars": 59699,
+      "untruncated_body_chars": 60000,
+      "createIssue": {
+        "input": {
+          "query": "mutation($input: CreateIssueInput!) { createIssue(input: $input) { issue { __typename id number url state author { login } body title } } }",
+          "variables": {
+            "input": {
+              "title": "Trial T10a: body exactly at the 60,000-character budget",
+              "body": {
+                "_note": "60,000-character body: its first and last 300 characters, sizes and hash",
+                "head": "<!-- bead-mirror v1 store=00000000-0000-4000-8000-000000000000 bead=trial-9kf -->\n> Generated from bead `trial-9kf` in Beads. Its text follows the bead, so please comment instead of editing: edits to this title or text are replaced.\n\nzzzzzzzzzzzzzzzzTrial T10 multi-byte line: नमस्ते दुनिया, Καλημέρα",
+                "tail": "e: नमस्ते दुनिया, Καλημέρα κόσμε, Привет мир, こんにちは世界 😀🚀 end.\nTrial T10 multi-byte line: नमस्ते दुनिया, Καλημέρα κόσμε, Привет мир, こんにちは世界 😀🚀 end.\nTrial T10 multi-byte line: नमस्ते दुनिया, Καλημέρα κόσμε, Привет мир, こんにちは世界 😀🚀 end.\n\n## Acceptance\n\nT10a acceptance: stored whole, no truncation note.",
+                "chars": 60000,
+                "utf8_bytes": 105804,
+                "sha256": "eea41f49f5cd528867773e85d435455b6d1c3cb8a31b0b2f7acc8d26990d9f06"
+              },
+              "labelIds": [
+                "LA_kwDOdummy0004"
+              ],
+              "repositoryId": "R_kwDOdummy0003"
+            }
+          }
+        },
+        "response": {
+          "data": {
+            "createIssue": {
+              "issue": {
+                "__typename": "Issue",
+                "id": "I_kwDOdummy0005",
+                "number": 4,
+                "url": "https://github.com/OWNER/TRIAL/issues/4",
+                "state": "OPEN",
+                "author": {
+                  "login": "OWNER"
+                },
+                "body": {
+                  "chars": 60000,
+                  "utf8_bytes": 105804,
+                  "sha256": "eea41f49f5cd528867773e85d435455b6d1c3cb8a31b0b2f7acc8d26990d9f06"
+                },
+                "title": "Trial T10a: body exactly at the 60,000-character budget"
+              }
+            }
+          }
+        },
+        "ts": "2026-11-21T11:48:42.669+00:00",
+        "exit": 0
+      },
+      "readback": {
+        "response": {
+          "data": {
+            "repository": {
+              "issue": {
+                "id": "I_kwDOdummy0005",
+                "number": 4,
+                "body": {
+                  "chars": 60000,
+                  "utf8_bytes": 105804,
+                  "sha256": "eea41f49f5cd528867773e85d435455b6d1c3cb8a31b0b2f7acc8d26990d9f06"
+                },
+                "updatedAt": "2026-11-21T11:48:43Z"
+              }
+            }
+          }
+        }
+      },
+      "sent_chars": 60000,
+      "sent_utf8_bytes": 105804,
+      "create_reply_body_chars": 60000,
+      "readback_chars": 60000,
+      "readback_utf8_bytes": 105804,
+      "readback_equals_sent": true,
+      "truncation_note": false
+    },
+    {
+      "bead": "trial-p7u",
+      "issue_number": 5,
+      "description_chars": 59690,
+      "untruncated_body_chars": 60001,
+      "createIssue": {
+        "input": {
+          "query": "mutation($input: CreateIssueInput!) { createIssue(input: $input) { issue { __typename id number url state author { login } body title } } }",
+          "variables": {
+            "input": {
+              "title": "Trial T10b: body just over the 60,000-character budget",
+              "body": {
+                "_note": "60,000-character body: its first and last 300 characters, sizes and hash",
+                "head": "<!-- bead-mirror v1 store=00000000-0000-4000-8000-000000000000 bead=trial-p7u -->\n> Generated from bead `trial-p7u` in Beads. Its text follows the bead, so please comment instead of editing: edits to this title or text are replaced.\n\nzzzzzzzTrial T10 multi-byte line: नमस्ते दुनिया, Καλημέρα κόσμε, П",
+                "tail": " दुनिया, Καλημέρα κόσμε, Привет мир, こんにちは世界 😀🚀 end.\nTrial T10 multi-byte line: नमस्ते दुनिया, Καλημέρα κόσμε, Привет мир, こんにちは世界 😀🚀 end.\nTrial T10 multi-byte line: नमस्ते दुनिया, Καλημέρα κόσμε, Привет мир, こんにちは世界 😀🚀 end.\n\n## Acceptance\n\nT10b ac\n\n_Truncated: the full text is in bead `trial-p7u`._",
+                "chars": 60000,
+                "utf8_bytes": 105804,
+                "sha256": "955d8cd18fe9f45432f1a85dec0c2b6735ef56aac24da65961d0a98c733edd58"
+              },
+              "labelIds": [
+                "LA_kwDOdummy0004"
+              ],
+              "repositoryId": "R_kwDOdummy0003"
+            }
+          }
+        },
+        "response": {
+          "data": {
+            "createIssue": {
+              "issue": {
+                "__typename": "Issue",
+                "id": "I_kwDOdummy0006",
+                "number": 5,
+                "url": "https://github.com/OWNER/TRIAL/issues/5",
+                "state": "OPEN",
+                "author": {
+                  "login": "OWNER"
+                },
+                "body": {
+                  "chars": 60000,
+                  "utf8_bytes": 105804,
+                  "sha256": "955d8cd18fe9f45432f1a85dec0c2b6735ef56aac24da65961d0a98c733edd58"
+                },
+                "title": "Trial T10b: body just over the 60,000-character budget"
+              }
+            }
+          }
+        },
+        "ts": "2026-11-21T11:48:45.412+00:00",
+        "exit": 0
+      },
+      "readback": {
+        "response": {
+          "data": {
+            "repository": {
+              "issue": {
+                "id": "I_kwDOdummy0006",
+                "number": 5,
+                "body": {
+                  "chars": 60000,
+                  "utf8_bytes": 105804,
+                  "sha256": "955d8cd18fe9f45432f1a85dec0c2b6735ef56aac24da65961d0a98c733edd58"
+                },
+                "updatedAt": "2026-11-21T11:48:46Z"
+              }
+            }
+          }
+        }
+      },
+      "sent_chars": 60000,
+      "sent_utf8_bytes": 105804,
+      "create_reply_body_chars": 60000,
+      "readback_chars": 60000,
+      "readback_utf8_bytes": 105804,
+      "readback_equals_sent": true,
+      "truncation_note": true
+    }
+  ],
+  "later_runs": [
+    {
+      "ts": "2026-11-21T11:49:06Z",
+      "report": "checks passed + unrelated T7 hold line",
+      "writes": "none"
+    },
+    {
+      "ts": "2026-11-21T11:49:13Z",
+      "report": "same",
+      "writes": "none"
+    }
+  ]
+}

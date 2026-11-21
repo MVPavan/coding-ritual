@@ -1,8 +1,0 @@
-{
-  "_provisional": "mutation createIssue, modelled on docs.github.com/graphql/reference/mutations#createissue; replaced in M4",
-  "data": {
-    "createIssue": {
-      "issue": "$issue"
-    }
-  }
-}

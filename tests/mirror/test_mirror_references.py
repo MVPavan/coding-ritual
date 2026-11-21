@@ -22,11 +22,8 @@ from tests.mirror._harness import COMMAND, HOST, REPO, Mirror, real_tool
 
 pytestmark = pytest.mark.bd
 
-TABLE = json.loads(
-    (Path(__file__).resolve().parent / "fixtures" / "references.json").read_text(
-        encoding="utf-8"
-    )
-)
+FIXTURES = Path(__file__).resolve().parent / "fixtures"
+TABLE = json.loads((FIXTURES / "references.json").read_text(encoding="utf-8"))
 WORKFLOW = Path(".github") / "workflows" / "bead-reference-check.yml"
 FOUND = "Bead reference found: "
 
@@ -76,7 +73,10 @@ class Check:
         (runtime / "python3").symlink_to(real_tool("python3"))
         self.path = f"{mirror.bin_dir}:{runtime}"
 
-    def run(self, number: int, exempt: str = "") -> subprocess.CompletedProcess[str]:
+    def run(
+        self, number: int, exempt: str = "", event: Path | None = None
+    ) -> subprocess.CompletedProcess[str]:
+        """``event``: the payload file the runner hands this run, as GitHub's does."""
         env = {
             "PATH": self.path,
             "GITHUB_SERVER_URL": f"https://{HOST}",
@@ -84,6 +84,10 @@ class Check:
             "PR_NUMBER": str(number),
             "BEAD_REF_EXEMPT": exempt,
         }
+        if event is not None:
+            env.update(
+                GITHUB_EVENT_NAME="pull_request_target", GITHUB_EVENT_PATH=str(event)
+            )
         return subprocess.run(
             [
                 real_tool("bash"),
@@ -292,3 +296,46 @@ def test_install_check_without_the_switch_is_silent_and_writes_nothing(
     assert (result.returncode, result.stdout, result.stderr) == (0, "", "")
     assert not (mirror.clone / ".github").exists()
     assert mirror.fake.calls() == [] and mirror.bd_calls() == []
+
+
+def test_check_two_edits_whose_runs_finish_in_reverse_order_end_with_the_latest_bodys_verdict(
+    mirror: Mirror, check: Check, tmp_path: Path
+) -> None:
+    """Trial C4's recorded edits (``fixtures/recorded/c4_edits.json``) replayed offline
+    with each pair's runs finishing in reverse order: the newer edit's run first, the
+    older edit's run last. Each run gets its own ``edited`` event payload carrying the
+    body that edit saved, as the runner hands it; the check reads the current body
+    through the API, so the verdict left last is the latest body's either way."""
+    recorded = FIXTURES / "recorded" / "c4_edits.json"
+    edits = json.loads(recorded.read_text(encoding="utf-8"))["edits"]
+    verdicts = []
+    for which in ("first", "second"):
+        older, newer = (e for e in edits if e["pull"] == which)
+        number = mirror.fake.add_pull(author="trial-owner", body="Refs #5")
+        assert check.run(number).returncode == 0, "green before the edits"
+        events, previous = [], "Refs #5"
+        for edit in (older, newer):
+            mirror.fake.edit_pull(number, edit["body"])
+            payload = {
+                "action": "edited",
+                "number": number,
+                "changes": {"body": {"from": previous}},
+                "pull_request": {
+                    "number": number,
+                    "body": edit["body"],
+                    "updated_at": edit["updated_at"],
+                    "user": {"login": "trial-owner"},
+                },
+            }
+            path = tmp_path / f"event-{which}-{len(events)}.json"
+            path.write_text(json.dumps(payload), encoding="utf-8")
+            events.append(path)
+            previous = edit["body"]
+        newer_run = check.run(number, event=events[1])  # finishes first
+        older_run = check.run(number, event=events[0])  # finishes last
+        assert newer_run.returncode == older_run.returncode, "both read the same body"
+        verdicts.append(older_run.returncode == 0)
+        # The older payload's own body would have given the other verdict.
+        alone = mirror.fake.add_pull(author="trial-owner", body=older["body"])
+        assert (check.run(alone).returncode == 0) != verdicts[-1]
+    assert verdicts == [False, True], "C4: the first ends failing, the second passing"
