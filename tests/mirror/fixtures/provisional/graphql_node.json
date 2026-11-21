@@ -1,0 +1,6 @@
+{
+  "_provisional": "Query.node(id:) on an Issue, with the fields the mirror selects; replaced in M4",
+  "data": {
+    "node": "$node"
+  }
+}

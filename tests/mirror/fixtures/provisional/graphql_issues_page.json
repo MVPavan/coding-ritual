@@ -1,0 +1,14 @@
+{
+  "_provisional": "Repository.issues(filterBy: {createdBy}) reached through node(id:), modelled on docs.github.com/graphql/reference/objects#repository; replaced in M4",
+  "data": {
+    "node": {
+      "issues": {
+        "nodes": "$nodes",
+        "pageInfo": {
+          "hasNextPage": "$has_next",
+          "endCursor": "$end_cursor"
+        }
+      }
+    }
+  }
+}

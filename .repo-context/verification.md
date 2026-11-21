@@ -29,6 +29,7 @@ human check / Why.
 | JSON | `python3 -m json.tool <file> >/dev/null` |
 | Python hooks/scripts | `python3 -m py_compile <file>`; scoped lint/type checks from `.repo-context/coding-style.md` |
 | Curation code (`curation/`), skill scripts, or their tests (`tests/curation/`, and the `tests/checks/` files that exercise a skill script) | `uv run pytest -q tests/curation tests/checks` |
+| Beads → GitHub mirror: `.claude/hooks/bead-mirror.py` or `tests/mirror/` | `PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest -q -p no:cacheprovider tests/mirror` (needs the real `bd`; the fake `gh` is put on `PATH`, so no test reaches GitHub) |
 | Registry data, or a file it hashes (a skill, playbook or principle, `AGENTS.md`, a `.repo-context/` file with a `doc:` entry) | `uv run python harness_lifecycle/registry/registry.py check`; when it reports a generated view stale, run `build` first |
 | Beads | `bd ready` or `bd list` succeeds; keep `.beads/issues.jsonl` current per the `beads` skill (`references/usage.md` §15) |
 | Skills | `uv run python .claude/scripts/skill-catalog.py --check` validates catalog, pointers and invocation metadata; `--write` regenerates them |

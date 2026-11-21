@@ -1,0 +1,9 @@
+{
+  "_provisional": "GET /user, modelled on docs.github.com/rest/users/users#get-the-authenticated-user; replaced in M4",
+  "login": "$login",
+  "id": 1000001,
+  "node_id": "U_kgDOAAAAAQ",
+  "type": "User",
+  "site_admin": false,
+  "html_url": "$user_html_url"
+}

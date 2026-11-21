@@ -1,0 +1,8 @@
+{
+  "_provisional": "Repository.issueOrPullRequest(number:) reached through node(id:); replaced in M4",
+  "data": {
+    "node": {
+      "issueOrPullRequest": "$node"
+    }
+  }
+}

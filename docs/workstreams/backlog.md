@@ -1,8 +1,26 @@
 <!-- BD:GENERATED START -->
 # Backlog (parked, vetted)
-_generated from bd @ 2026-10-07T05:00:44Z — DO NOT EDIT (run: BD_RENDER=1 bash <beads-skill-dir>/scripts/bd-render-tracking.sh)_
+_generated from bd @ 2026-11-20T21:03:53Z — DO NOT EDIT (run: BD_RENDER=1 bash <tracker-skill-dir>/scripts/bd-render-tracking.sh)_
+- `cr-70qs` Build trigger evals for skills
+- `cr-dp83` Port agent-skills shared references used by adopted skills
 - `cr-02ze` live run feedback
 - `cr-o85.43` Discipline composition: Node has no method or discipline-set field, so mount-many has no mechanism
+- `cr-56rw.15` Compare software-factory with firstmate and dori-superagent as whole systems
+- `cr-56rw.14` Study kun/compact-adviser for adoption
+- `cr-56rw.13` Study kun/treehouse for adoption
+- `cr-56rw.12` Study kun/quota-axi for adoption
+- `cr-56rw.11` Study kun/tasks-axi for adoption
+- `cr-56rw.10` Study kun/grok-ship for adoption
+- `cr-56rw.9` Study kun/vision for adoption
+- `cr-56rw.8` Study kun/kun for adoption
+- `cr-56rw.7` Study kun/axi for adoption
+- `cr-56rw.6` Study kun/gnhf for adoption
+- `cr-56rw.5` Study kun/backpass for adoption
+- `cr-56rw.4` Study kun/no-mistakes for adoption
+- `cr-56rw.3` Study kun/firstmate for adoption
+- `cr-56rw.2` Study dori-superagent for adoption
+- `cr-56rw.1` Study tstack for adoption
+- `cr-56rw` Study reference harnesses for later adoption: tstack, Dori, Kun's repos
 - `cr-8ji` Bind crew identity into LaunchReceipt so inspector reattachment cannot adopt a foreign vendor
 - `cr-9uy` spike-then-harden is not expressible: no base-commit lineage primitive
 - `cr-o85.34.29` Deferred phase-7 verify checks have prose triggers and no work items
@@ -23,7 +41,6 @@ _generated from bd @ 2026-10-07T05:00:44Z — DO NOT EDIT (run: BD_RENDER=1 bash
 - `cr-zaj` supervisor: ExitObserver reaches PinOutcome.REFUSED indirectly
 - `cr-l17` supervisor: Monitor.watch holds on INDETERMINATE with no ceiling
 - `cr-too` bdio: recorded_precondition raises a raw ValidationError on an out-of-band trio
-- `cr-52h8` Polish DWS lock qualification diagnostics and deployment rerun evidence
 <!-- BD:GENERATED END -->
 
 <!-- Human notes below this line are preserved across renders. Everything above is bd-generated; do not hand-edit it. -->

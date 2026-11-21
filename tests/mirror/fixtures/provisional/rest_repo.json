@@ -1,0 +1,12 @@
+{
+  "_provisional": "GET /repos/{owner}/{repo}, modelled on docs.github.com/rest/repos/repos#get-a-repository; replaced in M4",
+  "id": 2000001,
+  "node_id": "$repo_node_id",
+  "name": "$repo_name",
+  "full_name": "$repo_full_name",
+  "private": false,
+  "owner": {"login": "$repo_owner", "type": "Organization"},
+  "html_url": "$repo_html_url",
+  "default_branch": "main",
+  "has_issues": true
+}

@@ -1,0 +1,8 @@
+{
+  "_provisional": "mutation createLabel (docs.github.com/graphql/reference/mutations#createlabel); replaced in M4",
+  "data": {
+    "createLabel": {
+      "label": "$label"
+    }
+  }
+}

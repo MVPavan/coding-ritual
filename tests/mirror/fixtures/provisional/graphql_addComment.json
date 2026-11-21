@@ -1,0 +1,13 @@
+{
+  "_provisional": "mutation addComment (docs.github.com/graphql/reference/mutations#addcomment); replaced in M4",
+  "data": {
+    "$mutation": {
+      "commentEdge": {
+        "node": {
+          "id": "IC_kwDOfake$issue_number"
+        }
+      },
+      "clientMutationId": null
+    }
+  }
+}

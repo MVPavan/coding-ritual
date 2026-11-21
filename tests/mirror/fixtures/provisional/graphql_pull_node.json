@@ -1,0 +1,7 @@
+{
+  "_provisional": "a PullRequest node as issueOrPullRequest returns it (docs.github.com/graphql/reference/objects#pullrequest); replaced in M4",
+  "__typename": "PullRequest",
+  "id": "$pull_node_id",
+  "number": "$pull_number",
+  "url": "$pull_url"
+}

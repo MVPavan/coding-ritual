@@ -1,0 +1,20 @@
+{
+  "_provisional": "an Issue node with the fields the mirror selects (docs.github.com/graphql/reference/objects#issue); replaced in M4",
+  "__typename": "Issue",
+  "id": "$issue_node_id",
+  "number": "$issue_number",
+  "url": "$issue_url",
+  "state": "$issue_state",
+  "title": "$issue_title",
+  "body": "$issue_body",
+  "author": {
+    "login": "$author"
+  },
+  "repository": {
+    "id": "$repo_node_id"
+  },
+  "labels": {
+    "nodes": "$labels"
+  },
+  "updatedAt": "$updated_at"
+}

@@ -1,0 +1,14 @@
+{
+  "_provisional": "Issue.comments reached through node(id:), modelled on docs.github.com/graphql/reference/objects#issuecommentconnection; replaced in M4",
+  "data": {
+    "node": {
+      "comments": {
+        "nodes": "$nodes",
+        "pageInfo": {
+          "hasNextPage": "$has_next",
+          "endCursor": "$end_cursor"
+        }
+      }
+    }
+  }
+}

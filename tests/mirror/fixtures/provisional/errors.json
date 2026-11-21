@@ -1,0 +1,189 @@
+{
+  "_provisional": "what gh 2.x prints and exits with for each fault, from its source and docs; replaced in M4",
+  "unauthenticated": {
+    "exit": 4,
+    "stderr": "To get started with GitHub CLI, please run:  gh auth login\nAlternatively, populate the GH_TOKEN environment variable with a GitHub API authentication token.\n"
+  },
+  "rate_limited_403": {
+    "exit": 1,
+    "status": "HTTP/2.0 403 Forbidden",
+    "headers": {
+      "X-Ratelimit-Limit": "5000",
+      "X-Ratelimit-Remaining": "0",
+      "X-Ratelimit-Used": "5000",
+      "X-Ratelimit-Reset": "$reset",
+      "X-Ratelimit-Resource": "core"
+    },
+    "body": {
+      "message": "API rate limit exceeded for user ID 1000001.",
+      "documentation_url": "https://docs.github.com/rest/overview/rate-limits-for-the-rest-api"
+    },
+    "stderr": "gh: API rate limit exceeded for user ID 1000001. (HTTP 403)\n"
+  },
+  "rate_limited_429": {
+    "exit": 1,
+    "status": "HTTP/2.0 429 Too Many Requests",
+    "headers": {
+      "Retry-After": "60",
+      "X-Ratelimit-Limit": "5000",
+      "X-Ratelimit-Remaining": "0",
+      "X-Ratelimit-Reset": "$reset"
+    },
+    "body": {
+      "message": "You have exceeded a secondary rate limit. Please wait a few minutes before you try again.",
+      "documentation_url": "https://docs.github.com/rest/overview/rate-limits-for-the-rest-api#about-secondary-rate-limits"
+    },
+    "stderr": "gh: You have exceeded a secondary rate limit. Please wait a few minutes before you try again. (HTTP 429)\n"
+  },
+  "offline": {
+    "exit": 1,
+    "stderr": "error connecting to api.$host\ncheck your internet connection or https://githubstatus.com\n"
+  },
+  "not_found": {
+    "exit": 1,
+    "body": {
+      "message": "Not Found",
+      "documentation_url": "https://docs.github.com/rest/repos/repos#get-a-repository",
+      "status": "404"
+    },
+    "stderr": "gh: Not Found (HTTP 404)\n"
+  },
+  "bad_gateway": {
+    "exit": 1,
+    "body": {
+      "message": "Server Error"
+    },
+    "stderr": "gh: HTTP 502: Bad Gateway (https://api.$host/graphql)\n"
+  },
+  "error_after_write": {
+    "exit": 1,
+    "body": {
+      "data": null,
+      "errors": [
+        {
+          "message": "Something went wrong while executing your query. This may be the result of a timeout, or it could be a GitHub bug. Please include `0000:0000:000000:000000:00000000` when reporting this issue."
+        }
+      ]
+    },
+    "stderr": "gh: Something went wrong while executing your query. This may be the result of a timeout, or it could be a GitHub bug.\n"
+  },
+  "field_error_after_write": {
+    "_note": "the mutation ran, then a selected field failed: partial data, an error path and a code; nothing proves the write did not happen",
+    "exit": 1,
+    "body": {
+      "data": {
+        "createIssue": null
+      },
+      "errors": [
+        {
+          "path": [
+            "createIssue",
+            "issue",
+            "author"
+          ],
+          "extensions": {
+            "code": "fieldResolutionFailed"
+          },
+          "locations": [
+            {
+              "line": 1,
+              "column": 80
+            }
+          ],
+          "message": "Could not resolve the author of the new issue."
+        }
+      ]
+    },
+    "stderr": "gh: Could not resolve the author of the new issue.\n"
+  },
+  "internal_error_after_write": {
+    "_note": "a pathless error with a code that names no parse or validation failure: the mutation may have run",
+    "exit": 1,
+    "body": {
+      "data": null,
+      "errors": [
+        {
+          "extensions": {
+            "code": "INTERNAL_SERVER_ERROR"
+          },
+          "message": "Something went wrong while executing your query."
+        }
+      ]
+    },
+    "stderr": "gh: Something went wrong while executing your query.\n"
+  },
+  "graphql_rate_limited": {
+    "_note": "GraphQL's rate limit: HTTP 200 with an error of type RATE_LIMITED; gh exits 1 and names no HTTP status",
+    "exit": 1,
+    "body": {
+      "data": null,
+      "errors": [
+        {
+          "type": "RATE_LIMITED",
+          "message": "API rate limit exceeded for user ID 1000001."
+        }
+      ]
+    },
+    "stderr": "gh: API rate limit exceeded for user ID 1000001.\n"
+  },
+  "graphql_rate_limited_exit_0": {
+    "_note": "the same reply, as a gh that exits 0 on a GraphQL error body would pass it on",
+    "exit": 0,
+    "body": {
+      "data": null,
+      "errors": [
+        {
+          "extensions": {
+            "code": "RATE_LIMITED"
+          },
+          "message": "API rate limit exceeded for user ID 1000001."
+        }
+      ]
+    },
+    "stderr": ""
+  },
+  "lost_response": {
+    "exit": 1,
+    "stderr": "Post \"https://api.$host/graphql\": unexpected EOF\n"
+  },
+  "graphql_rate_limited_partial": {
+    "_note": "GraphQL's rate limit on a field, with partial data and a path; gh exit 1",
+    "exit": 1,
+    "body": {
+      "data": {
+        "node": null
+      },
+      "errors": [
+        {
+          "type": "RATE_LIMITED",
+          "path": [
+            "node",
+            "comments"
+          ],
+          "message": "API rate limit exceeded for user ID 1000001."
+        }
+      ]
+    },
+    "stderr": "gh: API rate limit exceeded for user ID 1000001.\n"
+  },
+  "graphql_rate_limited_partial_exit_0": {
+    "_note": "GraphQL's rate limit on a field, with partial data and a path; gh exit 0",
+    "exit": 0,
+    "body": {
+      "data": {
+        "node": null
+      },
+      "errors": [
+        {
+          "type": "RATE_LIMITED",
+          "path": [
+            "node",
+            "comments"
+          ],
+          "message": "API rate limit exceeded for user ID 1000001."
+        }
+      ]
+    },
+    "stderr": ""
+  }
+}

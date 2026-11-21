@@ -1,0 +1,8 @@
+{
+  "_provisional": "Repository.label(name:) reached through node(id:); null when there is no such label; replaced in M4",
+  "data": {
+    "node": {
+      "label": "$label"
+    }
+  }
+}
