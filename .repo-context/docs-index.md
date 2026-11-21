@@ -35,6 +35,7 @@ Archived research is evidence, not operating policy.
 | Reference adoption/updates | `harness_learnings/reference-harness-workflow.md` |
 | Reference comparisons | `harness_learnings/harness-patterns-by-capability.md`, `harness_learnings/reference-harness-repos.md` |
 | Publication and installation | `docs/usage/mvp-plugin.md`; initialized plugin's README |
+| Beads → GitHub mirror: activation, daily use, recovery | `docs/usage/bead-mirror.md` (draft until the live trial); `docs/workstreams/beads-github-mirror/roadmap.md` |
 | Workflow coordination spec | `docs/specs/2026-09-11-workflow-coordination.md` |
 | Contractor implementation status and gates | `docs/workstreams/agent-bridge/state.md`, `docs/workstreams/agent-bridge/roadmap.md` |
 | Run ledger design and slices | `docs/workstreams/run-ledger/roadmap.md` |

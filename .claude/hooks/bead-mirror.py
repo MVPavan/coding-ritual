@@ -20,7 +20,8 @@ offline or failing, or the issues listing incomplete; also when that happens lat
 run, which keeps what it already recorded and leaves the rest pending); 6 Beads
 unavailable; 7 busy
 (another run holds the clone-wide lock past the wait bound); 9 refused (the ``pr``
-path, ``link``, ``resolve`` or ``install-check`` declined, with the reason). The
+path, ``link``, ``resolve``, ``install-check``, ``dismiss``, ``overwrite`` or ``retire``
+declined, with the reason). The
 background ``worker`` also exits 10 (rate-limited) and 11 (its own deadline passed).
 
 Session start (``session``, run by each tool's hook launcher) makes no network call,
@@ -95,7 +96,8 @@ The state (``state.json`` beside the switch, replaced atomically)::
      "pending":  {bead: {"since": ISO time}},             # a create sent, outcome unknown
      "holds":    {bead: {"kind", "reason", "since"}},      # kind: screen, candidates,
                                                           #   pending, link-conflict,
-                                                          #   refused (retried each run)
+                                                          #   refused (retried each run),
+                                                          #   bad-link, open-closed, retire
      "tracking": {bead: issue number},                     # linked, not the mirror's
      "retired":  {bead: issue number},                     # retired for the bead
      "ignored":  {bead: [issue numbers]},                  # set aside by `resolve`
