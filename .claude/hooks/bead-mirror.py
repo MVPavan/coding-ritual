@@ -19,9 +19,24 @@ invalid; 4 an authority check failed (report on stderr; state mismatches persist
 offline or failing, or the issues listing incomplete; also when that happens late in a
 run, which keeps what it already recorded and leaves the rest pending); 6 Beads
 unavailable; 7 busy
-(another run holds the clone-wide lock past the wait bound); 8 not implemented;
-9 refused (the ``pr`` path, ``link``, ``resolve`` or ``install-check`` declined, with
-the reason).
+(another run holds the clone-wide lock past the wait bound); 9 refused (the ``pr``
+path, ``link``, ``resolve`` or ``install-check`` declined, with the reason). The
+background ``worker`` also exits 10 (rate-limited) and 11 (its own deadline passed).
+
+Session start (``session``, run by each tool's hook launcher) makes no network call,
+takes no lock and never waits; it always exits 0. In the writer clone it prints the
+latest ``digest.json``'s time, its counts by row type, at most five rows (allow-listed
+fields only) and the path to the rest, then the last background run's outcome when it
+did not finish cleanly, all within ``SESSION_CAP`` characters; then it starts the
+background run, detached, when the last one (``background.json``) started more than
+fifteen minutes ago and no rate-limit back-off is running. The background run:
+``supervise`` takes a session and process group of its own, input from /dev/null and
+output to ``log`` beside the switch, and runs ``worker`` as a child in its own process
+group; at its deadline it SIGTERMs the whole group, SIGKILLs what is left after a
+grace period, reaps the worker and records the outcome. ``worker`` is ``both
+--no-create`` that takes the lock without waiting (busy: it exits), checks its own
+deadline before every GitHub call (no call runs past it) and releases the lock as it
+exits; it outlives a killed supervisor and still stops at its own deadline.
 
 The reference grammar (``REFERENCE_PATTERN``, ``references``) is shared by the digest
 and the pull-request check. ``install-check`` writes the check's workflow to
@@ -215,6 +230,7 @@ import json
 import os
 import re
 import shutil
+import signal
 import subprocess
 import sys
 import tempfile
@@ -228,7 +244,6 @@ EXIT_AUTHORITY = 4
 EXIT_GITHUB = 5
 EXIT_BEADS = 6
 EXIT_BUSY = 7
-EXIT_NOT_IMPLEMENTED = 8
 EXIT_REFUSED = 9
 
 MIRROR_DIRNAME = "bead-mirror"
@@ -275,11 +290,6 @@ WRITE_MUTATIONS: dict[str, tuple[str, str]] = {
     "createLabel": ("CreateLabelInput", "repositoryId"),
 }
 
-LATER_STAGES = (
-    "supervise",
-    "worker",
-)
-
 
 class Stop(Exception):
     """A run must stop: ``code`` is the exit status, the message is the report."""
@@ -295,6 +305,19 @@ class Unavailable(Stop):
 
     def __init__(self, message: str) -> None:
         super().__init__(EXIT_GITHUB, message)
+
+
+class RateLimited(Unavailable):
+    """GitHub's rate limit stops the run; the background run backs off."""
+
+
+class DeadlineReached(Unavailable):
+    """The background worker's own deadline passed before its next GitHub call."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            "the worker's deadline passed; the rest waits for the next run"
+        )
 
 
 class WriteUnknown(Stop):
@@ -414,6 +437,7 @@ def run_child(
     cwd: str | None,
     env: Mapping[str, str],
     stdin_text: str | None = None,
+    timeout: float = CHILD_TIMEOUT,
 ) -> subprocess.CompletedProcess[str]:
     feed: dict[str, Any] = (
         {"stdin": subprocess.DEVNULL} if stdin_text is None else {"input": stdin_text}
@@ -424,7 +448,7 @@ def run_child(
         env=dict(env),
         capture_output=True,
         text=True,
-        timeout=CHILD_TIMEOUT,
+        timeout=timeout,
         check=False,
         **feed,
     )
@@ -579,16 +603,25 @@ class Gh:
     def __init__(self, host: str, env: Mapping[str, str]) -> None:
         self.host = host
         self.env = dict(env)
+        # The background worker's deadline (``time.monotonic``): checked before every
+        # call, and no call may run past it.
+        self.deadline: float | None = None
 
     def _run(
         self, args: Sequence[str], stdin_text: str | None = None
     ) -> subprocess.CompletedProcess[str]:
         """Run gh; a timeout raises ``subprocess.TimeoutExpired`` for the caller to judge."""
+        timeout = CHILD_TIMEOUT
+        if self.deadline is not None:
+            left = self.deadline - time.monotonic()
+            if left <= 0:
+                raise DeadlineReached()
+            timeout = min(timeout, left)
         if shutil.which("gh", path=self.env.get("PATH")) is None:
             raise Unavailable("gh not found on PATH")
         argv = ["gh", "api", "--hostname", self.host] + list(args)
         try:
-            return run_child(argv, None, self.env, stdin_text)
+            return run_child(argv, None, self.env, stdin_text, timeout)
         except OSError as exc:
             raise Unavailable(f"gh could not run: {exc}") from exc
 
@@ -596,6 +629,8 @@ class Gh:
         try:
             proc = self._run(args, stdin_text)
         except subprocess.TimeoutExpired as exc:
+            if self.deadline is not None and time.monotonic() >= self.deadline:
+                raise DeadlineReached() from exc  # cut short to keep the deadline
             raise Unavailable(f"gh timed out reaching {self.host} (offline?)") from exc
         if proc.returncode != 0:
             try:
@@ -603,8 +638,10 @@ class Gh:
             except ValueError:
                 failed = None
             if reports_rate_limit(failed):  # only reads come through here
-                raise Unavailable(self.rate_limit_cause())
+                raise RateLimited(self.rate_limit_cause())
             cause, kind = self._cause(proc)
+            if kind == "rate-limited":
+                raise RateLimited(cause)
             raise (
                 Unavailable(cause)
                 if kind == "unavailable"
@@ -617,7 +654,8 @@ class Gh:
 
     def _cause(self, proc: subprocess.CompletedProcess[str]) -> tuple[str, str | None]:
         """The cause of a failed call, and what it proves: "unavailable" (GitHub cannot
-        be used now; nothing reached it), "refused" (GitHub rejected this request before
+        be used now; nothing reached it), "rate-limited" (the same, for GitHub's rate
+        limit), "refused" (GitHub rejected this request before
         executing it) or None (it may have executed)."""
         err = proc.stderr.strip()
         low = err.lower()
@@ -635,7 +673,7 @@ class Gh:
             or ("rate limit" in low and "(http 403)" in low)
             or rate_limited(body)
         ):
-            return self.rate_limit_cause(), "unavailable"
+            return self.rate_limit_cause(), "rate-limited"
         if "error connecting to" in low or "no such host" in low:
             return f"cannot reach {self.host} (offline?)", "unavailable"
         refused = (
@@ -656,7 +694,7 @@ class Gh:
         body = json.dumps({"query": query, "variables": dict(variables)})
         result = self._call(["graphql", "--input", "-"], stdin_text=body)
         if reports_rate_limit(result):
-            raise Unavailable(self.rate_limit_cause())
+            raise RateLimited(self.rate_limit_cause())
         if not isinstance(result, dict) or result.get("errors"):
             errors = result.get("errors") if isinstance(result, dict) else None
             raise Stop(EXIT_GITHUB, f"GitHub refused a read: {json.dumps(errors)}")
@@ -709,7 +747,7 @@ class Gh:
         errors = result.get("errors") if isinstance(result, dict) else None
         data = result.get("data") if isinstance(result, dict) else None
         if proc.returncode == 0 and rate_limited(result):
-            raise Unavailable(f"{mutation} was not sent: {self.rate_limit_cause()}")
+            raise RateLimited(f"{mutation} was not sent: {self.rate_limit_cause()}")
         if proc.returncode != 0 or errors:
             kind = classify_errors(errors, data)
             cause, proof = (
@@ -719,6 +757,8 @@ class Gh:
             )
             if proof is None:
                 raise WriteUnknown(f"{mutation}: {cause}; the outcome is unknown")
+            if proof == "rate-limited":
+                raise RateLimited(f"{mutation} was not sent: {cause}")
             if proof == "unavailable":
                 raise Unavailable(f"{mutation} was not sent: {cause}")
             if kind == "request":
@@ -837,6 +877,13 @@ def fsync_dir(directory: str) -> None:
         os.close(dfd)
 
 
+def cannot_write(exc: OSError) -> str:
+    return (
+        f"cannot write beside the switch ({exc.strerror or exc}); "
+        "the next background run will do this"
+    )
+
+
 class CloneLock:
     """The clone-wide lock beside the switch, waited for up to ``wait`` seconds."""
 
@@ -846,7 +893,10 @@ class CloneLock:
         self.fd: int | None = None
 
     def __enter__(self) -> CloneLock:  # noqa: PYI034
-        fd = os.open(self.path, os.O_RDWR | os.O_CREAT, 0o600)
+        try:
+            fd = os.open(self.path, os.O_RDWR | os.O_CREAT, 0o600)
+        except OSError as exc:
+            raise Stop(EXIT_SWITCH, cannot_write(exc)) from exc
         deadline = time.monotonic() + max(self.wait, 0.0)
         while True:
             try:
@@ -1629,6 +1679,8 @@ def list_mirror_issues(ctx: Context) -> list[dict[str, Any]]:
         }
         try:
             data = ctx.gh.graphql(LIST_QUERY, variables)
+        except Unavailable:
+            raise  # a rate limit or the deadline keeps its type: the run backs off
         except Stop as exc:
             raise Stop(
                 EXIT_GITHUB,
@@ -1966,7 +2018,10 @@ class Context:
         return None if state is None else shaped(state)
 
     def save(self, state: Mapping[str, Any]) -> None:
-        write_json_atomic(self.state_path, state)
+        try:
+            write_json_atomic(self.state_path, state)
+        except OSError as exc:
+            raise Stop(EXIT_SWITCH, cannot_write(exc)) from exc
 
 
 class Outbound:
@@ -2403,6 +2458,9 @@ class Outbound:
         number = record["number"]
         try:
             after = read_node(self.ctx, str(record["node_id"]))
+        except Unavailable:
+            self.save()
+            raise  # a rate limit or the deadline keeps its type: the run backs off
         except Stop as exc:
             after = None
             cause = str(exc)
@@ -4298,6 +4356,292 @@ def cmd_install_check(ctx: Context, args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+# ---------------------------------------------------------------------------
+# Session start and the background run
+
+RELAUNCH_AFTER = 15 * 60  # the hook starts a background run when the last is older
+RATE_BACKOFF = 3600  # after a rate limit, no background run for this long
+WORKER_DEADLINE = 10 * 60
+SUPERVISOR_DEADLINE = 12 * 60
+STOP_GRACE = 10.0  # between the supervisor's SIGTERM and SIGKILL to the worker's group
+# Read only by the tests, to shorten the deadlines: "worker=S,supervisor=S,grace=S".
+TEST_DEADLINES = "BEAD_MIRROR_TEST_DEADLINES"
+SESSION_ROWS = 5
+SESSION_LINE = 400  # characters per line of the session-start summary
+SESSION_CAP = 2000  # characters of the whole summary
+LOG_LIMIT = 1_000_000  # the log is moved to ``log.1`` once it is larger
+# The worker's own exit statuses, beside the command's.
+EXIT_RATE_LIMITED = 10
+EXIT_DEADLINE = 11
+OUTCOMES = {
+    "done": "finished",
+    "busy": "another run held the lock",
+    "rate-limited": "GitHub rate limit reached; backing off",
+    "unavailable": "GitHub unavailable",
+    "worker-deadline": "stopped at its own deadline; the rest waits for the next run",
+    "deadline": "stopped by the supervisor at its deadline",
+    "failed": "failed",
+    "not-started": "could not start",
+}
+
+
+def deadlines() -> dict[str, float]:
+    limits = {
+        "worker": float(WORKER_DEADLINE),
+        "supervisor": float(SUPERVISOR_DEADLINE),
+        "grace": STOP_GRACE,
+    }
+    for part in os.environ.get(TEST_DEADLINES, "").split(","):
+        name, _, value = part.partition("=")
+        if name.strip() in limits:
+            try:
+                limits[name.strip()] = max(float(value), 0.0)
+            except ValueError:
+                pass
+    return limits
+
+
+def read_json_file(path: str) -> Any:
+    try:
+        with open(path, encoding="utf-8") as fh:
+            return json.load(fh)
+    except (OSError, ValueError):
+        return None
+
+
+def background_record(mirror_dir: str) -> dict[str, Any]:
+    found = read_json_file(os.path.join(mirror_dir, "background.json"))
+    return found if isinstance(found, dict) else {}
+
+
+def save_background(mirror_dir: str, record: Mapping[str, Any]) -> None:
+    write_json_atomic(os.path.join(mirror_dir, "background.json"), record)
+
+
+def outcome_of(code: int) -> str:
+    return {
+        EXIT_OK: "done",
+        EXIT_BUSY: "busy",
+        EXIT_RATE_LIMITED: "rate-limited",
+        EXIT_GITHUB: "unavailable",
+        EXIT_DEADLINE: "worker-deadline",
+    }.get(code, "failed")
+
+
+def cut(line: str) -> str:
+    return line if len(line) <= SESSION_LINE else line[: SESSION_LINE - 3] + "..."
+
+
+def session_summary(
+    mirror_dir: str, last: Mapping[str, Any], problem: str | None
+) -> str:
+    """The latest digest and the last background run, built only from allow-listed row
+    fields and the command's own words: at most ``SESSION_ROWS`` rows, each line at most
+    ``SESSION_LINE`` characters and the whole at most ``SESSION_CAP``; rows are dropped
+    first, so the path to the rest always shows."""
+    digest = read_json_file(os.path.join(mirror_dir, "digest.json"))
+    md = os.path.join(mirror_dir, "digest.md")
+    head: list[str] = []
+    rows: list[str] = []
+    tail: list[str] = []
+    if isinstance(digest, dict) and isinstance(digest.get("rows"), list):
+        kept = [allowed_row(r) for r in digest["rows"] if isinstance(r, dict)]
+        kept = [r for r in kept if r.get("type") in ROW_TYPES]
+        counts: dict[str, int] = {}
+        for row in kept:
+            counts[row["type"]] = counts.get(row["type"], 0) + 1
+        summary = ", ".join(f"{k} {counts[k]}" for k in ROW_TYPES if k in counts)
+        stamp = parse_iso(digest.get("time"))
+        when = iso_of(stamp) if stamp is not None else "an unknown time"
+        kind = "full comparison" if digest.get("full") is True else "incremental"
+        head.append(
+            f"bead-mirror digest of {when} ({kind}): {len(kept)} row(s)"
+            + (f": {summary}" if summary else "")
+        )
+        rows = ["- " + row_text(r) for r in kept]
+    else:
+        head.append("bead-mirror: no digest yet; the background run writes one")
+    outcome = last.get("outcome")
+    if outcome in OUTCOMES and outcome != "done":
+        started = parse_iso(last.get("started"))
+        when = iso_of(started) if started is not None else "an unknown time"
+        text = OUTCOMES[str(outcome)]
+        code = last.get("exit")
+        if outcome == "failed" and isinstance(code, int) and not isinstance(code, bool):
+            text += f" (exit {code})"
+        log = os.path.join(mirror_dir, "log")
+        tail.append(f"Last background run, started {when}: {text}; log: {log}")
+    if problem:
+        tail.append(problem)
+    head, tail = [cut(x) for x in head], [cut(x) for x in tail]
+    room = SESSION_CAP - sum(len(x) + 1 for x in head + tail) - (SESSION_LINE + 1)
+    shown: list[str] = []
+    for line in rows[:SESSION_ROWS]:
+        line = cut(line)
+        if len(line) + 1 > room:
+            break
+        shown.append(line)
+        room -= len(line) + 1
+    if len(rows) > len(shown):
+        shown.append(cut(f"{len(rows) - len(shown)} more row(s) in {md}"))
+    elif rows:
+        shown.append(cut(f"Digest: {md}"))
+    return "\n".join(head + shown + tail)
+
+
+def launch_background(mirror_dir: str) -> str | None:
+    """Start the supervisor detached unless the last background run started less than
+    ``RELAUNCH_AFTER`` ago or a rate-limit back-off is running; a line to report when
+    it cannot start."""
+    now = time.time()
+    last = background_record(mirror_dir)
+    started = parse_iso(last.get("started"))
+    if started is not None and now - started < RELAUNCH_AFTER:
+        return None
+    until = parse_iso(last.get("backoff_until"))
+    if until is not None and now < until:
+        return None
+    log = os.path.join(mirror_dir, "log")
+    try:
+        if os.path.getsize(log) > LOG_LIMIT:
+            os.replace(log, log + ".1")
+    except OSError:
+        pass
+    record: dict[str, Any] = {"started": iso_of(now), "outcome": None}
+    try:
+        save_background(mirror_dir, record)
+        with open(log, "a", encoding="utf-8") as out:
+            subprocess.Popen(
+                [sys.executable, os.path.abspath(__file__), "supervise"],
+                stdin=subprocess.DEVNULL,
+                stdout=out,
+                stderr=subprocess.STDOUT,
+                start_new_session=True,
+                close_fds=True,
+            )
+    except OSError as exc:
+        try:
+            record.update(finished=now_iso(), outcome="not-started")
+            save_background(mirror_dir, record)
+        except OSError:
+            pass
+        return f"bead-mirror: cannot start the background run: {exc.strerror or exc}"
+    return None
+
+
+def cmd_session(ctx: Context, args: argparse.Namespace) -> int:
+    """The session-start hook: no network call, no lock, no wait."""
+    last = background_record(ctx.mirror_dir)  # the outcome before this launch
+    problem = launch_background(ctx.mirror_dir)
+    print(session_summary(ctx.mirror_dir, last, problem))
+    return EXIT_OK
+
+
+def note(who: str, message: str) -> None:
+    print(f"{now_iso()} bead-mirror {who} {os.getpid()}: {message}", flush=True)
+
+
+def detach(mirror_dir: str) -> None:
+    """A session and process group of its own, input from /dev/null, output to the log."""
+    try:
+        os.setsid()
+    except OSError:
+        pass  # already a session leader (the hook started it so)
+    devnull = os.open(os.devnull, os.O_RDONLY)
+    os.dup2(devnull, 0)
+    os.close(devnull)
+    log = os.open(
+        os.path.join(mirror_dir, "log"), os.O_WRONLY | os.O_APPEND | os.O_CREAT, 0o600
+    )
+    sys.stdout.flush()
+    sys.stderr.flush()
+    os.dup2(log, 1)
+    os.dup2(log, 2)
+    os.close(log)
+
+
+def stop_group(worker: subprocess.Popen[bytes], grace: float) -> None:
+    """SIGTERM the worker's whole process group, SIGKILL whatever is left after
+    ``grace``, and reap the worker."""
+    for sig in (signal.SIGTERM, signal.SIGKILL):
+        try:
+            os.killpg(worker.pid, sig)
+        except (ProcessLookupError, PermissionError):
+            pass
+        if sig == signal.SIGTERM:
+            try:
+                worker.wait(timeout=grace)
+            except subprocess.TimeoutExpired:
+                pass
+    worker.wait()
+
+
+def cmd_supervise(ctx: Context, args: argparse.Namespace) -> int:
+    """Run the worker as a child in its own process group; stop the whole group at the
+    supervisor's deadline, reap it and record the outcome in ``background.json``."""
+    detach(ctx.mirror_dir)
+    limits = deadlines()
+    started = background_record(ctx.mirror_dir).get("started")
+    record: dict[str, Any] = {
+        "started": started if parse_iso(started) is not None else now_iso(),
+        "supervisor": os.getpid(),
+        "outcome": None,
+    }
+    try:
+        worker = subprocess.Popen(
+            [sys.executable, os.path.abspath(__file__), "worker"],
+            stdin=subprocess.DEVNULL,
+            start_new_session=True,
+        )
+    except OSError as exc:
+        note("supervisor", f"cannot start the worker: {exc}")
+        record.update(finished=now_iso(), outcome="not-started")
+        save_background(ctx.mirror_dir, record)
+        return EXIT_OK
+    record["worker"] = worker.pid
+    save_background(ctx.mirror_dir, record)
+    note("supervisor", f"started worker {worker.pid}")
+    try:
+        code = worker.wait(timeout=limits["supervisor"])
+        outcome = outcome_of(code)
+    except subprocess.TimeoutExpired:
+        note("supervisor", "deadline reached; stopping the worker's process group")
+        stop_group(worker, limits["grace"])
+        code, outcome = worker.returncode, "deadline"
+    record.update(finished=now_iso(), outcome=outcome, exit=code)
+    if outcome == "rate-limited":
+        record["backoff_until"] = iso_of(time.time() + RATE_BACKOFF)
+    save_background(ctx.mirror_dir, record)
+    note("supervisor", f"worker {worker.pid} ended: {outcome} (exit {code})")
+    return EXIT_OK
+
+
+def terminated(signum: int, frame: Any) -> NoReturn:
+    raise SystemExit(128 + signum)
+
+
+def cmd_worker(ctx: Context, args: argparse.Namespace) -> int:
+    """The background run (``both --no-create``): takes the lock itself or exits busy,
+    stops at its own deadline before a GitHub call, releases the lock as it exits."""
+    signal.signal(signal.SIGTERM, terminated)
+    ctx.gh.deadline = time.monotonic() + deadlines()["worker"]
+    ctx.lock_wait = 0.0
+    note("worker", "inbound, then outbound without creates")
+    try:
+        code = cmd_both(ctx, argparse.Namespace(command="both", no_create=True))
+    except DeadlineReached as exc:
+        note("worker", str(exc))
+        return EXIT_DEADLINE
+    except RateLimited as exc:
+        note("worker", str(exc))
+        return EXIT_RATE_LIMITED
+    except Stop as exc:
+        note("worker", str(exc))
+        return exc.code
+    note("worker", f"ended with exit {code}")
+    return code
+
+
 COMMANDS = {
     "install-check": cmd_install_check,
     "outbound": cmd_outbound,
@@ -4311,6 +4655,9 @@ COMMANDS = {
     "both": cmd_both,
     "full": cmd_both,
     "dismiss": cmd_dismiss,
+    "session": cmd_session,
+    "supervise": cmd_supervise,
+    "worker": cmd_worker,
 }
 
 
@@ -4378,8 +4725,11 @@ def build_parser() -> argparse.ArgumentParser:
     check.add_argument(
         "--force", action="store_true", help="replace a differing workflow file"
     )
-    for name in LATER_STAGES:
-        sub.add_parser(name, help="(not implemented yet)")
+    sub.add_parser(
+        "session", help="the session-start hook: digest summary, background run"
+    )
+    sub.add_parser("supervise", help="the background run's supervisor (detached)")
+    sub.add_parser("worker", help="the background run itself, under the supervisor")
     return parser
 
 
@@ -4392,6 +4742,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
     common = git_common_dir()
     mirror_dir = os.path.join(common, MIRROR_DIRNAME) if common else ""
+    session = argv[-1:] == ["session"]
     try:
         switch = load_switch(mirror_dir) if common else None
         # No switch is silent even for malformed arguments; only help still answers.
@@ -4400,11 +4751,12 @@ def main(argv: Sequence[str] | None = None) -> int:
         args = build_parser().parse_args(argv)
         if switch is None:
             return EXIT_OK
-        if args.command in LATER_STAGES:
-            raise Stop(EXIT_NOT_IMPLEMENTED, f"{args.command}: not implemented")
         ctx = Context(mirror_dir, switch, args.lock_wait)
         return COMMANDS[args.command](ctx, args)
     except Stop as stop:
+        if session:  # the hook never fails the session
+            print(cut("bead-mirror: " + str(stop)))
+            return EXIT_OK
         fail(stop.code, str(stop))
 
 

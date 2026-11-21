@@ -40,6 +40,15 @@
           }
         ],
         "matcher": ""
+      },
+      {
+        "hooks": [
+          {
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/bead-mirror-session.sh",
+            "type": "command"
+          }
+        ],
+        "matcher": ""
       }
     ]
   }

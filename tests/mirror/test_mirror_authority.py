@@ -1,4 +1,4 @@
-"""Spec criterion Authority (and the switch and stub contracts around it)."""
+"""Spec criterion Authority (and the switch contract around it)."""
 
 from __future__ import annotations
 
@@ -13,11 +13,6 @@ import pytest
 from tests.mirror._harness import ACCOUNT, COMMAND, HOST, REPO_NODE_ID, Mirror
 
 pytestmark = pytest.mark.bd
-
-LATER_STAGES = [
-    "supervise",
-    "worker",
-]
 
 
 def assert_nothing_written(m: Mirror, before: str) -> None:
@@ -34,6 +29,8 @@ def assert_nothing_written(m: Mirror, before: str) -> None:
         ["reset-state"],
         ["inbound"],
         ["worker"],
+        ["supervise"],
+        ["session"],
         ["overwrite"],
         ["outbound", "--bogus"],
     ],
@@ -209,14 +206,6 @@ def test_invalid_switch_stops_with_report(mirror: Mirror, switch: str) -> None:
     proc = mirror.run("outbound", "--dry-run")
     assert proc.returncode == 3 and "switch" in proc.stderr
     assert mirror.fake.calls() == [] and mirror.bd_calls() == []
-
-
-@pytest.mark.parametrize("command", LATER_STAGES)
-def test_later_subcommands_are_stubs_that_fail(mirror: Mirror, command: str) -> None:
-    mirror.write_switch()
-    proc = mirror.run(command)
-    assert proc.returncode == 8 and "not implemented" in proc.stderr
-    assert mirror.fake.calls() == []
 
 
 def test_authority_switch_is_found_with_git_older_than_path_format(

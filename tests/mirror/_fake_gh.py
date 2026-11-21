@@ -51,7 +51,8 @@ that text is rejected as unprocessable); ``fail_create`` (``offline``,
 before creating anything); ``refuse_label`` (a ``createLabel`` whose name contains
 that text is rejected as unprocessable); ``drop_write`` (a list of mutation names:
 GitHub answers success and keeps nothing); ``interrupt_readback`` (the first
-``MirrorIssueNode`` read after a write fails with HTTP 502, once);
+``MirrorIssueNode`` read after a write fails with HTTP 502, or the ``errors.json`` entry
+it names, once);
 ``collaborator_after_write`` ({mutation: {field: value}}: right after that write, a
 collaborator sets those issue fields, once); ``stores_body_as`` ([old, new]: GitHub
 stores every body with ``old`` replaced by ``new``); ``fail_write`` ({mutation: an
@@ -699,9 +700,11 @@ def get_issue_node(
     repo, issue = issue_by_node(state, str(variables["id"]))
     record["repo_node_id"] = repo["node_id"]
     if faults.pop("_readback_armed", False):  # the read-back after a write fails, once
-        faults.pop("interrupt_readback", None)
+        kind = faults.pop("interrupt_readback", None)
         record["fault"] = "interrupt_readback"
-        raise error_reply("bad_gateway", state, False)
+        raise error_reply(
+            kind if isinstance(kind, str) else "bad_gateway", state, False
+        )
     reply = fill(fixture("graphql_node.json"), {"node": issue_node(state, repo, issue)})
     return json.dumps(reply)
 

@@ -10,6 +10,16 @@
             "statusMessage": "Loading Beads context"
           }
         ]
+      },
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$(git rev-parse --show-toplevel)/.codex/hooks/bead-mirror-session.sh\"",
+            "statusMessage": "Reading the bead mirror digest"
+          }
+        ]
       }
     ],
     "PreToolUse": [
