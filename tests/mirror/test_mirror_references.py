@@ -60,13 +60,43 @@ def step_script(workflow: str) -> str:
     return "".join(block)
 
 
+def step_env(workflow: str) -> dict[str, str]:
+    """The step's ``env:`` mapping, as written: name to value or ``${{ ... }}``."""
+    lines = workflow.splitlines()
+    start = next(i for i, line in enumerate(lines) if line.strip() == "env:") + 1
+    indent = len(lines[start]) - len(lines[start].lstrip(" "))
+    mapping = {}
+    for line in lines[start:]:
+        if not line.startswith(" " * indent) or line[indent] == " ":
+            break
+        name, value = line.strip().split(": ", 1)
+        mapping[name] = value
+    return mapping
+
+
+def resolve(value: str, context: dict[str, Any]) -> str:
+    """A ``${{ a.b.c }}`` value looked up in ``context``; a missing field is empty."""
+    match = re.fullmatch(r"\$\{\{ ([a-z_]+(?:\.[A-Za-z_]+)*) \}\}", value)
+    if match is None:
+        assert "${{" not in value, value
+        return value
+    head, *path = match.group(1).split(".")
+    assert head in context, f"an expression this replay cannot resolve: {value}"
+    found: Any = context[head]
+    for key in path:
+        found = found.get(key) if isinstance(found, dict) else None
+    return "" if found is None else str(found)
+
+
 class Check:
     """Runs the extracted step the way GitHub's runner does, against the fake ``gh``."""
 
     def __init__(self, mirror: Mirror, tmp_path: Path) -> None:
         self.mirror = mirror
         self.script = tmp_path / "step.sh"
-        self.script.write_text(step_script(install(mirror)), encoding="utf-8")
+        workflow = install(mirror)
+        self.script.write_text(step_script(workflow), encoding="utf-8")
+        self.step_env = step_env(workflow)
         self.installed = len(mirror.fake.calls())  # the authority checks' reads
         runtime = tmp_path / "runner-bin"
         runtime.mkdir()
@@ -76,14 +106,24 @@ class Check:
     def run(
         self, number: int, exempt: str = "", event: Path | None = None
     ) -> subprocess.CompletedProcess[str]:
-        """``event``: the payload file the runner hands this run, as GitHub's does."""
+        """``event``: the payload file the runner hands this run, as GitHub's does.
+        The step's environment comes from the workflow's ``env:`` mapping, resolved
+        against that payload (or a minimal ``pull_request`` one) as the runner would."""
+        payload = (
+            json.loads(event.read_text(encoding="utf-8"))
+            if event is not None
+            else {"number": number, "pull_request": {"number": number}}
+        )
+        context = {
+            "github": {"event": payload, "token": "fake-token"},
+            "vars": {"BEAD_REF_EXEMPT": exempt},
+        }
         env = {
             "PATH": self.path,
             "GITHUB_SERVER_URL": f"https://{HOST}",
             "GITHUB_REPOSITORY": REPO,
-            "PR_NUMBER": str(number),
-            "BEAD_REF_EXEMPT": exempt,
         }
+        env.update({k: resolve(v, context) for k, v in self.step_env.items()})
         if event is not None:
             env.update(
                 GITHUB_EVENT_NAME="pull_request_target", GITHUB_EVENT_PATH=str(event)
@@ -335,6 +375,11 @@ def test_check_two_edits_whose_runs_finish_in_reverse_order_end_with_the_latest_
         older_run = check.run(number, event=events[0])  # finishes last
         assert newer_run.returncode == older_run.returncode, "both read the same body"
         verdicts.append(older_run.returncode == 0)
+        if verdicts[-1]:
+            assert f"{FOUND}#5" in older_run.stdout, older_run.stdout
+        else:
+            assert "The description has no reference to an issue." in older_run.stdout
+            assert "Fix: add a reference to an issue" in older_run.stdout
         # The older payload's own body would have given the other verdict.
         alone = mirror.fake.add_pull(author="trial-owner", body=older["body"])
         assert (check.run(alone).returncode == 0) != verdicts[-1]

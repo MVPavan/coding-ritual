@@ -84,7 +84,9 @@ does not take any of them on its own.
 
 1. **The live trial passes** (owner). `docs/workstreams/beads-github-mirror/trial.md` is the
    checklist. Every one-account case passed on 2026-11-21. The trial has not passed while its fork
-   cases (F1, F2) are deferred.
+   cases (F1, F2) are deferred. The trial's session-start cases (H1, H2) used copied hook files,
+   so real session starts after `update` installs the hook are still checked at the plugin sync
+   (cr-e0a); step 1 is not cleared until then either.
 2. **Set the exempt-authors variable** (owner). The workflow reads the repository variable
    `BEAD_REF_EXEMPT`, a comma-separated list of logins whose pull requests pass without a
    reference. Leave it absent or empty to exempt no one, or set it, for example with

@@ -4,6 +4,7 @@ carried case: deferred and excluded beads through `pr` with out-of-scope types a
 from __future__ import annotations
 
 import re
+from pathlib import Path
 
 import pytest
 
@@ -357,6 +358,44 @@ def test_outbound_body_fits_the_budget_with_a_truncation_note(mirror: Mirror) ->
     assert bodies[fenced][
         : -len(f"\n\n_Truncated: the full text is in bead `{fenced}`._")
     ].endswith("\n```")
+
+
+def test_outbound_body_of_exactly_the_budget_is_whole_and_one_over_is_cut(
+    mirror: Mirror, tmp_path: Path
+) -> None:
+    # Trial T10: size the text from the command's rendering of a same-length bead ID.
+    mirror.write_switch()
+    probe = ("--id", "ma-bud0", "-d", "x", "--acceptance", "y")
+    mirror.create_bead("Probe", "feature", *probe)
+    assert mirror.run("outbound").returncode == 0
+    (issue,) = mirror.fake.issues()
+    room = 60_000 - (len(issue["body"]) - 2)  # characters for both texts
+    acceptance = "Prüfung 完了 🙂"
+    unit = "é日本🙂a"  # 13 UTF-8 bytes in 5 characters
+    texts = {}
+    for n, size in ((1, room), (2, room + 1)):
+        fill = size - len(acceptance)
+        texts[n] = (unit * (fill // len(unit) + 1))[:fill]
+        text = tmp_path / f"description-{n}.txt"
+        text.write_text(texts[n], encoding="utf-8")
+        extra = ("--id", f"ma-bud{n}", "--body-file", str(text))
+        mirror.create_bead(f"Budget {n}", "feature", *extra, "--acceptance", acceptance)
+    assert mirror.run("outbound").returncode == 0
+    bodies = {
+        i["body"].split("bead=", 1)[1].split(" ", 1)[0]: i["body"]
+        for i in mirror.fake.issues()
+    }
+    whole, over = bodies["ma-bud1"], bodies["ma-bud2"]
+    assert len(whole) == 60_000 and len(whole.encode()) > 100_000
+    assert whole.split("\n", 2)[2] == f"\n{texts[1]}\n\n## Acceptance\n\n{acceptance}"
+    note = "\n\n_Truncated: the full text is in bead `ma-bud2`._"
+    assert len(over) == 60_000 and over.endswith(note)
+    assert whole.split("\n", 2)[2].startswith(over[: -len(note)].split("\n", 2)[2])
+
+    writes = len(mirror.fake.writes())
+    for _ in range(2):
+        assert mirror.run("outbound").returncode == 0
+    assert len(mirror.fake.writes()) == writes, "later runs make no writes"
 
 
 def test_outbound_dry_run_plans_the_create_and_writes_nothing(mirror: Mirror) -> None:
