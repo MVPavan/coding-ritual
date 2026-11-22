@@ -1,6 +1,6 @@
 <!-- BD:GENERATED START -->
 # Workstream Status (global)
-_generated from bd @ 2026-11-21T15:44:20Z — DO NOT EDIT (run: BD_RENDER=1 bash <tracker-skill-dir>/scripts/bd-render-tracking.sh)_
+_generated from bd @ 2026-11-22T04:04:25Z — DO NOT EDIT (run: BD_RENDER=1 bash <tracker-skill-dir>/scripts/bd-render-tracking.sh)_
 
 ### (no anchor)
 - **Adapt five deferred pstack playbooks: Visual parity, Babysit, Shipping, Autopilot-full, Autopilot-stack** — 3/5  ⏳
@@ -23,7 +23,7 @@ _generated from bd @ 2026-11-21T15:44:20Z — DO NOT EDIT (run: BD_RENDER=1 bash
 - **phase-7 epic: build-loop as the second live graph** — 4/4  ✅ DONE
 
 ### docs/specs/2026-11-20-beads-github-mirror.md
-- **Beads → GitHub mirror** — 3/4  ⏳
+- **Beads → GitHub mirror** — 4/4  ✅ DONE
 
 ### docs/workstreams/agent-bridge/roadmap.md
 - **[P0] Baseline and contracts** — 1/1  ✅ DONE
@@ -37,7 +37,7 @@ _generated from bd @ 2026-11-21T15:44:20Z — DO NOT EDIT (run: BD_RENDER=1 bash
 - **[M1] Outbound command** — 3/3  ✅ DONE
 - **[M2] Digest and pull-request check** — 2/2  ✅ DONE
 - **[M3] Hooks and skill guidance** — 2/2  ✅ DONE
-- **[M4] Live trial and activation guide** — 3/5  ⏳
+- **[M4] Live trial and activation guide** — 5/5  ✅ DONE
 
 ### docs/workstreams/skill-curation/idea-level-design.md
 - **Idea-level rulings for upstream skills** — 7/7  ✅ stages done (close epic)
@@ -51,6 +51,7 @@ _generated from bd @ 2026-11-21T15:44:20Z — DO NOT EDIT (run: BD_RENDER=1 bash
 ## Ready now (top of queue)
 - `cr-g3e.1` A merge-resolution graph: a parked landing becomes ordinary reviewed work
 - `cr-r2pa.2.16` Attended or away: one mechanism for when a session asks the owner
+- `cr-p3em.4` Autopilot-full playbook (adapted from pstack)
 - `cr-rdlf` Checkpoint export: incremental checkpoints + unmarked one-close-old anchor window
 - `cr-o85.34.30` Codex review activations consume about 700k input tokens each
 - `cr-rgh6` Coverage view: skills and traits per domain · sub-stage, with merge/keep/remove flags
@@ -68,7 +69,6 @@ _generated from bd @ 2026-11-21T15:44:20Z — DO NOT EDIT (run: BD_RENDER=1 bash
 - `cr-r2pa.3` Phase 3: the finished mechanism
 - `cr-7wi` Phase 5: collapse the workflows/ vs package fixture duplication
 - `cr-1clr` Pilot unit-first rulings on the next upstream release
-- `cr-3ss` Plugin distribution of the workflow engine (contractor/inspector/graphs) via /harness-publish
 <!-- BD:GENERATED END -->
 
 <!-- Human notes below this line are preserved across renders. Everything above is bd-generated; do not hand-edit it. -->

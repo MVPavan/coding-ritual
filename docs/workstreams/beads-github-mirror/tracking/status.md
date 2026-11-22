@@ -1,11 +1,11 @@
 <!-- BD:GENERATED START -->
 # Status — beads-github-mirror
-_generated from bd @ 2026-11-21T15:44:20Z — DO NOT EDIT (run: BD_RENDER=1 bash <tracker-skill-dir>/scripts/bd-render-tracking.sh)_
+_generated from bd @ 2026-11-22T04:04:25Z — DO NOT EDIT (run: BD_RENDER=1 bash <tracker-skill-dir>/scripts/bd-render-tracking.sh)_
 _Roadmap: [roadmap.md](../roadmap.md) · Brainstorm: [2026-11-20-beads-github-mirror.md](../../../../docs/specs/2026-11-20-beads-github-mirror.md)_
 - **[M1] Outbound command** — 3/3  ✅ DONE
 - **[M2] Digest and pull-request check** — 2/2  ✅ DONE
 - **[M3] Hooks and skill guidance** — 2/2  ✅ DONE
-- **[M4] Live trial and activation guide** — 3/5  ⏳
+- **[M4] Live trial and activation guide** — 5/5  ✅ DONE
 
 <!-- BD:GENERATED END -->
 
