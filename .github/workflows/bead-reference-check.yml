@@ -1,0 +1,121 @@
+# Written by `bead-mirror install-check`; edit the command, not this file.
+# Required check: the job below. It runs from the default branch, never checks out
+# code, and reads the pull request's current description through the API.
+name: Bead reference check
+
+on:
+  pull_request_target:
+    types: [opened, edited, reopened, synchronize]
+
+permissions:
+  pull-requests: read
+
+concurrency:
+  group: bead-reference-check-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  bead-reference:
+    name: bead-reference
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check the description for an issue reference
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_ENTERPRISE_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          BEAD_REF_EXEMPT: ${{ vars.BEAD_REF_EXEMPT }}
+        run: |
+          python3 - <<'BEAD_REFERENCE_CHECK'
+          import json
+          import os
+          import re
+          import subprocess
+          import sys
+
+          REFERENCE_RE = re.compile('(?<!\\w)(?:close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved|ref|refs):?\\s+(?:#(?P<short>[0-9]{1,64})(?!\\w)|https://(?P<host>[^/\\s]+)/(?P<owner>[^/\\s]+)/(?P<name>[^/\\s]+)/issues/(?P<long>[0-9]{1,64})/?(?=[#?<]|[.,;:!)\\]\'\\"]*(?:\\s|$)))', re.IGNORECASE)
+
+
+          def references(text: str, host: str, repo: str) -> list[int]:
+              """The issue numbers ``text`` references in ``host``/``repo``, first-seen order."""
+              found: list[int] = []
+              for m in REFERENCE_RE.finditer(text):
+                  if m.group("short") is not None:
+                      digits = m.group("short")
+                  else:
+                      named = m.group("owner") + "/" + m.group("name")
+                      if m.group("host").lower() != host.lower() or named.lower() != repo.lower():
+                          continue
+                      digits = m.group("long")
+                  digits = digits.lstrip("0")
+                  if not digits or len(digits) > 10:
+                      continue  # zero, or longer than any issue number (REFERENCE_DIGITS)
+                  number = int(digits)
+                  if number not in found:
+                      found.append(number)
+              return found
+
+
+          FIX = (
+              "Fix: add a reference to an issue in this repository to the pull request's "
+              "description, for example 'Refs #42' (or 'Closes #42' when it completes the "
+              "issue), then save the description to run the check again."
+          )
+
+
+          def fail(why):
+              print("::error title=No bead reference::" + why + " " + FIX)
+              sys.exit(1)
+
+
+          server = os.environ.get("GITHUB_SERVER_URL", "")
+          repo = os.environ.get("GITHUB_REPOSITORY", "")
+          number = os.environ.get("PR_NUMBER", "")
+          host = server.split("://", 1)[-1].strip("/")
+          if not (
+              re.fullmatch(r"[0-9]+", number)
+              and re.fullmatch(r"[^/\s]+/[^/\s]+", repo)
+              and re.fullmatch(r"[^/\s]+", host)
+          ):
+              fail("The run did not name a pull request in this repository.")
+          try:
+              proc = subprocess.run(
+                  ["gh", "api", "--hostname", host, "repos/" + repo + "/pulls/" + number],
+                  stdin=subprocess.DEVNULL,
+                  capture_output=True,
+                  text=True,
+                  timeout=60,
+              )
+          except (OSError, subprocess.SubprocessError):
+              proc = None
+          if proc is None or proc.returncode != 0:
+              fail("The pull request could not be read through the API.")
+          try:
+              pull = json.loads(proc.stdout)
+          except ValueError:
+              pull = None
+          user = pull.get("user") if isinstance(pull, dict) else None
+          body = pull.get("body") if isinstance(pull, dict) else None
+          if (
+              not isinstance(user, dict)
+              or not isinstance(user.get("login"), str)
+              or "body" not in pull
+              or not (body is None or isinstance(body, str))
+          ):
+              fail("The API returned a malformed pull request.")
+          exempt = {
+              name.strip().lower()
+              for name in os.environ.get("BEAD_REF_EXEMPT", "").split(",")
+              if name.strip()
+          }
+          if user["login"].lower() in exempt:
+              print("The author is exempt (repository variable BEAD_REF_EXEMPT).")
+              sys.exit(0)
+          if not (body or "").strip():
+              fail("The pull request's description is empty.")
+          found = references(body, host, repo)
+          if not found:
+              fail("The description has no reference to an issue.")
+          print("Bead reference found: " + ", ".join("#" + str(n) for n in found))
+          BEAD_REFERENCE_CHECK
