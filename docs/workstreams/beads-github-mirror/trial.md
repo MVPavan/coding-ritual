@@ -9,12 +9,14 @@ The spec makes this trial a prerequisite to activation in any project. Only the 
 repository. Every other Success Criterion is settled by `tests/mirror` against the fake `gh`.
 
 Placeholders: `OWNER/TRIAL` is the throwaway repository, `HOST` its GitHub host, `OWNER` the owner's
-login. `PR#n` and `#n` are numbers in the trial repository.
+login, `SECOND` the second account's login. `PR#n` and `#n` are numbers in the trial repository.
 
 ## One account
 
-The trial has one GitHub account, the owner's; a second is deferred (owner, 2026-11-20). The mirror
-account is therefore `OWNER`, and every issue, pull request, edit and merge below is by `OWNER`.
+Every case but S10, F1 and F2 ran with one GitHub account, the owner's (a second was deferred, owner,
+2026-11-20). The mirror account is therefore `OWNER`, and every issue, pull request, edit and merge
+below is by `OWNER`. On 2026-11-22 the owner provided a second account, `SECOND`, which forked
+`OWNER/TRIAL` and opened the pull requests of F1 and F2; `OWNER` still approved and merged.
 
 - Open no issue in `OWNER/TRIAL` by hand: the creator listing (T11) cannot tell a hand-made issue
   from one the command made except by its banner.
@@ -23,8 +25,8 @@ account is therefore `OWNER`, and every issue, pull request, edit and merge belo
   variable was empty.
 - One account cannot settle F1 and F2. A fork into an organisation the owner controls does not help:
   its pull requests are still authored by `OWNER`, a collaborator, so the outside-contributor
-  approval never applies. What stays unproven until the second account exists is stated after the
-  merge-decision table. One account also cannot show the exemption is per login (that a pull request
+  approval never applies. `SECOND` is not a collaborator on `OWNER/TRIAL`. One account also
+  cannot show the exemption is per login (that a pull request
   by an unlisted author is still checked while the variable names someone else); no criterion
   depends on it.
 
@@ -52,7 +54,7 @@ evidence, or a screenshot where no API exposes the setting.
 | S7 | Create the writer switch in that clone: host `HOST`, `OWNER/TRIAL` with the node ID from S1, mirror account `OWNER`, default scope, the store's `project_id`. Log `gh` in as `OWNER` | `bead-mirror outbound --dry-run` report | The dry run passes every authority check and writes nothing |
 | S8 | Run `install-check`, commit and push the workflow to the default branch | The commit URL; `gh api repos/OWNER/TRIAL/contents/.github/workflows/bead-reference-check.yml` | The default branch carries the workflow exactly as the command wrote it |
 | S9 | A branch protection rule or ruleset on the default branch requiring the check's job name from GitHub Actions; where the plan offers a ruleset that requires the specific workflow, use that instead | `gh api repos/OWNER/TRIAL/rulesets` and `.../rulesets/ID`, or `gh api repos/OWNER/TRIAL/branches/BRANCH/protection` | The required check names the fixed job and the GitHub Actions app; for a ruleset, enforcement is `active`, not `evaluate`, and `bypass_actors` is an empty list; for branch protection, `enforce_admins.enabled` is true, so the owner as an administrator cannot merge past the check |
-| S10 | A second GitHub account that can fork `OWNER/TRIAL` and open pull requests | Its fork's URL | **Deferred until a second GitHub account exists (owner, 2026-11-20).** F1 and F2 wait for it |
+| S10 | A second GitHub account that can fork `OWNER/TRIAL` and open pull requests | Its fork's URL | The fork exists and `SECOND` is not a collaborator. Done 2026-11-22: https://github.com/LazyChads/bead-mirror-trial; evidence/S10.md |
 
 The command runs as `bead-mirror SUBCOMMAND` below, meaning the command at
 `.claude/hooks/bead-mirror.py` in the trial clone. The trial beads are created in the trial store by
@@ -108,16 +110,14 @@ the merge because the required check is failing or missing.
 | C6 | A pull request that edits the workflow | From a branch in `OWNER/TRIAL`, open a pull request with no reference whose only change is to `.github/workflows/bead-reference-check.yml`: its triggers stay as `install-check` wrote them and only the job's step is changed to always pass | The check runs from the default branch's workflow and fails; the merge is blocked | pass | https://github.com/MVPavan/bead-mirror-trial/pull/16, run https://github.com/MVPavan/bead-mirror-trial/actions/runs/44901688632 ran the default branch's step; server refused the merge (REST merge: 405, required status check failing) after a reopen on the same head, run https://github.com/MVPavan/bead-mirror-trial/actions/runs/44918774898, variable absent; evidence/C6.md |
 | C6b | A same-name stand-in from a branch | From a branch in `OWNER/TRIAL`, open a pull request with no reference that adds a new workflow file with an `on: pull_request` trigger and one job with the check's name that always passes. Record which S9 setup is in use (ruleset requiring the workflow, or branch protection requiring the job name) | Either the stand-in cannot make the pull request mergeable (the merge is blocked), or the trial records that collaborator branches are outside the Supported setup for branch protection and names the part of the Check criterion this leaves unproven | pass (ruleset requires job name `bead-reference` from app 15368, which the stand-in also matches; server refused the merge (405) with the stand-in re-run to finish last and with it cancelling the real run via its concurrency group; the concurrent form rests on BLOCKED and gh's pre-check; the reading the evidence fits is that GitHub judges the latest run per workflow, so a separate workflow's success cannot override the real one (C4's #13 cancelled-then-success pair merged); unproven: a head where the real workflow leaves no check run of its own, for example cancelled before its job's check run exists) | https://github.com/MVPavan/bead-mirror-trial/pull/17, runs https://github.com/MVPavan/bead-mirror-trial/actions/runs/44903932259 (re-run last), https://github.com/MVPavan/bead-mirror-trial/actions/runs/44904091597 (real, cancelled); evidence/C6b.md |
 | C7 | Enforcing, not evaluating | Read the ruleset or protection (S9) while C1 is open | Enforcement is active and the C1 merge attempt was refused, not merely reported | pass (C1's PR reopened, check failing: REST `PUT pulls/10/merge` got 405 "Required status check bead-reference is failing"; `gh pr merge --admin` got the same rule violation from `mergePullRequest`) | ruleset https://github.com/MVPavan/bead-mirror-trial/rules/27791832 active, bypass []; https://github.com/MVPavan/bead-mirror-trial/pull/10, run https://github.com/MVPavan/bead-mirror-trial/actions/runs/44903930244; evidence/C7.md |
-| F1 | Fork pull request with a reference | From the second account's fork, open a pull request with `Refs #n`; approve its workflow run | The check runs under `pull_request_target` and passes; the merge is allowed. **Deferred until a second GitHub account exists (owner, 2026-11-20)** | deferred | |
-| F2 | Fork pull request adding a same-name workflow | From the fork, open a pull request with no reference that adds a workflow whose job has the check's name and passes | The added workflow does not run before the owner approves it, and the pull request stays blocked. **Deferred until a second GitHub account exists (owner, 2026-11-20)** | deferred | |
+| F1 | Fork pull request with a reference | From the second account's fork, open a pull request with `Refs #n`; approve its workflow run | The check runs under `pull_request_target` and passes; the merge is allowed | pass (2026-11-22; the run started with no approval asked: the outside-contributor approval holds back workflows from the fork, not `pull_request_target`, so there was nothing to approve) | https://github.com/MVPavan/bead-mirror-trial/pull/23 by `SECOND`, run https://github.com/MVPavan/bead-mirror-trial/actions/runs/44983030038 ("Bead reference found: #5"); CLEAN; REST merge 200, merged; evidence/F1.md |
+| F2 | Fork pull request adding a same-name workflow | From the fork, open a pull request with no reference that adds a workflow whose job has the check's name and passes | The added workflow does not run before the owner approves it, and the pull request stays blocked | pass (2026-11-22; also after the owner approved the stand-in and it succeeded, the merge was still refused) | https://github.com/MVPavan/bead-mirror-trial/pull/24 by `SECOND`: stand-in run https://github.com/MVPavan/bead-mirror-trial/actions/runs/44983095880 `action_required`, real run https://github.com/MVPavan/bead-mirror-trial/actions/runs/44983095827 failed; REST merge 405 "Required status check bead-reference is failing" before and after approving the stand-in; closed unmerged; evidence/F2.md |
 
-Until F1 and F2 run with the second account, two things stay unproven: that the Supported setup's Actions policy runs the check
-for fork pull requests (F1), and the Pull-request check's claim that a same-name check cannot stand in
-(F2), which is the fork half of the Check criterion's "a pull request that edits the workflow does not
-change its own verdict". C6 and C6b prove that claim only for a branch in the repository. Until F1 and F2 pass,
-the trial has not passed and the activation prerequisite is unmet. Activating more narrowly, for
-example only in repositories that take no fork pull requests, would be the owner's decision to record,
-not something this checklist allows.
+**F1 and F2 passed on 2026-11-22**, so every case of the trial has passed. F1 shows the Supported
+setup's Actions policy runs the check for fork pull requests; F2 shows a same-name check added from a
+fork does not stand in, the fork half of the Check criterion's "a pull request that edits the workflow
+does not change its own verdict" (C6 and C6b cover a branch in the repository). C6b's stated residue
+still stands.
 
 If C4 shows no pair of runs finishing in reverse order and no cancellation, the Check criterion's
 "two edits on the same head whose runs finish in reverse order end with the verdict for the latest

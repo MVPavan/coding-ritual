@@ -1,9 +1,9 @@
 # Beads → GitHub mirror
 
-> The one-account live trial (`docs/workstreams/beads-github-mirror/trial.md`) passed on 2026-11-21.
-> Activation still waits for the fork cases F1 and F2, which need a second GitHub account. Until they
-> pass, the trial has not passed. Activating sooner or more narrowly is the owner's decision; this
-> guide does not make it.
+> The live trial (`docs/workstreams/beads-github-mirror/trial.md`) passed: its one-account cases on
+> 2026-11-21 and its fork cases F1 and F2, with a second account, on 2026-11-22. Activation step 1
+> still waits for real session starts after `update` installs the hook, checked at the plugin sync
+> (`cr-e0a`). Activating sooner is the owner's decision; this guide does not make it.
 
 This is the owner's guide to the mirror. The design is in
 `docs/specs/2026-11-20-beads-github-mirror.md`. The command is `.claude/hooks/bead-mirror.py`, and
@@ -83,8 +83,8 @@ Activation is owner-controlled and goes in this order. Every step is the owner's
 does not take any of them on its own.
 
 1. **The live trial passes** (owner). `docs/workstreams/beads-github-mirror/trial.md` is the
-   checklist. Every one-account case passed on 2026-11-21. The trial has not passed while its fork
-   cases (F1, F2) are deferred. The trial's session-start cases (H1, H2) used copied hook files,
+   checklist. Every one-account case passed on 2026-11-21 and the fork cases (F1, F2) on 2026-11-22.
+   The trial's session-start cases (H1, H2) used copied hook files,
    so real session starts after `update` installs the hook are still checked at the plugin sync
    (cr-e0a); step 1 is not cleared until then either.
 2. **Set the exempt-authors variable** (owner). The workflow reads the repository variable
@@ -119,7 +119,9 @@ does not take any of them on its own.
 7. **Set the protection and the Actions policy** (owner, in the repository settings). Allow Actions,
    with `pull_request_target` workflows running for the repository's pull requests, including pull
    requests from forks. Require approval before workflows run for outside contributors' pull
-   requests, so a workflow a pull request adds does not run unseen. Protect the default branch with a
+   requests, so a workflow a pull request adds does not run unseen. The check itself runs on a
+   fork's pull request without that approval, because `pull_request_target` runs the default
+   branch's workflow (trial F1). Protect the default branch with a
    branch protection rule or a ruleset; a ruleset must be enforcing (`active`, not `evaluate`) with no
    bypass actors, and a branch protection rule must apply to administrators. The trial, on a
    personal repository, used a ruleset.
@@ -136,6 +138,8 @@ does not take any of them on its own.
    same name that always passed. The merge was still blocked, because the real check also ran on
    that head and failed (case C6b). The trial did not cover a head on which the real workflow leaves
    no check run of its own, for example because it was cancelled before its job's check run existed.
+   From a fork, the same stand-in waited for the owner's approval while the real check ran and
+   failed; once approved it ran and passed, and the merge was still refused (case F2).
 
 ### Codex hooks need trust
 
@@ -279,6 +283,6 @@ From the command:
 - Without `/proc` (macOS), a background descendant that ignores the stop signal can outlive the
   worker's own cleanup; the supervisor stops it, unless the supervisor was killed too.
 
-From the trial, while it has one GitHub account: that the Actions policy runs the check for fork
-pull requests, and that a same-name check added from a fork cannot stand in, stay unproven. Until
-the fork cases F1 and F2 pass, the trial has not passed, so activation waits (step 1).
+From the trial: a same-name check from a separate workflow did not make a pull request mergeable,
+either from a branch (C6b) or from a fork, even after the owner approved the fork's run (F2). What
+stays unproven is C6b's residue, a head where the real workflow leaves no check run of its own.
