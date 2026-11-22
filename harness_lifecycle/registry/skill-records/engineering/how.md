@@ -30,9 +30,13 @@ Use to explain how something in this project works now (code, a script, config, 
 - **cursor_plugins:skill:pstack/skills/how#explanation-sections** `pstack/skills/how/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
 - **cursor_plugins:skill:pstack/skills/how#cited-flow-walkthrough** `pstack/skills/how/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
 - **cursor_plugins:skill:pstack/skills/how#reconcile-by-reading** `pstack/skills/how/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/how#doubt-takes-simple-path** `pstack/skills/how/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe (pending cr-r2pa.3.12)
+- **cursor_plugins:skill:pstack/skills/how#assigned-slice-depth** `pstack/skills/how/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe (pending cr-r2pa.3.12)
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-22` **adopt** (2026-11-22-rejects-review:033): Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3. Adopted, pending cr-r2pa.3.12: when how splits a wide question into angles, eac…
+- `2026-11-22` **adopt** (2026-11-22-rejects-review:031): Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3. Adopted, pending cr-r2pa.3.12: an uncertain narrow-or-wide call resolves to the…
 - `2026-11-17` **update** (2026-11-17-settle-open-questions:005): Owner ruling of 2026-11-17 (conversation), bead cr-r2pa.4. Its decision branch sends open scope to settle-open-questions.
 - `2026-11-11` **update** (2026-11-11-discovery:022): Owner ruling L1 of 2026-11-10 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 20 D5, critic-37b F1: how's decision branch gets outside evidence fro…
 - `2026-11-11` **update** (2026-11-11-discovery:006): Owner ruling L1 of 2026-11-10 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 20 D1. Its decision branch sends open scope to discovery; outside sou…

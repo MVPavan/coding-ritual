@@ -11,7 +11,7 @@ Catalog: `44c9b2d6e889982ac18c27d05a19fefe335194e1`, 16 capabilities.
 | `skill:skills/brainstorming` | adopt | not analysed | settle-open-questions | 2026-10-14-migration | no |
 | `skill:skills/dispatching-parallel-agents` | reject | decided (whole skill) |  | 2026-10-14-owner-review | no |
 | `skill:skills/executing-plans` | reject | decided (whole skill) |  | 2026-10-14-migration | no |
-| `skill:skills/finishing-a-development-branch` | reject | decided (whole skill) |  | 2026-10-14-owner-review | no |
+| `skill:skills/finishing-a-development-branch` | defer | decided (whole skill) |  | 2026-11-22-rejects-review | no |
 | `skill:skills/receiving-code-review` | adopt | not analysed | review | 2026-10-14-migration | no |
 | `skill:skills/requesting-code-review` | adopt | not analysed | review | 2026-10-14-migration | no |
 | `skill:skills/subagent-driven-development` | adopt-merged | not analysed | doc:.claude/skills/mvp-mode/playbooks/implement.md | 2026-10-14-migration | no |

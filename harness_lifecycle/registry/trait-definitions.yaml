@@ -9754,6 +9754,11 @@ distrust-interrupted-resume:
 draft-without-machine-patterns:
   definition: "Write the reply free of machine-written patterns while drafting, since a later cleanup pass does not remove them."
   placement: {domain: core, stage: X, substage: Communication}
+edit-pass-before-posting:
+  definition: "Pass text an agent posts for people to read, such as review replies and pull-request comments, through an edit for machine-written patterns after it is drafted and before it is posted."
+  placement: {domain: core, stage: X, substage: Communication}
+  distinct_from: [draft-without-machine-patterns]
+  note: "draft-without-machine-patterns avoids the patterns while drafting and holds that a later pass does not remove them; this relies on an edit pass over the finished draft."
 one-thought-sentences:
   definition: "Write one thought per sentence and end each with a period."
   placement: {domain: core, stage: X, substage: Communication}

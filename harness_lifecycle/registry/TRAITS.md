@@ -2018,10 +2018,10 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `tracker-adapter-contract`: Require a tracker adapter that searches, reads, creates, updates without clobbering, adds links and recurrence notes and undoes its own issue, failing closed per missing operation and inventing no field value. — out-of-scope
 - `already-handled-check`: Post and create nothing when the report's link is already tied to an issue or a prior triage reply. — out-of-scope
 - `tracker-duplicate-search`: Search the tracker for an existing issue that describes the same fault before deciding on a bug report. — adopt, pending cr-r2pa.2.13.3 → triage#tracker-duplicate-search
-- `duplicate-search-key-list`: Run the duplicate search over a fixed list of keys, among them the error signature, the area, the trigger, the symptom, a version window, the suspected commit and the source link. — reject
+- `duplicate-search-key-list`: Run the duplicate search over a fixed list of keys, among them the error signature, the area, the trigger, the symptom, a version window, the suspected commit and the source link. — adopt, pending cr-r2pa.3.8 → triage#duplicate-search-key-list
 - `graded-duplicate-match`: Grade each search hit as a confident duplicate, possibly related or no match, marking only a confident one as a duplicate and linking a possible one without acting on it. — adopt, pending cr-r2pa.2.13.3 → triage#graded-duplicate-match
 - `closed-match-is-regression-lead`: Treat a long-closed issue that matches a new report as a lead to a regression, not as a live duplicate. — adopt, pending cr-r2pa.2.13.3 → triage#fixed-match-regression-lead
-- `issue-template-and-title`: Write a new issue as a self-contained record with a plain area-and-symptom title that never states a guessed cause, the reporter's words, expected and observed behaviour, version, trigger, frequency, link, labelled hypotheses and media. — reject
+- `issue-template-and-title`: Write a new issue as a self-contained record with a plain area-and-symptom title that never states a guessed cause, the reporter's words, expected and observed behaviour, version, trigger, frequency, link, labelled hypotheses and media. — adopt, pending cr-r2pa.3.8 → triage#issue-template-and-title
 - `trusted-verdict-marker`: Pass a report from triage to repair through a fixed one-line marker that repair accepts only from the configured triage identity, in the same thread, and only for a bug or performance verdict. — out-of-scope
 - `compensate-orphan-issue`: If the run created an issue and its verdict did not land, cancel or remove that issue and confirm it, reporting any unconfirmed undo in the run output. — out-of-scope
 - `bounded-follow-up-window`: After the main reply, watch the thread for one bounded window, answering only direct questions, staying out of side chatter and stopping when asked. — out-of-scope
@@ -2392,7 +2392,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `product-copy-excluded`: Leave product interface strings to the product's own copy guidelines. — out-of-scope
 - `tab-indented-snippets`: Indent code snippets with tabs. — reject
 - `real-paths-in-docs`: Write real paths in documentation. — reject
-- `count-claims-with-command`: Make any count or file-tree claim hold at the landing commit, and give the command that reproduces it. — reject
+- `count-claims-with-command`: Make any count or file-tree claim hold at the landing commit, and give the command that reproduces it. — adopt, pending cr-r2pa.3.13 → pr#count-claims-with-command
 
 #### core · X · Communication — skill:pstack/skills/unslop
 - `meaning-and-tone-preserved`: Keep the original sense of a text and fit its intended tone when editing it. — adopt → unslop#meaning-preserved-edit
@@ -2627,7 +2627,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `finding-adjudication`: Verify each incoming review finding against requirements, code and primary evidence before acting, and give each a visible disposition: fix a confirmed in-scope defect, answer an incorrect one with a retained ruling, record an out-of-scope follow-up. — reject
 - `separate-fix-for-broken-skill`: Fix a skill found broken mid-task in its own separate pull request, without blocking the task and without a silent workaround. — reject
 - `read-principle-before-applying`: Read a principle's whole file, found by a fixed naming rule, before applying it. — reject
-- `irreversible-writes-wait`: Always wait for the person before force-pushing a shared branch, deploying, deleting data or messaging a customer. — reject
+- `irreversible-writes-wait`: Always wait for the person before force-pushing a shared branch, deploying, deleting data or messaging a customer. — adopt, pending cr-r2pa.3.6 → doc:AGENTS.md
 - `irreversible-only-confirmation`: Ask for confirmation only before irreversible actions such as force-pushing, deleting production data or sending external messages. — reject
 - `away-phrase-keeps-going`: Treat phrases such as "don't stop" or "going to bed" as switching the session to continue without stopping. — defer
 - `accuracy-over-agreement`: Put factual accuracy ahead of agreement, pointing out errors and unchecked assumptions in the user's thinking. — adopt → doc:AGENTS.md
@@ -2648,7 +2648,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `same-prompt-second-opinion`: Get a second opinion by running the same prompt on a different model and treat their agreement as a strong signal. — reject
 - `fresh-helper-per-round`: Give each fix round, follow-up or next queue item to a new helper whose brief merges the first brief, all directives since and the previous helper's report, resuming an old helper only to keep costly state such as its checkout, uncommitted changes or a running process. — reject
 - `distrust-interrupted-resume`: Treat a helper resumed after an interrupt as having dropped directives, and start a fresh one instead of trusting its done summary. — reject
-- `draft-without-machine-patterns`: Write the reply free of machine-written patterns while drafting, since a later cleanup pass does not remove them. — reject
+- `draft-without-machine-patterns`: Write the reply free of machine-written patterns while drafting, since a later cleanup pass does not remove them. — adopt, pending cr-r2pa.3.10 → doc:.claude/skills/mvp-mode/playbooks/babysit.md
 - `one-thought-sentences`: Write one thought per sentence and end each with a period. — reject
 - `no-em-dash`: Use no em dashes, ending the sentence or using a comma or parentheses to separate a thought. — reject
 - `mid-sentence-colon-cut`: Keep colons for lists and examples, rewriting mid-sentence uses and the comparison framing around them. — reject
@@ -2657,7 +2657,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `only-seen-artifacts-cited`: Link or cite only artifacts produced or read in this session. — reject
 - `evidence-label-per-claim`: Attach to every claim, in the same sentence, its evidence or a measured, inferred or guessed label, treating predictions and unseen causes as guesses. — reject
 - `run-checks-yourself`: Run any check you are able to run instead of asking the user to run it. — adopt, pending cr-r2pa.2.13.3 → doc:AGENTS.md
-- `full-pr-url`: Give each pull request link as its full web address in the forge's public form. — reject
+- `full-pr-url`: Give each pull request link as its full web address in the forge's public form. — adopt, pending cr-r2pa.3.10 → doc:.claude/skills/mvp-mode/playbooks/babysit.md
 - `reply-sections-only-unique`: List in each playbook's reply section only what is unique to it, letting a shared style supply the rest. — reject
 - `why-only-comments`: Keep a code comment only for a non-obvious reason the code cannot show. — reject
 - `assertion-strings-not-step-comments`: Write verify and test scripts without comments narrating their steps, letting assertion and log strings say what each step checks. — reject
@@ -2708,11 +2708,11 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `watcher-test-harness`: Pin the watcher's behaviour with tests against a fake forge reader and an injected clock, and typecheck it strictly. — defer
 - `self-installing-launcher`: Install a script's dependencies from a frozen lockfile only when a hash of its manifest changes, check the install, then rerun the original command. — out-of-scope
 - `bucketed-worktree-report`: List every non-main worktree read-only with its size, age, merge, dirty, remote, pull request and last-chat columns, a suggested bucket by fixed precedence, largest first. — reject
-- `base-ref-fallback-and-fetch`: Judge merge state against a ref given by flag, else the remote default, main or master with a warning, fetching it first and only warning if the fetch fails. — reject
+- `base-ref-fallback-and-fetch`: Judge merge state against a ref given by flag, else the remote default, main or master with a warning, fetching it first and only warning if the fetch fails. — adopt, pending cr-r2pa.3.9 → doc:.claude/skills/mvp-mode/playbooks/worktree-cleanup.md
 - `portable-shell-date-flags`: Detect the platform's `stat` and `date` flags once at start. — out-of-scope
-- `pr-state-as-merge-signal`: Treat a pull request's merged state as the merge signal for squash merges, which ancestor checks miss. — reject
+- `pr-state-as-merge-signal`: Treat a pull request's merged state as the merge signal for squash merges, which ancestor checks miss. — adopt, pending cr-r2pa.3.9 → doc:.claude/skills/mvp-mode/playbooks/worktree-cleanup.md
 - `tracked-wip-vs-untracked-scratch`: Count tracked edits as work in progress and untracked files alone as disposable scratch. — reject
-- `remote-push-state`: Report each worktree branch as detached, pushed, ahead by a count, or with no remote branch. — reject
+- `remote-push-state`: Report each worktree branch as detached, pushed, ahead by a count, or with no remote branch. — adopt, pending cr-r2pa.3.9 → doc:.claude/skills/mvp-mode/playbooks/worktree-cleanup.md
 - `last-chat-from-transcripts`: Date a worktree's last activity from the newest chat transcript naming its exact path, counting four days as recent. — reject
 
 #### core · X · Coordination — skill:pstack/skills/principle-never-block-on-the-human
@@ -2753,7 +2753,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `cloud-background-workers`: Run workers as general-purpose background agents in the cloud, and locally only when one needs something on the person's machine. — reject
 - `worker-base-branch`: Start a cloud worker from a named pushed branch when it must not start from the default. — reject
 - `worker-brief-contents`: Give each worker a brief stating the outcome, owned paths, constraints, acceptance checks and pointers to relevant context. — adopt → doc:AGENTS.md
-- `pass-issues-blocked-verdict`: Have workers report pass, issues or blocked with evidence. — reject
+- `pass-issues-blocked-verdict`: Have workers report pass, issues or blocked with evidence. — adopt, pending cr-r2pa.3.14 → delegation#pass-issues-blocked-verdict
 - `every-provable-defect`: Have a worker reporting issues list every defect it can prove, not only the first. — reject
 - `dropout-proceeds-noted`: Go on with the remaining candidates or adversaries when one produces nothing, and record the dropout. — reject
 - `finished-results-only`: Merge only results that have finished. — reject
@@ -2807,7 +2807,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 #### engineering · Discovery · Research — skill:pstack/skills/how
 - `stated-scope-reading`: State your reading of an ambiguous target and proceed, so the user can redirect afterward. — adopt → how#immaterial-ambiguity-reading
 - `size-gated-explorers`: Answer a narrow question in one pass and split a wide one into angles for separate explorers, merging their findings into one account. — adopt → how#angles-when-wide
-- `doubt-takes-simple-path`: Resolve an uncertain size call to the cheaper one-pass path. — reject
+- `doubt-takes-simple-path`: Resolve an uncertain size call to the cheaper one-pass path. — adopt, pending cr-r2pa.3.12 → how#doubt-takes-simple-path
 - `explanation-sections`: Structure an explanation as overview, concepts, flow, file map and pitfalls, dropping any section that does not apply. — adopt → how#explanation-sections
 - `cited-flow-walkthrough`: Walk the flow in prose from trigger to result, naming the files and functions at each step. — adopt → how#cited-flow-walkthrough
 - `reconcile-by-reading`: Settle conflicting findings by reading the code itself. — adopt → how#reconcile-by-reading
@@ -2819,7 +2819,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `complexity-cause-stated`: When something is hard, give the reason for the difficulty and do not merely describe it. — reject
 - `onboarding-altitude`: Pitch an explanation so an experienced engineer new to the area gains a working mental model, short of line-by-line commentary. — reject
 - `open-questions-visible`: Carry every gap and open question from the search into the final explanation. — reject
-- `assigned-slice-depth`: Give each searching helper one assigned slice to go deep on, telling it that peers cover the rest. — reject
+- `assigned-slice-depth`: Give each searching helper one assigned slice to go deep on, telling it that peers cover the rest. — adopt, pending cr-r2pa.3.12 → how#assigned-slice-depth
 - `explorer-report-template`: Have each explorer report a component inventory, an ordered step trace, the files it read, the boundaries and the non-obvious behaviour. — reject
 - `read-only-helper-spawn`: Spawn every exploring helper with enforced read-only access. — reject
 - `role-model-config-line`: Read each spawned role's model from a named line of a shared configuration, falling back to a fixed default and leaving the field unset for an alias. — reject
@@ -2870,19 +2870,19 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `code-not-intent-evidence`: Never cite code or a diff as proof of its author's intent. — adopt → why#code-not-intent-evidence
 - `empty-gaps-suspicion`: Treat an answer that mentions no gaps as a warning sign. — reject
 - `assigned-slice-depth`: Give each searching helper one assigned slice to go deep on, telling it that peers cover the rest. — reject
-- `exact-quote-evidence`: Prefer a precise quotation with a location checkable in seconds to a paragraph of paraphrase. — reject
+- `exact-quote-evidence`: Prefer a precise quotation with a location checkable in seconds to a paragraph of paraphrase. — adopt, pending cr-r2pa.3.11 → why#exact-quote-evidence
 - `wide-then-narrow-search`: Begin a search with a broad sweep and focus on specific items only afterward. — reject
 - `read-whole-item`: Open each item found in full, thread or history included, because a preview or a lone message can mislead. — adopt → why#full-record-reading
 - `unreachable-data-is-gap`: Report data you could not reach, through a missing tool, denied access, retention or deletion, as a coverage gap and never as a null result. — adopt → why#unreachable-data-is-gap
 - `stop-on-auth-failure`: When a source's tool cannot authenticate, stop and report the source as unsearchable, inventing no findings. — reject
-- `correlation-needs-neighbor-check`: Treat a before-and-after shift as suggestive only until other changes landing in the same window are inspected. — reject
-- `interest-is-not-cause`: Treat a metric, a logged event or a chart as showing interest only, pairing it with a commit or pull request citation before claiming cause. — reject
+- `correlation-needs-neighbor-check`: Treat a before-and-after shift as suggestive only until other changes landing in the same window are inspected. — adopt, pending cr-r2pa.3.11 → why#correlation-needs-neighbor-check
+- `interest-is-not-cause`: Treat a metric, a logged event or a chart as showing interest only, pairing it with a commit or pull request citation before claiming cause. — adopt, pending cr-r2pa.3.11 → why#interest-is-not-cause
 - `template-filler-discount`: Discount generic text in a mandatory rationale or template section and look for specific content. — reject
 - `plan-date-staleness`: Compare a ticket's or spec's date with what shipped, since plans predate the implementation and go stale. — reject
-- `casual-remark-not-a-decision`: Do not count a flippant remark before a commit as a decision, and look for considered discussion. — reject
-- `generated-analysis-is-inference`: Use a tool's generated root-cause analysis as inference only, with the actual events and traces as the primary evidence. — reject
+- `casual-remark-not-a-decision`: Do not count a flippant remark before a commit as a decision, and look for considered discussion. — adopt, pending cr-r2pa.3.11 → why#casual-remark-not-a-decision
+- `generated-analysis-is-inference`: Use a tool's generated root-cause analysis as inference only, with the actual events and traces as the primary evidence. — adopt, pending cr-r2pa.3.11 → why#generated-analysis-is-inference
 - `in-source-leads-only`: Follow references inside your own source and hand cross-source references on as leads without chasing them. — reject
-- `counterfactual-strength-test`: Before rating a finding strong, ask whether it would still appear under a false interpretation and what would look different. — reject
+- `counterfactual-strength-test`: Before rating a finding strong, ask whether it would still appear under a false interpretation and what would look different. — adopt, pending cr-r2pa.3.11 → why#counterfactual-strength-test
 - `ambiguity-left-open`: Report ambiguous evidence as ambiguous and leave an unresolved question unresolved over a confident fill-in. — reject
 - `neighbor-evidence-substitution`: Do not offer evidence about a neighbouring feature as though it answers the question asked. — reject
 - `evidence-record-template`: Have each investigator report its source, then direct items with location, author, date and relevance, and indirect items with inference chain and alternative readings. — reject
@@ -2917,8 +2917,8 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `ticket-external-metadata`: Record a ticket's labels, project and link with its finding. — reject
 - `document-store-search-procedure`: Search a document store's requirement docs, specs, decision records, meeting notes, postmortems and runbooks with broad keywords for unlinked pages, following backlinks, child pages, meeting-note databases and authors' personal spaces. — adopt → why#document-store-search-procedure
 - `final-draft-preference`: Among several documents on a topic, use the finalized or most recently updated one. — reject
-- `document-motive-signals`: Read a matching problem section, rejected approaches, a postmortem naming the fix, dated decision notes and a filled decision record as evidence of motive. — reject
-- `document-external-metadata`: Record a document's URL and its final or draft status with its finding. — reject
+- `document-motive-signals`: Read a matching problem section, rejected approaches, a postmortem naming the fix, dated decision notes and a filled decision record as evidence of motive. — adopt, pending cr-r2pa.3.11 → why#document-motive-signals
+- `document-external-metadata`: Record a document's URL and its final or draft status with its finding. — adopt, pending cr-r2pa.3.11 → why#document-external-metadata
 - `error-trace-relevance`: Open a full error event to see whether its trace crosses the target and its tags and breadcrumbs match the guarded condition. — adopt → why#error-trace-relevance
 - `orient-org-and-project`: When an error tracker's organization and project are unknown, look them up before searching. — reject
 - `error-finding-record`: Record each error issue with its id, title, project, seen timestamps, event count with sampling, releases, a verbatim trace excerpt, ship-date correlation, link and author notes. — adopt → why#error-finding-record
@@ -2950,7 +2950,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `fill-in-breakage`: Accept scoped, planned breakage while filling in a sketch. — reject
 - `pushback-triggers-regrounding`: Treat a human objection to the shape as grounding evidence that forces a return to grounding and sketching before more code. — reject
 - `implement-against-sketch`: Build against the sketch as the contract, surfacing any departure and revising the sketch first when the code must diverge. — adopt → doc:.claude/skills/mvp-mode/playbooks/feature.md
-- `scrap-on-repeated-friction`: Discard a sketch when implementation repeatedly shows a pattern that it is wrong, such as recurring workarounds, special-case branches, type escape hatches or repeated deviations, and not on isolated problems. — reject
+- `scrap-on-repeated-friction`: Discard a sketch when implementation repeatedly shows a pattern that it is wrong, such as recurring workarounds, special-case branches, type escape hatches or repeated deviations, and not on isolated problems. — adopt, pending cr-p3em.4 → doc:.claude/skills/mvp-mode/playbooks/autopilot-full.md
 - `scrap-redesign-procedure`: After scrapping, re-explain what exists, redesign as if the new constraints were known from the start, shrink below the old sketch before growing and rerun the candidates. — reject
 - `sketch-rationale`: Ship a one-page rationale with the sketch covering the problem and its constraints, the shape with invariants, validation, non-goals and depth, the tradeoffs accepted, at least one rejected alternative, and open questions phrased as questions. — adopt → codebase-design#sketch-rationale
 - `caller-usage-first`: Write callers' usage first and derive the types from it, reconciling any divergence toward the usage. — adopt → codebase-design#caller-usage-first
@@ -3073,7 +3073,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `named-end-states`: Before calling a reproduction, name the correct and the broken final state, reach the point where they diverge, and never count expected setup steps as the bug. — reject
 - `report-fact-capture`: Collect a fixed set of facts from a bug report before deciding on it: the reporter's words, version and environment, expected and observed behaviour, frequency and trigger, error signatures, attachments, links and any claim that someone already owns it. — out-of-scope
 - `trace-with-competing-hypotheses`: Trace the reported action through the code, check its regression history, and form competing causes with the evidence that would separate them. — reject
-- `repro-budget-outcomes`: End a reproduction attempt within its budget as either cleanly not reproduced or blocked, naming the missing capability. — reject
+- `repro-budget-outcomes`: End a reproduction attempt within its budget as either cleanly not reproduced or blocked, naming the missing capability. — adopt, pending cr-r2pa.3.15 → systematic-debugging#repro-budget-outcomes
 - `repro-capture-bundle`: Keep a step note and a whole-path recording that shows the broken final state for a reproduction, looking at every captured screenshot and recording before citing it. — adopt → create-verification-skill#repro-evidence-for-surface
 - `identity-screenshot`: Capture a screenshot of the app's current state showing enough of its chrome to prove the right app is under test, returned with its path, capture time, app marker and what should be visible. — adopt → create-verification-skill#identity-screenshot
 - `independent-media-review`: Have a separate read-only reviewer say whether the media visibly shows the broken state, treating no or unsure as unconfirmed. — reject
@@ -3096,7 +3096,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `small-ordered-commits`: Make commits small and ordered where the repository allows. — reject
 - `draft-pr-only`: Open only a draft pull request and never merge or deploy. — reject
 - `bug-pr-contents`: Link the tracker issue in the pull request with the tracker's own syntax, and put in its body how to reproduce, the cause, the test results, evidence from before and after, and what was checked around the change. — adopt, pending cr-r2pa.2.13.3 → pr#bug-pr-contents
-- `full-pr-url`: Give each pull request link as its full web address in the forge's public form. — reject
+- `full-pr-url`: Give each pull request link as its full web address in the forge's public form. — adopt, pending cr-r2pa.3.10 → doc:.claude/skills/mvp-mode/playbooks/babysit.md
 - `honest-pr-failure`: When opening the pull request fails, claim no success, put the branch state in the run output and report that the fix did not land. — reject
 - `run-artifacts-uncommitted`: Never commit a run's captures, recordings, logs or tokens to source control. — reject
 - `bounded-follow-up-window`: After the main reply, watch the thread for one bounded window, answering only direct questions, staying out of side chatter and stopping when asked. — out-of-scope
@@ -3735,13 +3735,13 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `three-section-map-body`: Structure the map body as Notes, Decisions so far and Fog. — reject
 - `claim-before-work`: Choose the requested or a ready unclaimed child and claim it before working on it. — reject
 - `map-order-frontier-pick`: Take the first ready, unclaimed child in the map's own order. — reject
-- `assignee-marks-claim`: Mark a claimed ticket by assigning it to the developer driving the session. — reject
+- `assignee-marks-claim`: Mark a claimed ticket by assigning it to the developer driving the session. — defer
 - `claim-is-first-write`: Make the claim the session's first write, before any other change to the tracker or the map. — defer
 - `record-resolution`: On resolving a ticket, record the answer on it, close it, and add a pointer to the map's decisions so far. — reject
 - `own-repo-filing-guard`: File tickets only into the user's own repository, confirming with the user before a session's first ticket when the target is not theirs. — reject
-- `pr-as-issue`: Treat an external pull request as an issue with attached code, running it through the same roles and state machine. — reject
+- `pr-as-issue`: Treat an external pull request as an issue with attached code, running it through the same roles and state machine. — adopt, pending cr-r2pa.3.8 → triage#pr-as-issue
 - `split-pr-read-steps`: Read a pull request's body, comments and diff as separate steps, because one combined command can omit the body. — adopt → triage#split-pr-read-steps
-- `external-author-pr-filter`: List pull requests for triage by leaving out authors who are owners, members or collaborators. — reject
+- `external-author-pr-filter`: List pull requests for triage by leaving out authors who are owners, members or collaborators. — adopt, pending cr-r2pa.3.8 → triage#external-author-pr-filter
 - `bare-number-resolution`: Resolve a bare ticket number by how the host numbers issues and pull requests, trying the pull request first where they share one sequence. — reject
 - `local-markdown-tracker-layout`: Without a hosted tracker, keep one directory per feature holding its spec and one numbered file per ticket, with a status line near the top and comments appended at the bottom. — reject
 - `label-name-mapping`: Map the canonical triage role names onto the repository's actual label strings. — reject
@@ -4532,13 +4532,13 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `lockfile-package-manager`: Pick the package manager from the lockfile present, defaulting to the stock one, and use it in every hook command. — reject
 - `hook-tooling-dev-dependencies`: Install a git-hook manager, a staged-file runner and a formatter as development dependencies. — reject
 - `hook-manager-init`: Initialise a git-hook manager, which creates its own hooks folder and a script that installs it. — reject
-- `commit-time-checks`: Run formatting of staged files, then the type check, then the tests in a pre-commit hook. — reject
+- `commit-time-checks`: Run formatting of staged files, then the type check, then the tests in a pre-commit hook. — adopt, pending cr-p3em.4 → doc:.claude/skills/mvp-mode/playbooks/autopilot-full.md
 - `omit-missing-check-and-tell`: Leave out a check the project has no command for and tell the person, never inventing one. — reject
 - `staged-only-formatting`: Format only the staged files at commit time, skipping file types the formatter cannot read. — reject
 - `create-config-only-if-missing`: Create a tool's config file with defaults only when the repository has none. — reject
 - `hook-setup-checklist`: After setting up a commit hook, check that the hook file exists and is executable and that each tool it calls is configured and runs. — reject
 - `setup-commit-smoke-test`: Commit the setup itself so the new hook runs on its own installation. — reject
-- `cheap-checks-first`: Order commit-time checks with cheap staged-only work first and whole-project checks after. — reject
+- `cheap-checks-first`: Order commit-time checks with cheap staged-only work first and whole-project checks after. — adopt, pending cr-p3em.4 → doc:.claude/skills/mvp-mode/playbooks/autopilot-full.md
 
 ## By trait
 
@@ -4546,7 +4546,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 
 #### `assignee-marks-claim`
 Mark a claimed ticket by assigning it to the developer driving the session.
-- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — defer
 
 #### `bounded-decision-ticket`
 Make each ticket one bounded question whose answer is a decision.
@@ -5187,7 +5187,7 @@ If the run created an issue and its verdict did not land, cancel or remove that 
 
 #### `duplicate-search-key-list`
 Run the duplicate search over a fixed list of keys, among them the error signature, the area, the trigger, the symptom, a version window, the suspected commit and the source link.
-- `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — reject
+- `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — adopt, pending cr-r2pa.3.8 → triage#duplicate-search-key-list
 
 #### `durable-unit-scope`
 Track one durable unit of work per bead, keeping turn checklists out, searching before creating, and filing incidental finds as discovered-from beads.
@@ -5218,7 +5218,7 @@ Read every relevant screenshot, video and log closely, and name an attachment th
 
 #### `issue-template-and-title`
 Write a new issue as a self-contained record with a plain area-and-symptom title that never states a guessed cause, the reporter's words, expected and observed behaviour, version, trigger, frequency, link, labelled hypotheses and media.
-- `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — reject
+- `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports` — adopt, pending cr-r2pa.3.8 → triage#issue-template-and-title
 
 #### `no-guessed-route`
 Without a matching route, classify but name no destination or owner, and keep the fallback empty unless one team accepts everything unmatched.
@@ -7243,7 +7243,7 @@ Re-pitch in controlled simplified language with short sentences and common words
 
 #### `count-claims-with-command`
 Make any count or file-tree claim hold at the landing commit, and give the command that reproduces it.
-- `cursor_plugins:skill:pstack/skills/technical-writing` — reject
+- `cursor_plugins:skill:pstack/skills/technical-writing` — adopt, pending cr-r2pa.3.13 → pr#count-claims-with-command
 
 #### `cut-removable-words`
 Delete each word a sentence keeps its meaning without.
@@ -7307,7 +7307,7 @@ When a sentence does two jobs, split it in two or keep only one of the jobs.
 
 #### `draft-without-machine-patterns`
 Write the reply free of machine-written patterns while drafting, since a later cleanup pass does not remove them.
-- `cursor_plugins:skill:pstack/skills/poteto-mode` — reject
+- `cursor_plugins:skill:pstack/skills/poteto-mode` — adopt, pending cr-r2pa.3.10 → doc:.claude/skills/mvp-mode/playbooks/babysit.md
 
 #### `drop-uninformative-slides`
 Drop any slide that does not change what the person knows.
@@ -7317,6 +7317,9 @@ Drop any slide that does not change what the person knows.
 Give each fact once, whether in text, in a picture or in the action items.
 - `cursor_plugins:skill:pstack/skills/ketchup` — adopt, pending cr-r2pa.2.13.2 → ketchup#each-fact-once
 - `cursor_plugins:skill:pstack/skills/ketchup-video` — adopt, pending cr-r2pa.2.13.2 → ketchup-video#each-fact-once
+
+#### `edit-pass-before-posting`
+Pass text an agent posts for people to read, such as review replies and pull-request comments, through an edit for machine-written patterns after it is drafted and before it is posted.
 
 #### `edits-steer-next-part`
 Read the piece again before proposing what comes next, letting the person's edits change the direction.
@@ -7407,8 +7410,8 @@ Before embedding, look at one frame per slide at chat size to confirm the subtit
 
 #### `full-pr-url`
 Give each pull request link as its full web address in the forge's public form.
-- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — reject
-- `cursor_plugins:skill:pstack/skills/poteto-mode` — reject
+- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — adopt, pending cr-r2pa.3.10 → doc:.claude/skills/mvp-mode/playbooks/babysit.md
+- `cursor_plugins:skill:pstack/skills/poteto-mode` — adopt, pending cr-r2pa.3.10 → doc:.claude/skills/mvp-mode/playbooks/babysit.md
 
 #### `future-tense-for-later-only`
 Use will only for what really happens later.
@@ -9166,7 +9169,7 @@ State exactly what artifact each candidate must produce before any candidate sta
 
 #### `assigned-slice-depth`
 Give each searching helper one assigned slice to go deep on, telling it that peers cover the rest.
-- `cursor_plugins:skill:pstack/skills/how` — reject
+- `cursor_plugins:skill:pstack/skills/how` — adopt, pending cr-r2pa.3.12 → how#assigned-slice-depth
 - `cursor_plugins:skill:pstack/skills/why` — reject
 
 #### `background-agent`
@@ -9759,7 +9762,7 @@ Choose whether workers split the work into slices, race on identical briefs or b
 
 #### `pass-issues-blocked-verdict`
 Have workers report pass, issues or blocked with evidence.
-- `cursor_plugins:skill:pstack/skills/swarm` — reject
+- `cursor_plugins:skill:pstack/skills/swarm` — adopt, pending cr-r2pa.3.14 → delegation#pass-issues-blocked-verdict
 
 #### `path-labelled-candidates`
 Show the judge each candidate under its path label.
@@ -10231,7 +10234,7 @@ Ask for confirmation only before irreversible actions such as force-pushing, del
 
 #### `irreversible-writes-wait`
 Always wait for the person before force-pushing a shared branch, deploying, deleting data or messaging a customer.
-- `cursor_plugins:skill:pstack/skills/poteto-mode` — reject
+- `cursor_plugins:skill:pstack/skills/poteto-mode` — adopt, pending cr-r2pa.3.6 → doc:AGENTS.md
 
 #### `memory-on-request`
 Write persistent memory other than shared learnings only when asked.
@@ -10807,7 +10810,7 @@ Ask the vendor directly when a product's gates and rate limits are not published
 
 #### `casual-remark-not-a-decision`
 Do not count a flippant remark before a commit as a decision, and look for considered discussion.
-- `cursor_plugins:skill:pstack/skills/why` — reject
+- `cursor_plugins:skill:pstack/skills/why` — adopt, pending cr-r2pa.3.11 → why#casual-remark-not-a-decision
 
 #### `category-strength-map`
 State which shape of motivation each evidence category reveals and when it is strongest.
@@ -10873,11 +10876,11 @@ Show conflicting sources side by side with citations, leaving the call to the us
 
 #### `correlation-needs-neighbor-check`
 Treat a before-and-after shift as suggestive only until other changes landing in the same window are inspected.
-- `cursor_plugins:skill:pstack/skills/why` — reject
+- `cursor_plugins:skill:pstack/skills/why` — adopt, pending cr-r2pa.3.11 → why#correlation-needs-neighbor-check
 
 #### `counterfactual-strength-test`
 Before rating a finding strong, ask whether it would still appear under a false interpretation and what would look different.
-- `cursor_plugins:skill:pstack/skills/why` — reject
+- `cursor_plugins:skill:pstack/skills/why` — adopt, pending cr-r2pa.3.11 → why#counterfactual-strength-test
 
 #### `curated-views-before-raw`
 Read the dashboards and monitors covering the target, noting their queries and thresholds, before raw telemetry.
@@ -10894,11 +10897,11 @@ Use the dbt model fields directly, the standard `_timestamp`, `_id`, `_auth_id`,
 
 #### `document-external-metadata`
 Record a document's URL and its final or draft status with its finding.
-- `cursor_plugins:skill:pstack/skills/why` — reject
+- `cursor_plugins:skill:pstack/skills/why` — adopt, pending cr-r2pa.3.11 → why#document-external-metadata
 
 #### `document-motive-signals`
 Read a matching problem section, rejected approaches, a postmortem naming the fix, dated decision notes and a filled decision record as evidence of motive.
-- `cursor_plugins:skill:pstack/skills/why` — reject
+- `cursor_plugins:skill:pstack/skills/why` — adopt, pending cr-r2pa.3.11 → why#document-motive-signals
 
 #### `document-store-search-procedure`
 Search a document store's requirement docs, specs, decision records, meeting notes, postmortems and runbooks with broad keywords for unlinked pages, following backlinks, child pages, meeting-note databases and authors' personal spaces.
@@ -10907,7 +10910,7 @@ Search a document store's requirement docs, specs, decision records, meeting not
 
 #### `doubt-takes-simple-path`
 Resolve an uncertain size call to the cheaper one-pass path.
-- `cursor_plugins:skill:pstack/skills/how` — reject
+- `cursor_plugins:skill:pstack/skills/how` — adopt, pending cr-r2pa.3.12 → how#doubt-takes-simple-path
 
 #### `embedded-hypothesis-check`
 Treat a guess inside the question as one candidate to test independently, then confirm or refute it with citations.
@@ -10938,7 +10941,7 @@ Record two independent claim flags per capability — whether prose documents it
 
 #### `exact-quote-evidence`
 Prefer a precise quotation with a location checkable in seconds to a paragraph of paraphrase.
-- `cursor_plugins:skill:pstack/skills/why` — reject
+- `cursor_plugins:skill:pstack/skills/why` — adopt, pending cr-r2pa.3.11 → why#exact-quote-evidence
 
 #### `execution-authorization`
 Reach the EXERCISED state only under explicit runtime authorization, in a disposable isolated copy without credentials and with commands and side effects named first.
@@ -10980,7 +10983,7 @@ Collect the evidence in full before concluding, forming no answer and picking no
 
 #### `generated-analysis-is-inference`
 Use a tool's generated root-cause analysis as inference only, with the actual events and traces as the primary evidence.
-- `cursor_plugins:skill:pstack/skills/why` — reject
+- `cursor_plugins:skill:pstack/skills/why` — adopt, pending cr-r2pa.3.11 → why#generated-analysis-is-inference
 
 #### `history-answer-frame`
 Open a history answer by restating the question and orienting a cold reader to the code, and close it with confidence rated by sub-claim.
@@ -11013,7 +11016,7 @@ Check which chat tool exists, its schema and whether it needs authentication bef
 
 #### `interest-is-not-cause`
 Treat a metric, a logged event or a chart as showing interest only, pairing it with a commit or pull request citation before claiming cause.
-- `cursor_plugins:skill:pstack/skills/why` — reject
+- `cursor_plugins:skill:pstack/skills/why` — adopt, pending cr-r2pa.3.11 → why#interest-is-not-cause
 
 #### `levels-vs-dive`
 Treat L1 and L2 as nested levels of one study while a deep dive is a standalone trace that may follow L1, carries its own snapshot, and never marks a repo complete.
@@ -11394,7 +11397,7 @@ On a new or labelled ticket, check it against the codebase, sort it as an easy c
 
 #### `external-author-pr-filter`
 List pull requests for triage by leaving out authors who are owners, members or collaborators.
-- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — adopt, pending cr-r2pa.3.8 → triage#external-author-pr-filter
 
 #### `external-pr-discovery-filter`
 In discovery, surface only external-author pull requests, while still triaging any explicitly named one.
@@ -11423,7 +11426,7 @@ Close a rejected bug report with a polite explanation of why.
 
 #### `pr-as-issue`
 Treat an external pull request as an issue with attached code, running it through the same roles and state machine.
-- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — reject
+- `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills` — adopt, pending cr-r2pa.3.8 → triage#pr-as-issue
 - `mattpocock_skills:skill:skills/engineering/triage` — out-of-scope
 
 #### `pr-intake-flag-default-off`
@@ -12177,7 +12180,7 @@ Inside the system, trust data a boundary already validated and propagate errors,
 
 #### `scrap-on-repeated-friction`
 Discard a sketch when implementation repeatedly shows a pattern that it is wrong, such as recurring workarounds, special-case branches, type escape hatches or repeated deviations, and not on isolated problems.
-- `cursor_plugins:skill:pstack/skills/architect` — reject
+- `cursor_plugins:skill:pstack/skills/architect` — adopt, pending cr-p3em.4 → doc:.claude/skills/mvp-mode/playbooks/autopilot-full.md
 
 #### `scrap-redesign-procedure`
 After scrapping, re-explain what exists, redesign as if the new constraints were known from the start, shrink below the old sketch before growing and rerun the candidates.
@@ -13394,7 +13397,7 @@ Name the workload dimensions and pick a case that reproduces the complaint; when
 
 #### `repro-budget-outcomes`
 End a reproduction attempt within its budget as either cleanly not reproduced or blocked, naming the missing capability.
-- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — reject
+- `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues` — adopt, pending cr-r2pa.3.15 → systematic-debugging#repro-budget-outcomes
 
 #### `reproduce-and-minimize`
 Shrink the reproduction one element at a time until every remaining part is load-bearing — removing any one makes it pass.
@@ -16319,7 +16322,7 @@ Treat a watch as granting no merge, queued or automatic, and send a request to m
 
 #### `base-ref-fallback-and-fetch`
 Judge merge state against a ref given by flag, else the remote default, main or master with a warning, fetching it first and only warning if the fetch fails.
-- `cursor_plugins:skill:pstack/skills/poteto-mode` — reject
+- `cursor_plugins:skill:pstack/skills/poteto-mode` — adopt, pending cr-r2pa.3.9 → doc:.claude/skills/mvp-mode/playbooks/worktree-cleanup.md
 
 #### `bottom-up-merge-read-back`
 Merge a stack's lowest unmerged pull request one at a time and read each back as merged with trunk as its base, counting a queued merge or a requested auto-merge as no merge.
@@ -16335,7 +16338,7 @@ Capture the conflicted file set up front from the version control's unmerged-pat
 
 #### `cheap-checks-first`
 Order commit-time checks with cheap staged-only work first and whole-project checks after.
-- `mattpocock_skills:skill:skills/misc/setup-pre-commit` — reject
+- `mattpocock_skills:skill:skills/misc/setup-pre-commit` — adopt, pending cr-p3em.4 → doc:.claude/skills/mvp-mode/playbooks/autopilot-full.md
 
 #### `ci-secrets-via-cli`
 Set CI secrets and variables through the hosting platform's CLI, recording each skip when the CLI is missing or unauthenticated.
@@ -16371,7 +16374,7 @@ Commit or push only when authorized, and amend only when asked.
 
 #### `commit-time-checks`
 Run formatting of staged files, then the type check, then the tests in a pre-commit hook.
-- `mattpocock_skills:skill:skills/misc/setup-pre-commit` — reject
+- `mattpocock_skills:skill:skills/misc/setup-pre-commit` — adopt, pending cr-p3em.4 → doc:.claude/skills/mvp-mode/playbooks/autopilot-full.md
 
 #### `conflicted-frontier-stop`
 Stop work on a conflicted frontier pull request after naming the branch to rebase and the sweep of trunk for new callers that the rebase must include.
@@ -16498,7 +16501,7 @@ Fill a fixed PR-body skeleton with Summary, Evidence, and Merge Danger sections.
 
 #### `pr-state-as-merge-signal`
 Treat a pull request's merged state as the merge signal for squash merges, which ancestor checks miss.
-- `cursor_plugins:skill:pstack/skills/poteto-mode` — reject
+- `cursor_plugins:skill:pstack/skills/poteto-mode` — adopt, pending cr-r2pa.3.9 → doc:.claude/skills/mvp-mode/playbooks/worktree-cleanup.md
 
 #### `pre-pr-diff-and-secret-review`
 Before opening a pull request, read the whole change for stray edits and leaked secrets and run the checks the repository requires.
@@ -16522,7 +16525,7 @@ When the request authorizes it, push the verified commits and open the pull requ
 
 #### `remote-push-state`
 Report each worktree branch as detached, pushed, ahead by a count, or with no remote branch.
-- `cursor_plugins:skill:pstack/skills/poteto-mode` — reject
+- `cursor_plugins:skill:pstack/skills/poteto-mode` — adopt, pending cr-r2pa.3.9 → doc:.claude/skills/mvp-mode/playbooks/worktree-cleanup.md
 
 #### `removal-proposal`
 Propose each removal with its branch, merge state, last activity and the ignored files removal would also delete, then wait for approval by name.

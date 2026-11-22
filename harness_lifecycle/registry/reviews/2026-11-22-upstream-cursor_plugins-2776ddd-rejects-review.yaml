@@ -1,0 +1,762 @@
+harness: cursor_plugins
+from_sha: null
+to_sha: 2776ddd
+supersedes:
+- harness_lifecycle/registry/reviews/2026-11-12-upstream-cursor_plugins-2776ddd-batch-p2.yaml
+- harness_lifecycle/registry/reviews/2026-11-12-upstream-cursor_plugins-2776ddd-batch-p3.yaml
+analysis_critic:
+  by: coordinator (cc:940ec94d)
+  date: '2026-11-22'
+  verdict: accepted
+  last_critic:
+    by: codex gpt-6.2-sol high (critic-2)
+    date: '2026-11-22'
+    verdict: fail
+comparison_critic:
+  by: coordinator (cc:940ec94d)
+  date: '2026-11-22'
+  verdict: accepted
+  last_critic:
+    by: codex gpt-6.2-sol high (critic-2)
+    date: '2026-11-22'
+    verdict: fail
+themes: 'Sixteen pstack rows the owner reopened in the rejections re-review. Owner ruling
+  2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3. The pull-request playbooks
+  built on 2026-11-20 (Babysit, Shipping) and the planned Autopilot-full removed the premise
+  of most of these rejects, that we run no pull-request flow. Twelve are adopted, pending
+  their delivering beads: an owner-held write list in AGENTS.md (cr-r2pa.3.6); the merged-state
+  signal, a fetched base and push state in worktree-cleanup (cr-r2pa.3.9); text Babysit and
+  Shipping post routed through unslop, with full pull-request links (cr-r2pa.3.10); count
+  claims with their command in pr (cr-r2pa.3.13); one reviewer verdict vocabulary in delegation
+  (cr-r2pa.3.14); a reproduction budget in systematic-debugging (cr-r2pa.3.15); and a duplicate-search
+  key list and an issue template in triage (cr-r2pa.3.8). Four stay rejected with current
+  reasons: per-feature pull requests with no draft step (decision bead cr-0qcj) and Visual
+  parity''s pass predicate now carry what they asked for.'
+skills:
+  skill:pstack/skills/poteto-mode:
+    upstream_tree_hash: 2f1513daf76f57a78a3a4b95664fee6a41eb611a7f7ca0c61ad3dff28e815b57
+    accepted: 2776ddd
+    compared_with: mvp-mode
+    pairing:
+      overlap:
+        create-verification-skill: 2
+        delegation: 3
+        doc:.claude/skills/mvp-mode/playbooks/babysit.md: 6
+        doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md: 1
+        doc:.claude/skills/mvp-mode/playbooks/implement.md: 1
+        doc:.claude/skills/mvp-mode/playbooks/pause-safely.md: 1
+        doc:.claude/skills/mvp-mode/playbooks/shipping.md: 1
+        doc:.claude/skills/mvp-mode/playbooks/worktree-cleanup.md: 1
+        doc:AGENTS.md: 2
+        interrogate: 1
+        mvp-mode: 3
+        review: 1
+        settle-open-questions: 1
+        unslop: 2
+      placement_match:
+      - delegation
+      - model-council
+      - mvp-mode
+      - perspective-council
+      - tracker
+      suggested: delegation
+      purpose_match: mvp-mode
+      purpose: 'Upstream is the always-on mode that picks a playbook and sets defaults for
+        every task: autonomy, helpers, reply style. Ours is the router that picks the playbook,
+        principle or skill and sets delegation defaults; `AGENTS.md` holds the standing rules,
+        and the reopened rows land in AGENTS.md and the worktree-cleanup and Babysit playbooks.'
+      flag: suggested differs
+      reason: 'Compared with mvp-mode: the same job at the same moment. The computed pick,
+        delegation, rests on the delegation rows adopted on 2026-11-20 (deferred-crosscutting-utilities);
+        poteto-mode is pstack''s router, as mvp-mode is ours.'
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      separate-fix-for-broken-skill:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/beads/references/prime.md:44
+        - .claude/skills/mvp-mode/playbooks/implement.md:259-260
+        - .claude/skills/mvp-mode/playbooks/skill-curation.md:61
+        - .claude/skills/mvp-mode/playbooks/babysit.md:37-41
+        - .claude/skills/mvp-mode/playbooks/shipping.md:27-31
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3:
+          rejected again with a current reason. A skill found broken mid-task becomes its
+          own bead, linked to its origin with discovered-from (.claude/skills/beads/references/prime.md:44;
+          .claude/skills/mvp-mode/playbooks/implement.md:259-260), and is built in its own
+          worktree on its own branch (.claude/skills/mvp-mode/playbooks/skill-curation.md:61).
+          Per decision bead cr-0qcj, a pull request opens per feature or bug bead once it
+          is implemented and verified, so that bead''s fix already gets its own pull request
+          without a skill-specific rule. The 2026-11-13 reason, that a pull request per fix
+          assumes a review flow we do not run, is stale now Babysit and Shipping drive pull
+          requests to merge (.claude/skills/mvp-mode/playbooks/babysit.md:37-41; .claude/skills/mvp-mode/playbooks/shipping.md:27-31).'
+      irreversible-writes-wait:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - AGENTS.md:11-12
+        - .claude/skills/mvp-mode/playbooks/babysit.md:57-64
+        - .claude/skills/mvp-mode/playbooks/shipping.md:35-40
+        recommendation: adopt
+        delivery: pending
+        target: doc:AGENTS.md
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-06
+          - U-06
+          override: null
+        reason: 'Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3.
+          Adopted, pending cr-r2pa.3.6: one list of the writes that still wait for the owner
+          under a standing grant (such as force-pushing a shared branch, deploying, deleting
+          data, messaging outsiders), kept with AGENTS.md''s rule that publishing, deployment,
+          messages, destructive actions and scope expansion need authorization (AGENTS.md:11-12).
+          The 2026-11-13 reason, that the wider rule makes the narrower list add nothing,
+          no longer holds: Babysit pushes and replies under a standing grant (.claude/skills/mvp-mode/playbooks/babysit.md:57-64)
+          and Shipping merges and moves branches under another (.claude/skills/mvp-mode/playbooks/shipping.md:35-40),
+          and the Autopilot-full ruling grants committing, pushing to a working branch and
+          opening a pull request without asking (ledger event 2026-11-20-deferred-playbooks:005),
+          so a run acting under a grant needs the exceptions named. The target is doc:AGENTS.md,
+          which README §5b lets hold a trait through its traits/ours.yaml entry and where
+          authorization is set in one place (S-06); Babysit and Shipping cite the list when
+          the bead delivers it.'
+      draft-without-machine-patterns:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/mvp-mode/playbooks/babysit.md:125-132
+        - .claude/skills/mvp-mode/playbooks/shipping.md:78-84
+        - .claude/skills/mvp-mode/playbooks/plan.md:32
+        - .claude/skills/mvp-mode/playbooks/investigation.md:10
+        recommendation: adopt
+        delivery: pending
+        target: doc:.claude/skills/mvp-mode/playbooks/babysit.md
+        modification: Into `edit-pass-before-posting`. An unslop edit pass on the finished
+          draft before Babysit or Shipping posts it, in place of writing without the patterns
+          while drafting.
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-06
+          override: null
+        reason: 'Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3.
+          Adopted, pending cr-r2pa.3.10: a modified adoption into edit-pass-before-posting,
+          the owner''s mechanism: text the Babysit and Shipping playbooks post for people
+          to read passes through an unslop edit pass after it is drafted and before it is
+          posted. Upstream''s trait is different: it writes the reply free of the patterns
+          while drafting and holds that a later cleanup pass does not remove them; the owner
+          ruled the post-draft pass instead. Babysit posts review-thread replies (.claude/skills/mvp-mode/playbooks/babysit.md:125-132)
+          and Shipping posts its verdict as a pull-request comment (.claude/skills/mvp-mode/playbooks/shipping.md:78-84);
+          neither invokes unslop, which runs only where a unit calls it (.claude/skills/mvp-mode/playbooks/plan.md:32;
+          .claude/skills/mvp-mode/playbooks/investigation.md:10). So the 2026-11-13 reason,
+          that every reply a person reads already goes through unslop, no longer holds. The
+          target is the Babysit playbook: one event names one target, Babysit posts the replies,
+          and a playbook holds an adopted trait through its frontmatter (README §5b); Shipping''s
+          verdict text is routed by the same bead.'
+      full-pr-url:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/mvp-mode/playbooks/babysit.md:125-132
+        - .claude/skills/mvp-mode/playbooks/shipping.md:78-84
+        - .claude/skills/mvp-mode/playbooks/visual-parity.md:78-81
+        recommendation: adopt
+        delivery: pending
+        target: doc:.claude/skills/mvp-mode/playbooks/babysit.md
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-06
+          override: null
+        reason: 'Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3.
+          Adopted, pending cr-r2pa.3.10: with draft-without-machine-patterns, a pull-request
+          link in the text Babysit and Shipping post gives the full web address in the forge''s
+          public form. Both playbooks now post on pull requests routinely (.claude/skills/mvp-mode/playbooks/babysit.md:125-132;
+          .claude/skills/mvp-mode/playbooks/shipping.md:78-84), and Visual parity''s reply
+          already gives the pull request''s URL (.claude/skills/mvp-mode/playbooks/visual-parity.md:78-81).
+          The 2026-11-13 reason, that a link the forge prints is used as it is and no failure
+          was named, predates both playbooks; the owner adopted the fixed form now they post
+          links routinely. Same target and bead as draft-without-machine-patterns.'
+      base-ref-fallback-and-fetch:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/mvp-mode/playbooks/worktree-cleanup.md:36-39
+        - .claude/skills/mvp-mode/playbooks/worktree-cleanup/audit.py:111
+        - .claude/skills/mvp-mode/playbooks/worktree-cleanup/audit.py:210
+        - .claude/skills/mvp-mode/playbooks/shipping.md:90-93
+        recommendation: adopt
+        delivery: pending
+        target: doc:.claude/skills/mvp-mode/playbooks/worktree-cleanup.md
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-06
+          override: null
+        reason: 'Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3.
+          Adopted, pending cr-r2pa.3.9: worktree-cleanup''s audit judges merge state against
+          a fetched base: the --base ref when given, else the remote default, else main or
+          master with a warning, fetching it first and only warning when the fetch fails,
+          so an offline run still finishes on the local ref. Today the audit takes --base,
+          defaults to origin/HEAD and fetches nothing, to stay offline and read-only (.claude/skills/mvp-mode/playbooks/worktree-cleanup.md:36-39;
+          .claude/skills/mvp-mode/playbooks/worktree-cleanup/audit.py:111; .claude/skills/mvp-mode/playbooks/worktree-cleanup/audit.py:210).
+          The owner adopted it with the merged-state signal and its offline fallback; Shipping
+          already fetches trunk immediately before it judges ancestry (.claude/skills/mvp-mode/playbooks/shipping.md:90-93).'
+      pr-state-as-merge-signal:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          doc:.claude/skills/mvp-mode/playbooks/shipping.md: variant
+        ours:
+        - .claude/skills/mvp-mode/playbooks/worktree-cleanup/audit.py:23-25
+        - .claude/skills/mvp-mode/playbooks/worktree-cleanup.md:36-39
+        - .claude/skills/mvp-mode/playbooks/shipping.md:99-100
+        recommendation: adopt
+        delivery: pending
+        target: doc:.claude/skills/mvp-mode/playbooks/worktree-cleanup.md
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-06
+          override: null
+        reason: 'Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3.
+          Adopted, pending cr-r2pa.3.9: worktree-cleanup takes a pull request the forge reports
+          as merged as a second merge signal, so a squash or rebase merge no longer reads
+          as unmerged, and falls back to today''s ancestry check when the forge cannot be
+          read. The 2026-11-13 reason was that the audit reads a squash merge as unmerged
+          on purpose and needs no forge service (.claude/skills/mvp-mode/playbooks/worktree-cleanup/audit.py:23-25;
+          .claude/skills/mvp-mode/playbooks/worktree-cleanup.md:36-39). The owner now accepts
+          the forge read here; Shipping already reads a pull request''s merged state back
+          from the forge (.claude/skills/mvp-mode/playbooks/shipping.md:99-100), the variant
+          `also_in` lists.'
+      remote-push-state:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/mvp-mode/playbooks/worktree-cleanup/audit.py:19-21
+        - .claude/skills/mvp-mode/playbooks/worktree-cleanup.md:47-51
+        recommendation: adopt
+        delivery: pending
+        target: doc:.claude/skills/mvp-mode/playbooks/worktree-cleanup.md
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-06
+          override: null
+        reason: 'Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3.
+          Adopted, pending cr-r2pa.3.9: the audit reports each worktree branch as detached,
+          pushed, ahead by a count, or with no remote branch. The 2026-11-13 reason was that
+          push state changes no decision, since a branch with commits the base lacks is kept
+          anyway (.claude/skills/mvp-mode/playbooks/worktree-cleanup/audit.py:19-21). With
+          the merged-state signal adopted beside it, a branch whose pull request merged on
+          the forge can be proposed for removal although the base does not contain it, and
+          whether its local commits reached the remote is what tells the owner nothing local
+          is lost before approving (.claude/skills/mvp-mode/playbooks/worktree-cleanup.md:47-51).'
+  skill:pstack/skills/technical-writing:
+    upstream_tree_hash: 1863cdf897424614dbd6a4b63841850fe806d59e842c4083efa178e01b72003e
+    accepted: 2776ddd
+    compared_with: unslop
+    pairing:
+      overlap:
+        doc:.claude/skills/mvp-mode/playbooks/bug-fix.md: 1
+        doc:.repo-context/coding-style.md: 1
+        doc:AGENTS.md: 1
+        pr: 1
+        principle-subtract-before-you-add: 1
+        tdd: 1
+        teach: 1
+        unslop: 6
+      placement_match:
+      - brief-me
+      - html-artifact
+      - show-me
+      - unslop
+      suggested: unslop
+      purpose_match: unslop
+      purpose: 'Upstream sets a writing standard for documents people read: word and sentence
+        rules, four documentation modes and pull-request text. `unslop` edits a draft a person
+        will read; the one reopened row, about claims in a pull request, lands in `pr`, which
+        writes the pull-request body.'
+      flag: null
+      reason: null
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      count-claims-with-command:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/pr/SKILL.md:79-83
+        - AGENTS.md:61-62
+        recommendation: adopt
+        delivery: pending
+        target: pr
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-06
+          override: null
+        reason: 'Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3.
+          Adopted, pending cr-r2pa.3.13: a count or file-tree claim in a pull-request body
+          holds at the landing commit and gives the command that reproduces it. The pr skill''s
+          Evidence section asks for real runs and the exact check with its output (.claude/skills/pr/SKILL.md:79-83),
+          and AGENTS.md has results verified on the real artifact (AGENTS.md:61-62), but neither
+          asks a count stated in prose to carry its command. Shipping lands pull requests
+          and the Autopilot-full ruling grants committing, pushing to a working branch and
+          opening a pull request without asking (ledger event 2026-11-20-deferred-playbooks:005),
+          so bodies are written with no owner reading each one first. The 2026-11-13 reason
+          was about unslop, the compared skill, which cannot add a missing command; the target
+          is pr.'
+  skill:pstack/automations/benny/skills/reproduce-and-fix-issues:
+    upstream_tree_hash: 30d16d73b621fa9abadaa9cd2de34076e7def49c083857841727ec6005f41c5b
+    accepted: 2776ddd
+    compared_with: systematic-debugging
+    pairing:
+      overlap:
+        create-verification-skill: 15
+        doc:.claude/skills/mvp-mode/playbooks/bug-fix.md: 1
+        doc:.claude/skills/mvp-mode/playbooks/eval.md: 1
+        doc:.claude/skills/mvp-mode/playbooks/feature.md: 1
+        doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md: 1
+        doc:.claude/skills/mvp-mode/playbooks/refactoring.md: 1
+        doc:.repo-context/coding-style.md: 1
+        doc:.repo-context/verification.md: 1
+        doc:AGENTS.md: 2
+        maintain-verification-skill: 2
+        principle-subtract-before-you-add: 1
+        sharpen: 1
+        tdd: 1
+      placement_match:
+      - performance-optimization
+      - principle-attack-the-premise
+      - principle-explain-the-number
+      - principle-fix-root-causes
+      - systematic-debugging
+      suggested: create-verification-skill
+      purpose_match: none
+      purpose: Upstream is an automation that takes a bug report a triage agent passed on
+        in a team chat, reproduces it, fixes it within a budget and replies in the thread.
+        Our systematic-debugging returns a diagnosis to its caller and the bug-fix playbook
+        fixes a reported defect; neither takes reports from a chat or replies in one. The
+        reopened rows land in systematic-debugging and in the pull-request playbooks.
+      flag: suggested differs
+      reason: 'Compared with systematic-debugging: the same diagnose-a-report work, though
+        the source and output differ. The computed pick, create-verification-skill, rests
+        on overlap signals only; no unit of ours shares the chat-facing purpose.'
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      repro-budget-outcomes:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/systematic-debugging/SKILL.md:39-41
+        - .claude/skills/systematic-debugging/SKILL.md:54-62
+        recommendation: adopt
+        delivery: pending
+        target: systematic-debugging
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-08
+          - U-06
+          override: null
+        reason: 'Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3.
+          Adopted, pending cr-r2pa.3.15: a reproduction attempt gets a budget, and at its
+          end the diagnosis stops as either not reproduced or blocked, naming the missing
+          capability or evidence. The 2026-11-13 reason named escalate-unreproducible as the
+          holder, but that is a mattpocock trait ruled reject, not one of ours. systematic-debugging
+          ends with one status and asks for the evidence that would tell the remaining hypotheses
+          apart (.claude/skills/systematic-debugging/SKILL.md:54-62), but with no reproduction
+          it continues safe source analysis (.claude/skills/systematic-debugging/SKILL.md:39-41)
+          and sets no budget; the owner''s ruling bounds that continuation.'
+      independent-media-review:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/mvp-mode/playbooks/visual-parity.md:39-42
+        - .claude/skills/create-verification-skill/references/generated-skill.md:103
+        - AGENTS.md:61-62
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3:
+          rejected again with a current reason. Where media must prove a visual state, Visual
+          parity judges each image by its pass predicate, exact equality by default, reporting
+          the measured delta, and judging by eye proves nothing (.claude/skills/mvp-mode/playbooks/visual-parity.md:39-42);
+          a second reader''s yes, no or unsure on the media is the judgement by eye that predicate
+          replaces. Outside a visual diff, a generated verification skill has every captured
+          screenshot and recording looked at before it is cited (.claude/skills/create-verification-skill/references/generated-skill.md:103),
+          and results are verified on the real artifact (AGENTS.md:61-62).'
+      draft-pr-only:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/mvp-mode/playbooks/babysit.md:85
+        - .claude/skills/mvp-mode/playbooks/babysit.md:65-66
+        - .claude/skills/mvp-mode/playbooks/shipping.md:35-46
+        - AGENTS.md:11-12
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3:
+          rejected again with a current reason. Per decision bead cr-0qcj, a pull request
+          opens once its feature or bug is implemented and verified, with no draft step. Babysit
+          reads a draft as not ready and never merges (.claude/skills/mvp-mode/playbooks/babysit.md:85;
+          .claude/skills/mvp-mode/playbooks/babysit.md:65-66), Shipping merges only a verified
+          run on a request to ship (.claude/skills/mvp-mode/playbooks/shipping.md:35-46),
+          and merging or deploying without the owner''s word stays AGENTS.md''s (AGENTS.md:11-12).
+          A draft-only rule would add the draft step cr-0qcj rules out; the 2026-11-13 reason,
+          that draft or ready is the owner''s call, is replaced by that decision.'
+      full-pr-url:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/mvp-mode/playbooks/babysit.md:125-132
+        - .claude/skills/mvp-mode/playbooks/shipping.md:78-84
+        - .claude/skills/mvp-mode/playbooks/visual-parity.md:78-81
+        recommendation: adopt
+        delivery: pending
+        target: doc:.claude/skills/mvp-mode/playbooks/babysit.md
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-06
+          override: null
+        reason: 'Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3.
+          Adopted, pending cr-r2pa.3.10: the same trait as poteto-mode''s full-pr-url, with
+          the same target and bead: a pull-request link in the text Babysit and Shipping post
+          gives the full web address in the forge''s public form. Both now post on pull requests
+          routinely (.claude/skills/mvp-mode/playbooks/babysit.md:125-132; .claude/skills/mvp-mode/playbooks/shipping.md:78-84);
+          Visual parity''s reply already gives the URL (.claude/skills/mvp-mode/playbooks/visual-parity.md:78-81).'
+  skill:pstack/skills/automate-me:
+    upstream_tree_hash: db8ccff7ace85fd5c31705acdca40c13f82b88c938fbbaeaccaf91184cd61894
+    accepted: 2776ddd
+    compared_with: reflect
+    pairing:
+      overlap:
+        decision-trail: 1
+        recall: 1
+        reflect: 1
+      placement_match:
+      - authoring-for-agents
+      - harness-evaluate
+      - harness-scan
+      - harness-skill-compare
+      - harness-status
+      - migrate-claude-to-codex
+      suggested: decision-trail
+      purpose_match: none
+      purpose: Upstream mines past chats to write a skill that captures the person's working
+        style, and lands it through a branch and pull request. `reflect` mines sampled sessions
+        to propose edits to existing skills; it writes no persona.
+      flag: suggested differs
+      reason: 'Compared with reflect on purpose: the only unit of ours that reads past sessions
+        to change skills. The computed pick, decision-trail, shares only the transcript privacy
+        rule.'
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      skill-lands-via-branch-and-pr:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/mvp-mode/playbooks/skill-curation.md:61
+        - AGENTS.md:72-73
+        - .claude/skills/mvp-mode/playbooks/shipping.md:27-31
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3:
+          rejected again with a current reason. A skill change is built in its own worktree
+          on its own branch (.claude/skills/mvp-mode/playbooks/skill-curation.md:61) and committed
+          only with authority (AGENTS.md:72-73). Per decision bead cr-0qcj, its pull request
+          is the one for its feature or bug bead, opened once that bead is implemented and
+          verified, and Shipping lands it (.claude/skills/mvp-mode/playbooks/shipping.md:27-31);
+          a rule that opens a pull request for each landed skill would cut across that per-feature
+          flow. The 2026-11-13 reason, that we run no pull-request flow, is stale.'
+  skill:pstack/skills/swarm:
+    upstream_tree_hash: b5e6e44e275cfa944ab27e431037992343849fc7aae5f4f5fedb4c1c66200cf2
+    accepted: 2776ddd
+    compared_with: delegation
+    pairing:
+      overlap:
+        delegation: 2
+        doc:.claude/skills/mvp-mode/playbooks/feature.md: 1
+        doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md: 1
+        doc:AGENTS.md: 1
+        interrogate: 2
+        maintain-verification-skill: 1
+        model-council: 2
+        sharpen: 1
+      placement_match:
+      - delegation
+      - model-council
+      - mvp-mode
+      - perspective-council
+      - tracker
+      suggested: delegation
+      purpose_match: delegation
+      purpose: Upstream fans one task out to many workers, splitting or racing them, and merges
+        their results. `delegation` briefs, dispatches and checks workers; racing several
+        on one brief is `model-council`, run only on request.
+      flag: null
+      reason: null
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      pass-issues-blocked-verdict:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/delegation/roles/reviewer.md:15
+        - .claude/skills/mvp-mode/playbooks/shipping.md:73-77
+        - .claude/skills/mvp-mode/playbooks/shipping.md:41-46
+        recommendation: adopt
+        delivery: pending
+        target: delegation
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-06
+          - U-07
+          override: null
+        reason: 'Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3.
+          Adopted, pending cr-r2pa.3.14: a delegated reviewer returns one fixed verdict with
+          its evidence, in one vocabulary with Shipping''s gate, which briefs its reviewer
+          to return PASS, PASS+NOTES or FAIL with evidence (.claude/skills/mvp-mode/playbooks/shipping.md:73-77)
+          and lands only on the first two (.claude/skills/mvp-mode/playbooks/shipping.md:41-46).
+          delegation''s reviewer contract ends with APPROVE or REVISE (.claude/skills/delegation/roles/reviewer.md:15),
+          so the two differ today. The 2026-11-13 reason, that a fixed label adds a word and
+          no evidence, no longer holds now a label gates a merge. Upstream''s three words
+          are pass, issues and blocked; the owner chose Shipping''s vocabulary, which the
+          bead delivers.'
+  skill:pstack/automations/benny/skills/triage-issue-reports:
+    upstream_tree_hash: dcca688d8d2f3ddd586274f67aea96d04c6175f730706ecef15536412a430c5d
+    accepted: 2776ddd
+    compared_with: triage
+    pairing:
+      overlap:
+        create-verification-skill: 1
+        doc:.repo-context/coding-style.md: 1
+        doc:AGENTS.md: 1
+        grilling: 1
+        settle-open-questions: 1
+        systematic-debugging: 1
+      placement_match:
+      - triage
+      suggested: create-verification-skill
+      purpose_match: none
+      purpose: Upstream classifies one bug report posted in a team chat, files a tracker issue
+        for a clear new bug and replies in the thread. Our triage decides on items already
+        filed in Beads and, where the project mirrors beads to GitHub, on the digest's untracked
+        issues and pull requests, tracking one with a new or reused bead.
+      flag: suggested differs
+      reason: 'Compared with triage: the same kind of decision on incoming work, and the two
+        reopened rows land in its Track it outcome. The computed pick, create-verification-skill,
+        rests on overlap signals only.'
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      duplicate-search-key-list:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/triage/SKILL.md:39-45
+        - .claude/skills/triage/SKILL.md:88
+        - docs/specs/2026-11-20-beads-github-mirror.md:219
+        recommendation: adopt
+        delivery: pending
+        target: triage
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-06
+          override: null
+        reason: 'Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3.
+          Adopted, pending cr-r2pa.3.8: before triage creates a bead for an untracked outside
+          issue, its duplicate search runs over a stated list of keys (error signature, area,
+          trigger, symptom, version window, suspected commit, source link). The 2026-11-13
+          reason was that a fixed key list adds a recipe (S-03) and several keys assume a
+          chat report. The mirror now sends outside GitHub issues to triage (docs/specs/2026-11-20-beads-github-mirror.md:219),
+          whose Track it outcome creates or reuses a bead (.claude/skills/triage/SKILL.md:88),
+          and its only duplicate checks are the codebase search and the prior-rejection search
+          (.claude/skills/triage/SKILL.md:39-45). Which keys fit an issue stays a judgement
+          in the delivered wording, so it names the keys to search, not a fixed procedure.'
+      issue-template-and-title:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/triage/SKILL.md:88
+        - .claude/skills/beads/references/prime.md:36
+        recommendation: adopt
+        delivery: pending
+        target: triage
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-06
+          override: null
+        reason: 'Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3.
+          Adopted, pending cr-r2pa.3.8: a bead triage creates for an outside issue is a self-contained
+          record: a plain area-and-symptom title that never states a guessed cause, the reporter''s
+          words, expected and observed behaviour, version, trigger, frequency, link, labelled
+          hypotheses and media. The 2026-11-13 reason, that triage files no new items, no
+          longer holds: Track it creates or reuses a bead for an untracked outside issue (.claude/skills/triage/SKILL.md:88).
+          The Beads rules require only a Steps to Reproduce section for a bug (.claude/skills/beads/references/prime.md:36).'
