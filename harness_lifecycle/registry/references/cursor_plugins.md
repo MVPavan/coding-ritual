@@ -164,7 +164,7 @@ Catalog: `2776ddd2355d6d6c8747d3964600f28daf62f049`, 354 capabilities.
 | `playbook:harness/pstack/claude-code/skills/poteto-mode/playbooks/worktree-cleanup` | reject | decided |  |  | 2026-11-14-cc-copy | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/authoring-a-skill` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/skill-curation.md |  | 2026-11-12-skill-curation-playbook | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/autonomous-run` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md |  | 2026-11-04-batch-4 | no |
-| `playbook:pstack/skills/poteto-mode/playbooks/autopilot-full` | defer | decided |  |  | 2026-11-20-deferred-playbooks | no |
+| `playbook:pstack/skills/poteto-mode/playbooks/autopilot-full` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/autopilot-full.md |  | 2026-11-23-autopilot-full | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/autopilot-stack` | defer | decided |  |  | 2026-11-20-deferred-playbooks | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/babysit` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/babysit.md |  | 2026-11-20-delivery-playbooks | no |
 | `playbook:pstack/skills/poteto-mode/playbooks/bug-fix` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/bug-fix.md |  | 2026-11-04-batch-4 | no |

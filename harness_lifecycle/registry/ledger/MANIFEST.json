@@ -80,7 +80,8 @@
     "2026-11-21-mirror-skill-guidance.jsonl": "60dd8b5c8b57880835bcd7b53e03fa9cfe0df76b602b4a1573c33743afe55a14",
     "2026-11-22-rejects-review.jsonl": "d73e03780fd2116ac3dd5354337e002d5e2be8540bc36b88b5d71af75926053e",
     "2026-11-23-adoptions-batch-1.jsonl": "68771f6c97bb06db6b0c3344b9b13ec2458efeca593b326b38d0351e2e6aa495",
-    "2026-11-23-adoptions-batch-2.jsonl": "1c68f894feda2e279b143ed7095e8483d692a116686496f8ab6e490f55f99c3f"
+    "2026-11-23-adoptions-batch-2.jsonl": "1c68f894feda2e279b143ed7095e8483d692a116686496f8ab6e490f55f99c3f",
+    "2026-11-23-autopilot-full.jsonl": "e476e20ca1b67a733456fd06eac5704dbfc91f7c2bf5e6b6df50a5d081df249d"
   },
   "round_order": [
     "2026-10-14-migration.jsonl",
@@ -162,7 +163,8 @@
     "2026-11-21-mirror-skill-guidance.jsonl",
     "2026-11-22-rejects-review.jsonl",
     "2026-11-23-adoptions-batch-1.jsonl",
-    "2026-11-23-adoptions-batch-2.jsonl"
+    "2026-11-23-adoptions-batch-2.jsonl",
+    "2026-11-23-autopilot-full.jsonl"
   ],
   "reports": {
     "harness_lifecycle/registry/reviews/2026-10-30-upstream-mattpocock_skills-5beb35b.yaml": "fb413772a75f116bd9baeaa06b6e414fe59978c654a951cb53345f17459d7597",
@@ -220,7 +222,8 @@
     "harness_lifecycle/registry/reviews/2026-11-22-upstream-cursor_plugins-4dd1d05-rejects-review.yaml": "c725445ebdc1977e75be974a421a8ba066dff286ca80f8608319412639dfa792",
     "harness_lifecycle/registry/reviews/2026-11-22-upstream-mattpocock_skills-4ae2317-rejects-review.yaml": "c9d30bf2b09dfb740577d29b9b60d2c5aa48664ad36ab12dca2a7a9f2c7fafa6",
     "harness_lifecycle/registry/reviews/2026-11-22-upstream-mattpocock_skills-5beb35b-rejects-review.yaml": "710f87f0419e8dbcf3931e0e00c2e2d57e8c19a528a0dc208b60758cd83df843",
-    "harness_lifecycle/registry/reviews/2026-11-23-upstream-agent-skills-aeac41d-adoptions-batch-2.yaml": "2eebbfaae26374ebbba9a9e869f82a24cf294664136df019ff14af0bd981548e"
+    "harness_lifecycle/registry/reviews/2026-11-23-upstream-agent-skills-aeac41d-adoptions-batch-2.yaml": "2eebbfaae26374ebbba9a9e869f82a24cf294664136df019ff14af0bd981548e",
+    "harness_lifecycle/registry/reviews/2026-11-23-upstream-superpowers-44c9b2d-autopilot-full.yaml": "751cd3c5854a7da2c1696b1eb5e8d4bf539dbde682801a520fb64835f821315b"
   },
   "analyses": {
     "agent-skills:skill:skills/browser-testing-with-devtools@aeac41d": "a01a6050876d6dd3c34aad66dddb422b20f826508ce6a7b8ba9a1c32b6941fbf",
@@ -330,6 +333,7 @@
     "mattpocock_skills:skill:skills/productivity/teach@5beb35b": "475081e06470630d85533d2d92273fd734955e1527b3918712db86478a5e2bfd",
     "mattpocock_skills:skill:skills/productivity/to-questionnaire@5beb35b": "2495520c01b42ac543fb7d5123ed6b069ff6d1ea0aec846549d275432659bc7a",
     "mattpocock_skills:skill:skills/productivity/wait-what@5beb35b": "10527dd82d847687ae1ed803f60707e9e754a55e98db60772dd0778ebbe67c74",
-    "mattpocock_skills:skill:skills/productivity/writing-for-agents@5beb35b": "914e47ec40adc6a2599d371ad603aa75cd67b5fdbb3f4f3e21bbaee4e51a42b2"
+    "mattpocock_skills:skill:skills/productivity/writing-for-agents@5beb35b": "914e47ec40adc6a2599d371ad603aa75cd67b5fdbb3f4f3e21bbaee4e51a42b2",
+    "superpowers:skill:skills/finishing-a-development-branch@44c9b2d": "9216a958f6a7ff1d4630f047478a767bfa00ceff427d4de0a3cb38a27911b3b7"
   }
 }

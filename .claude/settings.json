@@ -20,6 +20,16 @@
           }
         ],
         "matcher": "Write|Edit"
+      },
+      {
+        "description": "During an Autopilot-full run (a run marker in the repository's common git dir), refuse edits in a checkout on the default branch",
+        "hooks": [
+          {
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/autopilot-branch-guard.sh",
+            "type": "command"
+          }
+        ],
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit"
       }
     ],
     "SessionStart": [

@@ -11,6 +11,7 @@ Archived research is evidence, not operating policy.
 | Domain terminology | `.repo-context/GLOSSARY.md` |
 | Python conventions; ledger format | `.repo-context/coding-style.md` |
 | Checks and prerequisites | `.repo-context/verification.md` |
+| Checks an unattended run makes before every commit | `.repo-context/commit-gate.toml` |
 | Architecture/contracts | `.repo-context/invariants.md`, `docs/adr/README.md` |
 | Investigation | Search `.repo-context/learnings.md`; open matching evidence |
 | Answering why with the `why` skill, or adding an outside system | `.repo-context/evidence-sources.md` |

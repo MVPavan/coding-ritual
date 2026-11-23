@@ -10927,3 +10927,126 @@ rollback-plan-before-risky-merge:
 owner-accepted-named-risk:
   definition: "Let a failing verdict be overridden only by the owner's own acceptance of each finding it rests on, recorded beside the verdict and naming those findings, never by an agent on the owner's behalf."
   placement: {domain: engineering, stage: Delivery, substage: Integration}
+# ---- ours, Autopilot-full (bead cr-p3em.4; owner rulings of 2026-11-20 and 2026-11-23) ----
+autopilot-delivery-grant:
+  definition: "Read the owner's go on named settled beads as authority, per feature that goes ahead, to branch off trunk, commit and push normally on that branch, open its pull request, write that pull request's body, comments and thread replies and post its verdict without asking, and as authority for nothing else."
+  placement: {domain: core, stage: X, substage: Governance}
+  distinct_from: [shipping-merge-grant]
+  note: "shipping-merge-grant authorizes merging a verified run; this grant stops at a merge-ready pull request and authorizes no merge."
+gate-loosening-held:
+  definition: "Hold for the owner any change that loosens a gate, such as a skipped or soft-failed test, a raised budget, an allowlist entry, or a check removed or weakened in the gate's own configuration."
+  placement: {domain: core, stage: X, substage: Governance}
+  distinct_from: [check-never-weakened-to-pass]
+  note: "check-never-weakened-to-pass forbids weakening a failing check to pass; this lets the owner loosen a gate and holds every loosening for the owner's word."
+never-force-push:
+  definition: "Make no force-push in an unattended run, its own branches included: bring trunk in by merging it into the branch, rebase only before the branch's first push, and hold any rewrite of pushed history for the owner."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+  distinct_from: [pinned-lease-child-move, destructive-git-guard]
+  note: "pinned-lease-child-move is a granted force-push that moves a child onto trunk; destructive-git-guard allows a force-push on explicit approval; this run makes none under its grant and holds every history rewrite."
+callee-bound-to-grant:
+  definition: "When a run calls another unit whose own grant reaches further (creating or mirroring issues, rerunning workflows, closing beads after a merge), run that unit bound to the run's grant and send every write beyond it to the owner as a held write."
+  placement: {domain: core, stage: X, substage: Governance}
+settled-bead-intake:
+  definition: "Take into an unattended run only beads with acceptance and no open material question, labelling each other bead for the owner with its question and skipping it, and treating a request to state the plan as no go."
+  placement: {domain: core, stage: Intake, substage: Triage}
+owner-sets-concurrency:
+  definition: "Propose running independent work in parallel or one at a time with evidence of independence (no blocking edge, no overlapping expected files), let the owner's go set the concurrency with one at a time as the default, and when the owner lowers it mid-run let running work finish its current task first."
+  placement: {domain: core, stage: X, substage: Coordination}
+  distinct_from: [parallel-frontier-implementers]
+  note: "parallel-frontier-implementers runs implementers concurrently by default; here concurrency is the owner's per-run choice, never inferred."
+active-run-marker:
+  definition: "Mark an unattended run active at intake by exclusively creating a marker file holding the run's id in the repository's common git directory, refusing to start while one exists, so a guard in every worktree can tell a run is on, and at exit remove it only while it still holds that run's id."
+  placement: {domain: core, stage: X, substage: Coordination}
+fresh-trunk-branch-per-feature:
+  definition: "Give each feature its own branch made from freshly fetched trunk in a worktree of its own, never stacked on another feature's branch, leaving the main checkout untouched."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+  distinct_from: [worktree-per-implementer, single-integration-branch]
+  note: "worktree-per-implementer gives every implementer subagent a worktree and single-integration-branch lands all tickets on one branch; this is one branch and worktree per feature, off trunk, whoever builds it."
+push-after-each-task:
+  definition: "Push a feature's branch soon after it starts and after each finished task, leaving a resume line with the branch, the last pushed SHA and the next task on its bead, so a lost session loses at most one task."
+  placement: {domain: core, stage: X, substage: Continuity}
+committed-tree-check:
+  definition: "Run commit-time checks only when the working tree holds what the commit will hold as far as the checks read it, refusing when a staged path has unstaged changes or, with a whole-project check due, when any unstaged or untracked change exists."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+unscripted-checks-noted:
+  definition: "Before each commit, do the checks the project's gate file names as not scriptable, from its verification guide, and note each result on the bead."
+  placement: {domain: engineering, stage: Verification, substage: Validation}
+gate-file-first:
+  definition: "Stop at a project's first commit when it has no commit-gate file, draft one from its verification guide with every scriptable check as a command, and resume only on the owner's approval."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+code-ready-trunk-merge:
+  definition: "Merge freshly fetched trunk into a finished feature's branch before its pull request and review, committing the merge through the commit checks and pushing it normally, so the checks and the review run on the base it lands on."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+review-once-per-feature:
+  definition: "Give each feature one full independent review at its code-ready head and a verdict for every later head's tree: one re-check for a trunk merge, a conflict fix or a minor fix, a re-check confirming only that the diff touches prose for a wording-only change, and a full review again only for new behaviour or a large new diff."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+  distinct_from: [risk-sized-review]
+  note: "risk-sized-review sizes review to the work's size; this fixes one review per feature and sizes only the re-checks of later heads."
+shown-problem-blocks:
+  definition: "Block a change only for a problem shown by a failing run at its head or a document line it made wrong, or a base problem it copies or newly reaches, and file every other finding as a follow-up."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+  distinct_from: [severity-and-verdict]
+  note: "severity-and-verdict blocks on any open blocker or major by consequence; this blocks only on what can be shown failing or wrong at the head."
+held-write-stop:
+  definition: "When a piece of work's next write is one the owner holds, stop that piece at it, keep its branch and state, and list the write for the owner while other work goes on."
+  placement: {domain: core, stage: X, substage: Governance}
+foreign-push-stop:
+  definition: "Before each push compare the remote branch tip with the SHA this run last pushed, and stop that branch's work and report it when the branch holds a push this run did not make."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+owner-stop-zero-writes:
+  definition: "On the owner's stop, finish no step and start none, make no further write to a branch, the forge or the tracker, pass the same order to every worker, and report where each piece of work stands."
+  placement: {domain: core, stage: X, substage: Coordination}
+  distinct_from: [safe-boundary-stop]
+  note: "safe-boundary-stop finishes or backs out of the atomic step before pausing; this stops at once with no further writes."
+run-owned-review-loop:
+  definition: "Build each bead with implement's Task loop run as the delivery run's own step rather than the implement playbook called whole, leaving out implement's per-unit review loop because the feature's one review and the re-checks of later heads replace it, unless the bead itself requires another review."
+  placement: {domain: engineering, stage: Verification, substage: Review}
+autopilot-closeout:
+  definition: "On every exit of an unattended delivery run, release the claims it took, leave a resume line on each unfinished bead, and release the run marker last when this run took it; after the owner's stop, only release the marker."
+  placement: {domain: core, stage: X, substage: Continuity}
+  distinct_from: [implement-closeout]
+  note: "implement-closeout closes finished beads and persists a run ledger; this run leaves each feature's own bead open until its pull request merges and must clear its marker."
+# ---- superpowers finishing-a-development-branch at 44c9b2d (bead cr-p3em.4; report 2026-11-23-upstream-superpowers-44c9b2d-autopilot-full) ----
+announce-skill-at-start:
+  definition: "Announce by name which skill is in use when it starts."
+  placement: {domain: core, stage: X, substage: Communication}
+  distinct_from: [playbook-pick]
+  note: "playbook-pick chooses the playbook and says which; this only announces a skill already chosen."
+checks-on-integrated-tree:
+  definition: "Run the project's checks on the exact tree about to be integrated, and offer or make no integration until they pass, showing the failures when they do not."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+  distinct_from: [merged-result-verification]
+  note: "merged-result-verification checks the result after a merge; this checks the branch's own tree before it is integrated."
+workspace-kind-detection:
+  definition: "Tell a plain checkout, a named-branch worktree and a detached-HEAD worktree apart by comparing the git directory with the common git directory, capturing the worktree path before leaving it."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+fixed-integration-menu:
+  definition: "When a branch is finished, offer the person exactly a fixed set of integration options (merge locally, push and open a pull request, keep as is; no merge on a detached HEAD) and wait for their choice."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+local-merge-to-base:
+  definition: "Integrate a finished branch by merging it into its freshly pulled base branch locally."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+merged-branch-delete:
+  definition: "After a local merge's result passes, remove the branch's worktree and delete the branch with a safe delete."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+push-and-open-pr:
+  definition: "Finish a branch by pushing it with upstream tracking and opening a pull request against its base with the forge's tooling, reporting the pull request's address."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+keep-worktree-until-landed:
+  definition: "Keep a branch's worktree while its pull request is open, because review fixes are made there, and remove it only once the work has landed."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+rejected-push-investigation:
+  definition: "When a push is rejected, find out why before anything else, and force-push only when the person explicitly asks for it."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+  distinct_from: [destructive-git-guard, foreign-push-stop]
+  note: "destructive-git-guard covers every destructive Git operation; foreign-push-stop compares the remote tip before a push; this is the response to a push the remote has refused."
+typed-discard-confirmation:
+  definition: "Never offer to discard a branch's work, and discard it only after the person asks and then types one fixed confirmation word."
+  placement: {domain: core, stage: X, substage: Governance}
+  distinct_from: [unmerged-work-protection]
+  note: "unmerged-work-protection shows what would be lost and asks for an explicit confirmation; this adds never offering the discard and one fixed typed word as the only confirmation."
+provenance-worktree-cleanup:
+  definition: "Remove only the worktrees this tool created, recognised by where they live, from outside them, then prune, leaving host-owned and detached worktrees in place."
+  placement: {domain: engineering, stage: Delivery, substage: Integration}
+  distinct_from: [approved-worktree-prune, worktree-cleanup]
+  note: "approved-worktree-prune removes only worktrees the owner approves by path and never prunes globally; worktree-cleanup removes every implementer worktree at a build's end; this decides by the worktree's location."

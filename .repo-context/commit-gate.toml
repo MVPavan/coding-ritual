@@ -1,0 +1,127 @@
+# Commit gate: the checks the Autopilot-full playbook runs before every commit, through
+# .claude/skills/mvp-mode/playbooks/autopilot-full/commit_gate.py (its docstring holds the format).
+# Each row comes from .repo-context/verification.md; every row a script can judge is scripted
+# here, and the rest are [[manual]] entries done from verification.md, their results noted on
+# the bead. Staged-file checks run first, then whole-project checks; each list is cheapest
+# first, and the gate stops at the first failure. Globs use fnmatch: `*` also matches `/`.
+# Removing or weakening a check, or widening a glob's exemption, loosens the gate: the owner's call.
+
+# ---- staged-file checks (each gets the staged paths its globs match) ----
+
+[[staged]]
+name = "shell syntax (bash -n)"
+glob = ["*.sh"]
+command = ["bash", "-n"]
+per_file = true
+
+[[staged]]
+name = "shellcheck, when installed"
+glob = ["*.sh"]
+command = ["sh", "-c", "if command -v shellcheck >/dev/null 2>&1; then exec shellcheck \"$@\"; fi; echo 'shellcheck is not installed (verification.md: when available)'; exit 77", "shellcheck-when-installed"]
+
+[[staged]]
+name = "JSON parses"
+glob = ["*.json"]
+command = ["python3", "-c", "import json, sys\nfor p in sys.argv[1:]:\n    json.load(open(p, encoding='utf-8'))"]
+
+[[staged]]
+name = "Python compiles (no bytecode written)"
+glob = ["*.py"]
+command = ["python3", "-c", "import sys\nfor p in sys.argv[1:]:\n    compile(open(p, 'rb').read(), p, 'exec')"]
+
+[[staged]]
+name = "ruff format --check"
+glob = ["*.py"]
+command = ["uv", "run", "--frozen", "ruff", "format", "--check", "--no-cache"]
+
+[[staged]]
+name = "ruff check"
+glob = ["*.py"]
+command = ["uv", "run", "--frozen", "ruff", "check", "--no-cache"]
+
+# ---- whole-project checks (due when a staged path matches `when`; no `when`: always) ----
+
+[[project]]
+name = "whitespace in the judged diff (git diff --check)"
+command = ["git", "diff", "--check", "{diff}"]
+
+[[project]]
+name = "dangerous-commands hook still blocks"
+when = [".claude/hooks/block-dangerous-commands.sh"]
+command = ["bash", "-c", "printf '%s' '{\"tool_input\":{\"command\":\"git push --force\"}}' | bash .claude/hooks/block-dangerous-commands.sh; test $? -eq 2"]
+
+[[project]]
+name = "beads store answers (bd ready)"
+when = [".beads/*"]
+command = ["bd", "ready"]
+
+[[project]]
+name = "skill catalog current (skill-catalog.py --check)"
+when = [".claude/skills/*", ".claude/scripts/skill-catalog.py"]
+command = ["uv", "run", "--frozen", "python", ".claude/scripts/skill-catalog.py", "--check"]
+
+[[project]]
+name = "registry check"
+when = ["harness_lifecycle/registry/*", ".claude/skills/*", "AGENTS.md", ".repo-context/*", "curation/*"]
+command = ["uv", "run", "--frozen", "python", "harness_lifecycle/registry/registry.py", "check"]
+env = { PYTHONDONTWRITEBYTECODE = "1" }
+
+[[project]]
+name = "curation and skill-script suites"
+when = ["curation/*", "tests/curation/*", "tests/checks/*", ".claude/skills/*.py", ".claude/skills/*.sh", ".claude/hooks/*", ".claude/scripts/*"]
+command = ["uv", "run", "--frozen", "python", "-m", "pytest", "-q", "-p", "no:cacheprovider", "tests/curation", "tests/checks"]
+env = { PYTHONDONTWRITEBYTECODE = "1" }
+
+[[project]]
+name = "Beads to GitHub mirror suite (fake gh, real bd)"
+when = [".claude/hooks/bead-mirror.py", "tests/mirror/*"]
+command = ["uv", "run", "--frozen", "python", "-m", "pytest", "-q", "-p", "no:cacheprovider", "tests/mirror"]
+env = { PYTHONDONTWRITEBYTECODE = "1" }
+
+# The interpreter's five-stage host gate (docs/usage/interpreter-gate.md), one stage per check.
+[[project]]
+name = "interpreter gate: lint and format"
+when = ["workflow_interpreter/*", "scripts/verify-feature.sh", "scripts/review-checks.sh", "scripts/checks/*", "tests/test_*", "tests/_*", "tests/conftest.py", "tests/acceptance/*", "tests/fixtures/*"]
+command = ["sh", "-c", "uv run --frozen ruff check --no-cache workflow_interpreter/ tests/ && uv run --frozen ruff format --check --no-cache workflow_interpreter/ tests/"]
+
+[[project]]
+name = "interpreter gate: types (mypy --strict)"
+when = ["workflow_interpreter/*", "scripts/verify-feature.sh", "scripts/review-checks.sh", "scripts/checks/*", "tests/test_*", "tests/_*", "tests/conftest.py", "tests/acceptance/*", "tests/fixtures/*"]
+command = ["uv", "run", "--frozen", "mypy", "--strict", "--explicit-package-bases", "workflow_interpreter/"]
+env = { MYPYPATH = "." }
+
+[[project]]
+name = "interpreter gate: non-live suite"
+when = ["workflow_interpreter/*", "scripts/verify-feature.sh", "scripts/review-checks.sh", "scripts/checks/*", "tests/test_*", "tests/_*", "tests/conftest.py", "tests/acceptance/*", "tests/fixtures/*"]
+command = ["uv", "run", "--frozen", "pytest", "-q", "-p", "no:cacheprovider", "-m", "not bd and not live"]
+
+[[project]]
+name = "interpreter gate: Beads integration"
+when = ["workflow_interpreter/*", "scripts/verify-feature.sh", "scripts/review-checks.sh", "scripts/checks/*", "tests/test_*", "tests/_*", "tests/conftest.py", "tests/acceptance/*", "tests/fixtures/*"]
+command = ["uv", "run", "--frozen", "pytest", "-q", "-p", "no:cacheprovider", "-m", "bd"]
+
+[[project]]
+name = "interpreter gate: process and sandbox suite"
+when = ["workflow_interpreter/*", "scripts/verify-feature.sh", "scripts/review-checks.sh", "scripts/checks/*", "tests/test_*", "tests/_*", "tests/conftest.py", "tests/acceptance/*", "tests/fixtures/*"]
+command = ["uv", "run", "--frozen", "pytest", "-q", "-p", "no:cacheprovider", "-m", "proc"]
+
+# ---- manual checks: judgement no script gives; do them from verification.md ----
+
+[[manual]]
+name = "diff and status"
+do = "Before committing, inspect the judged range ({range}) and git status; every change in it belongs to this work and unrelated work stays untouched. Note the result with that range and the commit's SHA: right after the commit succeeds, the new commit's; with --since, the tip judged."
+
+[[manual]]
+name = "documentation"
+when = ["*.md"]
+do = "Validate the changed paths and links, and keep historical evidence apart from active guidance."
+
+[[manual]]
+name = "beads export"
+when = [".beads/*"]
+do = "Keep .beads/issues.jsonl current, as the beads skill says (references/usage.md section 15)."
+
+[[manual]]
+name = "plugin harness"
+when = ["mvp-harness/*", "mvp-harness"]
+do = "Run the affected plugin's Docker harness (verification.md, Plugin checks); when it cannot run, report it as unverified."

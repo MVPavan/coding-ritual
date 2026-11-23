@@ -81,8 +81,8 @@ area-topic-filing:
   why: "Each files its own output under its own root by one rule: settle-open-questions its records under docs/decisions/, research its reports under docs/research/."
   reviewed: "2026-11-11"
 finding-adjudication:
-  skills: [doc:.claude/skills/mvp-mode/playbooks/implement.md, review]
-  why: "Implement rules on findings inside its delivery loop and review owns the method; owner 2026-10-30: implement (then named execution) stays unchanged."
+  skills: [doc:.claude/skills/mvp-mode/playbooks/autopilot-full.md, doc:.claude/skills/mvp-mode/playbooks/implement.md, review]
+  why: "Implement rules on findings inside its delivery loop and review owns the method; owner 2026-10-30: implement (then named execution) stays unchanged. Autopilot-full runs implement's Task loop as its own build step, so it rules on findings the same way inside each feature, and on the feature review's findings it blocks only on a shown problem (bead cr-p3em.4)."
   reviewed: "2026-11-11"
 domain-vocabulary:
   skills: [brief-me, create-formal-verification-skill, improve-codebase-architecture, prototype, teach]
@@ -109,12 +109,12 @@ revert-ineffective-experiments:
   why: "Each runs its own loop of attempts, fix attempts in the bug-fix playbook and optimization experiments in performance-optimization, and removes its own failed edits before the next attempt."
   reviewed: "2026-10-31"
 attempt-log:
-  skills: [doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/implement.md]
-  why: "Each fixes a failure on its own path, the bug-fix playbook for a bug-fix request and the implement playbook inside a unit it coordinates, where a separate bug-fix request would leave its scope; both log each fix attempt so a stop hands back usable evidence."
+  skills: [doc:.claude/skills/mvp-mode/playbooks/autopilot-full.md, doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/implement.md]
+  why: "Each fixes a failure on its own path, the bug-fix playbook for a bug-fix request, the implement playbook inside a unit it coordinates, where a separate bug-fix request would leave its scope, and the Autopilot-full playbook inside its feature's Task loop, run unattended; all three log each fix attempt so a stop hands back usable evidence, Autopilot-full on the feature's bead for the owner (bead cr-p3em.4)."
   reviewed: "2026-11-11"
 two-failure-stop:
-  skills: [doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/implement.md]
-  why: "Each fixes a failure on its own path, the bug-fix playbook for a bug-fix request and the implement playbook inside a unit it coordinates, where a separate bug-fix request would leave its scope; both stop after two failed fixes and return the attempt log, the bug-fix playbook to the user and the implement playbook to whoever owns the unit."
+  skills: [doc:.claude/skills/mvp-mode/playbooks/autopilot-full.md, doc:.claude/skills/mvp-mode/playbooks/bug-fix.md, doc:.claude/skills/mvp-mode/playbooks/implement.md]
+  why: "Each fixes a failure on its own path, the bug-fix playbook for a bug-fix request, the implement playbook inside a unit it coordinates, where a separate bug-fix request would leave its scope, and the Autopilot-full playbook inside its feature's Task loop; all three stop after two failed fixes and return the attempt log, the bug-fix playbook to the user, the implement playbook to whoever owns the unit, and Autopilot-full to the owner, stopping that feature while the run's other features go on (bead cr-p3em.4)."
   reviewed: "2026-11-11"
 single-source-of-truth:
   skills: [authoring-for-agents, create-formal-verification-skill, principle-subtract-before-you-add]
@@ -407,4 +407,36 @@ full-pr-url:
 edit-pass-before-posting:
   skills: [doc:.claude/skills/mvp-mode/playbooks/babysit.md, doc:.claude/skills/mvp-mode/playbooks/shipping.md]
   why: "Both post text people read, Babysit its review-thread replies and Shipping its verdict records, and each passes its own draft through unslop at its own posting step; the owner's 2026-11-22 adoption (bead cr-r2pa.3.10) covers both."
+  reviewed: "2026-11-23"
+independent-user-run-verdict:
+  skills: [doc:.claude/skills/mvp-mode/playbooks/autopilot-full.md, doc:.claude/skills/mvp-mode/playbooks/shipping.md]
+  why: "Autopilot-full gives each feature its one review with the same verdict Shipping requires before a merge (a reviewer who did not write it, the change run as a user would, PASS, PASS+NOTES or FAIL bound to the tree), so Shipping can reuse it for an unchanged tree instead of reviewing again (bead cr-p3em.4)."
+  reviewed: "2026-11-23"
+verdict-on-pr-and-bead:
+  skills: [doc:.claude/skills/mvp-mode/playbooks/autopilot-full.md, doc:.claude/skills/mvp-mode/playbooks/shipping.md]
+  why: "Autopilot-full posts its feature verdict where Shipping looks for one, on the pull request and on the bead under Shipping's key, so the receipts Shipping checks before merging already exist (bead cr-p3em.4)."
+  reviewed: "2026-11-23"
+verdict-reuse-on-tree:
+  skills: [doc:.claude/skills/mvp-mode/playbooks/autopilot-full.md, doc:.claude/skills/mvp-mode/playbooks/shipping.md]
+  why: "Autopilot-full calls a pull request merge-ready only with a usable verdict for the current head's tree, under the same exact-tree rule Shipping uses to reuse a verdict, so every head it hands over carries a verdict Shipping can reuse (bead cr-p3em.4)."
+  reviewed: "2026-11-23"
+task-loop:
+  skills: [doc:.claude/skills/mvp-mode/playbooks/autopilot-full.md, doc:.claude/skills/mvp-mode/playbooks/implement.md]
+  why: "Autopilot-full builds each bead with implement's Task loop as its own step instead of calling the implement playbook whole, because it runs one review per feature in place of implement's per-unit review; the feature's own bead closes after its merge (bead cr-p3em.4)."
+  reviewed: "2026-11-23"
+unit-bead-execution:
+  skills: [doc:.claude/skills/mvp-mode/playbooks/autopilot-full.md, doc:.claude/skills/mvp-mode/playbooks/implement.md]
+  why: "Autopilot-full drains a feature's open children one ready child at a time with implement's rule, as part of the Task loop it runs as its build step (bead cr-p3em.4)."
+  reviewed: "2026-11-23"
+confirmed-cause-fix:
+  skills: [doc:.claude/skills/mvp-mode/playbooks/autopilot-full.md, doc:.claude/skills/mvp-mode/playbooks/implement.md]
+  why: "Autopilot-full's build step is implement's Task loop, which fixes a failure only for a cause its diagnosis confirmed (bead cr-p3em.4)."
+  reviewed: "2026-11-23"
+regression-proof-and-rerun:
+  skills: [doc:.claude/skills/mvp-mode/playbooks/autopilot-full.md, doc:.claude/skills/mvp-mode/playbooks/implement.md]
+  why: "Autopilot-full's build step is implement's Task loop, which proves a fix with a regression check and reruns the failing scenario (bead cr-p3em.4)."
+  reviewed: "2026-11-23"
+no-reused-implementer:
+  skills: [doc:.claude/skills/mvp-mode/playbooks/autopilot-full.md, doc:.claude/skills/mvp-mode/playbooks/implement.md]
+  why: "Autopilot-full's build step gives each bead a newly started implementer when it delegates, as implement's Task loop does (bead cr-p3em.4)."
   reviewed: "2026-11-23"
