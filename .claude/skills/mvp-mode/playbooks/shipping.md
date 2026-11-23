@@ -8,14 +8,14 @@ steps:
     calls: [{to: "skill:beads", when: before the run's first bead write}]
   - id: shipping#2
     when: a pull request has an earlier verdict
-    actions: [{trait: verdict-reuse-on-tree}]
+    actions: [{trait: verdict-reuse-on-tree}, {trait: owner-accepted-named-risk}]   # the second only when the owner accepts a FAIL's findings
   - id: shipping#3
-    when: each unmerged pull request from the bottom that shipping#2 left without a usable verdict
+    when: each unmerged pull request from the bottom with no verdict shipping#2 could reuse
     actions: [{trait: independent-user-run-verdict}, {trait: edit-pass-before-posting}, {trait: verdict-on-pr-and-bead}]
     calls: [{to: "skill:delegation", when: "the reviewer role, briefed to run the change as a user would, against its base"}, {to: "skill:unslop", when: "on the verdict record's prose, before it is first posted"}]
   - id: shipping#4
     when: the verified run holds at least one pull request
-    actions: [{trait: verdict-receipts-before-merge}, {trait: edit-pass-before-posting}, {trait: trunk-ancestor-before-merge}, {trait: direct-merge-mutation-at-verified-head}, {trait: bottom-up-merge-read-back}, {trait: pinned-lease-child-move}, {trait: bounded-background-wait}, {trait: event-wait-with-fresh-read}]
+    actions: [{trait: verdict-receipts-before-merge}, {trait: rollback-plan-before-risky-merge}, {trait: edit-pass-before-posting}, {trait: trunk-ancestor-before-merge}, {trait: direct-merge-mutation-at-verified-head}, {trait: bottom-up-merge-read-back}, {trait: pinned-lease-child-move}, {trait: bounded-background-wait}, {trait: event-wait-with-fresh-read}]
     calls: [{to: "skill:unslop", when: "on a missing receipt's prose, before it is posted from the record"}]
   - id: shipping#5
     when: every exit
@@ -42,7 +42,7 @@ the forge command line.
   standing grant still wait for the owner; step 4's push goes only to the
   stack's own branch under its claim, and a shared one stops for the owner.
 - **Verified run only.** From the lowest unmerged pull request upward, the run
-  ends before the first one without `PASS` or `PASS+NOTES` that covers its
+  ends before the first one without a usable verdict (step 2) that covers its
   current tree. That one is the ceiling. A verified pull request above the
   ceiling waits: it depends on code below it that has not landed. Check the
   ceiling again before touching each next pull request; going past it takes a
@@ -69,10 +69,24 @@ the forge command line.
 2. **Reuse a verdict only for the same tree.** A tree that has not changed is
    code that has not changed. Reuse an earlier verdict only when its record
    names the tree it ran on, that tree equals the current head's tree (`git
-   rev-parse <head>^{tree}`), and the record names the independent reviewer.
-   Anything else gets a fresh verdict in step 3. After a parent's squash merge,
-   a moved child keeps its tree exactly when nothing else landed between, so
-   its verdict carries over then and only then.
+   rev-parse <head>^{tree}`), the record names the independent reviewer, and
+   the owner has not asked since, in their own message, for a fresh review of
+   that tree (after a `FAIL` the environment caused, say); an agent never asks
+   for one itself. Anything else gets a fresh verdict in step 3. After a
+   parent's squash merge, a moved child keeps its tree exactly when nothing
+   else landed between, so its verdict carries over then and only then.
+   **Usable verdict**, the one test for a fresh and a reused verdict alike: the
+   latest verdict for the current tree is usable when it is `PASS` or
+   `PASS+NOTES`, or a `FAIL` the owner accepted under that exact key.
+   **Accepted risk.** Only the owner accepts a `FAIL`, in their own message
+   that names its key and each finding it rests on and says to go ahead. An
+   agent, the reviewer or a grant to ship never accepts one; a finding left
+   unnamed, or another key named, leaves the `FAIL` standing. Accepting starts
+   no new review. Record it as step 3 records a verdict (file, `unslop` pass,
+   pull-request and bead comments) under the key `accepted <pr>@<tree
+   sha>#<n>`, the `FAIL`'s own key with `accepted` in place of `verdict`, with
+   the findings accepted and the owner's words quoted. It covers that verdict
+   only: a new verdict or a changed tree needs a new acceptance.
 3. **Verify.** Invoke `delegation` for a reviewer that did not write the
    change, from another model family as `delegation` requires, briefed to run
    the change the way a user would (the project's verify skill when it has one,
@@ -86,14 +100,22 @@ the forge command line.
    reviewer's behalf, its identity attached: as a
    pull-request comment (`gh pr comment <pr> --body-file <file>`) and a bead
    comment (`bd comment <id> --file <file>`), each only when a search for the
-   key finds no post there.
+   key finds no post there. A key is its record's first line, and a search
+   for one matches only a post whose first line is exactly that key, so
+   `#1` never matches `#10` and a verdict never matches its acceptance.
 4. **Land bottom-up, one at a time.**
    - **Receipts.** Before merging, take the latest verdict for the current
-     tree; it must be `PASS` or `PASS+NOTES`, and a pull-request comment and a
-     bead comment carrying its key must both exist, on a reused verdict as on a
-     fresh one. Post a missing one from the record, prepared as in step 3 (the
-     `unslop` pass and the pull request's full web address; key, SHAs, identity
-     and result unchanged), or stop.
+     tree; it must be usable (step 2), and a pull-request comment and a bead
+     comment with its exact key must both exist, on a reused verdict as on a
+     fresh one, plus both with its acceptance's key for an accepted `FAIL`.
+     Post a missing one from its record, prepared as in step 3 (the `unslop`
+     pass and the pull request's full web address; key, SHAs, identity and
+     result unchanged), or stop.
+   - **Rollback plan.** A pull request whose Merge danger names a one-way door
+     (`pr`'s definition; with no such section, judge the door by it) merges only
+     when its body holds a rollback plan: what would trigger a rollback and the
+     exact steps. Without one, stop for that pull request; its author adds the
+     plan. Other merges need none.
    - **Trunk.** Immediately before merging, fetch trunk. When its tip is not an
      ancestor of the verified head, stop for that pull request: it needs
      updating and a fresh verdict. A child moved onto a parent's squash commit
@@ -145,13 +167,16 @@ Name each pull request by its full web address
 
 - **Landed:** the run and its ceiling; for each pull request its verdict, the
   reviewer's identity, the tree and head SHA it covers, and whether it was
-  reused; what merged and the read-back that confirmed it; each bead closed or
-  left open and why; what the next gap needs (a verdict, a fix, a rebase).
+  reused; each finding the owner accepted; for a one-way door, where its
+  rollback plan is; what merged and the read-back that confirmed it; each bead
+  closed or left open and why; what the next gap needs (a verdict, a fix, a
+  rebase).
 - **Nothing landed:** the first pull request without a usable verdict and why
   (`FAIL` with its evidence, a changed tree, no bead, no reviewer), with every
   verdict given.
 - **Stopped:** the step and the cause (a claim held elsewhere, a required
   merge queue, a merge that did not read back as merged on trunk, a failed or
-  mismatched write, a missing verdict post, the stopped-waiting exit), the
-  state observed (each pull request's head, base and state), what landed
-  before it, and that nothing resumes by itself.
+  mismatched write, a missing verdict post, a one-way door with no rollback
+  plan, the stopped-waiting exit), the state observed (each pull request's
+  head, base and state), what landed before it, and that nothing resumes by
+  itself.

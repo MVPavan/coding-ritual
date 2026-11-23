@@ -197,7 +197,8 @@ differs from the last run's Beads snapshot (the Beads-side checkpoint); every li
 issue it has no facts for; and the latest closing event of each closed issue a row
 needs (``MirrorClosedBy``: a merged pull request with its merge commit and merger, a
 commit, none, or unknown when it cannot be read or attributed). It keeps *facts*
-(numbers, states, times, validated logins, SHAs, a pull request's references), never a
+(numbers, states, times, validated logins, SHAs, a pull request's references and its
+author's association), never a
 title, body or comment, for the issues a bead links and the items in a row, and builds
 the rows from those facts and Beads every run, so a row clears on the next run once
 Beads agrees even if nothing changed on GitHub. Rows (``ROW_TYPES``): a linked issue
@@ -206,7 +207,8 @@ was confirmed closed, or is held); a tracking-only issue still open while its be
 closed; holds, not-storable and screened components; an open issue no bead links; an
 unlinked issue closed since opt-in by a merged pull request; an open pull request, or
 one merged since opt-in, none of whose references is a linked issue (each reference
-listed as missing, a pull request or not linked); an issue named by several beads or
+listed as missing, a pull request or not linked, with the author's association, such as
+``OWNER`` or ``CONTRIBUTOR``, when GitHub gave one); an issue named by several beads or
 enrolled for a bead missing from Beads; and the count of beads outbound would create.
 Every row passes the field allow-list (``allowed_row``). The facts, rows, Beads
 snapshot and both checkpoints land in one atomic state replacement when inbound ends,
@@ -3200,10 +3202,22 @@ HOLD_COMPONENT = {
     "bad-link": "link",
     "retire": "retire",
 }
+# GitHub's CommentAuthorAssociation values: a pull request author's relation to the repository.
+ASSOCIATIONS = {
+    "COLLABORATOR",
+    "CONTRIBUTOR",
+    "FIRST_TIMER",
+    "FIRST_TIME_CONTRIBUTOR",
+    "MANNEQUIN",
+    "MEMBER",
+    "NONE",
+    "OWNER",
+}
 # The field allow-list: every value a digest row may carry, by field.
 ROW_WORDS = {
     "type": set(ROW_TYPES),
     "state": {"open", "closed", "merged"},
+    "association": ASSOCIATIONS,
     "cause": {"pull", "none", "commit", "unknown"},
     "component": {"title", "body", "label", "state", "create", "link", "retire"},
     "why": {
@@ -3231,7 +3245,7 @@ CLOSE_SKEW = 60.0
 INBOUND_ISSUE_FIELDS = "__typename id number state closedAt updatedAt author { login }"
 PULL_FIELDS = (
     "__typename id number state merged mergedAt updatedAt body author { login }"
-    " mergedBy { login } mergeCommit { oid }"
+    " authorAssociation mergedBy { login } mergeCommit { oid }"
 )
 INBOUND_ISSUES_QUERY = (
     "query MirrorInboundIssues($id: ID!, $since: DateTime!, $first: Int!,"
@@ -3290,7 +3304,8 @@ def stamp_of(value: Any) -> str | None:
 
 def fact_of(node: Any, switch: Mapping[str, Any]) -> dict[str, Any] | None:
     """What inbound keeps of an issue or pull request: numbers, states, times, logins,
-    SHAs and a pull request's references. Never a title, body or comment."""
+    SHAs, a pull request's references and its author's association (one of
+    ``ASSOCIATIONS``, else None). Never a title, body or comment."""
     if not isinstance(node, dict):
         return None
     number = node.get("number")
@@ -3326,6 +3341,12 @@ def fact_of(node: Any, switch: Mapping[str, Any]) -> dict[str, Any] | None:
             "state": state,
             "merged_at": stamp_of(node.get("mergedAt")) if state == "MERGED" else None,
             "author": login_of(node.get("author")),
+            "association": (
+                node["authorAssociation"]
+                if isinstance(node.get("authorAssociation"), str)
+                and node["authorAssociation"] in ASSOCIATIONS
+                else None
+            ),
             "merger": login_of(node.get("mergedBy")) if state == "MERGED" else None,
             "commit": sha_of(node.get("mergeCommit")) if state == "MERGED" else None,
             "refs": found,
@@ -3338,7 +3359,7 @@ def allowed_row(row: Mapping[str, Any]) -> dict[str, Any]:
     out: dict[str, Any] = {}
     for key, value in row.items():
         if key in ROW_WORDS:
-            ok = value in ROW_WORDS[key]
+            ok = isinstance(value, str) and value in ROW_WORDS[key]
         elif key in ("issue", "pull", "count", "more"):
             ok = isinstance(value, int) and not isinstance(value, bool) and value >= 0
         elif key == "bead":
@@ -3420,9 +3441,12 @@ def row_text(row: Mapping[str, Any]) -> str:
         )
         if row.get("more"):
             why += f", and {row['more']} more"
+        assoc = row.get("association")
         text = (
             f"pull request #{pull} ({row.get('state')}, by "
-            f"{row.get('author', 'unknown')}) is untracked: {why}"
+            f"{row.get('author', 'unknown')}"
+            + (f", association {assoc}" if assoc else "")
+            + f") is untracked: {why}"
         )
     elif kind == "link-problem":
         if row.get("why") == "shared":
@@ -4061,6 +4085,7 @@ class Inbound:
             "pull": number,
             "state": state.lower(),
             "author": fact.get("author"),
+            "association": fact.get("association"),
             "refs": failing,
             "link": self.url("pull", number),
         }

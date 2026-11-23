@@ -32,7 +32,9 @@ with the fields inbound reads); ``MirrorClosedBy`` (an issue's latest closing ev
 the merged pull request or commit that closed it, or none when closed by hand), by the
 issue's node ID. Issues keep ``closed_at`` and ``closing_events`` ([{"at", "closer":
 {"pull": N, "repo"?: "owner/name" of another repository} | {"commit": SHA} | null}]); pull requests keep ``state`` (OPEN, CLOSED,
-MERGED), ``merged_at``, ``merged_by``, ``merge_commit`` and ``updated_at``.
+MERGED), ``merged_at``, ``merged_by``, ``merge_commit``, ``updated_at`` and
+``association`` (the author's ``authorAssociation``; absent, GraphQL null, as a pull
+request read before the mirror asked for it would leave its facts).
 
 Faults (``state["faults"]``): ``unauthenticated``; ``rate_limited`` (403 or 429, with
 the rate headers under ``--include``); ``offline``; ``delay`` (seconds slept before
@@ -169,8 +171,8 @@ QUERY_SHAPES: dict[str, tuple[dict[str, str], str]] = {
         (
             "ID Int String node id Repository pullRequests first after states OPEN CLOSED"
             " MERGED orderBy field UPDATED_AT direction DESC nodes __typename number state"
-            " merged mergedAt updatedAt body author login mergedBy mergeCommit oid"
-            " pageInfo hasNextPage endCursor"
+            " merged mergedAt updatedAt body author login authorAssociation mergedBy"
+            " mergeCommit oid pageInfo hasNextPage endCursor"
         ),
     ),
     "MirrorHighWater": (
@@ -181,8 +183,8 @@ QUERY_SHAPES: dict[str, tuple[dict[str, str], str]] = {
         {"id": "id", "number": "number"},
         (
             "ID Int node id Repository issueOrPullRequest number Issue __typename state"
-            " closedAt updatedAt author login PullRequest merged mergedAt body mergedBy"
-            " mergeCommit oid"
+            " closedAt updatedAt author login PullRequest merged mergedAt body"
+            " authorAssociation mergedBy mergeCommit oid"
         ),
     ),
     "MirrorClosedBy": (
@@ -828,6 +830,7 @@ def inbound_pull(pull: dict[str, Any], faults: dict[str, Any]) -> Any:
             "updated_at": pull.get("updated_at", EPOCH),
             "pull_body": body,
             "author": pull.get("author", "contributor"),
+            "association": pull.get("association"),
             "merged_by": merge["mergedBy"],
             "merge_commit": merge["mergeCommit"],
         },

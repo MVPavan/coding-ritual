@@ -32,6 +32,7 @@ ROW_KEYS = {
     "commit",
     "merger",
     "author",
+    "association",
     "refs",
     "component",
     "why",
@@ -241,6 +242,53 @@ def test_untracked_issue_closed_by_merged_pull_request_appears_until_linked_or_d
     assert rows(mirror, "untracked-pull") == [], "one tracked reference is enough"
     (row,) = rows(mirror, "linked-closed")
     assert (row["issue"], row["bead"], row["pull"]) == (first, bead, pull)
+
+
+def test_untracked_pull_request_row_carries_the_author_association(
+    mirror: Mirror,
+) -> None:
+    """Triage decides only outside authors' rows, so each row keeps GitHub's
+    ``authorAssociation``; a value outside GitHub's enum, or none (a fact read before
+    the mirror asked for it), leaves the row without one: unknown."""
+    mirror.write_switch()
+    inbound(mirror)
+    owner = mirror.fake.add_pull("olga", None, association="OWNER")
+    outside = mirror.fake.add_pull("dave", None, association="CONTRIBUTOR")
+    unknown = mirror.fake.add_pull("erin", None)
+    odd = mirror.fake.add_pull("gina", None, association="BOSS")
+    listed = mirror.fake.add_pull("hana", None, association=["OWNER"])
+    boxed = mirror.fake.add_pull("ivan", None, association={"value": "OWNER"})
+    out = inbound(mirror)
+    found = {r["pull"]: r.get("association") for r in rows(mirror, "untracked-pull")}
+    assert found == {
+        owner: "OWNER",
+        outside: "CONTRIBUTOR",
+        unknown: None,
+        odd: None,
+        listed: None,
+        boxed: None,
+    }, "a value of the wrong type is unknown, never an abort"
+    md = (mirror.mirror_dir / "digest.md").read_text()
+    for text in (out, md):
+        assert (
+            f"pull request #{outside} (open, by dave, association CONTRIBUTOR) "
+            "is untracked: no reference"
+        ) in text
+        assert f"pull request #{unknown} (open, by erin) is untracked" in text
+        assert "BOSS" not in text
+    state = json.loads((mirror.mirror_dir / "state.json").read_text())
+    facts = state["inbound"]["facts"]
+    assert facts[str(owner)]["association"] == "OWNER"
+    assert facts[str(odd)]["association"] is None
+    assert facts[str(listed)]["association"] is None
+
+    spec = importlib.util.spec_from_file_location("bead_mirror", COMMAND)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    for bad in (["OWNER"], {"value": "OWNER"}):
+        row = {"type": "untracked-pull", "pull": 1, "association": bad, "state": bad}
+        assert module.allowed_row(row) == {"type": "untracked-pull", "pull": 1}
 
 
 def test_untracked_pull_request_merged_with_refs_to_a_missing_number_until_dismissed(

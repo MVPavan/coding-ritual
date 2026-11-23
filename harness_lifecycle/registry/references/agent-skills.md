@@ -4,49 +4,49 @@
 
 Catalog: `aeac41d4d005999432bb7312f7ff06383a91d59d`, 44 capabilities.
 
-| Their capability | Status | Stage | Into ours | Last ruled at | Changed upstream since? |
-|---|---|---|---|---|---|
-| `agent:agents/code-reviewer` | adopt | changed since | agent:code-reviewer | 2026-10-14-migration | yes |
-| `agent:agents/security-auditor` | defer | decided |  | 2026-10-14-migration | no |
-| `agent:agents/test-engineer` | reject | changed since |  | 2026-10-14-migration | yes |
-| `agent:agents/web-performance-auditor` | defer | decided |  | 2026-11-22-rejects-review | no |
-| `command:commands/build` | reject | decided |  | 2026-10-14-migration | no |
-| `command:commands/code-simplify` | reject | decided |  | 2026-10-14-migration | no |
-| `command:commands/constraints` | not reviewed | not reviewed |  |  |  |
-| `command:commands/plan` | reject | changed since |  | 2026-10-14-migration | yes |
-| `command:commands/review` | reject | changed since |  | 2026-10-14-migration | yes |
-| `command:commands/ship` | reject | decided |  | 2026-11-22-rejects-review | no |
-| `command:commands/spec` | reject | changed since |  | 2026-10-14-migration | yes |
-| `command:commands/test` | reject | decided |  | 2026-10-14-migration | no |
-| `command:commands/webperf` | defer | decided |  | 2026-11-22-rejects-review | no |
-| `hook:hooks/sdd-cache-post` | reject | decided |  | 2026-10-14-migration | no |
-| `hook:hooks/sdd-cache-pre` | reject | decided |  | 2026-10-14-migration | no |
-| `hook:hooks/session-start` | reject | changed since |  | 2026-10-14-migration | yes |
-| `hook:hooks/simplify-ignore` | reject | decided |  | 2026-11-22-rejects-review | no |
-| `plugin:agent-skills` | reject | changed since |  | 2026-10-14-migration | yes |
-| `rule:rules/skills-contributing` | reject | decided |  | 2026-10-14-migration | no |
-| `skill:skills/api-and-interface-design` | defer | decided (whole skill) |  | 2026-11-22-rejects-review | no |
-| `skill:skills/browser-testing-with-devtools` | defer | decided (whole skill) |  | 2026-11-22-rejects-review | no |
-| `skill:skills/ci-cd-and-automation` | defer | decided (whole skill) |  | 2026-10-14-migration | no |
-| `skill:skills/code-review-and-quality` | adopt-merged | not analysed | review | 2026-10-14-migration | yes |
-| `skill:skills/code-simplification` | adopt | not analysed | doc:.claude/skills/mvp-mode/playbooks/implement.md | 2026-10-14-migration | no |
-| `skill:skills/constraint-driven-development` | not reviewed | not analysed |  |  |  |
-| `skill:skills/context-engineering` | defer | decided (whole skill) |  | 2026-10-14-owner-review | no |
-| `skill:skills/debugging-and-error-recovery` | adopt | not analysed | systematic-debugging | 2026-10-14-migration | yes |
-| `skill:skills/deprecation-and-migration` | defer | decided (whole skill) |  | 2026-10-14-migration | yes |
-| `skill:skills/documentation-and-adrs` | adopt | not analysed | domain-modeling | 2026-10-14-migration | yes |
-| `skill:skills/doubt-driven-development` | defer | decided (whole skill) |  | 2026-10-14-owner-review | no |
-| `skill:skills/frontend-ui-engineering` | defer | decided (whole skill) |  | 2026-11-22-rejects-review | no |
-| `skill:skills/git-workflow-and-versioning` | adopt-merged | not analysed | harness-publish | 2026-10-14-owner-review | no |
-| `skill:skills/idea-refine` | adopt | not analysed | settle-open-questions | 2026-10-14-migration | yes |
-| `skill:skills/incremental-implementation` | adopt | not analysed | to-plan | 2026-10-14-migration | yes |
-| `skill:skills/interview-me` | adopt | not analysed | settle-open-questions | 2026-10-14-migration | yes |
-| `skill:skills/observability-and-instrumentation` | defer | decided (whole skill) |  | 2026-10-14-migration | yes |
-| `skill:skills/performance-optimization` | adopt | not analysed | performance-optimization | 2026-10-14-migration | yes |
-| `skill:skills/planning-and-task-breakdown` | reject | decided (whole skill) |  | 2026-10-14-migration | yes |
-| `skill:skills/security-and-hardening` | adopt | not analysed | security | 2026-10-14-migration | yes |
-| `skill:skills/shipping-and-launch` | defer | decided (whole skill) |  | 2026-10-14-migration | yes |
-| `skill:skills/source-driven-development` | adopt | not analysed | research | 2026-10-14-migration | yes |
-| `skill:skills/spec-driven-development` | adopt-merged | not analysed | settle-open-questions | 2026-10-14-migration | yes |
-| `skill:skills/test-driven-development` | adopt | not analysed | tdd | 2026-10-14-migration | yes |
-| `skill:skills/using-agent-skills` | reject | decided (whole skill) |  | 2026-10-14-migration | yes |
+| Their capability | Status | Stage | Into ours | Traits | Last ruled at | Changed upstream since? |
+|---|---|---|---|---|---|---|
+| `agent:agents/code-reviewer` | adopt | changed since | agent:code-reviewer |  | 2026-10-14-migration | yes |
+| `agent:agents/security-auditor` | defer | decided |  |  | 2026-10-14-migration | no |
+| `agent:agents/test-engineer` | reject | changed since |  |  | 2026-10-14-migration | yes |
+| `agent:agents/web-performance-auditor` | defer | decided |  |  | 2026-11-22-rejects-review | no |
+| `command:commands/build` | reject | decided |  |  | 2026-10-14-migration | no |
+| `command:commands/code-simplify` | reject | decided |  |  | 2026-10-14-migration | no |
+| `command:commands/constraints` | not reviewed | not reviewed |  |  |  |  |
+| `command:commands/plan` | reject | changed since |  |  | 2026-10-14-migration | yes |
+| `command:commands/review` | reject | changed since |  |  | 2026-10-14-migration | yes |
+| `command:commands/ship` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/shipping.md |  | 2026-11-23-adoptions-batch-2 | no |
+| `command:commands/spec` | reject | changed since |  |  | 2026-10-14-migration | yes |
+| `command:commands/test` | reject | decided |  |  | 2026-10-14-migration | no |
+| `command:commands/webperf` | defer | decided |  |  | 2026-11-22-rejects-review | no |
+| `hook:hooks/sdd-cache-post` | reject | decided |  |  | 2026-10-14-migration | no |
+| `hook:hooks/sdd-cache-pre` | reject | decided |  |  | 2026-10-14-migration | no |
+| `hook:hooks/session-start` | reject | changed since |  |  | 2026-10-14-migration | yes |
+| `hook:hooks/simplify-ignore` | reject | decided |  |  | 2026-11-22-rejects-review | no |
+| `plugin:agent-skills` | reject | changed since |  |  | 2026-10-14-migration | yes |
+| `rule:rules/skills-contributing` | reject | decided |  |  | 2026-10-14-migration | no |
+| `skill:skills/api-and-interface-design` | defer | decided (whole skill) |  |  | 2026-11-22-rejects-review | no |
+| `skill:skills/browser-testing-with-devtools` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/visual-parity.md, doc:AGENTS.md | 8 adopt · 13 reject | 2026-11-23-adoptions-batch-2 | no |
+| `skill:skills/ci-cd-and-automation` | defer | decided (whole skill) |  |  | 2026-10-14-migration | no |
+| `skill:skills/code-review-and-quality` | adopt-merged | not analysed | review |  | 2026-10-14-migration | yes |
+| `skill:skills/code-simplification` | adopt | not analysed | doc:.claude/skills/mvp-mode/playbooks/implement.md |  | 2026-10-14-migration | no |
+| `skill:skills/constraint-driven-development` | not reviewed | not analysed |  |  |  |  |
+| `skill:skills/context-engineering` | defer | decided (whole skill) |  |  | 2026-10-14-owner-review | no |
+| `skill:skills/debugging-and-error-recovery` | adopt | not analysed | systematic-debugging |  | 2026-10-14-migration | yes |
+| `skill:skills/deprecation-and-migration` | defer | decided (whole skill) |  |  | 2026-10-14-migration | yes |
+| `skill:skills/documentation-and-adrs` | adopt | not analysed | domain-modeling |  | 2026-10-14-migration | yes |
+| `skill:skills/doubt-driven-development` | defer | decided (whole skill) |  |  | 2026-10-14-owner-review | no |
+| `skill:skills/frontend-ui-engineering` | defer | decided (whole skill) |  |  | 2026-11-22-rejects-review | no |
+| `skill:skills/git-workflow-and-versioning` | adopt-merged | not analysed | harness-publish |  | 2026-10-14-owner-review | no |
+| `skill:skills/idea-refine` | adopt | not analysed | settle-open-questions |  | 2026-10-14-migration | yes |
+| `skill:skills/incremental-implementation` | adopt | not analysed | to-plan |  | 2026-10-14-migration | yes |
+| `skill:skills/interview-me` | adopt | not analysed | settle-open-questions |  | 2026-10-14-migration | yes |
+| `skill:skills/observability-and-instrumentation` | defer | decided (whole skill) |  |  | 2026-10-14-migration | yes |
+| `skill:skills/performance-optimization` | adopt | not analysed | performance-optimization |  | 2026-10-14-migration | yes |
+| `skill:skills/planning-and-task-breakdown` | reject | decided (whole skill) |  |  | 2026-10-14-migration | yes |
+| `skill:skills/security-and-hardening` | adopt | not analysed | security |  | 2026-10-14-migration | yes |
+| `skill:skills/shipping-and-launch` | defer | decided (whole skill) |  |  | 2026-10-14-migration | yes |
+| `skill:skills/source-driven-development` | adopt | not analysed | research |  | 2026-10-14-migration | yes |
+| `skill:skills/spec-driven-development` | adopt-merged | not analysed | settle-open-questions |  | 2026-10-14-migration | yes |
+| `skill:skills/test-driven-development` | adopt | not analysed | tdd |  | 2026-10-14-migration | yes |
+| `skill:skills/using-agent-skills` | reject | decided (whole skill) |  |  | 2026-10-14-migration | yes |

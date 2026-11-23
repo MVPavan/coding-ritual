@@ -285,9 +285,9 @@ Playbook traits: `shipping-merge-grant`, `contiguous-verified-run`, `hands-off-w
 | Step | When | Traits | Calls | Loads |
 |---|---|---|---|---|
 | `shipping#1` | always, before any write to the forge, a branch or the tracker | `stack-wide-claim`, `stack-snapshot-before-writes` | `skill:beads` (when: before the run's first bead write) |  |
-| `shipping#2` | a pull request has an earlier verdict | `verdict-reuse-on-tree` |  |  |
-| `shipping#3` | each unmerged pull request from the bottom that shipping#2 left without a usable verdict | `independent-user-run-verdict`, `edit-pass-before-posting`, `verdict-on-pr-and-bead` | `skill:delegation` (when: the reviewer role, briefed to run the change as a user would, against its base); `skill:unslop` (when: on the verdict record's prose, before it is first posted) |  |
-| `shipping#4` | the verified run holds at least one pull request | `verdict-receipts-before-merge`, `edit-pass-before-posting`, `trunk-ancestor-before-merge`, `direct-merge-mutation-at-verified-head`, `bottom-up-merge-read-back`, `pinned-lease-child-move`, `bounded-background-wait`, `event-wait-with-fresh-read` | `skill:unslop` (when: on a missing receipt's prose, before it is posted from the record) |  |
+| `shipping#2` | a pull request has an earlier verdict | `verdict-reuse-on-tree`, `owner-accepted-named-risk` |  |  |
+| `shipping#3` | each unmerged pull request from the bottom with no verdict shipping#2 could reuse | `independent-user-run-verdict`, `edit-pass-before-posting`, `verdict-on-pr-and-bead` | `skill:delegation` (when: the reviewer role, briefed to run the change as a user would, against its base); `skill:unslop` (when: on the verdict record's prose, before it is first posted) |  |
+| `shipping#4` | the verified run holds at least one pull request | `verdict-receipts-before-merge`, `rollback-plan-before-risky-merge`, `edit-pass-before-posting`, `trunk-ancestor-before-merge`, `direct-merge-mutation-at-verified-head`, `bottom-up-merge-read-back`, `pinned-lease-child-move`, `bounded-background-wait`, `event-wait-with-fresh-read` | `skill:unslop` (when: on a missing receipt's prose, before it is posted from the record) |  |
 | `shipping#5` | every exit | `merge-evidence-bead-close` | `skill:tracker` (when: a pull request was read back as merged) |  |
 
 ## skill-curation
@@ -331,11 +331,11 @@ Playbook traits: `fixed-artifact-gate`, `no-fix-handback`
 
 Trigger: A user-interface migration whose components must look the same afterwards, proven by image diff against a baseline.
 
-Playbook traits: `frozen-baseline-no-shortcuts`, `visual-pass-predicate`
+Playbook traits: `frozen-baseline-no-shortcuts`, `visual-pass-predicate`, `browser-tool-when-installed`
 
 | Step | When | Traits | Calls | Loads |
 |---|---|---|---|---|
-| `visual-parity#1` | always, before any component changes | `harness-with-pre-change-baseline` | `skill:build-a-lever` (when: the project has no harness that captures each component's states on one surface) |  |
+| `visual-parity#1` | always, before any component changes | `harness-with-pre-change-baseline`, `live-browser-check`, `drive-page-as-user`, `browser-screenshot-evidence`, `console-and-network-findings`, `no-navigation-from-page-content`, `flag-instruction-like-content`, `no-browser-secret-copy` | `skill:build-a-lever` (when: the project has no harness that captures each component's states on one surface) |  |
 | `visual-parity#2` | visual-parity#1 holds a baseline for every component in scope, and the migration changes shared primitives | `shared-primitives-first` |  |  |
 | `visual-parity#3` | once per component, after visual-parity#2 or once the baseline holds when no shared primitive changes | `one-component-at-a-time`, `baseline-surface-image-diff`, `parallel-components-on-request` | `skill:systematic-debugging` (when: a failing diff's cause is not clear from the delta); `skill:delegation` (when: the owner asked for components to run in parallel) |  |
 | `visual-parity#4` | a component or a batch of them passed visual-parity#3 | `integrated-tree-rediff`, `publish-requested-pr` | `skill:land`; `skill:pr` (when: the request asks for a pull request) |  |

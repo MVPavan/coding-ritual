@@ -291,8 +291,11 @@ class Fake:
         author: str = "contributor",
         body: str | None = None,
         state: str = "OPEN",
+        association: Any = None,
     ) -> int:
-        """Open a pull request now (``state`` CLOSED: one closed unmerged)."""
+        """Open a pull request now (``state`` CLOSED: one closed unmerged). ``association``
+        is served as the author's ``authorAssociation`` as given (None: GraphQL null; any
+        other JSON value, to model a malformed reply)."""
         data = self.load()
         repo = next(r for r in data["repos"] if r["node_id"] == REPO_NODE_ID)
         taken = [i["number"] for i in repo["issues"]] + [
@@ -306,6 +309,7 @@ class Fake:
                 "author": author,
                 "body": body,
                 "state": state,
+                "association": association,
                 "updated_at": now(),
             }
         )

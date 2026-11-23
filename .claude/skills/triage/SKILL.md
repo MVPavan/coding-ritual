@@ -81,8 +81,18 @@ pull requests no bead tracks. Tell the state first:
   report, left as it is. Leave `dismiss` to the writer clone.
 - **Not opted in:** neither. This section does not apply.
 
-Before deciding any row, run step 3's prior-rejection check. For a pull request
-with no issue, also search closed beads' descriptions for its exact address
+First sort untracked pull request rows into ours and outside. A row's author
+association decides when it has one: `OWNER`, `MEMBER` or `COLLABORATOR` is
+ours, any other value is outside. A row without one, written before the digest
+carried it, is sorted by whether its author is one of us, as before the field
+existed. Our own pull request skips the outcomes below except `dismiss`: it
+gets no bead and no decline, and a missing or wrong reference is fixed through
+the `pr` skill's issue reference. An existing issue it names that no bead
+links is still decided through that issue's own row.
+
+Before deciding an issue row or an outside pull request's row, run step 3's
+prior-rejection check. For a pull request with no issue, also search closed
+beads' descriptions for its exact address
 (`bd list -s closed --desc-contains "<pull request address>"`). A match is a
 prior decline only when its description holds that exact address as a whole
 (`/pull/10` never matches `/pull/100`) and it was closed `wontfix:`. A decline

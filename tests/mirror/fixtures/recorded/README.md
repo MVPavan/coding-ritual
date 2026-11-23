@@ -62,3 +62,9 @@ Documented, not recorded:
   copies `closeIssue`'s recorded reply.
 - The `MirrorItem` query (inbound's lookup of one number) was not sent in the trial. Its reply uses
   `graphql_issue.json`'s recorded envelope and the recorded inbound node shapes.
+- A pull request's `authorAssociation`: since adoption batch 2 (2026-11-23) the mirror selects it in
+  `MirrorInboundPulls` and `MirrorItem`, for the untracked pull request row. The trial did not ask
+  for it, so `queries.json`'s `MirrorInboundPulls` text is the recorded text with that one field
+  added, and `graphql_inbound_pull.json` serves it from the fake's state (null when a test sets
+  none). GitHub documents the field on `PullRequest` as a `CommentAuthorAssociation` value. A live
+  trial records both again.

@@ -31,6 +31,7 @@ Evaluate untriaged beads and decide each one — agent-ready under a parent, own
 - `pr-as-issue`: Treat an external pull request as an issue with attached code, running it through the same roles and state machine. (An outside contributor's pull request with no usable reference: a bead created or reused, its issue published and commented on the pull request with the owner's authorization, or a decline with the reason.)
 - `duplicate-search-key-list`: Run the duplicate search over a fixed list of keys, among them the error signature, the area, the trigger, the symptom, a version window, the suspected commit and the source link.
 - `issue-template-and-title`: Write a new issue as a self-contained record with a plain area-and-symptom title that never states a guessed cause, the reporter's words, expected and observed behaviour, version, trigger, frequency, link, labelled hypotheses and media.
+- `external-author-pr-filter`: List pull requests for triage by leaving out authors who are owners, members or collaborators. (Filters the digest's untracked pull request rows by the author association the mirror now records: OWNER, MEMBER or COLLABORATOR rows are our own pull requests and are not decided as issues; a row without one (older than the field) is unknown and decided as an outside author's.)
 <!-- /registry:generated traits -->
 
 <!-- registry:generated lineage -->
@@ -53,18 +54,20 @@ Evaluate untriaged beads and decide each one — agent-ready under a parent, own
 - **cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports#graded-duplicate-match** `pstack/automations/benny/skills/triage-issue-reports/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049 (pending cr-r2pa.2.13.3)
 - **cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports#closed-match-is-regression-lead** `pstack/automations/benny/skills/triage-issue-reports/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049 (pending cr-r2pa.2.13.3)
 - **mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills#split-pr-read-steps** `skills/engineering/setup-matt-pocock-skills/SKILL.md` @ 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d
-- **mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills#external-author-pr-filter** `skills/engineering/setup-matt-pocock-skills/SKILL.md` @ 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d (pending cr-r2pa.3.8)
 - **cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports#duplicate-search-key-list** `pstack/automations/benny/skills/triage-issue-reports/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
 - **cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports#issue-template-and-title** `pstack/automations/benny/skills/triage-issue-reports/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
 - **mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills#pr-as-issue** `skills/engineering/setup-matt-pocock-skills/SKILL.md` @ 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d
+- **mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills#external-author-pr-filter** `skills/engineering/setup-matt-pocock-skills/SKILL.md` @ 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-23` **adopt** (2026-11-23-adoptions-batch-2:004): Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3; delivered by cr-r2pa.3.8. The mirror's untracked pull request row keeps GitHub'…
+- `2026-11-23` **update** (2026-11-23-adoptions-batch-2:001): Delivers external-author-pr-filter (cr-r2pa.3.8; owner ruling 2026-11-22, rejections re-review, bead cr-r2pa.3.3). The mirror's untracked pull request row now …
 - `2026-11-23` **adopt** (2026-11-23-adoptions-batch-1:023): Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3; delivered by cr-r2pa.3.8. An outside contributor's pull request that needs its …
 - `2026-11-23` **adopt** (2026-11-23-adoptions-batch-1:022): Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3; delivered by cr-r2pa.3.8. A bead triage creates for an outside issue stands alo…
 - `2026-11-23` **adopt** (2026-11-23-adoptions-batch-1:021): Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3; delivered by cr-r2pa.3.8. Before triage creates a bead for an outside issue, it…
 - `2026-11-23` **update** (2026-11-23-adoptions-batch-1:001): Delivers cr-r2pa.3.8 (owner ruling 2026-11-22, rejections re-review, bead cr-r2pa.3.3). Triage's section for the mirror digest's untracked rows gains: before c…
-- `2026-11-22` **adopt** (2026-11-22-rejects-review:045): Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3. Adopted, pending cr-r2pa.3.8: with pr-as-issue, the pull requests triage lists …
+- `2026-11-22` **adopt** (2026-11-22-rejects-review:045) *(superseded)*: Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3. Adopted, pending cr-r2pa.3.8: with pr-as-issue, the pull requests triage lists …
 - `2026-11-22` **adopt** (2026-11-22-rejects-review:044) *(superseded)*: Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3. Adopted, pending cr-r2pa.3.8: an outside pull request that references no bead i…
 - `2026-11-22` **adopt** (2026-11-22-rejects-review:016) *(superseded)*: Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3. Adopted, pending cr-r2pa.3.8: a bead triage creates for an outside issue is a s…
 - `2026-11-22` **adopt** (2026-11-22-rejects-review:015) *(superseded)*: Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3. Adopted, pending cr-r2pa.3.8: before triage creates a bead for an untracked out…
@@ -190,6 +193,8 @@ Evaluate untriaged beads and decide each one — agent-ready under a parent, own
   - `mattpocock_skills:skill:skills/engineering/triage#durable-rejection-reasons` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `established-notes`:
   - `mattpocock_skills:skill:skills/engineering/triage#needs-info-notes` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `external-author-pr-filter`:
+  - `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills#external-author-pr-filter` (adopted at 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d)
 - `issue-template-and-title`:
   - `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports#issue-template-and-title` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
 - `pick-from-summary`:

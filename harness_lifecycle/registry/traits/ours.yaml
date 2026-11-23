@@ -262,8 +262,8 @@ ours:tracker:
     close-gate: "Also closes a one-phase epic, whose exit evidence is the epic's acceptance rather than a roadmap exit criterion."
     real-id-wiring: "Creates every bead first, then wires edges and binds a plan's proposed stage names by the returned IDs."
 ours:triage:
-  tree_hash: "388a7f39b227d204c8269d921255e7ced829437aea16cf58cb84a508540249b4"
-  traits: [attention-buckets, triage-decision, established-notes, triage-resume-notes, redundancy-check, prior-rejection-check, claim-verification, agent-ready-gate, pick-from-summary, durable-rejection-reasons, already-built-close, brief-acceptance-criteria, read-full-source-issue, ready-for-human-rationale, split-pr-read-steps, pr-as-issue, duplicate-search-key-list, issue-template-and-title]
+  tree_hash: "13642dd66a92801dde3ba453dac1de48f390049623632d73ed34b6daa6de8a35"
+  traits: [attention-buckets, triage-decision, established-notes, triage-resume-notes, redundancy-check, prior-rejection-check, claim-verification, agent-ready-gate, pick-from-summary, durable-rejection-reasons, already-built-close, brief-acceptance-criteria, read-full-source-issue, ready-for-human-rationale, split-pr-read-steps, pr-as-issue, duplicate-search-key-list, issue-template-and-title, external-author-pr-filter]
   notes:
     brief-acceptance-criteria: "Delivers sealed row 2026-10-30-mattpocock_skills-5beb35b:304: independently checkable acceptance on the agent-ready gate, where the definition requires it of every brief, a separate writing rule; T5."
     ready-for-human-rationale: "Delivers sealed row 2026-10-30-mattpocock_skills-5beb35b:306: a label and a note with the reason, with no separate brief structure; T5."
@@ -271,6 +271,7 @@ ours:triage:
     claim-verification: "An unreproduced bug gets questions for the owner, never an automatic close."
     prior-rejection-check: "Searches closed beads for earlier wontfix closes; a decline made on GitHub is also recorded as a wontfix-closed bead, so the search finds it."
     pr-as-issue: "An outside contributor's pull request with no usable reference: a bead created or reused, its issue published and commented on the pull request with the owner's authorization, or a decline with the reason."
+    external-author-pr-filter: "Filters the digest's untracked pull request rows by the author association the mirror now records: OWNER, MEMBER or COLLABORATOR rows are our own pull requests and are not decided as issues; a row without one (older than the field) is unknown and decided as an outside author's."
 ours:wayfinder:
   tree_hash: "9b304f3728e916f1af0643b2336deb986bd0c49ce1ebecc8e4b2d469c7416ca1"
   traits: [decision-map-epic, plan-not-do, dependency-edges, map-as-index, map-body-sections, reference-by-name, bounded-decision-ticket, coherence-sized-tickets, label-free-typing, ticket-type-set, claim-before-work, destination-first, question-graduation, record-resolution, out-of-scope-close, human-decision-gate, multi-ticket-sessions, prototype-ticket-asset, fog-hygiene, low-res-map-load, breadth-first-charting, invalidated-ticket-reconciliation, prerequisite-task-human-checklist, prerequisite-task-result-facts]
