@@ -6,6 +6,10 @@ Inputs: mode, brief/requirements path, implementation report, scoped diff packag
 binding constraints, output path. For re-review also include the finding list and
 fix-delta package. Follow `code.md`'s evidence and scope rules.
 
+Under `delegation`'s reviewer role, its verdict maps to this one: `PASS` or
+`PASS+NOTES` is `APPROVE` (no open BLOCKER or MAJOR; `PASS+NOTES` when MINOR
+findings remain), and `FAIL` is `REVISE`.
+
 Initial spec and quality verdicts remain distinct when those roles are dispatched
 separately. A combined reviewer covers both explicitly. Re-review covers every
 listed finding regardless of its original role.

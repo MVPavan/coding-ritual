@@ -69,7 +69,12 @@ Put each claim in one tier, by its evidence:
 
 Words that assert cause, intent, achieved effect or a group decision ("because",
 "was designed to", "fixes", "the team decided") go only on Direct or Supported
-claims, with a specific citation right beside them.
+claims, with a specific citation right beside them. Quote the words a claim rests
+on exactly, with a location a reader can check in seconds, rather than
+paraphrasing a passage.
+
+Before rating a claim Direct or Supported, ask whether its evidence would still
+appear if the reading were wrong, and what would look different if it were.
 
 Four readings do not count as evidence:
 

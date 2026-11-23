@@ -41,6 +41,7 @@ Use when handing work to another agent or model (an explorer, implementer, revie
 - `unenforced-read-only-brief-and-status-check`: When a read-only worker's tool access still lets it write, say in its brief not to edit files and, after it returns, check the checkout against a baseline the coordinator recorded before dispatch.
 - `self-contained-subagent-brief`: Paste into a subagent's brief any reference material it needs that it cannot otherwise reach.
 - `goal-in-every-brief`: Restate the user's own goal in every brief given to a helper.
+- `pass-issues-blocked-verdict`: Have workers report pass, issues or blocked with evidence. (The reviewer role ends with PASS, PASS+NOTES or FAIL and its evidence, the set Shipping's gate uses.)
 <!-- /registry:generated traits -->
 
 <!-- registry:generated lineage -->
@@ -63,11 +64,13 @@ Use when handing work to another agent or model (an explorer, implementer, revie
 - **cursor_plugins:skill:pstack/skills/principle-build-the-lever#shared-delegate-contract** `pstack/skills/principle-build-the-lever/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
 - **mattpocock_skills:skill:skills/engineering/code-review#self-contained-subagent-brief** `skills/engineering/code-review/SKILL.md` @ 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d
 - **cursor_plugins:skill:pstack/skills/poteto-mode#goal-in-every-brief** `pstack/skills/poteto-mode/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
-- **cursor_plugins:skill:pstack/skills/swarm#pass-issues-blocked-verdict** `pstack/skills/swarm/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049 (pending cr-r2pa.3.14)
+- **cursor_plugins:skill:pstack/skills/swarm#pass-issues-blocked-verdict** `pstack/skills/swarm/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
-- `2026-11-22` **adopt** (2026-11-22-rejects-review:014): Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3. Adopted, pending cr-r2pa.3.14: a delegated reviewer returns one fixed verdict w…
+- `2026-11-23` **adopt** (2026-11-23-adoptions-batch-1:020): Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3; delivered by cr-r2pa.3.14. delegation's reviewer contract ends with one verdict…
+- `2026-11-23` **update** (2026-11-23-adoptions-batch-1:005): Delivers cr-r2pa.3.14 (owner ruling 2026-11-22, rejections re-review, bead cr-r2pa.3.3). The reviewer role ends with one verdict and its evidence, PASS, PASS+N…
+- `2026-11-22` **adopt** (2026-11-22-rejects-review:014) *(superseded)*: Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3. Adopted, pending cr-r2pa.3.14: a delegated reviewer returns one fixed verdict w…
 - `2026-11-20` **reject** (2026-11-20-deferred-crosscutting-utilities:004): Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3: rejected. Opposite stance: a brief carries the role contract, outcome and goal, owne…
 - `2026-11-20` **adopt** (2026-11-20-deferred-crosscutting-utilities:003): Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3. Adopted into delegation: the brief states the outcome and the person's goal behind i…
 - `2026-11-20` **update** (2026-11-20-deferred-crosscutting-utilities:001): Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3. Dispatch step 3's brief now states the person's goal behind the outcome beside the o…
@@ -134,6 +137,8 @@ Use when handing work to another agent or model (an explorer, implementer, revie
   - `mattpocock_skills:skill:skills/productivity/grilling#fresh-context-subagent` (adopted at 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d)
 - `goal-in-every-brief`:
   - `cursor_plugins:skill:pstack/skills/poteto-mode#goal-in-every-brief` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `pass-issues-blocked-verdict`:
+  - `cursor_plugins:skill:pstack/skills/swarm#pass-issues-blocked-verdict` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
 - `self-contained-subagent-brief`:
   - `mattpocock_skills:skill:skills/engineering/code-review#self-contained-subagent-brief` (adopted at 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d)
 - `shared-delegate-contract`:

@@ -18,7 +18,7 @@ Evaluate untriaged beads and decide each one — agent-ready under a parent, own
 - `established-notes`: Record what each triage pass settled as a note on the item itself, so the next pass can resume from it.
 - `triage-resume-notes`: Resume triage from the notes of earlier passes, never re-asking a question already answered.
 - `redundancy-check`: Search the codebase by domain concept for an existing implementation and report where you looked before deciding.
-- `prior-rejection-check`: Check earlier rejections for one resembling the request and surface any match before deciding. (Searches closed beads for earlier wontfix closes.)
+- `prior-rejection-check`: Check earlier rejections for one resembling the request and surface any match before deciding. (Searches closed beads for earlier wontfix closes; a decline made on GitHub is also recorded as a wontfix-closed bead, so the search finds it.)
 - `claim-verification`: Verify a reported claim before acting on it, reproducing a bug or recording exactly why it could not be reproduced. (An unreproduced bug gets questions for the owner, never an automatic close.)
 - `agent-ready-gate`: Make a bead agent-executable only when acceptance criteria, current and desired behaviour, and out-of-scope notes all hold.
 - `pick-from-summary`: Show the count and a one-line summary of each waiting item and let the maintainer pick which to triage.
@@ -28,6 +28,9 @@ Evaluate untriaged beads and decide each one — agent-ready under a parent, own
 - `read-full-source-issue`: Read the full body, comments and, for a pull request, the diff of any referenced spec, issue or pull request before working from it.
 - `ready-for-human-rationale`: When an item is ready for a human rather than an agent, use the same brief structure but record why it cannot be delegated. (Delivers sealed row 2026-10-30-mattpocock_skills-5beb35b:306: a label and a note with the reason, with no separate brief structure; T5.)
 - `split-pr-read-steps`: Read a pull request's body, comments and diff as separate steps, because one combined command can omit the body.
+- `pr-as-issue`: Treat an external pull request as an issue with attached code, running it through the same roles and state machine. (An outside contributor's pull request with no usable reference: a bead created or reused, its issue published and commented on the pull request with the owner's authorization, or a decline with the reason.)
+- `duplicate-search-key-list`: Run the duplicate search over a fixed list of keys, among them the error signature, the area, the trigger, the symptom, a version window, the suspected commit and the source link.
+- `issue-template-and-title`: Write a new issue as a self-contained record with a plain area-and-symptom title that never states a guessed cause, the reporter's words, expected and observed behaviour, version, trigger, frequency, link, labelled hypotheses and media.
 <!-- /registry:generated traits -->
 
 <!-- registry:generated lineage -->
@@ -50,17 +53,21 @@ Evaluate untriaged beads and decide each one — agent-ready under a parent, own
 - **cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports#graded-duplicate-match** `pstack/automations/benny/skills/triage-issue-reports/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049 (pending cr-r2pa.2.13.3)
 - **cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports#closed-match-is-regression-lead** `pstack/automations/benny/skills/triage-issue-reports/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049 (pending cr-r2pa.2.13.3)
 - **mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills#split-pr-read-steps** `skills/engineering/setup-matt-pocock-skills/SKILL.md` @ 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d
-- **cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports#duplicate-search-key-list** `pstack/automations/benny/skills/triage-issue-reports/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049 (pending cr-r2pa.3.8)
-- **cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports#issue-template-and-title** `pstack/automations/benny/skills/triage-issue-reports/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049 (pending cr-r2pa.3.8)
-- **mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills#pr-as-issue** `skills/engineering/setup-matt-pocock-skills/SKILL.md` @ 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d (pending cr-r2pa.3.8)
 - **mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills#external-author-pr-filter** `skills/engineering/setup-matt-pocock-skills/SKILL.md` @ 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d (pending cr-r2pa.3.8)
+- **cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports#duplicate-search-key-list** `pstack/automations/benny/skills/triage-issue-reports/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports#issue-template-and-title** `pstack/automations/benny/skills/triage-issue-reports/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills#pr-as-issue** `skills/engineering/setup-matt-pocock-skills/SKILL.md` @ 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-23` **adopt** (2026-11-23-adoptions-batch-1:023): Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3; delivered by cr-r2pa.3.8. An outside contributor's pull request that needs its …
+- `2026-11-23` **adopt** (2026-11-23-adoptions-batch-1:022): Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3; delivered by cr-r2pa.3.8. A bead triage creates for an outside issue stands alo…
+- `2026-11-23` **adopt** (2026-11-23-adoptions-batch-1:021): Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3; delivered by cr-r2pa.3.8. Before triage creates a bead for an outside issue, it…
+- `2026-11-23` **update** (2026-11-23-adoptions-batch-1:001): Delivers cr-r2pa.3.8 (owner ruling 2026-11-22, rejections re-review, bead cr-r2pa.3.3). Triage's section for the mirror digest's untracked rows gains: before c…
 - `2026-11-22` **adopt** (2026-11-22-rejects-review:045): Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3. Adopted, pending cr-r2pa.3.8: with pr-as-issue, the pull requests triage lists …
-- `2026-11-22` **adopt** (2026-11-22-rejects-review:044): Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3. Adopted, pending cr-r2pa.3.8: an outside pull request that references no bead i…
-- `2026-11-22` **adopt** (2026-11-22-rejects-review:016): Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3. Adopted, pending cr-r2pa.3.8: a bead triage creates for an outside issue is a s…
-- `2026-11-22` **adopt** (2026-11-22-rejects-review:015): Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3. Adopted, pending cr-r2pa.3.8: before triage creates a bead for an untracked out…
+- `2026-11-22` **adopt** (2026-11-22-rejects-review:044) *(superseded)*: Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3. Adopted, pending cr-r2pa.3.8: an outside pull request that references no bead i…
+- `2026-11-22` **adopt** (2026-11-22-rejects-review:016) *(superseded)*: Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3. Adopted, pending cr-r2pa.3.8: a bead triage creates for an outside issue is a s…
+- `2026-11-22` **adopt** (2026-11-22-rejects-review:015) *(superseded)*: Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3. Adopted, pending cr-r2pa.3.8: before triage creates a bead for an untracked out…
 - `2026-11-21` **update** (2026-11-21-mirror-skill-guidance:015): Mirror stage M3.2, corrects :011. As :011, with critic fixes: opted in is read from the committed tree (git cat-file -e HEAD:...), never the index; a pull requ…
 - `2026-11-21` **update** (2026-11-21-mirror-skill-guidance:011) *(superseded)*: Mirror stage M3.2, corrects :003. As :003, with verifier fixes: the digest is named as the file whose path the session-start summary prints rather than a hard-…
 - `2026-11-21` **update** (2026-11-21-mirror-skill-guidance:003) *(superseded)*: Mirror stage M3.2: a fifth attention bucket and a section for the digest untracked issues and pull requests. In the writer clone: track it (a bead, then the co…
@@ -177,12 +184,18 @@ Evaluate untriaged beads and decide each one — agent-ready under a parent, own
   - `mattpocock_skills:skill:skills/engineering/triage#brief-acceptance-criteria` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `claim-verification`:
   - `mattpocock_skills:skill:skills/engineering/triage#claim-verification` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `duplicate-search-key-list`:
+  - `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports#duplicate-search-key-list` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
 - `durable-rejection-reasons`:
   - `mattpocock_skills:skill:skills/engineering/triage#durable-rejection-reasons` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `established-notes`:
   - `mattpocock_skills:skill:skills/engineering/triage#needs-info-notes` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `issue-template-and-title`:
+  - `cursor_plugins:skill:pstack/automations/benny/skills/triage-issue-reports#issue-template-and-title` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
 - `pick-from-summary`:
   - `mattpocock_skills:skill:skills/engineering/triage#pick-from-summary` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `pr-as-issue`:
+  - `mattpocock_skills:skill:skills/engineering/setup-matt-pocock-skills#pr-as-issue` (adopted at 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d)
 - `prior-rejection-check`:
   - `mattpocock_skills:skill:skills/engineering/triage#prior-rejection-check` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `read-full-source-issue`:

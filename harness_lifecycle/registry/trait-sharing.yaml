@@ -400,3 +400,11 @@ stack-wide-claim:
   skills: [doc:.claude/skills/mvp-mode/playbooks/babysit.md, doc:.claude/skills/mvp-mode/playbooks/shipping.md]
   why: "Owner approved 2026-11-20: both change the same stack and must hold one claim on its shared bead, so a watcher and a lander never act on it at once."
   reviewed: "2026-11-20"
+full-pr-url:
+  skills: [doc:.claude/skills/mvp-mode/playbooks/babysit.md, doc:.claude/skills/mvp-mode/playbooks/shipping.md]
+  why: "Both post on pull requests under a standing grant, Babysit its review-thread replies and Shipping its verdicts, so each names a pull request by its full web address in what it posts and in its reply; the owner's 2026-11-22 adoption (bead cr-r2pa.3.10) covers both."
+  reviewed: "2026-11-23"
+edit-pass-before-posting:
+  skills: [doc:.claude/skills/mvp-mode/playbooks/babysit.md, doc:.claude/skills/mvp-mode/playbooks/shipping.md]
+  why: "Both post text people read, Babysit its review-thread replies and Shipping its verdict records, and each passes its own draft through unslop at its own posting step; the owner's 2026-11-22 adoption (bead cr-r2pa.3.10) covers both."
+  reviewed: "2026-11-23"

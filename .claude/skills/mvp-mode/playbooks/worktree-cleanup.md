@@ -4,7 +4,7 @@ traits: [advisory-audit-bucket, prune-on-approval-gate]   # new; the second is a
 steps:
   - id: worktree-cleanup#1
     when: always
-    actions: [{trait: listed-worktree-audit}]   # new
+    actions: [{trait: listed-worktree-audit}, {trait: base-ref-fallback-and-fetch}, {trait: remote-push-state}, {trait: pr-state-as-merge-signal}]   # the first new
     loads: [{path: worktree-cleanup/audit.py}]
   - id: worktree-cleanup#2
     when: the audit ran
@@ -33,10 +33,28 @@ Nothing is removed without the owner's approval of that exact worktree. This
 playbook deletes state with no code review behind it, so these gates are the
 review.
 
-1. **Audit.** Record `df -h` for the disk holding the worktrees, then run
-   `worktree-cleanup/audit.py` (`--repo <path>`; add `--base <ref>` when pull
-   requests target something other than `origin/HEAD`). It reads the paths from
-   Git and changes nothing. Never add a path by hand.
+1. **Audit.** Record `df -h` for the disk holding the worktrees. Resolve the
+   base first: the branch pull requests target, else the remote default
+   (`origin/HEAD`), else `main` or `master`, whichever exists, saying the base
+   was guessed. Fetch it (`git fetch <remote> <branch>`). After a successful
+   fetch, run `worktree-cleanup/audit.py --repo <path> --base <commit>` with
+   the commit that fetch brought (`git rev-parse FETCH_HEAD`, right after it),
+   naming its branch in the reply; when the fetch fails, say so and pass the
+   local ref instead. It reads the paths from Git and changes nothing. Never
+   add a path by hand.
+
+   Report each worktree's push state: detached, pushed, ahead of its remote
+   branch by a count (`git -C <path> rev-list --count @{upstream}..HEAD`), or
+   with no remote branch. Git's ancestry reads a squash or rebase merge as
+   unmerged, so where the forge can be read, a pull request it reports merged
+   for an `unmerged` worktree's branch is a second merge signal, counted only
+   when it merged into that same base branch of the base's repository from a
+   branch of that repository (`gh pr list --repo <base's repository> --head
+   <branch> --base <base branch> --state merged --json
+   url,headRefOid,isCrossRepository`, `isCrossRepository` false): treat that
+   worktree as `propose` when it is clean and its HEAD is that pull request's
+   head commit or an ancestor of it. Without forge access, the audit's buckets
+   stand.
 2. **Cross-check.** Ask the owner which worktrees are pinned or in use, unless
    they already said, and take those out. Treat a recent `last` time as a reason
    to hold and ask. A clean, merged worktree can still be in use by a running
@@ -45,7 +63,8 @@ review.
    --cached` from that worktree; for `scratch`, name the files. Wait for the
    owner's decision on each. Uncommitted work cannot be recovered after removal.
 4. **Propose.** List each `propose` and `prunable` entry that survived steps 2
-   and 3, with its branch, merge state and last activity. Name its `ignored`
+   and 3, with its branch, merge state (and the merged pull request's address
+   when that was the signal), push state and last activity. Name its `ignored`
    entries, because removal deletes those too, and say so when no ref holds its
    HEAD. Show the commits of any `unmerged` or `detached` worktree the owner asks
    about before treating it as a candidate. Then wait for approval by name.

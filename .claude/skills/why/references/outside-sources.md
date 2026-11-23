@@ -41,7 +41,11 @@ tracker; skip them when none is `have` or `alternative`.
 
 - Compare when a signal rose, fell, first appeared or stopped, and the releases it
   touched, with the date the target shipped. A change in step with the ship date
-  supports a motive; one before it suggests the trigger.
+  supports a motive; one before it suggests the trigger. Either stays suggestive
+  until the other changes that landed in the same window are checked.
+- A metric, a logged event or a chart shows that someone was interested, not
+  why the target exists: pair it with a commit or pull-request citation before
+  claiming cause.
 - When a recorded distribution or monitor threshold matches a constant in the code,
   cite it as evidence of where the number came from.
 
@@ -83,6 +87,8 @@ Metrics, monitors, dashboards, traces, logs and notebooks.
 
 - Open the full error event, not the summary: check that its trace crosses the
   target and that its tags and breadcrumbs match the condition the target guards.
+- A root-cause analysis the tool generates is inference only; the events and
+  traces are the evidence.
 - Record each issue with its id, title, project, first and last seen, event count
   with any sampling, releases, a verbatim trace excerpt, its ship-date correlation,
   a link and the author's notes.
@@ -106,7 +112,13 @@ runbooks kept outside the repository. Search with broad keywords, since pages of
 carry no link to the code. Follow backlinks and child pages, meeting-note databases
 and the authors' personal spaces.
 
+- Motive lives in a problem section that matches the target's purpose, a list of
+  rejected approaches, a postmortem naming the target as the fix, dated decision
+  notes and a decision record filled in with substance.
+- Record each document with its address and whether it is final or a draft.
+
 ## Team chat
 
 Search for the deliberation: the author's messages in a window around the merge
-date, and messages that carry the pull request's link.
+date, and messages that carry the pull request's link. A flippant remark before a
+commit is not a decision; look for the considered discussion.

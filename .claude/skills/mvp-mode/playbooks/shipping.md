@@ -1,6 +1,6 @@
 ---
 trigger: A request to merge, land or ship open pull requests (one or a stack) once each is independently verified.
-traits: [shipping-merge-grant, contiguous-verified-run, hands-off-while-landing]
+traits: [shipping-merge-grant, contiguous-verified-run, hands-off-while-landing, full-pr-url]
 steps:
   - id: shipping#1
     when: always, before any write to the forge, a branch or the tracker
@@ -11,11 +11,12 @@ steps:
     actions: [{trait: verdict-reuse-on-tree}]
   - id: shipping#3
     when: each unmerged pull request from the bottom that shipping#2 left without a usable verdict
-    actions: [{trait: independent-user-run-verdict}, {trait: verdict-on-pr-and-bead}]
-    calls: [{to: "skill:delegation", when: "the reviewer role, briefed to run the change as a user would, against its base"}]
+    actions: [{trait: independent-user-run-verdict}, {trait: edit-pass-before-posting}, {trait: verdict-on-pr-and-bead}]
+    calls: [{to: "skill:delegation", when: "the reviewer role, briefed to run the change as a user would, against its base"}, {to: "skill:unslop", when: "on the verdict record's prose, before it is first posted"}]
   - id: shipping#4
     when: the verified run holds at least one pull request
-    actions: [{trait: verdict-receipts-before-merge}, {trait: trunk-ancestor-before-merge}, {trait: direct-merge-mutation-at-verified-head}, {trait: bottom-up-merge-read-back}, {trait: pinned-lease-child-move}, {trait: bounded-background-wait}, {trait: event-wait-with-fresh-read}]
+    actions: [{trait: verdict-receipts-before-merge}, {trait: edit-pass-before-posting}, {trait: trunk-ancestor-before-merge}, {trait: direct-merge-mutation-at-verified-head}, {trait: bottom-up-merge-read-back}, {trait: pinned-lease-child-move}, {trait: bounded-background-wait}, {trait: event-wait-with-fresh-read}]
+    calls: [{to: "skill:unslop", when: "on a missing receipt's prose, before it is posted from the record"}]
   - id: shipping#5
     when: every exit
     actions: [{trait: merge-evidence-bead-close}]
@@ -37,7 +38,9 @@ the forge command line.
   pointing its base at trunk, and a lease-pinned force push of its own branch
   (step 4), and for each pull request read back as merged, closing its bead
   and mirroring that bead alone (step 5). Nothing else: no other branch, no
-  merge past the run.
+  merge past the run. The writes `AGENTS.md` (Authority) holds back under any
+  standing grant still wait for the owner; step 4's push goes only to the
+  stack's own branch under its claim, and a shared one stops for the owner.
 - **Verified run only.** From the lowest unmerged pull request upward, the run
   ends before the first one without `PASS` or `PASS+NOTES` that covers its
   current tree. That one is the ceiling. A verified pull request above the
@@ -78,7 +81,9 @@ the forge command line.
    never stand in for a verdict. The record, written to a file, carries the key
    `verdict <pr>@<tree sha>#<n>` (`n` counts verdicts for that tree), the head
    SHA, the base tree, the reviewer's identity (role and model family) and the
-   result. You post it on the reviewer's behalf, its identity attached: as a
+   result. Invoke `unslop` on the record's prose before it is first posted,
+   leaving the key, SHAs, identity and result as they are. You post it on the
+   reviewer's behalf, its identity attached: as a
    pull-request comment (`gh pr comment <pr> --body-file <file>`) and a bead
    comment (`bd comment <id> --file <file>`), each only when a search for the
    key finds no post there.
@@ -86,7 +91,9 @@ the forge command line.
    - **Receipts.** Before merging, take the latest verdict for the current
      tree; it must be `PASS` or `PASS+NOTES`, and a pull-request comment and a
      bead comment carrying its key must both exist, on a reused verdict as on a
-     fresh one. Post a missing one from the record, or stop.
+     fresh one. Post a missing one from the record, prepared as in step 3 (the
+     `unslop` pass and the pull request's full web address; key, SHAs, identity
+     and result unchanged), or stop.
    - **Trunk.** Immediately before merging, fetch trunk. When its tip is not an
      ancestor of the verified head, stop for that pull request: it needs
      updating and a fresh verdict. A child moved onto a parent's squash commit
@@ -104,7 +111,11 @@ the forge command line.
      remote head still equals the snapshot SHA and that `git merge-base
      --is-ancestor <old parent tip> <snapshot head>` exits 0. When `git
      rev-list --merges <old parent tip>..<snapshot head>` lists anything, stop
-     and report it: never rebase across merge commits. In a detached
+     and report it: never rebase across merge commits. When `git log
+     --format=%an <old parent tip>..<snapshot head>` shows a commit by anyone
+     other than the pull request's author, or who owns the branch is unclear,
+     the branch is shared: stop for the owner's authorization (`AGENTS.md`,
+     Authority). In a detached
      worktree created at the snapshot head (`git worktree add --detach <dir>
      <snapshot head>`), run `git rebase --onto <fetched trunk sha> <old parent
      tip>`, push with `git push <remote> HEAD:refs/heads/<branch>
@@ -128,6 +139,9 @@ the forge command line.
    outbound); a bead left open runs nothing. Release the claim this run took.
 
 ## Reply
+
+Name each pull request by its full web address
+(`https://<host>/<owner>/<repo>/pull/<n>`), here and in every posted verdict.
 
 - **Landed:** the run and its ceiling; for each pull request its verdict, the
   reviewer's identity, the tree and head SHA it covers, and whether it was

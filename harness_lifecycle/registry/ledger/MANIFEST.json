@@ -78,7 +78,8 @@
     "2026-11-20-lifecycle-bug-fixes-r2.jsonl": "36fa307a271110336a761fb7f985a9671d6bdce275fa2d2901add09749bc2d42",
     "2026-11-20-lifecycle-bug-fixes.jsonl": "aa0a220460491bff0bdf4bdbd05ac7aadd5d724d62655842f7d565c3ce1df9d0",
     "2026-11-21-mirror-skill-guidance.jsonl": "60dd8b5c8b57880835bcd7b53e03fa9cfe0df76b602b4a1573c33743afe55a14",
-    "2026-11-22-rejects-review.jsonl": "d73e03780fd2116ac3dd5354337e002d5e2be8540bc36b88b5d71af75926053e"
+    "2026-11-22-rejects-review.jsonl": "d73e03780fd2116ac3dd5354337e002d5e2be8540bc36b88b5d71af75926053e",
+    "2026-11-23-adoptions-batch-1.jsonl": "68771f6c97bb06db6b0c3344b9b13ec2458efeca593b326b38d0351e2e6aa495"
   },
   "round_order": [
     "2026-10-14-migration.jsonl",
@@ -158,7 +159,8 @@
     "2026-11-20-lifecycle-bug-fixes.jsonl",
     "2026-11-20-lifecycle-bug-fixes-r2.jsonl",
     "2026-11-21-mirror-skill-guidance.jsonl",
-    "2026-11-22-rejects-review.jsonl"
+    "2026-11-22-rejects-review.jsonl",
+    "2026-11-23-adoptions-batch-1.jsonl"
   ],
   "reports": {
     "harness_lifecycle/registry/reviews/2026-10-30-upstream-mattpocock_skills-5beb35b.yaml": "fb413772a75f116bd9baeaa06b6e414fe59978c654a951cb53345f17459d7597",

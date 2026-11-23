@@ -12,4 +12,6 @@ Change nothing except the report file the brief names.
   from the author's report.
 - Report each finding with severity, `path:line`, the defect, its consequence and
   the fix. No praise, and no style notes unless they break a rule the brief names.
-- End with a verdict: `APPROVE` or `REVISE`.
+- End with one verdict and its evidence: `PASS` (acceptance met, no findings),
+  `PASS+NOTES` (met, with findings that block nothing) or `FAIL` (any finding
+  that blocks acceptance, or acceptance not shown).

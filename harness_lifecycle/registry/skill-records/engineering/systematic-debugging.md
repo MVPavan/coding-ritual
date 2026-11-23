@@ -36,6 +36,7 @@ Use to find the cause of a failure when it is unclear, after a fix did not hold,
 - `one-variable-at-a-time`: Change exactly one variable per probe, each mapped to a specific prediction. (Delivers sealed row 2026-10-30-mattpocock_skills-5beb35b:222: one change per probe, with the prediction carried by the hypothesis rather than mapped per probe; T5.)
 - `placeholder-sensitive-data-redaction`: Replace secrets and personal data with placeholders in anything shown or saved.
 - `signal-lines-only`: Quote only the signal-carrying lines from captured artifacts that may hold credentials.
+- `repro-budget-outcomes`: End a reproduction attempt within its budget as either cleanly not reproduced or blocked, naming the missing capability. (The caller's budget or one stated before the first attempt; at its end the diagnosis is Provisional labelled not reproduced, naming the evidence or capability wanted, or blocked on a capability the environment lacks.)
 <!-- /registry:generated traits -->
 
 <!-- registry:generated lineage -->
@@ -64,11 +65,13 @@ Use to find the cause of a failure when it is unclear, after a fix did not hold,
 - **mattpocock_skills:skill:skills/engineering/diagnosing-bugs#placeholder-sensitive-data-redaction** `skills/engineering/diagnosing-bugs/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues#no-symptom-injection** `pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049 (pending cr-r2pa.2.13.3)
 - **mattpocock_skills:skill:skills/engineering/diagnosing-bugs#signal-lines-only** `skills/engineering/diagnosing-bugs/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
-- **cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues#repro-budget-outcomes** `pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049 (pending cr-r2pa.3.15)
+- **cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues#repro-budget-outcomes** `pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
-- `2026-11-22` **adopt** (2026-11-22-rejects-review:009): Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3. Adopted, pending cr-r2pa.3.15: a reproduction attempt gets a budget, and at its…
+- `2026-11-23` **adopt** (2026-11-23-adoptions-batch-1:019): Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3; delivered by cr-r2pa.3.15. systematic-debugging gives reproduction a budget, th…
+- `2026-11-23` **update** (2026-11-23-adoptions-batch-1:006): Delivers cr-r2pa.3.15 (owner ruling 2026-11-22, rejections re-review, bead cr-r2pa.3.3). Reproduction gets a budget (the caller's, or one stated before the fir…
+- `2026-11-22` **adopt** (2026-11-22-rejects-review:009) *(superseded)*: Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3. Adopted, pending cr-r2pa.3.15: a reproduction attempt gets a budget, and at its…
 - `2026-11-20` **out-of-scope** (2026-11-20-deferred-building:040): Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3: out of scope for now. This is a rule for an agent that takes bug reports from a team…
 - `2026-11-20` **out-of-scope** (2026-11-20-deferred-building:039): Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3: out of scope for now. This is a rule for an agent that takes bug reports from a team…
 - `2026-11-20` **out-of-scope** (2026-11-20-deferred-building:038): Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3: out of scope for now. This is a rule for an agent that takes bug reports from a team…
@@ -194,6 +197,8 @@ Use to find the cause of a failure when it is unclear, after a fix did not hold,
   - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs#placeholder-sensitive-data-redaction` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `regression-check`:
   - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs#regression-check` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2; withdrawn 2026-10-31)
+- `repro-budget-outcomes`:
+  - `cursor_plugins:skill:pstack/automations/benny/skills/reproduce-and-fix-issues#repro-budget-outcomes` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
 - `reproduction-preferred`:
   - `mattpocock_skills:skill:skills/engineering/diagnosing-bugs#reproduction-first` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `signal-lines-only`:

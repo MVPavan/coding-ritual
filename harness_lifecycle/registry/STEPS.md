@@ -28,7 +28,7 @@ Playbook traits: `stated-unattended-gate`, `human-reads-before-merge`
 
 Trigger: A request to watch open pull requests (one or a stack) and get them merge-ready, answer their review threads, or report whether they are green.
 
-Playbook traits: `declared-watch-mode`, `merge-frontier-only`, `stack-topology-frozen`, `babysit-push-reply-grant`, `babysit-never-merges`
+Playbook traits: `declared-watch-mode`, `merge-frontier-only`, `stack-topology-frozen`, `babysit-push-reply-grant`, `babysit-never-merges`, `full-pr-url`
 
 | Step | When | Traits | Calls | Loads |
 |---|---|---|---|---|
@@ -37,7 +37,7 @@ Playbook traits: `declared-watch-mode`, `merge-frontier-only`, `stack-topology-f
 | `babysit#3` | always, and again each time babysit#7 returns | `positive-readiness-predicate`, `conflicts-threads-ci-order`, `conflicted-frontier-stop` |  |  |
 | `babysit#4` | the frontier has unresolved review threads, in drive, threads-only or background (which publishes nothing) | `owning-pr-red-first-fix`, `high-impact-finding-escalation` | `skill:review` (when: feedback mode, on the threads' findings); `skill:tdd` (when: in drive or threads-only, a finding is real and a regression check is feasible) |  |
 | `babysit#5` | the frontier has a failing check, in drive or background | `ci-classified-before-rerun`, `full-workflow-rerun-grant` | `skill:systematic-debugging` (when: the failure is in the diff's own code and its cause is unclear); `skill:tdd` (when: in drive, that failure needs a fix and a regression check is feasible) |  |
-| `babysit#6` | in drive or threads-only, a fix is verified or any thread disposition is ready to publish | `reply-from-file`, `thread-replies-confirmed` | `skill:land` (when: a fix is verified) |  |
+| `babysit#6` | in drive or threads-only, a fix is verified or any thread disposition is ready to publish | `edit-pass-before-posting`, `reply-from-file`, `thread-replies-confirmed` | `skill:land` (when: a fix is verified); `skill:unslop` (when: on each drafted reply, before it is posted) |  |
 | `babysit#7` | drive or background, until the frontier is ready, the stack is complete, the run waits on a person, or the person stops it | `bounded-background-wait`, `event-wait-with-fresh-read` |  |  |
 | `babysit#8` | every exit | `babysit-closeout` | `skill:tracker` (when: in drive, the run read a pull request back as merged) |  |
 
@@ -280,14 +280,14 @@ Playbook traits: `pickup-read-only-gate`
 
 Trigger: A request to merge, land or ship open pull requests (one or a stack) once each is independently verified.
 
-Playbook traits: `shipping-merge-grant`, `contiguous-verified-run`, `hands-off-while-landing`
+Playbook traits: `shipping-merge-grant`, `contiguous-verified-run`, `hands-off-while-landing`, `full-pr-url`
 
 | Step | When | Traits | Calls | Loads |
 |---|---|---|---|---|
 | `shipping#1` | always, before any write to the forge, a branch or the tracker | `stack-wide-claim`, `stack-snapshot-before-writes` | `skill:beads` (when: before the run's first bead write) |  |
 | `shipping#2` | a pull request has an earlier verdict | `verdict-reuse-on-tree` |  |  |
-| `shipping#3` | each unmerged pull request from the bottom that shipping#2 left without a usable verdict | `independent-user-run-verdict`, `verdict-on-pr-and-bead` | `skill:delegation` (when: the reviewer role, briefed to run the change as a user would, against its base) |  |
-| `shipping#4` | the verified run holds at least one pull request | `verdict-receipts-before-merge`, `trunk-ancestor-before-merge`, `direct-merge-mutation-at-verified-head`, `bottom-up-merge-read-back`, `pinned-lease-child-move`, `bounded-background-wait`, `event-wait-with-fresh-read` |  |  |
+| `shipping#3` | each unmerged pull request from the bottom that shipping#2 left without a usable verdict | `independent-user-run-verdict`, `edit-pass-before-posting`, `verdict-on-pr-and-bead` | `skill:delegation` (when: the reviewer role, briefed to run the change as a user would, against its base); `skill:unslop` (when: on the verdict record's prose, before it is first posted) |  |
+| `shipping#4` | the verified run holds at least one pull request | `verdict-receipts-before-merge`, `edit-pass-before-posting`, `trunk-ancestor-before-merge`, `direct-merge-mutation-at-verified-head`, `bottom-up-merge-read-back`, `pinned-lease-child-move`, `bounded-background-wait`, `event-wait-with-fresh-read` | `skill:unslop` (when: on a missing receipt's prose, before it is posted from the record) |  |
 | `shipping#5` | every exit | `merge-evidence-bead-close` | `skill:tracker` (when: a pull request was read back as merged) |  |
 
 ## skill-curation
@@ -351,7 +351,7 @@ Playbook traits: `advisory-audit-bucket`, `prune-on-approval-gate`
 
 | Step | When | Traits | Calls | Loads |
 |---|---|---|---|---|
-| `worktree-cleanup#1` | always | `listed-worktree-audit` |  | `.claude/skills/mvp-mode/playbooks/worktree-cleanup/audit.py` |
+| `worktree-cleanup#1` | always | `listed-worktree-audit`, `base-ref-fallback-and-fetch`, `remote-push-state`, `pr-state-as-merge-signal` |  | `.claude/skills/mvp-mode/playbooks/worktree-cleanup/audit.py` |
 | `worktree-cleanup#2` | the audit ran | `pinned-set-cross-check` |  |  |
 | `worktree-cleanup#3` | a worktree has uncommitted work | `uncommitted-work-pause` |  |  |
 | `worktree-cleanup#4` | the audit left at least one candidate | `removal-proposal` |  |  |
@@ -369,7 +369,9 @@ Traits and calls used by two or more playbooks. Repeating a step is fine; the sa
 | `attempt-log` | bug-fix: `bug-fix#5`; implement: `implement#4` |
 | `bounded-background-wait` | autonomous-run: `autonomous-run#4`; babysit: `babysit#7`; bug-fix: `bug-fix#2`; hillclimb: `hillclimb#2`, `hillclimb#4`; shipping: `shipping#4` |
 | `build-closeout` | feature: `feature#7`; perf-issue: `perf-issue#5`; refactoring: `refactoring#7` |
+| `edit-pass-before-posting` | babysit: `babysit#6`; shipping: `shipping#3`, `shipping#4` |
 | `event-wait-with-fresh-read` | babysit: `babysit#7`; shipping: `shipping#4` |
+| `full-pr-url` | babysit: `playbook`; shipping: `playbook` |
 | `harness-with-pre-change-baseline` | figure-it-out: `figure-it-out#3`; visual-parity: `visual-parity#1` |
 | `implement-against-sketch` | bug-fix: `bug-fix#3`; feature: `feature#4`; perf-issue: `perf-issue#3`; refactoring: `refactoring#4` |
 | `limit-bounded-hold` | autonomous-run: `autonomous-run#5`; hillclimb: `hillclimb#5` |
@@ -402,6 +404,6 @@ Traits and calls used by two or more playbooks. Repeating a step is fine; the sa
 | `skill:tdd` | babysit: `babysit#4`, `babysit#5`; bug-fix: `bug-fix#3`; implement: `implement#4`; refactoring: `refactoring#1` |
 | `skill:to-plan` | implement: `implement#6`; plan: `plan#7` |
 | `skill:tracker` | babysit: `babysit#8`; implement: `implement#2`, `implement#4`, `implement#6`, `implement#8`; plan: `plan#8`; shipping: `shipping#5` |
-| `skill:unslop` | investigation: `investigation#2`; plan: `plan#9` |
+| `skill:unslop` | babysit: `babysit#6`; investigation: `investigation#2`; plan: `plan#9`; shipping: `shipping#3`, `shipping#4` |
 | `skill:wake` | autonomous-run: `autonomous-run#3`; babysit: `babysit#1`; hillclimb: `hillclimb#2` |
 | `skill:why` | bug-fix: `bug-fix#2`; investigation: `investigation#1` |

@@ -1,6 +1,6 @@
 ---
 trigger: A request to watch open pull requests (one or a stack) and get them merge-ready, answer their review threads, or report whether they are green.
-traits: [declared-watch-mode, merge-frontier-only, stack-topology-frozen, babysit-push-reply-grant, babysit-never-merges]
+traits: [declared-watch-mode, merge-frontier-only, stack-topology-frozen, babysit-push-reply-grant, babysit-never-merges, full-pr-url]
 steps:
   - id: babysit#1
     when: the request names a deadline, before any other step
@@ -21,8 +21,8 @@ steps:
     calls: [{to: "skill:systematic-debugging", when: the failure is in the diff's own code and its cause is unclear}, {to: "skill:tdd", when: "in drive, that failure needs a fix and a regression check is feasible"}]
   - id: babysit#6
     when: in drive or threads-only, a fix is verified or any thread disposition is ready to publish
-    actions: [{trait: reply-from-file}, {trait: thread-replies-confirmed}]
-    calls: [{to: "skill:land", when: a fix is verified}]
+    actions: [{trait: edit-pass-before-posting}, {trait: reply-from-file}, {trait: thread-replies-confirmed}]
+    calls: [{to: "skill:land", when: a fix is verified}, {to: "skill:unslop", when: "on each drafted reply, before it is posted"}]
   - id: babysit#7
     when: drive or background, until the frontier is ready, the stack is complete, the run waits on a person, or the person stops it
     actions: [{trait: bounded-background-wait}, {trait: event-wait-with-fresh-read}]
@@ -59,7 +59,9 @@ one ends. Commits from a working tree are `land`, and a pull request's body is
   time. In `drive`, also start one fresh full run of a failing workflow per
   failure classified as flake or infrastructure (step 5), and for a pull
   request read back as merged, close its bead and mirror that bead alone
-  (step 8). Nothing more: no merge, rebase or force-push. `background` and `check` change nothing remote.
+  (step 8). Nothing more: no merge, rebase or force-push, and the writes
+  `AGENTS.md` (Authority) holds back under any standing grant still wait for
+  the owner. `background` and `check` change nothing remote.
   Under an open `wake` card, push and reply only when the request's own words
   name those acts.
 - **Never merge.** Babysitting authorizes no merge, queued or automatic. A
@@ -125,7 +127,8 @@ one ends. Commits from a working tree are `land`, and a pull request's body is
 6. **Publish.** In `drive` or `threads-only`, whenever a fix is verified or a
    thread disposition is ready: invoke `land` for verified fixes and push them
    in one wave to the pull request's own branch, then reply on each thread,
-   citing the commit or giving the disproof. Write each reply as a JSON file
+   citing the commit or giving the disproof. Invoke `unslop` on each drafted
+   reply before it is posted. Write each reply as a JSON file
    holding `body`, and post it with `gh api --method POST
    repos/<owner>/<repo>/pulls/<pr>/comments/<root comment id>/replies --input
    <file>`; reply text never goes inside a command line. Read the threads back
@@ -158,6 +161,9 @@ one ends. Commits from a working tree are `land`, and a pull request's body is
    close it and cancel its timer, as `wake` says; the reply gives the result.
 
 ## Reply
+
+Name each pull request by its full web address
+(`https://<host>/<owner>/<repo>/pull/<n>`), here and in every posted reply.
 
 - **Merge-ready:** the mode, the readiness items as read, any frontier
   advances, the fixes pushed (commits), which threads received replies and

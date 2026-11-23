@@ -82,6 +82,9 @@ failing before and passing after. If a check was not run, say which; never descr
 evidence that does not exist. For a performance change, lead with one primary number and
 link its supporting evidence.
 
+A count or a file tree anywhere in the body (files changed, tests added, a layout)
+holds at the commit that lands and gives the command that reproduces it.
+
 ## Merge danger
 
 A one-way door is destructive or hard to reverse (data, schema, published interfaces,

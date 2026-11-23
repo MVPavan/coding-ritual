@@ -62,6 +62,14 @@ Use to answer why something in this project is the way it is (code, a document, 
 - `error-trace-relevance`: Open a full error event to see whether its trace crosses the target and its tags and breadcrumbs match the guarded condition.
 - `error-finding-record`: Record each error issue with its id, title, project, seen timestamps, event count with sampling, releases, a verbatim trace excerpt, ship-date correlation, link and author notes.
 - `chat-search-procedure`: Search team chat for deliberation by the author's messages around the merge date and by the pull request's link.
+- `exact-quote-evidence`: Prefer a precise quotation with a location checkable in seconds to a paragraph of paraphrase.
+- `counterfactual-strength-test`: Before rating a finding strong, ask whether it would still appear under a false interpretation and what would look different.
+- `correlation-needs-neighbor-check`: Treat a before-and-after shift as suggestive only until other changes landing in the same window are inspected.
+- `interest-is-not-cause`: Treat a metric, a logged event or a chart as showing interest only, pairing it with a commit or pull request citation before claiming cause.
+- `generated-analysis-is-inference`: Use a tool's generated root-cause analysis as inference only, with the actual events and traces as the primary evidence.
+- `document-motive-signals`: Read a matching problem section, rejected approaches, a postmortem naming the fix, dated decision notes and a filled decision record as evidence of motive.
+- `document-external-metadata`: Record a document's URL and its final or draft status with its finding.
+- `casual-remark-not-a-decision`: Do not count a flippant remark before a commit as a decision, and look for considered discussion.
 <!-- /registry:generated traits -->
 
 <!-- registry:generated lineage -->
@@ -118,25 +126,34 @@ Use to answer why something in this project is the way it is (code, a document, 
 - **cursor_plugins:skill:pstack/skills/why#error-trace-relevance** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
 - **cursor_plugins:skill:pstack/skills/why#error-finding-record** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
 - **cursor_plugins:skill:pstack/skills/why#chat-search-procedure** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
-- **cursor_plugins:skill:pstack/skills/why#exact-quote-evidence** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe (pending cr-r2pa.3.11)
-- **cursor_plugins:skill:pstack/skills/why#correlation-needs-neighbor-check** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe (pending cr-r2pa.3.11)
-- **cursor_plugins:skill:pstack/skills/why#interest-is-not-cause** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe (pending cr-r2pa.3.11)
-- **cursor_plugins:skill:pstack/skills/why#casual-remark-not-a-decision** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe (pending cr-r2pa.3.11)
-- **cursor_plugins:skill:pstack/skills/why#generated-analysis-is-inference** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe (pending cr-r2pa.3.11)
-- **cursor_plugins:skill:pstack/skills/why#counterfactual-strength-test** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe (pending cr-r2pa.3.11)
-- **cursor_plugins:skill:pstack/skills/why#document-motive-signals** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe (pending cr-r2pa.3.11)
-- **cursor_plugins:skill:pstack/skills/why#document-external-metadata** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe (pending cr-r2pa.3.11)
+- **cursor_plugins:skill:pstack/skills/why#exact-quote-evidence** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/why#counterfactual-strength-test** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/why#correlation-needs-neighbor-check** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/why#interest-is-not-cause** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/why#generated-analysis-is-inference** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/why#document-motive-signals** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/why#document-external-metadata** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/why#casual-remark-not-a-decision** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
-- `2026-11-22` **adopt** (2026-11-22-rejects-review:030): Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3. Adopted, pending cr-r2pa.3.11: a finding from a document store records the docu…
-- `2026-11-22` **adopt** (2026-11-22-rejects-review:029): Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3. Adopted, pending cr-r2pa.3.11: a matching problem section, rejected approaches,…
-- `2026-11-22` **adopt** (2026-11-22-rejects-review:027): Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3. Adopted, pending cr-r2pa.3.11: before a finding is rated strong, ask whether it…
-- `2026-11-22` **adopt** (2026-11-22-rejects-review:026): Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3. Adopted, pending cr-r2pa.3.11: a tool's generated root-cause analysis is infere…
-- `2026-11-22` **adopt** (2026-11-22-rejects-review:025): Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3. Adopted, pending cr-r2pa.3.11: a flippant remark before a commit does not count…
-- `2026-11-22` **adopt** (2026-11-22-rejects-review:024): Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3. Adopted, pending cr-r2pa.3.11: a metric, logged event or chart shows interest o…
-- `2026-11-22` **adopt** (2026-11-22-rejects-review:023): Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3. Adopted, pending cr-r2pa.3.11: a before-and-after shift is suggestive only unti…
-- `2026-11-22` **adopt** (2026-11-22-rejects-review:022): Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3. Adopted, pending cr-r2pa.3.11: a precise quotation with a location checkable in…
+- `2026-11-23` **adopt** (2026-11-23-adoptions-batch-1:031): Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3; delivered by cr-r2pa.3.11. The Team chat section now says a flippant remark bef…
+- `2026-11-23` **adopt** (2026-11-23-adoptions-batch-1:030): Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3; delivered by cr-r2pa.3.11. The Document store section now records each document…
+- `2026-11-23` **adopt** (2026-11-23-adoptions-batch-1:029): Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3; delivered by cr-r2pa.3.11. The Document store section now says motive lives in …
+- `2026-11-23` **adopt** (2026-11-23-adoptions-batch-1:028): Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3; delivered by cr-r2pa.3.11. The Error tracker section now says a root-cause anal…
+- `2026-11-23` **adopt** (2026-11-23-adoptions-batch-1:027): Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3; delivered by cr-r2pa.3.11. In Runtime signals across sources, a metric, a logge…
+- `2026-11-23` **adopt** (2026-11-23-adoptions-batch-1:026): Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3; delivered by cr-r2pa.3.11. In Runtime signals across sources, a shift in step w…
+- `2026-11-23` **adopt** (2026-11-23-adoptions-batch-1:025): Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3; delivered by cr-r2pa.3.11. Before a claim is rated Direct or Supported, why ask…
+- `2026-11-23` **adopt** (2026-11-23-adoptions-batch-1:024): Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3; delivered by cr-r2pa.3.11. why's Judge section now has the words a claim rests …
+- `2026-11-23` **update** (2026-11-23-adoptions-batch-1:002): Delivers cr-r2pa.3.11 (owner ruling 2026-11-22, rejections re-review, bead cr-r2pa.3.3). why's Judge section quotes the words a claim rests on exactly with a c…
+- `2026-11-22` **adopt** (2026-11-22-rejects-review:030) *(superseded)*: Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3. Adopted, pending cr-r2pa.3.11: a finding from a document store records the docu…
+- `2026-11-22` **adopt** (2026-11-22-rejects-review:029) *(superseded)*: Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3. Adopted, pending cr-r2pa.3.11: a matching problem section, rejected approaches,…
+- `2026-11-22` **adopt** (2026-11-22-rejects-review:027) *(superseded)*: Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3. Adopted, pending cr-r2pa.3.11: before a finding is rated strong, ask whether it…
+- `2026-11-22` **adopt** (2026-11-22-rejects-review:026) *(superseded)*: Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3. Adopted, pending cr-r2pa.3.11: a tool's generated root-cause analysis is infere…
+- `2026-11-22` **adopt** (2026-11-22-rejects-review:025) *(superseded)*: Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3. Adopted, pending cr-r2pa.3.11: a flippant remark before a commit does not count…
+- `2026-11-22` **adopt** (2026-11-22-rejects-review:024) *(superseded)*: Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3. Adopted, pending cr-r2pa.3.11: a metric, logged event or chart shows interest o…
+- `2026-11-22` **adopt** (2026-11-22-rejects-review:023) *(superseded)*: Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3. Adopted, pending cr-r2pa.3.11: a before-and-after shift is suggestive only unti…
+- `2026-11-22` **adopt** (2026-11-22-rejects-review:022) *(superseded)*: Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3. Adopted, pending cr-r2pa.3.11: a precise quotation with a location checkable in…
 - `2026-11-17` **adopt** (2026-11-17-deferred-discovery:023): Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3. The plugin ships `why` to other projects, so it recommends this source by default an…
 - `2026-11-17` **adopt** (2026-11-17-deferred-discovery:022): Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3. The plugin ships `why` to other projects, so it recommends this source by default an…
 - `2026-11-17` **adopt** (2026-11-17-deferred-discovery:021): Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3. The plugin ships `why` to other projects, so it recommends this source by default an…
@@ -243,6 +260,8 @@ Use to answer why something in this project is the way it is (code, a document, 
   - `cursor_plugins:skill:pstack/skills/why#adjacent-citation-gate` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `angles-when-wide`:
   - `cursor_plugins:skill:pstack/skills/how#size-gated-explorers` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe; withdrawn 2026-11-10)
+- `casual-remark-not-a-decision`:
+  - `cursor_plugins:skill:pstack/skills/why#casual-remark-not-a-decision` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `chat-search-procedure`:
   - `cursor_plugins:skill:pstack/skills/why#chat-search-procedure` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `cited-flow-walkthrough`:
@@ -263,8 +282,16 @@ Use to answer why something in this project is the way it is (code, a document, 
   - `cursor_plugins:skill:pstack/skills/why#constraints-before-change` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `contradiction-shown`:
   - `cursor_plugins:skill:pstack/skills/why#contradiction-shown` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `correlation-needs-neighbor-check`:
+  - `cursor_plugins:skill:pstack/skills/why#correlation-needs-neighbor-check` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `counterfactual-strength-test`:
+  - `cursor_plugins:skill:pstack/skills/why#counterfactual-strength-test` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `curated-views-before-raw`:
   - `cursor_plugins:skill:pstack/skills/why#curated-views-before-raw` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `document-external-metadata`:
+  - `cursor_plugins:skill:pstack/skills/why#document-external-metadata` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `document-motive-signals`:
+  - `cursor_plugins:skill:pstack/skills/why#document-motive-signals` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `document-store-search-procedure`:
   - `cursor_plugins:skill:pstack/skills/why#document-store-search-procedure` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `embedded-hypothesis-check`:
@@ -273,17 +300,23 @@ Use to answer why something in this project is the way it is (code, a document, 
   - `cursor_plugins:skill:pstack/skills/why#error-finding-record` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `error-trace-relevance`:
   - `cursor_plugins:skill:pstack/skills/why#error-trace-relevance` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `exact-quote-evidence`:
+  - `cursor_plugins:skill:pstack/skills/why#exact-quote-evidence` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `explanation-sections`:
   - `cursor_plugins:skill:pstack/skills/how#explanation-sections` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe; withdrawn 2026-11-10)
 - `full-record-reading`:
   - `cursor_plugins:skill:pstack/skills/why#read-whole-item` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `gather-without-concluding`:
   - `cursor_plugins:skill:pstack/skills/why#gather-without-concluding` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `generated-analysis-is-inference`:
+  - `cursor_plugins:skill:pstack/skills/why#generated-analysis-is-inference` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `immaterial-ambiguity-reading`:
   - `cursor_plugins:skill:pstack/skills/how#stated-scope-reading` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
   - `cursor_plugins:skill:pstack/skills/why#stated-scope-reading` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `incident-source-playbook`:
   - `cursor_plugins:skill:pstack/skills/why#incident-source-playbook` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `interest-is-not-cause`:
+  - `cursor_plugins:skill:pstack/skills/why#interest-is-not-cause` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `local-evidence-sources`:
   - `cursor_plugins:skill:pstack/skills/why#evidence-category-fanout` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
   - `cursor_plugins:skill:pstack/skills/why#incident-commit-signals` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)

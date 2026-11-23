@@ -28,7 +28,10 @@ Fit the reading to the width of the question:
   answer in one pass.
 - **Wide** (a subsystem across many files or services): split it into angles
   through delegation by the local rule (the `delegation` skill), then reconcile
-  what comes back into one account.
+  what comes back into one account. Tell each helper its angle and that its
+  peers cover the rest, so it goes deep on its own.
+
+When unsure whether a question is narrow or wide, answer it in one pass.
 
 When findings conflict, open the code or artifact itself and let it settle them.
 Agreement between reports, or the confidence of one, settles nothing.
