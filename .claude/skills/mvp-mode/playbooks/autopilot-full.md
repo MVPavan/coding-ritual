@@ -4,7 +4,7 @@ traits: [autopilot-delivery-grant, gate-loosening-held, never-force-push, callee
 steps:
   - id: autopilot-full#1
     when: always, before any branch, commit or bead write
-    actions: [{trait: settled-bead-intake}, {trait: owner-sets-concurrency}, {trait: active-run-marker}]
+    actions: [{trait: settled-bead-intake}, {trait: blocked-bead-waits}, {trait: owner-sets-concurrency}, {trait: active-run-marker}]
     calls: [{to: "skill:beads", when: before the run's first bead write}]
     loads: [{path: autopilot-full/run_marker.py, when: "acquire, last in intake"}]
   - id: autopilot-full#2
@@ -87,31 +87,47 @@ line.
   writes made through the shell (redirection, `tee`, `sed -i`, scripts) are
   not covered, so every write stays in the feature's worktree by discipline.
 
-1. **Intake.** Take only beads with acceptance and no open material question.
-   Invoke `beads` before the first bead write. A bead with an open question
-   gets the `human` label and a comment naming the question, and is skipped;
-   the rest go ahead. State which features are independent and the evidence:
-   no blocking edge between them, and the files each is expected to touch do
-   not overlap. Propose parallel or one at a time; the owner's go sets the
-   concurrency, because usage headroom is the owner's call, never guessed.
-   With no stated choice, run one at a time. The owner may lower it mid-run:
-   running work finishes its current task, then the rest go one at a time.
-   Last, take the run marker: `python3 autopilot-full/run_marker.py acquire`
-   (beside this file), run in the repository. It creates `autopilot-run` in
-   the common git dir only when none exists and prints this run's id; note
-   the id on the first bead. Exit 4, a marker exists: another run is active or
-   a crashed one left it, so stop and ask the owner, starting nothing.
-2. **Branch per feature, off trunk, never stacked.** Fetch trunk and make the
+1. **Intake.** List every bead handed over (an epic: its direct features),
+   then take only those with acceptance and no open material question. Invoke
+   `beads` before the first bead write. A bead with an open question gets the
+   `human` label and a comment naming it, and is skipped. A bead blocked by
+   one still open, a feature of this run included, waits; the run builds the
+   others. A feature delivered by pull request closes once that merges, so the
+   waiting one starts in a later run from a trunk that holds it. A code
+   blocker (a feature, task or bug) closed with no merged pull request in its
+   close reason (wontfix, a duplicate, by hand) proves nothing reached trunk:
+   the bead gets the `human` label and a comment naming the blocker, and is
+   held; a closed decision or closed `human` bead frees it, as Beads intends.
+   Judge each bead by two checks, never a guess: `bd ready --limit 0` lists it
+   (inherited blocks included; the default list stops at 100), and `bd show`
+   on it and its ancestors finds the blocking edges, each closed code blocker
+   then read by its own id (`bd show <id> --json`, its `close_reason`); a
+   feature's own child tasks are step 3's. When none can start, reply Not
+   started, taking no marker. State which features are independent and the
+   evidence: no blocking edge between those proposed in parallel, and the
+   files each is expected to touch do not overlap. Propose parallel or one at
+   a time; the owner's go sets the concurrency, because usage headroom is the
+   owner's call, never guessed. With no stated choice, run one at a time. The
+   owner may lower it mid-run: running work finishes its current task, then
+   the rest go one at a time. Last, take the run marker:
+   `python3 autopilot-full/run_marker.py acquire` (beside this file), run in
+   the repository. It creates `autopilot-run` in the common git dir only when
+   none exists and prints this run's id; note the id on the first bead. Exit
+   4, a marker exists: another run is active or a crashed one left it, so stop
+   and ask the owner, starting nothing.
+2. **Branch per feature, off trunk, never stacked.** Just before a feature's
+   branch, worker and claim, rerun step 1's blocker rule on its current edges
+   and close reasons: it waits or is held as there. Fetch trunk and make the
    feature's branch from its tip in a worktree of its own, so the main
    checkout and anything uncommitted there stay untouched. In parallel, each
    feature also gets its own worker through `delegation`. Shared state follows
    `principle-separate-before-serializing-shared-state`: each worker writes
-   only its own worktree and branch, and the coordinator alone writes the
-   bead store and the run marker and fetches trunk, one write at a time. Push
-   soon after the branch starts, the first time with upstream tracking (`git
-   push -u origin <branch>`), and after each finished task, with a bead note
-   as the resume line (branch, last pushed SHA, next task), so a lost session
-   loses at most one task.
+   only its own worktree and branch, and the coordinator alone writes the bead
+   store and the run marker and fetches trunk, one write at a time. Push soon
+   after the branch starts, the first time with upstream tracking (`git push
+   -u origin <branch>`), and after each finished task, with a bead note as the
+   resume line (branch, last pushed SHA, next task), so a lost session loses
+   at most one task.
 3. **Build** with implement's Task loop (its section 4) run as this step, not
    the implement playbook called whole: one bead at a time, a feature's open
    children first, one ready child at a time. Claim the bead, build in
@@ -169,11 +185,14 @@ line.
    whole tree: there is nothing to ship, so stop the feature with a bead note
    saying so. Push nothing for the pull request until the gate and the manual
    checks pass; a failure is fixed by a new commit through step 4, then this
-   step runs again. Push, then open the pull request with `gh pr create`, its
-   body through `pr`, which creates and mirrors no issue here: `Closes #<n>`
-   only for the bead's own issue when this pull request completes it,
-   `Refs #<n>` for an ancestor's, and no such line when no bead on the chain
-   has a mirrored issue, with a bead note saying so.
+   step runs again. Push, then open the pull request with
+   `gh pr create --base <trunk>` (a branch's merge-base setting can pick
+   another), its body through `pr`, which creates and mirrors no issue here:
+   `Closes #<n>` only for the bead's own issue when this pull request
+   completes it, `Refs #<n>` for an ancestor's, and no such line when no bead
+   on the chain has a mirrored issue, with a bead note saying so. Read its
+   base back (`gh pr view --json baseRefName`) before any verdict: not trunk
+   stops the feature and is reported.
 7. **One review, then Babysit.** Invoke `delegation` for a reviewer that did
    not write the feature, from another model family, briefed to run the
    change the way a user would against its base and to return `PASS`,
@@ -220,18 +239,22 @@ line.
 ## Reply
 
 Name each pull request by its full web address
-(`https://<host>/<owner>/<repo>/pull/<n>`).
+(`https://<host>/<owner>/<repo>/pull/<n>`). Every exit lists each bead not
+started at steps 1-2 and why: its blocker and its pull request if any, or
+else the actual reason (no acceptance, open question, claimed, deferred).
 
 - **Finished:** per feature, its pull request, state (merge-ready, waiting on
   a person, merged) and verdict with the tree it covers; the concurrency the
   owner set; follow-up beads.
-- **Partly finished:** the above for each feature that reached merge-ready,
-  and for each other feature where it stopped and why: a held write waiting
-  for the owner, a friction stop, an open question, a foreign or rejected
-  push, a gate that would not pass, a missing gate file, nothing to ship
-  (trunk already holds the feature).
+- **Partly finished** (also when a bead waits or is held, once a feature
+  started): the above for each feature that reached merge-ready, and for each
+  other feature where it stopped and why: a held write waiting for the owner,
+  a friction stop, an open question, a foreign or rejected push, a gate that
+  would not pass, a missing gate file, nothing to ship (trunk already holds
+  the feature), a pull request on the wrong base.
 - **Stopped by the owner:** where each feature stands (branch, last pushed
   SHA, pull request), what was in flight, the claims still held, and that
   nothing resumes by itself.
-- **Not started:** no bead was settled, or a run marker already existed; what
-  each bead needs.
+- **Not started:** no bead was settled, no feature started because every
+  settled bead waits or is held (at step 1 or 2), or a run marker already
+  existed; what each bead needs.

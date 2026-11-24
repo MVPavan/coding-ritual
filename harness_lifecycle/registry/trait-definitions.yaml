@@ -10949,6 +10949,11 @@ callee-bound-to-grant:
 settled-bead-intake:
   definition: "Take into an unattended run only beads with acceptance and no open material question, labelling each other bead for the owner with its question and skipping it, and treating a request to state the plan as no go."
   placement: {domain: core, stage: Intake, substage: Triage}
+blocked-bead-waits:
+  definition: "In an unattended run, list every handed-over bead before filtering, leave unstarted each one a still-open bead blocks (one in the same run included), rechecking the whole rule on current edges and close reasons just before it starts, hold for the owner one whose code blocker (a feature, task or bug) closed without a merged pull request while a closed decision or closed human bead frees it, build the rest, and report each waiting or held bead with its blocker and that blocker's pull request, if any."
+  placement: {domain: core, stage: Intake, substage: Triage}
+  distinct_from: [dependency-edges, settled-bead-intake]
+  note: "dependency-edges writes the blocking edges and works the ready frontier; settled-bead-intake skips a bead with an open question. This admits a settled feature only once its code blockers' work reached trunk through a merged pull request (a closed decision or closed human bead frees it, as the tracker intends), starting it in a later run from trunk instead of on the blocker's branch; tasks inside one feature keep the feature's own ready-child order."
 owner-sets-concurrency:
   definition: "Propose running independent work in parallel or one at a time with evidence of independence (no blocking edge, no overlapping expected files), let the owner's go set the concurrency with one at a time as the default, and when the owner lowers it mid-run let running work finish its current task first."
   placement: {domain: core, stage: X, substage: Coordination}

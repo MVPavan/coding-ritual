@@ -1717,6 +1717,7 @@ By skill, then by trait. The vocabulary and lists live in `trait-definitions.yam
 - `never-force-push`: Make no force-push in an unattended run, its own branches included: bring trunk in by merging it into the branch, rebase only before the branch's first push, and hold any rewrite of pushed history for the owner.
 - `callee-bound-to-grant`: When a run calls another unit whose own grant reaches further (creating or mirroring issues, rerunning workflows, closing beads after a merge), run that unit bound to the run's grant and send every write beyond it to the owner as a held write.
 - `settled-bead-intake`: Take into an unattended run only beads with acceptance and no open material question, labelling each other bead for the owner with its question and skipping it, and treating a request to state the plan as no go.
+- `blocked-bead-waits`: In an unattended run, list every handed-over bead before filtering, leave unstarted each one a still-open bead blocks (one in the same run included), rechecking the whole rule on current edges and close reasons just before it starts, hold for the owner one whose code blocker (a feature, task or bug) closed without a merged pull request while a closed decision or closed human bead frees it, build the rest, and report each waiting or held bead with its blocker and that blocker's pull request, if any.
 - `owner-sets-concurrency`: Propose running independent work in parallel or one at a time with evidence of independence (no blocking edge, no overlapping expected files), let the owner's go set the concurrency with one at a time as the default, and when the owner lowers it mid-run let running work finish its current task first.
 - `active-run-marker`: Mark an unattended run active at intake by exclusively creating a marker file holding the run's id in the repository's common git directory, refusing to start while one exists, so a guard in every worktree can tell a run is on, and at exit remove it only while it still holds that run's id.
 - `fresh-trunk-branch-per-feature`: Give each feature its own branch made from freshly fetched trunk in a worktree of its own, never stacked on another feature's branch, leaving the main checkout untouched.
@@ -5289,6 +5290,10 @@ Post and create nothing when the report's link is already tied to an issue or a 
 Present the items needing triage attention as named buckets, oldest first.
 - ours: `triage`
 - `mattpocock_skills:skill:skills/engineering/triage` — adopt → triage#attention-buckets
+
+#### `blocked-bead-waits`
+In an unattended run, list every handed-over bead before filtering, leave unstarted each one a still-open bead blocks (one in the same run included), rechecking the whole rule on current edges and close reasons just before it starts, hold for the owner one whose code blocker (a feature, task or bug) closed without a merged pull request while a closed decision or closed human bead frees it, build the rest, and report each waiting or held bead with its blocker and that blocker's pull request, if any.
+- playbook: `doc:.claude/skills/mvp-mode/playbooks/autopilot-full.md`
 
 #### `claim-verification`
 Verify a reported claim before acting on it, reproducing a bug or recording exactly why it could not be reproduced.
