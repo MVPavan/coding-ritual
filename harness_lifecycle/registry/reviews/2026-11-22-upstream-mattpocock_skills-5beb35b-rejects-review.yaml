@@ -1,0 +1,93 @@
+harness: mattpocock_skills
+from_sha: null
+to_sha: 5beb35b
+supersedes:
+- harness_lifecycle/registry/reviews/2026-11-18-upstream-mattpocock_skills-5beb35b-deferred-intake.yaml
+analysis_critic:
+  by: coordinator (cc:940ec94d)
+  date: '2026-11-22'
+  verdict: accepted
+  last_critic:
+    by: codex gpt-6.2-sol high (critic-2)
+    date: '2026-11-22'
+    verdict: fail
+comparison_critic:
+  by: coordinator (cc:940ec94d)
+  date: '2026-11-22'
+  verdict: accepted
+  last_critic:
+    by: codex gpt-6.2-sol high (critic-2)
+    date: '2026-11-22'
+    verdict: fail
+themes: 'One Pocock triage row the owner reopened in the rejections re-review. Owner ruling
+  2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3: concept-keyed-rejection-store
+  stays rejected with a new reason: Beads is the authority and GitHub issues a near-deterministic
+  mirror, so a decline is recorded as a bead, not in a separate store.'
+skills:
+  skill:skills/engineering/triage:
+    upstream_tree_hash: 4342a07c9ebe0696713ec93a883c46e56503a587a34d824fabab5ca61e3bdfbb
+    accepted: 5beb35b
+    compared_with: triage
+    pairing:
+      overlap:
+        beads: 1
+        brief-me: 1
+        codebase-design: 1
+        create-formal-verification-skill: 1
+        doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md: 1
+        doc:AGENTS.md: 5
+        grilling: 1
+        improve-codebase-architecture: 3
+        interrogate: 1
+        prototype: 1
+        settle-open-questions: 2
+        teach: 1
+        to-plan: 3
+        to-spec: 1
+        triage: 17
+        unslop: 1
+        why: 1
+      placement_match: []
+      suggested: triage
+      purpose_match: triage
+      purpose: Upstream triage moves incoming issues and PRs through category and state roles
+        to a decided outcome, writing agent briefs and recording rejections. Our triage moves
+        untriaged beads, and the mirror digest's untracked issues and pull requests, to a
+        decided outcome.
+      flag: null
+      reason: null
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      concept-keyed-rejection-store:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/triage/SKILL.md:43-45
+        - .claude/skills/triage/SKILL.md:61
+        - .claude/skills/triage/SKILL.md:90
+        - docs/specs/2026-11-20-beads-github-mirror.md:219
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3:
+          rejected again with a current reason. Owner''s reason: Beads is the authority and
+          GitHub issues are a near-deterministic mirror of it, so a decline is recorded as
+          a bead, a wontfix close that the prior-rejection check searches (.claude/skills/triage/SKILL.md:43-45;
+          .claude/skills/triage/SKILL.md:61), not in a store of one file per concept. This
+          answers the gap the re-review found: the mirror sends outside issues to triage,
+          which may decline one on GitHub (docs/specs/2026-11-20-beads-github-mirror.md:219;
+          .claude/skills/triage/SKILL.md:90). That outcome as written today posts on GitHub
+          only and records nothing in Beads, so a later similar request would not match the
+          closed-bead search until triage records the decline as a bead.'

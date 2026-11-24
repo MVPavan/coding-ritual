@@ -17,7 +17,7 @@ Catalog: `af754ef63535a416af4894223edda1b2c730d3c2`, 26 capabilities.
 | `hook:templates/hooks/block-orchestrator-tools` | reject | decided |  | 2026-10-14-migration | no |
 | `hook:templates/hooks/clarify-vague-request` | reject | decided |  | 2026-10-14-migration | no |
 | `hook:templates/hooks/enforce-bead-for-supervisor` | defer | decided |  | 2026-10-14-migration | no |
-| `hook:templates/hooks/enforce-branch-before-edit` | reject | decided |  | 2026-10-14-migration | no |
+| `hook:templates/hooks/enforce-branch-before-edit` | adopt-merged | decided | hook:hooks/autopilot-branch-guard | 2026-11-23-autopilot-full | no |
 | `hook:templates/hooks/enforce-concise-response` | reject | decided |  | 2026-10-14-migration | no |
 | `hook:templates/hooks/enforce-sequential-dispatch` | defer | decided |  | 2026-10-14-migration | no |
 | `hook:templates/hooks/inject-discipline-reminder` | reject | decided |  | 2026-10-14-migration | no |
@@ -30,5 +30,5 @@ Catalog: `af754ef63535a416af4894223edda1b2c730d3c2`, 26 capabilities.
 | `hook:templates/hooks/validate-epic-close` | defer | decided |  | 2026-10-14-migration | no |
 | `skill:skills/create-beads-orchestration` | reject | decided (whole skill) |  | 2026-10-14-migration | no |
 | `skill:skills/subagents-discipline` | adopt-merged | not analysed | verification-before-completion | 2026-10-14-migration | no |
-| `skill:templates/skills/react-best-practices` | reject | decided (whole skill) |  | 2026-10-14-migration | no |
+| `skill:templates/skills/react-best-practices` | defer | decided (whole skill) |  | 2026-11-22-rejects-review | no |
 | `skill:templates/skills/subagents-discipline` | defer | decided (whole skill) |  | 2026-10-14-migration | no |

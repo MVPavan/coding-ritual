@@ -14,6 +14,10 @@ reading one part brings the rest.
 Manual entrypoints trade automatic discovery cost for a name the user remembers;
 retain useful aliases as thin pointers rather than independent workflows.
 
+If an agent ends a step early because later steps are in view, first sharpen
+that step's completion criterion; only if that fails, hide the later steps
+behind a real context boundary, such as a handoff or a subagent.
+
 ## Precision and discretion
 
 Use observable conditions, explicit outputs and checkable completion criteria that

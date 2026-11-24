@@ -1,0 +1,703 @@
+harness: cursor_plugins
+from_sha: null
+to_sha: 4dd1d05
+supersedes:
+- harness_lifecycle/registry/reviews/2026-11-09-upstream-cursor_plugins-4dd1d05.yaml
+analysis_critic:
+  by: codex gpt-6.1-sol high (critic-99)
+  date: '2026-11-17'
+  verdict: pass
+  last_critic: null
+comparison_critic:
+  by: coordinator (cc:940ec94d)
+  date: '2026-11-17'
+  verdict: accepted
+  last_critic:
+    by: codex gpt-6.1-sol high (critic-99)
+    date: '2026-11-17'
+    verdict: fail
+themes: 'Twenty-two rows reopened by the owner. Each was deferred on 2026-11-10 because this
+  repository has no such outside source. Owner ruling 2026-11-17 (conversation), deferred review,
+  bead cr-r2pa.3.3: the plugin ships `why` to other projects, so the skill recommends these
+  sources by default and each project records in `.repo-context/evidence-sources.md` whether
+  it has each one, uses an alternative, or does not have it. All 22 are delivered in `.claude/skills/why/references/outside-sources.md`,
+  reached from Gather step 4 (`.claude/skills/why/SKILL.md:40-46`).'
+skills:
+  skill:pstack/skills/why:
+    upstream_tree_hash: 52a61145984fec581f95ce58848f12ac195969e09206d890dd95f7d5f59871bc
+    accepted: 4dd1d05
+    compared_with: why
+    pairing:
+      overlap:
+        create-verification-skill: 1
+        delegation: 1
+        how: 1
+        maintain-verification-skill: 2
+        recall: 2
+        reflect: 1
+        review: 4
+        teach: 1
+        unslop: 1
+        why: 48
+      placement_match:
+      - codebase-research
+      - how
+      - why
+      suggested: why
+      purpose_match: why
+      purpose: Both answer why something is the way it is from its record; upstream also queries
+        outside systems, which ours now does when the project's sources file marks them available.
+      flag: null
+      reason: 'Compared with why: the suggested skill, which delivers every row.'
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      incident-source-playbook:
+        scope: reconsider
+        change: []
+        fact: present
+        provider: why
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/why/references/outside-sources.md:92
+        - .claude/skills/why/SKILL.md:40-46
+        recommendation: adopt
+        delivery: delivered
+        target: why
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-02
+          - S-08
+          - U-01
+          override: null
+        reason: 'Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3.
+          Adopted as recommended practice: written in the `Incident records` section (.claude/skills/why/references/outside-sources.md:92),
+          followed only when the project''s sources file marks that source `have` or `alternative`,
+          so a project that marks the source `not here` applies none of it (S-02) and the rule
+          is not absolute (S-08).'
+      warehouse-evidence-inventory:
+        scope: reconsider
+        change: []
+        fact: present
+        provider: why
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/why/references/outside-sources.md:50
+        - .claude/skills/why/SKILL.md:40-46
+        recommendation: adopt
+        delivery: delivered
+        target: why
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-02
+          - S-08
+          override: null
+        reason: 'Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3.
+          Adopted as recommended practice: written in the `Analytics warehouse` section (.claude/skills/why/references/outside-sources.md:50),
+          followed only when the project''s sources file marks that source `have` or `alternative`,
+          so a project that marks the source `not here` applies none of it (S-02) and the rule
+          is not absolute (S-08).'
+      typed-models-over-raw:
+        scope: reconsider
+        change: []
+        fact: present
+        provider: why
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/why/references/outside-sources.md:54
+        - .claude/skills/why/SKILL.md:40-46
+        recommendation: adopt
+        delivery: delivered
+        target: why
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-02
+          - S-08
+          override: null
+        reason: 'Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3.
+          Adopted as recommended practice: written in the `Analytics warehouse` section (.claude/skills/why/references/outside-sources.md:54),
+          followed only when the project''s sources file marks that source `have` or `alternative`,
+          so a project that marks the source `not here` applies none of it (S-02) and the rule
+          is not absolute (S-08).'
+      probe-schema-before-query:
+        scope: reconsider
+        change: []
+        fact: present
+        provider: why
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/why/references/outside-sources.md:52
+        - .claude/skills/why/SKILL.md:40-46
+        recommendation: adopt
+        delivery: delivered
+        target: why
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-02
+          - S-08
+          - U-01
+          override: null
+        reason: 'Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3.
+          Adopted as recommended practice: written in the `Analytics warehouse` section (.claude/skills/why/references/outside-sources.md:52),
+          followed only when the project''s sources file marks that source `have` or `alternative`,
+          so a project that marks the source `not here` applies none of it (S-02) and the rule
+          is not absolute (S-08).'
+      schema-drift-check:
+        scope: reconsider
+        change: []
+        fact: present
+        provider: why
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/why/references/outside-sources.md:58
+        - .claude/skills/why/SKILL.md:40-46
+        recommendation: adopt
+        delivery: delivered
+        target: why
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-02
+          - S-08
+          override: null
+        reason: 'Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3.
+          Adopted as recommended practice: written in the `Analytics warehouse` section (.claude/skills/why/references/outside-sources.md:58),
+          followed only when the project''s sources file marks that source `have` or `alternative`,
+          so a project that marks the source `not here` applies none of it (S-02) and the rule
+          is not absolute (S-08).'
+      refresh-lag-fallback:
+        scope: reconsider
+        change: []
+        fact: present
+        provider: why
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/why/references/outside-sources.md:56
+        - .claude/skills/why/SKILL.md:40-46
+        recommendation: adopt
+        delivery: delivered
+        target: why
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-02
+          - S-08
+          override: null
+        reason: 'Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3.
+          Adopted as recommended practice: written in the `Analytics warehouse` section (.claude/skills/why/references/outside-sources.md:56),
+          followed only when the project''s sources file marks that source `have` or `alternative`,
+          so a project that marks the source `not here` applies none of it (S-02) and the rule
+          is not absolute (S-08).'
+      timeline-against-ship-date:
+        scope: reconsider
+        change: []
+        fact: present
+        provider: why
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/why/references/outside-sources.md:42
+        - .claude/skills/why/SKILL.md:43-44
+        recommendation: adopt
+        delivery: delivered
+        target: why
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-02
+          - S-08
+          override: null
+        reason: 'Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3.
+          Adopted as recommended practice: written in the `Runtime signals across sources` section
+          (.claude/skills/why/references/outside-sources.md:42), applied through Gather step
+          4 (.claude/skills/why/SKILL.md:43-44) when a warehouse, observability or error tracker
+          is `have` or `alternative`, so a project that marks the source `not here` applies
+          none of it (S-02) and the rule is not absolute (S-08).'
+      constant-origin-signal:
+        scope: reconsider
+        change: []
+        fact: present
+        provider: why
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/why/references/outside-sources.md:45
+        - .claude/skills/why/SKILL.md:43-44
+        recommendation: adopt
+        delivery: delivered
+        target: why
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-02
+          - S-08
+          override: null
+        reason: 'Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3.
+          Adopted as recommended practice: written in the `Runtime signals across sources` section
+          (.claude/skills/why/references/outside-sources.md:45), applied through Gather step
+          4 (.claude/skills/why/SKILL.md:43-44) when a warehouse, observability or error tracker
+          is `have` or `alternative`, so a project that marks the source `not here` applies
+          none of it (S-02) and the rule is not absolute (S-08).'
+      warehouse-motive-signals:
+        scope: reconsider
+        change: []
+        fact: present
+        provider: why
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/why/references/outside-sources.md:60
+        - .claude/skills/why/SKILL.md:40-46
+        recommendation: adopt
+        delivery: delivered
+        target: why
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-02
+          - S-08
+          override: null
+        reason: 'Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3.
+          Adopted as recommended practice: written in the `Analytics warehouse` section (.claude/skills/why/references/outside-sources.md:60),
+          followed only when the project''s sources file marks that source `have` or `alternative`,
+          so a project that marks the source `not here` applies none of it (S-02) and the rule
+          is not absolute (S-08).'
+      warehouse-finding-record:
+        scope: reconsider
+        change: []
+        fact: present
+        provider: why
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/why/references/outside-sources.md:62
+        - .claude/skills/why/SKILL.md:40-46
+        recommendation: adopt
+        delivery: delivered
+        target: why
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-02
+          - S-08
+          - U-06
+          override: null
+        reason: 'Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3.
+          Adopted as recommended practice: written in the `Analytics warehouse` section (.claude/skills/why/references/outside-sources.md:62),
+          followed only when the project''s sources file marks that source `have` or `alternative`,
+          so a project that marks the source `not here` applies none of it (S-02) and the rule
+          is not absolute (S-08).'
+      telemetry-evidence-inventory:
+        scope: reconsider
+        change: []
+        fact: present
+        provider: why
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/why/references/outside-sources.md:71
+        - .claude/skills/why/SKILL.md:40-46
+        recommendation: adopt
+        delivery: delivered
+        target: why
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-02
+          - S-08
+          override: null
+        reason: 'Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3.
+          Adopted as recommended practice: written in the `Observability` section (.claude/skills/why/references/outside-sources.md:71),
+          followed only when the project''s sources file marks that source `have` or `alternative`,
+          so a project that marks the source `not here` applies none of it (S-02) and the rule
+          is not absolute (S-08).'
+      owning-service-first:
+        scope: reconsider
+        change: []
+        fact: present
+        provider: why
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/why/references/outside-sources.md:69
+        - .claude/skills/why/SKILL.md:40-46
+        recommendation: adopt
+        delivery: delivered
+        target: why
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-02
+          - S-08
+          override: null
+        reason: 'Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3.
+          Adopted as recommended practice: written in the `Observability` section (.claude/skills/why/references/outside-sources.md:69),
+          followed only when the project''s sources file marks that source `have` or `alternative`,
+          so a project that marks the source `not here` applies none of it (S-02) and the rule
+          is not absolute (S-08).'
+      curated-views-before-raw:
+        scope: reconsider
+        change: []
+        fact: present
+        provider: why
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/why/references/outside-sources.md:70
+        - .claude/skills/why/SKILL.md:40-46
+        recommendation: adopt
+        delivery: delivered
+        target: why
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-02
+          - S-08
+          override: null
+        reason: 'Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3.
+          Adopted as recommended practice: written in the `Observability` section (.claude/skills/why/references/outside-sources.md:70),
+          followed only when the project''s sources file marks that source `have` or `alternative`,
+          so a project that marks the source `not here` applies none of it (S-02) and the rule
+          is not absolute (S-08).'
+      span-and-trace-inspection:
+        scope: reconsider
+        change: []
+        fact: present
+        provider: why
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/why/references/outside-sources.md:73
+        - .claude/skills/why/SKILL.md:40-46
+        recommendation: adopt
+        delivery: delivered
+        target: why
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-02
+          - S-08
+          override: null
+        reason: 'Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3.
+          Adopted as recommended practice: written in the `Observability` section (.claude/skills/why/references/outside-sources.md:73),
+          followed only when the project''s sources file marks that source `have` or `alternative`,
+          so a project that marks the source `not here` applies none of it (S-02) and the rule
+          is not absolute (S-08).'
+      narrow-log-lookups:
+        scope: reconsider
+        change: []
+        fact: present
+        provider: why
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/why/references/outside-sources.md:75
+        - .claude/skills/why/SKILL.md:40-46
+        recommendation: adopt
+        delivery: delivered
+        target: why
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-02
+          - S-08
+          override: null
+        reason: 'Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3.
+          Adopted as recommended practice: written in the `Observability` section (.claude/skills/why/references/outside-sources.md:75),
+          followed only when the project''s sources file marks that source `have` or `alternative`,
+          so a project that marks the source `not here` applies none of it (S-02) and the rule
+          is not absolute (S-08).'
+      telemetry-motive-signals:
+        scope: reconsider
+        change: []
+        fact: present
+        provider: why
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/why/references/outside-sources.md:77
+        - .claude/skills/why/SKILL.md:40-46
+        recommendation: adopt
+        delivery: delivered
+        target: why
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-02
+          - S-08
+          override: null
+        reason: 'Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3.
+          Adopted as recommended practice: written in the `Observability` section (.claude/skills/why/references/outside-sources.md:77),
+          followed only when the project''s sources file marks that source `have` or `alternative`,
+          so a project that marks the source `not here` applies none of it (S-02) and the rule
+          is not absolute (S-08).'
+      telemetry-finding-record:
+        scope: reconsider
+        change: []
+        fact: present
+        provider: why
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/why/references/outside-sources.md:79
+        - .claude/skills/why/SKILL.md:40-46
+        recommendation: adopt
+        delivery: delivered
+        target: why
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-02
+          - S-08
+          - U-06
+          override: null
+        reason: 'Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3.
+          Adopted as recommended practice: written in the `Observability` section (.claude/skills/why/references/outside-sources.md:79),
+          followed only when the project''s sources file marks that source `have` or `alternative`,
+          so a project that marks the source `not here` applies none of it (S-02) and the rule
+          is not absolute (S-08).'
+      ticket-search-procedure:
+        scope: reconsider
+        change: []
+        fact: present
+        provider: why
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/why/references/outside-sources.md:98
+        - .claude/skills/why/SKILL.md:40-46
+        recommendation: adopt
+        delivery: delivered
+        target: why
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-02
+          - S-08
+          - U-01
+          override: null
+        reason: 'Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3.
+          Adopted as recommended practice: written in the `External ticket tracker` section
+          (.claude/skills/why/references/outside-sources.md:98), followed only when the project''s
+          sources file marks that source `have` or `alternative`, so a project that marks the
+          source `not here` applies none of it (S-02) and the rule is not absolute (S-08).'
+      document-store-search-procedure:
+        scope: reconsider
+        change: []
+        fact: present
+        provider: why
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/why/references/outside-sources.md:105
+        - .claude/skills/why/SKILL.md:40-46
+        recommendation: adopt
+        delivery: delivered
+        target: why
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-02
+          - S-08
+          - U-01
+          override: null
+        reason: 'Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3.
+          Adopted as recommended practice: written in the `Document store` section (.claude/skills/why/references/outside-sources.md:105),
+          followed only when the project''s sources file marks that source `have` or `alternative`,
+          so a project that marks the source `not here` applies none of it (S-02) and the rule
+          is not absolute (S-08).'
+      error-trace-relevance:
+        scope: reconsider
+        change: []
+        fact: present
+        provider: why
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/why/references/outside-sources.md:84
+        - .claude/skills/why/SKILL.md:40-46
+        recommendation: adopt
+        delivery: delivered
+        target: why
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-02
+          - S-08
+          override: null
+        reason: 'Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3.
+          Adopted as recommended practice: written in the `Error tracker` section (.claude/skills/why/references/outside-sources.md:84),
+          followed only when the project''s sources file marks that source `have` or `alternative`,
+          so a project that marks the source `not here` applies none of it (S-02) and the rule
+          is not absolute (S-08).'
+      error-finding-record:
+        scope: reconsider
+        change: []
+        fact: present
+        provider: why
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/why/references/outside-sources.md:86
+        - .claude/skills/why/SKILL.md:40-46
+        recommendation: adopt
+        delivery: delivered
+        target: why
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-02
+          - S-08
+          - U-06
+          override: null
+        reason: 'Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3.
+          Adopted as recommended practice: written in the `Error tracker` section (.claude/skills/why/references/outside-sources.md:86),
+          followed only when the project''s sources file marks that source `have` or `alternative`,
+          so a project that marks the source `not here` applies none of it (S-02) and the rule
+          is not absolute (S-08).'
+      chat-search-procedure:
+        scope: reconsider
+        change: []
+        fact: present
+        provider: why
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/why/references/outside-sources.md:111
+        - .claude/skills/why/SKILL.md:40-46
+        recommendation: adopt
+        delivery: delivered
+        target: why
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - S-02
+          - S-08
+          - U-01
+          override: null
+        reason: 'Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3.
+          Adopted as recommended practice: written in the `Team chat` section (.claude/skills/why/references/outside-sources.md:111),
+          followed only when the project''s sources file marks that source `have` or `alternative`,
+          so a project that marks the source `not here` applies none of it (S-02) and the rule
+          is not absolute (S-08).'

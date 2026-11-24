@@ -1,16 +1,16 @@
 ---
 name: reflect
-description: "Review a session, or a sample of a delegated run's sessions, for changes to the agents' instructions, checks and tools that would have prevented its mistakes, and apply the ones the person approves. Use for /reflect; finding the cause of one failure is systematic-debugging, and reviewing a change is review."
+description: "Review a session, a sample of a delegated run's sessions, or on request the project's history of repeated mistakes, for changes to the agents' instructions, checks and tools that would have prevented them, and apply the ones the person approves. Use for /reflect; finding the cause of one failure is systematic-debugging, and reviewing a change is review."
 disable-model-invocation: true
-argument-hint: "A session id or log path, or a delegated run (default: this session)"
+argument-hint: "A session id or log path, a delegated run, or history (default: this session)"
 ---
 
 # Reflect
 
-Look back over a session for changes to the agents' environment, not the code:
-the instructions they load, the checks that guard their work, their tools and
-the information they can reach. A one-off is not a lesson; propose only what
-would change a future session.
+Look back over a session, or on request the project's history, for changes to
+the agents' environment, not the code: the instructions they load, the checks
+that guard their work, their tools and the information they can reach. A
+one-off is not a lesson; propose only what would change a future session.
 
 ## Steps
 
@@ -19,6 +19,9 @@ would change a future session.
    When reviewing delegated work, retro about one in five of the workers' sessions, sessions they dispatched in turn included.
    Choose the sessions where something went wrong first.
    Say the scope back: the sessions picked and why each was picked.
+   Only when the person asks to review across the project's history instead,
+   load `references/across-history.md`: it replaces the session parts of
+   each step for that scope.
 2. **Find the logs.** Read the primary log of every session in scope, and only
    this project's. A log that cannot be found is a gap reported in the reply,
    never a guess at its contents. Load `references/session-logs.md` when a log's

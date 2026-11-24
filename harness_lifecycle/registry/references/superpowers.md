@@ -4,21 +4,21 @@
 
 Catalog: `44c9b2d6e889982ac18c27d05a19fefe335194e1`, 16 capabilities.
 
-| Their capability | Status | Stage | Into ours | Last ruled at | Changed upstream since? |
-|---|---|---|---|---|---|
-| `hook:hooks/session-start` | reject | decided |  | 2026-10-14-migration | no |
-| `plugin:superpowers` | reject | decided |  | 2026-10-14-migration | no |
-| `skill:skills/brainstorming` | adopt | not analysed | discovery | 2026-10-14-migration | no |
-| `skill:skills/dispatching-parallel-agents` | reject | decided (whole skill) |  | 2026-10-14-owner-review | no |
-| `skill:skills/executing-plans` | reject | decided (whole skill) |  | 2026-10-14-migration | no |
-| `skill:skills/finishing-a-development-branch` | reject | decided (whole skill) |  | 2026-10-14-owner-review | no |
-| `skill:skills/receiving-code-review` | adopt | not analysed | review | 2026-10-14-migration | no |
-| `skill:skills/requesting-code-review` | adopt | not analysed | review | 2026-10-14-migration | no |
-| `skill:skills/subagent-driven-development` | adopt-merged | not analysed | doc:.claude/skills/mvp-mode/playbooks/implement.md | 2026-10-14-migration | no |
-| `skill:skills/systematic-debugging` | adopt | not analysed | systematic-debugging | 2026-10-14-migration | no |
-| `skill:skills/test-driven-development` | adopt-merged | not analysed | tdd | 2026-10-14-migration | no |
-| `skill:skills/using-git-worktrees` | adopt | not analysed | review | 2026-10-14-migration | no |
-| `skill:skills/using-superpowers` | reject | decided (whole skill) |  | 2026-10-14-migration | no |
-| `skill:skills/verification-before-completion` | adopt | not analysed | verification-before-completion | 2026-10-14-migration | no |
-| `skill:skills/writing-plans` | adopt-merged | not analysed | to-plan | 2026-10-14-migration | no |
-| `skill:skills/writing-skills` | adopt-merged | not analysed | authoring-for-agents | 2026-10-14-migration | no |
+| Their capability | Status | Stage | Into ours | Traits | Last ruled at | Changed upstream since? |
+|---|---|---|---|---|---|---|
+| `hook:hooks/session-start` | reject | decided |  |  | 2026-10-14-migration | no |
+| `plugin:superpowers` | reject | decided |  |  | 2026-10-14-migration | no |
+| `skill:skills/brainstorming` | adopt | not analysed | settle-open-questions |  | 2026-10-14-migration | no |
+| `skill:skills/dispatching-parallel-agents` | reject | decided (whole skill) |  |  | 2026-10-14-owner-review | no |
+| `skill:skills/executing-plans` | reject | decided (whole skill) |  |  | 2026-10-14-migration | no |
+| `skill:skills/finishing-a-development-branch` | adopt-merged | decided | doc:.claude/skills/mvp-mode/playbooks/autopilot-full.md, doc:AGENTS.md | 7 adopt · 7 reject | 2026-11-23-autopilot-full | no |
+| `skill:skills/receiving-code-review` | adopt | not analysed | review |  | 2026-10-14-migration | no |
+| `skill:skills/requesting-code-review` | adopt | not analysed | review |  | 2026-10-14-migration | no |
+| `skill:skills/subagent-driven-development` | adopt-merged | not analysed | doc:.claude/skills/mvp-mode/playbooks/implement.md |  | 2026-10-14-migration | no |
+| `skill:skills/systematic-debugging` | adopt | not analysed | systematic-debugging |  | 2026-10-14-migration | no |
+| `skill:skills/test-driven-development` | adopt-merged | not analysed | tdd |  | 2026-10-14-migration | no |
+| `skill:skills/using-git-worktrees` | adopt | not analysed | review |  | 2026-10-14-migration | no |
+| `skill:skills/using-superpowers` | reject | decided (whole skill) |  |  | 2026-10-14-migration | no |
+| `skill:skills/verification-before-completion` | adopt | not analysed | verification-before-completion |  | 2026-10-14-migration | no |
+| `skill:skills/writing-plans` | adopt-merged | not analysed | to-plan |  | 2026-10-14-migration | no |
+| `skill:skills/writing-skills` | adopt-merged | not analysed | authoring-for-agents |  | 2026-10-14-migration | no |

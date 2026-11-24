@@ -18,15 +18,19 @@ diagnosing or fixing a failure.
 - `why-chain`: Ask why at each step of a failure until the answer is a wrong decision in the code rather than a consequence of an earlier one.
 - `legitimate-state-test`: Before guarding where a symptom surfaced, decide whether the triggering state is legitimate: handle a legitimate state there, and trace an illegitimate one to what produced it.
 - `persisted-state-suspect`: When a failure appears only after a restart, suspect persisted state (configuration, caches, lock files, serialized state) first.
+- `workaround-comment-smell`: Treat a workaround that needs a long justifying comment as a sign the code is wrong, and fix the code instead.
 <!-- /registry:generated traits -->
 
 <!-- registry:generated lineage -->
 - **cursor_plugins:skill:pstack/skills/principle-fix-root-causes#why-chain** `pstack/skills/principle-fix-root-causes/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
 - **cursor_plugins:skill:pstack/skills/principle-fix-root-causes#legitimate-state-test** `pstack/skills/principle-fix-root-causes/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
 - **cursor_plugins:skill:pstack/skills/principle-fix-root-causes#persisted-state-suspect** `pstack/skills/principle-fix-root-causes/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/principle-fix-root-causes#workaround-comment-smell** `pstack/skills/principle-fix-root-causes/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-20` **adopt** (2026-11-20-deferred-building:020): Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3. Adopted: the principle now has a bullet saying that a workaround needing a long comm…
+- `2026-11-20` **update** (2026-11-20-deferred-building:004): Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3. One bullet: a workaround that needs a long comment to justify it is a sign the code …
 - `2026-11-10` **adopt** (2026-11-10-renames-splits:138): Completes pending 2026-11-10-renames-splits:062: persisted-state-suspect is delivered at .claude/skills/mvp-mode/principles/fix-root-causes.md:13-14, in princi…
 - `2026-11-10` **adopt** (2026-11-10-renames-splits:137): Completes pending 2026-11-10-renames-splits:061: legitimate-state-test is delivered at .claude/skills/mvp-mode/principles/fix-root-causes.md:8-12, in principle…
 - `2026-11-10` **adopt** (2026-11-10-renames-splits:136): Completes pending 2026-11-10-renames-splits:060: why-chain is delivered at .claude/skills/mvp-mode/principles/fix-root-causes.md:6-7, in principle-fix-root-cau…
@@ -47,6 +51,8 @@ diagnosing or fixing a failure.
   - `cursor_plugins:skill:pstack/skills/principle-fix-root-causes#persisted-state-suspect` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `why-chain`:
   - `cursor_plugins:skill:pstack/skills/principle-fix-root-causes#why-chain` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `workaround-comment-smell`:
+  - `cursor_plugins:skill:pstack/skills/principle-fix-root-causes#workaround-comment-smell` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 <!-- /registry:generated sources -->
 
 <!-- registry:generated declined -->

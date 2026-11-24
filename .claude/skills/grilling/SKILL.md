@@ -22,15 +22,26 @@ live participant remain pending; do not answer on that participant's behalf.
 
 Recompute the unresolved choices after each answer. Stop when the decisions
 needed for the requested outcome are settled, explicitly deferred or identified
-as blocked. Do not exhaust every imaginable branch. Summarize material agreements
-and remaining uncertainty; carry authorization forward for any next step already
-requested, without treating the interview itself as implementation authority.
+as blocked; by default do not exhaust every branch. Then offer to continue
+through every remaining branch until none is left and nothing is silently
+assumed, and do so only if the user says yes. Summarize material agreements,
+remaining uncertainty, and deferred and blocked decisions; carry authorization
+forward for any next step already requested, without treating the interview
+itself as implementation authority.
 
 If the necessary respondent is absent, prepare a questionnaire for their role and
 knowledge gap: cover every needed decision or fact with at least one single-idea
-question, most important first. Ask the present user only for missing recipient context and desired
+question, most important first, laid out as `references/questionnaire.md`
+describes. Ask the present user only for missing recipient context and desired
 outcome; do not force two exchanges when these were supplied. Drafting a
 questionnaire does not authorize sending it.
 
-Documentation is optional. When requested, use domain-modeling for settled terms
-and qualifying ADRs; a repository's existence alone does not authorize these writes.
+Save the closing summary and any drafted questionnaire to files unless the user
+asks not to: a saved file survives a lost context. Use `docs/interviews/`, or the
+folder the project's `.repo-context/` names for interview outputs, with the name
+`YYYY-MM-DD-HHMM-<slug>-<kind>.md`, where kind is `grilling` or `questionnaire`,
+and report each path. Saving is not sending.
+
+Glossary and ADR documentation is optional and separate from those files. When
+requested, use domain-modeling for settled terms and qualifying ADRs; a
+repository's existence alone does not authorize these writes.

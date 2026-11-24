@@ -1,0 +1,18 @@
+{
+  "_recorded": "M4.2 live trial, 2026-11-21, gh 2.103.0, residue at commit 79b93f9; case T12-14-inbound, MirrorInboundPulls; sanitised",
+  "__typename": "PullRequest",
+  "id": "$pull_node_id",
+  "number": "$pull_number",
+  "state": "$pull_state",
+  "merged": "$merged",
+  "mergedAt": "$merged_at",
+  "updatedAt": "$updated_at",
+  "body": "$pull_body",
+  "author": {
+    "login": "$author"
+  },
+  "_documented": "authorAssociation is not in the M4.2 recording: the mirror asks for it since adoption batch 2 (2026-11-23); GitHub documents it on PullRequest as a CommentAuthorAssociation enum value. Re-record at the next live trial.",
+  "authorAssociation": "$association",
+  "mergedBy": "$merged_by",
+  "mergeCommit": "$merge_commit"
+}

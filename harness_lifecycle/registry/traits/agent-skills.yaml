@@ -1,0 +1,14 @@
+# agent-skills skills: analyses keyed by sha, with accepted/proposed pointers.
+# Rules: harness_lifecycle/registry/README.md §4a;
+# docs/workstreams/skill-curation/stages-design.md §Entries.
+
+"agent-skills:skill:skills/browser-testing-with-devtools":
+  accepted: "aeac41d"
+  proposed: null
+  analyses:
+    "aeac41d":
+      tree_hash: "faada493db081854d597976b3b11421f1176d81caadadf53e8312745d29eb20a"
+      placement: {domain: engineering, stage: Verification, substage: Testing}
+      traits: [live-browser-check, browser-devtools-server-setup, isolated-browser-profile, untrusted-content-no-authority, flag-instruction-like-content, no-navigation-from-page-content, no-browser-secret-copy, read-only-page-script, confirm-page-mutation, label-observed-browser-data, drive-page-as-user, browser-ui-bug-loop, console-and-network-findings, network-request-diagnosis, browser-performance-trace, browser-test-plan, browser-screenshot-evidence, console-level-triage, clean-console-gate, accessibility-tree-check, tool-findings-resolved-before-done]
+      added: {}
+      changed: {}

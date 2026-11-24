@@ -26,6 +26,8 @@ precise. These definitions aid reasoning rather than replacing the domain glossa
 Ask what callers gain, what complexity disappears from them, and what knowledge
 still leaks through. If deleting a layer merely removes forwarding, question its
 value; if it spreads complexity across callers, the layer may be earning its keep.
+Keep general mechanism inside a module and special-case policy at its edge: a
+retry helper takes its attempt limit from callers rather than encoding one caller's.
 
 An interface can be justified by encapsulation, ownership or a present testing
 need even with one implementation. Additional adapters are evidence of variation,

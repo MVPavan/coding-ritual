@@ -15,6 +15,18 @@ from curation.registry.reports import supersede_closure
 
 _CITE_RE = re.compile(r"^\S+:\d+(-\d+)?$")
 
+# Sealed rows with no mapped blind line, from before the backward check
+# (harness review 2026-11-20). Listed, never inferred, and never added to: a
+# report sealed later is held to the rule in full.
+_POCOCK_TRIAGE = (
+    "harness_lifecycle/registry/reviews/2026-10-30-upstream-mattpocock_skills-5beb35b.yaml",
+    "skill:skills/engineering/triage",
+)
+UNMAPPED_SEALED_ROWS: frozenset[tuple[str, str, str]] = frozenset(
+    (*_POCOCK_TRIAGE, tid)
+    for tid in ("ground-in-codebase", "domain-vocabulary", "respect-area-adrs")
+)
+
 
 def guide_rule_ids(cfg: RegistryConfig) -> set[str]:
     """The rule IDs of GUIDE.md, from its `- **X-NN**` lines."""
@@ -45,7 +57,45 @@ def check_reports(
         errors += supersession_errors(key, report, reports, sealed, closure)
         errors += report_errors(cfg, key, report, upstream, complete=key in sealed)
     errors += ambiguity_errors(reports, sealed, closure)
+    for key in sorted(k for k in reports if k in sealed):
+        errors += backward_mapping_errors(
+            key, reports[key], exempt=UNMAPPED_SEALED_ROWS
+        )
     return errors
+
+
+def backward_mapping_errors(
+    key: str,
+    report: Report,
+    exempt: frozenset[tuple[str, str, str]] = frozenset(),
+) -> list[str]:
+    """Every `new` or `changed` row traces back to a mapped blind line: its
+    trait is in some mapping line's `to`. A trait found in critic review has no
+    other route: it is added to the blind list and mapped (registry README §4a).
+    The forward direction (every blind line mapped) is `evidence_errors`. `exempt` lists (report, skill, trait)
+    rows sealed before this rule."""
+    return [
+        error
+        for logical_id, skill in report.skills.items()
+        for error in _unmapped_row_errors(key, logical_id, skill, exempt)
+    ]
+
+
+def _unmapped_row_errors(
+    key: str,
+    logical_id: str,
+    skill: ReportSkill,
+    exempt: frozenset[tuple[str, str, str]] = frozenset(),
+) -> list[str]:
+    mapped = {tid for item in skill.analysis.mapping for tid in item.to}
+    return [
+        f"{key}: {logical_id}#{tid}: a {row.scope} row maps from no blind line "
+        "(a critic's addition goes into `analysis.blind` and is mapped)"
+        for tid, row in skill.traits.items()
+        if row.scope in {"new", "changed"}
+        and tid not in mapped
+        and (key, logical_id, tid) not in exempt
+    ]
 
 
 def supersession_errors(
@@ -132,7 +182,8 @@ def evidence_errors(
 ) -> list[str]:
     """At `seal` (1.3, 2.1): every skill states its pairing `purpose`; a skill
     with any `new` or `changed` row carries its blind list and a mapping that
-    maps every blind line, only into traits of the analysis."""
+    maps every blind line, only into traits of the analysis, and every such row
+    maps back from a blind line."""
     errors: list[str] = []
     for logical_id, skill in report.skills.items():
         where = f"{key}: {logical_id}"
@@ -150,6 +201,7 @@ def evidence_errors(
         for line in range(1, len(evidence.blind) + 1):
             if line not in mapped:
                 errors.append(f"{where}: blind line {line} is not mapped")
+        errors += _unmapped_row_errors(key, logical_id, skill)
         entry = upstream.get(f"{report.harness}:{logical_id}")
         analysis = entry.analyses.get(report.to_sha) if entry else None
         listed = set(analysis.traits) if analysis else set()

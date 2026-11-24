@@ -1,0 +1,20 @@
+{
+  "_recorded": "M4.2 live trial, 2026-11-21, gh 2.103.0, residue at commit 79b93f9; the query text each operation was sent with, whitespace as sent; GitHub answered each without an error",
+  "MirrorIssues": "query MirrorIssues($id: ID!, $creator: String!, $first: Int!, $after: String) { node(id: $id) { ... on Repository { issues(first: $first, after: $after, filterBy: {createdBy: $creator}, states: [OPEN, CLOSED], orderBy: {field: CREATED_AT, direction: ASC}) { nodes { __typename id number url state author { login } body } pageInfo { hasNextPage endCursor } } } } }",
+  "MirrorLabel": "query MirrorLabel($id: ID!, $name: String!) { node(id: $id) { ... on Repository { label(name: $name) { id name } } } }",
+  "createLabel": "mutation($input: CreateLabelInput!) { createLabel(input: $input) { label { id name } } }",
+  "createIssue": "mutation($input: CreateIssueInput!) { createIssue(input: $input) { issue { __typename id number url state author { login } body title } } }",
+  "MirrorUpdated": "query MirrorUpdated($id: ID!, $creator: String!, $since: DateTime!, $first: Int!, $after: String) { node(id: $id) { ... on Repository { issues(first: $first, after: $after, filterBy: {createdBy: $creator, since: $since}, states: [OPEN, CLOSED]) { nodes { id number } pageInfo { hasNextPage endCursor } } } } }",
+  "MirrorIssueNode": "query MirrorIssueNode($id: ID!) { node(id: $id) { ... on Issue { __typename id number url state title body updatedAt author { login } repository { id } labels(first: 100) { nodes { id name } } } } }",
+  "updateIssue": "mutation($input: UpdateIssueInput!) { updateIssue(input: $input) { issue { id } } }",
+  "addLabelsToLabelable": "mutation($input: AddLabelsToLabelableInput!) { addLabelsToLabelable(input: $input) { clientMutationId } }",
+  "removeLabelsFromLabelable": "mutation($input: RemoveLabelsFromLabelableInput!) { removeLabelsFromLabelable(input: $input) { clientMutationId } }",
+  "closeIssue": "mutation($input: CloseIssueInput!) { closeIssue(input: $input) { issue { id } } }",
+  "MirrorComments": "query MirrorComments($id: ID!, $first: Int!, $after: String) { node(id: $id) { ... on Issue { comments(first: $first, after: $after) { nodes { author { login } body } pageInfo { hasNextPage endCursor } } } } }",
+  "addComment": "mutation($input: AddCommentInput!) { addComment(input: $input) { clientMutationId } }",
+  "MirrorHighWater": "query MirrorHighWater($id: ID!) { node(id: $id) { ... on Repository { issues(last: 1) { nodes { number } } pullRequests(last: 1) { nodes { number } } } } }",
+  "MirrorInboundIssues": "query MirrorInboundIssues($id: ID!, $since: DateTime!, $first: Int!, $after: String) { node(id: $id) { ... on Repository { issues(first: $first, after: $after, filterBy: {since: $since}, states: [OPEN, CLOSED], orderBy: {field: CREATED_AT, direction: ASC}) { nodes { __typename id number state closedAt updatedAt author { login } } pageInfo { hasNextPage endCursor } } } } }",
+  "MirrorInboundPulls": "query MirrorInboundPulls($id: ID!, $first: Int!, $after: String) { node(id: $id) { ... on Repository { pullRequests(first: $first, after: $after, states: [OPEN, CLOSED, MERGED], orderBy: {field: UPDATED_AT, direction: DESC}) { nodes { __typename id number state merged mergedAt updatedAt body author { login } authorAssociation mergedBy { login } mergeCommit { oid } } pageInfo { hasNextPage endCursor } } } } }",
+  "MirrorClosedBy": "query MirrorClosedBy($id: ID!) { node(id: $id) { ... on Issue { timelineItems(itemTypes: [CLOSED_EVENT], last: 1) { nodes { ... on ClosedEvent { createdAt closer { __typename ... on PullRequest { number url merged mergedBy { login } mergeCommit { oid } } ... on Commit { oid } } } } } } } }",
+  "MirrorIssue": "query MirrorIssue($id: ID!, $number: Int!) { node(id: $id) { ... on Repository { issueOrPullRequest(number: $number) { ... on Issue { __typename id number url state author { login } body } ... on PullRequest { __typename id number url } } } } }"
+}

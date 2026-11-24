@@ -1,0 +1,85 @@
+harness: mattpocock_skills
+from_sha: null
+to_sha: 4ae2317
+supersedes: null
+analysis_critic:
+  by: codex gpt-6.2-sol high (critic-103)
+  date: '2026-11-20'
+  verdict: pass
+  last_critic: null
+comparison_critic:
+  by: coordinator (cc:940ec94d)
+  date: '2026-11-20'
+  verdict: accepted
+  last_critic:
+    by: codex gpt-6.2-sol high (critic-103)
+    date: '2026-11-20'
+    verdict: fail
+themes: 'One code-review row reopened by the owner at the Verification stage. Owner ruling
+  2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3: self-contained-subagent-brief
+  is adopted into delegation with one sentence in its brief step: copy into the brief any
+  reference material the worker needs but cannot otherwise reach, and point to the rest. Compared
+  with delegation because a delivered adopt needs the trait present in the compared skill;
+  the other reopened code-review rows are in the companion report compared with review.'
+skills:
+  skill:skills/engineering/code-review:
+    upstream_tree_hash: ce86b40a3d1648a0018b712f0c70704e6c2316b2a9b9e915ab116916a31273dc
+    accepted: 4ae2317
+    compared_with: delegation
+    pairing:
+      overlap:
+        create-formal-verification-skill: 1
+        delegation: 2
+        doc:.claude/skills/mvp-mode/playbooks/implement.md: 1
+        interrogate: 1
+        no-comments: 2
+        review: 11
+      placement_match:
+      - security
+      suggested: review
+      purpose_match: review
+      purpose: Upstream reviews the diff since a fixed point along a standards axis and a
+        spec axis in two parallel subagents. Our review skill owns the review; delegation
+        owns how a worker is briefed, where this row lands.
+      flag: suggested differs
+      reason: 'Compared with delegation: the only row in this report is about what a subagent''s
+        brief must carry, which the delegation skill''s Dispatch steps own. The computed pick,
+        review, holds the review rows (companion report).'
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      self-contained-subagent-brief:
+        scope: reconsider
+        change: []
+        fact: present
+        provider: delegation
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/delegation/SKILL.md:43-46
+        - .claude/skills/delegation/SKILL.md:55-57
+        - .claude/skills/delegation/SKILL.md:8-9
+        - AGENTS.md:103
+        recommendation: adopt
+        delivery: delivered
+        target: delegation
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-01
+          override: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3.
+          Adopted: delegation''s brief step now says to copy into the brief any reference
+          material the worker needs but cannot otherwise reach, and to point to the rest (.claude/skills/delegation/SKILL.md:43-46).
+          It sits beside the dispatch step that starts each new worker in a fresh context
+          window, so the brief carries everything the worker needs (.claude/skills/delegation/SKILL.md:55-57).
+          Every handoff goes through this skill (.claude/skills/delegation/SKILL.md:8-9),
+          which AGENTS.md routes for handing work to another agent (AGENTS.md:103). The old
+          reject reason tied the rule to the smell catalogue; the owner adopted the general
+          rule (U-01).'

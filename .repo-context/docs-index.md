@@ -8,11 +8,14 @@ Archived research is evidence, not operating policy.
 | Need | Source |
 |---|---|
 | Orientation | `.repo-context/repo-map.md` |
-| Domain terminology | `.repo-context/CONTEXT.md` |
+| Domain terminology | `.repo-context/GLOSSARY.md` |
 | Python conventions; ledger format | `.repo-context/coding-style.md` |
 | Checks and prerequisites | `.repo-context/verification.md` |
+| Checks an unattended run makes before every commit | `.repo-context/commit-gate.toml` |
 | Architecture/contracts | `.repo-context/invariants.md`, `docs/adr/README.md` |
 | Investigation | Search `.repo-context/learnings.md`; open matching evidence |
+| Answering why with the `why` skill, or adding an outside system | `.repo-context/evidence-sources.md` |
+| Grilling summaries and questionnaires, saved or looked up | `docs/interviews/` (`README.md`) |
 | Beads the tool: policy, setup, closeout, `bd` behavior and flags, upgrades | `beads` skill, `.claude/skills/beads/SKILL.md` (its table routes to the reference) |
 | Workstreams, phase epics, plan records, tracking files | `tracker` skill, `.claude/skills/tracker/SKILL.md` |
 
@@ -33,6 +36,7 @@ Archived research is evidence, not operating policy.
 | Reference adoption/updates | `harness_learnings/reference-harness-workflow.md` |
 | Reference comparisons | `harness_learnings/harness-patterns-by-capability.md`, `harness_learnings/reference-harness-repos.md` |
 | Publication and installation | `docs/usage/mvp-plugin.md`; initialized plugin's README |
+| Beads → GitHub mirror: activation, daily use, recovery | `docs/usage/bead-mirror.md` (draft until the live trial); `docs/workstreams/beads-github-mirror/roadmap.md` |
 | Workflow coordination spec | `docs/specs/2026-09-11-workflow-coordination.md` |
 | Contractor implementation status and gates | `docs/workstreams/agent-bridge/state.md`, `docs/workstreams/agent-bridge/roadmap.md` |
 | Run ledger design and slices | `docs/workstreams/run-ledger/roadmap.md` |
@@ -40,7 +44,7 @@ Archived research is evidence, not operating policy.
 | Ledger-only record store and tracker port decision | `docs/adr/0006-ledger-only-record-store.md` |
 | Orchestration reference research | `docs/research/codebases/cli-agent-orchestrator/luna-exploration.md`, `docs/research/codebases/metaswarm/luna-exploration.md` |
 | Herdr and Orca comparison | `docs/research/codebases/comparison-herdr-orca.md` |
-| Past decisions | `docs/discovery/INDEX.md` |
+| Past decisions | `docs/decisions/INDEX.md` |
 | Outside answers | `docs/research/<area>/<topic>/` |
 | Model catalog design | `docs/workstreams/model-catalog/design.md` |
 

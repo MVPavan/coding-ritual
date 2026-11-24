@@ -4,15 +4,15 @@
 
 Catalog: `3c2629142c5d437428269b1b722b08c0b87f574d`, 10 capabilities.
 
-| Their capability | Status | Stage | Into ours | Last ruled at | Changed upstream since? |
-|---|---|---|---|---|---|
-| `plugin:plugins/build-iterated-agentic-loop/build-iterated-agentic-loop` | reject | decided |  | 2026-10-14-migration | no |
-| `plugin:plugins/design-control-loop/design-control-loop` | defer | decided |  | 2026-10-14-migration | no |
-| `plugin:plugins/improve-claude-md/improve-claude-md` | defer | decided |  | 2026-10-14-migration | no |
-| `plugin:plugins/narrow-react-prop-types/narrow-react-prop-types` | reject | decided |  | 2026-10-14-migration | no |
-| `plugin:plugins/show-me/show-me` | defer | decided |  | 2026-10-14-migration | no |
-| `skill:plugins/build-iterated-agentic-loop/skills/build-iterated-agentic-loop` | reject | decided (whole skill) |  | 2026-10-14-migration | no |
-| `skill:plugins/design-control-loop/skills/design-control-loop` | defer | decided (whole skill) |  | 2026-10-14-migration | no |
-| `skill:plugins/improve-claude-md/skills/improve-claude-md` | defer | decided (whole skill) |  | 2026-10-14-migration | no |
-| `skill:plugins/narrow-react-prop-types/skills/narrow-react-prop-types` | reject | decided (whole skill) |  | 2026-10-14-migration | no |
-| `skill:plugins/show-me/skills/show-me` | adopt-merged | not analysed | show-me | 2026-10-14-migration | no |
+| Their capability | Status | Stage | Into ours | Traits | Last ruled at | Changed upstream since? |
+|---|---|---|---|---|---|---|
+| `plugin:plugins/build-iterated-agentic-loop/build-iterated-agentic-loop` | reject | decided |  |  | 2026-10-14-migration | no |
+| `plugin:plugins/design-control-loop/design-control-loop` | adopt-merged | decided | control-loop |  | 2026-11-24-control-loop | no |
+| `plugin:plugins/improve-claude-md/improve-claude-md` | defer | decided |  |  | 2026-10-14-migration | no |
+| `plugin:plugins/narrow-react-prop-types/narrow-react-prop-types` | reject | decided |  |  | 2026-10-14-migration | no |
+| `plugin:plugins/show-me/show-me` | defer | decided |  |  | 2026-10-14-migration | no |
+| `skill:plugins/build-iterated-agentic-loop/skills/build-iterated-agentic-loop` | reject | decided (whole skill) |  |  | 2026-10-14-migration | no |
+| `skill:plugins/design-control-loop/skills/design-control-loop` | adopt-merged | decided | control-loop#control-loop-vocabulary, control-loop#repo-survey-before-interview, control-loop#component-design-interview, control-loop#set-point-and-scope, control-loop#sensor-tradeoff-choice, control-loop#reviewable-increment-controller, control-loop#tune-controller-from-output, control-loop#fused-loop-parts, control-loop#allowlisted-headless-actuator, control-loop#golden-patterns-first, control-loop#agreed-validation-commands, control-loop#loop-dampener-offer, control-loop#written-design-before-build, control-loop#loop-actuator-instructions, control-loop#one-home-per-loop-rule, control-loop#pr-body-response-template, control-loop#fix-or-skip-outcome, control-loop#local-first-components, control-loop#local-timer-on-request, control-loop#cadence-by-risk, control-loop#assembled-actuator-prompt, control-loop#no-questions-unattended, control-loop#steering-file-after-controller, control-loop#one-open-pr-bound, control-loop#loop-config-validation, control-loop#one-real-dry-run, control-loop#scale-up-once-tuned, control-loop#agent-spend-guard, control-loop#final-message-extraction, control-loop#no-change-no-pr, control-loop#loop-scope-gate, control-loop#overlapping-run-skips, control-loop#completion-criteria-clarity, control-loop#agent-output-kept | 34 adopt · 7 reject | 2026-11-24-control-loop | no |
+| `skill:plugins/improve-claude-md/skills/improve-claude-md` | defer | decided (whole skill) |  |  | 2026-10-14-migration | no |
+| `skill:plugins/narrow-react-prop-types/skills/narrow-react-prop-types` | defer | decided (whole skill) |  |  | 2026-11-22-rejects-review | no |
+| `skill:plugins/show-me/skills/show-me` | adopt-merged | not analysed | show-me |  | 2026-10-14-migration | no |

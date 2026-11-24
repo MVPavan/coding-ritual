@@ -17,8 +17,16 @@ The installer/template descriptions below are the earlier distribution contract,
 not proof of compatibility with this layout. The `mvp-harness` submodule was
 uninitialized during this migration, so its installer was not updated or tested.
 Before publishing these changes, adapt the plugin-owned template, install/update
-and doctor paths to `.repo-context/`, including `.repo-context/CONTEXT.md`, and
+and doctor paths to `.repo-context/`, including `.repo-context/GLOSSARY.md`, and
 test both a fresh adoption and preservation of an existing customized overlay.
+Release note (glossary rename, 2026-11-20): skills no longer read `CONTEXT.md`
+or `CONTEXT-MAP.md`. Rename once with `git mv`, in place:
+`.repo-context/CONTEXT.md` to `.repo-context/GLOSSARY.md`; a root `CONTEXT.md`
+to `GLOSSARY.md`; with several contexts, the root `CONTEXT-MAP.md` to
+`GLOSSARY-MAP.md` and each per-context `CONTEXT.md` to `GLOSSARY.md`, then
+update the map's links and any instruction (such as `AGENTS.md`) that names the
+old files. The plugin template under `mvp-harness/` is updated at the
+end-of-project sync.
 
 ## 1. What it is
 
@@ -110,7 +118,7 @@ Root-only skill (`.claude/skills/harness-publish/`) wrapping
 `mvp-harness/plugins/mvp-plugin/scripts/publish-plugin.sh`:
 
 ```bash
-python3 .claude/scripts/skill-catalog.py --check                                  # root gates green
+uv run python .claude/scripts/skill-catalog.py --check                                  # root gates green
 bash mvp-harness/plugins/mvp-plugin/scripts/publish-plugin.sh --check              # dry run
 bash mvp-harness/plugins/mvp-plugin/scripts/publish-plugin.sh --bump patch --smoke # publish
 git -C mvp-harness add … && git -C mvp-harness commit …                            # plugin repo commit (its own branch)

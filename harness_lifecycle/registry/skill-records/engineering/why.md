@@ -40,6 +40,36 @@ Use to answer why something in this project is the way it is (code, a document, 
 - `sources-consulted-line`: List each source searched, empty or skipped, with the reason.
 - `constraints-before-change`: When a change follows, turn the findings into preserve, change, avoid and risk lists.
 - `pr-discussion-pull`: For each substantive commit, read the pull request body, linked issues, comments and reviews.
+- `incident-source-playbook`: When the target looks defensive, add a search of incident records, incident-labelled tickets and incident channels around the date it was added.
+- `warehouse-evidence-inventory`: Look for warehouse evidence in product events, usage and billing events, experiment data, system tables and pipeline lineage.
+- `typed-models-over-raw`: Query a warehouse's deduplicated typed models, dropping to raw events only where no model serves.
+- `probe-schema-before-query`: Confirm table and column names with listing and describe statements before querying a warehouse, and never report from an unverified table.
+- `schema-drift-check`: Check that a field existed when the target was written, since older data may lack it or hold it only in raw form.
+- `refresh-lag-fallback`: For events newer than a model's last refresh, query the raw table and deduplicate by id.
+- `timeline-against-ship-date`: Compare when a runtime or usage signal rose, fell, first appeared or stopped, and the releases it touched, with the date the target shipped.
+- `constant-origin-signal`: Treat a recorded distribution or monitor threshold that matches a constant in the code as evidence of where the number came from.
+- `warehouse-motive-signals`: Read an experiment's exposure counts and decision rows, and the expensive queries behind a migration, as warehouse evidence of motive.
+- `warehouse-finding-record`: Record each warehouse finding with its type, table, exact query, window, a compact numeric summary with no raw rows, its ship-date correlation and its strength.
+- `telemetry-evidence-inventory`: Look for telemetry evidence in metrics, monitors, dashboards, traces, logs, incidents and notebooks, where a metric's or monitor's existence itself shows concern.
+- `owning-service-first`: Find the services that own the target, and their dependencies, before searching telemetry.
+- `curated-views-before-raw`: Read the dashboards and monitors covering the target, noting their queries and thresholds, before raw telemetry.
+- `span-and-trace-inspection`: Use span statistics and specific traces for questions about timeouts, retries, slow paths and cross-service behaviour.
+- `narrow-log-lookups`: Narrow log searches by service, tag, text and a window around the change, aggregating in place of dumping raw logs.
+- `telemetry-motive-signals`: Read a dashboard by the target's author, an incident naming the code and a pre-change log pattern the guard would prevent as telemetry evidence of motive.
+- `telemetry-finding-record`: Record each telemetry item with its type, name, identifier, owner, dates, the condition or query that bears on the question and the strength of the connection.
+- `ticket-search-procedure`: Search an external ticket tracker's issues, comments, status updates, project documents, labels and milestones for business motive.
+- `document-store-search-procedure`: Search a document store's requirement docs, specs, decision records, meeting notes, postmortems and runbooks with broad keywords for unlinked pages, following backlinks, child pages, meeting-note databases and authors' personal spaces.
+- `error-trace-relevance`: Open a full error event to see whether its trace crosses the target and its tags and breadcrumbs match the guarded condition.
+- `error-finding-record`: Record each error issue with its id, title, project, seen timestamps, event count with sampling, releases, a verbatim trace excerpt, ship-date correlation, link and author notes.
+- `chat-search-procedure`: Search team chat for deliberation by the author's messages around the merge date and by the pull request's link.
+- `exact-quote-evidence`: Prefer a precise quotation with a location checkable in seconds to a paragraph of paraphrase.
+- `counterfactual-strength-test`: Before rating a finding strong, ask whether it would still appear under a false interpretation and what would look different.
+- `correlation-needs-neighbor-check`: Treat a before-and-after shift as suggestive only until other changes landing in the same window are inspected.
+- `interest-is-not-cause`: Treat a metric, a logged event or a chart as showing interest only, pairing it with a commit or pull request citation before claiming cause.
+- `generated-analysis-is-inference`: Use a tool's generated root-cause analysis as inference only, with the actual events and traces as the primary evidence.
+- `document-motive-signals`: Read a matching problem section, rejected approaches, a postmortem naming the fix, dated decision notes and a filled decision record as evidence of motive.
+- `document-external-metadata`: Record a document's URL and its final or draft status with its finding.
+- `casual-remark-not-a-decision`: Do not count a flippant remark before a commit as a decision, and look for considered discussion.
 <!-- /registry:generated traits -->
 
 <!-- registry:generated lineage -->
@@ -74,9 +104,79 @@ Use to answer why something in this project is the way it is (code, a document, 
 - **cursor_plugins:skill:pstack/skills/why#sources-consulted-line** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
 - **cursor_plugins:skill:pstack/skills/why#constraints-before-change** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
 - **cursor_plugins:skill:pstack/skills/why#pr-discussion-pull** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/why#incident-source-playbook** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/why#warehouse-evidence-inventory** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/why#typed-models-over-raw** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/why#probe-schema-before-query** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/why#schema-drift-check** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/why#refresh-lag-fallback** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/why#timeline-against-ship-date** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/why#constant-origin-signal** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/why#warehouse-motive-signals** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/why#warehouse-finding-record** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/why#telemetry-evidence-inventory** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/why#owning-service-first** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/why#curated-views-before-raw** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/why#span-and-trace-inspection** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/why#narrow-log-lookups** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/why#telemetry-motive-signals** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/why#telemetry-finding-record** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/why#ticket-search-procedure** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/why#document-store-search-procedure** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/why#error-trace-relevance** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/why#error-finding-record** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/why#chat-search-procedure** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/why#exact-quote-evidence** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/why#counterfactual-strength-test** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/why#correlation-needs-neighbor-check** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/why#interest-is-not-cause** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/why#generated-analysis-is-inference** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/why#document-motive-signals** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/why#document-external-metadata** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/why#casual-remark-not-a-decision** `pstack/skills/why/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-23` **adopt** (2026-11-23-adoptions-batch-1:031): Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3; delivered by cr-r2pa.3.11. The Team chat section now says a flippant remark bef…
+- `2026-11-23` **adopt** (2026-11-23-adoptions-batch-1:030): Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3; delivered by cr-r2pa.3.11. The Document store section now records each document…
+- `2026-11-23` **adopt** (2026-11-23-adoptions-batch-1:029): Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3; delivered by cr-r2pa.3.11. The Document store section now says motive lives in …
+- `2026-11-23` **adopt** (2026-11-23-adoptions-batch-1:028): Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3; delivered by cr-r2pa.3.11. The Error tracker section now says a root-cause anal…
+- `2026-11-23` **adopt** (2026-11-23-adoptions-batch-1:027): Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3; delivered by cr-r2pa.3.11. In Runtime signals across sources, a metric, a logge…
+- `2026-11-23` **adopt** (2026-11-23-adoptions-batch-1:026): Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3; delivered by cr-r2pa.3.11. In Runtime signals across sources, a shift in step w…
+- `2026-11-23` **adopt** (2026-11-23-adoptions-batch-1:025): Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3; delivered by cr-r2pa.3.11. Before a claim is rated Direct or Supported, why ask…
+- `2026-11-23` **adopt** (2026-11-23-adoptions-batch-1:024): Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3; delivered by cr-r2pa.3.11. why's Judge section now has the words a claim rests …
+- `2026-11-23` **update** (2026-11-23-adoptions-batch-1:002): Delivers cr-r2pa.3.11 (owner ruling 2026-11-22, rejections re-review, bead cr-r2pa.3.3). why's Judge section quotes the words a claim rests on exactly with a c…
+- `2026-11-22` **adopt** (2026-11-22-rejects-review:030) *(superseded)*: Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3. Adopted, pending cr-r2pa.3.11: a finding from a document store records the docu…
+- `2026-11-22` **adopt** (2026-11-22-rejects-review:029) *(superseded)*: Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3. Adopted, pending cr-r2pa.3.11: a matching problem section, rejected approaches,…
+- `2026-11-22` **adopt** (2026-11-22-rejects-review:027) *(superseded)*: Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3. Adopted, pending cr-r2pa.3.11: before a finding is rated strong, ask whether it…
+- `2026-11-22` **adopt** (2026-11-22-rejects-review:026) *(superseded)*: Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3. Adopted, pending cr-r2pa.3.11: a tool's generated root-cause analysis is infere…
+- `2026-11-22` **adopt** (2026-11-22-rejects-review:025) *(superseded)*: Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3. Adopted, pending cr-r2pa.3.11: a flippant remark before a commit does not count…
+- `2026-11-22` **adopt** (2026-11-22-rejects-review:024) *(superseded)*: Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3. Adopted, pending cr-r2pa.3.11: a metric, logged event or chart shows interest o…
+- `2026-11-22` **adopt** (2026-11-22-rejects-review:023) *(superseded)*: Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3. Adopted, pending cr-r2pa.3.11: a before-and-after shift is suggestive only unti…
+- `2026-11-22` **adopt** (2026-11-22-rejects-review:022) *(superseded)*: Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3. Adopted, pending cr-r2pa.3.11: a precise quotation with a location checkable in…
+- `2026-11-17` **adopt** (2026-11-17-deferred-discovery:023): Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3. The plugin ships `why` to other projects, so it recommends this source by default an…
+- `2026-11-17` **adopt** (2026-11-17-deferred-discovery:022): Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3. The plugin ships `why` to other projects, so it recommends this source by default an…
+- `2026-11-17` **adopt** (2026-11-17-deferred-discovery:021): Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3. The plugin ships `why` to other projects, so it recommends this source by default an…
+- `2026-11-17` **adopt** (2026-11-17-deferred-discovery:020): Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3. The plugin ships `why` to other projects, so it recommends this source by default an…
+- `2026-11-17` **adopt** (2026-11-17-deferred-discovery:019): Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3. The plugin ships `why` to other projects, so it recommends this source by default an…
+- `2026-11-17` **adopt** (2026-11-17-deferred-discovery:018): Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3. The plugin ships `why` to other projects, so it recommends this source by default an…
+- `2026-11-17` **adopt** (2026-11-17-deferred-discovery:017): Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3. The plugin ships `why` to other projects, so it recommends this source by default an…
+- `2026-11-17` **adopt** (2026-11-17-deferred-discovery:016): Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3. The plugin ships `why` to other projects, so it recommends this source by default an…
+- `2026-11-17` **adopt** (2026-11-17-deferred-discovery:015): Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3. The plugin ships `why` to other projects, so it recommends this source by default an…
+- `2026-11-17` **adopt** (2026-11-17-deferred-discovery:014): Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3. The plugin ships `why` to other projects, so it recommends this source by default an…
+- `2026-11-17` **adopt** (2026-11-17-deferred-discovery:013): Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3. The plugin ships `why` to other projects, so it recommends this source by default an…
+- `2026-11-17` **adopt** (2026-11-17-deferred-discovery:012): Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3. The plugin ships `why` to other projects, so it recommends this source by default an…
+- `2026-11-17` **adopt** (2026-11-17-deferred-discovery:011): Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3. The plugin ships `why` to other projects, so it recommends this source by default an…
+- `2026-11-17` **adopt** (2026-11-17-deferred-discovery:010): Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3. The plugin ships `why` to other projects, so it recommends this source by default an…
+- `2026-11-17` **adopt** (2026-11-17-deferred-discovery:009): Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3. The plugin ships `why` to other projects, so it recommends this source by default an…
+- `2026-11-17` **adopt** (2026-11-17-deferred-discovery:008): Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3. The plugin ships `why` to other projects, so it recommends this source by default an…
+- `2026-11-17` **adopt** (2026-11-17-deferred-discovery:007): Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3. The plugin ships `why` to other projects, so it recommends this source by default an…
+- `2026-11-17` **adopt** (2026-11-17-deferred-discovery:006): Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3. The plugin ships `why` to other projects, so it recommends this source by default an…
+- `2026-11-17` **adopt** (2026-11-17-deferred-discovery:005): Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3. The plugin ships `why` to other projects, so it recommends this source by default an…
+- `2026-11-17` **adopt** (2026-11-17-deferred-discovery:004): Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3. The plugin ships `why` to other projects, so it recommends this source by default an…
+- `2026-11-17` **adopt** (2026-11-17-deferred-discovery:003): Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3. The plugin ships `why` to other projects, so it recommends this source by default an…
+- `2026-11-17` **adopt** (2026-11-17-deferred-discovery:002): Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3. The plugin ships `why` to other projects, so it recommends this source by default an…
+- `2026-11-17` **update** (2026-11-17-deferred-discovery:001): Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3. Gather step 4 now reads the project sources file .repo-context/evidence-sources.md: …
 - `2026-11-12` **update** (2026-11-12-batch-p1-recall:002): Bead cr-r2pa.2.18, plan 61 D4: past agent sessions are recall's (/recall, started by the person) now that it exists; why still lists them in its sources line a…
 - `2026-11-10` **update** (2026-11-10-renames-splits:131): Coordinator fix for critic-21b F1 (scratchpad/mvp-stack/critic-21b.md): a question about what was decided in this project has a present route (why) while recal…
 - `2026-11-10` **adopt** (2026-11-10-renames-splits:120): Completes pending 2026-11-10-renames-splits:032: pr-discussion-pull is written at .claude/skills/why/SKILL.md:38-39, .claude/skills/why/references/pull-request…
@@ -160,6 +260,10 @@ Use to answer why something in this project is the way it is (code, a document, 
   - `cursor_plugins:skill:pstack/skills/why#adjacent-citation-gate` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `angles-when-wide`:
   - `cursor_plugins:skill:pstack/skills/how#size-gated-explorers` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe; withdrawn 2026-11-10)
+- `casual-remark-not-a-decision`:
+  - `cursor_plugins:skill:pstack/skills/why#casual-remark-not-a-decision` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `chat-search-procedure`:
+  - `cursor_plugins:skill:pstack/skills/why#chat-search-procedure` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `cited-flow-walkthrough`:
   - `cursor_plugins:skill:pstack/skills/how#cited-flow-walkthrough` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe; withdrawn 2026-11-10)
 - `code-anchor-first`:
@@ -172,47 +276,103 @@ Use to answer why something in this project is the way it is (code, a document, 
   - `cursor_plugins:skill:pstack/skills/why#confidence-tiers` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `consistency-is-not-intent`:
   - `cursor_plugins:skill:pstack/skills/why#consistency-is-not-intent` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `constant-origin-signal`:
+  - `cursor_plugins:skill:pstack/skills/why#constant-origin-signal` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `constraints-before-change`:
   - `cursor_plugins:skill:pstack/skills/why#constraints-before-change` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `contradiction-shown`:
   - `cursor_plugins:skill:pstack/skills/why#contradiction-shown` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `correlation-needs-neighbor-check`:
+  - `cursor_plugins:skill:pstack/skills/why#correlation-needs-neighbor-check` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `counterfactual-strength-test`:
+  - `cursor_plugins:skill:pstack/skills/why#counterfactual-strength-test` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `curated-views-before-raw`:
+  - `cursor_plugins:skill:pstack/skills/why#curated-views-before-raw` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `document-external-metadata`:
+  - `cursor_plugins:skill:pstack/skills/why#document-external-metadata` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `document-motive-signals`:
+  - `cursor_plugins:skill:pstack/skills/why#document-motive-signals` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `document-store-search-procedure`:
+  - `cursor_plugins:skill:pstack/skills/why#document-store-search-procedure` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `embedded-hypothesis-check`:
   - `cursor_plugins:skill:pstack/skills/why#embedded-hypothesis-check` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `error-finding-record`:
+  - `cursor_plugins:skill:pstack/skills/why#error-finding-record` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `error-trace-relevance`:
+  - `cursor_plugins:skill:pstack/skills/why#error-trace-relevance` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `exact-quote-evidence`:
+  - `cursor_plugins:skill:pstack/skills/why#exact-quote-evidence` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `explanation-sections`:
   - `cursor_plugins:skill:pstack/skills/how#explanation-sections` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe; withdrawn 2026-11-10)
 - `full-record-reading`:
   - `cursor_plugins:skill:pstack/skills/why#read-whole-item` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `gather-without-concluding`:
   - `cursor_plugins:skill:pstack/skills/why#gather-without-concluding` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `generated-analysis-is-inference`:
+  - `cursor_plugins:skill:pstack/skills/why#generated-analysis-is-inference` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `immaterial-ambiguity-reading`:
   - `cursor_plugins:skill:pstack/skills/how#stated-scope-reading` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
   - `cursor_plugins:skill:pstack/skills/why#stated-scope-reading` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `incident-source-playbook`:
+  - `cursor_plugins:skill:pstack/skills/why#incident-source-playbook` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `interest-is-not-cause`:
+  - `cursor_plugins:skill:pstack/skills/why#interest-is-not-cause` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `local-evidence-sources`:
   - `cursor_plugins:skill:pstack/skills/why#evidence-category-fanout` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
   - `cursor_plugins:skill:pstack/skills/why#incident-commit-signals` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
   - `cursor_plugins:skill:pstack/skills/why#repo-evidence-inventory` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `named-record-first`:
   - `cursor_plugins:skill:pstack/skills/why#named-record-first` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `narrow-log-lookups`:
+  - `cursor_plugins:skill:pstack/skills/why#narrow-log-lookups` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `no-retrofitted-rationale`:
   - `cursor_plugins:skill:pstack/skills/why#no-retrofitted-rationale` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `owning-service-first`:
+  - `cursor_plugins:skill:pstack/skills/why#owning-service-first` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `pickaxe-history-search`:
   - `cursor_plugins:skill:pstack/skills/why#pickaxe-history-search` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `pr-discussion-pull`:
   - `cursor_plugins:skill:pstack/skills/why#pr-discussion-pull` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `probe-schema-before-query`:
+  - `cursor_plugins:skill:pstack/skills/why#probe-schema-before-query` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `recency-bias-check`:
   - `cursor_plugins:skill:pstack/skills/why#recency-bias-check` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `reconcile-by-reading`:
   - `cursor_plugins:skill:pstack/skills/how#reconcile-by-reading` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe; withdrawn 2026-11-10)
 - `record-lineage-walk`:
   - `cursor_plugins:skill:pstack/skills/why#record-lineage-walk` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `refresh-lag-fallback`:
+  - `cursor_plugins:skill:pstack/skills/why#refresh-lag-fallback` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `schema-drift-check`:
+  - `cursor_plugins:skill:pstack/skills/why#schema-drift-check` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `searched-and-unknown`:
   - `cursor_plugins:skill:pstack/skills/why#searched-and-unknown` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `sources-consulted-line`:
   - `cursor_plugins:skill:pstack/skills/why#sources-consulted-line` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `span-and-trace-inspection`:
+  - `cursor_plugins:skill:pstack/skills/why#span-and-trace-inspection` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `target-derived-search-terms`:
   - `cursor_plugins:skill:pstack/skills/why#target-derived-search-terms` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `telemetry-evidence-inventory`:
+  - `cursor_plugins:skill:pstack/skills/why#telemetry-evidence-inventory` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `telemetry-finding-record`:
+  - `cursor_plugins:skill:pstack/skills/why#telemetry-finding-record` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `telemetry-motive-signals`:
+  - `cursor_plugins:skill:pstack/skills/why#telemetry-motive-signals` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `ticket-search-procedure`:
+  - `cursor_plugins:skill:pstack/skills/why#ticket-search-procedure` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `timeline-against-ship-date`:
+  - `cursor_plugins:skill:pstack/skills/why#timeline-against-ship-date` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `typed-models-over-raw`:
+  - `cursor_plugins:skill:pstack/skills/why#typed-models-over-raw` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `unreachable-data-is-gap`:
   - `cursor_plugins:skill:pstack/skills/why#unreachable-data-is-gap` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `warehouse-evidence-inventory`:
+  - `cursor_plugins:skill:pstack/skills/why#warehouse-evidence-inventory` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `warehouse-finding-record`:
+  - `cursor_plugins:skill:pstack/skills/why#warehouse-finding-record` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `warehouse-motive-signals`:
+  - `cursor_plugins:skill:pstack/skills/why#warehouse-motive-signals` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 <!-- /registry:generated sources -->
 
 <!-- registry:generated declined -->

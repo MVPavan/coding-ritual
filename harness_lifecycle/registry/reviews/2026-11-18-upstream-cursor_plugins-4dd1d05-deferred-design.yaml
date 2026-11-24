@@ -1,0 +1,257 @@
+harness: cursor_plugins
+from_sha: null
+to_sha: 4dd1d05
+supersedes:
+- harness_lifecycle/registry/reviews/2026-11-01-upstream-cursor_plugins-4dd1d05-batch-1.yaml
+- harness_lifecycle/registry/reviews/2026-10-31-upstream-cursor_plugins-pstack-principles.yaml
+analysis_critic:
+  by: codex gpt-6.2-sol high (critic-101)
+  date: '2026-11-18'
+  verdict: pass
+  last_critic: null
+comparison_critic:
+  by: coordinator (cc:940ec94d)
+  date: '2026-11-18'
+  verdict: accepted
+  last_critic:
+    by: codex gpt-6.2-sol high (critic-101)
+    date: '2026-11-18'
+    verdict: fail
+themes: 'Three pstack rows reopened by the owner at the Design stage. Owner ruling 2026-11-18
+  (conversation), deferred review, bead cr-r2pa.3.3: all three are adopted. sketch-by-parallel-runners:
+  model-council runs named models in isolation, now asking each for its strongest answer rather
+  than a hedge, each writing its own candidate, and a judge and the coordinator pick a base
+  on stated criteria, on request only. scaffold-first becomes one bullet in principle-sequence-verifiable-units
+  beside prefactoring; policy-at-edge becomes one line with an example in codebase-design''s
+  design checks.'
+skills:
+  skill:pstack/skills/architect:
+    upstream_tree_hash: 5c11a2714696b0c7108e9b906707340ff3f558d60f81888947db0a0f95763fa9
+    accepted: 4dd1d05
+    compared_with: model-council
+    pairing:
+      overlap:
+        authoring-for-agents: 1
+        codebase-design: 15
+        create-formal-verification-skill: 1
+        create-verification-skill: 1
+        doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md: 1
+        doc:.claude/skills/mvp-mode/playbooks/bug-fix.md: 1
+        doc:.claude/skills/mvp-mode/playbooks/feature.md: 1
+        doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md: 2
+        doc:.claude/skills/mvp-mode/playbooks/perf-issue.md: 1
+        doc:.claude/skills/mvp-mode/playbooks/refactoring.md: 1
+        interrogate: 1
+        model-council: 3
+        principle-boundary-discipline: 4
+        principle-minimize-reader-load: 1
+        principle-model-the-domain: 1
+        principle-separate-before-serializing-shared-state: 2
+        principle-subtract-before-you-add: 1
+        principle-type-system-discipline: 1
+      placement_match:
+      - codebase-design
+      - design-evolve
+      - domain-modeling
+      - principle-boundary-discipline
+      - principle-exhaust-the-design-space
+      - principle-make-operations-idempotent
+      - principle-minimize-reader-load
+      - principle-model-the-domain
+      - principle-redesign-from-first-principles
+      - principle-separate-before-serializing-shared-state
+      - principle-type-system-discipline
+      - prototype
+      - statechart
+      suggested: codebase-design
+      purpose_match: codebase-design
+      purpose: Upstream grounds a design in the current system, then sketches competing whole-shape
+        candidates through parallel runners and synthesizes one. Our codebase-design is the
+        same design lens, with optional alternative designs.
+      flag: suggested differs
+      reason: 'Compared with model-council: the only reopened row is the parallel-runner sketch,
+        which model-council carries. The rest of architect pairs with codebase-design, the
+        computed pick and the purpose match.'
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      sketch-by-parallel-runners:
+        scope: reconsider
+        change: []
+        fact: present
+        provider: model-council
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/model-council/SKILL.md:3
+        - .claude/skills/model-council/SKILL.md:8-9
+        - .claude/skills/model-council/SKILL.md:18-24
+        - .claude/skills/model-council/SKILL.md:31-32
+        - .claude/skills/model-council/references/pick-and-graft.md:6-23
+        - .claude/skills/codebase-design/DESIGN-IT-TWICE.md:8-10
+        recommendation: adopt
+        delivery: delivered
+        target: model-council
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-07
+          - S-08
+          override: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3.
+          Adopted, optional rather than forced. On an explicit request for a council of named
+          models (.claude/skills/model-council/SKILL.md:3), model-council runs one common
+          brief through user-selected members in isolation, parallel where useful; the brief
+          asks each member for its strongest answer, not a hedge toward what a panel might
+          favour, because differences between members are the evidence, and no member sees
+          another''s answer (.claude/skills/model-council/SKILL.md:8-9, 18-24). For a built
+          artifact such as a design sketch it adds pick-and-graft (.claude/skills/model-council/SKILL.md:31-32):
+          each member writes only to its own location, and a judge and then the coordinator
+          score every candidate on stated criteria and pick a base (.claude/skills/model-council/references/pick-and-graft.md:6-23).
+          Without a council, codebase-design sketches materially different designs, optionally
+          through bounded independent workers, and never forces a multi-agent exercise (.claude/skills/codebase-design/DESIGN-IT-TWICE.md:8-10).
+          Delegation stays matched to the task (U-07) and the exercise is not an absolute
+          rule (S-08).'
+  skill:pstack/skills/principle-boundary-discipline:
+    upstream_tree_hash: 789a6c2f7d6b938f0830e8292073cb974f5bc7009f253e2c589a0d039a87b090
+    accepted: 4dd1d05
+    compared_with: codebase-design
+    pairing:
+      overlap:
+        codebase-design: 1
+        principle-boundary-discipline: 5
+      placement_match:
+      - codebase-design
+      - design-evolve
+      - domain-modeling
+      - principle-boundary-discipline
+      - principle-exhaust-the-design-space
+      - principle-make-operations-idempotent
+      - principle-minimize-reader-load
+      - principle-model-the-domain
+      - principle-redesign-from-first-principles
+      - principle-separate-before-serializing-shared-state
+      - principle-type-system-discipline
+      - prototype
+      - statechart
+      suggested: principle-boundary-discipline
+      purpose_match: codebase-design
+      purpose: Upstream is a principle lens for where checks, policy and framework code sit
+        relative to a module or system boundary. Our codebase-design owns module depth, where
+        this row's rule lands.
+      flag: suggested differs
+      reason: 'Compared with codebase-design: the only reopened row is about module design,
+        which the owner placed in codebase-design''s depth vocabulary. The computed pick,
+        principle-boundary-discipline, holds the other five adopted rows and is about validating
+        data where it crosses a system boundary.'
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      policy-at-edge:
+        scope: reconsider
+        change: []
+        fact: present
+        provider: codebase-design
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/codebase-design/SKILL.md:29-30
+        recommendation: adopt
+        delivery: delivered
+        target: codebase-design
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-06
+          override: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3.
+          Adopted: codebase-design''s design checks now say to keep general mechanism inside
+          a module and special-case policy at its edge, with one concrete example (a retry
+          helper takes its attempt limit from callers) (.claude/skills/codebase-design/SKILL.md:29-30).
+          The line sits in the always-loaded body beside the depth questions, so every substantive
+          module or interface decision that loads the skill reaches it; the example answers
+          the earlier deferral''s objection that the rule was too abstract to apply (U-06).'
+  skill:pstack/skills/principle-foundational-thinking:
+    upstream_tree_hash: 08efbf612b342bcd3ec27d543cec08bb79604f771befb6456da2eaff013da4f6
+    accepted: 4dd1d05
+    compared_with: principle-sequence-verifiable-units
+    pairing:
+      overlap:
+        doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md: 1
+        doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md: 1
+        principle-model-the-domain: 3
+        principle-separate-before-serializing-shared-state: 1
+        principle-sequence-verifiable-units: 2
+        principle-subtract-before-you-add: 1
+        principle-test-behavior-not-implementation: 1
+      placement_match:
+      - codebase-design
+      - design-evolve
+      - domain-modeling
+      - principle-boundary-discipline
+      - principle-exhaust-the-design-space
+      - principle-make-operations-idempotent
+      - principle-minimize-reader-load
+      - principle-model-the-domain
+      - principle-redesign-from-first-principles
+      - principle-separate-before-serializing-shared-state
+      - principle-type-system-discipline
+      - prototype
+      - statechart
+      suggested: principle-model-the-domain
+      purpose_match: principle-sequence-verifiable-units
+      purpose: 'Upstream is a principle lens for building on foundations: model the domain
+        first, front-load shared infrastructure and keep changes verifiable. Our principle-sequence-verifiable-units
+        owns how work is ordered, where this row lands.'
+      flag: suggested differs
+      reason: 'Compared with principle-sequence-verifiable-units: the only reopened row is
+        a sequencing rule. The computed pick, principle-model-the-domain, holds the domain-modelling
+        rows already adopted.'
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      scaffold-first:
+        scope: reconsider
+        change: []
+        fact: present
+        provider: principle-sequence-verifiable-units
+        candidates: []
+        via: null
+        also_in:
+          doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md: present
+        ours:
+        - .claude/skills/mvp-mode/principles/sequence-verifiable-units.md:14-15
+        - .claude/skills/mvp-mode/SKILL.md:93
+        recommendation: adopt
+        delivery: delivered
+        target: principle-sequence-verifiable-units
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-06
+          override: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3.
+          Adopted: the principle now says to put first the work every later unit needs, such
+          as test setup, CI, lint and shared types, as its own bullet beside the prefactoring
+          bullet (.claude/skills/mvp-mode/principles/sequence-verifiable-units.md:14-15).
+          It is reached through mvp-mode''s router line for multi-step work and splitting
+          work into units (.claude/skills/mvp-mode/SKILL.md:93) and by every unit that orders
+          work by this principle, such as to-roadmap''s slice step. The examples name the
+          concrete work meant (U-06).'

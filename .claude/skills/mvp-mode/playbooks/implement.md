@@ -5,7 +5,7 @@ steps:
   - id: implement#1
     when: always
     actions: [{trait: scope-selector}, {trait: risk-sized-review}]
-    calls: [{to: "skill:discovery", when: material scope or behaviour is unresolved; nothing else starts}]
+    calls: [{to: "skill:settle-open-questions", when: material scope or behaviour is unresolved; nothing else starts}]
   - id: implement#2
     when: the units will span sessions and have no beads, or the scope is Phase or Workstream
     calls: [{to: "skill:tracker", when: "unit beads for units that will span sessions; each phase's epic by its lookup and defect rule"}]
@@ -86,7 +86,7 @@ pre-existing edits are not automatically part of the task.
 | Execute a named roadmap phase | Phase |
 | Task, standalone plan, or single-phase epic | Task, in the current checkout with no worktree |
 | A bead with acceptance and no plan | Task; the bead is the packet |
-| Material scope/behavior unresolved | Resolve that gap through `discovery`; nothing else starts (Not started, scope unresolved) |
+| Material scope/behavior unresolved | Resolve that gap through `settle-open-questions`; nothing else starts (Not started, scope unresolved) |
 
 A step whose scope does not apply stays in the list as `skip: <reason>`.
 
@@ -287,7 +287,7 @@ unverified work and, without commit authority, returns a commit plan.
   gate or an exit criterion).
 - **Stopped, base mismatch:** the expected and actual bases, the worktree path
   and the run record's path.
-- **Not started, scope unresolved:** the gap and its route (`discovery`, or
+- **Not started, scope unresolved:** the gap and its route (`settle-open-questions`, or
   `mvp-mode`'s planning route).
 
 Every reply also names the Implement playbook, the scope, the steps skipped and

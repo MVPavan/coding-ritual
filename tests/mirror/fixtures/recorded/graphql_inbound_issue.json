@@ -1,0 +1,12 @@
+{
+  "_recorded": "M4.2 live trial, 2026-11-21, gh 2.103.0, residue at commit 79b93f9; case T12-14-inbound, MirrorInboundIssues; sanitised",
+  "__typename": "Issue",
+  "id": "$issue_node_id",
+  "number": "$issue_number",
+  "state": "$issue_state",
+  "closedAt": "$closed_at",
+  "updatedAt": "$updated_at",
+  "author": {
+    "login": "$author"
+  }
+}

@@ -99,7 +99,7 @@ The result is a new analysis in the entry, keyed by its sha, and the entry's
     they appear in `also_in`, and a decision may target them. Now:
     `coding-style.md`. After its clean-up (bead `cr-k1b6`):
     `verification.md`. Ignored: `running-codex.md`. No entry: `repo-map.md`, `docs-index.md` (routing),
-    `CONTEXT.md` (vocabulary). Later, when a comparison first needs them:
+    `GLOSSARY.md` (vocabulary). Later, when a comparison first needs them:
     `invariants.md`, `learnings.md`.
   - `bd prime`, injected at every session start and after compaction, gets
     no entry **[owner]**: its text is the core of the `beads` skill, whose

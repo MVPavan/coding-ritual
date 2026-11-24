@@ -1,0 +1,13 @@
+{
+  "_recorded": "M4.2 live trial, 2026-11-21, gh 2.103.0, residue at commit 79b93f9; case T12-14-inbound, MirrorHighWater; sanitised",
+  "data": {
+    "node": {
+      "issues": {
+        "nodes": "$issue_nodes"
+      },
+      "pullRequests": {
+        "nodes": "$pull_nodes"
+      }
+    }
+  }
+}

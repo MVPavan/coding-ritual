@@ -10,9 +10,9 @@ status: active
 ---
 # restate
 
-Restate what you take the person's aim and problem to be, then stop. Use for /restate; resolving an open choice is discovery.
+Restate what you take the person's aim and problem to be, then stop. Use for /restate; resolving an open choice is settle-open-questions.
 
-**Boundary:** Says back what the agent takes the person's aim and problem to be, then stops; settling an open choice is discovery, and stating a change's intent before an attack is interrogate.
+**Boundary:** Says back what the agent takes the person's aim and problem to be, then stops; settling an open choice is settle-open-questions, and stating a change's intent before an attack is interrogate.
 
 <!-- registry:generated traits -->
 - `goal-and-problem-restatement`: Say in your own wording what you believe the user is aiming for and which problem they are trying to solve.
@@ -23,6 +23,7 @@ Restate what you take the person's aim and problem to be, then stop. Use for /re
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-17` **update** (2026-11-17-settle-open-questions:007): Owner ruling of 2026-11-17 (conversation), bead cr-r2pa.4. Its description routes an open choice to settle-open-questions.
 - `2026-11-12` **adopt** (2026-11-12-batch-p1-manual:005): Completes pending 2026-11-06-batch-p1:005: goal-and-problem-restatement is written at .claude/skills/restate/SKILL.md:9-11 (plan 60; a new unit, so no frozen w…
 - `2026-11-12` **adopt** (2026-11-12-batch-p1-manual:004): Checkpoint at 4dd1d05 for the owner's trait rulings, 1 adopt, retargeted to restate: the owner renamed in-your-own-words to restate on 2026-11-12 and row 005 i…
 - `2026-11-12` **add** (2026-11-12-batch-p1-manual:003): Owner rulings of 2026-11-05 §E (small manual skills) and 2026-11-06 §G (batch P1 as recommended) (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md); owner r…

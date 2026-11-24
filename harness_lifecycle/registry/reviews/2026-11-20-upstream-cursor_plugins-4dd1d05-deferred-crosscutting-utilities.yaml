@@ -1,0 +1,72 @@
+harness: cursor_plugins
+from_sha: null
+to_sha: 4dd1d05
+supersedes:
+- harness_lifecycle/registry/reviews/2026-10-31-upstream-cursor_plugins-pstack-principles.yaml
+analysis_critic:
+  by: codex gpt-6.2-sol high (critic-106)
+  date: '2026-11-20'
+  verdict: pass
+  last_critic: null
+comparison_critic:
+  by: codex gpt-6.2-sol high (critic-106)
+  date: '2026-11-20'
+  verdict: pass
+  last_critic: null
+themes: 'One principle-guard-the-context-window row reopened by the owner at the Cross-cutting
+  stage. Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3: phase-scope-caps
+  is rejected, ruled with Pocock ask-matt''s smart-zone-budget (rejected in the 5beb35b companion
+  report): any fixed file or turn cap we chose would be invented.'
+skills:
+  skill:pstack/skills/principle-guard-the-context-window:
+    upstream_tree_hash: d0b6808ab070ab9d020c718687d3f96324833144537d1e635762c90861fe8821
+    accepted: 4dd1d05
+    compared_with: none
+    pairing:
+      overlap:
+        mvp-mode: 1
+      placement_match:
+      - beads
+      - decision-trail
+      - recall
+      - wake
+      suggested: mvp-mode
+      purpose_match: none
+      purpose: Upstream routes bulk reading to subagents, keeps summaries in the main thread
+        and caps phase scope. Ours keeps logs behind references and delegates independent
+        work by default (AGENTS.md, mvp-mode).
+      flag: suggested differs
+      reason: 'Compared with none, as in the 2026-10-31 report: the mechanisms are context
+        and delegation policy, not a skill''s job. Suggested mvp-mode by the computed signals
+        only.'
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      phase-scope-caps:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/authoring-for-agents/references/writing-principles.md:39-41
+        - AGENTS.md:39-40
+        - .claude/skills/mvp-mode/playbooks/implement/workstream-mode.md:36-39
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          rejected. Upstream names no numbers, so the objection is that any fixed file or
+          turn cap we chose would be an invented numerical threshold, which the writing principles
+          prune. Ours sizes planning to uncertainty and consequences and leaves the context
+          only when the runtime supports it and context pressure warrants it. Ruled with smart-zone-budget
+          (.claude/skills/authoring-for-agents/references/writing-principles.md:39-41; AGENTS.md:39-40;
+          .claude/skills/mvp-mode/playbooks/implement/workstream-mode.md:36-39).'

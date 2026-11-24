@@ -10,7 +10,7 @@ status: active
 ---
 # model-council
 
-Use only on an explicit request for a council of named models or agents with a judge, never by itself; a yes in words to one counts. It can also turn candidates into one artifact, picked and grafted. Usually one critic review is enough, and ordinary `discovery` needs no council; two options to weigh is `codebase-design`, and two to try is `prototype`.
+Use only on an explicit request for a council of named models or agents with a judge, never by itself; a yes in words to one counts. It can also turn candidates into one artifact, picked and grafted. Usually one critic review is enough, and ordinary `settle-open-questions` needs no council; two options to weigh is `codebase-design`, and two to try is `prototype`.
 
 **Boundary:** Runs an explicitly requested council of named models or agents with a judge; a council of perspectives or roles is perspective-council, and dispatching each member is delegation; on request it also turns candidates into one artifact, which a build's playbook then uses.
 
@@ -56,6 +56,7 @@ Use only on an explicit request for a council of named models or agents with a j
 - `note-convergence-dropouts`: Record any convergence or dropped candidates in the synthesis note.
 - `note-verification-result`: Record the verification result in the synthesis note.
 - `no-judge-no-pick`: With no judge reachable, count no completed council: stop, say so and return the candidates with no pick.
+- `sketch-by-parallel-runners`: Produce candidates through parallel runners on different models, each in its own workspace and told not to hedge, then pick a base on named design axes.
 <!-- /registry:generated traits -->
 
 <!-- registry:generated lineage -->
@@ -90,9 +91,13 @@ Use only on an explicit request for a council of named models or agents with a j
 - **cursor_plugins:skill:pstack/skills/arena#note-judge-status** `pstack/skills/arena/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
 - **cursor_plugins:skill:pstack/skills/arena#note-convergence-dropouts** `pstack/skills/arena/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
 - **cursor_plugins:skill:pstack/skills/arena#note-verification-result** `pstack/skills/arena/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/architect#sketch-by-parallel-runners** `pstack/skills/architect/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-18` **adopt** (2026-11-18-deferred-design:158): Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3. Adopted, optional rather than forced. On an explicit request for a council of named …
+- `2026-11-18` **update** (2026-11-18-deferred-design:004): Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3. The common member brief now asks each member for its strongest answer, not a hedge t…
+- `2026-11-17` **update** (2026-11-17-settle-open-questions:009): Owner ruling of 2026-11-17 (conversation), bead cr-r2pa.4. Its description's routing clause names `settle-open-questions`.
 - `2026-11-11` **update** (2026-11-11-discovery:008): Owner ruling L1 of 2026-11-10 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 20 D1. Its description's routing clause names `discovery` (plan 20 De…
 - `2026-11-03` **update** (2026-11-03-batch-3:148): A branch that turns candidates into one artifact, picked and grafted, in references/pick-and-graft.md and loaded only on the branch. The description now says e…
 - `2026-11-03` **adopt** (2026-11-03-batch-3:147): Completes pending 2026-11-03-batch-3:049: note-verification-result is written at .claude/skills/model-council/references/pick-and-graft.md:35, read against its…
@@ -218,6 +223,8 @@ Use only on an explicit request for a council of named models or agents with a j
   - `cursor_plugins:skill:pstack/skills/arena#rubric-withheld-from-candidates` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `single-synthesized-artifact`:
   - `cursor_plugins:skill:pstack/skills/arena#single-synthesized-artifact` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `sketch-by-parallel-runners`:
+  - `cursor_plugins:skill:pstack/skills/architect#sketch-by-parallel-runners` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `sparse-grafts`:
   - `cursor_plugins:skill:pstack/skills/arena#sparse-grafts` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `synthesis-decision-record`:

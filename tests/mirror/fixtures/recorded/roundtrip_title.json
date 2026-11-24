@@ -1,0 +1,73 @@
+{
+  "_recorded": "M4.2 live trial, 2026-11-21, gh 2.103.0, residue at commit 79b93f9; case T8; sanitised",
+  "case": "T8",
+  "path": "direct write: bd trims a title's surrounding spaces (bd update --title '  X  ' stored 'X'), so the title was written to #2 with gh api graphql updateIssue",
+  "bead": "trial-8dt",
+  "bead_title": "Trial T8: title with surrounding spaces",
+  "issue_number": 2,
+  "sent_title": " Trial T8: title with surrounding spaces ",
+  "updateIssue": {
+    "argv": [
+      "api",
+      "graphql",
+      "--input",
+      "-"
+    ],
+    "input": {
+      "query": "mutation($id:ID!,$title:String!){updateIssue(input:{id:$id,title:$title}){issue{id number title updatedAt}}}",
+      "variables": {
+        "id": "I_kwDOdummy0001",
+        "title": " Trial T8: title with surrounding spaces "
+      }
+    },
+    "response": {
+      "data": {
+        "updateIssue": {
+          "issue": {
+            "id": "I_kwDOdummy0001",
+            "number": 2,
+            "title": " Trial T8: title with surrounding spaces ",
+            "updatedAt": "2026-11-21T11:45:24Z"
+          }
+        }
+      }
+    },
+    "exit": 0,
+    "ts": "2026-11-21T11:45:24.427+00:00"
+  },
+  "readback": {
+    "argv": [
+      "api",
+      "graphql",
+      "-f",
+      "query=query{repository(owner:\"OWNER\",name:\"TRIAL\"){issue(number:2){id number title updatedAt}}}"
+    ],
+    "response": {
+      "data": {
+        "repository": {
+          "issue": {
+            "id": "I_kwDOdummy0001",
+            "number": 2,
+            "title": " Trial T8: title with surrounding spaces ",
+            "updatedAt": "2026-11-21T11:45:24Z"
+          }
+        }
+      }
+    },
+    "exit": 0,
+    "ts": "2026-11-21T11:45:25.530+00:00"
+  },
+  "stored_equals_sent": true,
+  "later_runs": [
+    {
+      "ts": "2026-11-21T11:45:31Z",
+      "report": "bead-mirror: outbound: checks passed\n  held: trial-1f5: open-or-closed held: #1 ... (the T7 hold, unrelated)",
+      "writes": "none (calls: user, repo, MirrorUpdated, MirrorIssueNode x2)"
+    },
+    {
+      "ts": "2026-11-21T11:45:35Z",
+      "report": "same",
+      "writes": "none"
+    }
+  ]
+}

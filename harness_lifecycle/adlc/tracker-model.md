@@ -251,5 +251,5 @@ The model becomes policy only when these change together:
 3. `tracker` `scripts/bd-render-tracking.sh`: group by `spec_id` and show features, instead of
    reading `[<phase-id>]` epic titles.
 4. `document-model.md` §2 to the folder layout in §7, and the word "spec"
-   reconciled with the dictionary's (a `CONTEXT.md` note or a rename).
+   reconciled with the dictionary's (a `GLOSSARY.md` note or a rename).
 5. The open-epic suggestions in §6, if accepted.

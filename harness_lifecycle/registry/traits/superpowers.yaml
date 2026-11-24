@@ -1,0 +1,15 @@
+# superpowers skills: analyses keyed by sha, with accepted/proposed pointers.
+# Rules: harness_lifecycle/registry/README.md §4a;
+# docs/workstreams/skill-curation/stages-design.md §Entries.
+
+"superpowers:skill:skills/finishing-a-development-branch":
+  accepted: "44c9b2d"
+  proposed: null
+  analyses:
+    "44c9b2d":
+      tree_hash: "d850210c2950d190fbf139007f9046458a9f94edb4d6c7830e02a12f285debde"
+      placement: {domain: engineering, stage: Delivery, substage: Integration}
+      traits: [announce-skill-at-start, checks-on-integrated-tree, workspace-kind-detection, merge-base-selection, fixed-integration-menu, local-merge-to-base, merged-result-verification, unmerged-work-protection, merged-branch-delete, push-and-open-pr, keep-worktree-until-landed, typed-discard-confirmation, provenance-worktree-cleanup, rejected-push-investigation]
+      added: {}
+      changed: {}
+      removed: {}

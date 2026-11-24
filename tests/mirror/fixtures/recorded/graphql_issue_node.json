@@ -1,0 +1,20 @@
+{
+  "_recorded": "M4.2 live trial, 2026-11-21, gh 2.103.0, residue at commit 79b93f9; case T6, MirrorIssueNode; sanitised",
+  "__typename": "Issue",
+  "id": "$issue_node_id",
+  "number": "$issue_number",
+  "url": "$issue_url",
+  "state": "$issue_state",
+  "title": "$issue_title",
+  "body": "$issue_body",
+  "updatedAt": "$updated_at",
+  "author": {
+    "login": "$author"
+  },
+  "repository": {
+    "id": "$repo_node_id"
+  },
+  "labels": {
+    "nodes": "$labels"
+  }
+}

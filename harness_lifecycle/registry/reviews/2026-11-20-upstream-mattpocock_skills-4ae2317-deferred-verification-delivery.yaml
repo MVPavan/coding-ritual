@@ -1,0 +1,296 @@
+harness: mattpocock_skills
+from_sha: null
+to_sha: 4ae2317
+supersedes: null
+analysis_critic:
+  by: codex gpt-6.2-sol high (critic-103)
+  date: '2026-11-20'
+  verdict: pass
+  last_critic: null
+comparison_critic:
+  by: codex gpt-6.2-sol high (critic-103)
+  date: '2026-11-20'
+  verdict: pass
+  last_critic: null
+themes: 'Eight code-review rows reopened by the owner at the Verification stage. Owner ruling
+  2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3: three-dot-merge-base is adopted
+  as the narrower variant merge-base-default-scope: code review''s scope paragraph now defaults,
+  when no base is named or recorded, to the branch''s merge-base with its base branch through
+  the working tree. The seven rows deferred on 2026-10-30 only so the owner could review the
+  report''s reject recommendation (cross-axis reranking, parallel subagents, the word cap,
+  the summary line and the three smell-catalogue rows) are rejected with reasons re-checked
+  against today''s review files, delegation and AGENTS.md. self-contained-subagent-brief is
+  in the companion report compared with delegation.'
+skills:
+  skill:skills/engineering/code-review:
+    upstream_tree_hash: ce86b40a3d1648a0018b712f0c70704e6c2316b2a9b9e915ab116916a31273dc
+    accepted: 4ae2317
+    compared_with: review
+    pairing:
+      overlap:
+        create-formal-verification-skill: 1
+        delegation: 2
+        doc:.claude/skills/mvp-mode/playbooks/implement.md: 1
+        interrogate: 1
+        no-comments: 2
+        review: 11
+      placement_match:
+      - security
+      suggested: review
+      purpose_match: review
+      purpose: Upstream reviews the diff since a fixed point along a standards axis and a
+        spec axis in two parallel subagents and reports them side by side. Our review skill's
+        code modes review a change against requirements and documented standards.
+      flag: null
+      reason: null
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      no-cross-axis-rerank:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/review/SKILL.md:13-14
+        - .claude/skills/review/references/review-contract.md:9-11
+        - .claude/skills/review/references/code.md:4-5
+        - AGENTS.md:51-52
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. Ours keeps the spec and quality verdicts
+          distinct when those roles are dispatched separately and asks for every finding with
+          its severity, then leaves the coordinator to filter and dispose of the findings
+          across the review; its combined mode covers both axes under one verdict. A standing
+          ban on ordering findings across axes would take that judgement from the coordinator,
+          which owns disposition of findings, and the owner declined it (.claude/skills/review/SKILL.md:13-14;
+          .claude/skills/review/references/review-contract.md:9-11; .claude/skills/review/references/code.md:4-5;
+          AGENTS.md:51-52).
+      three-dot-merge-base:
+        scope: reconsider
+        change: []
+        fact: variant
+        provider: review
+        candidates:
+        - merge-base-default-scope
+        via: merge-base-default-scope
+        also_in:
+          no-comments: variant
+        ours:
+        - .claude/skills/review/references/code.md:11-14
+        - .claude/skills/review/SKILL.md:29-30
+        - .claude/skills/review/references/review-contract.md:5-7
+        - .claude/skills/mvp-mode/playbooks/implement/task-engine.md:69-72
+        - .claude/skills/mvp-mode/playbooks/implement/task-engine.md:14
+        - .claude/skills/mvp-mode/playbooks/implement/task-engine.md:22-27
+        recommendation: adopt
+        delivery: delivered
+        target: review
+        modification: 'Adopted as merge-base-default-scope: the merge-base is the default
+          when no base is named, obviously supplied or recorded, and the diff runs through
+          the working tree. Upstream diffs every fixed point three-dot against its merge-base,
+          committed work only, and asks for a fixed point when none is given.'
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-02
+          - U-06
+          override: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3.
+          Adopted as the narrower variant merge-base-default-scope: with no base named or
+          recorded, code review now defaults to the branch''s merge-base with its base branch,
+          through the working tree, committed and uncommitted. The sentence is in code review''s
+          scope paragraph (.claude/skills/review/references/code.md:11-14), which the review
+          skill loads for every code mode (.claude/skills/review/SKILL.md:29-30), dispatched
+          reviewers follow (.claude/skills/review/references/review-contract.md:5-7) and the
+          implement playbook''s full review path uses (.claude/skills/mvp-mode/playbooks/implement/task-engine.md:69-72).
+          A recorded base is, for example, the implement playbook''s SCOPE_BASE, recorded
+          once in its ledger and passed to every review package (.claude/skills/mvp-mode/playbooks/implement/task-engine.md:14;
+          .claude/skills/mvp-mode/playbooks/implement/task-engine.md:22-27). Upstream always
+          diffs three-dot from the fixed point the user gives, committed work only, and asks
+          for one when none is given; ours keeps a named or recorded base as given and uses
+          the merge-base only as the default, so unrelated base-branch changes stay out without
+          a question (U-02, U-06).'
+      parallel-subagents:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/review/references/code.md:4-7
+        - .claude/skills/mvp-mode/playbooks/implement/task-engine.md:65-72
+        - AGENTS.md:39-40
+        - AGENTS.md:47-48
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. Ours chooses per review between an
+          inline or combined review and separately dispatched spec and quality roles, invokes
+          substantive review on the light path only when needed, and lets independent reviews
+          run concurrently on a stable snapshot when permitted; AGENTS.md matches review to
+          consequences and leaves when to delegate to mvp-mode, keeping small work local.
+          Always running the two axes as parallel subagents is an absolute rule for a choice
+          that depends on the work (C-14, U-07, S-08) (.claude/skills/review/references/code.md:4-7;
+          .claude/skills/mvp-mode/playbooks/implement/task-engine.md:65-72; AGENTS.md:39-40;
+          AGENTS.md:47-48).
+      capped-reviewer-report:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/review/SKILL.md:12-14
+        - .claude/skills/review/references/review-contract.md:25-31
+        - .claude/skills/authoring-for-agents/references/writing-principles.md:35-36
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. Ours asks a critic for a thorough
+          opinion and every finding with its severity, filtered afterwards, and gives each
+          role a fixed output shape rather than a length; a fixed word cap can suppress findings
+          (C-11) and is an invented numerical threshold, which the writing principles prune
+          (.claude/skills/review/SKILL.md:12-14; .claude/skills/review/references/review-contract.md:25-31;
+          .claude/skills/authoring-for-agents/references/writing-principles.md:35-36).
+      per-axis-summary-line:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/review/references/review-contract.md:13-31
+        - .claude/skills/review/references/code.md:56-57
+        - .claude/skills/authoring-for-agents/references/writing-principles.md:32-36
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. Ours ends each dispatched role with
+          its own verdict and issues, and a code review with its findings, actual checks,
+          limits and a justified verdict, saying plainly when none were found. A closing line
+          of per-axis counts and the worst issue in each adds a synthesis, but as a mandatory
+          part of every review it is an extra fixed format the owner declined; the writing
+          principles keep only what changes decisions (.claude/skills/review/references/review-contract.md:13-31;
+          .claude/skills/review/references/code.md:56-57; .claude/skills/authoring-for-agents/references/writing-principles.md:32-36).
+      code-smell-catalog:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/review/references/code.md:41-45
+        - .claude/skills/review/references/code.md:51-54
+        - .claude/skills/review/SKILL.md:23
+        - .claude/skills/delegation/SKILL.md:46-48
+        - .claude/skills/mvp-mode/principles/fix-root-causes.md:15-16
+        - .claude/skills/mvp-mode/SKILL.md:85
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. Ours reviews against the coding standards
+          the repository documents, says so when it documents none, and reports actionable
+          defects with a trigger and consequence; preference alone is not a finding. It carries
+          no general smell catalogue applied to every change. Some specific signs live instead
+          in the principle whose situation they belong to, such as fix-root-causes' workaround
+          that needs a long justifying comment (routed for diagnosing or fixing a failure),
+          and a dispatched reviewer is given the principles the change falls under; that keeps
+          each sign where it acts rather than in a fixed list in the review (.claude/skills/review/references/code.md:41-45;
+          .claude/skills/review/references/code.md:51-54; .claude/skills/review/SKILL.md:23;
+          .claude/skills/delegation/SKILL.md:46-48; .claude/skills/mvp-mode/principles/fix-root-causes.md:15-16;
+          .claude/skills/mvp-mode/SKILL.md:85).
+      repo-standards-over-smells:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/review/references/code.md:41-45
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report''s reject recommendation. Depends on the smell catalogue, rejected
+          in this report: with no catalogue there is nothing for a documented standard to
+          suppress. Documented standards already come first in ours: departures from them
+          are checked before general quality (.claude/skills/review/references/code.md:41-45).'
+      smells-as-heuristics:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/review/references/code.md:51-54
+        - .claude/skills/review/SKILL.md:21-24
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. Depends on the smell catalogue, rejected
+          in this report. Ours reports actionable defects with file and line, trigger, consequence
+          and evidence, keeps uncertainty separate, and does not count preference as a finding,
+          so it has no class of catalogue smells to label as possible judgement calls (.claude/skills/review/references/code.md:51-54;
+          .claude/skills/review/SKILL.md:21-24).

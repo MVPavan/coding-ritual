@@ -1,6 +1,6 @@
 ---
 name: research
-description: Use to answer a question from outside sources gathered, weighed and cited, reporting what the evidence favours without deciding. Skip a single factual lookup, which needs no run; a decision with open questions is discovery, which calls this; why this project chose something, from its own record, is why.
+description: Use to answer a question from outside sources gathered, weighed and cited, reporting what the evidence favours without deciding. Skip a single factual lookup, which needs no run; a decision with open questions is settle-open-questions, which calls this; why this project chose something, from its own record, is why.
 ---
 
 # Research

@@ -10,9 +10,9 @@ status: active
 ---
 # reflect
 
-Review a session, or a sample of a delegated run's sessions, for changes to the agents' instructions, checks and tools that would have prevented its mistakes, and apply the ones the person approves. Use for /reflect; finding the cause of one failure is systematic-debugging, and reviewing a change is review.
+Review a session, a sample of a delegated run's sessions, or on request the project's history of repeated mistakes, for changes to the agents' instructions, checks and tools that would have prevented them, and apply the ones the person approves. Use for /reflect; finding the cause of one failure is systematic-debugging, and reviewing a change is review.
 
-**Boundary:** Reviews a session, or a sample of a delegated run's sessions, for changes to the agents' environment and applies the approved ones through their owners; the cause of one failure is systematic-debugging, and reviewing a change is review.
+**Boundary:** Reviews a session, a sample of a delegated run's sessions, or on request the project's history for mistakes that recur, for changes to the agents' environment, and applies the approved ones through their owners; the cause of one failure is systematic-debugging, and reviewing a change is review.
 
 <!-- registry:generated traits -->
 - `sampled-session-retros`: Retro a sample of about one in five delegated sessions, nested dispatches included, rather than every one.
@@ -41,6 +41,10 @@ Review a session, or a sample of a delegated run's sessions, for changes to the 
 - `one-row-per-finding`: Keep one entry per finding so each can be approved on its own.
 - `transcript-location-convention`: Locate past chats in a per-workspace folder of line-per-message files named from the workspace path.
 - `transcript-located-by-layout-probe`: Find a session's log by listing the newest candidates across every storage layout and matching the first line to the chat's opening prompt.
+- `mine-and-group-mistakes`: Collect mistakes from recent history, reverts, review remarks, instruction files and workaround comments, and cluster them into classes.
+- `two-occurrence-threshold`: Count a class of mistake only after it has happened at least twice.
+- `most-frequent-classes-first`: Fix the classes of mistake that occur most often in this pass.
+- `class-evidence-level-report`: Report for every class of mistake the supporting evidence, the chosen level and why no higher level worked.
 <!-- /registry:generated traits -->
 
 <!-- registry:generated lineage -->
@@ -99,9 +103,25 @@ Review a session, or a sample of a delegated run's sessions, for changes to the 
 - **cursor_plugins:skill:pstack/skills/reflect#one-row-per-finding** `pstack/skills/reflect/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
 - **cursor_plugins:skill:pstack/skills/automate-me#no-cross-project-transcript-search** `pstack/skills/automate-me/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
 - **cursor_plugins:skill:pstack/skills/reflect#transcript-located-by-layout-probe** `pstack/skills/reflect/SKILL.md` @ 2776ddd2355d6d6c8747d3964600f28daf62f049
+- **cursor_plugins:skill:pstack/skills/correct#mine-and-group-mistakes** `pstack/skills/correct/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/correct#two-occurrence-threshold** `pstack/skills/correct/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/correct#most-frequent-classes-first** `pstack/skills/correct/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
+- **cursor_plugins:skill:pstack/skills/correct#class-evidence-level-report** `pstack/skills/correct/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-20` **reject** (2026-11-20-deferred-improvement:026): Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3, accepting the report's reject recommendation. Ours picks the surface by need: a skil…
+- `2026-11-20` **reject** (2026-11-20-deferred-improvement:025): Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3, accepting the report's reject recommendation. Ours reads the standards document when…
+- `2026-11-20` **reject** (2026-11-20-deferred-improvement:024): Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3, accepting the report's reject recommendation. Ours deliberately keeps policy needed …
+- `2026-11-20` **reject** (2026-11-20-deferred-improvement:023): Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3, accepting the report's reject recommendation. The difference is timing: upstream loa…
+- `2026-11-20` **reject** (2026-11-20-deferred-improvement:022): Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3, accepting the report's reject recommendation. Ours gives the coding standards to bot…
+- `2026-11-20` **reject** (2026-11-20-deferred-improvement:021): Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3, accepting the report's reject recommendation. Ours sizes review to risk: AGENTS.md m…
+- `2026-11-20` **adopt** (2026-11-20-deferred-improvement:011): Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3. Adopted into reflect's across-history scope: the reviewer returns each class with it…
+- `2026-11-20` **adopt** (2026-11-20-deferred-improvement:010): Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3. Adopted into reflect's across-history scope: classes are presented most frequent fir…
+- `2026-11-20` **adopt** (2026-11-20-deferred-improvement:009): Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3. Adopted into reflect's across-history scope: a class is kept only with at least two …
+- `2026-11-20` **adopt** (2026-11-20-deferred-improvement:008): Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3. Adopted into reflect's across-history scope: it reads, read-only, version-control hi…
+- `2026-11-20` **update** (2026-11-20-deferred-improvement:007): Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3; critic-105 fix round (coordinator rulings M1-M3). The across-history reference now a…
+- `2026-11-20` **update** (2026-11-20-deferred-improvement:001): Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3. reflect gains an optional second scope, across history: step 1 loads the new referen…
 - `2026-11-14` **adopt** (2026-11-14-adapter-adopts:003): Completes pending 2026-11-13-batch-p2:159: transcript-located-by-layout-probe is written at .claude/skills/reflect/references/session-logs.md:9-14, replacing t…
 - `2026-11-14` **update** (2026-11-14-adapter-adopts:002): Bead cr-r2pa.2.27. Owner ruling 2026-11-14 ("All as recommended") on pstack's Claude Code adapter, kept by option D: adopts transcript-location-convention (ada…
 - `2026-11-13` **adopt-merged** (2026-11-13-batch-p3:181): Checkpoint at 2776ddd for the owner's trait rulings: 1 adopt, 12 defer, 6 reject.
@@ -200,6 +220,8 @@ Review a session, or a sample of a delegated run's sessions, for changes to the 
   - `cursor_plugins:skill:pstack/skills/reflect#brief-only-read-only` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
 - `brief-sent-as-written`:
   - `cursor_plugins:skill:pstack/skills/reflect#brief-sent-as-written` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `class-evidence-level-report`:
+  - `cursor_plugins:skill:pstack/skills/correct#class-evidence-level-report` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `closing-summary-parts`:
   - `cursor_plugins:skill:pstack/skills/reflect#closing-summary-parts` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
 - `concrete-tooling-lens`:
@@ -216,6 +238,10 @@ Review a session, or a sample of a delegated run's sessions, for changes to the 
   - `cursor_plugins:skill:pstack/skills/reflect#finding-with-moment-and-destination` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
 - `findings-in-the-reply`:
   - `cursor_plugins:skill:pstack/skills/reflect#findings-in-the-reply` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `mine-and-group-mistakes`:
+  - `cursor_plugins:skill:pstack/skills/correct#mine-and-group-mistakes` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
+- `most-frequent-classes-first`:
+  - `cursor_plugins:skill:pstack/skills/correct#most-frequent-classes-first` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `no-cross-project-transcript-search`:
   - `cursor_plugins:skill:pstack/skills/automate-me#no-cross-project-transcript-search` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
   - `cursor_plugins:skill:pstack/skills/reflect#no-cross-project-transcript-search` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
@@ -241,10 +267,17 @@ Review a session, or a sample of a delegated run's sessions, for changes to the 
   - `cursor_plugins:skill:pstack/skills/reflect#three-way-finding-disposition` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
 - `transcript-located-by-layout-probe`:
   - `cursor_plugins:skill:pstack/skills/reflect#transcript-located-by-layout-probe` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
+- `two-occurrence-threshold`:
+  - `cursor_plugins:skill:pstack/skills/correct#two-occurrence-threshold` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `used-or-missed-unit-scope`:
   - `cursor_plugins:skill:pstack/skills/reflect#used-or-missed-unit-scope` (adopted at 2776ddd2355d6d6c8747d3964600f28daf62f049)
 <!-- /registry:generated sources -->
 
 <!-- registry:generated declined -->
-No declined traits recorded.
+- `mattpocock_skills:skill:skills/engineering/retro#load-writing-guide-first` (reject): Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3, accepting the report's reject recommendation. The difference is timing: upstream loa…
+- `mattpocock_skills:skill:skills/engineering/retro#review-time-standards-file` (reject): Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3, accepting the report's reject recommendation. Ours reads the standards document when…
+- `mattpocock_skills:skill:skills/engineering/retro#reviewer-owns-standards` (reject): Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3, accepting the report's reject recommendation. Ours gives the coding standards to bot…
+- `mattpocock_skills:skill:skills/engineering/retro#separate-review-stage` (reject): Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3, accepting the report's reject recommendation. Ours sizes review to risk: AGENTS.md m…
+- `mattpocock_skills:skill:skills/engineering/retro#skill-when-description-needed` (reject): Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3, accepting the report's reject recommendation. Ours picks the surface by need: a skil…
+- `mattpocock_skills:skill:skills/engineering/retro#sparse-always-loaded-file` (reject): Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3, accepting the report's reject recommendation. Ours deliberately keeps policy needed …
 <!-- /registry:generated declined -->

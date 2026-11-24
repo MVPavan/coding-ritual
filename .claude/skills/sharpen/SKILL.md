@@ -1,6 +1,6 @@
 ---
 name: sharpen
-description: "Make a task deeper, not bigger: answer four questions about it, then rewrite the prompt. Use for /sharpen to deepen a task prompt within its scope; settling open scope or behaviour choices is discovery."
+description: "Make a task deeper, not bigger: answer four questions about it, then rewrite the prompt. Use for /sharpen to deepen a task prompt within its scope; settling open scope or behaviour choices is settle-open-questions."
 disable-model-invocation: true
 argument-hint: "The task or prompt to sharpen"
 ---

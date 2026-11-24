@@ -23,7 +23,7 @@ Use when evaluating a reference-harness capability for adoption, rejection, defe
 - `edit-canonical-source`: Make an authorized adoption edit the one canonical source, placing shared policy in the shared files without duplicating it across provider directories.
 - `template-adoption-gate`: For template adoption, verify the initialized template tools, run the sync and template-build scripts, and inspect the neutrality and leak results.
 - `material-risk-review`: Route an artifact or change with material risk or a broad blast radius through an independent critic review before it is accepted.
-- `adopt-after-state-exists`: Record an adopt or adopt-merged event only after the adopted state exists, passing the adaptation as JSON for a merge, then update the skill's record.
+- `adopt-after-state-exists`: Record the event that delivers an adoption only after the adopted state exists (a trait adopt's completing event, or a whole capability's one adopt or adopt-merged), passing the adaptation as JSON for a merge, then update the skill's record.
 <!-- /registry:generated traits -->
 
 <!-- registry:generated lineage -->
@@ -31,6 +31,8 @@ No adopted lineage recorded.
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-20` **update** (2026-11-20-lifecycle-bug-fixes-r2:001): Critic round 1, findings 1 and 2: the adoption order now takes the curation playbook branch for its kind. A trait adopt goes owner ruling, pending adopt, build…
+- `2026-11-20` **update** (2026-11-20-lifecycle-bug-fixes:002): Harness review defect: it said to record adopt only after the adopted state exists, against the curation playbook ruling-first gate. It now follows the playboo…
 - `2026-11-12` **update** (2026-11-12-skill-curation-playbook:004): Plan 65 D5: its pointer to the curation method follows the move of harness_lifecycle/playbook.md to .claude/skills/mvp-mode/playbooks/skill-curation.md and its…
 <!-- /registry:generated history -->
 

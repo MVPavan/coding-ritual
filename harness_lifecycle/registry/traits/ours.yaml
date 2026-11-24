@@ -3,8 +3,8 @@
 # tree_hash is the skill folder's (or the file's) hash when the list was written.
 
 ours:authoring-for-agents:
-  tree_hash: "61d6995351aff5cc38837aac964ec73105e86c9b436ce0e401b5b9640b57aa73"
-  traits: [surface-choice, activation-boundary, inline-vs-disclose, outputs-and-authority, one-effective-instruction, context-pointers, two-loads, completion-criteria-clarity, precision-and-discretion, single-source-of-truth, environment-as-cache, decision-relevance-pruning, no-op-deletion, unsupported-claim-removal, skill-packaging, invocation-mode, invocation-sidecar-sync, compatibility-alias, verification, mechanical-vs-judgement, extend-existing-docs-first, check-pointer-not-restatement, judgement-lesson-failure-example, build-check-over-rule, co-location, completion-criteria-demand, one-trigger-per-branch, pointer-identity-trim, relevance-check, sharpen-before-inline, split-by-invocation, fix-at-highest-level, check-error-names-replacement, ratchet-on-common-patterns, check-proved-on-real-mistake]
+  tree_hash: "5a82324b4cbde87689b053f93cfe12e68393e113afc27b409a4f6a0d7ad6025b"
+  traits: [surface-choice, activation-boundary, inline-vs-disclose, outputs-and-authority, one-effective-instruction, context-pointers, two-loads, completion-criteria-clarity, precision-and-discretion, single-source-of-truth, environment-as-cache, decision-relevance-pruning, no-op-deletion, unsupported-claim-removal, skill-packaging, invocation-mode, invocation-sidecar-sync, compatibility-alias, verification, mechanical-vs-judgement, extend-existing-docs-first, check-pointer-not-restatement, judgement-lesson-failure-example, build-check-over-rule, co-location, completion-criteria-demand, one-trigger-per-branch, pointer-identity-trim, relevance-check, sharpen-before-inline, split-by-invocation, fix-at-highest-level, check-error-names-replacement, ratchet-on-common-patterns, check-proved-on-real-mistake, criterion-before-isolation, observed-rushing-context-isolation]
   notes:
     split-by-invocation: "Delivers sealed row 2026-10-30-mattpocock_skills-5beb35b:539: a distinct trigger, where the definition says a distinct leading word; T5."
     relevance-check: "Delivers sealed row 2026-10-30-mattpocock_skills-5beb35b:545: drops lines gone stale, where the definition checks every line; T5."
@@ -16,22 +16,22 @@ ours:authoring-for-agents:
 ours:beads:
   tree_hash: "4033071f23315c2f9052a4dc8f65023b5c9115f6afef9a79212b1aa813e9d6e6"
   traits: [bead-type-taxonomy, field-roles, wait-as-edge, actor-identity, resume-line, session-close, session-recovery, knowledge-in-files, beads-setup, status-model, triage-routing, durable-unit-scope, review-as-task, destructive-command-guard, repeated-procedures, dolt-sync]
-ours:discovery:
-  tree_hash: "25c05a21087b42e0f082906964d0fa73254b0212293522bf83d346fcfe471976"
+ours:settle-open-questions:
+  tree_hash: "34c2a82e18bc84e27cb9193d5966ccca9c22d2169dbbaf2149071ec711e099fe"
   traits: [match-interaction-to-ambiguity, scoped-context-read, reuse-before-new, decision-frame, answerer-triage, options-with-tradeoffs, question-batching, recommended-answer, yes-accepts-recommendation, round-format, answer-before-next-round, settled-stop, self-serve-facts, approval-interpretation, observable-outcomes, structured-divergence, exploration-lenses, assumption-audit, mvp-scope, judgment-frameworks, decision-sequences, visuals-into-spec, html-mockup-on-request, sourced-status-record, area-topic-filing, generated-record-index, structure-question-visual]
   notes:
     recommended-answer: "Labels the recommendation's assumptions."
     round-format: "Delivers report D's row (pending 2026-11-11-discovery:001) as one fixed block per question, in our own layout with no emoji."
     self-serve-facts: "Through the answerer triage: code is read, outside facts go to research, a run to prototype."
 ours:build-a-lever:
-  tree_hash: "f2df37cf17fe6553b4d9eae0803b74add85485fccaa9ce7ff5a7f163036e3ecd"
-  traits: [hand-first-recipe, minimal-tool, rerun-safe-tool, proposed-artifact-commit]
+  tree_hash: "079ed02fc6e83b85d4a8c9168e9968beb6f891465558be20f4625348f53c9ac8"
+  traits: [hand-first-recipe, minimal-tool, rerun-safe-tool, proposed-artifact-commit, same-command-local-and-ci, inline-exception-with-reason, expiring-exceptions, human-approved-exceptions]
 ours:check-invariants:
   tree_hash: "323f807bdd498bdc3e560d5c7fd83faa8384181506bfc61e6474a64c6227b2ab"
   traits: [read-overlay, explicit-commands-only, pass-fail-report, skip-aspirational, repo-relative-paths]
 ours:codebase-design:
-  tree_hash: "0a53e74dd1cbd70391422ae06c94dd2a72dbda19f677dbc5f6c39d62c14e51ea"
-  traits: [module-vocabulary, project-term-allowance, interface-is-everything, depth-as-leverage, deletion-test, inject-dependencies, return-not-mutate, single-adapter-justified, internal-seams, dependency-categories, design-it-twice, design-proposal-contents, interface-design-recommendation, design-axes-comparison, grounded-sketch, ownership-change-rationale, caller-usage-first, stub-body-sketch, design-red-flag-screen, shallow-module-signs, leaked-decision-flag, pass-through-flag, split-ownership-flag, one-way-per-task, unreachable-internals, derived-or-checked-lists, next-agent-test, sketch-rationale]
+  tree_hash: "b281a7ce7fdca217d6aea3e1281f26a373f05a40556c6e4f428e2e0d72e359cc"
+  traits: [module-vocabulary, project-term-allowance, interface-is-everything, depth-as-leverage, policy-at-edge, deletion-test, inject-dependencies, return-not-mutate, single-adapter-justified, internal-seams, dependency-categories, design-it-twice, design-proposal-contents, interface-design-recommendation, design-axes-comparison, grounded-sketch, ownership-change-rationale, caller-usage-first, stub-body-sketch, design-red-flag-screen, shallow-module-signs, leaked-decision-flag, pass-through-flag, split-ownership-flag, one-way-per-task, unreachable-internals, derived-or-checked-lists, next-agent-test, sketch-rationale]
   notes:
     inject-dependencies: "Where it clarifies behaviour, not as a blanket rule."
     return-not-mutate: "Pure calculations where they clarify behaviour, isolating legitimate side effects."
@@ -43,38 +43,43 @@ ours:decision-trail:
   tree_hash: "59a06d52dee4578dc93ddc23e834d1c61cffbde047d2713f759aa82dd9d9843e"
   traits: [single-tsv-decision-log, evidence-pointer-cell, trail-six-columns, caller-trail-columns, plain-row-wording, named-cell-row-helper, decision-points-only, row-per-iteration, creates-log-parent, locked-single-header, append-mode-writes, automatic-utc-stamp, cell-whitespace-strip, numeric-safe-formula-quote, run-boundary, start-row-triggers, start-row-contents, trail-location-rule, proposed-trail-commit, append-only-supersede, end-of-run-audit, no-cross-project-transcript-search, audit-own-stretches, verified-record-row-walk, evidence-resolves-check, unlogged-fork-gap, audit-supersedes-in-place-of-editing, foreign-row-on-own-evidence, same-family-or-unreviewed, evidence-pointer-review, attention-scan-not-redo, trail-review-flags, attention-with-coverage, script-evidence-preference]
 ours:delegation:
-  tree_hash: "69a3621f848beb85f63ce9d733a576ed633ef1e7fcf388963fe3c1562e658023"
-  traits: [role-contracts, no-onward-delegation, preserve-role-prompt, owner-roster, cross-family-review, vendor-model-list, model-list-freshness, validate-selection, vendor-owned-dispatch, capable-native-subagent, effective-run-record, enforced-read-only, session-resume-followup, codex-direct, closed-stdin, result-error-check, background-dispatch-for-dialogue, brief-names-done-evidence, read-worker-output, stalled-worker-by-output, retry-by-cause, fresh-context-subagent, unenforced-read-only-brief-and-status-check]
+  tree_hash: "6dc9394e2e4338d5d7ee9b6e24c799727e20d28fde3616ad8b2477563359e6ef"
+  traits: [role-contracts, no-onward-delegation, preserve-role-prompt, owner-roster, cross-family-review, vendor-model-list, model-list-freshness, validate-selection, vendor-owned-dispatch, capable-native-subagent, effective-run-record, enforced-read-only, session-resume-followup, codex-direct, closed-stdin, result-error-check, background-dispatch-for-dialogue, brief-names-done-evidence, shared-delegate-contract, read-worker-output, stalled-worker-by-output, retry-by-cause, fresh-context-subagent, unenforced-read-only-brief-and-status-check, self-contained-subagent-brief, goal-in-every-brief, pass-issues-blocked-verdict]
   notes:
     validate-selection: "Against each vendor's own list; a model or setting it does not list stops the dispatch."
+    pass-issues-blocked-verdict: "The reviewer role ends with PASS, PASS+NOTES or FAIL and its evidence, the set Shipping's gate uses."
     fresh-context-subagent: "Delivers sealed rows 2026-11-09-pocock-4ae2317:156, :158, :160, :163, :165, :167, :170 and :179: a fresh window for each new worker, and a fork when the calling workflow asks for one, where the definition says every subagent; T5."
 ours:design-evolve:
   tree_hash: "65c51587d97ed3bdcbc3d614f3e7cdf377b089c4cb116709c5a747cff2f1d079"
   traits: [integration-not-redesign, resolve-scope, classify-maturity, evidence-before-edit, start-from-source, no-gap-filling, version-rekey, consistency-check, concept-map, layout-mirror, preserve-structure, report-provenance]
 ours:domain-modeling:
-  tree_hash: "eaba589ce980200b239446b3b66d083e7260ea64096175106ceefec2c178bd4d"
-  traits: [active-discipline, declared-glossary-location, lazy-glossary-and-adr, challenge-glossary, sharpen-fuzzy, concrete-scenarios, cross-reference-code, update-inline, authorized-model-writes, glossary-is-glossary, glossary-entry-template, canonical-term-and-aliases, tight-concept-definitions, context-specific-terms, context-map-artifact, context-map-lookup, topic-context-resolution, adr-three-gate, minimal-decision-record, sequential-record-numbering, optional-record-sections, adr-what-qualifies, adr-match-convention, adr-supersede-lifecycle, adr-code-gotcha-link, scoped-decision-records]
+  tree_hash: "443672cc8b21b22eb39b3a2b2168c3fd98ac6038bdd6951e49dc4cd292d9b663"
+  traits: [active-discipline, declared-glossary-location, lazy-glossary-and-adr, challenge-glossary, sharpen-fuzzy, concrete-scenarios, cross-reference-code, update-inline, authorized-model-writes, glossary-is-glossary, glossary-entry-template, canonical-term-and-aliases, tight-concept-definitions, context-specific-terms, context-map-artifact, context-map-lookup, topic-context-resolution, adr-three-gate, minimal-decision-record, sequential-record-numbering, optional-record-sections, adr-what-qualifies, adr-match-convention, adr-supersede-lifecycle, adr-code-gotcha-link, scoped-decision-records, avoid-ruled-out-synonyms, missing-term-as-signal]
   notes:
     glossary-entry-template: "Lays the file out as a title and a one-or-two-sentence description, then each term in bold followed by its definition and an Avoid line."
     tight-concept-definitions: "One or two sentences at most."
+    avoid-ruled-out-synonyms: "Carried by the glossary itself: the template header in GLOSSARY-FORMAT.md, so each glossary made from it tells its readers to avoid the words its terms list under Avoid."
+    missing-term-as-signal: "Carried by the glossary template header beside avoid-ruled-out-synonyms."
 ours:how:
-  tree_hash: "6e7f7aed0531ecd5113efac6cee037791b07fa7721a308521b8ca232118fe576"
-  traits: [read-only-explanation, immaterial-ambiguity-reading, angles-when-wide, reconcile-by-reading, explanation-sections, cited-flow-walkthrough, recommendation-with-tradeoffs]
+  tree_hash: "99ecc72ab1d81c5e2782dbbcbf5e65eb3ac9ac9a383bdadd103dcf69c6c99d60"
+  traits: [read-only-explanation, immaterial-ambiguity-reading, angles-when-wide, reconcile-by-reading, explanation-sections, cited-flow-walkthrough, recommendation-with-tradeoffs, assigned-slice-depth, doubt-takes-simple-path]
 ours:why:
-  tree_hash: "1b401db14a5a027d8165cbb330a3536da6c80dd682124b3e8e802d9cccf70a30"
-  traits: [read-only-explanation, immaterial-ambiguity-reading, gather-without-concluding, code-anchor-first, named-record-first, target-derived-search-terms, local-evidence-sources, pickaxe-history-search, full-record-reading, record-lineage-walk, recency-bias-check, embedded-hypothesis-check, confidence-tiers, adjacent-citation-gate, code-not-intent-evidence, no-retrofitted-rationale, consistency-is-not-intent, absence-is-not-evidence, contradiction-shown, competing-hypotheses-section, searched-and-unknown, unreachable-data-is-gap, sources-consulted-line, constraints-before-change, pr-discussion-pull]
+  tree_hash: "49262082ecff08b8a0ef89529c405120bdfe0cef5894c20caf07c6b25216a96e"
+  traits: [read-only-explanation, immaterial-ambiguity-reading, gather-without-concluding, code-anchor-first, named-record-first, target-derived-search-terms, local-evidence-sources, pickaxe-history-search, full-record-reading, record-lineage-walk, recency-bias-check, embedded-hypothesis-check, confidence-tiers, adjacent-citation-gate, code-not-intent-evidence, no-retrofitted-rationale, consistency-is-not-intent, absence-is-not-evidence, contradiction-shown, competing-hypotheses-section, searched-and-unknown, unreachable-data-is-gap, sources-consulted-line, constraints-before-change, pr-discussion-pull, incident-source-playbook, warehouse-evidence-inventory, typed-models-over-raw, probe-schema-before-query, schema-drift-check, refresh-lag-fallback, timeline-against-ship-date, constant-origin-signal, warehouse-motive-signals, warehouse-finding-record, telemetry-evidence-inventory, owning-service-first, curated-views-before-raw, span-and-trace-inspection, narrow-log-lookups, telemetry-motive-signals, telemetry-finding-record, ticket-search-procedure, document-store-search-procedure, error-trace-relevance, error-finding-record, chat-search-procedure, exact-quote-evidence, counterfactual-strength-test, correlation-needs-neighbor-check, interest-is-not-cause, generated-analysis-is-inference, document-motive-signals, document-external-metadata, casual-remark-not-a-decision]
 ours:grilling:
-  tree_hash: "3f9df72abc79355fead616ca0db983426b1d0f532537e8e95bfdd6e568288907"
-  traits: [map-decisions, question-batching, recommended-answer, self-serve-facts, settled-stop, absent-respondent, grill-the-send, gap-targeted-questions, interview-not-authority, optional-docs, decision-summary, answer-before-next-round, yes-accepts-recommendation, importance-ordered-questions, needed-item-coverage, single-idea-questions]
+  tree_hash: "16f23805b2223452ee570aef5a4b36d06dcf7467794eac8c51d047631f184e78"
+  traits: [map-decisions, question-batching, recommended-answer, self-serve-facts, settled-stop, absent-respondent, grill-the-send, gap-targeted-questions, interview-not-authority, optional-docs, decision-summary, answer-before-next-round, yes-accepts-recommendation, importance-ordered-questions, needed-item-coverage, single-idea-questions, exhaustive-completion, questionnaire-artifact, selective-why-lines, questionnaire-document-template, questionnaire-response-expectations, partial-uncertain-answers-welcome]
   notes:
     yes-accepts-recommendation: "Delivers sealed row 2026-10-30-mattpocock_skills-5beb35b:076 whole, for a question offering a recommendation; a question after a fact stays an ordinary question; T5."
     recommended-answer: "Labels the recommendation's assumptions."
     self-serve-facts: "Ordinary lookups stay inline; only bounded work is delegated."
+    exhaustive-completion: "An option, not the default: after the settled stop, grilling offers to visit every remaining branch and does so only if the user says yes."
+    questionnaire-artifact: "Saved to the interview folder (docs/interviews/ unless the project names another) with a dated, slug and kind name, not the current directory; the closing summary is saved there too."
 ours:harness-evaluate:
-  tree_hash: "4ba41d978d395a33869c64cb5ea450fe6edf766e814da8c96ba997025995a290"
+  tree_hash: "34949a55f193a6b5b6245e0df298991cddc1a3b34e98d4e496edc65eed5170a3"
   traits: [read-first, decision-dimensions, disposition-choice, recommendation-vs-record, record-command, edit-canonical-source, template-adoption-gate, material-risk-review, adopt-after-state-exists]
 ours:harness-publish:
-  tree_hash: "cf40e127d248854f39a320f0c28e57245177df21c830437284a3354f84805e14"
+  tree_hash: "a6c5bac26b2f94b7a8f50b40c3ca9e7ca43c6912e3b2633f2fd44f11ae0452a3"
   traits: [manual-root-only, prerequisites-scope, repo-context-check, authority-separation, preflight-gates, dry-run, publish-bump, plugin-repo-review, submodule-pointer, failure-table, never-edit-build-output]
 ours:harness-scan:
   tree_hash: "4f9ea1d107731642b20f793149a36c23cb3a4cda3b010b15eda781ce532659e6"
@@ -91,7 +96,7 @@ ours:html-artifact:
   tree_hash: "1c4c952e6555f09f0e4f54275d42feb19856c315ba0b0e52251ac86493d2eee9"
   traits: [self-contained-contract, accessibility-contract, progressive-enhancement, honest-content, preset-report, preset-dashboard, preset-explainer, preset-editor, tokens-first-style, component-vocabulary, svg-figure-grammar, svg-complexity-budget, svg-accessibility, honest-data-encoding, deliver-verify]
 ours:brief-me:
-  tree_hash: "ba314a374e3c96bd9b3a909a745e496ffd192a2d4b662f2963afec6b85125f32"
+  tree_hash: "b08f805f5dc53e61a6ca924c15f229e77ecb1194c15f632e8d5a0c986a5f1c40"
   traits: [next-action-first, numbered-steps, single-next-action, tangent-suppression, state-restatement, concrete-time-estimates, visible-progress, matter-of-fact-errors, capped-lists, no-preamble, explain-on-request, debug-spiral-reset, repitch-trigger, controlled-language, domain-vocabulary, pre-send-check, repitch-explains-project-terms]
 ours:improve-codebase-architecture:
   tree_hash: "616472db7e4fff6ae7d259fa5e7dc4c7cd3c05222a2a33072db1f18b3bae0042"
@@ -106,13 +111,13 @@ ours:land:
   tree_hash: "b440a07e143375a487076626d00cae2de6ba79310b62035e24f6089a3ca9a1e1"
   traits: [verified-work-only, own-path-partition, conventional-commit-title, commit-body-adds, commit-plan-without-authority]
 ours:migrate-claude-to-codex:
-  tree_hash: "27734a27265888408eca426706a7ad173b0f62709667cda6de5fa77afb3597ca"
+  tree_hash: "cf4adcb8725e0df89d88b2e2950b9d279212b1f32b32a7c6af23f2c23318106b"
   traits: [dry-run-default, skill-symlinking, destination-protection, command-conversion, agent-conversion, hook-conversion, config-scaffold, shared-policy-untouched, structural-verify, non-destructive, test-before-reliance]
 ours:model-council:
-  tree_hash: "678a7f2a8a0872f518a32349f32b6b49e0a3b83ed8d978b5f26d4ef50f85165a"
-  traits: [member-resolution, runtime-capability-check, neutral-framing, member-isolation, report-preservation, independent-synthesis, consolidated-delivery, identity-recording, failed-member-recovery, no-silent-substitution, artifact-named-up-front, task-rubric-criteria, rubric-withheld-from-candidates, own-output-location, rationale-names-rejected, dropout-proceeds-noted, read-only-judge, judge-other-family-or-stated, rubric-given-to-judge, path-labelled-candidates, judge-criterion-scores, judge-recommends-base, full-read-before-pick, picker-criterion-scores, pick-compared-with-judge, disagreement-rereads-rationales, base-chosen-for-extensibility, near-tie-smaller-surface, loser-graft-pass, sparse-grafts, hand-folded-grafts, converged-shape-no-graft, divergence-reframes-once, graft-change-rerun, verify-miss-returns-once, single-synthesized-artifact, synthesis-decision-record, note-judge-status, note-convergence-dropouts, note-verification-result, no-judge-no-pick]
+  tree_hash: "924c702a75b471cbfa3a3aed97e1860adb5a41740233bb0c192b705b9bd49876"
+  traits: [member-resolution, runtime-capability-check, neutral-framing, member-isolation, report-preservation, independent-synthesis, consolidated-delivery, identity-recording, failed-member-recovery, no-silent-substitution, artifact-named-up-front, task-rubric-criteria, rubric-withheld-from-candidates, own-output-location, rationale-names-rejected, dropout-proceeds-noted, read-only-judge, judge-other-family-or-stated, rubric-given-to-judge, path-labelled-candidates, judge-criterion-scores, judge-recommends-base, full-read-before-pick, picker-criterion-scores, pick-compared-with-judge, disagreement-rereads-rationales, base-chosen-for-extensibility, near-tie-smaller-surface, loser-graft-pass, sparse-grafts, hand-folded-grafts, converged-shape-no-graft, divergence-reframes-once, graft-change-rerun, verify-miss-returns-once, single-synthesized-artifact, synthesis-decision-record, note-judge-status, note-convergence-dropouts, note-verification-result, no-judge-no-pick, sketch-by-parallel-runners]
 ours:mvp-mode:
-  tree_hash: "e75fd97fcd3f07932500bca29eab7fa3ef1e97ee2c2922e887d1716c48588991"
+  tree_hash: "ef2611563a958197d9a9ac82b6a6de27aaa015f08458288094a3967300147c12"
   traits: [unit-kind-lines, playbook-pick, need-to-skill-routing, overlap-arbitration, layered-catalog, platform-skill-invocation, no-playbook-in-delegate, delegate-independent-by-default, no-onward-delegation, playbook-steps-as-todos, recorded-step-skip, whole-callee, playbook-exit, legacy-entrypoint-flagging, catalog-trust-boundary]
 ours:performance-optimization:
   tree_hash: "8e393535c7e06691afca39ef9df84040ce4752a29a8cc58610b8522ce951c4da"
@@ -138,8 +143,8 @@ ours:principle-explain-the-number:
   tree_hash: "7d3893755da862380252c8bb0fb7a851c55a63a11dc3c7d1710e9f9a5946e8c8"
   traits: [decision-before-measurement, named-limiter, confound-elimination, evidence-with-number, eval-result-scrutiny]
 ours:principle-fix-root-causes:
-  tree_hash: "f8bdf73ad7d5e348f178d6e3f8a9683ec98a7407ca6f660d00ecaefb6da7d280"
-  traits: [why-chain, legitimate-state-test, persisted-state-suspect]
+  tree_hash: "aa654e2d9e831d67034c64e4b6d841c4fd8839f703e0bd7f65a79f7f65649b8a"
+  traits: [why-chain, legitimate-state-test, persisted-state-suspect, workaround-comment-smell]
 ours:principle-make-operations-idempotent:
   tree_hash: "e1be56db6fcd5af7eb5aa9dc566cdecbd9e8b1c48bdb33e2993d5bc98462e914"
   traits: [convergent-operations, reconcile-from-state, judgeable-leftovers, interruption-point-audit]
@@ -159,8 +164,8 @@ ours:principle-separate-before-serializing-shared-state:
   tree_hash: "ba25adb2431b8645c62cd2c6ead36d64db5551ba1afb2d535fa7ce203e3edb00"
   traits: [concurrent-modification-test, eliminate-shared-writes, structural-serialization]
 ours:principle-sequence-verifiable-units:
-  tree_hash: "94d66dc84b255642af04d3d5884aa4f70bf0f0a623c301b8d6dde94db43d5e1d"
-  traits: [baseline-check-before-change, verified-unit-sequence, small-single-purpose-commits, argument-order-commits, vertical-slices, prefactor-first, expand-contract, blast-radius-batches]
+  tree_hash: "4b25efdb965c69e018a82e0f2164ab3824fb647eaa82dff6856cd943bbee6f12"
+  traits: [baseline-check-before-change, verified-unit-sequence, small-single-purpose-commits, argument-order-commits, vertical-slices, prefactor-first, scaffold-first, expand-contract, blast-radius-batches]
 ours:principle-subtract-before-you-add:
   tree_hash: "76cd8d8c91d71be284e0570ffd72b4b747cd88b1fef6fd518c744fee37f7d1d8"
   traits: [touched-scope-subtraction, deletion-bias, stub-deletion, single-source-of-truth, cut-before-polish]
@@ -191,7 +196,7 @@ ours:prototype:
     self-contained-html-demo: "Offered when a non-developer needs to manipulate states; offline when sharing is the goal."
     resettable-demo-scenarios: "Only the guided scenarios needed to expose the uncertainty."
 ours:research:
-  tree_hash: "2e76783fc5fe202fcfb32134de949fdd8cf995963b937045a5e80efb038df95e"
+  tree_hash: "7088a38212784b28dde3b4799a0ddc782f2f87c3c50ef5dcdcfbe31467dcc3fc"
   traits: [decision-framing, primary-source-preference, source-version-dating, vendor-claim-testing, source-weighting, evidence-separation, disconfirming-red-team, structured-synthesis, evidence-lenses, evidence-without-verdict, cited-artifact, scaled-report, area-topic-filing, decision-sufficient-stop, sizeable-delegation]
   notes:
     primary-source-preference: "Current primary sources for changing facts and technical behaviour."
@@ -199,8 +204,8 @@ ours:resolving-merge-conflicts:
   tree_hash: "18e9abe7213d906c177ab91e945bc1c0747776e3a875091dbff5bdc16b26e401"
   traits: [capture-conflict-set, trace-intent, resolve-preserve-both, resolve-over-abort, run-project-checks, explicit-staging, commit-authority-gate]
 ours:review:
-  tree_hash: "de95d32c11fe83e2c26ebaaff3eca5710fd70019830ca3e60a1cebbe0dec4d4c"
-  traits: [independent-critic-verdict, severity-and-verdict, scope-establishment, pre-existing-edit-separation, callers-and-evidence, mechanical-gate-precedence, requirements-before-quality, distinct-axis-verdicts, test-quality-judgment, actionable-defects-only, read-only-isolation, verdict-contract, re-review-finding-tracking, document-review, finding-adjudication, fixed-point-preflight, spec-source-discovery, missing-spec-axis-skip, two-axis-review, standards-source-discovery, cited-standard-findings, spec-conformance-findings, breakage-beyond-callers, safety-fact-proved-by-run, evidence-ladder, ladder-as-far-as-cheap, small-real-library-script, failing-loud-proof, whole-change-including-unstated, change-history-pull, single-safety-fact-search, dependency-source-and-pin, timing-and-lifecycle-analysis, non-symbol-coupling-trace, likelihood-and-cost-per-risk, confirmed-and-cleared-split, empty-search-is-finding, handback-what-it-does, handback-safety-fact-with-grade, handback-risk-fields, handback-pre-merge-check]
+  tree_hash: "40a72dd4d1a3836491ae1107ff1e35c27a002250b6f42514062cd339114dd511"
+  traits: [independent-critic-verdict, severity-and-verdict, scope-establishment, pre-existing-edit-separation, callers-and-evidence, mechanical-gate-precedence, requirements-before-quality, distinct-axis-verdicts, test-quality-judgment, actionable-defects-only, read-only-isolation, verdict-contract, re-review-finding-tracking, document-review, finding-adjudication, fixed-point-preflight, spec-source-discovery, missing-spec-axis-skip, two-axis-review, standards-source-discovery, cited-standard-findings, spec-conformance-findings, breakage-beyond-callers, safety-fact-proved-by-run, evidence-ladder, ladder-as-far-as-cheap, small-real-library-script, failing-loud-proof, whole-change-including-unstated, change-history-pull, single-safety-fact-search, dependency-source-and-pin, timing-and-lifecycle-analysis, non-symbol-coupling-trace, likelihood-and-cost-per-risk, confirmed-and-cleared-split, empty-search-is-finding, handback-what-it-does, handback-safety-fact-with-grade, handback-risk-fields, handback-pre-merge-check, merge-base-default-scope]
   notes:
     severity-and-verdict: "A plan-mandated defect is still reported as major, labelled plan-mandated, for the user to decide."
 ours:security:
@@ -212,12 +217,13 @@ ours:show-me:
   notes:
     minimal-visual-selection: "One form, occasionally two, never a gallery, with a sentence or two of prose each."
 ours:systematic-debugging:
-  tree_hash: "ca87a206b19dd3b1e85222c49a5a44911b1f400e6c31855d191b493a78643b68"
-  traits: [reproduction-preferred, unproven-without-reproduction, loop-construction, minimize-to-discriminate, flake-reproduction, environmental-cause-unresolved, hypotheses, discriminating-observation, localized-probing, critic-escalation, diagnosis-only, diagnosis-status, caller-deferrable-cleanup, preserve-reproducers, tagged-debug-logs, baseline, credential-env-indirection, falsifiable-hypotheses, one-variable-at-a-time, placeholder-sensitive-data-redaction]
+  tree_hash: "7b1fa333c978ef9c56d9bf6f09879747c3e24c879e203b0ba26570e556cf1e6c"
+  traits: [reproduction-preferred, unproven-without-reproduction, loop-construction, minimize-to-discriminate, flake-reproduction, environmental-cause-unresolved, hypotheses, discriminating-observation, localized-probing, critic-escalation, diagnosis-only, diagnosis-status, caller-deferrable-cleanup, preserve-reproducers, tagged-debug-logs, baseline, credential-env-indirection, falsifiable-hypotheses, one-variable-at-a-time, placeholder-sensitive-data-redaction, signal-lines-only, repro-budget-outcomes]
   notes:
     one-variable-at-a-time: "Delivers sealed row 2026-10-30-mattpocock_skills-5beb35b:222: one change per probe, with the prediction carried by the hypothesis rather than mapped per probe; T5."
     falsifiable-hypotheses: "Delivers sealed row 2026-10-30-mattpocock_skills-5beb35b:238: each hypothesis states what would confirm or refute it, with no discard step and no prediction about changing the cause; T5."
     reproduction-preferred: "Reuses an existing failing test or command first, otherwise builds the smallest useful reproduction."
+    repro-budget-outcomes: "The caller's budget or one stated before the first attempt; at its end the diagnosis is Provisional labelled not reproduced, naming the evidence or capability wanted, or blocked on a capability the environment lacks."
 ours:teach:
   tree_hash: "9c2bfa6a3cebea9c36fe6fa3ddde8965971b18b8d2417a2f62dbb5cbd18f5aea"
   traits: [learning-shape, level-adaptation, what-vs-why, teaching-workspace, authorized-course-location, mission-grounding, glossary-entry-template, canonical-term-and-aliases, tight-concept-definitions, glossary-self-vocabulary, glossary-admission-on-use, learning-records, learning-resource-register, high-trust-resource-filter, resource-gap-register, prune-invalid-resources, lesson-format, reusable-assets, quiz-answer-hygiene, retrieval-practice, scope-discipline, sourced-explanations, mission-interview-first, community-opt-out, learning-record-criteria, field-term-resolution, in-place-definition-revision, mission-document-template, one-mission-per-workspace, one-screen-mission, minimal-learning-record-template, learning-record-supersession, cross-linked-lessons, domain-vocabulary, sequential-record-numbering, optional-record-sections, knowledge-skills-wisdom-frame, mission-shift-handling, spacing, storage-strength, vary-answer-position, what-how-why-account, single-blended-account, lead-with-what-matters, confidence-language-kept, pick-few-takeaways, learner-context-from-conversation, depth-where-asked, orient-then-use-investigation, plain-definition-first, general-tied-to-local-case, build-up-order, problem-and-mechanism-per-part, walkthrough-of-user-action, no-symbol-inventory, no-labels-or-step-words, requested-depth-first-answer, offer-depth-follow-lead, no-teaching-theatre, show-the-real-artifact, figure-when-faster, incremental-diagram-series, plain-colleague-voice, reply-is-the-deliverable, threads-to-chase]
@@ -246,24 +252,26 @@ ours:to-roadmap:
   tree_hash: "bdb70b10b00469f1929c5eb16b3d12a538735d55f7adf99e7c70494e81e84a4f"
   traits: [decompose-phases, breakdown-approval-before-publish]
 ours:to-spec:
-  tree_hash: "47c9a6eca86253f1cedb8fd6995d9bdc640005d5dd69e337caf619676d1cad2a"
+  tree_hash: "b5c65663574e18bdb07472ddec3fb6a7669586ea38ce21d66e8f398504e883d6"
   traits: [synthesize-settled, spec-template, spec-criteria-and-questions, none-keeps-heading, testing-seam-decision, no-stale-file-paths, no-stale-code-snippets, prototype-snippet, spec-approval-gate, material-risk-review, user-perspective-framing, implementation-decisions-scope, testing-decisions-contents]
 ours:tracker:
-  tree_hash: "36cf8a2622dc5be2c79e1b6663a7a637009db7db2fd6cd78c4279da94854b424"
+  tree_hash: "13a2fc0c01126ba945e778d35a17b29e08acbbac9353ed6928dcec14e1ecc2f8"
   traits: [phase-epic-contract, phase-epic-lookup, workstream-layout, beads-native-tracking, workstream-extension, dependency-edges, real-id-wiring, one-phase-plan-tracking, flat-operational-tracking, close-gate, workstream-render, session-spanning-unit-beads]
   notes:
     beads-native-tracking: "The roadmap anchor is the --spec-id and the governing spec is --design; the renderer derives the workstream from the anchor, so a plan path never goes in --design."
     close-gate: "Also closes a one-phase epic, whose exit evidence is the epic's acceptance rather than a roadmap exit criterion."
     real-id-wiring: "Creates every bead first, then wires edges and binds a plan's proposed stage names by the returned IDs."
 ours:triage:
-  tree_hash: "65cfe5b4eefd6097cc0339096a82a3ba4154b70de957b7cbe4767b248951d182"
-  traits: [attention-buckets, triage-decision, established-notes, triage-resume-notes, redundancy-check, prior-rejection-check, claim-verification, agent-ready-gate, pick-from-summary, durable-rejection-reasons, already-built-close, brief-acceptance-criteria, read-full-source-issue, ready-for-human-rationale]
+  tree_hash: "13642dd66a92801dde3ba453dac1de48f390049623632d73ed34b6daa6de8a35"
+  traits: [attention-buckets, triage-decision, established-notes, triage-resume-notes, redundancy-check, prior-rejection-check, claim-verification, agent-ready-gate, pick-from-summary, durable-rejection-reasons, already-built-close, brief-acceptance-criteria, read-full-source-issue, ready-for-human-rationale, split-pr-read-steps, pr-as-issue, duplicate-search-key-list, issue-template-and-title, external-author-pr-filter]
   notes:
     brief-acceptance-criteria: "Delivers sealed row 2026-10-30-mattpocock_skills-5beb35b:304: independently checkable acceptance on the agent-ready gate, where the definition requires it of every brief, a separate writing rule; T5."
     ready-for-human-rationale: "Delivers sealed row 2026-10-30-mattpocock_skills-5beb35b:306: a label and a note with the reason, with no separate brief structure; T5."
     attention-buckets: "Four buckets (untriaged, ideas, waiting on the owner, missing acceptance) with counts and one-line summaries."
     claim-verification: "An unreproduced bug gets questions for the owner, never an automatic close."
-    prior-rejection-check: "Searches closed beads for earlier wontfix closes."
+    prior-rejection-check: "Searches closed beads for earlier wontfix closes; a decline made on GitHub is also recorded as a wontfix-closed bead, so the search finds it."
+    pr-as-issue: "An outside contributor's pull request with no usable reference: a bead created or reused, its issue published and commented on the pull request with the owner's authorization, or a decline with the reason."
+    external-author-pr-filter: "Filters the digest's untracked pull request rows by the author association the mirror now records: OWNER, MEMBER or COLLABORATOR rows are our own pull requests and are not decided as issues; a row without one (older than the field) is unknown and decided as an outside author's."
 ours:wayfinder:
   tree_hash: "9b304f3728e916f1af0643b2336deb986bd0c49ce1ebecc8e4b2d469c7416ca1"
   traits: [decision-map-epic, plan-not-do, dependency-edges, map-as-index, map-body-sections, reference-by-name, bounded-decision-ticket, coherence-sized-tickets, label-free-typing, ticket-type-set, claim-before-work, destination-first, question-graduation, record-resolution, out-of-scope-close, human-decision-gate, multi-ticket-sessions, prototype-ticket-asset, fog-hygiene, low-res-map-load, breadth-first-charting, invalidated-ticket-reconciliation, prerequisite-task-human-checklist, prerequisite-task-result-facts]
@@ -275,24 +283,30 @@ ours:wayfinder:
     decision-map-epic: "A Beads epic whose title starts with Map:."
     record-resolution: "Updates invalidated dependencies without deleting history."
 doc:AGENTS.md:
-  tree_hash: "ea807472364357161d86cb2a60854e6020abe5cbba3f2bd51db539c05f409f0d"
-  traits: [smallest-sufficient-change, implementation-authority-carry, inspection-only-authority, material-ambiguity-ask, work-while-waiting, consequential-action-authorization, approval-persistence, accuracy-over-agreement, no-grade-inflation, certainty-labelling, no-fabrication, scoped-reading, logs-behind-references, untrusted-content-no-authority, primary-evidence-check, volatile-fact-verification, decision-conflict-surfacing, handoff-contents, learnings-capture, memory-on-request, reuse-existing-first, present-requirement-only, no-unrelated-cleanup, owning-layer-fix, caller-impact-check, limitation-with-revisit, proportional-effort, explicit-workflow-adherence, configured-model-use, independence-batching, no-evidence-pivot, no-onward-delegation, worker-brief-contents, preserve-others-edits, no-duplicate-delegated-work, coordinator-ownership, applicable-checks-before-done, risk-proportional-tests, original-failure-check, rerun-on-change-only, final-diff-inspection, final-report-contents, secret-containment, simplification-preserves-safeguards, safe-retry-only, no-guard-bypass, explicit-path-staging, destructive-git-guard, commit-push-authority, merge-base-selection, merged-result-verification, unmerged-work-protection, repo-relative-committed-paths, scratch-artifact-location, read-only-references, minimal-borrowing, plugin-subset-invariant, resume-bead-and-handoff, generated-mirror-read-only, plain-path-references, durable-work-tracking, router-at-task-start, recurring-lesson-to-check, tool-when-it-pays, script-over-fanout, direct-observation, suspect-the-observation]
+  tree_hash: "f110f4d6f132b0cac0eadc77e1be20b70a0b055990226e9e8685efcc56eb904a"
+  traits: [smallest-sufficient-change, implementation-authority-carry, inspection-only-authority, material-ambiguity-ask, work-while-waiting, consequential-action-authorization, approval-persistence, accuracy-over-agreement, no-grade-inflation, certainty-labelling, no-fabrication, scoped-reading, logs-behind-references, untrusted-content-no-authority, primary-evidence-check, volatile-fact-verification, decision-conflict-surfacing, handoff-contents, learnings-capture, memory-on-request, reuse-existing-first, present-requirement-only, no-unrelated-cleanup, owning-layer-fix, caller-impact-check, limitation-with-revisit, proportional-effort, explicit-workflow-adherence, configured-model-use, independence-batching, no-evidence-pivot, no-onward-delegation, worker-brief-contents, preserve-others-edits, no-duplicate-delegated-work, coordinator-ownership, applicable-checks-before-done, risk-proportional-tests, original-failure-check, rerun-on-change-only, final-diff-inspection, final-report-contents, secret-containment, simplification-preserves-safeguards, safe-retry-only, no-guard-bypass, explicit-path-staging, destructive-git-guard, commit-push-authority, merge-base-selection, merged-result-verification, unmerged-work-protection, repo-relative-committed-paths, scratch-artifact-location, read-only-references, minimal-borrowing, plugin-subset-invariant, resume-bead-and-handoff, generated-mirror-read-only, plain-path-references, durable-work-tracking, router-at-task-start, recurring-lesson-to-check, tool-when-it-pays, script-over-fanout, direct-observation, suspect-the-observation, irreversible-writes-wait]
 doc:.repo-context/coding-style.md:
   tree_hash: "69c61c0c79bafd364f463e9a7e38bf023d39bc10223490f94d72523f29cd0868"
   traits: [ruff-format, scoped-formatting, ruff-lint, strict-mypy, explicit-signatures, pydantic-models, no-incidental-model-migration, frozen-by-default, closed-schema, per-instance-defaults, plain-serialized-contracts, preserve-config-format, config-injection, no-secrets-in-yaml-git-logs, io-timeouts, bounded-retries, no-blocking-in-async, bounded-concurrency, surface-background-errors, parameterized-queries, untrusted-input-validation, no-dynamic-execution, structured-logging, no-bare-except, public-interface-testing, system-boundary-mocks-only, test-parametrization, shared-test-fixtures, risk-gated-test-first, reuse-test-fixtures, uv-sync-environment, uv-run-tools, uv-add-remove, manifest-lock-consistency, declared-dependencies-only, jsonl-ledger-format, per-round-ledger-files, sealed-rounds, append-only-supersede, ledger-record-fields, ledger-validator, generated-human-view, ledger-view-no-hand-edit]
   notes:
     strict-mypy: "ty is optional feedback and never replaces the mypy gate."
 doc:.repo-context/verification.md:
-  tree_hash: "7840a0551b7d0b9e9e5c94e6c209f300736029c399dbe6d80ffcf5a9590c92d3"
+  tree_hash: "75557338afe5946a5e45492ef42933c09c355a652a027887e017466a592e0d52"
   traits: [checks-by-changed-material, docs-only-suite-exemption, claim-evidence-table, partial-verification-report, diff-whitespace-check, doc-link-validation, historical-vs-active-guidance, syntax-checks-by-file-type, shell-lint-when-available, harness-code-suite, registry-check-on-change, tracker-cli-health, tracker-export-current, skill-catalog-check, guard-hook-block-proof, plugin-harness-or-unverified]
 ours:wake:
   tree_hash: "c75ab0ca50f5de35a9607e148c2c7090a3131b200e00c978278a862e9d083af8"
   traits: [run-card-limits, one-consuming-admit, one-closing-timer, timer-positive-evidence, timer-identity-check, timer-close-cancels, woken-run-limits]
+ours:control-loop:
+  tree_hash: "f56b0bc54f413b14242860e67b0df578a7e1d45658e86a7fb1f00e0fd66492d7"
+  traits: [control-loop-vocabulary, fused-loop-parts, loop-charter-bead, run-task-bead-per-pr, noted-target-exclusion, one-open-pr-bound, allowlisted-headless-actuator, agent-spend-guard, gated-script-commit, loop-scope-gate, loop-run-grant, gate-loosening-held, local-first-components, repo-survey-before-interview, component-design-interview, set-point-and-scope, sensor-tradeoff-choice, reviewable-increment-controller, golden-patterns-first, agreed-validation-commands, loop-dampener-offer, cadence-by-risk, written-design-before-build, one-home-per-loop-rule, loop-actuator-instructions, no-questions-unattended, fix-or-skip-outcome, pr-body-response-template, steering-file-after-controller, assembled-actuator-prompt, loop-config-validation, overlapping-run-skips, set-point-reached-stop, final-message-extraction, no-change-no-pr, agent-output-kept, one-real-dry-run, local-timer-on-request, tune-controller-from-output, scale-up-once-tuned, completion-criteria-clarity]
+  notes:
+    gate-loosening-held: "Narrowed to the loop's own gate: clearing a target by silencing the sensor's tool (an ignore entry, a suppression comment, a changed tool configuration) is a loosening; the actuator skips the target and the owner decides (SKILL.md, The grant)."
+    completion-criteria-clarity: "Each step of Build a loop ends on a Done when line."
 ours:restate:
-  tree_hash: "1d9ce4beb2f7f408a6b3ace34fea24652e5c5e1fc417d603682bbdebaeb10290"
+  tree_hash: "1df24631272f640a4d4ac1a5e6634a49d3a0994ff921e7d4ff48078827fc16f9"
   traits: [goal-and-problem-restatement]
 ours:sharpen:
-  tree_hash: "9cea278b015e6ba0fe6548c6a41c1414a2037b7f66ee7571fc2b1ec346a1007f"
+  tree_hash: "7108bef3337bcfb5e3c2c560a51cf5f6aca07ee9fe59c5566371c08db5ed6af4"
   traits: [depth-not-scope-rewrite, diagnose-then-rewrite-prompt, expert-gap-question, rawest-source-question, expert-methods-question, outside-correctness-signal, owner-choices-left-open]
 ours:recall:
   tree_hash: "e5237e7c4594d34349907152eb036e54dcb181f753a93d735fbd76e1abd7b60f"
@@ -304,11 +318,11 @@ ours:principle-no-comments:
   tree_hash: "ad98275b7e7e0f99b69ede8b3b48036b2a93f94799ebd3ac5073d1c499d04cbb"
   traits: [exact-proof-settles-a-protected-keep, unsure-comment-kept-and-flagged, safety-suppressions-removed, constraint-comment-class, unchangeable-constraint-kept]
 ours:reflect:
-  tree_hash: "71ad37af03143ed6c0b8e4ba9ced0e31886ed80f63e91746026be98a256ac1b1"
-  traits: [sampled-session-retros, failures-first-retro-sample, environment-retro-categories, read-existing-check-first, read-session-sources, severity-ordered-proposals, retro-in-reviewed-session, one-offs-not-lessons, no-cross-project-transcript-search, brief-sent-as-written, findings-in-the-reply, three-way-finding-disposition, approval-before-applying-findings, approved-routing-followed, used-or-missed-unit-scope, closing-summary-parts, durable-principle-lens, brief-only-read-only, finding-with-evidence-and-destination, rule-not-label, skip-drifting-details, concrete-tooling-lens, decision-changing-finding, one-row-per-finding, transcript-location-convention, transcript-located-by-layout-probe]
+  tree_hash: "fbdb48c4fa528a86f974946084f3d2d58d01a760f7a24640dfa53e1ce3224d7e"
+  traits: [sampled-session-retros, failures-first-retro-sample, environment-retro-categories, read-existing-check-first, read-session-sources, severity-ordered-proposals, retro-in-reviewed-session, one-offs-not-lessons, no-cross-project-transcript-search, brief-sent-as-written, findings-in-the-reply, three-way-finding-disposition, approval-before-applying-findings, approved-routing-followed, used-or-missed-unit-scope, closing-summary-parts, durable-principle-lens, brief-only-read-only, finding-with-evidence-and-destination, rule-not-label, skip-drifting-details, concrete-tooling-lens, decision-changing-finding, one-row-per-finding, transcript-location-convention, transcript-located-by-layout-probe, mine-and-group-mistakes, two-occurrence-threshold, most-frequent-classes-first, class-evidence-level-report]
 ours:pr:
-  tree_hash: "9100e0bcbf28d3ac914d697b0b2968dce4612c2fb0f06e421c3ff3d1db7db3ac"
-  traits: [pr-body-template, evidence-before-after, merge-danger, no-preamble, visual-form-catalog, structural-diff, visual-placement, minimal-visual-selection, link-bulk-evidence]
+  tree_hash: "7d870404440a0a76e68b6ab977476e0e002e07748f7ab10beaf2ccb4edd84c71"
+  traits: [pr-body-template, evidence-before-after, lead-number-pr-body, merge-danger, no-preamble, visual-form-catalog, structural-diff, visual-placement, minimal-visual-selection, link-bulk-evidence, count-claims-with-command]
 ours:create-verification-skill:
   tree_hash: "259422a86c732b16979a83dfe4ee1b26cde8fdf840f1e1b49d4e4eddff62de9d"
   traits: [ask-only-unobservable, primary-surface-chosen, documented-run-command-first, run-prerequisite-inventory, existing-harness-then-recipe, install-scope-project-or-user, evidence-inventory, instance-isolation-probe, working-base-first, marked-startup-scaffolding, project-verification-skill, cold-agent-reader, generated-skill-run-once, single-feature-handover-proof, evidence-checked-after-cleanup, cleanup-after-failed-attempt, stand-in-gap-disclosure, check-never-weakened-to-pass, map-defines-completeness, registering-generated-frontmatter, real-code-names, runnable-documented-helpers, launch-ready-means-usable, launch-from-empty-data, launch-with-teardown, short-lived-cli-launch, read-only-doctor, doctor-when-suspicious, drive-only-own-instance, live-service-isolation, target-confirmed-for-surface, stable-handles, named-evidence-destination, real-user-path-proof, action-and-state-capture, side-effects-verified, credentials-never-captured, system-boundary-mocks-only, dry-run-skips-observed, repro-evidence-for-surface, teardown-only-own-instances, cleanup-keeps-evidence, always-cleanup-keeping-user-work, same-surface-agent-repro, drive-shipped-surface, translate-environment-before-blocking, driver-smoke-proof-for-surface, feature-map-entry-required, seeded-feature-map, undriven-feature-marked, map-section-per-reproducible-feature, read-index-first, baseline-preconditions-block, per-run-disposable-data, baseline-start-and-reset, literal-commands, single-control-wrapper, restore-seed-after-mutation, coordinates-from-fresh-screenshot, wait-on-condition-not-sleep, structured-output-for-assertions, ui-proof-screenshot-snapshot-where-offered, identity-screenshot, cli-proof-command-output-exit, change-proven-by-second-read, unreadable-change-unverified, artifact-provenance, rendered-value-asserted, no-result-state-asserted, cancel-path-covered, unreachable-with-route-and-prerequisite, user-view-feature-file, feature-file-template, complete-entry-point-list, user-terms-only-in-map, run-invalidating-gotchas, missing-precondition-in-gotchas, artifact-contracts, generator-started-by-person, verify-generator-description, existing-verify-skill-stops, feature-map-owns-shared-rule, worked-example-feature-map, generated-skill-left-uncommitted, handover-points-to-maintenance, recognised-by-content-shape, generator-edits-own-output-only, generator-reply-fields, destination-protection]

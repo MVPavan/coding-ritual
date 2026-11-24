@@ -267,6 +267,20 @@ def test_failed_edit_is_no_edit() -> None:
     assert steps(call(1, "Edit", inp, "ok")) == ["edit:prod"]
 
 
+def test_failed_shell_write_is_an_attempt_not_an_edit(tmp_path: Path) -> None:
+    write = {"command": "sed -i s/a/b/ src/a.py"}
+    events = [INIT]
+    events += call(1, "Bash", write, "sed: Read-only file system", error=True)
+    log = tmp_path / "run.jsonl"
+    log.write_text("\n".join(json.dumps(e) for e in events))
+
+    row = classify.classify(log, PATTERNS)
+
+    assert row["edits"] == {}
+    assert row["edit_attempts"] == {"prod": 1}
+    assert steps(call(1, "Bash", write, "")) == ["edit:prod"]
+
+
 def test_a_delegates_read_is_not_the_candidates(tmp_path: Path) -> None:
     events = [INIT]
     events += call(1, "Task", {"subagent_type": "helper"}, "done")

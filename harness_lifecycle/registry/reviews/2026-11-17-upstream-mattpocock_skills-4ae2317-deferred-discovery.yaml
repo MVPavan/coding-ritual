@@ -1,0 +1,331 @@
+harness: mattpocock_skills
+from_sha: null
+to_sha: 4ae2317
+supersedes: null
+analysis_critic:
+  by: codex gpt-6.1-sol high (critic-99)
+  date: '2026-11-17'
+  verdict: pass
+  last_critic: null
+comparison_critic:
+  by: codex gpt-6.1-sol high (critic-99)
+  date: '2026-11-17'
+  verdict: pass
+  last_critic: null
+themes: 'Twelve rows reopened by the owner. Each was deferred on 2026-10-30 only so the owner
+  could review the report''s reject recommendation. Owner ruling 2026-11-17 (conversation),
+  deferred review, bead cr-r2pa.3.3: the owner accepts it. Each stance still conflicts with,
+  or is covered by, today''s wayfinder or research skill; the rows cite the current lines.'
+skills:
+  skill:skills/engineering/wayfinder:
+    upstream_tree_hash: bd82983c105881f6cb0c15e5d029c0d5fca756939b69eebe94e49003069a276f
+    accepted: 4ae2317
+    compared_with: wayfinder
+    pairing:
+      overlap:
+        beads: 1
+        delegation: 1
+        doc:.claude/skills/mvp-mode/playbooks/implement.md: 1
+        tracker: 2
+        wayfinder: 25
+      placement_match:
+      - wayfinder
+      suggested: wayfinder
+      purpose_match: wayfinder
+      purpose: Both map and resolve the open decisions of a multi-session effort as tracked
+        tickets.
+      flag: null
+      reason: 'Compared with wayfinder: the suggested skill and the one each row''s stance conflicts
+        with.'
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      session-sized-tickets:
+        scope: reconsider
+        change: []
+        fact: variant
+        provider: wayfinder
+        candidates:
+        - coherence-sized-tickets
+        via: coherence-sized-tickets
+        also_in: {}
+        ours:
+        - .claude/skills/wayfinder/SKILL.md:26-27
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report''s reject recommendation. Opposite stance: ours sizes tickets
+          by decision coherence and dependencies, not an assumed context-window size (.claude/skills/wayfinder/SKILL.md:26-27).'
+      one-ticket-per-session:
+        scope: reconsider
+        change: []
+        fact: variant
+        provider: wayfinder
+        candidates:
+        - multi-ticket-sessions
+        via: multi-ticket-sessions
+        also_in: {}
+        ours:
+        - .claude/skills/wayfinder/SKILL.md:58-59
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report''s reject recommendation. Opposite stance: ours continues through
+          further authorized ready tickets and sets no one-ticket-per-session limit (.claude/skills/wayfinder/SKILL.md:58-59).'
+      research-subagent-branch:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/wayfinder/SKILL.md:29-30
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3, accepting
+          the report's reject recommendation. Ours makes direct lookups fine and delegation
+          optional; a mandatory subagent on a research branch conflicts with proportional delegation
+          (U-07, C-14) (.claude/skills/wayfinder/SKILL.md:29-30).
+      research-branch-pr-policy:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/wayfinder/SKILL.md:29-30
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3, accepting
+          the report's reject recommendation. Ours has no research branches (a research ticket
+          calls the research skill), so a branch lifecycle rule has nothing to govern (.claude/skills/wayfinder/SKILL.md:29-30).
+      no-map-without-fog:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/wayfinder/SKILL.md:11-12
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3, accepting
+          the report's reject recommendation. Ours routes a clear route back to mvp-mode for
+          ordinary planning or execution instead of stopping to ask; U-02 reserves questions
+          for materially different readings (.claude/skills/wayfinder/SKILL.md:11-12).
+      local-tracker-default:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/wayfinder/SKILL.md:40-41
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3, accepting
+          the report's reject recommendation. Ours reports the blocker and refuses a competing
+          Markdown tracker when Beads is unavailable (.claude/skills/wayfinder/SKILL.md:40-41).
+      grilling-default-type:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/wayfinder/SKILL.md:32
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3, accepting
+          the report's reject recommendation. Ours runs a live interview only when one is requested;
+          defaulting to grilling would ask the human for decisions research could settle (U-02)
+          (.claude/skills/wayfinder/SKILL.md:32).
+      out-of-scope-final:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/wayfinder/SKILL.md:56
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3, accepting
+          the report's reject recommendation. Ours closes an out-of-scope ticket with an explicit
+          exclusion reason; a permanent ban on re-entry would block a legitimate re-scope inside
+          the same map (S-08) (.claude/skills/wayfinder/SKILL.md:56).
+      map-initial-state:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/wayfinder/SKILL.md:17-18
+        - .claude/skills/wayfinder/SKILL.md:45-48
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3, accepting
+          the report's reject recommendation. The initial map follows from the five sections
+          and the breadth-first charting rules; spelling out its first state is a recipe step
+          (S-03) (.claude/skills/wayfinder/SKILL.md:17-18; .claude/skills/wayfinder/SKILL.md:45-48).
+      chart-only-session:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/wayfinder/SKILL.md:58
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3, accepting
+          the report's reject recommendation. Ours continues into ready tickets while useful
+          and authorized; forcing a stop after charting conflicts with carried authority (U-02)
+          (.claude/skills/wayfinder/SKILL.md:58).
+      ticket-asset-pointers:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - AGENTS.md:21
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3, accepting
+          the report's reject recommendation. AGENTS.md already keeps large logs and histories
+          behind references; a wayfinder-specific copy repeats it (S-05) (AGENTS.md:21).
+  skill:skills/engineering/research:
+    upstream_tree_hash: 7662666af51f8b1672ed7d88360d4b82656da21bb7b11c49e956eeb3036b85d5
+    accepted: 4ae2317
+    compared_with: research
+    pairing:
+      overlap:
+        delegation: 2
+        research: 4
+        settle-open-questions: 1
+      placement_match:
+      - research
+      suggested: research
+      purpose_match: research
+      purpose: Both answer a question from outside sources, weighed and cited.
+      flag: null
+      reason: 'Compared with research: the suggested skill and the one each row''s stance conflicts
+        with.'
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      claim-source-tracing:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/research/SKILL.md:15
+        - .claude/skills/research/SKILL.md:24-25
+        - .claude/skills/research/references/source-selection.md:19
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report''s reject recommendation. Ours scales effort to what the caller
+          must decide: it prefers current primary sources for changing facts and technical behaviour,
+          asks high-stakes claims for primary sources or explicit uncertainty, and stops when
+          remaining uncertainty no longer changes the answer; tracing every claim to the primary
+          source that owns it over-spends on low-stakes ones (.claude/skills/research/SKILL.md:15;
+          .claude/skills/research/SKILL.md:24-25; .claude/skills/research/references/source-selection.md:19).'

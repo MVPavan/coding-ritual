@@ -29,7 +29,11 @@ registry/
 ├── references/<harness>.md        # generated: their capabilities, stage and our ruling (§4)
 ├── TRAITS.md                      # generated: every skill's traits, every trait's holders, shared traits
 ├── STEPS.md                       # generated: every playbook's steps, and where traits and calls recur (§4b)
-└── INDEX.md                       # generated: domain → stage → sub-stage
+├── INDEX.md                       # generated: domain → stage → sub-stage
+└── viewer/
+    ├── README.md                  # what the viewer is and how to rebuild it
+    ├── template.html              # the registry viewer's page; `viewer` fills in the data (§6)
+    └── index.html                 # built by `viewer`, untracked; `build` and `check` never read it
 ```
 
 The skills and principles themselves stay in `.claude/skills/`, the only source. Records are
@@ -261,7 +265,13 @@ kinds keep one ruling per capability, with no analysis and no report row.
 agent listing a skill's traits reads only the skill folder, never these two
 files; a separate pass maps each extracted trait to an existing ID (same
 mechanism), splits it (partial match) or defines a new one. The review keeps
-both lists, so a critic can see nothing was forced.
+both lists, so a critic can see nothing was forced. The mapping runs both
+ways: every blind line is mapped, and every `new` or `changed` report row
+maps back from a blind line. A trait the critic finds missing is added to the
+blind list as its own line, citing where in the folder it is, and mapped like
+the others; a report has no other route for it. `report seal` and `check`
+enforce both directions; the three rows sealed before the backward check are
+listed in `curation/registry/checks/reports.py`.
 
 **Retirement.** A retired definition is never deleted and always resolves,
 so old events stay valid. A new subject may not use it; a ruling continuing
@@ -731,6 +741,7 @@ is a thin entry for the `curation` package at the repo root
 | `record … [--supersedes <id>] [--whole-skill <kind>]` | Appends one validated event to the open round (§5b); fills `source`, lifecycle inheritance, `policy_basis` and a playbook's `target_tree_hash` |
 | `steps diff <playbook> [<base>] [<head>]` | Lists a playbook's per-step changes between two git revisions; `base` defaults to `HEAD`, `head` to the working tree (§4b) |
 | `build` | Regenerates `INDEX.md`, `TRAITS.md`, `STEPS.md`, `references/*.md`, every skill record and every report's `.md` |
+| `viewer [--out PATH]` | Writes one self-contained HTML page (default `viewer/index.html`, untracked): every upstream unit of every harness with rulings beside our skills, playbooks and principles, by lifecycle stage, with verdicts, trait rulings, adoption targets, playbook–skill–principle links and the router. All text is pulled from the registry, the units and the router; two runs on the same tree give the same bytes |
 | `check` | Validates the ledger (schema, unique IDs, `supersedes`, sealed rounds and reports unchanged, `round_order`, trait rules of §5b), `skills.yaml` and the records, the trait files (§4a), the playbooks and their ledger hashes (§4b), sharing and policy, the reports, and that generated files are current. Warnings (retired traits still listed, unjustified shared traits, `avoid` traits we still list, changed guide rules) do not fail it |
 
 ## 7. Changing skills

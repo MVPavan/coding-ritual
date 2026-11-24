@@ -12,3 +12,5 @@ system first went wrong.
   produced it.
 - A failure that appears only after a restart points first at persisted
   state: configuration files, caches, lock files, serialized state.
+- A workaround that needs a long comment to justify it is a sign the code is
+  wrong; fix the code instead.

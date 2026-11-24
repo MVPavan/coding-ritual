@@ -21,6 +21,7 @@ multi-step work (a sweep, a migration, a run of similar edits), splitting work i
 - `argument-order-commits`: Order commits so the history proves the work (failing test before fix, removal before reshape, baseline before treatment, scaffold before feature), each commit standing alone.
 - `vertical-slices`: Prefer independently verifiable vertical slices over horizontal layers.
 - `prefactor-first`: Find prefactoring that makes the change easy and sequence it before the feature slices.
+- `scaffold-first`: Sequence first the work every later phase benefits from (CI, linting, test infrastructure, shared types) before features.
 - `expand-contract`: For a broad refactor use expand, migrate then contract with genuine dependencies, naming one integration boundary when intermediate tasks cannot stay green.
 - `blast-radius-batches`: Size migration batches by blast radius and keep the build green between them.
 <!-- /registry:generated traits -->
@@ -34,9 +35,12 @@ multi-step work (a sweep, a migration, a run of similar edits), splitting work i
 - **mattpocock_skills:skill:skills/engineering/to-tickets#prefactor-first** `skills/engineering/to-tickets/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/engineering/to-tickets#expand-contract** `skills/engineering/to-tickets/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
 - **mattpocock_skills:skill:skills/engineering/to-tickets#blast-radius-batches** `skills/engineering/to-tickets/SKILL.md` @ 5beb35b040e3de97e54fa9e386d7e42d15c295c2
+- **cursor_plugins:skill:pstack/skills/principle-foundational-thinking#scaffold-first** `pstack/skills/principle-foundational-thinking/SKILL.md` @ 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-18` **adopt** (2026-11-18-deferred-design:160): Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3. Adopted: the principle now says to put first the work every later unit needs, such a…
+- `2026-11-18` **update** (2026-11-18-deferred-design:002): Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3. One bullet beside the prefactoring bullet: put first the work every later unit needs…
 - `2026-11-11` **adopt** (2026-11-10-renames-splits:150): Owner ruling M1 (R1): the ordering rules move into principle-sequence-verifiable-units as its one copy; to-plan and to-roadmap order their tasks and stages by …
 - `2026-11-11` **adopt** (2026-11-10-renames-splits:149): Owner ruling M1 (R1): the ordering rules move into principle-sequence-verifiable-units as its one copy; to-plan and to-roadmap order their tasks and stages by …
 - `2026-11-11` **adopt** (2026-11-10-renames-splits:148): Owner ruling M1 (R1): the ordering rules move into principle-sequence-verifiable-units as its one copy; to-plan and to-roadmap order their tasks and stages by …
@@ -70,6 +74,8 @@ None yet.
   - `mattpocock_skills:skill:skills/engineering/to-tickets#expand-contract` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
 - `prefactor-first`:
   - `mattpocock_skills:skill:skills/engineering/to-tickets#prefactor-first` (adopted at 5beb35b040e3de97e54fa9e386d7e42d15c295c2)
+- `scaffold-first`:
+  - `cursor_plugins:skill:pstack/skills/principle-foundational-thinking#scaffold-first` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `small-single-purpose-commits`:
   - `cursor_plugins:skill:pstack/skills/principle-foundational-thinking#small-single-purpose-commits` (adopted at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe)
 - `verified-unit-sequence`:

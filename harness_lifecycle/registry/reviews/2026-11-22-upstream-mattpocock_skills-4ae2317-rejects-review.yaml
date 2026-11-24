@@ -1,0 +1,502 @@
+harness: mattpocock_skills
+from_sha: null
+to_sha: 4ae2317
+supersedes:
+- harness_lifecycle/registry/reviews/2026-11-20-upstream-mattpocock_skills-4ae2317-deferred-crosscutting-utilities.yaml
+analysis_critic:
+  by: coordinator (cc:940ec94d)
+  date: '2026-11-22'
+  verdict: accepted
+  last_critic:
+    by: codex gpt-6.2-sol high (critic-2)
+    date: '2026-11-22'
+    verdict: fail
+comparison_critic:
+  by: coordinator (cc:940ec94d)
+  date: '2026-11-22'
+  verdict: accepted
+  last_critic:
+    by: codex gpt-6.2-sol high (critic-2)
+    date: '2026-11-22'
+    verdict: fail
+themes: 'Twelve Pocock rows the owner reopened in the rejections re-review. Owner ruling 2026-11-22
+  (conversation), rejections re-review, bead cr-r2pa.3.3. setup-pre-commit''s two commit-time
+  rows are adopted, pending cr-p3em.4, into the Autopilot-full playbook that bead builds.
+  Three pull-request rows stay rejected with current reasons from decision bead cr-0qcj: one
+  review per feature on its pull request, no draft step, and Closes only for the bead''s own
+  issue. In setup-matt-pocock-skills, pr-as-issue and external-author-pr-filter are adopted,
+  pending cr-r2pa.3.8, into triage; four rows are rejected as held by the GitHub mirror; assignee-marks-claim
+  is deferred until the mirror builds assignee sync.'
+skills:
+  skill:skills/misc/setup-pre-commit:
+    upstream_tree_hash: 98523a8db5977c41a095834df8697123bb845ff6ddbb9500733b161f11441a37
+    accepted: 4ae2317
+    compared_with: none
+    pairing:
+      overlap: {}
+      placement_match: []
+      suggested: null
+      purpose_match: none
+      purpose: Upstream installs a JavaScript commit-hook stack that formats, type-checks
+        and tests. Nothing of ours sets up commit hooks, and this repository's hooks path
+        belongs to Beads; the two reopened rows land in the Autopilot-full playbook to be
+        built.
+      flag: null
+      reason: null
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      commit-time-checks:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/land/SKILL.md:17-20
+        - .claude/skills/beads/references/setup.md:70
+        recommendation: adopt
+        delivery: pending
+        target: doc:.claude/skills/mvp-mode/playbooks/autopilot-full.md
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-06
+          override: null
+        reason: 'Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3.
+          Adopted, pending cr-p3em.4: into the Autopilot-full playbook that bead builds (README
+          §5: a pending adopt may name a playbook its delivering build will create): each
+          commit an unattended run makes first passes a commit-time gate: formatting of the
+          staged files, then the type check, then the tests. The Autopilot-full ruling grants
+          committing, pushing to a working branch and opening a pull request without asking
+          (ledger event 2026-11-20-deferred-playbooks:005), and today the check before a commit
+          is the agent''s own: land refuses work whose final form is unverified (.claude/skills/land/SKILL.md:17-20),
+          with no mechanical gate at commit time. The 2026-11-13 reason was that we set up
+          no commit-time checks and this repository''s hooks path belongs to Beads (.claude/skills/beads/references/setup.md:70);
+          how the gate lives beside the Beads hooks is the build''s design question, not a
+          reason to drop it.'
+      cheap-checks-first:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/land/SKILL.md:17-20
+        - .claude/skills/beads/references/setup.md:70
+        recommendation: adopt
+        delivery: pending
+        target: doc:.claude/skills/mvp-mode/playbooks/autopilot-full.md
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-06
+          override: null
+        reason: 'Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3.
+          Adopted, pending cr-p3em.4: with commit-time-checks, into the same playbook: the
+          commit-time checks run cheap staged-only work first and whole-project checks after.
+          It stands or falls with commit-time-checks and is not tied to the upstream JavaScript
+          stack.'
+  skill:skills/engineering/implement:
+    upstream_tree_hash: 560465496ad0669329993bfdd0604e5c93b5c2446309a76f486040010b063908
+    accepted: 4ae2317
+    compared_with: none
+    pairing:
+      overlap:
+        doc:AGENTS.md: 1
+        how: 1
+        sharpen: 1
+        why: 1
+      placement_match:
+      - principle-no-comments
+      - principle-sequence-verifiable-units
+      - tdd
+      suggested: how
+      purpose_match: none
+      purpose: 'Upstream builds a spec or tickets end to end: tests, checks, review, commit.
+        Our match in purpose is the implement playbook, which is not a skill and cannot be
+        compared; review cadence is set there, in Shipping and in the cr-0qcj decision.'
+      flag: suggested differs
+      reason: 'Compared with none: the playbook that does this job cannot be compared. The
+        computed pick, how, shares a near trait and nothing of the job.'
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      review-after-every-build:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/mvp-mode/playbooks/shipping.md:73-77
+        - .claude/skills/delegation/SKILL.md:33-35
+        - .claude/skills/mvp-mode/playbooks/implement.md:135-136
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3:
+          rejected again with a current reason. Per decision bead cr-0qcj, a feature gets
+          one review, on its pull request, once it is implemented and verified; a review per
+          task was ruled out there. Shipping briefs that reviewer through delegation (.claude/skills/mvp-mode/playbooks/shipping.md:73-77),
+          which picks one from a different model family than the implementer (.claude/skills/delegation/SKILL.md:33-35).
+          Inside a run, independent review stays driven by explicit requirements or unresolved
+          risk (.claude/skills/mvp-mode/playbooks/implement.md:135-136).'
+  skill:skills/engineering/implement-spec:
+    upstream_tree_hash: c3474ef320861d793e8b30d41fbdd2cb0ceaa1081bb5c81b7f26c455eb776573
+    accepted: 4ae2317
+    compared_with: mvp-mode
+    pairing:
+      overlap:
+        beads: 1
+        delegation: 2
+        doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md: 1
+        doc:.claude/skills/mvp-mode/playbooks/implement.md: 7
+        doc:.claude/skills/mvp-mode/playbooks/worktree-cleanup.md: 1
+        doc:.repo-context/coding-style.md: 1
+        interrogate: 1
+        model-council: 1
+        tdd: 1
+        tracker: 1
+        wayfinder: 1
+      placement_match: []
+      suggested: delegation
+      purpose_match: mvp-mode
+      purpose: Upstream drives implementer subagents over a spec's ticket graph to one integration
+        branch and opens a pull request that closes the tickets. Ours runs that work as the
+        implement playbook's Spec scope, which mvp-mode routes; pull requests are opened per
+        feature and landed by Shipping.
+      flag: suggested differs
+      reason: 'Compared with mvp-mode, which holds the router and its playbooks: a report
+        cannot compare with the implement playbook itself. The computed pick, delegation,
+        holds the brief rows.'
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      draft-closing-pr:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/mvp-mode/playbooks/shipping.md:27-31
+        - .claude/skills/tracker/SKILL.md:118-123
+        - .claude/skills/pr/SKILL.md:55-57
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3:
+          rejected again with a current reason. Per decision bead cr-0qcj, one pull request
+          per feature or bug opens when it is implemented and verified, with no draft step,
+          and its description follows the pr skill: Closes only for the bead''s own issue
+          when the pull request completes the bead, Refs for every other issue (.claude/skills/pr/SKILL.md:55-57);
+          an agent closes the bead on the merge evidence (.claude/skills/tracker/SKILL.md:118-123).
+          The 2026-11-20 reason, that a pull request closing tickets has no counterpart, is
+          stale now Shipping lands pull requests (.claude/skills/mvp-mode/playbooks/shipping.md:27-31),
+          but an early draft that closes the spec''s tickets is the alternative decision bead
+          cr-0qcj rejected.'
+      delivery-closeout:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/mvp-mode/playbooks/shipping.md:124-128
+        - .claude/skills/mvp-mode/playbooks/implement.md:258-264
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3:
+          rejected again with a current reason. Per decision bead cr-0qcj, a feature''s pull
+          request opens once it is implemented and verified, and Shipping''s close-out has
+          tracker close each merged pull request''s bead on the read-back (.claude/skills/mvp-mode/playbooks/shipping.md:124-128);
+          the implement playbook''s close-out closes finished beads with evidence and reports
+          the run (.claude/skills/mvp-mode/playbooks/implement.md:258-264). The half the 2026-11-20
+          reason left, marking a draft pull request ready, has nothing to act on with no draft
+          step.'
+  skill:skills/engineering/setup-matt-pocock-skills:
+    upstream_tree_hash: 9659e7025d4cf1c0a0b40ddff32ed4b8debb87a4b20d7a52ff89c506a638df69
+    accepted: 4ae2317
+    compared_with: triage
+    pairing:
+      overlap:
+        beads: 1
+        brief-me: 1
+        codebase-design: 1
+        create-formal-verification-skill: 1
+        doc:.claude/skills/mvp-mode/playbooks/implement.md: 1
+        doc:AGENTS.md: 3
+        domain-modeling: 5
+        grilling: 2
+        improve-codebase-architecture: 3
+        prototype: 1
+        research: 1
+        settle-open-questions: 2
+        teach: 1
+        tracker: 1
+        triage: 1
+        unslop: 1
+        wayfinder: 4
+      placement_match:
+      - authoring-for-agents
+      - harness-evaluate
+      - harness-scan
+      - harness-skill-compare
+      - harness-status
+      - migrate-claude-to-codex
+      suggested: domain-modeling
+      purpose_match: none
+      purpose: Upstream scaffolds per-repository configuration (tracker, triage labels, domain-doc
+        locations) that its other skills read. We have no setup skill; the reopened rows land
+        in triage's handling of the mirror digest's untracked rows, or are held by the GitHub
+        mirror, which is a hook, not a skill.
+      flag: suggested differs
+      reason: 'Compared with triage: it owns the digest''s untracked issues and pull requests,
+        where the two adopted rows land. The computed pick, domain-modeling, holds the glossary
+        rows.'
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      tracker-config-doc:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - docs/usage/bead-mirror.md:40-50
+        - docs/specs/2026-11-20-beads-github-mirror.md:91-96
+        - .claude/skills/triage/SKILL.md:72-82
+        - .claude/skills/pr/SKILL.md:31-40
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3:
+          rejected again with a current reason. Held by the GitHub mirror: its writer switch
+          is the one file that records where tickets go and how to reach them (host, repository,
+          mirror account, scope, store identity) (docs/usage/bead-mirror.md:40-50; docs/specs/2026-11-20-beads-github-mirror.md:91-96),
+          and the skills that touch the mirror tell the clone''s state from the command and
+          the committed check (.claude/skills/triage/SKILL.md:72-82; .claude/skills/pr/SKILL.md:31-40).
+          The 2026-11-09 premise, that a per-repository tracker file has nothing to attach
+          to, is gone.'
+      create-missing-labels:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/hooks/bead-mirror.py:2983-3007
+        - docs/specs/2026-11-20-beads-github-mirror.md:169-172
+        - docs/specs/2026-11-20-beads-github-mirror.md:436-437
+        - .claude/skills/triage/SKILL.md:109
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3:
+          rejected again with a current reason. Held by the GitHub mirror for the one label
+          set it uses: it creates its bead-type: label on the repository when that label is
+          missing (.claude/hooks/bead-mirror.py:2983-3007) and touches only labels named bead-type:
+          (docs/specs/2026-11-20-beads-github-mirror.md:169-172); status and priority labels
+          are deferred (docs/specs/2026-11-20-beads-github-mirror.md:436-437), and triage
+          creates no label but human (.claude/skills/triage/SKILL.md:109). The 2026-11-09
+          premise, that work tracked only in Beads gives labels nothing to attach to, is gone.'
+      assignee-marks-claim:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - docs/specs/2026-11-20-beads-github-mirror.md:446
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: The bead-GitHub mirror builds assignee sync; then rule whether a claim
+          assigns the issue to the developer driving the session.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3:
+          deferred. The 2026-11-09 premise, that a hosted assignee field has nothing to attach
+          to, is gone: the mirror publishes beads as GitHub issues. Its spec lists assignee
+          sync as deferred (docs/specs/2026-11-20-beads-github-mirror.md:446), so whether
+          a claim also assigns the issue waits for it.'
+      own-repo-filing-guard:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/hooks/bead-mirror.py:884-890
+        - docs/specs/2026-11-20-beads-github-mirror.md:97-102
+        - docs/usage/bead-mirror.md:36-38
+        - docs/usage/bead-mirror.md:95-99
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3:
+          rejected again with a current reason. Held by the GitHub mirror: it writes issues
+          only to the repository the owner''s writer switch records, checking that repository''s
+          node ID before writing (.claude/hooks/bead-mirror.py:884-890; docs/specs/2026-11-20-beads-github-mirror.md:97-102),
+          and only the owner creates the switch, by hand (docs/usage/bead-mirror.md:36-38;
+          docs/usage/bead-mirror.md:95-99). That owner-made binding takes the place of upstream''s
+          confirmation before a session''s first ticket. The 2026-11-09 premise is gone.'
+      pr-as-issue:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - docs/specs/2026-11-20-beads-github-mirror.md:58-59
+        - docs/specs/2026-11-20-beads-github-mirror.md:221
+        - .claude/skills/triage/SKILL.md:92-97
+        - .claude/skills/tracker/SKILL.md:134-136
+        recommendation: adopt
+        delivery: pending
+        target: triage
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-06
+          override: null
+        reason: 'Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3.
+          Adopted, pending cr-r2pa.3.8: an outside pull request that references no bead is
+          triaged as an issue with code attached: create or reuse a bead, whose issue the
+          contributor then references, or decline with the reason, Beads staying the authority.
+          The reference check fails a pull request with no issue reference (docs/specs/2026-11-20-beads-github-mirror.md:58-59)
+          and outside contributors cannot create beads; the mirror''s digest lists such a
+          pull request for triage (docs/specs/2026-11-20-beads-github-mirror.md:221), and
+          triage today tracks the issue a pull request names, or fixes the reference through
+          pr, or dismisses the row (.claude/skills/triage/SKILL.md:92-97). The target is triage,
+          which tracker sends the digest''s untracked rows to (.claude/skills/tracker/SKILL.md:134-136).
+          The 2026-11-09 premise, that a hosted pull-request rule has nothing to attach to,
+          is gone.'
+      external-author-pr-filter:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .github/workflows/bead-reference-check.yml:107-114
+        - docs/usage/bead-mirror.md:90-93
+        recommendation: adopt
+        delivery: pending
+        target: triage
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide:
+          verdict: ok
+          rules:
+          - U-06
+          override: null
+        reason: 'Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3.
+          Adopted, pending cr-r2pa.3.8: with pr-as-issue, the pull requests triage lists leave
+          out authors who are owners, members or collaborators. The reference check already
+          lets a configured list of logins pass without a reference (.github/workflows/bead-reference-check.yml:107-114;
+          docs/usage/bead-mirror.md:90-93), a fixed list rather than the forge''s author association.
+          The 2026-11-09 premise, that a hosted pull-request filter has nothing to attach
+          to, is gone.'
+      bare-number-resolution:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/hooks/bead-mirror.py:1900-1923
+        - docs/specs/2026-11-20-beads-github-mirror.md:221
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-22 (conversation), rejections re-review, bead cr-r2pa.3.3:
+          rejected again with a current reason. Held by the GitHub mirror: it looks a number
+          up with the host''s own issue-or-pull-request query in the switch''s repository,
+          so the host''s numbering decides which one it names, and a number that names a pull
+          request is reported as not an issue (.claude/hooks/bead-mirror.py:1900-1923); the
+          digest lists a reference that points at a pull request or a missing number (docs/specs/2026-11-20-beads-github-mirror.md:221).
+          Trying the pull request first is moot with a lookup that returns whichever the number
+          names. The 2026-11-09 premise is gone.'

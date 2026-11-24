@@ -14,7 +14,7 @@ from curation.registry.ledger import (
     live_events,
     resolve_skill,
 )
-from curation.registry.loaders import unit_file
+from curation.registry.loaders import load_traits, unit_file
 from curation.registry.models import Event, TraitDefinition
 from curation.registry.steps import (
     CALL_KINDS,
@@ -22,6 +22,7 @@ from curation.registry.steps import (
     playbook_files,
     playbook_tree_hash,
 )
+from curation.registry.traits import _trait_satisfied, holders
 from curation.registry.vocab import PLAYBOOK_KINDS
 
 _NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
@@ -50,6 +51,39 @@ def _call_errors(
     return []
 
 
+def _callee_traits(
+    to: str, playbooks: dict[str, Playbook], held: dict[str, set[str]]
+) -> set[str] | None:
+    """The callee's own trait list: a skill's or principle's `ours:` entry, a
+    playbook's frontmatter list; None when it has none."""
+    kind, _, name = to.partition(":")
+    if kind == "playbook":
+        book = playbooks.get(name)
+        return held.get(book.holder) if book else None
+    return held.get(name)
+
+
+def _needs_errors(
+    where: str,
+    to: str,
+    needs: list[str],
+    callee: set[str] | None,
+    definitions: dict[str, TraitDefinition],
+) -> list[str]:
+    """Each explicit `needs` trait is one the named callee holds (a retired
+    trait is held through all its replacements)."""
+    defined = [tid for tid in needs if tid in definitions]
+    if not defined:
+        return []
+    if callee is None:
+        return [f"{where}: call {to}: needs traits, but the callee has no trait list"]
+    return [
+        f"{where}: call {to}: needs {tid!r}, which the callee does not hold"
+        for tid in defined
+        if not _trait_satisfied(tid, callee, definitions)
+    ]
+
+
 def playbook_errors(
     cfg: RegistryConfig,
     playbooks: dict[str, Playbook],
@@ -58,10 +92,13 @@ def playbook_errors(
     """Each step's ID is `<playbook>#<position>`; every trait (the playbook's,
     each action's and each call's `needs`) is defined and listed once per
     list; every call resolves (`skill:<name>` to a skill folder or principle
-    file, `playbook:<name>` to a playbook); every load is a file under the
+    file, `playbook:<name>` to a playbook) and holds every trait it `needs`;
+    every load is a file under the
     playbook's own `playbooks/<name>/` folder, so a reference has one owner
     (F1, F3; a second consumer promotes it, F2)."""
     errors: list[str] = []
+    traits, _ = load_traits(cfg)  # its own errors are reported by `check`
+    held = holders(traits, playbooks)
     for name, book in sorted(playbooks.items()):
         where = book.path
         if not _NAME_RE.fullmatch(name):
@@ -81,6 +118,13 @@ def playbook_errors(
             for call in step.calls:
                 errors += _call_errors(cfg, at, call.to, playbooks)
                 errors += _undefined(f"{at}: call {call.to}", call.needs, definitions)
+                errors += _needs_errors(
+                    at,
+                    call.to,
+                    call.needs,
+                    _callee_traits(call.to, playbooks, held),
+                    definitions,
+                )
                 if len(set(call.needs)) != len(call.needs):
                     errors.append(
                         f"{at}: call {call.to}: a needs trait is listed twice"

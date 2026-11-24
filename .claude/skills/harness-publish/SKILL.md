@@ -26,7 +26,7 @@ Claude Code and Codex install. Publishing is a manual, user-run step.
    require committed source unless an explicitly authorized dirty-tree mode applies:
 
    ```bash
-   python3 .claude/scripts/skill-catalog.py --check     # no failures; assess warnings
+   uv run python .claude/scripts/skill-catalog.py --check  # no failures; assess warnings
    git status --short                                     # clean (or know why not)
    ```
 

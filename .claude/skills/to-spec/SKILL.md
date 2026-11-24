@@ -1,6 +1,6 @@
 ---
 name: to-spec
-description: Use when decisions already settled should be written up as a durable spec for planning or another session. Skip choices still open or being compared, which are discovery; a spec as one step of planning work to build is the plan playbook, which calls this.
+description: Use when decisions already settled should be written up as a durable spec for planning or another session. Skip choices still open or being compared, which are settle-open-questions; a spec as one step of planning work to build is the plan playbook, which calls this.
 ---
 
 # To spec
@@ -11,9 +11,9 @@ Write decisions already reached into a durable spec that a later reader can act 
 
 Take the decisions from the conversation, the documents it names or the tracker
 record, and write them down without reopening them. A material choice that is
-still open goes back to `discovery`; do not settle it inside the spec. From a
-discovery record, take its `decided`, `established` and `routine` rows; its
-`proposed` and `open` rows are still open and go back to `discovery`.
+still open goes back to `settle-open-questions`; do not settle it inside the spec. From a
+decision record, take its `decided`, `established` and `routine` rows; its
+`proposed` and `open` rows are still open and go back to `settle-open-questions`.
 Read only the code, docs and constraints the spec has to describe.
 
 ## Write

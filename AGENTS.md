@@ -10,6 +10,10 @@ Deliver correct work with the smallest necessary change, done right the first ti
   correctness, scope, or authority. Continue independent work meanwhile.
 - Publishing, deployment, messages, destructive actions, and scope expansion
   require authorization; retain approvals already given.
+- A standing grant covers only the acts it names. Even under one, wait for the
+  user before force-pushing a shared branch, deploying, deleting data or a branch
+  with unmerged work, messaging people outside the project beyond the work's own
+  pull request, or changing repository settings.
 - Prioritize factual accuracy over agreement. Point out errors and unchecked
   assumptions in the user's thinking; assess critically without grade inflation.
 - Distinguish certain knowledge from inference and speculation. Say when unsure;
@@ -101,7 +105,7 @@ work, also recover the active Bead and handoff.
 
 - Python or ledger changes: `.repo-context/coding-style.md`.
 - Handing work to another agent or model: the `delegation` skill.
-- Domain/repo terminology: `.repo-context/CONTEXT.md`. Architecture/contracts: relevant `docs/adr/`
+- Domain/repo terminology: `.repo-context/GLOSSARY.md`. Architecture/contracts: relevant `docs/adr/`
   and `.repo-context/invariants.md`.
 - Phase/workstream execution: the implement playbook (through `mvp-mode`) and
   relevant `docs/workstreams/<name>/roadmap.md`. Generated tracking mirrors are read-only.

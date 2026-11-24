@@ -26,7 +26,8 @@ steps:
     loads: [{path: bug-fix/hardening.md}]
   - id: bug-fix#7
     when: every exit
-    actions: [{trait: closeout}, {trait: preserve-reproducers}, {trait: always-on-signal}]   # the last only when finding the cause took a deep investigation
+    actions: [{trait: closeout}, {trait: preserve-reproducers}, {trait: always-on-signal}, {trait: post-fix-prevention}]   # always-on-signal only when finding the cause took a deep investigation; post-fix-prevention, new, only when the cause was confirmed
+    calls: [{to: "skill:build-a-lever", when: the person approves a proposed type or check}, {to: "skill:authoring-for-agents", when: the person approves a proposed instruction}]
   - id: bug-fix#8
     when: the Fixed exit, after bug-fix#7
     calls: [{to: "skill:land"}]
@@ -89,6 +90,13 @@ A stated unattended request does not start: reply Not started, unattended.
    if there is one, and the remaining limits. When finding the cause took a
    deep investigation, propose the cheap always-on signal that would have
    shown it at first look; do not add it.
+   **Prevent**, when the cause was confirmed: from the confirmed cause and the
+   attempt log alone, name what would have stopped this defect: a type or
+   check (through `build-a-lever`), an instruction the agent lacked (through
+   `authoring-for-agents`), or a lesson (where `AGENTS.md` sends lessons).
+   Propose only what would change future work, and apply only what the person
+   approves. If what this run found shows the same kind of defect happened
+   before, suggest `/reflect` across history.
 8. **Land.** Only on the Fixed exit, after step 7: invoke `land`. No stopped or
    unverified path lands, and neither does `Changed, verification incomplete`.
 
@@ -115,4 +123,6 @@ A stated unattended request does not start: reply Not started, unattended.
   asked for by name, if the person can state a checkable condition such as the test passing 50 times
   in a row; that route has no confirmed-cause gate.
 
-Every reply also says what the closeout removed and what it kept.
+Every reply also says what the closeout removed and what it kept and, when
+the cause was confirmed, gives the Prevent proposal: what the person approved
+and was applied, and the rest as proposed, not applied.

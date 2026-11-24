@@ -1,0 +1,672 @@
+harness: cursor_plugins
+from_sha: null
+to_sha: 2776ddd
+supersedes:
+- harness_lifecycle/registry/reviews/2026-11-12-upstream-cursor_plugins-2776ddd-batch-p3.yaml
+analysis_critic:
+  by: codex gpt-6.2-sol high (critic-102)
+  date: '2026-11-20'
+  verdict: pass
+  last_critic: null
+comparison_critic:
+  by: coordinator (cc:940ec94d)
+  date: '2026-11-20'
+  verdict: accepted
+  last_critic:
+    by: codex gpt-6.2-sol high (critic-102)
+    date: '2026-11-20'
+    verdict: fail
+themes: 'Twenty rows reopened by the owner. Each was deferred on 2026-11-13 because no unit
+  of ours takes bug reports from a team chat. Owner ruling 2026-11-20 (conversation), deferred
+  review, bead cr-r2pa.3.3: all 20 are out of scope for now, because the harness ships no
+  chat-facing agent; revisit when we adopt one. Same ruling as Intake''s triage-issue-reports
+  (round 2026-11-18-deferred-intake).'
+skills:
+  skill:pstack/automations/benny/skills/reproduce-and-fix-issues:
+    upstream_tree_hash: 30d16d73b621fa9abadaa9cd2de34076e7def49c083857841727ec6005f41c5b
+    accepted: 2776ddd
+    compared_with: systematic-debugging
+    pairing:
+      overlap:
+        create-verification-skill: 15
+        doc:.claude/skills/mvp-mode/playbooks/bug-fix.md: 1
+        doc:.claude/skills/mvp-mode/playbooks/eval.md: 1
+        doc:.claude/skills/mvp-mode/playbooks/feature.md: 1
+        doc:.claude/skills/mvp-mode/playbooks/figure-it-out.md: 1
+        doc:.claude/skills/mvp-mode/playbooks/refactoring.md: 1
+        doc:.repo-context/coding-style.md: 1
+        doc:.repo-context/verification.md: 1
+        doc:AGENTS.md: 2
+        maintain-verification-skill: 2
+        principle-subtract-before-you-add: 1
+        sharpen: 1
+        tdd: 1
+      placement_match:
+      - performance-optimization
+      - principle-attack-the-premise
+      - principle-explain-the-number
+      - principle-fix-root-causes
+      - systematic-debugging
+      suggested: create-verification-skill
+      purpose_match: none
+      purpose: Upstream is an automation that takes a bug report a triage agent passed on
+        in a team chat, reproduces it, fixes it within a budget and replies in the thread.
+        Our systematic-debugging returns a diagnosis to its caller and the bug-fix playbook
+        fixes a reported defect and records the outcome at closeout; neither takes reports
+        from a chat or replies in one, though bug-fix's regression route through why may search
+        team chat read-only as an evidence source a project configures.
+      flag: suggested differs
+      reason: 'Compared with systematic-debugging: the same diagnose-a-report work, though
+        the source and output differ. The computed pick, create-verification-skill, rests
+        on overlap signals only; no unit of ours shares the chat-facing purpose.'
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      fail-closed-run-config:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: &id001
+        - .claude/skills/systematic-debugging/SKILL.md:54-65
+        - .claude/skills/mvp-mode/playbooks/bug-fix.md:37-39
+        - .claude/skills/mvp-mode/playbooks/bug-fix.md:86-89
+        - .claude/skills/mvp-mode/playbooks/bug-fix.md:53-54
+        - .claude/skills/why/SKILL.md:37-44
+        - .claude/skills/why/references/outside-sources.md:3-6
+        - .claude/skills/why/references/outside-sources.md:109-112
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now. This is a rule for an agent that takes bug reports from a
+          team chat and replies in the report''s thread; the harness ships no such agent.
+          Our systematic-debugging returns one diagnosis with one status to its caller, and
+          the bug-fix playbook fixes a reported defect and records the cause or status reached
+          at closeout (.claude/skills/systematic-debugging/SKILL.md:54-65; .claude/skills/mvp-mode/playbooks/bug-fix.md:37-39;
+          .claude/skills/mvp-mode/playbooks/bug-fix.md:86-89). On a suspected regression bug-fix
+          invokes why (.claude/skills/mvp-mode/playbooks/bug-fix.md:53-54), which may search
+          team chat for the motivation behind a change when a project lists it as an outside
+          evidence source, read-only and creating nothing (.claude/skills/why/SKILL.md:37-44;
+          .claude/skills/why/references/outside-sources.md:3-6; .claude/skills/why/references/outside-sources.md:109-112);
+          that route neither takes a report from chat nor posts to it. Revisit when we adopt
+          a chat-facing agent.'
+      frozen-source-coordinates:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: *id001
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now. This is a rule for an agent that takes bug reports from a
+          team chat and replies in the report''s thread; the harness ships no such agent.
+          Our systematic-debugging returns one diagnosis with one status to its caller, and
+          the bug-fix playbook fixes a reported defect and records the cause or status reached
+          at closeout (.claude/skills/systematic-debugging/SKILL.md:54-65; .claude/skills/mvp-mode/playbooks/bug-fix.md:37-39;
+          .claude/skills/mvp-mode/playbooks/bug-fix.md:86-89). On a suspected regression bug-fix
+          invokes why (.claude/skills/mvp-mode/playbooks/bug-fix.md:53-54), which may search
+          team chat for the motivation behind a change when a project lists it as an outside
+          evidence source, read-only and creating nothing (.claude/skills/why/SKILL.md:37-44;
+          .claude/skills/why/references/outside-sources.md:3-6; .claude/skills/why/references/outside-sources.md:109-112);
+          that route neither takes a report from chat nor posts to it. Revisit when we adopt
+          a chat-facing agent.'
+      no-root-post-in-source:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: *id001
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now. This is a rule for an agent that takes bug reports from a
+          team chat and replies in the report''s thread; the harness ships no such agent.
+          Our systematic-debugging returns one diagnosis with one status to its caller, and
+          the bug-fix playbook fixes a reported defect and records the cause or status reached
+          at closeout (.claude/skills/systematic-debugging/SKILL.md:54-65; .claude/skills/mvp-mode/playbooks/bug-fix.md:37-39;
+          .claude/skills/mvp-mode/playbooks/bug-fix.md:86-89). On a suspected regression bug-fix
+          invokes why (.claude/skills/mvp-mode/playbooks/bug-fix.md:53-54), which may search
+          team chat for the motivation behind a change when a project lists it as an outside
+          evidence source, read-only and creating nothing (.claude/skills/why/SKILL.md:37-44;
+          .claude/skills/why/references/outside-sources.md:3-6; .claude/skills/why/references/outside-sources.md:109-112);
+          that route neither takes a report from chat nor posts to it. Revisit when we adopt
+          a chat-facing agent.'
+      thread-parent-preflight:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: *id001
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now. This is a rule for an agent that takes bug reports from a
+          team chat and replies in the report''s thread; the harness ships no such agent.
+          Our systematic-debugging returns one diagnosis with one status to its caller, and
+          the bug-fix playbook fixes a reported defect and records the cause or status reached
+          at closeout (.claude/skills/systematic-debugging/SKILL.md:54-65; .claude/skills/mvp-mode/playbooks/bug-fix.md:37-39;
+          .claude/skills/mvp-mode/playbooks/bug-fix.md:86-89). On a suspected regression bug-fix
+          invokes why (.claude/skills/mvp-mode/playbooks/bug-fix.md:53-54), which may search
+          team chat for the motivation behind a change when a project lists it as an outside
+          evidence source, read-only and creating nothing (.claude/skills/why/SKILL.md:37-44;
+          .claude/skills/why/references/outside-sources.md:3-6; .claude/skills/why/references/outside-sources.md:109-112);
+          that route neither takes a report from chat nor posts to it. Revisit when we adopt
+          a chat-facing agent.'
+      coordinator-only-chat-writes:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: *id001
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now. This is a rule for an agent that takes bug reports from a
+          team chat and replies in the report''s thread; the harness ships no such agent.
+          Our systematic-debugging returns one diagnosis with one status to its caller, and
+          the bug-fix playbook fixes a reported defect and records the cause or status reached
+          at closeout (.claude/skills/systematic-debugging/SKILL.md:54-65; .claude/skills/mvp-mode/playbooks/bug-fix.md:37-39;
+          .claude/skills/mvp-mode/playbooks/bug-fix.md:86-89). On a suspected regression bug-fix
+          invokes why (.claude/skills/mvp-mode/playbooks/bug-fix.md:53-54), which may search
+          team chat for the motivation behind a change when a project lists it as an outside
+          evidence source, read-only and creating nothing (.claude/skills/why/SKILL.md:37-44;
+          .claude/skills/why/references/outside-sources.md:3-6; .claude/skills/why/references/outside-sources.md:109-112);
+          that route neither takes a report from chat nor posts to it. Revisit when we adopt
+          a chat-facing agent.'
+      findings-only-read-only-workers:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: *id001
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now. This is a rule for an agent that takes bug reports from a
+          team chat and replies in the report''s thread; the harness ships no such agent.
+          Our systematic-debugging returns one diagnosis with one status to its caller, and
+          the bug-fix playbook fixes a reported defect and records the cause or status reached
+          at closeout (.claude/skills/systematic-debugging/SKILL.md:54-65; .claude/skills/mvp-mode/playbooks/bug-fix.md:37-39;
+          .claude/skills/mvp-mode/playbooks/bug-fix.md:86-89). On a suspected regression bug-fix
+          invokes why (.claude/skills/mvp-mode/playbooks/bug-fix.md:53-54), which may search
+          team chat for the motivation behind a change when a project lists it as an outside
+          evidence source, read-only and creating nothing (.claude/skills/why/SKILL.md:37-44;
+          .claude/skills/why/references/outside-sources.md:3-6; .claude/skills/why/references/outside-sources.md:109-112);
+          that route neither takes a report from chat nor posts to it. Revisit when we adopt
+          a chat-facing agent.'
+      worker-isolation-or-coordinator:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: *id001
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now. This is a rule for an agent that takes bug reports from a
+          team chat and replies in the report''s thread; the harness ships no such agent.
+          Our systematic-debugging returns one diagnosis with one status to its caller, and
+          the bug-fix playbook fixes a reported defect and records the cause or status reached
+          at closeout (.claude/skills/systematic-debugging/SKILL.md:54-65; .claude/skills/mvp-mode/playbooks/bug-fix.md:37-39;
+          .claude/skills/mvp-mode/playbooks/bug-fix.md:86-89). On a suspected regression bug-fix
+          invokes why (.claude/skills/mvp-mode/playbooks/bug-fix.md:53-54), which may search
+          team chat for the motivation behind a change when a project lists it as an outside
+          evidence source, read-only and creating nothing (.claude/skills/why/SKILL.md:37-44;
+          .claude/skills/why/references/outside-sources.md:3-6; .claude/skills/why/references/outside-sources.md:109-112);
+          that route neither takes a report from chat nor posts to it. Revisit when we adopt
+          a chat-facing agent.'
+      yield-to-human-fix-owner:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: *id001
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now. This is a rule for an agent that takes bug reports from a
+          team chat and replies in the report''s thread; the harness ships no such agent.
+          Our systematic-debugging returns one diagnosis with one status to its caller, and
+          the bug-fix playbook fixes a reported defect and records the cause or status reached
+          at closeout (.claude/skills/systematic-debugging/SKILL.md:54-65; .claude/skills/mvp-mode/playbooks/bug-fix.md:37-39;
+          .claude/skills/mvp-mode/playbooks/bug-fix.md:86-89). On a suspected regression bug-fix
+          invokes why (.claude/skills/mvp-mode/playbooks/bug-fix.md:53-54), which may search
+          team chat for the motivation behind a change when a project lists it as an outside
+          evidence source, read-only and creating nothing (.claude/skills/why/SKILL.md:37-44;
+          .claude/skills/why/references/outside-sources.md:3-6; .claude/skills/why/references/outside-sources.md:109-112);
+          that route neither takes a report from chat nor posts to it. Revisit when we adopt
+          a chat-facing agent.'
+      concrete-fix-artifact:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: *id001
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now. This is a rule for an agent that takes bug reports from a
+          team chat and replies in the report''s thread; the harness ships no such agent.
+          Our systematic-debugging returns one diagnosis with one status to its caller, and
+          the bug-fix playbook fixes a reported defect and records the cause or status reached
+          at closeout (.claude/skills/systematic-debugging/SKILL.md:54-65; .claude/skills/mvp-mode/playbooks/bug-fix.md:37-39;
+          .claude/skills/mvp-mode/playbooks/bug-fix.md:86-89). On a suspected regression bug-fix
+          invokes why (.claude/skills/mvp-mode/playbooks/bug-fix.md:53-54), which may search
+          team chat for the motivation behind a change when a project lists it as an outside
+          evidence source, read-only and creating nothing (.claude/skills/why/SKILL.md:37-44;
+          .claude/skills/why/references/outside-sources.md:3-6; .claude/skills/why/references/outside-sources.md:109-112);
+          that route neither takes a report from chat nor posts to it. Revisit when we adopt
+          a chat-facing agent.'
+      verify-existing-fix-mode:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: *id001
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now. This is a rule for an agent that takes bug reports from a
+          team chat and replies in the report''s thread; the harness ships no such agent.
+          Our systematic-debugging returns one diagnosis with one status to its caller, and
+          the bug-fix playbook fixes a reported defect and records the cause or status reached
+          at closeout (.claude/skills/systematic-debugging/SKILL.md:54-65; .claude/skills/mvp-mode/playbooks/bug-fix.md:37-39;
+          .claude/skills/mvp-mode/playbooks/bug-fix.md:86-89). On a suspected regression bug-fix
+          invokes why (.claude/skills/mvp-mode/playbooks/bug-fix.md:53-54), which may search
+          team chat for the motivation behind a change when a project lists it as an outside
+          evidence source, read-only and creating nothing (.claude/skills/why/SKILL.md:37-44;
+          .claude/skills/why/references/outside-sources.md:3-6; .claude/skills/why/references/outside-sources.md:109-112);
+          that route neither takes a report from chat nor posts to it. Revisit when we adopt
+          a chat-facing agent.'
+      report-fact-capture:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: *id001
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now. This is a rule for an agent that takes bug reports from a
+          team chat and replies in the report''s thread; the harness ships no such agent.
+          Our systematic-debugging returns one diagnosis with one status to its caller, and
+          the bug-fix playbook fixes a reported defect and records the cause or status reached
+          at closeout (.claude/skills/systematic-debugging/SKILL.md:54-65; .claude/skills/mvp-mode/playbooks/bug-fix.md:37-39;
+          .claude/skills/mvp-mode/playbooks/bug-fix.md:86-89). On a suspected regression bug-fix
+          invokes why (.claude/skills/mvp-mode/playbooks/bug-fix.md:53-54), which may search
+          team chat for the motivation behind a change when a project lists it as an outside
+          evidence source, read-only and creating nothing (.claude/skills/why/SKILL.md:37-44;
+          .claude/skills/why/references/outside-sources.md:3-6; .claude/skills/why/references/outside-sources.md:109-112);
+          that route neither takes a report from chat nor posts to it. Revisit when we adopt
+          a chat-facing agent.'
+      trusted-verdict-marker:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: *id001
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now. This is a rule for an agent that takes bug reports from a
+          team chat and replies in the report''s thread; the harness ships no such agent.
+          Our systematic-debugging returns one diagnosis with one status to its caller, and
+          the bug-fix playbook fixes a reported defect and records the cause or status reached
+          at closeout (.claude/skills/systematic-debugging/SKILL.md:54-65; .claude/skills/mvp-mode/playbooks/bug-fix.md:37-39;
+          .claude/skills/mvp-mode/playbooks/bug-fix.md:86-89). On a suspected regression bug-fix
+          invokes why (.claude/skills/mvp-mode/playbooks/bug-fix.md:53-54), which may search
+          team chat for the motivation behind a change when a project lists it as an outside
+          evidence source, read-only and creating nothing (.claude/skills/why/SKILL.md:37-44;
+          .claude/skills/why/references/outside-sources.md:3-6; .claude/skills/why/references/outside-sources.md:109-112);
+          that route neither takes a report from chat nor posts to it. Revisit when we adopt
+          a chat-facing agent.'
+      reread-thread-before-acting:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: *id001
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now. This is a rule for an agent that takes bug reports from a
+          team chat and replies in the report''s thread; the harness ships no such agent.
+          Our systematic-debugging returns one diagnosis with one status to its caller, and
+          the bug-fix playbook fixes a reported defect and records the cause or status reached
+          at closeout (.claude/skills/systematic-debugging/SKILL.md:54-65; .claude/skills/mvp-mode/playbooks/bug-fix.md:37-39;
+          .claude/skills/mvp-mode/playbooks/bug-fix.md:86-89). On a suspected regression bug-fix
+          invokes why (.claude/skills/mvp-mode/playbooks/bug-fix.md:53-54), which may search
+          team chat for the motivation behind a change when a project lists it as an outside
+          evidence source, read-only and creating nothing (.claude/skills/why/SKILL.md:37-44;
+          .claude/skills/why/references/outside-sources.md:3-6; .claude/skills/why/references/outside-sources.md:109-112);
+          that route neither takes a report from chat nor posts to it. Revisit when we adopt
+          a chat-facing agent.'
+      ops-thread-status:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: *id001
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now. This is a rule for an agent that takes bug reports from a
+          team chat and replies in the report''s thread; the harness ships no such agent.
+          Our systematic-debugging returns one diagnosis with one status to its caller, and
+          the bug-fix playbook fixes a reported defect and records the cause or status reached
+          at closeout (.claude/skills/systematic-debugging/SKILL.md:54-65; .claude/skills/mvp-mode/playbooks/bug-fix.md:37-39;
+          .claude/skills/mvp-mode/playbooks/bug-fix.md:86-89). On a suspected regression bug-fix
+          invokes why (.claude/skills/mvp-mode/playbooks/bug-fix.md:53-54), which may search
+          team chat for the motivation behind a change when a project lists it as an outside
+          evidence source, read-only and creating nothing (.claude/skills/why/SKILL.md:37-44;
+          .claude/skills/why/references/outside-sources.md:3-6; .claude/skills/why/references/outside-sources.md:109-112);
+          that route neither takes a report from chat nor posts to it. Revisit when we adopt
+          a chat-facing agent.'
+      quiet-source-thread:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: *id001
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now. This is a rule for an agent that takes bug reports from a
+          team chat and replies in the report''s thread; the harness ships no such agent.
+          Our systematic-debugging returns one diagnosis with one status to its caller, and
+          the bug-fix playbook fixes a reported defect and records the cause or status reached
+          at closeout (.claude/skills/systematic-debugging/SKILL.md:54-65; .claude/skills/mvp-mode/playbooks/bug-fix.md:37-39;
+          .claude/skills/mvp-mode/playbooks/bug-fix.md:86-89). On a suspected regression bug-fix
+          invokes why (.claude/skills/mvp-mode/playbooks/bug-fix.md:53-54), which may search
+          team chat for the motivation behind a change when a project lists it as an outside
+          evidence source, read-only and creating nothing (.claude/skills/why/SKILL.md:37-44;
+          .claude/skills/why/references/outside-sources.md:3-6; .claude/skills/why/references/outside-sources.md:109-112);
+          that route neither takes a report from chat nor posts to it. Revisit when we adopt
+          a chat-facing agent.'
+      narrow-bot-token:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: *id001
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now. This is a rule for an agent that takes bug reports from a
+          team chat and replies in the report''s thread; the harness ships no such agent.
+          Our systematic-debugging returns one diagnosis with one status to its caller, and
+          the bug-fix playbook fixes a reported defect and records the cause or status reached
+          at closeout (.claude/skills/systematic-debugging/SKILL.md:54-65; .claude/skills/mvp-mode/playbooks/bug-fix.md:37-39;
+          .claude/skills/mvp-mode/playbooks/bug-fix.md:86-89). On a suspected regression bug-fix
+          invokes why (.claude/skills/mvp-mode/playbooks/bug-fix.md:53-54), which may search
+          team chat for the motivation behind a change when a project lists it as an outside
+          evidence source, read-only and creating nothing (.claude/skills/why/SKILL.md:37-44;
+          .claude/skills/why/references/outside-sources.md:3-6; .claude/skills/why/references/outside-sources.md:109-112);
+          that route neither takes a report from chat nor posts to it. Revisit when we adopt
+          a chat-facing agent.'
+      correction-window-before-fix:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: *id001
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now. This is a rule for an agent that takes bug reports from a
+          team chat and replies in the report''s thread; the harness ships no such agent.
+          Our systematic-debugging returns one diagnosis with one status to its caller, and
+          the bug-fix playbook fixes a reported defect and records the cause or status reached
+          at closeout (.claude/skills/systematic-debugging/SKILL.md:54-65; .claude/skills/mvp-mode/playbooks/bug-fix.md:37-39;
+          .claude/skills/mvp-mode/playbooks/bug-fix.md:86-89). On a suspected regression bug-fix
+          invokes why (.claude/skills/mvp-mode/playbooks/bug-fix.md:53-54), which may search
+          team chat for the motivation behind a change when a project lists it as an outside
+          evidence source, read-only and creating nothing (.claude/skills/why/SKILL.md:37-44;
+          .claude/skills/why/references/outside-sources.md:3-6; .claude/skills/why/references/outside-sources.md:109-112);
+          that route neither takes a report from chat nor posts to it. Revisit when we adopt
+          a chat-facing agent.'
+      bounded-fix-gate:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: *id001
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now. This is a rule for an agent that takes bug reports from a
+          team chat and replies in the report''s thread; the harness ships no such agent.
+          Our systematic-debugging returns one diagnosis with one status to its caller, and
+          the bug-fix playbook fixes a reported defect and records the cause or status reached
+          at closeout (.claude/skills/systematic-debugging/SKILL.md:54-65; .claude/skills/mvp-mode/playbooks/bug-fix.md:37-39;
+          .claude/skills/mvp-mode/playbooks/bug-fix.md:86-89). On a suspected regression bug-fix
+          invokes why (.claude/skills/mvp-mode/playbooks/bug-fix.md:53-54), which may search
+          team chat for the motivation behind a change when a project lists it as an outside
+          evidence source, read-only and creating nothing (.claude/skills/why/SKILL.md:37-44;
+          .claude/skills/why/references/outside-sources.md:3-6; .claude/skills/why/references/outside-sources.md:109-112);
+          that route neither takes a report from chat nor posts to it. Revisit when we adopt
+          a chat-facing agent.'
+      bounded-follow-up-window:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: *id001
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now. This is a rule for an agent that takes bug reports from a
+          team chat and replies in the report''s thread; the harness ships no such agent.
+          Our systematic-debugging returns one diagnosis with one status to its caller, and
+          the bug-fix playbook fixes a reported defect and records the cause or status reached
+          at closeout (.claude/skills/systematic-debugging/SKILL.md:54-65; .claude/skills/mvp-mode/playbooks/bug-fix.md:37-39;
+          .claude/skills/mvp-mode/playbooks/bug-fix.md:86-89). On a suspected regression bug-fix
+          invokes why (.claude/skills/mvp-mode/playbooks/bug-fix.md:53-54), which may search
+          team chat for the motivation behind a change when a project lists it as an outside
+          evidence source, read-only and creating nothing (.claude/skills/why/SKILL.md:37-44;
+          .claude/skills/why/references/outside-sources.md:3-6; .claude/skills/why/references/outside-sources.md:109-112);
+          that route neither takes a report from chat nor posts to it. Revisit when we adopt
+          a chat-facing agent.'
+      follow-up-evidence-one-correction:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: *id001
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-20 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now. This is a rule for an agent that takes bug reports from a
+          team chat and replies in the report''s thread; the harness ships no such agent.
+          Our systematic-debugging returns one diagnosis with one status to its caller, and
+          the bug-fix playbook fixes a reported defect and records the cause or status reached
+          at closeout (.claude/skills/systematic-debugging/SKILL.md:54-65; .claude/skills/mvp-mode/playbooks/bug-fix.md:37-39;
+          .claude/skills/mvp-mode/playbooks/bug-fix.md:86-89). On a suspected regression bug-fix
+          invokes why (.claude/skills/mvp-mode/playbooks/bug-fix.md:53-54), which may search
+          team chat for the motivation behind a change when a project lists it as an outside
+          evidence source, read-only and creating nothing (.claude/skills/why/SKILL.md:37-44;
+          .claude/skills/why/references/outside-sources.md:3-6; .claude/skills/why/references/outside-sources.md:109-112);
+          that route neither takes a report from chat nor posts to it. Revisit when we adopt
+          a chat-facing agent.'

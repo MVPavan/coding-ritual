@@ -10,9 +10,9 @@ status: active
 ---
 # research
 
-Use to answer a question from outside sources gathered, weighed and cited, reporting what the evidence favours without deciding. Skip a single factual lookup, which needs no run; a decision with open questions is discovery, which calls this; why this project chose something, from its own record, is why.
+Use to answer a question from outside sources gathered, weighed and cited, reporting what the evidence favours without deciding. Skip a single factual lookup, which needs no run; a decision with open questions is settle-open-questions, which calls this; why this project chose something, from its own record, is why.
 
-**Boundary:** Gathers, weighs and cites outside evidence and reports what it favours and how strongly, without deciding; a single factual lookup needs no run, a decision with open questions is discovery (which calls research), why this project chose something is why, and a durable report on an external codebase is codebase-research.
+**Boundary:** Gathers, weighs and cites outside evidence and reports what it favours and how strongly, without deciding; a single factual lookup needs no run, a decision with open questions is settle-open-questions (which calls research), why this project chose something is why, and a durable report on an external codebase is codebase-research.
 
 <!-- registry:generated traits -->
 - `decision-framing`: State the decision, scope, constraints and material unknowns, and choose sources by what would change the answer.
@@ -41,12 +41,14 @@ Use to answer a question from outside sources gathered, weighed and cited, repor
 <!-- /registry:generated lineage -->
 
 <!-- registry:generated history -->
+- `2026-11-17` **reject** (2026-11-17-deferred-discovery:035): Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3, accepting the report's reject recommendation. Ours scales effort to what the caller …
+- `2026-11-17` **update** (2026-11-17-settle-open-questions:006): Owner ruling of 2026-11-17 (conversation), bead cr-r2pa.4. Its description names settle-open-questions as the caller for a decision with open questions.
 - `2026-11-11` **update** (2026-11-11-discovery:017): Owner ruling L1 of 2026-11-10 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 20 D4 (sections 4.4, 4.6, 5, 6): research becomes the evidence leaf. …
 - `2026-11-11` **update** (2026-11-11-discovery:015): Owner ruling L1 of 2026-11-10 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 20 D3 (section 4.6): the judgment frameworks (Decision Matrix, Build …
 - `2026-11-10` **update** (2026-11-10-renames-splits:130): Owner rulings C of 2026-11-05, I1 and I4 of 2026-11-06 and K of 2026-11-10 (scratchpad/mvp-stack/13/owner-rulings-2026-11-05.md), plan 14a U6. Description boun…
 - `2026-11-09` **adopt-merged** (2026-11-09-pocock-4ae2317:166): Checkpoint at 4ae2317 for the owner's trait rulings: 1 adopt.
 - `2026-10-30` **adopt-merged** (2026-10-30-mattpocock_skills-5beb35b:575) *(superseded)*: Checkpoint at 5beb35b for the owner's trait rulings: 4 adopt, 1 defer.
-- `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:332): Owner deferred the report's reject recommendation, to review the set later: Ours deliberately requires primary sources for high-stakes and changing claims only…
+- `2026-10-30` **defer** (2026-10-30-mattpocock_skills-5beb35b:332) *(superseded)*: Owner deferred the report's reject recommendation, to review the set later: Ours deliberately requires primary sources for high-stakes and changing claims only…
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:331): Same mechanism, looser and deliberate: secondary evidence is weak alone but useful for practice (source-selection.md:19-20).
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:330): Same mechanism, looser and deliberate (SKILL.md:21-23): a single fact needs no file (SKILL.md:9-10).
 - `2026-10-30` **adopt** (2026-10-30-mattpocock_skills-5beb35b:329): Ours binds citations to the claims they support.
@@ -73,5 +75,5 @@ Use to answer a question from outside sources gathered, weighed and cited, repor
 <!-- /registry:generated sources -->
 
 <!-- registry:generated declined -->
-- `mattpocock_skills:skill:skills/engineering/research#claim-source-tracing` (defer): Owner deferred the report's reject recommendation, to review the set later: Ours deliberately requires primary sources for high-stakes and changing claims only…
+- `mattpocock_skills:skill:skills/engineering/research#claim-source-tracing` (reject): Owner ruling 2026-11-17 (conversation), deferred review, bead cr-r2pa.3.3, accepting the report's reject recommendation. Ours scales effort to what the caller …
 <!-- /registry:generated declined -->

@@ -1,0 +1,599 @@
+harness: cursor_plugins
+from_sha: null
+to_sha: 2776ddd
+supersedes:
+- harness_lifecycle/registry/reviews/2026-11-12-upstream-cursor_plugins-2776ddd-batch-p3.yaml
+analysis_critic:
+  by: codex gpt-6.1-sol high (critic-100)
+  date: '2026-11-18'
+  verdict: pass
+  last_critic: null
+comparison_critic:
+  by: codex gpt-6.1-sol high (critic-100)
+  date: '2026-11-18'
+  verdict: pass
+  last_critic: null
+themes: 'Twenty-four rows reopened by the owner. Each was deferred on 2026-11-13 because no
+  unit of ours answers reports in a team chat. Owner ruling 2026-11-18 (conversation), deferred
+  review, bead cr-r2pa.3.3: all 24 are out of scope for now, because the harness ships no
+  chat-facing agent; revisit when we adopt a chat-facing agent.'
+skills:
+  skill:pstack/automations/benny/skills/triage-issue-reports:
+    upstream_tree_hash: dcca688d8d2f3ddd586274f67aea96d04c6175f730706ecef15536412a430c5d
+    accepted: 2776ddd
+    compared_with: triage
+    pairing:
+      overlap:
+        create-verification-skill: 1
+        doc:.repo-context/coding-style.md: 1
+        doc:AGENTS.md: 1
+        grilling: 1
+        settle-open-questions: 1
+        systematic-debugging: 1
+      placement_match:
+      - triage
+      suggested: create-verification-skill
+      purpose_match: none
+      purpose: Upstream classifies one bug report posted in a team chat, files a tracker issue
+        for a clear new bug and replies in the thread. Our triage decides on items already
+        filed in Beads; it files nothing and posts nowhere.
+      flag: suggested differs
+      reason: 'Compared with triage: the same kind of decision on incoming work, though the
+        source and output differ. The computed pick, create-verification-skill, rests on overlap
+        signals only; no unit of ours shares the chat-facing purpose.'
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      fail-closed-run-config:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/triage/SKILL.md:9-13
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now. This is a rule for an agent that takes bug reports from a
+          team chat and answers in it; the harness ships no chat-facing agent, and our triage
+          decides only on beads already filed and posts nowhere (.claude/skills/triage/SKILL.md:9-13).
+          Revisit when we adopt a chat-facing agent.'
+      frozen-source-coordinates:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/triage/SKILL.md:9-13
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now. This is a rule for an agent that takes bug reports from a
+          team chat and answers in it; the harness ships no chat-facing agent, and our triage
+          decides only on beads already filed and posts nowhere (.claude/skills/triage/SKILL.md:9-13).
+          Revisit when we adopt a chat-facing agent.'
+      no-root-post-in-source:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/triage/SKILL.md:9-13
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now. This is a rule for an agent that takes bug reports from a
+          team chat and answers in it; the harness ships no chat-facing agent, and our triage
+          decides only on beads already filed and posts nowhere (.claude/skills/triage/SKILL.md:9-13).
+          Revisit when we adopt a chat-facing agent.'
+      no-cross-post:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/triage/SKILL.md:9-13
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now. This is a rule for an agent that takes bug reports from a
+          team chat and answers in it; the harness ships no chat-facing agent, and our triage
+          decides only on beads already filed and posts nowhere (.claude/skills/triage/SKILL.md:9-13).
+          Revisit when we adopt a chat-facing agent.'
+      thread-parent-preflight:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/triage/SKILL.md:9-13
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now. This is a rule for an agent that takes bug reports from a
+          team chat and answers in it; the harness ships no chat-facing agent, and our triage
+          decides only on beads already filed and posts nowhere (.claude/skills/triage/SKILL.md:9-13).
+          Revisit when we adopt a chat-facing agent.'
+      single-verdict-reply:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/triage/SKILL.md:9-13
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now. This is a rule for an agent that takes bug reports from a
+          team chat and answers in it; the harness ships no chat-facing agent, and our triage
+          decides only on beads already filed and posts nowhere (.claude/skills/triage/SKILL.md:9-13).
+          Revisit when we adopt a chat-facing agent.'
+      coordinator-only-chat-writes:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/triage/SKILL.md:9-13
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now. This is a rule for an agent that takes bug reports from a
+          team chat and answers in it; the harness ships no chat-facing agent, and our triage
+          decides only on beads already filed and posts nowhere (.claude/skills/triage/SKILL.md:9-13).
+          Revisit when we adopt a chat-facing agent.'
+      findings-only-read-only-workers:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/triage/SKILL.md:9-13
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now. This is a rule for an agent that takes bug reports from a
+          team chat and answers in it; the harness ships no chat-facing agent, and our triage
+          decides only on beads already filed and posts nowhere (.claude/skills/triage/SKILL.md:9-13).
+          Revisit when we adopt a chat-facing agent.'
+      worker-isolation-or-coordinator:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/triage/SKILL.md:9-13
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now. This is a rule for an agent that takes bug reports from a
+          team chat and answers in it; the harness ships no chat-facing agent, and our triage
+          decides only on beads already filed and posts nowhere (.claude/skills/triage/SKILL.md:9-13).
+          Revisit when we adopt a chat-facing agent.'
+      strict-issue-create-gate:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/triage/SKILL.md:9-13
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now. This is a rule for an agent that takes bug reports from a
+          team chat and answers in it; the harness ships no chat-facing agent, and our triage
+          decides only on beads already filed and posts nowhere (.claude/skills/triage/SKILL.md:9-13).
+          Revisit when we adopt a chat-facing agent.'
+      whole-report-thread-read:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/triage/SKILL.md:9-13
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now. This is a rule for an agent that takes bug reports from a
+          team chat and answers in it; the harness ships no chat-facing agent, and our triage
+          decides only on beads already filed and posts nowhere (.claude/skills/triage/SKILL.md:9-13).
+          Revisit when we adopt a chat-facing agent.'
+      report-fact-capture:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/triage/SKILL.md:9-13
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now. This is a rule for an agent that takes bug reports from a
+          team chat and answers in it; the harness ships no chat-facing agent, and our triage
+          decides only on beads already filed and posts nowhere (.claude/skills/triage/SKILL.md:9-13).
+          Revisit when we adopt a chat-facing agent.'
+      inspect-attachments-admit-unreadable:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/triage/SKILL.md:9-13
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now. This is a rule for an agent that takes bug reports from a
+          team chat and answers in it; the harness ships no chat-facing agent, and our triage
+          decides only on beads already filed and posts nowhere (.claude/skills/triage/SKILL.md:9-13).
+          Revisit when we adopt a chat-facing agent.'
+      routing-cause-trace:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/triage/SKILL.md:9-13
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now. This is a rule for an agent that takes bug reports from a
+          team chat and answers in it; the harness ships no chat-facing agent, and our triage
+          decides only on beads already filed and posts nowhere (.claude/skills/triage/SKILL.md:9-13).
+          Revisit when we adopt a chat-facing agent.'
+      evidence-based-routing:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/triage/SKILL.md:9-13
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now. This is a rule for an agent that takes bug reports from a
+          team chat and answers in it; the harness ships no chat-facing agent, and our triage
+          decides only on beads already filed and posts nowhere (.claude/skills/triage/SKILL.md:9-13).
+          Revisit when we adopt a chat-facing agent.'
+      no-guessed-route:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/triage/SKILL.md:9-13
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now. This is a rule for an agent that takes bug reports from a
+          team chat and answers in it; the harness ships no chat-facing agent, and our triage
+          decides only on beads already filed and posts nowhere (.claude/skills/triage/SKILL.md:9-13).
+          Revisit when we adopt a chat-facing agent.'
+      route-map-schema:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/triage/SKILL.md:9-13
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now. This is a rule for an agent that takes bug reports from a
+          team chat and answers in it; the harness ships no chat-facing agent, and our triage
+          decides only on beads already filed and posts nowhere (.claude/skills/triage/SKILL.md:9-13).
+          Revisit when we adopt a chat-facing agent.'
+      owner-ping-gate:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/triage/SKILL.md:9-13
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now. This is a rule for an agent that takes bug reports from a
+          team chat and answers in it; the harness ships no chat-facing agent, and our triage
+          decides only on beads already filed and posts nowhere (.claude/skills/triage/SKILL.md:9-13).
+          Revisit when we adopt a chat-facing agent.'
+      tracker-adapter-contract:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/triage/SKILL.md:9-13
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now. This is a rule for an agent that takes bug reports from a
+          team chat and answers in it; the harness ships no chat-facing agent, and our triage
+          decides only on beads already filed and posts nowhere (.claude/skills/triage/SKILL.md:9-13).
+          Revisit when we adopt a chat-facing agent.'
+      already-handled-check:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/triage/SKILL.md:9-13
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now. This is a rule for an agent that takes bug reports from a
+          team chat and answers in it; the harness ships no chat-facing agent, and our triage
+          decides only on beads already filed and posts nowhere (.claude/skills/triage/SKILL.md:9-13).
+          Revisit when we adopt a chat-facing agent.'
+      trusted-verdict-marker:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/triage/SKILL.md:9-13
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now. This is a rule for an agent that takes bug reports from a
+          team chat and answers in it; the harness ships no chat-facing agent, and our triage
+          decides only on beads already filed and posts nowhere (.claude/skills/triage/SKILL.md:9-13).
+          Revisit when we adopt a chat-facing agent.'
+      compensate-orphan-issue:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/triage/SKILL.md:9-13
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now. This is a rule for an agent that takes bug reports from a
+          team chat and answers in it; the harness ships no chat-facing agent, and our triage
+          decides only on beads already filed and posts nowhere (.claude/skills/triage/SKILL.md:9-13).
+          Revisit when we adopt a chat-facing agent.'
+      bounded-follow-up-window:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/triage/SKILL.md:9-13
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now. This is a rule for an agent that takes bug reports from a
+          team chat and answers in it; the harness ships no chat-facing agent, and our triage
+          decides only on beads already filed and posts nowhere (.claude/skills/triage/SKILL.md:9-13).
+          Revisit when we adopt a chat-facing agent.'
+      follow-up-safe-issue-corrections:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/triage/SKILL.md:9-13
+        recommendation: out-of-scope
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          out of scope for now. This is a rule for an agent that takes bug reports from a
+          team chat and answers in it; the harness ships no chat-facing agent, and our triage
+          decides only on beads already filed and posts nowhere (.claude/skills/triage/SKILL.md:9-13).
+          Revisit when we adopt a chat-facing agent.'

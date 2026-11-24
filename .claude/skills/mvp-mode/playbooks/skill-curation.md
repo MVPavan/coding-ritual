@@ -14,7 +14,7 @@ steps:
     when: the evidence is ready
     actions: [{trait: ruling-before-change}, {trait: record-command}, {trait: per-trait-ruling}, {trait: mechanism-rule-policy-entry}]   # the first, third and fourth new; the last two for an upstream release
   - id: skill-curation#4
-    when: a recorded ruling calls for a change
+    when: the owner's ruling calls for a change, recorded first unless it is a whole-capability adoption
     actions: [{trait: isolated-skill-build}, {trait: skill-entries-with-change}, {trait: rewrite-borrowed-ideas}, {trait: writing-idea-destination}, {trait: merge-split-reference-fix}, {trait: retire-stub-one-release}, {trait: pending-adoption-completion}]   # new; the fifth for Merge or split, the sixth for Retire, the last when a pending adoption's edit lands
     calls: [{to: "skill:authoring-for-agents"}]
   - id: skill-curation#5
@@ -59,11 +59,24 @@ The owner picks which agent or model fills the author and critic roles.
 | 2. Evidence | The method for the operation (its reference in the table below; read only the references the applicable branches need, such as `placing.md` then `candidate-evaluation.md` for an upstream source) | A review or sealed report in `harness_lifecycle/registry/reviews/`, or the observed failure |
 | 3. Ruling | The owner decides; the author then records each ruling with `registry.py record`, giving its kind, subject, reason (`--why`) and evidence (one event per trait for an upstream skill) | Ledger events citing the evidence |
 | 4. Building | In a git worktree on its own branch, so running sessions keep the current skills. Edit the skill, its `harness_lifecycle/registry/skills.yaml` entry when placement or boundary change, and its `harness_lifecycle/registry/traits/ours.yaml` entry, then `registry.py build`; records are generated, never edited. Rewrite every borrowed idea in our words by `authoring-for-agents`; never paste upstream text. Writing ideas from a reference harness go into its `writing-principles.md`, never into `harness_lifecycle/prompting-guides/GUIDE.md` | A diff |
-| 5. Verify | The checks in `authoring-for-agents`, `skill-catalog.py --check`, `registry.py build` and `check`; a critic for new or rewritten skill bodies | Recorded results |
+| 5. Verify | The behaviour checks: those in `authoring-for-agents`, `skill-catalog.py --check`, and a critic for new or rewritten skill bodies. Then any adoption event its branch records last (below), then `registry.py build` and `check` | Recorded results |
 | 6. Delivery | Commits through `land`, then merge (the promotion), then `.codex` sync, then `/harness-publish` | A merged commit |
 
-A ruling is recorded before the skill changes. A ruling of `adopt` or
-`adopt-merged` waits until the adopted state exists.
+A `reject`, `defer` or `out-of-scope` is recorded when the owner rules.
+An adoption takes the branch for its kind:
+
+- **Trait adopt** (an upstream skill, ruled trait by trait): the owner's
+  ruling; its `adopt` recorded pending (`pending: <bead>`, registry README
+  §5b), which authorizes the build; build, then the behaviour checks of
+  step 5; then the completing `adopt` (`record --supersedes <pending id>`)
+  in the same change as the edit; then the final `registry.py build` and
+  `check`, which fail while the target lists the trait without it.
+- **Whole-capability `adopt` or `adopt-merged`** (a capability taken whole,
+  or merged into one of ours, with one event): the owner's ruling, which
+  authorizes the build; build, then the behaviour checks of step 5; then the
+  one event, once the adopted state exists; then the final `registry.py
+  build` and `check`. No pending event: the registry allows `pending` only
+  on a trait adopt.
 
 Delivery runs one part at a time, each only with the owner's approval for
 this change: the commits, the merge, a push, the publish. One approval does
@@ -84,8 +97,8 @@ not cover the next, and an instruction not to commit stands.
 Step 7, on every exit, done or stopped: note the bead with the evidence reached and
 a resume line, or close it with the evidence when the change is done; name
 the ledger state (rulings recorded, adoptions still pending, or none); and
-confirm nothing was built without a recorded ruling, reporting anything that
-was.
+confirm nothing was built without the owner's ruling, recorded first except
+for a whole-capability adoption, reporting anything that was.
 
 ## Reply
 

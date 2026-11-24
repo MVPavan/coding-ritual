@@ -1,0 +1,27 @@
+{
+  "_recorded": "M4.2 live trial, 2026-11-21, gh 2.103.0, residue at commit 79b93f9; one reply per mutation, as recorded; sanitised",
+  "data": {
+    "updateIssue": {
+      "issue": {
+        "id": "$node_id"
+      }
+    },
+    "closeIssue": {
+      "issue": {
+        "id": "$node_id"
+      }
+    },
+    "addLabelsToLabelable": {
+      "clientMutationId": null
+    },
+    "removeLabelsFromLabelable": {
+      "clientMutationId": null
+    },
+    "_reopenIssue": "documented, not recorded: the trial sent no reopenIssue (T7 holds instead); the command selects `issue { id }` as for closeIssue, whose recorded payload it takes",
+    "reopenIssue": {
+      "issue": {
+        "id": "$node_id"
+      }
+    }
+  }
+}

@@ -408,21 +408,28 @@ def _skill_tree_hash(skill_dir: Path) -> str:
     edit to any bundled reference, script or asset changes the hash. Files a
     playbook owns belong to that unit and are left out.
     """
+    return hash_files(skill_dir, skill_tree_files(skill_dir))
+
+
+def skill_tree_files(skill_dir: Path) -> list[Path]:
+    """The files a skill's tree hash covers: its folder's, less those a
+    playbook owns. Drift compares exactly these."""
     files = folder_files(skill_dir)
     visible = set(files)
-    return hash_files(
-        skill_dir,
-        [p for p in files if not _owned_by_playbook(p, skill_dir, visible)],
-    )
+    return [p for p in files if not _owned_by_playbook(p, skill_dir, visible)]
 
 
 def _playbook_tree_hash(file: Path) -> str:
     """sha256 over a playbook's file and its reference folder `playbooks/<name>/`
     (F3), so a reference edit changes it."""
+    return hash_files(file.parent, playbook_tree_files(file))
+
+
+def playbook_tree_files(file: Path) -> list[Path]:
+    """The files a playbook's tree hash covers: the file and its reference
+    folder. Drift compares exactly these."""
     refs = file.with_suffix("")
-    return hash_files(
-        file.parent, [file] + (folder_files(refs) if refs.is_dir() else [])
-    )
+    return [file] + (folder_files(refs) if refs.is_dir() else [])
 
 
 def _signature_hash(kind: Kind, name: str, surface: str) -> str:

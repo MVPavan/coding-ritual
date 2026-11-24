@@ -19,7 +19,7 @@ Principles are not skills, so they are not listed here; the router lists them.
 
 ## Model-invocable skills
 
-`authoring-for-agents`, `beads`, `build-a-lever`, `codebase-design`, `decision-trail`, `delegation`, `design-evolve`, `discovery`, `domain-modeling`, `grilling`, `harness-evaluate`, `harness-skill-compare`, `how`, `html-artifact`, `interrogate`, `land`, `model-council`, `mvp-mode`, `performance-optimization`, `perspective-council`, `pr`, `prototype`, `research`, `resolving-merge-conflicts`, `review`, `security`, `statechart`, `systematic-debugging`, `tdd`, `to-plan`, `to-roadmap`, `to-spec`, `tracker`, `unslop`, `wake`, `why`
+`authoring-for-agents`, `beads`, `build-a-lever`, `codebase-design`, `control-loop`, `decision-trail`, `delegation`, `design-evolve`, `domain-modeling`, `grilling`, `harness-evaluate`, `harness-skill-compare`, `how`, `html-artifact`, `interrogate`, `land`, `model-council`, `mvp-mode`, `performance-optimization`, `perspective-council`, `pr`, `prototype`, `research`, `resolving-merge-conflicts`, `review`, `security`, `settle-open-questions`, `statechart`, `systematic-debugging`, `tdd`, `to-plan`, `to-roadmap`, `to-spec`, `tracker`, `unslop`, `wake`, `why`
 
 ## Slash-only workflows
 
@@ -45,7 +45,7 @@ Principles are not skills, so they are not listed here; the router lists them.
 | `/no-comments` | Sweep a scope for comments that should go, judged by principle-no-comments, then fix what the sweep exposes and offer checks for real constraints. |
 | `/recall` | Rebuild recent work in this project from past chats and the shared record (beads, commits) into one brief of where things stand and the next move. |
 | `/receiving-code-review` | Use when explicitly invoking the legacy receiving-code-review entrypoint; incoming feedback is owned by review. |
-| `/reflect` | Review a session, or a sample of a delegated run's sessions, for changes to the agents' instructions, checks and tools that would have prevented its mistakes, and apply the ones the person approves. |
+| `/reflect` | Review a session, a sample of a delegated run's sessions, or on request the project's history of repeated mistakes, for changes to the agents' instructions, checks and tools that would have prevented them, and apply the ones the person approves. |
 | `/restate` | Restate what you take the person's aim and problem to be, then stop. |
 | `/sharpen` | Make a task deeper, not bigger: answer four questions about it, then rewrite the prompt. |
 | `/show-me` | Show the current topic visually, inline in the conversation. |

@@ -1,0 +1,2658 @@
+harness: mattpocock_skills
+from_sha: null
+to_sha: 4ae2317
+supersedes:
+- harness_lifecycle/registry/reviews/2026-11-06-upstream-mattpocock_skills-4ae2317.yaml
+analysis_critic:
+  by: codex gpt-6.2-sol high (critic-101)
+  date: '2026-11-18'
+  verdict: pass
+  last_critic: null
+comparison_critic:
+  by: codex gpt-6.2-sol high (critic-101)
+  date: '2026-11-18'
+  verdict: pass
+  last_critic: null
+themes: 'One hundred and twelve rows reopened by the owner at the Design stage. Owner ruling
+  2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3: the 24 codebase-design and
+  improve-codebase-architecture rows, deferred on 2026-10-30 only so the owner could review
+  the report''s reject recommendation and carried to 4ae2317, are rejected with re-checked
+  citations. The 88 software-factory rows held under the 2026-11-05 (E) provisional hold are
+  deferred instead, because upstream software-factory is still in progress (skills/in-progress/);
+  revisit when it leaves in-progress and review it fresh. Its 11 adopted rows are not reopened.'
+skills:
+  skill:skills/engineering/codebase-design:
+    upstream_tree_hash: d40f025dc1b0f2020663260f38f2bcb8d6ed3523afb11e5fda624b01238677e8
+    accepted: 4ae2317
+    compared_with: codebase-design
+    pairing:
+      overlap:
+        codebase-design: 16
+        delegation: 1
+        doc:.repo-context/coding-style.md: 1
+        doc:AGENTS.md: 1
+        principle-boundary-discipline: 1
+        principle-minimize-reader-load: 3
+        principle-test-behavior-not-implementation: 1
+        prototype: 1
+        tdd: 1
+      placement_match:
+      - codebase-design
+      - design-evolve
+      - domain-modeling
+      - principle-boundary-discipline
+      - principle-exhaust-the-design-space
+      - principle-make-operations-idempotent
+      - principle-minimize-reader-load
+      - principle-model-the-domain
+      - principle-redesign-from-first-principles
+      - principle-separate-before-serializing-shared-state
+      - principle-type-system-discipline
+      - prototype
+      - statechart
+      suggested: codebase-design
+      purpose_match: codebase-design
+      purpose: Upstream gives a deep-module design lens and an optional design-it-twice exercise;
+        our codebase-design is the same lens.
+      flag: null
+      reason: null
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      vocabulary-ban:
+        scope: reconsider
+        change: []
+        fact: variant
+        provider: codebase-design
+        candidates:
+        - project-term-allowance
+        via: project-term-allowance
+        also_in: {}
+        ours:
+        - .claude/skills/codebase-design/SKILL.md:21-22
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report''s reject recommendation. Opposite stance: ours uses established
+          project vocabulary, including API, service or boundary where precise, the very words
+          upstream bans (.claude/skills/codebase-design/SKILL.md:21-22).'
+      interface-is-test-surface:
+        scope: reconsider
+        change: []
+        fact: variant
+        provider: codebase-design
+        candidates:
+        - internal-seams
+        via: internal-seams
+        also_in: {}
+        ours:
+        - .claude/skills/codebase-design/SKILL.md:34-35
+        - .claude/skills/codebase-design/DEEPENING.md:15-16
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report''s reject recommendation. Opposite stance: ours treats internal
+          seams and focused internal tests as valid and complementary to interface tests,
+          not as a sign the module is the wrong shape (.claude/skills/codebase-design/SKILL.md:34-35;
+          .claude/skills/codebase-design/DEEPENING.md:15-16).'
+      two-adapters-rule:
+        scope: reconsider
+        change: []
+        fact: variant
+        provider: codebase-design
+        candidates:
+        - single-adapter-justified
+        via: single-adapter-justified
+        also_in:
+          doc:AGENTS.md: variant
+          principle-minimize-reader-load: variant
+        ours:
+        - .claude/skills/codebase-design/SKILL.md:32-34
+        - .claude/skills/codebase-design/DEEPENING.md:14
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report''s reject recommendation. Opposite stance: encapsulation, ownership
+          or a present testing need can justify an interface with one adapter; more adapters
+          are evidence of variation, not a prerequisite (.claude/skills/codebase-design/SKILL.md:32-34;
+          .claude/skills/codebase-design/DEEPENING.md:14).'
+      replace-dont-layer:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          principle-test-behavior-not-implementation: variant
+          tdd: variant
+        ours:
+        - .claude/skills/codebase-design/DEEPENING.md:15-17
+        - .claude/skills/tdd/references/writing-good-tests.md:32-35
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report''s reject recommendation. Opposite stance: ours keeps focused
+          internal tests beside interface tests and removes an old test only when its behavior
+          is covered elsewhere or intentionally retired, inspecting a changed test rather
+          than deleting it (.claude/skills/codebase-design/DEEPENING.md:15-17; .claude/skills/tdd/references/writing-good-tests.md:32-35).'
+      local-stand-in-testing:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/codebase-design/DEEPENING.md:10
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. Ours allows a real lightweight instance
+          or a faithful fake with integration coverage for differences; prescribing the stand-in
+          is an absolute rule for a context-dependent choice (S-08) (.claude/skills/codebase-design/DEEPENING.md:10).
+      port-with-memory-adapter:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/codebase-design/DEEPENING.md:11
+        - AGENTS.md:35-36
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. Ours asks for an explicit transport
+          contract and injects an adapter only when it isolates a present concern, matching
+          AGENTS.md's present-requirement rule for abstractions; a mandatory in-memory adapter
+          is speculative (.claude/skills/codebase-design/DEEPENING.md:11; AGENTS.md:35-36).
+      external-port-mock-adapter:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/codebase-design/DEEPENING.md:12
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. Ours tests the owned boundary with
+          safe fixtures or fakes and verifies important provider assumptions separately, which
+          a mock adapter alone does not do; a fixed port-and-mock shape is an absolute rule
+          (S-08) (.claude/skills/codebase-design/DEEPENING.md:12).
+      problem-space-framing:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/codebase-design/DESIGN-IT-TWICE.md:5-6
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. Ours already states caller needs,
+          constraints, dependencies and invariants before designing alternatives; a separate
+          user-facing framing step with a sketch adds a recipe step without changing the comparison
+          (S-03) (.claude/skills/codebase-design/DESIGN-IT-TWICE.md:5-6).
+      design-brief-vocabulary:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - AGENTS.md:49-50
+        - .claude/skills/codebase-design/DESIGN-IT-TWICE.md:8-10
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. AGENTS.md already requires every worker
+          brief to carry relevant context pointers, and ours uses design workers only optionally;
+          a skill-specific brief checklist repeats that rule (S-05) (AGENTS.md:49-50; .claude/skills/codebase-design/DESIGN-IT-TWICE.md:8-10).
+  skill:skills/engineering/improve-codebase-architecture:
+    upstream_tree_hash: f0820b18426a7d9a6c823a890988ba0ac70bf0fd596d30d7ef07c88558728c23
+    accepted: 4ae2317
+    compared_with: improve-codebase-architecture
+    pairing:
+      overlap:
+        brief-me: 1
+        codebase-design: 5
+        create-formal-verification-skill: 1
+        delegation: 1
+        doc:AGENTS.md: 2
+        grilling: 1
+        improve-codebase-architecture: 12
+        principle-minimize-reader-load: 1
+        prototype: 1
+        settle-open-questions: 1
+        teach: 1
+        unslop: 2
+      placement_match:
+      - codebase-design
+      - design-evolve
+      - domain-modeling
+      - principle-boundary-discipline
+      - principle-exhaust-the-design-space
+      - principle-make-operations-idempotent
+      - principle-minimize-reader-load
+      - principle-model-the-domain
+      - principle-redesign-from-first-principles
+      - principle-separate-before-serializing-shared-state
+      - principle-type-system-discipline
+      - prototype
+      - statechart
+      suggested: improve-codebase-architecture
+      purpose_match: improve-codebase-architecture
+      purpose: Upstream surveys a codebase for deepening candidates; ours does the same job.
+      flag: null
+      reason: null
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      diagram-patterns:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/improve-codebase-architecture/SKILL.md:25-27
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. Ours uses an inline visual only when
+          it clarifies structure, keeps HTML optional and does not build a report format to
+          fill its components; a catalogue of diagram styles is a recipe for an optional output
+          (S-03) (.claude/skills/improve-codebase-architecture/SKILL.md:25-27).
+      vocabulary-ban:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          codebase-design: variant
+        ours:
+        - .claude/skills/improve-codebase-architecture/SKILL.md:15-16
+        - .claude/skills/codebase-design/SKILL.md:21-22
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. Ours evaluates interfaces with codebase-design's
+          vocabulary, whose deliberate stance lets precise project terms such as API, service
+          or boundary stand; a stricter ban here would contradict it (S-05) (.claude/skills/improve-codebase-architecture/SKILL.md:15-16;
+          .claude/skills/codebase-design/SKILL.md:21-22).
+      no-interfaces-yet:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/improve-codebase-architecture/SKILL.md:25
+        - .claude/skills/improve-codebase-architecture/SKILL.md:33-35
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. Ours ends the review with a concise
+          comparison and its strongest recommendation, and starts an alternative-interface
+          exercise or interview only when requested or already authorized; upstream instead
+          withholds a recommended direction and hands the choice of candidate to the user
+          (.claude/skills/improve-codebase-architecture/SKILL.md:25; .claude/skills/improve-codebase-architecture/SKILL.md:33-35).
+      delegated-codebase-walk:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/improve-codebase-architecture/SKILL.md:13-16
+        - .claude/skills/mvp-mode/SKILL.md:36-43
+        - AGENTS.md:47-48
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. When and whether to delegate is owned
+          by mvp-mode (delegate independent work by default at top level, never further inside
+          a delegated task unless the brief allows it); a fixed delegated walk in this skill
+          would duplicate and override that owner (S-05, U-07) (.claude/skills/improve-codebase-architecture/SKILL.md:13-16;
+          .claude/skills/mvp-mode/SKILL.md:36-43; AGENTS.md:47-48).
+      open-artifact-for-user:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - AGENTS.md:7-8
+        - .claude/skills/html-artifact/SKILL.md:43-46
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. The shared artifact guidance delivers
+          an HTML artifact by link or path and verifies it with the browser tools available;
+          a mandatory launch for the requester is a host-dependent side effect beyond a review's
+          inspection-and-report authority (AGENTS.md:7-8; .claude/skills/html-artifact/SKILL.md:43-46).
+      cdn-only-scripts:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/improve-codebase-architecture/HTML-REPORT.md:3-5
+        - .claude/skills/html-artifact/SKILL.md:16-17
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. Ours routes any HTML report through
+          the shared artifact guidance, which requires a file that works offline with no external
+          runtime assets; loading CDN scripts is the opposite choice (.claude/skills/improve-codebase-architecture/HTML-REPORT.md:3-5;
+          .claude/skills/html-artifact/SKILL.md:16-17).
+      document-during-interview:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          grilling: variant
+          settle-open-questions: variant
+        ours:
+        - .claude/skills/improve-codebase-architecture/SKILL.md:10-11
+        - .claude/skills/improve-codebase-architecture/SKILL.md:33-35
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report''s reject recommendation. Opposite stance: a review authorizes
+          no glossary changes, and an interview or domain-document update happens only when
+          requested or already authorized, through the shared skill (.claude/skills/improve-codebase-architecture/SKILL.md:10-11;
+          .claude/skills/improve-codebase-architecture/SKILL.md:33-35).'
+      report-header-legend:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/improve-codebase-architecture/SKILL.md:25-27
+        - .claude/skills/improve-codebase-architecture/HTML-REPORT.md:3-5
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. A fixed header and legend is presentation
+          for an optional report, which the shared artifact guidance owns; it adds a recipe
+          step without changing the review (S-03) (.claude/skills/improve-codebase-architecture/SKILL.md:25-27;
+          .claude/skills/improve-codebase-architecture/HTML-REPORT.md:3-5).
+      terse-card-prose:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/authoring-for-agents/references/writing-principles.md:32-36
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. A six-word bullet cap is an invented
+          numerical threshold, which the writing principles prune; U-06 trims filler while
+          preserving substance (.claude/skills/authoring-for-agents/references/writing-principles.md:32-36).
+      redraw-not-explain:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/improve-codebase-architecture/SKILL.md:25-27
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. A diagram-editing rule for an optional
+          report adds no decision value to the review (S-03); ours already uses a visual only
+          when it clarifies structure (.claude/skills/improve-codebase-architecture/SKILL.md:25-27).
+      visual-restraint:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/improve-codebase-architecture/HTML-REPORT.md:3-5
+        - .claude/skills/html-artifact/references/visual-style.md:10
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. Ours's report file adds only the content
+          contract and leaves presentation to the shared artifact guidance, whose visual style
+          already keeps colour restrained; a styling rule here would duplicate it (S-05) (.claude/skills/improve-codebase-architecture/HTML-REPORT.md:3-5;
+          .claude/skills/html-artifact/references/visual-style.md:10).
+      compress-to-bullets:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          unslop: variant
+        ours:
+        - .claude/skills/improve-codebase-architecture/SKILL.md:25
+        - .claude/skills/authoring-for-agents/references/writing-principles.md:32-36
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. Blanket conversion to bullets is a
+          format quota; ours asks for a concise comparison, and U-06 and O-06 set structure
+          by audience while preserving substance (.claude/skills/improve-codebase-architecture/SKILL.md:25;
+          .claude/skills/authoring-for-agents/references/writing-principles.md:32-36).
+      candidate-before-after-visual:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/improve-codebase-architecture/SKILL.md:25-27
+        - .claude/skills/improve-codebase-architecture/HTML-REPORT.md:8-9
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. Ours draws a visual only when it clarifies
+          structure and requires any before/after diagram to show a real structural difference;
+          a mandatory diagram per candidate fills a format (.claude/skills/improve-codebase-architecture/SKILL.md:25-27;
+          .claude/skills/improve-codebase-architecture/HTML-REPORT.md:8-9).
+      candidate-dependency-tag:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours:
+        - .claude/skills/codebase-design/DEEPENING.md:7-12
+        - .claude/skills/authoring-for-agents/references/writing-principles.md:32-36
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report's reject recommendation. The dependency classification itself
+          is ours through codebase-design's dependency table; a per-candidate label is card
+          formatting that changes no recommendation (Pruning) (.claude/skills/codebase-design/DEEPENING.md:7-12;
+          .claude/skills/authoring-for-agents/references/writing-principles.md:32-36).
+      candidate-constraint-interview:
+        scope: reconsider
+        change: []
+        fact: variant
+        provider: improve-codebase-architecture
+        candidates:
+        - review-no-auto-followup
+        via: review-no-auto-followup
+        also_in: {}
+        ours:
+        - .claude/skills/improve-codebase-architecture/SKILL.md:33-35
+        recommendation: reject
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: null
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3,
+          accepting the report''s reject recommendation. Opposite stance: ours runs an interview
+          only when requested or already authorized and does not automatically enter a grilling
+          loop after delivering the review (.claude/skills/improve-codebase-architecture/SKILL.md:33-35).'
+  skill:skills/in-progress/software-factory:
+    upstream_tree_hash: 484bc782e7b51e9bfa69f2a24f3ae0ee11870bb562cd8ad368222bc3eae63748
+    accepted: 4ae2317
+    compared_with: none
+    pairing:
+      overlap:
+        doc:.claude/skills/mvp-mode/playbooks/autonomous-run.md: 10
+        doc:AGENTS.md: 2
+        research: 2
+        review: 1
+        sharpen: 1
+      placement_match:
+      - codebase-design
+      - design-evolve
+      - domain-modeling
+      - principle-boundary-discipline
+      - principle-exhaust-the-design-space
+      - principle-make-operations-idempotent
+      - principle-minimize-reader-load
+      - principle-model-the-domain
+      - principle-redesign-from-first-principles
+      - principle-separate-before-serializing-shared-state
+      - principle-type-system-discipline
+      - prototype
+      - statechart
+      suggested: research
+      purpose_match: none
+      purpose: Upstream is a vocabulary and checklist for designing a system of agents that
+        turns tickets, pull requests and clocks into merged code on remote machines. Nothing
+        of ours designs such a system; the autonomous-run playbook runs one local loop and
+        took only the brakes and task questions.
+      flag: suggested differs
+      reason: No skill of ours designs agent factories; the playbook that took some rows is
+        not a skill and cannot be compared. Suggested research by the computed signals only.
+    analysis:
+      blind: []
+      mapping: []
+    traits:
+      closed-term-set:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      avoided-term-correction:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      define-task-once:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      three-trigger-classes:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      opaque-run-unit:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      run-chaining-channels:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      run-ends-instead-of-waiting:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      disposable-runner:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      memory-only-in-services:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      tracker-as-human-interface:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      ticket-source-slot:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      orchestrator-run-states:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      deliberate-none-observability:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      observability-reaches-runs-via-tickets:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      service-slots-and-tasks:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      git-host-slot:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      start-from-user-problem:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      review-catches-become-checks:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      one-trigger-at-a-time:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      throttled-trigger-ramp:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      capped-run-loops:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      reference-design-comparison:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      dated-survey-as-orientation:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      buy-services-build-tasks:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      every-slot-named:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      problem-indexed-task-catalogue:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      grow-by-chaining:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      explore-triage-task:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      ticket-implementer-task:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      automated-review-task:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      rework-fixes-only-findings:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      rework-push-rereviewed:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      spec-decompose-task:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      self-chaining-implementer:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      exception-list-ratchet:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      daily-ratchet-task:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      one-ratchet-change-a-day:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      prelabelled-feedback-tickets:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      monitor-ticket-lifecycle:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      failed-run-fix-task:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      no-chain-from-failed-fix:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      factory-changes-need-human-review:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      nightly-architecture-scan-task:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      factory-retro-task:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      factory-retro-throttle:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      primary-source-preference:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          doc:AGENTS.md: variant
+          research: present
+          sharpen: variant
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      fastest-changing-facts-first:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      vendor-claim-testing:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in:
+          research: present
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      type-traits-over-survey-figures:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      ask-which-slots-a-product-fills:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      tracker-type-criteria:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      build-own-tracker-last:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      api-filing-for-outsiders:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      tracker-routing-by-type:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      stream-progress-into-ticket:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      repo-tickets-as-run-memory:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      tracker-slot-questions:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      app-identity-for-chained-runs:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      late-context-on-pull-request:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      ack-webhook-then-start-run:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      batched-webhook-workaround:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      git-host-type-criteria:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      host-operating-costs:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      vendor-agents-decision:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      bot-check-vote-human-review-vote:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      ask-vendor-for-unpublished-limits:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      pilot-on-mirror-with-fallback:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      per-run-scoped-tokens:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      git-host-slot-questions:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      check-plan-includes-gates:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      bot-identity-rate-budget:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      orchestrator-joins-event-streams:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      runner-type-criteria:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      runner-per-task:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      per-ticket-concurrency-lock:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      disposability-by-runner-type:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      run-timeout-backstop:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      cache-only-persistence:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      runner-slot-questions:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      runner-network-and-secrets-question:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      observability-type-criteria:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      self-host-to-keep-transcripts:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      gateway-plus-tracing:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      observability-data-hooks:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      otel-as-common-transport:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      per-run-tracing-budget:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      nest-run-in-caller-trace:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'
+      observability-slot-questions:
+        scope: reconsider
+        change: []
+        fact: absent
+        provider: null
+        candidates: []
+        via: null
+        also_in: {}
+        ours: []
+        recommendation: defer
+        delivery: null
+        target: null
+        modification: null
+        rewording: null
+        revisit_when: Upstream software-factory leaves skills/in-progress/ for a released
+          skills folder; then review it fresh and rule these traits.
+        policy: null
+        guide: null
+        reason: 'Owner ruling 2026-11-18 (conversation), deferred review, bead cr-r2pa.3.3:
+          deferred, replacing the 2026-11-05 (E) provisional hold. Upstream software-factory
+          is still in progress upstream (skills/in-progress/), so its factory design may change
+          before release; revisit when it leaves in-progress and review it fresh.'

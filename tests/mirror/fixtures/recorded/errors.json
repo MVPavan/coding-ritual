@@ -1,0 +1,197 @@
+{
+  "_recorded": "M4.2 live trial, 2026-11-21, gh 2.103.0, residue at commit 79b93f9; keys marked _recorded were caused safely in the trial (evidence/errors.md); the rest are documented, not recorded: they keep GitHub's documented bodies and the exit status and error format the safe recordings show (exit 1, the body on stdout, `gh: <message>` on stderr)",
+  "unauthenticated": {
+    "_recorded": "case err-unauthenticated",
+    "exit": 4,
+    "stderr": "To get started with GitHub CLI, please run:  gh auth login\nAlternatively, populate the GH_TOKEN environment variable with a GitHub API authentication token.\n"
+  },
+  "rate_limited_403": {
+    "_documented": "cannot be caused on purpose",
+    "exit": 1,
+    "status": "HTTP/2.0 403 Forbidden",
+    "headers": {
+      "X-Ratelimit-Limit": "5000",
+      "X-Ratelimit-Remaining": "0",
+      "X-Ratelimit-Used": "5000",
+      "X-Ratelimit-Reset": "$reset",
+      "X-Ratelimit-Resource": "core"
+    },
+    "body": {
+      "message": "API rate limit exceeded for user ID 1000001.",
+      "documentation_url": "https://docs.github.com/rest/overview/rate-limits-for-the-rest-api"
+    },
+    "stderr": "gh: API rate limit exceeded for user ID 1000001. (HTTP 403)\n"
+  },
+  "rate_limited_429": {
+    "_documented": "cannot be caused on purpose",
+    "exit": 1,
+    "status": "HTTP/2.0 429 Too Many Requests",
+    "headers": {
+      "Retry-After": "60",
+      "X-Ratelimit-Limit": "5000",
+      "X-Ratelimit-Remaining": "0",
+      "X-Ratelimit-Reset": "$reset"
+    },
+    "body": {
+      "message": "You have exceeded a secondary rate limit. Please wait a few minutes before you try again.",
+      "documentation_url": "https://docs.github.com/rest/overview/rate-limits-for-the-rest-api#about-secondary-rate-limits"
+    },
+    "stderr": "gh: You have exceeded a secondary rate limit. Please wait a few minutes before you try again. (HTTP 429)\n"
+  },
+  "offline": {
+    "_recorded": "case err-offline",
+    "exit": 1,
+    "stderr": "error connecting to api.$host\ncheck your internet connection or https://githubstatus.com\n"
+  },
+  "not_found": {
+    "_recorded": "case err-not_found",
+    "exit": 1,
+    "body": {
+      "message": "Not Found",
+      "documentation_url": "https://docs.github.com/rest/repos/repos#get-a-repository",
+      "status": "404"
+    },
+    "stderr": "gh: Not Found (HTTP 404)\n"
+  },
+  "bad_gateway": {
+    "_documented": "cannot be caused on purpose",
+    "exit": 1,
+    "body": {
+      "message": "Server Error"
+    },
+    "stderr": "gh: HTTP 502: Bad Gateway (https://api.$host/graphql)\n"
+  },
+  "error_after_write": {
+    "_documented": "cannot be caused on purpose",
+    "exit": 1,
+    "body": {
+      "data": null,
+      "errors": [
+        {
+          "message": "Something went wrong while executing your query. This may be the result of a timeout, or it could be a GitHub bug. Please include `0000:0000:000000:000000:00000000` when reporting this issue."
+        }
+      ]
+    },
+    "stderr": "gh: Something went wrong while executing your query. This may be the result of a timeout, or it could be a GitHub bug.\n"
+  },
+  "field_error_after_write": {
+    "_documented": "cannot be caused on purpose",
+    "exit": 1,
+    "body": {
+      "data": {
+        "createIssue": null
+      },
+      "errors": [
+        {
+          "path": [
+            "createIssue",
+            "issue",
+            "author"
+          ],
+          "extensions": {
+            "code": "fieldResolutionFailed"
+          },
+          "locations": [
+            {
+              "line": 1,
+              "column": 80
+            }
+          ],
+          "message": "Could not resolve the author of the new issue."
+        }
+      ]
+    },
+    "stderr": "gh: Could not resolve the author of the new issue.\n"
+  },
+  "internal_error_after_write": {
+    "_documented": "cannot be caused on purpose",
+    "exit": 1,
+    "body": {
+      "data": null,
+      "errors": [
+        {
+          "extensions": {
+            "code": "INTERNAL_SERVER_ERROR"
+          },
+          "message": "Something went wrong while executing your query."
+        }
+      ]
+    },
+    "stderr": "gh: Something went wrong while executing your query.\n"
+  },
+  "graphql_rate_limited": {
+    "_documented": "cannot be caused on purpose",
+    "exit": 1,
+    "body": {
+      "data": null,
+      "errors": [
+        {
+          "type": "RATE_LIMITED",
+          "message": "API rate limit exceeded for user ID 1000001."
+        }
+      ]
+    },
+    "stderr": "gh: API rate limit exceeded for user ID 1000001.\n"
+  },
+  "graphql_rate_limited_exit_0": {
+    "_documented": "cannot be caused on purpose",
+    "exit": 0,
+    "body": {
+      "data": null,
+      "errors": [
+        {
+          "extensions": {
+            "code": "RATE_LIMITED"
+          },
+          "message": "API rate limit exceeded for user ID 1000001."
+        }
+      ]
+    },
+    "stderr": ""
+  },
+  "lost_response": {
+    "_documented": "lost_response comes from the T11 fault wrapper",
+    "exit": 1,
+    "stderr": "Post \"https://api.$host/graphql\": unexpected EOF\n"
+  },
+  "graphql_rate_limited_partial": {
+    "_documented": "cannot be caused on purpose",
+    "exit": 1,
+    "body": {
+      "data": {
+        "node": null
+      },
+      "errors": [
+        {
+          "type": "RATE_LIMITED",
+          "path": [
+            "node",
+            "comments"
+          ],
+          "message": "API rate limit exceeded for user ID 1000001."
+        }
+      ]
+    },
+    "stderr": "gh: API rate limit exceeded for user ID 1000001.\n"
+  },
+  "graphql_rate_limited_partial_exit_0": {
+    "_documented": "cannot be caused on purpose",
+    "exit": 0,
+    "body": {
+      "data": {
+        "node": null
+      },
+      "errors": [
+        {
+          "type": "RATE_LIMITED",
+          "path": [
+            "node",
+            "comments"
+          ],
+          "message": "API rate limit exceeded for user ID 1000001."
+        }
+      ]
+    },
+    "stderr": ""
+  }
+}

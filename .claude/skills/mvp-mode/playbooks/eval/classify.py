@@ -20,12 +20,13 @@ intended file was read counts. The workspace is the `cwd` of the log's
   head, tail, sed, less, nl, a later `cat` and any quoted file name. A person reads
   these; they never join `reads`;
 - an Edit or Write counts when it succeeded, and a shell write when its command
-  matched and a result came back.
+  matched and its result is not an error. A matching shell write whose result is
+  an error is kept as an `attempt`, reported under `edit_attempts`, never `edits`.
 
 An event with a non-null `parent_tool_use_id` belongs to a delegate. Its calls
-never enter `steps`, `skills`, `reads`, `unproven`, `edits` or `commands`; what it
-provably read is reported as `delegate_reads`, and the parent's own call stays in
-`subagents`.
+never enter `steps`, `skills`, `reads`, `unproven`, `edits`, `edit_attempts` or
+`commands`; what it provably read is reported as `delegate_reads`, and the
+parent's own call stays in `subagents`.
 
 `steps` follows call order. Calls in one assistant message ran in parallel, so
 their order says nothing about which finished first.
@@ -179,12 +180,14 @@ def read_evidence(
     return "unproven"
 
 
-def edit_label(
+def edit_evidence(
     name: str,
     inp: dict[str, Any],
     result: dict[str, Any] | None,
     patterns: dict[str, Any],
 ) -> str | None:
+    """`edit:<label>` for a write that succeeded, `attempt:<label>` for a matching
+    shell write whose result is an error, or None."""
     if result is None:
         return None
     for label, pattern in patterns.get("edits", {}).items():
@@ -192,19 +195,19 @@ def edit_label(
             if not result["error"] and re.search(
                 pattern["path"], inp.get("file_path", "")
             ):
-                return str(label)
+                return f"edit:{label}"
         elif name == "Bash" and "bash_write" in pattern:
             command = inp.get("command", "")
             if re.search(pattern["path"], command) and re.search(
                 pattern["bash_write"], command
             ):
-                return str(label)
+                return f"{'attempt' if result['error'] else 'edit'}:{label}"
     return None
 
 
 def steps_of(events: Iterable[dict[str, Any]], patterns: dict[str, Any]) -> list[str]:
     """The candidate's own evidence in call order: `skill:`, `read:`, `unproven:`,
-    `edit:`, `command:`, `subagent:`."""
+    `edit:`, `attempt:`, `command:`, `subagent:`."""
     events = list(events)
     cwd = workspace(events)
     steps: list[str] = []
@@ -220,9 +223,9 @@ def steps_of(events: Iterable[dict[str, Any]], patterns: dict[str, Any]) -> list
             evidence = read_evidence(name, inp, result, pattern, cwd)
             if evidence is not None:
                 steps.append(f"{evidence}:{label}")
-        edit = edit_label(name, inp, result, patterns)
+        edit = edit_evidence(name, inp, result, patterns)
         if edit is not None:
-            steps.append(f"edit:{edit}")
+            steps.append(edit)
         if name == "Bash" and result is not None:
             steps += [
                 f"command:{label}"
@@ -266,6 +269,7 @@ def classify(path: Path, patterns: dict[str, Any]) -> dict[str, Any]:
         "unproven": counts("unproven"),
         "delegate_reads": delegate_reads(events, patterns),
         "edits": counts("edit"),
+        "edit_attempts": counts("attempt"),
         "commands": counts("command"),
         "subagents": values("subagent"),
         "steps": steps,
