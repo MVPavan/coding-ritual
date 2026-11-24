@@ -42,6 +42,8 @@ RUN_ID=$(date -u +%Y%m%dT%H%M%SZ)
 BRANCH="$BRANCH_PREFIX/$RUN_ID"
 PY=python3
 export PYTHONDONTWRITEBYTECODE=1
+# Bead writes are signed by the loop, never by the git user, unless the caller names an actor.
+export BEADS_ACTOR="${BEADS_ACTOR:-loop:$LOOP_NAME}"
 # Checks in the run's worktree use the main checkout's environment instead of building their own.
 if [ -x "$ROOT/.venv/bin/python" ]; then export UV_PROJECT_ENVIRONMENT="$ROOT/.venv"; fi
 
